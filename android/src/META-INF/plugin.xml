@@ -340,6 +340,8 @@
     <compiler.buildTargetScopeProvider implementation="org.jetbrains.android.compiler.AndroidBuildTargetScopeProvider"/>
 
     <treeStructureProvider implementation="org.jetbrains.android.projectView.ResourceMergerTreeStructureProvider"/>
+    <editorNotificationProvider implementation="org.jetbrains.android.projectView.ResourceQualifierSwitcher"/>
+
   </extensions>
 
   <extensionPoints>
