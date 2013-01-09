@@ -13,23 +13,25 @@
     <orderEntry type="module-library" exported="">
       <library name="android-sdk-tools-jps">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../lib/sdklib.jar!/" />
-          <root url="jar://$MODULE_DIR$/../lib/common.jar!/" />
           <root url="jar://$MODULE_DIR$/../lib/jarutils.jar!/" />
-          <root url="jar://$MODULE_DIR$/../lib/androidprefs.jar!/" />
-          <root url="jar://$MODULE_DIR$/../lib/layoutlib_api.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MODULE_DIR$/../lib/src/sdklib_src.zip!/src" />
-          <root url="jar://$MODULE_DIR$/../lib/src/common_src.zip!/src" />
           <root url="jar://$MODULE_DIR$/../lib/src/jarutils.zip!/src" />
-          <root url="jar://$MODULE_DIR$/../lib/src/androidprefs_src.zip!/src" />
-          <root url="jar://$MODULE_DIR$/../lib/src/layoutlib_api_src.zip!/src" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="library" name="NanoXML" level="project" />
+    <orderEntry type="module" module-name="common" exported="" />
+    <orderEntry type="module" module-name="ddmlib" exported="" />
+    <orderEntry type="module" module-name="dvlib" exported="" />
+    <orderEntry type="module" module-name="layoutlib-api" exported="" />
+    <orderEntry type="module" module-name="lint-api" exported="" />
+    <orderEntry type="module" module-name="lint-checks" exported="" />
+    <orderEntry type="module" module-name="ninepatch" exported="" />
+    <orderEntry type="module" module-name="sdk_common" exported="" />
+    <orderEntry type="module" module-name="sdklib" exported="" />
+    <orderEntry type="module" module-name="lint-cli" exported="" />
   </component>
 </module>
 

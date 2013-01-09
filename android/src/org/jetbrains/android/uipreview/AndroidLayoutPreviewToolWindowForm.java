@@ -17,7 +17,10 @@ package org.jetbrains.android.uipreview;
 
 
 import com.android.SdkConstants;
-import com.android.ide.common.resources.configuration.*;
+import com.android.ide.common.resources.configuration.DeviceConfigHelper;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.resources.configuration.LanguageQualifier;
+import com.android.ide.common.resources.configuration.RegionQualifier;
 import com.android.resources.NightMode;
 import com.android.resources.ResourceType;
 import com.android.resources.ScreenSize;
@@ -69,6 +72,9 @@ import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
 
+import static com.android.sdklib.devices.DeviceManager.DEFAULT_DEVICES;
+import static com.android.sdklib.devices.DeviceManager.VENDOR_DEVICES;
+
 /**
  * @author Eugene.Kudelevsky
  */
@@ -101,7 +107,6 @@ class AndroidLayoutPreviewToolWindowForm implements Disposable {
   private PsiFile myFile;
 
   private AndroidPlatform myPrevPlatform = null;
-  private final DeviceManager myLayoutDeviceManager = new DeviceManager(new MessageBuildingSdkLog());
 
   private final UserDeviceManager myUserDeviceManager = new UserDeviceManager() {
     @Override
@@ -646,8 +651,8 @@ class AndroidLayoutPreviewToolWindowForm implements Disposable {
     final List<Device> devices;
     if (sdkData != null) {
       devices = new ArrayList<Device>();
-      devices.addAll(myLayoutDeviceManager.getDefaultDevices());
-      devices.addAll(myLayoutDeviceManager.getVendorDevices(sdkData.getLocation()));
+      DeviceManager deviceManager = sdkData.getDeviceManager();
+      devices.addAll(deviceManager.getDevices((DEFAULT_DEVICES | VENDOR_DEVICES)));
       devices.addAll(myUserDeviceManager.parseUserDevices(new MessageBuildingSdkLog()));
     }
     else {

@@ -29,17 +29,13 @@ public class MessageBuildingSdkLog implements ILogger {
 
   private final StringBuilder builder = new StringBuilder();
 
-  public void warning(String warningFormat, Object... args) {
-    if (warningFormat != null) {
-      LOG.info(String.format(warningFormat, args));
-    }
+  public void warning(@NonNull String warningFormat, Object... args) {
+    LOG.info(String.format(warningFormat, args));
   }
 
   @Override
   public void info(@NonNull String msgFormat, Object... args) {
-    if (msgFormat != null) {
-      LOG.debug(String.format(msgFormat, args));
-    }
+    LOG.debug(String.format(msgFormat, args));
   }
 
   @Override
