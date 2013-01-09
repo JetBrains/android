@@ -17,6 +17,7 @@
 package org.jetbrains.android.sdk;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.utils.ILogger;
 
 /**
@@ -27,7 +28,8 @@ import com.android.utils.ILogger;
 * To change this template use File | Settings | File Templates.
 */
 public class EmptySdkLog implements ILogger {
-  public void warning(String warningFormat, Object... args) {
+  @Override
+  public void warning(@NonNull String warningFormat, Object... args) {
   }
 
   @Override
@@ -38,6 +40,7 @@ public class EmptySdkLog implements ILogger {
   public void verbose(@NonNull String msgFormat, Object... args) {
   }
 
-  public void error(Throwable t, String errorFormat, Object... args) {
+  @Override
+  public void error(@Nullable Throwable t, String errorFormat, Object... args) {
   }
 }

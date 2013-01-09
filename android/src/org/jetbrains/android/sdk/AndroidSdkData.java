@@ -24,6 +24,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.SdkManager;
+import com.android.sdklib.devices.DeviceManager;
 import com.android.utils.ILogger;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.application.ApplicationManager;
@@ -69,6 +70,8 @@ public class AndroidSdkData {
 
   private final int myPlatformToolsRevision;
   private final int mySdkToolsRevision;
+
+  private DeviceManager myLayoutDeviceManager;
 
   public AndroidSdkData(@NotNull SdkManager sdkManager, @NotNull String sdkDirOsPath) {
     mySdkManager = sdkManager;
@@ -162,6 +165,15 @@ public class AndroidSdkData {
       }
     }
     return sdkData;
+  }
+
+  @NotNull
+  public DeviceManager getDeviceManager() {
+    if (myLayoutDeviceManager == null) {
+      myLayoutDeviceManager = DeviceManager.createInstance(getLocation(), new MessageBuildingSdkLog());
+    }
+
+    return myLayoutDeviceManager;
   }
 
   @Override
