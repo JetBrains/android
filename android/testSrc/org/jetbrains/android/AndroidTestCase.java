@@ -75,7 +75,7 @@ public abstract class AndroidTestCase extends UsefulTestCase {
     return PluginPathManager.getPluginHomePath("android") + "/testData";
   }
 
-  private static String getTestSdkPath() {
+  public static String getTestSdkPath() {
     return getTestDataPath() + "/sdk1.5";
   }
 
