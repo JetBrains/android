@@ -338,6 +338,8 @@
     <predefinedCodeStyle implementation="org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle"/>
     <editorNotificationProvider implementation="org.jetbrains.android.formatter.AndroidCodeStyleNotificationProvider"/>
     <compiler.buildTargetScopeProvider implementation="org.jetbrains.android.compiler.AndroidBuildTargetScopeProvider"/>
+
+    <treeStructureProvider implementation="org.jetbrains.android.projectView.ResourceMergerTreeStructureProvider"/>
   </extensions>
 
   <extensionPoints>
