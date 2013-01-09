@@ -1,0 +1,48 @@
+<!--
+  ~ Copyright 2000-2013 JetBrains s.r.o.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<component>
+  <version codename="Community Edition" major="1" minor="0" eap="true"/>
+  <company name="Google" url="http://developer.android.com"/>
+  <build number="__BUILD_NUMBER__" date="__BUILD_DATE__"/>
+  <install-over minbuild="123.1" maxbuild="123.9999" version="12"/>
+  <logo url="/idea_community_logo.png" textcolor="ffffff" progressColor="ffaa16" progressY="236" progressTailIcon="/community_progress_tail.png"/>
+  <about url="/idea_community_about.png" foreground="ffffff"/>
+  <icon size32="/icon_CE.png" size16="/icon_CEsmall.png" size32opaque="/icon_CEwhite.png" size12="/toolwindows/toolWindowProject.png"/>
+  <package code="__PACKAGE_CODE__"/>
+  <names product="AndroidIDE" fullname="Android IDE" script="idea"/>
+
+  <welcome-screen logo-url="/Logo_welcomeScreen.png"
+                  caption-url="/welcomeCaption_community.png" 
+                  slogan-url="/developSlogan_community.png"/>
+
+  <editor background-url="/idea_logo_background.png"/>
+
+  <update-urls check="http://www.jetbrains.com/updates/updates.xml"
+               patches="http://download.jetbrains.com/idea/"/>
+
+  <help file="ideahelp.jar" root="idea"/>
+  <documentation url="http://www.jetbrains.com/idea/documentation"/>
+  <support url="http://www.jetbrains.com/support/idea/index.html"/>
+  <feedback eap-url="http://youtrack.jetbrains.net"
+            release-url="http://www.jetbrains.com/feedback/feedback.jsp?product=IDEA&amp;build=$BUILD&amp;timezone=$TIMEZONE&amp;eval=$EVAL"/>
+  <plugins url="http://plugins.intellij.net"/>
+  <whatsnew url="http://www.jetbrains.com/idea/whatsnew/index.html"/>
+  <keymap win="http://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard.pdf"
+          mac="http://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard_Mac.pdf"/>
+
+  <plugins-page category="VCS Integration" title="Select VCS Integration Plugins"/>
+  <plugins-page title="Select Other Plugins"/>
+</component>
