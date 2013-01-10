@@ -315,8 +315,8 @@ public class AndroidPackagingBuilder extends TargetBuilder<BuildRootDescriptor, 
 
     boolean success = true;
 
-    AndroidFileSetStorage apkFileSetStorage = null;
-    AndroidApkBuilderConfigStateStorage apkBuilderConfigStateStorage = null;
+    AndroidFileSetStorage apkFileSetStorage;
+    AndroidApkBuilderConfigStateStorage apkBuilderConfigStateStorage;
 
     final String apkFileSetStorageName = "apk_builder_file_set" + (release ? "_release" : "_dev");
     final AndroidFileSetStorage.Provider fileSetStorageProvider = new AndroidFileSetStorage.Provider(apkFileSetStorageName);
