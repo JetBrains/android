@@ -544,13 +544,6 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
       final IAndroidTarget target = moduleData.getPlatform().getTarget();
 
       try {
-        /*if (!needToRunAaptCompilation(extension)) {
-          if (!clearDirectoryIfNotEmpty(aptOutputDirectory, context, ANDROID_APT_COMPILER)) {
-            success = false;
-          }
-          continue;
-        }*/
-
         final String[] resPaths = AndroidJpsUtil.collectResourceDirsForCompilation(extension, false, context);
         if (resPaths.length == 0) {
           // there is no resources in the module
@@ -685,10 +678,6 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
     }
     return true;
   }
-
-  /*private static boolean needToRunAaptCompilation(JpsAndroidModuleExtension extension) {
-    return !extension.isRunProcessResourcesMavenTask() || !AndroidJpsUtil.isMavenizedModule(extension.getModule());
-  }*/
 
   private static boolean deleteAndMarkRecursively(@NotNull File dir, @NotNull CompileContext context, @NotNull String compilerName)
     throws IOException {

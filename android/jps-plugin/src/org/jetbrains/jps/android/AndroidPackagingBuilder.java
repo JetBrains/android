@@ -246,22 +246,19 @@ public class AndroidPackagingBuilder extends TargetBuilder<BuildRootDescriptor, 
 
     final BuildDataManager dataManager = context.getProjectDescriptor().dataManager;
     final boolean releaseBuild = AndroidJpsUtil.isReleaseBuild(context);
-    AndroidFileSetStorage resourcesStorage;
-    AndroidFileSetStorage assetsStorage;
-    AndroidFileSetStorage manifestStorage;
 
     final String resourcesStorageName = releaseBuild ? "resources_packaging_release" : "resources_packaging_dev";
     final AndroidFileSetStorage.Provider resourcesStorageProvider = new AndroidFileSetStorage.Provider(resourcesStorageName);
-    resourcesStorage = dataManager.getStorage(target, resourcesStorageProvider);
+    final AndroidFileSetStorage resourcesStorage = dataManager.getStorage(target, resourcesStorageProvider);
 
     final String assetsStorageName = releaseBuild ? "assets_packaging_release" : "assets_packaging_dev";
     final AndroidFileSetStorage.Provider assetsStorageProvider = new AndroidFileSetStorage.Provider(assetsStorageName);
-    assetsStorage = dataManager.getStorage(target, assetsStorageProvider);
+    final AndroidFileSetStorage assetsStorage = dataManager.getStorage(target, assetsStorageProvider);
 
     // todo: replace by target-based storage!
     final String manifestStorageName = releaseBuild ? "manifest_packaging_release" : "manifest_packaging_dev";
     final AndroidFileSetStorage.Provider manifestStorageProvider = new AndroidFileSetStorage.Provider(manifestStorageName);
-    manifestStorage = dataManager.getStorage(target, manifestStorageProvider);
+    final AndroidFileSetStorage manifestStorage = dataManager.getStorage(target, manifestStorageProvider);
 
     final Set<JpsModule> modulesToUpdateState = new HashSet<JpsModule>();
 
@@ -315,17 +312,15 @@ public class AndroidPackagingBuilder extends TargetBuilder<BuildRootDescriptor, 
 
     boolean success = true;
 
-    AndroidFileSetStorage apkFileSetStorage;
-    AndroidApkBuilderConfigStateStorage apkBuilderConfigStateStorage;
-
     final String apkFileSetStorageName = "apk_builder_file_set" + (release ? "_release" : "_dev");
     final AndroidFileSetStorage.Provider fileSetStorageProvider = new AndroidFileSetStorage.Provider(apkFileSetStorageName);
-    apkFileSetStorage = dataManager.getStorage(target, fileSetStorageProvider);
+    final AndroidFileSetStorage apkFileSetStorage = dataManager.getStorage(target, fileSetStorageProvider);
 
     final String apkBuilderStateStorageName = "apk_builder_config" + (release ? "_release" : "_dev");
     final AndroidApkBuilderConfigStateStorage.Provider builderStateStoragetProvider =
       new AndroidApkBuilderConfigStateStorage.Provider(apkBuilderStateStorageName);
-    apkBuilderConfigStateStorage = dataManager.getStorage(target, builderStateStoragetProvider);
+    final AndroidApkBuilderConfigStateStorage apkBuilderConfigStateStorage =
+      dataManager.getStorage(target, builderStateStoragetProvider);
 
     for (JpsModule module : modules) {
       try {
