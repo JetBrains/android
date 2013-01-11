@@ -1,7 +1,6 @@
 package org.jetbrains.android.projectView;
 
 import com.intellij.ide.projectView.impl.AbstractProjectViewPSIPane;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.projectView.BaseProjectViewTestCase;
 import com.intellij.psi.PsiDirectory;
@@ -15,7 +14,7 @@ import java.io.IOException;
 public class ResourceMergerTest extends BaseProjectViewTestCase {
   @Override
   protected String getTestDataPath() {
-    return PathManager.getHomePath() + "/android/android/testData";
+    return AndroidTestCase.getAbsoluteTestDataPath();
   }
 
   @Override
