@@ -27,6 +27,7 @@ import org.jetbrains.jps.android.model.JpsAndroidApplicationArtifactProperties;
 import org.jetbrains.jps.android.model.JpsAndroidModuleExtension;
 import org.jetbrains.jps.builders.DirtyFilesHolder;
 import org.jetbrains.jps.builders.FileProcessor;
+import org.jetbrains.jps.builders.java.JavaModuleBuildTargetType;
 import org.jetbrains.jps.builders.java.JavaSourceRootDescriptor;
 import org.jetbrains.jps.builders.storage.SourceToOutputMapping;
 import org.jetbrains.jps.incremental.*;
@@ -168,28 +169,13 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
       success = false;
     }
 
-    final File dataStorageRoot = dataManager.getDataPaths().getDataStorageRoot();
-
-    final AndroidAptStateStorage aptStorage = new AndroidAptStateStorage(dataStorageRoot);
-    try {
-      if (!runAaptCompiler(context, moduleDataMap, aptStorage)) {
-        success = false;
-      }
-    }
-    finally {
-      aptStorage.close();
+    if (!runAaptCompiler(context, moduleDataMap)) {
+      success = false;
     }
 
-    final AndroidBuildConfigStateStorage buildConfigStorage = new AndroidBuildConfigStateStorage(dataStorageRoot);
-    try {
-      if (!runBuildConfigGeneration(context, moduleDataMap, buildConfigStorage)) {
-        success = false;
-      }
+    if (!runBuildConfigGeneration(context, moduleDataMap)) {
+      success = false;
     }
-    finally {
-      buildConfigStorage.close();
-    }
-
     return success ? ExitCode.OK : ExitCode.ABORT;
   }
 
@@ -281,12 +267,16 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
   }
 
   private static boolean runBuildConfigGeneration(@NotNull CompileContext context,
-                                                  @NotNull Map<JpsModule, MyModuleData> moduleDataMap,
-                                                  @NotNull AndroidBuildConfigStateStorage storage) {
+                                                  @NotNull Map<JpsModule, MyModuleData> moduleDataMap) throws IOException {
     boolean success = true;
 
     for (Map.Entry<JpsModule, MyModuleData> entry : moduleDataMap.entrySet()) {
       final JpsModule module = entry.getKey();
+      final ModuleBuildTarget moduleTarget = new ModuleBuildTarget(module, JavaModuleBuildTargetType.PRODUCTION);
+      final AndroidBuildConfigStateStorage storage =
+        context.getProjectDescriptor().dataManager.getStorage(
+          moduleTarget, AndroidBuildConfigStateStorage.PROVIDER);
+
       final MyModuleData moduleData = entry.getValue();
       final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(module);
 
@@ -536,12 +526,16 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
   }
 
   private static boolean runAaptCompiler(@NotNull final CompileContext context,
-                                         @NotNull Map<JpsModule, MyModuleData> moduleDataMap,
-                                         @NotNull AndroidAptStateStorage storage) {
+                                         @NotNull Map<JpsModule, MyModuleData> moduleDataMap) throws IOException {
     boolean success = true;
 
     for (Map.Entry<JpsModule, MyModuleData> entry : moduleDataMap.entrySet()) {
       final JpsModule module = entry.getKey();
+      final ModuleBuildTarget moduleTarget = new ModuleBuildTarget(module, JavaModuleBuildTargetType.PRODUCTION);
+      final AndroidAptStateStorage storage =
+        context.getProjectDescriptor().dataManager.getStorage(
+          moduleTarget, AndroidAptStateStorage.PROVIDER);
+
       final MyModuleData moduleData = entry.getValue();
       final JpsAndroidModuleExtension extension = moduleData.getAndroidExtension();
 
@@ -550,13 +544,6 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
       final IAndroidTarget target = moduleData.getPlatform().getTarget();
 
       try {
-        /*if (!needToRunAaptCompilation(extension)) {
-          if (!clearDirectoryIfNotEmpty(aptOutputDirectory, context, ANDROID_APT_COMPILER)) {
-            success = false;
-          }
-          continue;
-        }*/
-
         final String[] resPaths = AndroidJpsUtil.collectResourceDirsForCompilation(extension, false, context);
         if (resPaths.length == 0) {
           // there is no resources in the module
@@ -691,10 +678,6 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
     }
     return true;
   }
-
-  /*private static boolean needToRunAaptCompilation(JpsAndroidModuleExtension extension) {
-    return !extension.isRunProcessResourcesMavenTask() || !AndroidJpsUtil.isMavenizedModule(extension.getModule());
-  }*/
 
   private static boolean deleteAndMarkRecursively(@NotNull File dir, @NotNull CompileContext context, @NotNull String compilerName)
     throws IOException {
