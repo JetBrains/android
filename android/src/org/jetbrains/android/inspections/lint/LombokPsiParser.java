@@ -25,8 +25,10 @@ import com.android.tools.lint.detector.api.JavaContext;
 import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Severity;
 import com.intellij.openapi.application.AccessToken;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -35,6 +37,7 @@ import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiManager;
 import lombok.ast.Node;
 import lombok.ast.Position;
+import lombok.ast.TypeReference;
 
 import java.io.File;
 
@@ -132,6 +135,81 @@ public class LombokPsiParser implements IJavaParser {
       return null;
     }
     return (PsiElement)nativeNode;
+  }
+
+  @Nullable
+  @Override
+  public Node resolve(@NonNull JavaContext context, @NonNull Node node) {
+    final PsiElement element = getPsiElement(node);
+    if (element == null) {
+      return null;
+    }
+
+    Application application = ApplicationManager.getApplication();
+    if (application.isReadAccessAllowed()) {
+      return resolve(element);
+    }
+    return application.runReadAction(new Computable<Node>() {
+      @Nullable
+      @Override
+      public Node compute() {
+        return resolve(element);
+      }
+    });
+  }
+
+  @Nullable
+  @Override
+  public TypeReference getType(@NonNull JavaContext context, @NonNull Node node) {
+    final PsiElement element = getPsiElement(node);
+    if (element == null) {
+      return null;
+    }
+
+    Application application = ApplicationManager.getApplication();
+    if (application.isReadAccessAllowed()) {
+      return getType(element);
+    }
+    return application.runReadAction(new Computable<TypeReference>() {
+      @Nullable
+      @Override
+      public TypeReference compute() {
+        return getType(element);
+      }
+    });
+  }
+
+  @Nullable
+  private static Node resolve(@NonNull PsiElement element) {
+    PsiReference reference = element.getReference();
+    if (reference != null) {
+      PsiElement resolved = reference.resolve();
+      if (resolved != null) {
+        return LombokPsiConverter.toNode(resolved);
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  private static TypeReference getType(@NonNull PsiElement element) {
+    if (element instanceof PsiExpression) {
+      PsiType type = ((PsiExpression)element).getType();
+      if (type != null) {
+        return LombokPsiConverter.toTypeReference(type);
+      }
+    } else if (element instanceof PsiVariable) {
+      PsiType type = ((PsiVariable)element).getType();
+      return LombokPsiConverter.toTypeReference(type);
+    } else if (element instanceof PsiMethod) {
+      PsiType type = ((PsiMethod)element).getReturnType();
+      if (type != null) {
+        return LombokPsiConverter.toTypeReference(type);
+      }
+    }
+
+    return null;
   }
 
   /* Handle for creating positions cheaply and returning full fledged locations later */
