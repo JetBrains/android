@@ -359,7 +359,7 @@ public class AndroidAutogenerator {
       try {
         writer.write(
           "package " + aPackage + ";\n\n" +
-          "/* This stub is for using by IDE only. It is NOT the " + className + " class actually packed into APK */\n" +
+          "/* This stub is only used by the IDE. It is NOT the " + className + " class actually packed into the APK */\n" +
           "public final class " + className + " {\n" +
           "}"
         );

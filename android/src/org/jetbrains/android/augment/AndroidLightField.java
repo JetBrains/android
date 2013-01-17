@@ -7,6 +7,7 @@ import com.intellij.psi.impl.ElementPresentationUtil;
 import com.intellij.psi.impl.PsiClassImplUtil;
 import com.intellij.psi.impl.PsiVariableEx;
 import com.intellij.psi.impl.light.LightElement;
+import com.intellij.psi.impl.light.LightIdentifier;
 import com.intellij.psi.impl.light.LightModifierList;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.ui.RowIcon;
@@ -153,7 +154,7 @@ class AndroidLightField extends LightElement implements PsiField, PsiVariableEx,
   @NotNull
   @Override
   public PsiIdentifier getNameIdentifier() {
-    throw new UnsupportedOperationException();
+    return new LightIdentifier(getManager(), myName);
   }
 
   @Override

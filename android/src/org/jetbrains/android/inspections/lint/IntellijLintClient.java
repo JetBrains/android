@@ -1,7 +1,7 @@
 package org.jetbrains.android.inspections.lint;
 
+import com.android.annotations.NonNull;
 import com.android.tools.lint.LintCliXmlParser;
-import com.android.tools.lint.LombokParser;
 import com.android.tools.lint.client.api.Configuration;
 import com.android.tools.lint.client.api.IDomParser;
 import com.android.tools.lint.client.api.IJavaParser;
@@ -15,6 +15,7 @@ import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
@@ -83,7 +84,7 @@ class IntellijLintClient extends LintClient implements Disposable {
 
   @Override
   public IJavaParser getJavaParser() {
-    return new LombokParser();
+    return new LombokPsiParser(this);
   }
 
   @Override
@@ -166,5 +167,20 @@ class IntellijLintClient extends LintClient implements Disposable {
 
   @Override
   public void dispose() {
+  }
+
+  @NonNull
+  @Override
+  public File getSdkHome() {
+    Sdk moduleSdk = ModuleRootManager.getInstance(myState.getModule()).getSdk();
+    String path = moduleSdk.getHomePath();
+    if (path != null) {
+      File home = new File(path);
+      if (home.exists()) {
+        return home;
+      }
+    }
+
+    return super.getSdkHome();
   }
 }

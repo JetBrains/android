@@ -1,8 +1,11 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.tools.lint.checks.BuiltinIssueRegistry;
+import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.tools.lint.client.api.LintDriver;
+import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.Scope;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.CodeInsightUtilBase;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
@@ -37,9 +40,9 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+
+import static com.android.SdkConstants.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -77,7 +80,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
         return null;
       }
     }
-    else {
+    else if (fileType != StdFileTypes.JAVA) {
       return null;
     }
 
@@ -94,7 +97,31 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
     try {
       final LintDriver lint = new LintDriver(new BuiltinIssueRegistry(), client);
 
-      lint.analyze(Collections.singletonList(new File(state.getMainFile().getPath())), null);
+      EnumSet<Scope> scope;
+      VirtualFile mainFile = state.getMainFile();
+      final FileType fileType = mainFile.getFileType();
+      String name = mainFile.getName();
+      if (fileType == StdFileTypes.XML) {
+        if (name.equals(ANDROID_MANIFEST_XML)) {
+          scope = Scope.MANIFEST_SCOPE;
+        } else {
+          scope = Scope.RESOURCE_FILE_SCOPE;
+        }
+      } else if (fileType == StdFileTypes.JAVA) {
+        scope = Scope.JAVA_FILE_SCOPE;
+      } else if (name.equals(OLD_PROGUARD_FILE) || name.equals(FN_PROJECT_PROGUARD_FILE)) {
+        scope = EnumSet.of(Scope.PROGUARD_FILE);
+      } else {
+        // #collectionInformation above should have prevented this
+        assert false;
+        return state;
+      }
+
+      List<File> files = Collections.singletonList(new File(mainFile.getPath()));
+      LintRequest request = new IntellijLintRequest(client, files, state.getModule().getProject());
+      request.setScope(scope);
+
+      lint.analyze(request);
     }
     finally {
       Disposer.dispose(client);
@@ -105,7 +132,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
   @NotNull
   static List<Issue> getIssuesFromInspections(@NotNull Project project, @Nullable PsiElement context) {
     final List<Issue> result = new ArrayList<Issue>();
-    final BuiltinIssueRegistry fullRegistry = new BuiltinIssueRegistry();
+    final IssueRegistry fullRegistry = new BuiltinIssueRegistry();
 
     for (Issue issue : fullRegistry.getIssues()) {
       final String inspectionShortName = AndroidLintInspectionBase.getInspectionShortNameByIssue(project, issue);
