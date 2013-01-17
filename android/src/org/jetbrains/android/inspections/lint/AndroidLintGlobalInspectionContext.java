@@ -1,7 +1,7 @@
 package org.jetbrains.android.inspections.lint;
 
+import com.android.annotations.NonNull;
 import com.android.tools.lint.LintCliXmlParser;
-import com.android.tools.lint.LombokParser;
 import com.android.tools.lint.checks.BuiltinIssueRegistry;
 import com.android.tools.lint.client.api.*;
 import com.android.tools.lint.detector.api.*;
@@ -20,6 +20,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.util.ProgressWrapper;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
@@ -87,8 +88,16 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       ProgressWrapper.unwrap(indicator).setText("Running Android Lint");
     }
 
-    lint.analyze(Arrays.asList(ioContentRoots), EnumSet
-      .of(Scope.JAVA_FILE, Scope.MANIFEST, Scope.PROGUARD_FILE, Scope.ALL_JAVA_FILES, Scope.ALL_RESOURCE_FILES, Scope.RESOURCE_FILE));
+    LintRequest request = new IntellijLintRequest(client, Arrays.asList(ioContentRoots), project);
+
+    // Can't run class file based checks
+    EnumSet<Scope> lintScope = EnumSet.copyOf(Scope.ALL);
+    lintScope.remove(Scope.CLASS_FILE);
+    lintScope.remove(Scope.ALL_CLASS_FILES);
+    lintScope.remove(Scope.JAVA_LIBRARIES);
+    request.setScope(lintScope);
+
+    lint.analyze(request);
 
     myResults = problemMap;
   }
@@ -203,7 +212,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
 
     @Override
     public IJavaParser getJavaParser() {
-      return new LombokParser();
+      return new LombokPsiParser(this);
     }
 
     @Override
@@ -264,6 +273,28 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
         result.add(new File(root.getPath()));
       }
       return result;
+    }
+
+    @NonNull
+    @Override
+    public File getSdkHome() {
+      File sdkHome = super.getSdkHome();
+      if (sdkHome != null) {
+        return sdkHome;
+      }
+
+      for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+        Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
+        String path = moduleSdk.getHomePath();
+        if (path != null) {
+          File home = new File(path);
+          if (home.exists()) {
+            return home;
+          }
+        }
+      }
+
+      return null;
     }
   }
 }

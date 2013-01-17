@@ -4,6 +4,7 @@ import com.android.tools.lint.detector.api.Category;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
+import com.android.utils.XmlUtils;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
@@ -28,7 +29,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
-import com.intellij.xml.util.XmlUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidBundle;
@@ -141,7 +141,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool imp
 
     for (ProblemData problemData : problems) {
       final String s = problemData.getMessage();
-      final String message = XmlUtil.escape(s.indexOf('>') >= 0 && s.indexOf('<') >= 0 ? s.replace('<', '{').replace('>', '}') : s);
+      final String message = XmlUtils.toXmlTextValue(s);
       final TextRange range = problemData.getTextRange();
 
       if (range.getStartOffset() == range.getEndOffset()) {
@@ -269,24 +269,23 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool imp
   @SuppressWarnings("deprecation")
   @Override
   public String getStaticDescription() {
-    String description = myIssue.getDescription();
-    String explanation = myIssue.getExplanation();
+    StringBuilder sb = new StringBuilder(1000);
+    sb.append("<html><body>");
+    XmlUtils.appendXmlTextValue(sb, myIssue.getDescription());
+    sb.append("<br><br>");
+    sb.append(myIssue.getExplanationAsHtml());
+    String url = myIssue.getMoreInfo();
+    if (url != null && !myIssue.getExplanation().contains(url)) {
+      sb.append("<br><br>");
+      sb.append("<a href=\"");
+      sb.append(url);
+      sb.append("\">");
+      sb.append(url);
+      sb.append("</a>");
+    }
+    sb.append("</body></html>");
 
-    description = description != null ? StringUtil.escapeXml(description) : null;
-    explanation = explanation != null ? StringUtil.escapeXml(explanation) : null;
-
-    if (description == null && explanation == null) {
-      return "";
-    }
-    else if (description != null && explanation != null) {
-      return "<html><body>" + description + "<br><br>" + explanation + "</body></html>";
-    }
-    else if (description != null) {
-      return "<html><body>" + description + "</body></html>";
-    }
-    else {
-      return "<html><body>" + explanation + "</body></html>";
-    }
+    return sb.toString();
   }
 
   @Override
@@ -330,15 +329,30 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool imp
     }
   }
 
-  public boolean worksInBatchModeOnly() {
-    final EnumSet<Scope> scopeSet = myIssue.getScope();
-    if (scopeSet.size() != 1) {
-      return true;
+  /** Returns true if the given analysis scope is adequate for single-file analysis */
+  private static boolean isSingleFileScope(EnumSet<Scope> scopes) {
+    if (scopes.size() != 1) {
+      return false;
     }
-    final Scope scope = scopeSet.iterator().next();
-    return scope != Scope.MANIFEST &&
-           scope != Scope.RESOURCE_FILE &&
-           scope != Scope.PROGUARD_FILE;
+    final Scope scope = scopes.iterator().next();
+    return scope == Scope.JAVA_FILE || scope == Scope.RESOURCE_FILE || scope == Scope.MANIFEST
+           || scope == Scope.PROGUARD_FILE || scope == Scope.OTHER;
+  }
+
+  public boolean worksInBatchModeOnly() {
+    if (isSingleFileScope(myIssue.getScope())) {
+      return false;
+    }
+    Collection<EnumSet<Scope>> analysisScopes = myIssue.getAnalysisScopes();
+    if (analysisScopes != null) {
+      for (EnumSet<Scope> scopes : analysisScopes) {
+        if (isSingleFileScope(scopes)) {
+          return false;
+        }
+      }
+    }
+
+    return true;
   }
 
   @NotNull
