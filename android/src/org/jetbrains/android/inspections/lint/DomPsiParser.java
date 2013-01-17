@@ -71,7 +71,7 @@ class DomPsiParser implements IDomParser {
     // Should only be called from read thread
     assert ApplicationManager.getApplication().isReadAccessAllowed();
 
-    final PsiFile psiFile = LombokPsiParser.getPsiFile(context);
+    final PsiFile psiFile = IntellijLintUtils.getPsiFile(context);
     if (!(psiFile instanceof XmlFile)) {
       return null;
     }

@@ -1,9 +1,6 @@
 package org.jetbrains.android.inspections.lint;
 
-import com.android.tools.lint.detector.api.Category;
-import com.android.tools.lint.detector.api.Issue;
-import com.android.tools.lint.detector.api.Scope;
-import com.android.tools.lint.detector.api.Severity;
+import com.android.tools.lint.detector.api.*;
 import com.android.utils.XmlUtils;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
@@ -39,6 +36,8 @@ import org.jetbrains.annotations.TestOnly;
 
 import java.io.File;
 import java.util.*;
+
+import static com.android.tools.lint.detector.api.Issue.OutputFormat;
 
 /**
  * @author Eugene.Kudelevsky
@@ -271,17 +270,27 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool imp
   public String getStaticDescription() {
     StringBuilder sb = new StringBuilder(1000);
     sb.append("<html><body>");
-    XmlUtils.appendXmlTextValue(sb, myIssue.getDescription());
+    sb.append(myIssue.getDescription(OutputFormat.HTML));
     sb.append("<br><br>");
-    sb.append(myIssue.getExplanationAsHtml());
-    String url = myIssue.getMoreInfo();
-    if (url != null && !myIssue.getExplanation().contains(url)) {
-      sb.append("<br><br>");
-      sb.append("<a href=\"");
-      sb.append(url);
-      sb.append("\">");
-      sb.append(url);
-      sb.append("</a>");
+    sb.append(myIssue.getExplanation(OutputFormat.HTML));
+    List<String> urls = myIssue.getMoreInfo();
+    if (!urls.isEmpty()) {
+      boolean separated = false;
+      for (String url : urls) {
+        if (!myIssue.getExplanation(OutputFormat.RAW).contains(url)) {
+          if (!separated) {
+            sb.append("<br><br>");
+            separated = true;
+          } else {
+            sb.append("<br>");
+          }
+          sb.append("<a href=\"");
+          sb.append(url);
+          sb.append("\">");
+          sb.append(url);
+          sb.append("</a>");
+        }
+      }
     }
     sb.append("</body></html>");
 
@@ -340,15 +349,13 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool imp
   }
 
   public boolean worksInBatchModeOnly() {
-    if (isSingleFileScope(myIssue.getScope())) {
+    Implementation implementation = myIssue.getImplementation();
+    if (isSingleFileScope(implementation.getScope())) {
       return false;
     }
-    Collection<EnumSet<Scope>> analysisScopes = myIssue.getAnalysisScopes();
-    if (analysisScopes != null) {
-      for (EnumSet<Scope> scopes : analysisScopes) {
-        if (isSingleFileScope(scopes)) {
-          return false;
-        }
+    for (EnumSet<Scope> scopes : implementation.getAnalysisScopes()) {
+      if (isSingleFileScope(scopes)) {
+        return false;
       }
     }
 

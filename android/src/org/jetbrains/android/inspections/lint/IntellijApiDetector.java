@@ -1,0 +1,457 @@
+/*
+ * Copyright (C) 2013 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.jetbrains.android.inspections.lint;
+
+import com.android.SdkConstants;
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
+import com.android.ide.common.sdk.SdkVersionInfo;
+import com.android.tools.lint.checks.ApiDetector;
+import com.android.tools.lint.detector.api.*;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.psi.*;
+import com.intellij.psi.util.PsiTreeUtil;
+import lombok.ast.AstVisitor;
+import lombok.ast.CompilationUnit;
+import lombok.ast.ForwardingAstVisitor;
+import lombok.ast.Node;
+import org.jetbrains.annotations.NonNls;
+
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+
+import static org.jetbrains.android.inspections.lint.IntellijLintUtils.SUPPRESS_LINT_FQCN;
+import static org.jetbrains.android.inspections.lint.IntellijLintUtils.SUPPRESS_WARNINGS_FQCN;
+
+/**
+ * Intellij-specific version of the {@link ApiDetector} which uses the PSI structure
+ * to check accesses
+ * <p>
+ * TODO:
+ * <ul>
+ *   <li>Unit tests, and compare to the bytecode based results</li>
+ * </ul>
+ */
+public class IntellijApiDetector extends ApiDetector {
+  static final Implementation IMPLEMENTATION = new Implementation(
+    IntellijApiDetector.class,
+    EnumSet.of(Scope.RESOURCE_FILE, Scope.MANIFEST, Scope.JAVA_FILE),
+    Scope.MANIFEST_SCOPE,
+    Scope.RESOURCE_FILE_SCOPE,
+    Scope.JAVA_FILE_SCOPE
+  );
+
+  @NonNls
+  private static final String TARGET_API_FQCN = "android.annotation.TargetApi";
+
+  @Nullable
+  @Override
+  public List<Class<? extends Node>> getApplicableNodeTypes() {
+    return Collections.<Class<? extends Node>>singletonList(CompilationUnit.class);
+  }
+
+  @Nullable
+  @Override
+  public AstVisitor createJavaVisitor(@NonNull final JavaContext context) {
+    return new ForwardingAstVisitor() {
+      @Override
+      public boolean visitCompilationUnit(CompilationUnit node) {
+        check(context);
+        return true;
+      }
+    };
+  }
+
+  private void check(final JavaContext context) {
+    if (mApiDatabase == null) {
+      return;
+    }
+    ApplicationManager.getApplication().runReadAction(new Runnable() {
+      @Override
+      public void run() {
+        final PsiFile psiFile = IntellijLintUtils.getPsiFile(context);
+        if (!(psiFile instanceof PsiJavaFile)) {
+          return;
+        }
+        PsiJavaFile javaFile = (PsiJavaFile)psiFile;
+        for (PsiClass clz : javaFile.getClasses()) {
+          PsiElementVisitor visitor = new ApiCheckVisitor(context, clz, psiFile);
+
+          javaFile.accept(visitor);
+        }
+      }
+    });
+  }
+
+  private static int getTargetApi(@NonNull PsiElement e, @NonNull PsiElement file) {
+    PsiElement element = e;
+    // Search upwards for target api annotations
+    while (element != null && element != file) { // otherwise it will keep going into directories!
+      if (element instanceof PsiModifierListOwner) {
+        PsiModifierListOwner owner = (PsiModifierListOwner)element;
+        PsiModifierList modifierList = owner.getModifierList();
+        PsiAnnotation annotation = null;
+        if (modifierList != null) {
+          annotation = modifierList.findAnnotation(TARGET_API_FQCN);
+        }
+        if (annotation != null) {
+          for (PsiNameValuePair pair : annotation.getParameterList().getAttributes()) {
+            PsiAnnotationMemberValue v = pair.getValue();
+
+            if (v instanceof PsiLiteral) {
+              PsiLiteral literal = (PsiLiteral)v;
+              Object value = literal.getValue();
+              if (value instanceof Integer) {
+                return (Integer) value;
+              } else if (value instanceof String) {
+                return codeNameToApi((String) value);
+              }
+            } else if (v instanceof PsiArrayInitializerMemberValue) {
+              PsiArrayInitializerMemberValue mv = (PsiArrayInitializerMemberValue)v;
+              for (PsiAnnotationMemberValue mmv : mv.getInitializers()) {
+                if (mmv instanceof PsiLiteral) {
+                  PsiLiteral literal = (PsiLiteral)mmv;
+                  Object value = literal.getValue();
+                  if (value instanceof Integer) {
+                    return (Integer) value;
+                  } else if (value instanceof String) {
+                    return codeNameToApi((String) value);
+                  }
+                }
+              }
+            } else if (v instanceof PsiExpression) {
+              if (v instanceof PsiReferenceExpression) {
+                String fqcn = ((PsiReferenceExpression)v).getQualifiedName();
+                return codeNameToApi(fqcn);
+              } else {
+                return codeNameToApi(v.getText());
+              }
+            }
+          }
+        }
+      }
+      element = element.getParent();
+    }
+
+    return Integer.MAX_VALUE;
+  }
+
+  private static int codeNameToApi(String text) {
+    int dotIndex = text.lastIndexOf('.');
+    if (dotIndex != -1) {
+      text = text.substring(dotIndex + 1);
+    }
+    for (int api = 1; api <= SdkVersionInfo.HIGHEST_KNOWN_API; api++) {
+      String code = SdkVersionInfo.getBuildCode(api);
+      if (code != null && code.equalsIgnoreCase(text)) {
+        return api;
+      }
+    }
+
+    return -1;
+  }
+
+  private class ApiCheckVisitor extends JavaRecursiveElementVisitor {
+    private final Context myContext;
+    private boolean mySeenSuppress;
+    private boolean mySeenTargetApi;
+    private final PsiClass myClass;
+    private final PsiFile myFile;
+    private final boolean myCheckAccess;
+    private boolean myCheckOverride;
+    private String myFrameworkParent;
+
+    public ApiCheckVisitor(Context context, PsiClass clz, PsiFile file) {
+      myContext = context;
+      myClass = clz;
+      myFile = file;
+
+      myCheckAccess = context.isEnabled(UNSUPPORTED) || context.isEnabled(INLINED);
+      myCheckOverride = context.isEnabled(OVERRIDE)
+                             && context.getMainProject().getBuildSdk() >= 1;
+      if (myCheckOverride) {
+        myFrameworkParent = null;
+        PsiClass superClass = myClass.getSuperClass();
+        while (superClass != null) {
+          String fqcn = superClass.getQualifiedName();
+          if (fqcn == null) {
+            myCheckOverride = false;
+          } else if (fqcn.startsWith("android.") //$NON-NLS-1$
+              || fqcn.startsWith("java.")        //$NON-NLS-1$
+              || fqcn.startsWith("javax.")) {    //$NON-NLS-1$
+            if (!fqcn.equals(CommonClassNames.JAVA_LANG_OBJECT)) {
+              myFrameworkParent = ClassContext.getInternalName(fqcn);
+            }
+            break;
+          }
+          superClass = superClass.getSuperClass();
+        }
+        if (myFrameworkParent == null) {
+          myCheckOverride = false;
+        }
+      }
+    }
+
+    @Override
+    public void visitAnnotation(PsiAnnotation annotation) {
+      super.visitAnnotation(annotation);
+
+      String fqcn = annotation.getQualifiedName();
+      if (TARGET_API_FQCN.equals(fqcn)) {
+        mySeenTargetApi = true;
+      }
+      else if (SUPPRESS_LINT_FQCN.equals(fqcn) || SUPPRESS_WARNINGS_FQCN.equals(fqcn)) {
+        mySeenSuppress = true;
+      }
+    }
+
+    @Override
+    public void visitMethod(PsiMethod method) {
+      super.visitMethod(method);
+
+      if (!myCheckOverride) {
+        return;
+      }
+
+      int buildSdk = myContext.getMainProject().getBuildSdk();
+      String name = method.getName();
+      assert myFrameworkParent != null;
+      String desc = IntellijLintUtils.getInternalDescription(method, false, false);
+      if (desc == null) {
+        // Couldn't compute description of method for some reason; probably
+        // failure to resolve parameter types
+        return;
+      }
+      int api = mApiDatabase.getCallVersion(myFrameworkParent, name, desc);
+      if (api > buildSdk && buildSdk != -1) {
+        if (mySeenSuppress &&
+            IntellijLintUtils.isSuppressed(method, myFile, OVERRIDE)) {
+          return;
+        }
+
+        // TODO: Don't complain if it's annotated with @Override; that means
+        // somehow the build target isn't correct.
+
+        String fqcn;
+        PsiClass containingClass = method.getContainingClass();
+        if (containingClass != null) {
+          String className = containingClass.getName();
+          String fullClassName = containingClass.getQualifiedName();
+          if (fullClassName != null) {
+            className = fullClassName;
+          }
+          fqcn = className + '#' + name;
+        } else {
+          fqcn = name;
+        }
+
+        String message = String.format(
+          "This method is not overriding anything with the current build " +
+          "target, but will in API level %1$d (current target is %2$d): %3$s",
+          api, buildSdk, fqcn);
+
+        PsiElement locationNode = method.getNameIdentifier();
+        if (locationNode == null) {
+          locationNode = method;
+        }
+        Location location = IntellijLintUtils.getLocation(myContext.file, locationNode);
+        myContext.report(OVERRIDE, location, message, null);
+      }
+    }
+
+    @Override
+    public void visitReferenceExpression(PsiReferenceExpression expression) {
+      super.visitReferenceExpression(expression);
+
+      if (!myCheckAccess) {
+        return;
+      }
+
+      PsiReference reference = expression.getReference();
+      if (reference == null) {
+        return;
+      }
+      PsiElement resolved = reference.resolve();
+      if (resolved != null) {
+        if (resolved instanceof PsiField) {
+          PsiField field = (PsiField)resolved;
+          PsiClass containingClass = field.getContainingClass();
+          if (containingClass == null) {
+            return;
+          }
+          String fqcn = containingClass.getQualifiedName();
+          String owner = IntellijLintUtils.getInternalName(containingClass);
+          if (owner == null) {
+            return; // Couldn't resolve type
+          }
+          String name = field.getName();
+
+          int api = mApiDatabase.getFieldVersion(owner, name);
+          if (api == -1) {
+            return;
+          }
+          int minSdk = getMinSdk(myContext);
+          if (api < minSdk) {
+            return;
+          }
+          if (mySeenTargetApi) {
+            int target = getTargetApi(expression, myFile);
+            if (target != -1) {
+              if (api <= target) {
+                return;
+              }
+            }
+          }
+          if (mySeenSuppress &&
+              (IntellijLintUtils.isSuppressed(expression, myFile, UNSUPPORTED)
+               || IntellijLintUtils.isSuppressed(expression, myFile, INLINED))) {
+            return;
+          }
+
+          Location location = IntellijLintUtils.getLocation(myContext.file, expression);
+          String message = String.format(
+              "Field requires API level %1$d (current min is %2$d): %3$s",
+              api, minSdk, fqcn + '#' + name);
+
+          Issue issue = UNSUPPORTED;
+          // When accessing primitive types or Strings, the values get copied into
+          // the class files (e.g. get inlined) which has a separate issue type:
+          // INLINED.
+          PsiType type = field.getType();
+          if (type == PsiType.INT || type == PsiType.CHAR || type == PsiType.BOOLEAN
+              || type == PsiType.DOUBLE || type == PsiType.FLOAT || type == PsiType.BYTE
+              || type.equalsToText(CommonClassNames.JAVA_LANG_STRING)) {
+            issue = INLINED;
+
+            // Some usages of inlined constants are okay:
+            if (isBenignConstantUsage(expression, name, owner)) {
+              return;
+            }
+          }
+
+          myContext.report(issue, location, message, null);
+        }
+      }
+    }
+
+    public boolean isBenignConstantUsage(
+      @NonNull PsiElement node,
+      @NonNull String name,
+      @NonNull String owner) {
+      if (IntellijApiDetector.this.isBenignConstantUsage(null, name, owner)) {
+        return true;
+      }
+
+      // It's okay to reference the constant as a case constant (since that
+      // code path won't be taken) or in a condition of an if statement
+      // or as a case value
+      PsiElement curr = node.getParent();
+      while (curr != null) {
+        if (curr instanceof PsiSwitchLabelStatement) {
+          PsiSwitchLabelStatement caseStatement = (PsiSwitchLabelStatement)curr;
+          PsiExpression condition = caseStatement.getCaseValue();
+          return condition != null && PsiTreeUtil.isAncestor(condition, node, false);
+        } else if (curr instanceof PsiIfStatement) {
+          PsiIfStatement ifStatement = (PsiIfStatement)curr;
+          PsiExpression condition = ifStatement.getCondition();
+          return condition != null && PsiTreeUtil.isAncestor(condition, node, false);
+        } else if (curr instanceof PsiConditionalExpression) {
+          // ?:-statement
+          PsiConditionalExpression ifStatement = (PsiConditionalExpression)curr;
+          PsiExpression condition = ifStatement.getCondition();
+          return PsiTreeUtil.isAncestor(condition, node, false);
+        }
+        curr = curr.getParent();
+      }
+
+      return false;
+    }
+
+    @Override
+    public void visitResourceVariable(PsiResourceVariable resourceVariable) {
+      super.visitResourceVariable(resourceVariable);
+    }
+
+    @Override
+    public void visitReferenceElement(PsiJavaCodeReferenceElement reference) {
+      super.visitReferenceElement(reference);
+    }
+
+    @Override
+    public void visitCallExpression(PsiCallExpression expression) {
+      if (!myCheckAccess) {
+        return;
+      }
+
+      // TODO: How does this differ from visitMethodCallExpression?
+      // Inferred super perhaps? No, I think it refers to constructor invocations!
+      PsiMethod method = expression.resolveMethod();
+      if (method != null) {
+        PsiClass containingClass = method.getContainingClass();
+        if (containingClass == null) {
+          return;
+        }
+        String fqcn = containingClass.getQualifiedName();
+        String owner = IntellijLintUtils.getInternalName(containingClass);
+        if (owner == null) {
+          return; // Couldn't resolve type
+        }
+        String name = IntellijLintUtils.getInternalMethodName(method);
+        String desc = IntellijLintUtils.getInternalDescription(method, false, false);
+        if (desc == null) {
+          // Couldn't compute description of method for some reason; probably
+          // failure to resolve parameter types
+          return;
+        }
+
+        int api = mApiDatabase.getCallVersion(owner, name, desc);
+        if (api == -1) {
+          return;
+        }
+        int minSdk = getMinSdk(myContext);
+        if (api < minSdk) {
+          return;
+        }
+        if (mySeenTargetApi) {
+          int target = getTargetApi(expression, myFile);
+          if (target != -1) {
+            if (api <= target) {
+              return;
+            }
+          }
+        }
+        if (mySeenSuppress &&
+            (IntellijLintUtils.isSuppressed(expression, myFile, UNSUPPORTED)
+              || IntellijLintUtils.isSuppressed(expression, myFile, INLINED))) {
+          return;
+        }
+
+        PsiElement locationNode = IntellijLintUtils.getCallName(expression);
+        if (locationNode == null) {
+          locationNode = expression;
+        }
+        Location location = IntellijLintUtils.getLocation(myContext.file, locationNode);
+        String message = String.format("Call requires API level %1$d (current min is %2$d): %3$s", api, minSdk,
+                                       fqcn + '#' + method.getName());
+
+        myContext.report(UNSUPPORTED, location, message, null);
+      }
+
+      super.visitCallExpression(expression);
+    }
+  }
+}

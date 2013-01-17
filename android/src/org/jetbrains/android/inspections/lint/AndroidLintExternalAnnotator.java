@@ -1,6 +1,5 @@
 package org.jetbrains.android.inspections.lint;
 
-import com.android.tools.lint.checks.BuiltinIssueRegistry;
 import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
@@ -95,7 +94,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
   public State doAnnotate(final State state) {
     final IntellijLintClient client = new IntellijLintClient(state);
     try {
-      final LintDriver lint = new LintDriver(new BuiltinIssueRegistry(), client);
+      final LintDriver lint = new LintDriver(new IntellijLintIssueRegistry(), client);
 
       EnumSet<Scope> scope;
       VirtualFile mainFile = state.getMainFile();
@@ -132,7 +131,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
   @NotNull
   static List<Issue> getIssuesFromInspections(@NotNull Project project, @Nullable PsiElement context) {
     final List<Issue> result = new ArrayList<Issue>();
-    final IssueRegistry fullRegistry = new BuiltinIssueRegistry();
+    final IssueRegistry fullRegistry = new IntellijLintIssueRegistry();
 
     for (Issue issue : fullRegistry.getIssues()) {
       final String inspectionShortName = AndroidLintInspectionBase.getInspectionShortNameByIssue(project, issue);
