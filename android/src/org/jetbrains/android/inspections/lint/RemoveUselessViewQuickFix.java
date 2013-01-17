@@ -53,6 +53,6 @@ public class RemoveUselessViewQuickFix implements AndroidLintQuickFix {
   @NotNull
   @Override
   public String getName() {
-    return AndroidBundle.message("android.lint.inspections.remove.unnecessary.view");
+    return AndroidBundle.message("android.lint.fix.remove.unnecessary.view");
   }
 }

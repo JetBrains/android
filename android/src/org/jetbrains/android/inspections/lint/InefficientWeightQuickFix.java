@@ -49,6 +49,6 @@ class InefficientWeightQuickFix implements AndroidLintQuickFix {
   @NotNull
   @Override
   public String getName() {
-    return AndroidBundle.message("android.lint.inspections.replace.with.zero.dp");
+    return AndroidBundle.message("android.lint.fix.replace.with.zero.dp");
   }
 }

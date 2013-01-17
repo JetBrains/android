@@ -123,6 +123,6 @@ class ConvertToDpQuickFix implements AndroidLintQuickFix {
   @NotNull
   @Override
   public String getName() {
-    return AndroidBundle.message("android.lint.inspections.convert.to.dp");
+    return AndroidBundle.message("android.lint.fix.convert.to.dp");
   }
 }
