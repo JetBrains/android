@@ -67,6 +67,6 @@ class AddMissingPrefixQuickFix implements AndroidLintQuickFix {
   @NotNull
   @Override
   public String getName() {
-    return AndroidBundle.message("android.lint.inspections.add.android.prefix");
+    return AndroidBundle.message("android.lint.fix.add.android.prefix");
   }
 }

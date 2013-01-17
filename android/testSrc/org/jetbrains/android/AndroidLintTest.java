@@ -67,7 +67,7 @@ public class AndroidLintTest extends AndroidTestCase {
 
   public void testContentDescription() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintContentDescriptionInspection(),
-                  AndroidBundle.message("android.lint.inspections.add.content.description"),
+                  AndroidBundle.message("android.lint.fix.add.content.description"),
                   "/res/layout/layout.xml", "xml");
   }
 
@@ -88,13 +88,13 @@ public class AndroidLintTest extends AndroidTestCase {
 
   public void testMissingPrefix() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintMissingPrefixInspection(),
-                  AndroidBundle.message("android.lint.inspections.add.android.prefix"),
+                  AndroidBundle.message("android.lint.fix.add.android.prefix"),
                   "/res/layout/layout.xml", "xml");
   }
 
   public void testMissingPrefix1() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintMissingPrefixInspection(),
-                  AndroidBundle.message("android.lint.inspections.add.android.prefix"),
+                  AndroidBundle.message("android.lint.fix.add.android.prefix"),
                   "/res/layout/layout.xml", "xml");
   }
 
@@ -105,49 +105,49 @@ public class AndroidLintTest extends AndroidTestCase {
 
   public void testInefficientWeight() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintInefficientWeightInspection(),
-                  AndroidBundle.message("android.lint.inspections.replace.with.zero.dp"),
+                  AndroidBundle.message("android.lint.fix.replace.with.zero.dp"),
                   "/res/layout/layout.xml", "xml");
   }
 
   public void testBaselineWeights() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintDisableBaselineAlignmentInspection(),
-                  AndroidBundle.message("android.lint.inspections.set.baseline.attribute"),
+                  AndroidBundle.message("android.lint.fix.set.baseline.attribute"),
                   "/res/layout/layout.xml", "xml");
   }
 
   public void testObsoleteLayoutParams() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintObsoleteLayoutParamInspection(),
-                  AndroidBundle.message("android.lint.inspections.remove.attribute"),
+                  AndroidBundle.message("android.lint.fix.remove.attribute"),
                   "/res/layout/layout.xml", "xml");
   }
 
   public void testConvertToDp() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintPxUsageInspection(),
-                  AndroidBundle.message("android.lint.inspections.convert.to.dp"),
+                  AndroidBundle.message("android.lint.fix.convert.to.dp"),
                   "/res/layout/layout.xml", "xml");
   }
 
   public void testScrollViewSize() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintScrollViewSizeInspection(),
-                  AndroidBundle.message("android.lint.inspections.set.to.wrap.content"),
+                  AndroidBundle.message("android.lint.fix.set.to.wrap.content"),
                   "/res/layout/layout.xml", "xml");
   }
 
   public void testExportedService() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintExportedServiceInspection(),
-                  AndroidBundle.message("android.lint.inspections.add.permission.attribute"),
+                  AndroidBundle.message("android.lint.fix.add.permission.attribute"),
                   "AndroidManifest.xml", "xml");
   }
 
   public void testEditText() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintTextFieldsInspection(),
-                  AndroidBundle.message("android.lint.inspections.add.input.type.attribute"),
+                  AndroidBundle.message("android.lint.fix.add.input.type.attribute"),
                   "/res/layout/layout.xml", "xml");
   }
 
   public void testUselessLeaf() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintUselessLeafInspection(),
-                  AndroidBundle.message("android.lint.inspections.remove.unnecessary.view"),
+                  AndroidBundle.message("android.lint.fix.remove.unnecessary.view"),
                   "/res/layout/layout.xml", "xml");
   }
 
@@ -158,13 +158,13 @@ public class AndroidLintTest extends AndroidTestCase {
 
   public void testTypographyDashes() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintTypographyDashesInspection(),
-                  AndroidBundle.message("android.lint.inspections.replace.with.suggested.characters"),
+                  AndroidBundle.message("android.lint.fix.replace.with.suggested.characters"),
                   "/res/values/typography.xml", "xml");
   }
 
   public void testTypographyQuotes() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintTypographyQuotesInspection(),
-                  AndroidBundle.message("android.lint.inspections.replace.with.suggested.characters"),
+                  AndroidBundle.message("android.lint.fix.replace.with.suggested.characters"),
                   "/res/values/typography.xml", "xml");
   }
 

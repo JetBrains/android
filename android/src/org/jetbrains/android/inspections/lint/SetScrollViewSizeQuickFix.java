@@ -44,6 +44,6 @@ class SetScrollViewSizeQuickFix implements AndroidLintQuickFix {
   @NotNull
   @Override
   public String getName() {
-    return AndroidBundle.message("android.lint.inspections.set.to.wrap.content");
+    return AndroidBundle.message("android.lint.fix.set.to.wrap.content");
   }
 }

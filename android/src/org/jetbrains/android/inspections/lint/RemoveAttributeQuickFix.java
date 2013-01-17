@@ -28,6 +28,6 @@ class RemoveAttributeQuickFix implements AndroidLintQuickFix {
   @NotNull
   @Override
   public String getName() {
-    return AndroidBundle.message("android.lint.inspections.remove.attribute");
+    return AndroidBundle.message("android.lint.fix.remove.attribute");
   }
 }

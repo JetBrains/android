@@ -69,6 +69,6 @@ class TypographyQuickFix implements AndroidLintQuickFix {
   @NotNull
   @Override
   public String getName() {
-    return AndroidBundle.message("android.lint.inspections.replace.with.suggested.characters");
+    return AndroidBundle.message("android.lint.fix.replace.with.suggested.characters");
   }
 }
