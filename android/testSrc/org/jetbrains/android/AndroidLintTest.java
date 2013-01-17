@@ -229,6 +229,25 @@ public class AndroidLintTest extends AndroidTestCase {
     doGlobalInspectionTest(new AndroidLintInspectionToolProvider.AndroidLintUseValueOfInspection());
   }
 
+  public void testApiCheck1() throws Exception {
+    createManifest();
+    myFixture.copyFileToProject(getGlobalTestDir() + "/MyActivity.java", "src/p1/p2/MyActivity.java");
+    doGlobalInspectionTest(new AndroidLintInspectionToolProvider.AndroidLintNewApiInspection());
+  }
+
+  public void testApiInlined() throws Exception {
+    createManifest();
+    myFixture.copyFileToProject(getGlobalTestDir() + "/MyActivity.java", "src/p1/p2/MyActivity.java");
+    doGlobalInspectionTest(new AndroidLintInspectionToolProvider.AndroidLintInlinedApiInspection());
+  }
+
+  public void testApiOverride() throws Exception {
+    createManifest();
+    createProjectProperties(); // Need build target >= 1
+    myFixture.copyFileToProject(getGlobalTestDir() + "/MyActivity.java", "src/p1/p2/MyActivity.java");
+    doGlobalInspectionTest(new AndroidLintInspectionToolProvider.AndroidLintOverrideInspection());
+  }
+
   private void doGlobalInspectionTest(@NotNull AndroidLintInspectionBase inspection) {
     final GlobalInspectionToolWrapper wrapper = new GlobalInspectionToolWrapper(inspection);
     myFixture.enableInspections(wrapper);

@@ -27,7 +27,6 @@ import com.android.tools.lint.detector.api.Severity;
 import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -35,6 +34,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.*;
 import lombok.ast.Node;
 import lombok.ast.Position;
 import lombok.ast.TypeReference;
@@ -76,7 +76,7 @@ public class LombokPsiParser implements IJavaParser {
     // Should only be called from read thread
     assert ApplicationManager.getApplication().isReadAccessAllowed();
 
-    final PsiFile psiFile = getPsiFile(context);
+    final PsiFile psiFile = IntellijLintUtils.getPsiFile(context);
     if (!(psiFile instanceof PsiJavaFile)) {
       return null;
     }
@@ -89,26 +89,6 @@ public class LombokPsiParser implements IJavaParser {
                     context.file.getPath());
       return null;
     }
-  }
-
-  /**
-   * Returns the {@link PsiFile} associated with a given lint {@link com.android.tools.lint.detector.api.Context}
-   *
-   * @param context the context to look up the file for
-   * @return the corresponding {@link PsiFile}, or null
-   */
-  @Nullable
-  public static PsiFile getPsiFile(@NonNull Context context) {
-    VirtualFile file = VfsUtil.findFileByIoFile(context.file, false);
-    if (file == null) {
-      return null;
-    }
-    LintRequest request = context.getDriver().getRequest();
-    Project project = ((IntellijLintRequest)request).getProject();
-    if (project == null) {
-      return null;
-    }
-    return PsiManager.getInstance(project).findFile(file);
   }
 
   @NonNull

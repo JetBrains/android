@@ -569,4 +569,23 @@ public class AndroidLintInspectionToolProvider {
       return new AndroidLintQuickFix[] {new TypographyQuickFix(myIssue, message)};
     }
   }
+
+  public static class AndroidLintNewApiInspection extends AndroidLintInspectionBase {
+    public AndroidLintNewApiInspection() {
+      super(AndroidBundle.message("android.lint.inspections.new.api"), ApiDetector.UNSUPPORTED);
+    }
+  }
+
+  public static class AndroidLintInlinedApiInspection extends AndroidLintInspectionBase {
+    public AndroidLintInlinedApiInspection() {
+      super(AndroidBundle.message("android.lint.inspections.inlined.api"), ApiDetector.INLINED);
+    }
+  }
+
+  public static class AndroidLintOverrideInspection extends AndroidLintInspectionBase {
+    public AndroidLintOverrideInspection() {
+      super(AndroidBundle.message("android.lint.inspections.override"), ApiDetector.OVERRIDE);
+    }
+  }
+
 }

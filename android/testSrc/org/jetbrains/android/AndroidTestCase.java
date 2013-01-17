@@ -158,6 +158,10 @@ public abstract class AndroidTestCase extends UsefulTestCase {
     myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML);
   }
 
+  protected void createProjectProperties() throws IOException {
+    myFixture.copyFileToProject(SdkConstants.FN_PROJECT_PROPERTIES, SdkConstants.FN_PROJECT_PROPERTIES);
+  }
+
   @Override
   public void tearDown() throws Exception {
     myModule = null;
