@@ -202,12 +202,30 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
 
     @Override
     public void log(Severity severity, Throwable exception, String format, Object... args) {
-      // todo: implement
+      if (severity == Severity.ERROR || severity == Severity.FATAL) {
+        if (format != null) {
+          LOG.error(String.format(format, args), exception);
+        } else if (exception != null) {
+          LOG.error(exception);
+        }
+      } else if (severity == Severity.WARNING) {
+        if (format != null) {
+          LOG.warn(String.format(format, args), exception);
+        } else if (exception != null) {
+          LOG.warn(exception);
+        }
+      } else {
+        if (format != null) {
+          LOG.info(String.format(format, args), exception);
+        } else if (exception != null) {
+          LOG.info(exception);
+        }
+      }
     }
 
     @Override
     public IDomParser getDomParser() {
-      return new LintCliXmlParser();
+      return new DomPsiParser(this);
     }
 
     @Override

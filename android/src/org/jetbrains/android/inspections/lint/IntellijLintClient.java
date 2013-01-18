@@ -1,7 +1,6 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.annotations.NonNull;
-import com.android.tools.lint.LintCliXmlParser;
 import com.android.tools.lint.client.api.Configuration;
 import com.android.tools.lint.client.api.IDomParser;
 import com.android.tools.lint.client.api.IJavaParser;
@@ -74,12 +73,30 @@ class IntellijLintClient extends LintClient implements Disposable {
 
   @Override
   public void log(Severity severity, Throwable exception, String format, Object... args) {
-    // todo: log
+    if (severity == Severity.ERROR || severity == Severity.FATAL) {
+      if (format != null) {
+        LOG.error(String.format(format, args), exception);
+      } else if (exception != null) {
+        LOG.error(exception);
+      }
+    } else if (severity == Severity.WARNING) {
+      if (format != null) {
+        LOG.warn(String.format(format, args), exception);
+      } else if (exception != null) {
+        LOG.warn(exception);
+      }
+    } else {
+      if (format != null) {
+        LOG.info(String.format(format, args), exception);
+      } else if (exception != null) {
+        LOG.info(exception);
+      }
+    }
   }
 
   @Override
   public IDomParser getDomParser() {
-    return new LintCliXmlParser();
+    return new DomPsiParser(this);
   }
 
   @Override

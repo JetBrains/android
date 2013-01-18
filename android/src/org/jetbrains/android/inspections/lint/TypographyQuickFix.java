@@ -37,7 +37,7 @@ class TypographyQuickFix implements AndroidLintQuickFix {
         final String value = xmlText.getValue();
 
         if (value != null) {
-          final List<TypographyDetector.ReplaceEdit> edits = TypographyDetector.getEdits(myIssue.getId(), myMessage, new FakeNode(value));
+          final List<TypographyDetector.ReplaceEdit> edits = TypographyDetector.getEdits(myIssue.getId(), myMessage, value);
           final StringBuilder builder = new StringBuilder(value);
 
           for (TypographyDetector.ReplaceEdit edit : edits) {
