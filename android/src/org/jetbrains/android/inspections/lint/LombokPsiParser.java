@@ -20,6 +20,7 @@ import com.android.annotations.Nullable;
 import com.android.tools.lint.client.api.IJavaParser;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.client.api.LintRequest;
+import com.android.tools.lint.detector.api.Context;
 import com.android.tools.lint.detector.api.JavaContext;
 import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Severity;
@@ -28,7 +29,10 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiJavaFile;
+import com.intellij.psi.PsiManager;
 import lombok.ast.Node;
 import lombok.ast.Position;
 
@@ -91,7 +95,7 @@ public class LombokPsiParser implements IJavaParser {
    * @return the corresponding {@link PsiFile}, or null
    */
   @Nullable
-  public static PsiFile getPsiFile(@NonNull JavaContext context) {
+  public static PsiFile getPsiFile(@NonNull Context context) {
     VirtualFile file = VfsUtil.findFileByIoFile(context.file, false);
     if (file == null) {
       return null;

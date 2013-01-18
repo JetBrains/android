@@ -4,6 +4,6 @@
       android:versionCode="1"
       android:versionName="1.0">
     <application android:label="Hello, world!" >
-        <warning><service android:name=".MyExportedService" <caret>android:exported="true"/></warning>
+        <<warning>serv<caret>ice</warning> android:name=".MyExportedService" android:exported="true"/>
     </application>
 </manifest>
