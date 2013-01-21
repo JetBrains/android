@@ -4,7 +4,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.builders.BuildTarget;
 import org.jetbrains.jps.builders.impl.BuildRootDescriptorImpl;
-import org.jetbrains.jps.cmdline.ProjectDescriptor;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -17,8 +16,9 @@ public class AndroidClassesDirBuildRootDescriptor extends BuildRootDescriptorImp
     super(target, root);
   }
 
+  @NotNull
   @Override
-  public FileFilter createFileFilter(@NotNull ProjectDescriptor descriptor) {
+  public FileFilter createFileFilter() {
     return new FileFilter() {
       @Override
       public boolean accept(@NotNull File file) {
