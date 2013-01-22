@@ -198,6 +198,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
             for (IntentionAction intention : inspection.getIntentions(startElement, endElement)) {
               annotation.registerFix(intention);
             }
+            annotation.registerFix(new SuppressLintIntentionAction(key.getID(), startElement));
             annotation.registerFix(new MyDisableInspectionFix(key));
             annotation.registerFix(new MyEditInspectionToolsSettingsAction(key, inspection));
 
