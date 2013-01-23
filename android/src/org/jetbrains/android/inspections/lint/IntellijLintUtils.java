@@ -66,6 +66,15 @@ public class IntellijLintUtils {
     assert element.getContainingFile().getVirtualFile() == null
            || FileUtil.filesEqual(VfsUtilCore.virtualToIoFile(element.getContainingFile().getVirtualFile()), file);
 
+    if (element instanceof PsiClass) {
+      // Point to the name rather than the beginning of the javadoc
+      PsiClass clz = (PsiClass)element;
+      PsiIdentifier nameIdentifier = clz.getNameIdentifier();
+      if (nameIdentifier != null) {
+        element = nameIdentifier;
+      }
+    }
+
     TextRange textRange = element.getTextRange();
     Position start = new DefaultPosition(-1, -1, textRange.getStartOffset());
     Position end = new DefaultPosition(-1, -1, textRange.getEndOffset());

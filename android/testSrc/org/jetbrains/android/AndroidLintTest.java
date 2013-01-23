@@ -248,6 +248,13 @@ public class AndroidLintTest extends AndroidTestCase {
     doGlobalInspectionTest(new AndroidLintInspectionToolProvider.AndroidLintOverrideInspection());
   }
 
+  public void testActivityRegistered() throws Exception {
+    createManifest();
+    myFixture.copyFileToProject(getGlobalTestDir() + "/MyActivity.java", "src/p1/p2/MyActivity.java");
+    myFixture.copyFileToProject(getGlobalTestDir() + "/MyDerived.java", "src/p1/p2/MyDerived.java");
+    doGlobalInspectionTest(new AndroidLintInspectionToolProvider.AndroidLintRegisteredInspection());
+  }
+
   private void doGlobalInspectionTest(@NotNull AndroidLintInspectionBase inspection) {
     final GlobalInspectionToolWrapper wrapper = new GlobalInspectionToolWrapper(inspection);
     myFixture.enableInspections(wrapper);

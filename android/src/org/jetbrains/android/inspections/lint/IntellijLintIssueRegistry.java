@@ -18,6 +18,7 @@ package org.jetbrains.android.inspections.lint;
 import com.android.annotations.NonNull;
 import com.android.tools.lint.checks.ApiDetector;
 import com.android.tools.lint.checks.BuiltinIssueRegistry;
+import com.android.tools.lint.checks.RegistrationDetector;
 import com.android.tools.lint.detector.api.Implementation;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.Scope;
@@ -52,6 +53,8 @@ public class IntellijLintIssueRegistry extends BuiltinIssueRegistry {
             issue == ApiDetector.UNSUPPORTED ||
             issue == ApiDetector.OVERRIDE) {
           issue.setImplementation(IntellijApiDetector.IMPLEMENTATION);
+        } else if (issue == RegistrationDetector.ISSUE) {
+          issue.setImplementation(IntellijRegistrationDetector.IMPLEMENTATION);
         } else if (scope.contains(Scope.CLASS_FILE) ||
             scope.contains(Scope.ALL_CLASS_FILES) ||
             scope.contains(Scope.JAVA_LIBRARIES)) {
