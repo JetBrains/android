@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<problems>
+  <problem>
+    <file>MyDerived.java</file>
+    <line>11</line>
+    <problem_class severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Class is not registered in the manifest</problem_class>
+    <description>The &amp;lt;activity&gt; p1.p2.MyDerived is not registered in the manifest</description>
+  </problem>
+
+  <problem>
+    <file>MyDerived.java</file>
+    <line>12</line>
+    <description>The &amp;lt;service&gt; p1.p2.MyDerived.MyInner is not registered in the manifest</description>
+  </problem>
+
+  <problem>
+    <file>MyDerived.java</file>
+    <line>20</line>
+    <description>The &amp;lt;provider&gt; p1.p2.MyDerived.MyInner3 is not registered in the manifest</description>
+  </problem>
+</problems>
