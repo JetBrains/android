@@ -91,6 +91,11 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
     }
   }
 
+  @Override
+  public List<String> getCompilableFileExtensions() {
+    return Arrays.asList(AIDL_EXTENSION, RENDERSCRIPT_EXTENSION);
+  }
+
   private static ModuleLevelBuilder.ExitCode doBuild(CompileContext context,
                                                      ModuleChunk chunk,
                                                      DirtyFilesHolder<JavaSourceRootDescriptor, ModuleBuildTarget> dirtyFilesHolder)
