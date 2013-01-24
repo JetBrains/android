@@ -16,6 +16,8 @@ import org.jetbrains.jps.model.module.JpsModule;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -48,6 +50,11 @@ public class AndroidLibraryPackagingBuilder extends ModuleLevelBuilder {
     catch (Exception e) {
       return AndroidJpsUtil.handleException(context, e, BUILDER_NAME);
     }
+  }
+
+  @Override
+  public List<String> getCompilableFileExtensions() {
+    return Collections.emptyList();
   }
 
   private static ModuleLevelBuilder.ExitCode doBuild(CompileContext context, ModuleChunk chunk) throws IOException {
