@@ -35,7 +35,6 @@ import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.*;
-import com.intellij.util.PathUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -68,15 +67,29 @@ public abstract class AndroidTestCase extends UsefulTestCase {
   }
 
   public static String getAbsoluteTestDataPath() {
-    return PathUtil.getCanonicalPath(getTestDataPath());
+    // The following code doesn't work right now that the Android
+    // plugin lives in a separate place:
+    //String androidHomePath = System.getProperty("android.home.path");
+    //if (androidHomePath == null) {
+    //  androidHomePath = new File(PathManager.getHomePath(), "android/android").getPath();
+    //}
+    //return PathUtil.getCanonicalPath(androidHomePath + "/testData");
+
+    // getTestDataPath already gives the absolute path anyway:
+    String path = getTestDataPath();
+    assertTrue(new File(path).isAbsolute());
+    return path;
   }
 
-  protected static String getTestDataPath() {
-    String androidHomePath = System.getProperty("android.home.path");
-    if (androidHomePath == null) {
-      androidHomePath = new File(PathManager.getHomePath(), "android/android").getPath();
-    }
-    return androidHomePath + "/testData";
+  public static String getTestDataPath() {
+    return getAndroidPluginHome() + "/testData";
+  }
+
+  private static String getAndroidPluginHome() {
+    // Now that the Android plugin is kept in a separate place, we need to look in
+    // a relative position instead
+    //return PluginPathManager.getPluginHomePath("android");
+    return PathManager.getHomePath() + "/../adt/idea/android";
   }
 
   public static String getTestSdkPath() {

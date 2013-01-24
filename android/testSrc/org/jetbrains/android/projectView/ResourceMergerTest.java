@@ -14,7 +14,7 @@ import java.io.IOException;
 public class ResourceMergerTest extends BaseProjectViewTestCase {
   @Override
   protected String getTestDataPath() {
-    return AndroidTestCase.getAbsoluteTestDataPath();
+    return AndroidTestCase.getTestDataPath();
   }
 
   @Override

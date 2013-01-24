@@ -112,7 +112,7 @@ public class AndroidLibraryProjectTest extends UsefulTestCase {
   }
 
   private static String getTestSdkPath() {
-    return AndroidTestCase.getAbsoluteTestDataPath() + "/sdk1.5";
+    return AndroidTestCase.getTestSdkPath();
   }
 
   public void testHighlighting() {
