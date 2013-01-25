@@ -349,6 +349,7 @@ public class AndroidPackagingBuilder extends TargetBuilder<BuildRootDescriptor, 
     }
 
     final String[] sourceRoots = AndroidJpsUtil.toPaths(AndroidJpsUtil.getSourceRootsForModuleAndDependencies(module));
+    Arrays.sort(sourceRoots);
 
     final File intArtifactsDir = AndroidJpsUtil.getDirectoryForIntermediateArtifacts(context, module);
 
@@ -387,6 +388,7 @@ public class AndroidPackagingBuilder extends TargetBuilder<BuildRootDescriptor, 
 
     final String classesDexFilePath = classesDexFile.getPath();
     final String[] externalJars = ArrayUtil.toStringArray(externalJarsSet);
+    Arrays.sort(externalJars);
 
     final List<AndroidNativeLibData> additionalNativeLibs = extension.getAdditionalNativeLibs();
 

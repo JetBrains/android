@@ -24,6 +24,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
@@ -119,6 +120,22 @@ public class AndroidApkBuilder {
                                                                       @NotNull String sdkPath,
                                                                       @Nullable String customKeystorePath,
                                                                       @NotNull Condition<File> resourceFilter) throws IOException {
+    final AndroidBuildTestingManager testingManager = AndroidBuildTestingManager.getTestingManager();
+
+    if (testingManager != null) {
+      testingManager.getCommandExecutor().log(StringUtil.join(new String[]{
+        "apk_builder",
+        resPackagePath,
+        dexPath,
+        AndroidBuildTestingManager.arrayToString(sourceRoots),
+        AndroidBuildTestingManager.arrayToString(externalJars),
+        AndroidBuildTestingManager.arrayToString(nativeLibsFolders),
+        additionalNativeLibs.toString(),
+        finalApk,
+        Boolean.toString(unsigned),
+        sdkPath,
+        customKeystorePath}, "\n"));
+    }
     final Map<AndroidCompilerMessageKind, List<String>> map = new HashMap<AndroidCompilerMessageKind, List<String>>();
     map.put(ERROR, new ArrayList<String>());
     map.put(WARNING, new ArrayList<String>());

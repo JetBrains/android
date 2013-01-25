@@ -25,6 +25,7 @@ import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.execution.ParametersListUtil;
 import org.jetbrains.android.compiler.tools.AndroidDxRunner;
+import org.jetbrains.android.util.AndroidBuildTestingManager;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
 import org.jetbrains.annotations.NonNls;
@@ -192,6 +193,7 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
           files[i++] = FileUtil.toSystemDependentName(filePath);
         }
         context.processMessage(new ProgressMessage(AndroidJpsBundle.message("android.jps.progress.dex", module.getName())));
+        Arrays.sort(files);
 
         success = runDex(platform, dexOutputDir.getPath(), files, context, module);
       }
@@ -223,9 +225,10 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
                                 @NotNull JpsModule module) throws IOException {
     @SuppressWarnings("deprecation")
     final String dxJarPath = FileUtil.toSystemDependentName(platform.getTarget().getPath(IAndroidTarget.DX_JAR));
+    final AndroidBuildTestingManager testingManager = AndroidBuildTestingManager.getTestingManager();
 
     final File dxJar = new File(dxJarPath);
-    if (!dxJar.isFile()) {
+    if (testingManager == null && !dxJar.isFile()) {
       context.processMessage(
         new CompilerMessage(DEX_BUILDER_NAME, BuildMessage.Kind.ERROR, AndroidJpsBundle.message("android.jps.cannot.find.file", dxJarPath)));
       return false;
@@ -280,8 +283,16 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
 
     LOG.info(AndroidCommonUtils.command2string(commandLine));
 
-    final Process process = Runtime.getRuntime().exec(ArrayUtil.toStringArray(commandLine));
+    final String[] commands = ArrayUtil.toStringArray(commandLine);
+    final Process process;
 
+    if (testingManager != null) {
+      process = testingManager.getCommandExecutor().createProcess(
+        commands, Collections.<String, String>emptyMap());
+    }
+    else {
+      process = Runtime.getRuntime().exec(commands);
+    }
     final HashMap<AndroidCompilerMessageKind, List<String>> messages = new HashMap<AndroidCompilerMessageKind, List<String>>(3);
     messages.put(AndroidCompilerMessageKind.ERROR, new ArrayList<String>());
     messages.put(AndroidCompilerMessageKind.WARNING, new ArrayList<String>());
