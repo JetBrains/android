@@ -131,12 +131,12 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
         if (extension == null) {
           return true;
         }
-        final String ext = FileUtil.getExtension(file.getName());
+        String fileName = file.getName();
 
-        if (AIDL_EXTENSION.equals(ext)) {
+        if (FileUtilRt.extensionEquals(fileName, AIDL_EXTENSION)) {
           idlFilesToCompile.put(file, target);
         }
-        else if (RENDERSCRIPT_EXTENSION.equals(ext)) {
+        else if (FileUtilRt.extensionEquals(fileName, RENDERSCRIPT_EXTENSION)) {
           rsFilesToCompile.put(file, target);
         }
 
@@ -709,7 +709,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
     FileUtil.processFilesRecursively(dir, new Processor<File>() {
       @Override
       public boolean process(File file) {
-        if (file.isFile() && "java".equals(FileUtil.getExtension(file.getName()))) {
+        if (file.isFile() && FileUtilRt.extensionEquals(file.getName(), "java")) {
           try {
             FSOperations.markDirty(context, file);
           }
@@ -732,7 +732,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
     FileUtil.processFilesRecursively(dir, new Processor<File>() {
       @Override
       public boolean process(File file) {
-        if (file.isFile() && "java".equals(FileUtil.getExtension(file.getName()))) {
+        if (file.isFile() && FileUtilRt.extensionEquals(file.getName(), "java")) {
           result.add(file);
         }
         return true;
@@ -812,7 +812,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
 
             if (resFiles != null) {
               for (File resFile : resFiles) {
-                if (ResourceFolderType.VALUES.getName().equals(resType) && "xml".equals(FileUtil.getExtension(resFile.getName()))) {
+                if (ResourceFolderType.VALUES.getName().equals(resType) && FileUtilRt.extensionEquals(resFile.getName(), "xml")) {
                   final ArrayList<ResourceEntry> entries = new ArrayList<ResourceEntry>();
                   collectValueResources(resFile, entries);
                   result.put(FileUtil.toSystemIndependentName(resFile.getPath()), new ResourceFileData(entries, 0));

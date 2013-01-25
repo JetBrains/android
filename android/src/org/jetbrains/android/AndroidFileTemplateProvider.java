@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.intellij.ide.fileTemplates.*;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
@@ -100,8 +100,7 @@ public class AndroidFileTemplateProvider implements FileTemplateGroupDescriptorF
 
   @NotNull
   public static String getFileNameByNewElementName(@NotNull String name) {
-    String extension = FileUtil.getExtension(name);
-    if (!extension.equals("xml")) {
+    if (!FileUtilRt.extensionEquals(name, "xml")) {
       name += ".xml";
     }
     return name;

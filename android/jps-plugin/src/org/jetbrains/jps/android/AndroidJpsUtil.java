@@ -4,9 +4,9 @@ import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.HashSet;
@@ -67,13 +67,6 @@ public class AndroidJpsUtil {
   @NonNls private static final String RESOURCE_CACHE_STORAGE = "res_cache";
   @NonNls private static final String INTERMEDIATE_ARTIFACTS_STORAGE = "intermediate_artifacts";
 
-  public static final Condition<File> CLASSES_AND_JARS_FILTER = new Condition<File>() {
-    @Override
-    public boolean value(File file) {
-      final String ext = FileUtil.getExtension(file.getName());
-      return "jar".equals(ext) || "class".equals(ext);
-    }
-  };
   @NonNls public static final String GENERATED_RESOURCES_DIR_NAME = "generated_resources";
   @NonNls public static final String AAPT_GENERATED_SOURCE_ROOT_NAME = "aapt";
   @NonNls public static final String AIDL_GENERATED_SOURCE_ROOT_NAME = "aidl";
@@ -332,10 +325,10 @@ public class AndroidJpsUtil {
       @Override
       public boolean process(File file) {
         if (file.isFile()) {
-          final String ext = FileUtil.getExtension(file.getName());
+          String fileName = file.getName();
 
           // NOTE: we should ignore apklib dependencies (IDEA-82976)
-          if ("jar".equals(ext) || "class".equals(ext)) {
+          if (FileUtilRt.extensionEquals(fileName, "jar") || FileUtilRt.extensionEquals(fileName, "class")) {
             if (!processor.process(file)) {
               return false;
             }
