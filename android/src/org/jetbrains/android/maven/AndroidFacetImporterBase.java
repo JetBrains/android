@@ -35,6 +35,7 @@ import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ArrayUtil;
@@ -280,7 +281,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     for (String url : urls) {
       final String fileName = PathUtil.getFileName(PathUtil.toPresentableUrl(url));
 
-      if ("apklib".equals(FileUtil.getExtension(fileName))) {
+      if (FileUtilRt.extensionEquals(fileName, "apklib")) {
         return true;
       }
     }

@@ -32,6 +32,7 @@ import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.AndroidCommonBundle;
@@ -266,7 +267,7 @@ public class AndroidCommonUtils {
       }
     }
     else if (file.isFile()) {
-      if (!FileUtil.getExtension(file.getName()).equals("class")) {
+      if (!FileUtilRt.extensionEquals(file.getName(), "class")) {
         return;
       }
 
@@ -317,13 +318,11 @@ public class AndroidCommonUtils {
 
   @NotNull
   public static String getResourceName(@NotNull String resourceType, @NotNull String fileName) {
-    final String extension = FileUtil.getExtension(fileName);
     final String s = FileUtil.getNameWithoutExtension(fileName);
 
     return resourceType.equals("drawable") &&
-           ArrayUtil.find(DRAWABLE_EXTENSIONS, extension) >= 0 &&
            s.endsWith(".9") &&
-           extension.equals(PNG_EXTENSION)
+           FileUtilRt.extensionEquals(fileName, PNG_EXTENSION)
            ? s.substring(0, s.length() - 2)
            : s;
   }
