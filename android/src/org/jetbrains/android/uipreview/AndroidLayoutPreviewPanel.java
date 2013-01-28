@@ -26,6 +26,7 @@ import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.util.ui.AsyncProcessIcon;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -405,7 +406,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
   public void dispose() {
   }
 
-  private class MyImagePanelWrapper extends JLayeredPane {
+  private class MyImagePanelWrapper extends JBLayeredPane {
     public MyImagePanelWrapper() {
       add(myImagePanel);
     }
