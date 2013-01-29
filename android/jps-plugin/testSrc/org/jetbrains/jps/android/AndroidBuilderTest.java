@@ -10,6 +10,8 @@ import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.io.TestFileSystemItem;
 import org.jetbrains.android.util.AndroidBuildTestingManager;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.jps.android.model.JpsAndroidDexCompilerConfiguration;
+import org.jetbrains.jps.android.model.JpsAndroidExtensionService;
 import org.jetbrains.jps.android.model.JpsAndroidSdkProperties;
 import org.jetbrains.jps.android.model.JpsAndroidSdkType;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleExtensionImpl;
@@ -322,6 +324,33 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
       .file("META-INF")
       .file("res_apk_entry", "res_apk_entry_content")
       .file("classes.dex", "classes_dex_content"));
+  }
+
+  public void testChangeDexSettings() throws Exception {
+    final MyExecutor executor = new MyExecutor("com.example.simple");
+    setUpAndroidModule(new String[]{"src"}, executor).getFirst();
+    rebuildAll();
+    checkMakeUpToDate(executor);
+
+    final JpsAndroidExtensionService service = JpsAndroidExtensionService.getInstance();
+    final JpsAndroidDexCompilerConfiguration c = service.getDexCompilerConfiguration(myProject);
+    assertNotNull(c);
+    service.setDexCompilerConfiguration(myProject, c);
+
+    c.setVmOptions("-Xms64m");
+    makeAll();
+    checkBuildLog(executor, "expected_log");
+    checkMakeUpToDate(executor);
+
+    c.setMaxHeapSize(512);
+    makeAll();
+    checkBuildLog(executor, "expected_log_1");
+    checkMakeUpToDate(executor);
+
+    c.setOptimize(false);
+    makeAll();
+    checkBuildLog(executor, "expected_log_2");
+    checkMakeUpToDate(executor);
   }
 
   private String getModulePath(String relativePath) {

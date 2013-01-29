@@ -8,6 +8,8 @@ import org.jetbrains.jps.android.AndroidDependencyProcessor;
 import org.jetbrains.jps.android.AndroidDependencyType;
 import org.jetbrains.jps.android.AndroidJpsUtil;
 import org.jetbrains.jps.android.AndroidPlatform;
+import org.jetbrains.jps.android.model.JpsAndroidDexCompilerConfiguration;
+import org.jetbrains.jps.android.model.JpsAndroidExtensionService;
 import org.jetbrains.jps.android.model.JpsAndroidModuleExtension;
 import org.jetbrains.jps.builders.BuildRootDescriptor;
 import org.jetbrains.jps.builders.BuildRootIndex;
@@ -37,7 +39,14 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
   public void writeConfiguration(PrintWriter out, BuildDataPaths dataPaths, BuildRootIndex buildRootIndex) {
     super.writeConfiguration(out, dataPaths, buildRootIndex);
 
-    // todo: write compiler settings
+    final JpsAndroidDexCompilerConfiguration c = JpsAndroidExtensionService.
+      getInstance().getDexCompilerConfiguration(getModule().getProject());
+
+    if (c != null) {
+      out.println(c.getVmOptions());
+      out.println(c.getMaxHeapSize());
+      out.println(c.isOptimize());
+    }
   }
 
   @NotNull
