@@ -206,16 +206,18 @@ abstract class AndroidBuildTestingCommandExecutor implements AndroidBuildTesting
       if (candidates.size() == 0) {
         throw new RuntimeException("The log graph contains cycles");
       }
-      int i = addedEntries.size();
-      final String actualEntryContent = actualEntryList.get(i);
       boolean added = false;
 
-      for (String id : candidates) {
-        if (id2logEntry.get(id).myContent.equals(actualEntryContent)) {
-          addedEntries.add(id);
-          addedEntriesSet.add(id);
-          added = true;
-          break;
+      if (actualEntryList.size() > addedEntries.size()) {
+        final String actualEntryContent = actualEntryList.get(addedEntries.size());
+
+        for (String id : candidates) {
+          if (id2logEntry.get(id).myContent.equals(actualEntryContent)) {
+            addedEntries.add(id);
+            addedEntriesSet.add(id);
+            added = true;
+            break;
+          }
         }
       }
 

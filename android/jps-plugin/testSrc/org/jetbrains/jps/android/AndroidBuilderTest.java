@@ -240,12 +240,6 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
       .file("mylib.so", "mylib_content_changed"));
   }
 
-  private void checkMakeUpToDate(MyExecutor executor) {
-    executor.clear();
-    makeAll().assertUpToDate();
-    assertEquals("", executor.getLog());
-  }
-
   public void test3() throws Exception {
     final MyExecutor executor = new MyExecutor("com.example.simple");
     final JpsModule module = setUpAndroidModule(new String[]{"src", "resources"}, executor, null).getFirst();
@@ -425,6 +419,32 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     makeAll();
     checkBuildLog(executor, "expected_log_2");
     checkMakeUpToDate(executor);
+  }
+
+  public void testFilteredResources() throws Exception {
+    final MyExecutor executor = new MyExecutor("com.example.simple");
+    final JpsModule module = setUpAndroidModule(new String[]{"src"}, executor, null).getFirst();
+    final JpsAndroidModuleProperties props = ((JpsAndroidModuleExtensionImpl)AndroidJpsUtil.getExtension(module)).getProperties();
+
+    rebuildAll();
+    checkMakeUpToDate(executor);
+
+    props.USE_CUSTOM_APK_RESOURCE_FOLDER = true;
+    props.CUSTOM_APK_RESOURCE_FOLDER = "/target/filtered-res";
+    makeAll();
+    checkBuildLog(executor, "expected_log");
+    checkMakeUpToDate(executor);
+
+    change(getProjectPath("target/filtered-res/values/strings.xml"));
+    makeAll();
+    checkBuildLog(executor, "expected_log_1");
+    checkMakeUpToDate(executor);
+  }
+
+  private void checkMakeUpToDate(MyExecutor executor) {
+    executor.clear();
+    makeAll().assertUpToDate();
+    assertEquals("", executor.getLog());
   }
 
   private String getProjectPath(String relativePath) {

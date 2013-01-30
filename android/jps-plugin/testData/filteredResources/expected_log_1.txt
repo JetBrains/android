@@ -1,0 +1,8 @@
+______ENTRY_0:
+$ANDROID_SDK_DIR$/platform-tools/aapt.exe
+crunch
+-S
+$PROJECT_DIR$/root/target/filtered-res
+-C
+$DATA_STORAGE_ROOT$/android/res_cache/module
+
