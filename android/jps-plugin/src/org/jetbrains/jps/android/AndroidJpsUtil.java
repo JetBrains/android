@@ -508,7 +508,7 @@ public class AndroidJpsUtil {
   }
 
   @Nullable
-  public static File getResourceDirForCompilationPath(@NotNull JpsAndroidModuleExtension extension) throws IOException {
+  public static File getResourceDirForCompilationPath(@NotNull JpsAndroidModuleExtension extension) {
     return extension.useCustomResFolderForCompilation()
            ? extension.getResourceDirForCompilation()
            : extension.getResourceDir();

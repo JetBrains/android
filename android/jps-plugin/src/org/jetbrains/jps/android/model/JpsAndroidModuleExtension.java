@@ -19,7 +19,7 @@ public interface JpsAndroidModuleExtension extends JpsElement {
   File getResourceDir();
 
   @Nullable
-  File getResourceDirForCompilation() throws IOException;
+  File getResourceDirForCompilation();
 
   @Nullable
   File getManifestFile() throws IOException;

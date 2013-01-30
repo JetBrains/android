@@ -20,12 +20,12 @@ import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.android.util.AndroidNativeLibData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.model.serialization.JpsModelSerializationDataService;
-import org.jetbrains.jps.util.JpsPathUtil;
 import org.jetbrains.jps.android.model.JpsAndroidModuleExtension;
 import org.jetbrains.jps.model.ex.JpsElementBase;
 import org.jetbrains.jps.model.ex.JpsElementChildRoleBase;
 import org.jetbrains.jps.model.module.JpsModule;
+import org.jetbrains.jps.model.serialization.JpsModelSerializationDataService;
+import org.jetbrains.jps.util.JpsPathUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -83,7 +83,7 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
   }
 
   @Override
-  public File getResourceDirForCompilation() throws IOException {
+  public File getResourceDirForCompilation() {
     File resDir = findFileByRelativeModulePath(myProperties.CUSTOM_APK_RESOURCE_FOLDER, false);
     return resDir != null ? canonizeFilePath(resDir) : null;
   }

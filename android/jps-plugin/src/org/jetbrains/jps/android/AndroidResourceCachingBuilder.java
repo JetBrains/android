@@ -49,8 +49,8 @@ public class AndroidResourceCachingBuilder extends TargetBuilder<BuildRootDescri
     }
   }
 
-  private boolean runPngCaching(AndroidResourceCachingBuildTarget target,
-                                CompileContext context) throws IOException {
+  private static boolean runPngCaching(AndroidResourceCachingBuildTarget target,
+                                       CompileContext context) throws IOException {
     final JpsModule module = target.getModule();
     final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(module);
     assert extension != null;

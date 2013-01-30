@@ -35,7 +35,7 @@ public class AndroidResourceCachingBuildTarget extends AndroidBuildTarget {
     final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(myModule);
 
     if (extension != null) {
-      final File resourceDir = extension.getResourceDir();
+      final File resourceDir = AndroidJpsUtil.getResourceDirForCompilationPath(extension);
 
       if (resourceDir != null) {
         return Collections.<BuildRootDescriptor>singletonList(
