@@ -79,10 +79,6 @@ public class AndroidPackagingBuilder extends TargetBuilder<BuildRootDescriptor, 
     try {
       fillStates(modules, resourcesStates, assetsStates, manifestFiles);
 
-      if (!doCaching(target, context, modules, resourcesStates)) {
-        throw new ProjectBuildException();
-      }
-
       if (!doResourcePackaging(target, context, modules, resourcesStates, assetsStates, manifestFiles)) {
         throw new ProjectBuildException();
       }
@@ -143,88 +139,6 @@ public class AndroidPackagingBuilder extends TargetBuilder<BuildRootDescriptor, 
       resourcesStates.put(module, new AndroidFileSetState(resourceDirs, Condition.TRUE, true));
       assetsStates.put(module, new AndroidFileSetState(assetsDirs, Condition.TRUE, true));
     }
-  }
-
-  private static boolean doCaching(@NotNull BuildTarget<?> target,
-                                   @NotNull CompileContext context,
-                                   @NotNull Collection<JpsModule> modules,
-                                   @NotNull Map<JpsModule, AndroidFileSetState> module2state) throws IOException {
-    boolean success = true;
-    final AndroidFileSetStorage.Provider provider = new AndroidFileSetStorage.Provider("resource_caching");
-    final AndroidFileSetStorage storage = context.getProjectDescriptor().dataManager.getStorage(target, provider);
-
-    for (JpsModule module : modules) {
-      final AndroidFileSetState state = module2state.get(module);
-
-      try {
-        if (!runPngCaching(context, module, storage, state)) {
-          success = false;
-        }
-      }
-      catch (IOException e) {
-        AndroidJpsUtil.reportExceptionError(context, null, e, BUILDER_NAME);
-      }
-    }
-    return success;
-  }
-
-  private static boolean runPngCaching(@NotNull CompileContext context,
-                                       @NotNull JpsModule module,
-                                       @NotNull AndroidFileSetStorage storage,
-                                       @Nullable AndroidFileSetState state) throws IOException {
-    if (context.isMake()) {
-      final AndroidFileSetState savedState = storage.getState(module.getName());
-      if (savedState != null && savedState.equalsTo(state)) {
-        return true;
-      }
-    }
-
-    final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(module);
-    if (extension == null) {
-      return true;
-    }
-
-    context.processMessage(new CompilerMessage(BUILDER_NAME, BuildMessage.Kind.INFO,
-                                               AndroidJpsBundle.message("android.jps.progress.res.caching", module.getName())));
-
-    final File resourceDir = AndroidJpsUtil.getResourceDirForCompilationPath(extension);
-    if (resourceDir == null) {
-      return true;
-    }
-
-    final AndroidPlatform platform = AndroidJpsUtil.getAndroidPlatform(module, context, BUILDER_NAME);
-    if (platform == null) {
-      return false;
-    }
-
-    final File resCacheDir = AndroidJpsUtil.getResourcesCacheDir(context, module);
-
-    if (context.isProjectRebuild() && resCacheDir.exists()) {
-      if (!FileUtil.delete(resCacheDir)) {
-        context.processMessage(new CompilerMessage(BUILDER_NAME, BuildMessage.Kind.ERROR,
-                                                   AndroidJpsBundle.message("android.jps.cannot.create.directory", resCacheDir.getPath())));
-        return false;
-      }
-    }
-
-    if (!resCacheDir.exists()) {
-      if (!resCacheDir.mkdirs()) {
-        context.processMessage(new CompilerMessage(BUILDER_NAME, BuildMessage.Kind.ERROR,
-                                                   AndroidJpsBundle.message("android.jps.cannot.create.directory", resCacheDir.getPath())));
-        return false;    
-      }
-    }
-
-    final IAndroidTarget target = platform.getTarget();
-
-    final Map<AndroidCompilerMessageKind, List<String>> messages =
-      AndroidApt.crunch(target, Collections.singletonList(resourceDir.getPath()), resCacheDir.getPath());
-
-    AndroidJpsUtil.addMessages(context, messages, BUILDER_NAME, module.getName());
-
-    final boolean success = messages.get(AndroidCompilerMessageKind.ERROR).isEmpty();
-    storage.update(module.getName(), success ? state : null);
-    return success;
   }
 
   private static boolean doResourcePackaging(@NotNull BuildTarget<?> target,

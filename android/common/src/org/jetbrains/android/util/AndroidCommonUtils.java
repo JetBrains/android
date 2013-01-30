@@ -105,6 +105,7 @@ public class AndroidCommonUtils {
 
   @NonNls public static final String DEX_BUILD_TARGET_TYPE_ID = "android-dex";
   @NonNls public static final String PACKAGING_BUILD_TARGET_TYPE_ID = "android-packaging";
+  @NonNls public static final String RESOURCE_CACHING_BUILD_TARGET_ID = "android-resource-caching";
 
   private AndroidCommonUtils() {
   }
