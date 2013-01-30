@@ -3,6 +3,7 @@ package org.jetbrains.jps.android;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.builder.AndroidDexBuildTarget;
 import org.jetbrains.jps.android.builder.AndroidPackagingBuildTarget;
+import org.jetbrains.jps.android.builder.AndroidResourceCachingBuildTarget;
 import org.jetbrains.jps.builders.BuildTargetType;
 import org.jetbrains.jps.incremental.BuilderService;
 import org.jetbrains.jps.incremental.ModuleLevelBuilder;
@@ -19,6 +20,7 @@ public class AndroidBuilderService extends BuilderService {
   public List<? extends BuildTargetType<?>> getTargetTypes() {
     return Arrays.<BuildTargetType<?>>asList(
       AndroidDexBuildTarget.MyTargetType.INSTANCE,
+      AndroidResourceCachingBuildTarget.MyTargetType.INSTANCE,
       AndroidPackagingBuildTarget.MyTargetType.INSTANCE);
   }
 
@@ -33,6 +35,7 @@ public class AndroidBuilderService extends BuilderService {
   @Override
   public List<? extends TargetBuilder<?,?>> createBuilders() {
     return Arrays.asList(new AndroidDexBuilder(),
+                         new AndroidResourceCachingBuilder(),
                          new AndroidPackagingBuilder());
   }
 }

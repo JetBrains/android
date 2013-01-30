@@ -63,6 +63,7 @@ public class AndroidPackagingBuildTarget extends AndroidBuildTarget {
     if (extension != null && !extension.isLibrary()) {
       // todo: remove this when AndroidPackagingBuilder will be fully target-based
       result.add(new AndroidDexBuildTarget(myModule));
+      result.add(new AndroidResourceCachingBuildTarget(myModule));
     }
   }
 

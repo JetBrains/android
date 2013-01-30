@@ -515,7 +515,7 @@ public class AndroidJpsUtil {
   }
 
   @NotNull
-  static List<JpsAndroidModuleExtension> getAllAndroidDependencies(@NotNull JpsModule module, boolean librariesOnly) {
+  public static List<JpsAndroidModuleExtension> getAllAndroidDependencies(@NotNull JpsModule module, boolean librariesOnly) {
     final List<JpsAndroidModuleExtension> result = new ArrayList<JpsAndroidModuleExtension>();
     collectDependentAndroidLibraries(module, result, new HashSet<String>(), librariesOnly);
     return result;

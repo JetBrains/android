@@ -77,7 +77,7 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
   }
 
   @Override
-  public File getResourceDir() throws IOException {
+  public File getResourceDir() {
     File resDir = findFileByRelativeModulePath(myProperties.RES_FOLDER_RELATIVE_PATH, true);
     return resDir != null ? canonizeFilePath(resDir) : null;
   }
@@ -132,7 +132,7 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
     return nativeLibsFolder != null ? canonizeFilePath(nativeLibsFolder) : null;
   }
 
-  private static File canonizeFilePath(@NotNull File file) throws IOException {
+  private static File canonizeFilePath(@NotNull File file) {
     return new File(FileUtil.toCanonicalPath(file.getPath()));
   }
 
