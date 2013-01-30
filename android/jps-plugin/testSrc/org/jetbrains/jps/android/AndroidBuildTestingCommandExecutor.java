@@ -2,6 +2,7 @@ package org.jetbrains.jps.android;
 
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.util.AndroidBuildTestingManager;
@@ -12,6 +13,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -21,6 +24,7 @@ import java.util.regex.Pattern;
  * @author Eugene.Kudelevsky
  */
 abstract class AndroidBuildTestingCommandExecutor implements AndroidBuildTestingManager.MyCommandExecutor {
+  public static final String ENTRY_HEADER = "______ENTRY_";
 
   private volatile StringWriter myStringWriter = new StringWriter();
   private final Map<String, Pattern> myPathPatterns = new HashMap<String, Pattern>();
@@ -42,6 +46,7 @@ abstract class AndroidBuildTestingCommandExecutor implements AndroidBuildTesting
   @NotNull
   @Override
   public Process createProcess(@NotNull String[] args, @NotNull Map<? extends String, ? extends String> environment) {
+    startNewEntry();
     final String[] argsToLog = processArgs(args);
     logString(StringUtil.join(argsToLog, "\n"));
 
@@ -71,6 +76,7 @@ abstract class AndroidBuildTestingCommandExecutor implements AndroidBuildTesting
 
   @Override
   public void log(@NotNull String s) {
+    startNewEntry();
     final String[] args = s.split("\\n");
     logString(StringUtil.join(processArgs(args), "\n"));
     logString("\n\n");
@@ -83,6 +89,10 @@ abstract class AndroidBuildTestingCommandExecutor implements AndroidBuildTesting
   }
 
   protected void doCheckJar(@NotNull String jarId, @NotNull String jarPath) {
+  }
+
+  private synchronized void startNewEntry() {
+    logString(ENTRY_HEADER + "\n");
   }
 
   private synchronized void logString(String s) {
@@ -132,6 +142,112 @@ abstract class AndroidBuildTestingCommandExecutor implements AndroidBuildTesting
     return myCheckedJars;
   }
 
+  public static String normalizeExpectedLog(@NotNull String expectedLog, @NotNull String actualLog) {
+
+    final String[] actualEntries = actualLog.split(AndroidBuildTestingCommandExecutor.ENTRY_HEADER);
+    final List<String> actualEntryList = new ArrayList<String>();
+
+    for (String entry : actualEntries) {
+      final String s = entry.trim();
+
+      if (s.length() == 0) {
+        continue;
+      }
+      actualEntryList.add(s);
+    }
+    final Map<String, MyLogEntry> id2logEntry = new HashMap<String, MyLogEntry>();
+    final String[] entries = expectedLog.split(AndroidBuildTestingCommandExecutor.ENTRY_HEADER);
+
+    for (String entry : entries) {
+      final String s = entry.trim();
+
+      if (s.length() == 0) {
+        continue;
+      }
+      final int newLineIdx = s.indexOf('\n');
+      final int colonIdx = s.indexOf(':');
+      assert colonIdx >= 0 && colonIdx < newLineIdx;
+
+      final String id = s.substring(0, colonIdx);
+      final String depIdsStr = s.substring(colonIdx + 1, newLineIdx);
+      final String[] depIds = depIdsStr.length() > 0
+                              ? depIdsStr.trim().split(",")
+                              : ArrayUtil.EMPTY_STRING_ARRAY;
+      final String content = s.substring(newLineIdx + 1).trim();
+      id2logEntry.put(id, new MyLogEntry(content, depIds));
+    }
+    final List<String> addedEntries = new ArrayList<String>();
+    final Set<String> addedEntriesSet = new HashSet<String>();
+
+    while (addedEntries.size() < id2logEntry.size()) {
+      final List<String> candidates = new ArrayList<String>();
+
+      for (Map.Entry<String, MyLogEntry> entry : id2logEntry.entrySet()) {
+        final String id = entry.getKey();
+
+        if (addedEntriesSet.contains(id)) {
+          continue;
+        }
+        final MyLogEntry logEntry = entry.getValue();
+        boolean canBeAdded = true;
+
+        for (String depId : logEntry.myDepIds) {
+          if (!addedEntriesSet.contains(depId)) {
+            canBeAdded = false;
+            break;
+          }
+        }
+
+        if (canBeAdded) {
+          candidates.add(id);
+        }
+      }
+
+      if (candidates.size() == 0) {
+        throw new RuntimeException("The log graph contains cycles");
+      }
+      int i = addedEntries.size();
+      final String actualEntryContent = actualEntryList.get(i);
+      boolean added = false;
+
+      for (String id : candidates) {
+        if (id2logEntry.get(id).myContent.equals(actualEntryContent)) {
+          addedEntries.add(id);
+          addedEntriesSet.add(id);
+          added = true;
+          break;
+        }
+      }
+
+      if (!added) {
+        addedEntriesSet.addAll(candidates);
+        addedEntries.addAll(candidates);
+      }
+    }
+    final StringBuilder builder = new StringBuilder();
+
+    for (String id : addedEntries) {
+      final MyLogEntry entry = id2logEntry.get(id);
+      builder.append(entry.myContent).append("\n\n");
+    }
+    return builder.toString();
+  }
+
+  public static String normalizeLog(@NotNull String log) {
+    final String[] entries = log.split(AndroidBuildTestingCommandExecutor.ENTRY_HEADER);
+    final StringBuilder result = new StringBuilder();
+
+    for (String entry : entries) {
+      final String s = entry.trim();
+
+      if (s.length() == 0) {
+        continue;
+      }
+      result.append(s).append("\n\n");
+    }
+    return result.toString();
+  }
+
   protected static class MyProcess extends Process {
 
     private final int myExitValue;
@@ -175,6 +291,16 @@ abstract class AndroidBuildTestingCommandExecutor implements AndroidBuildTesting
 
     @Override
     public void destroy() {
+    }
+  }
+
+  private static class MyLogEntry {
+    final String myContent;
+    final String[] myDepIds;
+
+    private MyLogEntry(@NotNull String content, @NotNull String[] depIds) {
+      myContent = content;
+      myDepIds = depIds;
     }
   }
 }

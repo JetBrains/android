@@ -1,3 +1,4 @@
+______ENTRY_0:
 $ANDROID_SDK_DIR$/platform-tools/aapt.exe
 package
 -S
@@ -17,6 +18,7 @@ $ANDROID_SDK_DIR$/platforms/android-1.5/android.jar
 -F
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/module/module.apk.res
 
+______ENTRY_1:0
 apk_builder
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/module/module.apk.res
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/module/classes.dex
