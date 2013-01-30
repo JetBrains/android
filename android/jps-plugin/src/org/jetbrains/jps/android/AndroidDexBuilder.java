@@ -361,10 +361,8 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
         final AndroidDexBuildTarget.ClassesDirType type =
           ((AndroidDexBuildTarget.MyClassesDirBuildRootDescriptor)root).getClassesDirType();
 
-        if (type == AndroidDexBuildTarget.ClassesDirType.JAVA) {
-          classesDirs.add(rootFile.getPath());
-        }
-        else if (type == AndroidDexBuildTarget.ClassesDirType.ANDROID_APP) {
+        if (type == AndroidDexBuildTarget.ClassesDirType.JAVA ||
+            type == AndroidDexBuildTarget.ClassesDirType.ANDROID_APP) {
           AndroidJpsUtil.addSubdirectories(rootFile, classesDirs);
         }
         else {
@@ -381,6 +379,12 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
     final String[] libClassFilesDirOsPaths = ArrayUtil.toStringArray(libClassesDirs);
     final String[] externalJarOsPaths = ArrayUtil.toStringArray(externalJars);
     final String inputJarOsPath = AndroidCommonUtils.buildTempInputJar(classFilesDirOsPaths, libClassFilesDirOsPaths);
+
+    final AndroidBuildTestingManager testingManager = AndroidBuildTestingManager.getTestingManager();
+
+    if (testingManager != null) {
+      testingManager.getCommandExecutor().checkJarContent("proguard_input_jar", inputJarOsPath);
+    }
 
     final File logsDir = new File(logsDirOsPath);
     if (!logsDir.exists()) {

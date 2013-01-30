@@ -51,5 +51,7 @@ public class AndroidBuildTestingManager {
     Process createProcess(@NotNull String[] args, @NotNull Map<? extends String, ? extends String> environment);
 
     void log(@NotNull String s);
+
+    void checkJarContent(@NotNull String jarId, @NotNull String jarPath);
   }
 }
