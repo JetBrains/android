@@ -14,7 +14,9 @@ import org.jetbrains.jps.model.JpsModel;
 import org.jetbrains.jps.model.module.JpsModule;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Eugene.Kudelevsky
@@ -58,7 +60,7 @@ public class AndroidResourceCachingBuildTarget extends AndroidBuildTarget {
     public static final MyTargetType INSTANCE = new MyTargetType();
 
     private MyTargetType() {
-      super(AndroidCommonUtils.RESOURCE_CACHING_BUILD_TARGET_ID, "DEX");
+      super(AndroidCommonUtils.RESOURCE_CACHING_BUILD_TARGET_ID, "Resource Caching");
     }
 
     @Override
