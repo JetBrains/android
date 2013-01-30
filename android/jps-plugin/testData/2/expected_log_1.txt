@@ -1,3 +1,4 @@
+______ENTRY_0:
 $JAVA_PATH$
 -Xmx1024M
 -classpath
@@ -12,6 +13,7 @@ true
 $PROJECT_DIR$/out/production/module/com
 --exclude
 
+______ENTRY_1:0
 apk_builder
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/module/module.apk.res
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/module/classes.dex

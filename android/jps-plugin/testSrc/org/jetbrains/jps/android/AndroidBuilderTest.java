@@ -435,7 +435,8 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     final File file = findFindUnderProjectHome(getTestDataDirForCurrentTest() +
                                                "/" + expectedLogFile + ".txt");
     final String text = FileUtil.loadFile(file, true);
-    assertEquals(text, executor.getLog());
+    assertEquals(AndroidBuildTestingCommandExecutor.normalizeExpectedLog(text, executor.getLog()),
+                 AndroidBuildTestingCommandExecutor.normalizeLog(executor.getLog()));
   }
 
   private Pair<JpsModule, File> setUpAndroidModule(String[] sourceRoots, MyExecutor executor, String contentRootDir) {

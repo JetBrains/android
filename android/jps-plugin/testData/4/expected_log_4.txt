@@ -1,3 +1,4 @@
+______ENTRY_0:
 $ANDROID_SDK_DIR$/platform-tools/aapt.exe
 package
 -m
@@ -12,6 +13,7 @@ $ANDROID_SDK_DIR$/platforms/android-1.5/android.jar
 -G
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/module/proguard.txt
 
+______ENTRY_1:0
 $ANDROID_SDK_DIR$/tools/proguard/bin/proguard.bat
 -include
 $ANDROID_SDK_DIR$/tools/proguard/proguard-android.txt
@@ -35,6 +37,7 @@ $PROJECT_DIR$/root/proguard_logs/usage.txt
 $PROJECT_DIR$/root/proguard_logs/mapping.txt
 env: PROGUARD_HOME=$ANDROID_SDK_DIR$/tools/proguard
 
+______ENTRY_2:0,1
 $JAVA_PATH$
 -Xmx1024M
 -classpath
@@ -49,6 +52,7 @@ true
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/module/obfuscated_sources.jar
 --exclude
 
+______ENTRY_3:0,1,2
 apk_builder
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/module/module.apk.res
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/module/classes.dex
