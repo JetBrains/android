@@ -186,6 +186,17 @@ public class RadViewComponent extends RadVisualComponent {
   }
 
   @Override
+  public boolean isBackground() {
+    // In Android layouts there are two levels of parents; at the top level
+    // there is the "Device Screen", which is not deletable.
+    // Below that is the root layout, which we want to consider as the background,
+    // such that a marquee selection within the layout drag will select its children.
+    // This will also make select all operate on the children of the layout.
+    RadComponent parent = getParent();
+    return parent == null || parent.getParent() == null;
+  }
+
+  @Override
   public void delete() throws Exception {
     IdManager.get(this).removeComponent(this, true);
 
