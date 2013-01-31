@@ -328,7 +328,7 @@
 
     <creation>
       <![CDATA[
-          <ExtractEditText
+          <android.inputmethodservice.ExtractEditText
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="New ExtractEditText"
@@ -626,7 +626,7 @@
 
     <creation>
       <![CDATA[
-          <KeyboardView
+          <android.inputmethodservice.KeyboardView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
           />
@@ -646,10 +646,10 @@
 
     <creation>
       <![CDATA[
-          <GestureOverlayView
+          <android.gesture.GestureOverlayView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
-          </GestureOverlayView>
+          </android.gesture.GestureOverlayView>
       ]]>
     </creation>
   </meta>
