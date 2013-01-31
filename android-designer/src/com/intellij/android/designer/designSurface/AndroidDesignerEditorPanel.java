@@ -690,7 +690,8 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
       @NotNull
       @Override
       public RadComponent create() throws Exception {
-        RadViewComponent component = ModelParser.createComponent(null, ((DefaultPaletteItem)paletteItem).getMetaModel());
+        RadViewComponent component = ModelParser.createComponent(null, paletteItem.getMetaModel());
+        component.setInitialPaletteItem(paletteItem);
         if (component instanceof IConfigurableComponent) {
           ((IConfigurableComponent)component).configure(myRootComponent);
         }

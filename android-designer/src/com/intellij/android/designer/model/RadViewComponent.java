@@ -15,9 +15,10 @@
  */
 package com.intellij.android.designer.model;
 
-import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.intellij.designer.model.*;
+import com.intellij.designer.palette.PaletteItem;
 import com.intellij.designer.propertyTable.PropertyTable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.text.StringUtil;
@@ -25,6 +26,8 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.hash.HashMap;
 import org.jdom.Element;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -40,6 +43,7 @@ public class RadViewComponent extends RadVisualComponent {
   private Rectangle myMargins;
   private XmlTag myTag;
   private List<Property> myProperties;
+  private PaletteItem myPaletteItem;
 
   public XmlTag getTag() {
     if (myTag != null && (myTag.getParent() == null || !myTag.isValid())) {
@@ -175,6 +179,7 @@ public class RadViewComponent extends RadVisualComponent {
   //
   //////////////////////////////////////////////////////////////////////////////////////////
 
+  @NotNull
   @Override
   public List<RadComponent> getChildren() {
     return myChildren;
@@ -261,4 +266,20 @@ public class RadViewComponent extends RadVisualComponent {
   public RadComponent morphingTo(MetaModel target) throws Exception {
     return new ComponentMorphingTool(this, this, target, null).result();
   }
+
+  /** Sets the palette item this component was initially created from */
+  public void setInitialPaletteItem(PaletteItem paletteItem) {
+    myPaletteItem = paletteItem;
+  }
+
+  /**
+   * The palette item this component was initially created from, if known.
+   * This will be null for widgets created through other means (pasting, typing code, etc)
+   * or after an IDE restart.
+   */
+  @Nullable
+  public PaletteItem getInitialPaletteItem() {
+    return myPaletteItem;
+  }
+
 }

@@ -41,7 +41,7 @@ public class AndroidDesignerIcons {
   public static final Icon ImageView = load("/icons/ImageView.png"); // 16x16
   public static final Icon Include = load("/icons/include.png"); // 16x16
   public static final Icon LinearLayout = load("/icons/LinearLayout.png"); // 16x16
-  public static final Icon LinearLayout2 = load("/icons/LinearLayout2.png"); // 16x16
+  public static final Icon VerticalLinearLayout = load("/icons/VerticalLinearLayout.png"); // 16x16
   public static final Icon LinearLayout3 = load("/icons/LinearLayout3.png"); // 16x16
   public static final Icon ListView = load("/icons/ListView.png"); // 16x16
   public static final Icon MediaController = load("/icons/MediaController.png"); // 16x16
