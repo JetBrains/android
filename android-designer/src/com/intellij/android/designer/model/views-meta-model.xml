@@ -265,7 +265,6 @@
           <EditText
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="New EditText"
           />
       ]]>
     </creation>
@@ -1299,7 +1298,7 @@
     <presentation title=" (%orientation%)"/>
 
     <palette title="LinearLayout" icon="AndroidDesignerIcons.LinearLayout"
-             tooltip="A Layout that arranges its children in a single column or a single row."/>
+             tooltip="A Layout that arranges its children in a single row or column."/>
 
     <morphing to="RadioGroup TableLayout GridLayout RelativeLayout"/>
 
@@ -1312,7 +1311,6 @@
     <creation>
       <![CDATA[
           <LinearLayout
-            android:orientation="vertical"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent">
           </LinearLayout>
@@ -1493,7 +1491,24 @@
   <palette>
     <group name="Layouts">
       <item tag="FrameLayout"/>
-      <item tag="LinearLayout"/>
+      <item tag="LinearLayout"
+            title="LinearLayout (Horizontal)"
+            icon="AndroidDesignerIcons.LinearLayout"
+            tooltip="A Layout that arranges its children in a single row.">
+        <item title="LinearLayout (Vertical)"
+              icon="AndroidDesignerIcons.VerticalLinearLayout"
+              tooltip="A Layout that arranges its children in a single column.">
+          <creation>
+            <![CDATA[
+            <LinearLayout
+              android:orientation="vertical"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent">
+            </LinearLayout>
+        ]]>
+          </creation>
+        </item>
+      </item>
       <item tag="TableLayout"/>
       <item tag="TableRow"/>
       <item tag="GridLayout"/>
@@ -1501,22 +1516,267 @@
       <item tag="RelativeLayout"/>
     </group>
     <group name="Widgets">
-      <item tag="TextView"/>
-      <item tag="EditText"/>
-      <item tag="Button"/>
+      <item tag="TextView" title="Plain TextView">
+        <item title="Large Text">
+          <creation>
+            <![CDATA[
+              <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="Large Text"
+              />
+            ]]>
+          </creation>
+        </item>
+        <item title="Medium Text">
+          <creation>
+            <![CDATA[
+              <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="Medium Text"
+              />
+            ]]>
+          </creation>
+        </item>
+        <item title="Small Text">
+          <creation>
+            <![CDATA[
+              <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="Small Text"
+              />
+            ]]>
+          </creation>
+        </item>
+      </item>
+      <item tag="Button">
+        <item title="Small Button">
+          <creation>
+            <![CDATA[
+              <Button
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="New Button"
+              />
+            ]]>
+          </creation>
+        </item>
+      </item>
       <item tag="RadioButton"/>
       <item tag="CheckBox"/>
       <item tag="Switch"/>
       <item tag="ToggleButton"/>
       <item tag="ImageButton"/>
       <item tag="ImageView"/>
-      <item tag="ProgressBar"/>
+      <item tag="ProgressBar"
+            title="ProgressBar (Large)">
+        <creation>
+          <![CDATA[
+              <ProgressBar
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+              />
+            ]]>
+        </creation>
+        <item title="ProgressBar (Normal)">
+          <creation>
+            <![CDATA[
+              <ProgressBar
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+              />
+            ]]>
+          </creation>
+        </item>
+        <item title="ProgressBar (Small)">
+          <creation>
+            <![CDATA[
+              <ProgressBar
+                style="?android:attr/progressBarStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+              />
+            ]]>
+          </creation>
+        </item>
+        <item title="ProgressBar (Horizontal)">
+          <creation>
+            <![CDATA[
+              <ProgressBar
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+              />
+            ]]>
+          </creation>
+        </item>
+      </item>
       <item tag="SeekBar"/>
       <item tag="RatingBar"/>
       <item tag="Spinner"/>
       <item tag="WebView"/>
       <item tag="KeyboardView"/>
     </group>
+
+    <group name="Text Fields">
+      <item tag="EditText"
+            title="Plain Text">
+        <item title="Person Name">
+          <!-- TODO: Do a drop handler which sets <requestFocus>! -->
+          <creation>
+            <![CDATA[
+              <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName"
+                android:text="Name"
+                android:ems="10"
+              />
+            ]]>
+          </creation>
+        </item>
+        <item title="Password">
+          <creation>
+            <![CDATA[
+              <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:ems="10"
+              />
+            ]]>
+          </creation>
+        </item>
+        <item title="Password (Numeric)">
+          <creation>
+            <![CDATA[
+              <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="numberPassword"
+                android:ems="10"
+              />
+            ]]>
+          </creation>
+        </item>
+        <item title="E-mail">
+          <creation>
+            <![CDATA[
+              <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="textEmailAddress"
+                android:ems="10"
+              />
+            ]]>
+          </creation>
+        </item>
+        <item title="Phone">
+          <creation>
+            <![CDATA[
+              <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="phone"
+                android:ems="10"
+              />
+            ]]>
+          </creation>
+        </item>
+        <item title="Postal Address">
+          <creation>
+            <![CDATA[
+              <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="textPostalAddress"
+                android:ems="10"
+              />
+            ]]>
+          </creation>
+        </item>
+        <item title="Multiline Text">
+          <creation>
+            <![CDATA[
+              <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="textMultiLine"
+                android:ems="10"
+              />
+            ]]>
+          </creation>
+        </item>
+        <item title="Time">
+          <creation>
+            <![CDATA[
+              <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="time"
+                android:ems="10"
+              />
+            ]]>
+          </creation>
+        </item>
+        <item title="Date">
+          <creation>
+            <![CDATA[
+              <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="date"
+                android:ems="10"
+              />
+            ]]>
+          </creation>
+        </item>
+        <item title="Number">
+          <creation>
+            <![CDATA[
+              <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:ems="10"
+              />
+            ]]>
+          </creation>
+        </item>
+        <item title="Number (Signed)">
+          <creation>
+            <![CDATA[
+              <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="numberSigned"
+                android:ems="10"
+              />
+            ]]>
+          </creation>
+        </item>
+        <item title="Number (Decimal)">
+          <creation>
+            <![CDATA[
+              <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:ems="10"
+              />
+            ]]>
+          </creation>
+        </item>
+      </item>
+    </group>
+
     <group name="Containers">
       <item tag="RadioGroup"/>
       <item tag="ListView"/>

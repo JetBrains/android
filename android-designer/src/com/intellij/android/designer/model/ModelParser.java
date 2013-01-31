@@ -182,7 +182,12 @@ public class ModelParser extends XmlRecursiveElementVisitor {
     addComponentTag(container.getTag(), newComponent, insertBefore == null ? null : insertBefore.getTag(), new Computable<String>() {
       @Override
       public String compute() {
-        String creation = newComponent.getMetaModel().getCreation();
+        String creation;
+        if (newComponent.getInitialPaletteItem() != null) {
+          creation = newComponent.getInitialPaletteItem().getCreation();
+        } else {
+          creation = newComponent.getMetaModel().getCreation();
+        }
         return creation == null ? newComponent.getCreationXml() : creation;
       }
     });

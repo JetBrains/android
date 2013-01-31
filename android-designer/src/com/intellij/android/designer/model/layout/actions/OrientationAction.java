@@ -34,7 +34,7 @@ import java.util.List;
  */
 public class OrientationAction extends AnAction {
   private static final Icon myHorizontalIcon = AndroidDesignerIcons.LinearLayout;
-  private static final Icon myVerticalIcon = AndroidDesignerIcons.LinearLayout2;
+  private static final Icon myVerticalIcon = AndroidDesignerIcons.VerticalLinearLayout;
   private static final Icon myHorizontalOverrideIcon = AndroidDesignerIcons.LinearLayout3;
 
   private final DesignerEditorPanel myDesigner;
