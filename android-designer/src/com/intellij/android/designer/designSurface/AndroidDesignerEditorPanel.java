@@ -709,6 +709,20 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
     return name;
   }
 
+  public boolean isDeprecated(@NotNull String deprecatedIn) {
+    if (myLastTarget == null) {
+      return super.isDeprecated(deprecatedIn);
+    }
+
+    if (StringUtil.isEmpty(deprecatedIn)) {
+      return false;
+    }
+
+    Integer api = Ints.tryParse(deprecatedIn);
+    assert api != null : deprecatedIn;
+    return api.intValue() <= myLastTarget.getVersion().getApiLevel();
+  }
+
   @Override
   @NotNull
   protected ComponentCreationFactory createCreationFactory(final PaletteItem paletteItem) {

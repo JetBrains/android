@@ -384,7 +384,9 @@
         tag="DigitalClock">
 
     <palette title="DigitalClock" icon="AndroidDesignerIcons.DigitalClock"
-             tooltip="Like AnalogClock, but digital. Shows seconds."/>
+             tooltip="Like AnalogClock, but digital. Shows seconds."
+             deprecated="17"
+             deprecatedHint="Use a TextClock instead"/>
 
     <morphing to="AnalogClock TextClock"/>
 
@@ -962,7 +964,10 @@
         tag="Gallery">
 
     <palette title="Gallery" icon="AndroidDesignerIcons.Gallery"
-             tooltip="A view that shows items in a center-locked, horizontally scrolling list."/>
+             tooltip="A view that shows items in a center-locked, horizontally scrolling list."
+             deprecated="16"
+             deprecatedHint="This widget is no longer supported. Other horizontally scrolling widgets include HorizontalScrollView and ViewPager from the support library."/>
+        />
 
     <morphing to="HorizontalScrollView"/>
 
@@ -1183,7 +1188,10 @@
                 important="mode"/>
 
     <palette title="TwoLineListItem" icon="AndroidDesignerIcons.TwoLineListItem"
-             tooltip="A view group with two children, intended for use in ListViews."/>
+             tooltip="A view group with two children, intended for use in ListViews."
+             deprecated="17"
+             deprecatedHint="This class can be implemented easily by apps using a RelativeLayout or a LinearLayout."/>
+        />
 
     <creation>
       <![CDATA[
@@ -1292,7 +1300,10 @@
 
     <palette title="SlidingDrawer" icon="AndroidDesignerIcons.SlidingDrawer"
              version="3"
-             tooltip="SlidingDrawer hides content out of the screen and allows the user to drag a handle to bring the content on screen. SlidingDrawer can be used vertically or horizontally. A special widget composed of two children views: the handle, that the users drags, and the content, attached to the handle and dragged with it."/>
+             tooltip="SlidingDrawer hides content out of the screen and allows the user to drag a handle to bring the content on screen. SlidingDrawer can be used vertically or horizontally. A special widget composed of two children views: the handle, that the users drags, and the content, attached to the handle and dragged with it."
+             deprecated="17"
+             deprecatedHint="This class is not supported anymore. It is recommended you base your own implementation on the source code for the Android Open Source Project if you must use it in your application."/>
+        />
 
     <creation>
       <![CDATA[
@@ -1376,7 +1387,10 @@
         tag="AbsoluteLayout">
 
     <palette title="AbsoluteLayout" icon="AndroidDesignerIcons.AbsoluteLayout"
-             tooltip="A layout that lets you specify exact locations (x/y coordinates) of its children. Absolute layouts are less flexible and harder to maintain than other types of layouts without absolute positioning."/>
+             tooltip="A layout that lets you specify exact locations (x/y coordinates) of its children. Absolute layouts are less flexible and harder to maintain than other types of layouts without absolute positioning."
+             deprecated="3"
+             deprecatedHint=""
+        />
 
     <morphing to="RelativeLayout"/>
 
