@@ -67,6 +67,7 @@ public class AndroidDesignerIcons {
   public static final Icon TableLayout = load("/icons/TableLayout.png"); // 16x16
   public static final Icon TableRow = load("/icons/TableRow.png"); // 16x16
   public static final Icon TabWidget = load("/icons/TabWidget.png"); // 16x16
+  public static final Icon TextClock = load("/icons/TextClock.png"); // 16x16
   public static final Icon TextSwitcher = load("/icons/TextSwitcher.png"); // 16x16
   public static final Icon TextureView = load("/icons/TextureView.png"); // 16x16
   public static final Icon TextView = load("/icons/TextView.png"); // 16x16

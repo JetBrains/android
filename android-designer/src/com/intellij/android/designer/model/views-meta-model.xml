@@ -341,9 +341,9 @@
         tag="AnalogClock">
 
     <palette title="AnalogClock" icon="AndroidDesignerIcons.AnalogClock"
-             tooltip="This widget display an analogic clock with two hands for hours and minutes."/>
+             tooltip="This widget displays an analog clock with two hands for hours and minutes."/>
 
-    <morphing to="DigitalClock"/>
+    <morphing to="DigitalClock TextClock"/>
 
     <properties important="dial hand_hour hand_minute"/>
 
@@ -358,13 +358,35 @@
   </meta>
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
+        class="android.widget.TextClock"
+        tag="TextClock">
+
+    <palette title="TextClock" icon="AndroidDesignerIcons.TextClock"
+             version="Android 4.2 (API Level 17)"
+             tooltip="This widget displays the current date and/or time as a formatted string"/>
+
+    <morphing to="DigitalClock AnalogClock"/>
+
+    <properties important="format12Hour format24Hour timeZone"/>
+
+    <creation>
+      <![CDATA[
+          <TextClock
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+          />
+      ]]>
+    </creation>
+  </meta>
+
+  <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="android.widget.DigitalClock"
         tag="DigitalClock">
 
     <palette title="DigitalClock" icon="AndroidDesignerIcons.DigitalClock"
              tooltip="Like AnalogClock, but digital. Shows seconds."/>
 
-    <morphing to="AnalogClock"/>
+    <morphing to="AnalogClock TextClock"/>
 
     <creation>
       <![CDATA[
@@ -384,6 +406,8 @@
 
     <palette title="Chronometer" icon="AndroidDesignerIcons.Chronometer"
              tooltip="Class that implements a simple timer."/>
+
+    <morphing to="TextClock"/>
 
     <properties inplace="format text"
                 important="format"/>
@@ -1793,6 +1817,7 @@
       <item tag="DialerFilter"/>
     </group>
     <group name="Date &amp; Time">
+      <item tag="TextClock"/>
       <item tag="AnalogClock"/>
       <item tag="DigitalClock"/>
       <item tag="Chronometer"/>
