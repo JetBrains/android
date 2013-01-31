@@ -18,8 +18,10 @@ package com.intellij.android.designer.designSurface;
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.configuration.*;
+import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.State;
+import com.google.common.primitives.Ints;
 import com.intellij.android.designer.actions.ProfileAction;
 import com.intellij.android.designer.componentTree.AndroidTreeDecorator;
 import com.intellij.android.designer.inspection.ErrorAnalyzer;
@@ -683,6 +685,30 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
     return ViewsMetaManager.getInstance(getProject()).getPaletteGroups();
   }
 
+  @NotNull
+  @Override
+  public String getVersionLabel(@Nullable String version) {
+    if (StringUtil.isEmpty(version)) {
+      return "";
+    }
+
+    // Android versions are recorded as API integers
+    Integer api = Ints.tryParse(version);
+    assert api != null : version;
+    int since = api.intValue();
+    if (since <= 1) {
+      return "";
+    }
+
+    String name = SdkVersionInfo.getAndroidName(since);
+
+    if (name == null) {
+      name = String.format("API %1$d", since);
+    }
+
+    return name;
+  }
+
   @Override
   @NotNull
   protected ComponentCreationFactory createCreationFactory(final PaletteItem paletteItem) {
@@ -707,20 +733,14 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
 
   private void updatePalette(IAndroidTarget target) {
     try {
-      ClassLoader classLoader = ProjectClassLoader.create(target, getModule());
-
       for (PaletteGroup group : getPaletteGroups()) {
         for (PaletteItem item : group.getItems()) {
-          if (item.getVersion() != null) {
+          String version = item.getVersion();
+          if (version != null) {
+            Integer api = Ints.tryParse(version);
+            assert api != null : version;
             DefaultPaletteItem paletteItem = (DefaultPaletteItem)item;
-            try {
-              String className = paletteItem.getMetaModel().getTarget();
-              classLoader.loadClass(className);
-              paletteItem.setEnabled(true);
-            }
-            catch (Throwable e) {
-              paletteItem.setEnabled(false);
-            }
+            paletteItem.setEnabled(api.intValue() <= target.getVersion().getApiLevel());
           }
         }
       }
