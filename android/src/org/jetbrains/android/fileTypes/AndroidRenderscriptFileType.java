@@ -1,21 +1,25 @@
 package org.jetbrains.android.fileTypes;
 
-import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.PlainTextFileType;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.fileTypes.ExtensionFileNameMatcher;
+import com.intellij.openapi.fileTypes.FileNameMatcher;
+import com.intellij.openapi.fileTypes.LanguageFileType;
+import icons.AndroidIcons;
+import org.jetbrains.android.lang.rs.RenderscriptLanguage;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-/**
- * @author Eugene.Kudelevsky
- */
-public class AndroidRenderscriptFileType implements FileType {
-  public static final String DEFAULT_EXTENSION = "rs";
+public class AndroidRenderscriptFileType extends LanguageFileType {
   public static final AndroidRenderscriptFileType INSTANCE = new AndroidRenderscriptFileType();
+  @NonNls
+  public static final String CODE_EXTENSION = "rs";
+  @NonNls
+  private static final String HEADER_EXTENSION = "rsh";
 
   private AndroidRenderscriptFileType() {
+    super(RenderscriptLanguage.INSTANCE);
   }
   
   @NotNull
@@ -33,26 +37,18 @@ public class AndroidRenderscriptFileType implements FileType {
   @NotNull
   @Override
   public String getDefaultExtension() {
-    return DEFAULT_EXTENSION;
+    return CODE_EXTENSION;
   }
 
   @Override
   public Icon getIcon() {
-    return PlainTextFileType.INSTANCE.getIcon();
+    return AndroidIcons.Renderscript;
   }
 
-  @Override
-  public boolean isBinary() {
-    return false;
-  }
-
-  @Override
-  public boolean isReadOnly() {
-    return false;
-  }
-
-  @Override
-  public String getCharset(@NotNull VirtualFile file, byte[] content) {
-    return null;
+  public static FileNameMatcher[] fileNameMatchers() {
+    return new FileNameMatcher[] {
+      new ExtensionFileNameMatcher(CODE_EXTENSION),
+      new ExtensionFileNameMatcher(HEADER_EXTENSION),
+    };
   }
 }
