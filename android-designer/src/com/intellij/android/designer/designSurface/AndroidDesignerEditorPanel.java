@@ -679,11 +679,6 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
   }
 
   @Override
-  protected EditOperation processRootOperation(OperationContext context) {
-    return null;
-  }
-
-  @Override
   public List<PaletteGroup> getPaletteGroups() {
     return ViewsMetaManager.getInstance(getProject()).getPaletteGroups();
   }
