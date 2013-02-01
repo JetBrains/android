@@ -40,7 +40,7 @@ public class AndroidResourceCachingBuilder extends TargetBuilder<BuildRootDescri
                     @NotNull DirtyFilesHolder<BuildRootDescriptor, AndroidResourceCachingBuildTarget> holder,
                     @NotNull BuildOutputConsumer outputConsumer,
                     @NotNull CompileContext context) throws ProjectBuildException, IOException {
-    if (!holder.hasDirtyFiles()) {
+    if (AndroidJpsUtil.isLightBuild(context) || (!holder.hasDirtyFiles() && !holder.hasRemovedFiles())) {
       return;
     }
 
@@ -93,6 +93,7 @@ public class AndroidResourceCachingBuilder extends TargetBuilder<BuildRootDescri
       AndroidApt.crunch(androidTarget, inputDirs, resCacheDir.getPath());
     AndroidJpsUtil.addMessages(context, messages, BUILDER_NAME, module.getName());
 
+    // todo: add output files to BuildOutputConsumer
     return messages.get(AndroidCompilerMessageKind.ERROR).isEmpty();
   }
 

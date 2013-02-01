@@ -51,6 +51,8 @@ public class AndroidBuildTargetScopeProvider extends BuildTargetScopeProvider {
         addAllTargetId(dexTargetIds).build(),
       TargetTypeBuildScope.newBuilder().setTypeId(AndroidCommonUtils.RESOURCE_CACHING_BUILD_TARGET_ID).
         addAllTargetId(packagingTargetIds).build(),
+      TargetTypeBuildScope.newBuilder().setTypeId(AndroidCommonUtils.RESOURCE_PACKAGING_BUILD_TARGET_ID).
+        addAllTargetId(dexTargetIds).build(),
       TargetTypeBuildScope.newBuilder().setTypeId(AndroidCommonUtils.PACKAGING_BUILD_TARGET_TYPE_ID).
         addAllTargetId(packagingTargetIds).build());
   }

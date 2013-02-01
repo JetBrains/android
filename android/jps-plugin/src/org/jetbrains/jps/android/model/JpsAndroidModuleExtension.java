@@ -22,16 +22,16 @@ public interface JpsAndroidModuleExtension extends JpsElement {
   File getResourceDirForCompilation();
 
   @Nullable
-  File getManifestFile() throws IOException;
+  File getManifestFile();
 
   @Nullable
-  File getManifestFileForCompilation() throws IOException;
+  File getManifestFileForCompilation();
 
   @Nullable
   File getProguardConfigFile() throws IOException;
 
   @Nullable
-  File getAssetsDir() throws IOException;
+  File getAssetsDir();
 
   @Nullable
   File getAaptGenDir() throws IOException;

@@ -21,6 +21,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.Processor;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.execution.ParametersListUtil;
@@ -77,7 +78,7 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
     assert !AndroidJpsUtil.isLightBuild(context);
 
     try {
-      if (!doDexBuild(buildTarget, context, holder.hasDirtyFiles())) {
+      if (!doDexBuild(buildTarget, context, holder.hasDirtyFiles() || holder.hasRemovedFiles(), outputConsumer)) {
         throw new ProjectBuildException();
       }
     }
@@ -91,7 +92,8 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
 
   private static boolean doDexBuild(@NotNull AndroidDexBuildTarget target,
                                     @NotNull CompileContext context,
-                                    boolean hasDirtyFiles) throws IOException {
+                                    boolean hasDirtyFiles,
+                                    @NotNull BuildOutputConsumer outputConsumer) throws IOException {
     final JpsModule module = target.getModule();
 
     final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(module);
@@ -195,7 +197,7 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
         context.processMessage(new ProgressMessage(AndroidJpsBundle.message("android.jps.progress.dex", module.getName())));
         Arrays.sort(files);
 
-        success = runDex(platform, dexOutputDir.getPath(), files, context, module);
+        success = runDex(platform, dexOutputDir.getPath(), files, context, module, outputConsumer);
       }
       else {
         success = true;
@@ -222,7 +224,8 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
                                 @NotNull String outputDir,
                                 @NotNull String[] compileTargets,
                                 @NotNull CompileContext context,
-                                @NotNull JpsModule module) throws IOException {
+                                @NotNull JpsModule module,
+                                @NotNull BuildOutputConsumer outputConsumer) throws IOException {
     @SuppressWarnings("deprecation")
     final String dxJarPath = FileUtil.toSystemDependentName(platform.getTarget().getPath(IAndroidTarget.DX_JAR));
     final AndroidBuildTestingManager testingManager = AndroidBuildTestingManager.getTestingManager();
@@ -301,8 +304,32 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
     AndroidCommonUtils.handleDexCompilationResult(process, outFilePath, messages);
 
     AndroidJpsUtil.addMessages(context, messages, DEX_BUILDER_NAME, module.getName());
+    final boolean success = messages.get(AndroidCompilerMessageKind.ERROR).size() == 0;
 
-    return messages.get(AndroidCompilerMessageKind.ERROR).size() == 0;
+    if (success) {
+      final List<String> srcFiles = new ArrayList<String>();
+
+      for (String compileTargetPath : compileTargets) {
+        final File compileTarget = new File(compileTargetPath);
+
+        if (compileTarget.isFile()) {
+          srcFiles.add(compileTargetPath);
+        }
+        else if(compileTarget.isDirectory()) {
+          AndroidJpsUtil.processClassFilesAndJarsRecursively(compileTarget, new Processor<File>() {
+            @Override
+            public boolean process(File file) {
+              if (file.isFile()) {
+                srcFiles.add(file.getPath());
+              }
+              return true;
+            }
+          });
+        }
+      }
+      outputConsumer.registerOutputFile(outFile, srcFiles);
+    }
+    return success;
   }
 
   private static Pair<Boolean, AndroidProGuardStateStorage.MyState>

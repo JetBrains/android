@@ -11,15 +11,13 @@ import com.intellij.util.io.TestFileSystemItem;
 import org.jetbrains.android.util.AndroidBuildTestingManager;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.jps.android.model.JpsAndroidDexCompilerConfiguration;
-import org.jetbrains.jps.android.model.JpsAndroidExtensionService;
-import org.jetbrains.jps.android.model.JpsAndroidSdkProperties;
-import org.jetbrains.jps.android.model.JpsAndroidSdkType;
+import org.jetbrains.jps.android.model.*;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleExtensionImpl;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import org.jetbrains.jps.builders.JpsBuildTestCase;
 import org.jetbrains.jps.cmdline.BuildMain;
 import org.jetbrains.jps.incremental.java.JavaBuilder;
+import org.jetbrains.jps.model.JpsElement;
 import org.jetbrains.jps.model.JpsSimpleElement;
 import org.jetbrains.jps.model.impl.JpsSimpleElementImpl;
 import org.jetbrains.jps.model.java.JavaSourceRootType;
@@ -57,7 +55,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
 
   public void test1() throws Exception {
     final MyExecutor executor = new MyExecutor("com.example.simple");
-    final JpsModule module = setUpAndroidModule(ArrayUtil.EMPTY_STRING_ARRAY, executor, null).getFirst();
+    final JpsModule module = setUpSimpleAndroidStructure(ArrayUtil.EMPTY_STRING_ARRAY, executor, null).getFirst();
     rebuildAll();
     checkBuildLog(executor, "expected_log");
     checkMakeUpToDate(executor);
@@ -80,7 +78,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
 
   public void test2() throws Exception {
     final MyExecutor executor = new MyExecutor("com.example.simple");
-    final JpsModule module = setUpAndroidModule(new String[]{"src"}, executor, null).getFirst();
+    final JpsModule module = setUpSimpleAndroidStructure(new String[]{"src"}, executor, null).getFirst();
     rebuildAll();
     checkBuildLog(executor, "expected_log");
     checkMakeUpToDate(executor);
@@ -242,7 +240,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
 
   public void test3() throws Exception {
     final MyExecutor executor = new MyExecutor("com.example.simple");
-    final JpsModule module = setUpAndroidModule(new String[]{"src", "resources"}, executor, null).getFirst();
+    final JpsModule module = setUpSimpleAndroidStructure(new String[]{"src", "resources"}, executor, null).getFirst();
 
     module.addSourceRoot(JpsPathUtil.pathToUrl(getProjectPath("tests")), JavaSourceRootType.TEST_SOURCE);
 
@@ -322,6 +320,12 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
       .file("META-INF")
       .file("res_apk_entry", "res_apk_entry_content")
       .file("classes.dex", "classes_dex_content"));
+    checkMakeUpToDate(executor);
+
+    assertTrue(FileUtil.delete(new File(getProjectPath("external_jar1.jar"))));
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_3");
+    checkMakeUpToDate(executor);
   }
 
   public void test4() throws Exception {
@@ -349,7 +353,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
         }
       }
     };
-    final JpsModule androidModule = setUpAndroidModule(new String[]{"src"}, executor, "android_module").getFirst();
+    final JpsModule androidModule = setUpSimpleAndroidStructure(new String[]{"src"}, executor, "android_module").getFirst();
 
     final String copiedSourceRoot = copyToProject(getTestDataDirForCurrentTest() +
                                                   "/project/java_module/src", "root/java_module/src");
@@ -394,9 +398,75 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     checkMakeUpToDate(executor);
   }
 
+  public void test5() throws Exception {
+    final MyExecutor executor = new MyExecutor("com.example.simple");
+    final JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> androidSdk = addJdkAndAndroidSdk();
+    addPathPatterns(executor, androidSdk);
+
+    final JpsModule appModule = addAndroidModule("app", new String[]{"src"}, "app", "app", androidSdk).getFirst();
+    final JpsModule libModule = addAndroidModule("lib", ArrayUtil.EMPTY_STRING_ARRAY, "lib", "lib", androidSdk).getFirst();
+
+    final JpsAndroidModuleExtension libExtension = AndroidJpsUtil.getExtension(libModule);
+    assert libExtension != null;
+    final JpsAndroidModuleProperties libProps = ((JpsAndroidModuleExtensionImpl)libExtension).getProperties();
+    libProps.LIBRARY_PROJECT = true;
+
+    rebuildAll();
+    checkBuildLog(executor, "expected_log");
+    checkMakeUpToDate(executor);
+
+    appModule.getDependenciesList().addModuleDependency(libModule);
+    makeAll();
+    checkBuildLog(executor, "expected_log_1");
+    checkMakeUpToDate(executor);
+
+    final JpsAndroidModuleExtension appExtension = AndroidJpsUtil.getExtension(appModule);
+    assert appExtension != null;
+    final JpsAndroidModuleProperties appProps = ((JpsAndroidModuleExtensionImpl)appExtension).getProperties();
+    appProps.myIncludeAssetsFromLibraries = true;
+
+    makeAll();
+    checkBuildLog(executor, "expected_log_2");
+    checkMakeUpToDate(executor);
+
+    rebuildAll();
+    checkBuildLog(executor, "expected_log_7");
+    checkMakeUpToDate(executor);
+
+    change(getProjectPath("lib/assets/lib_asset.txt"));
+
+    makeAll();
+    checkBuildLog(executor, "expected_log_3");
+    checkMakeUpToDate(executor);
+
+    change(getProjectPath("app/assets/app_asset.txt"));
+
+    makeAll();
+    checkBuildLog(executor, "expected_log_3");
+    checkMakeUpToDate(executor);
+
+    change(getProjectPath("lib/res/values/strings.xml"));
+
+    makeAll();
+    checkBuildLog(executor, "expected_log_4");
+    checkMakeUpToDate(executor);
+
+    change(getProjectPath("app/res/values/strings.xml"));
+
+    makeAll();
+    checkBuildLog(executor, "expected_log_5");
+    checkMakeUpToDate(executor);
+
+    assertTrue(FileUtil.delete(new File(getProjectPath("lib/assets"))));
+
+    makeAll();
+    checkBuildLog(executor, "expected_log_6");
+    checkMakeUpToDate(executor);
+  }
+
   public void testChangeDexSettings() throws Exception {
     final MyExecutor executor = new MyExecutor("com.example.simple");
-    setUpAndroidModule(new String[]{"src"}, executor, null).getFirst();
+    setUpSimpleAndroidStructure(new String[]{"src"}, executor, null).getFirst();
     rebuildAll();
     checkMakeUpToDate(executor);
 
@@ -423,7 +493,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
 
   public void testFilteredResources() throws Exception {
     final MyExecutor executor = new MyExecutor("com.example.simple");
-    final JpsModule module = setUpAndroidModule(new String[]{"src"}, executor, null).getFirst();
+    final JpsModule module = setUpSimpleAndroidStructure(new String[]{"src"}, executor, null).getFirst();
     final JpsAndroidModuleProperties props = ((JpsAndroidModuleExtensionImpl)AndroidJpsUtil.getExtension(module)).getProperties();
 
     rebuildAll();
@@ -459,25 +529,50 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
                  AndroidBuildTestingCommandExecutor.normalizeLog(executor.getLog()));
   }
 
-  private Pair<JpsModule, File> setUpAndroidModule(String[] sourceRoots, MyExecutor executor, String contentRootDir) {
-    final String moduleName = "module";
+  private Pair<JpsModule, File> setUpSimpleAndroidStructure(String[] sourceRoots, MyExecutor executor, String contentRootDir) {
+    final JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> androidSdk = addJdkAndAndroidSdk();
+    addPathPatterns(executor, androidSdk);
+    return addAndroidModule("module", sourceRoots, contentRootDir, null, androidSdk);
+  }
+
+  private void addPathPatterns(MyExecutor executor, JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> androidSdk) {
+    final String tempDirectory = FileUtilRt.getTempDirectory();
+
+    executor.addPathPrefix("PROJECT_DIR", getOrCreateProjectDir().getPath());
+    executor.addPathPrefix("ANDROID_SDK_DIR", androidSdk.getHomePath());
+    executor.addPathPrefix("DATA_STORAGE_ROOT", myDataStorageRoot.getPath());
+    executor.addRegexPathPatternPrefix("AAPT_OUTPUT_TMP", FileUtil.toSystemIndependentName(tempDirectory) + "/android_apt_output\\d+tmp");
+    executor.addRegexPathPatternPrefix("COMBINED_ASSETS_TMP", FileUtil.toSystemIndependentName(tempDirectory) +
+                                                              "/android_combined_assets\\d+tmp");
+    executor.addRegexPathPatternPrefix("CLASSPATH_TMP", FileUtil.toSystemIndependentName(tempDirectory) + "/classpath\\d+\\.tmp");
+    executor.addRegexPathPattern("JAVA_PATH", ".*/java");
+    executor.addRegexPathPattern("IDEA_RT_PATH", ".*/idea_rt.jar");
+    executor.addRegexPathPattern("PROGUARD_INPUT_JAR", ".*/proguard_input\\S*\\.jar");
+    AndroidBuildTestingManager.startBuildTesting(executor);
+  }
+
+  private Pair<JpsModule, File> addAndroidModule(String moduleName,
+                                                 String[] sourceRoots,
+                                                 String contentRootDir,
+                                                 String dstContentRootDir,
+                                                 JpsSdk<? extends JpsElement> androidSdk) {
     final String testDataRoot = getTestDataDirForCurrentTest();
     final String projectRoot = testDataRoot + "/project";
     final String moduleContentRoot = contentRootDir != null
                                      ? new File(projectRoot, contentRootDir).getPath()
                                      : projectRoot;
-    final String root = copyToProject(moduleContentRoot, "root");
+    final String dstRoot = dstContentRootDir != null ? "root/" + dstContentRootDir : "root";
+    final String root = copyToProject(moduleContentRoot, dstRoot);
     final String outputPath = getAbsolutePath("out/production/" + moduleName);
     final String testOutputPath = getAbsolutePath("out/test/" + moduleName);
 
-    final JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> androidSdk = addJdkAndAndroidSdk();
     final JpsModule module = addModule(moduleName, ArrayUtil.EMPTY_STRING_ARRAY,
                                        outputPath, testOutputPath, androidSdk);
     module.getContentRootsList().addUrl(JpsPathUtil.pathToUrl(root));
 
     for (String sourceRoot : sourceRoots) {
       final String sourceRootName = new File(sourceRoot).getName();
-      final String copiedSourceRoot = copyToProject(moduleContentRoot + "/" + sourceRoot, "root/" + sourceRootName);
+      final String copiedSourceRoot = copyToProject(moduleContentRoot + "/" + sourceRoot, dstRoot + "/" + sourceRootName);
       module.addSourceRoot(JpsPathUtil.pathToUrl(copiedSourceRoot), JavaSourceRootType.SOURCE);
     }
     final JpsAndroidModuleProperties properties = new JpsAndroidModuleProperties();
@@ -491,17 +586,6 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     module.getContainer().setChild(JpsModuleSerializationDataExtensionImpl.ROLE,
                                    new JpsModuleSerializationDataExtensionImpl(new File(root)));
     module.getContainer().setChild(JpsAndroidModuleExtensionImpl.KIND, new JpsAndroidModuleExtensionImpl(properties));
-    final String tempDirectory = FileUtilRt.getTempDirectory();
-
-    executor.addPathPrefix("PROJECT_DIR", getOrCreateProjectDir().getPath());
-    executor.addPathPrefix("ANDROID_SDK_DIR", androidSdk.getHomePath());
-    executor.addPathPrefix("DATA_STORAGE_ROOT", myDataStorageRoot.getPath());
-    executor.addRegexPathPatternPrefix("AAPT_OUTPUT_TMP", FileUtil.toSystemIndependentName(tempDirectory) + "/android_apt_output\\d+tmp");
-    executor.addRegexPathPatternPrefix("CLASSPATH_TMP", FileUtil.toSystemIndependentName(tempDirectory) + "/classpath\\d+\\.tmp");
-    executor.addRegexPathPattern("JAVA_PATH", ".*/java");
-    executor.addRegexPathPattern("IDEA_RT_PATH", ".*/idea_rt.jar");
-    executor.addRegexPathPattern("PROGUARD_INPUT_JAR", ".*/proguard_input\\S*\\.jar");
-    AndroidBuildTestingManager.startBuildTesting(executor);
     return Pair.create(module, new File(root));
   }
 

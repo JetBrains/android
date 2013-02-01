@@ -89,13 +89,13 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
   }
 
   @Override
-  public File getManifestFile() throws IOException {
+  public File getManifestFile() {
     File manifestFile = findFileByRelativeModulePath(myProperties.MANIFEST_FILE_RELATIVE_PATH, true);
     return manifestFile != null ? canonizeFilePath(manifestFile) : null;
   }
 
   @Override
-  public File getManifestFileForCompilation() throws IOException {
+  public File getManifestFileForCompilation() {
     File manifestFile = findFileByRelativeModulePath(myProperties.CUSTOM_COMPILER_MANIFEST, false);
     return manifestFile != null ? canonizeFilePath(manifestFile) : null;
   }
@@ -107,7 +107,7 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
   }
 
   @Override
-  public File getAssetsDir() throws IOException {
+  public File getAssetsDir() {
     File manifestFile = findFileByRelativeModulePath(myProperties.ASSETS_FOLDER_RELATIVE_PATH, false);
     return manifestFile != null ? canonizeFilePath(manifestFile) : null;
   }

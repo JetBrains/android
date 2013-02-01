@@ -66,6 +66,7 @@ public abstract class AndroidBuildTarget extends BuildTarget<BuildRootDescriptor
   }
 
   protected void fillDependencies(List<BuildTarget<?>> result) {
+    result.add(new AndroidResourceCachingBuildTarget(myModule));
   }
 
   @NotNull
