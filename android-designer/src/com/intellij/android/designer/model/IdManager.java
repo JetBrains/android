@@ -15,7 +15,6 @@
  */
 package com.intellij.android.designer.model;
 
-import com.android.SdkConstants;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.model.RadComponentVisitor;
 import com.intellij.openapi.application.ApplicationManager;
@@ -28,6 +27,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import static com.android.SdkConstants.*;
 
 /**
  * @author Alexander Lobas
@@ -74,13 +75,41 @@ public class IdManager {
     int index = 0;
 
     while (myIdList.contains(nextIdValue)) {
-      nextIdValue = idValue + Integer.toString(++index);
+      ++index;
+      if (index == 1) {
+        nextIdValue = idValue;
+      } else {
+        nextIdValue = idValue + Integer.toString(index);
+      }
     }
 
     myIdList.add(nextIdValue);
-    String newId = "@+id/" + idValue + (index == 0 ? "" : Integer.toString(index));
-    component.getTag().setAttribute("id", SdkConstants.NS_RESOURCES, newId);
+    String newId = NEW_ID_PREFIX + idValue + (index == 0 ? "" : Integer.toString(index));
+    component.getTag().setAttribute(ATTR_ID, ANDROID_URI, newId);
     return newId;
+  }
+
+  /**
+   * Determines whether the given new component should have an id attribute.
+   * This is generally false for layouts, and generally true for other views,
+   * not including the {@code <include>} and {@code <merge>} tags. Note that
+   * {@code <fragment>} tags <b>should</b> specify an id.
+   *
+   * @param component the new component to check
+   * @return true if the component should have a default id
+   */
+  public boolean needsDefaultId(RadViewComponent component) {
+    if (component instanceof RadViewContainer) {
+      return false;
+    }
+    String tag = component.getTag().getName();
+    if (tag.equals(VIEW_INCLUDE) || tag.equals(VIEW_MERGE) || tag.equals(SPACE) || tag.equals(REQUEST_FOCUS) ||
+        // Handle <Space> in the compatibility library package
+        (tag.endsWith(SPACE) && tag.length() > SPACE.length() && tag.charAt(tag.length() - SPACE.length()) == '.')) {
+      return false;
+    }
+
+    return true;
   }
 
   public void ensureIds(final RadViewComponent container) {
@@ -100,7 +129,7 @@ public class IdManager {
             else if (idValue != null && myIdList.contains(idValue)) {
               createId(viewComponent);
               replaceList.add(new Pair<Pair<String, String>, String>(
-                new Pair<String, String>("@id/" + idValue, "@+id/" + idValue),
+                new Pair<String, String>(ID_PREFIX + idValue, NEW_ID_PREFIX + idValue),
                 viewComponent.getId()));
             }
             else {

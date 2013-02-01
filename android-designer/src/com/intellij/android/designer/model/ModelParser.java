@@ -199,8 +199,9 @@ public class ModelParser extends XmlRecursiveElementVisitor {
       addComponent(newComponent, ViewsMetaManager.getInstance(newComponent.getTag().getProject()), propertyParser);
     }
 
-    if (!(newComponent instanceof RadViewContainer)) {
-      IdManager.get(container).ensureIds(newComponent);
+    IdManager idManager = IdManager.get(container);
+    if (idManager.needsDefaultId(newComponent)) {
+      idManager.ensureIds(newComponent);
     }
   }
 
