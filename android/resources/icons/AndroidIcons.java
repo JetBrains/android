@@ -23,4 +23,5 @@ public class AndroidIcons {
   public static final Icon ZoomFit = load("/icons/zoomFit.png"); // 16x16
   public static final Icon ZoomIn = load("/icons/zoomIn.png"); // 16x16
   public static final Icon ZoomOut = load("/icons/zoomOut.png"); // 16x16
+  public static final Icon Renderscript = load("/icons/renderscript.png"); // 16x16
 }

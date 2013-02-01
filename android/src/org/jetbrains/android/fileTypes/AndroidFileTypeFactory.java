@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 public class AndroidFileTypeFactory extends FileTypeFactory {
     public void createFileTypes(@NotNull FileTypeConsumer consumer) {
       consumer.consume(AndroidIdlFileType.ourFileType, AndroidIdlFileType.DEFAULT_ASSOCIATED_EXTENSION);
-      consumer.consume(AndroidRenderscriptFileType.INSTANCE, AndroidRenderscriptFileType.DEFAULT_EXTENSION);
-      consumer.consume(PlainTextFileType.INSTANCE, "rsh");
+      consumer.consume(AndroidRenderscriptFileType.INSTANCE,
+                       AndroidRenderscriptFileType.fileNameMatchers());
     }
 }
