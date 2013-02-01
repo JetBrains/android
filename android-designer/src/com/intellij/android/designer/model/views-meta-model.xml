@@ -34,7 +34,7 @@
 
     <presentation title=" - %layout:xml%"/>
 
-    <palette title="&lt;Include&gt;" icon="AndroidDesignerIcons.Include"
+    <palette title="&lt;include&gt;" icon="AndroidDesignerIcons.Include"
              tooltip="Lets you statically include XML layout inside other XML layouts."/>
 
     <properties inplace="layout:xml"/>
@@ -46,7 +46,7 @@
 
     <presentation title=" - %name%"/>
 
-    <palette title="&lt;Fragment&gt;" icon="AndroidDesignerIcons.Fragment"
+    <palette title="&lt;fragment&gt;" icon="AndroidDesignerIcons.Fragment"
              tooltip="A Fragment is a piece of an application's user interface or behavior that can be placed in an Activity."/>
 
     <properties inplace="name"/>
@@ -1869,6 +1869,7 @@
     <group name="Custom">
       <item tag="include"/>
       <item tag="fragment"/>
+      <item tag="requestFocus"/>
       <item tag="view"/>
     </group>
   </palette>
