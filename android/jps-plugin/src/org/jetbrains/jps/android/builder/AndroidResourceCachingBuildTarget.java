@@ -53,7 +53,7 @@ public class AndroidResourceCachingBuildTarget extends AndroidBuildTarget {
 
   @NotNull
   public File getOutputDir(CompileContext context) {
-    return AndroidJpsUtil.getResourcesCacheDir(context, myModule);
+    return AndroidJpsUtil.getResourcesCacheDir(myModule, context.getProjectDescriptor().dataManager.getDataPaths());
   }
 
   public static class MyTargetType extends AndroidBuildTargetType<AndroidResourceCachingBuildTarget> {
@@ -64,8 +64,8 @@ public class AndroidResourceCachingBuildTarget extends AndroidBuildTarget {
     }
 
     @Override
-    public AndroidResourceCachingBuildTarget createBuildTarget(@NotNull JpsModule module) {
-      return new AndroidResourceCachingBuildTarget(module);
+    public AndroidResourceCachingBuildTarget createBuildTarget(@NotNull JpsAndroidModuleExtension extension) {
+      return new AndroidResourceCachingBuildTarget(extension.getModule());
     }
   }
 }

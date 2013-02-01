@@ -95,13 +95,13 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
                type == AndroidDependencyType.ANDROID_LIBRARY_OUTPUT_DIRECTORY ||
                type == AndroidDependencyType.JAVA_MODULE_OUTPUT_DIR;
       }
-    });
+    }, false);
 
     if (extension.isPackTestCode()) {
       final File testModuleClassesDir = new ModuleBuildTarget(
         myModule, JavaModuleBuildTargetType.TEST).getOutputDir();
 
-      if (testModuleClassesDir != null && testModuleClassesDir.isDirectory()) {
+      if (testModuleClassesDir != null) {
         appClassesDirs.add(testModuleClassesDir.getPath());
       }
     }
@@ -124,8 +124,8 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
     }
     final AndroidPlatform platform = AndroidJpsUtil.getAndroidPlatform(myModule, null, null);
 
-    for (String jar : AndroidJpsUtil.getExternalLibraries(dataPaths, myModule, platform)) {
-      result.add(new MyJarBuildRootDescriptor(this, new File(jar), false));
+    for (String jarOrLibDir : AndroidJpsUtil.getExternalLibraries(dataPaths, myModule, platform, false)) {
+      result.add(new MyJarBuildRootDescriptor(this, new File(jarOrLibDir), false));
     }
     return result;
   }
@@ -150,8 +150,8 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
     }
 
     @Override
-    public AndroidDexBuildTarget createBuildTarget(@NotNull JpsModule module) {
-      return new AndroidDexBuildTarget(module);
+    public AndroidDexBuildTarget createBuildTarget(@NotNull JpsAndroidModuleExtension extension) {
+      return !extension.isLibrary() ? new AndroidDexBuildTarget(extension.getModule()) : null;
     }
   }
 
