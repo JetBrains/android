@@ -75,14 +75,14 @@ public class AndroidResourcePackagingBuilder extends TargetBuilder<BuildRootDesc
 
     final File manifestFile = AndroidJpsUtil.getManifestFileForCompilationPath(extension);
 
-    if (manifestFile == null) {
+    if (manifestFile == null || !manifestFile.exists()) {
       context.processMessage(new CompilerMessage(
         BUILDER_NAME, BuildMessage.Kind.ERROR,
         AndroidJpsBundle.message("android.jps.errors.manifest.not.found", module.getName())));
       return false;
     }
     final ArrayList<String> assetsDirPaths = new ArrayList<String>();
-    AndroidResourcePackagingBuildTarget.collectAssetDirs(extension, assetsDirPaths);
+    AndroidResourcePackagingBuildTarget.collectAssetDirs(extension, assetsDirPaths, true);
 
     final String outputFilePath = target.getOutputFile(context).getPath();
     File outputDir = new File(outputFilePath).getParentFile();
@@ -98,7 +98,7 @@ public class AndroidResourcePackagingBuilder extends TargetBuilder<BuildRootDesc
       return false;
     }
     final IAndroidTarget androidTarget = platform.getTarget();
-    final String[] resourceDirPaths = AndroidJpsUtil.collectResourceDirsForCompilation(extension, true, context);
+    final String[] resourceDirPaths = AndroidJpsUtil.collectResourceDirsForCompilation(extension, true, context, true);
 
     return doPackageResources(context, manifestFile, androidTarget, resourceDirPaths, ArrayUtil.toStringArray(assetsDirPaths),
                               outputFilePath, AndroidJpsUtil.isReleaseBuild(context), module.getName(), outputConsumer);

@@ -475,20 +475,22 @@ public class AndroidJpsUtil {
   @NotNull
   public static String[] collectResourceDirsForCompilation(@NotNull JpsAndroidModuleExtension extension,
                                                            boolean withCacheDirs,
-                                                           @NotNull CompileContext context) {
+                                                           @NotNull CompileContext context,
+                                                           boolean checkExistence) {
     final BuildDataPaths dataPaths = context.getProjectDescriptor().dataManager.getDataPaths();
-    return collectResourceDirsForCompilation(extension, withCacheDirs, dataPaths);
+    return collectResourceDirsForCompilation(extension, withCacheDirs, dataPaths, checkExistence);
   }
 
   @NotNull
   public static String[] collectResourceDirsForCompilation(@NotNull JpsAndroidModuleExtension extension,
                                                            boolean withCacheDirs,
-                                                           @NotNull BuildDataPaths dataPaths) {
+                                                           @NotNull BuildDataPaths dataPaths,
+                                                           boolean checkExistence) {
     final List<String> result = new ArrayList<String>();
-    addCompilableResourceDirsForModule(extension, withCacheDirs, dataPaths, result);
+    addCompilableResourceDirsForModule(extension, withCacheDirs, dataPaths, result, checkExistence);
 
     for (JpsAndroidModuleExtension depExtension : getAllAndroidDependencies(extension.getModule(), true)) {
-      addCompilableResourceDirsForModule(depExtension, withCacheDirs, dataPaths, result);
+      addCompilableResourceDirsForModule(depExtension, withCacheDirs, dataPaths, result, checkExistence);
     }
     return ArrayUtil.toStringArray(result);
   }
@@ -496,21 +498,22 @@ public class AndroidJpsUtil {
   private static void addCompilableResourceDirsForModule(JpsAndroidModuleExtension extension,
                                                          boolean withCacheDirs,
                                                          BuildDataPaths dataPaths,
-                                                         List<String> result) {
+                                                         List<String> result,
+                                                         boolean checkExistence) {
     if (withCacheDirs) {
       final File resourcesCacheDir = getResourcesCacheDir(extension.getModule(), dataPaths);
-      if (resourcesCacheDir.exists()) {
+      if (!checkExistence || resourcesCacheDir.exists()) {
         result.add(resourcesCacheDir.getPath());
       }
     }
 
     final File resDir = getResourceDirForCompilationPath(extension);
-    if (resDir != null) {
+    if (resDir != null && (!checkExistence || resDir.exists())) {
       result.add(resDir.getPath());
     }
 
     final File generatedResourcesStorage = getGeneratedResourcesStorage(extension.getModule(), dataPaths);
-    if (generatedResourcesStorage.exists()) {
+    if (!checkExistence || generatedResourcesStorage.exists()) {
       result.add(generatedResourcesStorage.getPath());
     }
   }

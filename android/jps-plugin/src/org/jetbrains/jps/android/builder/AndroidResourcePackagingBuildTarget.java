@@ -37,10 +37,10 @@ public class AndroidResourcePackagingBuildTarget extends AndroidBuildTarget {
     final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(myModule);
     assert extension != null;
 
-    final String[] resourceDirs = AndroidJpsUtil.collectResourceDirsForCompilation(extension, true, dataPaths);
+    final String[] resourceDirs = AndroidJpsUtil.collectResourceDirsForCompilation(extension, true, dataPaths, false);
 
     final List<String> assertDirs = new ArrayList<String>();
-    collectAssetDirs(extension, assertDirs);
+    collectAssetDirs(extension, assertDirs, false);
 
     final File manifestFile = AndroidJpsUtil.getManifestFileForCompilationPath(extension);
     final List<BuildRootDescriptor> result = new ArrayList<BuildRootDescriptor>();
@@ -71,10 +71,10 @@ public class AndroidResourcePackagingBuildTarget extends AndroidBuildTarget {
     return new File(dir.getPath(), myModule.getName() + ".apk.res");
   }
 
-  public static void collectAssetDirs(@NotNull JpsAndroidModuleExtension extension, @NotNull List<String> result) {
+  public static void collectAssetDirs(@NotNull JpsAndroidModuleExtension extension, @NotNull List<String> result, boolean checkExistence) {
     final File assetsDir = extension.getAssetsDir();
 
-    if (assetsDir != null) {
+    if (assetsDir != null && (!checkExistence || assetsDir.exists())) {
       result.add(assetsDir.getPath());
     }
 
@@ -82,7 +82,7 @@ public class AndroidResourcePackagingBuildTarget extends AndroidBuildTarget {
       for (JpsAndroidModuleExtension depExtension : AndroidJpsUtil.getAllAndroidDependencies(extension.getModule(), true)) {
         final File depAssetsDir = depExtension.getAssetsDir();
 
-        if (depAssetsDir != null) {
+        if (depAssetsDir != null && (!checkExistence || depAssetsDir.exists())) {
           result.add(depAssetsDir.getPath());
         }
       }

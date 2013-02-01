@@ -78,7 +78,7 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
 
   @Override
   public File getResourceDir() {
-    File resDir = findFileByRelativeModulePath(myProperties.RES_FOLDER_RELATIVE_PATH, true);
+    File resDir = findFileByRelativeModulePath(myProperties.RES_FOLDER_RELATIVE_PATH, false);
     return resDir != null ? canonizeFilePath(resDir) : null;
   }
 
@@ -90,7 +90,7 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
 
   @Override
   public File getManifestFile() {
-    File manifestFile = findFileByRelativeModulePath(myProperties.MANIFEST_FILE_RELATIVE_PATH, true);
+    File manifestFile = findFileByRelativeModulePath(myProperties.MANIFEST_FILE_RELATIVE_PATH, false);
     return manifestFile != null ? canonizeFilePath(manifestFile) : null;
   }
 
@@ -102,7 +102,7 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
 
   @Override
   public File getProguardConfigFile() throws IOException {
-    File proguardFile = findFileByRelativeModulePath(myProperties.PROGUARD_CFG_PATH, false);
+    File proguardFile = findFileByRelativeModulePath(myProperties.PROGUARD_CFG_PATH, true);
     return proguardFile != null ? canonizeFilePath(proguardFile) : null;
   }
 
@@ -113,12 +113,12 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
   }
 
   public File getAaptGenDir() throws IOException {
-    File aaptGenDir = findFileByRelativeModulePath(myProperties.GEN_FOLDER_RELATIVE_PATH_APT, false);
+    File aaptGenDir = findFileByRelativeModulePath(myProperties.GEN_FOLDER_RELATIVE_PATH_APT, true);
     return aaptGenDir != null ? canonizeFilePath(aaptGenDir) : null;
   }
 
   public File getAidlGenDir() throws IOException {
-    File aidlGenDir = findFileByRelativeModulePath(myProperties.GEN_FOLDER_RELATIVE_PATH_AIDL, false);
+    File aidlGenDir = findFileByRelativeModulePath(myProperties.GEN_FOLDER_RELATIVE_PATH_AIDL, true);
     return aidlGenDir != null ? canonizeFilePath(aidlGenDir) : null;
   }
 
@@ -128,7 +128,7 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
 
   @Override
   public File getNativeLibsDir() throws IOException {
-    File nativeLibsFolder = findFileByRelativeModulePath(myProperties.LIBS_FOLDER_RELATIVE_PATH, false);
+    File nativeLibsFolder = findFileByRelativeModulePath(myProperties.LIBS_FOLDER_RELATIVE_PATH, true);
     return nativeLibsFolder != null ? canonizeFilePath(nativeLibsFolder) : null;
   }
 
@@ -137,7 +137,7 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
   }
 
   @Nullable
-  private File findFileByRelativeModulePath(String relativePath, boolean lookInContentRoot) {
+  private File findFileByRelativeModulePath(String relativePath, boolean checkExistence) {
     if (relativePath == null || relativePath.length() == 0) {
       return null;
     }
@@ -148,19 +148,8 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
       String absPath = FileUtil.toSystemDependentName(moduleBaseDir.getAbsolutePath() + relativePath);
       File f = new File(absPath);
 
-      if (f.exists()) {
+      if (!checkExistence || f.exists()) {
         return f;
-      }
-    }
-
-    if (lookInContentRoot) {
-      for (String contentRootUrl : module.getContentRootsList().getUrls()) {
-        String absUrl = contentRootUrl + relativePath;
-        File f = JpsPathUtil.urlToFile(absUrl);
-
-        if (f.exists()) {
-          return f;
-        }
       }
     }
     return null;
