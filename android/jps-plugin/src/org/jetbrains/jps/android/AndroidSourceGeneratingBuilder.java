@@ -580,7 +580,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
       final IAndroidTarget target = moduleData.getPlatform().getTarget();
 
       try {
-        final String[] resPaths = AndroidJpsUtil.collectResourceDirsForCompilation(extension, false, context);
+        final String[] resPaths = AndroidJpsUtil.collectResourceDirsForCompilation(extension, false, context, true);
         if (resPaths.length == 0) {
           // there is no resources in the module
           if (!clearDirectoryIfNotEmpty(aptOutputDirectory, context, ANDROID_APT_COMPILER)) {
@@ -786,7 +786,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
     for (JpsAndroidModuleExtension depExtension : AndroidJpsUtil.getAllAndroidDependencies(module, true)) {
       final File depManifestFile = AndroidJpsUtil.getManifestFileForCompilationPath(depExtension);
 
-      if (depManifestFile != null) {
+      if (depManifestFile != null && depManifestFile.exists()) {
         final String packageName = parsePackageNameFromManifestFile(depManifestFile);
 
         if (packageName != null) {
