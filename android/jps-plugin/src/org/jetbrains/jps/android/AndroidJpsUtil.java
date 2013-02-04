@@ -601,8 +601,7 @@ public class AndroidJpsUtil {
     return new File(new File(androidStorage, RESOURCE_CACHE_STORAGE), module.getName());
   }
 
-  private static void fillSourceRoots(@NotNull JpsModule module, @NotNull Set<JpsModule> visited, @NotNull Set<File> result)
-    throws IOException {
+  private static void fillSourceRoots(@NotNull JpsModule module, @NotNull Set<JpsModule> visited, @NotNull Set<File> result) {
     visited.add(module);
     final JpsAndroidModuleExtension extension = getExtension(module);
     File resDir = null;
@@ -636,7 +635,7 @@ public class AndroidJpsUtil {
   }
 
   @NotNull
-  public static File[] getSourceRootsForModuleAndDependencies(@NotNull JpsModule module) throws IOException {
+  public static File[] getSourceRootsForModuleAndDependencies(@NotNull JpsModule module) {
     Set<File> result = new HashSet<File>();
     fillSourceRoots(module, new HashSet<JpsModule>(), result);
     return result.toArray(new File[result.size()]);

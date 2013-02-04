@@ -122,8 +122,10 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
     }
     final AndroidPlatform platform = AndroidJpsUtil.getAndroidPlatform(myModule, null, null);
 
-    for (String jarOrLibDir : AndroidJpsUtil.getExternalLibraries(dataPaths, myModule, platform, false)) {
-      result.add(new MyJarBuildRootDescriptor(this, new File(jarOrLibDir), false));
+    if (platform != null) {
+      for (String jarOrLibDir : AndroidJpsUtil.getExternalLibraries(dataPaths, myModule, platform, false)) {
+        result.add(new MyJarBuildRootDescriptor(this, new File(jarOrLibDir), false));
+      }
     }
     return result;
   }
@@ -136,7 +138,12 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
 
   @NotNull
   public File getOutputFile(CompileContext context) {
-    final File dir = AndroidJpsUtil.getDirectoryForIntermediateArtifacts(context, myModule);
+    return getOutputFile(context.getProjectDescriptor().dataManager.getDataPaths(), myModule);
+  }
+
+  @NotNull
+  public static File getOutputFile(@NotNull BuildDataPaths dataPaths, @NotNull JpsModule module) {
+    final File dir = AndroidJpsUtil.getDirectoryForIntermediateArtifacts(dataPaths, module);
     return new File(dir, AndroidCommonUtils.CLASSES_FILE_NAME);
   }
 

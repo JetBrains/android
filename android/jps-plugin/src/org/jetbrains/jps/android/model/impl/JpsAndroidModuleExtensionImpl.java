@@ -127,7 +127,7 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
   }
 
   @Override
-  public File getNativeLibsDir() throws IOException {
+  public File getNativeLibsDir() {
     File nativeLibsFolder = findFileByRelativeModulePath(myProperties.LIBS_FOLDER_RELATIVE_PATH, true);
     return nativeLibsFolder != null ? canonizeFilePath(nativeLibsFolder) : null;
   }

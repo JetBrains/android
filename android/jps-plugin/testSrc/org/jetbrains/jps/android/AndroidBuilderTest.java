@@ -233,6 +233,16 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
       .dir("lib")
       .dir("armeabi")
       .file("mylib.so", "mylib_content_changed"));
+
+    assertTrue(FileUtil.delete(new File(getProjectPath("libs/armeabi/mylib.so"))));
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_12");
+    checkMakeUpToDate(executor);
+
+    assertTrue(FileUtil.delete(new File(getProjectPath("libs"))));
+    rebuildAll();
+    checkBuildLog(executor, "expected_log_13");
+    checkMakeUpToDate(executor);
   }
 
   public void test3() throws Exception {
@@ -319,6 +329,36 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     assertTrue(FileUtil.delete(new File(getProjectPath("external_jar1.jar"))));
     makeAll().assertSuccessful();
     checkBuildLog(executor, "expected_log_3");
+    assertOutput(module, TestFileSystemItem.fs()
+      .file("java_resource1.txt")
+      .file("com")
+      .archive("module.apk")
+      .file("resource_inside_jar1.txt")
+      .file("resource_inside_jar2.txt")
+      .file("java_resource1.txt")
+      .file("com")
+      .file("META-INF")
+      .file("res_apk_entry", "res_apk_entry_content")
+      .file("classes.dex", "classes_dex_content"));
+    checkMakeUpToDate(executor);
+
+    assertTrue(FileUtil.delete(new File(getProjectPath("src/java_resource1.txt"))));
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_4");
+    assertOutput(module, TestFileSystemItem.fs()
+      .file("com")
+      .archive("module.apk")
+      .file("resource_inside_jar1.txt")
+      .file("resource_inside_jar2.txt")
+      .file("com")
+      .file("META-INF")
+      .file("res_apk_entry", "res_apk_entry_content")
+      .file("classes.dex", "classes_dex_content"));
+    checkMakeUpToDate(executor);
+
+    module.removeSourceRoot(JpsPathUtil.pathToUrl(getProjectPath("resources")), JavaSourceRootType.SOURCE);
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_5");
     checkMakeUpToDate(executor);
   }
 

@@ -40,7 +40,7 @@ public interface JpsAndroidModuleExtension extends JpsElement {
   File getAidlGenDir() throws IOException;
 
   @Nullable
-  File getNativeLibsDir() throws IOException;
+  File getNativeLibsDir();
 
   boolean isLibrary();
 
