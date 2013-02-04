@@ -464,6 +464,19 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     checkMakeUpToDate(executor);
   }
 
+  public void test6() throws Exception {
+    final MyExecutor executor = new MyExecutor("com.example.simple");
+    setUpSimpleAndroidStructure(ArrayUtil.EMPTY_STRING_ARRAY, executor, null).getFirst();
+    rebuildAll();
+    checkBuildLog(executor, "expected_log");
+    checkMakeUpToDate(executor);
+
+    assertTrue(FileUtil.delete(new File(getProjectPath("res/drawable/ic_launcher1.png"))));
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_1");
+    checkMakeUpToDate(executor);
+  }
+
   public void testChangeDexSettings() throws Exception {
     final MyExecutor executor = new MyExecutor("com.example.simple");
     setUpSimpleAndroidStructure(new String[]{"src"}, executor, null).getFirst();
@@ -701,7 +714,9 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
           }
         }
         else if ("crunch".equals(args[1])) {
-          // resource caching, do nothing
+          final String outputDir = args[args.length - 1];
+          createTextFile(outputDir + "/drawable/crunch_output1.png", "crunch_output1_content");
+          createTextFile(outputDir + "/drawable/crunch_output2.png", "crunch_output2_content");
         }
       }
       return new MyProcess(0, "", "");
