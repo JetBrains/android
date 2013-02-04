@@ -560,6 +560,26 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     checkMakeUpToDate(executor);
   }
 
+  public void test8() throws Exception {
+    final MyExecutor executor = new MyExecutor("com.example.simple");
+    setUpSimpleAndroidStructure(new String[]{"src"}, executor, null).getFirst();
+    rebuildAll();
+    checkMakeUpToDate(executor);
+
+    myBuildParams.put(AndroidCommonUtils.RELEASE_BUILD_OPTION, Boolean.TRUE.toString());
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log");
+    checkMakeUpToDate(executor);
+
+    myBuildParams.put(AndroidCommonUtils.RELEASE_BUILD_OPTION, Boolean.FALSE.toString());
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_1");
+    checkMakeUpToDate(executor);
+
+    myBuildParams.remove(AndroidCommonUtils.RELEASE_BUILD_OPTION);
+    checkMakeUpToDate(executor);
+  }
+
   public void testChangeDexSettings() throws Exception {
     final MyExecutor executor = new MyExecutor("com.example.simple");
     setUpSimpleAndroidStructure(new String[]{"src"}, executor, null).getFirst();

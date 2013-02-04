@@ -46,14 +46,23 @@ public class AndroidResourcePackagingBuilder extends TargetBuilder<BuildRootDesc
                     @NotNull DirtyFilesHolder<BuildRootDescriptor, AndroidResourcePackagingBuildTarget> holder,
                     @NotNull BuildOutputConsumer outputConsumer,
                     @NotNull CompileContext context) throws ProjectBuildException, IOException {
+    final boolean releaseBuild = AndroidJpsUtil.isReleaseBuild(context);
+    final AndroidPackagingStateStorage packagingStateStorage =
+      context.getProjectDescriptor().dataManager.getStorage(target, AndroidPackagingStateStorage.Provider.INSTANCE);
+
     if (!holder.hasDirtyFiles() && !holder.hasRemovedFiles()) {
-      return;
+      final AndroidPackagingStateStorage.MyState savedState = packagingStateStorage.read();
+
+      if (savedState != null && savedState.isRelease() == releaseBuild) {
+        return;
+      }
     }
     assert !AndroidJpsUtil.isLightBuild(context);
 
-    if (!packageResources(target, context, outputConsumer)) {
+    if (!packageResources(target, context, outputConsumer, releaseBuild)) {
       throw new ProjectBuildException();
     }
+    packagingStateStorage.saveState(new AndroidPackagingStateStorage.MyState(releaseBuild));
   }
 
   @NotNull
@@ -64,7 +73,8 @@ public class AndroidResourcePackagingBuilder extends TargetBuilder<BuildRootDesc
 
   private static boolean packageResources(@NotNull AndroidResourcePackagingBuildTarget target,
                                           @NotNull CompileContext context,
-                                          @NotNull BuildOutputConsumer outputConsumer) {
+                                          @NotNull BuildOutputConsumer outputConsumer,
+                                          boolean releaseBuild) {
     final JpsModule module = target.getModule();
     final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(module);
     assert extension != null && !extension.isLibrary();
@@ -99,7 +109,7 @@ public class AndroidResourcePackagingBuilder extends TargetBuilder<BuildRootDesc
     final String[] resourceDirPaths = AndroidJpsUtil.collectResourceDirsForCompilation(extension, true, context, true);
 
     return doPackageResources(context, manifestFile, androidTarget, resourceDirPaths, ArrayUtil.toStringArray(assetsDirPaths),
-                              outputFilePath, AndroidJpsUtil.isReleaseBuild(context), module.getName(), outputConsumer);
+                              outputFilePath, releaseBuild, module.getName(), outputConsumer);
   }
 
   private static boolean doPackageResources(@NotNull final CompileContext context,
@@ -107,15 +117,11 @@ public class AndroidResourcePackagingBuilder extends TargetBuilder<BuildRootDesc
                                             @NotNull IAndroidTarget target,
                                             @NotNull String[] resourceDirPaths,
                                             @NotNull String[] assetsDirPaths,
-                                            @NotNull String outputFilePath,
+                                            @NotNull String outputPath,
                                             boolean releasePackage,
                                             @NotNull String moduleName,
                                             @NotNull BuildOutputConsumer outputConsumer) {
     try {
-      final String outputPath = releasePackage
-                                ? outputFilePath + AndroidJpsUtil.RELEASE_SUFFIX
-                                : outputFilePath;
-
       final IgnoredFileIndex ignoredFileIndex = context.getProjectDescriptor().getIgnoredFileIndex();
 
       final Map<AndroidCompilerMessageKind, List<String>> messages = AndroidApt
