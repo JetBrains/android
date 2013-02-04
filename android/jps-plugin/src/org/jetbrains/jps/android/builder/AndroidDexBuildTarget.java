@@ -11,9 +11,7 @@ import org.jetbrains.jps.android.AndroidPlatform;
 import org.jetbrains.jps.android.model.JpsAndroidDexCompilerConfiguration;
 import org.jetbrains.jps.android.model.JpsAndroidExtensionService;
 import org.jetbrains.jps.android.model.JpsAndroidModuleExtension;
-import org.jetbrains.jps.builders.BuildRootDescriptor;
-import org.jetbrains.jps.builders.BuildRootIndex;
-import org.jetbrains.jps.builders.BuildTarget;
+import org.jetbrains.jps.builders.*;
 import org.jetbrains.jps.builders.java.JavaModuleBuildTargetType;
 import org.jetbrains.jps.builders.storage.BuildDataPaths;
 import org.jetbrains.jps.incremental.CompileContext;
@@ -140,6 +138,17 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
   public File getOutputFile(CompileContext context) {
     final File dir = AndroidJpsUtil.getDirectoryForIntermediateArtifacts(context, myModule);
     return new File(dir, AndroidCommonUtils.CLASSES_FILE_NAME);
+  }
+
+  @Override
+  public Collection<BuildTarget<?>> computeDependencies(BuildTargetRegistry registry, TargetOutputIndex outputIndex) {
+    final List<BuildTarget<?>> result = new ArrayList<BuildTarget<?>>(
+      super.computeDependencies(registry, outputIndex));
+
+    for (JpsAndroidModuleExtension depExtension : AndroidJpsUtil.getAllAndroidDependencies(myModule, true)) {
+      result.add(new AndroidLibraryPackagingTarget(depExtension.getModule()));
+    }
+    return result;
   }
 
   public static class MyTargetType extends AndroidBuildTargetType<AndroidDexBuildTarget> {

@@ -7,6 +7,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ArrayUtilRt;
+import com.intellij.util.io.TestFileSystemBuilder;
 import com.intellij.util.io.TestFileSystemItem;
 import org.jetbrains.android.util.AndroidBuildTestingManager;
 import org.jetbrains.android.util.AndroidCommonUtils;
@@ -333,11 +334,13 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
       @Override
       protected void doCheckJar(@NotNull String jarId, @NotNull String jarPath) {
         if ("proguard_input_jar".equals(jarId)) {
+          File tmpDir = null;
+
           try {
-            final File dir = FileUtil.createTempDirectory("proguard_input_jar_checking", "tmp");
-            final File jar = new File(dir, "file.jar");
+            tmpDir = FileUtil.createTempDirectory("proguard_input_jar_checking", "tmp");
+            final File jar = new File(tmpDir, "file.jar");
             FileUtil.copy(new File(jarPath), jar);
-            assertOutput(dir.getPath(), TestFileSystemItem.fs()
+            assertOutput(tmpDir.getPath(), TestFileSystemItem.fs()
               .archive("file.jar")
               .dir("com")
               .dir("example")
@@ -349,6 +352,11 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
           }
           catch (IOException e) {
             throw new RuntimeException(e);
+          }
+          finally {
+            if (tmpDir != null) {
+              FileUtil.delete(tmpDir);
+            }
           }
         }
       }
@@ -474,6 +482,81 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     assertTrue(FileUtil.delete(new File(getProjectPath("res/drawable/ic_launcher1.png"))));
     makeAll().assertSuccessful();
     checkBuildLog(executor, "expected_log_1");
+    checkMakeUpToDate(executor);
+  }
+
+  public void test7() throws Exception {
+    final boolean[] class1Deleted = {false};
+
+    final MyExecutor executor = new MyExecutor("com.example.simple") {
+      @Override
+      protected void doCheckJar(@NotNull String jarId, @NotNull String jarPath) {
+        if ("library_package_jar".equals(jarId)) {
+          File tmpDir = null;
+          try {
+            tmpDir = FileUtil.createTempDirectory("library_package_jar_checking", "tmp");
+            final File jar = new File(tmpDir, "file.jar");
+            FileUtil.copy(new File(jarPath), jar);
+            TestFileSystemBuilder fs = TestFileSystemItem.fs()
+              .archive("file.jar")
+              .dir("lib")
+              .file("MyLibClass.class");
+
+            if (!class1Deleted[0]) {
+              fs = fs.file("MyLibClass1.class");
+            }
+            assertOutput(tmpDir.getPath(), fs);
+          }
+          catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+          finally {
+            if (tmpDir != null) {
+              FileUtil.delete(tmpDir);
+            }
+          }
+        }
+      }
+    };
+    final JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> androidSdk = addJdkAndAndroidSdk();
+    addPathPatterns(executor, androidSdk);
+
+    final JpsModule appModule = addAndroidModule("app", new String[]{"src"}, "app", "app", androidSdk).getFirst();
+    final JpsModule libModule = addAndroidModule("lib", new String[]{"src"}, "lib", "lib", androidSdk).getFirst();
+
+    final JpsAndroidModuleExtension libExtension = AndroidJpsUtil.getExtension(libModule);
+    assert libExtension != null;
+    final JpsAndroidModuleProperties libProps = ((JpsAndroidModuleExtensionImpl)libExtension).getProperties();
+    libProps.LIBRARY_PROJECT = true;
+
+    rebuildAll();
+    checkBuildLog(executor, "expected_log");
+    assertEquals(Collections.singleton("library_package_jar"), executor.getCheckedJars());
+    checkMakeUpToDate(executor);
+
+    appModule.getDependenciesList().addModuleDependency(libModule);
+    makeAll();
+    checkBuildLog(executor, "expected_log_1");
+    assertTrue(executor.getCheckedJars().isEmpty());
+    checkMakeUpToDate(executor);
+
+    change(getProjectPath("lib/src/lib/MyLibClass.java"));
+    makeAll();
+    checkBuildLog(executor, "expected_log_2");
+    assertEquals(Collections.singleton("library_package_jar"), executor.getCheckedJars());
+    checkMakeUpToDate(executor);
+
+    assertTrue(FileUtil.delete(new File(getProjectPath("lib/src/lib/MyLibClass1.java"))));
+    class1Deleted[0] = true;
+    makeAll();
+    checkBuildLog(executor, "expected_log_2");
+    assertEquals(Collections.singleton("library_package_jar"), executor.getCheckedJars());
+    checkMakeUpToDate(executor);
+
+    assertTrue(FileUtil.delete(new File(getProjectPath("lib/src/lib/MyLibClass.java"))));
+    makeAll();
+    checkBuildLog(executor, "expected_log_3");
+    assertTrue(executor.getCheckedJars().isEmpty());
     checkMakeUpToDate(executor);
   }
 
