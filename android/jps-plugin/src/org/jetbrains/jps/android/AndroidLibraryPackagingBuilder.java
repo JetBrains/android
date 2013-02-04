@@ -39,9 +39,10 @@ public class AndroidLibraryPackagingBuilder extends TargetBuilder<BuildRootDescr
                     @NotNull DirtyFilesHolder<BuildRootDescriptor, AndroidLibraryPackagingTarget> holder,
                     @NotNull BuildOutputConsumer outputConsumer,
                     @NotNull CompileContext context) throws ProjectBuildException, IOException {
-    if (AndroidJpsUtil.isLightBuild(context) || (!holder.hasDirtyFiles() && !holder.hasRemovedFiles())) {
+    if (!holder.hasDirtyFiles() && !holder.hasRemovedFiles()) {
       return;
     }
+    assert !AndroidJpsUtil.isLightBuild(context);
 
     if (!doBuild(context, target.getModule(), outputConsumer)) {
       throw new ProjectBuildException();

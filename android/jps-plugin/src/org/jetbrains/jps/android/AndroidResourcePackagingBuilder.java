@@ -46,9 +46,11 @@ public class AndroidResourcePackagingBuilder extends TargetBuilder<BuildRootDesc
                     @NotNull DirtyFilesHolder<BuildRootDescriptor, AndroidResourcePackagingBuildTarget> holder,
                     @NotNull BuildOutputConsumer outputConsumer,
                     @NotNull CompileContext context) throws ProjectBuildException, IOException {
-    if (AndroidJpsUtil.isLightBuild(context) || (!holder.hasDirtyFiles() && !holder.hasRemovedFiles())) {
+    if (!holder.hasDirtyFiles() && !holder.hasRemovedFiles()) {
       return;
     }
+    assert !AndroidJpsUtil.isLightBuild(context);
+
     if (!packageResources(target, context, outputConsumer)) {
       throw new ProjectBuildException();
     }
