@@ -67,8 +67,13 @@ public class AndroidResourcePackagingBuildTarget extends AndroidBuildTarget {
 
   @NotNull
   public File getOutputFile(@NotNull CompileContext context) {
-    final File dir = AndroidJpsUtil.getDirectoryForIntermediateArtifacts(context, myModule);
-    return new File(dir.getPath(), myModule.getName() + ".apk.res");
+    return getOutputFile(context.getProjectDescriptor().dataManager.getDataPaths(), myModule);
+  }
+
+  @NotNull
+  public static File getOutputFile(@NotNull BuildDataPaths dataPaths, @NotNull JpsModule module) {
+    final File dir = AndroidJpsUtil.getDirectoryForIntermediateArtifacts(dataPaths, module);
+    return new File(dir.getPath(), module.getName() + ".apk.res");
   }
 
   public static void collectAssetDirs(@NotNull JpsAndroidModuleExtension extension, @NotNull List<String> result, boolean checkExistence) {
