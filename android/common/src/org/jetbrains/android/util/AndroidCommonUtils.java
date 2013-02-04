@@ -107,6 +107,7 @@ public class AndroidCommonUtils {
   @NonNls public static final String PACKAGING_BUILD_TARGET_TYPE_ID = "android-packaging";
   @NonNls public static final String RESOURCE_CACHING_BUILD_TARGET_ID = "android-resource-caching";
   @NonNls public static final String RESOURCE_PACKAGING_BUILD_TARGET_ID = "android-resource-packaging";
+  @NonNls public static final String LIBRARY_PACKAGING_BUILD_TARGET_ID = "android-library-packaging";
 
   private AndroidCommonUtils() {
   }
@@ -217,9 +218,10 @@ public class AndroidCommonUtils {
     }
   }
 
-  public static void packClassFilesIntoJar(@NotNull String[] firstPackageDirPaths,
-                                           @NotNull String[] libFirstPackageDirPaths,
-                                           @NotNull File jarFile) throws IOException {
+  @NotNull
+  public static List<String> packClassFilesIntoJar(@NotNull String[] firstPackageDirPaths,
+                                                 @NotNull String[] libFirstPackageDirPaths,
+                                                 @NotNull File jarFile) throws IOException {
     final List<Pair<File, String>> files = new ArrayList<Pair<File, String>>();
     for (String path : firstPackageDirPaths) {
       final File firstPackageDir = new File(path);
@@ -251,6 +253,12 @@ public class AndroidCommonUtils {
         throw new IOException("Cannot delete file " + FileUtil.toSystemDependentName(jarFile.getPath()));
       }
     }
+    final List<String> srcFiles = new ArrayList<String>();
+
+    for (Pair<File, String> pair : files) {
+      srcFiles.add(pair.getFirst().getPath());
+    }
+    return srcFiles;
   }
 
   private static void packClassFilesIntoJar(@NotNull File file,
