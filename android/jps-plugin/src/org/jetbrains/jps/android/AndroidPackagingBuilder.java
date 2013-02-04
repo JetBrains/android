@@ -153,8 +153,7 @@ public class AndroidPackagingBuilder extends TargetBuilder<BuildRootDescriptor, 
     }
     final String customKeyStorePath = FileUtil.toSystemDependentName(extension.getCustomDebugKeyStorePath());
     final String[] nativeLibDirs = collectNativeLibsFolders(extension);
-
-    final String resPackagePath = release ? resPackage.getPath() + AndroidJpsUtil.RELEASE_SUFFIX : resPackage.getPath();
+    final String resPackagePath = resPackage.getPath();
 
     final String outputApkPath = release
                                  ? AndroidCommonUtils.addSuffixToFileName(outputPath, UNSIGNED_SUFFIX)
