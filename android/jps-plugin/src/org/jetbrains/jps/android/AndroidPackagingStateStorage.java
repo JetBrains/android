@@ -3,6 +3,7 @@ package org.jetbrains.jps.android;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.builders.storage.StorageProvider;
 import org.jetbrains.jps.incremental.storage.StorageOwner;
 
@@ -33,6 +34,7 @@ public class AndroidPackagingStateStorage implements StorageOwner {
   public void close() throws IOException {
   }
 
+  @Nullable
   public MyState read() {
     try {
       final DataInputStream input = new DataInputStream(new FileInputStream(myFile));

@@ -81,19 +81,21 @@ public class AndroidPackagingBuilder extends TargetBuilder<BuildRootDescriptor, 
 
     boolean success = true;
 
-    final String apkFileSetStorageName = "apk_builder_file_set" + (release ? "_release" : "_dev");
-    final AndroidFileSetStorage.Provider fileSetStorageProvider = new AndroidFileSetStorage.Provider(apkFileSetStorageName);
+    final AndroidFileSetStorage.Provider fileSetStorageProvider =
+      new AndroidFileSetStorage.Provider("apk_builder_file_set");
     final AndroidFileSetStorage apkFileSetStorage = dataManager.getStorage(target, fileSetStorageProvider);
 
-    final String apkBuilderStateStorageName = "apk_builder_config" + (release ? "_release" : "_dev");
     final AndroidApkBuilderConfigStateStorage.Provider builderStateStoragetProvider =
-      new AndroidApkBuilderConfigStateStorage.Provider(apkBuilderStateStorageName);
+      new AndroidApkBuilderConfigStateStorage.Provider("apk_builder_config");
     final AndroidApkBuilderConfigStateStorage apkBuilderConfigStateStorage =
       dataManager.getStorage(target, builderStateStoragetProvider);
 
+    final AndroidPackagingStateStorage packagingStateStorage =
+      dataManager.getStorage(target, AndroidPackagingStateStorage.Provider.INSTANCE);
+
     try {
       if (!doPackagingForModule(context, module, apkFileSetStorage, apkBuilderConfigStateStorage,
-                                release, outputConsumer)) {
+                                packagingStateStorage, release, outputConsumer)) {
         success = false;
       }
     }
@@ -108,7 +110,7 @@ public class AndroidPackagingBuilder extends TargetBuilder<BuildRootDescriptor, 
                                               @NotNull JpsModule module,
                                               @NotNull AndroidFileSetStorage apkFileSetStorage,
                                               @NotNull AndroidApkBuilderConfigStateStorage apkBuilderConfigStateStorage,
-                                              boolean release,
+                                              @NotNull AndroidPackagingStateStorage packagingStateStorage, boolean release,
                                               @NotNull BuildOutputConsumer outputConsumer) throws IOException {
     final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(module);
     if (extension == null || extension.isLibrary()) {
@@ -170,9 +172,11 @@ public class AndroidPackagingBuilder extends TargetBuilder<BuildRootDescriptor, 
     if (context.isMake()) {
       final AndroidFileSetState savedApkFileSetState = apkFileSetStorage.getState(module.getName());
       final AndroidApkBuilderConfigState savedApkBuilderConfigState = apkBuilderConfigStateStorage.getState(module.getName());
+      final AndroidPackagingStateStorage.MyState packagingState = packagingStateStorage.read();
 
       if (currentFileSetState.equalsTo(savedApkFileSetState) &&
-          currentApkBuilderConfigState.equalsTo(savedApkBuilderConfigState)) {
+          currentApkBuilderConfigState.equalsTo(savedApkBuilderConfigState) &&
+          packagingState != null && packagingState.isRelease() == release) {
         return true;
       }
     }
@@ -192,6 +196,7 @@ public class AndroidPackagingBuilder extends TargetBuilder<BuildRootDescriptor, 
 
     apkFileSetStorage.update(module.getName(), success ? currentFileSetState : null);
     apkBuilderConfigStateStorage.update(module.getName(), success ? currentApkBuilderConfigState : null);
+    packagingStateStorage.saveState(new AndroidPackagingStateStorage.MyState(release));
     return success;
   }
 
