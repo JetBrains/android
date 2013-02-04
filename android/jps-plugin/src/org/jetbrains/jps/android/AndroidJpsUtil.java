@@ -58,7 +58,6 @@ import java.util.regex.Matcher;
  * @author Eugene.Kudelevsky
  */
 public class AndroidJpsUtil {
-  @NonNls public static final String RELEASE_SUFFIX = ".release";
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.jps.android.AndroidJpsUtil");
 
   @NonNls public static final String ANDROID_FACET_TYPE_ID = "android";

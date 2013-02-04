@@ -40,7 +40,7 @@ $PROJECT_DIR$/root/src
 []
 []
 []
-$PROJECT_DIR$/out/production/module/module.unsigned.apk
+$PROJECT_DIR$/out/production/module/module.apk
 true
 $ANDROID_SDK_DIR$
 

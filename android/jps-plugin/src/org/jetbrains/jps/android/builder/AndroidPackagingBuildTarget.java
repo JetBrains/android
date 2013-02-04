@@ -1,6 +1,5 @@
 package org.jetbrains.jps.android.builder;
 
-import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.ProjectPaths;
@@ -51,9 +50,7 @@ public class AndroidPackagingBuildTarget extends AndroidBuildTarget {
     if (outputPath == null) {
       return Collections.emptyList();
     }
-    final String afpFile = AndroidCommonUtils.addSuffixToFileName(
-      outputPath, AndroidCommonUtils.ANDROID_FINAL_PACKAGE_FOR_ARTIFACT_SUFFIX);
-    return Collections.singletonList(new File(FileUtil.toSystemDependentName(afpFile)));
+    return Collections.singletonList(new File(outputPath));
   }
 
   @Override

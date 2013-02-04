@@ -38,7 +38,6 @@ import java.util.*;
  */
 public class AndroidPackagingBuilder extends TargetBuilder<BuildRootDescriptor, AndroidPackagingBuildTarget> {
   @NonNls private static final String BUILDER_NAME = "Android Packager";
-  @NonNls private static final String UNSIGNED_SUFFIX = ".unsigned";
 
 
   public AndroidPackagingBuilder() {
@@ -155,10 +154,6 @@ public class AndroidPackagingBuilder extends TargetBuilder<BuildRootDescriptor, 
     final String[] nativeLibDirs = collectNativeLibsFolders(extension);
     final String resPackagePath = resPackage.getPath();
 
-    final String outputApkPath = release
-                                 ? AndroidCommonUtils.addSuffixToFileName(outputPath, UNSIGNED_SUFFIX)
-                                 : outputPath;
-
     final String classesDexFilePath = classesDexFile.getPath();
     final String[] externalJars = ArrayUtil.toStringArray(externalJarsSet);
     Arrays.sort(externalJars);
@@ -170,7 +165,7 @@ public class AndroidPackagingBuilder extends TargetBuilder<BuildRootDescriptor, 
                                   externalJars, release);
 
     final AndroidApkBuilderConfigState currentApkBuilderConfigState =
-      new AndroidApkBuilderConfigState(outputApkPath, customKeyStorePath, additionalNativeLibs);
+      new AndroidApkBuilderConfigState(outputPath, customKeyStorePath, additionalNativeLibs);
 
     if (context.isMake()) {
       final AndroidFileSetState savedApkFileSetState = apkFileSetStorage.getState(module.getName());
@@ -186,13 +181,11 @@ public class AndroidPackagingBuilder extends TargetBuilder<BuildRootDescriptor, 
 
     final Map<AndroidCompilerMessageKind, List<String>> messages = AndroidApkBuilder
       .execute(resPackagePath, classesDexFilePath, sourceRoots, externalJars, nativeLibDirs, additionalNativeLibs,
-               outputApkPath, release, sdkPath, customKeyStorePath, new MyExcludedSourcesFilter(context.getProjectDescriptor().getProject()));
+               outputPath, release, sdkPath, customKeyStorePath, new MyExcludedSourcesFilter(context.getProjectDescriptor().getProject()));
 
     if (messages.get(AndroidCompilerMessageKind.ERROR).size() == 0) {
-      final File dst = new File(
-        AndroidCommonUtils.addSuffixToFileName(outputPath, AndroidCommonUtils.ANDROID_FINAL_PACKAGE_FOR_ARTIFACT_SUFFIX));
-      FileUtil.copy(new File(outputApkPath), dst);
-      outputConsumer.registerOutputFile(dst, Collections.<String>emptyList());
+      // todo: collect src files
+      outputConsumer.registerOutputFile(new File(outputPath), Collections.<String>emptyList());
     }
     AndroidJpsUtil.addMessages(context, messages, BUILDER_NAME, module.getName());
     final boolean success = messages.get(AndroidCompilerMessageKind.ERROR).isEmpty();
