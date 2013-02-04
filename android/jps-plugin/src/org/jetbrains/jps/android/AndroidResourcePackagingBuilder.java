@@ -65,12 +65,8 @@ public class AndroidResourcePackagingBuilder extends TargetBuilder<BuildRootDesc
                                           @NotNull BuildOutputConsumer outputConsumer) {
     final JpsModule module = target.getModule();
     final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(module);
-    assert extension != null;
+    assert extension != null && !extension.isLibrary();
 
-    // todo: remove this
-    if (extension.isLibrary()) {
-      return true;
-    }
     context.processMessage(new ProgressMessage(AndroidJpsBundle.message("android.jps.progress.packaging.resources", module.getName())));
 
     final File manifestFile = AndroidJpsUtil.getManifestFileForCompilationPath(extension);
