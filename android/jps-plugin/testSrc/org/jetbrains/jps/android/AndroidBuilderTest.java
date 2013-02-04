@@ -70,7 +70,6 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
         .end()
         .end()
         .end()
-        .file("module.afp.apk")
         .archive("module.apk")
         .file("META-INF")
         .file("res_apk_entry", "res_apk_entry_content")
@@ -94,7 +93,6 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
       .end()
       .end()
       .end()
-      .file("module.afp.apk")
       .archive("module.apk")
       .file("META-INF")
       .file("res_apk_entry", "res_apk_entry_content")
@@ -169,7 +167,6 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
 
     assertOutput(module, TestFileSystemItem.fs()
       .file("com")
-      .file("module.afp.apk")
       .archive("module.apk")
       .file("META-INF")
       .file("res_apk_entry", "res_apk_entry_content")
@@ -189,7 +186,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     checkMakeUpToDate(executor);
 
     delete(getProjectPath("AndroidManifest.xml"));
-    copyToProject(getTestDataDirForCurrentTest() + "/changed_manifest.xml",
+    copyToProject(getDefaultTestDataDirForCurrentTest() + "/changed_manifest.xml",
                   "root/AndroidManifest.xml");
     executor.clear();
     executor.setPackage("com.example.simple1");
@@ -229,7 +226,6 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
       .end()
       .end()
       .end()
-      .file("module.afp.apk")
       .archive("module.apk")
       .file("META-INF")
       .file("res_apk_entry", "res_apk_entry_content")
@@ -268,7 +264,6 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
       .end()
       .end()
       .end()
-      .file("module.afp.apk")
       .archive("module.apk")
       .file("resource_inside_jar1.txt")
       .file("java_resource1.txt")
@@ -293,7 +288,6 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     assertOutput(module, TestFileSystemItem.fs()
       .file("java_resource1.txt")
       .file("com")
-      .file("module.afp.apk")
       .archive("module.apk")
       .file("resource_inside_jar2.txt")
       .file("java_resource1.txt")
@@ -313,7 +307,6 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     assertOutput(module, TestFileSystemItem.fs()
       .file("java_resource1.txt")
       .file("com")
-      .file("module.afp.apk")
       .archive("module.apk")
       .file("resource_inside_jar2.txt")
       .file("java_resource1.txt")
@@ -363,7 +356,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     };
     final JpsModule androidModule = setUpSimpleAndroidStructure(new String[]{"src"}, executor, "android_module").getFirst();
 
-    final String copiedSourceRoot = copyToProject(getTestDataDirForCurrentTest() +
+    final String copiedSourceRoot = copyToProject(getDefaultTestDataDirForCurrentTest() +
                                                   "/project/java_module/src", "root/java_module/src");
     final JpsModule javaModule = addModule("java_module", copiedSourceRoot);
 
@@ -638,7 +631,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
   }
 
   private void checkBuildLog(MyExecutor executor, String expectedLogFile) throws IOException {
-    final File file = findFindUnderProjectHome(getTestDataDirForCurrentTest() +
+    final File file = findFindUnderProjectHome(getTestDataDirForCurrentTest(getTestName(true)) +
                                                "/" + expectedLogFile + ".txt");
     final String text = FileUtil.loadFile(file, true);
     assertEquals(AndroidBuildTestingCommandExecutor.normalizeExpectedLog(text, executor.getLog()),
@@ -646,9 +639,16 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
   }
 
   private Pair<JpsModule, File> setUpSimpleAndroidStructure(String[] sourceRoots, MyExecutor executor, String contentRootDir) {
+    return setUpSimpleAndroidStructure(sourceRoots, executor, contentRootDir, getTestName(true));
+  }
+
+  private Pair<JpsModule, File> setUpSimpleAndroidStructure(String[] sourceRoots,
+                                                            MyExecutor executor,
+                                                            String contentRootDir,
+                                                            String testDirName) {
     final JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> androidSdk = addJdkAndAndroidSdk();
     addPathPatterns(executor, androidSdk);
-    return addAndroidModule("module", sourceRoots, contentRootDir, null, androidSdk);
+    return addAndroidModule("module", sourceRoots, contentRootDir, null, androidSdk, testDirName);
   }
 
   private void addPathPatterns(MyExecutor executor, JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> androidSdk) {
@@ -672,7 +672,17 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
                                                  String contentRootDir,
                                                  String dstContentRootDir,
                                                  JpsSdk<? extends JpsElement> androidSdk) {
-    final String testDataRoot = getTestDataDirForCurrentTest();
+    return addAndroidModule(moduleName, sourceRoots, contentRootDir,
+                            dstContentRootDir, androidSdk, getTestName(true));
+  }
+
+  private Pair<JpsModule, File> addAndroidModule(String moduleName,
+                                                 String[] sourceRoots,
+                                                 String contentRootDir,
+                                                 String dstContentRootDir,
+                                                 JpsSdk<? extends JpsElement> androidSdk,
+                                                 String testDirName) {
+    final String testDataRoot = getTestDataDirForCurrentTest(testDirName);
     final String projectRoot = testDataRoot + "/project";
     final String moduleContentRoot = contentRootDir != null
                                      ? new File(projectRoot, contentRootDir).getPath()
@@ -705,8 +715,12 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     return Pair.create(module, new File(root));
   }
 
-  private String getTestDataDirForCurrentTest() {
-    return TEST_DATA_PATH + getTestName(true);
+  private String getDefaultTestDataDirForCurrentTest() {
+    return getTestDataDirForCurrentTest(getTestName(true));
+  }
+
+  private static String getTestDataDirForCurrentTest(String testDirName) {
+    return TEST_DATA_PATH + testDirName;
   }
 
   private JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> addJdkAndAndroidSdk() {
