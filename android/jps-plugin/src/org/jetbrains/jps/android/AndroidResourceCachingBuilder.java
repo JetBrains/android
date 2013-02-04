@@ -2,6 +2,7 @@ package org.jetbrains.jps.android;
 
 import com.android.sdklib.IAndroidTarget;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.util.Processor;
 import org.jetbrains.android.compiler.tools.AndroidApt;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
 import org.jetbrains.annotations.NonNls;
@@ -44,13 +45,14 @@ public class AndroidResourceCachingBuilder extends TargetBuilder<BuildRootDescri
       return;
     }
 
-    if (!runPngCaching(target, context)) {
+    if (!runPngCaching(target, context, outputConsumer)) {
       throw new ProjectBuildException();
     }
   }
 
   private static boolean runPngCaching(AndroidResourceCachingBuildTarget target,
-                                       CompileContext context) throws IOException {
+                                       CompileContext context,
+                                       BuildOutputConsumer outputConsumer) throws IOException {
     final JpsModule module = target.getModule();
     final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(module);
     assert extension != null;
@@ -92,9 +94,39 @@ public class AndroidResourceCachingBuilder extends TargetBuilder<BuildRootDescri
     final Map<AndroidCompilerMessageKind, List<String>> messages =
       AndroidApt.crunch(androidTarget, inputDirs, resCacheDir.getPath());
     AndroidJpsUtil.addMessages(context, messages, BUILDER_NAME, module.getName());
+    final boolean success = messages.get(AndroidCompilerMessageKind.ERROR).isEmpty();
 
-    // todo: add output files to BuildOutputConsumer
-    return messages.get(AndroidCompilerMessageKind.ERROR).isEmpty();
+    if (success) {
+      final List<String> srcFiles = new ArrayList<String>();
+
+      for (String dir : inputDirs) {
+        FileUtil.processFilesRecursively(new File(dir), new Processor<File>() {
+          @Override
+          public boolean process(File file) {
+            if (file.isFile()) {
+              srcFiles.add(file.getPath());
+            }
+            return true;
+          }
+        });
+      }
+      final List<File> outputFiles = new ArrayList<File>();
+
+      FileUtil.processFilesRecursively(resCacheDir, new Processor<File>() {
+        @Override
+        public boolean process(File file) {
+          if (file.isFile()) {
+            outputFiles.add(file);
+          }
+          return true;
+        }
+      });
+
+      for (File outputFile : outputFiles) {
+        outputConsumer.registerOutputFile(outputFile, srcFiles);
+      }
+    }
+    return success;
   }
 
   @NotNull
