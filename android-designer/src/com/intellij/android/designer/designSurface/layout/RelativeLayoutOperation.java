@@ -104,15 +104,17 @@ public class RelativeLayoutOperation extends AbstractEditOperation {
 
         if (myComponents.size() == 1) {
           RadComponent component = myComponents.get(0);
-          final Rectangle bounds = component.getBounds();
-          final BufferedImage image = ((RootView)((RadViewComponent)component.getRoot()).getNativeComponent()).getImage();
+          final Rectangle targetBounds = component.getBounds(layer);
+          RootView nativeComponent = (RootView)((RadViewComponent)component.getRoot()).getNativeComponent();
+          final BufferedImage image = nativeComponent.getImage();
+          final Rectangle sourceBounds = component.getBounds();
 
           myBoundsFeedback = new AlphaFeedback(null) {
             @Override
             protected void paintOther2(Graphics2D g2d) {
               g2d.drawImage(image,
-                            0, 0, bounds.width, bounds.height,
-                            bounds.x, bounds.y, bounds.x + bounds.width, bounds.y + bounds.height,
+                            0, 0, targetBounds.width, targetBounds.height,
+                            sourceBounds.x, sourceBounds.y, sourceBounds.x + sourceBounds.width, sourceBounds.y + sourceBounds.height,
                             null);
             }
           };
