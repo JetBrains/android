@@ -90,6 +90,8 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static com.intellij.designer.designSurface.ZoomType.FIT_INTO;
+
 /**
  * @author Alexander Lobas
  */
@@ -108,6 +110,8 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
   private boolean myParseTime;
   private int myProfileLastVersion;
   private WrapInProvider myWrapInProvider;
+  /** Zoom level (1 = 100%). TODO: Persist this setting across IDE sessions (on a per file basis) */
+  protected double myZoom = 1;
 
   public AndroidDesignerEditorPanel(@NotNull DesignerEditor editor,
                                     @NotNull Project project,
@@ -226,7 +230,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
     createRenderer(parser.getLayoutXmlText(), new MyThrowable(), new ThrowableConsumer<RenderSession, Throwable>() {
       @Override
       public void consume(RenderSession session) throws Throwable {
-        RootView rootView = new RootView(30, 20, session.getImage());
+        RootView rootView = new RootView(AndroidDesignerEditorPanel.this, 30, 20, session.getImage());
         try {
           parser.updateRootComponent(myLastRenderedConfiguration, session, rootView);
         }
@@ -863,5 +867,110 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
       this.original = original;
       return this;
     }
+  }
+
+  //////////////////////////////////////////////////////////////////////////////////////////
+  //
+  // Zooming
+  //
+  //////////////////////////////////////////////////////////////////////////////////////////
+
+  private static final double ZOOM_FACTOR = 1.2;
+
+  @Override
+  public boolean isZoomSupported() {
+    return true;
+  }
+
+  /** Sets the zoom level. Note that this should be 1, not 100 (percent), for an image at its actual size */
+  public void setZoom(double zoom) {
+    myZoom = zoom;
+    normalizeScale();
+    viewZoomed();
+    mySurfaceArea.scrollToSelection();
+    repaint();
+  }
+
+  private void normalizeScale() {
+    // Some operations are faster if the zoom is EXACTLY 1.0 rather than ALMOST 1.0.
+    // (This is because there is a fast-path when image copying and the scale is 1.0;
+    // in that case it does not have to do any scaling).
+    //
+    // If you zoom out 10 times and then back in 10 times, small rounding errors mean
+    // that you end up with a scale=1.0000000000000004. In the cases, when you get close
+    // to 1.0, just make the zoom an exact 1.0.
+    if (Math.abs(myZoom - 1.0) < 0.01) {
+      myZoom = 1.0;
+    }
+  }
+
+  /** Returns the current zoom level. Note that this is 1, not 100 (percent) for an image at its actual size */
+  public double getZoom() {
+    return myZoom;
+  }
+
+  /** Zooms the designer view */
+  @Override
+  public void zoom(@NotNull ZoomType type) {
+    switch (type) {
+      case IN:
+        setZoom(myZoom * ZOOM_FACTOR);
+        break;
+      case OUT:
+        setZoom(myZoom / ZOOM_FACTOR);
+        break;
+      case ACTUAL:
+        setZoom(1);
+        break;
+      case FIT_INTO:
+      case FIT: {
+        Dimension sceneSize = getSceneSize();
+        Dimension screenSize = getDesignerViewSize();
+        if (sceneSize != null && screenSize != null) {
+          int sceneWidth = sceneSize.width;
+          int sceneHeight = sceneSize.height;
+          if (sceneWidth > 0 && sceneHeight > 0) {
+            int viewWidth = screenSize.width;
+            int viewHeight = screenSize.height;
+
+            double hScale = viewWidth / (double) sceneWidth;
+            double vScale = viewHeight / (double) sceneHeight;
+            double scale = Math.min(hScale, vScale);
+
+            if (type == FIT_INTO) {
+              scale = Math.min(1.0, scale);
+            }
+
+            setZoom(scale);
+          }
+        }
+        break;
+      }
+      case SCREEN:
+      default:
+        throw new UnsupportedOperationException("Not yet implemented: " + type);
+    }
+  }
+
+  @Override
+  protected void viewZoomed() {
+    RootView rootView = getRootView();
+    if (rootView != null) {
+      rootView.updateSize();
+    }
+    revalidate();
+    super.viewZoomed();
+  }
+
+
+  @Nullable
+  private RootView getRootView() {
+    if (myRootComponent instanceof RadViewComponent) {
+      Component nativeComponent = ((RadViewComponent)myRootComponent).getNativeComponent();
+      if (nativeComponent instanceof RootView) {
+        return (RootView)nativeComponent;
+      }
+    }
+    return null;
   }
 }

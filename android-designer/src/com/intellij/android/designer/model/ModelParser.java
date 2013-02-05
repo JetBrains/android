@@ -15,10 +15,10 @@
  */
 package com.intellij.android.designer.model;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.SdkConstants;
 import com.intellij.android.designer.designSurface.AndroidPasteFactory;
 import com.intellij.android.designer.designSurface.RootView;
 import com.intellij.designer.model.MetaManager;
@@ -43,6 +43,7 @@ import org.jdom.Element;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -411,7 +412,13 @@ public class ModelParser extends XmlRecursiveElementVisitor {
     updateChildren(rootComponent, session.getRootViews(), nativeComponent, 0, 0);
 
     rootComponent.setNativeComponent(nativeComponent);
-    rootComponent.setBounds(0, 0, nativeComponent.getWidth(), nativeComponent.getHeight());
+
+    Rectangle bounds = new Rectangle(0, 0, 0, 0);
+    Iterator<RadComponent> iterator = rootComponent.getChildren().iterator();
+    while (iterator.hasNext()) {
+      bounds = bounds.union(iterator.next().getBounds());
+    }
+    rootComponent.setBounds(bounds.x, bounds.y, bounds.width, bounds.height);
   }
 
   private static void updateComponent(RadViewComponent component,
