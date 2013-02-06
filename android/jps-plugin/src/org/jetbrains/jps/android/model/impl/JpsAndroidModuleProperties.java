@@ -48,8 +48,6 @@ public class JpsAndroidModuleProperties {
 
   public boolean RUN_PROCESS_RESOURCES_MAVEN_TASK = true;
 
-  public boolean GENERATE_UNSIGNED_APK;
-
   public String CUSTOM_DEBUG_KEYSTORE_PATH = "";
 
   public boolean PACK_TEST_CODE;

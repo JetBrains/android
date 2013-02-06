@@ -62,7 +62,7 @@ import java.util.List;
 /**
  * @author yole
  */
-public class  AndroidFacetEditorTab extends FacetEditorTab {
+public class AndroidFacetEditorTab extends FacetEditorTab {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.facet.AndroidFacetEditorTab");
 
   private final AndroidFacetConfiguration myConfiguration;
@@ -80,7 +80,6 @@ public class  AndroidFacetEditorTab extends FacetEditorTab {
   private TextFieldWithBrowseButton myCustomAptSourceDirField;
   private JCheckBox myIsLibraryProjectCheckbox;
   private JPanel myAaptCompilerPanel;
-  private JCheckBox myGenerateUnsignedApk;
   private ComboboxWithBrowseButton myApkPathCombo;
   private JLabel myApkPathLabel;
   private JRadioButton myRunProcessResourcesRadio;
@@ -106,9 +105,6 @@ public class  AndroidFacetEditorTab extends FacetEditorTab {
     final Project project = context.getProject();
     myConfiguration = androidFacetConfiguration;
     myContext = context;
-
-    // todo: remove checkbox and related setting from facet
-    myGenerateUnsignedApk.setVisible(false);
 
     myManifestFileLabel.setLabelFor(myManifestFileField);
     myResFolderLabel.setLabelFor(myResFolderField);
@@ -319,9 +315,6 @@ public class  AndroidFacetEditorTab extends FacetEditorTab {
     if (myRunProcessResourcesRadio.isSelected() != myConfiguration.RUN_PROCESS_RESOURCES_MAVEN_TASK) {
       return true;
     }
-    if (myGenerateUnsignedApk.isSelected() != myConfiguration.GENERATE_UNSIGNED_APK) {
-      return true;
-    }
     if (!myConfiguration.CUSTOM_DEBUG_KEYSTORE_PATH.equals(getSelectedCustomKeystorePath())) {
       return true;
     }
@@ -451,8 +444,6 @@ public class  AndroidFacetEditorTab extends FacetEditorTab {
 
     myConfiguration.RUN_PROCESS_RESOURCES_MAVEN_TASK = myRunProcessResourcesRadio.isSelected();
 
-    myConfiguration.GENERATE_UNSIGNED_APK = myGenerateUnsignedApk.isSelected();
-    
     myConfiguration.PACK_TEST_CODE = myIncludeTestCodeAndCheckBox.isSelected();
 
     myConfiguration.setIncludeAssetsFromLibraries(myIncludeAssetsFromLibraries.isSelected());
@@ -585,7 +576,6 @@ public class  AndroidFacetEditorTab extends FacetEditorTab {
     myCompileResourcesByIdeRadio.setVisible(mavenizedModule);
     myCompileResourcesByIdeRadio.setSelected(!myConfiguration.RUN_PROCESS_RESOURCES_MAVEN_TASK);
 
-    myGenerateUnsignedApk.setSelected(myConfiguration.GENERATE_UNSIGNED_APK);
     myIncludeTestCodeAndCheckBox.setSelected(myConfiguration.PACK_TEST_CODE);
     myIncludeAssetsFromLibraries.setSelected(myConfiguration.isIncludeAssetsFromLibraries());
 
