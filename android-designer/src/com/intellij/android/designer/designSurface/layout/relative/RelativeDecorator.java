@@ -167,6 +167,8 @@ public class RelativeDecorator extends StaticDecorator {
 
       int baseline = ((RadViewComponent)toComponent).getBaseline();
       if (baseline != -1) {
+        baseline = toComponent.fromModel(layer, new Dimension(0, baseline)).height;
+
         y += baseline;
       }
     }

@@ -55,7 +55,8 @@ public class RelativeLayoutResizeOperation implements EditOperation {
   private TextFeedback myVerticalTextFeedback;
 
   private Rectangle myContainerBounds;
-  private Dimension myWrapSize;
+  private Dimension myWrapSize; // in screen pixels
+  private Dimension myModelWrapSize; // in model pixels (not dp)
 
   private Side myResizeHorizontalSide;
   private Side myResizeVerticalSide;
@@ -102,15 +103,17 @@ public class RelativeLayoutResizeOperation implements EditOperation {
 
       if (direction == Position.EAST || direction == Position.SOUTH || direction == Position.SOUTH_EAST) {
         Rectangle bounds = myComponent.getBounds(myContext.getArea().getFeedbackLayer());
+        Rectangle modelBounds = myComponent.getBounds();
         String width = myComponent.getTag().getAttributeValue("layout_width", SdkConstants.NS_RESOURCES);
         String height = myComponent.getTag().getAttributeValue("layout_height", SdkConstants.NS_RESOURCES);
 
-        Pair<Integer, Integer> widthInfo = ResizeOperation.getDefaultSize(width, bounds.width);
-        Pair<Integer, Integer> heightInfo = ResizeOperation.getDefaultSize(height, bounds.height);
+        Pair<Integer, Integer> widthInfo = ResizeOperation.getDefaultSize(width, modelBounds.width);
+        Pair<Integer, Integer> heightInfo = ResizeOperation.getDefaultSize(height, modelBounds.height);
 
-        myWrapSize = new Dimension(widthInfo.first, heightInfo.first);
-        myComponent.calculateWrapSize(myWrapSize, bounds);
+        myModelWrapSize = new Dimension(widthInfo.first, heightInfo.first);
+        myComponent.calculateWrapSize(myModelWrapSize, modelBounds);
 
+        myWrapSize = myComponent.fromModel(layer, myModelWrapSize);
         Rectangle wrapBounds;
         if (direction == Position.EAST) {
           wrapBounds = new Rectangle(bounds.x, bounds.y, myWrapSize.width, bounds.height);
@@ -237,7 +240,7 @@ public class RelativeLayoutResizeOperation implements EditOperation {
       points.add(new WrapSizeSnapPoint(myComponent, horizontal, myWrapSize));
     }
 
-    points.add(new AutoResizeSnapPoint(myContainer, horizontal));
+    points.add(new AutoResizeSnapPoint(myContext.getArea(), myContainer, horizontal));
   }
 
   @Override

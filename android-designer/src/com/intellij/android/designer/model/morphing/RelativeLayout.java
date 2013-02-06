@@ -38,6 +38,7 @@ public class RelativeLayout {
 
         for (RadComponent childComponent : myNewComponent.getChildren()) {
           Rectangle bounds = childComponent.getBounds();
+          // TODO: Need to convert from px to dp here
           XmlTag tag = ((RadViewComponent)childComponent).getTag();
           tag.setAttribute("layout_alignParentLeft", SdkConstants.NS_RESOURCES, "true");
           tag.setAttribute("layout_marginLeft", SdkConstants.NS_RESOURCES, Integer.toString(bounds.x - parentBounds.x) + "dp");

@@ -38,7 +38,7 @@ public class GridVerticalCaptionOperation extends VerticalCaptionFlowBaseOperati
 
   @Override
   protected int getMainFeedbackWidth(FeedbackLayer layer, int mainXLocation) {
-    return myMainContainer.getGridInfo().width;
+    return myMainContainer.getGridInfo().getSize(layer).width;
   }
 
   @Override

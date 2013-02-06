@@ -90,6 +90,7 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.intellij.designer.designSurface.ZoomType.FIT_INTO;
 
 /**
@@ -427,6 +428,14 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
         }
       }
     });
+  }
+
+  public int getDpi() {
+    if (myLastRenderedConfiguration == null) {
+      return DEFAULT_DENSITY;
+    }
+
+    return myLastRenderedConfiguration.getDensityQualifier().getValue().getDpiValue();
   }
 
   private void showWarnings(@Nullable List<FixableIssueMessage> warnMessages) {

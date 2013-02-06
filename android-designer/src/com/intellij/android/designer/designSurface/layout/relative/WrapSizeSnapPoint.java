@@ -30,7 +30,7 @@ import java.util.List;
  * @author Alexander Lobas
  */
 public class WrapSizeSnapPoint extends ResizeSnapPoint {
-  private final Dimension myWrapSize;
+  private final Dimension myWrapSize; // in screen coordinates
 
   public WrapSizeSnapPoint(RadViewComponent component, boolean horizontal, Dimension wrapSize) {
     super(component, horizontal);

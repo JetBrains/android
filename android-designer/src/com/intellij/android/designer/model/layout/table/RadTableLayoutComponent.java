@@ -61,7 +61,7 @@ public class RadTableLayoutComponent extends RadViewContainer implements IGridPr
 
   public GridInfo getGridInfo() {
     if (myGridInfo == null) {
-      myGridInfo = new GridInfo();
+      myGridInfo = new GridInfo(this);
 
       int[] columnWidths = getColumnWidths();
       if (columnWidths.length > 0) {
@@ -104,7 +104,7 @@ public class RadTableLayoutComponent extends RadViewContainer implements IGridPr
 
   public GridInfo getVirtualGridInfo() {
     if (myVirtualGridInfo == null) {
-      myVirtualGridInfo = new GridInfo();
+      myVirtualGridInfo = new GridInfo(this);
       GridInfo gridInfo = getGridInfo();
       Rectangle bounds = getBounds();
 

@@ -16,8 +16,10 @@
 package com.intellij.android.designer.designSurface.layout.relative;
 
 import com.android.SdkConstants;
+import com.intellij.android.designer.AndroidDesignerUtils;
 import com.intellij.android.designer.model.ModelParser;
 import com.intellij.android.designer.model.RadViewComponent;
+import com.intellij.designer.designSurface.EditableArea;
 import com.intellij.designer.designSurface.feedbacks.TextFeedback;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.openapi.application.ApplicationManager;
@@ -30,12 +32,14 @@ import java.util.List;
  * @author Alexander Lobas
  */
 public class AutoResizeSnapPoint extends ResizeSnapPoint {
-  private int myMargin;
-  private int mySize;
+  private int myMargin; // in model dp
+  private int mySize; // in model dp
   private Side mySide;
+  private final EditableArea myArea;
 
-  public AutoResizeSnapPoint(RadViewComponent container, boolean horizontal) {
+  public AutoResizeSnapPoint(EditableArea area, RadViewComponent container, boolean horizontal) {
     super(container, horizontal);
+    myArea = area;
   }
 
   @Override
@@ -64,22 +68,28 @@ public class AutoResizeSnapPoint extends ResizeSnapPoint {
 
     mySide = resizeSide;
 
+    double dpi = AndroidDesignerUtils.getDpi(myArea);
+    RadViewComponent first = (RadViewComponent)components.get(0);
+    Rectangle modelDpi = first.toModelDp(dpi, feedback, bounds);
+
     if (myHorizontal) {
-      mySize = bounds.width;
+      mySize = modelDpi.width;
 
       if (resizeSide == Side.left) {
-        myMargin = bounds.x - myBounds.x;
+        int viewMargin = bounds.x - myBounds.x;
+        myMargin = first.toModelDp(dpi, feedback, new Dimension(viewMargin, 0)).width;
         feedback.addVerticalLine(myBounds.x, myBounds.y, myBounds.height);
-        feedback.addHorizontalArrow(myBounds.x, bounds.y + bounds.height / 2, myMargin);
+        feedback.addHorizontalArrow(myBounds.x, bounds.y + bounds.height / 2, viewMargin);
       }
     }
     else {
-      mySize = bounds.height;
+      mySize = modelDpi.height;
 
       if (resizeSide == Side.top) {
-        myMargin = bounds.y - myBounds.y;
+        int viewMargin = bounds.y - myBounds.y;
+        myMargin = first.toModelDp(dpi, feedback, new Dimension(0, viewMargin)).height;
         feedback.addHorizontalLine(myBounds.x, myBounds.y, myBounds.width);
-        feedback.addVerticalArrow(bounds.x + bounds.width / 2, myBounds.y, myMargin);
+        feedback.addVerticalArrow(bounds.x + bounds.width / 2, myBounds.y, viewMargin);
       }
     }
 

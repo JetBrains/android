@@ -72,7 +72,7 @@ public class RadGridLayoutComponent extends RadViewContainer implements ICompone
   @Override
   public GridInfo getGridInfo() {
     if (myGridInfo == null) {
-      myGridInfo = new GridInfo();
+      myGridInfo = new GridInfo(this);
 
       try {
         Object viewObject = myViewInfo.getViewObject();
@@ -155,7 +155,7 @@ public class RadGridLayoutComponent extends RadViewContainer implements ICompone
   @Override
   public GridInfo getVirtualGridInfo() {
     if (myVirtualGridInfo == null) {
-      myVirtualGridInfo = new GridInfo();
+      myVirtualGridInfo = new GridInfo(this);
       GridInfo gridInfo = getGridInfo();
       Rectangle bounds = getBounds();
 

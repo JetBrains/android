@@ -41,16 +41,19 @@ public class GridDecorator extends StaticDecorator {
 
     Rectangle bounds = component.getBounds(layer);
     GridInfo gridInfo = ((IGridProvider)component).getGridInfo();
+    Dimension gridSize = gridInfo.getSize(layer);
 
-    for (int x : gridInfo.vLines) {
-      g.drawLine(bounds.x + x, bounds.y, bounds.x + x, bounds.y + gridInfo.height);
+    for (int column = 0; column < gridInfo.vLines.length; column++) {
+      int x = gridInfo.getCellPosition(layer, 0, column).x;
+      g.drawLine(bounds.x + x, bounds.y, bounds.x + x, bounds.y + gridSize.height);
     }
-    for (int y : gridInfo.hLines) {
-      g.drawLine(bounds.x, bounds.y + y, bounds.x + gridInfo.width, bounds.y + y);
+    for (int row = 0; row < gridInfo.hLines.length; row++) {
+      int y = gridInfo.getCellPosition(layer, row, 0).y;
+      g.drawLine(bounds.x, bounds.y + y, bounds.x + gridSize.width, bounds.y + y);
     }
 
     g.setStroke(stroke);
-    g.drawRect(bounds.x, bounds.y, gridInfo.width, gridInfo.height);
-    g.drawRect(bounds.x + 1, bounds.y + 1, gridInfo.width - 2, gridInfo.height - 2);
+    g.drawRect(bounds.x, bounds.y, gridSize.width, gridSize.height);
+    g.drawRect(bounds.x + 1, bounds.y + 1, gridSize.width - 2, gridSize.height - 2);
   }
 }

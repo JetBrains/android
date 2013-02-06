@@ -215,6 +215,7 @@ public class RadGridLayout extends RadViewLayoutWithData implements ILayoutDecor
   @Override
   public List<RadComponent> getCaptionChildren(EditableArea mainArea, boolean horizontal) {
     RadGridLayoutComponent container = getGridComponent();
+    JComponent target = mainArea.getNativeComponent();
     GridInfo gridInfo = container.getGridInfo();
     List<RadComponent> components = new ArrayList<RadComponent>();
 
