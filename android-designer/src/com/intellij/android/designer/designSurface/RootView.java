@@ -15,14 +15,17 @@
  */
 package com.intellij.android.designer.designSurface;
 
+import com.intellij.android.designer.ImageUtils;
+import com.intellij.android.designer.ShadowPainter;
 import com.intellij.designer.designSurface.ScalableComponent;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.awt.RenderingHints.*;
+import static com.intellij.android.designer.ShadowPainter.SHADOW_SIZE;
 
 /**
  * @author Alexander Lobas
@@ -30,23 +33,54 @@ import static java.awt.RenderingHints.*;
 public class RootView extends com.intellij.designer.designSurface.RootView implements ScalableComponent {
   private List<EmptyRegion> myEmptyRegions;
   private final AndroidDesignerEditorPanel myPanel;
+  private BufferedImage myScaledImage;
+  private boolean myShowDropShadow;
 
-  public RootView(AndroidDesignerEditorPanel panel, int x, int y, BufferedImage image) {
-    super(x, y, image);
+  public RootView(AndroidDesignerEditorPanel panel, int x, int y, BufferedImage image, boolean isAlphaChannelImage) {
+    super(x, y, image, isAlphaChannelImage);
     myPanel = panel;
   }
 
-  public void setImage(BufferedImage image) {
-    super.setImage(image);
+  /**
+   * Sets the image to be drawn
+   * <p>
+   * The image <b>can</b> be null, which is the case when we are dealing with
+   * an empty document.
+   *
+   * @param image The image to be rendered
+   * @param isAlphaChannelImage whether the alpha channel of the image is relevant
+   */
+  @Override
+  public void setImage(@Nullable BufferedImage image, boolean isAlphaChannelImage) {
+    myShowDropShadow = !isAlphaChannelImage;
     myEmptyRegions = new ArrayList<EmptyRegion>();
+    super.setImage(image, isAlphaChannelImage);
+  }
+
+  /**
+   * Returns whether this image overlay should be painted with a drop shadow.
+   * This is usually the case, but not for transparent themes like the dialog
+   * theme (Theme.*Dialog), which already provides its own shadow.
+   *
+   * @return true if the image overlay should be shown with a drop shadow.
+   */
+  public boolean getShowDropShadow() {
+    return myShowDropShadow;
   }
 
   @Override
   protected void updateSize() {
     if (myImage != null) {
       double zoom = getScale();
-      setBounds(myX, myY, (int)(zoom * myImage.getWidth()), (int)(zoom * myImage.getHeight()));
+      int newWidth = (int)(zoom * myImage.getWidth());
+      int newHeight = (int)(zoom * myImage.getHeight());
+      if (myShowDropShadow) {
+        newWidth += SHADOW_SIZE;
+        newHeight += SHADOW_SIZE;
+      }
+      setBounds(myX, myY, newWidth, newHeight);
     }
+    myScaledImage = null;
   }
 
   public void addEmptyRegion(int x, int y, int width, int height) {
@@ -64,20 +98,31 @@ public class RootView extends com.intellij.designer.designSurface.RootView imple
   @Override
   protected void paintImage(Graphics g) {
     double scale = myPanel.getZoom();
-    if (scale == 1) {
-      g.drawImage(myImage, 0, 0, null);
-    } else {
-      // TODO: Do proper thumbnail rendering here if the scaling factor < 0.5.
-      Graphics2D g2 = (Graphics2D)g;
-      g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BILINEAR);
-      g2.setRenderingHint(KEY_RENDERING, VALUE_RENDER_QUALITY);
-      g2.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
+    if (myScaledImage == null) {
+      // Special cases scale=1 to be fast
 
-      int newWidth = (int)(scale * myImage.getWidth());
-      int newHeight = (int)(scale * myImage.getHeight());
-      g.drawImage(myImage, 0, 0, newWidth, newHeight, null);
-      // TODO: Clear rendering hints?
+      if (scale == 1) {
+        // Scaling to 100% is easy!
+        myScaledImage = myImage;
+
+        if (myShowDropShadow) {
+          // Just need to draw drop shadows
+          myScaledImage = ShadowPainter.createRectangularDropShadow(myImage);
+        }
+      } else {
+        if (myShowDropShadow) {
+          myScaledImage = ImageUtils.scale(myImage, scale, scale,
+                                            SHADOW_SIZE, SHADOW_SIZE);
+          ShadowPainter.drawRectangleShadow(myScaledImage, 0, 0,
+                                         myScaledImage.getWidth() - SHADOW_SIZE,
+                                         myScaledImage.getHeight() - SHADOW_SIZE);
+        } else {
+          myScaledImage = ImageUtils.scale(myImage, scale, scale);
+        }
+      }
     }
+
+    g.drawImage(myScaledImage, 0, 0, null);
 
     if (!myEmptyRegions.isEmpty()) {
       if (scale == 1) {
