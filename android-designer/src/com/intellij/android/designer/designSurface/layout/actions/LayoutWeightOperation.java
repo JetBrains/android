@@ -16,6 +16,7 @@
 package com.intellij.android.designer.designSurface.layout.actions;
 
 import com.android.SdkConstants;
+import com.android.utils.XmlUtils;
 import com.intellij.android.designer.model.ModelParser;
 import com.intellij.designer.designSurface.OperationContext;
 import com.intellij.designer.designSurface.selection.ResizeSelectionDecorator;
@@ -25,7 +26,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.JBColor;
 
 import java.awt.*;
-import java.text.DecimalFormat;
 
 /**
  * @author Alexander Lobas
@@ -69,14 +69,13 @@ public class LayoutWeightOperation extends LayoutMarginOperation {
     }
   }
 
-  private static final DecimalFormat FORMAT = new DecimalFormat("#.##");
-
   private String getWeight(int value) {
+    // TODO: Should read in the weightSum attribute on the parent
     double weight = myWeight + value / 100.0;
     if (weight <= 0) {
       return "0";
     }
-    return FORMAT.format(weight);
+    return XmlUtils.formatFloatAttribute(weight);
   }
 
   @Override
@@ -103,7 +102,7 @@ public class LayoutWeightOperation extends LayoutMarginOperation {
       ModelParser.deleteAttribute(myComponent, "layout_weight");
     }
     else {
-      myComponent.getTag().setAttribute("layout_weight", SdkConstants.NS_RESOURCES, FORMAT.format(weight).replace(',', '.'));
+      myComponent.getTag().setAttribute("layout_weight", SdkConstants.NS_RESOURCES, XmlUtils.formatFloatAttribute(weight));
     }
   }
 
