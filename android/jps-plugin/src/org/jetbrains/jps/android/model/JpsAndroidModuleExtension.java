@@ -63,4 +63,8 @@ public interface JpsAndroidModuleExtension extends JpsElement {
   String getCustomDebugKeyStorePath();
 
   List<AndroidNativeLibData> getAdditionalNativeLibs();
+
+  boolean isUseCustomManifestPackage();
+
+  String getCustomManifestPackage();
 }

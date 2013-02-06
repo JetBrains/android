@@ -249,24 +249,29 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   @Nullable
   private static String getPackageName(AndroidFacet facet) {
-    Manifest manifest = facet.getManifest();
-    if (manifest == null) return null;
-    GenericAttributeValue<String> packageAttrValue = manifest.getPackage();
-    String aPackage = packageAttrValue.getValue();
-    if (aPackage == null || aPackage.length() == 0) {
-      Project project = facet.getModule().getProject();
-      Messages.showErrorDialog(project, AndroidBundle.message("specify.main.package.error", facet.getModule().getName()),
-                               CommonBundle.getErrorTitle());
-      XmlAttributeValue attrValue = packageAttrValue.getXmlAttributeValue();
-      if (attrValue != null) {
-        PsiNavigateUtil.navigate(attrValue);
-      }
-      else {
-        PsiNavigateUtil.navigate(manifest.getXmlElement());
-      }
-      return null;
+    if (facet.getConfiguration().USE_CUSTOM_MANIFEST_PACKAGE) {
+      return facet.getConfiguration().CUSTOM_MANIFEST_PACKAGE;
     }
-    return aPackage;
+    else {
+      Manifest manifest = facet.getManifest();
+      if (manifest == null) return null;
+      GenericAttributeValue<String> packageAttrValue = manifest.getPackage();
+      String aPackage = packageAttrValue.getValue();
+      if (aPackage == null || aPackage.length() == 0) {
+        Project project = facet.getModule().getProject();
+        Messages.showErrorDialog(project, AndroidBundle.message("specify.main.package.error", facet.getModule().getName()),
+                                 CommonBundle.getErrorTitle());
+        XmlAttributeValue attrValue = packageAttrValue.getXmlAttributeValue();
+        if (attrValue != null) {
+          PsiNavigateUtil.navigate(attrValue);
+        }
+        else {
+          PsiNavigateUtil.navigate(manifest.getXmlElement());
+        }
+        return null;
+      }
+      return aPackage;
+    }
   }
 
   private String computeCommandLine() {

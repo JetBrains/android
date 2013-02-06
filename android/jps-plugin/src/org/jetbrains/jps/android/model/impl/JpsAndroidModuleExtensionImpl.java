@@ -77,6 +77,16 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
   }
 
   @Override
+  public boolean isUseCustomManifestPackage() {
+    return myProperties.USE_CUSTOM_MANIFEST_PACKAGE;
+  }
+
+  @Override
+  public String getCustomManifestPackage() {
+    return myProperties.CUSTOM_MANIFEST_PACKAGE;
+  }
+
+  @Override
   public File getResourceDir() {
     File resDir = findFileByRelativeModulePath(myProperties.RES_FOLDER_RELATIVE_PATH, false);
     return resDir != null ? canonizeFilePath(resDir) : null;
