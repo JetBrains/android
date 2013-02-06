@@ -9,6 +9,7 @@ import org.jetbrains.android.compiler.tools.AndroidApt;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.builder.AndroidResourcePackagingBuildTarget;
 import org.jetbrains.jps.android.model.JpsAndroidModuleExtension;
 import org.jetbrains.jps.builders.BuildOutputConsumer;
@@ -108,8 +109,11 @@ public class AndroidResourcePackagingBuilder extends TargetBuilder<BuildRootDesc
     final IAndroidTarget androidTarget = platform.getTarget();
     final String[] resourceDirPaths = AndroidJpsUtil.collectResourceDirsForCompilation(extension, true, context, true);
 
+    final String customManifestPackage = extension.isUseCustomManifestPackage()
+                                         ? extension.getCustomManifestPackage()
+                                         : null;
     return doPackageResources(context, manifestFile, androidTarget, resourceDirPaths, ArrayUtil.toStringArray(assetsDirPaths),
-                              outputFilePath, releaseBuild, module.getName(), outputConsumer);
+                              outputFilePath, releaseBuild, module.getName(), outputConsumer, customManifestPackage);
   }
 
   private static boolean doPackageResources(@NotNull final CompileContext context,
@@ -120,13 +124,14 @@ public class AndroidResourcePackagingBuilder extends TargetBuilder<BuildRootDesc
                                             @NotNull String outputPath,
                                             boolean releasePackage,
                                             @NotNull String moduleName,
-                                            @NotNull BuildOutputConsumer outputConsumer) {
+                                            @NotNull BuildOutputConsumer outputConsumer,
+                                            @Nullable String customManifestPackage) {
     try {
       final IgnoredFileIndex ignoredFileIndex = context.getProjectDescriptor().getIgnoredFileIndex();
 
       final Map<AndroidCompilerMessageKind, List<String>> messages = AndroidApt
         .packageResources(target, -1, manifestFile.getPath(), resourceDirPaths, assetsDirPaths, outputPath, null,
-                          !releasePackage, 0, new FileFilter() {
+                          !releasePackage, 0, customManifestPackage, new FileFilter() {
           @Override
           public boolean accept(File pathname) {
             return !ignoredFileIndex.isIgnored(PathUtilRt.getFileName(pathname.getPath()));

@@ -939,4 +939,16 @@ public class AndroidCompileUtil {
       }
     }
   }
+
+  @Nullable
+  public static String getAaptManifestPackage(@NotNull AndroidFacet facet) {
+    if (facet.getConfiguration().USE_CUSTOM_MANIFEST_PACKAGE) {
+      return facet.getConfiguration().CUSTOM_MANIFEST_PACKAGE;
+    }
+    final Manifest manifest = facet.getManifest();
+
+    return manifest != null
+           ? manifest.getPackage().getStringValue()
+           : null;
+  }
 }

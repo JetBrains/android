@@ -15,8 +15,8 @@
  */
 package org.jetbrains.android.facet;
 
-import com.android.sdklib.IAndroidTarget;
 import com.android.SdkConstants;
+import com.android.sdklib.IAndroidTarget;
 import com.intellij.facet.FacetConfiguration;
 import com.intellij.facet.ui.FacetEditorContext;
 import com.intellij.facet.ui.FacetEditorTab;
@@ -84,6 +84,9 @@ public class AndroidFacetConfiguration implements FacetConfiguration {
 
   public boolean RUN_PROGUARD = false;
   public String PROGUARD_CFG_PATH = "/" + AndroidCompileUtil.PROGUARD_CFG_FILE_NAME;
+
+  public boolean USE_CUSTOM_MANIFEST_PACKAGE = false;
+  public String CUSTOM_MANIFEST_PACKAGE = "";
 
   private boolean myIncludeSystemProguardCfgPath = true;
   private boolean myIncludeAssetsFromLibraries = false;

@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.AndroidJpsUtil;
 import org.jetbrains.jps.android.model.JpsAndroidModuleExtension;
 import org.jetbrains.jps.builders.BuildRootDescriptor;
+import org.jetbrains.jps.builders.BuildRootIndex;
 import org.jetbrains.jps.builders.BuildTarget;
 import org.jetbrains.jps.builders.impl.BuildRootDescriptorImpl;
 import org.jetbrains.jps.builders.storage.BuildDataPaths;
@@ -15,6 +16,7 @@ import org.jetbrains.jps.model.JpsModel;
 import org.jetbrains.jps.model.module.JpsModule;
 
 import java.io.File;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,6 +28,16 @@ import java.util.List;
 public class AndroidResourcePackagingBuildTarget extends AndroidBuildTarget {
   public AndroidResourcePackagingBuildTarget(@NotNull JpsModule module) {
     super(MyTargetType.INSTANCE, module);
+  }
+
+  @Override
+  public void writeConfiguration(PrintWriter out, BuildDataPaths dataPaths, BuildRootIndex buildRootIndex) {
+    final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(myModule);
+    assert extension != null;
+
+    if (extension.isUseCustomManifestPackage()) {
+      out.println(extension.getCustomManifestPackage());
+    }
   }
 
   @NotNull

@@ -660,6 +660,31 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     checkMakeUpToDate(executor);
   }
 
+  public void testCustomManifestPackage() throws Exception {
+    final MyExecutor executor = new MyExecutor("com.example.simple");
+    final JpsModule module = setUpSimpleAndroidStructure(new String[]{"src"}, executor, null, "8").getFirst();
+    rebuildAll();
+    checkMakeUpToDate(executor);
+
+    final JpsAndroidModuleExtensionImpl extension =
+      (JpsAndroidModuleExtensionImpl)AndroidJpsUtil.getExtension(module);
+    assert extension != null;
+    final JpsAndroidModuleProperties props = extension.getProperties();
+
+    props.CUSTOM_MANIFEST_PACKAGE = "dev";
+    checkMakeUpToDate(executor);
+
+    props.USE_CUSTOM_MANIFEST_PACKAGE = true;
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log");
+    checkMakeUpToDate(executor);
+
+    props.CUSTOM_MANIFEST_PACKAGE = "dev1";
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_1");
+    checkMakeUpToDate(executor);
+  }
+
   private void checkMakeUpToDate(MyExecutor executor) {
     executor.clear();
     makeAll().assertUpToDate();
