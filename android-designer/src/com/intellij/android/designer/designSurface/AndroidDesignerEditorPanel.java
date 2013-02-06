@@ -231,7 +231,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
     createRenderer(parser.getLayoutXmlText(), new MyThrowable(), new ThrowableConsumer<RenderSession, Throwable>() {
       @Override
       public void consume(RenderSession session) throws Throwable {
-        RootView rootView = new RootView(AndroidDesignerEditorPanel.this, 30, 20, session.getImage());
+        RootView rootView = new RootView(AndroidDesignerEditorPanel.this, 30, 20, session.getImage(), session.isAlphaChannelImage());
         try {
           parser.updateRootComponent(myLastRenderedConfiguration, session, rootView);
         }
@@ -251,6 +251,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
         propertyParser.loadRecursive(newRootComponent);
 
         JPanel rootPanel = new JPanel(null);
+        rootPanel.setBackground(new Color(150, 150, 150));
         rootPanel.setBackground(JBColor.WHITE);
         rootPanel.add(rootView);
 
@@ -477,7 +478,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
       public void consume(RenderSession session) throws Throwable {
         RadViewComponent rootComponent = (RadViewComponent)myRootComponent;
         RootView rootView = (RootView)rootComponent.getNativeComponent();
-        rootView.setImage(session.getImage());
+        rootView.setImage(session.getImage(), session.isAlphaChannelImage());
         ModelParser.updateRootComponent(myLastRenderedConfiguration, rootComponent, session, rootView);
 
         myParseTime = false;
