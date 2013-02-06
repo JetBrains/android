@@ -16,12 +16,10 @@
 package com.intellij.android.designer.designSurface.layout.actions;
 
 import com.android.SdkConstants;
+import com.intellij.android.designer.AndroidDesignerUtils;
 import com.intellij.android.designer.model.ModelParser;
 import com.intellij.android.designer.model.RadViewComponent;
-import com.intellij.designer.designSurface.DecorationLayer;
-import com.intellij.designer.designSurface.EditOperation;
-import com.intellij.designer.designSurface.FeedbackLayer;
-import com.intellij.designer.designSurface.OperationContext;
+import com.intellij.designer.designSurface.*;
 import com.intellij.designer.designSurface.feedbacks.LineMarginBorder;
 import com.intellij.designer.designSurface.feedbacks.RectangleFeedback;
 import com.intellij.designer.designSurface.feedbacks.TextFeedback;
@@ -50,8 +48,8 @@ public class LayoutMarginOperation implements EditOperation {
   protected RadViewComponent myComponent;
   protected RectangleFeedback myFeedback;
   protected TextFeedback myTextFeedback;
-  private Rectangle myBounds;
-  protected Rectangle myMargins;
+  private Rectangle myBounds; // in screen coordinates
+  protected Rectangle myMargins; // in model coordinates
 
   public LayoutMarginOperation(OperationContext context) {
     myContext = context;
@@ -92,7 +90,8 @@ public class LayoutMarginOperation implements EditOperation {
     createFeedback();
 
     Rectangle bounds = myContext.getTransformedRectangle(myBounds);
-    applyMargins(bounds, myMargins);
+    FeedbackLayer layer = myContext.getArea().getFeedbackLayer();
+    applyMargins(bounds, layer, myComponent, myMargins);
     myFeedback.setBounds(bounds);
 
     myTextFeedback.clear();
@@ -101,24 +100,24 @@ public class LayoutMarginOperation implements EditOperation {
   }
 
   protected void fillTextFeedback() {
-    Point moveDelta = myContext.getMoveDelta();
-    Dimension sizeDelta = myContext.getSizeDelta();
+    EditableArea area = myContext.getArea();
+    FeedbackLayer layer = area.getFeedbackLayer();
+    Point moveDelta = myComponent.toModel(layer, myContext.getMoveDelta());
+    Dimension sizeDelta = myComponent.toModel(layer, myContext.getSizeDelta());
     int direction = myContext.getResizeDirection();
 
     if (direction == Position.WEST) { // left
-      myTextFeedback.append(Integer.toString(myMargins.x - moveDelta.x));
+      myTextFeedback.append(AndroidDesignerUtils.pxToDpWithUnits(area, myMargins.x - moveDelta.x));
     }
     else if (direction == Position.EAST) { // right
-      myTextFeedback.append(Integer.toString(myMargins.width + sizeDelta.width));
+      myTextFeedback.append(AndroidDesignerUtils.pxToDpWithUnits(area, myMargins.width + sizeDelta.width));
     }
     else if (direction == Position.NORTH) { // top
-      myTextFeedback.append(Integer.toString(myMargins.y - moveDelta.y));
+      myTextFeedback.append(AndroidDesignerUtils.pxToDpWithUnits(area, myMargins.y - moveDelta.y));
     }
     else if (direction == Position.SOUTH) { // bottom
-      myTextFeedback.append(Integer.toString(myMargins.height + sizeDelta.height));
+      myTextFeedback.append(AndroidDesignerUtils.pxToDpWithUnits(area, myMargins.height + sizeDelta.height));
     }
-
-    myTextFeedback.dimension("dp");
   }
 
   @Override
@@ -158,8 +157,9 @@ public class LayoutMarginOperation implements EditOperation {
           }
         }
 
-        Point moveDelta = myContext.getMoveDelta();
-        Dimension sizeDelta = myContext.getSizeDelta();
+        FeedbackLayer layer = myContext.getArea().getFeedbackLayer();
+        Point moveDelta = myComponent.toModel(layer, myContext.getMoveDelta());
+        Dimension sizeDelta = myComponent.toModel(layer, myContext.getSizeDelta());
         int direction = myContext.getResizeDirection();
 
         if (direction == Position.WEST) { // left
@@ -178,12 +178,13 @@ public class LayoutMarginOperation implements EditOperation {
     });
   }
 
-  private static void setValue(XmlTag tag, String name, int value) {
-    if (value == 0) {
+  private void setValue(XmlTag tag, String name, int pxValue) {
+    if (pxValue == 0) {
       ModelParser.deleteAttribute(tag, name);
     }
     else {
-      tag.setAttribute(name, SdkConstants.NS_RESOURCES, Integer.toString(value) + "dp");
+      String value = AndroidDesignerUtils.pxToDpWithUnits(myContext.getArea(), pxValue);
+      tag.setAttribute(name, SdkConstants.NS_RESOURCES, value);
     }
   }
 
@@ -200,7 +201,12 @@ public class LayoutMarginOperation implements EditOperation {
       @Override
       protected Point getLocation(DecorationLayer layer, RadComponent component) {
         Point location = super.getLocation(layer, component);
-        location.x -= ((RadViewComponent)component).getMargins().x;
+        int marginX = ((RadViewComponent)component).getMargins().x;
+        if (marginX != 0) {
+          marginX = component.fromModel(layer, new Dimension(marginX, 0)).width;
+        }
+
+        location.x -= marginX;
         return location;
       }
     });
@@ -211,7 +217,12 @@ public class LayoutMarginOperation implements EditOperation {
       @Override
       protected Point getLocation(DecorationLayer layer, RadComponent component) {
         Point location = super.getLocation(layer, component);
-        location.y -= ((RadViewComponent)component).getMargins().y;
+        int marginY = ((RadViewComponent)component).getMargins().y;
+        if (marginY != 0) {
+          marginY = component.fromModel(layer, new Dimension(0, marginY)).height;
+        }
+
+        location.y -= marginY;
         return location;
       }
     });
@@ -226,7 +237,7 @@ public class LayoutMarginOperation implements EditOperation {
       @Override
       protected void paint(DecorationLayer layer, Graphics2D g, RadComponent component) {
         Rectangle bounds = component.getBounds(layer);
-        applyMargins(bounds, ((RadViewComponent)component).getMargins());
+        applyMargins(bounds, layer, component, ((RadViewComponent)component).getMargins());
 
         g.setStroke(STROKE);
         g.setColor(JBColor.RED);
@@ -244,7 +255,12 @@ public class LayoutMarginOperation implements EditOperation {
       @Override
       protected Point getLocation(DecorationLayer layer, RadComponent component) {
         Point location = super.getLocation(layer, component);
-        location.x += ((RadViewComponent)component).getMargins().width;
+        int marginWidth = ((RadViewComponent)component).getMargins().width;
+        if (marginWidth != 0) {
+          marginWidth = component.fromModel(layer, new Dimension(marginWidth, 0)).width;
+        }
+
+        location.x += marginWidth;
         return location;
       }
     }.move(1, ySeparator));
@@ -259,20 +275,35 @@ public class LayoutMarginOperation implements EditOperation {
       @Override
       protected Point getLocation(DecorationLayer layer, RadComponent component) {
         Point location = super.getLocation(layer, component);
-        location.y += ((RadViewComponent)component).getMargins().height;
+        int marginHeight = ((RadViewComponent)component).getMargins().height;
+        if (marginHeight != 0) {
+          marginHeight = component.fromModel(layer, new Dimension(0, marginHeight)).height;
+        }
+        location.y += marginHeight;
         return location;
       }
     }.move(xSeparator, 1));
   }
 
-  private static void applyMargins(Rectangle bounds, Rectangle margins) {
-    bounds.x -= margins.x;
-    bounds.width += margins.x;
+  private static void applyMargins(Rectangle bounds, Component target, RadComponent component, Rectangle margins) {
+    if (margins.x == 0 && margins.y == 0 && margins.width == 0 && margins.height == 0) {
+      return;
+    }
 
-    bounds.y -= margins.y;
-    bounds.height += margins.y;
+    // Margin x and y are not actually x and y coordinates; they are
+    // dimensions on the left and top sides. Therefore, we should NOT
+    // use Rectangle bounds conversion operations, since they will
+    // shift coordinate systems
+    Dimension topLeft = component.fromModel(target, new Dimension(margins.x, margins.y));
+    Dimension bottomRight = component.fromModel(target, new Dimension(margins.width, margins.height));
 
-    bounds.width += margins.width;
-    bounds.height += margins.height;
+    bounds.x -= topLeft.width;
+    bounds.width += topLeft.width;
+
+    bounds.y -= topLeft.height;
+    bounds.height += topLeft.height;
+
+    bounds.width += bottomRight.width;
+    bounds.height += bottomRight.height;
   }
 }

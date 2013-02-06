@@ -32,11 +32,12 @@ public abstract class GridSelectionDecorator extends ResizeSelectionDecorator {
                                           int columnSpan) {
     Rectangle bounds = parent.getBounds(layer);
 
-    bounds.x += gridInfo.vLines[column];
-    bounds.width = gridInfo.vLines[column + columnSpan] - gridInfo.vLines[column];
-
-    bounds.y += gridInfo.hLines[row];
-    bounds.height = gridInfo.hLines[row + rowSpan] - gridInfo.hLines[row];
+    Point topLeft = gridInfo.getCellPosition(layer, row, column);
+    Point bottomRight = gridInfo.getCellPosition(layer, row + rowSpan, column + columnSpan);
+    bounds.x += topLeft.x;
+    bounds.width = bottomRight.x - topLeft.x;
+    bounds.y += topLeft.y;
+    bounds.height = bottomRight.y - topLeft.y;
 
     Rectangle componentBounds = component.getBounds(layer);
     if (!bounds.contains(componentBounds.x, componentBounds.y)) {

@@ -266,13 +266,13 @@ public abstract class LayoutSpanOperation implements EditOperation {
 
       for (int i = row; i < row + mySpan; i++) {
         spans.add(span++);
-        offsets.add(myContainerBounds.y + gridInfo.hLines[i + 1]);
+        offsets.add(myContainerBounds.y + gridInfo.getCellPosition(layer, i + 1, 0).y);
       }
 
       for (int i = row + mySpan; i < components.length; i++) {
         if (components[i][cellInfo.x] == null) {
           spans.add(span++);
-          offsets.add(myContainerBounds.y + gridInfo.hLines[i + 1]);
+          offsets.add(myContainerBounds.y + gridInfo.getCellPosition(layer, i + 1, 0).y);
         }
         else {
           myErrorFeedback.setBounds(myDecorator.getCellBounds(layer, components[i][cellInfo.x]));
@@ -287,7 +287,7 @@ public abstract class LayoutSpanOperation implements EditOperation {
 
       for (int i = row; i < row + mySpan; i++) {
         spans.add(span--);
-        offsets.add(myContainerBounds.y + gridInfo.hLines[i]);
+        offsets.add(myContainerBounds.y + gridInfo.getCellPosition(layer, i, 0).y);
         columns.add(i);
       }
 
@@ -296,7 +296,7 @@ public abstract class LayoutSpanOperation implements EditOperation {
       for (int i = row - 1; i >= 0; i--) {
         if (components[i][cellInfo.x] == null) {
           spans.add(0, ++span);
-          offsets.add(0, myContainerBounds.y + gridInfo.hLines[i]);
+          offsets.add(0, myContainerBounds.y + gridInfo.getCellPosition(layer, i, 0).y);
           columns.add(0, i);
         }
         else {
@@ -335,13 +335,13 @@ public abstract class LayoutSpanOperation implements EditOperation {
 
       for (int i = column; i < column + mySpan; i++) {
         spans.add(span++);
-        offsets.add(myContainerBounds.x + gridInfo.vLines[i + 1]);
+        offsets.add(myContainerBounds.x + gridInfo.getCellPosition(layer, 0, i + 1).x);
       }
 
       for (int i = column + mySpan; i < rowComponents.length; i++) {
         if (rowComponents[i] == null) {
           spans.add(span++);
-          offsets.add(myContainerBounds.x + gridInfo.vLines[i + 1]);
+          offsets.add(myContainerBounds.x + gridInfo.getCellPosition(layer, 0, i + 1).x);
         }
         else {
           myErrorFeedback.setBounds(myDecorator.getCellBounds(layer, rowComponents[i]));
@@ -356,7 +356,7 @@ public abstract class LayoutSpanOperation implements EditOperation {
 
       for (int i = column; i < column + mySpan; i++) {
         spans.add(span--);
-        offsets.add(myContainerBounds.x + gridInfo.vLines[i]);
+        offsets.add(myContainerBounds.x + gridInfo.getCellPosition(layer, 0, i).x);
         columns.add(i);
       }
 
@@ -365,7 +365,7 @@ public abstract class LayoutSpanOperation implements EditOperation {
       for (int i = column - 1; i >= 0; i--) {
         if (rowComponents[i] == null) {
           spans.add(0, ++span);
-          offsets.add(0, myContainerBounds.x + gridInfo.vLines[i]);
+          offsets.add(0, myContainerBounds.x + gridInfo.getCellPosition(layer, 0, i).x);
           columns.add(0, i);
         }
         else {

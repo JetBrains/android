@@ -35,11 +35,28 @@ public class FlowBaseOperation extends com.intellij.designer.designSurface.FlowB
   @Override
   protected Rectangle getBounds(RadComponent component, FeedbackLayer layer) {
     Rectangle bounds = component.getBounds(layer);
+
     Rectangle margins = ((RadViewComponent)component).getMargins();
-    bounds.x -= margins.x;
-    bounds.y -= margins.y;
-    bounds.width += margins.x + margins.width;
-    bounds.height += margins.y + margins.height;
+    if (margins.x == 0 && margins.y == 0 && margins.width == 0 && margins.height == 0) {
+      return bounds;
+    }
+
+    // Margin x and y are not actually x and y coordinates; they are
+    // dimensions on the left and top sides. Therefore, we should NOT
+    // use Rectangle bounds conversion operations, since they will
+    // shift coordinate systems
+    Dimension topLeft = component.fromModel(layer, new Dimension(margins.x, margins.y));
+    Dimension bottomRight = component.fromModel(layer, new Dimension(margins.width, margins.height));
+
+    bounds.x -= topLeft.width;
+    bounds.width += topLeft.width;
+
+    bounds.y -= topLeft.height;
+    bounds.height += topLeft.height;
+
+    bounds.width += bottomRight.width;
+    bounds.height += bottomRight.height;
+
     return bounds;
   }
 

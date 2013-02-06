@@ -16,6 +16,7 @@
 package com.intellij.android.designer.designSurface.layout.actions;
 
 import com.android.SdkConstants;
+import com.intellij.android.designer.AndroidDesignerUtils;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.propertyTable.renderers.ResourceRenderer;
 import com.intellij.designer.designSurface.EditOperation;
@@ -57,10 +58,23 @@ public class ResizeOperation implements EditOperation {
   private String myStaticWidth;
   private String myStaticHeight;
 
+  /** Wrap size, in screen pixels */
   private Dimension myWrapSize;
+
+  /** Wrap size, in model pixels (not dp) */
+  private Dimension myModelWrapSize;
+
+  /** Fill size, in screen pixels */
   private Dimension myFillSize;
 
+  /** Fill size, in model pixels (not dp) */
+  private Dimension myModelFillSize;
+
+  /** Proposed new size, in screen (zoomed) coordinates */
   private Rectangle myBounds;
+
+  /** Proposed new size, in model */
+  private Rectangle myModelBounds;
 
   public ResizeOperation(OperationContext context) {
     myContext = context;
@@ -70,38 +84,44 @@ public class ResizeOperation implements EditOperation {
   public void setComponent(RadComponent component) {
     myComponent = (RadViewComponent)component;
 
-    Rectangle bounds = myComponent.getBounds(myContext.getArea().getFeedbackLayer());
+    FeedbackLayer layer = myContext.getArea().getFeedbackLayer();
+    Rectangle bounds = myComponent.getBounds(layer);
+    Rectangle modelBounds = myComponent.getBounds();
+
     String width = myComponent.getTag().getAttributeValue("layout_width", SdkConstants.NS_RESOURCES);
     String height = myComponent.getTag().getAttributeValue("layout_height", SdkConstants.NS_RESOURCES);
 
-    Pair<Integer, Integer> widthInfo = getDefaultSize(width, bounds.width);
-    Pair<Integer, Integer> heightInfo = getDefaultSize(height, bounds.height);
+    Pair<Integer, Integer> widthInfo = getDefaultSize(width, modelBounds.width);
+    Pair<Integer, Integer> heightInfo = getDefaultSize(height, modelBounds.height);
 
-    myWrapSize = new Dimension(widthInfo.first, heightInfo.first);
-    myComponent.calculateWrapSize(myWrapSize, bounds);
+    myModelWrapSize = new Dimension(widthInfo.first, heightInfo.first);
+    myComponent.calculateWrapSize(myModelWrapSize, modelBounds);
 
-    myFillSize = new Dimension(widthInfo.second, heightInfo.second);
-    calculateFillParentSize(bounds);
+    myModelFillSize = new Dimension(widthInfo.second, heightInfo.second);
+    calculateFillParentSize(modelBounds);
+
+    myFillSize = myComponent.fromModel(layer, myModelFillSize);
+    myWrapSize = myComponent.fromModel(layer, myModelWrapSize);
 
     createStaticFeedback(bounds, width, height);
   }
 
   private void calculateFillParentSize(Rectangle bounds) {
-    if (myFillSize.width == -1 || myFillSize.height == -1) {
-      Rectangle parentBounds = myComponent.getParent().getBounds(myContext.getArea().getFeedbackLayer());
+    if (myModelFillSize.width == -1 || myModelFillSize.height == -1) {
+      Rectangle parentBounds = myComponent.getParent().getBounds();
 
-      if (myFillSize.width == -1) {
-        myFillSize.width = parentBounds.x + parentBounds.width - bounds.x;
+      if (myModelFillSize.width == -1) {
+        myModelFillSize.width = parentBounds.x + parentBounds.width - bounds.x;
       }
-      if (myFillSize.height == -1) {
-        myFillSize.height = parentBounds.y + parentBounds.height - bounds.y;
+      if (myModelFillSize.height == -1) {
+        myModelFillSize.height = parentBounds.y + parentBounds.height - bounds.y;
       }
     }
-    if (myWrapSize.width == myFillSize.width) {
-      myFillSize.width += 10;
+    if (myModelWrapSize.width == myModelFillSize.width) {
+      myModelFillSize.width += 10; // TODO: ??? This doesn't look right.
     }
-    if (myWrapSize.height == myFillSize.height) {
-      myFillSize.height += 10;
+    if (myModelWrapSize.height == myModelFillSize.height) {
+      myModelFillSize.height += 10;
     }
   }
 
@@ -175,7 +195,8 @@ public class ResizeOperation implements EditOperation {
   public void showFeedback() {
     createFeedback();
 
-    myBounds = myContext.getTransformedRectangle(myComponent.getBounds(myContext.getArea().getFeedbackLayer()));
+    FeedbackLayer layer = myContext.getArea().getFeedbackLayer();
+    myBounds = myContext.getTransformedRectangle(myComponent.getBounds(layer));
     myBounds.width = Math.max(myBounds.width, 0);
     myBounds.height = Math.max(myBounds.height, 0);
 
@@ -196,9 +217,10 @@ public class ResizeOperation implements EditOperation {
 
     myTextFeedback.clear();
 
-    addTextSize(myStaticWidth, myBounds.width, myWrapSize.width, myFillSize.width);
+    myModelBounds = myComponent.toModel(layer, myBounds);
+    addTextSize(myStaticWidth, myModelBounds.width, myModelWrapSize.width, myModelFillSize.width);
     myTextFeedback.append(" x ", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-    addTextSize(myStaticHeight, myBounds.height, myWrapSize.height, myFillSize.height);
+    addTextSize(myStaticHeight, myModelBounds.height, myModelWrapSize.height, myModelFillSize.height);
 
     myTextFeedback.locationTo(myContext.getLocation(), 15);
   }
@@ -212,8 +234,7 @@ public class ResizeOperation implements EditOperation {
         myTextFeedback.snap("match_parent");
       }
       else {
-        myTextFeedback.append(Integer.toString(size));
-        myTextFeedback.dimension("dp");
+        myTextFeedback.append(AndroidDesignerUtils.pxToDpWithUnits(myContext.getArea(), size));
       }
     }
     else if (staticText.length() > 3 && staticText.endsWith("dip")) {
@@ -281,25 +302,31 @@ public class ResizeOperation implements EditOperation {
         int direction = myContext.getResizeDirection();
 
         if ((direction & Position.EAST) != 0) {
-          myComponent.getTag()
-            .setAttribute("layout_width", SdkConstants.NS_RESOURCES, getSize(myBounds.width, myWrapSize.width, myFillSize.width));
+          String size = getSize(myModelBounds.width, myModelWrapSize.width, myModelFillSize.width);
+          myComponent.getTag().setAttribute("layout_width", SdkConstants.NS_RESOURCES, size);
         }
         if ((direction & Position.SOUTH) != 0) {
-          myComponent.getTag()
-            .setAttribute("layout_height", SdkConstants.NS_RESOURCES, getSize(myBounds.height, myWrapSize.height, myFillSize.height));
+          String size = getSize(myModelBounds.height, myModelWrapSize.height, myModelFillSize.height);
+          myComponent.getTag().setAttribute("layout_height", SdkConstants.NS_RESOURCES, size);
         }
       }
     });
   }
 
-  private static String getSize(int size, int wrap, int fill) {
+  private String getSize(int size, int wrap, int fill) {
     if (size == wrap) {
       return "wrap_content";
     }
     if (size == fill) {
       return "fill_parent";
     }
-    return Integer.toString(size) + "dp";
+    if (Math.abs(size - wrap) <= 3) { // Rounding when views are zoomed out a lot
+      return "wrap_content";
+    }
+    if (Math.abs(size - fill) <= 3) { // Rounding when views are zoomed out a lot
+      return "fill_parent";
+    }
+    return AndroidDesignerUtils.pxToDpWithUnits(myContext.getArea(), size);
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////

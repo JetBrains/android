@@ -20,6 +20,7 @@ import com.intellij.android.designer.designSurface.layout.BorderStaticDecorator;
 import com.intellij.android.designer.model.grid.GridInfo;
 import com.intellij.android.designer.model.grid.GridInsertType;
 import com.intellij.android.designer.model.grid.IGridProvider;
+import com.intellij.designer.designSurface.EditableArea;
 import com.intellij.designer.designSurface.FeedbackLayer;
 import com.intellij.designer.designSurface.OperationContext;
 import com.intellij.designer.designSurface.feedbacks.AlphaFeedback;
@@ -161,7 +162,9 @@ public abstract class GridOperation extends AbstractEditOperation {
 
   private void calculateGridInfo() {
     GridInfo gridInfo = getGridInfo();
-    Point location = SwingUtilities.convertPoint(myContext.getArea().getFeedbackLayer(), myContext.getLocation(), myFeedback);
+    Point location = gridInfo.grid.toModel(myContext.getArea().getNativeComponent(), myContext.getLocation());
+    location.x -= gridInfo.grid.getBounds().x;
+    location.y -= gridInfo.grid.getBounds().y;
 
     myColumn = getLineIndex(gridInfo.vLines, location.x);
     myRow = getLineIndex(gridInfo.hLines, location.y);
@@ -332,11 +335,13 @@ public abstract class GridOperation extends AbstractEditOperation {
       }
     }
 
-    int x1 = startColumn < gridInfo.vLines.length ? gridInfo.vLines[startColumn] : 0;
-    int x2 = endColumn < gridInfo.vLines.length ? gridInfo.vLines[endColumn] : gridInfo.width;
+    EditableArea area = myContext.getArea();
+    JComponent target = area.getNativeComponent();
+    int x1 = startColumn < gridInfo.vLines.length ? gridInfo.getCellPosition(target, 0, startColumn).x : 0;
+    int x2 = endColumn < gridInfo.vLines.length ? gridInfo.getCellPosition(target, 0, endColumn).x : gridInfo.getSize(target).width;
 
-    int y1 = startRow < gridInfo.hLines.length ? gridInfo.hLines[startRow] : 0;
-    int y2 = endRow < gridInfo.hLines.length ? gridInfo.hLines[endRow] : gridInfo.height;
+    int y1 = startRow < gridInfo.hLines.length ? gridInfo.getCellPosition(target, startRow, 0).y : 0;
+    int y2 = endRow < gridInfo.hLines.length ? gridInfo.getCellPosition(target, endRow, 0).y : gridInfo.getSize(target).height;
 
     return new Rectangle(x1, y1, x2 - x1, y2 - y1);
   }
@@ -412,15 +417,18 @@ public abstract class GridOperation extends AbstractEditOperation {
       g.setColor(BorderStaticDecorator.COLOR);
 
       GridInfo gridInfo = getGridInfo();
+      Dimension size = gridInfo.getSize(this);
 
-      for (int x : gridInfo.vLines) {
-        g.drawLine(x, 0, x, gridInfo.height);
+      for (int column = 0; column < gridInfo.vLines.length; column++) {
+        int x = gridInfo.getCellPosition(this, 0, column).x;
+        g.drawLine(x, 0, x, size.height);
       }
-      for (int y : gridInfo.hLines) {
-        g.drawLine(0, y, gridInfo.width, y);
+      for (int row = 0; row < gridInfo.hLines.length; row++) {
+        int y = gridInfo.getCellPosition(this, row, 0).y;
+        g.drawLine(0, y, size.width, y);
       }
-      g.drawRect(0, 0, gridInfo.width - 1, gridInfo.height - 1);
-      g.drawRect(1, 1, gridInfo.width - 3, gridInfo.height - 3);
+      g.drawRect(0, 0, size.width - 1, size.height - 1);
+      g.drawRect(1, 1, size.width - 3, size.height - 3);
 
       if (myInsertType == GridInsertType.in_cell) {
         Rectangle cellRect = getInsertRect(myExist);

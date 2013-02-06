@@ -50,20 +50,29 @@ public class BaselineSnapPoint extends SnapPoint {
       return false;
     }
 
-    int targetBaseLine = ((RadViewComponent)components.get(0)).getBaseline();
+    RadViewComponent component = (RadViewComponent)components.get(0);
+    int targetBaseLine = component.getBaseline();
     if (targetBaseLine == -1) {
       return false;
     }
 
     super.processBounds(components, targetBounds, feedback);
 
-    int startY = myBounds.y + myBaseline - SNAP_SIZE;
+    // The baseline is in model pixels; convert to view pixels
+    // Since widths and heights are always treated identically (because the zoom is always
+    // the same in both dimensions) we can do a single computation and pack both into a
+    // single transform
+    Dimension transformed = component.fromModel(feedback, new Dimension(myBaseline, targetBaseLine));
+    int baseline = transformed.width;
+    targetBaseLine = transformed.height;
+
+    int startY = myBounds.y + baseline - SNAP_SIZE;
     int endY = startY + 2 * SNAP_SIZE;
 
     int targetY = targetBounds.y + targetBaseLine;
     if (startY <= targetY && targetY <= endY) {
-      targetBounds.y = myBounds.y + myBaseline - targetBaseLine;
-      addHorizontalFeedback(feedback, myBounds, targetBounds, myBounds.y + myBaseline);
+      targetBounds.y = myBounds.y + baseline - targetBaseLine;
+      addHorizontalFeedback(feedback, myBounds, targetBounds, myBounds.y + baseline);
       return true;
     }
 

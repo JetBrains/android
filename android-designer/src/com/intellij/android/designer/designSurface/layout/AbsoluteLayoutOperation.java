@@ -16,8 +16,10 @@
 package com.intellij.android.designer.designSurface.layout;
 
 import com.android.SdkConstants;
+import com.intellij.android.designer.AndroidDesignerUtils;
 import com.intellij.android.designer.designSurface.AbstractEditOperation;
 import com.intellij.android.designer.model.RadViewComponent;
+import com.intellij.designer.designSurface.EditableArea;
 import com.intellij.designer.designSurface.FeedbackLayer;
 import com.intellij.designer.designSurface.OperationContext;
 import com.intellij.designer.designSurface.feedbacks.AlphaFeedback;
@@ -108,7 +110,8 @@ public class AbsoluteLayoutOperation extends AbstractEditOperation {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        FeedbackLayer layer = myContext.getArea().getFeedbackLayer();
+        EditableArea area = myContext.getArea();
+        FeedbackLayer layer = area.getFeedbackLayer();
         Rectangle parentBounds = myContainer.getBounds();
 
         if (myContext.isCreate() || myContext.isPaste()) {
@@ -118,15 +121,20 @@ public class AbsoluteLayoutOperation extends AbstractEditOperation {
           for (RadComponent component : myComponents) {
             XmlTag tag = ((RadViewComponent)component).getTag();
 
-            tag.setAttribute("layout_x", SdkConstants.NS_RESOURCES, Integer.toString(location.x - parentBounds.x) + "dp");
-            tag.setAttribute("layout_y", SdkConstants.NS_RESOURCES, Integer.toString(location.y - parentBounds.y) + "dp");
+            String x = AndroidDesignerUtils.pxToDpWithUnits(area, location.x - parentBounds.x);
+            String y = AndroidDesignerUtils.pxToDpWithUnits(area, location.y - parentBounds.y);
+            tag.setAttribute("layout_x", SdkConstants.NS_RESOURCES, x);
+            tag.setAttribute("layout_y", SdkConstants.NS_RESOURCES, y);
 
             if (delta != null && myComponents.size() == 1) {
+              Rectangle modelBounds = component.toModel(layer, myBounds);
               if (delta.width > 0) {
-                tag.setAttribute("layout_width", SdkConstants.NS_RESOURCES, Integer.toString(myBounds.width) + "dp");
+                String width = AndroidDesignerUtils.pxToDpWithUnits(area, modelBounds.width);
+                tag.setAttribute("layout_width", SdkConstants.NS_RESOURCES, width);
               }
               if (delta.height > 0) {
-                tag.setAttribute("layout_height", SdkConstants.NS_RESOURCES, Integer.toString(myBounds.height) + "dp");
+                String height = AndroidDesignerUtils.pxToDpWithUnits(area, modelBounds.height);
+                tag.setAttribute("layout_height", SdkConstants.NS_RESOURCES, height);
               }
             }
           }
@@ -140,8 +148,10 @@ public class AbsoluteLayoutOperation extends AbstractEditOperation {
             Point location = component.convertPoint(layer, bounds.x + moveDeltaX, bounds.y + moveDeltaY);
             XmlTag tag = ((RadViewComponent)component).getTag();
 
-            tag.setAttribute("layout_x", SdkConstants.NS_RESOURCES, Integer.toString(location.x - parentBounds.x) + "dp");
-            tag.setAttribute("layout_y", SdkConstants.NS_RESOURCES, Integer.toString(location.y - parentBounds.y) + "dp");
+            String x = AndroidDesignerUtils.pxToDpWithUnits(area, location.x - parentBounds.x);
+            String y = AndroidDesignerUtils.pxToDpWithUnits(area, location.y - parentBounds.y);
+            tag.setAttribute("layout_x", SdkConstants.NS_RESOURCES, x);
+            tag.setAttribute("layout_y", SdkConstants.NS_RESOURCES, y);
           }
         }
       }

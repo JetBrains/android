@@ -17,21 +17,31 @@ package com.intellij.android.designer.model.grid;
 
 import com.intellij.designer.model.RadComponent;
 import com.intellij.util.ArrayUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.awt.*;
 
 /**
  * @author Alexander Lobas
  */
 public class GridInfo {
-  public int width;
-  public int height;
+  public int width;  // in model pixels
+  public int height; // in model pixels
 
-  public int[] hLines = ArrayUtil.EMPTY_INT_ARRAY;
-  public int[] vLines = ArrayUtil.EMPTY_INT_ARRAY;
+  public GridInfo(@NotNull RadComponent grid) {
+    this.grid = grid;
+  }
+
+  // horizontal lines: defines y positions of rows
+  public int[] hLines = ArrayUtil.EMPTY_INT_ARRAY; // in model pixels
+  // vertical lines: defines x positions of columns
+  public int[] vLines = ArrayUtil.EMPTY_INT_ARRAY; // in model pixels
 
   public boolean[] emptyColumns = ArrayUtil.EMPTY_BOOLEAN_ARRAY;
   public boolean[] emptyRows = ArrayUtil.EMPTY_BOOLEAN_ARRAY;
 
+  public RadComponent grid;
   public RadComponent[][] components;
 
   public int rowCount;
@@ -41,6 +51,20 @@ public class GridInfo {
   public int lastInsertColumn = -1;
 
   private static final int NEW_CELL_SIZE = 32;
+
+  @NotNull
+  public Dimension getSize(@NotNull Component target) {
+    return grid.fromModel(target, new Dimension(width, height));
+  }
+
+  @NotNull
+  public Point getCellPosition(@NotNull Component target, int row, int column) {
+    //return grid.fromModel(target, new Point(vLines[column], hLines[row]));
+    // The positions are relative to the beginning of the grid, so do dimension
+    // match rather than point math
+    Dimension size = grid.fromModel(target, new Dimension(vLines[column], hLines[row]));
+    return new Point(size.width, size.height);
+  }
 
   public static int[] addLineInfo(int[] oldLines, int delta) {
     if (delta > 0) {

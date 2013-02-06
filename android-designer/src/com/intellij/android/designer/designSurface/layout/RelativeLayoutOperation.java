@@ -21,6 +21,7 @@ import com.intellij.android.designer.designSurface.layout.relative.*;
 import com.intellij.android.designer.model.ModelParser;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.layout.relative.RelativeInfo;
+import com.intellij.designer.designSurface.EditableArea;
 import com.intellij.designer.designSurface.FeedbackLayer;
 import com.intellij.designer.designSurface.OperationContext;
 import com.intellij.designer.designSurface.feedbacks.AlphaFeedback;
@@ -233,8 +234,9 @@ public class RelativeLayoutOperation extends AbstractEditOperation {
     myHorizontalPoints.add(new ContainerSnapPoint(container, true));
     myVerticalPoints.add(new ContainerSnapPoint(container, false));
 
-    myHorizontalPoints.add(new AutoSnapPoint(container, true));
-    myVerticalPoints.add(new AutoSnapPoint(container, false));
+    EditableArea area = myContext.getArea();
+    myHorizontalPoints.add(new AutoSnapPoint(area, container, true));
+    myVerticalPoints.add(new AutoSnapPoint(area, container, false));
   }
 
   public static List<RadComponent> getSnapComponents(RadComponent container, List<RadComponent> components) {

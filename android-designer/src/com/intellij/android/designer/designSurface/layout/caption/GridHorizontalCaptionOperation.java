@@ -38,7 +38,7 @@ public class GridHorizontalCaptionOperation extends HorizontalCaptionFlowBaseOpe
 
   @Override
   protected int getMainFeedbackHeight(FeedbackLayer layer, int mainYLocation) {
-    return myMainContainer.getGridInfo().height;
+    return myMainContainer.getGridInfo().getSize(layer).height;
   }
 
   @Override

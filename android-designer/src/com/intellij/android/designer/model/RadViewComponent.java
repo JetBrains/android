@@ -17,6 +17,7 @@ package com.intellij.android.designer.model;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.intellij.designer.designSurface.ScalableComponent;
 import com.intellij.designer.model.*;
 import com.intellij.designer.palette.PaletteItem;
 import com.intellij.designer.propertyTable.PropertyTable;
@@ -29,6 +30,7 @@ import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -293,4 +295,119 @@ public class RadViewComponent extends RadVisualComponent {
     return myPaletteItem;
   }
 
+  /**
+   * Like {@link #toModel(java.awt.Component, java.awt.Rectangle)}, but
+   * also translates from pixels in the source, to device independent pixels
+   * in the model.
+   * <p>
+   * A lot of client code needs to compute model dp by doing arithmetic on
+   * bounds in the tool (which are scaled). By first computing to model
+   * pixels (with {@link #toModel(java.awt.Component, java.awt.Rectangle)},
+   * and <b>then</b> computing the dp from there, you introduce two levels
+   * of rounding.
+   * <p>
+   * This method performs both computations in a single go which reduces
+   * the amount of rounding error.
+   */
+  public Rectangle toModelDp(double dpi, Component source, Rectangle rectangle) {
+    Component myNativeComponent = getNativeComponent();
+    Rectangle bounds = myNativeComponent == source
+                       ? rectangle : SwingUtilities.convertRectangle(source, rectangle, myNativeComponent);
+
+    // To convert px to dpi, dp = px * 160 / dpi
+    double x = 160 * bounds.x;
+    double y = 160 * bounds.y;
+    double w = 160 * bounds.width;
+    double h = 160 * bounds.height;
+
+    if (myNativeComponent != source && myNativeComponent instanceof ScalableComponent) {
+      ScalableComponent scalableComponent = (ScalableComponent)myNativeComponent;
+      double zoom = scalableComponent.getScale();
+      if (zoom != 1) {
+        x /= zoom;
+        y /= zoom;
+        w /= zoom;
+        h /= zoom;
+      }
+    }
+
+    return new Rectangle(
+      (int)(x / dpi),
+      (int)(y / dpi),
+      (int)(w / dpi),
+      (int)(h / dpi));
+  }
+
+  /**
+   * Like {@link #toModel(java.awt.Component, java.awt.Point)}, but
+   * also translates from pixels in the source, to device independent pixels
+   * in the model.
+   * <p>
+   * A lot of client code needs to compute model dp by doing arithmetic on
+   * bounds in the tool (which are scaled). By first computing to model
+   * pixels (with {@link #toModel(java.awt.Component, java.awt.Point)},
+   * and <b>then</b> computing the dp from there, you introduce two levels
+   * of rounding.
+   * <p>
+   * This method performs both computations in a single go which reduces
+   * the amount of rounding error.
+   */
+  public Point toModelDp(double dpi, @NotNull Component source, @NotNull Point point) {
+    Component myNativeComponent = getNativeComponent();
+    Point bounds = myNativeComponent == source
+                       ? point : SwingUtilities.convertPoint(source, point, myNativeComponent);
+
+    // To convert px to dpi, dp = px * 160 / dpi
+    double x = 160 * bounds.x;
+    double y = 160 * bounds.y;
+
+    if (myNativeComponent != source && myNativeComponent instanceof ScalableComponent) {
+      ScalableComponent scalableComponent = (ScalableComponent)myNativeComponent;
+      double zoom = scalableComponent.getScale();
+      if (zoom != 1) {
+        x /= zoom;
+        y /= zoom;
+      }
+    }
+
+    return new Point(
+      (int)(x / dpi),
+      (int)(y / dpi));
+  }
+
+  /**
+   * Like {@link #toModel(java.awt.Component, java.awt.Dimension)}, but
+   * also translates from pixels in the source, to device independent pixels
+   * in the model.
+   * <p>
+   * A lot of client code needs to compute model dp by doing arithmetic on
+   * bounds in the tool (which are scaled). By first computing to model
+   * pixels (with {@link #toModel(java.awt.Component, java.awt.Dimension)},
+   * and <b>then</b> computing the dp from there, you introduce two levels
+   * of rounding.
+   * <p>
+   * This method performs both computations in a single go which reduces
+   * the amount of rounding error.
+   */
+  public Dimension toModelDp(double dpi, @NotNull Component source, @NotNull Dimension size) {
+    Component myNativeComponent = getNativeComponent();
+    size = new Dimension(size);
+
+    // To convert px to dpi, dp = px * 160 / dpi
+    double w = 160 * size.width;
+    double h = 160 * size.height;
+
+    if (myNativeComponent != source && myNativeComponent instanceof ScalableComponent) {
+      ScalableComponent scalableComponent = (ScalableComponent)myNativeComponent;
+      double zoom = scalableComponent.getScale();
+      if (zoom != 1) {
+        w /= zoom;
+        h /= zoom;
+      }
+    }
+
+    return new Dimension(
+      (int)(w / dpi),
+      (int)(h / dpi));
+  }
 }
