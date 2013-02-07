@@ -58,6 +58,7 @@ public class ModelParser extends XmlRecursiveElementVisitor {
   public static final String FOLDER_CONFIG_KEY = "FOLDER_CONFIG";
 
   private static final int EMPTY_COMPONENT_SIZE = 5;
+  private static final int VISUAL_EMPTY_COMPONENT_SIZE = 14;
 
   private final IdManager myIdManager = new IdManager();
 
@@ -435,10 +436,10 @@ public class ModelParser extends XmlRecursiveElementVisitor {
     int height = view.getBottom() - view.getTop();
 
     if (width < EMPTY_COMPONENT_SIZE && height < EMPTY_COMPONENT_SIZE) {
-      nativeComponent.addEmptyRegion(left, top, EMPTY_COMPONENT_SIZE, EMPTY_COMPONENT_SIZE);
+      nativeComponent.addEmptyRegion(left, top, VISUAL_EMPTY_COMPONENT_SIZE, VISUAL_EMPTY_COMPONENT_SIZE);
     }
 
-    component.setBounds(left, top, Math.max(width, EMPTY_COMPONENT_SIZE), Math.max(height, EMPTY_COMPONENT_SIZE));
+    component.setBounds(left, top, Math.max(width, VISUAL_EMPTY_COMPONENT_SIZE), Math.max(height, VISUAL_EMPTY_COMPONENT_SIZE));
 
     updateChildren(component, view.getChildren(), nativeComponent, left, top);
   }

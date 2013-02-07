@@ -17,21 +17,21 @@ package com.intellij.android.designer.designSurface.layout.actions;
 
 import com.android.SdkConstants;
 import com.intellij.android.designer.AndroidDesignerUtils;
+import com.intellij.android.designer.designSurface.graphics.DirectionResizePoint;
+import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.propertyTable.renderers.ResourceRenderer;
 import com.intellij.designer.designSurface.EditOperation;
 import com.intellij.designer.designSurface.FeedbackLayer;
 import com.intellij.designer.designSurface.OperationContext;
 import com.intellij.designer.designSurface.feedbacks.LineMarginBorder;
-import com.intellij.designer.designSurface.feedbacks.RectangleFeedback;
+import com.intellij.android.designer.designSurface.graphics.RectangleFeedback;
 import com.intellij.designer.designSurface.feedbacks.TextFeedback;
-import com.intellij.designer.designSurface.selection.DirectionResizePoint;
-import com.intellij.designer.designSurface.selection.ResizeSelectionDecorator;
+import com.intellij.android.designer.designSurface.graphics.ResizeSelectionDecorator;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.utils.Position;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Pair;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ArrayUtil;
 
@@ -44,7 +44,6 @@ import java.util.List;
 public class ResizeOperation implements EditOperation {
   public static final String TYPE = "resize_children";
 
-  public final static Color blue = new JBColor(new Color(0, 50, 255), new Color(92, 132, 255));
   private static final int SNAP_DELTA = 4;
 
   private final OperationContext myContext;
@@ -163,10 +162,10 @@ public class ResizeOperation implements EditOperation {
       fillBounds = new Rectangle(bounds.getLocation(), myFillSize);
     }
 
-    myWrapFeedback = new RectangleFeedback(Color.green, 1);
+    myWrapFeedback = new RectangleFeedback(DrawingStyle.RESIZE_WRAP);
     myWrapFeedback.setBounds(wrapBounds);
 
-    myFillFeedback = new RectangleFeedback(Color.green, 1);
+    myFillFeedback = new RectangleFeedback(DrawingStyle.GUIDELINE);
     myFillFeedback.setBounds(fillBounds);
   }
 
@@ -178,7 +177,7 @@ public class ResizeOperation implements EditOperation {
     if (myFeedback == null) {
       FeedbackLayer layer = myContext.getArea().getFeedbackLayer();
 
-      myFeedback = new RectangleFeedback(Color.blue, 2);
+      myFeedback = new RectangleFeedback(DrawingStyle.RESIZE_PREVIEW);
       layer.add(myFeedback);
 
       myTextFeedback = new TextFeedback();
@@ -338,14 +337,14 @@ public class ResizeOperation implements EditOperation {
   public static void points(ResizeSelectionDecorator decorator) {
     width(decorator);
     height(decorator);
-    decorator.addPoint(new DirectionResizePoint(blue, Color.black, Position.SOUTH_EAST, TYPE, "Change layout:width x layout:height"));
+    decorator.addPoint(new DirectionResizePoint(DrawingStyle.SELECTION, Position.SOUTH_EAST, TYPE, "Change layout:width x layout:height"));
   }
 
   public static void width(ResizeSelectionDecorator decorator) {
-    decorator.addPoint(new DirectionResizePoint(blue, Color.black, Position.EAST, TYPE, "Change layout:width"));
+    decorator.addPoint(new DirectionResizePoint(DrawingStyle.SELECTION, Position.EAST, TYPE, "Change layout:width"));
   }
 
   public static void height(ResizeSelectionDecorator decorator) {
-    decorator.addPoint(new DirectionResizePoint(blue, Color.black, Position.SOUTH, TYPE, "Change layout:height"));
+    decorator.addPoint(new DirectionResizePoint(DrawingStyle.SELECTION, Position.SOUTH, TYPE, "Change layout:height"));
   }
 }

@@ -17,21 +17,21 @@ package com.intellij.android.designer.designSurface.layout;
 
 import com.android.SdkConstants;
 import com.intellij.android.designer.designSurface.AbstractEditOperation;
+import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;
+import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.layout.Gravity;
 import com.intellij.designer.designSurface.FeedbackLayer;
 import com.intellij.designer.designSurface.OperationContext;
-import com.intellij.designer.designSurface.feedbacks.AlphaFeedback;
 import com.intellij.designer.designSurface.feedbacks.TextFeedback;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Pair;
 import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.JBColor;
-import com.intellij.ui.LightColors;
 import com.intellij.util.containers.hash.HashSet;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.awt.*;
 import java.util.Collections;
 import java.util.Set;
@@ -195,12 +195,11 @@ public class FrameLayoutOperation extends AbstractEditOperation {
   private static final Gravity[] HORIZONTALS = {Gravity.left, Gravity.center, Gravity.right};
   private static final Gravity[] VERTICALS = {Gravity.top, Gravity.center, Gravity.bottom};
 
-  private class GravityFeedback extends AlphaFeedback {
+  private class GravityFeedback extends JComponent {
     private Gravity myHorizontal;
     private Gravity myVertical;
 
     public GravityFeedback() {
-      super(JBColor.GREEN);
     }
 
     public void setGravity(Gravity horizontal, Gravity vertical) {
@@ -210,28 +209,20 @@ public class FrameLayoutOperation extends AbstractEditOperation {
     }
 
     @Override
-    protected void paintOther1(Graphics2D g2d) {
+    protected void paintComponent(Graphics g) {
+      super.paintComponent(g);
+
       for (Gravity h : HORIZONTALS) {
         for (Gravity v : VERTICALS) {
-          if (!exclude(h, v)) {
-            paintCell(g2d, h, v, false);
+          boolean selection = (myHorizontal == h && myVertical == v);
+          if (selection || !exclude(h, v)) {
+            paintCell(g, h, v, selection);
           }
         }
       }
     }
 
-    @Override
-    protected void paintOther2(Graphics2D g2d) {
-      for (Gravity h : HORIZONTALS) {
-        for (Gravity v : VERTICALS) {
-          if (paintCell(g2d, h, v, true)) {
-            break;
-          }
-        }
-      }
-    }
-
-    private boolean paintCell(Graphics2D g2d, Gravity horizontal, Gravity vertical, boolean selection) {
+    private boolean paintCell(Graphics g, Gravity horizontal, Gravity vertical, boolean selection) {
       int x = 0;
       int width = (getWidth() - 2) / 3;
       if (horizontal == Gravity.center) {
@@ -264,16 +255,13 @@ public class FrameLayoutOperation extends AbstractEditOperation {
 
       if (selection) {
         if (myHorizontal == horizontal && myVertical == vertical) {
-          Color oldColor = g2d.getColor();
-          g2d.setColor(LightColors.YELLOW);
-          g2d.fillRect(x, y, width, height);
-          g2d.setColor(oldColor);
+          DesignerGraphics.drawFilledRect(DrawingStyle.DROP_ZONE_ACTIVE, g, x, y, width, height);
 
           return true;
         }
       }
       else {
-        g2d.fillRect(x, y, width, height);
+        DesignerGraphics.drawFilledRect(DrawingStyle.DROP_ZONE, g, x, y, width, height);
       }
 
       return false;

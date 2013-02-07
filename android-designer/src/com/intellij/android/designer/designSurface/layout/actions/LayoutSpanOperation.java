@@ -16,6 +16,9 @@
 package com.intellij.android.designer.designSurface.layout.actions;
 
 import com.android.SdkConstants;
+import com.intellij.android.designer.designSurface.graphics.DirectionResizePoint;
+import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
+import com.intellij.android.designer.designSurface.graphics.RectangleFeedback;
 import com.intellij.android.designer.designSurface.layout.grid.GridSelectionDecorator;
 import com.intellij.android.designer.model.ModelParser;
 import com.intellij.android.designer.model.RadViewComponent;
@@ -25,11 +28,7 @@ import com.intellij.designer.designSurface.DecorationLayer;
 import com.intellij.designer.designSurface.EditOperation;
 import com.intellij.designer.designSurface.FeedbackLayer;
 import com.intellij.designer.designSurface.OperationContext;
-import com.intellij.designer.designSurface.feedbacks.AlphaFeedback;
-import com.intellij.designer.designSurface.feedbacks.LineMarginBorder;
-import com.intellij.designer.designSurface.feedbacks.RectangleFeedback;
-import com.intellij.designer.designSurface.feedbacks.TextFeedback;
-import com.intellij.designer.designSurface.selection.DirectionResizePoint;
+import com.intellij.designer.designSurface.feedbacks.*;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.utils.Position;
 import com.intellij.openapi.application.ApplicationManager;
@@ -87,7 +86,7 @@ public abstract class LayoutSpanOperation implements EditOperation {
       myTextFeedback.setBorder(new LineMarginBorder(0, 5, 3, 0));
       layer.add(myTextFeedback);
 
-      myFeedback = new RectangleFeedback(COLOR, 2);
+      myFeedback = new RectangleFeedback(DrawingStyle.RESIZE_PREVIEW);
       layer.add(myFeedback);
 
       myErrorFeedback = new ErrorFeedback();
@@ -447,13 +446,11 @@ public abstract class LayoutSpanOperation implements EditOperation {
   protected static class SpanPoint extends DirectionResizePoint {
     private final GridSelectionDecorator myDecorator;
 
-    public SpanPoint(Color color,
-                     Color border,
-                     int direction,
+    public SpanPoint(int direction,
                      Object type,
                      @Nullable String description,
                      GridSelectionDecorator decorator) {
-      super(color, border, direction, type, description);
+      super(DrawingStyle.RESIZE_SPAN, direction, type, description);
       myDecorator = decorator;
     }
 

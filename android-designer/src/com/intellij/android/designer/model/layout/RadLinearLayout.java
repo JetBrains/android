@@ -17,6 +17,8 @@ package com.intellij.android.designer.model.layout;
 
 import com.android.SdkConstants;
 import com.intellij.android.designer.designSurface.TreeDropToOperation;
+import com.intellij.android.designer.designSurface.graphics.DirectionResizePoint;
+import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.designSurface.layout.LinearLayoutOperation;
 import com.intellij.android.designer.designSurface.layout.actions.LayoutMarginOperation;
 import com.intellij.android.designer.designSurface.layout.actions.LayoutWeightOperation;
@@ -29,16 +31,14 @@ import com.intellij.android.designer.model.layout.actions.AbstractGravityAction;
 import com.intellij.android.designer.model.layout.actions.OrientationAction;
 import com.intellij.designer.componentTree.TreeEditOperation;
 import com.intellij.designer.designSurface.*;
-import com.intellij.designer.designSurface.selection.DirectionResizePoint;
 import com.intellij.designer.designSurface.selection.ResizePoint;
-import com.intellij.designer.designSurface.selection.ResizeSelectionDecorator;
+import com.intellij.android.designer.designSurface.graphics.ResizeSelectionDecorator;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.utils.Position;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Pair;
-import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -47,10 +47,13 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.intellij.android.designer.designSurface.graphics.DrawingStyle.SHOW_STATIC_GRID;
+
 /**
  * @author Alexander Lobas
  */
 public class RadLinearLayout extends RadViewLayoutWithData implements ILayoutDecorator {
+
   private static final String[] LAYOUT_PARAMS = {"LinearLayout_Layout", "ViewGroup_MarginLayout"};
 
   private ResizeSelectionDecorator mySelectionDecorator;
@@ -103,6 +106,11 @@ public class RadLinearLayout extends RadViewLayoutWithData implements ILayoutDec
 
   @Override
   public void addStaticDecorators(List<StaticDecorator> decorators, List<RadComponent> selection) {
+    //noinspection ConstantConditions
+    if (!SHOW_STATIC_GRID) {
+      return;
+    }
+
     if (selection.contains(myContainer)) {
       if (!(myContainer.getParent().getLayout() instanceof ILayoutDecorator)) {
         decorators.add(getLineDecorator());
@@ -124,7 +132,7 @@ public class RadLinearLayout extends RadViewLayoutWithData implements ILayoutDec
   @Override
   public ComponentDecorator getChildSelectionDecorator(RadComponent component, List<RadComponent> selection) {
     if (mySelectionDecorator == null) {
-      mySelectionDecorator = new ResizeSelectionDecorator(JBColor.RED, 1) {
+      mySelectionDecorator = new ResizeSelectionDecorator(DrawingStyle.SELECTION) {
         @Override
         protected boolean visible(RadComponent component, ResizePoint point) {
           if (point.getType() == LayoutMarginOperation.TYPE) {

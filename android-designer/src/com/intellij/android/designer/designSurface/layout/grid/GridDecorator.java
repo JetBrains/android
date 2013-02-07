@@ -15,8 +15,8 @@
  */
 package com.intellij.android.designer.designSurface.layout.grid;
 
-import com.intellij.android.designer.designSurface.layout.BorderStaticDecorator;
-import com.intellij.android.designer.designSurface.layout.flow.FlowStaticDecorator;
+import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;
+import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.model.grid.GridInfo;
 import com.intellij.android.designer.model.grid.IGridProvider;
 import com.intellij.designer.designSurface.DecorationLayer;
@@ -24,6 +24,8 @@ import com.intellij.designer.designSurface.StaticDecorator;
 import com.intellij.designer.model.RadComponent;
 
 import java.awt.*;
+
+import static com.intellij.android.designer.designSurface.graphics.DrawingStyle.SHOW_STATIC_GRID;
 
 /**
  * @author Alexander Lobas
@@ -35,25 +37,22 @@ public class GridDecorator extends StaticDecorator {
 
   @Override
   protected void paint(DecorationLayer layer, Graphics2D g, RadComponent component) {
-    Stroke stroke = g.getStroke();
-    g.setColor(BorderStaticDecorator.COLOR);
-    g.setStroke(FlowStaticDecorator.STROKE);
+    //noinspection ConstantConditions
+    if (SHOW_STATIC_GRID) {
+      DesignerGraphics.useStroke(DrawingStyle.GRID, g);
 
-    Rectangle bounds = component.getBounds(layer);
-    GridInfo gridInfo = ((IGridProvider)component).getGridInfo();
-    Dimension gridSize = gridInfo.getSize(layer);
+      Rectangle bounds = component.getBounds(layer);
+      GridInfo gridInfo = ((IGridProvider)component).getGridInfo();
+      Dimension gridSize = gridInfo.getSize(layer);
 
-    for (int column = 0; column < gridInfo.vLines.length; column++) {
-      int x = gridInfo.getCellPosition(layer, 0, column).x;
-      g.drawLine(bounds.x + x, bounds.y, bounds.x + x, bounds.y + gridSize.height);
+      for (int column = 0; column < gridInfo.vLines.length; column++) {
+        int x = gridInfo.getCellPosition(layer, 0, column).x;
+        g.drawLine(bounds.x + x, bounds.y, bounds.x + x, bounds.y + gridSize.height);
+      }
+      for (int row = 0; row < gridInfo.hLines.length; row++) {
+        int y = gridInfo.getCellPosition(layer, row, 0).y;
+        g.drawLine(bounds.x, bounds.y + y, bounds.x + gridSize.width, bounds.y + y);
+      }
     }
-    for (int row = 0; row < gridInfo.hLines.length; row++) {
-      int y = gridInfo.getCellPosition(layer, row, 0).y;
-      g.drawLine(bounds.x, bounds.y + y, bounds.x + gridSize.width, bounds.y + y);
-    }
-
-    g.setStroke(stroke);
-    g.drawRect(bounds.x, bounds.y, gridSize.width, gridSize.height);
-    g.drawRect(bounds.x + 1, bounds.y + 1, gridSize.width - 2, gridSize.height - 2);
   }
 }

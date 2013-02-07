@@ -1,8 +1,9 @@
 package com.intellij.android.designer.designSurface.layout.grid;
 
+import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.model.grid.GridInfo;
 import com.intellij.designer.designSurface.DecorationLayer;
-import com.intellij.designer.designSurface.selection.ResizeSelectionDecorator;
+import com.intellij.android.designer.designSurface.graphics.ResizeSelectionDecorator;
 import com.intellij.designer.model.RadComponent;
 
 import java.awt.*;
@@ -11,8 +12,8 @@ import java.awt.*;
  * @author Alexander Lobas
  */
 public abstract class GridSelectionDecorator extends ResizeSelectionDecorator {
-  public GridSelectionDecorator(Color color, int lineWidth) {
-    super(color, lineWidth);
+  public GridSelectionDecorator(DrawingStyle style) {
+    super(style);
   }
 
   @Override

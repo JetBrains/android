@@ -25,6 +25,7 @@ import com.google.common.primitives.Ints;
 import com.intellij.android.designer.ShadowPainter;
 import com.intellij.android.designer.actions.ProfileAction;
 import com.intellij.android.designer.componentTree.AndroidTreeDecorator;
+import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.inspection.ErrorAnalyzer;
 import com.intellij.android.designer.model.*;
 import com.intellij.android.designer.profile.ProfileManager;
@@ -32,7 +33,7 @@ import com.intellij.designer.DesignerEditor;
 import com.intellij.designer.DesignerToolWindowManager;
 import com.intellij.designer.componentTree.TreeComponentDecorator;
 import com.intellij.designer.designSurface.*;
-import com.intellij.designer.designSurface.selection.NonResizeSelectionDecorator;
+import com.intellij.android.designer.designSurface.graphics.NonResizeSelectionDecorator;
 import com.intellij.designer.designSurface.tools.ComponentCreationFactory;
 import com.intellij.designer.designSurface.tools.ComponentPasteFactory;
 import com.intellij.designer.model.RadComponent;
@@ -756,11 +757,9 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
     return myWrapInProvider;
   }
 
-  private static final ComponentDecorator NON_RESIZE_DECORATOR = new NonResizeSelectionDecorator(Color.RED, 2);
-
   @Override
   protected ComponentDecorator getRootSelectionDecorator() {
-    return NON_RESIZE_DECORATOR;
+    return EmptyComponentDecorator.INSTANCE;
   }
 
   @Override

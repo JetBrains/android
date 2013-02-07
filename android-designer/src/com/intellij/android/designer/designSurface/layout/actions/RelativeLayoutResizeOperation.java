@@ -16,21 +16,21 @@
 package com.intellij.android.designer.designSurface.layout.actions;
 
 import com.android.SdkConstants;
+import com.intellij.android.designer.designSurface.graphics.DirectionResizePoint;
+import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.designSurface.layout.RelativeLayoutOperation;
 import com.intellij.android.designer.designSurface.layout.relative.*;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.designer.designSurface.EditOperation;
 import com.intellij.designer.designSurface.FeedbackLayer;
 import com.intellij.designer.designSurface.OperationContext;
-import com.intellij.designer.designSurface.feedbacks.RectangleFeedback;
+import com.intellij.android.designer.designSurface.graphics.RectangleFeedback;
 import com.intellij.designer.designSurface.feedbacks.TextFeedback;
-import com.intellij.designer.designSurface.selection.DirectionResizePoint;
-import com.intellij.designer.designSurface.selection.ResizeSelectionDecorator;
+import com.intellij.android.designer.designSurface.graphics.ResizeSelectionDecorator;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.utils.Position;
 import com.intellij.openapi.util.Pair;
 import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.JBColor;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -96,7 +96,7 @@ public class RelativeLayoutResizeOperation implements EditOperation {
       myVerticalTextFeedback.setBorder(IdeBorderFactory.createEmptyBorder(0, 3, 2, 0));
       layer.add(myVerticalTextFeedback);
 
-      myBoundsFeedback = new RectangleFeedback(JBColor.BLUE, 2);
+      myBoundsFeedback = new RectangleFeedback(DrawingStyle.RESIZE_PREVIEW);
       layer.add(myBoundsFeedback);
 
       int direction = myContext.getResizeDirection();
@@ -125,7 +125,7 @@ public class RelativeLayoutResizeOperation implements EditOperation {
           wrapBounds = new Rectangle(bounds.getLocation(), myWrapSize);
         }
 
-        myWrapFeedback = new RectangleFeedback(JBColor.GREEN, 1);
+        myWrapFeedback = new RectangleFeedback(DrawingStyle.RESIZE_WRAP);
         myWrapFeedback.setBounds(wrapBounds);
         layer.add(myWrapFeedback);
       }
@@ -265,21 +265,21 @@ public class RelativeLayoutResizeOperation implements EditOperation {
   //////////////////////////////////////////////////////////////////////////////////////////
 
   public static void points(ResizeSelectionDecorator decorator) {
-    decorator.addPoint(new DirectionResizePoint(ResizeOperation.blue, Color.black, Position.NORTH_WEST, TYPE,
+    decorator.addPoint(new DirectionResizePoint(DrawingStyle.SELECTION, Position.NORTH_WEST, TYPE,
                                                 "Change layout:width x layout:height, top x left alignment"));
     decorator
-      .addPoint(new DirectionResizePoint(ResizeOperation.blue, Color.black, Position.NORTH, TYPE, "Change layout:height, top alignment"));
-    decorator.addPoint(new DirectionResizePoint(ResizeOperation.blue, Color.black, Position.NORTH_EAST, TYPE,
+      .addPoint(new DirectionResizePoint(DrawingStyle.SELECTION, Position.NORTH, TYPE, "Change layout:height, top alignment"));
+    decorator.addPoint(new DirectionResizePoint(DrawingStyle.SELECTION, Position.NORTH_EAST, TYPE,
                                                 "Change layout:width x layout:height, top x right alignment"));
     decorator
-      .addPoint(new DirectionResizePoint(ResizeOperation.blue, Color.black, Position.EAST, TYPE, "Change layout:width, right alignment"));
-    decorator.addPoint(new DirectionResizePoint(ResizeOperation.blue, Color.black, Position.SOUTH_EAST, TYPE,
+      .addPoint(new DirectionResizePoint(DrawingStyle.SELECTION, Position.EAST, TYPE, "Change layout:width, right alignment"));
+    decorator.addPoint(new DirectionResizePoint(DrawingStyle.SELECTION, Position.SOUTH_EAST, TYPE,
                                                 "Change layout:width x layout:height, bottom x right alignment"));
     decorator.addPoint(
-      new DirectionResizePoint(ResizeOperation.blue, Color.black, Position.SOUTH, TYPE, "Change layout:height, bottom alignment"));
-    decorator.addPoint(new DirectionResizePoint(ResizeOperation.blue, Color.black, Position.SOUTH_WEST, TYPE,
+      new DirectionResizePoint(DrawingStyle.SELECTION, Position.SOUTH, TYPE, "Change layout:height, bottom alignment"));
+    decorator.addPoint(new DirectionResizePoint(DrawingStyle.SELECTION, Position.SOUTH_WEST, TYPE,
                                                 "Change layout:width x layout:height, bottom x left alignment"));
     decorator
-      .addPoint(new DirectionResizePoint(ResizeOperation.blue, Color.black, Position.WEST, TYPE, "Change layout:width, left alignment"));
+      .addPoint(new DirectionResizePoint(DrawingStyle.SELECTION, Position.WEST, TYPE, "Change layout:width, left alignment"));
   }
 }

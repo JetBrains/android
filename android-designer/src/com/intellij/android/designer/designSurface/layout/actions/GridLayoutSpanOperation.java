@@ -70,30 +70,22 @@ public class GridLayoutSpanOperation extends LayoutSpanOperation {
   //////////////////////////////////////////////////////////////////////////////////////////
 
   public static void points(GridSelectionDecorator decorator) {
-    decorator.addPoint(new SpanPoint(COLOR,
-                                     Color.black,
-                                     Position.WEST,
+    decorator.addPoint(new SpanPoint(Position.WEST,
                                      TYPE,
                                      "Change layout:column x layout:columnSpan",
                                      decorator)); // left
 
-    decorator.addPoint(new SpanPoint(COLOR,
-                                     Color.black,
-                                     Position.EAST,
+    decorator.addPoint(new SpanPoint(Position.EAST,
                                      TYPE,
                                      "Change layout:columnSpan",
                                      decorator).move(1, 0.75)); // right
 
-    decorator.addPoint(new SpanPoint(COLOR,
-                                     Color.black,
-                                     Position.NORTH,
+    decorator.addPoint(new SpanPoint(Position.NORTH,
                                      TYPE,
                                      "Change layout:row x layout:rowSpan",
                                      decorator)); // top
 
-    decorator.addPoint(new SpanPoint(COLOR,
-                                     Color.black,
-                                     Position.SOUTH,
+    decorator.addPoint(new SpanPoint(Position.SOUTH,
                                      TYPE,
                                      "Change layout:rowSpan",
                                      decorator).move(0.75, 1)); // bottom

@@ -17,13 +17,13 @@ package com.intellij.android.designer.designSurface.layout.actions;
 
 import com.android.SdkConstants;
 import com.android.utils.XmlUtils;
+import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.model.ModelParser;
 import com.intellij.designer.designSurface.OperationContext;
-import com.intellij.designer.designSurface.selection.ResizeSelectionDecorator;
+import com.intellij.android.designer.designSurface.graphics.ResizeSelectionDecorator;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.utils.Position;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.ui.JBColor;
 
 import java.awt.*;
 
@@ -49,11 +49,6 @@ public class LayoutWeightOperation extends LayoutMarginOperation {
     catch (Throwable e) {
       myWeight = 0;
     }
-  }
-
-  @Override
-  protected Color getFeedbackColor() {
-    return JBColor.CYAN;
   }
 
   @Override
@@ -114,7 +109,7 @@ public class LayoutWeightOperation extends LayoutMarginOperation {
 
   public static void point(ResizeSelectionDecorator decorator) {
     pointFeedback(decorator);
-    pointRight(decorator, JBColor.CYAN, 0.75, TYPE, "Change layout:weight");
-    pointBottom(decorator, JBColor.CYAN, 0.75, TYPE, "Change layout:weight");
+    pointRight(decorator, DrawingStyle.RESIZE_WEIGHTS, 0.75, TYPE, "Change layout:weight");
+    pointBottom(decorator, DrawingStyle.RESIZE_WEIGHTS, 0.75, TYPE, "Change layout:weight");
   }
 }

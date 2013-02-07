@@ -15,13 +15,14 @@
  */
 package com.intellij.android.designer.model;
 
+import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.designer.designSurface.ComponentDecorator;
 import com.intellij.designer.designSurface.DesignerEditorPanel;
-import com.intellij.designer.designSurface.selection.NonResizeSelectionDecorator;
+import com.intellij.android.designer.designSurface.graphics.NonResizeSelectionDecorator;
+import com.intellij.designer.designSurface.EmptyComponentDecorator;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.model.RadLayout;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.ui.JBColor;
 
 import javax.swing.*;
 import java.util.List;
@@ -31,10 +32,13 @@ import java.util.List;
  */
 public class RadViewLayout extends RadLayout {
   public static final RadLayout INSTANCE = new RadViewLayout();
-  public static final ComponentDecorator NON_RESIZE_DECORATOR = new NonResizeSelectionDecorator(JBColor.RED, 1);
+  public static final ComponentDecorator NON_RESIZE_DECORATOR = new NonResizeSelectionDecorator(DrawingStyle.SELECTION);
 
   @Override
   public ComponentDecorator getChildSelectionDecorator(RadComponent component, List<RadComponent> selection) {
+    if (component.isBackground()) {
+      return EmptyComponentDecorator.INSTANCE;
+    }
     return NON_RESIZE_DECORATOR;
   }
 

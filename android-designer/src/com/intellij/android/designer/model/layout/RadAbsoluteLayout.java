@@ -16,6 +16,7 @@
 package com.intellij.android.designer.model.layout;
 
 import com.intellij.android.designer.designSurface.TreeDropToOperation;
+import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.designSurface.layout.AbsoluteLayoutOperation;
 import com.intellij.android.designer.designSurface.layout.actions.ResizeOperation;
 import com.intellij.android.designer.model.RadViewLayoutWithData;
@@ -23,9 +24,8 @@ import com.intellij.designer.componentTree.TreeEditOperation;
 import com.intellij.designer.designSurface.ComponentDecorator;
 import com.intellij.designer.designSurface.EditOperation;
 import com.intellij.designer.designSurface.OperationContext;
-import com.intellij.designer.designSurface.selection.ResizeSelectionDecorator;
+import com.intellij.android.designer.designSurface.graphics.ResizeSelectionDecorator;
 import com.intellij.designer.model.RadComponent;
-import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -64,7 +64,7 @@ public class RadAbsoluteLayout extends RadViewLayoutWithData {
   @Override
   public ComponentDecorator getChildSelectionDecorator(RadComponent component, List<RadComponent> selection) {
     if (mySelectionDecorator == null) {
-      mySelectionDecorator = new ResizeSelectionDecorator(JBColor.RED, 1);
+      mySelectionDecorator = new ResizeSelectionDecorator(DrawingStyle.SELECTION);
       ResizeOperation.points(mySelectionDecorator);
     }
     return mySelectionDecorator;

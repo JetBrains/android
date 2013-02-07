@@ -16,6 +16,7 @@
 package com.intellij.android.designer.model.layout.relative;
 
 import com.intellij.android.designer.designSurface.TreeDropToOperation;
+import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.designSurface.layout.RelativeLayoutOperation;
 import com.intellij.android.designer.designSurface.layout.actions.RelativeLayoutResizeOperation;
 import com.intellij.android.designer.designSurface.layout.relative.RelativeDecorator;
@@ -28,12 +29,11 @@ import com.intellij.android.designer.propertyTable.JavadocParser;
 import com.intellij.android.designer.propertyTable.RelativeIdAttributeProperty;
 import com.intellij.designer.componentTree.TreeEditOperation;
 import com.intellij.designer.designSurface.*;
-import com.intellij.designer.designSurface.selection.ResizeSelectionDecorator;
+import com.intellij.android.designer.designSurface.graphics.ResizeSelectionDecorator;
 import com.intellij.designer.model.Property;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.propertyTable.PropertyTable;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -135,7 +135,7 @@ public class RadRelativeLayout extends RadViewLayoutWithData implements ILayoutD
   @Override
   public ComponentDecorator getChildSelectionDecorator(RadComponent component, List<RadComponent> selection) {
     if (mySelectionDecorator == null) {
-      mySelectionDecorator = new ResizeSelectionDecorator(JBColor.RED, 1);
+      mySelectionDecorator = new ResizeSelectionDecorator(DrawingStyle.SELECTION);
       RelativeLayoutResizeOperation.points(mySelectionDecorator);
     }
     return mySelectionDecorator;
