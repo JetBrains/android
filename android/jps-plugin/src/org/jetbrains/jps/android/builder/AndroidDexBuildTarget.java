@@ -8,10 +8,10 @@ import org.jetbrains.jps.android.AndroidDependencyProcessor;
 import org.jetbrains.jps.android.AndroidDependencyType;
 import org.jetbrains.jps.android.AndroidJpsUtil;
 import org.jetbrains.jps.android.AndroidPlatform;
+import org.jetbrains.jps.android.model.JpsAndroidDexCompilerConfiguration;
+import org.jetbrains.jps.android.model.JpsAndroidExtensionService;
 import org.jetbrains.jps.android.model.JpsAndroidModuleExtension;
-import org.jetbrains.jps.builders.BuildRootDescriptor;
-import org.jetbrains.jps.builders.BuildRootIndex;
-import org.jetbrains.jps.builders.BuildTarget;
+import org.jetbrains.jps.builders.*;
 import org.jetbrains.jps.builders.java.JavaModuleBuildTargetType;
 import org.jetbrains.jps.builders.storage.BuildDataPaths;
 import org.jetbrains.jps.incremental.CompileContext;
@@ -37,7 +37,14 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
   public void writeConfiguration(PrintWriter out, BuildDataPaths dataPaths, BuildRootIndex buildRootIndex) {
     super.writeConfiguration(out, dataPaths, buildRootIndex);
 
-    // todo: write compiler settings
+    final JpsAndroidDexCompilerConfiguration c = JpsAndroidExtensionService.
+      getInstance().getDexCompilerConfiguration(getModule().getProject());
+
+    if (c != null) {
+      out.println(c.getVmOptions());
+      out.println(c.getMaxHeapSize());
+      out.println(c.isOptimize());
+    }
   }
 
   @NotNull
@@ -86,13 +93,13 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
                type == AndroidDependencyType.ANDROID_LIBRARY_OUTPUT_DIRECTORY ||
                type == AndroidDependencyType.JAVA_MODULE_OUTPUT_DIR;
       }
-    });
+    }, false);
 
     if (extension.isPackTestCode()) {
       final File testModuleClassesDir = new ModuleBuildTarget(
         myModule, JavaModuleBuildTargetType.TEST).getOutputDir();
 
-      if (testModuleClassesDir != null && testModuleClassesDir.isDirectory()) {
+      if (testModuleClassesDir != null) {
         appClassesDirs.add(testModuleClassesDir.getPath());
       }
     }
@@ -115,8 +122,10 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
     }
     final AndroidPlatform platform = AndroidJpsUtil.getAndroidPlatform(myModule, null, null);
 
-    for (String jar : AndroidJpsUtil.getExternalLibraries(dataPaths, myModule, platform)) {
-      result.add(new MyJarBuildRootDescriptor(this, new File(jar), false));
+    if (platform != null) {
+      for (String jarOrLibDir : AndroidJpsUtil.getExternalLibraries(dataPaths, myModule, platform, false)) {
+        result.add(new MyJarBuildRootDescriptor(this, new File(jarOrLibDir), false));
+      }
     }
     return result;
   }
@@ -129,8 +138,24 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
 
   @NotNull
   public File getOutputFile(CompileContext context) {
-    final File dir = AndroidJpsUtil.getDirectoryForIntermediateArtifacts(context, myModule);
+    return getOutputFile(context.getProjectDescriptor().dataManager.getDataPaths(), myModule);
+  }
+
+  @NotNull
+  public static File getOutputFile(@NotNull BuildDataPaths dataPaths, @NotNull JpsModule module) {
+    final File dir = AndroidJpsUtil.getDirectoryForIntermediateArtifacts(dataPaths, module);
     return new File(dir, AndroidCommonUtils.CLASSES_FILE_NAME);
+  }
+
+  @Override
+  public Collection<BuildTarget<?>> computeDependencies(BuildTargetRegistry registry, TargetOutputIndex outputIndex) {
+    final List<BuildTarget<?>> result = new ArrayList<BuildTarget<?>>(
+      super.computeDependencies(registry, outputIndex));
+
+    for (JpsAndroidModuleExtension depExtension : AndroidJpsUtil.getAllAndroidDependencies(myModule, true)) {
+      result.add(new AndroidLibraryPackagingTarget(depExtension.getModule()));
+    }
+    return result;
   }
 
   public static class MyTargetType extends AndroidBuildTargetType<AndroidDexBuildTarget> {
@@ -141,8 +166,8 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
     }
 
     @Override
-    public AndroidDexBuildTarget createBuildTarget(@NotNull JpsModule module) {
-      return new AndroidDexBuildTarget(module);
+    public AndroidDexBuildTarget createBuildTarget(@NotNull JpsAndroidModuleExtension extension) {
+      return !extension.isLibrary() ? new AndroidDexBuildTarget(extension.getModule()) : null;
     }
   }
 

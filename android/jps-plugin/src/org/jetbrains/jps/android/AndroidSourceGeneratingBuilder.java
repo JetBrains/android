@@ -91,6 +91,11 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
     }
   }
 
+  @Override
+  public List<String> getCompilableFileExtensions() {
+    return Arrays.asList(AIDL_EXTENSION, RENDERSCRIPT_EXTENSION);
+  }
+
   private static ModuleLevelBuilder.ExitCode doBuild(CompileContext context,
                                                      ModuleChunk chunk,
                                                      DirtyFilesHolder<JavaSourceRootDescriptor, ModuleBuildTarget> dirtyFilesHolder)
@@ -126,12 +131,12 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
         if (extension == null) {
           return true;
         }
-        final String ext = FileUtil.getExtension(file.getName());
+        String fileName = file.getName();
 
-        if (AIDL_EXTENSION.equals(ext)) {
+        if (FileUtilRt.extensionEquals(fileName, AIDL_EXTENSION)) {
           idlFilesToCompile.put(file, target);
         }
-        else if (RENDERSCRIPT_EXTENSION.equals(ext)) {
+        else if (FileUtilRt.extensionEquals(fileName, RENDERSCRIPT_EXTENSION)) {
           rsFilesToCompile.put(file, target);
         }
 
@@ -160,23 +165,45 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
     if (!success) {
       return ExitCode.ABORT;
     }
+    boolean didSomething = false;
 
-    if (!runAidlCompiler(context, idlFilesToCompile, moduleDataMap)) {
-      success = false;
+    if (idlFilesToCompile.size() > 0) {
+      if (!runAidlCompiler(context, idlFilesToCompile, moduleDataMap)) {
+        success = false;
+      }
+      didSomething = true;
     }
 
-    if (!runRenderscriptCompiler(context, rsFilesToCompile, moduleDataMap)) {
+    if (rsFilesToCompile.size() > 0) {
+      if (!runRenderscriptCompiler(context, rsFilesToCompile, moduleDataMap)) {
+        success = false;
+      }
+      didSomething = true;
+    }
+    MyExitStatus status = runAaptCompiler(context, moduleDataMap);
+
+    if (status == MyExitStatus.FAIL) {
       success = false;
+    }
+    else if (status == MyExitStatus.OK) {
+      didSomething = true;
+    }
+    status = runBuildConfigGeneration(context, moduleDataMap);
+
+    if (status == MyExitStatus.FAIL) {
+      success = false;
+    }
+    else if (status == MyExitStatus.OK) {
+      didSomething = true;
     }
 
-    if (!runAaptCompiler(context, moduleDataMap)) {
-      success = false;
+    if (!success) {
+      return ExitCode.ABORT;
     }
-
-    if (!runBuildConfigGeneration(context, moduleDataMap)) {
-      success = false;
+    else if (didSomething) {
+      return ExitCode.OK;
     }
-    return success ? ExitCode.OK : ExitCode.ABORT;
+    return ExitCode.NOTHING_DONE;
   }
 
   private static boolean clearAndroidStorages(@NotNull CompileContext context, @NotNull Collection<JpsModule> modules) {
@@ -266,9 +293,10 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
     }
   }
 
-  private static boolean runBuildConfigGeneration(@NotNull CompileContext context,
-                                                  @NotNull Map<JpsModule, MyModuleData> moduleDataMap) throws IOException {
+  private static MyExitStatus runBuildConfigGeneration(@NotNull CompileContext context,
+                                                       @NotNull Map<JpsModule, MyModuleData> moduleDataMap) throws IOException {
     boolean success = true;
+    boolean didSomething = false;
 
     for (Map.Entry<JpsModule, MyModuleData> entry : moduleDataMap.entrySet()) {
       final JpsModule module = entry.getKey();
@@ -303,7 +331,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
             continue;
           }
         }
-
+        didSomething = true;
         context.processMessage(new ProgressMessage(AndroidJpsBundle.message("android.jps.progress.build.config", module.getName())));
 
         // clear directory, because it may contain obsolete files (ex. if package name was changed)
@@ -326,7 +354,14 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
         success = false;
       }
     }
-    return success;
+
+    if (!success) {
+      return MyExitStatus.FAIL;
+    }
+    else if (didSomething) {
+      return MyExitStatus.OK;
+    }
+    return MyExitStatus.NOTHING_CHANGED;
   }
 
   private static boolean doBuildConfigGeneration(@NotNull String packageName,
@@ -525,9 +560,10 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
     return success;
   }
 
-  private static boolean runAaptCompiler(@NotNull final CompileContext context,
-                                         @NotNull Map<JpsModule, MyModuleData> moduleDataMap) throws IOException {
+  private static MyExitStatus runAaptCompiler(@NotNull final CompileContext context,
+                                              @NotNull Map<JpsModule, MyModuleData> moduleDataMap) throws IOException {
     boolean success = true;
+    boolean didSomething = false;
 
     for (Map.Entry<JpsModule, MyModuleData> entry : moduleDataMap.entrySet()) {
       final JpsModule module = entry.getKey();
@@ -544,7 +580,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
       final IAndroidTarget target = moduleData.getPlatform().getTarget();
 
       try {
-        final String[] resPaths = AndroidJpsUtil.collectResourceDirsForCompilation(extension, false, context);
+        final String[] resPaths = AndroidJpsUtil.collectResourceDirsForCompilation(extension, false, context, true);
         if (resPaths.length == 0) {
           // there is no resources in the module
           if (!clearDirectoryIfNotEmpty(aptOutputDirectory, context, ANDROID_APT_COMPILER)) {
@@ -605,6 +641,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
             continue;
           }
         }
+        didSomething = true;
         context.processMessage(new ProgressMessage(AndroidJpsBundle.message("android.jps.progress.aapt", module.getName())));
 
         File tmpOutputDir = null;
@@ -652,7 +689,13 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
         success = false;
       }
     }
-    return success;
+    if (!success) {
+      return MyExitStatus.FAIL;
+    }
+    else if (didSomething) {
+      return MyExitStatus.OK;
+    }
+    return MyExitStatus.NOTHING_CHANGED;
   }
 
   private static boolean clearDirectory(File dir, CompileContext context, String compilerName) throws IOException {
@@ -704,7 +747,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
     FileUtil.processFilesRecursively(dir, new Processor<File>() {
       @Override
       public boolean process(File file) {
-        if (file.isFile() && "java".equals(FileUtil.getExtension(file.getName()))) {
+        if (file.isFile() && FileUtilRt.extensionEquals(file.getName(), "java")) {
           try {
             FSOperations.markDirty(context, file);
           }
@@ -727,7 +770,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
     FileUtil.processFilesRecursively(dir, new Processor<File>() {
       @Override
       public boolean process(File file) {
-        if (file.isFile() && "java".equals(FileUtil.getExtension(file.getName()))) {
+        if (file.isFile() && FileUtilRt.extensionEquals(file.getName(), "java")) {
           result.add(file);
         }
         return true;
@@ -743,7 +786,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
     for (JpsAndroidModuleExtension depExtension : AndroidJpsUtil.getAllAndroidDependencies(module, true)) {
       final File depManifestFile = AndroidJpsUtil.getManifestFileForCompilationPath(depExtension);
 
-      if (depManifestFile != null) {
+      if (depManifestFile != null && depManifestFile.exists()) {
         final String packageName = parsePackageNameFromManifestFile(depManifestFile);
 
         if (packageName != null) {
@@ -807,7 +850,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
 
             if (resFiles != null) {
               for (File resFile : resFiles) {
-                if (ResourceFolderType.VALUES.getName().equals(resType) && "xml".equals(FileUtil.getExtension(resFile.getName()))) {
+                if (ResourceFolderType.VALUES.getName().equals(resType) && FileUtilRt.extensionEquals(resFile.getName(), "xml")) {
                   final ArrayList<ResourceEntry> entries = new ArrayList<ResourceEntry>();
                   collectValueResources(resFile, entries);
                   result.put(FileUtil.toSystemIndependentName(resFile.getPath()), new ResourceFileData(entries, 0));
@@ -1207,5 +1250,9 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
     public String getPackage() {
       return myPackage;
     }
+  }
+
+  private static enum MyExitStatus {
+    OK, FAIL, NOTHING_CHANGED
   }
 }

@@ -48,14 +48,15 @@ public class JpsAndroidModuleProperties {
 
   public boolean RUN_PROCESS_RESOURCES_MAVEN_TASK = true;
 
-  public boolean GENERATE_UNSIGNED_APK;
-
   public String CUSTOM_DEBUG_KEYSTORE_PATH = "";
 
   public boolean PACK_TEST_CODE;
 
   public boolean RUN_PROGUARD;
   public String PROGUARD_CFG_PATH;
+
+  public boolean USE_CUSTOM_MANIFEST_PACKAGE = false;
+  public String CUSTOM_MANIFEST_PACKAGE = "";
 
   @Tag(AndroidCommonUtils.INCLUDE_SYSTEM_PROGUARD_FILE_ELEMENT_NAME)
   public boolean myIncludeSystemProguardCfgPath = true;
