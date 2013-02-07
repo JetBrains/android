@@ -21,7 +21,6 @@ import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.application.PluginPathManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
@@ -69,15 +68,15 @@ public abstract class AndroidTestCase extends UsefulTestCase {
   }
 
   public static String getAbsoluteTestDataPath() {
+    return PathUtil.getCanonicalPath(getTestDataPath());
+  }
+
+  protected static String getTestDataPath() {
     String androidHomePath = System.getProperty("android.home.path");
     if (androidHomePath == null) {
       androidHomePath = new File(PathManager.getHomePath(), "android/android").getPath();
     }
-    return PathUtil.getCanonicalPath(androidHomePath + "/testData");
-  }
-
-  protected static String getTestDataPath() {
-    return PluginPathManager.getPluginHomePath("android") + "/testData";
+    return androidHomePath + "/testData";
   }
 
   public static String getTestSdkPath() {

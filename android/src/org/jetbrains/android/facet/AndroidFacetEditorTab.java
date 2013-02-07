@@ -80,7 +80,6 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   private TextFieldWithBrowseButton myCustomAptSourceDirField;
   private JCheckBox myIsLibraryProjectCheckbox;
   private JPanel myAaptCompilerPanel;
-  private JCheckBox myGenerateUnsignedApk;
   private ComboboxWithBrowseButton myApkPathCombo;
   private JLabel myApkPathLabel;
   private JRadioButton myRunProcessResourcesRadio;
@@ -99,14 +98,13 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   private TextFieldWithBrowseButton myProguardConfigFileTextField;
   private JCheckBox myIncludeSystemProguardFileCheckBox;
   private JBCheckBox myIncludeAssetsFromLibraries;
+  private JBCheckBox myUseCustomManifestPackage;
+  private JTextField myCustomManifestPackageField;
 
   public AndroidFacetEditorTab(FacetEditorContext context, AndroidFacetConfiguration androidFacetConfiguration) {
     final Project project = context.getProject();
     myConfiguration = androidFacetConfiguration;
     myContext = context;
-
-    // todo: remove checkbox and related setting from facet
-    myGenerateUnsignedApk.setVisible(false);
 
     myManifestFileLabel.setLabelFor(myManifestFileField);
     myResFolderLabel.setLabelFor(myResFolderField);
@@ -236,6 +234,13 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
         return file.isDirectory() || "apk".equals(file.getExtension());
       }
     });
+
+    myUseCustomManifestPackage.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        myCustomManifestPackageField.setEnabled(myUseCustomManifestPackage.isSelected());
+      }
+    });
   }
 
   private void updateAptPanel() {
@@ -310,9 +315,6 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     if (myRunProcessResourcesRadio.isSelected() != myConfiguration.RUN_PROCESS_RESOURCES_MAVEN_TASK) {
       return true;
     }
-    if (myGenerateUnsignedApk.isSelected() != myConfiguration.GENERATE_UNSIGNED_APK) {
-      return true;
-    }
     if (!myConfiguration.CUSTOM_DEBUG_KEYSTORE_PATH.equals(getSelectedCustomKeystorePath())) {
       return true;
     }
@@ -331,6 +333,12 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
       return true;
     }
     if (myConfiguration.isIncludeSystemProguardCfgPath() != myIncludeSystemProguardFileCheckBox.isSelected()) {
+      return true;
+    }
+    if (myConfiguration.USE_CUSTOM_MANIFEST_PACKAGE != myUseCustomManifestPackage.isSelected()) {
+      return true;
+    }
+    if (!myCustomManifestPackageField.getText().trim().equals(myConfiguration.CUSTOM_MANIFEST_PACKAGE)) {
       return true;
     }
     return false;
@@ -436,8 +444,6 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
 
     myConfiguration.RUN_PROCESS_RESOURCES_MAVEN_TASK = myRunProcessResourcesRadio.isSelected();
 
-    myConfiguration.GENERATE_UNSIGNED_APK = myGenerateUnsignedApk.isSelected();
-    
     myConfiguration.PACK_TEST_CODE = myIncludeTestCodeAndCheckBox.isSelected();
 
     myConfiguration.setIncludeAssetsFromLibraries(myIncludeAssetsFromLibraries.isSelected());
@@ -461,6 +467,9 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     boolean useCustomAptSrc = myUseCustomSourceDirectoryRadio.isSelected();
 
     myConfiguration.USE_CUSTOM_APK_RESOURCE_FOLDER = useCustomAptSrc;
+
+    myConfiguration.USE_CUSTOM_MANIFEST_PACKAGE = myUseCustomManifestPackage.isSelected();
+    myConfiguration.CUSTOM_MANIFEST_PACKAGE = myCustomManifestPackageField.getText().trim();
 
     String absAptSourcePath = myCustomAptSourceDirField.getText().trim();
     if (useCustomAptSrc) {
@@ -567,7 +576,6 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     myCompileResourcesByIdeRadio.setVisible(mavenizedModule);
     myCompileResourcesByIdeRadio.setSelected(!myConfiguration.RUN_PROCESS_RESOURCES_MAVEN_TASK);
 
-    myGenerateUnsignedApk.setSelected(myConfiguration.GENERATE_UNSIGNED_APK);
     myIncludeTestCodeAndCheckBox.setSelected(myConfiguration.PACK_TEST_CODE);
     myIncludeAssetsFromLibraries.setSelected(myConfiguration.isIncludeAssetsFromLibraries());
 
@@ -575,6 +583,10 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
 
     final boolean lib = myConfiguration.LIBRARY_PROJECT;
     myIncludeAssetsFromLibraries.setEnabled(!lib);
+
+    myUseCustomManifestPackage.setSelected(myConfiguration.USE_CUSTOM_MANIFEST_PACKAGE);
+    myCustomManifestPackageField.setEnabled(myConfiguration.USE_CUSTOM_MANIFEST_PACKAGE);
+    myCustomManifestPackageField.setText(myConfiguration.CUSTOM_MANIFEST_PACKAGE);
   }
 
   @Nullable

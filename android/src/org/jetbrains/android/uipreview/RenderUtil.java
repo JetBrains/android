@@ -35,6 +35,7 @@ import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
@@ -205,7 +206,7 @@ public class RenderUtil {
     }
 
     if (imgPath != null) {
-      final String format = FileUtil.getExtension(imgPath);
+      final String format = FileUtilRt.getExtension(imgPath);
       ImageIO.write(session.getImage(), format, new File(imgPath));
 
       session.dispose();
