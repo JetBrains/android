@@ -15,12 +15,13 @@
  */
 package com.intellij.android.designer.designSurface.layout.relative;
 
+import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;
+import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.layout.relative.RelativeInfo;
 import com.intellij.designer.designSurface.DecorationLayer;
 import com.intellij.designer.designSurface.StaticDecorator;
 import com.intellij.designer.model.RadComponent;
-import com.intellij.ui.JBColor;
 
 import java.awt.*;
 import java.util.List;
@@ -46,9 +47,7 @@ public class RelativeDecorator extends StaticDecorator {
       return;
     }
 
-    Stroke stroke = g.getStroke();
-    g.setStroke(SnapPointFeedbackHost.STROKE);
-    g.setColor(SnapPointFeedbackHost.COLOR);
+    DesignerGraphics.useStroke(DrawingStyle.GUIDELINE_DASHED_STROKE, g);
 
     Rectangle bounds = container.getBounds(layer);
     Map<RadComponent, RelativeInfo> relativeInfos = container.getClientProperty(RelativeInfo.KEY);
@@ -62,8 +61,7 @@ public class RelativeDecorator extends StaticDecorator {
       }
     }
 
-    g.setStroke(stroke);
-    g.setColor(JBColor.ORANGE);
+    DesignerGraphics.useStroke(DrawingStyle.GUIDELINE, g);
 
     for (RadComponent component : selection) {
       RelativeInfo info = relativeInfos.get(component);
@@ -122,19 +120,19 @@ public class RelativeDecorator extends StaticDecorator {
 
     if (info.parentTop && margins.y > 0) {
       int x = componentBounds.x + componentBounds.width / 2;
-      SnapPointFeedbackHost.paintArrowVertical(g, x, containerBounds.y, x, componentBounds.y);
+      DesignerGraphics.drawArrow(DrawingStyle.GUIDELINE, g, x, componentBounds.y, x, containerBounds.y);
     }
     if (info.parentBottom && margins.height > 0) {
       int x = componentBounds.x + componentBounds.width / 2;
-      SnapPointFeedbackHost.paintArrowVertical(g, x, componentBounds.y + componentBounds.height, x, containerBounds.y);
+      DesignerGraphics.drawArrow(DrawingStyle.GUIDELINE, g, x, containerBounds.y, x, componentBounds.y + componentBounds.height);
     }
     if (info.parentLeft && margins.x > 0) {
       int y = componentBounds.y + componentBounds.height / 2;
-      SnapPointFeedbackHost.paintArrowHorizontal(g, containerBounds.x, y, componentBounds.x, y);
+      DesignerGraphics.drawArrow(DrawingStyle.GUIDELINE, g, componentBounds.x, y, containerBounds.x, y);
     }
     if (info.parentRight && margins.width > 0) {
       int y = componentBounds.y + componentBounds.height / 2;
-      SnapPointFeedbackHost.paintArrowHorizontal(g, componentBounds.x + componentBounds.width, y, containerBounds.x, y);
+      DesignerGraphics.drawArrow(DrawingStyle.GUIDELINE, g, containerBounds.x, y, componentBounds.x + componentBounds.width, y);
     }
   }
 

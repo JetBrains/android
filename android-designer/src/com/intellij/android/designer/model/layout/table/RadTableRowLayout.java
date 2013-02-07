@@ -15,6 +15,7 @@
  */
 package com.intellij.android.designer.model.layout.table;
 
+import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.designSurface.layout.actions.LayoutSpanOperation;
 import com.intellij.android.designer.designSurface.layout.actions.TableLayoutSpanOperation;
 import com.intellij.android.designer.designSurface.layout.grid.GridSelectionDecorator;
@@ -24,7 +25,6 @@ import com.intellij.android.designer.model.layout.actions.AllGravityAction;
 import com.intellij.designer.designSurface.*;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.ui.JBColor;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -81,7 +81,7 @@ public class RadTableRowLayout extends RadLinearLayout {
   public ComponentDecorator getChildSelectionDecorator(RadComponent component, List<RadComponent> selection) {
     if (isTableParent()) {
       if (mySelectionDecorator == null) {
-        mySelectionDecorator = new GridSelectionDecorator(JBColor.RED, 1) {
+        mySelectionDecorator = new GridSelectionDecorator(DrawingStyle.SELECTION) {
           @Override
           public Rectangle getCellBounds(Component layer, RadComponent component) {
             try {

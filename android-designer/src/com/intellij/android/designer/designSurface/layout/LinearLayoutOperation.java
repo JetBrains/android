@@ -16,6 +16,8 @@
 package com.intellij.android.designer.designSurface.layout;
 
 import com.android.SdkConstants;
+import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;
+import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.designSurface.layout.actions.ResizeOperation;
 import com.intellij.android.designer.designSurface.layout.flow.FlowBaseOperation;
 import com.intellij.android.designer.model.ModelParser;
@@ -30,12 +32,13 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
+
+import static com.intellij.android.designer.designSurface.graphics.DrawingStyle.SHOW_STATIC_GRID;
 
 /**
  * @author Alexander Lobas
@@ -43,6 +46,7 @@ import java.util.List;
 public class LinearLayoutOperation extends FlowBaseOperation {
   private GravityFeedback myFeedback;
   private TextFeedback myTextFeedback;
+  private FlowPositionFeedback myFlowFeedback;
   private Gravity myExclude;
   private Gravity myGravity;
 
@@ -67,6 +71,13 @@ public class LinearLayoutOperation extends FlowBaseOperation {
       }
       layer.add(myFeedback, 0);
 
+      //noinspection ConstantConditions
+      if (!SHOW_STATIC_GRID) {
+        myFlowFeedback = new FlowPositionFeedback();
+        myFlowFeedback.setBounds(myBounds);
+        layer.add(myFlowFeedback, 0);
+      }
+
       myTextFeedback = new TextFeedback();
       myTextFeedback.setBorder(IdeBorderFactory.createEmptyBorder(0, 3, 2, 0));
       layer.add(myTextFeedback);
@@ -88,6 +99,11 @@ public class LinearLayoutOperation extends FlowBaseOperation {
 
     myFeedback.setGravity(gravity);
 
+    //noinspection ConstantConditions
+    if (!SHOW_STATIC_GRID) {
+      myFlowFeedback.repaint();
+    }
+
     myTextFeedback.clear();
     myTextFeedback.bold(gravity == null ? "fill_parent" : gravity.name());
     myTextFeedback.centerTop(myBounds);
@@ -102,6 +118,12 @@ public class LinearLayoutOperation extends FlowBaseOperation {
       FeedbackLayer layer = myContext.getArea().getFeedbackLayer();
       layer.remove(myFeedback);
       layer.remove(myTextFeedback);
+
+      //noinspection ConstantConditions
+      if (!SHOW_STATIC_GRID) {
+        layer.remove(myFlowFeedback);
+      }
+
       layer.repaint();
       myFeedback = null;
       myTextFeedback = null;
@@ -212,7 +234,45 @@ public class LinearLayoutOperation extends FlowBaseOperation {
   //
   //////////////////////////////////////////////////////////////////////////////////////////
 
-  private static final int SIZE = 2;
+  private class FlowPositionFeedback extends JComponent {
+    @Override
+    public void paint(Graphics graphics) {
+      super.paint(graphics);
+    }
+
+
+    @Override
+    protected void paintComponent(Graphics g) {
+      super.paintComponent(g);
+
+      Rectangle bounds = myContainer.getBounds(this);
+      RadComponent component = myContainer;
+      DesignerGraphics.drawRect(DrawingStyle.DROP_RECIPIENT, g, bounds.x, bounds.y, bounds.width, bounds.height);
+
+      if (myHorizontal) {
+        for (RadComponent child : component.getChildren()) {
+          Rectangle childBounds = child.getBounds(this);
+          int marginWidth = ((RadViewComponent)child).getMargins().width;
+          if (marginWidth != 0) {
+            marginWidth = child.fromModel(this, new Dimension(marginWidth, 0)).width;
+          }
+          int x = childBounds.x + childBounds.width + marginWidth;
+          DesignerGraphics.drawLine(DrawingStyle.DROP_ZONE, g, x, bounds.y, x, bounds.y + bounds.height);
+        }
+      }
+      else {
+        for (RadComponent child : component.getChildren()) {
+          Rectangle childBounds = child.getBounds(this);
+          int marginHeight = ((RadViewComponent)child).getMargins().height;
+          if (marginHeight != 0) {
+            marginHeight = child.fromModel(this, new Dimension(0, marginHeight)).height;
+          }
+          int y = childBounds.y + childBounds.height + marginHeight;
+          DesignerGraphics.drawLine(DrawingStyle.DROP_ZONE, g, bounds.x, y, bounds.x + bounds.width, y);
+        }
+      }
+    }
+  }
 
   private class GravityFeedback extends JComponent {
     private Gravity myGravity;
@@ -222,9 +282,9 @@ public class LinearLayoutOperation extends FlowBaseOperation {
       repaint();
     }
 
+    @Override
     protected void paintComponent(Graphics g) {
       super.paintComponent(g);
-      g.setColor(JBColor.MAGENTA);
 
       if (myHorizontal) {
         paintHorizontalCell(g);
@@ -253,12 +313,13 @@ public class LinearLayoutOperation extends FlowBaseOperation {
         height -= 2 * vSpace;
       }
 
+      int thickness = DrawingStyle.GRAVITY.getLineWidth();
       if (myContainer.getChildren().isEmpty()) {
-        g.fillRect(0, y, 2, height);
-        g.fillRect(myBounds.width - SIZE, y, SIZE, height);
+        DesignerGraphics.drawFilledRect(DrawingStyle.GRAVITY, g, 0, y, thickness, height);
+        DesignerGraphics.drawFilledRect(DrawingStyle.GRAVITY, g, myBounds.width - thickness, y, thickness, height);
       }
       else {
-        g.fillRect(SIZE, y, SIZE, height);
+        DesignerGraphics.drawLine(DrawingStyle.GRAVITY, g, thickness / 2, y, thickness / 2, y + height);
       }
     }
 
@@ -281,12 +342,14 @@ public class LinearLayoutOperation extends FlowBaseOperation {
         width -= 2 * hSpace;
       }
 
+      int thickness = DrawingStyle.GRAVITY.getLineWidth();
       if (myContainer.getChildren().isEmpty()) {
-        g.fillRect(x, 0, width, SIZE);
-        g.fillRect(x, myBounds.height - SIZE, width, SIZE);
+        DesignerGraphics.drawFilledRect(DrawingStyle.GRAVITY, g, x, 0, width, thickness);
+        DesignerGraphics.drawFilledRect(DrawingStyle.GRAVITY, g, x, myBounds.height - thickness, width, thickness);
+
       }
       else {
-        g.fillRect(x, SIZE, width, SIZE);
+        DesignerGraphics.drawLine(DrawingStyle.GRAVITY, g, x, thickness / 2, x + width, thickness / 2);
       }
     }
   }

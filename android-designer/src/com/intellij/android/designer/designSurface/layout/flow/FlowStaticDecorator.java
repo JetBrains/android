@@ -15,7 +15,8 @@
  */
 package com.intellij.android.designer.designSurface.layout.flow;
 
-import com.intellij.android.designer.designSurface.layout.BorderStaticDecorator;
+import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;
+import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.designer.designSurface.DecorationLayer;
 import com.intellij.designer.designSurface.StaticDecorator;
@@ -27,8 +28,6 @@ import java.awt.*;
  * @author Alexander Lobas
  */
 public abstract class FlowStaticDecorator extends StaticDecorator {
-  public static final BasicStroke STROKE = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1, new float[]{3, 1}, 0);
-
   public FlowStaticDecorator(RadComponent component) {
     super(component);
   }
@@ -37,10 +36,8 @@ public abstract class FlowStaticDecorator extends StaticDecorator {
   protected void paint(DecorationLayer layer, Graphics2D g, RadComponent component) {
     Rectangle bounds = component.getBounds(layer);
 
-    g.setColor(BorderStaticDecorator.COLOR);
+    DesignerGraphics.useStroke(DrawingStyle.GRID, g);
     g.drawRect(bounds.x, bounds.y, bounds.width, bounds.height);
-
-    g.setStroke(STROKE);
 
     if (isHorizontal()) {
       for (RadComponent child : component.getChildren()) {

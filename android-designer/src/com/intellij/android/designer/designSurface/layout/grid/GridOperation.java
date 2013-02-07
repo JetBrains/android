@@ -16,19 +16,18 @@
 package com.intellij.android.designer.designSurface.layout.grid;
 
 import com.intellij.android.designer.designSurface.AbstractEditOperation;
-import com.intellij.android.designer.designSurface.layout.BorderStaticDecorator;
+import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;
+import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
+import com.intellij.android.designer.designSurface.graphics.InsertFeedback;
 import com.intellij.android.designer.model.grid.GridInfo;
 import com.intellij.android.designer.model.grid.GridInsertType;
 import com.intellij.android.designer.model.grid.IGridProvider;
 import com.intellij.designer.designSurface.EditableArea;
 import com.intellij.designer.designSurface.FeedbackLayer;
 import com.intellij.designer.designSurface.OperationContext;
-import com.intellij.designer.designSurface.feedbacks.AlphaFeedback;
-import com.intellij.designer.designSurface.feedbacks.InsertFeedback;
 import com.intellij.designer.designSurface.feedbacks.TextFeedback;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.JBColor;
 
 import javax.swing.*;
 import java.awt.*;
@@ -58,7 +57,7 @@ public abstract class GridOperation extends AbstractEditOperation {
     if (myFeedback == null) {
       FeedbackLayer layer = myContext.getArea().getFeedbackLayer();
 
-      myInsertFeedback = new InsertFeedback(JBColor.GREEN);
+      myInsertFeedback = new InsertFeedback(DrawingStyle.DROP_ZONE_ACTIVE);
       layer.add(myInsertFeedback);
 
       myBounds = myContainer.getBounds(layer);
@@ -414,7 +413,8 @@ public abstract class GridOperation extends AbstractEditOperation {
     @Override
     protected void paintComponent(Graphics g) {
       super.paintComponent(g);
-      g.setColor(BorderStaticDecorator.COLOR);
+
+      DesignerGraphics.useStroke(DrawingStyle.DROP_ZONE, g);
 
       GridInfo gridInfo = getGridInfo();
       Dimension size = gridInfo.getSize(this);
@@ -429,15 +429,17 @@ public abstract class GridOperation extends AbstractEditOperation {
       }
       g.drawRect(0, 0, size.width - 1, size.height - 1);
       g.drawRect(1, 1, size.width - 3, size.height - 3);
+      DesignerGraphics.drawRect(DrawingStyle.DROP_RECIPIENT, g, 0, 0, size.width, size.height);
 
       if (myInsertType == GridInsertType.in_cell) {
         Rectangle cellRect = getInsertRect(myExist);
 
         if (myExist) {
-          AlphaFeedback.fillRect2(g, cellRect.x, cellRect.y, cellRect.width, cellRect.height, Color.pink);
+          DesignerGraphics.drawFilledRect(DrawingStyle.INVALID, g, cellRect.x, cellRect.y, cellRect.width + 1, cellRect.height + 1);
         }
         else {
-          AlphaFeedback.fillRect1(g, cellRect.x, cellRect.y, cellRect.width, cellRect.height, Color.green);
+          DesignerGraphics.drawFilledRect(DrawingStyle.DROP_ZONE_ACTIVE, g, cellRect.x, cellRect.y, cellRect.width + 1,
+                                          cellRect.height + 1);
         }
       }
     }

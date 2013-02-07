@@ -17,6 +17,8 @@ package com.intellij.android.designer.designSurface;
 
 import com.intellij.android.designer.ImageUtils;
 import com.intellij.android.designer.ShadowPainter;
+import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;
+import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.designer.designSurface.ScalableComponent;
 import org.jetbrains.annotations.Nullable;
 
@@ -154,16 +156,12 @@ public class RootView extends com.intellij.designer.designSurface.RootView imple
     if (!myEmptyRegions.isEmpty()) {
       if (scale == 1) {
         for (EmptyRegion r : myEmptyRegions) {
-          g.setColor(r.myColor);
-          g.fillRect(r.myX, r.myY, r.myWidth, r.myHeight);
+          DesignerGraphics.drawFilledRect(DrawingStyle.EMPTY, g, r.myX, r.myY, r.myWidth, r.myHeight);
         }
       } else {
         for (EmptyRegion r : myEmptyRegions) {
-          g.setColor(r.myColor);
-          g.fillRect((int)(scale * r.myX),
-                     (int)(scale * r.myY),
-                     (int)(scale * r.myWidth),
-                     (int)(scale * r.myHeight));
+          DesignerGraphics.drawFilledRect(DrawingStyle.EMPTY, g, (int)(scale * r.myX), (int)(scale * r.myY),
+                                          (int)(scale * r.myWidth), (int)(scale * r.myHeight));
         }
       }
     }

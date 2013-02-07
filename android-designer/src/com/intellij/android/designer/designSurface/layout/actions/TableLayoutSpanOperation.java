@@ -81,16 +81,12 @@ public class TableLayoutSpanOperation extends LayoutSpanOperation {
   //////////////////////////////////////////////////////////////////////////////////////////
 
   public static void points(GridSelectionDecorator decorator) {
-    decorator.addPoint(new SpanPoint(COLOR,
-                                     Color.black,
-                                     Position.WEST,
+    decorator.addPoint(new SpanPoint(Position.WEST,
                                      TYPE,
                                      "Change layout:column x layout:span",
                                      decorator)); // left
 
-    decorator.addPoint(new SpanPoint(COLOR,
-                                     Color.black,
-                                     Position.EAST,
+    decorator.addPoint(new SpanPoint(Position.EAST,
                                      TYPE,
                                      "Change layout:span",
                                      decorator)); // right

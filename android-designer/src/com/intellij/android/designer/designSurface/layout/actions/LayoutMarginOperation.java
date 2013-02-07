@@ -17,22 +17,19 @@ package com.intellij.android.designer.designSurface.layout.actions;
 
 import com.android.SdkConstants;
 import com.intellij.android.designer.AndroidDesignerUtils;
+import com.intellij.android.designer.designSurface.graphics.*;
 import com.intellij.android.designer.model.ModelParser;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.designer.designSurface.*;
 import com.intellij.designer.designSurface.feedbacks.LineMarginBorder;
-import com.intellij.designer.designSurface.feedbacks.RectangleFeedback;
 import com.intellij.designer.designSurface.feedbacks.TextFeedback;
-import com.intellij.designer.designSurface.selection.DirectionResizePoint;
 import com.intellij.designer.designSurface.selection.EmptyPoint;
-import com.intellij.designer.designSurface.selection.ResizeSelectionDecorator;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.utils.Position;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
@@ -74,15 +71,11 @@ public class LayoutMarginOperation implements EditOperation {
       myTextFeedback.setBorder(new LineMarginBorder(0, 5, 3, 0));
       layer.add(myTextFeedback);
 
-      myFeedback = new RectangleFeedback(getFeedbackColor(), 2);
+      myFeedback = new RectangleFeedback(DrawingStyle.MARGIN_BOUNDS);
       layer.add(myFeedback);
 
       layer.repaint();
     }
-  }
-
-  protected Color getFeedbackColor() {
-    return JBColor.ORANGE;
   }
 
   @Override
@@ -197,7 +190,7 @@ public class LayoutMarginOperation implements EditOperation {
   public static void points(ResizeSelectionDecorator decorator) {
     pointFeedback(decorator);
 
-    decorator.addPoint(new DirectionResizePoint(JBColor.ORANGE, Color.black, Position.WEST, TYPE, "Change layout:margin.left") { // left
+    decorator.addPoint(new DirectionResizePoint(DrawingStyle.MARGIN_HANDLE, Position.WEST, TYPE, "Change layout:margin.left") { // left
       @Override
       protected Point getLocation(DecorationLayer layer, RadComponent component) {
         Point location = super.getLocation(layer, component);
@@ -211,9 +204,9 @@ public class LayoutMarginOperation implements EditOperation {
       }
     });
 
-    pointRight(decorator, JBColor.ORANGE, 0.25, TYPE, "Change layout:margin.right");
+    pointRight(decorator, DrawingStyle.MARGIN_HANDLE, 0.25, TYPE, "Change layout:margin.right");
 
-    decorator.addPoint(new DirectionResizePoint(JBColor.ORANGE, Color.black, Position.NORTH, TYPE, "Change layout:margin.top") { // top
+    decorator.addPoint(new DirectionResizePoint(DrawingStyle.MARGIN_HANDLE, Position.NORTH, TYPE, "Change layout:margin.top") { // top
       @Override
       protected Point getLocation(DecorationLayer layer, RadComponent component) {
         Point location = super.getLocation(layer, component);
@@ -227,31 +220,29 @@ public class LayoutMarginOperation implements EditOperation {
       }
     });
 
-    pointBottom(decorator, JBColor.ORANGE, 0.25, TYPE, "Change layout:margin.bottom");
+    pointBottom(decorator, DrawingStyle.MARGIN_HANDLE, 0.25, TYPE, "Change layout:margin.bottom");
   }
-
-  public static final BasicStroke STROKE = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1, new float[]{1, 2}, 0);
 
   protected static void pointFeedback(ResizeSelectionDecorator decorator) {
     decorator.addPoint(new EmptyPoint() {
       @Override
       protected void paint(DecorationLayer layer, Graphics2D g, RadComponent component) {
         Rectangle bounds = component.getBounds(layer);
-        applyMargins(bounds, layer, component, ((RadViewComponent)component).getMargins());
-
-        g.setStroke(STROKE);
-        g.setColor(JBColor.RED);
-        g.drawRect(bounds.x, bounds.y, bounds.width, bounds.height);
+        Rectangle margins = ((RadViewComponent)component).getMargins();
+        if (margins.x != 0 || margins.y != 0 || margins.width != 0 || margins.height != 0) {
+          applyMargins(bounds, layer, component, margins);
+          DesignerGraphics.drawRect(DrawingStyle.MARGIN_BOUNDS, g, bounds.x, bounds.y, bounds.width, bounds.height);
+        }
       }
     });
   }
 
   protected static void pointRight(ResizeSelectionDecorator decorator,
-                                   Color color,
+                                   DrawingStyle style,
                                    double ySeparator,
                                    Object type,
                                    @Nullable String description) {
-    decorator.addPoint(new DirectionResizePoint(color, Color.black, Position.EAST, type, description) {
+    decorator.addPoint(new DirectionResizePoint(style, Position.EAST, type, description) {
       @Override
       protected Point getLocation(DecorationLayer layer, RadComponent component) {
         Point location = super.getLocation(layer, component);
@@ -267,11 +258,11 @@ public class LayoutMarginOperation implements EditOperation {
   }
 
   protected static void pointBottom(ResizeSelectionDecorator decorator,
-                                    Color color,
+                                    DrawingStyle style,
                                     double xSeparator,
                                     Object type,
                                     @Nullable String description) {
-    decorator.addPoint(new DirectionResizePoint(color, Color.black, Position.SOUTH, type, description) {
+    decorator.addPoint(new DirectionResizePoint(style, Position.SOUTH, type, description) {
       @Override
       protected Point getLocation(DecorationLayer layer, RadComponent component) {
         Point location = super.getLocation(layer, component);

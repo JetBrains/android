@@ -16,6 +16,9 @@
 package com.intellij.android.designer.designSurface.layout.flow;
 
 import com.intellij.android.designer.designSurface.AbstractEditOperation;
+import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
+import com.intellij.android.designer.designSurface.graphics.LineInsertFeedback;
+import com.intellij.android.designer.designSurface.graphics.RectangleFeedback;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.designer.designSurface.FeedbackLayer;
 import com.intellij.designer.designSurface.OperationContext;
@@ -58,6 +61,18 @@ public class FlowBaseOperation extends com.intellij.designer.designSurface.FlowB
     bounds.height += bottomRight.height;
 
     return bounds;
+  }
+
+  @Override
+  protected void createInsertFeedback() {
+    myInsertFeedback = new LineInsertFeedback(DrawingStyle.DROP_ZONE_ACTIVE, !myHorizontal);
+    myInsertFeedback.size(myBounds.width, myBounds.height);
+  }
+
+  @Override
+  protected void createFirstInsertFeedback() {
+    myFirstInsertFeedback = new RectangleFeedback(DrawingStyle.DROP_ZONE_ACTIVE);
+    myFirstInsertFeedback.setBounds(myBounds);
   }
 
   @Override
