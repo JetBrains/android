@@ -300,7 +300,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
       this.myInstrumentationTestRunner = instrumentationTestRunner;
     }
 
-    public boolean launch(@NotNull AndroidRunningState state, @NotNull IDevice device)
+    public LaunchResult launch(@NotNull AndroidRunningState state, @NotNull IDevice device)
       throws IOException, AdbCommandRejectedException, TimeoutException {
       state.getProcessHandler().notifyTextAvailable("Running tests\n", ProcessOutputTypes.STDOUT);
       RemoteAndroidTestRunner runner = new RemoteAndroidTestRunner(state.getPackageName(), myInstrumentationTestRunner, device);
@@ -323,7 +323,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
         LOG.info(e);
         state.getProcessHandler().notifyTextAvailable("Error: time out", ProcessOutputTypes.STDERR);
       }
-      return true;
+      return LaunchResult.SUCCESS;
     }
   }
 }
