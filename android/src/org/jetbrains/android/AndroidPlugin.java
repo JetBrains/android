@@ -15,6 +15,9 @@
  */
 package org.jetbrains.android;
 
+import com.android.tools.idea.actions.AndroidNewProjectAction;
+import com.intellij.ide.actions.NewProjectAction;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.components.ApplicationComponent;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
@@ -30,6 +33,25 @@ public class AndroidPlugin implements ApplicationComponent {
   }
 
   public void initComponent() {
+
+    // TODO: This is temporary code. We should build out our own menu set and welcome screen exactly how we want.
+
+
+    // Register the New Project action manually since we need to unregister the platform one
+    ActionManager am = ActionManager.getInstance();
+    am.unregisterAction("NewProject");
+
+    AnAction action = new AndroidNewProjectAction();
+    am.registerAction("NewProject", action);
+
+    DefaultActionGroup ag = (DefaultActionGroup)am.getAction("WelcomeScreen.QuickStart.IDEA");
+    AnAction[] children = ag.getChildren(null);
+    for (AnAction child : children) {
+      if (child instanceof NewProjectAction) {
+        ag.remove(child);
+      }
+    }
+    ag.add(action, Constraints.FIRST);
   }
 
   public void disposeComponent() {
