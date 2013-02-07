@@ -22,6 +22,9 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.SdkManager;
+import com.android.utils.ILogger;
+import com.android.utils.StdLogger;
 import com.intellij.execution.process.OSProcessHandler;
 import com.intellij.execution.process.OSProcessManager;
 import com.intellij.facet.ProjectFacetManager;
@@ -73,6 +76,8 @@ public class AndroidSdkUtils {
 
   public static final String DEFAULT_PLATFORM_NAME_PROPERTY = "AndroidPlatformName";
   @NonNls public static final String ANDROID_HOME_ENV = "ANDROID_HOME";
+
+  private static SdkManager ourSdkManager;
 
   private AndroidSdkUtils() {
   }
@@ -639,5 +644,18 @@ public class AndroidSdkUtils {
     if (hidden) {
       toolWindow.show(null);
     }
+  }
+
+  public static SdkManager tryToChooseAndroidSdk() {
+    if (ourSdkManager == null) {
+      ILogger logger = new StdLogger(StdLogger.Level.INFO);
+      for (String s : getAndroidSdkPathsFromExistingPlatforms()) {
+        ourSdkManager = SdkManager.createManager(s, logger);
+        if (ourSdkManager != null) {
+          break;
+        }
+      }
+    }
+    return ourSdkManager;
   }
 }
