@@ -46,6 +46,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.util.containers.HashSet;
@@ -109,12 +110,14 @@ public class AndroidSdkUtils {
     if (!target.isPlatform()) {
       targetDir = LocalFileSystem.getInstance().findFileByPath(target.getLocation());
     }
+    boolean docsOrSourcesFound = false;
+
     if (targetDir != null) {
-      addJavaDocAndSources(result, targetDir);
+      docsOrSourcesFound = addJavaDocAndSources(result, targetDir) || docsOrSourcesFound;
     }
     VirtualFile sdkDir = sdkPath != null ? LocalFileSystem.getInstance().findFileByPath(sdkPath) : null;
     if (sdkDir != null) {
-      addJavaDocAndSources(result, sdkDir);
+      docsOrSourcesFound = addJavaDocAndSources(result, sdkDir) || docsOrSourcesFound;
     }
 
     // todo: replace it by target.getPath(SOURCES) when it'll be up to date
@@ -123,9 +126,17 @@ public class AndroidSdkUtils {
       final VirtualFile platformSourcesDir = sourcesDir.findChild(platformDir.getName());
       if (platformSourcesDir != null && platformSourcesDir.isDirectory()) {
         result.add(new OrderRoot(platformSourcesDir, OrderRootType.SOURCES));
+        docsOrSourcesFound = true;
       }
     }
 
+    if (!docsOrSourcesFound) {
+      final VirtualFile f = VirtualFileManager.getInstance().findFileByUrl(AndroidSdkType.DEFAULT_EXTERNAL_DOCUMENTATION_URL);
+
+      if (f != null) {
+        result.add(new OrderRoot(f, JavadocOrderRootType.getInstance()));
+      }
+    }
     final String resFolderPath = target.getPath(IAndroidTarget.RESOURCES);
 
     if (resFolderPath != null) {
@@ -162,16 +173,21 @@ public class AndroidSdkUtils {
     return null;
   }
 
-  private static void addJavaDocAndSources(@NotNull List<OrderRoot> list, @NotNull VirtualFile dir) {
+  private static boolean addJavaDocAndSources(@NotNull List<OrderRoot> list, @NotNull VirtualFile dir) {
+    boolean found = false;
+
     VirtualFile javadocDir = findJavadocDir(dir);
     if (javadocDir != null) {
       list.add(new OrderRoot(javadocDir, JavadocOrderRootType.getInstance()));
+      found = true;
     }
 
     VirtualFile sourcesDir = dir.findChild(SdkConstants.FD_SOURCES);
     if (sourcesDir != null) {
       list.add(new OrderRoot(sourcesDir, OrderRootType.SOURCES));
+      found = true;
     }
+    return found;
   }
 
   public static String getPresentableTargetName(@NotNull IAndroidTarget target) {
