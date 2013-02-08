@@ -101,7 +101,8 @@ public class RenderscriptLexerTest extends TestCase {
 
   public void testFile() throws IOException {
     String path = AndroidTestCase.getAbsoluteTestDataPath();
-    String input = Files.toString(new File(path, "/lang/rs/ball_physics.rs"), Charsets.UTF_8);
+    String rsPath = "lang" + File.separator + "rs" + File.separator + "ball_physics.rs";
+    String input = Files.toString(new File(path, rsPath), Charsets.UTF_8);
 
     RenderscriptLexer lexer = new RenderscriptLexer();
 
