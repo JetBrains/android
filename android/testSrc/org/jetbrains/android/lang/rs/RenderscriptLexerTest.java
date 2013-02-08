@@ -16,9 +16,15 @@
 
 package org.jetbrains.android.lang.rs;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
 import junit.framework.TestCase;
+import org.jetbrains.android.AndroidTestCase;
+
+import java.io.File;
+import java.io.IOException;
 
 public class RenderscriptLexerTest extends TestCase {
   private void validateLexer(String input, IElementType... tokens) {
@@ -91,5 +97,18 @@ public class RenderscriptLexerTest extends TestCase {
   public void testNumbers() {
     validateLexer("3.14f", RenderscriptTokenType.NUMBER);
     validateLexer("2.1e-123", RenderscriptTokenType.NUMBER);
+  }
+
+  public void testFile() throws IOException {
+    String path = AndroidTestCase.getAbsoluteTestDataPath();
+    String input = Files.toString(new File(path, "/lang/rs/ball_physics.rs"), Charsets.UTF_8);
+
+    RenderscriptLexer lexer = new RenderscriptLexer();
+
+    int i = 0;
+    for (lexer.start(input); lexer.getTokenType() != null; lexer.advance(), i++) {
+      assertTrue(lexer.getTokenType() != RenderscriptTokenType.UNKNOWN);
+      assertTrue(i < 10000); // check we are not stuck in an infinite loop
+    }
   }
 }

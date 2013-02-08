@@ -13,10 +13,9 @@ import javax.swing.*;
 
 public class AndroidRenderscriptFileType extends LanguageFileType {
   public static final AndroidRenderscriptFileType INSTANCE = new AndroidRenderscriptFileType();
-  @NonNls
-  public static final String CODE_EXTENSION = "rs";
-  @NonNls
-  private static final String HEADER_EXTENSION = "rsh";
+  @NonNls public static final String CODE_EXTENSION = "rs";
+  @NonNls public static final String FS_CODE_EXTENSION = "fs";
+  @NonNls private static final String HEADER_EXTENSION = "rsh";
 
   private AndroidRenderscriptFileType() {
     super(RenderscriptLanguage.INSTANCE);
@@ -48,6 +47,7 @@ public class AndroidRenderscriptFileType extends LanguageFileType {
   public static FileNameMatcher[] fileNameMatchers() {
     return new FileNameMatcher[] {
       new ExtensionFileNameMatcher(CODE_EXTENSION),
+      new ExtensionFileNameMatcher(FS_CODE_EXTENSION),
       new ExtensionFileNameMatcher(HEADER_EXTENSION),
     };
   }
