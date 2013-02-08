@@ -32,25 +32,25 @@ public class RenderscriptSyntaxHighlighter extends SyntaxHighlighterBase {
   private static final Map<IElementType, TextAttributesKey> sAttributes =
     Maps.newHashMapWithExpectedSize(20);
 
-  private static final TokenSet sKeywords = TokenSet.create(RenderscriptTokenType.KEYWORD);
-  private static final TokenSet sBraces = TokenSet.create(RenderscriptTokenType.BRACE);
-  private static final TokenSet sSeparators = TokenSet.create(RenderscriptTokenType.SEPARATOR);
-  private static final TokenSet sOperators = TokenSet.create(RenderscriptTokenType.OPERATOR);
-  private static final TokenSet sComments = TokenSet.create(RenderscriptTokenType.COMMENT);
-  private static final TokenSet sString = TokenSet.create(RenderscriptTokenType.STRING);
-  private static final TokenSet sCharacter = TokenSet.create(RenderscriptTokenType.CHARACTER,
+  private static final TokenSet ourKeywords = TokenSet.create(RenderscriptTokenType.KEYWORD);
+  private static final TokenSet ourBraces = TokenSet.create(RenderscriptTokenType.BRACE);
+  private static final TokenSet ourSeparators = TokenSet.create(RenderscriptTokenType.SEPARATOR);
+  private static final TokenSet ourOperators = TokenSet.create(RenderscriptTokenType.OPERATOR);
+  private static final TokenSet ourComments = TokenSet.create(RenderscriptTokenType.COMMENT);
+  private static final TokenSet ourString = TokenSet.create(RenderscriptTokenType.STRING);
+  private static final TokenSet ourCharacter = TokenSet.create(RenderscriptTokenType.CHARACTER,
                                                              RenderscriptTokenType.NUMBER);
-  private static final TokenSet sError = TokenSet.create(RenderscriptTokenType.UNKNOWN);
+  private static final TokenSet ourError = TokenSet.create(RenderscriptTokenType.UNKNOWN);
 
   static {
-    fillMap(sAttributes, sKeywords, SyntaxHighlighterColors.KEYWORD);
-    fillMap(sAttributes, sBraces, SyntaxHighlighterColors.BRACES);
-    fillMap(sAttributes, sSeparators, SyntaxHighlighterColors.JAVA_SEMICOLON);
-    fillMap(sAttributes, sOperators, SyntaxHighlighterColors.OPERATION_SIGN);
-    fillMap(sAttributes, sComments, SyntaxHighlighterColors.JAVA_BLOCK_COMMENT);
-    fillMap(sAttributes, sString, SyntaxHighlighterColors.STRING);
-    fillMap(sAttributes, sCharacter, SyntaxHighlighterColors.NUMBER);
-    fillMap(sAttributes, sError, CodeInsightColors.ERRORS_ATTRIBUTES);
+    fillMap(sAttributes, ourKeywords, SyntaxHighlighterColors.KEYWORD);
+    fillMap(sAttributes, ourBraces, SyntaxHighlighterColors.BRACES);
+    fillMap(sAttributes, ourSeparators, SyntaxHighlighterColors.JAVA_SEMICOLON);
+    fillMap(sAttributes, ourOperators, SyntaxHighlighterColors.OPERATION_SIGN);
+    fillMap(sAttributes, ourComments, SyntaxHighlighterColors.JAVA_BLOCK_COMMENT);
+    fillMap(sAttributes, ourString, SyntaxHighlighterColors.STRING);
+    fillMap(sAttributes, ourCharacter, SyntaxHighlighterColors.NUMBER);
+    fillMap(sAttributes, ourError, CodeInsightColors.ERRORS_ATTRIBUTES);
   }
 
   @NotNull
