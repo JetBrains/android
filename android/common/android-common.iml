@@ -25,13 +25,13 @@
     <orderEntry type="module" module-name="common" exported="" />
     <orderEntry type="module" module-name="ddmlib" exported="" />
     <orderEntry type="module" module-name="dvlib" exported="" />
-    <orderEntry type="module" module-name="layoutlib-api" exported="" />
-    <orderEntry type="module" module-name="lint-api" exported="" />
-    <orderEntry type="module" module-name="lint-checks" exported="" />
+    <orderEntry type="module" module-name="layoutlib_api" exported="" />
+    <orderEntry type="module" module-name="lint_api" exported="" />
+    <orderEntry type="module" module-name="lint_checks" exported="" />
     <orderEntry type="module" module-name="ninepatch" exported="" />
     <orderEntry type="module" module-name="sdk_common" exported="" />
     <orderEntry type="module" module-name="sdklib" exported="" />
-    <orderEntry type="module" module-name="lint-cli" exported="" />
+    <orderEntry type="module" module-name="cli" exported="" />
   </component>
 </module>
 
