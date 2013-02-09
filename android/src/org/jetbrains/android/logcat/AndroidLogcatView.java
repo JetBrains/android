@@ -175,8 +175,24 @@ public abstract class AndroidLogcatView implements Disposable {
             setText("<html><font color='red'>[none]</font></html>");
           }
           else if (value instanceof IDevice) {
-            setText(((IDevice)value).getSerialNumber());
+            setText(getName((IDevice) value));
           }
+        }
+
+        private String getName(IDevice d) {
+          String deviceName = d.getName();
+          try {
+            String buildVersion = d.getPropertyCacheOrSync(IDevice.PROP_BUILD_VERSION);
+            if (buildVersion != null && !buildVersion.isEmpty()) {
+              return String.format("<html>%1$s <font color='gray'>(%2$s)</font></html>",
+                                   deviceName, buildVersion);
+            }
+          }
+          catch (Exception e) {
+            // ignored
+          }
+
+          return deviceName;
         }
       });
     }
