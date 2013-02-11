@@ -22,6 +22,7 @@ import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.State;
 import com.google.common.primitives.Ints;
+import com.intellij.android.designer.ShadowPainter;
 import com.intellij.android.designer.actions.ProfileAction;
 import com.intellij.android.designer.componentTree.AndroidTreeDecorator;
 import com.intellij.android.designer.inspection.ErrorAnalyzer;
@@ -59,7 +60,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.ui.JBColor;
+import com.intellij.ui.Gray;
 import com.intellij.util.Alarm;
 import com.intellij.util.PsiNavigateUtil;
 import com.intellij.util.ThrowableConsumer;
@@ -97,6 +98,9 @@ import static com.intellij.designer.designSurface.ZoomType.FIT_INTO;
  * @author Alexander Lobas
  */
 public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
+  private static final int DEFAULT_HORIZONTAL_MARGIN = 30;
+  private static final int DEFAULT_VERTICAL_MARGIN = 20;
+
   private final TreeComponentDecorator myTreeDecorator = new AndroidTreeDecorator();
   private final XmlFile myXmlFile;
   private final ExternalPSIChangeListener myPSIChangeListener;
@@ -111,8 +115,10 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
   private boolean myParseTime;
   private int myProfileLastVersion;
   private WrapInProvider myWrapInProvider;
+  private boolean myZoomRequested = true;
+
   /** Zoom level (1 = 100%). TODO: Persist this setting across IDE sessions (on a per file basis) */
-  protected double myZoom = 1;
+  private double myZoom = 1;
 
   public AndroidDesignerEditorPanel(@NotNull DesignerEditor editor,
                                     @NotNull Project project,
@@ -153,6 +159,9 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
         }
         else if (myProfileLastVersion != myProfileAction.getVersion() ||
                  !ProfileManager.isAndroidSdk(myProfileAction.getCurrentSdk())) {
+          // TODO: Only request auto fit if the orientation or screen size changed; for now
+          // it auto zooms for any configuration change
+          requestZoomFit();
           myPSIChangeListener.addRequest(new Runnable() {
             @Override
             public void run() {
@@ -231,7 +240,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
     createRenderer(parser.getLayoutXmlText(), new MyThrowable(), new ThrowableConsumer<RenderSession, Throwable>() {
       @Override
       public void consume(RenderSession session) throws Throwable {
-        RootView rootView = new RootView(AndroidDesignerEditorPanel.this, 30, 20, session.getImage(), session.isAlphaChannelImage());
+        final RootView rootView = new RootView(AndroidDesignerEditorPanel.this, 0, 0, session.getImage(), session.isAlphaChannelImage());
         try {
           parser.updateRootComponent(myLastRenderedConfiguration, session, rootView);
         }
@@ -250,9 +259,40 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
         newRootComponent.setClientProperty(PropertyParser.KEY, propertyParser);
         propertyParser.loadRecursive(newRootComponent);
 
-        JPanel rootPanel = new JPanel(null);
-        rootPanel.setBackground(new Color(150, 150, 150));
-        rootPanel.setBackground(JBColor.WHITE);
+        // Use a custom layout manager which adjusts the margins/padding around the designer canvas
+        // dynamically; it will try to use DEFAULT_HORIZONTAL_MARGIN * DEFAULT_VERTICAL_MARGIN, but
+        // if there is not enough room, it will split the margins evenly in each dimension until
+        // there is no room available without scrollbars.
+        JPanel rootPanel = new JPanel(new LayoutManager() {
+          @Override
+          public void addLayoutComponent(String s, Component component) {
+          }
+
+          @Override
+          public void removeLayoutComponent(Component component) {
+          }
+
+          @Override
+          public Dimension preferredLayoutSize(Container container) {
+            return new Dimension(0, 0);
+          }
+
+          @Override
+          public Dimension minimumLayoutSize(Container container) {
+            return new Dimension(0, 0);
+          }
+
+          @Override
+          public void layoutContainer(Container container) {
+            rootView.updateBounds(false);
+            int x = Math.max(2, Math.min(DEFAULT_HORIZONTAL_MARGIN, (container.getWidth() - rootView.getWidth()) / 2));
+            int y = Math.max(2, Math.min(DEFAULT_VERTICAL_MARGIN, (container.getHeight() - rootView.getHeight()) / 2));
+            rootView.setLocation(x, y);
+          }
+        });
+
+        //rootPanel.setBackground(JBColor.WHITE);
+        rootPanel.setBackground(Gray._150);
         rootPanel.add(rootView);
 
         removeNativeRoot();
@@ -260,6 +300,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
         loadInspections(new EmptyProgressIndicator());
         updateInspections();
         myLayeredPane.add(rootPanel, LAYER_COMPONENT);
+        autoZoom();
 
         myParseTime = false;
 
@@ -480,6 +521,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
         RootView rootView = (RootView)rootComponent.getNativeComponent();
         rootView.setImage(session.getImage(), session.isAlphaChannelImage());
         ModelParser.updateRootComponent(myLastRenderedConfiguration, rootComponent, session, rootView);
+        autoZoom();
 
         myParseTime = false;
 
@@ -490,6 +532,21 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
         DesignerToolWindowManager.getInstance(getProject()).refresh(updateProperties);
       }
     });
+  }
+
+  /**
+   * Auto fits the scene, if requested. This will be the case the first time
+   * the layout is opened, and after orientation or device changes.
+   */
+  private synchronized void autoZoom() {
+    if (myZoomRequested) {
+      myZoomRequested = false;
+      zoom(ZoomType.FIT_INTO);
+    }
+  }
+
+  private synchronized void requestZoomFit() {
+    myZoomRequested = true;
   }
 
   private void removeNativeRoot() {
@@ -894,11 +951,13 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
 
   /** Sets the zoom level. Note that this should be 1, not 100 (percent), for an image at its actual size */
   public void setZoom(double zoom) {
-    myZoom = zoom;
-    normalizeScale();
-    viewZoomed();
-    mySurfaceArea.scrollToSelection();
-    repaint();
+    if (zoom != myZoom) {
+      myZoom = zoom;
+      normalizeScale();
+      viewZoomed();
+      mySurfaceArea.scrollToSelection();
+      repaint();
+    }
   }
 
   private void normalizeScale() {
@@ -915,6 +974,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
   }
 
   /** Returns the current zoom level. Note that this is 1, not 100 (percent) for an image at its actual size */
+  @Override
   public double getZoom() {
     return myZoom;
   }
@@ -934,17 +994,36 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
         break;
       case FIT_INTO:
       case FIT: {
-        Dimension sceneSize = getSceneSize();
+        Dimension sceneSize = myRootComponent.getBounds().getSize();
         Dimension screenSize = getDesignerViewSize();
-        if (sceneSize != null && screenSize != null) {
+        if (screenSize != null) {
           int sceneWidth = sceneSize.width;
           int sceneHeight = sceneSize.height;
           if (sceneWidth > 0 && sceneHeight > 0) {
             int viewWidth = screenSize.width;
             int viewHeight = screenSize.height;
 
-            double hScale = viewWidth / (double) sceneWidth;
-            double vScale = viewHeight / (double) sceneHeight;
+
+            // Reduce the margins if necessary
+            int hDelta = viewWidth - sceneWidth;
+            int xMargin = 0;
+            if (hDelta > 2 * DEFAULT_HORIZONTAL_MARGIN) {
+              xMargin = DEFAULT_HORIZONTAL_MARGIN;
+            } else if (hDelta > 0) {
+              xMargin = hDelta / 2;
+            }
+
+            int vDelta = viewHeight - sceneHeight;
+            int yMargin = 0;
+            if (vDelta > 2 * DEFAULT_VERTICAL_MARGIN) {
+              yMargin = DEFAULT_VERTICAL_MARGIN;
+            } else if (vDelta > 0) {
+              yMargin = vDelta / 2;
+            }
+
+            double hScale = (viewWidth - 2 * xMargin) / (double) sceneWidth;
+            double vScale = (viewHeight - 2 * yMargin) / (double) sceneHeight;
+
             double scale = Math.min(hScale, vScale);
 
             if (type == FIT_INTO) {
@@ -960,6 +1039,43 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
       default:
         throw new UnsupportedOperationException("Not yet implemented: " + type);
     }
+  }
+
+  @NotNull
+  private Dimension getDesignerViewSize() {
+    Dimension size = myScrollPane.getSize();
+    size.width -= 2;
+    size.height -= 2;
+
+    RootView rootView = getRootView();
+    if (rootView != null) {
+      if (rootView.getShowDropShadow()) {
+        size.width -= ShadowPainter.SHADOW_SIZE;
+        size.height -= ShadowPainter.SHADOW_SIZE;
+      }
+    }
+
+    return size;
+  }
+
+  @Override
+  @NotNull
+  protected Dimension getSceneSize(@NotNull Component target) {
+    int width = 0;
+    int height = 0;
+
+    if (myRootComponent != null) {
+      Rectangle bounds = myRootComponent.getBounds(target);
+      width = Math.max(width, (int)bounds.getMaxX());
+      height = Math.max(height, (int)bounds.getMaxY());
+
+      width += 1;
+      height += 1;
+
+      return new Dimension(width, height);
+    }
+
+    return super.getSceneSize(target);
   }
 
   @Override

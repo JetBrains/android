@@ -26,6 +26,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.intellij.android.designer.ShadowPainter.SHADOW_SIZE;
+import static java.awt.RenderingHints.*;
+import static java.awt.RenderingHints.KEY_ANTIALIASING;
+import static java.awt.RenderingHints.VALUE_ANTIALIAS_ON;
 
 /**
  * @author Alexander Lobas
@@ -70,6 +73,10 @@ public class RootView extends com.intellij.designer.designSurface.RootView imple
 
   @Override
   protected void updateSize() {
+    updateBounds(true);
+  }
+
+  protected void updateBounds(boolean imageChanged) {
     if (myImage != null) {
       double zoom = getScale();
       int newWidth = (int)(zoom * myImage.getWidth());
@@ -78,9 +85,13 @@ public class RootView extends com.intellij.designer.designSurface.RootView imple
         newWidth += SHADOW_SIZE;
         newHeight += SHADOW_SIZE;
       }
-      setBounds(myX, myY, newWidth, newHeight);
+      if (getWidth() != newWidth || getHeight() != newHeight) {
+        setSize(newWidth, newHeight);
+        myScaledImage = null;
+      } else if (imageChanged) {
+        myScaledImage = null;
+      }
     }
-    myScaledImage = null;
   }
 
   public void addEmptyRegion(int x, int y, int width, int height) {
@@ -100,7 +111,6 @@ public class RootView extends com.intellij.designer.designSurface.RootView imple
     double scale = myPanel.getZoom();
     if (myScaledImage == null) {
       // Special cases scale=1 to be fast
-
       if (scale == 1) {
         // Scaling to 100% is easy!
         myScaledImage = myImage;
@@ -109,7 +119,10 @@ public class RootView extends com.intellij.designer.designSurface.RootView imple
           // Just need to draw drop shadows
           myScaledImage = ShadowPainter.createRectangularDropShadow(myImage);
         }
-      } else {
+        g.drawImage(myScaledImage, 0, 0, null);
+      } else if (scale < 1) {
+        // When scaling down we need to do an expensive scaling to ensure that
+        // the thumbnails look good
         if (myShowDropShadow) {
           myScaledImage = ImageUtils.scale(myImage, scale, scale,
                                             SHADOW_SIZE, SHADOW_SIZE);
@@ -119,10 +132,24 @@ public class RootView extends com.intellij.designer.designSurface.RootView imple
         } else {
           myScaledImage = ImageUtils.scale(myImage, scale, scale);
         }
+        g.drawImage(myScaledImage, 0, 0, null);
+      } else {
+        // Do a direct scaled paint when scaling up; we don't want to create giant internal images
+        // for a zoomed in version of the canvas, since only a small portion is typically shown on the screen
+        // (without this, you can easily zoom in 10 times and hit an OOM exception)
+        int w = myImage.getWidth();
+        int h = myImage.getHeight();
+        Graphics2D g2 = (Graphics2D)g.create();
+        try {
+          g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BILINEAR);
+          g2.drawImage(myImage, 0, 0, (int) (scale * w), (int) (scale * h), 0, 0, w, h, null);
+        } finally {
+          g2.dispose();
+        }
       }
+    } else {
+      g.drawImage(myScaledImage, 0, 0, null);
     }
-
-    g.drawImage(myScaledImage, 0, 0, null);
 
     if (!myEmptyRegions.isEmpty()) {
       if (scale == 1) {
