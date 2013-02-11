@@ -16,6 +16,7 @@
 
 package org.jetbrains.android.logcat;
 
+import com.android.ddmlib.IDevice;
 import com.android.ddmlib.Log;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.util.AndroidOutputReceiver;
@@ -32,7 +33,6 @@ import java.util.regex.Pattern;
  * User: Eugene.Kudelevsky
  * Date: Sep 12, 2009
  * Time: 9:01:05 PM
- * To change this template use File | Settings | File Templates.
  */
 public class AndroidLogcatReceiver extends AndroidOutputReceiver {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.logcat.AndroidLogcatReceiver");
@@ -45,8 +45,10 @@ public class AndroidLogcatReceiver extends AndroidOutputReceiver {
   private volatile boolean myCanceled = false;
   private Log.LogLevel myPrevLogLevel;
   private final Writer myWriter;
+  private final IDevice myDevice;
 
-  public AndroidLogcatReceiver(Writer writer) {
+  public AndroidLogcatReceiver(IDevice device, Writer writer) {
+    myDevice = device;
     myWriter = new PrintWriter(writer);
   }
 
@@ -57,6 +59,20 @@ public class AndroidLogcatReceiver extends AndroidOutputReceiver {
       myLastMessageHeader = new LogMessageHeader();
       myLastMessageHeader.myTime = matcher.group(1);
       myLastMessageHeader.myPid = Integer.valueOf(matcher.group(2));
+
+      String tid = matcher.group(3).trim();
+      long tidValue;
+      try {
+        // Thread id's may be in hex on some platforms.
+        // Decode and store them in radix 10.
+        tidValue = Long.decode(tid.trim());
+      } catch (NumberFormatException e) {
+        tidValue = -1;
+      }
+      myLastMessageHeader.myTid = Long.toString(tidValue);
+
+      myLastMessageHeader.myAppPackage =
+        myDevice == null ? "" : myDevice.getClientName(myLastMessageHeader.myPid);
       myLastMessageHeader.myLogLevel = getByLetterString(matcher.group(4));
       myLastMessageHeader.myTag = matcher.group(5).trim();
     }
@@ -97,15 +113,17 @@ public class AndroidLogcatReceiver extends AndroidOutputReceiver {
     return myCanceled;
   }
 
-  private static class LogMessageHeader {
+  static class LogMessageHeader {
     String myTime;
     Log.LogLevel myLogLevel;
     int myPid;
+    String myTid;
+    String myAppPackage;
     String myTag;
   }
 
   private static String getFullMessage(String message, LogMessageHeader header) {
-    return header.myTime + ": " + header.myLogLevel + "/" + header.myTag + "(" + header.myPid + "): " + message;
+    return AndroidLogcatFormatter.formatMessage(message, header);
   }
 
   public void cancel() {

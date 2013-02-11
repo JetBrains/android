@@ -92,7 +92,7 @@ public class AndroidLogcatUtil {
       }
     });
     PipedWriter logWriter = new PipedWriter();
-    final AndroidLogcatReceiver receiver = new AndroidLogcatReceiver(logWriter);
+    final AndroidLogcatReceiver receiver = new AndroidLogcatReceiver(device, logWriter);
     final PipedReader logReader;
     try {
       logReader = new PipedReader(logWriter) {

@@ -23,22 +23,19 @@ import com.intellij.diagnostic.logging.LogFilterModel;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.android.logcat.AndroidLogcatReceiver.LogMessageHeader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author Eugene.Kudelevsky
  */
 public abstract class AndroidLogFilterModel extends LogFilterModel {
-  static final Pattern ANDROID_LOG_MESSAGE_PATTERN =
-    Pattern.compile("\\d\\d-\\d\\d\\s\\d\\d:\\d\\d:\\d\\d\\.\\d+:\\s+([A-Z]+)/([\\S ]+)\\((\\d+)\\):(.*)");
-
   private final List<LogFilterListener> myListeners = new ArrayList<LogFilterListener>();
 
   private Log.LogLevel myPrevMessageLogLevel;
@@ -131,32 +128,19 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
       return true;
     }
 
-
     Log.LogLevel logLevel = null;
     String tag = null;
     String pid = null;
     String message = text;
-    
-    final Matcher matcher = ANDROID_LOG_MESSAGE_PATTERN.matcher(text);
-    if (matcher.matches()) {
-      String s = matcher.group(1).trim();
-      if (s.length() > 0) {
-        logLevel = getLogLevel(s);
-      }
 
-      s = matcher.group(2).trim();
-      if (s.length() > 0) {
-        tag = s;
-      }
-      
-      s = matcher.group(3).trim();
-      if (s.length() > 0) {
-        pid = s;
-      }
-      
-      s = matcher.group(4).trim();
-      if (s.length() > 0) {
-        message = s;
+    Pair<LogMessageHeader, String> result = AndroidLogcatFormatter.parseMessage(text);
+    if (result.getFirst() != null) {
+      LogMessageHeader header = result.getFirst();
+      logLevel = header.myLogLevel;
+      tag = header.myTag;
+      pid = Integer.toString(header.myPid);
+      if (result.getSecond() != null) {
+        message = result.getSecond();
       }
     }
 
@@ -170,6 +154,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
     if (logLevel == null) {
       logLevel = myPrevMessageLogLevel;
     }
+
     return configuredFilterName.isApplicable(message, tag, pid, logLevel);
   }
 
@@ -187,27 +172,17 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
 
     @Override
     public boolean isAcceptable(String line) {
-      final Matcher matcher = ANDROID_LOG_MESSAGE_PATTERN.matcher(line);
       Log.LogLevel logLevel = null;
 
-      if (matcher.matches()) {
-        logLevel = getLogLevel(matcher.group(1));
+      Pair<LogMessageHeader, String> result = AndroidLogcatFormatter.parseMessage(line);
+      if (result.getFirst() != null) {
+        logLevel = result.getFirst().myLogLevel;
       }
       if (logLevel == null) {
         logLevel = myPrevMessageLogLevel;
       }
       return logLevel != null && logLevel.getPriority() >= myLogLevel.getPriority();
     }
-  }
-
-  @Nullable
-  protected static Log.LogLevel getLogLevel(@NotNull String name) {
-    for (Log.LogLevel level : Log.LogLevel.values()) {
-      if (name.equals(level.name())) {
-        return level;
-      }
-    }
-    return null;
   }
 
   public abstract String getSelectedLogLevelName();
@@ -251,26 +226,21 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
 
   @NotNull
   public MyProcessingResult processLine(String line) {
-    final Matcher matcher = ANDROID_LOG_MESSAGE_PATTERN.matcher(line);
-    final boolean messageHeader = matcher.matches();
+    Pair<LogMessageHeader, String> result = AndroidLogcatFormatter.parseMessage(line);
+    final boolean messageHeader = result.getFirst() != null;
 
     if (messageHeader) {
-      String s = matcher.group(1);
-      if (s.length() > 0) {
-        final Log.LogLevel logLevel = getLogLevel(s);
-        if (logLevel != null) {
-          myPrevMessageLogLevel = logLevel;
-        }
+      LogMessageHeader header = result.getFirst();
+      if (header.myLogLevel != null) {
+        myPrevMessageLogLevel = header.myLogLevel;
       }
 
-      s = matcher.group(2).trim();
-      if (s.length() > 0) {
-        myPrevTag = s;
+      if (!header.myTag.isEmpty()) {
+        myPrevTag = header.myTag;
       }
-      
-      s = matcher.group(3).trim();
-      if (s.length() > 0) {
-        myPrevPid = s;
+
+      if (header.myPid != 0) {
+        myPrevPid = Integer.toString(header.myPid);
       }
     }
     final boolean applicable = isApplicable(line); 
