@@ -17,16 +17,18 @@ package org.jetbrains.android.logcat;
 
 import com.android.ddmlib.Log;
 import com.intellij.codeInsight.completion.CompletionParameters;
-import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Comparing;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.EnumComboBoxModel;
+import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.containers.HashSet;
+import org.jetbrains.android.logcat.AndroidLogcatReceiver.LogMessageHeader;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,7 +37,6 @@ import javax.swing.*;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -137,26 +138,17 @@ class EditLogFilterDialog extends DialogWrapper {
 
     final String[] lines = StringUtil.splitByLines(document.toString());
     for (String line : lines) {
-      final Matcher matcher = AndroidLogFilterModel.ANDROID_LOG_MESSAGE_PATTERN.matcher(line);
-
-      if (!matcher.matches()) {
+      Pair<LogMessageHeader,String> result = AndroidLogcatFormatter.parseMessage(line);
+      if (result.getFirst() == null) {
         continue;
       }
 
-      final String tag = matcher.group(2).trim();
+      final String tag = result.getFirst().myTag;
       if (tag != null && tag.length() > 0) {
         tagSet.add(tag);
       }
 
-      final String pid = matcher.group(3).trim();
-      if (pid != null && pid.length() > 0) {
-        try {
-          Integer.parseInt(pid);
-          pidSet.add(pid);
-        }
-        catch (NumberFormatException ignored) {
-        }
-      }
+      pidSet.add(Integer.toString(result.getFirst().myPid));
     }
 
     myUsedTags = tagSet.toArray(new String[tagSet.size()]);
