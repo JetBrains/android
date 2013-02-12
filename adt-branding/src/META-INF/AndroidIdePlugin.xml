@@ -212,16 +212,16 @@
     <definitionsSearch implementation="com.intellij.codeInsight.navigation.ClassImplementationsSearch"/>
 
     <localInspection language="JAVA" shortName="UndesirableClassUsage" displayName="Undesirable class usage"
-                     groupName="IDEA Platform Inspections" enabledByDefault="true" level="WARNING"
+                     groupName="IntelliJ IDEA Platform Inspections" enabledByDefault="true" level="WARNING"
                      implementationClass="com.intellij.codeInspection.internal.UndesirableClassUsageInspection"/>
     <localInspection language="JAVA" shortName="FileEqualsUsage" displayName="File.equals() usage"
-                     groupName="IDEA Platform Inspections" enabledByDefault="true" level="WARNING"
+                     groupName="IntelliJ IDEA Platform Inspections" enabledByDefault="true" level="WARNING"
                      implementationClass="com.intellij.codeInspection.internal.FileEqualsUsageInspection"/>
     <localInspection language="JAVA" shortName="GtkPreferredJComboBoxRenderer" displayName="Preferred JComboBox renderer"
-                     groupName="IDEA Platform Inspections" enabledByDefault="true" level="WARNING"
+                     groupName="IntelliJ IDEA Platform Inspections" enabledByDefault="true" level="WARNING"
                      implementationClass="com.intellij.codeInspection.internal.GtkPreferredJComboBoxRendererInspection"/>
     <localInspection language="JAVA" shortName="UnsafeVfsRecursion" displayName="Unsafe VFS recursion"
-                     groupName="IDEA Platform Inspections" enabledByDefault="true" level="WARNING"
+                     groupName="IntelliJ IDEA Platform Inspections" enabledByDefault="true" level="WARNING"
                      implementationClass="com.intellij.codeInspection.internal.UnsafeVfsRecursionInspection"/>
 
     <fileTypeFactory implementation="com.intellij.openapi.fileTypes.impl.JavaFileTypeFactory"/>
@@ -254,6 +254,8 @@
     <completion.contributor language="any" implementationClass="com.intellij.codeInsight.completion.JavaMethodMergingContributor" id="methodMerger"
                             order="before javaLegacy, before default"/>
     <completion.contributor language="JAVA" implementationClass="com.intellij.codeInsight.completion.JavaMemberNameCompletionContributor" id="javaMemberName"
+                            order="before javaOverride"/>
+    <completion.contributor language="JAVA" implementationClass="com.intellij.codeInsight.completion.JavaOverrideCompletionContributor" id="javaOverride"
                             order="before javaLegacy"/>
     <completion.contributor language="any" implementationClass="com.intellij.codeInsight.completion.JavaClassNameCompletionContributor" id="javaClassName"
                             order="last, before default"/>
@@ -1076,8 +1078,9 @@
     <favoriteNodeProvider implementation="com.intellij.ide.favoritesTreeView.PsiMethodFavoriteNodeProvider"/>
     <favoriteNodeProvider implementation="com.intellij.ide.favoritesTreeView.PsiPackageFavoriteNodeProvider"/>
     <favoriteNodeProvider implementation="com.intellij.ide.favoritesTreeView.UsageFavoriteNodeProvider"/>
-    <favoritesListProvider implementation="com.intellij.ide.favoritesTreeView.ProjectDefaultFavoriteListProvider"/>
+    <!-- <favoritesListProvider implementation="com.intellij.ide.favoritesTreeView.ProjectDefaultFavoriteListProvider"/> -->
     <!-- <favoritesListProvider implementation="com.intellij.ide.favoritesTreeView.TaskDefaultFavoriteListProvider"/> -->
+    <favoritesListProvider implementation="com.intellij.ide.bookmarks.BookmarksFavoriteListProvider"/>
 
     <configurationType implementation="com.intellij.execution.applet.AppletConfigurationType"/>
     <configurationProducer implementation="com.intellij.execution.applet.AppletConfigurationProducer"/>
@@ -1339,6 +1342,8 @@
     -->
     <wizardMode implementation="com.intellij.ide.util.newProjectWizard.modes.CreateProjectFromSourcesMode" id="CreateProjectFromSourcesMode" order="after CreateFromScratchMode"/>
     <wizardMode implementation="com.intellij.ide.util.newProjectWizard.modes.CreateModuleFromSourcesMode" id="CreateModuleFromSourcesMode" order="after CreateProjectFromSourcesMode"/>
+
+    <projectTemplateParameterFactory implementation="com.intellij.openapi.module.BasePackageParameterFactory"/>
 
     <projectStructureDetector implementation="com.intellij.ide.util.projectWizard.importSources.impl.JavaProjectStructureDetector" order="first"/>
 
