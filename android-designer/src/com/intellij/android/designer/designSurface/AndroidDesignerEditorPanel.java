@@ -116,6 +116,8 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
   private int myProfileLastVersion;
   private WrapInProvider myWrapInProvider;
   private boolean myZoomRequested = true;
+  private RootView myRootView;
+  private boolean myShowingRoot;
 
   /** Zoom level (1 = 100%). TODO: Persist this setting across IDE sessions (on a per file basis) */
   private double myZoom = 1;
@@ -240,9 +242,16 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
     createRenderer(parser.getLayoutXmlText(), new MyThrowable(), new ThrowableConsumer<RenderSession, Throwable>() {
       @Override
       public void consume(RenderSession session) throws Throwable {
-        final RootView rootView = new RootView(AndroidDesignerEditorPanel.this, 0, 0, session.getImage(), session.isAlphaChannelImage());
+        boolean insertPanel = !myShowingRoot;
+        if (myRootView == null) {
+          myRootView = new RootView(AndroidDesignerEditorPanel.this, 0, 0, session.getImage(), session.isAlphaChannelImage());
+          insertPanel = true;
+        } else {
+          myRootView.setImage(session.getImage(), session.isAlphaChannelImage());
+          myRootView.updateSize();
+        }
         try {
-          parser.updateRootComponent(myLastRenderedConfiguration, session, rootView);
+          parser.updateRootComponent(myLastRenderedConfiguration, session, myRootView);
         }
         catch (Throwable e) {
           myRootComponent = parser.getRootComponent();
@@ -259,48 +268,50 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
         newRootComponent.setClientProperty(PropertyParser.KEY, propertyParser);
         propertyParser.loadRecursive(newRootComponent);
 
-        // Use a custom layout manager which adjusts the margins/padding around the designer canvas
-        // dynamically; it will try to use DEFAULT_HORIZONTAL_MARGIN * DEFAULT_VERTICAL_MARGIN, but
-        // if there is not enough room, it will split the margins evenly in each dimension until
-        // there is no room available without scrollbars.
-        JPanel rootPanel = new JPanel(new LayoutManager() {
-          @Override
-          public void addLayoutComponent(String s, Component component) {
-          }
-
-          @Override
-          public void removeLayoutComponent(Component component) {
-          }
-
-          @Override
-          public Dimension preferredLayoutSize(Container container) {
-            return new Dimension(0, 0);
-          }
-
-          @Override
-          public Dimension minimumLayoutSize(Container container) {
-            return new Dimension(0, 0);
-          }
-
-          @Override
-          public void layoutContainer(Container container) {
-            rootView.updateBounds(false);
-            int x = Math.max(2, Math.min(DEFAULT_HORIZONTAL_MARGIN, (container.getWidth() - rootView.getWidth()) / 2));
-            int y = Math.max(2, Math.min(DEFAULT_VERTICAL_MARGIN, (container.getHeight() - rootView.getHeight()) / 2));
-            rootView.setLocation(x, y);
-          }
-        });
-
-        //rootPanel.setBackground(JBColor.WHITE);
-        rootPanel.setBackground(Gray._150);
-        rootPanel.add(rootView);
-
-        removeNativeRoot();
         myRootComponent = newRootComponent;
+
+        if (insertPanel) {
+          // Use a custom layout manager which adjusts the margins/padding around the designer canvas
+          // dynamically; it will try to use DEFAULT_HORIZONTAL_MARGIN * DEFAULT_VERTICAL_MARGIN, but
+          // if there is not enough room, it will split the margins evenly in each dimension until
+          // there is no room available without scrollbars.
+          JPanel rootPanel = new JPanel(new LayoutManager() {
+            @Override
+            public void addLayoutComponent(String s, Component component) {
+            }
+
+            @Override
+            public void removeLayoutComponent(Component component) {
+            }
+
+            @Override
+            public Dimension preferredLayoutSize(Container container) {
+              return new Dimension(0, 0);
+            }
+
+            @Override
+            public Dimension minimumLayoutSize(Container container) {
+              return new Dimension(0, 0);
+            }
+
+            @Override
+            public void layoutContainer(Container container) {
+              myRootView.updateBounds(false);
+              int x = Math.max(2, Math.min(DEFAULT_HORIZONTAL_MARGIN, (container.getWidth() - myRootView.getWidth()) / 2));
+              int y = Math.max(2, Math.min(DEFAULT_VERTICAL_MARGIN, (container.getHeight() - myRootView.getHeight()) / 2));
+              myRootView.setLocation(x, y);
+            }
+          });
+
+          rootPanel.setBackground(Gray._150);
+          rootPanel.add(myRootView);
+          myLayeredPane.add(rootPanel, LAYER_COMPONENT);
+          myShowingRoot = true;
+        }
+        autoZoom();
+
         loadInspections(new EmptyProgressIndicator());
         updateInspections();
-        myLayeredPane.add(rootPanel, LAYER_COMPONENT);
-        autoZoom();
 
         myParseTime = false;
 
@@ -554,6 +565,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
       Component component = ((RadVisualComponent)myRootComponent).getNativeComponent();
       if (component != null) {
         myLayeredPane.remove(component.getParent());
+        myShowingRoot = false;
       }
     }
   }
