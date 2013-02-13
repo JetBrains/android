@@ -18,6 +18,7 @@ package com.intellij.android.designer.designSurface.layout;
 import com.android.SdkConstants;
 import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
+import com.intellij.android.designer.designSurface.graphics.LineInsertFeedback;
 import com.intellij.android.designer.designSurface.layout.actions.ResizeOperation;
 import com.intellij.android.designer.designSurface.layout.flow.FlowBaseOperation;
 import com.intellij.android.designer.model.ModelParser;
@@ -286,12 +287,85 @@ public class LinearLayoutOperation extends FlowBaseOperation {
     protected void paintComponent(Graphics g) {
       super.paintComponent(g);
 
-      if (myHorizontal) {
-        paintHorizontalCell(g);
+      // Paint outline of inserted component, if there's just one:
+      if (myComponents.size() == 1) {
+        RadComponent first = myComponents.get(0);
+        Rectangle b = first.getBounds(this);
+        if (b.isEmpty()) {
+          b.width = 100;
+          b.height = 30;
+        }
+        Rectangle bounds;
+        if (myHorizontal) {
+          bounds = computeHorizontalPreviewBounds(b);
+        }
+        else {
+          bounds = computeVerticalPreviewBounds(b);
+        }
+
+        Shape clip = g.getClip();
+        g.setClip(bounds);
+        DesignerGraphics.drawRect(DrawingStyle.DROP_PREVIEW, g, bounds.x, bounds.y, bounds.width, bounds.height);
+        g.setClip(clip);
+      } else {
+        // Multiple components: Just show insert line
+        if (myHorizontal) {
+          paintHorizontalCell(g);
+        }
+        else {
+          paintVerticalCell(g);
+        }
       }
-      else {
-        paintVerticalCell(g);
+    }
+
+    private Rectangle computeVerticalPreviewBounds(Rectangle b) {
+      int x = 0;
+      int y = 0;
+      if (!myContainer.getChildren().isEmpty()) {
+        y -= b.height / 2;
       }
+
+      if (myGravity == Gravity.center) {
+        x = getWidth() / 2 - b.width / 2;
+      }
+      else if (myGravity == null) {
+        x = 0;
+        b.width = getWidth();
+      }
+      else if (myGravity == Gravity.right) {
+        x = getWidth() - b.width;
+      }
+
+      int hSpace = Math.min(5, Math.max(1, getWidth() / 30));
+      if (hSpace > 1) {
+        x += hSpace;
+      }
+      return new Rectangle(x, y, b.width, b.height);
+    }
+
+    private Rectangle computeHorizontalPreviewBounds(Rectangle b) {
+      int x = 0;
+      int y = 0;
+      if (!myContainer.getChildren().isEmpty()) {
+        x -= b.width / 2;
+      }
+
+      if (myGravity == Gravity.center) {
+        y = getHeight() / 2 - b.height / 2;
+      }
+      else if (myGravity == null) {
+        y = 0;
+        b.height = getHeight();
+      }
+      else if (myGravity == Gravity.bottom) {
+        y = getHeight() - b.height;
+      }
+
+      int vSpace = Math.min(5, Math.max(1, getHeight() / 30));
+      if (vSpace > 1) {
+        y += vSpace;
+      }
+      return new Rectangle(x, y, b.width, b.height);
     }
 
     private void paintHorizontalCell(Graphics g) {
