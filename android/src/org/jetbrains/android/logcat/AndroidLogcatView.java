@@ -36,6 +36,7 @@ import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.CollectionListModel;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ListCellRendererWrapper;
@@ -340,28 +341,10 @@ public abstract class AndroidLogcatView implements Disposable {
       return null;
     }
 
-    Pattern logMessagePattern = null;
-    final String logMessagePatternStr = entry.getLogMessagePattern();
-    if (logMessagePatternStr != null && logMessagePatternStr.length() > 0) {
-      try {
-        logMessagePattern = Pattern.compile(logMessagePatternStr, AndroidConfiguredLogFilters.getPatternCompileFlags(logMessagePatternStr));
-      }
-      catch (PatternSyntaxException e) {
-        LOG.info(e);
-      }
-    }
+    Pattern logMessagePattern = compilePattern(entry.getLogMessagePattern());
+    Pattern logTagPattern = compilePattern(entry.getLogTagPattern());
+    Pattern pkgNamePattern = compilePattern(entry.getPackageNamePattern());
 
-    Pattern logTagPattern = null;
-    final String logTagPatternStr = entry.getLogTagPattern();
-    if (logTagPatternStr != null && logTagPatternStr.length() > 0) {
-      try {
-        logTagPattern = Pattern.compile(logTagPatternStr, AndroidConfiguredLogFilters.getPatternCompileFlags(logTagPatternStr));
-      }
-      catch (PatternSyntaxException e) {
-        LOG.info(e);
-      }
-    }
-    
     final String pid = entry.getPid();
 
     Log.LogLevel logLevel = null;
@@ -370,7 +353,22 @@ public abstract class AndroidLogcatView implements Disposable {
       logLevel = Log.LogLevel.getByString(logLevelStr);
     }
 
-    return new ConfiguredFilter(name, logMessagePattern, logTagPattern, pid, logLevel);
+    return new ConfiguredFilter(name, logMessagePattern, logTagPattern, pkgNamePattern,
+                                pid, logLevel);
+  }
+
+  private static Pattern compilePattern(String pattern) {
+    Pattern p = null;
+    if (StringUtil.isNotEmpty(pattern)) {
+      try {
+        p = Pattern.compile(pattern, AndroidConfiguredLogFilters.getPatternCompileFlags(pattern));
+      }
+      catch (PatternSyntaxException e) {
+        LOG.info(e);
+      }
+    }
+
+    return p;
   }
 
   public void activate() {

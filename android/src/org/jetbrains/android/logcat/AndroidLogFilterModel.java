@@ -40,6 +40,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
 
   private Log.LogLevel myPrevMessageLogLevel;
   private String myPrevTag;
+  private String myPrevPkg;
   private String myPrevPid;
   private boolean myFullMessageApplicable = false;
   private boolean myFullMessageApplicableByCustomFilter = false;
@@ -130,6 +131,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
 
     Log.LogLevel logLevel = null;
     String tag = null;
+    String pkg = null;
     String pid = null;
     String message = text;
 
@@ -138,6 +140,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
       LogMessageHeader header = result.getFirst();
       logLevel = header.myLogLevel;
       tag = header.myTag;
+      pkg = header.myAppPackage;
       pid = Integer.toString(header.myPid);
       if (result.getSecond() != null) {
         message = result.getSecond();
@@ -147,7 +150,9 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
     if (tag == null) {
       tag = myPrevTag;
     }
-    
+    if (pkg == null) {
+      pkg = myPrevPkg;
+    }
     if (pid == null) {
       pid = myPrevPid;
     }
@@ -155,7 +160,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
       logLevel = myPrevMessageLogLevel;
     }
 
-    return configuredFilterName.isApplicable(message, tag, pid, logLevel);
+    return configuredFilterName.isApplicable(message, tag, pkg, pid, logLevel);
   }
 
   public List<? extends LogFilter> getLogFilters() {
@@ -218,6 +223,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
   public void processingStarted() {
     myPrevMessageLogLevel = null;
     myPrevTag = null;
+    myPrevPkg = null;
     myPrevPid = null;
     myFullMessageApplicable = false;
     myFullMessageApplicableByCustomFilter = false;
@@ -237,6 +243,10 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
 
       if (!header.myTag.isEmpty()) {
         myPrevTag = header.myTag;
+      }
+
+      if (!header.myAppPackage.isEmpty()) {
+        myPrevPkg = header.myAppPackage;
       }
 
       if (header.myPid != 0) {

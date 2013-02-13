@@ -13,27 +13,35 @@ class ConfiguredFilter {
   private final String myName;
   private final Pattern myMessagePattern;
   private final Pattern myTagPattern;
+  private final Pattern myPkgNamePattern;
   private final String myPid;
   private final Log.LogLevel myLogLevel;
 
   public ConfiguredFilter(@NotNull String name,
                           @Nullable Pattern messagePattern,
                           @Nullable Pattern tagPattern,
+                          @Nullable Pattern pkgNamePattern,
                           @Nullable String pid,
                           @Nullable Log.LogLevel logLevel) {
     myName = name;
     myMessagePattern = messagePattern;
     myTagPattern = tagPattern;
+    myPkgNamePattern = pkgNamePattern;
     myPid = pid;
     myLogLevel = logLevel;
   }
   
-  public boolean isApplicable(String message, String tag, String pid, Log.LogLevel logLevel) {
+  public boolean isApplicable(String message, String tag, String pkg,
+                              String pid, Log.LogLevel logLevel) {
     if (myMessagePattern != null && (message == null || !myMessagePattern.matcher(message).find())) {
       return false;
     }
 
     if (myTagPattern != null && (tag == null || !myTagPattern.matcher(tag).find())) {
+      return false;
+    }
+
+    if (myPkgNamePattern != null && (pkg == null || !myPkgNamePattern.matcher(pkg).find())) {
       return false;
     }
 
