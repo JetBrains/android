@@ -93,6 +93,7 @@ public class AndroidConfiguredLogFilters implements PersistentStateComponent<And
     private String myLogLevel;
     private String myLogTagPattern;
     private String myPid;
+    private String myPackageNamePattern;
 
     public String getName() {
       return myName;
@@ -132,6 +133,14 @@ public class AndroidConfiguredLogFilters implements PersistentStateComponent<And
 
     public void setPid(String pid) {
       myPid = pid;
+    }
+
+    public String getPackageNamePattern() {
+      return myPackageNamePattern;
+    }
+
+    public void setPackageNamePattern(String packageNamePattern) {
+      myPackageNamePattern = packageNamePattern;
     }
   }
 }
