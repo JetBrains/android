@@ -17,9 +17,7 @@ package com.intellij.android.designer.model.layout.relative;
 
 import com.intellij.android.designer.designSurface.TreeDropToOperation;
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
-import com.intellij.android.designer.designSurface.layout.RelativeLayoutOperation;
-import com.intellij.android.designer.designSurface.layout.actions.RelativeLayoutResizeOperation;
-import com.intellij.android.designer.designSurface.layout.relative.RelativeDecorator;
+import com.intellij.android.designer.designSurface.graphics.ResizeSelectionDecorator;
 import com.intellij.android.designer.model.PropertyParser;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.RadViewLayoutWithData;
@@ -29,7 +27,6 @@ import com.intellij.android.designer.propertyTable.JavadocParser;
 import com.intellij.android.designer.propertyTable.RelativeIdAttributeProperty;
 import com.intellij.designer.componentTree.TreeEditOperation;
 import com.intellij.designer.designSurface.*;
-import com.intellij.android.designer.designSurface.graphics.ResizeSelectionDecorator;
 import com.intellij.designer.model.Property;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.propertyTable.PropertyTable;
@@ -46,7 +43,7 @@ import java.util.List;
 public class RadRelativeLayout extends RadViewLayoutWithData implements ILayoutDecorator {
   private static final String[] LAYOUT_PARAMS = {"RelativeLayout_Layout", "ViewGroup_MarginLayout"};
 
-  private RelativeDecorator myRelativeDecorator;
+  private RelativeLayoutDecorator myRelativeDecorator;
   private ResizeSelectionDecorator mySelectionDecorator;
 
   @NotNull
@@ -104,7 +101,7 @@ public class RadRelativeLayout extends RadViewLayoutWithData implements ILayoutD
         }
         return null;
       }
-      return new RelativeLayoutOperation(myContainer, context);
+      return new RelativeLayoutDropOperation(myContainer, context);
     }
     if (context.is(RelativeLayoutResizeOperation.TYPE)) {
       return new RelativeLayoutResizeOperation(context);
@@ -112,9 +109,9 @@ public class RadRelativeLayout extends RadViewLayoutWithData implements ILayoutD
     return null;
   }
 
-  private RelativeDecorator getRelativeDecorator() {
+  private StaticDecorator getRelativeDecorator() {
     if (myRelativeDecorator == null) {
-      myRelativeDecorator = new RelativeDecorator(myContainer);
+      myRelativeDecorator = new RelativeLayoutDecorator(myContainer);
     }
     return myRelativeDecorator;
   }
@@ -136,7 +133,7 @@ public class RadRelativeLayout extends RadViewLayoutWithData implements ILayoutD
   public ComponentDecorator getChildSelectionDecorator(RadComponent component, List<RadComponent> selection) {
     if (mySelectionDecorator == null) {
       mySelectionDecorator = new ResizeSelectionDecorator(DrawingStyle.SELECTION);
-      RelativeLayoutResizeOperation.points(mySelectionDecorator);
+      RelativeLayoutResizeOperation.addResizePoints(mySelectionDecorator);
     }
     return mySelectionDecorator;
   }
