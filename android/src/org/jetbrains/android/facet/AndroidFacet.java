@@ -58,10 +58,7 @@ import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.JarFileSystem;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.*;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
@@ -495,10 +492,18 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
             }
             myPrevSdk = newSdk;
 
-            PsiDocumentManager.getInstance(getModule().getProject()).commitAllDocuments();
+            final Project project = getModule().getProject();
+            PsiDocumentManager.getInstance(project).commitAllDocuments();
 
-            final PropertiesFile projectProperties = AndroidRootUtil.findPropertyFile(getModule(), SdkConstants.FN_PROJECT_PROPERTIES);
-            if (projectProperties == null) {
+            final Pair<PropertiesFile, VirtualFile> pair =
+              AndroidRootUtil.findPropertyFile(getModule(), SdkConstants.FN_PROJECT_PROPERTIES);
+            if (pair == null) {
+              return;
+            }
+            final PropertiesFile projectProperties = pair.getFirst();
+            final VirtualFile projectPropertiesVFile = pair.getSecond();
+
+            if (!ReadonlyStatusHandler.ensureFilesWritable(project, projectPropertiesVFile)) {
               return;
             }
             final Pair<Properties, VirtualFile> localProperties = 
