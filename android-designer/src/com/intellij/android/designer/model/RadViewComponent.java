@@ -456,4 +456,23 @@ public class RadViewComponent extends RadVisualComponent {
 
     return margins;
   }
+
+  /** Extracts the {@link RadViewComponent} elements from the list */
+  @NotNull
+  @SuppressWarnings("unchecked")
+  public static List<RadViewComponent> getViewComponents(@NotNull List<RadComponent> components) {
+    for (RadComponent component : components) {
+      if (!(component instanceof RadViewComponent)) {
+        List<RadViewComponent> newList = new ArrayList<RadViewComponent>(components.size() - 1);
+        for (RadComponent c : components) {
+          if (c instanceof RadViewComponent) {
+            newList.add((RadViewComponent)c);
+          }
+        }
+        return newList;
+      }
+    }
+
+    return (List<RadViewComponent>)(List)components;
+  }
 }

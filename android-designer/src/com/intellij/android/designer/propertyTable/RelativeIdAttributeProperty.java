@@ -15,15 +15,16 @@
  */
 package com.intellij.android.designer.propertyTable;
 
-import com.intellij.android.designer.designSurface.layout.RelativeLayoutOperation;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.layout.relative.RadRelativeLayoutComponent;
+import com.intellij.android.designer.model.layout.relative.RelativeLayoutDropOperation;
 import com.intellij.android.designer.propertyTable.editors.ComponentEditor;
 import com.intellij.android.designer.propertyTable.renderers.ComponentRenderer;
 import com.intellij.designer.model.PropertiesContainer;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.propertyTable.PropertyEditor;
 import com.intellij.designer.propertyTable.PropertyRenderer;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
@@ -66,11 +67,13 @@ public class RelativeIdAttributeProperty extends AttributeProperty {
   }
 
   @Override
-  protected PropertyEditor createResourceEditor(AttributeDefinition definition, Set<AttributeFormat> formats) {
+  protected PropertyEditor createResourceEditor(final AttributeDefinition definition, Set<AttributeFormat> formats) {
     return new ComponentEditor(createRenderer()) {
       @Override
       protected List<RadComponent> getComponents(RadComponent component) {
-        return RelativeLayoutOperation.getSnapComponents(component.getParent(), Arrays.asList(component));
+        RadComponent layout = component.getParent();
+        List<RadViewComponent> views = Arrays.asList((RadViewComponent)component);
+        return RelativeLayoutDropOperation.getValidTargets(definition.getName(), (RadViewComponent)layout, views);
       }
     };
   }

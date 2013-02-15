@@ -33,6 +33,12 @@ public class DrawingStyle {
   /** Whether we should show a static border around selected views */
   public static final boolean SHOW_STATIC_BORDERS = false;
 
+  /**
+   * The maximum number of pixels will be considered a "match" when snapping
+   * resize or move positions to edges or other constraints
+   */
+  public static final int MAX_MATCH_DISTANCE = 20;
+
   private static final BasicStroke SOLID_STROKE = new BasicStroke(1.0f);
   private static final BasicStroke THICK_SOLID_STROKE = new BasicStroke(2.0f);
   private static final BasicStroke DOTTED_STROKE = new BasicStroke(1.0f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f,

@@ -30,6 +30,7 @@ import com.intellij.psi.xml.XmlTag;
  */
 public class AbsoluteLayout {
   public static RadViewComponent RelativeLayout(RadViewComponent component, MetaModel target) throws Exception {
+    // *Relative*Layout here seems wrong
     return new ComponentMorphingTool(component, new RadRelativeLayoutComponent(), target, new RadRelativeLayout()) {
       @Override
       protected void convertTag() {

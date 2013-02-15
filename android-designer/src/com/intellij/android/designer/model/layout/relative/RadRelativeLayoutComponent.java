@@ -16,71 +16,40 @@
 package com.intellij.android.designer.model.layout.relative;
 
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.SdkConstants;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.RadViewContainer;
+import com.intellij.designer.model.IComponentDeletionParticipant;
 import com.intellij.designer.model.RadComponent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Alexander Lobas
  */
-public class RadRelativeLayoutComponent extends RadViewContainer {
+public class RadRelativeLayoutComponent extends RadViewContainer implements IComponentDeletionParticipant {
+  @Override
+  public boolean deleteChildren(@NotNull RadComponent parent, @NotNull List<RadComponent> deleted) {
+    List<RadViewComponent> deletedComponents = RadViewComponent.getViewComponents(deleted);
+    List<RadViewComponent> movedComponents = Collections.emptyList();
+    RadViewComponent relativeLayout = (RadViewComponent)parent;
+    final DeletionHandler handler = new DeletionHandler(deletedComponents, movedComponents, relativeLayout);
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        handler.updateConstraints();
+      }
+    });
+    return false;
+  }
+
   @Override
   public void setViewInfo(ViewInfo viewInfo) {
     super.setViewInfo(viewInfo);
-
-    Map<String, RadViewComponent> idToComponent = new HashMap<String, RadViewComponent>();
-    for (RadComponent child : getChildren()) {
-      RadViewComponent viewChild = (RadViewComponent)child;
-      String id = parseIdValue(viewChild.getId());
-      if (id != null) {
-        idToComponent.put(id, viewChild);
-      }
-    }
-
-    Map<RadComponent, RelativeInfo> relativeInfos = new HashMap<RadComponent, RelativeInfo>();
-    setClientProperty(RelativeInfo.KEY, relativeInfos);
-
-    for (RadComponent child : getChildren()) {
-      RelativeInfo info = new RelativeInfo();
-      relativeInfos.put(child, info);
-
-      XmlTag tag = ((RadViewComponent)child).getTag();
-
-      info.alignTop = getComponent(idToComponent, tag, "layout_alignTop");
-      info.alignBottom = getComponent(idToComponent, tag, "layout_alignBottom");
-      info.alignLeft = getComponent(idToComponent, tag, "layout_alignLeft");
-      info.alignRight = getComponent(idToComponent, tag, "layout_alignRight");
-      info.alignBaseline = getComponent(idToComponent, tag, "layout_alignBaseline");
-      info.above = getComponent(idToComponent, tag, "layout_above");
-      info.below = getComponent(idToComponent, tag, "layout_below");
-      info.toLeftOf = getComponent(idToComponent, tag, "layout_toLeftOf");
-      info.toRightOf = getComponent(idToComponent, tag, "layout_toRightOf");
-
-      info.parentTop = "true".equals(tag.getAttributeValue("layout_alignParentTop", SdkConstants.NS_RESOURCES));
-      info.parentBottom = "true".equals(tag.getAttributeValue("layout_alignParentBottom", SdkConstants.NS_RESOURCES));
-      info.parentLeft = "true".equals(tag.getAttributeValue("layout_alignParentLeft", SdkConstants.NS_RESOURCES));
-      info.parentRight = "true".equals(tag.getAttributeValue("layout_alignParentRight", SdkConstants.NS_RESOURCES));
-
-      info.parentCenterHorizontal = "true".equals(tag.getAttributeValue("layout_centerHorizontal", SdkConstants.NS_RESOURCES));
-      info.parentCenterVertical = "true".equals(tag.getAttributeValue("layout_centerVertical", SdkConstants.NS_RESOURCES));
-
-      String center = tag.getAttributeValue("layout_centerInParent", SdkConstants.NS_RESOURCES);
-      if (!StringUtil.isEmpty(center)) {
-        info.parentCenterHorizontal = info.parentCenterVertical = "true".equals(center);
-      }
-    }
-  }
-
-  @Nullable
-  private static RadViewComponent getComponent(Map<String, RadViewComponent> idToComponent, XmlTag tag, String attribute) {
-    return idToComponent.get(parseIdValue(tag.getAttributeValue(attribute, SdkConstants.NS_RESOURCES)));
+    DependencyGraph.refresh(this);
   }
 
   public static String parseIdValue(String idValue) {
