@@ -465,6 +465,9 @@ public class RenderUtil {
     return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
       @Override
       public String compute() {
+        if (facet.getModule().isDisposed()) {
+          return DEFAULT_APP_LABEL;
+        }
         final Manifest manifest = facet.getManifest();
         if (manifest != null) {
           final Application application = manifest.getApplication();
