@@ -409,7 +409,7 @@ public class AndroidRootUtil {
   }
 
   @Nullable
-  public static PropertiesFile findPropertyFile(@NotNull final Module module, @NotNull String propertyFileName) {
+  public static Pair<PropertiesFile, VirtualFile> findPropertyFile(@NotNull final Module module, @NotNull String propertyFileName) {
     for (VirtualFile contentRoot : ModuleRootManager.getInstance(module).getContentRoots()) {
       final VirtualFile vFile = contentRoot.findChild(propertyFileName);
       if (vFile != null) {
@@ -421,7 +421,7 @@ public class AndroidRootUtil {
           }
         });
         if (psiFile instanceof PropertiesFile) {
-          return (PropertiesFile)psiFile;
+          return Pair.create((PropertiesFile)psiFile, vFile);
         }
       }
     }
