@@ -42,7 +42,7 @@ import java.util.Map;
 public class RadViewComponent extends RadVisualComponent {
   private final List<RadComponent> myChildren = new ArrayList<RadComponent>();
   protected ViewInfo myViewInfo;
-  private Rectangle myMargins;
+  private Margins myMargins;
   private XmlTag myTag;
   private List<Property> myProperties;
   private PaletteItem myPaletteItem;
@@ -123,23 +123,31 @@ public class RadViewComponent extends RadVisualComponent {
     return -1;
   }
 
-  public Rectangle getMargins() {
+  public Margins getMargins() {
     if (myMargins == null) {
-      myMargins = new Rectangle();
-
       try {
         Object layoutParams = myViewInfo.getLayoutParamsObject();
         Class<?> layoutClass = layoutParams.getClass();
 
-        myMargins.x = fixDefault(layoutClass.getField("leftMargin").getInt(layoutParams));
-        myMargins.y = fixDefault(layoutClass.getField("topMargin").getInt(layoutParams));
-        myMargins.width = fixDefault(layoutClass.getField("rightMargin").getInt(layoutParams));
-        myMargins.height = fixDefault(layoutClass.getField("bottomMargin").getInt(layoutParams));
+        int left = fixDefault(layoutClass.getField("leftMargin").getInt(layoutParams));
+        int top = fixDefault(layoutClass.getField("topMargin").getInt(layoutParams));
+        int right = fixDefault(layoutClass.getField("rightMargin").getInt(layoutParams));
+        int bottom = fixDefault(layoutClass.getField("bottomMargin").getInt(layoutParams));
+        myMargins = new Margins(left, top, right, bottom);
       }
       catch (Throwable e) {
+        myMargins = Margins.NONE;
       }
     }
     return myMargins;
+  }
+
+  public Margins getMargins(Component relativeTo) {
+    Margins margins = getMargins();
+    if (margins.isEmpty()) {
+      return margins;
+    }
+    return fromModel(relativeTo, margins);
   }
 
   private static int fixDefault(int value) {
@@ -409,5 +417,43 @@ public class RadViewComponent extends RadVisualComponent {
     return new Dimension(
       (int)(w / dpi),
       (int)(h / dpi));
+  }
+
+  public Margins fromModel(@NotNull Component target, @NotNull Margins margins) {
+    if (margins.isEmpty()) {
+      return margins;
+    }
+
+    Component myNativeComponent = getNativeComponent();
+
+    if (target != myNativeComponent && myNativeComponent instanceof ScalableComponent) {
+      ScalableComponent scalableComponent = (ScalableComponent)myNativeComponent;
+      double zoom = scalableComponent.getScale();
+      if (zoom != 1) {
+        return new Margins((int)(margins.left * zoom), (int)(margins.top * zoom), (int)(margins.right * zoom),
+                           (int)(margins.bottom * zoom));
+      }
+    }
+
+    return margins;
+  }
+
+  public Margins toModel(@NotNull Component source, @NotNull Margins margins) {
+    if (margins.isEmpty()) {
+      return margins;
+    }
+
+    Component myNativeComponent = getNativeComponent();
+
+    if (source != myNativeComponent && myNativeComponent instanceof ScalableComponent) {
+      ScalableComponent scalableComponent = (ScalableComponent)myNativeComponent;
+      double zoom = scalableComponent.getScale();
+      if (zoom != 1) {
+        return new Margins((int)(margins.left / zoom), (int)(margins.top / zoom), (int)(margins.right / zoom),
+                           (int)(margins.bottom / zoom));
+      }
+    }
+
+    return margins;
   }
 }

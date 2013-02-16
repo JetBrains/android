@@ -17,6 +17,7 @@ package com.intellij.android.designer.designSurface.layout.relative;
 
 import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
+import com.intellij.android.designer.model.Margins;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.layout.relative.RelativeInfo;
 import com.intellij.designer.designSurface.DecorationLayer;
@@ -116,21 +117,21 @@ public class RelativeDecorator extends StaticDecorator {
                                                    RadViewComponent component,
                                                    RelativeInfo info) {
     Rectangle componentBounds = component.getBounds(layer);
-    Rectangle margins = component.getMargins();
+    Margins margins = component.getMargins();
 
-    if (info.parentTop && margins.y > 0) {
+    if (info.parentTop && margins.top > 0) {
       int x = componentBounds.x + componentBounds.width / 2;
       DesignerGraphics.drawArrow(DrawingStyle.GUIDELINE, g, x, componentBounds.y, x, containerBounds.y);
     }
-    if (info.parentBottom && margins.height > 0) {
+    if (info.parentBottom && margins.bottom > 0) {
       int x = componentBounds.x + componentBounds.width / 2;
       DesignerGraphics.drawArrow(DrawingStyle.GUIDELINE, g, x, containerBounds.y, x, componentBounds.y + componentBounds.height);
     }
-    if (info.parentLeft && margins.x > 0) {
+    if (info.parentLeft && margins.left > 0) {
       int y = componentBounds.y + componentBounds.height / 2;
       DesignerGraphics.drawArrow(DrawingStyle.GUIDELINE, g, componentBounds.x, y, containerBounds.x, y);
     }
-    if (info.parentRight && margins.width > 0) {
+    if (info.parentRight && margins.right > 0) {
       int y = componentBounds.y + componentBounds.height / 2;
       DesignerGraphics.drawArrow(DrawingStyle.GUIDELINE, g, containerBounds.x, y, componentBounds.x + componentBounds.width, y);
     }

@@ -42,22 +42,16 @@ public abstract class FlowStaticDecorator extends StaticDecorator {
     if (isHorizontal()) {
       for (RadComponent child : component.getChildren()) {
         Rectangle childBounds = child.getBounds(layer);
-        int marginWidth = ((RadViewComponent)child).getMargins().width;
-        if (marginWidth != 0) {
-          marginWidth = child.fromModel(layer, new Dimension(marginWidth, 0)).width;
-        }
-        int x = childBounds.x + childBounds.width + marginWidth;
+        int marginRight = ((RadViewComponent)child).getMargins(layer).right;
+        int x = childBounds.x + childBounds.width + marginRight;
         g.drawLine(x, bounds.y, x, bounds.y + bounds.height);
       }
     }
     else {
       for (RadComponent child : component.getChildren()) {
         Rectangle childBounds = child.getBounds(layer);
-        int marginHeight = ((RadViewComponent)child).getMargins().height;
-        if (marginHeight != 0) {
-          marginHeight = child.fromModel(layer, new Dimension(0, marginHeight)).height;
-        }
-        int y = childBounds.y + childBounds.height + marginHeight;
+        int marginBottom = ((RadViewComponent)child).getMargins(layer).bottom;
+        int y = childBounds.y + childBounds.height + marginBottom;
         g.drawLine(bounds.x, y, bounds.x + bounds.width, y);
       }
     }
