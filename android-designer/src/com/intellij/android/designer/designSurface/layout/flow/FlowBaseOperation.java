@@ -19,6 +19,7 @@ import com.intellij.android.designer.designSurface.AbstractEditOperation;
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.designSurface.graphics.LineInsertFeedback;
 import com.intellij.android.designer.designSurface.graphics.RectangleFeedback;
+import com.intellij.android.designer.model.Margins;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.designer.designSurface.FeedbackLayer;
 import com.intellij.designer.designSurface.OperationContext;
@@ -39,26 +40,20 @@ public class FlowBaseOperation extends com.intellij.designer.designSurface.FlowB
   protected Rectangle getBounds(RadComponent component, FeedbackLayer layer) {
     Rectangle bounds = component.getBounds(layer);
 
-    Rectangle margins = ((RadViewComponent)component).getMargins();
-    if (margins.x == 0 && margins.y == 0 && margins.width == 0 && margins.height == 0) {
+    Margins margins = ((RadViewComponent)component).getMargins(layer);
+
+    if (margins.isEmpty()) {
       return bounds;
     }
 
-    // Margin x and y are not actually x and y coordinates; they are
-    // dimensions on the left and top sides. Therefore, we should NOT
-    // use Rectangle bounds conversion operations, since they will
-    // shift coordinate systems
-    Dimension topLeft = component.fromModel(layer, new Dimension(margins.x, margins.y));
-    Dimension bottomRight = component.fromModel(layer, new Dimension(margins.width, margins.height));
+    bounds.x -= margins.left;
+    bounds.width += margins.left;
 
-    bounds.x -= topLeft.width;
-    bounds.width += topLeft.width;
+    bounds.y -= margins.top;
+    bounds.height += margins.top;
 
-    bounds.y -= topLeft.height;
-    bounds.height += topLeft.height;
-
-    bounds.width += bottomRight.width;
-    bounds.height += bottomRight.height;
+    bounds.width += margins.right;
+    bounds.height += margins.bottom;
 
     return bounds;
   }

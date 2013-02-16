@@ -253,22 +253,16 @@ public class LinearLayoutOperation extends FlowBaseOperation {
       if (myHorizontal) {
         for (RadComponent child : component.getChildren()) {
           Rectangle childBounds = child.getBounds(this);
-          int marginWidth = ((RadViewComponent)child).getMargins().width;
-          if (marginWidth != 0) {
-            marginWidth = child.fromModel(this, new Dimension(marginWidth, 0)).width;
-          }
-          int x = childBounds.x + childBounds.width + marginWidth;
+          int marginRight = ((RadViewComponent)child).getMargins(this).right;
+          int x = childBounds.x + childBounds.width + marginRight;
           DesignerGraphics.drawLine(DrawingStyle.DROP_ZONE, g, x, bounds.y, x, bounds.y + bounds.height);
         }
       }
       else {
         for (RadComponent child : component.getChildren()) {
           Rectangle childBounds = child.getBounds(this);
-          int marginHeight = ((RadViewComponent)child).getMargins().height;
-          if (marginHeight != 0) {
-            marginHeight = child.fromModel(this, new Dimension(0, marginHeight)).height;
-          }
-          int y = childBounds.y + childBounds.height + marginHeight;
+          int marginBottom = ((RadViewComponent)child).getMargins(this).bottom;
+          int y = childBounds.y + childBounds.height + marginBottom;
           DesignerGraphics.drawLine(DrawingStyle.DROP_ZONE, g, bounds.x, y, bounds.x + bounds.width, y);
         }
       }
