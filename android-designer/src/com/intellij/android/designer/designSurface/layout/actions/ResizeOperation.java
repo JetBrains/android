@@ -36,15 +36,16 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ArrayUtil;
 
 import java.awt.*;
+import java.awt.event.InputEvent;
 import java.util.List;
+
+import static com.intellij.android.designer.designSurface.graphics.DrawingStyle.MAX_MATCH_DISTANCE;
 
 /**
  * @author Alexander Lobas
  */
 public class ResizeOperation implements EditOperation {
   public static final String TYPE = "resize_children";
-
-  private static final int SNAP_DELTA = 4;
 
   private final OperationContext myContext;
   private RadViewComponent myComponent;
@@ -199,16 +200,18 @@ public class ResizeOperation implements EditOperation {
     myBounds.width = Math.max(myBounds.width, 0);
     myBounds.height = Math.max(myBounds.height, 0);
 
-    int direction = myContext.getResizeDirection();
-
-    if ((direction & Position.EAST) != 0) {
-      if (!snapToWidth(myBounds, myWrapSize, SNAP_DELTA)) {
-        snapToWidth(myBounds, myFillSize, SNAP_DELTA);
+    // Snap, unless Shift key is pressed
+    if ((myContext.getModifiers() & InputEvent.SHIFT_MASK) == 0) {
+      int direction = myContext.getResizeDirection();
+      if ((direction & Position.EAST) != 0) {
+        if (!snapToWidth(myBounds, myWrapSize)) {
+          snapToWidth(myBounds, myFillSize);
+        }
       }
-    }
-    if ((direction & Position.SOUTH) != 0) {
-      if (!snapToHeight(myBounds, myWrapSize, SNAP_DELTA)) {
-        snapToHeight(myBounds, myFillSize, SNAP_DELTA);
+      if ((direction & Position.SOUTH) != 0) {
+        if (!snapToHeight(myBounds, myWrapSize)) {
+          snapToHeight(myBounds, myFillSize);
+        }
       }
     }
 
@@ -256,16 +259,16 @@ public class ResizeOperation implements EditOperation {
     }
   }
 
-  private static boolean snapToWidth(Rectangle bounds, Dimension size, int delta) {
-    if (Math.abs(bounds.width - size.width) < delta) {
+  private static boolean snapToWidth(Rectangle bounds, Dimension size) {
+    if (Math.abs(bounds.width - size.width) < MAX_MATCH_DISTANCE) {
       bounds.width = size.width;
       return true;
     }
     return false;
   }
 
-  private static boolean snapToHeight(Rectangle bounds, Dimension size, int delta) {
-    if (Math.abs(bounds.height - size.height) < delta) {
+  private static boolean snapToHeight(Rectangle bounds, Dimension size) {
+    if (Math.abs(bounds.height - size.height) < MAX_MATCH_DISTANCE) {
       bounds.height = size.height;
       return true;
     }
