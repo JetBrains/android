@@ -284,6 +284,21 @@ public class RadViewComponent extends RadVisualComponent {
   }
 
   @Override
+  public boolean isSameType(@NotNull RadComponent other) {
+    if (myTag != null) {
+      if (!(other instanceof RadViewComponent)) {
+        return false;
+      }
+      RadViewComponent otherView = (RadViewComponent)other;
+      if (otherView.myTag == null) {
+        return false;
+      }
+      return myTag.getName().equals(otherView.myTag.getName());
+    }
+    return super.isSameType(other);
+  }
+
+  @Override
   public RadComponent morphingTo(MetaModel target) throws Exception {
     return new ComponentMorphingTool(this, this, target, null).result();
   }
