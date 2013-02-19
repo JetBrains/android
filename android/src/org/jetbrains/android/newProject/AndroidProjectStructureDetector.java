@@ -6,8 +6,6 @@ import com.intellij.ide.util.importProject.ProjectDescriptor;
 import com.intellij.ide.util.projectWizard.importSources.DetectedProjectRoot;
 import com.intellij.ide.util.projectWizard.importSources.ProjectFromSourcesBuilder;
 import com.intellij.ide.util.projectWizard.importSources.ProjectStructureDetector;
-import com.intellij.ide.util.projectWizard.importSources.impl.JavaProjectStructureDetector;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
@@ -41,13 +39,14 @@ public class AndroidProjectStructureDetector extends ProjectStructureDetector {
   public void setupProjectStructure(@NotNull Collection<DetectedProjectRoot> roots,
                                     @NotNull ProjectDescriptor projectDescriptor,
                                     @NotNull ProjectFromSourcesBuilder builder) {
-    final JavaProjectStructureDetector detector =
-      Extensions.findExtension(ProjectStructureDetector.EP_NAME, JavaProjectStructureDetector.class);
-    final Collection<DetectedProjectRoot> javaProjectRoots = builder.getProjectRoots(detector);
-    final List<File> javaSourceRoots = new ArrayList<File>(javaProjectRoots.size());
+    final List<File> existingRoots = new ArrayList<File>();
 
-    for (DetectedProjectRoot root : javaProjectRoots) {
-      javaSourceRoots.add(root.getDirectory());
+    for (ProjectStructureDetector detector : ProjectStructureDetector.EP_NAME.getExtensions()) {
+      if (detector != this) {
+        for (DetectedProjectRoot root : builder.getProjectRoots(detector)) {
+          existingRoots.add(root.getDirectory());
+        }
+      }
     }
     final List<ModuleDescriptor> modules = new ArrayList<ModuleDescriptor>();
 
@@ -55,7 +54,7 @@ public class AndroidProjectStructureDetector extends ProjectStructureDetector {
       final File dir = root.getDirectory();
       boolean javaSrcRootInside = false;
 
-      for (File javaSourceRoot : javaSourceRoots) {
+      for (File javaSourceRoot : existingRoots) {
         if (FileUtil.isAncestor(dir, javaSourceRoot, false)) {
           javaSrcRootInside = true;
         }
