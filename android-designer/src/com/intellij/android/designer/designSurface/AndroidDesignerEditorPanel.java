@@ -31,6 +31,7 @@ import com.intellij.android.designer.model.*;
 import com.intellij.android.designer.profile.ProfileManager;
 import com.intellij.designer.DesignerEditor;
 import com.intellij.designer.DesignerToolWindowManager;
+import com.intellij.designer.actions.DesignerActionPanel;
 import com.intellij.designer.componentTree.TreeComponentDecorator;
 import com.intellij.designer.designSurface.*;
 import com.intellij.android.designer.designSurface.graphics.NonResizeSelectionDecorator;
@@ -194,6 +195,11 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
     };
     myActionPanel.registerAction(gotoDeclaration, IdeActions.ACTION_GOTO_DECLARATION);
     myActionPanel.getPopupGroup().add(gotoDeclaration);
+  }
+
+  @Override
+  protected DesignerActionPanel createActionPanel() {
+    return new AndroidDesignerActionPanel(this, myGlassLayer);
   }
 
   @NotNull
