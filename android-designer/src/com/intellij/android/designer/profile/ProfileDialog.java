@@ -15,8 +15,8 @@
  */
 package com.intellij.android.designer.profile;
 
+import com.android.tools.idea.configurations.FlatComboAction;
 import com.intellij.designer.ModuleProvider;
-import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Disposer;
@@ -319,7 +319,7 @@ public class ProfileDialog extends DialogWrapper {
     private final JCheckBox myVisible;
     private ActionListener myListener;
 
-    public ProfileElement(JPanel parent, String name, ComboBoxAction action) {
+    public ProfileElement(JPanel parent, String name, FlatComboAction action) {
       GridBagConstraints gbc = new GridBagConstraints();
       gbc.anchor = GridBagConstraints.LINE_START;
 

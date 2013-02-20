@@ -25,8 +25,8 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.devices.State;
+import com.intellij.android.designer.actions.AbstractComboBoxAction;
 import com.intellij.designer.ModuleProvider;
-import com.intellij.designer.actions.AbstractComboBoxAction;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
@@ -34,6 +34,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.*;
 import org.jetbrains.android.uipreview.LocaleData;
@@ -41,6 +42,7 @@ import org.jetbrains.android.uipreview.ThemeData;
 import org.jetbrains.android.uipreview.UserDeviceManager;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.*;
 
 import static com.android.sdklib.devices.DeviceManager.DEFAULT_DEVICES;
@@ -86,7 +88,7 @@ public class ProfileManager implements Disposable {
     };
     Disposer.register(this, myUserDeviceManager);
 
-    myDeviceAction = new MyComboBoxAction<DeviceWrapper>() {
+    myDeviceAction = new MyComboBoxAction<DeviceWrapper>(AndroidIcons.Display) {
       @Override
       protected boolean selectionChanged(DeviceWrapper item) {
         if (item == NO_DEVICES) {
@@ -106,7 +108,7 @@ public class ProfileManager implements Disposable {
       }
     };
 
-    myDeviceConfigurationAction = new MyComboBoxAction<State>() {
+    myDeviceConfigurationAction = new MyComboBoxAction<State>(AndroidIcons.FlipPortrait) {
       @Override
       protected boolean selectionChanged(State item) {
         updateDeviceConfiguration(item);
@@ -117,7 +119,7 @@ public class ProfileManager implements Disposable {
       }
     };
 
-    myTargetAction = new MyComboBoxAction<IAndroidTarget>() {
+    myTargetAction = new MyComboBoxAction<IAndroidTarget>(AndroidIcons.Android) {
       @Override
       protected boolean selectionChanged(IAndroidTarget item) {
         updateTarget(item);
@@ -128,7 +130,7 @@ public class ProfileManager implements Disposable {
       }
     };
 
-    myLocaleAction = new MyComboBoxAction<LocaleData>() {
+    myLocaleAction = new MyComboBoxAction<LocaleData>(AndroidIcons.Globe) {
       @Override
       protected boolean selectionChanged(LocaleData item) {
         updateLocale(item);
@@ -139,7 +141,7 @@ public class ProfileManager implements Disposable {
       }
     };
 
-    myDockModeAction = new MyComboBoxAction<UiMode>() {
+    myDockModeAction = new MyComboBoxAction<UiMode>(AndroidIcons.DockMode) {
       @Override
       protected boolean selectionChanged(UiMode item) {
         myProfile.setDockMode(item.getResourceValue());
@@ -150,7 +152,7 @@ public class ProfileManager implements Disposable {
       }
     };
 
-    myNightModeAction = new MyComboBoxAction<NightMode>() {
+    myNightModeAction = new MyComboBoxAction<NightMode>(AndroidIcons.Nightmode) {
       @Override
       protected boolean selectionChanged(NightMode item) {
         myProfile.setNightMode(item.getResourceValue());
@@ -197,6 +199,7 @@ public class ProfileManager implements Disposable {
       }
     };
     myThemeAction.showDisabledActions(true);
+    myThemeAction.getTemplatePresentation().setIcon(AndroidIcons.Themes);
   }
 
   public void setProfile(Profile profile) {
@@ -603,6 +606,12 @@ public class ProfileManager implements Disposable {
   }
 
   private static abstract class MyComboBoxAction<T> extends AbstractComboBoxAction<T> {
+    MyComboBoxAction(Icon icon) {
+      if (icon != null) {
+        getTemplatePresentation().setIcon(icon);
+      }
+    }
+
     @Override
     protected void update(T item, Presentation presentation, boolean popup) {
       presentation.setEnabled(item != null);
