@@ -66,7 +66,7 @@ public class AndroidProjectStructureDetector extends ProjectStructureDetector {
           Collections.<DetectedProjectRoot>emptyList()));
       }
     }
-    projectDescriptor.appendModules(modules);
+    projectDescriptor.setModules(modules);
   }
 
   private static class AndroidProjectRoot extends DetectedProjectRoot {
