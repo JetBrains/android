@@ -20,7 +20,7 @@ import com.intellij.android.designer.profile.Profile;
 import com.intellij.android.designer.profile.ProfileDialog;
 import com.intellij.android.designer.profile.ProfileList;
 import com.intellij.android.designer.profile.ProfileManager;
-import com.intellij.designer.actions.AbstractComboBoxAction;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -90,9 +90,11 @@ public class ProfileAction implements Disposable {
         return item != EDIT_PROFILE;
       }
     };
+    myProfileAction.getTemplatePresentation().setIcon(AllIcons.FileTypes.Xml);
 
     DefaultActionGroup designerActionGroup = myDesigner.getActionPanel().getActionGroup();
     designerActionGroup.add(myProfileAction);
+    designerActionGroup.addSeparator();
     designerActionGroup.add(myActionGroup);
 
     updateActions();
@@ -121,24 +123,33 @@ public class ProfileAction implements Disposable {
 
     if (profile.isShowDevice()) {
       myActionGroup.add(myProfileManager.getDeviceAction());
+      myActionGroup.addSeparator();
     }
     if (profile.isShowDeviceConfiguration()) {
       myActionGroup.add(myProfileManager.getDeviceConfigurationAction());
+      myActionGroup.addSeparator();
     }
-    if (profile.isShowTarget()) {
-      myActionGroup.add(myProfileManager.getTargetAction());
-    }
-    if (profile.isShowLocale()) {
-      myActionGroup.add(myProfileManager.getLocaleAction());
-    }
+    /*
     if (profile.isShowDockMode()) {
       myActionGroup.add(myProfileManager.getDockModeAction());
+      myActionGroup.addSeparator();
     }
     if (profile.isShowNightMode()) {
       myActionGroup.add(myProfileManager.getNightModeAction());
+      myActionGroup.addSeparator();
     }
+    */
     if (profile.isShowTheme()) {
       myActionGroup.add(myProfileManager.getThemeAction());
+      myActionGroup.addSeparator();
+    }
+    if (profile.isShowLocale()) {
+      myActionGroup.add(myProfileManager.getLocaleAction());
+      myActionGroup.addSeparator();
+    }
+    if (profile.isShowTarget()) {
+      myActionGroup.add(myProfileManager.getTargetAction());
+      myActionGroup.addSeparator();
     }
 
     myDesigner.getActionPanel().update();

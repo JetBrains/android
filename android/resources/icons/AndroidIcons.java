@@ -26,4 +26,18 @@ public class AndroidIcons {
   public static final Icon Renderscript = load("/icons/renderscript.png"); // 16x16
   public static final Icon ErrorBadge = load("/icons/error-badge.png"); // 16x16
   public static final Icon WarningBadge = load("/icons/warning-badge.png"); // 16x16
+
+  public static final Icon ArrowDown = load("/icons/comboArrow.png"); // 16x16
+
+  public static final Icon Globe = load("/icons/globe.png"); // 16x16
+  public static final Icon Square = load("/icons/square.png"); // 16x16
+  public static final Icon Landscape = load("/icons/landscape.png"); // 16x16
+  public static final Icon Portrait = load("/icons/portrait.png"); // 16x16
+  public static final Icon FlipLandscape = load("/icons/flip_landscape.png"); // 16x16
+  public static final Icon FlipPortrait = load("/icons/flip_portrait.png"); // 16x16
+  public static final Icon Display = load("/icons/display.png"); // 16x16
+  public static final Icon Themes = load("/icons/themes.png"); // 16x16
+  public static final Icon DockMode = load("/icons/dockmode.png"); // 16x16
+  public static final Icon Nightmode = load("/icons/nightmode.png"); // 16x16
+
 }
