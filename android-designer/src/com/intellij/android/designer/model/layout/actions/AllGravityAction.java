@@ -37,7 +37,7 @@ import java.util.List;
  * @author Alexander Lobas
  */
 public class AllGravityAction extends AbstractGravityAction<Gravity> {
-  public AllGravityAction(DesignerEditorPanel designer, List<RadComponent> components) {
+  public AllGravityAction(DesignerEditorPanel designer, List<? extends RadViewComponent> components) {
     super(designer, components);
     setItems(Arrays.asList(Gravity.values()), null);
   }
@@ -47,7 +47,7 @@ public class AllGravityAction extends AbstractGravityAction<Gravity> {
   @NotNull
   @Override
   protected DefaultActionGroup createPopupActionGroup(JComponent button) {
-    Iterator<RadComponent> I = myComponents.iterator();
+    Iterator<? extends RadViewComponent> I = myComponents.iterator();
     int flags = Gravity.getFlags(I.next());
     while (I.hasNext()) {
       if (flags != Gravity.getFlags(I.next())) {

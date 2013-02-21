@@ -1,11 +1,11 @@
 /*
- * Copyright 2000-2012 JetBrains s.r.o.
+ * Copyright (C) 2013 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,43 +15,46 @@
  */
 package com.intellij.android.designer.model.layout.actions;
 
-import com.intellij.android.designer.actions.AbstractComboBoxAction;
-import com.intellij.android.designer.model.RadViewComponent;
-import com.intellij.android.designer.model.layout.Gravity;
 import com.intellij.designer.designSurface.DesignerEditorPanel;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.util.ThrowableRunnable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import javax.swing.*;
 
-/**
- * @author Alexander Lobas
- */
-public abstract class AbstractGravityAction<T> extends AbstractComboBoxAction<T> {
-  private final DesignerEditorPanel myDesigner;
-  protected final List<? extends RadViewComponent> myComponents;
+public abstract class LayoutAction extends AnAction {
+  protected final DesignerEditorPanel myDesigner;
 
-  public AbstractGravityAction(DesignerEditorPanel designer, List<? extends RadViewComponent> components) {
+  protected LayoutAction(@NotNull DesignerEditorPanel designer, @NotNull String description, @Nullable String label, @Nullable Icon icon) {
     myDesigner = designer;
-    myComponents = components;
-
     Presentation presentation = getTemplatePresentation();
-    presentation.setDescription("Gravity");
-    presentation.setIcon(Gravity.ICON);
+    presentation.setDescription(description);
+    if (label != null) {
+      presentation.setText(label);
+    }
+    if (icon != null) {
+      presentation.setIcon(icon);
+    }
   }
 
-  protected final void execute(final Runnable command) {
+  @Override
+  public void actionPerformed(AnActionEvent e) {
     myDesigner.getToolProvider().execute(new ThrowableRunnable<Exception>() {
       @Override
       public void run() throws Exception {
         ApplicationManager.getApplication().runWriteAction(new Runnable() {
           @Override
           public void run() {
-            command.run();
+            performWriteAction();
           }
         });
       }
-    }, "Change attribute 'gravity'", true);
+    }, getTemplatePresentation().getDescription(), true);
   }
+
+  protected abstract void performWriteAction();
 }

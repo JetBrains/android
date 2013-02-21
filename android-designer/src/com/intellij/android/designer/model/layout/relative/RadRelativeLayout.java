@@ -148,33 +148,9 @@ public class RadRelativeLayout extends RadViewLayoutWithData implements ILayoutD
   public void addContainerSelectionActions(DesignerEditorPanel designer,
                                            DefaultActionGroup actionGroup,
                                            JComponent shortcuts,
-                                           List<RadComponent> selection) {
-    if (selection.get(selection.size() - 1) != myContainer) {
-      return;
-    }
-    for (RadComponent component : selection) {
-      if (!(component.getLayout() instanceof RadRelativeLayout)) {
-        return;
-      }
-    }
+                                           List<? extends RadViewComponent> selection) {
+    super.addContainerSelectionActions(designer, actionGroup, shortcuts, selection);
 
-    actionGroup.add(new AllGravityAction(designer, Arrays.asList(myContainer)));
-  }
-
-  @Override
-  public void addSelectionActions(DesignerEditorPanel designer,
-                                  DefaultActionGroup actionGroup,
-                                  JComponent shortcuts,
-                                  List<RadComponent> selection) {
-    if (selection.get(selection.size() - 1).getParent() != myContainer) {
-      return;
-    }
-    for (RadComponent component : selection) {
-      if (!(component.getParent() instanceof RadRelativeLayoutComponent)) {
-        return;
-      }
-    }
-
-    actionGroup.add(new AllGravityAction(designer, Arrays.asList(myContainer)));
+    actionGroup.add(new AllGravityAction(designer, selection));
   }
 }

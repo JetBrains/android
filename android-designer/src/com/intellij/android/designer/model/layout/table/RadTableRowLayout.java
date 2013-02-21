@@ -19,6 +19,7 @@ import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.designSurface.layout.actions.LayoutSpanOperation;
 import com.intellij.android.designer.designSurface.layout.actions.TableLayoutSpanOperation;
 import com.intellij.android.designer.designSurface.layout.grid.GridSelectionDecorator;
+import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.grid.GridInfo;
 import com.intellij.android.designer.model.layout.RadLinearLayout;
 import com.intellij.android.designer.model.layout.actions.AllGravityAction;
@@ -30,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -75,6 +77,11 @@ public class RadTableRowLayout extends RadLinearLayout {
     if (!isTableParent()) {
       super.addStaticDecorators(decorators, selection);
     }
+  }
+
+  @Override
+  protected boolean supportsOrientation() {
+    return false;
   }
 
   @Override
@@ -125,35 +132,15 @@ public class RadTableRowLayout extends RadLinearLayout {
   //
   //////////////////////////////////////////////////////////////////////////////////////////
 
+
   @Override
   public void addContainerSelectionActions(DesignerEditorPanel designer,
                                            DefaultActionGroup actionGroup,
                                            JComponent shortcuts,
-                                           List<RadComponent> selection) {
-    if (!isTableParent()) {
-      super.addContainerSelectionActions(designer, actionGroup, shortcuts, selection);
-    }
-  }
-
-  @Override
-  public void addSelectionActions(DesignerEditorPanel designer,
-                                  DefaultActionGroup actionGroup,
-                                  JComponent shortcuts,
-                                  List<RadComponent> selection) {
+                                           List<? extends RadViewComponent> selectedChildren) {
+    super.addContainerSelectionActions(designer, actionGroup, shortcuts, selectedChildren);
     if (isTableParent()) {
-      if (selection.get(selection.size() - 1).getParent() != myContainer) {
-        return;
-      }
-      for (RadComponent component : selection) {
-        if (!is(component.getParent())) {
-          return;
-        }
-      }
-
-      actionGroup.add(new AllGravityAction(designer, selection));
-    }
-    else {
-      super.addSelectionActions(designer, actionGroup, shortcuts, selection);
+      actionGroup.add(new AllGravityAction(designer, selectedChildren));
     }
   }
 

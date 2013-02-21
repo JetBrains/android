@@ -27,8 +27,7 @@ import com.intellij.android.designer.designSurface.layout.flow.FlowStaticDecorat
 import com.intellij.android.designer.model.ModelParser;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.RadViewLayoutWithData;
-import com.intellij.android.designer.model.layout.actions.AbstractGravityAction;
-import com.intellij.android.designer.model.layout.actions.OrientationAction;
+import com.intellij.android.designer.model.layout.actions.*;
 import com.intellij.designer.componentTree.TreeEditOperation;
 import com.intellij.designer.designSurface.*;
 import com.intellij.designer.designSurface.selection.ResizePoint;
@@ -187,45 +186,72 @@ public class RadLinearLayout extends RadViewLayoutWithData implements ILayoutDec
   //
   //////////////////////////////////////////////////////////////////////////////////////////
 
+  /**
+   * Returns true if this LinearLayout supports switching orientation.
+   *
+   * @return true if this layout supports orientations
+   */
+  protected boolean supportsOrientation() {
+    return true;
+  }
+
   @Override
   public void addContainerSelectionActions(DesignerEditorPanel designer,
                                            DefaultActionGroup actionGroup,
                                            JComponent shortcuts,
-                                           List<RadComponent> selection) {
-    if (selection.get(selection.size() - 1) != myContainer) {
-      return;
+                                           List<? extends RadViewComponent> selectedChildren) {
+    RadViewComponent layout = (RadViewComponent)myContainer;
+    List<? extends RadViewComponent> children = RadViewComponent.getViewComponents(layout.getChildren());
+
+    boolean addSeparator = false;
+    if (supportsOrientation()) {
+      actionGroup.add(new OrientationAction(designer, layout, true));
+      addSeparator = true;
     }
-    for (RadComponent component : selection) {
-      if (!(component.getLayout() instanceof RadLinearLayout)) {
-        return;
-      }
+    if (isHorizontal()) {
+      actionGroup.add(new BaselineAction(designer, layout));
+      addSeparator = true;
+    }
+    if (addSeparator) {
+      actionGroup.addSeparator();
+      addSeparator = false;
+    }
+    if (!selectedChildren.isEmpty()) {
+      actionGroup.add(new GravityAction(designer, selectedChildren));
+      addSeparator = true;
     }
 
-    createOrientationAction(designer, actionGroup, shortcuts, selection);
+    // TODO: Create margin action?
+
+    if (addSeparator) {
+      actionGroup.addSeparator();
+    }
+
+    // Add in wrap width/height actions from the parent
+    super.addContainerSelectionActions(designer, actionGroup, shortcuts, selectedChildren);
+
+    actionGroup.addSeparator();
+
+    // For some actions (clear weights, distribute weights), if you've selected just one child, we want
+    // the action to work as if it's operating on all the children. If however you select multiple children,
+    // we're distributing the width among just those children.
+    List<? extends RadViewComponent> multipleChildren = selectedChildren.size() <= 1 ? children : selectedChildren;
+
+    actionGroup.add(new DistributeWeightsAction(designer, layout, multipleChildren));
+    if (!selectedChildren.isEmpty()) {
+      actionGroup.add(new DominateWeightsAction(designer, layout, selectedChildren));
+      actionGroup.add(new AssignWeightAction(designer, layout, selectedChildren));
+    }
+    actionGroup.add(new ClearWeightsAction(designer, layout, multipleChildren));
   }
 
   private static final List<Gravity> HORIZONTALS = Arrays.asList(Gravity.left, Gravity.center, Gravity.right, null);
   private static final List<Gravity> VERTICALS = Arrays.asList(Gravity.top, Gravity.center, Gravity.bottom, null);
 
-  @Override
-  public void addSelectionActions(DesignerEditorPanel designer,
-                                  DefaultActionGroup actionGroup,
-                                  JComponent shortcuts,
-                                  List<RadComponent> selection) {
-    for (RadComponent component : selection) {
-      if (component.getParent() != myContainer) {
-        return;
-      }
-    }
-
-    createOrientationAction(designer, actionGroup, shortcuts, Arrays.asList(myContainer));
-    actionGroup.add(new GravityAction(designer, selection));
-  }
-
   private class GravityAction extends AbstractGravityAction<Gravity> {
     private Gravity mySelection;
 
-    public GravityAction(DesignerEditorPanel designer, List<RadComponent> components) {
+    public GravityAction(DesignerEditorPanel designer, List<? extends RadViewComponent> components) {
       super(designer, components);
     }
 
@@ -236,7 +262,8 @@ public class RadLinearLayout extends RadViewLayoutWithData implements ILayoutDec
       Gravity unknown = horizontal ? Gravity.left : Gravity.top;
       setItems(horizontal ? VERTICALS : HORIZONTALS, unknown);
 
-      Iterator<RadComponent> I = myComponents.iterator();
+      Iterator<? extends RadComponent> iterator = myComponents.iterator();
+      Iterator<? extends RadViewComponent> I = myComponents.iterator();
       mySelection = LinearLayoutOperation.getGravity(horizontal, I.next());
 
       while (I.hasNext()) {
@@ -272,25 +299,6 @@ public class RadLinearLayout extends RadViewLayoutWithData implements ILayoutDec
     @Override
     public void update() {
     }
-  }
-
-  private static void createOrientationAction(DesignerEditorPanel designer,
-                                              DefaultActionGroup actionGroup,
-                                              JComponent shortcuts,
-                                              List<RadComponent> components) {
-    boolean override = false;
-    Iterator<RadComponent> I = components.iterator();
-    boolean horizontal = ((RadLinearLayout)I.next().getLayout()).isHorizontal();
-
-    while (I.hasNext()) {
-      boolean next = ((RadLinearLayout)I.next().getLayout()).isHorizontal();
-      if (horizontal != next) {
-        override = true;
-        break;
-      }
-    }
-
-    actionGroup.add(new OrientationAction(designer, components, horizontal, override));
   }
 
   @Override

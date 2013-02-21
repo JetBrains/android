@@ -126,15 +126,18 @@ public class RadFrameLayout extends RadViewLayoutWithData {
             Pair.create(Boolean.TRUE, Gravity.center), Pair.create(Boolean.TRUE, Gravity.right));
 
   @Override
-  public void addSelectionActions(DesignerEditorPanel designer,
-                                  DefaultActionGroup actionGroup,
-                                  JComponent shortcuts,
-                                  List<RadComponent> selection) {
+  public void addContainerSelectionActions(DesignerEditorPanel designer,
+                                           DefaultActionGroup actionGroup,
+                                           JComponent shortcuts,
+                                           List<? extends RadViewComponent> selection) {
+    super.addContainerSelectionActions(designer, actionGroup, shortcuts, selection);
+
     if (selection.size() != 1) {
       return;
     }
 
-    AbstractGravityAction<Pair<Boolean, Gravity>> action = new AbstractGravityAction<Pair<Boolean, Gravity>>(designer, selection) {
+    AbstractGravityAction<Pair<Boolean, Gravity>> action =
+      new AbstractGravityAction<Pair<Boolean, Gravity>>(designer, selection) {
       private Pair<Gravity, Gravity> myGravity;
 
       @Override
@@ -173,7 +176,7 @@ public class RadFrameLayout extends RadViewLayoutWithData {
           execute(new Runnable() {
             @Override
             public void run() {
-              ((RadViewComponent)myComponents.get(0)).getTag().setAttribute("layout_gravity", SdkConstants.NS_RESOURCES, gravity);
+              myComponents.get(0).getTag().setAttribute("layout_gravity", SdkConstants.NS_RESOURCES, gravity);
             }
           });
         }

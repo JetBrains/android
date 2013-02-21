@@ -475,7 +475,7 @@ public class RadViewComponent extends RadVisualComponent {
   /** Extracts the {@link RadViewComponent} elements from the list */
   @NotNull
   @SuppressWarnings("unchecked")
-  public static List<RadViewComponent> getViewComponents(@NotNull List<RadComponent> components) {
+  public static List<RadViewComponent> getViewComponents(@NotNull List<? extends RadComponent> components) {
     for (RadComponent component : components) {
       if (!(component instanceof RadViewComponent)) {
         List<RadViewComponent> newList = new ArrayList<RadViewComponent>(components.size() - 1);
