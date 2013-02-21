@@ -41,7 +41,6 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
     //  testAllLintChecksRegistered(file.getProject());
     // at runtime instead and captured the output.
 
-    testAllLintChecksRegistered(myFixture.getProject());
     //assertTrue(testAllLintChecksRegistered(myFixture.getProject()));
   }
 

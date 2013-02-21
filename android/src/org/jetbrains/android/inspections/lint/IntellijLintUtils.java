@@ -187,8 +187,8 @@ public class IntellijLintUtils {
 
 
   /**
-   * Computes the internal class name of the given fully qualified class name.
-   * For example, it converts foo.bar.Foo.Bar into foo/bar/Foo$Bar
+   * Computes the internal class name of the given class.
+   * For example, for PsiClass foo.bar.Foo.Bar it returns foo/bar/Foo$Bar.
    *
    * @param psiClass the class to look up the internal name for
    * @return the internal class name
@@ -219,6 +219,29 @@ public class IntellijLintUtils {
       sig = ClassContext.getInternalName(sig);
     }
     return sig;
+  }
+
+  /**
+   * Computes the internal class name of the given class type.
+   * For example, for PsiClassType foo.bar.Foo.Bar it returns foo/bar/Foo$Bar.
+   *
+   * @param psiClassType the class type to look up the internal name for
+   * @return the internal class name
+   * @see ClassContext#getInternalName(String)
+   */
+  @Nullable
+  public static String getInternalName(@NonNull PsiClassType psiClassType) {
+    PsiClass resolved = psiClassType.resolve();
+    if (resolved != null) {
+      return getInternalName(resolved);
+    }
+
+    String className = psiClassType.getClassName();
+    if (className != null) {
+      return ClassContext.getInternalName(className);
+    }
+
+    return null;
   }
 
   /**
