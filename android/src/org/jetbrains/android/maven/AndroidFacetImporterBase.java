@@ -29,8 +29,10 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.libraries.Library;
+import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
@@ -38,6 +40,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.PathUtil;
 import com.intellij.util.Processor;
@@ -461,7 +464,6 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
 
       if (sdk != null) {
         apklibModuleModel.setSdk(sdk);
-        moveJdkOrderEntryDown(apklibModuleModel);
       }
       else {
         reportCannotFindAndroidPlatformError(apklibModuleName, apiLevel);
@@ -692,28 +694,6 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
         reportCannotFindAndroidPlatformError(model.getModule().getName(), apiLevel);
       }
     }
-    moveJdkOrderEntryDown(model);
-  }
-
-  private static void moveJdkOrderEntryDown(@NotNull ModifiableRootModel model) {
-    final OrderEntry[] entries = model.getOrderEntries();
-    final List<OrderEntry> entryList = new ArrayList<OrderEntry>(Arrays.asList(entries));
-    OrderEntry jdkOrderEntry = null;
-
-    for (Iterator<OrderEntry> it = entryList.iterator(); it.hasNext(); ) {
-      final OrderEntry entry = it.next();
-      if (entry instanceof JdkOrderEntry) {
-        jdkOrderEntry = entry;
-        it.remove();
-        break;
-      }
-    }
-
-    if (jdkOrderEntry != null) {
-      entryList.add(jdkOrderEntry);
-    }
-
-    model.rearrangeOrderEntries(entryList.toArray(new OrderEntry[entryList.size()]));
   }
 
   private boolean isAppropriateSdk(@NotNull Sdk sdk, MavenProject mavenProject) {
@@ -736,7 +716,9 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       return false;
     }
 
-    return AndroidSdkUtils.targetHasId(androidPlatform.getTarget(), platformId);
+    final IAndroidTarget target = androidPlatform.getTarget();
+    return AndroidSdkUtils.targetHasId(target, platformId) &&
+           AndroidSdkUtils.checkSdkRoots(sdk, target, true);
   }
 
   @Nullable
@@ -781,15 +763,48 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       if (sdkData != null) {
         IAndroidTarget target = sdkData.findTargetByApiLevel(apiLevel);
         if (target != null) {
-          Sdk library = AndroidSdkUtils.findAppropriateAndroidPlatform(target, sdkData);
+          Sdk library = AndroidSdkUtils.findAppropriateAndroidPlatform(target, sdkData, true);
           if (library == null) {
-            library = AndroidSdkUtils.createNewAndroidPlatform(target, sdkPath, true);
+            library = createNewAndroidSdkForMaven(sdkPath, target);
           }
           return library;
         }
       }
     }
     return null;
+  }
+
+  @Nullable
+  private static Sdk createNewAndroidSdkForMaven(String sdkPath, IAndroidTarget target) {
+    final String sdkName = "Maven " + AndroidSdkUtils.chooseNameForNewLibrary(target);
+    final Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(target, sdkPath, false, sdkName);
+
+    if (sdk == null) {
+      return null;
+    }
+    final SdkModificator modificator = sdk.getSdkModificator();
+
+    for (OrderRoot root : AndroidSdkUtils.getLibraryRootsForTarget(target, sdkPath, false)) {
+      modificator.addRoot(root.getFile(), root.getType());
+    }
+    final AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+
+    if (data != null) {
+      final Sdk javaSdk = data.getJavaSdk();
+      LOG.assertTrue(javaSdk != null, "AndroidSdkUtils.createNewAndroidPlatform should return " +
+                                      "Android SDK with a valid JDK reference, or return null");
+      if (javaSdk != null) {
+        for (String entry : javaSdk.getRootProvider().getUrls(OrderRootType.CLASSES)) {
+          final VirtualFile file = VirtualFileManager.getInstance().findFileByUrl(entry);
+
+          if (file != null) {
+            modificator.addRoot(file, OrderRootType.CLASSES);
+          }
+        }
+      }
+    }
+    modificator.commitChanges();
+    return sdk;
   }
 
   @Nullable
