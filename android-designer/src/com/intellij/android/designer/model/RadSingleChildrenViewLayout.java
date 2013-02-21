@@ -18,8 +18,16 @@ package com.intellij.android.designer.model;
 import com.intellij.android.designer.designSurface.DropToOperation;
 import com.intellij.android.designer.designSurface.TreeDropToOperation;
 import com.intellij.designer.componentTree.TreeEditOperation;
+import com.intellij.designer.designSurface.DesignerEditorPanel;
 import com.intellij.designer.designSurface.EditOperation;
 import com.intellij.designer.designSurface.OperationContext;
+import com.intellij.designer.model.RadComponent;
+import com.intellij.designer.model.RadLayout;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+
+import javax.swing.*;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Alexander Lobas
@@ -40,5 +48,27 @@ public class RadSingleChildrenViewLayout extends RadViewLayout {
     }
 
     return null;
+  }
+
+  @Override
+  public void addContainerSelectionActions(DesignerEditorPanel designer,
+                                           DefaultActionGroup actionGroup,
+                                           JComponent shortcuts,
+                                           List<? extends RadViewComponent> selection) {
+
+    // Add in the selection actions on the child
+    if (!myContainer.getChildren().isEmpty()) {
+      RadComponent component = myContainer.getChildren().get(0);
+      RadLayout layout = component.getLayout();
+      if (layout instanceof RadViewLayout) {
+        ((RadViewLayout) layout).addContainerSelectionActions(designer, actionGroup, shortcuts,
+                                                              Collections.<RadViewComponent>emptyList());
+        if (component instanceof RadViewComponent) {
+          RadViewLayout.addFillActions(designer, actionGroup, Collections.singletonList((RadViewComponent) component));
+        }
+      }
+    } else {
+      super.addContainerSelectionActions(designer, actionGroup, shortcuts, selection);
+    }
   }
 }

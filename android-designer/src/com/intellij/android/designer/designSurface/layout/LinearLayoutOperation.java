@@ -199,15 +199,15 @@ public class LinearLayoutOperation extends FlowBaseOperation {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        execute(myHorizontal, myGravity, myComponents);
+        execute(myHorizontal, myGravity, RadViewComponent.getViewComponents(myComponents));
       }
     });
   }
 
-  public static void execute(boolean horizontal, Gravity gravity, List<RadComponent> components) {
+  public static void execute(boolean horizontal, Gravity gravity, List<? extends RadViewComponent> components) {
     if (gravity == null) {
-      for (RadComponent component : components) {
-        XmlTag tag = ((RadViewComponent)component).getTag();
+      for (RadViewComponent component : components) {
+        XmlTag tag = component.getTag();
         ModelParser.deleteAttribute(tag, "layout_gravity");
         tag.setAttribute(horizontal ? "layout_height" : "layout_width", SdkConstants.NS_RESOURCES, "fill_parent");
       }
@@ -215,8 +215,8 @@ public class LinearLayoutOperation extends FlowBaseOperation {
     else {
       String gravityValue = horizontal ? Gravity.getValue(Gravity.center, gravity) : Gravity.getValue(gravity, Gravity.center);
 
-      for (RadComponent component : components) {
-        XmlTag tag = ((RadViewComponent)component).getTag();
+      for (RadViewComponent component : components) {
+        XmlTag tag = component.getTag();
 
         XmlAttribute attribute = tag.getAttribute(horizontal ? "layout_height" : "layout_width", SdkConstants.NS_RESOURCES);
         if (attribute != null && ("match_parent".equals(attribute.getValue()) || "fill_parent".equals(attribute.getValue()))) {

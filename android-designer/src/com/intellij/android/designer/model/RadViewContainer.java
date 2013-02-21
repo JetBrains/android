@@ -39,17 +39,6 @@ public class RadViewContainer extends RadViewComponent {
   }
 
   @Override
-  public void addSelectionActions(DesignerEditorPanel designer,
-                                  DefaultActionGroup actionGroup,
-                                  JComponent shortcuts,
-                                  List<RadComponent> selection) {
-    RadViewLayout layout = (RadViewLayout)getLayout();
-    if (layout != null) {
-      layout.addContainerSelectionActions(designer, actionGroup, shortcuts, selection);
-    }
-  }
-
-  @Override
   public ICaption getCaption() {
     RadLayout layout = getLayout();
     return layout == null ? null : layout.getCaption(this);

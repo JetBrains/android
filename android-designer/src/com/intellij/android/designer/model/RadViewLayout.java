@@ -16,6 +16,7 @@
 package com.intellij.android.designer.model;
 
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
+import com.intellij.android.designer.model.layout.actions.ToggleSizeAction;
 import com.intellij.designer.designSurface.ComponentDecorator;
 import com.intellij.designer.designSurface.DesignerEditorPanel;
 import com.intellij.android.designer.designSurface.graphics.NonResizeSelectionDecorator;
@@ -23,9 +24,13 @@ import com.intellij.designer.designSurface.EmptyComponentDecorator;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.model.RadLayout;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import icons.AndroidDesignerIcons;
 
 import javax.swing.*;
 import java.util.List;
+
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
 
 /**
  * @author Alexander Lobas
@@ -42,10 +47,30 @@ public class RadViewLayout extends RadLayout {
     return NON_RESIZE_DECORATOR;
   }
 
+  /**
+   * Adds in any applicable layout actions for this layout.
+   *
+   * @param designer the associated designer
+   * @param actionGroup the action group to add the actions into
+   * @param shortcuts the component to look up shortcuts for
+   * @param selection the selection of children in the layout (which may or may not be empty)
+   */
   public void addContainerSelectionActions(DesignerEditorPanel designer,
                                            DefaultActionGroup actionGroup,
                                            JComponent shortcuts,
-                                           List<RadComponent> selection) {
+                                           List<? extends RadViewComponent> selection) {
+    if (!selection.isEmpty()) {
+      addFillActions(designer, actionGroup, selection);
+    }
+  }
+
+  static void addFillActions(DesignerEditorPanel designer,
+                                     DefaultActionGroup actionGroup,
+                                     List<? extends RadViewComponent> selection) {
+    actionGroup.add(new ToggleSizeAction(designer, selection, "Toggle Width", ATTR_LAYOUT_WIDTH, AndroidDesignerIcons.FillWidth,
+                                          AndroidDesignerIcons.WrapWidth));
+    actionGroup.add(new ToggleSizeAction(designer, selection, "Toggle Height", ATTR_LAYOUT_HEIGHT, AndroidDesignerIcons.FillHeight,
+                                          AndroidDesignerIcons.WrapHeight));
   }
 
   public void wrapIn(RadViewComponent newParent, List<RadViewComponent> components) throws Exception {

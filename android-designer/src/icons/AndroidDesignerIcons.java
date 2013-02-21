@@ -89,4 +89,16 @@ public class AndroidDesignerIcons {
   public static final Icon ZoomFit = load("/icons/ZoomFit.png"); // 16x16
   public static final Icon ZoomOut = load("/icons/ZoomOut.png"); // 16x16
   public static final Icon ZoomIn = load("/icons/ZoomIn.png"); // 16x16
+
+  // Layout actions
+  public static final Icon FillWidth = load("/icons/fillwidth.png"); // 16x16
+  public static final Icon WrapWidth = load("/icons/wrapwidth.png"); // 16x16
+  public static final Icon FillHeight = load("/icons/fillheight.png"); // 16x16
+  public static final Icon WrapHeight = load("/icons/wrapheight.png"); // 16x16
+  public static final Icon Baseline = load("/icons/baseline.png"); // 16x16
+  public static final Icon NoBaseline = load("/icons/nobaseline.png"); // 16x16
+  public static final Icon DistributeWeights = load("/icons/distribute.png"); // 16x16
+  public static final Icon ClearWeights = load("/icons/clearweights.png"); // 16x16
+  public static final Icon DominateWeight = load("/icons/allweight.png"); // 16x16
+  public static final Icon Weights = load("/icons/weights.png"); // 16x16
 }

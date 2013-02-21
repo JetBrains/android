@@ -16,10 +16,12 @@
 package com.intellij.android.designer.designSurface;
 
 import com.intellij.android.designer.model.RadViewComponent;
+import com.intellij.android.designer.model.RadViewLayout;
 import com.intellij.designer.actions.DesignerActionPanel;
 import com.intellij.designer.designSurface.DesignerEditorPanel;
 import com.intellij.designer.designSurface.ZoomType;
 import com.intellij.designer.model.RadComponent;
+import com.intellij.designer.model.RadLayout;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.keymap.KeymapUtil;
@@ -27,6 +29,8 @@ import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.util.PsiNavigateUtil;
 import icons.AndroidDesignerIcons;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -130,5 +134,38 @@ public class AndroidDesignerActionPanel extends DesignerActionPanel {
     });
 
     return group;
+  }
+
+  @Override
+  protected void addSelectionActions(List<RadComponent> selection, DefaultActionGroup group, JComponent shortcuts) {
+    if (!selection.isEmpty()) {
+      // Segment the selected components into lists of siblings
+      Map<RadComponent, List<RadComponent>> siblingLists = RadComponent.groupSiblings(selection);
+      for (Map.Entry<RadComponent, List<RadComponent>> entry : siblingLists.entrySet()) {
+        @Nullable RadComponent parent = entry.getKey();
+        @NotNull List<RadComponent> children = entry.getValue();
+
+        if (parent != null) {
+          RadLayout layout = parent.getLayout();
+          if (layout instanceof RadViewLayout) {
+            ((RadViewLayout) layout).addContainerSelectionActions(myDesigner, group, shortcuts,
+                                                                  RadViewComponent.getViewComponents(children));
+          } else {
+            layout.addSelectionActions(myDesigner, group, shortcuts, children);
+          }
+        } else if (selection.size() == 1) {
+          // If you select a root layout, offer selection actions on it as well
+          RadLayout selected = selection.get(0).getLayout();
+          if (selected instanceof RadViewLayout) {
+            ((RadViewLayout) selected).addContainerSelectionActions(myDesigner, group, shortcuts,
+                                                                  RadViewComponent.getViewComponents(children));
+          }
+        }
+      }
+
+      for (RadComponent component : selection) {
+        component.addSelectionActions(myDesigner, group, shortcuts, Collections.<RadComponent>singletonList(component));
+      }
+    }
   }
 }
