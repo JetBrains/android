@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.inspections.lint;
 
-import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ide.common.sdk.SdkVersionInfo;
@@ -23,6 +22,7 @@ import com.android.tools.lint.checks.ApiDetector;
 import com.android.tools.lint.detector.api.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.util.PsiTreeUtil;
 import lombok.ast.AstVisitor;
 import lombok.ast.CompilationUnit;
@@ -274,6 +274,53 @@ public class IntellijApiDetector extends ApiDetector {
     }
 
     @Override
+    public void visitClass(PsiClass aClass) {
+      super.visitClass(aClass);
+
+      if (!myCheckAccess) {
+        return;
+      }
+
+      for (PsiClassType type : aClass.getSuperTypes()) {
+        String signature = IntellijLintUtils.getInternalName(type);
+        if (signature == null) {
+          continue;
+        }
+
+        int api = mApiDatabase.getClassVersion(signature);
+        if (api == -1) {
+          continue;
+        }
+        int minSdk = getMinSdk(myContext);
+        if (api < minSdk) {
+          continue;
+        }
+        if (mySeenTargetApi) {
+          int target = getTargetApi(aClass, myFile);
+          if (target != -1) {
+            if (api <= target) {
+              continue;
+            }
+          }
+        }
+        if (mySeenSuppress && IntellijLintUtils.isSuppressed(aClass, myFile, UNSUPPORTED)) {
+          continue;
+        }
+
+        Location location;
+        if (type instanceof PsiClassReferenceType) {
+          PsiReference reference = ((PsiClassReferenceType)type).getReference();
+          location = IntellijLintUtils.getLocation(myContext.file, reference.getElement());
+        } else {
+          location = IntellijLintUtils.getLocation(myContext.file, aClass);
+        }
+        String fqcn = type.getClassName();
+        String message = String.format("Class requires API level %1$d (current min is %2$d): %3$s", api, minSdk, fqcn);
+        myContext.report(UNSUPPORTED, location, message, null);
+      }
+    }
+
+    @Override
     public void visitReferenceExpression(PsiReferenceExpression expression) {
       super.visitReferenceExpression(expression);
 
@@ -293,7 +340,6 @@ public class IntellijApiDetector extends ApiDetector {
           if (containingClass == null) {
             return;
           }
-          String fqcn = containingClass.getQualifiedName();
           String owner = IntellijLintUtils.getInternalName(containingClass);
           if (owner == null) {
             return; // Couldn't resolve type
@@ -323,6 +369,7 @@ public class IntellijApiDetector extends ApiDetector {
           }
 
           Location location = IntellijLintUtils.getLocation(myContext.file, expression);
+          String fqcn = containingClass.getQualifiedName();
           String message = String.format(
               "Field requires API level %1$d (current min is %2$d): %3$s",
               api, minSdk, fqcn + '#' + name);
