@@ -15,16 +15,23 @@
  */
 package com.intellij.android.designer.designSurface;
 
+import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.designer.actions.DesignerActionPanel;
 import com.intellij.designer.designSurface.DesignerEditorPanel;
 import com.intellij.designer.designSurface.ZoomType;
+import com.intellij.designer.model.RadComponent;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
+import com.intellij.util.PsiNavigateUtil;
 import icons.AndroidDesignerIcons;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.*;
+import java.util.List;
 
 public class AndroidDesignerActionPanel extends DesignerActionPanel {
   public AndroidDesignerActionPanel(DesignerEditorPanel designer, JComponent shortcuts) {
@@ -74,6 +81,31 @@ public class AndroidDesignerActionPanel extends DesignerActionPanel {
 
   private ActionGroup getRhsActions() {
     DefaultActionGroup group = new DefaultActionGroup();
+
+    String description = "Jump to Source";
+    KeyboardShortcut shortcut = ActionManager.getInstance().getKeyboardShortcut(IdeActions.ACTION_GOTO_DECLARATION);
+    if (shortcut != null) {
+      description += " (" + KeymapUtil.getShortcutText(shortcut) + ")";
+    }
+    // Use FilesTypes.Text rather than FileTypes.Xml here to avoid having the icon from
+    // the tab bar replicated right below it
+    group.add(new AnAction(null, description, AllIcons.FileTypes.Text) {
+      @Override
+      public void actionPerformed(AnActionEvent e) {
+        List<RadComponent> selection = myDesigner.getSurfaceArea().getSelection();
+        if (!selection.isEmpty()) {
+          RadViewComponent component = (RadViewComponent)selection.get(0);
+          PsiNavigateUtil.navigate(component.getTag());
+        }
+      }
+
+      @Override
+      public void update(AnActionEvent e) {
+        List<RadComponent> selection = myDesigner.getSurfaceArea().getSelection();
+        e.getPresentation().setEnabled(!selection.isEmpty());
+      }
+    });
+
     group.add(new AnAction(null, "Zoom to Fit (0)", AndroidDesignerIcons.ZoomFit) {
       @Override
       public void actionPerformed(AnActionEvent e) { myDesigner.zoom(ZoomType.FIT); }
