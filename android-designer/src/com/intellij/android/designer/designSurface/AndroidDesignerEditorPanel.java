@@ -63,10 +63,13 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.Gray;
+import com.intellij.ui.JBColor;
+import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.util.Alarm;
 import com.intellij.util.PsiNavigateUtil;
 import com.intellij.util.ThrowableConsumer;
 import com.intellij.util.ThrowableRunnable;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
@@ -201,6 +204,20 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
   @Override
   protected DesignerActionPanel createActionPanel() {
     return new AndroidDesignerActionPanel(this, myGlassLayer);
+  }
+
+  @Override
+  protected CaptionPanel createCaptionPanel(boolean horizontal) {
+    // No borders; not necessary since we have a different designer background than the caption area
+    return new CaptionPanel(this, horizontal, false);
+  }
+
+  @Override
+  protected JScrollPane createScrollPane(@NotNull JLayeredPane content) {
+    // No background color
+    JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(content);
+    scrollPane.setBackground(null);
+    return scrollPane;
   }
 
   @NotNull
