@@ -33,11 +33,11 @@ import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -60,6 +60,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.idea.maven.importing.FacetImporter;
 import org.jetbrains.idea.maven.importing.MavenModifiableModelsProvider;
+import org.jetbrains.idea.maven.importing.MavenModuleImporter;
 import org.jetbrains.idea.maven.importing.MavenRootModelAdapter;
 import org.jetbrains.idea.maven.model.MavenArtifact;
 import org.jetbrains.idea.maven.model.MavenConstants;
@@ -217,7 +218,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
         if ((apklibModule == null || apklibModule.getUserData(MODULE_IMPORTED) == null) &&
             MavenConstants.SCOPE_COMPILE.equals(depArtifact.getScope())) {
           apklibModule =
-            importExternalApklibArtifact(project, rootModelAdapter, apklibModule, modelsProvider, mavenProject, mavenTree, depArtifact,
+            importExternalApklibArtifact(project, apklibModule, modelsProvider, mavenProject, mavenTree, depArtifact,
                                          moduleModel, mavenProject2ModuleName);
           if (apklibModule != null) {
             apklibModule.putUserData(MODULE_IMPORTED, Boolean.TRUE);
@@ -329,7 +330,6 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
 
   @Nullable
   private static Module importExternalApklibArtifact(Project project,
-                                                     MavenRootModelAdapter rootModelAdapter,
                                                      Module apklibModule,
                                                      MavenModifiableModelsProvider modelsProvider,
                                                      MavenProject mavenProject,
@@ -434,14 +434,12 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       configuration.MANIFEST_FILE_RELATIVE_PATH = s + AndroidMavenUtil.APK_LIB_ARTIFACT_MANIFEST_FILE;
     }
 
-    importSdkAndDependenciesForApklibArtifact(project, mavenProject, rootModelAdapter, apklibModuleModel, modelsProvider,
+    importSdkAndDependenciesForApklibArtifact(project, apklibModuleModel, modelsProvider,
                                               mavenTree, artifact, mavenProject2ModuleName);
     return apklibModule;
   }
 
   private static void importSdkAndDependenciesForApklibArtifact(Project project,
-                                                                MavenProject mavenProject,
-                                                                MavenRootModelAdapter rootModelAdapter,
                                                                 ModifiableRootModel apklibModuleModel,
                                                                 MavenModifiableModelsProvider modelsProvider,
                                                                 MavenProjectsTree mavenTree,
@@ -475,6 +473,9 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
 
         final String type = depArtifactInfo.getType();
         final String scope = depArtifactInfo.getScope();
+        final String path = depArtifactInfo.getPath();
+        final String relPath = depArtifactInfo.getRelPath();
+        final String libName = depArtifactInfo.getLibName();
 
         if (AndroidMavenUtil.APKLIB_DEPENDENCY_AND_PACKAGING_TYPE.equals(type) &&
             MavenConstants.SCOPE_COMPILE.equals(scope)) {
@@ -493,43 +494,13 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
           }
         }
         else {
-          final String libraryName = computeLibraryName(mavenProject, depArtifactInfo.getGroupId(),
-                                                        depArtifactInfo.getArtifactId(),
-                                                        depArtifactInfo.getVersion());
-          final boolean mustBeImported = MavenConstants.SCOPE_COMPILE.equals(scope) ||
-                                         MavenConstants.SCOPE_RUNTIME.equals(scope) ||
-                                         MavenConstants.SCOPE_PROVIDEED.equals(scope);
-          if (libraryName == null) {
-            final String message = "Cannot resolve artifact " + depArtifactInfo.getGroupId() + ":" +
-                                   depArtifactInfo.getArtifactId();
-            if (mustBeImported) {
-              reportError(message, apklibModuleName);
-            }
-            else {
-              LOG.debug(message);
-            }
-            continue;
-          }
-          final ModifiableRootModel rootModel = rootModelAdapter.getRootModel();
-          final LibraryOrderEntry libEntry = findLibraryByName(rootModel, libraryName);
+          final DependencyScope depScope = MavenModuleImporter.selectScope(scope);
 
-          if (libEntry == null) {
-            final String message = "Cannot find library " + libraryName + " in the dependencies of module '" +
-                                   rootModel.getModule().getName() + "'";
-            if (mustBeImported) {
-              reportError(message, apklibModuleName);
-            }
-            else {
-              LOG.debug(message);
-            }
-            continue;
+          if (scope != null) {
+            addLibraryDependency(libName, depScope, modelsProvider, apklibModuleModel, path, relPath);
           }
-          final Library library = libEntry.getLibrary();
-
-          if (library != null && apklibModuleModel.findLibraryOrderEntry(library) == null) {
-            final LibraryOrderEntry newLibEntry = apklibModuleModel.addLibraryEntry(library);
-            newLibEntry.setExported(libEntry.isExported());
-            newLibEntry.setScope(libEntry.getScope());
+          else {
+            LOG.info("Unknown Maven scope " + depScope);
           }
         }
       }
@@ -537,6 +508,39 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     else {
       reportError("Cannot find sdk info for artifact " + artifact.getMavenId().getKey(), apklibModuleName);
     }
+  }
+
+  private static void addLibraryDependency(@NotNull String libraryName,
+                                           @NotNull DependencyScope scope,
+                                           @NotNull MavenModifiableModelsProvider provider,
+                                           @NotNull ModifiableRootModel model,
+                                           @NotNull String path,
+                                           @NotNull String relPath) {
+    Library library = provider.getLibraryByName(libraryName);
+
+    if (library == null) {
+      library = provider.createLibrary(libraryName);
+    }
+    Library.ModifiableModel libraryModel = provider.getLibraryModel(library);
+    updateUrl(libraryModel, path, relPath);
+    final LibraryOrderEntry entry = model.addLibraryEntry(library);
+    entry.setScope(scope);
+  }
+
+  private static void updateUrl(@NotNull Library.ModifiableModel library, @NotNull String path, @NotNull String relPath) {
+    final OrderRootType type = OrderRootType.CLASSES;
+    final String newUrl = VirtualFileManager.constructUrl(JarFileSystem.PROTOCOL, path) + JarFileSystem.JAR_SEPARATOR;
+    final String suffix = relPath + JarFileSystem.JAR_SEPARATOR;
+
+    for (String url : library.getUrls(type)) {
+      if (newUrl.equals(url)) {
+        return;
+      }
+      if (url.endsWith(suffix)) {
+        library.removeRoot(url, type);
+      }
+    }
+    library.addRoot(newUrl, type);
   }
 
   private static void reportCannotFindAndroidPlatformError(String moduleName, @Nullable String apiLevel) {
@@ -553,51 +557,6 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
                                               AndroidBundle.message("android.facet.importing.title", modName),
                                               message, notificationType, null));
     LOG.debug(message);
-  }
-
-  @Nullable
-  private static String computeLibraryName(@NotNull MavenProject mavenProject,
-                                           @Nullable String groupId,
-                                           @Nullable String artifactId,
-                                           @Nullable String preferredVersion) {
-    if (artifactId == null) {
-      return null;
-    }
-    String candidate = null;
-
-    for (MavenArtifact depArtifact : mavenProject.getDependencies()) {
-      if (artifactId.equals(depArtifact.getArtifactId()) && Comparing.equal(groupId, depArtifact.getGroupId())) {
-        final String libName = depArtifact.getLibraryName();
-
-        if (Comparing.equal(preferredVersion, depArtifact.getVersion())) {
-          return libName;
-        }
-        else {
-          candidate = libName;
-        }
-      }
-    }
-    return candidate;
-  }
-
-  @Nullable
-  private static LibraryOrderEntry findLibraryByName(ModifiableRootModel model, final String libraryName) {
-    final Ref<LibraryOrderEntry> result = Ref.create(null);
-    model.orderEntries().forEach(new Processor<OrderEntry>() {
-      @Override
-      public boolean process(OrderEntry entry) {
-        if (entry instanceof LibraryOrderEntry) {
-          final LibraryOrderEntry libOrderEntry = (LibraryOrderEntry)entry;
-          final Library library = libOrderEntry.getLibrary();
-          
-          if (library != null && libraryName.equals(library.getName())) {
-            result.set(libOrderEntry);
-          }
-        }
-        return true;
-      }
-    });
-    return result.get();
   }
 
   @Override
@@ -658,8 +617,13 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       new ArrayList<AndroidExternalApklibDependenciesManager.MavenDependencyInfo>();
     
     for (MavenArtifact depArtifact : projectForExternalApklib.getDependencies()) {
+      final String path = depArtifact.getPath();
+      final String relPath = depArtifact.getRelativePathForExtraArtifact(null, null);
+      final String libName = depArtifact.getLibraryName();
+
       dependencies.add(new AndroidExternalApklibDependenciesManager.MavenDependencyInfo(
-        depArtifact.getMavenId(), depArtifact.getType(), depArtifact.getScope()));
+        depArtifact.getMavenId(), depArtifact.getType(), depArtifact.getScope(),
+        path, relPath, libName));
     }
 
     final AndroidExternalApklibDependenciesManager apklibDependenciesManager =
