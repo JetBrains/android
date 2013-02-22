@@ -89,6 +89,7 @@ import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -275,7 +276,21 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
         newRootComponent.setClientProperty(PropertyParser.KEY, propertyParser);
         propertyParser.loadRecursive(newRootComponent);
 
+        boolean firstRender = myRootComponent == null;
+
         myRootComponent = newRootComponent;
+
+        // Start out selecting the root layout rather than the device item; this will
+        // show relevant layout actions immediately, will cause the component tree to
+        // be properly expanded, etc
+        if (firstRender) {
+          if (myRootComponent.getChildren().size() == 1) {
+            RadComponent radComponent = myRootComponent.getChildren().get(0);
+            if (radComponent.isBackground()) {
+              mySurfaceArea.setSelection(Collections.singletonList(radComponent));
+            }
+          }
+        }
 
         if (insertPanel) {
           // Use a custom layout manager which adjusts the margins/padding around the designer canvas
