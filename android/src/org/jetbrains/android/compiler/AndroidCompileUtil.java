@@ -18,6 +18,7 @@ package org.jetbrains.android.compiler;
 import com.intellij.CommonBundle;
 import com.intellij.compiler.CompilerConfiguration;
 import com.intellij.compiler.CompilerConfigurationImpl;
+import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.compiler.impl.CompileContextImpl;
 import com.intellij.compiler.impl.ModuleCompileScope;
 import com.intellij.compiler.options.CompileStepBeforeRun;
@@ -906,8 +907,16 @@ public class AndroidCompileUtil {
 
   @Nullable
   public static String getUnsignedApkPath(@NotNull AndroidFacet facet) {
+    final boolean useCompileServer = CompilerWorkspaceConfiguration.getInstance(
+      facet.getModule().getProject()).USE_COMPILE_SERVER;
     final String apkPath = AndroidRootUtil.getApkPath(facet);
-    return apkPath != null ? AndroidCommonUtils.addSuffixToFileName(apkPath, UNSIGNED_SUFFIX) : null;
+
+    if (apkPath != null) {
+      return useCompileServer
+             ? apkPath
+             : AndroidCommonUtils.addSuffixToFileName(apkPath, UNSIGNED_SUFFIX);
+    }
+    return null;
   }
 
   @Nullable
