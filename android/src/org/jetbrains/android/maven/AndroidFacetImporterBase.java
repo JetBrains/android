@@ -86,7 +86,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
   @NonNls private static final String DEFAULT_NATIVE_ARCHITECTURE = "armeabi";
 
   public AndroidFacetImporterBase(@NotNull String pluginId) {
-    super("com.jayway.maven.plugins.android.generation2", pluginId, FacetType.findInstance(AndroidFacetType.class), "Android");
+    super("com.jayway.maven.plugins.android.generation2", pluginId, FacetType.findInstance(AndroidFacetType.class));
   }
 
   @Override
