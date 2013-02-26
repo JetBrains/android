@@ -757,12 +757,8 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       final Sdk javaSdk = data.getJavaSdk();
 
       if (javaSdk != null) {
-        for (String entry : javaSdk.getRootProvider().getUrls(OrderRootType.CLASSES)) {
-          final VirtualFile file = VirtualFileManager.getInstance().findFileByUrl(entry);
-
-          if (file != null) {
-            modificator.addRoot(file, OrderRootType.CLASSES);
-          }
+        for (VirtualFile file : javaSdk.getRootProvider().getFiles(OrderRootType.CLASSES)) {
+          modificator.addRoot(file, OrderRootType.CLASSES);
         }
       }
       else {
