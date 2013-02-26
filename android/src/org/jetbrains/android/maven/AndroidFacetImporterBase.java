@@ -755,8 +755,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
 
     if (data != null) {
       final Sdk javaSdk = data.getJavaSdk();
-      LOG.assertTrue(javaSdk != null, "AndroidSdkUtils.createNewAndroidPlatform should return " +
-                                      "Android SDK with a valid JDK reference, or return null");
+
       if (javaSdk != null) {
         for (String entry : javaSdk.getRootProvider().getUrls(OrderRootType.CLASSES)) {
           final VirtualFile file = VirtualFileManager.getInstance().findFileByUrl(entry);
@@ -765,6 +764,10 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
             modificator.addRoot(file, OrderRootType.CLASSES);
           }
         }
+      }
+      else {
+        LOG.error("AndroidSdkUtils.createNewAndroidPlatform should return " +
+                  "Android SDK with a valid JDK reference, or return null");
       }
     }
     modificator.commitChanges();
