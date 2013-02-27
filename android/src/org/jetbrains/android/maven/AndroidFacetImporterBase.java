@@ -474,7 +474,6 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
         final String type = depArtifactInfo.getType();
         final String scope = depArtifactInfo.getScope();
         final String path = depArtifactInfo.getPath();
-        final String relPath = depArtifactInfo.getRelPath();
         final String libName = depArtifactInfo.getLibName();
 
         if (AndroidMavenUtil.APKLIB_DEPENDENCY_AND_PACKAGING_TYPE.equals(type) &&
@@ -497,7 +496,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
           final DependencyScope depScope = MavenModuleImporter.selectScope(scope);
 
           if (scope != null) {
-            addLibraryDependency(libName, depScope, modelsProvider, apklibModuleModel, path, relPath);
+            addLibraryDependency(libName, depScope, modelsProvider, apklibModuleModel, path);
           }
           else {
             LOG.info("Unknown Maven scope " + depScope);
@@ -514,33 +513,35 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
                                            @NotNull DependencyScope scope,
                                            @NotNull MavenModifiableModelsProvider provider,
                                            @NotNull ModifiableRootModel model,
-                                           @NotNull String path,
-                                           @NotNull String relPath) {
+                                           @NotNull String path) {
     Library library = provider.getLibraryByName(libraryName);
 
     if (library == null) {
       library = provider.createLibrary(libraryName);
     }
     Library.ModifiableModel libraryModel = provider.getLibraryModel(library);
-    updateUrl(libraryModel, path, relPath);
+    updateUrl(libraryModel, path);
     final LibraryOrderEntry entry = model.addLibraryEntry(library);
     entry.setScope(scope);
   }
 
-  private static void updateUrl(@NotNull Library.ModifiableModel library, @NotNull String path, @NotNull String relPath) {
+  private static void updateUrl(@NotNull Library.ModifiableModel library, @NotNull String path) {
     final OrderRootType type = OrderRootType.CLASSES;
     final String newUrl = VirtualFileManager.constructUrl(JarFileSystem.PROTOCOL, path) + JarFileSystem.JAR_SEPARATOR;
-    final String suffix = relPath + JarFileSystem.JAR_SEPARATOR;
+    boolean urlExists = false;
 
     for (String url : library.getUrls(type)) {
       if (newUrl.equals(url)) {
-        return;
+        urlExists = true;
       }
-      if (url.endsWith(suffix)) {
+      else {
         library.removeRoot(url, type);
       }
     }
-    library.addRoot(newUrl, type);
+
+    if (!urlExists) {
+      library.addRoot(newUrl, type);
+    }
   }
 
   private static void reportCannotFindAndroidPlatformError(String moduleName, @Nullable String apiLevel) {
@@ -618,12 +619,11 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     
     for (MavenArtifact depArtifact : projectForExternalApklib.getDependencies()) {
       final String path = depArtifact.getPath();
-      final String relPath = depArtifact.getRelativePathForExtraArtifact(null, null);
       final String libName = depArtifact.getLibraryName();
 
       dependencies.add(new AndroidExternalApklibDependenciesManager.MavenDependencyInfo(
         depArtifact.getMavenId(), depArtifact.getType(), depArtifact.getScope(),
-        path, relPath, libName));
+        path, libName));
     }
 
     final AndroidExternalApklibDependenciesManager apklibDependenciesManager =

@@ -152,7 +152,6 @@ public class AndroidExternalApklibDependenciesManager implements PersistentState
     private String myType;
     private String myScope;
     private String myPath;
-    private String myRelPath;
     private String myLibName;
 
     public MavenDependencyInfo() {
@@ -162,7 +161,6 @@ public class AndroidExternalApklibDependenciesManager implements PersistentState
                                @NotNull String type,
                                @NotNull String scope,
                                @NotNull String path,
-                               @NotNull String relPath,
                                @NotNull String libName) {
       myGroupId = mavenId.getGroupId();
       myArtifactId = mavenId.getArtifactId();
@@ -170,7 +168,6 @@ public class AndroidExternalApklibDependenciesManager implements PersistentState
       myType = type;
       myScope = scope;
       myPath = path;
-      myRelPath = relPath;
       myLibName = libName;
     }
 
@@ -196,10 +193,6 @@ public class AndroidExternalApklibDependenciesManager implements PersistentState
 
     public String getPath() {
       return myPath;
-    }
-
-    public String getRelPath() {
-      return myRelPath;
     }
 
     public String getLibName() {
@@ -228,10 +221,6 @@ public class AndroidExternalApklibDependenciesManager implements PersistentState
 
     public void setPath(String path) {
       myPath = path;
-    }
-
-    public void setRelPath(String relPath) {
-      myRelPath = relPath;
     }
 
     public void setLibName(String libName) {
