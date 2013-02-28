@@ -17,6 +17,7 @@
 package org.jetbrains.android.sdk;
 
 import com.android.SdkConstants;
+import com.android.annotations.NonNull;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.DdmPreferences;
 import com.android.ddmlib.Log;
@@ -48,7 +49,8 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
+import java.util.*;
+import java.util.List;
 
 /**
  * @author Eugene.Kudelevsky
@@ -548,6 +550,12 @@ public class AndroidSdkData {
         return path;
       }
       return myWrapee.getPath(pathId);
+    }
+
+    @NonNull
+    @Override
+    public List<String> getBootClasspath() {
+        return Collections.singletonList(getPath(IAndroidTarget.ANDROID_JAR));
     }
 
     @Override
