@@ -372,9 +372,17 @@ public class AndroidSdkUtils {
       }
     }
     for (Sdk sdk : ProjectJdkTable.getInstance().getSdksOfType(AndroidSdkType.getInstance())) {
-      if (tryToSetAndroidPlatform(module, sdk)) {
-        component.setValue(DEFAULT_PLATFORM_NAME_PROPERTY, sdk.getName());
-        return;
+      final AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+
+      if (data != null) {
+        final AndroidPlatform platform = data.getAndroidPlatform();
+
+        if (platform != null &&
+            checkSdkRoots(sdk, platform.getTarget(), false) &&
+            tryToSetAndroidPlatform(module, sdk)) {
+          component.setValue(DEFAULT_PLATFORM_NAME_PROPERTY, sdk.getName());
+          return;
+        }
       }
     }
   }
@@ -389,7 +397,8 @@ public class AndroidSdkUtils {
         if (androidPlatform != null) {
           final String baseDir = FileUtil.toSystemIndependentName(androidPlatform.getSdkData().getLocation());
           if ((sdkDir == null || FileUtil.pathsEqual(baseDir, sdkDir)) &&
-              targetHashString.equals(androidPlatform.getTarget().hashString())) {
+              targetHashString.equals(androidPlatform.getTarget().hashString()) &&
+              checkSdkRoots(sdk, androidPlatform.getTarget(), false)) {
             return sdk;
           }
         }
