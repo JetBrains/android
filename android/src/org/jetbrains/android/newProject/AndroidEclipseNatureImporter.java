@@ -15,7 +15,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.idea.eclipse.importWizard.EclipseNatureImporter;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Eugene.Kudelevsky
@@ -26,6 +28,11 @@ public class AndroidEclipseNatureImporter extends EclipseNatureImporter {
   @Override
   public String getNatureName() {
     return "com.android.ide.eclipse.adt.AndroidNature";
+  }
+
+  @Override
+  public Set<String> getProvidedCons() {
+    return Collections.emptySet();
   }
 
   @Override
