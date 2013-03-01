@@ -17,7 +17,6 @@ package org.jetbrains.android.fileTypes;
 
 import com.intellij.openapi.fileTypes.FileTypeConsumer;
 import com.intellij.openapi.fileTypes.FileTypeFactory;
-import com.intellij.openapi.fileTypes.PlainTextFileType;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -28,5 +27,6 @@ public class AndroidFileTypeFactory extends FileTypeFactory {
       consumer.consume(AndroidIdlFileType.ourFileType, AndroidIdlFileType.DEFAULT_ASSOCIATED_EXTENSION);
       consumer.consume(AndroidRenderscriptFileType.INSTANCE,
                        AndroidRenderscriptFileType.fileNameMatchers());
+      consumer.consume(AndroidNinePatchFileType.INSTANCE, AndroidNinePatchFileType.EXTENSION);
     }
 }
