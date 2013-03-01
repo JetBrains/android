@@ -7,6 +7,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFrameworkDetector;
 import org.jetbrains.android.importDependencies.ImportDependenciesUtil;
@@ -15,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.idea.eclipse.importWizard.EclipseNatureImporter;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -23,6 +24,10 @@ import java.util.Set;
  * @author Eugene.Kudelevsky
  */
 public class AndroidEclipseNatureImporter extends EclipseNatureImporter {
+
+  private static final Set<String> ADT_INTERNAL_LIBS = new HashSet<String>(Arrays.asList(
+    "com.android.ide.eclipse.adt.ANDROID_FRAMEWORK",
+    "com.android.ide.eclipse.adt.LIBRARIES"));
 
   @NotNull
   @Override
@@ -32,7 +37,7 @@ public class AndroidEclipseNatureImporter extends EclipseNatureImporter {
 
   @Override
   public Set<String> getProvidedCons() {
-    return Collections.emptySet();
+    return ADT_INTERNAL_LIBS;
   }
 
   @Override
