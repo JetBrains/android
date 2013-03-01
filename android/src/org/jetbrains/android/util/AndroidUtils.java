@@ -43,6 +43,9 @@ import com.intellij.ide.util.DefaultPsiElementCellRenderer;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.lexer.JavaLexer;
 import com.intellij.lexer.Lexer;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -776,5 +779,16 @@ public class AndroidUtils {
     if (lexer.getTokenType() != JavaTokenType.IDENTIFIER) return false;
     lexer.advance();
     return lexer.getTokenType() == null;
+  }
+
+  public static void reportImportErrorToEventLog(String message, String modName) {
+    reportImportMessageToEventLog(message, modName, NotificationType.ERROR);
+  }
+
+  private static void reportImportMessageToEventLog(String message, String modName, NotificationType notificationType) {
+    Notifications.Bus.notify(new Notification(AndroidBundle.message("android.facet.importing.notification.group"),
+                                              AndroidBundle.message("android.facet.importing.title", modName),
+                                              message, notificationType, null));
+    LOG.debug(message);
   }
 }
