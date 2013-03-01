@@ -17,6 +17,7 @@ import org.jetbrains.jps.builders.BuildTargetRegistry;
 import org.jetbrains.jps.builders.TargetOutputIndex;
 import org.jetbrains.jps.builders.java.JavaModuleBuildTargetType;
 import org.jetbrains.jps.builders.storage.BuildDataPaths;
+import org.jetbrains.jps.cmdline.ProjectDescriptor;
 import org.jetbrains.jps.incremental.CompileContext;
 import org.jetbrains.jps.incremental.ModuleBuildTarget;
 import org.jetbrains.jps.indices.IgnoredFileIndex;
@@ -37,8 +38,8 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
   }
 
   @Override
-  public void writeConfiguration(CompileContext context, PrintWriter out) {
-    super.writeConfiguration(context, out);
+  public void writeConfiguration(ProjectDescriptor pd, PrintWriter out) {
+    super.writeConfiguration(pd, out);
 
     final JpsAndroidDexCompilerConfiguration c = JpsAndroidExtensionService.
       getInstance().getDexCompilerConfiguration(getModule().getProject());

@@ -8,6 +8,7 @@ import org.jetbrains.jps.builders.BuildRootDescriptor;
 import org.jetbrains.jps.builders.BuildTarget;
 import org.jetbrains.jps.builders.impl.BuildRootDescriptorImpl;
 import org.jetbrains.jps.builders.storage.BuildDataPaths;
+import org.jetbrains.jps.cmdline.ProjectDescriptor;
 import org.jetbrains.jps.incremental.CompileContext;
 import org.jetbrains.jps.indices.IgnoredFileIndex;
 import org.jetbrains.jps.indices.ModuleExcludeIndex;
@@ -30,7 +31,7 @@ public class AndroidResourcePackagingBuildTarget extends AndroidBuildTarget {
   }
 
   @Override
-  public void writeConfiguration(CompileContext context, PrintWriter out) {
+  public void writeConfiguration(ProjectDescriptor pd, PrintWriter out) {
     final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(myModule);
     assert extension != null;
 
