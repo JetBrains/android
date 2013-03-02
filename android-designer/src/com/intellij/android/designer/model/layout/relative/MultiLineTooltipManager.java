@@ -15,9 +15,9 @@
  */
 package com.intellij.android.designer.model.layout.relative;
 
+import com.intellij.android.designer.designSurface.feedbacks.TextFeedback;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.designer.designSurface.FeedbackLayer;
-import com.intellij.designer.designSurface.feedbacks.TextFeedback;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;

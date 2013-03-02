@@ -63,8 +63,8 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.AvdsNotSupportedException;
 import org.jetbrains.android.logcat.AndroidLogcatToolWindowFactory;
-import org.jetbrains.android.logcat.AndroidLogcatView;
 import org.jetbrains.android.logcat.AndroidLogcatUtil;
+import org.jetbrains.android.logcat.AndroidLogcatView;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.sdk.AvdManagerLog;
 import org.jetbrains.android.util.AndroidBundle;
@@ -668,9 +668,15 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
         if (!uploadAndInstallDependentModules(device)) return false;
         myApplicationDeployed = true;
       }
-      if (!myApplicationLauncher.launch(this, device)) return false;
+      final AndroidApplicationLauncher.LaunchResult launchResult =
+        myApplicationLauncher.launch(this, device);
 
-      checkDdms();
+      if (launchResult == AndroidApplicationLauncher.LaunchResult.STOP) {
+        return false;
+      }
+      else if (launchResult == AndroidApplicationLauncher.LaunchResult.SUCCESS) {
+        checkDdms();
+      }
 
       synchronized (myDebugLock) {
         Client client = device.getClient(myTargetPackageName);

@@ -16,8 +16,8 @@
 package com.intellij.android.designer.model.layout.relative;
 
 import com.intellij.android.designer.AndroidDesignerUtils;
+import com.intellij.android.designer.designSurface.feedbacks.TextFeedback;
 import com.intellij.designer.designSurface.EditableArea;
-import com.intellij.designer.designSurface.feedbacks.TextFeedback;
 import com.intellij.ui.SimpleTextAttributes;
 
 import java.awt.*;

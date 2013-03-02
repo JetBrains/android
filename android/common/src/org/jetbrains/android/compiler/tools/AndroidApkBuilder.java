@@ -139,6 +139,12 @@ public class AndroidApkBuilder {
     final Map<AndroidCompilerMessageKind, List<String>> map = new HashMap<AndroidCompilerMessageKind, List<String>>();
     map.put(ERROR, new ArrayList<String>());
     map.put(WARNING, new ArrayList<String>());
+
+    final File outputDir = new File(finalApk).getParentFile();
+    if (!outputDir.exists() && !outputDir.mkdirs()) {
+      map.get(ERROR).add("Cannot create directory " + outputDir.getPath());
+      return map;
+    }
     File additionalLibsDir = null;
     try {
       if (additionalNativeLibs.size() > 0) {

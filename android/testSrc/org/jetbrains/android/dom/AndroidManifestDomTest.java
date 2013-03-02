@@ -225,4 +225,8 @@ public class AndroidManifestDomTest extends AndroidDomTest {
   public void testCompatibleScreensHighlighting() throws Throwable {
     doTestHighlighting();
   }
+
+  public void testHexInteger() throws Throwable {
+    doTestHighlighting();
+  }
 }
