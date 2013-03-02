@@ -15,6 +15,7 @@
  */
 package com.intellij.android.designer.model.layout.relative;
 
+import com.intellij.android.designer.designSurface.feedbacks.TextFeedback;
 import com.intellij.android.designer.designSurface.graphics.DirectionResizePoint;
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.designSurface.graphics.ResizeSelectionDecorator;
@@ -22,7 +23,6 @@ import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.designer.designSurface.EditOperation;
 import com.intellij.designer.designSurface.FeedbackLayer;
 import com.intellij.designer.designSurface.OperationContext;
-import com.intellij.designer.designSurface.feedbacks.TextFeedback;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.utils.Position;
 import com.intellij.openapi.application.ApplicationManager;

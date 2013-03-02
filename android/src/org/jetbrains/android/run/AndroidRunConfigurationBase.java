@@ -73,6 +73,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   
   public String TARGET_SELECTION_MODE = TargetSelectionMode.EMULATOR.name();
   public String PREFERRED_AVD = "";
+  public boolean USE_COMMAND_LINE = true;
   public String COMMAND_LINE = "";
   public boolean WIPE_USER_DATA = false;
   public boolean DISABLE_BOOT_ANIMATION = false;
@@ -284,7 +285,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (DISABLE_BOOT_ANIMATION) {
       result.append("-no-boot-anim ");
     }
-    result.append(COMMAND_LINE);
+    if (USE_COMMAND_LINE) {
+      result.append(COMMAND_LINE);
+    }
     int last = result.length() - 1;
     if (result.charAt(last) == ' ') {
       result.deleteCharAt(last);
