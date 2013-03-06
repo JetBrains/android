@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.jetbrains.android.editors;
+package com.android.tools.idea.editors;
 
 import com.android.utils.SdkUtils;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -26,7 +26,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jdom.Element;
-import org.jetbrains.android.fileTypes.AndroidNinePatchFileType;
+import com.android.tools.idea.fileTypes.AndroidNinePatchFileType;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 

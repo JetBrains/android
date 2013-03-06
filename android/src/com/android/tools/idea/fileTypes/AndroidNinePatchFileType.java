@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.jetbrains.android.fileTypes;
+package com.android.tools.idea.fileTypes;
 
 import com.android.SdkConstants;
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.UserBinaryFileType;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.android.util.AndroidBundle;

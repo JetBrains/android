@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package org.jetbrains.android.lang.rs;
+package com.android.tools.idea.lang.rs;
 
-import com.intellij.extapi.psi.PsiFileBase;
-import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.psi.FileViewProvider;
-import org.jetbrains.android.fileTypes.AndroidRenderscriptFileType;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.lang.Language;
+import org.jetbrains.annotations.NonNls;
 
-public class RenderscriptFile extends PsiFileBase {
-  protected RenderscriptFile(@NotNull FileViewProvider viewProvider) {
-    super(viewProvider, RenderscriptLanguage.INSTANCE);
-  }
+import java.lang.String;
 
-  @NotNull
-  @Override
-  public FileType getFileType() {
-    return AndroidRenderscriptFileType.INSTANCE;
+public class RenderscriptLanguage extends Language {
+  public static final RenderscriptLanguage INSTANCE = new RenderscriptLanguage();
+
+  @NonNls
+  private static final String ID = "Renderscript";
+
+  protected RenderscriptLanguage() {
+    super(ID);
   }
 }

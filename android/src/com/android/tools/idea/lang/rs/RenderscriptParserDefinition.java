@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.jetbrains.android.lang.rs;
+package com.android.tools.idea.lang.rs;
 
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;

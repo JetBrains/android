@@ -14,14 +14,22 @@
  * limitations under the License.
  */
 
-package org.jetbrains.android.lang.rs;
+package com.android.tools.idea.lang.rs;
 
-import com.intellij.lexer.FlexAdapter;
+import com.intellij.extapi.psi.PsiFileBase;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.psi.FileViewProvider;
+import com.android.tools.idea.fileTypes.AndroidRenderscriptFileType;
+import org.jetbrains.annotations.NotNull;
 
-import java.io.Reader;
+public class RenderscriptFile extends PsiFileBase {
+  protected RenderscriptFile(@NotNull FileViewProvider viewProvider) {
+    super(viewProvider, RenderscriptLanguage.INSTANCE);
+  }
 
-public class RenderscriptLexer extends FlexAdapter {
-  public RenderscriptLexer() {
-    super(new _RenderscriptLexer((Reader) null));
+  @NotNull
+  @Override
+  public FileType getFileType() {
+    return AndroidRenderscriptFileType.INSTANCE;
   }
 }

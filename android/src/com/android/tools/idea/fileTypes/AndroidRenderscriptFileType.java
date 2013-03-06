@@ -1,10 +1,10 @@
-package org.jetbrains.android.fileTypes;
+package com.android.tools.idea.fileTypes;
 
 import com.intellij.openapi.fileTypes.ExtensionFileNameMatcher;
 import com.intellij.openapi.fileTypes.FileNameMatcher;
 import com.intellij.openapi.fileTypes.LanguageFileType;
 import icons.AndroidIcons;
-import org.jetbrains.android.lang.rs.RenderscriptLanguage;
+import com.android.tools.idea.lang.rs.RenderscriptLanguage;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;

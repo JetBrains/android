@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.fileTypes;
 
+import com.android.tools.idea.fileTypes.AndroidNinePatchFileType;
+import com.android.tools.idea.fileTypes.AndroidRenderscriptFileType;
 import com.intellij.openapi.fileTypes.FileTypeConsumer;
 import com.intellij.openapi.fileTypes.FileTypeFactory;
 import org.jetbrains.annotations.NotNull;
