@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.jetbrains.android.lang.rs;
+package com.android.tools.idea.lang.rs;
 
 import com.google.common.collect.Maps;
 import com.intellij.lexer.Lexer;

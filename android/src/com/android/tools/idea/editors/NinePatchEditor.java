@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.jetbrains.android.editors;
+package com.android.tools.idea.editors;
 
 import com.android.draw9patch.graphics.GraphicsUtilities;
 import com.android.draw9patch.ui.ImageEditorPanel;
@@ -45,7 +45,7 @@ import java.io.IOException;
 
 public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListener {
   private static final Logger LOG =
-    Logger.getInstance("#org.jetbrains.android.editors.NinePatchEditor");
+    Logger.getInstance("#com.android.tools.idea.editors.NinePatchEditor");
   private static final String NAME = "9-Patch";
 
   private final UserDataHolderBase myUserDataHolder = new UserDataHolderBase();

@@ -14,20 +14,25 @@
  * limitations under the License.
  */
 
-package org.jetbrains.android.lang.rs;
+package com.android.tools.idea.lang.rs;
 
-import com.intellij.lang.Language;
-import org.jetbrains.annotations.NonNls;
+import com.intellij.lang.ASTNode;
+import com.intellij.lang.PsiBuilder;
+import com.intellij.lang.PsiParser;
+import com.intellij.psi.tree.IElementType;
+import org.jetbrains.annotations.NotNull;
 
-import java.lang.String;
+public class RenderscriptParser implements PsiParser {
+  @NotNull
+  @Override
+  public ASTNode parse(IElementType root, PsiBuilder builder) {
+    final PsiBuilder.Marker rootMarker = builder.mark();
 
-public class RenderscriptLanguage extends Language {
-  public static final RenderscriptLanguage INSTANCE = new RenderscriptLanguage();
+    while (!builder.eof()) {
+      builder.advanceLexer();
+    }
 
-  @NonNls
-  private static final String ID = "Renderscript";
-
-  protected RenderscriptLanguage() {
-    super(ID);
+    rootMarker.done(root);
+    return builder.getTreeBuilt();
   }
 }

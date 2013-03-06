@@ -30,7 +30,7 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.fileTypes.AndroidIdlFileType;
-import org.jetbrains.android.fileTypes.AndroidRenderscriptFileType;
+import com.android.tools.idea.fileTypes.AndroidRenderscriptFileType;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidCommonUtils;
