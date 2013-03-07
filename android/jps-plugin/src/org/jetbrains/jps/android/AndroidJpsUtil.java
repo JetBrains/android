@@ -73,6 +73,7 @@ public class AndroidJpsUtil {
   @NonNls public static final String RENDERSCRIPT_GENERATED_SOURCE_ROOT_NAME = "rs";
   @NonNls public static final String BUILD_CONFIG_GENERATED_SOURCE_ROOT_NAME = "build_config";
   @NonNls private static final String GENERATED_SOURCES_FOLDER_NAME = "generated_sources";
+  @NonNls private static final String COPIED_SOURCES_FOLDER_NAME = "copied_sources";
 
   private AndroidJpsUtil() {
   }
@@ -669,6 +670,13 @@ public class AndroidJpsUtil {
     final File androidStorageRoot = new File(dataPaths.getDataStorageRoot(), ANDROID_STORAGE_DIR);
     final File generatedSourcesRoot = new File(androidStorageRoot, GENERATED_SOURCES_FOLDER_NAME);
     return new File(generatedSourcesRoot, module.getName());
+  }
+
+  @NotNull
+  public static File getCopiedSourcesStorage(@NotNull JpsModule module, @NotNull BuildDataPaths dataPaths) {
+    final File androidStorageRoot = new File(dataPaths.getDataStorageRoot(), ANDROID_STORAGE_DIR);
+    final File copiedSourcesRoot = new File(androidStorageRoot, COPIED_SOURCES_FOLDER_NAME);
+    return new File(copiedSourcesRoot, module.getName());
   }
 
   @NotNull

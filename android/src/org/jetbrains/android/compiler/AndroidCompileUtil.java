@@ -709,7 +709,7 @@ public class AndroidCompileUtil {
   private static VirtualFile initializeGenSourceRoot(@NotNull Module module,
                                                      @Nullable String sourceRootPath,
                                                      boolean createIfNotExist,
-                                                     boolean exclude) {
+                                                     boolean excludeInNonExternalMode) {
     if (sourceRootPath == null) {
       return null;
     }
@@ -724,8 +724,14 @@ public class AndroidCompileUtil {
     if (sourceRoot == null) {
       sourceRoot = LocalFileSystem.getInstance().findFileByPath(sourceRootPath);
     }
-    if (sourceRoot != null && exclude) {
-      excludeFromCompilation(module.getProject(), sourceRoot);
+    if (sourceRoot != null && excludeInNonExternalMode) {
+      final CompilerWorkspaceConfiguration config = CompilerWorkspaceConfiguration.getInstance(module.getProject());
+
+      // In JPS generated roots are excluded by AndroidExcludeJavaSourceRootProvider,
+      // so we don't need to mark them in the project model
+      if (!config.USE_COMPILE_SERVER) {
+        excludeFromCompilation(module.getProject(), sourceRoot);
+      }
     }
     return sourceRoot;
   }
