@@ -67,7 +67,7 @@ public class AndroidResourceCachingBuilder extends TargetBuilder<BuildRootDescri
     final File resCacheDir = target.getOutputDir(context);
 
     // todo: probably it may be done automatically
-    if (context.isProjectRebuild() && resCacheDir.exists()) {
+    if (context.getScope().isRecompilationForced(target) && resCacheDir.exists()) {
       if (!FileUtil.delete(resCacheDir)) {
         context.processMessage(new CompilerMessage(BUILDER_NAME, BuildMessage.Kind.ERROR,
                                                    AndroidJpsBundle.message("android.jps.cannot.create.directory", resCacheDir.getPath())));

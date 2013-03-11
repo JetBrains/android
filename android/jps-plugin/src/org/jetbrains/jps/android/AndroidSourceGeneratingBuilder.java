@@ -28,6 +28,7 @@ import org.jetbrains.jps.android.model.JpsAndroidApplicationArtifactProperties;
 import org.jetbrains.jps.android.model.JpsAndroidModuleExtension;
 import org.jetbrains.jps.builders.DirtyFilesHolder;
 import org.jetbrains.jps.builders.FileProcessor;
+import org.jetbrains.jps.builders.java.JavaBuilderUtil;
 import org.jetbrains.jps.builders.java.JavaModuleBuildTargetType;
 import org.jetbrains.jps.builders.java.JavaSourceRootDescriptor;
 import org.jetbrains.jps.builders.storage.SourceToOutputMapping;
@@ -116,7 +117,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
       return ExitCode.ABORT;
     }
 
-    if (context.isProjectRebuild()) {
+    if (JavaBuilderUtil.isForcedRecompilationAllJavaModules(context)) {
       if (!clearAndroidStorages(context, chunk.getModules())) {
         return ExitCode.ABORT;
       }
@@ -148,7 +149,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
     boolean success = true;
 
     final BuildDataManager dataManager = context.getProjectDescriptor().dataManager;
-    if (context.isProjectRebuild()) {
+    if (JavaBuilderUtil.isForcedRecompilationAllJavaModules(context)) {
       for (JpsModule module : moduleDataMap.keySet()) {
         final File generatedSourcesStorage = AndroidJpsUtil.getGeneratedSourcesStorage(module, dataManager);
         if (generatedSourcesStorage.exists() &&
@@ -251,7 +252,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
         }
       }, true);
 
-      if (context.isMake() && currentState.equalsTo(savedState)) {
+      if (currentState.equalsTo(savedState)) {
         continue;
       }
       final File outDir = AndroidJpsUtil.getCopiedSourcesStorage(module, dataManager.getDataPaths());
@@ -531,11 +532,9 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
 
         final AndroidBuildConfigState newState = new AndroidBuildConfigState(packageName, libPackages, debug);
 
-        if (context.isMake()) {
-          final AndroidBuildConfigState oldState = storage.getState(module.getName());
-          if (newState.equalsTo(oldState)) {
-            continue;
-          }
+        final AndroidBuildConfigState oldState = storage.getState(module.getName());
+        if (newState.equalsTo(oldState)) {
+          continue;
         }
         didSomething = true;
         context.processMessage(new ProgressMessage(AndroidJpsBundle.message("android.jps.progress.build.config", module.getName())));
@@ -841,11 +840,9 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
         final AndroidAptValidityState newState =
           new AndroidAptValidityState(resources, manifestElements, depLibPackagesSet, packageName, proguardOutputCfgFilePath);
 
-        if (context.isMake()) {
-          final AndroidAptValidityState oldState = storage.getState(module.getName());
-          if (newState.equalsTo(oldState)) {
-            continue;
-          }
+        final AndroidAptValidityState oldState = storage.getState(module.getName());
+        if (newState.equalsTo(oldState)) {
+          continue;
         }
         didSomething = true;
         context.processMessage(new ProgressMessage(AndroidJpsBundle.message("android.jps.progress.aapt", module.getName())));
