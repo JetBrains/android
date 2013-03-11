@@ -536,16 +536,15 @@ public class AndroidSdkUtils {
         return false;
       }
     }
-    boolean containsRtJar = false;
+    boolean containsJarFromJdk = false;
 
     for (VirtualFile file : javaSdk.getRootProvider().getFiles(OrderRootType.CLASSES)) {
       if (file.getFileType() instanceof ArchiveFileType &&
-          file.getName().equals("rt.jar") &&
           filesInSdk.contains(file)) {
-        containsRtJar = true;
+        containsJarFromJdk = true;
       }
     }
-    return containsRtJar == forMaven;
+    return containsJarFromJdk == forMaven;
   }
 
   @Nullable
