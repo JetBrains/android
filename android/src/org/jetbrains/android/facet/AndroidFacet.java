@@ -693,9 +693,9 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       @Override
       public void run() {
         if (property != null) {
-          property.setValue(Boolean.toString(getConfiguration().LIBRARY_PROJECT));
+          property.setValue(Boolean.toString(getConfiguration().getState().LIBRARY_PROJECT));
         }
-        else if (getConfiguration().LIBRARY_PROJECT) {
+        else if (getConfiguration().getState().LIBRARY_PROJECT) {
           propertiesFile.addProperty(AndroidUtils.ANDROID_LIBRARY_PROPERTY, Boolean.TRUE.toString());
         }
       }

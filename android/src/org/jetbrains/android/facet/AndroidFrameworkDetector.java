@@ -85,7 +85,7 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
       AndroidRootUtil.getProjectPropertyValue(module, AndroidUtils.ANDROID_LIBRARY_PROPERTY);
 
     if (androidLibraryProp != null && Boolean.parseBoolean(androidLibraryProp.getFirst())) {
-      facet.getConfiguration().LIBRARY_PROJECT = true;
+      facet.getConfiguration().getState().LIBRARY_PROJECT = true;
     }
     else {
       Manifest manifest = facet.getManifest();
