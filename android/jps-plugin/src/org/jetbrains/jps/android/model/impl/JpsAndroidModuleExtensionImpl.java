@@ -68,7 +68,7 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
   @Override
   public List<AndroidNativeLibData> getAdditionalNativeLibs() {
     final List<AndroidNativeLibData> libDatas = new ArrayList<AndroidNativeLibData>();
-    for (JpsAndroidModuleProperties.AndroidNativeLibData nativeLib : myProperties.myNativeLibs) {
+    for (JpsAndroidModuleProperties.AndroidNativeLibDataEntry nativeLib : myProperties.myNativeLibs) {
       if (nativeLib.myArchitecture != null && nativeLib.myUrl != null && nativeLib.myTargetFileName != null) {
         libDatas.add(new AndroidNativeLibData(nativeLib.myArchitecture, JpsPathUtil.urlToPath(nativeLib.myUrl), nativeLib.myTargetFileName));
       }

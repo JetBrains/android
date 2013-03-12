@@ -86,7 +86,6 @@ public class AndroidCompileUtil {
   @NonNls private static final String RESOURCES_CACHE_DIR_NAME = "res-cache";
   @NonNls private static final String GEN_MODULE_PREFIX = "~generated_";
 
-  @NonNls public static final String PROGUARD_CFG_FILE_NAME = "proguard-project.txt";
   @NonNls public static final String OLD_PROGUARD_CFG_FILE_NAME = "proguard.cfg";
   public static final String UNSIGNED_SUFFIX = ".unsigned";
 
@@ -122,7 +121,7 @@ public class AndroidCompileUtil {
     if (root == null) {
       return null;
     }
-    final VirtualFile proguardCfg = root.findChild(PROGUARD_CFG_FILE_NAME);
+    final VirtualFile proguardCfg = root.findChild(AndroidCommonUtils.PROGUARD_CFG_FILE_NAME);
     if (proguardCfg != null) {
       return new Pair<VirtualFile, Boolean>(proguardCfg, true);
     }
@@ -646,7 +645,7 @@ public class AndroidCompileUtil {
     final Module module = facet.getModule();
     final GlobalSearchScope moduleScope = facet.getModule().getModuleScope();
 
-    if (facet.getConfiguration().LIBRARY_PROJECT) {
+    if (facet.getConfiguration().getState().LIBRARY_PROJECT) {
       removeGenModule(module);
     }
     initializeGenSourceRoot(module, AndroidRootUtil.getBuildconfigGenSourceRootPath(facet), true, true);
@@ -787,7 +786,7 @@ public class AndroidCompileUtil {
     }
 
     final AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null || !facet.getConfiguration().LIBRARY_PROJECT) {
+    if (facet == null || !facet.getConfiguration().getState().LIBRARY_PROJECT) {
       return true;
     }
 
@@ -832,7 +831,7 @@ public class AndroidCompileUtil {
 
     // facet
     final AndroidFacetConfiguration configuration = facet.getConfiguration();
-    if (configuration.RUN_PROGUARD) {
+    if (configuration.getState().RUN_PROGUARD) {
       final VirtualFile proguardCfgFile = AndroidRootUtil.getProguardCfgFile(facet);
       final String proguardCfgPath = proguardCfgFile != null ? FileUtil.toSystemDependentName(proguardCfgFile.getPath()) : null;
       return new ProguardRunningOptions(proguardCfgPath, configuration.isIncludeSystemProguardCfgPath());
@@ -882,7 +881,7 @@ public class AndroidCompileUtil {
   // support for lib<->lib and app<->lib circular dependencies
   // see IDEA-79737 for details
   public static boolean isLibraryWithBadCircularDependency(@NotNull AndroidFacet facet) {
-    if (!facet.getConfiguration().LIBRARY_PROJECT) {
+    if (!facet.getConfiguration().getState().LIBRARY_PROJECT) {
       return false;
     }
 
@@ -904,7 +903,7 @@ public class AndroidCompileUtil {
       if (depDependencies.contains(facet) &&
           dependencies.contains(depFacet) &&
           (depFacet.getModule().getName().compareTo(facet.getModule().getName()) < 0 ||
-           !depFacet.getConfiguration().LIBRARY_PROJECT)) {
+           !depFacet.getConfiguration().getState().LIBRARY_PROJECT)) {
         return true;
       }
     }
@@ -957,8 +956,8 @@ public class AndroidCompileUtil {
 
   @Nullable
   public static String getAaptManifestPackage(@NotNull AndroidFacet facet) {
-    if (facet.getConfiguration().USE_CUSTOM_MANIFEST_PACKAGE) {
-      return facet.getConfiguration().CUSTOM_MANIFEST_PACKAGE;
+    if (facet.getConfiguration().getState().USE_CUSTOM_MANIFEST_PACKAGE) {
+      return facet.getConfiguration().getState().CUSTOM_MANIFEST_PACKAGE;
     }
     final Manifest manifest = facet.getManifest();
 

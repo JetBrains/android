@@ -475,7 +475,7 @@ public class AndroidUtils {
       AndroidFacetConfiguration configuration = facet.getConfiguration();
       configuration.init(module, contentRoot);
       if (library) {
-        configuration.LIBRARY_PROJECT = true;
+        configuration.getState().LIBRARY_PROJECT = true;
       }
       model.addFacet(facet);
     }
@@ -585,7 +585,7 @@ public class AndroidUtils {
     final List<AndroidFacet> result = new ArrayList<AndroidFacet>();
 
     for (AndroidFacet facet : ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)) {
-      if (!facet.getConfiguration().LIBRARY_PROJECT) {
+      if (!facet.getConfiguration().getState().LIBRARY_PROJECT) {
         result.add(facet);
       }
     }
@@ -606,7 +606,7 @@ public class AndroidUtils {
           if (depModule != null) {
             final AndroidFacet depFacet = AndroidFacet.getInstance(depModule);
 
-            if (depFacet != null && depFacet.getConfiguration().LIBRARY_PROJECT) {
+            if (depFacet != null && depFacet.getConfiguration().getState().LIBRARY_PROJECT) {
               depFacets.add(depFacet);
             }
           }
@@ -643,7 +643,7 @@ public class AndroidUtils {
             final AndroidFacet depFacet = AndroidFacet.getInstance(depModule);
 
             if (depFacet != null &&
-                (!androidLibrariesOnly || depFacet.getConfiguration().LIBRARY_PROJECT) &&
+                (!androidLibrariesOnly || depFacet.getConfiguration().getState().LIBRARY_PROJECT) &&
                 visited.add(depFacet)) {
               collectAllAndroidDependencies(depModule, androidLibrariesOnly, result, visited);
               result.add(0, depFacet);
