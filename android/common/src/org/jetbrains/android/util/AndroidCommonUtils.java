@@ -55,6 +55,7 @@ import java.util.regex.Pattern;
  * @author Eugene.Kudelevsky
  */
 public class AndroidCommonUtils {
+  @NonNls public static final String PROGUARD_CFG_FILE_NAME = "proguard-project.txt";
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.util.AndroidCommonUtils");
 
   @NonNls public static final String MANIFEST_JAVA_FILE_NAME = "Manifest.java";

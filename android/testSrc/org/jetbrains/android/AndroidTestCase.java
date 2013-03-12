@@ -112,7 +112,7 @@ public abstract class AndroidTestCase extends UsefulTestCase {
       final Module additionalModule = data.myModuleFixtureBuilder.getFixture().getModule();
       myAdditionalModules.add(additionalModule);
       final AndroidFacet facet = addAndroidFacet(additionalModule, getTestSdkPath());
-      facet.getConfiguration().LIBRARY_PROJECT = data.myLibrary;
+      facet.getConfiguration().getState().LIBRARY_PROJECT = data.myLibrary;
       final String rootPath = getContentRootPath(data.myDirName);
       myFixture.copyDirectoryToProject("res", rootPath + "/res");
       myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML,
