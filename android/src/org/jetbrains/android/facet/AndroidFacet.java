@@ -131,7 +131,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
         boolean regenerate;
 
         synchronized (myDirtyModes) {
-          regenerate = myDirtyModes.contains(mode);
+          regenerate = myDirtyModes.remove(mode);
         }
         regenerate = regenerate || isGeneratedFileRemoved(mode);
 
@@ -139,8 +139,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
           final boolean result = AndroidCompileUtil.doGenerate(getModule(), mode);
 
           synchronized (myDirtyModes) {
-            myDirtyModes.remove(mode);
-
             if (result) {
               myGeneratedWithErrorsModes.remove(mode);
             }
