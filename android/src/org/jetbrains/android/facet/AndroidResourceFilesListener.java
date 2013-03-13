@@ -148,7 +148,7 @@ class AndroidResourceFilesListener extends VirtualFileAdapter {
       }
 
       for (AndroidAutogeneratorMode autogenerationMode : autogenerationModes) {
-        AndroidCompileUtil.generate(myFacet.getModule(), autogenerationMode, true);
+        AndroidCompileUtil.generate(myFacet.getModule(), autogenerationMode);
       }
     }
 
