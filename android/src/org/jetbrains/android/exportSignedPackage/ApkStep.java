@@ -155,7 +155,7 @@ class ApkStep extends ExportSignedPackageWizardStep {
       selected = Boolean.parseBoolean(runProguardPropValue);
     }
     else {
-      selected = facet.getConfiguration().getState().RUN_PROGUARD;
+      selected = facet.getProperties().RUN_PROGUARD;
     }
     myProguardCheckBox.setSelected(selected);
     myProguardConfigFilePathLabel.setEnabled(selected);

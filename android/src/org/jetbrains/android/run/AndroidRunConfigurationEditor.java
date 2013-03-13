@@ -88,7 +88,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
           return false;
         }
         final AndroidFacet facet = AndroidFacet.getInstance(module);
-        return facet != null && !facet.getConfiguration().getState().LIBRARY_PROJECT;
+        return facet != null && !facet.getProperties().LIBRARY_PROJECT;
       }
     };
 

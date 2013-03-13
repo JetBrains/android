@@ -95,7 +95,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (facet == null) {
       throw new RuntimeConfigurationError(AndroidBundle.message("android.no.facet.error"));
     }
-    if (facet.getConfiguration().getState().LIBRARY_PROJECT) {
+    if (facet.getProperties().LIBRARY_PROJECT) {
       throw new RuntimeConfigurationError(AndroidBundle.message("android.cannot.run.library.project.error"));
     }
     if (facet.getConfiguration().getAndroidPlatform() == null) {
@@ -158,7 +158,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
           AndroidFacet depFacet = AndroidFacet.getInstance(depModule);
           if (depFacet != null &&
               !module2PackageName.containsKey(depFacet) &&
-              !depFacet.getConfiguration().getState().LIBRARY_PROJECT) {
+              !depFacet.getProperties().LIBRARY_PROJECT) {
             String packageName = getPackageName(depFacet);
             if (packageName == null) {
               return false;
@@ -250,8 +250,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   @Nullable
   private static String getPackageName(AndroidFacet facet) {
-    if (facet.getConfiguration().getState().USE_CUSTOM_MANIFEST_PACKAGE) {
-      return facet.getConfiguration().getState().CUSTOM_MANIFEST_PACKAGE;
+    if (facet.getProperties().USE_CUSTOM_MANIFEST_PACKAGE) {
+      return facet.getProperties().CUSTOM_MANIFEST_PACKAGE;
     }
     else {
       Manifest manifest = facet.getManifest();
