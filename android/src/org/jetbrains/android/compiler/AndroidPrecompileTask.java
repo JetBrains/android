@@ -27,15 +27,14 @@ import com.intellij.openapi.compiler.*;
 import com.intellij.openapi.compiler.options.ExcludeEntryDescription;
 import com.intellij.openapi.compiler.options.ExcludedEntriesConfiguration;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.DependencyScope;
-import com.intellij.openapi.roots.ModuleOrderEntry;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.impl.ModifiableModelCommitter;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
@@ -136,20 +135,41 @@ public class AndroidPrecompileTask implements CompileTask {
     return true;
   }
 
-  private static void createGenModulesAndSourceRoots(Project project) {
+  private static void createGenModulesAndSourceRoots(final Project project) {
     final ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
+    final List<AndroidFacet> facets = new ArrayList<AndroidFacet>();
 
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       final AndroidFacet facet = AndroidFacet.getInstance(module);
 
       if (facet != null) {
-        ApplicationManager.getApplication().invokeAndWait(new Runnable() {
-          @Override
-          public void run() {
-            AndroidCompileUtil.createGenModulesAndSourceRoots(facet);
-          }
-        }, indicator != null ? indicator.getModalityState() : ModalityState.NON_MODAL);
+        facets.add(facet);
       }
+    }
+
+    if (facets.size() > 0) {
+      ApplicationManager.getApplication().invokeAndWait(new Runnable() {
+        @Override
+        public void run() {
+          final ModifiableRootModel[] models = new ModifiableRootModel[facets.size()];
+          int i = 0;
+
+          for (AndroidFacet facet : facets) {
+            final ModifiableRootModel model = ModuleRootManager.getInstance(
+              facet.getModule()).getModifiableModel();
+            models[i++] = model;
+            AndroidCompileUtil.createGenModulesAndSourceRoots(facet, model);
+          }
+
+          ApplicationManager.getApplication().runWriteAction(new Runnable() {
+            @Override
+            public void run() {
+              final ModifiableModuleModel moduleModel = ModuleManager.getInstance(project).getModifiableModel();
+              ModifiableModelCommitter.multiCommit(models, moduleModel);
+            }
+          });
+        }
+      }, indicator != null ? indicator.getModalityState() : ModalityState.NON_MODAL);
     }
   }
 
