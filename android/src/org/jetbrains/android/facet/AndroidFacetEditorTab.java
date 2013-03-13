@@ -489,7 +489,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
       final Module module = myContext.getModule();
 
       if (runApt) {
-        AndroidCompileUtil.generate(module, AndroidAutogeneratorMode.AAPT, true);
+        AndroidCompileUtil.generate(module, AndroidAutogeneratorMode.AAPT);
       }
       if (runIdl) {
         AndroidCompileUtil.generate(module, AndroidAutogeneratorMode.AIDL);
