@@ -82,6 +82,7 @@ import org.jetbrains.android.sdk.*;
 import org.jetbrains.android.util.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.io.File;
 import java.util.*;
@@ -657,9 +658,9 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       @Override
       public void run() {
         if (property != null) {
-          property.setValue(Boolean.toString(getConfiguration().getState().LIBRARY_PROJECT));
+          property.setValue(Boolean.toString(getProperties().LIBRARY_PROJECT));
         }
-        else if (getConfiguration().getState().LIBRARY_PROJECT) {
+        else if (getProperties().LIBRARY_PROJECT) {
           propertiesFile.addProperty(AndroidUtils.ANDROID_LIBRARY_PROPERTY, Boolean.TRUE.toString());
         }
       }
@@ -861,5 +862,9 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     synchronized (myDirtyModes) {
       return myDirtyModes.remove(mode);
     }
+  }
+
+  public JpsAndroidModuleProperties getProperties() {
+    return getConfiguration().getState();
   }
 }

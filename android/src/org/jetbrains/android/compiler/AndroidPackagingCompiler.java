@@ -110,9 +110,9 @@ public class AndroidPackagingCompiler implements PackagingCompiler {
     final List<ProcessingItem> items = new ArrayList<ProcessingItem>();
     for (Module module : ModuleManager.getInstance(context.getProject()).getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && !facet.getConfiguration().getState().LIBRARY_PROJECT) {
+      if (facet != null && !facet.getProperties().LIBRARY_PROJECT) {
         VirtualFile manifestFile = AndroidRootUtil.getManifestFileForCompiler(facet);
-        VirtualFile[] sourceRoots = getSourceRootsForModuleAndDependencies(module, facet.getConfiguration().getState().PACK_TEST_CODE);
+        VirtualFile[] sourceRoots = getSourceRootsForModuleAndDependencies(module, facet.getProperties().PACK_TEST_CODE);
         if (manifestFile != null) {
           AndroidFacetConfiguration configuration = facet.getConfiguration();
           VirtualFile outputDir = AndroidDexCompiler.getOutputDirectoryForDex(module);

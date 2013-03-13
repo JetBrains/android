@@ -60,7 +60,7 @@ public class AndroidResourcesPackagingCompiler implements ClassPostProcessingCom
     final List<ProcessingItem> items = new ArrayList<ProcessingItem>();
     for (Module module : ModuleManager.getInstance(context.getProject()).getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && !facet.getConfiguration().getState().LIBRARY_PROJECT) {
+      if (facet != null && !facet.getProperties().LIBRARY_PROJECT) {
         VirtualFile manifestFile = AndroidRootUtil.getManifestFileForCompiler(facet);
 
         final ArrayList<String> assetDirPathsList = new ArrayList<String>();
