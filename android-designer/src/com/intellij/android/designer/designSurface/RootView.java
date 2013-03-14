@@ -15,8 +15,8 @@
  */
 package com.intellij.android.designer.designSurface;
 
-import com.intellij.android.designer.ImageUtils;
-import com.intellij.android.designer.ShadowPainter;
+import com.android.tools.idea.rendering.ImageUtils;
+import com.android.tools.idea.rendering.ShadowPainter;
 import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.designer.designSurface.ScalableComponent;
@@ -27,10 +27,9 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.intellij.android.designer.ShadowPainter.SHADOW_SIZE;
-import static java.awt.RenderingHints.*;
-import static java.awt.RenderingHints.KEY_ANTIALIASING;
-import static java.awt.RenderingHints.VALUE_ANTIALIAS_ON;
+import static com.android.tools.idea.rendering.ShadowPainter.SHADOW_SIZE;
+import static java.awt.RenderingHints.KEY_INTERPOLATION;
+import static java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR;
 
 /**
  * @author Alexander Lobas
@@ -126,8 +125,7 @@ public class RootView extends com.intellij.designer.designSurface.RootView imple
         // When scaling down we need to do an expensive scaling to ensure that
         // the thumbnails look good
         if (myShowDropShadow) {
-          myScaledImage = ImageUtils.scale(myImage, scale, scale,
-                                            SHADOW_SIZE, SHADOW_SIZE);
+          myScaledImage = ImageUtils.scale(myImage, scale, scale, SHADOW_SIZE, SHADOW_SIZE);
           ShadowPainter.drawRectangleShadow(myScaledImage, 0, 0,
                                          myScaledImage.getWidth() - SHADOW_SIZE,
                                          myScaledImage.getHeight() - SHADOW_SIZE);
