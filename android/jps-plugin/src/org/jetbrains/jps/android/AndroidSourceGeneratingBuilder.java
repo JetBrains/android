@@ -242,7 +242,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
             return false;
           }
           try {
-            return !"java".equals(FileUtilRt.getExtension(file.getName())) ||
+            return !FileUtilRt.extensionEquals(file.getName(), "java") ||
                    !isGeneratedByIdea(file);
           }
           catch (IOException e) {
@@ -266,7 +266,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
             @Override
             public boolean process(File file) {
               try {
-                if ("java".equals(FileUtilRt.getExtension(file.getName())) &&
+                if (FileUtilRt.extensionEquals(file.getName(), "java") &&
                     isGeneratedByIdea(file)) {
                   return true;
                 }
