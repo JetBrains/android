@@ -667,16 +667,16 @@ public class AndroidJpsUtil {
 
   @NotNull
   public static File getGeneratedSourcesStorage(@NotNull JpsModule module, final BuildDataPaths dataPaths) {
-    final File androidStorageRoot = new File(dataPaths.getDataStorageRoot(), ANDROID_STORAGE_DIR);
-    final File generatedSourcesRoot = new File(androidStorageRoot, GENERATED_SOURCES_FOLDER_NAME);
-    return new File(generatedSourcesRoot, module.getName());
+    final File targetDataRoot = dataPaths.getTargetDataRoot(
+      new ModuleBuildTarget(module, JavaModuleBuildTargetType.PRODUCTION));
+    return getStorageDir(targetDataRoot, GENERATED_SOURCES_FOLDER_NAME);
   }
 
   @NotNull
   public static File getCopiedSourcesStorage(@NotNull JpsModule module, @NotNull BuildDataPaths dataPaths) {
-    final File androidStorageRoot = new File(dataPaths.getDataStorageRoot(), ANDROID_STORAGE_DIR);
-    final File copiedSourcesRoot = new File(androidStorageRoot, COPIED_SOURCES_FOLDER_NAME);
-    return new File(copiedSourcesRoot, module.getName());
+    final File targetDataRoot = dataPaths.getTargetDataRoot(
+      new ModuleBuildTarget(module, JavaModuleBuildTargetType.PRODUCTION));
+    return getStorageDir(targetDataRoot, COPIED_SOURCES_FOLDER_NAME);
   }
 
   @NotNull
@@ -686,15 +686,19 @@ public class AndroidJpsUtil {
 
   @NotNull
   private static File getGeneratedResourcesStorage(@NotNull JpsModule module, @NotNull BuildDataPaths dataPaths) {
-    final File dataStorageRoot = dataPaths.getDataStorageRoot();
-    final File androidStorageRoot = new File(dataStorageRoot, ANDROID_STORAGE_DIR);
-    final File generatedSourcesRoot = new File(androidStorageRoot, GENERATED_RESOURCES_DIR_NAME);
-    return new File(generatedSourcesRoot, module.getName());
+    final File targetDataRoot = dataPaths.getTargetDataRoot(
+      new ModuleBuildTarget(module, JavaModuleBuildTargetType.PRODUCTION));
+    return getStorageDir(targetDataRoot, GENERATED_RESOURCES_DIR_NAME);
   }
 
   @NotNull
   public static File getStorageFile(@NotNull File dataStorageRoot, @NotNull String storageName) {
-    return new File(new File(new File(dataStorageRoot, ANDROID_STORAGE_DIR), storageName), storageName);
+    return new File(getStorageDir(dataStorageRoot, storageName), storageName);
+  }
+
+  @NotNull
+  public static File getStorageDir(@NotNull File dataStorageRoot, @NotNull String storageName) {
+    return new File(new File(dataStorageRoot, ANDROID_STORAGE_DIR), storageName);
   }
 
   @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
