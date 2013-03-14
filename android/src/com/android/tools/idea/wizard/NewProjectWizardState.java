@@ -46,6 +46,11 @@ public class NewProjectWizardState extends TemplateWizardState {
   private final TemplateWizardState myActivityTemplateState;
 
   /**
+   * State for the page that lets users create custom launcher icons
+   */
+  private final LauncherIconWizardState myLauncherIconState;
+
+  /**
    * The compilation target to use for this project
    */
   private IAndroidTarget myBuildTarget;
@@ -53,15 +58,16 @@ public class NewProjectWizardState extends TemplateWizardState {
   public NewProjectWizardState() {
     super();
     myActivityTemplateState = new TemplateWizardState();
+    myLauncherIconState = new LauncherIconWizardState();
     myTemplate = Template.createFromName(CATEGORY_PROJECTS, "NewAndroidApplication");
     setParameterDefaults();
 
-    myParameters.put(ATTR_IS_LAUNCHER, true);
-    myParameters.put(ATTR_LIBRARY, false);
-    myParameters.put(ATTR_CREATE_ICONS, false);
-    myParameters.put(ATTR_IS_NEW_PROJECT, true);
-    myParameters.put(ATTR_CREATE_ACTIVITY, true);
-    myParameters.put(ATTR_PROJECT_LOCATION, getProjectFileDirectory());
+    put(ATTR_IS_LAUNCHER, true);
+    put(ATTR_LIBRARY, false);
+    put(ATTR_CREATE_ICONS, true);
+    put(ATTR_IS_NEW_PROJECT, true);
+    put(ATTR_CREATE_ACTIVITY, true);
+    put(ATTR_PROJECT_LOCATION, getProjectFileDirectory());
     convertToInt(ATTR_MIN_API);
     convertToInt(ATTR_BUILD_API);
     convertToInt(ATTR_MIN_API_LEVEL);
@@ -77,11 +83,18 @@ public class NewProjectWizardState extends TemplateWizardState {
     myActivityTemplateState.myHidden.add(ATTR_IS_LAUNCHER);
     myActivityTemplateState.myHidden.add(ATTR_PARENT_ACTIVITY_CLASS);
     myActivityTemplateState.myHidden.add(ATTR_ACTIVITY_TITLE);
+
+    updateParameters();
   }
 
   @NotNull
   public TemplateWizardState getActivityTemplateState() {
     return myActivityTemplateState;
+  }
+
+  @NotNull
+  public LauncherIconWizardState getLauncherIconState() {
+    return myLauncherIconState;
   }
 
   public IAndroidTarget getBuildTarget() {
@@ -107,9 +120,13 @@ public class NewProjectWizardState extends TemplateWizardState {
    * (i.e. states for other template wizards that are part of the same dialog).
    */
   public void updateParameters() {
-    myParameters.put(ATTR_COPY_ICONS, !Boolean.parseBoolean(myParameters.get(ATTR_CREATE_ICONS).toString()));
+    put(ATTR_COPY_ICONS, !Boolean.parseBoolean(get(ATTR_CREATE_ICONS).toString()));
     copyParameters(myParameters, myActivityTemplateState.myParameters, ATTR_PACKAGE_NAME, ATTR_APP_TITLE, ATTR_MIN_API, ATTR_MIN_API_LEVEL,
-                   ATTR_TARGET_API, ATTR_BUILD_API, ATTR_COPY_ICONS, ATTR_IS_NEW_PROJECT, ATTR_IS_LAUNCHER);
+                   ATTR_TARGET_API, ATTR_BUILD_API, ATTR_COPY_ICONS, ATTR_IS_NEW_PROJECT, ATTR_IS_LAUNCHER, ATTR_CREATE_ACTIVITY,
+                   ATTR_CREATE_ICONS);
+    copyParameters(myParameters, myLauncherIconState.myParameters, ATTR_PACKAGE_NAME, ATTR_APP_TITLE, ATTR_MIN_API, ATTR_MIN_API_LEVEL,
+                   ATTR_TARGET_API, ATTR_BUILD_API, ATTR_COPY_ICONS, ATTR_IS_NEW_PROJECT, ATTR_IS_LAUNCHER, ATTR_CREATE_ACTIVITY,
+                   ATTR_CREATE_ICONS);
   }
 
   private void copyParameters(@NotNull Map<String, Object> from, @NotNull Map<String, Object> to, String... keys) {
@@ -120,7 +137,7 @@ public class NewProjectWizardState extends TemplateWizardState {
 
   private void convertToInt(String attr) {
     if (myParameters.containsKey(attr)) {
-      myParameters.put(attr, Integer.parseInt(myParameters.get(attr).toString()));
+      put(attr, Integer.parseInt(get(attr).toString()));
     }
   }
 }

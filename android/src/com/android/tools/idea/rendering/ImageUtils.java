@@ -16,6 +16,9 @@
 package com.android.tools.idea.rendering;
 
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
@@ -158,5 +161,172 @@ public class ImageUtils {
       }
       return scaled;
     }
+  }
+
+  /**
+   * Crops blank pixels from the edges of the image and returns the cropped result. We
+   * crop off pixels that are blank (meaning they have an alpha value = 0). Note that
+   * this is not the same as pixels that aren't opaque (an alpha value other than 255).
+   *
+   * @param image       the image to be cropped
+   * @param initialCrop If not null, specifies a rectangle which contains an initial
+   *                    crop to continue. This can be used to crop an image where you already
+   *                    know about margins in the image
+   * @return a cropped version of the source image, or null if the whole image was blank
+   *         and cropping completely removed everything
+   */
+  @Nullable
+  public static BufferedImage cropBlank(@NotNull BufferedImage image, @Nullable Rectangle initialCrop) {
+    return cropBlank(image, initialCrop, image.getType());
+  }
+
+  /**
+   * Crops blank pixels from the edges of the image and returns the cropped result. We
+   * crop off pixels that are blank (meaning they have an alpha value = 0). Note that
+   * this is not the same as pixels that aren't opaque (an alpha value other than 255).
+   *
+   * @param image       the image to be cropped
+   * @param initialCrop If not null, specifies a rectangle which contains an initial
+   *                    crop to continue. This can be used to crop an image where you already
+   *                    know about margins in the image
+   * @param imageType   the type of {@link BufferedImage} to create
+   * @return a cropped version of the source image, or null if the whole image was blank
+   *         and cropping completely removed everything
+   */
+  public static BufferedImage cropBlank(BufferedImage image, Rectangle initialCrop, int imageType) {
+    CropFilter filter = new CropFilter() {
+      @Override
+      public boolean crop(BufferedImage bufferedImage, int x, int y) {
+        int rgb = bufferedImage.getRGB(x, y);
+        return (rgb & 0xFF000000) == 0x00000000;
+        // TODO: Do a threshold of 80 instead of just 0? Might give better
+        // visual results -- e.g. check <= 0x80000000
+      }
+    };
+    return crop(image, filter, initialCrop, imageType);
+  }
+
+  private static BufferedImage crop(BufferedImage image, CropFilter filter, Rectangle initialCrop, int imageType) {
+    if (image == null) {
+      return null;
+    }
+
+    // First, determine the dimensions of the real image within the image
+    int x1, y1, x2, y2;
+    if (initialCrop != null) {
+      x1 = initialCrop.x;
+      y1 = initialCrop.y;
+      x2 = initialCrop.x + initialCrop.width;
+      y2 = initialCrop.y + initialCrop.height;
+    }
+    else {
+      x1 = 0;
+      y1 = 0;
+      x2 = image.getWidth();
+      y2 = image.getHeight();
+    }
+
+    // Nothing left to crop
+    if (x1 == x2 || y1 == y2) {
+      return null;
+    }
+
+    // This algorithm is a bit dumb -- it just scans along the edges looking for
+    // a pixel that shouldn't be cropped. I could maybe try to make it smarter by
+    // for example doing a binary search to quickly eliminate large empty areas to
+    // the right and bottom -- but this is slightly tricky with components like the
+    // AnalogClock where I could accidentally end up finding a blank horizontal or
+    // vertical line somewhere in the middle of the rendering of the clock, so for now
+    // we do the dumb thing -- not a big deal since we tend to crop reasonably
+    // small images.
+
+    // First determine top edge
+    topEdge:
+    for (; y1 < y2; y1++) {
+      for (int x = x1; x < x2; x++) {
+        if (!filter.crop(image, x, y1)) {
+          break topEdge;
+        }
+      }
+    }
+
+    if (y1 == image.getHeight()) {
+      // The image is blank
+      return null;
+    }
+
+    // Next determine left edge
+    leftEdge:
+    for (; x1 < x2; x1++) {
+      for (int y = y1; y < y2; y++) {
+        if (!filter.crop(image, x1, y)) {
+          break leftEdge;
+        }
+      }
+    }
+
+    // Next determine right edge
+    rightEdge:
+    for (; x2 > x1; x2--) {
+      for (int y = y1; y < y2; y++) {
+        if (!filter.crop(image, x2 - 1, y)) {
+          break rightEdge;
+        }
+      }
+    }
+
+    // Finally determine bottom edge
+    bottomEdge:
+    for (; y2 > y1; y2--) {
+      for (int x = x1; x < x2; x++) {
+        if (!filter.crop(image, x, y2 - 1)) {
+          break bottomEdge;
+        }
+      }
+    }
+
+    // No need to crop?
+    if (x1 == 0 && y1 == 0 && x2 == image.getWidth() && y2 == image.getHeight()) {
+      return image;
+    }
+
+    if (x1 == x2 || y1 == y2) {
+      // Nothing left after crop -- blank image
+      return null;
+    }
+
+    int width = x2 - x1;
+    int height = y2 - y1;
+
+    // Now extract the sub-image
+    if (imageType == -1) {
+      imageType = image.getType();
+    }
+    if (imageType == BufferedImage.TYPE_CUSTOM) {
+      imageType = BufferedImage.TYPE_INT_ARGB;
+    }
+    BufferedImage cropped = new BufferedImage(width, height, imageType);
+    Graphics g = cropped.getGraphics();
+    g.drawImage(image, 0, 0, width, height, x1, y1, x2, y2, null);
+
+    g.dispose();
+
+    return cropped;
+  }
+
+  /**
+   * Interface implemented by cropping functions that determine whether
+   * a pixel should be cropped or not.
+   */
+  private static interface CropFilter {
+    /**
+     * Returns true if the pixel is should be cropped.
+     *
+     * @param image the image containing the pixel in question
+     * @param x     the x position of the pixel
+     * @param y     the y position of the pixel
+     * @return true if the pixel should be cropped (for example, is blank)
+     */
+    boolean crop(BufferedImage image, int x, int y);
   }
 }

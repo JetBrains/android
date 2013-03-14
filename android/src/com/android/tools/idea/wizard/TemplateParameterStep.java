@@ -52,9 +52,8 @@ public class TemplateParameterStep extends TemplateWizardStep {
       JLabel label = new JLabel(parameter.name);
       c.setColumn(0);
       c.setRow(row++);
-      Object value =
-        myTemplateState.myParameters.get(parameter.id) != null ? myTemplateState.myParameters.get(parameter.id) : parameter.initial;
-      myTemplateState.myParameters.put(parameter.id, value);
+      Object value = myTemplateState.get(parameter.id) != null ? myTemplateState.get(parameter.id) : parameter.initial;
+      myTemplateState.put(parameter.id, value);
       switch(parameter.type) {
         case BOOLEAN:
           myParamContainer.add(label, c);
@@ -102,5 +101,10 @@ public class TemplateParameterStep extends TemplateWizardStep {
   @Override
   protected JLabel getError() {
     return myError;
+  }
+
+  @Override
+  public boolean isStepVisible() {
+    return (Boolean)myTemplateState.get(NewProjectWizardState.ATTR_CREATE_ACTIVITY);
   }
 }

@@ -20,6 +20,7 @@ import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.HashMap;
@@ -54,7 +55,11 @@ public class TemplateWizardState {
    * Create a new state object for use by the {@link NewTemplatePage}
    */
   public TemplateWizardState() {
-    myParameters.put(TemplateMetadata.ATTR_IS_NEW_PROJECT, false);
+    put(TemplateMetadata.ATTR_IS_NEW_PROJECT, false);
+  }
+
+  public boolean hasTemplate() {
+    return myTemplate != null && myTemplate.getMetadata() != null;
   }
 
   @NotNull
@@ -65,6 +70,15 @@ public class TemplateWizardState {
   @NotNull
   public TemplateMetadata getTemplateMetadata() {
     return myTemplate.getMetadata();
+  }
+
+  @Nullable
+  public Object get(String key) {
+    return myParameters.get(key);
+  }
+
+  public void put(@NotNull String key, @Nullable Object value) {
+    myParameters.put(key, value);
   }
 
   /**
@@ -80,7 +94,7 @@ public class TemplateWizardState {
   protected void setParameterDefaults() {
     for (Parameter param : myTemplate.getMetadata().getParameters()) {
       if (!myParameters.containsKey(param.id) && param.initial != null) {
-        myParameters.put(param.id, param.initial);
+        put(param.id, param.initial);
       }
     }
   }

@@ -68,7 +68,7 @@ public class ConfigureProjectStep extends TemplateWizardStep {
     }
     for (IAndroidTarget target : targets) {
       AndroidTargetComboBoxItem targetInfo = new AndroidTargetComboBoxItem(target);
-      myTemplateState.myParameters.put(ATTR_BUILD_API, targetInfo.apiLevel);
+      myTemplateState.put(ATTR_BUILD_API, targetInfo.apiLevel);
       myCompileWith.addItem(targetInfo);
       if (target.getVersion().isPreview()) {
         myMinSdk.addItem(targetInfo);
@@ -203,11 +203,11 @@ public class ConfigureProjectStep extends TemplateWizardStep {
 
     AndroidTargetComboBoxItem item = (AndroidTargetComboBoxItem)myMinSdk.getSelectedItem();
     if (item != null) {
-      myTemplateState.myParameters.put(ATTR_MIN_API_LEVEL, item.apiLevel);
+      myTemplateState.put(ATTR_MIN_API_LEVEL, item.apiLevel);
     }
 
     setErrorHtml("");
-    String applicationName = (String)myTemplateState.myParameters.get(ATTR_APP_TITLE);
+    String applicationName = (String)myTemplateState.get(ATTR_APP_TITLE);
     if (applicationName == null || applicationName.isEmpty()) {
       setErrorHtml("Enter an application name (shown in launcher)");
       return false;
@@ -215,7 +215,7 @@ public class ConfigureProjectStep extends TemplateWizardStep {
     if (Character.isLowerCase(applicationName.charAt(0))) {
       setErrorHtml("The application name for most apps begins with an uppercase letter");
     }
-    String packageName = (String)myTemplateState.myParameters.get(ATTR_PACKAGE_NAME);
+    String packageName = (String)myTemplateState.get(ATTR_PACKAGE_NAME);
     if (packageName == null || packageName.isEmpty()) {
       setErrorHtml("Package name must be specified.");
     } else if (packageName.startsWith(SAMPLE_PACKAGE_PREFIX)) {
@@ -223,15 +223,15 @@ public class ConfigureProjectStep extends TemplateWizardStep {
                                     "not be used", SAMPLE_PACKAGE_PREFIX));
     }
 
-    Integer minSdk = (Integer)myTemplateState.myParameters.get(ATTR_MIN_API);
+    Integer minSdk = (Integer)myTemplateState.get(ATTR_MIN_API);
     if (minSdk == null) {
       setErrorHtml("Select a minimum SDK version");
       return false;
     }
     // TODO: Properly handle preview versions
-    int minLevel = (Integer)myTemplateState.myParameters.get(ATTR_MIN_API_LEVEL);
-    int buildLevel = (Integer)myTemplateState.myParameters.get(ATTR_BUILD_API);
-    int targetLevel = (Integer)myTemplateState.myParameters.get(ATTR_TARGET_API);
+    int minLevel = (Integer)myTemplateState.get(ATTR_MIN_API_LEVEL);
+    int buildLevel = (Integer)myTemplateState.get(ATTR_BUILD_API);
+    int targetLevel = (Integer)myTemplateState.get(ATTR_TARGET_API);
     if (targetLevel < minLevel) {
       setErrorHtml("The target SDK version should be at least as high as the minimum SDK version");
       return false;
@@ -241,7 +241,7 @@ public class ConfigureProjectStep extends TemplateWizardStep {
       return false;
     }
 
-    String projectLocation = (String)myTemplateState.myParameters.get(ATTR_PROJECT_LOCATION);
+    String projectLocation = (String)myTemplateState.get(ATTR_PROJECT_LOCATION);
     if (projectLocation == null || projectLocation.isEmpty()) {
       setErrorHtml("The project location must be specified");
       return false;
@@ -268,8 +268,8 @@ public class ConfigureProjectStep extends TemplateWizardStep {
       myIgnoreUpdates = true;
       if (!myTemplateState.myModified.contains(attrName)) {
         String s = valueDeriver.call();
-        if (s != null && !s.equals(myTemplateState.myParameters.get(attrName))) {
-          myTemplateState.myParameters.put(attrName, s);
+        if (s != null && !s.equals(myTemplateState.get(attrName))) {
+          myTemplateState.put(attrName, s);
           textField.setText(s);
           myTemplateState.myModified.remove(attrName);
         }
@@ -284,7 +284,7 @@ public class ConfigureProjectStep extends TemplateWizardStep {
 
   @NotNull
   private String computePackageName() {
-    String projectName = (String)myTemplateState.myParameters.get(ATTR_PROJECT_NAME);
+    String projectName = (String)myTemplateState.get(ATTR_PROJECT_NAME);
     if (projectName != null && !projectName.isEmpty()) {
       return SAMPLE_PACKAGE_PREFIX + projectName;
     } else {
@@ -294,7 +294,7 @@ public class ConfigureProjectStep extends TemplateWizardStep {
 
   @NotNull
   private String computeProjectName() {
-    String name = (String)myTemplateState.myParameters.get(ATTR_APP_TITLE);
+    String name = (String)myTemplateState.get(ATTR_APP_TITLE);
     if (name == null) {
       return "";
     }
@@ -303,12 +303,12 @@ public class ConfigureProjectStep extends TemplateWizardStep {
 
   @NotNull
   private String computeAppName() {
-    return (String)myTemplateState.myParameters.get(ATTR_PROJECT_NAME);
+    return (String)myTemplateState.get(ATTR_PROJECT_NAME);
   }
 
   @NotNull
   private String computeProjectLocation() {
-    return new File(NewProjectWizardState.getProjectFileDirectory(), (String)myTemplateState.myParameters.get(ATTR_PROJECT_NAME))
+    return new File(NewProjectWizardState.getProjectFileDirectory(), (String)myTemplateState.get(ATTR_PROJECT_NAME))
       .getAbsolutePath();
   }
 
