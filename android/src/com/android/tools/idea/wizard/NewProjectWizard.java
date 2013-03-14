@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.tools.idea.templates.TemplateMetadata;
+import com.intellij.ide.util.newProjectWizard.StepSequence;
+import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -42,6 +45,7 @@ public class NewProjectWizard extends TemplateWizard {
     myWizardState = new NewProjectWizardState();
 
     mySteps.add(new ConfigureProjectStep(this, myWizardState));
+    mySteps.add(new LauncherIconStep(this, myWizardState.getLauncherIconState()));
     mySteps.add(new ChooseActivityStep(this, myWizardState));
     mySteps.add(new TemplateParameterStep(this, myWizardState.getActivityTemplateState()));
 
@@ -53,11 +57,14 @@ public class NewProjectWizard extends TemplateWizard {
       @Override
       public void run() {
         try {
-          File contentRoot = new File((String)myWizardState.myParameters.get(NewProjectWizardState.ATTR_PROJECT_LOCATION));
+          File contentRoot = new File((String)myWizardState.get(NewProjectWizardState.ATTR_PROJECT_LOCATION));
           contentRoot.mkdirs();
+          if ((Boolean)myWizardState.get(TemplateMetadata.ATTR_CREATE_ICONS)) {
+            myWizardState.getLauncherIconState().outputImages(contentRoot);
+          }
           myWizardState.updateParameters();
           myWizardState.myTemplate.render(contentRoot, myWizardState.myParameters);
-          if ((Boolean)myWizardState.myParameters.get(NewProjectWizardState.ATTR_CREATE_ACTIVITY)) {
+          if ((Boolean)myWizardState.get(NewProjectWizardState.ATTR_CREATE_ACTIVITY)) {
             myWizardState.getActivityTemplateState().getTemplate()
               .render(contentRoot, myWizardState.getActivityTemplateState().myParameters);
           }
@@ -67,5 +74,25 @@ public class NewProjectWizard extends TemplateWizard {
         }
       }
     });
+  }
+
+  @Override
+  protected final int getNextStep(final int step) {
+    for (int i = step + 1; i < mySteps.size(); i++) {
+      if (mySteps.get(i).isStepVisible()) {
+        return i;
+      }
+    }
+    return step;
+  }
+
+  @Override
+  protected final int getPreviousStep(final int step) {
+    for (int i = step - 1; i >= 0; i--) {
+      if (mySteps.get(i).isStepVisible()) {
+        return i;
+      }
+    }
+    return step;
   }
 }

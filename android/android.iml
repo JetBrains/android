@@ -39,6 +39,7 @@
     <orderEntry type="module" module-name="manifest-merger" />
     <orderEntry type="library" name="freemarker-2.3.19" level="project" />
     <orderEntry type="module" module-name="images" />
+    <orderEntry type="module" module-name="assetstudio" />
   </component>
 </module>
 

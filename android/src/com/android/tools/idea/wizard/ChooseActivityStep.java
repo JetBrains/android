@@ -110,12 +110,12 @@ public class ChooseActivityStep extends TemplateWizardStep implements ListSelect
         }
         setDescriptionHtml(template.myMetadata.getDescription());
         int minSdk = template.myMetadata.getMinSdk();
-        if (minSdk > (Integer)myWizardState.myParameters.get(ATTR_MIN_API)) {
+        if (minSdk > (Integer)myWizardState.get(ATTR_MIN_API)) {
           setErrorHtml(String.format("The activity %s has a minimum SDK level of %d.", template.myMetadata.getTitle(), minSdk));
           return false;
         }
         int minBuildApi = template.myMetadata.getMinBuildApi();
-        if (minSdk > (Integer)myWizardState.myParameters.get(ATTR_BUILD_API)) {
+        if (minSdk > (Integer)myWizardState.get(ATTR_BUILD_API)) {
           setErrorHtml(String.format("The activity %s has a minimum build API level of %d.", template.myMetadata.getTitle(), minBuildApi));
           return false;
         }
@@ -132,6 +132,11 @@ public class ChooseActivityStep extends TemplateWizardStep implements ListSelect
   @Override
   protected JLabel getError() {
     return myError;
+  }
+
+  @Override
+  public boolean isStepVisible() {
+    return (Boolean)myTemplateState.get(NewProjectWizardState.ATTR_CREATE_ACTIVITY);
   }
 
   private static class MetadataListItem {

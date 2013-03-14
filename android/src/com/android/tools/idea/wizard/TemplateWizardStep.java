@@ -17,11 +17,16 @@ package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.utils.Pair;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Maps;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.ui.ColorPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -29,6 +34,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
@@ -37,6 +44,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.List;
+import java.util.Map;
 
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.tools.idea.templates.Template.ATTR_DEFAULT;
@@ -46,13 +54,13 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API;
 /**
  * TemplateWizardStep is the base class for step pages in Freemarker template-based wizards.
  */
-public abstract class TemplateWizardStep extends ModuleWizardStep implements ActionListener,
-                                                                             FocusListener,
-                                                                             DocumentListener {
+public abstract class TemplateWizardStep extends ModuleWizardStep
+  implements ActionListener, FocusListener, DocumentListener, ChangeListener {
   private static final Logger LOG = Logger.getInstance("#" + TemplateWizardStep.class.getName());
 
   protected final TemplateWizardState myTemplateState;
   protected final BiMap<String, JComponent> myParamFields = HashBiMap.create();
+  protected final Map<JRadioButton, Pair<String, Object>> myRadioButtonValues = Maps.newHashMap();
   protected final TemplateWizard myTemplateWizard;
   protected boolean myIgnoreUpdates = false;
   protected boolean myIsValid = true;
@@ -142,13 +150,13 @@ public abstract class TemplateWizardStep extends ModuleWizardStep implements Act
       return true;
     }
     JComponent focusedComponent = (JComponent)KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
-    int minApi = (Integer)myTemplateState.myParameters.get(ATTR_MIN_API);
-    int buildApi = (Integer)myTemplateState.myParameters.get(ATTR_BUILD_API);
+    int minApi = (Integer)myTemplateState.get(ATTR_MIN_API);
+    int buildApi = (Integer)myTemplateState.get(ATTR_BUILD_API);
     setDescriptionHtml("");
     setErrorHtml("");
     for (String paramName : myParamFields.keySet()) {
-      Parameter param = myTemplateState.getTemplateMetadata().getParameter(paramName);
-      Object oldValue = myTemplateState.myParameters.get(paramName);
+      Parameter param = myTemplateState.hasTemplate() ? myTemplateState.getTemplateMetadata().getParameter(paramName) : null;
+      Object oldValue = myTemplateState.get(paramName);
       JComponent component = myParamFields.get(paramName);
       if (component == focusedComponent) {
         String help = param != null && param.help != null && param.help.length() > 0 ? param.help : getHelpText(paramName);
@@ -176,10 +184,24 @@ public abstract class TemplateWizardStep extends ModuleWizardStep implements Act
       }
       else if (component instanceof JTextField) {
         newValue = ((JTextField)component).getText();
+      } else if (component instanceof TextFieldWithBrowseButton) {
+        newValue = ((TextFieldWithBrowseButton)component).getText();
+      } else if (component instanceof JSlider) {
+        newValue = ((JSlider)component).getValue();
+      } else if (component instanceof JSpinner) {
+        newValue = ((JSpinner)component).getValue();
+      } else if (component instanceof ColorPanel) {
+        newValue = ((ColorPanel)component).getSelectedColor();
       }
       if (newValue != null && !newValue.equals(oldValue)) {
-        myTemplateState.myParameters.put(paramName, newValue);
+        myTemplateState.put(paramName, newValue);
         myTemplateState.myModified.add(paramName);
+      }
+    }
+    for (Map.Entry<JRadioButton, Pair<String, Object>> entry : myRadioButtonValues.entrySet()) {
+      if (entry.getKey().isSelected()) {
+        Pair<String, Object> value = entry.getValue();
+        myTemplateState.put(value.getFirst(), value.getSecond());
       }
     }
     return true;
@@ -218,11 +240,11 @@ public abstract class TemplateWizardStep extends ModuleWizardStep implements Act
    */
   protected void register(@NotNull String paramName, @NotNull JCheckBox checkBox) {
     myParamFields.put(paramName, (JComponent)checkBox);
-    Object value = myTemplateState.myParameters.get(paramName);
+    Object value = myTemplateState.get(paramName);
     if (value != null) {
       checkBox.setSelected(Boolean.parseBoolean(value.toString()));
     } else {
-      myTemplateState.myParameters.put(paramName, false);
+      myTemplateState.put(paramName, false);
     }
     checkBox.addFocusListener(this);
     checkBox.addActionListener(this);
@@ -234,7 +256,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep implements Act
    */
   protected void register(@NotNull String paramName, @NotNull JComboBox comboBox) {
     myParamFields.put(paramName, (JComponent)comboBox);
-    Object value = myTemplateState.myParameters.get(paramName);
+    Object value = myTemplateState.get(paramName);
     if (value != null) {
       for (int i = 0; i < comboBox.getItemCount(); i++) {
         Object item = comboBox.getItemAt(i);
@@ -256,11 +278,11 @@ public abstract class TemplateWizardStep extends ModuleWizardStep implements Act
    * and UI updates.
    */
   protected void register(@NotNull String paramName, @NotNull JTextField textField) {
-    String value = (String)myTemplateState.myParameters.get(paramName);
+    String value = (String)myTemplateState.get(paramName);
     if (value != null) {
       textField.setText(value);
     } else {
-      myTemplateState.myParameters.put(paramName, "");
+      myTemplateState.put(paramName, "");
     }
     myParamFields.put(paramName, (JComponent)textField);
     textField.addFocusListener(this);
@@ -268,10 +290,75 @@ public abstract class TemplateWizardStep extends ModuleWizardStep implements Act
     textField.getDocument().addDocumentListener(this);
   }
 
+  protected void register(@NotNull String paramName, @NotNull JRadioButton radioButton, @Nullable Object value) {
+    Object currentValue = myTemplateState.get(paramName);
+    radioButton.setSelected(currentValue != null && currentValue.equals(value));
+    if (value != null) {
+      myRadioButtonValues.put(radioButton, Pair.of(paramName, value));
+    }
+    radioButton.addFocusListener(this);
+    radioButton.addActionListener(this);
+  }
+
+  protected void register(@NotNull String paramName, @NotNull JSlider paddingSlider) {
+    Integer value = (Integer)myTemplateState.get(paramName);
+    if (value != null) {
+      paddingSlider.setValue(value);
+    } else {
+      myTemplateState.put(paramName, paddingSlider.getValue());
+    }
+    myParamFields.put(paramName, (JComponent)paddingSlider);
+    paddingSlider.addFocusListener(this);
+    paddingSlider.addChangeListener(this);
+  }
+
+  protected void register(@NotNull String paramName, @NotNull JSpinner spinner) {
+    Integer value = (Integer)myTemplateState.get(paramName);
+    if (value != null) {
+      spinner.setValue(value);
+    } else {
+      myTemplateState.put(paramName, spinner.getValue());
+    }
+    myParamFields.put(paramName, (JComponent)spinner);
+    spinner.addFocusListener(this);
+    spinner.addChangeListener(this);
+  }
+
+  protected void register(@NotNull String paramName, @NotNull final TextFieldWithBrowseButton field) {
+    String value = (String)myTemplateState.get(paramName);
+    if (value != null) {
+      field.setText(value);
+    } else {
+      myTemplateState.put(paramName, field.getText());
+    }
+    myParamFields.put(paramName, (JComponent)field);
+    field.addFocusListener(this);
+    field.addActionListener(this);
+    // For the time being, assume that this is a file chooser and put up the OS file picker dialog when the button is pressed.
+    field.addBrowseFolderListener(null, null, null, FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor());
+  }
+
+  protected void register(@NotNull String paramName, @NotNull ColorPanel colorPanel) {
+    Color value = (Color)myTemplateState.get(paramName);
+    if (value != null) {
+      colorPanel.setSelectedColor(value);
+    } else {
+      myTemplateState.put(paramName, colorPanel.getSelectedColor());
+    }
+    myParamFields.put(paramName, (JComponent)colorPanel);
+    colorPanel.addFocusListener(this);
+    colorPanel.addActionListener(this);
+  }
+
   /** Revalidates the UI and asks the parent wizard to update its state to reflect changes. */
   protected void update() {
     myIsValid = validate();
     myTemplateWizard.update();
+  }
+
+  @Override
+  public JComponent getComponent() {
+    return null;
   }
 
   @Override
@@ -308,4 +395,20 @@ public abstract class TemplateWizardStep extends ModuleWizardStep implements Act
     update();
   }
 
+  @Override
+  public void stateChanged(@NotNull ChangeEvent e) {
+    update();
+  }
+
+  protected void hide(JComponent... components) {
+    for (JComponent component : components) {
+      component.setVisible(false);
+    }
+  }
+
+  protected void show(JComponent... components) {
+    for (JComponent component : components) {
+      component.setVisible(true);
+    }
+  }
 }
