@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.android.designer;
+package com.android.tools.idea.rendering;
 
+import com.android.tools.idea.rendering.ImageUtils;
 import junit.framework.TestCase;
 
 import java.awt.*;
