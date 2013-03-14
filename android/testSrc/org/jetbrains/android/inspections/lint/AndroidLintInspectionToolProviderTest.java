@@ -15,10 +15,7 @@
  */
 package org.jetbrains.android.inspections.lint;
 
-import com.android.tools.lint.checks.DeprecationDetector;
-import com.android.tools.lint.checks.LocaleDetector;
-import com.android.tools.lint.checks.ManifestOrderDetector;
-import com.android.tools.lint.checks.NamespaceDetector;
+import com.android.tools.lint.checks.*;
 import com.android.tools.lint.detector.api.*;
 import com.android.utils.XmlUtils;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
@@ -214,6 +211,8 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
   private static boolean isRelevant(Issue issue) {
     // Supported more directly by other IntelliJ checks(?)
     if (issue == NamespaceDetector.TYPO ||             // IDEA has its own spelling check
+        issue == NamespaceDetector.UNUSED ||           // IDEA already does full validation
+        issue == ManifestTypoDetector.ISSUE ||         // IDEA already does full validation
         issue == ManifestOrderDetector.WRONG_PARENT || // IDEA already does full validation
         issue == DeprecationDetector.ISSUE ||
         issue == LocaleDetector.STRING_LOCALE) {       // IDEA checks for this in Java code

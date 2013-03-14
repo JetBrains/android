@@ -24,6 +24,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintInconsistentLayoutInspection extends AndroidLintInspectionBase {
+    public AndroidLintInconsistentLayoutInspection() {
+      super(AndroidBundle.message("android.lint.inspections.inconsistent.layout"), LayoutConsistencyDetector.INCONSISTENT_IDS);
+    }
+  }
+
   public static class AndroidLintDuplicateIncludedIdsInspection extends AndroidLintInspectionBase {
     public AndroidLintDuplicateIncludedIdsInspection() {
       super(AndroidBundle.message("android.lint.inspections.duplicate.included.ids"), DuplicateIdDetector.CROSS_LAYOUT);
@@ -57,6 +63,12 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintIconMissingDensityFolderInspection extends AndroidLintInspectionBase {
     public AndroidLintIconMissingDensityFolderInspection() {
       super(AndroidBundle.message("android.lint.inspections.icon.missing.density.folder"), IconDetector.ICON_MISSING_FOLDER);
+    }
+  }
+
+  public static class AndroidLintIconMixedNinePatchInspection extends AndroidLintInspectionBase {
+    public AndroidLintIconMixedNinePatchInspection() {
+      super(AndroidBundle.message("android.lint.inspections.icon.mixed.nine.patch"), IconDetector.ICON_MIX_9PNG);
     }
   }
 
@@ -300,6 +312,18 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintMissingQuantityInspection extends AndroidLintInspectionBase {
+    public AndroidLintMissingQuantityInspection() {
+      super(AndroidBundle.message("android.lint.inspections.missing.quantity"), PluralsDetector.MISSING);
+    }
+  }
+
+  public static class AndroidLintUnusedQuantityInspection extends AndroidLintInspectionBase {
+    public AndroidLintUnusedQuantityInspection() {
+      super(AndroidBundle.message("android.lint.inspections.unused.quantity"), PluralsDetector.EXTRA);
+    }
+  }
+
   public static class AndroidLintDuplicateIdsInspection extends AndroidLintInspectionBase {
     public AndroidLintDuplicateIdsInspection() {
       super(AndroidBundle.message("android.lint.inspections.duplicate.ids"), DuplicateIdDetector.WITHIN_LAYOUT);
@@ -386,6 +410,12 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintNestedScrollingInspection extends AndroidLintInspectionBase {
     public AndroidLintNestedScrollingInspection() {
       super(AndroidBundle.message("android.lint.inspections.nested.scrolling"), NestedScrollingWidgetDetector.ISSUE);
+    }
+  }
+
+  public static class AndroidLintNotSiblingInspection extends AndroidLintInspectionBase {
+    public AndroidLintNotSiblingInspection() {
+      super(AndroidBundle.message("android.lint.inspections.not.sibling"), WrongIdDetector.NOT_SIBLING);
     }
   }
 
@@ -749,6 +779,11 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintSelectableTextInspection extends AndroidLintInspectionBase {
     public AndroidLintSelectableTextInspection() {
       super(AndroidBundle.message("android.lint.inspections.selectable.text"), TextViewDetector.SELECTABLE);
+    }
+  }
+  public static class AndroidLintServiceCastInspection extends AndroidLintInspectionBase {
+    public AndroidLintServiceCastInspection() {
+      super(AndroidBundle.message("android.lint.inspections.service.cast"), ServiceCastDetector.ISSUE);
     }
   }
   public static class AndroidLintSetJavaScriptEnabledInspection extends AndroidLintInspectionBase {
