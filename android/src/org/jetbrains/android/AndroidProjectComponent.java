@@ -108,7 +108,7 @@ public class AndroidProjectComponent extends AbstractProjectComponent {
     ApplicationManager.getApplication().invokeAndWait(new Runnable() {
       @Override
       public void run() {
-        final List<ModifiableRootModel> models = new ArrayList<ModifiableRootModel>();
+        final List<ModifiableRootModel> modelsToCommit = new ArrayList<ModifiableRootModel>();
 
         for (final AndroidFacet facet : facetsToProcess.keySet()) {
           final Module module = facet.getModule();
@@ -117,15 +117,23 @@ public class AndroidProjectComponent extends AbstractProjectComponent {
             continue;
           }
           final ModifiableRootModel model = ModuleRootManager.getInstance(module).getModifiableModel();
-          models.add(model);
-          AndroidCompileUtil.createGenModulesAndSourceRoots(facet, model);
+
+          if (AndroidCompileUtil.createGenModulesAndSourceRoots(facet, model)) {
+            modelsToCommit.add(model);
+          }
+          else {
+            model.dispose();
+          }
+        }
+        if (modelsToCommit.size() == 0) {
+          return;
         }
         final ModifiableModuleModel moduleModel = ModuleManager.getInstance(myProject).getModifiableModel();
 
         ApplicationManager.getApplication().runWriteAction(new Runnable() {
           @Override
           public void run() {
-            ModifiableModelCommitter.multiCommit(models.toArray(new ModifiableRootModel[models.size()]), moduleModel);
+            ModifiableModelCommitter.multiCommit(modelsToCommit.toArray(new ModifiableRootModel[modelsToCommit.size()]), moduleModel);
           }
         });
       }
