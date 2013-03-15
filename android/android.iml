@@ -37,7 +37,7 @@
     <orderEntry type="module" module-name="spellchecker" />
     <orderEntry type="module" module-name="draw9patch" />
     <orderEntry type="module" module-name="manifest-merger" />
-    <orderEntry type="library" name="freemarker-2.3.191" level="project" />
+    <orderEntry type="library" name="freemarker-2.3.19" level="project" />
   </component>
 </module>
 
