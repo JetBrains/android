@@ -29,6 +29,7 @@ import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.util.PsiNavigateUtil;
 import icons.AndroidDesignerIcons;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,6 +61,8 @@ public class AndroidDesignerActionPanel extends DesignerActionPanel {
     panel.add(actionToolbar.getComponent(), BorderLayout.NORTH);
 
     ActionToolbar layoutToolBar = actionManager.createActionToolbar(TOOLBAR, getDynamicActionGroup(), true);
+    layoutToolBar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
+
     // The default toolbar layout adds too much spacing between the buttons. Switch to mini mode,
     // but also set a minimum size which will add *some* padding for our 16x16 icons.
     layoutToolBar.setMiniMode(true);
@@ -91,6 +94,24 @@ public class AndroidDesignerActionPanel extends DesignerActionPanel {
   private ActionGroup getRhsActions() {
     DefaultActionGroup group = new DefaultActionGroup();
 
+    group.add(new AnAction(null, "Zoom to Fit (0)", AndroidIcons.ZoomFit) {
+      @Override
+      public void actionPerformed(AnActionEvent e) { myDesigner.zoom(ZoomType.FIT); }
+    });
+    group.add(new AnAction(null, "Reset Zoom to 100% (1)", AndroidIcons.ZoomActual) {
+      @Override
+      public void actionPerformed(AnActionEvent e) { myDesigner.zoom(ZoomType.ACTUAL); }
+    });
+    group.addSeparator();
+    group.add(new AnAction(null, "Zoom In (+)", AndroidIcons.ZoomIn) {
+      @Override
+      public void actionPerformed(AnActionEvent e) { myDesigner.zoom(ZoomType.IN); }
+    });
+    group.add(new AnAction(null, "Zoom Out (-)", AndroidIcons.ZoomOut) {
+      @Override
+      public void actionPerformed(AnActionEvent e) { myDesigner.zoom(ZoomType.OUT); }
+    });
+
     String description = "Jump to Source";
     KeyboardShortcut shortcut = ActionManager.getInstance().getKeyboardShortcut(IdeActions.ACTION_GOTO_DECLARATION);
     if (shortcut != null) {
@@ -113,24 +134,6 @@ public class AndroidDesignerActionPanel extends DesignerActionPanel {
         List<RadComponent> selection = myDesigner.getSurfaceArea().getSelection();
         e.getPresentation().setEnabled(!selection.isEmpty());
       }
-    });
-
-    group.add(new AnAction(null, "Zoom to Fit (0)", AndroidDesignerIcons.ZoomFit) {
-      @Override
-      public void actionPerformed(AnActionEvent e) { myDesigner.zoom(ZoomType.FIT); }
-    });
-    group.add(new AnAction(null, "Reset Zoom to 100% (1)", AndroidDesignerIcons.Zoom100) {
-      @Override
-      public void actionPerformed(AnActionEvent e) { myDesigner.zoom(ZoomType.ACTUAL); }
-    });
-    group.addSeparator();
-    group.add(new AnAction(null, "Zoom In (+)", AndroidDesignerIcons.ZoomIn) {
-      @Override
-      public void actionPerformed(AnActionEvent e) { myDesigner.zoom(ZoomType.IN); }
-    });
-    group.add(new AnAction(null, "Zoom Out (-)", AndroidDesignerIcons.ZoomOut) {
-      @Override
-      public void actionPerformed(AnActionEvent e) { myDesigner.zoom(ZoomType.OUT); }
     });
 
     return group;

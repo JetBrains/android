@@ -20,11 +20,11 @@ import java.io.OutputStream;
 /**
  * @author Eugene.Kudelevsky
  */
-class VirtualFileWrapper implements IAbstractFile {
+public class VirtualFileWrapper implements IAbstractFile {
   private final Project myProject;
   private final VirtualFile myFile;
 
-  VirtualFileWrapper(@NotNull Project project, @NotNull VirtualFile file) {
+  public VirtualFileWrapper(@NotNull Project project, @NotNull VirtualFile file) {
     myFile = file;
     myProject = project;
   }
@@ -67,7 +67,7 @@ class VirtualFileWrapper implements IAbstractFile {
 
   @Override
   public long getModificationStamp() {
-    throw new UnsupportedOperationException();
+    return myFile.getTimeStamp();
   }
 
   @Override

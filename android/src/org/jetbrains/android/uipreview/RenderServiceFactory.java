@@ -173,4 +173,9 @@ public class RenderServiceFactory {
     resources.loadPublicResources(log);
     return resources;
   }
+
+  // ADT
+  public FrameworkResources getFrameworkResources() {
+    return myResources;
+  }
 }

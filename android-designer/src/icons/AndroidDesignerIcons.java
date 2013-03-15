@@ -85,11 +85,6 @@ public class AndroidDesignerIcons {
   public static final Icon ZoomButton = load("/icons/ZoomButton.png"); // 16x16
   public static final Icon ZoomControls = load("/icons/ZoomControls.png"); // 16x16
 
-  public static final Icon Zoom100 = load("/icons/Zoom100.png"); // 16x16
-  public static final Icon ZoomFit = load("/icons/ZoomFit.png"); // 16x16
-  public static final Icon ZoomOut = load("/icons/ZoomOut.png"); // 16x16
-  public static final Icon ZoomIn = load("/icons/ZoomIn.png"); // 16x16
-
   // Layout actions
   public static final Icon FillWidth = load("/icons/fillwidth.png"); // 16x16
   public static final Icon WrapWidth = load("/icons/wrapwidth.png"); // 16x16

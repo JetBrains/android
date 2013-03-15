@@ -15,16 +15,25 @@
  */
 package org.jetbrains.android.uipreview;
 
+import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.rendering.RenderedView;
+import com.android.tools.idea.rendering.RenderedViewHierarchy;
+import com.android.tools.idea.rendering.ScalableImage;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.editor.CaretModel;
+import com.intellij.openapi.editor.event.CaretEvent;
+import com.intellij.openapi.editor.event.CaretListener;
+import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.Gray;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.util.ui.AsyncProcessIcon;
@@ -37,7 +46,8 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import java.awt.*;
-import java.awt.image.BufferedImage;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,38 +55,28 @@ import java.util.List;
  * @author Eugene.Kudelevsky
  */
 public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
-  private static final double EPS = 0.0000001;
-  private static final double MAX_ZOOM_FACTOR = 2.0;
-  private static final double ZOOM_STEP = 1.25;
+  public static final Gray DESIGNER_BACKGROUND_COLOR = Gray._150;
+  public static final Color SELECTION_BORDER_COLOR = new Color(0x00, 0x99, 0xFF, 255);
+  public static final Color SELECTION_FILL_COLOR = new Color(0x00, 0x99, 0xFF, 32);
 
   private FixableIssueMessage myErrorMessage;
   private List<FixableIssueMessage> myWarnMessages;
 
-  private BufferedImage myImage;
+  @NotNull
+  private RenderResult myRenderResult = RenderResult.NONE;
 
   private final JPanel myMessagesPanel = new JPanel(new VerticalFlowLayout(VerticalFlowLayout.TOP, 0, 0, true, false));
   private final JPanel myTitlePanel;
-
-  private double myZoomFactor = 1.0;
   private boolean myZoomToFit = true;
 
   private final List<ProgressIndicator> myProgressIndicators = new ArrayList<ProgressIndicator>();
   private boolean myProgressVisible = false;
   private boolean myShowWarnings = false;
 
-  private final JPanel myImagePanel = new JPanel() {
+  private final JComponent myImagePanel = new JPanel() {
     @Override
     public void paintComponent(Graphics g) {
-      super.paintComponent(g);
-      if (myImage == null) {
-        return;
-      }
-      final Dimension scaledDimension = getScaledDimension();
-      final Graphics2D g2 = (Graphics2D)g;
-      g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-      g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-      g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-      g2.drawImage(myImage, 0, 0, scaledDimension.width, scaledDimension.height, 0, 0, myImage.getWidth(), myImage.getHeight(), null);
+      paintRenderedImage(g);
     }
   };
 
@@ -85,12 +85,35 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
   @NonNls private static final String EMPTY_CARD_NAME = "Empty";
   private JPanel myProgressIconWrapper = new JPanel();
   private final JBLabel myFileNameLabel = new JBLabel();
+  private TextEditor myEditor;
+  private RenderedView mySelectedView;
+  private CaretModel myCaretModel;
+  private CaretListener myCaretListener = new CaretListener() {
+    @Override
+    public void caretPositionChanged(CaretEvent e) {
+      updateCaret();
+    }
+  };
 
   public AndroidLayoutPreviewPanel() {
     super(new VerticalFlowLayout(VerticalFlowLayout.TOP, 0, 0, true, true));
-    setBackground(JBColor.WHITE);
-    setOpaque(true);
-    myImagePanel.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, JBColor.GRAY));
+    setBackground(DESIGNER_BACKGROUND_COLOR);
+    myImagePanel.setBackground(null);
+
+    myImagePanel.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mousePressed(MouseEvent mouseEvent) {
+        selectViewAt(mouseEvent.getX(), mouseEvent.getY());
+      }
+
+      @Override
+      public void mouseClicked(MouseEvent mouseEvent) {
+        if (mouseEvent.getClickCount() == 2) {
+          // Double click: open in the UI editor
+          switchtoLayoutEditor();
+        }
+      }
+    });
 
     myFileNameLabel.setHorizontalAlignment(SwingConstants.CENTER);
     myFileNameLabel.setBorder(new EmptyBorder(5, 0, 5, 0));
@@ -124,10 +147,140 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     add(new MyImagePanelWrapper());
   }
 
-  public void setImage(@Nullable final BufferedImage image, @NotNull final String fileName) {
-    myImage = image;
-    myFileNameLabel.setText(fileName);
+  private void switchtoLayoutEditor() {
+    /* TODO: Find out how to implement this correctly
+    if (myEditor != null && myRenderResult.getFile() != null) {
+      ApplicationManager.getApplication().invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          VirtualFile file = myRenderResult.getFile().getVirtualFile();
+          if (file != null) {
+            Project project = myEditor.getEditor().getProject();
+            OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file);
+            List<FileEditor> editors = FileEditorManager.getInstance(project).openEditor(descriptor, true);
+
+            for (FileEditor editor : editors) {
+              // TODO: When we merge the layout editor code into this plugin we
+              // can avoid stringly typed expressions like this and reference
+              // the android designer classes directly:
+              if (editor.getClass().getSimpleName().contains("Designer")) {
+                editor.getComponent().getParent().getParent();
+                IdeFocusManager.getInstance(project).requestFocus(editor.getComponent(), true);
+              }
+            }
+          }
+        }
+      }, ModalityState.NON_MODAL);
+    }
+    */
+  }
+
+  private void selectViewAt(int x1, int y1) {
+    if (myEditor != null && myRenderResult.getImage() != null) {
+      double zoomFactor = myRenderResult.getImage().getScale();
+      int x = (int)(x1 / zoomFactor);
+      int y = (int)(y1 / zoomFactor);
+      RenderedViewHierarchy hierarchy = myRenderResult.getHierarchy();
+      assert hierarchy != null; // because image != null
+      RenderedView leaf = hierarchy.findLeafAt(x, y);
+      if (leaf != null && leaf.tag != null) {
+        int offset = leaf.tag.getTextOffset();
+        if (offset != -1) {
+          myEditor.getEditor().getCaretModel().moveToOffset(offset);
+        }
+      }
+    }
+  }
+
+  private void paintRenderedImage(Graphics g) {
+    ScalableImage image = myRenderResult.getImage();
+    if (image != null) {
+      image.paint(g);
+
+      // TODO: Use layout editor's static feedback rendering
+      RenderedView selected = mySelectedView;
+      if (selected != null) {
+        double zoomFactor = image.getScale();
+        int x = (int)(selected.x * zoomFactor);
+        int y = (int)(selected.y * zoomFactor);
+        int w = (int)(selected.w * zoomFactor);
+        int h = (int)(selected.h * zoomFactor);
+
+        g.setColor(SELECTION_FILL_COLOR);
+        g.fillRect(x, y, w, h);
+
+        g.setColor(SELECTION_BORDER_COLOR);
+        x -= 1;
+        y -= 1;
+        w += 1; // +1 rather than +2: drawRect already includes end point whereas fillRect does not
+        h += 1;
+        if (x < 0) {
+          w -= x;
+          x = 0;
+        }
+        if (y < 0) {
+          h -= y;
+          h = 0;
+        }
+        g.drawRect(x, y, w, h);
+      }
+    }
+  }
+
+  private void updateCaret() {
+    if (myCaretModel != null) {
+      RenderedViewHierarchy hierarchy = myRenderResult.getHierarchy();
+      if (hierarchy != null) {
+        int offset = myCaretModel.getOffset();
+        if (offset != -1) {
+          RenderedView view = hierarchy.findByOffset(offset);
+          if (view != mySelectedView) {
+            mySelectedView = view;
+            repaint();
+          }
+        }
+      }
+    }
+  }
+
+  public void setRenderResult(@NotNull final RenderResult renderResult, @Nullable final TextEditor editor) {
+    double prevScale = myRenderResult.getImage() != null ? myRenderResult.getImage().getScale() : 1;
+    myRenderResult = renderResult;
+
+// TODO: Ensure that I keep the most recent render on failure!
+
+    if (myRenderResult.getImage() != null) {
+      myRenderResult.getImage().setScale(prevScale);
+    }
+
+    mySelectedView = null;
+    if (renderResult.getFile() != null) {
+      myFileNameLabel.setText(renderResult.getFile().getName());
+    }
+
+    List<FixableIssueMessage> errorMessages = myRenderResult.getLogger().getErrorMessages();
+    myErrorMessage = errorMessages != null && !errorMessages.isEmpty() ? errorMessages.get(0) : null;
+    myWarnMessages = myRenderResult.getLogger().getWarningMessages();
+
+    setEditor(editor);
+    updateCaret();
     doRevalidate();
+  }
+
+  private void setEditor(@Nullable TextEditor editor) {
+    if (editor != myEditor) {
+      myEditor = editor;
+
+      if (myCaretModel != null) {
+        myCaretModel.removeCaretListener(myCaretListener);
+        myCaretModel = null;
+      }
+      if (editor != null)
+      myCaretModel = myEditor.getEditor().getCaretModel();
+      if (myCaretModel != null) {
+        myCaretModel.addCaretListener(myCaretListener);
+      }
+    }
   }
 
   public synchronized void registerIndicator(@NotNull ProgressIndicator indicator) {
@@ -158,16 +311,9 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
 
   private void doRevalidate() {
     revalidate();
+    // TODO: Add a configuration listener which does auto zoom only when necessary
     updateImageSize();
     repaint();
-  }
-
-  public void setErrorMessage(@Nullable FixableIssueMessage errorMessage) {
-    myErrorMessage = errorMessage;
-  }
-
-  public void setWarnMessages(@Nullable List<FixableIssueMessage> warnMessages) {
-    myWarnMessages = warnMessages;
   }
 
   public void update() {
@@ -180,8 +326,9 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     if (myWarnMessages != null && myWarnMessages.size() > 0) {
       final HyperlinkLabel showHideWarnsLabel = new HyperlinkLabel();
       showHideWarnsLabel.setOpaque(false);
-      final String showMessage = "Show " + myWarnMessages.size() + " warnings";
-      final String hideMessage = "Hide " + myWarnMessages.size() + " warnings";
+      String warningCount = myWarnMessages.size() + " warning" + (myWarnMessages.size() != 1 ? "s" : "");
+      final String showMessage = "Show " + warningCount;
+      final String hideMessage = "Hide " + warningCount;
       showHideWarnsLabel.setHyperlinkText("", myShowWarnings ? hideMessage : showMessage, "");
 
       final JPanel warningsPanel = new JPanel(new VerticalFlowLayout(VerticalFlowLayout.TOP, 0, 0, true, false));
@@ -294,43 +441,19 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
   }
 
   void updateImageSize() {
-    if (myImage == null) {
+    ScalableImage image = myRenderResult.getImage();
+    if (image == null) {
       myImagePanel.setSize(0, 0);
     }
     else {
-      myImagePanel.setSize(getScaledDimension());
+      if (myZoomToFit) {
+        double availableHeight = getPanelHeight() - myMessagesPanel.getSize().getHeight() - myTitlePanel.getSize().getHeight();
+        double availableWidth = getPanelWidth();
+        image.zoomToFit((int)availableWidth, (int)availableHeight, false, 0, 0);
+      }
+
+      myImagePanel.setSize(image.getRequiredSize());
     }
-  }
-
-  private Dimension getScaledDimension() {
-    if (myZoomToFit) {
-      final double panelSizeHeight = getPanelHeight() - myMessagesPanel.getSize().getHeight() -
-                                     myTitlePanel.getSize().getHeight();
-      final double panelWidth = getPanelWidth();
-
-      if (myImage.getWidth() <= panelWidth && myImage.getHeight() <= panelSizeHeight) {
-        return new Dimension(myImage.getWidth(), myImage.getHeight());
-      }
-
-      if (myImage.getWidth() <= panelWidth) {
-        final double f = panelSizeHeight / myImage.getHeight();
-        return new Dimension((int)(myImage.getWidth() * f), (int)(myImage.getHeight() * f));
-      }
-      else if (myImage.getHeight() <= panelSizeHeight) {
-        final double f = panelWidth / myImage.getWidth();
-        return new Dimension((int)(myImage.getWidth() * f), (int)(myImage.getHeight() * f));
-      }
-
-      double f = panelWidth / myImage.getWidth();
-      int candidateWidth = (int)(myImage.getWidth() * f);
-      int candidateHeight = (int)(myImage.getHeight() * f);
-      if (candidateWidth <= panelWidth && candidateHeight <= panelSizeHeight) {
-        return new Dimension(candidateWidth, candidateHeight);
-      }
-      f = panelSizeHeight / myImage.getHeight();
-      return new Dimension((int)(myImage.getWidth() * f), (int)(myImage.getHeight() * f));
-    }
-    return new Dimension((int)(myImage.getWidth() * myZoomFactor), (int)(myImage.getHeight() * myZoomFactor));
   }
 
   private double getPanelHeight() {
@@ -341,56 +464,28 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     return getParent().getParent().getSize().getWidth() - 5;
   }
 
-  private void setZoomFactor(double zoomFactor) {
-    myZoomFactor = zoomFactor;
+  public void zoomOut() {
+    myZoomToFit = false;
+    if (myRenderResult.getImage() != null) {
+      myRenderResult.getImage().zoomOut();
+    }
     doRevalidate();
   }
 
-  private double computeCurrentZoomFactor() {
-    if (myImage == null) {
-      return myZoomFactor;
-    }
-    return (double)myImagePanel.getWidth() / (double)myImage.getWidth();
-  }
-
-  private double getZoomFactor() {
-    return myZoomToFit ? computeCurrentZoomFactor() : myZoomFactor;
-  }
-
-  public void zoomOut() {
-    setZoomFactor(Math.max(getMinZoomFactor(), myZoomFactor / ZOOM_STEP));
-  }
-
-  public boolean canZoomOut() {
-    return myImage != null && myZoomFactor > getMinZoomFactor() + EPS;
-  }
-
-  private double getMinZoomFactor() {
-    return Math.min(1.0, getPanelWidth() / (double)myImage.getWidth());
-  }
-
   public void zoomIn() {
-    if (myZoomToFit) {
-      myZoomToFit = false;
-      setZoomFactor(computeCurrentZoomFactor() * ZOOM_STEP);
-      return;
+    myZoomToFit = false;
+    if (myRenderResult.getImage() != null) {
+      myRenderResult.getImage().zoomIn();
     }
-    setZoomFactor(myZoomFactor * ZOOM_STEP);
-  }
-
-  public boolean canZoomIn() {
-    return getZoomFactor() * ZOOM_STEP < MAX_ZOOM_FACTOR - EPS;
+    doRevalidate();
   }
 
   public void zoomActual() {
-    if (myImage == null) {
-      return;
-    }
-    if (myZoomToFit && myImagePanel.getWidth() >= myImage.getWidth() && myImagePanel.getHeight() >= myImage.getHeight()) {
-      return;
-    }
     myZoomToFit = false;
-    setZoomFactor(1.0);
+    if (myRenderResult.getImage() != null) {
+      myRenderResult.getImage().zoomActual();
+    }
+    doRevalidate();
   }
 
   public void setZoomToFit(boolean zoomToFit) {
@@ -409,6 +504,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
   private class MyImagePanelWrapper extends JBLayeredPane {
     public MyImagePanelWrapper() {
       add(myImagePanel);
+      setBackground(null);
     }
 
     private void centerComponents() {

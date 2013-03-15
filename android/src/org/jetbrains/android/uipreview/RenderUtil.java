@@ -81,6 +81,7 @@ public class RenderUtil {
                                              long timeout,
                                              boolean checkTimeout)
     throws RenderingException, IOException, AndroidSdkNotConfiguredException {
+// TODO: Replace with the new RenderService!!!
     final Project project = module.getProject();
 
     final Sdk sdk = ModuleRootManager.getInstance(facet.getModule()).getSdk();

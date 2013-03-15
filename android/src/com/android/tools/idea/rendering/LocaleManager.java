@@ -43,6 +43,7 @@ import java.util.Set;
  * and see if there are corrections or updates. Also note that the flag names
  * are in ISO 3166-1 alpha-2 country codes.
  */
+@SuppressWarnings("SpellCheckingInspection")
 public class LocaleManager {
   private static final LocaleManager ourInstance = new LocaleManager();
 
@@ -66,7 +67,7 @@ public class LocaleManager {
    * Map from region to flag icon
    */
   @NotNull
-  private Map<String, Icon> myImageMap = Maps.newHashMap();
+  private final Map<String, Icon> myImageMap = Maps.newHashMap();
 
   /**
    * Map of default bindings from language to country (if a region is not
@@ -77,39 +78,19 @@ public class LocaleManager {
    * for that locale is "GB", then "GB" will be used.
    */
   @NotNull
-  private static Map<String, String> ourLanguageToCountry = Maps.newHashMapWithExpectedSize(177);
+  private static final Map<String, String> ourLanguageToCountry = Maps.newHashMapWithExpectedSize(177);
 
   /**
    * Names of the various languages according to ISO 639-1
    */
   @NotNull
-  private static Map<String, String> ourLanguageNames = Maps.newHashMapWithExpectedSize(187);
+  private static final Map<String, String> ourLanguageNames = Maps.newHashMapWithExpectedSize(187);
 
   /**
    * Names of the various regions according to ISO 3166-1
    */
   @NotNull
-  private static Map<String, String> ourRegionNames = Maps.newHashMapWithExpectedSize(249);
-
-  /**
-   * Returns the empty flag icon used to indicate an unknown country
-   *
-   * @return the globe icon used to indicate an unknown country
-   */
-  @NotNull
-  public static Icon getEmptyIcon() {
-    return AndroidIcons.EmptyFlag;
-  }
-
-  /**
-   * Returns the globe icon used to indicate "any" language
-   *
-   * @return the globe icon used to indicate "any" language
-   */
-  @NotNull
-  public static Icon getGlobeIcon() {
-    return AndroidIcons.Globe;
-  }
+  private static final Map<String, String> ourRegionNames = Maps.newHashMapWithExpectedSize(249);
 
   /**
    * Returns the flag for the given language and region.
@@ -131,6 +112,7 @@ public class LocaleManager {
       // for example the default locale for English is the US, if the current
       // default locale is English, then use its associated country, which could
       // for example be Australia.
+      @SuppressWarnings("UnnecessaryFullyQualifiedName")
       java.util.Locale locale = java.util.Locale.getDefault();
       if (language.equals(locale.getLanguage())) {
         Icon flag = getFlag(locale.getCountry());
@@ -236,6 +218,7 @@ public class LocaleManager {
         // Already checked: there's just no image there
         return null;
       }
+      @SuppressWarnings("UnnecessaryFullyQualifiedName")
       String flagFileName = base.toLowerCase(java.util.Locale.US) + ".png"; //$NON-NLS-1$
       flagImage = IconLoader.getIcon("/icons/flags/" + flagFileName, AndroidIcons.class);
       myImageMap.put(base, flagImage);

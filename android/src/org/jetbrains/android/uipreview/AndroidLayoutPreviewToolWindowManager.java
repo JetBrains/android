@@ -15,10 +15,13 @@
  */
 package org.jetbrains.android.uipreview;
 
-import com.android.ide.common.rendering.api.RenderParams;
-import com.android.ide.common.resources.configuration.*;
-import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.devices.State;
+import com.android.ide.common.rendering.api.RenderSession;
+import com.android.ide.common.rendering.api.Result;
+import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.rendering.RenderService;
 import com.intellij.ProjectTopics;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -43,7 +46,6 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.*;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
@@ -69,17 +71,14 @@ import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidSdkNotConfiguredException;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -368,119 +367,42 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
       return;
     }
 
-    BufferedImage image = null;
-    FixableIssueMessage errorMessage = null;
-    final List<FixableIssueMessage> warnMessages = new ArrayList<FixableIssueMessage>();
-
-    final String imgPath = FileUtil.getTempDirectory() + "/androidLayoutPreview.png";
-
-    try {
-      if (AndroidPlatform.getInstance(facet.getModule()) == null) {
-        throw new AndroidSdkNotConfiguredException();
+    final String layoutXmlText = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+      @Override
+      public String compute() {
+        return psiFile.getText();
       }
-      final State deviceConfiguration = myToolWindowForm.getSelectedDeviceConfiguration();
-
-      if (deviceConfiguration == null) {
-        throw new RenderingException("Device is not specified");
-      }
-      final FolderConfiguration config = new FolderConfiguration();
-      config.set(DeviceConfigHelper.getFolderConfig(deviceConfiguration));
-      config.setUiModeQualifier(new UiModeQualifier(myToolWindowForm.getSelectedDockMode()));
-      config.setNightModeQualifier(new NightModeQualifier(myToolWindowForm.getSelectedNightMode()));
-
-      final LocaleData localeData = myToolWindowForm.getSelectedLocaleData();
-      if (localeData == null) {
-        throw new RenderingException("Locale is not specified");
-      }
-
-      config.setLanguageQualifier(new LanguageQualifier(localeData.getLanguage()));
-      config.setRegionQualifier(new RegionQualifier(localeData.getRegion()));
-
-      final IAndroidTarget target = myToolWindowForm.getSelectedTarget();
-      final ThemeData theme = myToolWindowForm.getSelectedTheme();
-
-      final double xdpi = deviceConfiguration.getHardware().getScreen().getXdpi();
-      final double ydpi = deviceConfiguration.getHardware().getScreen().getYdpi();
-
-      final String layoutXmlText = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-        @Override
-        public String compute() {
-          return psiFile.getText();
-        }
-      });
-      final VirtualFile layoutXmlFile = psiFile.getVirtualFile();
-
-      synchronized (RENDERING_LOCK) {
-        if (target != null && theme != null) {
-          final RenderingResult result =
-            RenderUtil.renderLayout(facet.getModule(), layoutXmlText, layoutXmlFile, imgPath, target, facet, config, xdpi, ydpi, theme,
-                                    RenderParams.DEFAULT_TIMEOUT, false);
-
-          if (result != null) {
-            warnMessages.addAll(result.getWarnMessages());
-            final File input = new File(imgPath);
-            image = ImageIO.read(input);
-          }
-        }
+    });
+    final VirtualFile layoutXmlFile = psiFile.getVirtualFile();
+    if (layoutXmlFile == null) {
+      return;
+    }
+    final RenderResult renderResult;
+    synchronized (RENDERING_LOCK) {
+      Module module = facet.getModule();
+      Configuration configuration = myToolWindowForm.getConfiguration();
+      final RenderLogger logger = new RenderLogger(layoutXmlFile.getName(), module);
+      RenderService service = RenderService.create(facet, module, psiFile, layoutXmlText, layoutXmlFile, configuration, logger);
+      if (service != null) {
+        renderResult = service.render();
+        service.dispose();
+      } else {
+        renderResult = new RenderResult(null, psiFile, logger);
       }
     }
-    catch (RenderingException e) {
-      LOG.debug(e);
-      String message = e.getPresentableMessage();
-      final Throwable[] causes = e.getCauses();
-      message = message != null ? message : AndroidBundle.message("android.layout.preview.default.error.message");
-      errorMessage = causes.length > 0 ? new FixableIssueMessage(message + ' ', "Details", "", new Runnable() {
-        @Override
-        public void run() {
-          AndroidUtils.showStackStace(myProject, causes);
-        }
-      }) : new FixableIssueMessage(message);
-
-      if (causes.length == 0) {
-        warnMessages.addAll(e.getWarnMessages());
-      }
-    }
-    catch (IOException e) {
-      LOG.info(e);
-      final String message = e.getMessage();
-      errorMessage = new FixableIssueMessage("I/O error" + (message != null ? ": " + message : ""));
-    }
-    catch (AndroidSdkNotConfiguredException e) {
-      LOG.debug(e);
-
-      if (!AndroidMavenUtil.isMavenizedModule(facet.getModule())) {
-        errorMessage = new FixableIssueMessage("Please ", "configure", " Android SDK", new Runnable() {
-          @Override
-          public void run() {
-            AndroidSdkUtils.openModuleDependenciesConfigurable(facet.getModule());
-          }
-        });
-      }
-      else {
-        errorMessage = new FixableIssueMessage(AndroidBundle.message("android.maven.cannot.parse.android.sdk.error",
-                                                                       facet.getModule().getName()));
-      }
-    }
-
-    final FixableIssueMessage finalErrorMessage = errorMessage;
-    final BufferedImage finalImage = image;
 
     if (!myRenderingQueue.isEmpty()) {
       return;
     }
 
-    final String fileName = psiFile.getName();
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
         if (!myToolWindowReady || myToolWindowDisposed) {
           return;
         }
-        myToolWindowForm.setErrorMessage(finalErrorMessage);
-        myToolWindowForm.setWarnMessage(warnMessages);
-        if (finalErrorMessage == null) {
-          myToolWindowForm.setImage(finalImage, fileName);
-        }
+        final TextEditor editor = getActiveLayoutXmlEditor(); // Must be run from read thread
+        myToolWindowForm.setRenderResult(renderResult, editor);
         myToolWindowForm.updatePreviewPanel();
       }
     });
@@ -548,16 +470,17 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
         return;
       }
 
-      if (AndroidResourceUtil.isLocalResourceDirectory(parent, myProject)) {
-        myToolWindowForm.updateLocales();
-        render();
-      }
-
-      final VirtualFile gp = parent.getParent();
-      if (gp != null && AndroidResourceUtil.isLocalResourceDirectory(gp, myProject)) {
-        myToolWindowForm.updateLocales();
-        render();
-      }
+      // TODO: Refresh cached locale folders! (For now, it's computed each time)
+      //if (AndroidResourceUtil.isLocalResourceDirectory(parent, myProject)) {
+      //  myToolWindowForm.updateLocales();
+      //  render();
+      //}
+      //
+      //final VirtualFile gp = parent.getParent();
+      //if (gp != null && AndroidResourceUtil.isLocalResourceDirectory(gp, myProject)) {
+      //  myToolWindowForm.updateLocales();
+      //  render();
+      //}
     }
   }
 
@@ -589,8 +512,8 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
 
             final AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData)newSdk.getSdkAdditionalData();
             final AndroidPlatform newPlatform = additionalData != null ? additionalData.getAndroidPlatform() : null;
-            myToolWindowForm.updateDevicesAndTargets(newPlatform);
-            myToolWindowForm.updateThemes();
+            //myToolWindowForm.updateDevicesAndTargets(newPlatform);
+            //myToolWindowForm.updateThemes();
 
             render();
           }

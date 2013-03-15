@@ -16,11 +16,11 @@ import java.util.List;
 /**
  * @author Eugene.Kudelevsky
  */
-class VirtualFolderWrapper implements IAbstractFolder {
+public class VirtualFolderWrapper implements IAbstractFolder {
   private final Project myProject;
   private final VirtualFile myFolder;
 
-  VirtualFolderWrapper(@NotNull Project project, @NotNull VirtualFile folder) {
+  public VirtualFolderWrapper(@NotNull Project project, @NotNull VirtualFile folder) {
     myProject = project;
     myFolder = folder;
   }

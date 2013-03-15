@@ -122,9 +122,9 @@ public class ProjectResources extends ResourceRepository {
     }
   }
 
-  void setCompiledResources(TIntObjectHashMap<Pair<ResourceType, String>> id2res,
-                            Map<IntArrayWrapper, String> styleableid2name,
-                            Map<ResourceType, TObjectIntHashMap<String>> res2id) {
+  public void setCompiledResources(TIntObjectHashMap<Pair<ResourceType, String>> id2res,
+                                   Map<IntArrayWrapper, String> styleableid2name,
+                                   Map<ResourceType, TObjectIntHashMap<String>> res2id) {
     myResourceValueMap = res2id;
     myResIdValueToNameMap = id2res;
     myStyleableValueToNameMap = styleableid2name;
