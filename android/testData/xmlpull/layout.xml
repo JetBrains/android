@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+    <include layout="@layout/colorstrip" android:layout_height="@dimen/colorstrip_height" android:layout_width="match_parent"/>
+
+    <LinearLayout style="@style/TitleBar" android:id="@+id/header">
+        <ImageView style="@style/TitleBarLogo"
+            android:contentDescription="@string/description_logo"
+            android:src="@drawable/title_logo" />
+
+        <View style="@style/TitleBarSpring" />
+
+        <ImageView style="@style/TitleBarSeparator" />
+        <ImageButton style="@style/TitleBarAction"
+            android:id="@+id/btn_title_refresh"
+            android:contentDescription="@string/description_refresh"
+            android:src="@drawable/ic_title_refresh"
+            android:layout_width="wrap_content"
+            android:layout_height="42dp"
+            android:onClick="onRefreshClick" />
+        <ProgressBar style="@style/TitleBarProgressIndicator"
+            android:id="@+id/title_refresh_progress"
+            android:layout_width="wrap_content"
+            android:visibility="visible"/>
+
+        <ImageView style="@style/TitleBarSeparator" />
+        <ImageButton style="@style/TitleBarAction"
+            android:contentDescription="@string/description_search"
+            android:src="@drawable/ic_title_search"
+            android:layout_width="wrap_content"
+            android:layout_height="42dp"
+            android:onClick="onSearchClick" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/noteArea"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_margin="5dip">
+        <EditText
+            android:id="@android:id/text1"
+            android:layout_height="fill_parent"
+            android:hint="@string/note_hint"
+            android:freezesText="true"
+            android:gravity="top" android:layout_width="wrap_content" android:layout_weight="1">
+        </EditText>
+        <EditText
+            android:id="@android:id/text2"
+            android:layout_height="fill_parent"
+            android:freezesText="true"
+            android:gravity="top" android:layout_width="wrap_content" android:layout_weight="1">
+            <requestFocus />
+        </EditText>
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        style="@android:style/ButtonBar">
+        <Button
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="onSaveClick"
+            android:text="@string/note_save" />
+        <Button
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="onDiscardClick"
+            android:text="@string/note_discard" />
+    </LinearLayout>
+
+</LinearLayout>
