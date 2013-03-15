@@ -317,6 +317,12 @@ public class AndroidDomUtil {
         "declare-styleable", "integer", "bool", "attr", "item", "eat-comment"};
     }
     if (element instanceof StyledText) {
+      // TODO: The documentation suggests that the allowed tags are <u>, <b> and <i>:
+      //   developer.android.com/guide/topics/resources/string-resource.html#FormattingAndStyling
+      // However, the full set of tags accepted by Html.fromHtml is much larger. Therefore,
+      // instead consider *any* element nested inside a <string> definition to be a markup
+      // element. See frameworks/base/core/java/android/text/Html.java and look for
+      // HtmlToSpannedConverter#handleStartTag.
       return new String[]{"b", "i", "u"};
     }
     if (element instanceof PreferenceElement) {
