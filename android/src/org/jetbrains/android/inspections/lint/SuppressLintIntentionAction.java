@@ -62,7 +62,9 @@ class SuppressLintIntentionAction implements IntentionAction, Iconable {
   public String getText() {
     String id = getLintId(myId);
     final PsiFile file = PsiTreeUtil.getParentOfType(myElement, PsiFile.class);
-    if (file instanceof XmlFile) {
+    if (file == null) {
+      return "";
+    } else if (file instanceof XmlFile) {
       return AndroidBundle.message("android.lint.fix.suppress.lint.api.attr", id);
     } else {
       assert file instanceof PsiJavaFile : file;
