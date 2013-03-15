@@ -151,21 +151,28 @@ public class AndroidPrecompileTask implements CompileTask {
       ApplicationManager.getApplication().invokeAndWait(new Runnable() {
         @Override
         public void run() {
-          final ModifiableRootModel[] models = new ModifiableRootModel[facets.size()];
-          int i = 0;
+          final List<ModifiableRootModel> modelsToCommit = new ArrayList<ModifiableRootModel>();
 
           for (AndroidFacet facet : facets) {
             final ModifiableRootModel model = ModuleRootManager.getInstance(
               facet.getModule()).getModifiableModel();
-            models[i++] = model;
-            AndroidCompileUtil.createGenModulesAndSourceRoots(facet, model);
+            
+            if (AndroidCompileUtil.createGenModulesAndSourceRoots(facet, model)) {
+              modelsToCommit.add(model);
+            }
+            else {
+              model.dispose();
+            }
           }
+          if (modelsToCommit.size() == 0) {
+            return;
+          }
+          final ModifiableModuleModel moduleModel = ModuleManager.getInstance(project).getModifiableModel();
 
           ApplicationManager.getApplication().runWriteAction(new Runnable() {
             @Override
             public void run() {
-              final ModifiableModuleModel moduleModel = ModuleManager.getInstance(project).getModifiableModel();
-              ModifiableModelCommitter.multiCommit(models, moduleModel);
+              ModifiableModelCommitter.multiCommit(modelsToCommit.toArray(new ModifiableRootModel[modelsToCommit.size()]), moduleModel);
             }
           });
         }
