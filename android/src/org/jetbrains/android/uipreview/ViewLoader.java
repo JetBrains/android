@@ -68,18 +68,10 @@ public class ViewLoader {
 
   @NotNull private final Module myModule;
   @NotNull private final ProjectResources myProjectResources;
-  @NotNull private final Set<String> myMissingClasses = new TreeSet<String>();
-  @NotNull private final Map<String, Throwable> myBrokenClasses = new HashMap<String, Throwable>();
-  @NotNull private final Set<String> myClassesWithIncorrectFormat = new HashSet<String>();
   @NotNull private final Map<String, Class<?>> myLoadedClasses = new HashMap<String, Class<?>>();
   @NotNull private RenderLogger myLogger;
   @Nullable private final ClassLoader myParentClassLoader;
   @Nullable private ProjectClassLoader myProjectClassLoader;
-  @Nullable private String myMissingRClassMessage;
-  @Nullable private String myRClassName;
-  private boolean myMissingRClass;
-  private boolean myIncorrectRClassFormat;
-  private boolean myHasProjectLoadedClasses;
 
   public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull AndroidFacet facet, @NotNull ProjectResources projectResources,
                     @NotNull RenderLogger logger) {
@@ -118,46 +110,31 @@ public class ViewLoader {
       }
     }
     catch (LinkageError e) {
-      LOG.debug(e);
-      myBrokenClasses.put(className, e.getCause());
-      recordError(e);
+      myLogger.addBrokenClass(className, e);
     }
     catch (ClassNotFoundException e) {
-      LOG.debug(e);
-      myBrokenClasses.put(className, e.getCause());
-      recordError(e);
+      myLogger.addBrokenClass(className, e);
     }
     catch (InvocationTargetException e) {
-      LOG.debug(e);
-
       final Throwable cause = e.getCause();
       if (cause instanceof IncompatibleClassFileFormatException) {
-        myClassesWithIncorrectFormat.add(((IncompatibleClassFileFormatException)cause).getClassName());
+        myLogger.addIncorrectFormatClass(((IncompatibleClassFileFormatException)cause).getClassName());
       }
       else {
-        myBrokenClasses.put(className, cause);
+        myLogger.addBrokenClass(className, cause);
       }
-
-      recordError(e);
     }
     catch (IllegalAccessException e) {
-      LOG.debug(e);
-      myBrokenClasses.put(className, e.getCause());
-      recordError(e);
+      myLogger.addBrokenClass(className, e);
     }
     catch (InstantiationException e) {
-      LOG.debug(e);
-      myBrokenClasses.put(className, e.getCause());
-      recordError(e);
+      myLogger.addBrokenClass(className, e);
     }
     catch (NoSuchMethodException e) {
-      LOG.debug(e);
-      myBrokenClasses.put(className, e.getCause());
-      recordError(e);
+      myLogger.addBrokenClass(className, e);
     }
     catch (IncompatibleClassFileFormatException e) {
-      myClassesWithIncorrectFormat.add(e.getClassName());
-      recordError(e);
+      myLogger.addIncorrectFormatClass(e.getClassName());
     }
 
     try {
@@ -188,16 +165,6 @@ public class ViewLoader {
     }
   }
 
-  private void recordError(Throwable e) {
-    // Find root cause to log it.
-    while (e.getCause() != null) {
-      e = e.getCause();
-    }
-
-    // Add the missing class to the list so that the renderer can print them later.
-    myLogger.recordThrowable(e);
-  }
-
   @Nullable
   private Class<?> loadClass(String className) throws IncompatibleClassFileFormatException {
     try {
@@ -207,16 +174,9 @@ public class ViewLoader {
       return myProjectClassLoader.loadClass(className);
     }
     catch (ClassNotFoundException e) {
-      LOG.debug(e);
-      if (!className.equals(VIEW_FRAGMENT)) {
-        myMissingClasses.add(className);
-      }
+      myLogger.addMissingClass(className);
       return null;
     }
-  }
-
-  public boolean hasUnsupportedClassVersionProblem() {
-    return myClassesWithIncorrectFormat.size() > 0;
   }
 
   @Nullable
@@ -310,11 +270,6 @@ public class ViewLoader {
     }
 
     return viewObject;
-  }
-
-  @NotNull
-  public Set<String> getClassesWithIncorrectFormat() {
-    return myClassesWithIncorrectFormat;
   }
 
   @NotNull
@@ -418,59 +373,27 @@ public class ViewLoader {
     return constructor.newInstance(constructorParameters);
   }
 
-  @NotNull
-  public Set<String> getMissingClasses() {
-    return myMissingClasses;
-  }
-
-  public boolean hasLoadedClasses() {
-    return myHasProjectLoadedClasses;
-  }
-
-  @NotNull
-  public Map<String, Throwable> getBrokenClasses() {
-    return myBrokenClasses;
-  }
-
   /**
    * Load and parse the R class such that resource references in the layout rendering can refer
    * to local resources properly
    */
   public void loadAndParseRClassSilently() {
-    myMissingRClassMessage = null;
-    myMissingRClass = false;
-    myIncorrectRClassFormat = false;
-    myRClassName = null;
-
+    final String rClassName = RenderUtil.getRClassName(myModule);
     try {
-      final String rClassName = RenderUtil.getRClassName(myModule);
 
       if (rClassName == null) {
         LOG.info("loadAndParseRClass: failed to find manifest package for project %1$s");
         return;
       }
+      myLogger.setResourceClass(rClassName);
       loadAndParseRClass(rClassName);
     }
     catch (ClassNotFoundException e) {
-      LOG.debug(e);
-      myMissingRClassMessage = e.getMessage();
-      myMissingRClass = true;
+      myLogger.setMissingResourceClass(true);
     }
     catch (IncompatibleClassFileFormatException e) {
-      LOG.debug(e);
-      myIncorrectRClassFormat = true;
-      myRClassName = e.getClassName();
+      myLogger.addIncorrectFormatClass(rClassName);
     }
-  }
-
-  public void loadAndParseRClass() throws ClassNotFoundException, IncompatibleClassFileFormatException {
-    final String rClassName = RenderUtil.getRClassName(myModule);
-
-    if (rClassName == null) {
-      LOG.info("loadAndParseRClass: failed to find manifest package for project %1$s");
-      return;
-    }
-    loadAndParseRClass(rClassName);
   }
 
   public void loadAndParseRClass(@NotNull String className) throws ClassNotFoundException, IncompatibleClassFileFormatException {
@@ -481,7 +404,7 @@ public class ViewLoader {
 
       if (aClass != null) {
         myLoadedClasses.put(className, aClass);
-        myHasProjectLoadedClasses = true;
+        myLogger.setHasLoadedClasses(true);
       }
     }
 
@@ -548,233 +471,5 @@ public class ViewLoader {
     }
 
     return true;
-  }
-
-  // ---- Create diagnostic messages about class instantiation failures ----
-
-  public void addDiagnostics(RenderLogger logger) {
-    if (hasUnsupportedClassVersionProblem() || (myIncorrectRClassFormat && hasLoadedClasses())) {
-      reportIncorrectClassFormatWarning(myRClassName, myIncorrectRClassFormat);
-    }
-
-    if (myMissingRClass && hasLoadedClasses()) {
-      final StringBuilder builder = new StringBuilder();
-      builder.append(myMissingRClassMessage != null && myMissingRClassMessage.length() > 0
-                     ? ("Class not found error: " + myMissingRClassMessage + ".")
-                     : "R class not found.")
-        .append(" Try to build project");
-      logger.addWarningMessage(new FixableIssueMessage(builder.toString()));
-    }
-
-    reportMissingClassesWarning(getMissingClasses());
-    reportBrokenClassesWarning(getBrokenClasses());
-  }
-
-  private void reportMissingClassesWarning(@NotNull Set<String> missingClasses) {
-    if (missingClasses.size() > 0) {
-      final StringBuilder builder = new StringBuilder();
-      builder.append("Missing classes:\n");
-
-      for (String missingClass : missingClasses) {
-        builder.append("&nbsp; &nbsp; &nbsp; &nbsp;").append(missingClass).append('\n');
-      }
-      builder.append("Try to build project");
-      myLogger.addWarningMessage(new FixableIssueMessage(builder.toString()));
-    }
-  }
-
-  private void reportBrokenClassesWarning(@NotNull Map<String, Throwable> brokenClasses) {
-    if (brokenClasses.size() > 0) {
-      final List<Throwable> throwables = new ArrayList<Throwable>();
-      final List<String> brokenClassNames = new ArrayList<String>();
-
-      for (Map.Entry<String, Throwable> entry : brokenClasses.entrySet()) {
-        brokenClassNames.add(entry.getKey());
-        throwables.add(entry.getValue());
-      }
-      final Throwable[] throwableArray = throwables.toArray(new Throwable[throwables.size()]);
-
-      final StringBuilder builder = new StringBuilder();
-      builder.append("Unable to initialize:\n");
-
-      for (String className : brokenClassNames) {
-        builder.append("&nbsp; &nbsp; &nbsp; &nbsp;").append(className).append('\n');
-      }
-      removeLastNewLineChar(builder);
-      builder.append('\n');
-      final FixableIssueMessage issue = new FixableIssueMessage(builder.toString(), Collections.singletonList(
-        com.intellij.openapi.util.Pair.<String, Runnable>create("Details", new Runnable() {
-          @Override
-          public void run() {
-            AndroidUtils.showStackStace(myModule.getProject(), throwableArray);
-          }
-        })));
-      issue.addTip("Tip: Use View.isInEditMode() in your custom views to skip code when shown in the IDE");
-      myLogger.addWarningMessage(issue);
-    }
-  }
-
-  private void reportIncorrectClassFormatWarning(@Nullable String rClassName,
-                                                 boolean incorrectRClassFormat) {
-    final Project project = myModule.getProject();
-    final List<Module> problemModules = getProblemModules(myModule);
-    final StringBuilder builder = new StringBuilder("Preview might be incorrect: unsupported classes version");
-    final List<com.intellij.openapi.util.Pair<String, Runnable>> quickFixes = new ArrayList<com.intellij.openapi.util.Pair<String, Runnable>>();
-
-    if (problemModules.size() > 0) {
-      quickFixes.add(new com.intellij.openapi.util.Pair<String, Runnable>("Rebuild project with '-target 1.6'", new Runnable() {
-        @Override
-        public void run() {
-          final JpsJavaCompilerOptions settings = JavacConfiguration.getOptions(project, JavacConfiguration.class);
-          if (settings.ADDITIONAL_OPTIONS_STRING.length() > 0) {
-            settings.ADDITIONAL_OPTIONS_STRING += ' ';
-          }
-          settings.ADDITIONAL_OPTIONS_STRING += "-target 1.6";
-          CompilerManager.getInstance(project).rebuild(null);
-        }
-      }));
-
-      quickFixes.add(new com.intellij.openapi.util.Pair<String, Runnable>("Change Java SDK to 1.5/1.6", new Runnable() {
-        @Override
-        public void run() {
-          final Set<String> sdkNames = getSdkNamesFromModules(problemModules);
-
-          if (sdkNames.size() == 1) {
-            final Sdk sdk = ProjectJdkTable.getInstance().findJdk(sdkNames.iterator().next());
-
-            if (sdk != null && sdk.getSdkType() instanceof AndroidSdkType) {
-              final ProjectStructureConfigurable config = ProjectStructureConfigurable.getInstance(project);
-
-              if (ShowSettingsUtil.getInstance().editConfigurable(project, config, new Runnable() {
-                public void run() {
-                  config.select(sdk, true);
-                }
-              })) {
-                askAndRebuild(project);
-              }
-              return;
-            }
-          }
-
-          final String moduleToSelect = problemModules.size() > 0
-                                        ? problemModules.iterator().next().getName()
-                                        : null;
-          if (ModulesConfigurator.showDialog(project, moduleToSelect, ClasspathEditor.NAME)) {
-            askAndRebuild(project);
-          }
-        }
-      }));
-
-      final Set<String> classesWithIncorrectFormat = new HashSet<String>(
-        getClassesWithIncorrectFormat());
-      if (incorrectRClassFormat && rClassName != null) {
-        classesWithIncorrectFormat.add(rClassName);
-      }
-      if (classesWithIncorrectFormat.size() > 0) {
-        quickFixes.add(new com.intellij.openapi.util.Pair<String, Runnable>("Details", new Runnable() {
-          @Override
-          public void run() {
-            showClassesWithIncorrectFormat(project, classesWithIncorrectFormat);
-          }
-        }));
-      }
-
-      builder.append("\nThe following modules are built with incompatible JDK: ");
-
-      for (Iterator<Module> it = problemModules.iterator(); it.hasNext(); ) {
-        Module problemModule = it.next();
-        builder.append(problemModule.getName());
-        if (it.hasNext()) {
-          builder.append(", ");
-        }
-      }
-    }
-
-    myLogger.addErrorMessage(new FixableIssueMessage(builder.toString(), quickFixes));
-  }
-
-  private static void showClassesWithIncorrectFormat(@NotNull Project project, @NotNull Set<String> classesWithIncorrectFormat) {
-    final StringBuilder builder = new StringBuilder("Classes with incompatible format:\n");
-
-    for (Iterator<String> it = classesWithIncorrectFormat.iterator(); it.hasNext(); ) {
-      builder.append("    ").append(it.next());
-
-      if (it.hasNext()) {
-        builder.append('\n');
-      }
-    }
-    Messages.showInfoMessage(project, builder.toString(), "Unsupported class version");
-  }
-
-  private static void askAndRebuild(Project project) {
-    final int r =
-      Messages.showYesNoDialog(project, "You have to rebuild project to see fixed preview. Would you like to do it?",
-                               "Rebuild project", Messages.getQuestionIcon());
-    if (r == Messages.YES) {
-      CompilerManager.getInstance(project).rebuild(null);
-    }
-  }
-
-  @NotNull
-  private static Set<String> getSdkNamesFromModules(@NotNull Collection<Module> modules) {
-    final Set<String> result = new HashSet<String>();
-
-    for (Module module : modules) {
-      final Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-
-      if (sdk != null) {
-        result.add(sdk.getName());
-      }
-    }
-    return result;
-  }
-
-  @NotNull
-  private static List<Module> getProblemModules(@NotNull Module root) {
-    final List<Module> result = new ArrayList<Module>();
-    collectProblemModules(root, new HashSet<Module>(), result);
-    return result;
-  }
-
-  private static void collectProblemModules(@NotNull Module module, @NotNull Set<Module> visited, @NotNull Collection<Module> result) {
-    if (!visited.add(module)) {
-      return;
-    }
-
-    if (isBuiltByJdk7OrHigher(module)) {
-      result.add(module);
-    }
-
-    for (Module depModule : ModuleRootManager.getInstance(module).getDependencies(false)) {
-      collectProblemModules(depModule, visited, result);
-    }
-  }
-
-  private static boolean isBuiltByJdk7OrHigher(@NotNull Module module) {
-    Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-
-    if (sdk == null) {
-      return false;
-    }
-
-    if (sdk.getSdkType() instanceof AndroidSdkType) {
-      final AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-
-      if (data != null) {
-        final Sdk jdk = data.getJavaSdk();
-
-        if (jdk != null) {
-          sdk = jdk;
-        }
-      }
-    }
-    return sdk.getSdkType() instanceof JavaSdk &&
-           JavaSdk.getInstance().isOfVersionOrHigher(sdk, JavaSdkVersion.JDK_1_7);
-  }
-
-  private static void removeLastNewLineChar(StringBuilder builder) {
-    if (builder.length() > 0 && builder.charAt(builder.length() - 1) == '\n') {
-      builder.deleteCharAt(builder.length() - 1);
-    }
   }
 }

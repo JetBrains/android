@@ -381,13 +381,16 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
     synchronized (RENDERING_LOCK) {
       Module module = facet.getModule();
       Configuration configuration = myToolWindowForm.getConfiguration();
+      if (configuration == null) {
+        return;
+      }
       final RenderLogger logger = new RenderLogger(layoutXmlFile.getName(), module);
       RenderService service = RenderService.create(facet, module, psiFile, layoutXmlText, layoutXmlFile, configuration, logger);
       if (service != null) {
         renderResult = service.render();
         service.dispose();
       } else {
-        renderResult = new RenderResult(null, psiFile, logger);
+        renderResult = new RenderResult(null, null, psiFile, logger);
       }
     }
 

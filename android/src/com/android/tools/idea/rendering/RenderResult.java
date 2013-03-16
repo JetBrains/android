@@ -17,13 +17,11 @@ package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.google.common.collect.Lists;
+import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiFile;
-import org.jetbrains.android.uipreview.FixableIssueMessage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.List;
 
 // TODO: Similar name to the unrelated RenderingResult class. This class needs a better name.
@@ -35,8 +33,13 @@ public class RenderResult {
   @Nullable private final List<ViewInfo> myRootViews;
   @Nullable private final ScalableImage myImage;
   @Nullable private RenderedViewHierarchy myHierarchy;
+  @NotNull private final RenderService myRenderService;
 
-  public RenderResult(@NotNull RenderSession session, @NotNull PsiFile file, @NotNull RenderLogger logger) {
+  public RenderResult(@NotNull RenderService renderService,
+                      @NotNull RenderSession session,
+                      @NotNull PsiFile file,
+                      @NotNull RenderLogger logger) {
+    myRenderService = renderService;
     myFile = file;
     myLogger = logger;
     if (session.getResult().isSuccess()) {
@@ -53,16 +56,7 @@ public class RenderResult {
     myRootViews = null;
     myImage = null;
     myLogger = null;
-  }
-
-  @Nullable
-  public List<FixableIssueMessage> getErrorMessages() {
-    return myLogger.getErrorMessages();
-  }
-
-  @Nullable
-  public List<FixableIssueMessage> getWarningMessages() {
-    return myLogger.getWarningMessages();
+    myRenderService = null;
   }
 
   @NotNull
@@ -89,8 +83,18 @@ public class RenderResult {
     return myRootViews;
   }
 
-  @Nullable
+  @NotNull
   public PsiFile getFile() {
     return myFile;
+  }
+
+  @NotNull
+  public RenderService getRenderService() {
+    return myRenderService;
+  }
+
+  @NotNull
+  public Module getModule() {
+    return myLogger.getModule();
   }
 }

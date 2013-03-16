@@ -89,6 +89,9 @@ public class RenderedView implements Iterable<RenderedView> {
     return (x <= px && y <= py && x + w >= px && y + h >= py) ? this : null;
   }
 
+  public boolean isRoot() {
+    return tag == null || !(tag.getParent() instanceof XmlTag);
+  }
 
   // ---- Implements Iterable<RenderedView> ----
   @Override

@@ -17,13 +17,17 @@ package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import org.jetbrains.android.uipreview.FixableIssueMessage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+
+import static com.android.SdkConstants.VIEW_FRAGMENT;
+import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
+import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
  * A {@link com.android.ide.common.rendering.api.LayoutLog} which records the problems it encounters and offers them as a
@@ -33,19 +37,25 @@ public class RenderLogger extends LayoutLog {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.RenderLogger");
 
   private static final String TAG_MISSING_DIMENSION = "missing.dimension";     //$NON-NLS-1$
+  private static Set<String> ourIgnoredFidelityWarnings;
+  private static boolean ourIgnoreAllFidelityWarnings;
 
   private final Module myModule;
   private final String myName;
-  private List<String> myFidelityWarnings;
-  private List<String> myWarnings;
-  private List<String> myErrors;
+  private Set<String> myFidelityWarningStrings;
   private boolean myHaveExceptions;
   private List<String> myTags;
   private List<Throwable> myTraces;
-  private List<FixableIssueMessage> myFixableErrors;
-  private List<FixableIssueMessage> myFixableWarnings;
-
-  private static Set<String> ourIgnoredFidelityWarnings;
+  private List<RenderProblem> myMessages;
+  private List<RenderProblem> myFidelityWarnings;
+  private Set<String> myMissingClasses;
+  private Map<String, Throwable> myBrokenClasses;
+  private Set<String> myClassesWithIncorrectFormat;
+  private String myResourceClass;
+  private boolean myMissingResourceClass;
+  private boolean myHasLoadedClasses;
+  private HtmlLinkManager myLinkManager;
+  private boolean myMissingSize;
 
   /**
    * Construct a logger for the given named layout
@@ -55,28 +65,20 @@ public class RenderLogger extends LayoutLog {
     myModule = module;
   }
 
-  @Nullable
-  public List<FixableIssueMessage> getErrorMessages() {
-    return myFixableErrors;
+  public Module getModule() {
+    return myModule;
   }
 
-  public void addErrorMessage(@NotNull FixableIssueMessage message) {
-    if (myFixableErrors == null) {
-      myFixableErrors = Lists.newArrayList();
+  public void addMessage(@NotNull RenderProblem message) {
+    if (myMessages == null) {
+      myMessages = Lists.newArrayList();
     }
-    myFixableErrors.add(message);
+    myMessages.add(message);
   }
 
   @Nullable
-  public List<FixableIssueMessage> getWarningMessages() {
-    return myFixableWarnings;
-  }
-
-  public void addWarningMessage(@NotNull FixableIssueMessage message) {
-    if (myFixableWarnings == null) {
-      myFixableWarnings = Lists.newArrayList();
-    }
-    myFixableWarnings.add(message);
+  public List<RenderProblem> getMessages() {
+    return myMessages;
   }
 
   /**
@@ -85,76 +87,19 @@ public class RenderLogger extends LayoutLog {
    * @return true if there were problems during the render
    */
   public boolean hasProblems() {
-    return hasErrors() || myFidelityWarnings != null || myWarnings != null || myFixableWarnings != null;
-  }
-
-  /**
-   * aRe there any logged errors?
-   *
-   * @return true if there were errors during rendering
-   œ*/
-  public boolean hasErrors() {
-    return myErrors != null || myFixableErrors != null || myHaveExceptions;
-  }
-
-  /**
-   * Returns the first exception encountered during rendering, or null if none
-   *
-   * @return the first exception encountered during rendering, or null if none
-   */
-  @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-  @Nullable
-  public Throwable getFirstTrace() {
-    return myTraces != null && !myTraces.isEmpty() ? myTraces.get(0) : null;
+    return myHaveExceptions || myFidelityWarnings != null || myMessages != null ||
+           myClassesWithIncorrectFormat != null || myBrokenClasses != null || myMissingClasses != null ||
+           myMissingSize;
   }
 
   /**
    * Returns a list of traces encountered during rendering, or null if none
    *
    * @return a list of traces encountered during rendering, or null if none
-   * @todo Rename to getTraces!
    */
   @NotNull
   public List<Throwable> getTraces() {
     return myTraces != null ? myTraces : Collections.<Throwable>emptyList();
-  }
-
-  /**
-   * Returns a (possibly multi-line) description of all the problems
-   *
-   * @param includeFidelityWarnings if true, include fidelity warnings in the problem
-   *                                summary
-   * @return a string describing the rendering problems
-   */
-  @NotNull
-  public String getProblems(boolean includeFidelityWarnings) {
-    StringBuilder sb = new StringBuilder();
-
-    if (myErrors != null) {
-      for (String error : myErrors) {
-        sb.append(error).append('\n');
-      }
-    }
-
-    if (myWarnings != null) {
-      for (String warning : myWarnings) {
-        sb.append(warning).append('\n');
-      }
-    }
-
-    if (includeFidelityWarnings && myFidelityWarnings != null) {
-      sb.append("The graphics preview in the layout editor may not be accurate:\n");
-      for (String warning : myFidelityWarnings) {
-        sb.append("* ");
-        sb.append(warning).append('\n');
-      }
-    }
-
-    if (myHaveExceptions) {
-      sb.append("Exception details are logged in Window > Show View > Error Log");
-    }
-
-    return sb.toString();
   }
 
   /**
@@ -163,7 +108,7 @@ public class RenderLogger extends LayoutLog {
    * @return the fidelity warnings
    */
   @Nullable
-  public List<String> getFidelityWarnings() {
+  public List<RenderProblem> getFidelityWarnings() {
     return myFidelityWarnings;
   }
 
@@ -179,9 +124,8 @@ public class RenderLogger extends LayoutLog {
     if (tag == null && message != null && message.startsWith("Failed to find style ")) { //$NON-NLS-1$
       tag = LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
     }
-
-    addError(tag, description);
-    addErrorMessage(new FixableIssueMessage(message));
+    addTag(tag);
+    addMessage(RenderProblem.createPlain(ERROR, description));
   }
 
   @Override
@@ -203,16 +147,13 @@ public class RenderLogger extends LayoutLog {
       if (description.equals(throwable.getLocalizedMessage()) || description.equals(throwable.getMessage())) {
         description = "Exception raised during rendering: " + description;
       }
+
       recordThrowable(throwable);
       myHaveExceptions = true;
     }
 
-    addError(tag, description);
-    if (throwable != null) {
-      addErrorMessage(FixableIssueMessage.createExceptionIssue(myModule.getProject(), description, throwable));
-    } else {
-      addErrorMessage(new FixableIssueMessage(description));
-    }
+    addTag(tag);
+    addMessage(RenderProblem.createPlain(ERROR, description).throwable(throwable));
   }
 
   /**
@@ -231,54 +172,68 @@ public class RenderLogger extends LayoutLog {
   public void warning(@Nullable String tag, @NotNull String message, @Nullable Object data) {
     String description = describe(message);
 
-    boolean log = true;
     if (TAG_RESOURCES_FORMAT.equals(tag)) {
+      // TODO: Accumulate multiple hits of this form and synthesize into one
       if (description.equals("You must supply a layout_width attribute.")       //$NON-NLS-1$
           || description.equals("You must supply a layout_height attribute.")) {//$NON-NLS-1$
-        tag = TAG_MISSING_DIMENSION;
-        log = false;
+        // Don't log these messages individually; you get one for each missing width and each missing height,
+        // but there is no correlation to the specific view which is using the given TypedArray,
+        // so instead just record that fact that *some* views were missing a dimension, and the
+        // error summary will mention this, and add an action which lists the eligible views
+        myMissingSize = true;
+        addTag(TAG_MISSING_DIMENSION);
+        return;
       }
     }
 
-    if (log) {
-      LOG.warn(String.format("%1$s: %2$s", myName, description));
-    }
-
-    addWarning(tag, description);
-    addErrorMessage(new FixableIssueMessage(message));
+    addTag(tag);
+    addMessage(RenderProblem.createPlain(WARNING, description));
   }
 
   @Override
   public void fidelityWarning(@Nullable String tag, @Nullable String message, @Nullable Throwable throwable, @Nullable Object data) {
-    if (ourIgnoredFidelityWarnings != null && ourIgnoredFidelityWarnings.contains(message)) {
+    if (ourIgnoreAllFidelityWarnings || ourIgnoredFidelityWarnings != null && ourIgnoredFidelityWarnings.contains(message)) {
       return;
     }
 
     String description = describe(message);
+    if (myFidelityWarningStrings != null && myFidelityWarningStrings.contains(description)) {
+      // Exclude duplicates
+      return;
+    }
+
     LOG.warn(String.format("%1$s: %2$s", myName, description), throwable);
     if (throwable != null) {
       myHaveExceptions = true;
     }
 
-    addFidelityWarning(tag, description);
-    // TODO: Add fixable message for clearing the error
-    if (throwable != null) {
-      addErrorMessage(FixableIssueMessage.createExceptionIssue(myModule.getProject(), description, throwable));
-    } else {
-      addErrorMessage(new FixableIssueMessage(description));
+    RenderProblem error = new RenderProblem.Deferred(ERROR, tag, description, throwable);
+    error.setClientData(description);
+    if (myFidelityWarnings == null) {
+      myFidelityWarnings = new ArrayList<RenderProblem>();
+      myFidelityWarningStrings = Sets.newHashSet();
     }
+
+    myFidelityWarnings.add(error);
+    assert myFidelityWarningStrings != null;
+    myFidelityWarningStrings.add(description);
+    addTag(tag);
   }
 
   /**
    * Ignore the given render fidelity warning for the current session
    *
-   * @param message the message to be ignored for this session
+   * @param clientData the client data stashed on the render problem
    */
-  public static void ignoreFidelityWarning(@NotNull String message) {
+  public static void ignoreFidelityWarning(@NotNull Object clientData) {
     if (ourIgnoredFidelityWarnings == null) {
       ourIgnoredFidelityWarnings = new HashSet<String>();
     }
-    ourIgnoredFidelityWarnings.add(message);
+    ourIgnoredFidelityWarnings.add((String) clientData);
+  }
+
+  public static void ignoreAllFidelityWarnings() {
+    ourIgnoreAllFidelityWarnings = true;
   }
 
   @NotNull
@@ -289,42 +244,6 @@ public class RenderLogger extends LayoutLog {
     else {
       return message;
     }
-  }
-
-  private void addWarning(@Nullable String tag, @NotNull String description) {
-    if (myWarnings == null) {
-      myWarnings = new ArrayList<String>();
-    }
-    else if (myWarnings.contains(description)) {
-      // Avoid duplicates
-      return;
-    }
-    myWarnings.add(description);
-    addTag(tag);
-  }
-
-  private void addError(@Nullable String tag, @NotNull String description) {
-    if (myErrors == null) {
-      myErrors = new ArrayList<String>();
-    }
-    else if (myErrors.contains(description)) {
-      // Avoid duplicates
-      return;
-    }
-    myErrors.add(description);
-    addTag(tag);
-  }
-
-  private void addFidelityWarning(@Nullable String tag, @NotNull String description) {
-    if (myFidelityWarnings == null) {
-      myFidelityWarnings = new ArrayList<String>();
-    }
-    else if (myFidelityWarnings.contains(description)) {
-      // Avoid duplicates
-      return;
-    }
-    myFidelityWarnings.add(description);
-    addTag(tag);
   }
 
   // ---- Tags ----
@@ -369,5 +288,87 @@ public class RenderLogger extends LayoutLog {
     else {
       return false;
     }
+  }
+
+  public HtmlLinkManager getLinkManager() {
+    if (myLinkManager == null) {
+      myLinkManager = new HtmlLinkManager();
+    }
+    return myLinkManager;
+  }
+
+// ---- Class loading and instantiation problems ----
+  //
+  // These are recorded in the logger such that they can later be
+  // aggregated by the error panel. It is also written into the logger
+  // rather than stashed on the ViewLoader, since the ViewLoader is reused
+  // across multiple rendering operations.
+
+  public void setResourceClass(String resourceClass) {
+    myResourceClass = resourceClass;
+  }
+
+  public void setMissingResourceClass(boolean missingResourceClass) {
+    myMissingResourceClass = missingResourceClass;
+  }
+
+  public void setHasLoadedClasses(boolean hasLoadedClasses) {
+    myHasLoadedClasses = hasLoadedClasses;
+  }
+
+  public boolean isMissingSize() {
+    return myMissingSize;
+  }
+
+  public boolean hasLoadedClasses() {
+    return myHasLoadedClasses;
+  }
+
+  public boolean isMissingResourceClass() {
+    return myMissingResourceClass;
+  }
+
+  public String getResourceClass() {
+    return myResourceClass;
+  }
+
+  public Set<String> getClassesWithIncorrectFormat() {
+    return myClassesWithIncorrectFormat;
+  }
+
+  public Map<String, Throwable> getBrokenClasses() {
+    return myBrokenClasses;
+  }
+
+  public Set<String> getMissingClasses() {
+    return myMissingClasses;
+  }
+
+  public void addMissingClass(String className) {
+    if (!className.equals(VIEW_FRAGMENT)) {
+      if (myMissingClasses == null) {
+        myMissingClasses = new TreeSet<String>();
+      }
+      myMissingClasses.add(className);
+    }
+  }
+
+  public void addIncorrectFormatClass(String className) {
+    if (myClassesWithIncorrectFormat == null) {
+      myClassesWithIncorrectFormat = new com.intellij.util.containers.HashSet<String>();
+    }
+    myClassesWithIncorrectFormat.add(className);
+  }
+
+  @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+  public void addBrokenClass(String className, Throwable exception) {
+    while (exception.getCause() != null && exception.getCause() != exception) {
+      exception = exception.getCause();
+    }
+
+    if (myBrokenClasses == null) {
+      myBrokenClasses = new HashMap<String, Throwable>();
+    }
+    myBrokenClasses.put(className, exception);
   }
 }
