@@ -15,10 +15,7 @@
  */
 package org.jetbrains.android.uipreview;
 
-import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.rendering.RenderedView;
-import com.android.tools.idea.rendering.RenderedViewHierarchy;
-import com.android.tools.idea.rendering.ScalableImage;
+import com.android.tools.idea.rendering.*;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.CaretModel;
@@ -26,14 +23,9 @@ import com.intellij.openapi.editor.event.CaretEvent;
 import com.intellij.openapi.editor.event.CaretListener;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.Gray;
-import com.intellij.ui.HyperlinkLabel;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.util.ui.AsyncProcessIcon;
@@ -43,8 +35,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -59,19 +49,14 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
   public static final Color SELECTION_BORDER_COLOR = new Color(0x00, 0x99, 0xFF, 255);
   public static final Color SELECTION_FILL_COLOR = new Color(0x00, 0x99, 0xFF, 32);
 
-  private FixableIssueMessage myErrorMessage;
-  private List<FixableIssueMessage> myWarnMessages;
-
   @NotNull
   private RenderResult myRenderResult = RenderResult.NONE;
 
-  private final JPanel myMessagesPanel = new JPanel(new VerticalFlowLayout(VerticalFlowLayout.TOP, 0, 0, true, false));
   private final JPanel myTitlePanel;
   private boolean myZoomToFit = true;
 
   private final List<ProgressIndicator> myProgressIndicators = new ArrayList<ProgressIndicator>();
   private boolean myProgressVisible = false;
-  private boolean myShowWarnings = false;
 
   private final JComponent myImagePanel = new JPanel() {
     @Override
@@ -88,6 +73,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
   private TextEditor myEditor;
   private RenderedView mySelectedView;
   private CaretModel myCaretModel;
+  private RenderErrorPanel myErrorPanel;
   private CaretListener myCaretListener = new CaretListener() {
     @Override
     public void caretPositionChanged(CaretEvent e) {
@@ -140,11 +126,12 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
 
     add(myTitlePanel);
 
-    myMessagesPanel.setBorder(IdeBorderFactory.createEmptyBorder(0, 5, 0, 5));
-    myMessagesPanel.setOpaque(false);
-    add(myMessagesPanel);
+    MyImagePanelWrapper previewPanel = new MyImagePanelWrapper();
+    add(previewPanel);
 
-    add(new MyImagePanelWrapper());
+    myErrorPanel = new RenderErrorPanel();
+    myErrorPanel.setVisible(false);
+    previewPanel.add(myErrorPanel, JLayeredPane.POPUP_LAYER);
   }
 
   private void switchtoLayoutEditor() {
@@ -199,7 +186,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
 
       // TODO: Use layout editor's static feedback rendering
       RenderedView selected = mySelectedView;
-      if (selected != null) {
+      if (selected != null && !myErrorPanel.isVisible()) {
         double zoomFactor = image.getScale();
         int x = (int)(selected.x * zoomFactor);
         int y = (int)(selected.y * zoomFactor);
@@ -234,6 +221,9 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
         int offset = myCaretModel.getOffset();
         if (offset != -1) {
           RenderedView view = hierarchy.findByOffset(offset);
+          if (view != null && view.isRoot()) {
+            view = null;
+          }
           if (view != mySelectedView) {
             mySelectedView = view;
             repaint();
@@ -258,9 +248,13 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
       myFileNameLabel.setText(renderResult.getFile().getName());
     }
 
-    List<FixableIssueMessage> errorMessages = myRenderResult.getLogger().getErrorMessages();
-    myErrorMessage = errorMessages != null && !errorMessages.isEmpty() ? errorMessages.get(0) : null;
-    myWarnMessages = myRenderResult.getLogger().getWarningMessages();
+    RenderLogger logger = myRenderResult.getLogger();
+    if (logger.hasProblems()) {
+      myErrorPanel.showErrors(myRenderResult);
+      myErrorPanel.setVisible(true);
+    } else {
+      myErrorPanel.setVisible(false);
+    }
 
     setEditor(editor);
     updateCaret();
@@ -311,50 +305,11 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
 
   private void doRevalidate() {
     revalidate();
-    // TODO: Add a configuration listener which does auto zoom only when necessary
     updateImageSize();
     repaint();
   }
 
   public void update() {
-    myImagePanel.setVisible(true);
-    myMessagesPanel.removeAll();
-
-    if (myErrorMessage != null) {
-      showMessage(myErrorMessage, Messages.getErrorIcon(), myMessagesPanel);
-    }
-    if (myWarnMessages != null && myWarnMessages.size() > 0) {
-      final HyperlinkLabel showHideWarnsLabel = new HyperlinkLabel();
-      showHideWarnsLabel.setOpaque(false);
-      String warningCount = myWarnMessages.size() + " warning" + (myWarnMessages.size() != 1 ? "s" : "");
-      final String showMessage = "Show " + warningCount;
-      final String hideMessage = "Hide " + warningCount;
-      showHideWarnsLabel.setHyperlinkText("", myShowWarnings ? hideMessage : showMessage, "");
-
-      final JPanel warningsPanel = new JPanel(new VerticalFlowLayout(VerticalFlowLayout.TOP, 0, 0, true, false));
-      warningsPanel.setOpaque(false);
-
-      showHideWarnsLabel.addHyperlinkListener(new HyperlinkListener() {
-        public void hyperlinkUpdate(final HyperlinkEvent e) {
-          if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-            myShowWarnings = !warningsPanel.isVisible();
-            warningsPanel.setVisible(myShowWarnings);
-            showHideWarnsLabel.setHyperlinkText("", myShowWarnings ? hideMessage : showMessage, "");
-          }
-        }
-      });
-      final JPanel wrapper = new JPanel(new BorderLayout());
-      wrapper.setOpaque(false);
-      wrapper.add(showHideWarnsLabel);
-      wrapper.setBorder(IdeBorderFactory.createEmptyBorder(5, 0, 5, 0));
-      myMessagesPanel.add(wrapper);
-
-      for (FixableIssueMessage warnMessage : myWarnMessages) {
-        showMessage(warnMessage, Messages.getWarningIcon(), warningsPanel);
-      }
-      warningsPanel.setVisible(myShowWarnings);
-      myMessagesPanel.add(warningsPanel);
-    }
     revalidate();
 
     ApplicationManager.getApplication().invokeLater(new Runnable() {
@@ -365,81 +320,6 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     });
   }
 
-  private static void showMessage(final FixableIssueMessage message, Icon icon, JPanel panel) {
-    if (message.myLinkText.length() > 0 || message.myAfterLinkText.length() > 0) {
-      final HyperlinkLabel warnLabel = new HyperlinkLabel();
-      warnLabel.setOpaque(false);
-      warnLabel.setHyperlinkText(message.myBeforeLinkText,
-                                 message.myLinkText,
-                                 message.myAfterLinkText);
-      warnLabel.setIcon(icon);
-
-      warnLabel.addHyperlinkListener(new HyperlinkListener() {
-        public void hyperlinkUpdate(final HyperlinkEvent e) {
-          final Runnable quickFix = message.myQuickFix;
-          if (quickFix != null && e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-            quickFix.run();
-          }
-        }
-      });
-      panel.add(warnLabel);
-    }
-    else {
-      final JBLabel warnLabel = new JBLabel();
-
-      if (message.myAdditionalFixes.size() == 0 && message.myTips.size() == 0) {
-        warnLabel.setBorder(IdeBorderFactory.createEmptyBorder(0, 0, 10, 0));
-      }
-      warnLabel.setOpaque(false);
-      warnLabel.setText("<html><body>" + message.myBeforeLinkText.replace("\n", "<br>") + "</body></html>");
-      warnLabel.setIcon(icon);
-      panel.add(warnLabel);
-    }
-    if (message.myAdditionalFixes.size() > 0 || message.myTips.size() > 0) {
-      final JPanel fixesAndTipsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-      fixesAndTipsPanel.setBorder(IdeBorderFactory.createEmptyBorder(0, 0, 10, 0));
-      fixesAndTipsPanel.setOpaque(false);
-      fixesAndTipsPanel.add(Box.createHorizontalStrut(icon.getIconWidth()));
-
-      final JPanel fixesAndTipsRight = new JPanel(new VerticalFlowLayout(VerticalFlowLayout.TOP, 0, 0, true, false));
-      fixesAndTipsRight.setOpaque(false);
-
-      final JPanel fixesPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-      fixesPanel.setBorder(IdeBorderFactory.createEmptyBorder(3, 0, 0, 0));
-      fixesPanel.setOpaque(false);
-
-      for (Pair<String, Runnable> pair : message.myAdditionalFixes) {
-        final HyperlinkLabel fixLabel = new HyperlinkLabel();
-        fixLabel.setOpaque(false);
-        fixLabel.setHyperlinkText(pair.getFirst());
-        final Runnable fix = pair.getSecond();
-
-        fixLabel.addHyperlinkListener(new HyperlinkListener() {
-          @Override
-          public void hyperlinkUpdate(HyperlinkEvent e) {
-            if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-              fix.run();
-            }
-          }
-        });
-        fixesPanel.add(fixLabel);
-      }
-      fixesAndTipsRight.add(fixesPanel);
-
-      final JPanel tipsPanel = new JPanel(new VerticalFlowLayout(VerticalFlowLayout.TOP, 5, 0, true, false));
-      tipsPanel.setOpaque(false);
-      tipsPanel.setBorder(IdeBorderFactory.createEmptyBorder(3, 0, 0, 0));
-
-      for (String tip : message.myTips) {
-        tipsPanel.add(new JBLabel(tip));
-      }
-      fixesAndTipsRight.add(tipsPanel);
-
-      fixesAndTipsPanel.add(fixesAndTipsRight);
-      panel.add(fixesAndTipsPanel);
-    }
-  }
-
   void updateImageSize() {
     ScalableImage image = myRenderResult.getImage();
     if (image == null) {
@@ -447,7 +327,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     }
     else {
       if (myZoomToFit) {
-        double availableHeight = getPanelHeight() - myMessagesPanel.getSize().getHeight() - myTitlePanel.getSize().getHeight();
+        double availableHeight = getPanelHeight() - myTitlePanel.getSize().getHeight();
         double availableWidth = getPanelWidth();
         image.zoomToFit((int)availableWidth, (int)availableHeight, false, 0, 0);
       }
@@ -499,12 +379,30 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
 
   @Override
   public void dispose() {
+    myErrorPanel.dispose();
+    myErrorPanel = null;
   }
 
+  /**
+   * Layered pane which shows the rendered image, as well as (if applicable) an error message panel on top of the rendering
+   * near the bottom
+   */
   private class MyImagePanelWrapper extends JBLayeredPane {
     public MyImagePanelWrapper() {
       add(myImagePanel);
       setBackground(null);
+    }
+
+    @Override
+    public void revalidate() {
+      super.revalidate();
+    }
+
+    @Override
+    public void doLayout() {
+      super.doLayout();
+      positionErrorPanel();
+      centerComponents();
     }
 
     private void centerComponents() {
@@ -514,11 +412,15 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
       myImagePanel.setLocation(point);
     }
 
-    public void invalidate() {
-      centerComponents();
-      super.invalidate();
+    private void positionErrorPanel() {
+      int height = getHeight();
+      int width = getWidth();
+      int size = height / 2;
+      myErrorPanel.setSize(width, size);
+      myErrorPanel.setLocation(0, height - size);
     }
 
+    @Override
     public Dimension getPreferredSize() {
       return myImagePanel.getSize();
     }

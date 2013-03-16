@@ -51,7 +51,6 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.*;
-import org.jetbrains.android.uipreview.FixableIssueMessage;
 import org.jetbrains.android.uipreview.ProjectResources;
 import org.jetbrains.android.uipreview.RenderServiceFactory;
 import org.jetbrains.android.uipreview.RenderingException;
@@ -68,6 +67,7 @@ import java.io.*;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
+import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
 /**
  * The {@link RenderService} provides rendering and layout information for
@@ -145,7 +145,10 @@ public class RenderService {
     AndroidPlatform platform = getPlatform(module);
     if (platform == null) {
       if (!AndroidMavenUtil.isMavenizedModule(module)) {
-        logger.addErrorMessage(new FixableIssueMessage("Please ", "configure", " Android SDK", new Runnable() {
+        RenderProblem.Html message = RenderProblem.create(ERROR);
+        logger.addMessage(message);
+        message.getHtmlBuilder().addLink("Please ", "configure", " Android SDK",
+                                         logger.getLinkManager().createRunnableLink(new Runnable() {
           @Override
           public void run() {
             AndroidSdkUtils.openModuleDependenciesConfigurable(module);
@@ -153,15 +156,15 @@ public class RenderService {
         }));
       }
       else {
-        logger.addErrorMessage(
-          new FixableIssueMessage(AndroidBundle.message("android.maven.cannot.parse.android.sdk.error", module.getName())));
+        String message = AndroidBundle.message("android.maven.cannot.parse.android.sdk.error", module.getName());
+        logger.addMessage(RenderProblem.createPlain(ERROR, message));
       }
       return null;
     }
 
     IAndroidTarget target = configuration.getTarget();
     if (target == null) {
-      logger.addErrorMessage(new FixableIssueMessage("Not render target was chosen"));
+      logger.addMessage(RenderProblem.createPlain(ERROR, "No render target was chosen"));
       return null;
     }
 
@@ -169,24 +172,15 @@ public class RenderService {
     try {
       factory = platform.getSdkData().getTargetData(target).getRenderServiceFactory(project);
       if (factory == null) {
-        logger.addErrorMessage(new FixableIssueMessage(AndroidBundle.message("android.layout.preview.cannot.load.library.error")));
+        String message = AndroidBundle.message("android.layout.preview.cannot.load.library.error");
+        logger.addMessage(RenderProblem.createPlain(ERROR, message));
         return null;
       }
     }
     catch (RenderingException e) {
       String message = e.getPresentableMessage();
-      final Throwable[] causes = e.getCauses();
       message = message != null ? message : AndroidBundle.message("android.layout.preview.default.error.message");
-      logger.addErrorMessage(causes.length > 0 ? new FixableIssueMessage(message + ' ', "Details", "", new Runnable() {
-        @Override
-        public void run() {
-          AndroidUtils.showStackStace(module.getProject(), causes);
-        }
-      }) : new FixableIssueMessage(message));
-
-      for (FixableIssueMessage warning : e.getWarnMessages()) {
-        logger.addWarningMessage(warning);
-      }
+      logger.addMessage(RenderProblem.createPlain(ERROR, message, module.getProject(), logger.getLinkManager(), e));
       return null;
     }
     catch (IOException e) {
@@ -249,6 +243,11 @@ public class RenderService {
     Pair<Integer, Integer> sdkVersions = getSdkVersions(myFacet);
     myMinSdkVersion = sdkVersions.getFirst();
     myTargetSdkVersion = sdkVersions.getSecond();
+  }
+
+  @Nullable
+  public AndroidPlatform getPlatform() {
+    return getPlatform(myModule);
   }
 
   @Nullable
@@ -322,6 +321,11 @@ public class RenderService {
     }
 
     return myConfiguredProjectRes;
+  }
+
+  @NotNull
+  public Configuration getConfiguration() {
+    return myConfiguration;
   }
 
   /**
@@ -656,14 +660,14 @@ public class RenderService {
         return RenderResult.NONE;
       }
 
-      renderResult = new RenderResult(session, myPsiFile, myLogger);
+      renderResult = new RenderResult(this, session, myPsiFile, myLogger);
       addDiagnostics(session);
     } catch (final Exception e) {
       String message = e.getMessage();
       if (message == null) {
         message = e.toString();
       }
-      myLogger.addErrorMessage(FixableIssueMessage.createExceptionIssue(myModule.getProject(), message, e));
+      myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myModule.getProject(), myLogger.getLinkManager(), e));
     }
 
     return renderResult;
@@ -671,36 +675,10 @@ public class RenderService {
 
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
   private void addDiagnostics(RenderSession session) {
-    myProjectCallback.addDiagnostics(myLogger);
-
     Result r = session.getResult();
     if (!myLogger.hasProblems() && !r.isSuccess()) {
       if (r.getException() != null || r.getErrorMessage() != null) {
         myLogger.error(null, r.getErrorMessage(), r.getException(), null);
-      }
-    }
-    // TODO: Remove this: All layoutlib errors are now remapped as FixableIssueMessages.
-    // However, I should preserve the ability to reorder, prioritize and augment these errors!
-    if (myLogger.hasProblems()) {
-      String description = myLogger.getProblems(true /*includeFidelityProblems*/);
-      if (!description.isEmpty()) {
-        if (myLogger.getFirstTrace() != null) {
-          myLogger.addErrorMessage(new FixableIssueMessage(description + ' ', "Details", "", new Runnable() {
-            @Override
-            public void run() {
-              List<Throwable> traces = myLogger.getTraces();
-              AndroidUtils.showStackStace(myModule.getProject(), traces.toArray(new Throwable[traces.size()]));
-            }
-          }));
-        }
-        else {
-          FixableIssueMessage message = new FixableIssueMessage(description);
-          if (myLogger.hasErrors()) {
-            myLogger.addErrorMessage(message);
-          } else {
-            myLogger.addWarningMessage(message);
-          }
-        }
       }
     }
   }
@@ -955,26 +933,36 @@ public class RenderService {
     return result.toString();
   }
 
-  @Nullable
-  public static String getRClassName(@NotNull final Module module) {
-    return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-      @Nullable
-      @Override
-      public String compute() {
-        final AndroidFacet facet = AndroidFacet.getInstance(module);
-        if (facet == null) {
-          return null;
-        }
+  //@Nullable
+  //public static String getRClassName(@NotNull final Module module) {
+  //  return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+  //    @Nullable
+  //    @Override
+  //    public String compute() {
+  //      final AndroidFacet facet = AndroidFacet.getInstance(module);
+  //      if (facet == null) {
+  //        return null;
+  //      }
+  //
+  //      final Manifest manifest = facet.getManifest();
+  //      if (manifest == null) {
+  //        return null;
+  //      }
+  //
+  //      final String aPackage = manifest.getPackage().getValue();
+  //      return aPackage == null ? null : aPackage + ".R";
+  //    }
+  //  });
+  //}
 
-        final Manifest manifest = facet.getManifest();
-        if (manifest == null) {
-          return null;
-        }
+  @NotNull
+  public ProjectCallback getProjectCallback() {
+    return myProjectCallback;
+  }
 
-        final String aPackage = manifest.getPackage().getValue();
-        return aPackage == null ? null : aPackage + ".R";
-      }
-    });
+  @NotNull
+  public XmlFile getPsiFile() {
+    return myPsiFile;
   }
 
   private static class MyFileWrapper implements IAbstractFile {

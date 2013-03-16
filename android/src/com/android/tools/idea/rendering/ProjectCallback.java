@@ -427,13 +427,4 @@ public final class ProjectCallback extends LegacyCallback {
   public void loadAndParseRClass() {
     myClassLoader.loadAndParseRClassSilently();
   }
-
-  /**
-   * Adds in all the diagnostic messages encountered during class loading
-   *
-   * @param logger the logger to write the diagnostic messages into
-   */
-  public void addDiagnostics(RenderLogger logger) {
-    myClassLoader.addDiagnostics(logger);
-  }
 }

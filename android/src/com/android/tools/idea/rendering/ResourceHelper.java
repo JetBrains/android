@@ -119,4 +119,16 @@ public class ResourceHelper {
 
     return false;
   }
+
+  /**
+   * Returns true if views with the given fully qualified class name need to include
+   * their package in the layout XML tag
+   *
+   * @param fqcn the fully qualified class name, such as android.widget.Button
+   * @return true if the full package path should be included in the layout XML element
+   *         tag
+   */
+  public static boolean viewNeedsPackage(String fqcn) {
+    return !(fqcn.startsWith(ANDROID_WIDGET_PREFIX) || fqcn.startsWith(ANDROID_VIEW_PKG) || fqcn.startsWith(ANDROID_WEBKIT_PKG));
+  }
 }
