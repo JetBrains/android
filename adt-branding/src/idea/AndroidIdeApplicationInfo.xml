@@ -22,7 +22,7 @@
   <about url="/idea_community_about.png" foreground="ffffff"/>
   <icon size32="/icon_CE.png" size16="/icon_CEsmall.png" size32opaque="/icon_CEwhite.png" size12="/toolwindows/toolWindowProject.png"/>
   <package code="__PACKAGE_CODE__"/>
-  <names product="AndroidIDE" fullname="Android IDE" script="idea"/>
+  <names product="diamond" fullname="Diamond" script="diamond"/>
 
   <welcome-screen logo-url="/Logo_welcomeScreen.png"
                   caption-url="/welcomeCaption_community.png" 
