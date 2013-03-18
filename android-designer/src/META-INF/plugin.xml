@@ -38,4 +38,7 @@
     <refactoringContextProvider implementation="com.intellij.android.designer.AndroidDesignerRefactoringContextProvider"/>
   </extensions>
 
+  <extensions defaultExtensionNs="Designer">
+    <customizations implementation="com.intellij.android.designer.AndroidDesignerCustomizations" />
+  </extensions>
 </idea-plugin>
