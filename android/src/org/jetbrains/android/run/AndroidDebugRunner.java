@@ -423,7 +423,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
       myProject = project;
       myConsoleView = consoleView;
       myConfigurationId = configurationId;
-      myToolWindowView = new AndroidLogcatView(project, device, true) {
+      myToolWindowView = new AndroidLogcatView(project, device) {
         @Override
         protected boolean isActive() {
           final DebuggerSessionTab sessionTab = DebuggerPanelsManager.getInstance(myProject).getSessionTab();

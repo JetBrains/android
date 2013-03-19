@@ -58,7 +58,7 @@ public class AndroidConfiguredLogFilters implements PersistentStateComponent<And
   @Tag("filters")
   @AbstractCollection(surroundWithTag = false)
   public List<MyFilterEntry> getFilterEntries() {
-    return myFilterEntries;
+    return new ArrayList<MyFilterEntry>(myFilterEntries);
   }
   
   @Nullable
