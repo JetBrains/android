@@ -28,7 +28,6 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.roots.OrderRootType;
-import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
@@ -36,7 +35,6 @@ import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.*;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
@@ -50,6 +48,11 @@ import java.util.List;
 
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 public abstract class AndroidTestCase extends UsefulTestCase {
+  /** Environment variable or system property containing the full path to an SDK install */
+  private static final String SDK_PATH_PROPERTY = "ADT_TEST_SDK_PATH";
+  /** Environment variable or system property pointing to the directory name of the platform inside $sdk/platforms, e.g. "android-17" */
+  private static final String PLATFORM_DIR_PROPERTY = "ADT_TEST_PLATFORM";
+
   protected JavaCodeInsightTestFixture myFixture;
   protected Module myModule;
   protected List<Module> myAdditionalModules;
@@ -92,8 +95,51 @@ public abstract class AndroidTestCase extends UsefulTestCase {
     return PathManager.getHomePath() + "/../adt/idea/android";
   }
 
-  public static String getTestSdkPath() {
+  public static String getDefaultTestSdkPath() {
     return getTestDataPath() + "/sdk1.5";
+  }
+
+  public static String getDefaultPlatformDir() {
+    return "android-1.5";
+  }
+
+  protected String getTestSdkPath() {
+    if (requireRecentSdk()) {
+      String override = System.getProperty(SDK_PATH_PROPERTY);
+      if (override != null) {
+        assertTrue("Must also define " + PLATFORM_DIR_PROPERTY, System.getProperty(PLATFORM_DIR_PROPERTY) != null);
+        assertTrue(override, new File(override).exists());
+        return override;
+      }
+      override = System.getenv(SDK_PATH_PROPERTY);
+      if (override != null) {
+        assertTrue("Must also define " + PLATFORM_DIR_PROPERTY, System.getenv(PLATFORM_DIR_PROPERTY) != null);
+        return override;
+      }
+      fail("This unit test requires " + SDK_PATH_PROPERTY + " and " + PLATFORM_DIR_PROPERTY + " to be defined.");
+    }
+
+    return getDefaultTestSdkPath();
+  }
+
+  protected String getPlatformDir() {
+    if (requireRecentSdk()) {
+      String override = System.getProperty(PLATFORM_DIR_PROPERTY);
+      if (override != null) {
+        return override;
+      }
+      override = System.getenv(PLATFORM_DIR_PROPERTY);
+      if (override != null) {
+        return override;
+      }
+      fail("This unit test requires " + SDK_PATH_PROPERTY + " and " + PLATFORM_DIR_PROPERTY + " to be defined.");
+    }
+    return getDefaultPlatformDir();
+  }
+
+  /** Is the bundled (incomplete) SDK install adequate or do we need to find a valid install? */
+  protected boolean requireRecentSdk() {
+    return false;
   }
 
   @Override
@@ -113,7 +159,7 @@ public abstract class AndroidTestCase extends UsefulTestCase {
     myFixture.setTestDataPath(getTestDataPath());
     myModule = moduleFixtureBuilder.getFixture().getModule();
 
-    myFacet = addAndroidFacet(myModule, getTestSdkPath());
+    myFacet = addAndroidFacet(myModule, getTestSdkPath(), getPlatformDir());
     myFixture.copyDirectoryToProject(getResDir(), "res");
 
     if (myCreateManifest) {
@@ -124,7 +170,7 @@ public abstract class AndroidTestCase extends UsefulTestCase {
     for (MyAdditionalModuleData data : modules) {
       final Module additionalModule = data.myModuleFixtureBuilder.getFixture().getModule();
       myAdditionalModules.add(additionalModule);
-      final AndroidFacet facet = addAndroidFacet(additionalModule, getTestSdkPath());
+      final AndroidFacet facet = addAndroidFacet(additionalModule, getTestSdkPath(), getPlatformDir());
       facet.getConfiguration().LIBRARY_PROJECT = data.myLibrary;
       final String rootPath = getContentRootPath(data.myDirName);
       myFixture.copyDirectoryToProject("res", rootPath + "/res");
@@ -185,12 +231,11 @@ public abstract class AndroidTestCase extends UsefulTestCase {
     super.tearDown();
   }
 
-  public static AndroidFacet addAndroidFacet(Module module, String sdkPath) {
+  public static AndroidFacet addAndroidFacet(Module module, String sdkPath, String platformDir) {
     FacetManager facetManager = FacetManager.getInstance(module);
     AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), "Android", null);
-    final AndroidFacetConfiguration configuration = facet.getConfiguration();
 
-    addAndroidSdk(module, sdkPath);
+    addAndroidSdk(module, sdkPath, platformDir);
 
     final ModifiableFacetModel facetModel = facetManager.createModifiableModel();
     facetModel.addFacet(facet);
@@ -203,21 +248,20 @@ public abstract class AndroidTestCase extends UsefulTestCase {
     return facet;
   }
 
-  private static void addAndroidSdk(Module module, String sdkPath) {
-    Sdk androidSdk = createAndroidSdk(sdkPath);
+  private static void addAndroidSdk(Module module, String sdkPath, String platformDir) {
+    Sdk androidSdk = createAndroidSdk(sdkPath, platformDir);
     ModuleRootModificationUtil.setModuleSdk(module, androidSdk);
   }
 
-  private static Sdk createAndroidSdk(String sdkPath) {
+  private static Sdk createAndroidSdk(String sdkPath, String platformDir) {
     Sdk sdk = ProjectJdkTable.getInstance().createSdk("android_test_sdk", AndroidSdkType.getInstance());
     SdkModificator sdkModificator = sdk.getSdkModificator();
     sdkModificator.setHomePath(sdkPath);
 
-    String androidJarPath = sdkPath + "/../android.jar!/";
-    VirtualFile androidJar = JarFileSystem.getInstance().findFileByPath(androidJarPath);
+    VirtualFile androidJar = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/platforms/" + platformDir + "/android.jar");
     sdkModificator.addRoot(androidJar, OrderRootType.CLASSES);
 
-    VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/platforms/android-1.5/data/res");
+    VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/platforms/" + platformDir + "/data/res");
     sdkModificator.addRoot(resFolder, OrderRootType.CLASSES);
 
     AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(sdk);

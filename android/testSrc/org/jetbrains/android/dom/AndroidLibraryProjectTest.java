@@ -26,6 +26,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static org.jetbrains.android.AndroidTestCase.getDefaultPlatformDir;
+import static org.jetbrains.android.AndroidTestCase.getDefaultTestSdkPath;
+
 /**
  * @author Eugene.Kudelevsky
  */
@@ -80,8 +83,8 @@ public class AndroidLibraryProjectTest extends UsefulTestCase {
     myLibModule = libModuleBuilder.getFixture().getModule();
     myLibGenModule = libGenModuleBuilder.getFixture().getModule();
 
-    myAppFacet = AndroidTestCase.addAndroidFacet(myAppModule, getTestSdkPath());
-    myLibFacet = AndroidTestCase.addAndroidFacet(myLibModule, getTestSdkPath());
+    myAppFacet = AndroidTestCase.addAndroidFacet(myAppModule, getDefaultTestSdkPath(), getDefaultPlatformDir());
+    myLibFacet = AndroidTestCase.addAndroidFacet(myLibModule, getDefaultTestSdkPath(), getDefaultPlatformDir());
     myLibFacet.getConfiguration().LIBRARY_PROJECT = true;
 
     ModuleRootModificationUtil.addDependency(myAppModule, myLibModule);
@@ -109,10 +112,6 @@ public class AndroidLibraryProjectTest extends UsefulTestCase {
     myFixture = null;
 
     super.tearDown();
-  }
-
-  private static String getTestSdkPath() {
-    return AndroidTestCase.getTestSdkPath();
   }
 
   public void testHighlighting() {
