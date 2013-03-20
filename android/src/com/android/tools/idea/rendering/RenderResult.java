@@ -24,7 +24,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-// TODO: Similar name to the unrelated RenderingResult class. This class needs a better name.
 public class RenderResult {
   @NotNull public static final RenderResult NONE = new RenderResult();
 
@@ -34,15 +33,17 @@ public class RenderResult {
   @Nullable private final ScalableImage myImage;
   @Nullable private RenderedViewHierarchy myHierarchy;
   @NotNull private final RenderService myRenderService;
+  @Nullable private final RenderSession mySession; // TEMPORARY
 
-  public RenderResult(@NotNull RenderService renderService,
-                      @NotNull RenderSession session,
+  public RenderResult(@Nullable RenderService renderService, // TEMPORARY NULLABLE, FOR RENDER UTIL MIGRATION
+                      @Nullable RenderSession session,
                       @NotNull PsiFile file,
                       @NotNull RenderLogger logger) {
     myRenderService = renderService;
+    mySession = session;
     myFile = file;
     myLogger = logger;
-    if (session.getResult().isSuccess()) {
+    if (session != null && session.getResult().isSuccess()) {
       myRootViews = session.getRootViews();
       myImage = new ScalableImage(session);
     } else {
@@ -53,10 +54,16 @@ public class RenderResult {
 
   private RenderResult() { // For the NONE instance
     myFile = null;
+    mySession = null;
     myRootViews = null;
     myImage = null;
     myLogger = null;
     myRenderService = null;
+  }
+
+  @Nullable
+  public RenderSession getSession() {
+    return mySession;
   }
 
   @NotNull

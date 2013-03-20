@@ -23,18 +23,17 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import icons.AndroidIcons;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.List;
 
 public class TargetMenuAction extends FlatComboAction {
-  private final ConfigurationToolBar myConfigurationToolBar;
+  private final RenderContext myRenderContext;
 
-  public TargetMenuAction(ConfigurationToolBar configurationToolBar) {
-    myConfigurationToolBar = configurationToolBar;
+  public TargetMenuAction(RenderContext renderContext) {
+    myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("Android version to use when rendering layouts in the IDE");
     presentation.setIcon(AndroidIcons.Android);
@@ -48,7 +47,7 @@ public class TargetMenuAction extends FlatComboAction {
   }
 
   private void updatePresentation(Presentation presentation) {
-    Configuration configuration = myConfigurationToolBar.getConfiguration();
+    Configuration configuration = myRenderContext.getConfiguration();
     boolean visible = configuration != null;
     if (visible) {
       String brief = getRenderingTargetLabel(configuration.getTarget(), true);
@@ -64,31 +63,31 @@ public class TargetMenuAction extends FlatComboAction {
   protected DefaultActionGroup createPopupActionGroup(JComponent button) {
     DefaultActionGroup group = new DefaultActionGroup(null, true);
 
-    AndroidPlatform platform = myConfigurationToolBar.getPlatform();
-    if (platform != null) {
-      final AndroidSdkData sdkData = platform.getSdkData();
-      IAndroidTarget[] targets = sdkData.getTargets();
+    Configuration configuration = myRenderContext.getConfiguration();
+    if (configuration == null) {
+      return group;
+    }
+    IAndroidTarget current = configuration.getTarget();
+    List<IAndroidTarget> targets = configuration.getConfigurationManager().getTargets();
 
-      boolean haveRecent = false;
-      IAndroidTarget current = platform.getTarget();
+    boolean haveRecent = false;
 
-      for (int i = targets.length - 1; i >= 0; i--) {
-        IAndroidTarget target = targets[i];
+    for (int i = targets.size() - 1; i >= 0; i--) {
+      IAndroidTarget target = targets.get(i);
 
-        AndroidVersion version = target.getVersion();
-        if (version.getApiLevel() >= 7) {
-          haveRecent = true;
-        }
-        else if (haveRecent) {
-          // Don't show ancient rendering targets; they're pretty broken
-          // (unless of course all you have are ancient targets)
-          break;
-        }
-
-        String title = getRenderingTargetLabel(target, false);
-        boolean select = current == target;
-        group.add(new SetTargetAction(title, target, select));
+      AndroidVersion version = target.getVersion();
+      if (version.getApiLevel() >= 7) {
+        haveRecent = true;
       }
+      else if (haveRecent) {
+        // Don't show ancient rendering targets; they're pretty broken
+        // (unless of course all you have are ancient targets)
+        break;
+      }
+
+      String title = getRenderingTargetLabel(target, false);
+      boolean select = current == target;
+      group.add(new SetTargetAction(title, target, select));
     }
 
     return group;
@@ -134,7 +133,7 @@ public class TargetMenuAction extends FlatComboAction {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-      Configuration configuration = myConfigurationToolBar.getConfiguration();
+      Configuration configuration = myRenderContext.getConfiguration();
       if (configuration != null) {
         configuration.setTarget(myTarget);
 

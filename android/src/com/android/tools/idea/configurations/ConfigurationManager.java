@@ -21,8 +21,10 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
+import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.ManifestInfo;
+import com.android.tools.idea.rendering.ProjectResources;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -32,6 +34,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
+import com.intellij.util.containers.WeakValueHashMap;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.dom.resources.Style;
@@ -64,7 +67,7 @@ public class ConfigurationManager implements Disposable {
   private List<String> myProjectThemes;
   private List<IAndroidTarget> myTargets;
   private final UserDeviceManager myUserDeviceManager;
-
+  private final WeakValueHashMap<VirtualFile, Configuration> myCache = new WeakValueHashMap<VirtualFile, Configuration>();
   private List<String> myCachedFrameworkThemes;
   private IAndroidTarget myCachedFrameworkThemeKey;
   private List<Locale> myLocales;
@@ -84,28 +87,37 @@ public class ConfigurationManager implements Disposable {
   }
 
   /**
+   * Gets the {@link Configuration} associated with the given file
+   * @return the {@link Configuration} for the given file
+   */
+  @NotNull
+  public Configuration get(@NotNull VirtualFile file) {
+    Configuration configuration = myCache.get(file);
+    if (configuration == null) {
+      configuration = create(file);
+      myCache.put(file, configuration);
+    }
+
+    return configuration;
+  }
+
+  /**
    * Creates a new {@link Configuration} associated with this manager
    * @return a new {@link Configuration}
-   * */
+   */
   @NotNull
-  public Configuration create(@Nullable VirtualFile file) {
+  private Configuration create(@NotNull VirtualFile file) {
     ConfigurationStateManager stateManager = getStateManager();
     ConfigurationProjectState projectState = stateManager.getProjectState();
-    ConfigurationFileState fileState;
-    FolderConfiguration config = null;
-    if (file != null) {
-      fileState = stateManager.getConfigurationState(file);
-      // TODO: Use ResourceFolder resFolder = myResources.getResourceFolder(parent) instead
-      config = FolderConfiguration.getConfigForFolder(file.getParent().getName());
-    } else {
-      fileState = null;
-    }
+    ConfigurationFileState fileState = stateManager.getConfigurationState(file);
+    // TODO: Use ResourceFolder resFolder = myResources.getResourceFolder(parent) instead
+    FolderConfiguration config = FolderConfiguration.getConfigForFolder(file.getParent().getName());
     if (config == null) {
       config = new FolderConfiguration();
     }
     Configuration configuration = Configuration.create(this, projectState, fileState, config);
-
-    ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, file);
+    ProjectResources projectResources = ProjectResources.get(myModule);
+    ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, projectResources, file);
     if (fileState != null) {
       matcher.adaptConfigSelection(false);
     } else {
@@ -167,6 +179,24 @@ public class ConfigurationManager implements Disposable {
     }
 
     return myDevices;
+  }
+
+  @Nullable
+  public Device createDeviceForAvd(@NotNull AvdInfo avd) {
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    assert facet != null;
+    for (Device device : getDevices()) {
+      if (device.getManufacturer().equals(avd.getDeviceManufacturer())
+          && device.getName().equals(avd.getDeviceName())) {
+
+        String avdName = avd.getName();
+        Device.Builder builder = new Device.Builder(device);
+        builder.setName(avdName);
+        return builder.build();
+      }
+    }
+
+    return null;
   }
 
   @NotNull
@@ -302,7 +332,7 @@ public class ConfigurationManager implements Disposable {
   private static List<String> collectFrameworkThemes(
     @Nullable AndroidFacet facet,
     @Nullable AndroidTargetData targetData) {
-    if (targetData != null) {
+    if (targetData != null && facet != null) {
       final List<String> frameworkThemeNames = new ArrayList<String>(targetData.getThemes(facet));
       Collections.sort(frameworkThemeNames);
       final List<String> themes = new ArrayList<String>();

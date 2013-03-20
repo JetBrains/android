@@ -31,10 +31,10 @@ import javax.swing.*;
 import java.util.List;
 
 public class OrientationMenuAction extends FlatComboAction {
-  private final ConfigurationToolBar myConfigurationToolBar;
+  private final RenderContext myRenderContext;
 
-  public OrientationMenuAction(ConfigurationToolBar configurationToolBar) {
-    myConfigurationToolBar = configurationToolBar;
+  public OrientationMenuAction(RenderContext renderContext) {
+    myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("Go to next state");
     updatePresentation(presentation);
@@ -47,7 +47,7 @@ public class OrientationMenuAction extends FlatComboAction {
   }
 
   private void updatePresentation(Presentation presentation) {
-    Configuration configuration = myConfigurationToolBar.getConfiguration();
+    Configuration configuration = myRenderContext.getConfiguration();
     if (configuration != null) {
       State current = configuration.getDeviceState();
       if (current != null) {
@@ -62,7 +62,7 @@ public class OrientationMenuAction extends FlatComboAction {
 
   @Override
   protected boolean handleIconClicked() {
-    Configuration configuration = myConfigurationToolBar.getConfiguration();
+    Configuration configuration = myRenderContext.getConfiguration();
     if (configuration == null) {
       return false;
     }
@@ -79,7 +79,7 @@ public class OrientationMenuAction extends FlatComboAction {
   protected DefaultActionGroup createPopupActionGroup(JComponent button) {
     DefaultActionGroup group = new DefaultActionGroup(null, true);
 
-    Configuration configuration = myConfigurationToolBar.getConfiguration();
+    Configuration configuration = myRenderContext.getConfiguration();
     if (configuration != null) {
       Device device = configuration.getDevice();
       State current = configuration.getDeviceState();
@@ -147,7 +147,7 @@ public class OrientationMenuAction extends FlatComboAction {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-      Configuration configuration = myConfigurationToolBar.getConfiguration();
+      Configuration configuration = myRenderContext.getConfiguration();
       if (configuration != null) {
         configuration.setDeviceState(myState);
       }

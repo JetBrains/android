@@ -56,7 +56,8 @@ public class XmlTagPullParserTest extends AndroidTestCase {
     assertTrue(file instanceof XmlFile);
     XmlFile xmlFile = (XmlFile)file;
     KXmlParser referenceParser = createReferenceParser(file);
-    XmlTagPullParser parser = new XmlTagPullParser(xmlFile, Collections.<XmlTag>emptySet(), Density.MEDIUM);
+    XmlTagPullParser parser = new XmlTagPullParser(xmlFile, Collections.<XmlTag>emptySet(), Density.MEDIUM,
+                                                   new RenderLogger("test", myModule));
 
     assertEquals("Expected " + name(referenceParser.getEventType()) + " but was "
                  + name(parser.getEventType())

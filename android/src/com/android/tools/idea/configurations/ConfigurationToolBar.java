@@ -42,7 +42,7 @@ public class ConfigurationToolBar extends JPanel {
 
   public ConfigurationToolBar(AndroidLayoutPreviewToolWindowForm previewWindow) {
     myPreviewWindow = previewWindow;
-    DefaultActionGroup group = createActions();
+    DefaultActionGroup group = createActions(myPreviewWindow);
     ActionToolbar toolbar = createToolBar(group);
 
     setLayout(new BorderLayout());
@@ -60,33 +60,33 @@ public class ConfigurationToolBar extends JPanel {
     return toolbar;
   }
 
-  private DefaultActionGroup createActions() {
+  public static DefaultActionGroup createActions(RenderContext configurationHolder) {
     DefaultActionGroup group = new DefaultActionGroup();
-    ConfigurationMenuAction configAction = new ConfigurationMenuAction(this);
-    group.add(configAction);
-    group.addSeparator();
+    //ConfigurationMenuAction configAction = new ConfigurationMenuAction(configurationHolder);
+    //group.add(configAction);
+    //group.addSeparator();
 
-    DeviceMenuAction deviceAction = new DeviceMenuAction(this);
+    DeviceMenuAction deviceAction = new DeviceMenuAction(configurationHolder);
     group.add(deviceAction);
     group.addSeparator();
 
-    OrientationMenuAction orientationAction = new OrientationMenuAction(this);
+    OrientationMenuAction orientationAction = new OrientationMenuAction(configurationHolder);
     group.add(orientationAction);
     group.addSeparator();
 
-    ThemeMenuAction themeAction = new ThemeMenuAction(this);
+    ThemeMenuAction themeAction = new ThemeMenuAction(configurationHolder);
     group.add(themeAction);
     group.addSeparator();
 
-    ActivityMenuAction activityAction = new ActivityMenuAction(this);
+    ActivityMenuAction activityAction = new ActivityMenuAction(configurationHolder);
     group.add(activityAction);
     group.addSeparator();
 
-    LocaleMenuAction localeAction = new LocaleMenuAction(this);
+    LocaleMenuAction localeAction = new LocaleMenuAction(configurationHolder);
     group.add(localeAction);
     group.addSeparator();
 
-    TargetMenuAction targetMenuAction = new TargetMenuAction(this);
+    TargetMenuAction targetMenuAction = new TargetMenuAction(configurationHolder);
     group.add(targetMenuAction);
     return group;
   }

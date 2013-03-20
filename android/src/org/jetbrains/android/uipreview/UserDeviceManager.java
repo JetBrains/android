@@ -26,6 +26,7 @@ import java.util.Set;
 /**
  * @author Eugene.Kudelevsky
  */
+// TODO: Replace with dvlib usage?
 public class UserDeviceManager implements Disposable {
   private final VirtualFileAdapter myListener;
   private boolean myUserDevicesParsed;
@@ -38,7 +39,6 @@ public class UserDeviceManager implements Disposable {
       @Override
       public void contentsChanged(VirtualFileEvent event) {
         final VirtualFile file = event.getFile();
-
         if (myUserDevicesFile != null && SdkConstants.FN_DEVICES_XML.equals(file.getName()) &&
             FileUtil.pathsEqual(FileUtil.toSystemIndependentName(myUserDevicesFile.getPath()),
                                 file.getPath())) {
