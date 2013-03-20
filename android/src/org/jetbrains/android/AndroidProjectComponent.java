@@ -20,13 +20,9 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.AbstractProjectComponent;
-import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.impl.ModifiableModelCommitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.Alarm;
 import com.intellij.util.containers.HashMap;
@@ -35,7 +31,10 @@ import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.compiler.AndroidPrecompileTask;
 import org.jetbrains.android.facet.AndroidFacet;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Eugene.Kudelevsky
@@ -108,34 +107,7 @@ public class AndroidProjectComponent extends AbstractProjectComponent {
     ApplicationManager.getApplication().invokeAndWait(new Runnable() {
       @Override
       public void run() {
-        final List<ModifiableRootModel> modelsToCommit = new ArrayList<ModifiableRootModel>();
-
-        for (final AndroidFacet facet : facetsToProcess.keySet()) {
-          final Module module = facet.getModule();
-
-          if (module.isDisposed() || module.getProject().isDisposed()) {
-            continue;
-          }
-          final ModifiableRootModel model = ModuleRootManager.getInstance(module).getModifiableModel();
-
-          if (AndroidCompileUtil.createGenModulesAndSourceRoots(facet, model)) {
-            modelsToCommit.add(model);
-          }
-          else {
-            model.dispose();
-          }
-        }
-        if (modelsToCommit.size() == 0) {
-          return;
-        }
-        final ModifiableModuleModel moduleModel = ModuleManager.getInstance(myProject).getModifiableModel();
-
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-          @Override
-          public void run() {
-            ModifiableModelCommitter.multiCommit(modelsToCommit.toArray(new ModifiableRootModel[modelsToCommit.size()]), moduleModel);
-          }
-        });
+        AndroidCompileUtil.createGenModulesAndSourceRoots(myProject, facetsToProcess.keySet());
       }
     }, ModalityState.defaultModalityState());
 
