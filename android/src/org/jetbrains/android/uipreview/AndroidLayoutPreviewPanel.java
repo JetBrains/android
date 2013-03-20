@@ -240,9 +240,6 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
   public void setRenderResult(@NotNull final RenderResult renderResult, @Nullable final TextEditor editor) {
     double prevScale = myRenderResult.getImage() != null ? myRenderResult.getImage().getScale() : 1;
     myRenderResult = renderResult;
-
-// TODO: Ensure that I keep the most recent render on failure!
-
     if (myRenderResult.getImage() != null) {
       myRenderResult.getImage().setScale(prevScale);
     }

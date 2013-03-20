@@ -16,17 +16,13 @@
 package com.android.tools.idea.configurations;
 
 import com.android.SdkConstants;
-import com.android.ide.common.resources.configuration.DeviceConfigHelper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.ScreenSizeQualifier;
 import com.android.resources.ResourceType;
-import com.android.resources.ScreenSize;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
-import com.android.sdklib.devices.State;
-import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.rendering.ManifestInfo;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;

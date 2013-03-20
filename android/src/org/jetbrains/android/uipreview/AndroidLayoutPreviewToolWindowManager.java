@@ -18,6 +18,7 @@ package org.jetbrains.android.uipreview;
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderResult;
@@ -33,6 +34,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.*;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtil;
@@ -385,7 +387,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
         return;
       }
       final RenderLogger logger = new RenderLogger(layoutXmlFile.getName(), module);
-      RenderService service = RenderService.create(facet, module, psiFile, layoutXmlText, layoutXmlFile, configuration, logger);
+      RenderService service = RenderService.create(facet, module, psiFile, configuration, logger);
       if (service != null) {
         renderResult = service.render();
         service.dispose();

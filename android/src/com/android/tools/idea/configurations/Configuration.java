@@ -15,23 +15,40 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.FrameworkResources;
+import com.android.ide.common.resources.ResourceRepository;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.*;
-import com.android.resources.Density;
-import com.android.resources.NightMode;
-import com.android.resources.ScreenSize;
-import com.android.resources.UiMode;
+import com.android.resources.*;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.rendering.ProjectResources;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.google.common.base.Objects;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
+import org.jetbrains.android.sdk.AndroidSdkType;
+import org.jetbrains.android.sdk.AndroidTargetData;
+import org.jetbrains.android.uipreview.RenderServiceFactory;
+import org.jetbrains.android.uipreview.RenderingException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.configurations.ConfigurationListener.*;
@@ -41,6 +58,8 @@ import static com.android.tools.idea.configurations.ConfigurationListener.*;
  * etc for use when rendering a layout.
  */
 public class Configuration {
+  private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.configurations.Configuration");
+
   /**
    * The {@link com.android.ide.common.resources.configuration.FolderConfiguration} representing the state of the UI controls
    */
@@ -777,6 +796,12 @@ public class Configuration {
     mNotifyDirty |= flags;
     mFolderConfigDirty |= flags;
 
+    if ((flags & MASK_RESOLVE_RESOURCES) != 0) {
+      myConfiguredFrameworkRes = null;
+      myConfiguredProjectRes = null;
+      myResourceResolver = null;
+    }
+
     if (myBulkEditingCount == 0) {
       int changed = mNotifyDirty;
       if (myListeners != null) {
@@ -814,6 +839,125 @@ public class Configuration {
       }
     }
   }
+
+  // ---- Resolving resources ----
+
+  private ResourceResolver myResourceResolver;
+  private FrameworkResources myFrameworkResources;
+  private Map<ResourceType, Map<String, ResourceValue>> myConfiguredFrameworkRes;
+  private Map<ResourceType, Map<String, ResourceValue>> myConfiguredProjectRes;
+
+  @Nullable
+  public ResourceResolver getResourceResolver() {
+    if (myResourceResolver == null) {
+      String themeStyle = getTheme();
+      if (themeStyle == null) {
+        LOG.error("Missing theme.");
+        return null;
+      }
+      boolean isProjectTheme = isProjectTheme();
+      String theme = ResourceHelper.styleToTheme(themeStyle);
+
+      Map<ResourceType, Map<String, ResourceValue>> configuredProjectRes = getConfiguredProjectResources();
+
+      // Get the framework resources
+      Map<ResourceType, Map<String, ResourceValue>> frameworkResources = getConfiguredFrameworkResources();
+      myResourceResolver = ResourceResolver.create(configuredProjectRes, frameworkResources, theme, isProjectTheme);
+    }
+
+    return myResourceResolver;
+  }
+
+  @NotNull
+  public Map<ResourceType, Map<String, ResourceValue>> getConfiguredFrameworkResources() {
+    if (myConfiguredFrameworkRes == null) {
+      ResourceRepository frameworkRes = getFrameworkResources();
+
+      if (frameworkRes == null) {
+        myConfiguredFrameworkRes = Collections.emptyMap();
+      }
+      else {
+        // get the framework resource values based on the current config
+        myConfiguredFrameworkRes = frameworkRes.getConfiguredResources(getFullConfig());
+      }
+    }
+
+    return myConfiguredFrameworkRes;
+  }
+
+  /**
+   * Returns a {@link ProjectResources} for the framework resources based on the current
+   * configuration selection.
+   *
+   * @return the framework resources or null if not found.
+   */
+  @Nullable
+  public ResourceRepository getFrameworkResources() {
+    if (myFrameworkResources == null) {
+      IAndroidTarget target = getTarget();
+      if (target != null) {
+        myFrameworkResources = getFrameworkResources(target, getConfigurationManager().getModule());
+      }
+    }
+
+    return myFrameworkResources;
+  }
+
+  /**
+   * Returns a {@link ProjectResources} for the framework resources of a given
+   * target.
+   *
+   * @param target the target for which to return the framework resources.
+   * @return the framework resources or null if not found.
+   */
+  @Nullable
+  private static FrameworkResources getFrameworkResources(@NotNull IAndroidTarget target, @NotNull Module module) {
+    Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
+    if (sdk == null || !(sdk.getSdkType() instanceof AndroidSdkType)) {
+      return null;
+    }
+    AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+    if (data == null) {
+      return null;
+    }
+    AndroidPlatform platform = data.getAndroidPlatform();
+    if (platform == null) {
+      return null;
+    }
+
+    AndroidTargetData targetData = platform.getSdkData().getTargetData(target);
+    try {
+      Project project = module.getProject();
+      RenderServiceFactory factory = targetData.getRenderServiceFactory(project);
+      if (factory != null) {
+        return factory.getFrameworkResources();
+      }
+    }
+    catch (RenderingException e) {
+      LOG.error(e);
+    }
+    catch (IOException e) {
+      LOG.error(e);
+    }
+
+    return null;
+  }
+
+  @NotNull
+  public Map<ResourceType, Map<String, ResourceValue>> getConfiguredProjectResources() {
+    if (myConfiguredProjectRes == null) {
+      AndroidFacet facet = AndroidFacet.getInstance(myManager.getModule());
+      assert facet != null; // should only be called for Android modules
+      ProjectResources project = facet.getProjectResources();
+
+      // get the project resource values based on the current config
+      myConfiguredProjectRes = project != null ? project.getConfiguredResources(getFullConfig())
+                                               : Collections.<ResourceType, Map<String, ResourceValue>>emptyMap();
+    }
+
+    return myConfiguredProjectRes;
+  }
+
 
   // For debugging only
   @Override

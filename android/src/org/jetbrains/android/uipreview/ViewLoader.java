@@ -21,41 +21,31 @@ import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.rendering.ProjectResources;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.util.Pair;
-import com.intellij.compiler.impl.javaCompiler.javac.JavacConfiguration;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.options.ShowSettingsUtil;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.JavaSdk;
-import com.intellij.openapi.projectRoots.JavaSdkVersion;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.ui.configuration.ClasspathEditor;
-import com.intellij.openapi.roots.ui.configuration.ModulesConfigurator;
-import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.util.containers.HashSet;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TObjectIntHashMap;
+import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.model.java.compiler.JpsJavaCompilerOptions;
 
 import java.lang.reflect.*;
-import java.util.*;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
+import static com.android.SdkConstants.R_CLASS;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 import static com.android.SdkConstants.VIEW_INCLUDE;
 
@@ -63,6 +53,7 @@ import static com.android.SdkConstants.VIEW_INCLUDE;
  * Handler for loading views for the layout editor on demand, and reporting issues with class
  * loading, instance creation, etc.
  */
+@SuppressWarnings("deprecation") // The Pair class is required by the IProjectCallback
 public class ViewLoader {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.uipreview.ViewLoader");
 
@@ -373,14 +364,35 @@ public class ViewLoader {
     return constructor.newInstance(constructorParameters);
   }
 
+  @Nullable
+  private static String getRClassName(@NotNull final Module module) {
+    return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+      @Nullable
+      @Override
+      public String compute() {
+        final AndroidFacet facet = AndroidFacet.getInstance(module);
+        if (facet == null) {
+          return null;
+        }
+
+        final Manifest manifest = facet.getManifest();
+        if (manifest == null) {
+          return null;
+        }
+
+        final String packageName = manifest.getPackage().getValue();
+        return packageName == null ? null : packageName + '.' + R_CLASS;
+      }
+    });
+  }
+
   /**
    * Load and parse the R class such that resource references in the layout rendering can refer
    * to local resources properly
    */
   public void loadAndParseRClassSilently() {
-    final String rClassName = RenderUtil.getRClassName(myModule);
+    final String rClassName = getRClassName(myModule);
     try {
-
       if (rClassName == null) {
         LOG.info("loadAndParseRClass: failed to find manifest package for project %1$s");
         return;
@@ -392,6 +404,7 @@ public class ViewLoader {
       myLogger.setMissingResourceClass(true);
     }
     catch (IncompatibleClassFileFormatException e) {
+      assert rClassName != null;
       myLogger.addIncorrectFormatClass(rClassName);
     }
   }

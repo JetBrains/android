@@ -57,6 +57,9 @@ public interface ConfigurationListener {
   /** Attributes which affect which best-layout-file selection */
   int MASK_FILE_ATTRS = CFG_DEVICE | CFG_DEVICE_STATE | CFG_LOCALE | CFG_TARGET | CFG_NIGHT_MODE | CFG_UI_MODE;
 
+  /** Attributes which affect resource resolution */
+  int MASK_RESOLVE_RESOURCES = MASK_FOLDERCONFIG | CFG_FOLDER | CFG_THEME;
+
   /** Attributes which affect rendering appearance */
   int MASK_RENDERING = MASK_FILE_ATTRS | CFG_THEME;
 

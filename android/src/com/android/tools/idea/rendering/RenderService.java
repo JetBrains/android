@@ -15,20 +15,15 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.rendering.api.SessionParams.RenderingMode;
-import com.android.ide.common.resources.*;
-import com.android.io.IAbstractFile;
-import com.android.io.IAbstractFolder;
-import com.android.io.IAbstractResource;
-import com.android.io.StreamException;
-import com.android.resources.ResourceType;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
@@ -37,34 +32,31 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
-import org.jetbrains.android.sdk.*;
-import org.jetbrains.android.uipreview.ProjectResources;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
+import org.jetbrains.android.sdk.AndroidSdkType;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.uipreview.RenderServiceFactory;
 import org.jetbrains.android.uipreview.RenderingException;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.android.util.BufferingFileWrapper;
-import org.jetbrains.android.util.BufferingFolderWrapper;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.awt.image.BufferedImage;
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
 
 import static com.android.SdkConstants.*;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
@@ -76,8 +68,6 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 public class RenderService {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.RenderService");
 
-  private static final String DEFAULT_APP_LABEL = "Android Application";
-
   @NotNull
   private final Module myModule;
 
@@ -87,45 +77,38 @@ public class RenderService {
   @NotNull
   private final XmlFile myPsiFile;
 
-  /**
-   * IncludeReference to the file being edited
-   */
   @NotNull
-  private final VirtualFile myLayoutFile;
-
-  /**
-   * The actual XML text for the layout
-   */
-  private final String myLayoutXmlText;
-
   private final RenderLogger myLogger;
 
-  // The following fields are inferred from the editor and not customizable by the
-  // client of the render service:
   @NotNull
   private final ProjectCallback myProjectCallback;
-  private ResourceResolver myResourceResolver;
+
   private final int myMinSdkVersion;
+
   private final int myTargetSdkVersion;
+
+  @NotNull
   private final LayoutLibrary myLayoutLib;
 
   @Nullable
   private IImageFactory myImageFactory;
 
+  @NotNull
   private final HardwareConfigHelper myHardwareConfigHelper;
 
-  // The following fields are optional or configurable using the various chained
-  // setters:
-
+  @Nullable
   private IncludeReference myIncludedWithin;
+
+  @NotNull
   private RenderingMode myRenderingMode = RenderingMode.NORMAL;
+
+  @Nullable
   private Integer myOverrideBgColor;
+
   private boolean myShowDecorations = true;
 
   @NotNull
   private final Configuration myConfiguration;
-
-  private final FrameworkResources myFrameworkResources;
 
   /**
    * Creates a new {@link RenderService} associated with the given editor.
@@ -136,8 +119,6 @@ public class RenderService {
   public static RenderService create(@NotNull final AndroidFacet facet,
                                      @NotNull final Module module,
                                      @NotNull final PsiFile psiFile,
-                                     @NotNull final String layoutXmlText,
-                                     @Nullable final VirtualFile layoutXmlFile,
                                      @NotNull final Configuration configuration,
                                      @NotNull final RenderLogger logger) {
 
@@ -189,7 +170,7 @@ public class RenderService {
       return null;
     }
 
-    return new RenderService(facet, module, psiFile, layoutXmlText, layoutXmlFile, configuration, logger, factory);
+    return new RenderService(facet, module, psiFile, configuration, logger, factory);
   }
 
   /**
@@ -198,15 +179,11 @@ public class RenderService {
   private RenderService(@NotNull AndroidFacet facet,
                         @NotNull Module module,
                         @NotNull PsiFile psiFile,
-                        @NotNull String layoutXmlText,
-                        @Nullable VirtualFile layoutXmlFile,
                         @NotNull Configuration configuration,
                         @NotNull RenderLogger logger,
                         @NotNull RenderServiceFactory factory) {
     myFacet = facet;
     myModule = module;
-    myLayoutFile = layoutXmlFile;
-    myLayoutXmlText = layoutXmlText;
     myLogger = logger;
     if (!(psiFile instanceof XmlFile)) {
       throw new IllegalArgumentException("Can only render XML files: " + psiFile.getClass().getName());
@@ -219,27 +196,10 @@ public class RenderService {
     myHardwareConfigHelper = new HardwareConfigHelper(device);
 
     myHardwareConfigHelper.setOrientation(configuration.getFullConfig().getScreenOrientationQualifier().getValue());
-
     myLayoutLib = factory.getLibrary(); // TODO: editor.getReadyLayoutLib(true /*displayError*/);
-    myFrameworkResources = factory.getFrameworkResources();
-
-    ProjectResources projectResources = gather(myModule, myFacet, myLayoutXmlText, myLayoutFile);
+    ProjectResources projectResources = facet.getProjectResources();
     myProjectCallback = new ProjectCallback(myLayoutLib, projectResources, myModule, myLogger); // TODO: true: /* reset*/
-
-// TODO: The resource resolver and the project callback for an editor
-//    final Pair<RenderResources, RenderResources> pair =
-//            factory.createResourceResolver(facet, folderConfig, projectResources,
-//                    theme.getName(), theme.isProjectTheme());
-//    myResourceResolver = pair.getFirst();
-//
-//
-//    // should be cached on each file
-//    myResourceResolver = editor.getResourceResolver();
-
-
     myProjectCallback.loadAndParseRClass();
-    myResourceResolver = getResourceResolver();
-
     Pair<Integer, Integer> sdkVersions = getSdkVersions(myFacet);
     myMinSdkVersion = sdkVersions.getFirst();
     myTargetSdkVersion = sdkVersions.getSecond();
@@ -263,64 +223,15 @@ public class RenderService {
     return data.getAndroidPlatform();
   }
 
-  private Map<ResourceType, Map<String, ResourceValue>> myConfiguredFrameworkRes;
-  private Map<ResourceType, Map<String, ResourceValue>> myConfiguredProjectRes;
-
   /**
    * Returns the {@link ResourceResolver} for this editor
    *
    * @return the resolver used to resolve resources for the current configuration of
    *         this editor, or null
    */
+  @Nullable
   public ResourceResolver getResourceResolver() {
-    if (myResourceResolver == null) {
-      String themeStyle = myConfiguration.getTheme();
-      if (themeStyle == null) {
-        LOG.error("Missing theme.");
-        return null;
-      }
-      boolean isProjectTheme = myConfiguration.isProjectTheme();
-      String theme = ResourceHelper.styleToTheme(themeStyle);
-
-      Map<ResourceType, Map<String, ResourceValue>> configuredProjectRes = getConfiguredProjectResources();
-
-      // Get the framework resources
-      Map<ResourceType, Map<String, ResourceValue>> frameworkResources = getConfiguredFrameworkResources();
-      myResourceResolver = ResourceResolver.create(configuredProjectRes, frameworkResources, theme, isProjectTheme);
-    }
-
-    return myResourceResolver;
-  }
-
-  @NotNull
-  public Map<ResourceType, Map<String, ResourceValue>> getConfiguredFrameworkResources() {
-    if (myConfiguredFrameworkRes == null) {
-      ResourceRepository frameworkRes = getFrameworkResources();
-
-      if (frameworkRes == null) {
-        LOG.error("Failed to get ProjectResource for the framework");
-        myConfiguredFrameworkRes = Collections.emptyMap();
-      }
-      else {
-        // get the framework resource values based on the current config
-        myConfiguredFrameworkRes = frameworkRes.getConfiguredResources(myConfiguration.getFullConfig());
-      }
-    }
-
-    return myConfiguredFrameworkRes;
-  }
-
-  @NotNull
-  public Map<ResourceType, Map<String, ResourceValue>> getConfiguredProjectResources() {
-    if (myConfiguredProjectRes == null) {
-      ProjectResources project = getProjectResources();
-
-      // get the project resource values based on the current config
-      myConfiguredProjectRes = project != null ? project.getConfiguredResources(myConfiguration.getFullConfig())
-                                               : Collections.<ResourceType, Map<String, ResourceValue>>emptyMap();
-    }
-
-    return myConfiguredProjectRes;
+    return myConfiguration.getResourceResolver();
   }
 
   @NotNull
@@ -328,82 +239,10 @@ public class RenderService {
     return myConfiguration;
   }
 
-  /**
-   * Returns a {@link ProjectResources} for the framework resources based on the current
-   * configuration selection.
-   *
-   * @return the framework resources or null if not found.
-   */
-  @Nullable
-  public ResourceRepository getFrameworkResources() {
-    IAndroidTarget target = myConfiguration.getTarget();
-    if (target != null) {
-      return getFrameworkResources(target, myModule);
-    }
-
-    return null;
-  }
 
   public void dispose() {
     myProjectCallback.setLogger(null);
     myProjectCallback.setResourceResolver(null);
-    myConfiguredFrameworkRes = null;
-    myConfiguredProjectRes = null;
-    myResourceResolver = null;
-  }
-
-  /**
-   * Returns a {@link ProjectResources} for the framework resources of a given
-   * target.
-   *
-   * @param target the target for which to return the framework resources.
-   * @return the framework resources or null if not found.
-   */
-  @Nullable
-  private static ResourceRepository getFrameworkResources(@NotNull IAndroidTarget target, @NotNull Module module) {
-    Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-    if (sdk == null || !(sdk.getSdkType() instanceof AndroidSdkType)) {
-      return null;
-    }
-    AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-    if (data == null) {
-      return null;
-    }
-    AndroidPlatform platform = data.getAndroidPlatform();
-    if (platform == null) {
-      return null;
-    }
-
-    AndroidTargetData targetData = platform.getSdkData().getTargetData(target);
-    try {
-      Project project = module.getProject();
-      RenderServiceFactory factory = targetData.getRenderServiceFactory(project);
-      if (factory != null) {
-        return factory.getFrameworkResources();
-      }
-    }
-    catch (RenderingException e) {
-      LOG.error(e);
-    }
-    catch (IOException e) {
-      LOG.error(e);
-    }
-
-    return null;
-  }
-
-  @Nullable
-  public ProjectResources getProjectResources() {
-    try {
-      return gather(myModule, myFacet, myLayoutXmlText, myLayoutFile);
-    }
-    catch (Exception e) {
-      LOG.error(e);
-    }
-
-    // TODO: Cache on project: ResourceManager manager = ResourceManager.getInstance();
-
-    return null;
   }
 
   @NotNull
@@ -433,21 +272,6 @@ public class RenderService {
     return Pair.create(minSdkVersion, targetSdkVersion);
   }
 
-
-  private static ProjectResources gather(Module module, AndroidFacet facet, String layoutXmlText, VirtualFile layoutXmlFile) {
-    // THIS IS HACKY! It should be cached on the editor from render to render, and besides,
-    // it should be built from the PSI rather than parsing XML text each time!
-    List<AndroidFacet> allLibraries = AndroidUtils.getAllAndroidDependencies(module, true);
-    List<ProjectResources> libResources = new ArrayList<ProjectResources>();
-    List<ProjectResources> emptyResList = Collections.emptyList();
-
-    for (AndroidFacet libFacet : allLibraries) {
-      if (!libFacet.equals(facet)) {
-        libResources.add(loadProjectResources(libFacet, null, null, emptyResList));
-      }
-    }
-    return loadProjectResources(facet, layoutXmlText, layoutXmlFile, libResources);
-  }
 
   /**
    * Overrides the width and height to be used during rendering (which might be adjusted if
@@ -551,7 +375,8 @@ public class RenderService {
    */
   @Nullable
   public RenderSession createRenderSession() {
-    if (myResourceResolver == null) {
+    ResourceResolver resolver = getResourceResolver();
+    if (resolver == null) {
       // Abort the rendering if the resources are not found.
       return null;
     }
@@ -570,15 +395,14 @@ public class RenderService {
       String contextLayoutName = myIncludedWithin.getName();
 
       // Find the layout file.
-      ResourceValue contextLayout =
-        myResourceResolver.findResValue(LAYOUT_RESOURCE_PREFIX + contextLayoutName, false  /* forceFrameworkOnly*/);
+      ResourceValue contextLayout = resolver.findResValue(LAYOUT_RESOURCE_PREFIX + contextLayoutName, false  /* forceFrameworkOnly*/);
       if (contextLayout != null) {
         File layoutFile = new File(contextLayout.getValue());
         if (layoutFile.isFile()) {
           try {
             // Get the name of the layout actually being edited, without the extension
             // as it's what IXmlPullParser.getParser(String) will receive.
-            String queryLayoutName = myLayoutFile.getNameWithoutExtension();
+            String queryLayoutName = LintUtils.getBaseName(myPsiFile.getName());
             myProjectCallback.setLayoutParser(queryLayoutName, modelParser);
             topParser = new ContextPullParser(myProjectCallback);
             topParser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
@@ -601,7 +425,7 @@ public class RenderService {
 
     myLayoutLib.clearCaches(myModule);
     final SessionParams params =
-      new SessionParams(topParser, myRenderingMode, myModule /* projectKey */, hardwareConfig, myResourceResolver, myProjectCallback,
+      new SessionParams(topParser, myRenderingMode, myModule /* projectKey */, hardwareConfig, resolver, myProjectCallback,
                         myMinSdkVersion, myTargetSdkVersion, myLogger);
 
     // Request margin and baseline information.
@@ -635,7 +459,7 @@ public class RenderService {
 
     try {
       myProjectCallback.setLogger(myLogger);
-      myProjectCallback.setResourceResolver(myResourceResolver);
+      myProjectCallback.setResourceResolver(resolver);
 
       return ApplicationManager.getApplication().runReadAction(new Computable<RenderSession>() {
         @Override
@@ -699,7 +523,7 @@ public class RenderService {
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
     DrawableParams params =
-      new DrawableParams(drawableResourceValue, myModule, hardwareConfig, myResourceResolver, myProjectCallback, myMinSdkVersion,
+      new DrawableParams(drawableResourceValue, myModule, hardwareConfig, getResourceResolver(), myProjectCallback, myMinSdkVersion,
                          myTargetSdkVersion, myLogger);
     params.setForceNoDecor();
     Result result = myLayoutLib.renderDrawable(params);
@@ -766,7 +590,7 @@ public class RenderService {
 //                RenderingMode.FULL_EXPAND,
 //                myModule,
 //                hardwareConfig,
-//                myResourceResolver,
+//                getResourceResolver(),
 //                myProjectCallback,
 //                myMinSdkVersion,
 //                myTargetSdkVersion,
@@ -777,7 +601,7 @@ public class RenderService {
 //        RenderSession session = null;
 //        try {
 //            myProjectCallback.setLogger(myLogger);
-//            myProjectCallback.setResourceResolver(myResourceResolver);
+//            myProjectCallback.setResourceResolver(getResourceResolver());
 //            session = myLayoutLib.createSession(params);
 //            if (session.getResult().isSuccess()) {
 //                assert session.getRootViews().size() == 1;
@@ -811,49 +635,8 @@ public class RenderService {
 //        return null;
 //        throw new UnsupportedOperationException("Not yet implemented");
 //    }
-  @NotNull
-  private static ProjectResources loadProjectResources(@NotNull AndroidFacet facet,
-                                                       @Nullable String layoutXmlText,
-                                                       @Nullable VirtualFile layoutXmlFile,
-                                                       @NotNull List<ProjectResources> libResources) {
-    final VirtualFile resourceDir = facet.getLocalResourceManager().getResourceDir();
 
-    if (resourceDir != null) {
-      final IAbstractFolder resFolder = new BufferingFolderWrapper(new File(FileUtil.toSystemDependentName(resourceDir.getPath())));
-      final ProjectResources projectResources = new ProjectResources(resFolder, libResources);
-      loadResources(projectResources, layoutXmlText, layoutXmlFile, resFolder);
-      return projectResources;
-    }
-    return new ProjectResources(new NullFolderWrapper(), libResources);
-  }
-
-//    @NotNull
-//    private static Set<String> getSdkNamesFromModules(@NotNull Collection<Module> modules) {
-//        final Set<String> result = new HashSet<String>();
-//
-//        for (Module module : modules) {
-//            final Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-//
-//            if (sdk != null) {
-//                result.add(sdk.getName());
-//            }
-//        }
-//        return result;
-//    }
-//
-//    @NotNull
-//    private static <T> List<T> getNonNullValues(@NotNull Map<?, T> map) {
-//        final List<T> result = new ArrayList<T>();
-//
-//        for (Map.Entry<?, T> entry : map.entrySet()) {
-//            final T value = entry.getValue();
-//            if (value != null) {
-//                result.add(value);
-//            }
-//        }
-//        return result;
-//    }
-//
+//    private static final String DEFAULT_APP_LABEL = "Android Application";
 //    private static String getAppLabelToShow(final AndroidFacet facet) {
 //        return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
 //            @Override
@@ -873,88 +656,6 @@ public class RenderService {
 //        });
 //    }
 
-  private static void loadResources(@NotNull ResourceRepository repository,
-                                   @Nullable final String layoutXmlFileText,
-                                   @Nullable VirtualFile layoutXmlFile,
-                                   @NotNull IAbstractFolder... rootFolders) {
-    final ScanningContext scanningContext = new ScanningContext(repository);
-
-    for (IAbstractFolder rootFolder : rootFolders) {
-      for (IAbstractResource file : rootFolder.listMembers()) {
-        if (!(file instanceof IAbstractFolder)) {
-          continue;
-        }
-
-        final IAbstractFolder folder = (IAbstractFolder)file;
-        final ResourceFolder resFolder = repository.processFolder(folder);
-
-        if (resFolder != null) {
-          for (final IAbstractResource childRes : folder.listMembers()) {
-
-            if (childRes instanceof IAbstractFile) {
-              final VirtualFile vFile;
-
-              if (childRes instanceof BufferingFileWrapper) {
-                final BufferingFileWrapper fileWrapper = (BufferingFileWrapper)childRes;
-                final String filePath = FileUtil.toSystemIndependentName(fileWrapper.getOsLocation());
-                vFile = LocalFileSystem.getInstance().findFileByPath(filePath);
-
-                if (vFile != null && Comparing.equal(vFile, layoutXmlFile) && layoutXmlFileText != null) {
-                  resFolder.processFile(new MyFileWrapper(layoutXmlFileText, childRes), ResourceDeltaKind.ADDED, scanningContext);
-                }
-                else {
-                  resFolder.processFile((IAbstractFile)childRes, ResourceDeltaKind.ADDED, scanningContext);
-                }
-              }
-              else {
-                LOG.error("childRes must be instance of " + BufferingFileWrapper.class.getName());
-              }
-            }
-          }
-        }
-      }
-    }
-
-    final List<String> errors = scanningContext.getErrors();
-    if (errors != null && errors.size() > 0) {
-      LOG.debug(new RenderingException(merge(errors)));
-    }
-  }
-
-  private static String merge(@NotNull Collection<String> strs) {
-    final StringBuilder result = new StringBuilder();
-    for (Iterator<String> it = strs.iterator(); it.hasNext(); ) {
-      String str = it.next();
-      result.append(str);
-      if (it.hasNext()) {
-        result.append('\n');
-      }
-    }
-    return result.toString();
-  }
-
-  //@Nullable
-  //public static String getRClassName(@NotNull final Module module) {
-  //  return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-  //    @Nullable
-  //    @Override
-  //    public String compute() {
-  //      final AndroidFacet facet = AndroidFacet.getInstance(module);
-  //      if (facet == null) {
-  //        return null;
-  //      }
-  //
-  //      final Manifest manifest = facet.getManifest();
-  //      if (manifest == null) {
-  //        return null;
-  //      }
-  //
-  //      final String aPackage = manifest.getPackage().getValue();
-  //      return aPackage == null ? null : aPackage + ".R";
-  //    }
-  //  });
-  //}
-
   @NotNull
   public ProjectCallback getProjectCallback() {
     return myProjectCallback;
@@ -963,120 +664,5 @@ public class RenderService {
   @NotNull
   public XmlFile getPsiFile() {
     return myPsiFile;
-  }
-
-  private static class MyFileWrapper implements IAbstractFile {
-    private final String myLayoutXmlFileText;
-    private final IAbstractResource myChildRes;
-
-    public MyFileWrapper(String layoutXmlFileText, IAbstractResource childRes) {
-      myLayoutXmlFileText = layoutXmlFileText;
-      myChildRes = childRes;
-    }
-
-    @Override
-    public InputStream getContents() throws StreamException {
-      return new ByteArrayInputStream(myLayoutXmlFileText.getBytes());
-    }
-
-    @Override
-    public void setContents(InputStream source) throws StreamException {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public OutputStream getOutputStream() throws StreamException {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public PreferredWriteMode getPreferredWriteMode() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public long getModificationStamp() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public String getName() {
-      return myChildRes.getName();
-    }
-
-    @Override
-    public String getOsLocation() {
-      return myChildRes.getOsLocation();
-    }
-
-    @Override
-    public boolean exists() {
-      return true;
-    }
-
-    @Override
-    public IAbstractFolder getParentFolder() {
-      return myChildRes.getParentFolder();
-    }
-
-    @Override
-    public boolean delete() {
-      throw new UnsupportedOperationException();
-    }
-  }
-
-  private static class NullFolderWrapper implements IAbstractFolder {
-    @Override
-    public boolean hasFile(String name) {
-      return false;
-    }
-
-    @Nullable
-    @Override
-    public IAbstractFile getFile(String name) {
-      return null;
-    }
-
-    @Nullable
-    @Override
-    public IAbstractFolder getFolder(String name) {
-      return null;
-    }
-
-    @Override
-    public IAbstractResource[] listMembers() {
-      return new IAbstractResource[0];
-    }
-
-    @Override
-    public String[] list(FilenameFilter filter) {
-      return ArrayUtil.EMPTY_STRING_ARRAY;
-    }
-
-    @Override
-    public String getName() {
-      return "stub_name";
-    }
-
-    @Override
-    public String getOsLocation() {
-      return "stub_os_location";
-    }
-
-    @Override
-    public boolean exists() {
-      return false;
-    }
-
-    @Nullable
-    @Override
-    public IAbstractFolder getParentFolder() {
-      return null;
-    }
-
-    @Override
-    public boolean delete() {
-      return false;
-    }
   }
 }
