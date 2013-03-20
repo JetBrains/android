@@ -23,6 +23,8 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.utils.ILogger;
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 import com.intellij.execution.process.BaseOSProcessHandler;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
@@ -321,9 +323,8 @@ public class AndroidCommonUtils {
 
   @Nullable
   public static String getResourceTypeByDirName(@NotNull String name) {
-    final int index = name.indexOf('-');
-    final String type = index >= 0 ? name.substring(0, index) : name;
-    return ResourceFolderType.getTypeByName(type) != null ? type : null;
+    ResourceFolderType folderType = ResourceFolderType.getFolderType(name);
+    return folderType != null ? folderType.getName() : null;
   }
 
   @NotNull
@@ -479,16 +480,7 @@ public class AndroidCommonUtils {
 
   @NotNull
   public static String readFile(@NotNull File file) throws IOException {
-    final InputStream is = new BufferedInputStream(new FileInputStream(file));
-    try {
-      final byte[] data = new byte[is.available()];
-      //noinspection ResultOfMethodCallIgnored
-      is.read(data);
-      return new String(data);
-    }
-    finally {
-      is.close();
-    }
+    return Files.toString(file, Charsets.UTF_8);
   }
 
   public static boolean contains2Identifiers(String packageName) {
