@@ -27,14 +27,15 @@ import com.intellij.openapi.compiler.*;
 import com.intellij.openapi.compiler.options.ExcludeEntryDescription;
 import com.intellij.openapi.compiler.options.ExcludedEntriesConfiguration;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.*;
-import com.intellij.openapi.roots.impl.ModifiableModelCommitter;
+import com.intellij.openapi.roots.DependencyScope;
+import com.intellij.openapi.roots.ModuleOrderEntry;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
@@ -151,30 +152,7 @@ public class AndroidPrecompileTask implements CompileTask {
       ApplicationManager.getApplication().invokeAndWait(new Runnable() {
         @Override
         public void run() {
-          final List<ModifiableRootModel> modelsToCommit = new ArrayList<ModifiableRootModel>();
-
-          for (AndroidFacet facet : facets) {
-            final ModifiableRootModel model = ModuleRootManager.getInstance(
-              facet.getModule()).getModifiableModel();
-            
-            if (AndroidCompileUtil.createGenModulesAndSourceRoots(facet, model)) {
-              modelsToCommit.add(model);
-            }
-            else {
-              model.dispose();
-            }
-          }
-          if (modelsToCommit.size() == 0) {
-            return;
-          }
-          final ModifiableModuleModel moduleModel = ModuleManager.getInstance(project).getModifiableModel();
-
-          ApplicationManager.getApplication().runWriteAction(new Runnable() {
-            @Override
-            public void run() {
-              ModifiableModelCommitter.multiCommit(modelsToCommit.toArray(new ModifiableRootModel[modelsToCommit.size()]), moduleModel);
-            }
-          });
+          AndroidCompileUtil.createGenModulesAndSourceRoots(project, facets);
         }
       }, indicator != null ? indicator.getModalityState() : ModalityState.NON_MODAL);
     }
