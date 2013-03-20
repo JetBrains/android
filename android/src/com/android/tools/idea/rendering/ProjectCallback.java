@@ -20,7 +20,6 @@ import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.rendering.legacy.LegacyCallback;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
-import com.android.util.Pair;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
@@ -30,7 +29,6 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.ProjectResources;
 import org.jetbrains.android.uipreview.ViewLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,13 +53,13 @@ public final class ProjectCallback extends LegacyCallback {
   @NotNull private final Module myModule;
   @NotNull private final ProjectResources myProjectRes;
   @NotNull final private LayoutLibrary myLayoutLib;
-  private boolean myUsed = false;
   @Nullable private String myNamespace;
   @Nullable private RenderLogger myLogger;
   @NotNull private ViewLoader myClassLoader;
   @Nullable private String myLayoutName;
   @Nullable private ILayoutPullParser myLayoutEmbeddedParser;
   @Nullable private ResourceResolver myResourceResolver;
+  private boolean myUsed = false;
 
   /**
    * Creates a new {@link ProjectCallback} to be used with the layout lib.
@@ -156,9 +154,10 @@ public final class ProjectCallback extends LegacyCallback {
     return myNamespace;
   }
 
+  @SuppressWarnings("deprecation") // Required by IProjectCallback
   @Nullable
   @Override
-  public Pair<ResourceType, String> resolveResourceId(int id) {
+  public com.android.util.Pair<ResourceType, String> resolveResourceId(int id) {
     return myProjectRes.resolveResourceId(id);
   }
 
@@ -193,6 +192,7 @@ public final class ProjectCallback extends LegacyCallback {
     myLayoutEmbeddedParser = layoutParser;
   }
 
+  @SuppressWarnings("deprecation") // Required by IProjectCallback
   @Nullable
   @Override
   public ILayoutPullParser getParser(@NotNull String layoutName) {

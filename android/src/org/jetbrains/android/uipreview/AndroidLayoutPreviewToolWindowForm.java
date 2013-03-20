@@ -180,13 +180,10 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
         if (facet != null) {
           ConfigurationManager manager = facet.getConfigurationManager();
           myConfiguration = manager.create(file.getVirtualFile());
+          loadState(myConfiguration);
           myConfiguration.addListener(this);
         }
       }
-    }
-
-    if (file != null && fileChanged) {
-      loadState(myConfiguration);
     }
   }
   

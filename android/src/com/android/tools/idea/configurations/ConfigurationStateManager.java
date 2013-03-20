@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.rendering.Locale;
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;

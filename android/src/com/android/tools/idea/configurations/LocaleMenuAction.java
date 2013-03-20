@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.configuration.LanguageQualifier;
 import com.android.ide.common.resources.configuration.RegionQualifier;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.LocaleManager;
+import com.android.tools.idea.rendering.ProjectResources;
 import com.google.common.base.Strings;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.ListPopup;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.awt.RelativePoint;
 import icons.AndroidIcons;
@@ -35,10 +34,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
 public class LocaleMenuAction extends FlatComboAction {
   private final ConfigurationToolBar myConfigurationToolBar;
@@ -89,41 +86,15 @@ public class LocaleMenuAction extends FlatComboAction {
 
     List<Locale> locales = new ArrayList<Locale>();
 
-    // TODO: ResourceRepository.getLanguages() can look up the languages.
-    // Use that once we have a persistent ResourceRepository for the project.
+    ProjectResources projectResources = facet.getProjectResources();
+    SortedSet<String> languages = projectResources.getLanguages();
+    for (String language : languages) {
+      LanguageQualifier languageQualifier = new LanguageQualifier(language);
+      locales.add(Locale.create(languageQualifier));
 
-    final VirtualFile[] resourceDirs = facet.getLocalResourceManager().getAllResourceDirs();
-
-    for (VirtualFile resourceDir : resourceDirs) {
-      for (VirtualFile child : resourceDir.getChildren()) {
-        if (child.isDirectory()) {
-          final String name = child.getName();
-          final String[] segments = name.split(SdkConstants.RES_QUALIFIER_SEP);
-
-          LanguageQualifier language = null;
-          RegionQualifier region = null;
-
-          for (String segment : segments) {
-            final LanguageQualifier languageQualifier = LanguageQualifier.getQualifier(segment);
-            if (languageQualifier != null) {
-              assert language == null : name;
-              language = languageQualifier;
-            } else {
-              final RegionQualifier regionQualifier = RegionQualifier.getQualifier(segment);
-              if (regionQualifier != null) {
-                region = regionQualifier;
-              }
-            }
-          }
-
-          if (language != null) {
-            if (region != null) {
-              locales.add(Locale.create(language, region));
-            } else {
-              locales.add(Locale.create(language));
-            }
-          }
-        }
+      SortedSet<String> regions = projectResources.getRegions(language);
+      for (String region : regions) {
+        locales.add(Locale.create(languageQualifier, new RegionQualifier(region)));
       }
     }
 
@@ -131,7 +102,6 @@ public class LocaleMenuAction extends FlatComboAction {
   }
 
   private static List<Locale> getAllLocales() {
-    // TODO: Limit to just what's in the project
     Set<String> languageCodes = LocaleManager.getLanguageCodes();
     List<String> sorted = new ArrayList<String>(languageCodes);
     Collections.sort(sorted);
@@ -326,9 +296,9 @@ public class LocaleMenuAction extends FlatComboAction {
     public void actionPerformed(AnActionEvent e) {
       DataContext context = e.getDataContext();
 
-      // TODO: Create *all* Locales and filter out relevant locales
+      // List known locales, except those already present
       List<Locale> locales = getAllLocales();
-      // TODO: Filter out the existing locales: subtract getRelevantLocales
+      locales.removeAll(getRelevantLocales());
 
       Collections.sort(locales, Locale.LANGUAGE_NAME_COMPARATOR);
       DefaultActionGroup group = new DefaultActionGroup(null, true);

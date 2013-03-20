@@ -304,7 +304,7 @@ public class RenderLogger extends LayoutLog {
   // rather than stashed on the ViewLoader, since the ViewLoader is reused
   // across multiple rendering operations.
 
-  public void setResourceClass(String resourceClass) {
+  public void setResourceClass(@NotNull String resourceClass) {
     myResourceClass = resourceClass;
   }
 
@@ -328,23 +328,27 @@ public class RenderLogger extends LayoutLog {
     return myMissingResourceClass;
   }
 
+  @Nullable
   public String getResourceClass() {
     return myResourceClass;
   }
 
+  @Nullable
   public Set<String> getClassesWithIncorrectFormat() {
     return myClassesWithIncorrectFormat;
   }
 
+  @Nullable
   public Map<String, Throwable> getBrokenClasses() {
     return myBrokenClasses;
   }
 
+  @Nullable
   public Set<String> getMissingClasses() {
     return myMissingClasses;
   }
 
-  public void addMissingClass(String className) {
+  public void addMissingClass(@NotNull String className) {
     if (!className.equals(VIEW_FRAGMENT)) {
       if (myMissingClasses == null) {
         myMissingClasses = new TreeSet<String>();
@@ -353,7 +357,7 @@ public class RenderLogger extends LayoutLog {
     }
   }
 
-  public void addIncorrectFormatClass(String className) {
+  public void addIncorrectFormatClass(@NotNull String className) {
     if (myClassesWithIncorrectFormat == null) {
       myClassesWithIncorrectFormat = new com.intellij.util.containers.HashSet<String>();
     }
@@ -361,7 +365,7 @@ public class RenderLogger extends LayoutLog {
   }
 
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-  public void addBrokenClass(String className, Throwable exception) {
+  public void addBrokenClass(@NotNull String className, @NotNull Throwable exception) {
     while (exception.getCause() != null && exception.getCause() != exception) {
       exception = exception.getCause();
     }

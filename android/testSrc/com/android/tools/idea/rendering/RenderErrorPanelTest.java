@@ -43,9 +43,8 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     ConfigurationManager configurationManager = facet.getConfigurationManager();
     assertNotNull(configurationManager);
     Configuration configuration = configurationManager.create(file);
-    String text = psiFile.getText();
     RenderLogger logger = new RenderLogger("mylogger", myModule);
-    RenderService service = RenderService.create(facet, myModule, psiFile, text, file, configuration, logger);
+    RenderService service = RenderService.create(facet, myModule, psiFile, configuration, logger);
     assertNotNull(service);
     RenderResult render = service.render();
     assertTrue(logger.hasProblems());

@@ -25,6 +25,7 @@ import com.android.sdklib.SdkManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.rendering.ProjectResources;
 import com.android.utils.ILogger;
 import com.intellij.CommonBundle;
 import com.intellij.ProjectTopics;
@@ -94,7 +95,7 @@ import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 /**
  * @author yole
  */
-public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
+public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.facet.AndroidFacet");
 
   public static final FacetTypeId<AndroidFacet> ID = new FacetTypeId<AndroidFacet>("android");
@@ -117,6 +118,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private volatile boolean myAutogenerationEnabled = false;
 
   private ConfigurationManager myConfigurationManager;
+  private ProjectResources myProjectResources;
 
   public AndroidFacet(@NotNull Module module, String name, @NotNull AndroidFacetConfiguration configuration) {
     super(getFacetType(), module, name, configuration, null);
@@ -914,5 +916,15 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     }
 
     return myConfigurationManager;
+  }
+
+  public ProjectResources getProjectResources() {
+    synchronized (this) {
+      if (myProjectResources == null) {
+        myProjectResources = ProjectResources.create(this);
+      }
+
+      return myProjectResources;
+    }
   }
 }
