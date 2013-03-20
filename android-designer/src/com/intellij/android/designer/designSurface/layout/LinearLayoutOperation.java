@@ -49,6 +49,7 @@ public class LinearLayoutOperation extends FlowBaseOperation {
   private FlowPositionFeedback myFlowFeedback;
   private Gravity myExclude;
   private Gravity myGravity;
+  private boolean mySetGravity;
 
   public LinearLayoutOperation(RadComponent container, OperationContext context, boolean horizontal) {
     super(container, context, horizontal);
@@ -58,18 +59,25 @@ public class LinearLayoutOperation extends FlowBaseOperation {
     }
   }
 
+  private final static int MIN_MARGIN_DIMENSIONS = 100;
+
   @Override
   protected void createFeedback() {
     super.createFeedback();
 
-    if (myFeedback == null) {
+    if (myTextFeedback == null) {
       FeedbackLayer layer = myContext.getArea().getFeedbackLayer();
 
-      myFeedback = new GravityFeedback();
-      if (myContainer.getChildren().isEmpty()) {
-        myFeedback.setBounds(myBounds);
+      if (myHorizontal && myBounds.height > MIN_MARGIN_DIMENSIONS
+            || !myHorizontal && myBounds.width > MIN_MARGIN_DIMENSIONS) {
+        mySetGravity = true;
+
+        myFeedback = new GravityFeedback();
+        if (myContainer.getChildren().isEmpty()) {
+          myFeedback.setBounds(myBounds);
+        }
+        layer.add(myFeedback, 0);
       }
-      layer.add(myFeedback, 0);
 
       //noinspection ConstantConditions
       if (!SHOW_STATIC_GRID) {
@@ -90,33 +98,38 @@ public class LinearLayoutOperation extends FlowBaseOperation {
   public void showFeedback() {
     super.showFeedback();
 
-    Point location = myContext.getLocation();
-    Gravity gravity = myHorizontal ? calculateVertical(myBounds, location) : calculateHorizontal(myBounds, location);
+    if (mySetGravity) {
+      Point location = myContext.getLocation();
+      Gravity gravity = myHorizontal ? calculateVertical(myBounds, location) : calculateHorizontal(myBounds, location);
 
-    if (!myContainer.getChildren().isEmpty()) {
-      myFeedback.setBounds(myInsertFeedback.getBounds());
+      if (!myContainer.getChildren().isEmpty()) {
+        myFeedback.setBounds(myInsertFeedback.getBounds());
+      }
+
+      myFeedback.setGravity(gravity);
+
+      myTextFeedback.clear();
+      myTextFeedback.bold(gravity == null ? "fill_parent" : gravity.name());
+      myTextFeedback.centerTop(myBounds);
+
+      // TODO: Only do this if large enough!
+      myGravity = gravity;
     }
-
-    myFeedback.setGravity(gravity);
 
     //noinspection ConstantConditions
     if (!SHOW_STATIC_GRID) {
       myFlowFeedback.repaint();
     }
-
-    myTextFeedback.clear();
-    myTextFeedback.bold(gravity == null ? "fill_parent" : gravity.name());
-    myTextFeedback.centerTop(myBounds);
-
-    myGravity = gravity;
   }
 
   @Override
   public void eraseFeedback() {
     super.eraseFeedback();
-    if (myFeedback != null) {
+    if (myTextFeedback != null) {
       FeedbackLayer layer = myContext.getArea().getFeedbackLayer();
-      layer.remove(myFeedback);
+      if (mySetGravity) {
+        layer.remove(myFeedback);
+      }
       layer.remove(myTextFeedback);
 
       //noinspection ConstantConditions
