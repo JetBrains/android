@@ -301,11 +301,9 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
         // show relevant layout actions immediately, will cause the component tree to
         // be properly expanded, etc
         if (firstRender) {
-          if (myRootComponent.getChildren().size() == 1) {
-            RadComponent radComponent = myRootComponent.getChildren().get(0);
-            if (radComponent.isBackground()) {
-              mySurfaceArea.setSelection(Collections.singletonList(radComponent));
-            }
+          RadViewComponent rootComponent = getLayoutRoot();
+          if (rootComponent != null) {
+            mySurfaceArea.setSelection(Collections.<RadComponent>singletonList(rootComponent));
           }
         }
 
@@ -829,6 +827,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
     return name;
   }
 
+  @Override
   public boolean isDeprecated(@NotNull String deprecatedIn) {
     if (myLastTarget == null) {
       return super.isDeprecated(deprecatedIn);
@@ -1147,5 +1146,32 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
       }
     }
     return null;
+  }
+
+  @Nullable
+  private RadViewComponent getLayoutRoot() {
+    if (myRootComponent != null && myRootComponent.getChildren().size() == 1) {
+      RadComponent component = myRootComponent.getChildren().get(0);
+      if (component.isBackground() && component instanceof RadViewComponent) {
+        return (RadViewComponent)component;
+      }
+    }
+
+    return null;
+  }
+
+  @Override
+  protected RadComponent findTarget(int x, int y, @Nullable ComponentTargetFilter filter) {
+    RadComponent target = super.findTarget(x, y, filter);
+
+    // If you click/drag outside the root, select the root
+    if (target == null) {
+      target = getLayoutRoot();
+      if (target != null && filter != null && filter.preFilter(myRootComponent)) {
+        filter.resultFilter(target);
+      }
+    }
+
+    return target;
   }
 }
