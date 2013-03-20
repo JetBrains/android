@@ -69,7 +69,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
   @NonNls private static final String PROGRESS_ICON_CARD_NAME = "Progress";
   @NonNls private static final String EMPTY_CARD_NAME = "Empty";
   private JPanel myProgressIconWrapper = new JPanel();
-  private final JBLabel myFileNameLabel = new JBLabel();
+  private final JLabel myFileNameLabel = new JLabel();
   private TextEditor myEditor;
   private RenderedView mySelectedView;
   private CaretModel myCaretModel;
@@ -103,6 +103,10 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
 
     myFileNameLabel.setHorizontalAlignment(SwingConstants.CENTER);
     myFileNameLabel.setBorder(new EmptyBorder(5, 0, 5, 0));
+    // We're using a hardcoded color here rather than say a JBLabel, since this
+    // label is sitting on top of the preview gray background, which is the same
+    // in all themes
+    myFileNameLabel.setForeground(Color.BLACK);
 
     final JPanel progressPanel = new JPanel();
     progressPanel.setLayout(new BoxLayout(progressPanel, BoxLayout.X_AXIS));
@@ -409,6 +413,19 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
       Rectangle bounds = getBounds();
       Point point = myImagePanel.getLocation();
       point.x = (bounds.width - myImagePanel.getWidth()) / 2;
+
+      // If we're squeezing the image to fit, and there's a drop shadow showing
+      // shift *some* space away from the tail portion of the drop shadow over to
+      // the left to make the image look more balanced
+      if (point.x <= 2) {
+        ScalableImage image = myRenderResult.getImage();
+        // If there's a drop shadow
+        if (image != null) {
+          if (image.getShowDropShadow()) {
+            point.x += ShadowPainter.SHADOW_SIZE / 3;
+          }
+        }
+      }
       myImagePanel.setLocation(point);
     }
 
