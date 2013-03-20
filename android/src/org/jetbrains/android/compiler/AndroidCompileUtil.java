@@ -318,29 +318,23 @@ public class AndroidCompileUtil {
     configuration.addExcludeEntryDescription(new ExcludeEntryDescription(dir, true, false, project));
   }
 
-  private static void removeGenModule(@NotNull final Module libModule) {
-    final String genModuleName = getGenModuleName(libModule);
-    final ModuleManager moduleManager = ModuleManager.getInstance(libModule.getProject());
+  private static void removeGenModule(@NotNull final ModifiableRootModel model, @NotNull Ref<Boolean> modelChangedFlag) {
+    final String genModuleName = getGenModuleName(model.getModule());
+    final Project project = model.getProject();
+    final ModuleManager moduleManager = ModuleManager.getInstance(project);
 
     final Module genModule = moduleManager.findModuleByName(genModuleName);
     if (genModule == null) {
       return;
     }
-    final ModifiableRootModel model = ModuleRootManager.getInstance(libModule).getModifiableModel();
 
     for (OrderEntry entry : model.getOrderEntries()) {
       if (entry instanceof ModuleOrderEntry &&
           genModuleName.equals(((ModuleOrderEntry)entry).getModuleName())) {
         model.removeOrderEntry(entry);
+        modelChangedFlag.set(true);
       }
     }
-
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        model.commit();
-      }
-    });
     final VirtualFile moduleFile = genModule.getModuleFile();
     moduleManager.disposeModule(genModule);
 
@@ -352,7 +346,7 @@ public class AndroidCompileUtil {
             @Override
             public void run() {
               try {
-                moduleFile.delete(libModule.getProject());
+                moduleFile.delete(project);
               }
               catch (IOException e) {
                 LOG.error(e);
@@ -627,7 +621,7 @@ public class AndroidCompileUtil {
     final Ref<Boolean> modelChangedFlag = Ref.create(false);
 
     if (facet.getProperties().LIBRARY_PROJECT) {
-      removeGenModule(module);
+      removeGenModule(model, modelChangedFlag);
     }
     initializeGenSourceRoot(model, AndroidRootUtil.getBuildconfigGenSourceRootPath(facet), true, true, modelChangedFlag);
 
