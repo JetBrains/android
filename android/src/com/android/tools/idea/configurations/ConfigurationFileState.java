@@ -19,8 +19,11 @@ import com.android.resources.NightMode;
 import com.android.resources.UiMode;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
+import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.internal.avd.AvdManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.xmlb.annotations.Tag;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -120,16 +123,37 @@ public class ConfigurationFileState {
     configuration.startBulkEditing();
     ConfigurationManager manager = configuration.getConfigurationManager();
     if (myDevice != null) {
+      Device matchedDevice = null;
       for (Device device : manager.getDevices()) {
         if (myDevice.equals(device.getName())) {
-          configuration.setDevice(device, false);
-          if (myDeviceState != null) {
-            State state = getState(device, myDeviceState);
-            if (state != null) {
-                configuration.setDeviceState(state);
+          matchedDevice = device;
+          break;
+        }
+      }
+
+      if (matchedDevice == null) {
+        AndroidFacet facet = AndroidFacet.getInstance(manager.getModule());
+        assert facet != null;
+        final AvdManager avdManager = facet.getAvdManagerSilently();
+        if (avdManager != null) {
+          for (AvdInfo avd : avdManager.getValidAvds()) {
+            if (myDevice.equals(avd.getName())) {
+              matchedDevice = manager.createDeviceForAvd(avd);
+              if (matchedDevice != null) {
+                break;
+              }
             }
           }
-          break;
+        }
+      }
+
+      if (matchedDevice != null) {
+        configuration.setDevice(matchedDevice, false);
+        if (myDeviceState != null) {
+          State state = getState(matchedDevice, myDeviceState);
+          if (state != null) {
+              configuration.setDeviceState(state);
+          }
         }
       }
     }

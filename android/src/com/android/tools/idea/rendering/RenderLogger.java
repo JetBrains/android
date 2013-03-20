@@ -35,10 +35,21 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
  */
 public class RenderLogger extends LayoutLog {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.RenderLogger");
+  /**
+   * Whether render errors should be sent to the IDE log. We generally don't want this, since if for
+   * example a custom view generates an error, it will go to the IDE log, which will interpret it as an
+   * IntelliJ error, and will blink the bottom right exception icon and offer to submit an exception
+   * etc. All these errors should be routed through the render error panel instead. However, since the
+   * render error panel does massage and collate the exceptions etc quite a bit, this flag is here
+   * in case we need to ask bug submitters to generate full, raw exceptions.
+   */
+  private static final boolean LOG_ALL = Boolean.getBoolean("adt.renderLog");
 
-  private static final String TAG_MISSING_DIMENSION = "missing.dimension";     //$NON-NLS-1$
+  public static final String TAG_MISSING_DIMENSION = "missing.dimension";
+  public static final String TAG_MISSING_FRAGMENT = "missing.fragment";
   private static Set<String> ourIgnoredFidelityWarnings;
   private static boolean ourIgnoreAllFidelityWarnings;
+  private static boolean ourIgnoreFragments;
 
   private final Module myModule;
   private final String myName;
@@ -56,6 +67,7 @@ public class RenderLogger extends LayoutLog {
   private boolean myHasLoadedClasses;
   private HtmlLinkManager myLinkManager;
   private boolean myMissingSize;
+  private List<String> myMissingFragments;
 
   /**
    * Construct a logger for the given named layout
@@ -89,7 +101,7 @@ public class RenderLogger extends LayoutLog {
   public boolean hasProblems() {
     return myHaveExceptions || myFidelityWarnings != null || myMessages != null ||
            myClassesWithIncorrectFormat != null || myBrokenClasses != null || myMissingClasses != null ||
-           myMissingSize;
+           myMissingSize || myMissingFragments != null;
   }
 
   /**
@@ -115,10 +127,12 @@ public class RenderLogger extends LayoutLog {
   // ---- extends LayoutLog ----
 
   @Override
-  public void error(@Nullable String tag, @NotNull String message, @Nullable Object data) {
+  public void error(@Nullable String tag, @Nullable String message, @Nullable Object data) {
     String description = describe(message);
 
-    LOG.error("%1$s: %2$s", myName, description);
+    if (LOG_ALL) {
+      LOG.error("%1$s: %2$s", myName, description);
+    }
 
     // Workaround: older layout libraries don't provide a tag for this error
     if (tag == null && message != null && message.startsWith("Failed to find style ")) { //$NON-NLS-1$
@@ -131,7 +145,9 @@ public class RenderLogger extends LayoutLog {
   @Override
   public void error(@Nullable String tag, @Nullable String message, @Nullable Throwable throwable, @Nullable Object data) {
     String description = describe(message);
-    LOG.error("%1$s: %2$s", throwable, myName, description);
+    if (LOG_ALL) {
+      LOG.error("%1$s: %2$s", throwable, myName, description);
+    }
     if (throwable != null) {
       if (throwable instanceof ClassNotFoundException) {
         // The project callback is given a chance to resolve classes,
@@ -184,6 +200,15 @@ public class RenderLogger extends LayoutLog {
         addTag(TAG_MISSING_DIMENSION);
         return;
       }
+    } else if (TAG_MISSING_FRAGMENT.equals(tag)) {
+      if (!ourIgnoreFragments) {
+        if (myMissingFragments == null) {
+          myMissingFragments = Lists.newArrayList();
+        }
+        String name = data instanceof String ? (String) data : null;
+        myMissingFragments.add(name);
+      }
+      return;
     }
 
     addTag(tag);
@@ -202,7 +227,10 @@ public class RenderLogger extends LayoutLog {
       return;
     }
 
-    LOG.warn(String.format("%1$s: %2$s", myName, description), throwable);
+    if (LOG_ALL) {
+      LOG.warn(String.format("%1$s: %2$s", myName, description), throwable);
+    }
+
     if (throwable != null) {
       myHaveExceptions = true;
     }
@@ -234,6 +262,10 @@ public class RenderLogger extends LayoutLog {
 
   public static void ignoreAllFidelityWarnings() {
     ourIgnoreAllFidelityWarnings = true;
+  }
+
+  public static void ignoreFragments() {
+    ourIgnoreFragments = true;
   }
 
   @NotNull
@@ -374,5 +406,10 @@ public class RenderLogger extends LayoutLog {
       myBrokenClasses = new HashMap<String, Throwable>();
     }
     myBrokenClasses.put(className, exception);
+  }
+
+  @Nullable
+  public List<String> getMissingFragments() {
+    return myMissingFragments;
   }
 }

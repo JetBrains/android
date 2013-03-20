@@ -34,7 +34,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
@@ -138,10 +137,10 @@ public class Configuration {
   private List<ConfigurationListener> myListeners;
 
   /** Dirty flags since last notify: corresponds to constants in {@link ConfigurationListener} */
-  protected int mNotifyDirty;
+  protected int myNotifyDirty;
 
   /** Dirty flags since last folder config sync: corresponds to constants in {@link ConfigurationListener} */
-  protected int mFolderConfigDirty = MASK_FOLDERCONFIG;
+  protected int myFolderConfigDirty = MASK_FOLDERCONFIG;
 
   /**
    * Creates a new {@linkplain Configuration}
@@ -204,6 +203,7 @@ public class Configuration {
     copiedConfig.set(original.getEditedConfig());
     Configuration copy = new Configuration(original.myManager, copiedConfig);
     copy.myFullConfig.set(original.myFullConfig);
+    copy.myFolderConfigDirty = original.myFolderConfigDirty;
     copy.myTarget = original.getTarget();
     copy.myTheme = original.getTheme();
     copy.myDevice = original.getDevice();
@@ -213,6 +213,9 @@ public class Configuration {
     copy.myUiMode = original.getUiMode();
     copy.myNightMode = original.getNightMode();
     copy.myDisplayName = original.getDisplayName();
+    copy.myFrameworkResources = original.myFrameworkResources;
+    copy.myResourceResolver = original.myResourceResolver;
+    copy.myConfiguredProjectRes = original.myConfiguredProjectRes;
 
     assert copy.ensureValid();
     return copy;
@@ -383,7 +386,7 @@ public class Configuration {
    */
   @NotNull
   public FolderConfiguration getFullConfig() {
-    if ((mFolderConfigDirty | MASK_FOLDERCONFIG) != 0) {
+    if ((myFolderConfigDirty & MASK_FOLDERCONFIG) != 0) {
       syncFolderConfig();
     }
 
@@ -441,13 +444,20 @@ public class Configuration {
       if (device != null) {
         State state = null;
         // Attempt to preserve the device state?
-        if (preserveState && prevDevice != null && prevState != null) {
-          FolderConfiguration oldConfig = DeviceConfigHelper.getFolderConfig(prevState);
-          if (oldConfig != null) {
-            String stateName = getClosestMatch(oldConfig, device.getAllStates());
-            state = device.getState(stateName);
-          } else {
-            state = device.getState(prevState.getName());
+        if (preserveState && prevDevice != null) {
+          if (prevState == prevDevice.getDefaultState()) {
+            // If you had the default state before, use the default state now.
+            // This means switching from a Nexus 4 portrait to a Nexus 10 will
+            // switch to landscape as well
+            state = device.getDefaultState();
+          } else if (prevState != null) {
+            FolderConfiguration oldConfig = DeviceConfigHelper.getFolderConfig(prevState);
+            if (oldConfig != null) {
+              String stateName = getClosestMatch(oldConfig, device.getAllStates());
+              state = device.getState(stateName);
+            } else {
+              state = device.getState(prevState.getName());
+            }
           }
         }
         if (state == null) {
@@ -665,7 +675,7 @@ public class Configuration {
       myFullConfig.setVersionQualifier(new VersionQualifier(apiLevel));
     }
 
-    mFolderConfigDirty = 0;
+    myFolderConfigDirty = 0;
   }
 
   /** Returns the screen size required for this configuration */
@@ -793,8 +803,8 @@ public class Configuration {
 
   /** Called when one or more attributes of the configuration has changed */
   protected void updated(int flags) {
-    mNotifyDirty |= flags;
-    mFolderConfigDirty |= flags;
+    myNotifyDirty |= flags;
+    myFolderConfigDirty |= flags;
 
     if ((flags & MASK_RESOLVE_RESOURCES) != 0) {
       myConfiguredFrameworkRes = null;
@@ -803,14 +813,14 @@ public class Configuration {
     }
 
     if (myBulkEditingCount == 0) {
-      int changed = mNotifyDirty;
+      int changed = myNotifyDirty;
       if (myListeners != null) {
         for (ConfigurationListener listener : myListeners) {
           listener.changed(changed);
         }
       }
 
-      mNotifyDirty = 0;
+      myNotifyDirty = 0;
     }
   }
 
@@ -946,13 +956,11 @@ public class Configuration {
   @NotNull
   public Map<ResourceType, Map<String, ResourceValue>> getConfiguredProjectResources() {
     if (myConfiguredProjectRes == null) {
-      AndroidFacet facet = AndroidFacet.getInstance(myManager.getModule());
-      assert facet != null; // should only be called for Android modules
-      ProjectResources project = facet.getProjectResources();
+      ProjectResources resources = ProjectResources.get(myManager.getModule());
 
       // get the project resource values based on the current config
-      myConfiguredProjectRes = project != null ? project.getConfiguredResources(getFullConfig())
-                                               : Collections.<ResourceType, Map<String, ResourceValue>>emptyMap();
+      myConfiguredProjectRes = resources != null ? resources.getConfiguredResources(getFullConfig())
+                                                 : Collections.<ResourceType, Map<String, ResourceValue>>emptyMap();
     }
 
     return myConfiguredProjectRes;

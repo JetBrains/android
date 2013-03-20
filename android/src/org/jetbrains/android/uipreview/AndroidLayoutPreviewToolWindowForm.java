@@ -19,42 +19,39 @@ package org.jetbrains.android.uipreview;
 import com.android.SdkConstants;
 import com.android.ide.common.resources.configuration.DeviceConfigHelper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.LanguageQualifier;
-import com.android.ide.common.resources.configuration.RegionQualifier;
-import com.android.resources.NightMode;
-import com.android.resources.UiMode;
-import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.*;
-import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.RenderResult;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.CheckboxAction;
 import com.intellij.openapi.fileEditor.TextEditor;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.components.JBScrollPane;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.*;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
-import java.util.List;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidLayoutPreviewToolWindowForm implements Disposable, ConfigurationListener {
+public class AndroidLayoutPreviewToolWindowForm implements Disposable, ConfigurationListener, RenderContext {
   private JPanel myContentPanel;
   private AndroidLayoutPreviewPanel myPreviewPanel;
   private JBScrollPane myScrollPane;
@@ -152,11 +149,6 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
     myScrollPane.getVerticalScrollBar().setUnitIncrement(5);
   }
 
-  @Nullable
-  public Configuration getConfiguration() {
-    return myConfiguration;
-  }
-
   public JPanel getContentPanel() {
     return myContentPanel;
   }
@@ -176,54 +168,30 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
       }
 
       if (file != null) {
-        final AndroidFacet facet = AndroidFacet.getInstance(file);
-        if (facet != null) {
-          ConfigurationManager manager = facet.getConfigurationManager();
-          myConfiguration = manager.create(file.getVirtualFile());
-          loadState(myConfiguration);
-          myConfiguration.addListener(this);
+        VirtualFile virtualFile = file.getVirtualFile();
+        if (virtualFile != null) {
+          final AndroidFacet facet = AndroidFacet.getInstance(file);
+          if (facet != null) {
+            ConfigurationManager manager = facet.getConfigurationManager();
+            myConfiguration = manager.get(virtualFile);
+            myConfiguration.addListener(this);
+          }
         }
       }
     }
   }
   
-  @Nullable
-  private VirtualFile getVirtualFile() {
-    return myFile != null ? myFile.getVirtualFile() : null;
-  }
-
-  private void saveState(@Nullable Configuration configuration) {
-    if (configuration != null) {
+  private void saveState() {
+    if (myConfiguration != null) {
       ConfigurationProjectState projectState = myConfigurationStateManager.getProjectState();
-      projectState.saveState(configuration);
+      projectState.saveState(myConfiguration);
 
       final VirtualFile file = getVirtualFile();
       if (file != null) {
         ConfigurationFileState fileState = new ConfigurationFileState();
-        fileState.saveState(configuration);
+        fileState.saveState(myConfiguration);
         myConfigurationStateManager.setConfigurationState(file, fileState);
       }
-    }
-  }
-
-  private void loadState(@Nullable Configuration configuration) {
-    if (configuration != null) {
-      configuration.startBulkEditing();
-
-      ConfigurationProjectState projectState = myConfigurationStateManager.getProjectState();
-      if (projectState != null) {
-        projectState.loadState(configuration);
-      }
-
-      final VirtualFile file = getVirtualFile();
-      if (file != null) {
-        ConfigurationFileState fileState = myConfigurationStateManager.getConfigurationState(file);
-        if (fileState != null) {
-          fileState.loadState(configuration);
-        }
-      }
-
-      configuration.finishBulkEditing();
     }
   }
 
@@ -273,15 +241,59 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
     // TODO: When is this called? How do I update my configuration?
   }
 
+  // ---- Implements RenderContext ----
+
+  @Nullable
+  public Configuration getConfiguration() {
+    return myConfiguration;
+  }
+
+  @Override
+  public void requestRender() {
+    if (myFile != null) {
+      myToolWindowManager.render();
+    }
+  }
+
+  @NotNull
+  public UsageType getType() {
+    return UsageType.XML_PREVIEW;
+  }
+
+  @Nullable
+  @Override
+  public XmlFile getXmlFile() {
+    return (XmlFile)myFile;
+  }
+
+  @Nullable
+  @Override
+  public VirtualFile getVirtualFile() {
+    return myFile != null ? myFile.getVirtualFile() : null;
+  }
+
+  @NotNull
+  @Override
+  public Module getModule() {
+    if (myFile != null) {
+      final AndroidFacet facet = AndroidFacet.getInstance(myFile);
+      if (facet != null) {
+        return facet.getModule();
+      }
+    }
+
+    return null;
+  }
+
   // ---- Implements ConfigurationListener ----
+
   @Override
   public boolean changed(int flags) {
-    saveState(myConfiguration);
+    saveState();
     myToolWindowManager.render();
 
     return true;
   }
-
 
   private class ZoomInAction extends AnAction {
     ZoomInAction() {

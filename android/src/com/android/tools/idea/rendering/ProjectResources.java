@@ -22,6 +22,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.io.IAbstractFile;
 import com.android.io.IAbstractFolder;
 import com.android.io.IAbstractResource;
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.util.Pair;
 import com.google.common.collect.Sets;
@@ -113,6 +114,16 @@ public class ProjectResources extends ResourceRepository implements Disposable {
     // TODO: Register with Disposer.register
   }
 
+  @Nullable
+  public static ProjectResources get(@NotNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet != null) {
+      return facet.getProjectResources();
+    }
+
+    return null;
+  }
+
   @Override
   public void dispose() {
     PsiManager.getInstance(myModule.getProject()).addPsiTreeChangeListener(myListener);
@@ -157,12 +168,13 @@ public class ProjectResources extends ResourceRepository implements Disposable {
 
   @NotNull
   @Override
-  protected ResourceItem createResourceItem(String name) {
+  protected ResourceItem createResourceItem(@NonNull String name) {
     return new ResourceItem(name);
   }
 
+  @NonNull
   @Override
-  public Map<ResourceType, Map<String, ResourceValue>> getConfiguredResources(FolderConfiguration referenceConfig) {
+  public Map<ResourceType, Map<String, ResourceValue>> getConfiguredResources(@NonNull FolderConfiguration referenceConfig) {
     if (!ensureInitialized()) {
       syncDirtyFiles();
     }
@@ -189,7 +201,6 @@ public class ProjectResources extends ResourceRepository implements Disposable {
     if (!myDeletedFiles.isEmpty()) {
       // First process
       for (File file : myDeletedFiles) {
-        myChangedFiles.remove(file);
         ResourceFile resourceFile = findResourceFile(file);
         if (resourceFile != null) {
           ResourceFolder folder = resourceFile.getFolder();
@@ -446,6 +457,26 @@ public class ProjectResources extends ResourceRepository implements Disposable {
     }
 
     return super.getRegions(currentLanguage);
+  }
+
+  @Override
+  @com.android.annotations.Nullable
+  public ResourceFile getMatchingFile(@NonNull String name, @NonNull ResourceType type, @NonNull FolderConfiguration config) {
+    if (!ensureInitialized()) {
+      syncDirtyFiles();
+    }
+
+    return super.getMatchingFile(name, type, config);
+  }
+
+  @com.android.annotations.Nullable
+  @Override
+  public ResourceFile getMatchingFile(@NonNull String name, @NonNull ResourceFolderType type, @NonNull FolderConfiguration config) {
+    if (!ensureInitialized()) {
+      syncDirtyFiles();
+    }
+
+    return super.getMatchingFile(name, type, config);
   }
 
   private static class NullFolderWrapper implements IAbstractFolder {
