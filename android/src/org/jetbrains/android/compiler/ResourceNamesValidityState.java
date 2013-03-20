@@ -48,7 +48,7 @@ public class ResourceNamesValidityState implements ValidityState {
     myAndroidTargetHashString = target != null ? target.hashString() : "";
 
     final VirtualFile manifestFile = AndroidRootUtil.getManifestFile(facet);
-    myManifestTimestamp = manifestFile != null ? manifestFile.getModificationStamp() : -1;
+    myManifestTimestamp = manifestFile != null ? manifestFile.getTimeStamp() : -1;
 
     final LocalResourceManager manager = facet.getLocalResourceManager();
 
