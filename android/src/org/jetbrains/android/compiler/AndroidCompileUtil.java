@@ -31,11 +31,13 @@ import com.intellij.openapi.compiler.options.ExcludeEntryDescription;
 import com.intellij.openapi.compiler.options.ExcludedEntriesConfiguration;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.Extensions;
+import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.impl.ModifiableModelCommitter;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
@@ -945,5 +947,39 @@ public class AndroidCompileUtil {
     return manifest != null
            ? manifest.getPackage().getStringValue()
            : null;
+  }
+
+  public static void createGenModulesAndSourceRoots(@NotNull Project project, @NotNull Collection<AndroidFacet> facets) {
+    if (project.isDisposed()) {
+      return;
+    }
+    final List<ModifiableRootModel> modelsToCommit = new ArrayList<ModifiableRootModel>();
+
+    for (final AndroidFacet facet : facets) {
+      final Module module = facet.getModule();
+
+      if (module.isDisposed()) {
+        continue;
+      }
+      final ModifiableRootModel model = ModuleRootManager.getInstance(module).getModifiableModel();
+
+      if (createGenModulesAndSourceRoots(facet, model)) {
+        modelsToCommit.add(model);
+      }
+      else {
+        model.dispose();
+      }
+    }
+    if (modelsToCommit.size() == 0) {
+      return;
+    }
+    final ModifiableModuleModel moduleModel = ModuleManager.getInstance(project).getModifiableModel();
+
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        ModifiableModelCommitter.multiCommit(modelsToCommit.toArray(new ModifiableRootModel[modelsToCommit.size()]), moduleModel);
+      }
+    });
   }
 }
