@@ -25,9 +25,18 @@ import java.util.List;
  */
 public class RootView extends com.intellij.designer.designSurface.RootView {
   private List<EmptyRegion> myEmptyRegions;
+  private boolean myAlphaChannelImage;
 
   public RootView(int x, int y, BufferedImage image) {
     super(x, y, image);
+  }
+
+  public boolean isAlphaChannelImage() {
+    return myAlphaChannelImage;
+  }
+
+  public void setAlphaChannelImage(boolean alphaChannelImage) {
+    myAlphaChannelImage = alphaChannelImage;
   }
 
   @Override
