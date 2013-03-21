@@ -30,8 +30,8 @@
 
   <editor background-url="/idea_logo_background.png"/>
 
-  <update-urls check="http://www.jetbrains.com/updates/updates.xml"
-               patches="http://download.jetbrains.com/idea/"/>
+  <update-urls check="http://dl-sdk.appspot.com/diamond/updates/updates.xml"
+               patches="http://dl-sdk.appspot.com/diamond/download/idea/"/>
 
   <help file="ideahelp.jar" root="idea"/>
   <documentation url="http://www.jetbrains.com/idea/documentation"/>
@@ -45,4 +45,8 @@
 
   <plugins-page category="VCS Integration" title="Select VCS Integration Plugins"/>
   <plugins-page title="Select Other Plugins"/>
+
+  <statistics settings="http://dl-sdk.appspot.com/diamond/idea/statistics/stat-assistant.xml"
+              service="http://dl-sdk.appspot.com/diamond/idea/statistics/index.jsp"/>
+
 </component>
