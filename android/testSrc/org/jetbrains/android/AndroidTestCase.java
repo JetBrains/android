@@ -17,6 +17,7 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
+import com.android.utils.NullLogger;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
@@ -39,7 +40,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
-import org.jetbrains.android.sdk.EmptySdkLog;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -276,7 +276,7 @@ public abstract class AndroidTestCase extends UsefulTestCase {
     sdkModificator.addRoot(resFolder, OrderRootType.CLASSES);
 
     AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(sdk);
-    AndroidSdkData sdkData = AndroidSdkData.parse(sdkPath, new EmptySdkLog());
+    AndroidSdkData sdkData = AndroidSdkData.parse(sdkPath, NullLogger.getLogger());
     data.setBuildTarget(sdkData.findTargetByName("Android 4.2"));
     sdkModificator.setSdkAdditionalData(data);
     sdkModificator.commitChanges();

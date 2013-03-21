@@ -16,6 +16,7 @@
 package org.jetbrains.android.sdk;
 
 import com.android.sdklib.IAndroidTarget;
+import com.android.utils.NullLogger;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModel;
 import com.intellij.openapi.projectRoots.SdkModificator;
@@ -142,7 +143,7 @@ class AndroidSdkConfigurableForm {
     }
 
     mySdkLocation = androidSdk != null ? androidSdk.getHomePath() : null;
-    AndroidSdkData androidSdkData = mySdkLocation != null ? AndroidSdkData.parse(mySdkLocation, new EmptySdkLog()) : null;
+    AndroidSdkData androidSdkData = mySdkLocation != null ? AndroidSdkData.parse(mySdkLocation, NullLogger.getLogger()) : null;
 
     myFreeze = true;
     updateBuildTargets(androidSdkData, buildTarget);
