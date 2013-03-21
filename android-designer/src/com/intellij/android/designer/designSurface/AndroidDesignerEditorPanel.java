@@ -28,7 +28,10 @@ import com.intellij.android.designer.profile.ProfileManager;
 import com.intellij.designer.DesignerEditor;
 import com.intellij.designer.DesignerToolWindowManager;
 import com.intellij.designer.componentTree.TreeComponentDecorator;
-import com.intellij.designer.designSurface.*;
+import com.intellij.designer.designSurface.ComponentDecorator;
+import com.intellij.designer.designSurface.DesignerEditorPanel;
+import com.intellij.designer.designSurface.EditOperation;
+import com.intellij.designer.designSurface.EditableArea;
 import com.intellij.designer.designSurface.selection.NonResizeSelectionDecorator;
 import com.intellij.designer.designSurface.tools.ComponentCreationFactory;
 import com.intellij.designer.designSurface.tools.ComponentPasteFactory;
@@ -690,7 +693,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
       @NotNull
       @Override
       public RadComponent create() throws Exception {
-        RadViewComponent component = ModelParser.createComponent(null, ((DefaultPaletteItem)paletteItem).getMetaModel());
+        RadViewComponent component = ModelParser.createComponent(null, paletteItem.getMetaModel());
         if (component instanceof IConfigurableComponent) {
           ((IConfigurableComponent)component).configure(myRootComponent);
         }
