@@ -36,10 +36,10 @@
   <help file="ideahelp.jar" root="idea"/>
   <documentation url="http://www.jetbrains.com/idea/documentation"/>
   <support url="http://www.jetbrains.com/support/idea/index.html"/>
-  <feedback eap-url="http://youtrack.jetbrains.net"
+  <feedback eap-url="http://b.corp.google.com/createIssue?component=87304"
             release-url="http://www.jetbrains.com/feedback/feedback.jsp?product=IDEA&amp;build=$BUILD&amp;timezone=$TIMEZONE&amp;eval=$EVAL"/>
   <plugins url="http://plugins.intellij.net"/>
-  <whatsnew url="http://www.jetbrains.com/idea/whatsnew/index.html"/>
+  <whatsnew url="https://sites.google.com/a/google.com/android-sdk/Home/android-ide/whats-new"/>
   <keymap win="http://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard.pdf"
           mac="http://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard_Mac.pdf"/>
 
