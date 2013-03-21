@@ -1,6 +1,5 @@
 package org.jetbrains.android.intentions;
 
-import com.intellij.codeInsight.template.TemplateManager;
 import com.intellij.codeInsight.template.impl.TemplateManagerImpl;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationManager;
@@ -26,13 +25,7 @@ public class AndroidAddStringResourceActionTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    ((TemplateManagerImpl)TemplateManager.getInstance(getProject())).setTemplateTesting(true);
-  }
-
-  @Override
-  public void tearDown() throws Exception {
-    ((TemplateManagerImpl)TemplateManager.getInstance(getProject())).setTemplateTesting(false);
-    super.tearDown();
+    TemplateManagerImpl.setTemplateTesting(getProject(), getTestRootDisposable());
   }
 
   public void test1() throws IOException {
