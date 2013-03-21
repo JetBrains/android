@@ -16,6 +16,7 @@
 package org.jetbrains.android.maven;
 
 import com.android.sdklib.IAndroidTarget;
+import com.android.utils.NullLogger;
 import com.intellij.facet.FacetType;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.notification.Notification;
@@ -723,7 +724,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
         return null;
       }
 
-      AndroidSdkData sdkData = AndroidSdkData.parse(sdkPath, new EmptySdkLog());
+      AndroidSdkData sdkData = AndroidSdkData.parse(sdkPath, NullLogger.getLogger());
       if (sdkData != null) {
         IAndroidTarget target = sdkData.findTargetByApiLevel(apiLevel);
         if (target != null) {

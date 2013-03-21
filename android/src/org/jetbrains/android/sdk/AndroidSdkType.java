@@ -17,6 +17,7 @@ package org.jetbrains.android.sdk;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.utils.NullLogger;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.projectRoots.impl.JavaDependentSdkType;
@@ -75,7 +76,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
 
   @Override
   public boolean isValidSdkHome(String path) {
-    return AndroidCommonUtils.createSdkManager(path, new EmptySdkLog()) != null;
+    return AndroidCommonUtils.createSdkManager(path, NullLogger.getLogger()) != null;
   }
 
   @Override

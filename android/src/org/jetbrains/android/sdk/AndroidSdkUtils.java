@@ -24,6 +24,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
 import com.android.utils.ILogger;
+import com.android.utils.NullLogger;
 import com.android.utils.StdLogger;
 import com.intellij.execution.process.OSProcessHandler;
 import com.intellij.execution.process.OSProcessManager;
@@ -440,7 +441,7 @@ public class AndroidSdkUtils {
   }
 
   private static boolean tryToCreateAndSetAndroidSdk(@NotNull Module module, @NotNull String baseDir, @NotNull String targetHashString) {
-    final AndroidSdkData sdkData = AndroidSdkData.parse(baseDir, new EmptySdkLog());
+    final AndroidSdkData sdkData = AndroidSdkData.parse(baseDir, NullLogger.getLogger());
     if (sdkData != null) {
       final IAndroidTarget target = sdkData.findTargetByHashString(targetHashString);
       if (target != null) {
@@ -490,7 +491,7 @@ public class AndroidSdkUtils {
       final String homePath = library.getHomePath();
 
       if (homePath != null && library.getSdkType().equals(AndroidSdkType.getInstance())) {
-        final AndroidSdkData sdkData1 = AndroidSdkData.parse(homePath, new EmptySdkLog());
+        final AndroidSdkData sdkData1 = AndroidSdkData.parse(homePath, NullLogger.getLogger());
 
         if (sdkData1 != null && sdkData1.equals(sdkData)) {
           final AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)library.getSdkAdditionalData();
