@@ -28,6 +28,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
@@ -258,7 +259,17 @@ public abstract class AndroidTestCase extends UsefulTestCase {
     SdkModificator sdkModificator = sdk.getSdkModificator();
     sdkModificator.setHomePath(sdkPath);
 
-    VirtualFile androidJar = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/platforms/" + platformDir + "/android.jar");
+    VirtualFile androidJar;
+    if (platformDir.equals(getDefaultPlatformDir())) {
+      // Compatibility: the unit tests were using android.jar outside the sdk1.5 install;
+      // we need to use that one, rather than the real one in sdk1.5, in order for the
+      // tests to pass. Longer term, we should switch the unit tests over to all using
+      // a valid SDK.
+      String androidJarPath = sdkPath + "/../android.jar!/";
+      androidJar = JarFileSystem.getInstance().findFileByPath(androidJarPath);
+    } else {
+      androidJar = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/platforms/" + platformDir + "/android.jar");
+    }
     sdkModificator.addRoot(androidJar, OrderRootType.CLASSES);
 
     VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/platforms/" + platformDir + "/data/res");
