@@ -15,6 +15,7 @@
  */
 package com.intellij.android.designer.propertyTable.renderers;
 
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.android.designer.model.ModelParser;
 import com.intellij.designer.ModuleProvider;
 import com.intellij.designer.model.PropertiesContainer;
@@ -118,7 +119,7 @@ public class ResourceRenderer extends AbstractResourceRenderer<String> {
       }
       if (myFormats.contains(AttributeFormat.Color) && value.startsWith("#")) {
         try {
-          Color color = parseColor(value);
+          Color color = ResourceHelper.parseColor(value);
           if (color != null) {
             myColorIcon.setColor(color);
             myColoredComponent.setIcon(myColorIcon);
@@ -155,53 +156,6 @@ public class ResourceRenderer extends AbstractResourceRenderer<String> {
       }
     }
     return SimpleTextAttributes.REGULAR_ATTRIBUTES;
-  }
-
-  @Nullable
-  public static Color parseColor(String value) {
-    if (value == null || !value.startsWith("#")) {
-      return null;
-    }
-    switch (value.length() - 1) {
-      case 3:  // #RGB
-        return parseColor(value, 1, false);
-      case 4:  // #ARGB
-        return parseColor(value, 1, true);
-      case 6:  // #RRGGBB
-        return parseColor(value, 2, false);
-      case 8:  // #AARRGGBB
-        return parseColor(value, 2, true);
-      default:
-        return null;
-    }
-  }
-
-  private static Color parseColor(String value, int size, boolean isAlpha) {
-    int alpha = 255;
-    int offset = 1;
-
-    if (isAlpha) {
-      alpha = parseInt(value, offset, size);
-      offset += size;
-    }
-
-    int red = parseInt(value, offset, size);
-    offset += size;
-
-    int green = parseInt(value, offset, size);
-    offset += size;
-
-    int blue = parseInt(value, offset, size);
-
-    return new Color(red, green, blue, alpha);
-  }
-
-  private static int parseInt(String value, int offset, int size) {
-    String number = value.substring(offset, offset + size);
-    if (size == 1) {
-      number += number;
-    }
-    return Integer.parseInt(number, 16);
   }
 
   @Override
