@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.compiler.tools;
 
+import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
@@ -31,6 +32,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -150,7 +152,12 @@ public final class AndroidApt {
     throws IOException {
     final List<String> args = new ArrayList<String>();
 
-    args.add(target.getPath(IAndroidTarget.AAPT));
+    BuildToolInfo buildToolInfo = target.getBuildToolInfo();
+    if (buildToolInfo == null) {
+      return Collections.singletonMap(AndroidCompilerMessageKind.ERROR, Collections.singletonList("No Build Tools in the Android SDK."));
+    }
+
+    args.add(buildToolInfo.getPath(BuildToolInfo.PathId.AAPT));
     args.add("package");
     args.add("-m");
 
@@ -208,10 +215,14 @@ public final class AndroidApt {
   public static Map<AndroidCompilerMessageKind, List<String>> crunch(@NotNull IAndroidTarget target,
                                                                      @NotNull List<String> resPaths,
                                                                      @NotNull String outputPath) throws IOException {
+    BuildToolInfo buildToolInfo = target.getBuildToolInfo();
+    if (buildToolInfo == null) {
+      return Collections.singletonMap(AndroidCompilerMessageKind.ERROR, Collections.singletonList("No Build Tools in the Android SDK."));
+    }
+
     final ArrayList<String> args = new ArrayList<String>();
 
-    //noinspection deprecation
-    args.add(target.getPath(IAndroidTarget.AAPT));
+    args.add(buildToolInfo.getPath(BuildToolInfo.PathId.AAPT));
 
     args.add(COMMAND_CRUNCH);
 
@@ -256,10 +267,14 @@ public final class AndroidApt {
       }
     }
 
+    BuildToolInfo buildToolInfo = target.getBuildToolInfo();
+    if (buildToolInfo == null) {
+      return Collections.singletonMap(AndroidCompilerMessageKind.ERROR, Collections.singletonList("No Build Tools in the Android SDK."));
+    }
+
     final ArrayList<String> args = new ArrayList<String>();
 
-    //noinspection deprecation
-    args.add(target.getPath(IAndroidTarget.AAPT));
+    args.add(buildToolInfo.getPath(BuildToolInfo.PathId.AAPT));
 
     args.add(COMMAND_PACKAGE);
 

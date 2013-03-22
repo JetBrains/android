@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.compiler.tools;
 
+import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.CommandLineBuilder;
@@ -36,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -56,6 +58,11 @@ public class AndroidDxWrapper {
                                                                       @NotNull String additionalVmParams,
                                                                       int maxHeapSize,
                                                                       boolean optimize) {
+    BuildToolInfo buildToolInfo = target.getBuildToolInfo();
+    if (buildToolInfo == null) {
+      return Collections.singletonMap(AndroidCompilerMessageKind.ERROR, Collections.singletonList("No Build Tools in the Android SDK."));
+    }
+
     String outFile = outputDir + File.separatorChar + AndroidCommonUtils.CLASSES_FILE_NAME;
 
     final Map<AndroidCompilerMessageKind, List<String>> messages = new HashMap<AndroidCompilerMessageKind, List<String>>(2);
@@ -63,9 +70,7 @@ public class AndroidDxWrapper {
     messages.put(AndroidCompilerMessageKind.INFORMATION, new ArrayList<String>());
     messages.put(AndroidCompilerMessageKind.WARNING, new ArrayList<String>());
 
-    @SuppressWarnings("deprecation")
-    String dxJarPath = target.getPath(IAndroidTarget.DX_JAR);
-
+    String dxJarPath = buildToolInfo.getPath(BuildToolInfo.PathId.DX_JAR);
     File dxJar = new File(dxJarPath);
     if (!dxJar.isFile()) {
       messages.get(AndroidCompilerMessageKind.ERROR).add(AndroidBundle.message("android.file.not.exist.error", dxJarPath));

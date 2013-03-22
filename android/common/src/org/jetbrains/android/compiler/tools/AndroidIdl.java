@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.compiler.tools;
 
+import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ArrayUtil;
@@ -25,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -44,10 +46,15 @@ public final class AndroidIdl {
                                                                       @NotNull String file,
                                                                       @NotNull String outFile,
                                                                       @NotNull String[] sourceRootPaths) throws IOException {
+    BuildToolInfo buildToolInfo = target.getBuildToolInfo();
+    if (buildToolInfo == null) {
+      return Collections.singletonMap(AndroidCompilerMessageKind.ERROR, Collections.singletonList("No Build Tools in the Android SDK."));
+    }
+
     final List<String> commands = new ArrayList<String>();
     final String frameworkAidlPath = target.getPath(IAndroidTarget.ANDROID_AIDL);
 
-    commands.add(target.getPath(IAndroidTarget.AIDL));
+    commands.add(buildToolInfo.getPath(BuildToolInfo.PathId.AIDL));
     commands.add("-p" + frameworkAidlPath);
 
     for (String path : sourceRootPaths) {

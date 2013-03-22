@@ -15,7 +15,7 @@
  */
 package org.jetbrains.jps.android;
 
-import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.BuildToolInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
@@ -226,8 +226,12 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
                                 @NotNull CompileContext context,
                                 @NotNull JpsModule module,
                                 @NotNull BuildOutputConsumer outputConsumer) throws IOException {
-    @SuppressWarnings("deprecation")
-    final String dxJarPath = FileUtil.toSystemDependentName(platform.getTarget().getPath(IAndroidTarget.DX_JAR));
+    BuildToolInfo buildToolInfo = platform.getTarget().getBuildToolInfo();
+    if (buildToolInfo == null) {
+      return false;
+    }
+
+    final String dxJarPath = FileUtil.toSystemDependentName(buildToolInfo.getPath(BuildToolInfo.PathId.DX_JAR));
     final AndroidBuildTestingManager testingManager = AndroidBuildTestingManager.getTestingManager();
 
     final File dxJar = new File(dxJarPath);
