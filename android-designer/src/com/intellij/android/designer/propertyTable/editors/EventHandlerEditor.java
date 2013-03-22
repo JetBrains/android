@@ -29,6 +29,7 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.dom.converters.OnClickConverter;
+import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

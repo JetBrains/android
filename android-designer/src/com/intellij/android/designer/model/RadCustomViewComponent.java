@@ -16,7 +16,6 @@
 package com.intellij.android.designer.model;
 
 import com.intellij.android.designer.propertyTable.CustomViewProperty;
-import com.intellij.android.designer.propertyTable.editors.ChooseClassDialog;
 import com.intellij.designer.ModuleProvider;
 import com.intellij.designer.componentTree.AttributeWrapper;
 import com.intellij.designer.model.*;
@@ -27,6 +26,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
+import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
