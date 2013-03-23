@@ -82,6 +82,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static com.android.tools.idea.configurations.ConfigurationListener.MASK_RENDERING;
+import static com.android.tools.idea.rendering.RenderErrorPanel.SIZE_ERROR_PANEL_DYNAMICALLY;
 import static com.intellij.designer.designSurface.ZoomType.FIT_INTO;
 
 /**
@@ -1067,6 +1068,8 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
    */
   private static class MyRenderPanelWrapper extends JPanel {
     private final RenderErrorPanel myErrorPanel;
+    private int myErrorPanelHeight = -1;
+
     public MyRenderPanelWrapper(@NotNull RenderErrorPanel errorPanel) {
       super(new BorderLayout());
       myErrorPanel = errorPanel;
@@ -1088,7 +1091,24 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     private void positionErrorPanel() {
       int height = getHeight();
       int width = getWidth();
-      int size = height / 2;
+      int size;
+      if (SIZE_ERROR_PANEL_DYNAMICALLY) {
+        if (myErrorPanelHeight == -1) {
+          // Make the layout take up to 3/4ths of the height, and at least 1/4th, but
+          // anywhere in between based on what the actual text requires
+          size = height * 3 / 4;
+          int preferredHeight = myErrorPanel.getPreferredHeight(width) + 8;
+          if (preferredHeight < size) {
+            size = Math.max(preferredHeight, Math.min(height / 4, size));
+            myErrorPanelHeight = size;
+          }
+        } else {
+          size = myErrorPanelHeight;
+        }
+      } else {
+        size = height / 2;
+      }
+
       myErrorPanel.setSize(width, size);
       myErrorPanel.setLocation(0, height - size);
     }

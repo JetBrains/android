@@ -92,6 +92,7 @@ import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
  * to show render errors instead
  */
 public class RenderErrorPanel extends JPanel {
+  public static final boolean SIZE_ERROR_PANEL_DYNAMICALLY = true;
   private static final int ERROR_PANEL_OPACITY = UIUtil.isUnderDarcula() ? 224 : 208; // out of 255
 
   private JEditorPane myHTMLViewer;
@@ -200,6 +201,10 @@ public class RenderErrorPanel extends JPanel {
       background = new Color(background.getRed(), background.getGreen(), background.getBlue(), ERROR_PANEL_OPACITY);
       myHTMLViewer.setBackground(background);
     }
+  }
+
+  public int getPreferredHeight(int width) {
+    return myHTMLViewer.getPreferredSize().height;
   }
 
   private String generateHtml(@NotNull RenderResult result) {
