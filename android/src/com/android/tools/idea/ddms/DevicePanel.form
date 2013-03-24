@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.android.tools.idea.ddms.DevicePanel">
+  <grid id="27dc6" binding="myPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
+    <constraints>
+      <xy x="20" y="20" width="290" height="397"/>
+    </constraints>
+    <properties/>
+    <border type="none"/>
+    <children>
+      <component id="9e789" class="javax.swing.JComboBox" binding="myDevicesComboBox" default-binding="true">
+        <constraints border-constraint="North"/>
+        <properties/>
+      </component>
+      <scrollpane id="d2533" class="com.intellij.ui.components.JBScrollPane">
+        <constraints border-constraint="Center"/>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <component id="9ec00" class="com.intellij.ui.components.JBList" binding="myClientsList">
+            <constraints/>
+            <properties>
+              <model/>
+            </properties>
+          </component>
+        </children>
+      </scrollpane>
+    </children>
+  </grid>
+</form>

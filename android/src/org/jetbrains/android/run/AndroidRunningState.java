@@ -62,7 +62,7 @@ import com.intellij.xdebugger.DefaultDebugProcessHandler;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.AvdsNotSupportedException;
-import org.jetbrains.android.logcat.AndroidLogcatToolWindowFactory;
+import org.jetbrains.android.logcat.AndroidToolWindowFactory;
 import org.jetbrains.android.logcat.AndroidLogcatUtil;
 import org.jetbrains.android.logcat.AndroidLogcatView;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -755,7 +755,8 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     ApplicationManager.getApplication().invokeAndWait(new Runnable() {
       @Override
       public void run() {
-        final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(AndroidLogcatToolWindowFactory.TOOL_WINDOW_ID);
+        final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(
+          AndroidToolWindowFactory.TOOL_WINDOW_ID);
         if (toolWindow == null) {
           result[0] = false;
           return;
