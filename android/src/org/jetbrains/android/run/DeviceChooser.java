@@ -50,7 +50,10 @@ import static com.intellij.openapi.util.text.StringUtil.capitalize;
  * @author Eugene.Kudelevsky
  */
 public class DeviceChooser implements Disposable {
-  private static final String[] COLUMN_TITLES = new String[]{"Serial Number", "AVD name", "State", "Compatible"};
+  private static final String[] COLUMN_TITLES = new String[]{"Manufacturer", "Model", "Serial Number", "State", "Compatible"};
+  private static final int SERIAL_COLUMN_INDEX = 2;
+  private static final int COMPATIBILITY_COLUMN_INDEX = 4;
+
   public static final IDevice[] EMPTY_DEVICE_ARRAY = new IDevice[0];
 
   private final List<DeviceChooserListener> myListeners = new ArrayList<DeviceChooserListener>();
@@ -196,7 +199,7 @@ public class DeviceChooser implements Disposable {
     List<IDevice> result = new ArrayList<IDevice>();
     for (int row : rows) {
       if (row >= 0) {
-        Object serial = myDeviceTable.getValueAt(row, 0);
+        Object serial = myDeviceTable.getValueAt(row, SERIAL_COLUMN_INDEX);
         final AndroidDebugBridge bridge = myFacet.getDebugBridge();
         if (bridge == null) {
           return EMPTY_DEVICE_ARRAY;
@@ -285,20 +288,32 @@ public class DeviceChooser implements Disposable {
       IDevice device = myDevices[rowIndex];
       switch (columnIndex) {
         case 0:
-          return device.getSerialNumber();
+          return safeGetProperty(device, IDevice.PROP_DEVICE_MANUFACTURER);
         case 1:
-          return device.getAvdName();
+          return device.isEmulator() ? device.getAvdName()
+                                     : safeGetProperty(device, IDevice.PROP_DEVICE_MODEL);
         case 2:
-          return getDeviceState(device);
+          return device.getSerialNumber();
         case 3:
+          return getDeviceState(device);
+        case 4:
           return myFacet.isCompatibleDevice(device);
       }
       return null;
     }
 
+    private String safeGetProperty(IDevice device, String property) {
+      try {
+        return device.getPropertyCacheOrSync(property);
+      }
+      catch (Exception e) {
+        return "";
+      }
+    }
+
     @Override
     public Class<?> getColumnClass(int columnIndex) {
-      if (columnIndex == 3) {
+      if (columnIndex == COMPATIBILITY_COLUMN_INDEX) {
         return Boolean.class;
       }
       return String.class;
