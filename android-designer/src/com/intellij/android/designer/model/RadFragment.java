@@ -18,13 +18,13 @@ package com.intellij.android.designer.model;
 import com.intellij.android.designer.propertyTable.FragmentProperty;
 import com.intellij.android.designer.propertyTable.IdProperty;
 import com.intellij.android.designer.propertyTable.JavadocParser;
-import com.intellij.android.designer.propertyTable.editors.ChooseClassDialog;
 import com.intellij.android.designer.propertyTable.editors.ResourceEditor;
 import com.intellij.designer.ModuleProvider;
 import com.intellij.designer.model.Property;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.propertyTable.editors.TextEditorWrapper;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
+import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
