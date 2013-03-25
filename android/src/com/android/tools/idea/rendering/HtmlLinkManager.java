@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.resources.ResourceType;
 import com.android.sdklib.util.SparseArray;
+import com.android.tools.idea.configurations.RenderContext;
+import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.codeInsight.daemon.impl.quickfix.CreateClassKind;
 import com.intellij.codeInsight.intention.impl.CreateClassDialog;
 import com.intellij.compiler.actions.CompileDirtyAction;
@@ -25,6 +28,7 @@ import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -38,22 +42,35 @@ import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.PsiNavigateUtil;
+import org.jetbrains.android.inspections.lint.SuppressLintIntentionAction;
+import org.jetbrains.android.uipreview.ChooseClassDialog;
+import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.SdkConstants.CLASS_VIEW;
+import javax.swing.*;
+import java.util.Collection;
+
+import static com.android.SdkConstants.*;
 
 public class HtmlLinkManager {
   private static final String URL_EDIT_CLASSPATH = "action:classpath";
   private static final String URL_BUILD = "action:build";
-  private static final String URL_SHOW_XML = "action:showxml";
+  private static final String URL_SHOW_XML = "action:showXml";
+  private static final String URL_ACTION_IGNORE_FRAGMENTS = "action:ignoreFragment";
   private static final String URL_RUNNABLE = "runnable:";
   private static final String URL_COMMAND = "command:";
   private static final String URL_REPLACE_TAGS = "replaceTags:";
+  private static final String URL_SHOW_TAG = "showTag:";
   private static final String URL_OPEN = "open:";
   private static final String URL_CREATE_CLASS = "createClass:";
   private static final String URL_OPEN_CLASS = "openClass:";
+  private static final String URL_ASSIGN_FRAGMENT_URL = "assignFragmentUrl:";
+  private static final String URL_ASSIGN_LAYOUT_URL = "assignLayoutUrl:";
 
   private SparseArray<Runnable> myLinkRunnables;
   private SparseArray<WriteCommandAction> myLinkCommands;
@@ -62,7 +79,8 @@ public class HtmlLinkManager {
   public HtmlLinkManager() {
   }
 
-  public void handleUrl(@NotNull String url, @Nullable Module module, @Nullable PsiFile file, @Nullable DataContext dataContext) {
+  public void handleUrl(@NotNull String url, @Nullable Module module, @Nullable PsiFile file, @Nullable DataContext dataContext,
+                        @Nullable RenderResult result) {
     if (url.startsWith("http:")) {
       UrlOpener.launchBrowser(null, url);
     } else if (url.startsWith(URL_REPLACE_TAGS)) {
@@ -87,6 +105,18 @@ public class HtmlLinkManager {
     } else if (url.equals(URL_SHOW_XML)) {
       assert module != null && file != null;
       handleShowXmlUrl(url, module, file);
+    } else if (url.startsWith(URL_SHOW_TAG)) {
+      assert module != null && file != null;
+      handleShowTagUrl(url, module, file);
+    } else if (url.startsWith(URL_ASSIGN_FRAGMENT_URL)) {
+      assert module != null && file != null;
+      handleAssignFragmentUrl(url, module, file);
+    } else if (url.startsWith(URL_ASSIGN_LAYOUT_URL)) {
+      assert module != null && file != null;
+      handleAssignLayoutUrl(url, module, file);
+    } else if (url.equals(URL_ACTION_IGNORE_FRAGMENTS)) {
+      assert result != null;
+      handleIgnoreFragments(url, result);
     } else if (url.startsWith(URL_RUNNABLE)) {
       Runnable linkRunnable = getLinkRunnable(url);
       if (linkRunnable != null) {
@@ -101,7 +131,6 @@ public class HtmlLinkManager {
       assert false : "Unexpected URL: " + url;
     }
   }
-
   public String createCommandLink(@NotNull WriteCommandAction command) {
     String url = URL_COMMAND + myNextLinkId;
     if (myLinkCommands == null) {
@@ -205,7 +234,40 @@ public class HtmlLinkManager {
 
   private static void handleShowXmlUrl(@NotNull String url, @NotNull Module module, @NotNull PsiFile file) {
     assert url.equals(URL_SHOW_XML) : url;
-    openEditor(module.getProject(), file, -1, -1);
+    openEditor(module.getProject(), file, 0, -1);
+  }
+
+  public String createShowTagUrl(String tag) {
+    return URL_SHOW_TAG + tag;
+  }
+
+  private static void handleShowTagUrl(@NotNull String url, @NotNull Module module, @NotNull final PsiFile file) {
+    assert url.startsWith(URL_SHOW_TAG) : url;
+    final String tagName = url.substring(URL_SHOW_TAG.length());
+    //PsiTreeUtil.findChildrenOfType(xmlFile, XmlTag.class);
+
+    XmlTag first = ApplicationManager.getApplication().runReadAction(new Computable<XmlTag>() {
+      @Override
+      @Nullable
+      public XmlTag compute() {
+        @SuppressWarnings("unchecked")
+        Collection<XmlTag> xmlTags = PsiTreeUtil.collectElementsOfType(file, XmlTag.class);
+        for (XmlTag tag : xmlTags) {
+          if (tagName.equals(tag.getName())) {
+            return tag;
+          }
+        }
+
+        return null;
+      }
+    });
+
+    if (first != null) {
+      PsiNavigateUtil.navigate(first);
+    } else {
+      // Fall back to just opening the editor
+      openEditor(module.getProject(), file, 0, -1);
+    }
   }
 
   public String createNewClassUrl(String className) {
@@ -255,7 +317,6 @@ public class HtmlLinkManager {
               if (extendsList != null) {
                 extendsList.add(superclassReference);
               }
-
 
               // Add constructor
               GlobalSearchScope scope = GlobalSearchScope.allScope(project);
@@ -393,5 +454,142 @@ public class HtmlLinkManager {
     }
 
     return false;
+  }
+
+  public String createAssignFragmentUrl(@Nullable String id) {
+    return URL_ASSIGN_FRAGMENT_URL + (id != null ? id : "");
+  }
+
+  private static void handleAssignFragmentUrl(@NotNull String url, @NotNull Module module, @NotNull final PsiFile file) {
+    assert url.startsWith(URL_ASSIGN_FRAGMENT_URL) : url;
+
+    ChooseClassDialog dialog =
+      new ChooseClassDialog(module, "Fragments", true, "android.app.Fragment", "android.support.v4.app.Fragment");
+    dialog.show();
+    if (!dialog.isOK()) {
+      return;
+    }
+    final String fragmentClass = dialog.getClassName();
+
+    int start = URL_ASSIGN_FRAGMENT_URL.length();
+    final String id;
+    if (start == url.length()) {
+      // No specific fragment identified; use the first one
+      id = null;
+    } else {
+      id = LintUtils.stripIdPrefix(url.substring(start));
+    }
+
+    WriteCommandAction<Void> action = new WriteCommandAction<Void>(module.getProject(), "Assign Fragment", file) {
+      @Override
+      protected void run(Result<Void> result) throws Throwable {
+        for (XmlTag tag : PsiTreeUtil.collectElementsOfType(file, XmlTag.class)) {
+          if (!tag.getName().equals(VIEW_FRAGMENT)) {
+            continue;
+          }
+
+          if (id != null) {
+            String tagId = tag.getAttributeValue(ATTR_ID, ANDROID_URI);
+            if (tagId == null || !tagId.endsWith(id) || !id.equals(LintUtils.stripIdPrefix(tagId))) {
+              continue;
+            }
+          }
+
+          tag.setAttribute(ATTR_NAME, ANDROID_URI, fragmentClass);
+          break;
+        }
+      }
+    };
+    action.execute();
+  }
+
+  public String createPickLayoutUrl(@NotNull String activityName) {
+    return URL_ASSIGN_LAYOUT_URL + activityName;
+  }
+
+  public String createAssignLayoutUrl(@NotNull String activityName, @NotNull String layout) {
+    return URL_ASSIGN_LAYOUT_URL + activityName + ':' + layout;
+  }
+
+  private static void handleAssignLayoutUrl(@NotNull String url, @NotNull final Module module, @NotNull final PsiFile file) {
+    assert url.startsWith(URL_ASSIGN_LAYOUT_URL) : url;
+    int start = URL_ASSIGN_LAYOUT_URL.length();
+    int layoutStart = url.indexOf(':', start + 1);
+    Project project = module.getProject();
+    XmlFile xmlFile = (XmlFile)file;
+    if (layoutStart == -1) {
+      // Only specified activity; pick it
+      String activityName = url.substring(start);
+      pickLayout(module, xmlFile, activityName);
+    } else {
+      // Set directory to specified layoutName
+      final String activityName = url.substring(start, layoutStart);
+      final String layoutName = url.substring(layoutStart + 1);
+      final String layout = LAYOUT_RESOURCE_PREFIX + layoutName;
+      assignLayout(project, xmlFile, activityName, layout);
+    }
+  }
+
+  private static void pickLayout(
+    @NotNull final Module module,
+    @NotNull final XmlFile file,
+    @NotNull final String activityName) {
+
+    ChooseResourceDialog dialog = new ChooseResourceDialog(module, new ResourceType[]{ResourceType.LAYOUT}, null, null) {
+      @NotNull
+      @Override
+      protected Action[] createLeftSideActions() {
+        return new Action[0];
+      }
+    };
+    dialog.show();
+
+    if (dialog.isOK()) {
+      String layout = dialog.getResourceName();
+      if (!layout.equals(LAYOUT_RESOURCE_PREFIX + file.getName())) {
+        assignLayout(module.getProject(), file, activityName, layout);
+      }
+    }
+  }
+
+  private static void assignLayout(
+    @NotNull final Project project,
+    @NotNull final XmlFile file,
+    @NotNull final String activityName,
+    @NotNull final String layout) {
+
+    WriteCommandAction<Void> action = new WriteCommandAction<Void>(project, "Assign Preview Layout", file) {
+      @Override
+      protected void run(Result<Void> result) throws Throwable {
+        SuppressLintIntentionAction.ensureNamespaceImported(getProject(), file, TOOLS_URI);
+        Collection<XmlTag> xmlTags = PsiTreeUtil.collectElementsOfType(file, XmlTag.class);
+        for (XmlTag tag : xmlTags) {
+          if (tag.getName().equals(VIEW_FRAGMENT) ) {
+            String name = tag.getAttributeValue(ATTR_CLASS);
+            if (name == null || name.isEmpty()) {
+              name = tag.getAttributeValue(ATTR_NAME, ANDROID_URI);
+            }
+            if (activityName.equals(name)) {
+              tag.setAttribute(ATTR_LAYOUT, TOOLS_URI, layout);
+            }
+          }
+        }
+      }
+    };
+    action.execute();
+  }
+
+  public String createIgnoreFragmentsUrl() {
+    return URL_ACTION_IGNORE_FRAGMENTS;
+  }
+
+  private void handleIgnoreFragments(@NotNull String url, @NotNull RenderResult result) {
+    assert url.equals(URL_ACTION_IGNORE_FRAGMENTS);
+    RenderLogger.ignoreFragments();
+    RenderService renderService = result.getRenderService();
+    RenderContext renderContext = renderService.getRenderContext();
+    if (renderContext != null) {
+      renderContext.requestRender();
+    }
   }
 }

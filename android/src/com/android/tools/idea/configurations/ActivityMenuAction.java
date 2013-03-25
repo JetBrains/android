@@ -24,10 +24,10 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 public class ActivityMenuAction extends FlatComboAction {
-  private final ConfigurationToolBar myConfigurationToolBar;
+  private final RenderContext myRenderContext;
 
-  public ActivityMenuAction(ConfigurationToolBar configurationToolBar) {
-    myConfigurationToolBar = configurationToolBar;
+  public ActivityMenuAction(RenderContext renderContext) {
+    myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
     presentation.setIcon(AllIcons.Nodes.Class);
     updatePresentation(presentation);
@@ -40,7 +40,7 @@ public class ActivityMenuAction extends FlatComboAction {
   }
 
   private void updatePresentation(Presentation presentation) {
-    Configuration configuration = myConfigurationToolBar.getConfiguration();
+    Configuration configuration = myRenderContext.getConfiguration();
     boolean visible = configuration != null;
     if (visible) {
       String activity = configuration.getActivity();

@@ -23,12 +23,11 @@ import com.android.tools.idea.rendering.LocaleManager;
 import com.android.tools.idea.rendering.ProjectResources;
 import com.google.common.base.Strings;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.ListPopup;
-import com.intellij.psi.PsiFile;
 import com.intellij.ui.awt.RelativePoint;
 import icons.AndroidIcons;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,10 +37,10 @@ import java.util.*;
 import java.util.List;
 
 public class LocaleMenuAction extends FlatComboAction {
-  private final ConfigurationToolBar myConfigurationToolBar;
+  private final RenderContext myRenderContext;
 
-  public LocaleMenuAction(ConfigurationToolBar configurationToolBar) {
-    myConfigurationToolBar = configurationToolBar;
+  public LocaleMenuAction(RenderContext renderContext) {
+    myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("Locale to render layout with in the IDE");
     updatePresentation(presentation);
@@ -73,20 +72,19 @@ public class LocaleMenuAction extends FlatComboAction {
     return group;
   }
 
+  @NotNull
   private List<Locale> getRelevantLocales() {
-    PsiFile file = myConfigurationToolBar.getFile();
-    if (file == null) {
-      return Collections.emptyList();
-    }
-
-    final AndroidFacet facet = AndroidFacet.getInstance(file);
-    if (facet == null) {
-      return Collections.emptyList();
-    }
-
     List<Locale> locales = new ArrayList<Locale>();
 
-    ProjectResources projectResources = facet.getProjectResources();
+    Configuration configuration = myRenderContext.getConfiguration();
+    if (configuration == null) {
+      return Collections.emptyList();
+    }
+    Module module = configuration.getConfigurationManager().getModule();
+    ProjectResources projectResources = ProjectResources.get(module);
+    if (projectResources == null) {
+      return locales;
+    }
     SortedSet<String> languages = projectResources.getLanguages();
     for (String language : languages) {
       LanguageQualifier languageQualifier = new LanguageQualifier(language);
@@ -101,6 +99,7 @@ public class LocaleMenuAction extends FlatComboAction {
     return locales;
   }
 
+  @NotNull
   private static List<Locale> getAllLocales() {
     Set<String> languageCodes = LocaleManager.getLanguageCodes();
     List<String> sorted = new ArrayList<String>(languageCodes);
@@ -120,7 +119,7 @@ public class LocaleMenuAction extends FlatComboAction {
   }
 
   private void updatePresentation(Presentation presentation) {
-    Configuration configuration = myConfigurationToolBar.getConfiguration();
+    Configuration configuration = myRenderContext.getConfiguration();
     boolean visible = configuration != null;
     if (visible) {
       Locale locale = configuration.getLocale();
@@ -276,7 +275,7 @@ public class LocaleMenuAction extends FlatComboAction {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-      Configuration configuration = myConfigurationToolBar.getConfiguration();
+      Configuration configuration = myRenderContext.getConfiguration();
       if (configuration != null) {
         configuration.setLocale(myLocale);
 

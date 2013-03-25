@@ -17,7 +17,9 @@
 package com.android.tools.idea.rendering;
 
 import com.android.resources.Density;
+import com.android.tools.idea.configurations.RenderContext;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.compiler.impl.javaCompiler.javac.JavacConfiguration;
 import com.intellij.ide.DataManager;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -71,10 +73,13 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.*;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
 import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_PREFIX;
 import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
+import static com.android.tools.idea.configurations.RenderContext.UsageType.LAYOUT_EDITOR;
 import static com.android.tools.idea.rendering.ResourceHelper.viewNeedsPackage;
 import static com.android.tools.lint.detector.api.LintUtils.editDistance;
 import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
@@ -87,7 +92,7 @@ import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
  * to show render errors instead
  */
 public class RenderErrorPanel extends JPanel {
-  private static final int ERROR_PANEL_OPACITY = 160; // out of 255
+  private static final int ERROR_PANEL_OPACITY = UIUtil.isUnderDarcula() ? 224 : 208; // out of 255
 
   private JEditorPane myHTMLViewer;
   private final HyperlinkListener myHyperLinkListener;
@@ -151,7 +156,7 @@ public class RenderErrorPanel extends JPanel {
           DataContext dataContext = DataManager.getInstance().getDataContext(RenderErrorPanel.this);
           assert dataContext != null;
 
-          myLinkManager.handleUrl(ref, module, file, dataContext);
+          myLinkManager.handleUrl(ref, module, file, dataContext, myResult);
         }
       }
     };
@@ -209,16 +214,17 @@ public class RenderErrorPanel extends JPanel {
     reportOldNinePathRenderLib(logger, builder, renderService);
     reportRelevantCompilationErrors(logger, builder, renderService);
     reportMissingSizeAttributes(logger, builder, renderService);
-    reportMissingClasses(logger, builder);
+    reportMissingClasses(logger, builder, renderService);
     reportBrokenClasses(logger, builder);
     reportInstantiationProblems(logger, builder);
     reportOtherProblems(logger, builder);
+    reportUnknownFragments(logger, builder);
     reportRenderingFidelityProblems(logger, builder);
 
     return "<HTML><BODY>" + builder.getHtml() + "</BODY></HTML>";
   }
 
-  private void reportMissingClasses(@NotNull RenderLogger logger, @NotNull HtmlBuilder builder) {
+  private void reportMissingClasses(@NotNull RenderLogger logger, @NotNull HtmlBuilder builder, @NotNull RenderService renderService) {
     Set<String> missingClasses = logger.getMissingClasses();
     if (missingClasses != null && !missingClasses.isEmpty()) {
       boolean missingResourceClass = logger.isMissingResourceClass() && logger.getResourceClass() != null && logger.hasLoadedClasses();
@@ -258,8 +264,11 @@ public class RenderErrorPanel extends JPanel {
 
         builder.addLink("Fix Build Path", myLinkManager.createEditClassPathUrl());
         builder.add(", ");
-        // TODO: This one shouldn't apply in the layout preview rendering; only in the layout editor!
-        builder.addLink("Edit XML", myLinkManager.createShowXmlUrl());
+
+        RenderContext renderContext = renderService.getRenderContext();
+        if (renderContext != null && renderContext.getType() == LAYOUT_EDITOR) {
+          builder.addLink("Edit XML", myLinkManager.createShowTagUrl(className));
+        }
 
         // Offer to create the class, but only if it looks like a custom view
         // TODO: Check to see if it looks like it's the name of a custom view and the
@@ -319,6 +328,85 @@ public class RenderErrorPanel extends JPanel {
           builder.add(", ");
         }
       }
+    }
+  }
+
+  private void reportUnknownFragments(@NotNull RenderLogger logger, @NotNull HtmlBuilder builder) {
+    List<String> fragmentNames = logger.getMissingFragments();
+    if (fragmentNames != null && !fragmentNames.isEmpty()) {
+
+      builder.add("A ").addHtml("<code>").add("<fragment>").addHtml("</code>").add(" tag allows a layout file to dynamically include " +
+                                                                                   "different layouts at runtime. ");
+      builder.add("At layout editing time the specific layout to be used is not known. You can choose which layout you would " +
+                  "like previewed while editing the layout.");
+      builder.beginList();
+
+      // TODO: Add link to not warn any more for this session
+
+      for (String className : fragmentNames) {
+        builder.listItem();
+        boolean isIdentified = className != null && !className.isEmpty();
+        boolean isActivityKnown = isIdentified && !className.startsWith(PREFIX_RESOURCE_REF);
+        if (isIdentified) {
+          builder.add("<fragment ");
+          builder.addBold(className);
+          builder.add(" ...>");
+        } else {
+          builder.add("<fragment>");
+        }
+        builder.add(" (");
+
+        if (isActivityKnown) {
+          // TODO: Look up layout references in the given layout, if possible
+          // Find activity class
+          // Look for R references in the layout
+          Module module = logger.getModule();
+          Project project = module.getProject();
+          GlobalSearchScope scope = GlobalSearchScope.allScope(project);
+          PsiClass clz = JavaPsiFacade.getInstance(project).findClass(className, scope);
+          String layoutName = myResult.getFile().getName();
+          boolean separate = false;
+          if (clz != null) {
+            // TODO: Should instead find all R.layout elements
+            // HACK AHEAD!
+            String matchText = clz.getText();
+            final Pattern LAYOUT_FIELD_PATTERN = Pattern.compile("R\\.layout\\.([a-z0-9_]+)"); //$NON-NLS-1$
+            Matcher matcher = LAYOUT_FIELD_PATTERN.matcher(matchText);
+            Set<String> layouts = Sets.newTreeSet();
+            int index = 0;
+            while (true) {
+              if (matcher.find(index)) {
+                layouts.add(matcher.group(1));
+                index = matcher.end();
+              } else {
+                break;
+              }
+            }
+            for (String layout : layouts) {
+              if (layout.equals(layoutName)) { // Don't include self
+                continue;
+              }
+              if (separate) {
+                builder.add(", ");
+              }
+              builder.addLink("Use @layout/" + layout, myLinkManager.createAssignLayoutUrl(className, layout));
+              separate = true;
+            }
+          }
+
+          if (separate) {
+            builder.add(", ");
+          }
+          builder.addLink("Pick Layout...", myLinkManager.createPickLayoutUrl(className));
+        } else {
+          builder.addLink("Choose Fragment Class...", myLinkManager.createAssignFragmentUrl(className));
+        }
+        builder.add(")");
+      }
+      builder.endList();
+      builder.newline();
+// TODO: URLs
+      builder.addLink("Do not warn about <fragment> tags in this session", myLinkManager.createIgnoreFragmentsUrl());
     }
   }
 
@@ -402,6 +490,12 @@ public class RenderErrorPanel extends JPanel {
             public void run() {
               assert false : "Need to look up the exact key to use for suppressing from now on!";
                 RenderLogger.ignoreFidelityWarning(clientData);
+              RenderService renderService = myResult.getRenderService();
+              RenderContext renderContext = renderService.getRenderContext();
+              if (renderContext != null) {
+                renderContext.requestRender();
+              }
+
             }
           }));
         }

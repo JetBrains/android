@@ -17,30 +17,28 @@ package com.android.tools.idea.configurations;
 
 import com.android.annotations.Nullable;
 import com.android.sdklib.devices.Device;
-import com.android.sdklib.devices.Screen;
+import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.internal.avd.AvdManager;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import icons.AndroidIcons;
-import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import static com.android.ide.common.rendering.HardwareConfigHelper.*;
 
 public class DeviceMenuAction extends FlatComboAction {
-  private static final String NEXUS = "Nexus";       //$NON-NLS-1$
-  private static final String GENERIC = "Generic";   //$NON-NLS-1$
-  private static final Pattern PATTERN = Pattern.compile("(\\d+\\.?\\d*)in (.+?)( \\(.*Nexus.*\\))?"); //$NON-NLS-1$
+  private final RenderContext myRenderContext;
 
-  private final ConfigurationToolBar myConfigurationToolBar;
-
-  public DeviceMenuAction(@NotNull ConfigurationToolBar configurationToolBar) {
-    myConfigurationToolBar = configurationToolBar;
+  public DeviceMenuAction(@NotNull RenderContext renderContext) {
+    myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("The virtual device to render the layout with");
     presentation.setIcon(AndroidIcons.Display);
@@ -54,7 +52,7 @@ public class DeviceMenuAction extends FlatComboAction {
   }
 
   private void updatePresentation(Presentation presentation) {
-    Configuration configuration = myConfigurationToolBar.getConfiguration();
+    Configuration configuration = myRenderContext.getConfiguration();
     boolean visible = configuration != null;
     if (visible) {
       String label = getDeviceLabel(configuration.getDevice(), true);
@@ -102,17 +100,33 @@ public class DeviceMenuAction extends FlatComboAction {
   @NotNull
   protected DefaultActionGroup createPopupActionGroup(JComponent button) {
     DefaultActionGroup group = new DefaultActionGroup(null, true);
-    Configuration configuration = myConfigurationToolBar.getConfiguration();
+    Configuration configuration = myRenderContext.getConfiguration();
     if (configuration == null) {
       return group;
     }
-    AndroidPlatform platform = myConfigurationToolBar.getPlatform();
-    if (platform == null) {
-      return group;
-    }
-
     Device current = configuration.getDevice();
-    List<Device> deviceList = configuration.getConfigurationManager().getDevices();
+    ConfigurationManager configurationManager = configuration.getConfigurationManager();
+    List<Device> deviceList = configurationManager.getDevices();
+
+    AndroidFacet facet = AndroidFacet.getInstance(configurationManager.getModule());
+    assert facet != null;
+    final AvdManager avdManager = facet.getAvdManagerSilently();
+    if (avdManager != null) {
+      boolean separatorNeeded = false;
+      for (AvdInfo avd : avdManager.getValidAvds()) {
+        Device device = configurationManager.createDeviceForAvd(avd);
+        if (device != null) {
+          String avdName = avd.getName();
+          boolean selected = current != null && current.getName().equals(avdName);
+          group.add(new SetDeviceAction(avdName, device, selected));
+          separatorNeeded = true;
+        }
+      }
+
+      if (separatorNeeded) {
+        group.addSeparator();
+      }
+    }
 
     // Group the devices by manufacturer, then put them in the menu.
     // If we don't have anything but Nexus devices, group them together rather than
@@ -141,7 +155,7 @@ public class DeviceMenuAction extends FlatComboAction {
         for (List<Device> devices : manufacturers.values()) {
           for (Device device : devices) {
             if (isNexus(device)) {
-              if (device.getManufacturer().equals(GENERIC)) {
+              if (device.getManufacturer().equals(MANUFACTURER_GENERIC)) {
                 generic.add(device);
               }
               else {
@@ -171,109 +185,24 @@ public class DeviceMenuAction extends FlatComboAction {
       }
     }
 
+    group.addSeparator();
+    group.add(new RunAndroidAvdManagerAction("Add Device Definition..."));
+
 // TODO: Add multiconfiguration editing
-//        @SuppressWarnings("unused")
-//        MenuItem separator = new MenuItem(menu, SWT.SEPARATOR);
+//    group.addSeparator();
 //
-//        ConfigurationMenuListener.addTogglePreviewModeAction(menu,
-//                "Preview All Screens", chooser, RenderPreviewMode.SCREENS);
+//      ConfigurationMenuListener.addTogglePreviewModeAction(menu,
+//              "Preview All Screens", chooser, RenderPreviewMode.SCREENS);
 //
 
     return group;
   }
 
-  private static String getNexusLabel(Device d) {
-    String name = d.getName();
-    Screen screen = d.getDefaultHardware().getScreen();
-    float length = (float)screen.getDiagonalLength();
-    return String.format(Locale.US, "%1$s (%3$s\", %2$s)", name, getResolutionString(d), Float.toString(length));
-  }
-
-  private static String getGenericLabel(Device d) {
-    // * Replace "'in'" with '"' (e.g. 2.7" QVGA instead of 2.7in QVGA)
-    // * Use the same precision for all devices (all but one specify decimals)
-    // * Add some leading space such that the dot ends up roughly in the
-    //   same space
-    // * Add in screen resolution and density
-    String name = d.getName();
-    if (name.equals("3.7 FWVGA slider")) {                        //$NON-NLS-1$
-      // Fix metadata: this one entry doesn't have "in" like the rest of them
-      name = "3.7in FWVGA slider";                              //$NON-NLS-1$
-    }
-
-    Matcher matcher = PATTERN.matcher(name);
-    if (matcher.matches()) {
-      String size = matcher.group(1);
-      String n = matcher.group(2);
-      int dot = size.indexOf('.');
-      if (dot == -1) {
-        size += ".0";
-        dot = size.length() - 2;
-      }
-      for (int i = 0; i < 2 - dot; i++) {
-        size = ' ' + size;
-      }
-      name = size + "\" " + n;
-    }
-
-    return String.format(Locale.US, "%1$s (%2$s)", name, getResolutionString(d));
-  }
-
-  @Nullable
-  private static String getResolutionString(Device device) {
-    Screen screen = device.getDefaultHardware().getScreen();
-    return String.format(Locale.US, "%1$d \u00D7 %2$d: %3$s", // U+00D7: Unicode multiplication sign
-                         screen.getXDimension(), screen.getYDimension(), screen.getPixelDensity().getResourceValue());
-  }
-
-  private static boolean isGeneric(Device device) {
-    return device.getManufacturer().equals(GENERIC);
-  }
-
-  private static boolean isNexus(Device device) {
-    return device.getName().contains(NEXUS);
-  }
-
-  private static void sortNexusList(List<Device> list) {
-    Collections.sort(list, new Comparator<Device>() {
-      @Override
-      public int compare(Device device1, Device device2) {
-        // Descending order of age
-        return nexusRank(device2) - nexusRank(device1);
-      }
-
-      private int nexusRank(Device device) {
-        String name = device.getName();
-        if (name.endsWith(" One")) {     //$NON-NLS-1$
-          return 1;
-        }
-        if (name.endsWith(" S")) {       //$NON-NLS-1$
-          return 2;
-        }
-        if (name.startsWith("Galaxy")) { //$NON-NLS-1$
-          return 3;
-        }
-        if (name.endsWith(" 7")) {       //$NON-NLS-1$
-          return 4;
-        }
-        if (name.endsWith(" 10")) {       //$NON-NLS-1$
-          return 5;
-        }
-        if (name.endsWith(" 4")) {       //$NON-NLS-1$
-          return 6;
-        }
-
-        return 7;
-      }
-    });
-  }
-
   private class SetDeviceAction extends ToggleAction {
-
     private final Device myDevice;
     private boolean mySelected;
 
-    public SetDeviceAction(final String title, final Device device, final boolean select) {
+    public SetDeviceAction(@NotNull final String title, @NotNull final Device device, final boolean select) {
       super(title);
       myDevice = device;
       mySelected = select;
@@ -291,7 +220,7 @@ public class DeviceMenuAction extends FlatComboAction {
     public void setSelected(AnActionEvent e, boolean state) {
       mySelected = state;
       if (state) {
-        Configuration configuration = myConfigurationToolBar.getConfiguration();
+        Configuration configuration = myRenderContext.getConfiguration();
         if (configuration != null) {
           configuration.setDevice(myDevice, true);
         }

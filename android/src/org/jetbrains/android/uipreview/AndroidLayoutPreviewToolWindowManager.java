@@ -15,10 +15,6 @@
  */
 package org.jetbrains.android.uipreview;
 
-import com.android.ide.common.rendering.api.RenderSession;
-import com.android.ide.common.rendering.api.Result;
-import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderResult;
@@ -34,7 +30,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.*;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtil;
@@ -46,7 +41,6 @@ import com.intellij.openapi.roots.ModuleRootAdapter;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.startup.StartupManager;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.*;
 import com.intellij.openapi.wm.ToolWindow;
@@ -67,23 +61,15 @@ import com.intellij.util.ui.update.Update;
 import icons.AndroidIcons;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidSdkNotConfiguredException;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -369,12 +355,6 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
       return;
     }
 
-    final String layoutXmlText = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-      @Override
-      public String compute() {
-        return psiFile.getText();
-      }
-    });
     final VirtualFile layoutXmlFile = psiFile.getVirtualFile();
     if (layoutXmlFile == null) {
       return;
@@ -387,7 +367,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
         return;
       }
       final RenderLogger logger = new RenderLogger(layoutXmlFile.getName(), module);
-      RenderService service = RenderService.create(facet, module, psiFile, configuration, logger);
+      RenderService service = RenderService.create(facet, module, psiFile, configuration, logger, myToolWindowForm);
       if (service != null) {
         renderResult = service.render();
         service.dispose();

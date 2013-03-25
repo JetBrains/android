@@ -15,22 +15,30 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.ide.common.resources.ResourceFile;
 import com.android.ide.common.resources.configuration.*;
+import com.android.io.IAbstractFile;
 import com.android.resources.*;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.sdklib.util.SparseIntArray;
 import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.rendering.ProjectResources;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.uipreview.VirtualFileWrapper;
+import org.jetbrains.android.util.BufferingFileWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -43,7 +51,6 @@ import java.util.List;
  * http://developer.android.com/guide/topics/resources/providing-resources.html
  * <p>
  * This class was ported from ADT and could probably use a rewrite.
- * TODO: Implement ProjectResources hooks
  */
 public class ConfigurationMatcher {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.ConfigurationMatcher");
@@ -51,14 +58,14 @@ public class ConfigurationMatcher {
   private final Configuration myConfiguration;
   private final ConfigurationManager myManager;
   private final VirtualFile myFile;
-  //private final ProjectResources mResources;
+  private final ProjectResources myResources;
 
-  ConfigurationMatcher(@NotNull Configuration configuration,
-                       //@Nullable ProjectResources resources,
+  public ConfigurationMatcher(@NotNull Configuration configuration,
+                       @Nullable ProjectResources resources,
                        @Nullable VirtualFile file) {
     myConfiguration = configuration;
     myFile = file;
-    //mResources = resources;
+    myResources = resources;
 
     myManager = myConfiguration.getConfigurationManager();
   }
@@ -118,53 +125,54 @@ public class ConfigurationMatcher {
   *         given config.
   */
   public boolean isCurrentFileBestMatchFor(@NotNull FolderConfiguration config) {
-    // TODO: Implement
-    //ResourceFile match = mResources.getMatchingFile(myFile.getName(), ResourceType.LAYOUT, config);
-    //
-    //if (match != null) {
-    //  return match.getFile().equals(myFile);
-    //}
-    //else {
-    //  // if we stop here that means the current file is not even a match!
-    //  AdtPlugin.log(IStatus.ERROR, "Current file is not a match for the given config.");
-    //}
-    //
-    //return false;
-    return true;
+    if (myResources != null && myFile != null) {
+      ResourceFile match = myResources.getMatchingFile(myFile.getName(), ResourceType.LAYOUT, config);
+
+      if (match != null) {
+        return myFile.equals(getVirtualFile(match.getFile()));
+      }
+      else {
+        // if we stop here that means the current file is not even a match!
+        LOG.info("Current file is not a match for the given config.");
+      }
+    }
+
+    return false;
   }
 
-  ///**
-  // * Returns the layout {@link IFile} which best matches the configuration
-  // * selected in the given configuration chooser.
-  // *
-  // * @param chooser the associated configuration chooser holding project state
-  // * @return the file which best matches the settings
-  // */
-  //@Nullable
-  //public static VirtualFile getBestFileMatch(ConfigurationManager chooser) {
-  //// get the resources of the file's project.
-  //ResourceManager manager = ResourceManager.getInstance();
-  //ProjectResources resources = manager.getProjectResources(chooser.getProject());
-  //if (resources == null) {
-  //    return null;
-  //}
-  //
-  //// From the resources, look for a matching file
-  //IFile editedFile = chooser.getEditedFile();
-  //if (editedFile == null) {
-  //    return null;
-  //}
-  //String name = editedFile.getName();
-  //FolderConfiguration config = chooser.getConfiguration().getFullConfig();
-  //ResourceFile match = resources.getMatchingFile(name, ResourceType.LAYOUT, config);
-  //
-  //if (match != null) {
-  //    // In Eclipse, the match's file is always an instance of IFileWrapper
-  //    return ((IFileWrapper) match.getFile()).getIFile();
-  //}
-  //
-  //  return null;
-  //}
+  @Nullable
+  private static VirtualFile getVirtualFile(@NotNull IAbstractFile file) {
+    if (file instanceof VirtualFileWrapper) {
+      return ((VirtualFileWrapper)file).getFile();
+    } else if (file instanceof BufferingFileWrapper) {
+      BufferingFileWrapper wrapper = (BufferingFileWrapper)file;
+      File ioFile = wrapper.getFile();
+      return LocalFileSystem.getInstance().findFileByIoFile(ioFile);
+    } else if (file != null) {
+      LOG.warn("Unexpected type of match file: " + file.getClass().getName());
+    }
+    return null;
+  }
+
+  /**
+  * Returns the layout {@link VirtualFile} which best matches the configuration
+  *
+  * @return the file which best matches the settings
+  */
+  @Nullable
+  public VirtualFile getBestFileMatch() {
+    if (myResources != null && myFile != null) {
+      String name = myFile.getName();
+      FolderConfiguration config = myConfiguration.getFullConfig();
+      ResourceFile match = myResources.getMatchingFile(name, ResourceType.LAYOUT, config);
+
+      if (match != null) {
+        return getVirtualFile(match.getFile());
+      }
+    }
+
+    return null;
+  }
 
   /**
    * Adapts the current device/config selection so that it's compatible with
@@ -490,18 +498,31 @@ public class ConfigurationMatcher {
     // TODO: This is running too late for the layout preview; the new editor has
     // already taken over so getSelectedTextEditor() returns self. Perhaps we
     // need to fish in the open editors instead.
-    FileEditorManager editorManager = FileEditorManager.getInstance(myManager.getProject());
-    Editor activeEditor = editorManager.getSelectedTextEditor();
-    if (activeEditor != null) {
-      FileDocumentManager documentManager = FileDocumentManager.getInstance();
-      VirtualFile file = documentManager.getFile(activeEditor.getDocument());
-      if (file != null && file != myFile && file.getFileType() == StdFileTypes.XML
-          && ResourceFolderType.LAYOUT.equals(ResourceFolderType.getFolderType(file.getParent().getName()))) {
-        Configuration configuration = myManager.create(file);
-        FolderConfiguration fullConfig = configuration.getFullConfig();
-        for (ConfigMatch match : matches) {
-          if (fullConfig.equals(match.testConfig)) {
-            return match;
+
+    //Editor activeEditor = ApplicationManager.getApplication().runReadAction(new Computable<Editor>() {
+    //  @Override
+    //  public Editor compute() {
+    //    FileEditorManager editorManager = FileEditorManager.getInstance(myManager.getProject());
+    //    return editorManager.getSelectedTextEditor();
+    //  }
+    //});
+
+    // TODO: How do I redispatch without risking lock?
+    //Editor activeEditor = AndroidUtils.getSelectedEditor(myManager.getProject());
+    if (ApplicationManager.getApplication().isDispatchThread()) {
+      FileEditorManager editorManager = FileEditorManager.getInstance(myManager.getProject());
+      Editor activeEditor = editorManager.getSelectedTextEditor();
+      if (activeEditor != null) {
+        FileDocumentManager documentManager = FileDocumentManager.getInstance();
+        VirtualFile file = documentManager.getFile(activeEditor.getDocument());
+        if (file != null && file != myFile && file.getFileType() == StdFileTypes.XML
+            && ResourceFolderType.LAYOUT.equals(ResourceFolderType.getFolderType(file.getParent().getName()))) {
+          Configuration configuration = myManager.get(file);
+          FolderConfiguration fullConfig = configuration.getFullConfig();
+          for (ConfigMatch match : matches) {
+            if (fullConfig.equals(match.testConfig)) {
+              return match;
+            }
           }
         }
       }

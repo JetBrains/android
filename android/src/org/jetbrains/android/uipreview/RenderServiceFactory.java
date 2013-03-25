@@ -18,37 +18,34 @@ package org.jetbrains.android.uipreview;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.LayoutLibrary;
-import com.android.ide.common.rendering.api.IProjectCallback;
-import com.android.ide.common.rendering.api.RenderResources;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.FrameworkResources;
-import com.android.ide.common.resources.ResourceResolver;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.rendering.api.LayoutLog;
+import com.android.ide.common.resources.*;
 import com.android.ide.common.sdk.LoadStatus;
+import com.android.io.IAbstractFile;
 import com.android.io.IAbstractFolder;
-import com.android.resources.ResourceType;
+import com.android.io.IAbstractResource;
+import com.android.io.StreamException;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.project.ProjectProperties;
+import com.android.tools.idea.rendering.LayoutLogWrapper;
+import com.android.tools.idea.rendering.LogWrapper;
 import com.android.utils.ILogger;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.BufferingFileWrapper;
 import org.jetbrains.android.util.BufferingFolderWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -74,43 +71,6 @@ public class RenderServiceFactory {
       return factory;
     }
     return null;
-  }
-
-  public Pair<RenderResources, RenderResources> createResourceResolver(final AndroidFacet facet,
-                                                                       FolderConfiguration config,
-                                                                       ProjectResources projectResources,
-                                                                       String themeName,
-                                                                       boolean isProjectTheme) {
-    final Map<ResourceType, Map<String, ResourceValue>> configedProjectRes = projectResources.getConfiguredResources(config);
-
-    DumbService.getInstance(facet.getModule().getProject()).waitForSmartMode();
-
-    final Collection<String> ids = ApplicationManager.getApplication().runReadAction(new Computable<Collection<String>>() {
-      @Override
-      public Collection<String> compute() {
-        return facet.getLocalResourceManager().getIds();
-      }
-    });
-    final Map<String, ResourceValue> map = configedProjectRes.get(ResourceType.ID);
-    for (String id : ids) {
-      if (!map.containsKey(id)) {
-        map.put(id, new ResourceValue(ResourceType.ID, id, false));
-      }
-    }
-
-    final Map<ResourceType, Map<String, ResourceValue>> configedFrameworkRes = myResources.getConfiguredResources(config);
-    final ResourceResolver resolver = ResourceResolver.create(configedProjectRes, configedFrameworkRes, themeName, isProjectTheme);
-    return new Pair<RenderResources, RenderResources>(new ResourceResolverDecorator(resolver), resolver);
-  }
-
-  public RenderService createService(RenderResources resources,
-                                     RenderResources legacyResources,
-                                     FolderConfiguration config,
-                                     double xdpi,
-                                     double ydpi,
-                                     IProjectCallback projectCallback,
-                                     int minSdkVersion) {
-    return new RenderService(myLibrary, resources, legacyResources, config, xdpi, ydpi, projectCallback, minSdkVersion);
   }
 
   private RenderServiceFactory(@NotNull Map<String, Map<String, Integer>> enumMap) {
@@ -151,7 +111,8 @@ public class RenderServiceFactory {
         AndroidBundle.message("android.file.not.exist.error", FileUtil.toSystemDependentName(buildProp.getPath())));
     }
 
-    final SimpleLogger logger = new SimpleLogger(null, LOG);
+    final ILogger logger = new LogWrapper(LOG);
+    final LayoutLog layoutLog = new LayoutLogWrapper(LOG);
 
     myLibrary = LayoutLibrary.load(layoutLibJar.getPath(), logger, ApplicationNamesInfo.getInstance().getFullProductName());
     if (myLibrary.getStatus() != LoadStatus.LOADED) {
@@ -161,14 +122,14 @@ public class RenderServiceFactory {
     myResources = loadPlatformResources(new File(resFolder.getPath()), logger);
 
     final Map<String, String> buildPropMap = ProjectProperties.parsePropertyFile(new BufferingFileWrapper(buildProp), logger);
-    return myLibrary.init(buildPropMap, new File(fontFolder.getPath()), myEnumMap, logger);
+    return myLibrary.init(buildPropMap, new File(fontFolder.getPath()), myEnumMap, layoutLog);
   }
 
   private static FrameworkResources loadPlatformResources(File resFolder, ILogger log) throws IOException, RenderingException {
     final IAbstractFolder resFolderWrapper = new BufferingFolderWrapper(resFolder);
     final FrameworkResources resources = new FrameworkResources(resFolderWrapper);
 
-    RenderUtil.loadResources(resources, null, null, resFolderWrapper);
+    loadResources(resources, null, null, resFolderWrapper);
 
     resources.loadPublicResources(log);
     return resources;
@@ -177,5 +138,125 @@ public class RenderServiceFactory {
   // ADT
   public FrameworkResources getFrameworkResources() {
     return myResources;
+  }
+
+  public static void loadResources(@NotNull ResourceRepository repository,
+                                   @Nullable final String layoutXmlFileText,
+                                   @Nullable VirtualFile layoutXmlFile,
+                                   @NotNull IAbstractFolder... rootFolders) throws IOException, RenderingException {
+    final ScanningContext scanningContext = new ScanningContext(repository);
+
+    for (IAbstractFolder rootFolder : rootFolders) {
+      for (IAbstractResource file : rootFolder.listMembers()) {
+        if (!(file instanceof IAbstractFolder)) {
+          continue;
+        }
+
+        final IAbstractFolder folder = (IAbstractFolder)file;
+        final ResourceFolder resFolder = repository.processFolder(folder);
+
+        if (resFolder != null) {
+          for (final IAbstractResource childRes : folder.listMembers()) {
+
+            if (childRes instanceof IAbstractFile) {
+              final VirtualFile vFile;
+
+              if (childRes instanceof BufferingFileWrapper) {
+                final BufferingFileWrapper fileWrapper = (BufferingFileWrapper)childRes;
+                final String filePath = FileUtil.toSystemIndependentName(fileWrapper.getOsLocation());
+                vFile = LocalFileSystem.getInstance().findFileByPath(filePath);
+
+                if (vFile != null && Comparing.equal(vFile, layoutXmlFile) && layoutXmlFileText != null) {
+                  resFolder.processFile(new MyFileWrapper(layoutXmlFileText, childRes), ResourceDeltaKind.ADDED, scanningContext);
+                }
+                else {
+                  resFolder.processFile((IAbstractFile)childRes, ResourceDeltaKind.ADDED, scanningContext);
+                }
+              }
+              else {
+                LOG.error("childRes must be instance of " + BufferingFileWrapper.class.getName());
+              }
+            }
+          }
+        }
+      }
+    }
+
+    final List<String> errors = scanningContext.getErrors();
+    if (errors != null && errors.size() > 0) {
+      LOG.debug(new RenderingException(merge(errors)));
+    }
+  }
+
+  private static String merge(@NotNull Collection<String> strs) {
+    final StringBuilder result = new StringBuilder();
+    for (Iterator<String> it = strs.iterator(); it.hasNext(); ) {
+      String str = it.next();
+      result.append(str);
+      if (it.hasNext()) {
+        result.append('\n');
+      }
+    }
+    return result.toString();
+  }
+
+  private static class MyFileWrapper implements IAbstractFile {
+    private final String myLayoutXmlFileText;
+    private final IAbstractResource myChildRes;
+
+    public MyFileWrapper(String layoutXmlFileText, IAbstractResource childRes) {
+      myLayoutXmlFileText = layoutXmlFileText;
+      myChildRes = childRes;
+    }
+
+    @Override
+    public InputStream getContents() throws StreamException {
+      return new ByteArrayInputStream(myLayoutXmlFileText.getBytes());
+    }
+
+    @Override
+    public void setContents(InputStream source) throws StreamException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public OutputStream getOutputStream() throws StreamException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public PreferredWriteMode getPreferredWriteMode() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public long getModificationStamp() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getName() {
+      return myChildRes.getName();
+    }
+
+    @Override
+    public String getOsLocation() {
+      return myChildRes.getOsLocation();
+    }
+
+    @Override
+    public boolean exists() {
+      return true;
+    }
+
+    @Override
+    public IAbstractFolder getParentFolder() {
+      return myChildRes.getParentFolder();
+    }
+
+    @Override
+    public boolean delete() {
+      throw new UnsupportedOperationException();
+    }
   }
 }

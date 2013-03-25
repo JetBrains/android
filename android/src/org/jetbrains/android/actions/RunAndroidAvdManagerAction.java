@@ -37,6 +37,10 @@ public class RunAndroidAvdManagerAction extends AndroidRunSdkToolAction {
     super(getName());
   }
 
+  public RunAndroidAvdManagerAction(String name) {
+    super(name);
+  }
+
   public static String getName() {
     return AndroidBundle.message("android.run.avd.manager.action.text");
   }

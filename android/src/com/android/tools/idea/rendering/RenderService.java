@@ -23,11 +23,11 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -57,6 +57,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Set;
 
 import static com.android.SdkConstants.*;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
@@ -66,7 +67,7 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
  * Android layouts. This is a wrapper around the layout library.
  */
 public class RenderService {
-  private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.RenderService");
+  //private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.RenderService");
 
   @NotNull
   private final Module myModule;
@@ -110,6 +111,14 @@ public class RenderService {
   @NotNull
   private final Configuration myConfiguration;
 
+  private long myTimeout;
+
+  @Nullable
+  private Set<XmlTag> myExpandNodes;
+
+  @Nullable
+  private RenderContext myRenderContext;
+
   /**
    * Creates a new {@link RenderService} associated with the given editor.
    *
@@ -120,7 +129,8 @@ public class RenderService {
                                      @NotNull final Module module,
                                      @NotNull final PsiFile psiFile,
                                      @NotNull final Configuration configuration,
-                                     @NotNull final RenderLogger logger) {
+                                     @NotNull final RenderLogger logger,
+                                     @Nullable final RenderContext renderContext) {
 
     Project project = module.getProject();
     AndroidPlatform platform = getPlatform(module);
@@ -170,7 +180,12 @@ public class RenderService {
       return null;
     }
 
-    return new RenderService(facet, module, psiFile, configuration, logger, factory);
+    RenderService service = new RenderService(facet, module, psiFile, configuration, logger, factory);
+    if (renderContext != null) {
+      service.setRenderContext(renderContext);
+    }
+
+    return service;
   }
 
   /**
@@ -317,6 +332,11 @@ public class RenderService {
     return this;
   }
 
+  public RenderService setTimeout(long timeout) {
+    myTimeout = timeout;
+    return this;
+  }
+
   /**
    * Sets the overriding background color to be used, if any. The color should be a
    * bitmask of AARRGGBB. The default is null.
@@ -342,18 +362,42 @@ public class RenderService {
     return this;
   }
 
-//    /**
-//     * Sets the nodes to expand during rendering. These will be padded with approximately
-//     * 20 pixels and also highlighted by the {@link EmptyViewsOverlay}. The default is an
-//     * empty collection.
-//     *
-//     * @param nodesToExpand the nodes to be expanded
-//     * @return this (such that chains of setters can be stringed together)
-//     */
-//    public RenderService setNodesToExpand(Set<UiElementNode> nodesToExpand) {
-//        mExpandNodes = nodesToExpand;
-//        return this;
-//    }
+  /**
+   * Gets the context for the usage of this {@link RenderService}, which can
+   * control for example how {@code <fragment/>} tags are processed when missing
+   * preview data
+   */
+  @Nullable
+  public RenderContext getRenderContext() {
+    return myRenderContext;
+  }
+
+  /**
+   * Sets the context for the usage of this {@link RenderService}, which can
+   * control for example how {@code <fragment/>} tags are processed when missing
+   * preview data
+   *
+   * @param renderContext the render context
+   * @return this, for constructor chaining
+   */
+  @Nullable
+  public RenderService setRenderContext(@Nullable RenderContext renderContext) {
+    myRenderContext = renderContext;
+    return this;
+  }
+
+  /**
+   * Sets the nodes to expand during rendering. These will be padded with approximately
+   * 20 pixels. The default is null.
+   *
+   * @param nodesToExpand the nodes to be expanded
+   * @return this (such that chains of setters can be stringed together)
+   */
+  @NotNull
+  public RenderService setNodesToExpand(@Nullable Set<XmlTag> nodesToExpand) {
+    myExpandNodes = nodesToExpand;
+    return this;
+  }
 
   /**
    * Sets the {@link IncludeReference} to an outer layout that this layout should be rendered
@@ -383,7 +427,7 @@ public class RenderService {
 
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
-    XmlTagPullParser modelParser = new XmlTagPullParser(myPsiFile, null /*mExplodedNodes*/, hardwareConfig.getDensity());
+    XmlTagPullParser modelParser = new XmlTagPullParser(myPsiFile, myExpandNodes, hardwareConfig.getDensity(), myLogger);
     ILayoutPullParser topParser = modelParser;
 
     // Code to support editing included layout
@@ -457,6 +501,10 @@ public class RenderService {
       params.setImageFactory(myImageFactory);
     }
 
+    if (myTimeout > 0) {
+      params.setTimeout(myTimeout);
+    }
+
     try {
       myProjectCallback.setLogger(myLogger);
       myProjectCallback.setResourceResolver(resolver);
@@ -464,7 +512,13 @@ public class RenderService {
       return ApplicationManager.getApplication().runReadAction(new Computable<RenderSession>() {
         @Override
         public RenderSession compute() {
-          return myLayoutLib.createSession(params);
+          while (true) {
+            RenderSession session = myLayoutLib.createSession(params);
+            if (myTimeout > 0 && session.getResult().getStatus() == Result.Status.ERROR_TIMEOUT) {
+              continue;
+            }
+            return session;
+          }
         }
       });
     }
@@ -536,105 +590,6 @@ public class RenderService {
 
     return null;
   }
-
-//  /**
-//   * Measure the children of the given parent node, applying the given filter to the
-//   * pull parser's attribute values.
-//   *
-//   * @param parent the parent node to measure children for
-//   * @param filter the filter to apply to the attribute values
-//   * @return a map from node children of the parent to new bounds of the nodes
-//   */
-//    @Nullable
-//    public Map<INode, Rect> measureChildren(INode parent,
-//            final IClientRulesEngine.AttributeFilter filter) {
-//        HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
-//
-//        final NodeFactory mNodeFactory = mEditor.getCanvasControl().getNodeFactory();
-//        XmlTag parentNode = ((NodeProxy) parent).getNode();
-//        XmlTagPullParser topParser = new XmlTagPullParser(parentNode,
-//                false, Collections.<UiElementNode>emptySet(), hardwareConfig.getDensity(),
-//                mProject) {
-//            @Override
-//            public String getAttributeValue(String namespace, String localName) {
-//                if (filter != null) {
-//                    Object cookie = getViewCookie();
-//                    if (cookie instanceof XmlTag) {
-//                        NodeProxy node = mNodeFactory.create((XmlTag) cookie);
-//                        if (node != null) {
-//                            String value = filter.getAttribute(node, namespace, localName);
-//                            if (value != null) {
-//                                return value;
-//                            }
-//                            // null means no preference, not "unset".
-//                        }
-//                    }
-//                }
-//
-//                return super.getAttributeValue(namespace, localName);
-//            }
-//
-//
-//            // The parser usually assumes that the top level node is a document node that
-//            // should be skipped, and that's not the case when we render in the middle of
-//            // the tree, so override {@link XmlTagPullParser#onNextFromStartDocument}
-//            // to change this behavior
-//            @Override
-//            public void onNextFromStartDocument() {
-//                myParsingState = START_TAG;
-//            }
-//        };
-//
-//        SessionParams params = new SessionParams(
-//                topParser,
-//                RenderingMode.FULL_EXPAND,
-//                myModule,
-//                hardwareConfig,
-//                getResourceResolver(),
-//                myProjectCallback,
-//                myMinSdkVersion,
-//                myTargetSdkVersion,
-//                myLogger);
-//        params.setLayoutOnly();
-//        params.setForceNoDecor();
-//
-//        RenderSession session = null;
-//        try {
-//            myProjectCallback.setLogger(myLogger);
-//            myProjectCallback.setResourceResolver(getResourceResolver());
-//            session = myLayoutLib.createSession(params);
-//            if (session.getResult().isSuccess()) {
-//                assert session.getRootViews().size() == 1;
-//                ViewInfo root = session.getRootViews().get(0);
-//                List<ViewInfo> children = root.getChildren();
-//                Map<INode, Rect> map = new HashMap<INode, Rect>(children.size());
-//                for (ViewInfo info : children) {
-//                    if (info.getCookie() instanceof XmlTag) {
-//                        XmlTag uiNode = (XmlTag) info.getCookie();
-//                        INode node = mNodeFactory.create(uiNode);
-//                        map.put(node, new Rect(info.getLeft(), info.getTop(),
-//                                info.getRight() - info.getLeft(),
-//                                info.getBottom() - info.getTop()));
-//                    }
-//                }
-//
-//                return map;
-//            }
-//        } catch (RuntimeException t) {
-//            // Exceptions from the bridge
-//            myLogger.error(null, t.getLocalizedMessage(), t, null);
-//            throw t;
-//        } finally {
-//            myProjectCallback.setLogger(null);
-//            myProjectCallback.setResourceResolver(null);
-//            if (session != null) {
-//                session.dispose();
-//            }
-//        }
-//
-//        return null;
-//        throw new UnsupportedOperationException("Not yet implemented");
-//    }
 
 //    private static final String DEFAULT_APP_LABEL = "Android Application";
 //    private static String getAppLabelToShow(final AndroidFacet facet) {

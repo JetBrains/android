@@ -43,6 +43,7 @@ import org.jdom.Element;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.util.Iterator;
 import java.util.List;
 
@@ -410,11 +411,15 @@ public class ModelParser extends XmlRecursiveElementVisitor {
                                          RootView nativeComponent) {
     rootComponent.setClientProperty(FOLDER_CONFIG_KEY, configuration);
 
-    updateChildren(rootComponent, session.getRootViews(), nativeComponent, 0, 0);
+    List<ViewInfo> rootViews = session.getRootViews();
+    if (rootViews != null) {
+      updateChildren(rootComponent, rootViews, nativeComponent, 0, 0);
+    }
 
     rootComponent.setNativeComponent(nativeComponent);
 
-    Rectangle bounds = new Rectangle(0, 0, 0, 0);
+    BufferedImage image = session.getImage();
+    Rectangle bounds = new Rectangle(0, 0, image != null ? image.getWidth() : 0, image != null ? image.getHeight() : 0);
     Iterator<RadComponent> iterator = rootComponent.getChildren().iterator();
     while (iterator.hasNext()) {
       bounds = bounds.union(iterator.next().getBounds());
