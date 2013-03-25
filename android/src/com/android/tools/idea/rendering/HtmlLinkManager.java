@@ -250,8 +250,7 @@ public class HtmlLinkManager {
       @Override
       @Nullable
       public XmlTag compute() {
-        @SuppressWarnings("unchecked")
-        Collection<XmlTag> xmlTags = PsiTreeUtil.collectElementsOfType(file, XmlTag.class);
+        Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
         for (XmlTag tag : xmlTags) {
           if (tagName.equals(tag.getName())) {
             return tag;
@@ -483,7 +482,7 @@ public class HtmlLinkManager {
     WriteCommandAction<Void> action = new WriteCommandAction<Void>(module.getProject(), "Assign Fragment", file) {
       @Override
       protected void run(Result<Void> result) throws Throwable {
-        for (XmlTag tag : PsiTreeUtil.collectElementsOfType(file, XmlTag.class)) {
+        for (XmlTag tag : PsiTreeUtil.findChildrenOfType(file, XmlTag.class)) {
           if (!tag.getName().equals(VIEW_FRAGMENT)) {
             continue;
           }
@@ -562,7 +561,7 @@ public class HtmlLinkManager {
       @Override
       protected void run(Result<Void> result) throws Throwable {
         SuppressLintIntentionAction.ensureNamespaceImported(getProject(), file, TOOLS_URI);
-        Collection<XmlTag> xmlTags = PsiTreeUtil.collectElementsOfType(file, XmlTag.class);
+        Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
         for (XmlTag tag : xmlTags) {
           if (tag.getName().equals(VIEW_FRAGMENT) ) {
             String name = tag.getAttributeValue(ATTR_CLASS);

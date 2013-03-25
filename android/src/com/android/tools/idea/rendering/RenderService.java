@@ -620,4 +620,27 @@ public class RenderService {
   public XmlFile getPsiFile() {
     return myPsiFile;
   }
+
+  public static boolean supportsCapability(@NotNull final Module module, @NotNull IAndroidTarget target, @NotNull Capability capability) {
+    Project project = module.getProject();
+    AndroidPlatform platform = getPlatform(module);
+    if (platform != null) {
+      try {
+        RenderServiceFactory factory = platform.getSdkData().getTargetData(target).getRenderServiceFactory(project);
+        if (factory != null) {
+          LayoutLibrary library = factory.getLibrary();
+          if (library != null) {
+            return library.supports(capability);
+          }
+        }
+      }
+      catch (RenderingException e) {
+        // Ignore: if service can't be found, that capability isn't available
+      }
+      catch (IOException e) {
+        // Ditto
+      }
+    }
+    return false;
+  }
 }
