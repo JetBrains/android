@@ -17,10 +17,13 @@ package com.intellij.android.designer.model;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
+import com.intellij.designer.designSurface.DesignerEditorPanel;
 import com.intellij.designer.designSurface.ScalableComponent;
 import com.intellij.designer.model.*;
 import com.intellij.designer.palette.PaletteItem;
 import com.intellij.designer.propertyTable.PropertyTable;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlAttribute;
@@ -489,5 +492,16 @@ public class RadViewComponent extends RadVisualComponent {
     }
 
     return (List<RadViewComponent>)(List)components;
+  }
+
+  /** Adds in actions for this component into the given popup context menu
+   *  Return true if anything was added.
+   */
+  public boolean addPopupActions(@NotNull AndroidDesignerEditorPanel designer,
+                                 @NotNull DefaultActionGroup beforeGroup,
+                                 @NotNull DefaultActionGroup afterGroup,
+                                 @Nullable JComponent shortcuts,
+                                 @NotNull List<RadComponent> selection) {
+    return false;
   }
 }

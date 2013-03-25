@@ -127,6 +127,41 @@ public class ConfigurationManager implements Disposable {
     return configuration;
   }
 
+  /**
+   * Similar to {@link #get(com.intellij.openapi.vfs.VirtualFile)}, but creates a configuration
+   * for a file known to be new, and crucially, bases the configuration on the existing configuration
+   * for a known file. This is intended for when you fork a layout, and you expect the forked layout
+   * to have a configuration that is (as much as possible) similar to the configuration of the
+   * forked file. For example, if you create a landscape version of a layout, it will preserve the
+   * screen size, locale, theme and render target of the existing layout.
+   *
+   * @param file the file to create a configuration for
+   * @param baseFile the other file to base the configuration on
+   * @return the new configuration
+   */
+  @NotNull
+  public Configuration createSimilar(@NotNull VirtualFile file, @NotNull VirtualFile baseFile) {
+    ConfigurationStateManager stateManager = getStateManager();
+    ConfigurationProjectState projectState = stateManager.getProjectState();
+    ConfigurationFileState fileState = stateManager.getConfigurationState(baseFile);
+    FolderConfiguration config = FolderConfiguration.getConfigForFolder(file.getParent().getName());
+    if (config == null) {
+      config = new FolderConfiguration();
+    }
+    Configuration configuration = Configuration.create(this, projectState, fileState, config);
+    ProjectResources projectResources = ProjectResources.get(myModule);
+    ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, projectResources, file);
+    if (fileState != null) {
+      matcher.adaptConfigSelection(false);
+    } else {
+      matcher.findAndSetCompatibleConfig(false);
+    }
+
+    myCache.put(file, configuration);
+
+    return configuration;
+  }
+
   /** Returns the associated persistence manager */
   public ConfigurationStateManager getStateManager() {
     return ConfigurationStateManager.get(myModule.getProject());

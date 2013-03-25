@@ -62,9 +62,9 @@ public class ConfigurationToolBar extends JPanel {
 
   public static DefaultActionGroup createActions(RenderContext configurationHolder) {
     DefaultActionGroup group = new DefaultActionGroup();
-    //ConfigurationMenuAction configAction = new ConfigurationMenuAction(configurationHolder);
-    //group.add(configAction);
-    //group.addSeparator();
+    ConfigurationMenuAction configAction = new ConfigurationMenuAction(configurationHolder);
+    group.add(configAction);
+    group.addSeparator();
 
     DeviceMenuAction deviceAction = new DeviceMenuAction(configurationHolder);
     group.add(deviceAction);

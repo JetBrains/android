@@ -47,8 +47,7 @@ public class AddMissingAttributesFix extends WriteCommandAction<Void> {
     ApplicationManager.getApplication().runReadAction(new Runnable() {
       @Override
       public void run() {
-        @SuppressWarnings("unchecked")
-        Collection<XmlTag> xmlTags = PsiTreeUtil.collectElementsOfType(myFile, XmlTag.class);
+        Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(myFile, XmlTag.class);
         for (XmlTag tag : xmlTags) {
           if (requiresSize(tag)) {
             if (!definesWidth(tag) || !definesHeight(tag)) {
