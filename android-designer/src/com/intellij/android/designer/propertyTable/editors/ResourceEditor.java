@@ -38,6 +38,7 @@ import com.intellij.ui.ComboboxWithBrowseButton;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
+import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -177,8 +178,6 @@ public class ResourceEditor extends PropertyEditor {
     return new Dimension(Math.max(size1.width, 25) + 5 + size2.width, size1.height);
   }
 
-  public static ResourceType[] COLOR_TYPES = {ResourceType.COLOR, ResourceType.DRAWABLE};
-
   private static ResourceType[] convertTypes(Set<AttributeFormat> formats) {
     Set<ResourceType> types = EnumSet.noneOf(ResourceType.class);
     for (AttributeFormat format : formats) {
@@ -187,7 +186,7 @@ public class ResourceEditor extends PropertyEditor {
           types.add(ResourceType.BOOL);
           break;
         case Color:
-          return COLOR_TYPES;
+          return ChooseResourceDialog.COLOR_TYPES;
         case Dimension:
           types.add(ResourceType.DIMEN);
           break;
