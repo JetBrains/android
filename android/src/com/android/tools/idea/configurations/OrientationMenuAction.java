@@ -20,7 +20,6 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -69,7 +68,8 @@ public class OrientationMenuAction extends FlatComboAction {
     State current = configuration.getDeviceState();
     State flip = configuration.getNextDeviceState(current);
     if (flip != null) {
-      configuration.setDeviceState(flip);
+      SetDeviceStateAction action = new SetDeviceStateAction(myRenderContext, flip.getName(), flip, false, false);
+      action.perform();
     }
     return true;
   }
@@ -89,12 +89,13 @@ public class OrientationMenuAction extends FlatComboAction {
         if (states.size() > 1 && current != null) {
           State flip = configuration.getNextDeviceState(current);
           String flipName = flip != null ? flip.getName() : current.getName();
-          group.add(new SetDeviceStateAction(String.format("Switch to %1$s", flipName), flip == null ? current : flip, false, true));
+          String title = String.format("Switch to %1$s", flipName);
+          group.add(new SetDeviceStateAction(myRenderContext, title, flip == null ? current : flip, false, true));
           group.addSeparator();
         }
 
         for (State config : states) {
-          group.add(new SetDeviceStateAction(config.getName(), config, config == current, false));
+          group.add(new SetDeviceStateAction(myRenderContext, config.getName(), config, config == current, false));
         }
         group.addSeparator();
       }
@@ -135,22 +136,24 @@ public class OrientationMenuAction extends FlatComboAction {
   }
 
 
-  private class SetDeviceStateAction extends AnAction {
-    private final State myState;
+  private static class SetDeviceStateAction extends ConfigurationAction {
+    @NotNull private final State myState;
 
-    private SetDeviceStateAction(String title, State state, boolean checked, boolean flip) {
-      super(title);
+    private SetDeviceStateAction(@NotNull RenderContext renderContext, @NotNull String title, @NotNull State state,
+                                 boolean checked, boolean flip) {
+      super(renderContext, title);
       myState = state;
       ScreenOrientation orientation = getOrientation(state);
       getTemplatePresentation().setIcon(getOrientationIcon(orientation, flip));
     }
 
+    public void perform() {
+      tryUpdateConfiguration();
+    }
+
     @Override
-    public void actionPerformed(AnActionEvent e) {
-      Configuration configuration = myRenderContext.getConfiguration();
-      if (configuration != null) {
-        configuration.setDeviceState(myState);
-      }
+    protected void updateConfiguration(@NotNull Configuration configuration) {
+      configuration.setDeviceState(myState);
     }
   }
 }

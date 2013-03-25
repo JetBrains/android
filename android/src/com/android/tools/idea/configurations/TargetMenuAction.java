@@ -17,11 +17,13 @@ package com.android.tools.idea.configurations;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.rendering.Locale;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,7 +52,9 @@ public class TargetMenuAction extends FlatComboAction {
     Configuration configuration = myRenderContext.getConfiguration();
     boolean visible = configuration != null;
     if (visible) {
-      String brief = getRenderingTargetLabel(configuration.getTarget(), true);
+      IAndroidTarget target = configuration.isTargetSpecificLayout()
+                      ? configuration.getTarget() : configuration.getConfigurationManager().getTarget();
+      String brief = getRenderingTargetLabel(target, true);
       presentation.setText(brief);
     }
     if (visible != presentation.isVisible()) {
@@ -87,7 +91,7 @@ public class TargetMenuAction extends FlatComboAction {
 
       String title = getRenderingTargetLabel(target, false);
       boolean select = current == target;
-      group.add(new SetTargetAction(title, target, select));
+      group.add(new SetTargetAction(myRenderContext, title, target, select));
     }
 
     return group;
@@ -120,11 +124,12 @@ public class TargetMenuAction extends FlatComboAction {
     return String.format("API %1$d: %2$s", version.getApiLevel(), target.getShortClasspathName());
   }
 
-  private class SetTargetAction extends AnAction {
+  private static class SetTargetAction extends ConfigurationAction {
     private final IAndroidTarget myTarget;
 
-    public SetTargetAction(final String title, final IAndroidTarget target, final boolean select) {
-      super(title);
+    public SetTargetAction(@NotNull RenderContext renderContext, @NotNull final String title, @NotNull final IAndroidTarget target,
+                           final boolean select) {
+      super(renderContext, title);
       myTarget = target;
       if (select) {
         getTemplatePresentation().setIcon(AllIcons.Actions.Checked);
@@ -132,11 +137,14 @@ public class TargetMenuAction extends FlatComboAction {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    protected void updateConfiguration(@NotNull Configuration configuration) {
+      configuration.setTarget(myTarget);
+    }
+
+    protected void pickedBetterMatch(@NotNull VirtualFile file) {
+      super.pickedBetterMatch(file);
       Configuration configuration = myRenderContext.getConfiguration();
       if (configuration != null) {
-        configuration.setTarget(myTarget);
-
         // Also set the project-wide rendering target, since targets (and locales) are project wide
         configuration.getConfigurationManager().setTarget(myTarget);
       }

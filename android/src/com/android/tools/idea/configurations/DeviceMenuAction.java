@@ -23,7 +23,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.actionSystem.ToggleAction;
 import icons.AndroidIcons;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -118,7 +117,7 @@ public class DeviceMenuAction extends FlatComboAction {
         if (device != null) {
           String avdName = avd.getName();
           boolean selected = current != null && current.getName().equals(avdName);
-          group.add(new SetDeviceAction(avdName, device, selected));
+          group.add(new SetDeviceAction(myRenderContext, avdName, device, selected));
           separatorNeeded = true;
         }
       }
@@ -172,7 +171,7 @@ public class DeviceMenuAction extends FlatComboAction {
       if (!nexus.isEmpty()) {
         sortNexusList(nexus);
         for (final Device device : nexus) {
-          group.add(new SetDeviceAction(getNexusLabel(device), device, current == device));
+          group.add(new SetDeviceAction(myRenderContext, getNexusLabel(device), device, current == device));
         }
 
         group.addSeparator();
@@ -181,7 +180,7 @@ public class DeviceMenuAction extends FlatComboAction {
       // Generate the generic menu.
       Collections.reverse(generic);
       for (final Device device : generic) {
-        group.add(new SetDeviceAction(getGenericLabel(device), device, current == device));
+        group.add(new SetDeviceAction(myRenderContext, getGenericLabel(device), device, current == device));
       }
     }
 
@@ -198,33 +197,23 @@ public class DeviceMenuAction extends FlatComboAction {
     return group;
   }
 
-  private class SetDeviceAction extends ToggleAction {
+  private static class SetDeviceAction extends ConfigurationAction {
     private final Device myDevice;
-    private boolean mySelected;
 
-    public SetDeviceAction(@NotNull final String title, @NotNull final Device device, final boolean select) {
-      super(title);
+    public SetDeviceAction(@NotNull RenderContext renderContext,
+                           @NotNull final String title,
+                           @NotNull final Device device,
+                           final boolean select) {
+      super(renderContext, title);
       myDevice = device;
-      mySelected = select;
       if (select) {
         getTemplatePresentation().setIcon(AllIcons.Actions.Checked);
       }
     }
 
     @Override
-    public boolean isSelected(AnActionEvent e) {
-      return mySelected;
-    }
-
-    @Override
-    public void setSelected(AnActionEvent e, boolean state) {
-      mySelected = state;
-      if (state) {
-        Configuration configuration = myRenderContext.getConfiguration();
-        if (configuration != null) {
-          configuration.setDevice(myDevice, true);
-        }
-      }
+    protected void updateConfiguration(@NotNull Configuration configuration) {
+      configuration.setDevice(myDevice, true);
     }
   }
 }
