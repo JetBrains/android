@@ -244,7 +244,6 @@ public class HtmlLinkManager {
   private static void handleShowTagUrl(@NotNull String url, @NotNull Module module, @NotNull final PsiFile file) {
     assert url.startsWith(URL_SHOW_TAG) : url;
     final String tagName = url.substring(URL_SHOW_TAG.length());
-    //PsiTreeUtil.findChildrenOfType(xmlFile, XmlTag.class);
 
     XmlTag first = ApplicationManager.getApplication().runReadAction(new Computable<XmlTag>() {
       @Override

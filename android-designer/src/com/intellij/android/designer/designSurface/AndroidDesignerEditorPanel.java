@@ -515,7 +515,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       @Override
       public void consume(RenderResult result) throws Throwable {
         RenderSession session = result.getSession();
-        if (session == null) {
+        if (session == null || session.getImage() == null) {
           return;
         }
         RadViewComponent rootComponent = (RadViewComponent)myRootComponent;

@@ -138,14 +138,29 @@ public class TargetMenuAction extends FlatComboAction {
 
     @Override
     protected void updateConfiguration(@NotNull Configuration configuration) {
+      if (configuration == myRenderContext.getConfiguration()) {
+        setProjectWideTarget();
+      }
       configuration.setTarget(myTarget);
     }
 
+    @Override
     protected void pickedBetterMatch(@NotNull VirtualFile file) {
       super.pickedBetterMatch(file);
       Configuration configuration = myRenderContext.getConfiguration();
       if (configuration != null) {
-        // Also set the project-wide rendering target, since targets (and locales) are project wide
+        // Save project-wide configuration; not done by regular listening scheme since the previous configuration was not switched
+        setProjectWideTarget();
+        ConfigurationStateManager stateManager = ConfigurationStateManager.get(myRenderContext.getModule().getProject());
+        ConfigurationProjectState projectState = stateManager.getProjectState();
+        projectState.saveState(configuration);
+      }
+    }
+
+    private void setProjectWideTarget() {
+      // Also set the project-wide rendering target, since targets (and locales) are project wide
+      Configuration configuration = myRenderContext.getConfiguration();
+      if (configuration != null) {
         configuration.getConfigurationManager().setTarget(myTarget);
       }
     }
