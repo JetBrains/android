@@ -41,6 +41,8 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.tools.idea.rendering.RenderErrorPanel.SIZE_ERROR_PANEL_DYNAMICALLY;
+
 /**
  * @author Eugene.Kudelevsky
  */
@@ -74,6 +76,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
   private RenderedView mySelectedView;
   private CaretModel myCaretModel;
   private RenderErrorPanel myErrorPanel;
+  private int myErrorPanelHeight = -1;
   private CaretListener myCaretListener = new CaretListener() {
     @Override
     public void caretPositionChanged(CaretEvent e) {
@@ -251,6 +254,9 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
 
     RenderLogger logger = myRenderResult.getLogger();
     if (logger.hasProblems()) {
+      if (!myErrorPanel.isVisible()) {
+        myErrorPanelHeight = -1;
+      }
       myErrorPanel.showErrors(myRenderResult);
       myErrorPanel.setVisible(true);
     } else {
@@ -430,7 +436,24 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     private void positionErrorPanel() {
       int height = getHeight();
       int width = getWidth();
-      int size = height / 2;
+      int size;
+      if (SIZE_ERROR_PANEL_DYNAMICALLY) {
+        if (myErrorPanelHeight == -1) {
+          // Make the layout take up to 3/4ths of the height, and at least 1/4th, but
+          // anywhere in between based on what the actual text requires
+          size = height * 3 / 4;
+          int preferredHeight = myErrorPanel.getPreferredHeight(width) + 8;
+          if (preferredHeight < size) {
+            size = Math.max(preferredHeight, Math.min(height / 4, size));
+            myErrorPanelHeight = size;
+          }
+        } else {
+          size = myErrorPanelHeight;
+        }
+      } else {
+        size = height / 2;
+      }
+
       myErrorPanel.setSize(width, size);
       myErrorPanel.setLocation(0, height - size);
     }
