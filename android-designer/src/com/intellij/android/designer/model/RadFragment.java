@@ -15,6 +15,9 @@
  */
 package com.intellij.android.designer.model;
 
+import com.android.resources.ResourceType;
+import com.android.tools.idea.rendering.LayoutMetadata;
+import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
 import com.intellij.android.designer.propertyTable.FragmentProperty;
 import com.intellij.android.designer.propertyTable.IdProperty;
 import com.intellij.android.designer.propertyTable.JavadocParser;
@@ -23,13 +26,25 @@ import com.intellij.designer.ModuleProvider;
 import com.intellij.designer.model.Property;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.propertyTable.editors.TextEditorWrapper;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
+import org.jetbrains.android.uipreview.ChooseResourceDialog;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.tools.idea.rendering.LayoutMetadata.KEY_FRAGMENT_LAYOUT;
 
 /**
  * @author Alexander Lobas
@@ -121,6 +136,41 @@ public class RadFragment extends RadViewComponent implements IConfigurableCompon
 
       if (fragment != null) {
         setValue(fragment);
+      }
+    }
+  }
+
+  public boolean addPopupActions(@NotNull AndroidDesignerEditorPanel designer,
+                                 @NotNull DefaultActionGroup beforeGroup,
+                                 @NotNull DefaultActionGroup afterGroup,
+                                 @Nullable JComponent shortcuts,
+                                 @NotNull List<RadComponent> selection) {
+    super.addPopupActions(designer, beforeGroup, afterGroup, shortcuts, selection);
+    beforeGroup.add(new AssignFragmentLayoutAction(designer));
+    beforeGroup.addSeparator();
+    return true;
+  }
+
+  private class AssignFragmentLayoutAction extends AnAction {
+    private final AndroidDesignerEditorPanel myDesigner;
+
+    private AssignFragmentLayoutAction(AndroidDesignerEditorPanel designer) {
+      super("Choose Preview Layout...");
+      myDesigner = designer;
+    }
+
+    @Override
+    public void actionPerformed(AnActionEvent e) {
+      ChooseResourceDialog dialog = new ChooseResourceDialog(myDesigner.getModule(), new ResourceType[]{ResourceType.LAYOUT}, null, null);
+      dialog.setAllowCreateResource(false);
+      dialog.show();
+      if (dialog.isOK()) {
+        String layout = dialog.getResourceName();
+        Project project = myDesigner.getProject();
+        XmlFile xmlFile = myDesigner.getXmlFile();
+        XmlTag tag = getTag();
+        LayoutMetadata.setProperty(project, "Set List Type", xmlFile, tag, KEY_FRAGMENT_LAYOUT, TOOLS_URI, layout);
+        myDesigner.requestRender();
       }
     }
   }
