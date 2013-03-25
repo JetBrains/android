@@ -2,16 +2,12 @@ package org.jetbrains.android.uipreview;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
-import java.util.List;
-
 /**
  * @author Eugene.Kudelevsky
  */
 public class RenderingException extends Exception {
   private final String myPresentableMessage;
   private final Throwable[] myCauses;
-  private List<FixableIssueMessage> myWarnMessages = Collections.emptyList();
 
   public RenderingException() {
     super();
@@ -37,14 +33,5 @@ public class RenderingException extends Exception {
 
   public String getPresentableMessage() {
     return myPresentableMessage;
-  }
-
-  public List<FixableIssueMessage> getWarnMessages() {
-    return myWarnMessages;
-  }
-
-  public RenderingException setWarnMessages(List<FixableIssueMessage> warnMessages) {
-    myWarnMessages = warnMessages;
-    return this;
   }
 }

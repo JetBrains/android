@@ -17,17 +17,14 @@ package com.intellij.android.designer.designSurface;
 
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.ide.common.resources.configuration.*;
 import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.devices.State;
-import com.android.tools.idea.rendering.ShadowPainter;
+import com.android.tools.idea.configurations.*;
+import com.android.tools.idea.rendering.*;
 import com.google.common.primitives.Ints;
-import com.intellij.android.designer.actions.ProfileAction;
 import com.intellij.android.designer.componentTree.AndroidTreeDecorator;
 import com.intellij.android.designer.inspection.ErrorAnalyzer;
 import com.intellij.android.designer.model.*;
-import com.intellij.android.designer.profile.ProfileManager;
 import com.intellij.designer.DesignerEditor;
 import com.intellij.designer.DesignerToolWindowManager;
 import com.intellij.designer.actions.DesignerActionPanel;
@@ -44,16 +41,12 @@ import com.intellij.designer.palette.PaletteItem;
 import com.intellij.designer.palette.PaletteToolWindowManager;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -67,17 +60,14 @@ import com.intellij.util.ThrowableConsumer;
 import com.intellij.util.ThrowableRunnable;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
-import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.refactoring.AndroidExtractAsIncludeAction;
 import org.jetbrains.android.refactoring.AndroidExtractStyleAction;
 import org.jetbrains.android.refactoring.AndroidInlineIncludeAction;
 import org.jetbrains.android.refactoring.AndroidInlineStyleReferenceAction;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.android.uipreview.*;
-import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.uipreview.AndroidLayoutPreviewPanel;
+import org.jetbrains.android.uipreview.RenderingException;
 import org.jetbrains.android.util.AndroidSdkNotConfiguredException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -86,39 +76,39 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static com.android.resources.Density.DEFAULT_DENSITY;
+import static com.android.tools.idea.configurations.ConfigurationListener.MASK_RENDERING;
 import static com.intellij.designer.designSurface.ZoomType.FIT_INTO;
 
 /**
  * @author Alexander Lobas
  */
-public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
+public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implements RenderContext {
   private static final int DEFAULT_HORIZONTAL_MARGIN = 30;
   private static final int DEFAULT_VERTICAL_MARGIN = 20;
+  private static final Integer LAYER_ERRORS = LAYER_INPLACE_EDITING + 150; // Must be an Integer, not an int; see JLayeredPane.addImpl
 
   private final TreeComponentDecorator myTreeDecorator = new AndroidTreeDecorator();
   private final XmlFile myXmlFile;
-  private final ExternalPSIChangeListener myPSIChangeListener;
-  private final ProfileAction myProfileAction;
+  private final ExternalPSIChangeListener myPsiChangeListener;
   private final Alarm mySessionAlarm = new Alarm();
   private final MergingUpdateQueue mySessionQueue;
-  private FolderConfiguration myLastRenderedConfiguration;
-  private IAndroidTarget myLastTarget;
+  private final AndroidDesignerEditorPanel.LayoutConfigurationListener myConfigListener;
   private volatile RenderSession mySession;
   private volatile long mySessionId;
   private final Lock myRendererLock = new ReentrantLock();
-  private boolean myParseTime;
-  private int myProfileLastVersion;
   private WrapInProvider myWrapInProvider;
   private boolean myZoomRequested = true;
   private RootView myRootView;
   private boolean myShowingRoot;
+  @NotNull
+  private Configuration myConfiguration;
+  private int myConfigurationDirty;
+  private boolean myActive;
 
   /** Zoom level (1 = 100%). TODO: Persist this setting across IDE sessions (on a per file basis) */
   private double myZoom = 1;
@@ -129,55 +119,45 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
                                     @NotNull VirtualFile file) {
     super(editor, project, module, file);
 
-    mySessionQueue = ViewsMetaManager.getInstance(project).getSessionQueue();
+    showProgress("Loading configuration...");
 
+    AndroidFacet facet = AndroidFacet.getInstance(getModule());
+    assert facet != null;
+    myConfiguration = facet.getConfigurationManager().get(file);
+    myConfigListener = new LayoutConfigurationListener();
+    myConfiguration.addListener(myConfigListener);
+
+    mySessionQueue = ViewsMetaManager.getInstance(project).getSessionQueue();
     myXmlFile = (XmlFile)ApplicationManager.getApplication().runReadAction(new Computable<PsiFile>() {
       @Override
+      @Nullable
       public PsiFile compute() {
         return PsiManager.getInstance(getProject()).findFile(myFile);
       }
     });
-    myPSIChangeListener = new ExternalPSIChangeListener(this, myXmlFile, 100, new Runnable() {
+    myPsiChangeListener = new ExternalPSIChangeListener(this, myXmlFile, 100, new Runnable() {
       @Override
       public void run() {
         reparseFile();
       }
     });
 
-    showProgress("Loading configuration...");
-    myProfileAction = new ProfileAction(this, new Runnable() {
-      @Override
-      public void run() {
-        if (isProjectClosed()) {
-          return;
-        }
-        myPSIChangeListener.setInitialize();
-        if (!myPSIChangeListener.isActive()) {
-          return;
-        }
-        myActionPanel.update();
-        if (myRootComponent == null || !Comparing.equal(myProfileAction.getProfileManager().getSelectedTarget(), myLastTarget)) {
-          myPSIChangeListener.activate();
-          myPSIChangeListener.addRequest();
-        }
-        else if (myProfileLastVersion != myProfileAction.getVersion() ||
-                 !ProfileManager.isAndroidSdk(myProfileAction.getCurrentSdk())) {
-          // TODO: Only request auto fit if the orientation or screen size changed; for now
-          // it auto zooms for any configuration change
-          requestZoomFit();
-          myPSIChangeListener.addRequest(new Runnable() {
-            @Override
-            public void run() {
-              updateRenderer(true);
-            }
-          });
-        }
-      }
-    });
+    addActions();
 
+    myActive = true;
+    myPsiChangeListener.setInitialize();
+    myPsiChangeListener.activate();
+    myPsiChangeListener.addRequest();
+  }
+
+  private void addActions() {
+    addConfigurationActions();
     myActionPanel.getPopupGroup().addSeparator();
     myActionPanel.getPopupGroup().add(buildRefactorActionGroup());
+    addGotoDeclarationAction();
+  }
 
+  private void addGotoDeclarationAction() {
     AnAction gotoDeclaration = new AnAction("Go To Declaration") {
       @Override
       public void update(AnActionEvent e) {
@@ -194,6 +174,12 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
     };
     myActionPanel.registerAction(gotoDeclaration, IdeActions.ACTION_GOTO_DECLARATION);
     myActionPanel.getPopupGroup().add(gotoDeclaration);
+  }
+
+  private void addConfigurationActions() {
+    DefaultActionGroup designerActionGroup = getActionPanel().getActionGroup();
+    ActionGroup group = ConfigurationToolBar.createActions(this);
+    designerActionGroup.add(group);
   }
 
   @Override
@@ -249,29 +235,47 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
       });
     }
     catch (RuntimeException e) {
-      myPSIChangeListener.clear();
+      myPsiChangeListener.clear();
       showError("Parsing error", e.getCause() == null ? e : e.getCause());
     }
   }
 
   private void parseFile(final Runnable runnable) {
-    myParseTime = true;
-
     final ModelParser parser = new ModelParser(getProject(), myXmlFile);
 
-    createRenderer(parser.getLayoutXmlText(), new MyThrowable(), new ThrowableConsumer<RenderSession, Throwable>() {
+    createRenderer(new MyThrowable(), new ThrowableConsumer<RenderResult, Throwable>() {
       @Override
-      public void consume(RenderSession session) throws Throwable {
+      public void consume(RenderResult result) throws Throwable {
+        RenderSession session = result.getSession();
+        if (session == null) {
+          return;
+        }
+
+        if (!session.getResult().isSuccess()) {
+          // This image may not have been fully rendered before some error caused
+          // the render to abort, but a partial render is better. However, if the render
+          // was due to some configuration change, we don't want to replace the image
+          // since all the mouse regions and model setup will no longer match the pixels.
+          if (myRootView != null && myRootView.getImage() != null && session.getImage() != null &&
+            session.getImage().getWidth() == myRootView.getImage().getWidth() &&
+            session.getImage().getHeight() == myRootView.getImage().getHeight()) {
+            myRootView.setImage(session.getImage(), session.isAlphaChannelImage());
+            myRootView.repaint();
+          }
+          return;
+        }
+
         boolean insertPanel = !myShowingRoot;
         if (myRootView == null) {
           myRootView = new RootView(AndroidDesignerEditorPanel.this, 0, 0, session.getImage(), session.isAlphaChannelImage());
           insertPanel = true;
-        } else {
+        }
+        else {
           myRootView.setImage(session.getImage(), session.isAlphaChannelImage());
           myRootView.updateSize();
         }
         try {
-          parser.updateRootComponent(myLastRenderedConfiguration, session, myRootView);
+          parser.updateRootComponent(myConfiguration.getFullConfig(), session, myRootView);
         }
         catch (Throwable e) {
           myRootComponent = parser.getRootComponent();
@@ -283,8 +287,9 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
         newRootComponent.setClientProperty(ModelParser.MODULE_KEY, AndroidDesignerEditorPanel.this);
         newRootComponent.setClientProperty(TreeComponentDecorator.KEY, myTreeDecorator);
 
-        PropertyParser propertyParser =
-          new PropertyParser(getModule(), myProfileAction.getProfileManager().getSelectedTarget());
+        IAndroidTarget target = myConfiguration.getTarget();
+        assert target != null; // otherwise, rendering would not have succeeded
+        PropertyParser propertyParser = new PropertyParser(getModule(), target);
         newRootComponent.setClientProperty(PropertyParser.KEY, propertyParser);
         propertyParser.loadRecursive(newRootComponent);
 
@@ -346,32 +351,29 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
         loadInspections(new EmptyProgressIndicator());
         updateInspections();
 
-        myParseTime = false;
-
         runnable.run();
       }
     });
   }
 
-  private void createRenderer(final String layoutXmlText,
-                              final MyThrowable throwable,
-                              final ThrowableConsumer<RenderSession, Throwable> runnable) {
+  private void createRenderer(final MyThrowable throwable,
+                              final ThrowableConsumer<RenderResult, Throwable> runnable) {
     disposeRenderer();
 
+    // TODO: Get rid of this when the project resources are read directly from (possibly unsaved) PSI elements
     ApplicationManager.getApplication().saveAll();
 
     mySessionAlarm.addRequest(new Runnable() {
       @Override
       public void run() {
         if (mySession == null) {
-          showProgress("Creating RenderLib...");
+          showProgress("Initializing Rendering Library...");
         }
       }
     }, 500);
 
     final long sessionId = ++mySessionId;
 
-    //ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
     mySessionQueue.queue(new Update("render") {
       private void cancel() {
         mySessionAlarm.cancelAllRequests();
@@ -388,43 +390,17 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
       @Override
       public void run() {
         try {
-          long time = System.currentTimeMillis();
-
-          myProfileLastVersion = myProfileAction.getVersion();
-
-          AndroidPlatform platform = AndroidPlatform.getInstance(getModule());
+          final Module module = getModule();
+          AndroidPlatform platform = AndroidPlatform.getInstance(module);
           if (platform == null) {
             throw new AndroidSdkNotConfiguredException();
           }
-
-          AndroidFacet facet = AndroidFacet.getInstance(getModule());
-          ProfileManager manager = myProfileAction.getProfileManager();
-
-          State deviceConfiguration = manager.getSelectedDeviceConfiguration();
-          if (deviceConfiguration == null) {
-            throw new DeviceIsNotSpecifiedException();
+          AndroidFacet facet = AndroidFacet.getInstance(module);
+          if (facet == null) {
+            throw new RenderingException();
           }
 
-          myLastRenderedConfiguration = new FolderConfiguration();
-          myLastRenderedConfiguration.set(DeviceConfigHelper.getFolderConfig(deviceConfiguration));
-          myLastRenderedConfiguration.setUiModeQualifier(new UiModeQualifier(manager.getSelectedDockMode()));
-          myLastRenderedConfiguration.setNightModeQualifier(new NightModeQualifier(manager.getSelectedNightMode()));
-
-          LocaleData locale = manager.getSelectedLocale();
-          if (locale == null) {
-            throw new RenderingException("Locale is not specified");
-          }
-          myLastRenderedConfiguration.setLanguageQualifier(new LanguageQualifier(locale.getLanguage()));
-          myLastRenderedConfiguration.setRegionQualifier(new RegionQualifier(locale.getRegion()));
-
-          double xdpi = deviceConfiguration.getHardware().getScreen().getXdpi();
-          double ydpi = deviceConfiguration.getHardware().getScreen().getYdpi();
-
-          final boolean updatePalette = !Comparing.equal(myProfileAction.getProfileManager().getSelectedTarget(), myLastTarget);
-          myLastTarget = manager.getSelectedTarget();
-          ThemeData theme = manager.getSelectedTheme();
-
-          if (myLastTarget == null || theme == null) {
+          if (myConfiguration.getTarget() == null || myConfiguration.getTheme() == null) {
             throw new RenderingException();
           }
 
@@ -433,21 +409,18 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
             return;
           }
 
-          RenderingResult result = null;
+          final RenderLogger logger = new RenderLogger(myFile.getName(), module);
+          final RenderResult renderResult;
+          RenderContext renderContext = AndroidDesignerEditorPanel.this;
           if (myRendererLock.tryLock()) {
             try {
-              result = RenderUtil.renderLayout(getModule(),
-                                               layoutXmlText,
-                                               myFile,
-                                               null,
-                                               myLastTarget,
-                                               facet,
-                                               myLastRenderedConfiguration,
-                                               xdpi,
-                                               ydpi,
-                                               theme,
-                                               10000,
-                                               true);
+              RenderService service = RenderService.create(facet, module, myXmlFile, myConfiguration, logger, renderContext);
+              if (service != null) {
+                renderResult = service.render();
+                service.dispose();
+              } else {
+                renderResult = new RenderResult(null, null, myXmlFile, logger);
+              }
             }
             finally {
               myRendererLock.unlock();
@@ -463,18 +436,11 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
             return;
           }
 
-          if (ApplicationManagerEx.getApplicationEx().isInternal()) {
-            System.out.println("Render time: " + (System.currentTimeMillis() - time)); // XXX
-          }
-
-          if (result == null) {
+          if (renderResult == null) {
             throw new RenderingException();
           }
 
-          final RenderSession session = mySession = result.getSession();
           mySessionAlarm.cancelAllRequests();
-
-          final List<FixableIssueMessage> warnMessages = result.getWarnMessages();
 
           ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
@@ -483,32 +449,27 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
                 if (!isProjectClosed()) {
                   hideProgress();
                   if (sessionId == mySessionId) {
-                    runnable.consume(session);
-                    if (updatePalette) {
-                      updatePalette(myLastTarget);
-                    }
-                    showWarnings(warnMessages);
+                    runnable.consume(renderResult);
+                    updateErrors(renderResult);
                   }
                 }
               }
               catch (Throwable e) {
-                myPSIChangeListener.clear();
+                myPsiChangeListener.clear();
                 showError("Parsing error", throwable.wrap(e));
-                myParseTime = false;
               }
             }
           });
         }
         catch (final Throwable e) {
-          myPSIChangeListener.clear();
+          myPsiChangeListener.clear();
           mySessionAlarm.cancelAllRequests();
 
           ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {
-              myPSIChangeListener.clear();
+              myPsiChangeListener.clear();
               showError("Render error", throwable.wrap(e));
-              myParseTime = false;
             }
           });
         }
@@ -517,26 +478,27 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
   }
 
   public int getDpi() {
-    if (myLastRenderedConfiguration == null) {
-      return DEFAULT_DENSITY;
-    }
-
-    return myLastRenderedConfiguration.getDensityQualifier().getValue().getDpiValue();
+    return myConfiguration.getDensity().getDpiValue();
   }
 
-  private void showWarnings(@Nullable List<FixableIssueMessage> warnMessages) {
-    if (warnMessages == null || warnMessages.isEmpty()) {
-      showWarnMessages(null);
-    }
-    else {
-      List<FixableMessageInfo> messages = new ArrayList<FixableMessageInfo>();
-      for (FixableIssueMessage message : warnMessages) {
-        messages.add(
-          new FixableMessageInfo(false, message.myBeforeLinkText, message.myLinkText, message.myAfterLinkText,
-                                 message.myQuickFix,
-                                 message.myAdditionalFixes));
+  private MyRenderPanelWrapper myErrorPanelWrapper;
+
+  private void updateErrors(@NotNull RenderResult result) {
+    RenderLogger logger = result.getLogger();
+    if (logger == null || !logger.hasProblems()) {
+      if (myErrorPanelWrapper == null) {
+        return;
       }
-      showWarnMessages(messages);
+      myLayeredPane.remove(myErrorPanelWrapper);
+      myErrorPanelWrapper = null;
+      myLayeredPane.repaint();
+    } else {
+      if (myErrorPanelWrapper == null) {
+        myErrorPanelWrapper = new MyRenderPanelWrapper(new RenderErrorPanel());
+      }
+      myErrorPanelWrapper.getErrorPanel().showErrors(result);
+      myLayeredPane.add(myErrorPanelWrapper, LAYER_ERRORS);
+      myLayeredPane.repaint();
     }
   }
 
@@ -548,26 +510,19 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
   }
 
   private void updateRenderer(final boolean updateProperties) {
-    myParseTime = true;
-    final String layoutXmlText = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+    createRenderer(new MyThrowable(), new ThrowableConsumer<RenderResult, Throwable>() {
       @Override
-      public String compute() {
-        if (ModelParser.checkTag(myXmlFile.getRootTag())) {
-          return myXmlFile.getText();
+      public void consume(RenderResult result) throws Throwable {
+        RenderSession session = result.getSession();
+        if (session == null) {
+          return;
         }
-        return ModelParser.NO_ROOT_CONTENT;
-      }
-    });
-    createRenderer(layoutXmlText, new MyThrowable(), new ThrowableConsumer<RenderSession, Throwable>() {
-      @Override
-      public void consume(RenderSession session) throws Throwable {
         RadViewComponent rootComponent = (RadViewComponent)myRootComponent;
         RootView rootView = (RootView)rootComponent.getNativeComponent();
         rootView.setImage(session.getImage(), session.isAlphaChannelImage());
-        ModelParser.updateRootComponent(myLastRenderedConfiguration, rootComponent, session, rootView);
-        autoZoom();
+        ModelParser.updateRootComponent(myConfiguration.getFullConfig(), rootComponent, session, rootView);
 
-        myParseTime = false;
+        autoZoom();
 
         myLayeredPane.revalidate();
         myHorizontalCaption.update();
@@ -605,82 +560,17 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
 
   @Override
   protected void configureError(@NotNull ErrorInfo info) {
-    List<FixableIssueMessage> warnMessages = null;
+    // Error messages for the user (broken custom views, missing resources, etc) are already
+    // trapped during rendering and shown in the error panel. These errors are internal errors
+    // in the layout editor and should instead be redirected to the log.
+    info.myShowMessage = false;
+    info.myShowLog = true;
 
     Throwable renderCreator = null;
     if (info.myThrowable instanceof MyThrowable) {
       renderCreator = info.myThrowable;
       info.myThrowable = ((MyThrowable)info.myThrowable).original;
     }
-
-    if (info.myThrowable instanceof AndroidSdkNotConfiguredException) {
-      info.myShowLog = false;
-      info.myShowStack = false;
-
-      if (AndroidMavenUtil.isMavenizedModule(getModule())) {
-        info.myMessages.add(new FixableMessageInfo(true, AndroidBundle.message("android.maven.cannot.parse.android.sdk.error",
-                                                                               getModule().getName()), "", "", null, null));
-      }
-      else {
-        info.myMessages.add(new FixableMessageInfo(true, "Please ", "configure", " Android SDK", new Runnable() {
-          @Override
-          public void run() {
-            AndroidSdkUtils.openModuleDependenciesConfigurable(getModule());
-          }
-        }, null));
-      }
-    }
-    else if (info.myThrowable instanceof DeviceIsNotSpecifiedException) {
-      info.myShowLog = false;
-      info.myShowStack = false;
-
-      info.myMessages.add(new FixableMessageInfo(true, "Device is not specified, click ", "here", " to launch AVD Manager", new Runnable() {
-        @Override
-        public void run() {
-          new RunAndroidAvdManagerAction().doAction(getProject());
-        }
-      }, null));
-    }
-    else if (((info.myThrowable instanceof ClassNotFoundException || info.myThrowable instanceof NoClassDefFoundError) &&
-              myParseTime &&
-              !info.myThrowable.toString().contains("jetbrains") &&
-              !info.myThrowable.toString().contains("intellij")) ||
-             info.myThrowable instanceof ProcessCanceledException) {
-      info.myShowLog = false;
-    }
-    else {
-      boolean renderError = info.myThrowable instanceof RenderingException;
-
-      if (renderError) {
-        RenderingException exception = (RenderingException)info.myThrowable;
-        warnMessages = exception.getWarnMessages();
-
-        if (StringUtil.isEmpty(exception.getPresentableMessage())) {
-          Throwable[] causes = exception.getCauses();
-          if (causes.length == 0) {
-            info.myThrowable = new Exception(AndroidBundle.message("android.layout.preview.default.error.message"), exception);
-          }
-          else if (causes.length == 1) {
-            info.myThrowable = causes[0];
-          }
-          else {
-            info.myThrowable = new RenderingException(AndroidBundle.message("android.layout.preview.default.error.message"), causes);
-          }
-        }
-      }
-
-      if (warnMessages == null) {
-        info.myShowMessage = myParseTime || renderError;
-        info.myShowLog = !renderError;
-        info.myShowStack = renderError;
-      }
-      else {
-        info.myShowLog = false;
-        info.myShowStack = true;
-      }
-    }
-
-    showWarnings(warnMessages);
 
     StringBuilder builder = new StringBuilder();
 
@@ -717,42 +607,41 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
 
   @Override
   protected void showErrorPage(ErrorInfo info) {
-    myPSIChangeListener.clear();
+    myPsiChangeListener.clear();
     mySessionAlarm.cancelAllRequests();
     removeNativeRoot();
     super.showErrorPage(info);
   }
 
-  public ProfileAction getProfileAction() {
-    return myProfileAction;
-  }
-
   @Override
   public void activate() {
-    myProfileAction.externalUpdate();
-    myPSIChangeListener.activate();
+    myActive = true;
+    myPsiChangeListener.activate();
 
-    if (myPSIChangeListener.isUpdateRenderer()) {
+    if (myPsiChangeListener.isUpdateRenderer() || ((myConfigurationDirty & MASK_RENDERING) != 0)) {
       updateRenderer(true);
     }
+    myConfigurationDirty = 0;
   }
 
   @Override
   public void deactivate() {
-    myPSIChangeListener.deactivate();
+    myActive = false;
+    myPsiChangeListener.deactivate();
   }
 
   public void buildProject() {
-    if (myPSIChangeListener.ensureUpdateRenderer() && myRootComponent != null) {
+    if (myPsiChangeListener.ensureUpdateRenderer() && myRootComponent != null) {
       updateRenderer(true);
     }
   }
 
   @Override
   public void dispose() {
-    Disposer.dispose(myProfileAction);
-    myPSIChangeListener.dispose();
+    myPsiChangeListener.dispose();
+    myConfiguration.removeListener(myConfigListener);
     super.dispose();
+
     disposeRenderer();
   }
 
@@ -762,6 +651,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
     Module module = super.findModule(project, file);
     if (module == null) {
       module = ApplicationManager.getApplication().runReadAction(new Computable<Module>() {
+        @Nullable
         @Override
         public Module compute() {
           return ModuleUtilCore.findModuleForPsiElement(myXmlFile);
@@ -825,7 +715,8 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
 
   @Override
   public boolean isDeprecated(@NotNull String deprecatedIn) {
-    if (myLastTarget == null) {
+    IAndroidTarget target = myConfiguration.getTarget();
+    if (target == null) {
       return super.isDeprecated(deprecatedIn);
     }
 
@@ -835,7 +726,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
 
     Integer api = Ints.tryParse(deprecatedIn);
     assert api != null : deprecatedIn;
-    return api.intValue() <= myLastTarget.getVersion().getApiLevel();
+    return api.intValue() <= target.getVersion().getApiLevel();
   }
 
   @Override
@@ -857,7 +748,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
 
   @Override
   public ComponentPasteFactory createPasteFactory(String xmlComponents) {
-    return new AndroidPasteFactory(getModule(), myLastTarget, xmlComponents);
+    return new AndroidPasteFactory(getModule(), myConfiguration.getTarget(), xmlComponents);
   }
 
   private void updatePalette(IAndroidTarget target) {
@@ -901,7 +792,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
       return false;
     }
     try {
-      myPSIChangeListener.stop();
+      myPsiChangeListener.stop();
       operation.run();
       updateRenderer(updateProperties);
       return true;
@@ -911,7 +802,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
       return false;
     }
     finally {
-      myPSIChangeListener.start();
+      myPsiChangeListener.start();
     }
   }
 
@@ -921,14 +812,14 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
       return;
     }
     try {
-      myPSIChangeListener.stop();
+      myPsiChangeListener.stop();
       operation.run();
-      myPSIChangeListener.start();
+      myPsiChangeListener.start();
       reparseFile();
     }
     catch (Throwable e) {
       showError("Execute command", e);
-      myPSIChangeListener.start();
+      myPsiChangeListener.start();
     }
   }
 
@@ -938,7 +829,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
       return;
     }
     try {
-      myPSIChangeListener.stop();
+      myPsiChangeListener.stop();
       for (EditOperation operation : operations) {
         operation.execute();
       }
@@ -948,7 +839,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
       showError("Execute command", e);
     }
     finally {
-      myPSIChangeListener.start();
+      myPsiChangeListener.start();
     }
   }
 
@@ -1040,13 +931,12 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
       case FIT: {
         Dimension sceneSize = myRootComponent.getBounds().getSize();
         Dimension screenSize = getDesignerViewSize();
-        if (screenSize != null) {
+        if (screenSize != null && screenSize.width > 0 && screenSize.height > 0) {
           int sceneWidth = sceneSize.width;
           int sceneHeight = sceneSize.height;
           if (sceneWidth > 0 && sceneHeight > 0) {
             int viewWidth = screenSize.width;
             int viewHeight = screenSize.height;
-
 
             // Reduce the margins if necessary
             int hDelta = viewWidth - sceneWidth;
@@ -1169,5 +1059,107 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel {
     }
 
     return target;
+  }
+
+  /**
+   * Layered pane which shows the rendered image, as well as (if applicable) an error message panel on top of the rendering
+   * near the bottom
+   */
+  private static class MyRenderPanelWrapper extends JPanel {
+    private final RenderErrorPanel myErrorPanel;
+    public MyRenderPanelWrapper(@NotNull RenderErrorPanel errorPanel) {
+      super(new BorderLayout());
+      myErrorPanel = errorPanel;
+      setBackground(null);
+      setOpaque(false);
+      add(errorPanel);
+    }
+
+    private RenderErrorPanel getErrorPanel() {
+      return myErrorPanel;
+    }
+
+    @Override
+    public void doLayout() {
+      super.doLayout();
+      positionErrorPanel();
+    }
+
+    private void positionErrorPanel() {
+      int height = getHeight();
+      int width = getWidth();
+      int size = height / 2;
+      myErrorPanel.setSize(width, size);
+      myErrorPanel.setLocation(0, height - size);
+    }
+  }
+
+  private void saveState() {
+    ConfigurationStateManager stateManager = ConfigurationStateManager.get(getProject());
+    ConfigurationProjectState projectState = stateManager.getProjectState();
+    projectState.saveState(myConfiguration);
+
+    ConfigurationFileState fileState = new ConfigurationFileState();
+    fileState.saveState(myConfiguration);
+    stateManager.setConfigurationState(myFile, fileState);
+  }
+
+  // ---- Implements RenderContext ----
+
+  @NotNull
+  public Configuration getConfiguration() {
+    return myConfiguration;
+  }
+
+  @Override
+  public void requestRender() {
+    updateRenderer(false);
+  }
+
+  @NotNull
+  public UsageType getType() {
+    return UsageType.LAYOUT_EDITOR;
+  }
+
+  @NotNull
+  @Override
+  public XmlFile getXmlFile() {
+    return myXmlFile;
+  }
+
+  @Nullable
+  @Override
+  public VirtualFile getVirtualFile() {
+    return myFile;
+  }
+
+  private class LayoutConfigurationListener implements ConfigurationListener {
+    @Override
+    public boolean changed(int flags) {
+      if (isProjectClosed()) {
+        return true;
+      }
+
+      if (myActive) {
+        if ((flags & CFG_DEVICE_STATE) != 0) {
+          requestZoomFit();
+        }
+
+        updateRenderer(false);
+
+        if ((flags & CFG_TARGET) != 0) {
+          IAndroidTarget target = myConfiguration.getTarget();
+          if (target != null) {
+            updatePalette(target);
+          }
+        }
+
+        saveState();
+      } else {
+        myConfigurationDirty |= flags;
+      }
+
+      return true;
+    }
   }
 }

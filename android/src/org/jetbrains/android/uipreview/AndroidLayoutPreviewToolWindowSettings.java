@@ -16,16 +16,8 @@
 package org.jetbrains.android.uipreview;
 
 import com.intellij.openapi.components.*;
-import com.intellij.openapi.components.StoragePathMacros;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.util.containers.HashMap;
-import com.intellij.util.xmlb.annotations.MapAnnotation;
-import com.intellij.util.xmlb.annotations.Tag;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Map;
 
 /**
  * @author Eugene.Kudelevsky

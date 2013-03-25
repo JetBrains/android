@@ -29,7 +29,7 @@ public class ViewsMetaManager extends MetaManager {
 
   public ViewsMetaManager(Project project) {
     super(project, "views-meta-model.xml");
-    mySessionQueue = new MergingUpdateQueue("android.designer", 300, true, null, project, null, Alarm.ThreadToUse.OWN_THREAD);
+    mySessionQueue = new MergingUpdateQueue("android.designer", 10, true, null, project, null, Alarm.ThreadToUse.OWN_THREAD);
   }
 
   public MergingUpdateQueue getSessionQueue() {

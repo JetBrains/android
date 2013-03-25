@@ -22,6 +22,7 @@ import com.intellij.codeInsight.CodeInsightUtilBase;
 import com.intellij.codeInsight.intention.AddAnnotationFix;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Iconable;
@@ -43,7 +44,7 @@ import java.util.List;
 import static com.android.SdkConstants.*;
 
 /** Intention for adding a {@code @SuppressLint} annotation on the given element for the given id */
-class SuppressLintIntentionAction implements IntentionAction, Iconable {
+public class SuppressLintIntentionAction implements IntentionAction, Iconable {
   private final String myId;
   private final PsiElement myElement;
 
@@ -120,7 +121,9 @@ class SuppressLintIntentionAction implements IntentionAction, Iconable {
    * find it and inline.
    */
   @NotNull
-  private static String ensureNamespaceImported(@NotNull Project project, @NotNull XmlFile file, @NotNull String namespaceUri) {
+  public static String ensureNamespaceImported(@NotNull Project project, @NotNull XmlFile file, @NotNull String namespaceUri) {
+    ApplicationManager.getApplication().assertWriteAccessAllowed();
+
     final XmlTag rootTag = file.getRootTag();
 
     assert rootTag != null;

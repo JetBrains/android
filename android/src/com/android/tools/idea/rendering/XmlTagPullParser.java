@@ -54,6 +54,9 @@ public class XmlTagPullParser implements ILegacyPullParser {
   private int myParsingState = START_DOCUMENT;
 
   @NotNull
+  private final RenderLogger myLogger;
+
+  @NotNull
   private final List<XmlTag> myNodeStack = new ArrayList<XmlTag>();
 
   @Nullable
@@ -97,10 +100,12 @@ public class XmlTagPullParser implements ILegacyPullParser {
    *                     explodeRendering parameter.
    * @param density      the density factor for the screen.
    */
-  public XmlTagPullParser(@NotNull XmlFile file, @Nullable Set<XmlTag> explodeNodes, @NotNull Density density) {
+  public XmlTagPullParser(@NotNull XmlFile file, @Nullable Set<XmlTag> explodeNodes, @NotNull Density density,
+                          @NotNull RenderLogger logger) {
     myRoot = file.getRootTag();
     myExplodeNodes = explodeNodes;
     myDensity = density;
+    myLogger = logger;
   }
 
   @Nullable
@@ -428,6 +433,15 @@ public class XmlTagPullParser implements ILegacyPullParser {
         String layout = LayoutMetadata.getFragmentLayout(currentNode);
         if (layout != null) {
           return VIEW_INCLUDE;
+        } else {
+          String fragmentId = currentNode.getAttributeValue(ATTR_CLASS);
+          if (fragmentId == null || fragmentId.isEmpty()) {
+            fragmentId = currentNode.getAttributeValue(ATTR_NAME, ANDROID_URI);
+            if (fragmentId == null || fragmentId.isEmpty()) {
+              fragmentId = currentNode.getAttributeValue(ATTR_ID, ANDROID_URI);
+            }
+          }
+          myLogger.warning(RenderLogger.TAG_MISSING_FRAGMENT, "Missing fragment association", fragmentId);
         }
       }
 

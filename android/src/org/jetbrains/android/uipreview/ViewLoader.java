@@ -45,9 +45,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static com.android.SdkConstants.R_CLASS;
-import static com.android.SdkConstants.VIEW_FRAGMENT;
-import static com.android.SdkConstants.VIEW_INCLUDE;
+import static com.android.SdkConstants.*;
 
 /**
  * Handler for loading views for the layout editor on demand, and reporting issues with class

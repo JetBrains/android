@@ -392,6 +392,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     public MyImagePanelWrapper() {
       add(myImagePanel);
       setBackground(null);
+      setOpaque(false);
     }
 
     @Override

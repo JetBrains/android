@@ -44,6 +44,11 @@ public class BufferingFileWrapper implements IAbstractFile {
     }
   }
 
+  @NotNull
+  public File getFile() {
+    return myFile;
+  }
+
   @Override
   public void setContents(InputStream source) throws StreamException {
     throw new UnsupportedOperationException();
