@@ -19,15 +19,31 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.AdapterBinding;
 import com.android.ide.common.rendering.api.DataBindingItem;
 import com.android.ide.common.rendering.api.ResourceReference;
+import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.inspections.lint.SuppressLintIntentionAction;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xmlpull.v1.XmlPullParser;
 
+import java.util.List;
 import java.util.Map;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
 
 /**
  * Design-time metadata lookup for layouts, such as fragment and AdapterView bindings.
@@ -271,5 +287,132 @@ public class LayoutMetadata {
     }
 
     return null;
+  }
+
+  /**
+   * Sets the given property of the given DOM node to a given value, or if null clears
+   * the property.
+   */
+  public static void setProperty(@NotNull final Project project,
+                                 @Nullable String title,
+                                 @NotNull final XmlFile file,
+                                 @NotNull final XmlTag element,
+                                 @NotNull final String name,
+                                 @Nullable final String namespace,
+                                 @Nullable final String value) {
+
+    String capitalizedName = StringUtil.capitalize(name);
+    if (title == null) {
+      title = value != null ? String.format("Set %1$s", capitalizedName) : String.format("Clear %1$s", capitalizedName);
+    }
+    WriteCommandAction<Void> action = new WriteCommandAction<Void>(project, title, file) {
+      @Override
+      protected void run(Result<Void> result) throws Throwable {
+        if (value == null) {
+          // Clear attribute
+          XmlAttribute attribute;
+          if (namespace != null) {
+              attribute = element.getAttribute(name, namespace);
+          } else {
+              attribute = element.getAttribute(name);
+          }
+          if (attribute != null) {
+            attribute.delete();
+          }
+        } else {
+          if (namespace != null) {
+            SuppressLintIntentionAction.ensureNamespaceImported(project, file, namespace);
+            element.setAttribute(name, namespace, value);
+          } else {
+            element.setAttribute(name, value);
+          }
+        }
+      }
+    };
+    action.execute();
+
+    // Also set the values on the same elements in any resource variations
+    // of the same layout
+    // TODO: This should be done after a brief delay, say 50ms
+    final List<XmlTag> list = ApplicationManager.getApplication().runReadAction(new Computable<List<XmlTag>>() {
+      @Override
+      @Nullable
+      public List<XmlTag> compute() {
+        // Look up the id of the element, if any
+        String id = stripIdPrefix(element.getAttributeValue(ATTR_ID, ANDROID_URI));
+        if (id.isEmpty()) {
+          return null;
+        }
+
+        VirtualFile layoutFile = file.getVirtualFile();
+        if (layoutFile != null) {
+          final List<VirtualFile> variations = ResourceHelper.getResourceVariations(layoutFile, false);
+          if (variations.isEmpty()) {
+            return null;
+          }
+
+          PsiManager manager = PsiManager.getInstance(project);
+          List<XmlTag> list = Lists.newArrayList();
+
+          for (VirtualFile file : variations) {
+            PsiFile psiFile = manager.findFile(file);
+            if (psiFile == null) {
+              continue;
+            }
+            for (XmlTag tag : PsiTreeUtil.findChildrenOfType(psiFile, XmlTag.class)) {
+              XmlAttribute attribute = tag.getAttribute(ATTR_ID, ANDROID_URI);
+              if (attribute == null) {
+                continue;
+              }
+              if (attribute.getValue().endsWith(id) && id.equals(stripIdPrefix(attribute.getValue()))) {
+                list.add(tag);
+                break;
+              }
+            }
+          }
+
+          return list;
+        }
+
+        return null;
+      }
+    });
+
+    if (list != null && !list.isEmpty()) {
+      List<PsiFile> affectedFiles = Lists.newArrayList();
+      for (XmlTag tag : list) {
+        PsiFile psiFile = tag.getContainingFile();
+        if (psiFile != null) {
+          affectedFiles.add(psiFile);
+        }
+      }
+      action = new WriteCommandAction<Void>(project, title, affectedFiles.toArray(new PsiFile[affectedFiles.size()])) {
+        @Override
+        protected void run(Result<Void> result) throws Throwable {
+          for (XmlTag tag : list) {
+            if (value == null) {
+              // Clear attribute
+              XmlAttribute attribute;
+              if (namespace != null) {
+                attribute = tag.getAttribute(name, namespace);
+              } else {
+                attribute = tag.getAttribute(name);
+              }
+              if (attribute != null) {
+                attribute.delete();
+              }
+            } else {
+              if (namespace != null) {
+                SuppressLintIntentionAction.ensureNamespaceImported(project, file, namespace);
+                tag.setAttribute(name, namespace, value);
+              } else {
+                tag.setAttribute(name, value);
+              }
+            }
+          }
+        }
+      };
+      action.execute();
+    }
   }
 }

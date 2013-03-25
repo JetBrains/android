@@ -831,7 +831,7 @@
                 important="choiceMode"/>
   </meta>
 
-  <meta model="com.intellij.android.designer.model.RadViewComponent"
+  <meta model="com.intellij.android.designer.model.RadAbsListView"
         class="android.widget.ListView"
         tag="ListView">
 
@@ -852,7 +852,7 @@
     </creation>
   </meta>
 
-  <meta model="com.intellij.android.designer.model.RadViewComponent"
+  <meta model="com.intellij.android.designer.model.RadAbsListView"
         class="android.widget.ExpandableListView"
         tag="ExpandableListView">
 
@@ -873,7 +873,7 @@
     </creation>
   </meta>
 
-  <meta model="com.intellij.android.designer.model.RadViewComponent"
+  <meta model="com.intellij.android.designer.model.RadAbsListView"
         class="android.widget.GridView"
         tag="GridView">
 

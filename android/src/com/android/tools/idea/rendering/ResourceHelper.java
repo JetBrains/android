@@ -18,10 +18,13 @@ package com.android.tools.idea.rendering;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
@@ -120,6 +123,56 @@ public class ResourceHelper {
     }
 
     return false;
+  }
+
+  /**
+   * Returns all resource variations for the given file
+   *
+   * @param file resource file, which should be an XML file in one of the
+   *            various resource folders, e.g. res/layout, res/values-xlarge, etc.
+   * @param includeSelf if true, include the file itself in the list,
+   *            otherwise exclude it
+   * @return a list of all the resource variations
+   */
+  public static List<VirtualFile> getResourceVariations(@Nullable VirtualFile file, boolean includeSelf) {
+    if (file == null) {
+      return Collections.emptyList();
+    }
+
+    // Compute the set of layout files defining this layout resource
+    List<VirtualFile> variations = new ArrayList<VirtualFile>();
+    String name = file.getName();
+    VirtualFile parent = file.getParent();
+    if (parent != null) {
+      VirtualFile resFolder = parent.getParent();
+      if (resFolder != null) {
+        String parentName = parent.getName();
+        String prefix = parentName;
+        int qualifiers = prefix.indexOf('-');
+
+        if (qualifiers != -1) {
+          parentName = prefix.substring(0, qualifiers);
+          prefix = prefix.substring(0, qualifiers + 1);
+        } else {
+          prefix += '-';
+        }
+        for (VirtualFile resource : resFolder.getChildren()) {
+          String n = resource.getName();
+          if ((n.startsWith(prefix) || n.equals(parentName))
+              && resource.isDirectory()) {
+            VirtualFile variation = resource.findChild(name);
+            if (variation != null) {
+              if (!includeSelf && file.equals(variation)) {
+                continue;
+              }
+              variations.add(variation);
+            }
+          }
+        }
+      }
+    }
+
+    return variations;
   }
 
   /**

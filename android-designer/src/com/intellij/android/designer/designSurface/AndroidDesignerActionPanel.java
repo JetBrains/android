@@ -19,6 +19,7 @@ import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.RadViewLayout;
 import com.intellij.designer.actions.DesignerActionPanel;
 import com.intellij.designer.designSurface.DesignerEditorPanel;
+import com.intellij.designer.designSurface.EditableArea;
 import com.intellij.designer.designSurface.ZoomType;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.model.RadLayout;
@@ -28,7 +29,6 @@ import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.util.PsiNavigateUtil;
-import icons.AndroidDesignerIcons;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -170,5 +170,52 @@ public class AndroidDesignerActionPanel extends DesignerActionPanel {
         component.addSelectionActions(myDesigner, group, shortcuts, Collections.<RadComponent>singletonList(component));
       }
     }
+  }
+
+  private DefaultActionGroup myPopupGroup;
+  private final DefaultActionGroup myDynamicBeforeGroup = new DefaultActionGroup();
+  private final DefaultActionGroup myDynamicAfterGroup = new DefaultActionGroup();
+
+  @Override
+  public ActionGroup getPopupActions(EditableArea area) {
+    ActionGroup superActions = super.getPopupActions(area);
+
+    if (myPopupGroup == null) {
+      myPopupGroup = new DefaultActionGroup();
+      myPopupGroup.add(myDynamicBeforeGroup);
+      myPopupGroup.add(superActions);
+      myPopupGroup.add(myDynamicAfterGroup);
+    }
+
+    if (myDynamicBeforeGroup.getChildrenCount() > 0) {
+      myDynamicBeforeGroup.removeAll();
+    }
+    if (myDynamicAfterGroup.getChildrenCount() > 0) {
+      myDynamicAfterGroup.removeAll();
+    }
+
+    // Insert selection actions
+    List<RadComponent> selection = area.getSelection();
+    if (selection.size() == 1) {
+      // Add specific actions
+      RadComponent selected = selection.get(0);
+      if (selected instanceof RadViewComponent) {
+        RadViewComponent viewComponent = (RadViewComponent)selected;
+        AndroidDesignerEditorPanel designer = (AndroidDesignerEditorPanel)myDesigner;
+        viewComponent.addPopupActions(designer, myDynamicBeforeGroup, myDynamicAfterGroup, designer, selection);
+
+        // Add in actions from the parents
+        RadComponent current = selected.getParent();
+        while (current != null && current instanceof RadViewComponent) {
+          DefaultActionGroup container = new DefaultActionGroup(((RadViewComponent)current).getId(), true);
+          if (((RadViewComponent)current).addPopupActions(designer, container, container, designer, selection)) {
+            myDynamicAfterGroup.add(container);
+          }
+          current = current.getParent();
+        }
+      }
+    }
+
+    return myPopupGroup;
   }
 }
