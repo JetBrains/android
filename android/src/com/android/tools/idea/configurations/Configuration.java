@@ -221,6 +221,11 @@ public class Configuration {
     return copy;
   }
 
+  @Override
+  public Configuration clone() {
+    return copy(this);
+  }
+
   @SuppressWarnings("AssertWithSideEffects")
   protected boolean ensureValid() {
     // Asserting on getters rather than fields since some are initialized lazily
@@ -377,6 +382,15 @@ public class Configuration {
    */
   public boolean isLocaleSpecificLayout() {
     return myEditedConfig.getLanguageQualifier() != null;
+  }
+
+  /**
+   * Returns true if the current layout is target-specific
+   *
+   * @return if this configuration represents a target-specific layout
+   */
+  public boolean isTargetSpecificLayout() {
+    return myEditedConfig.getVersionQualifier() != null;
   }
 
   /**

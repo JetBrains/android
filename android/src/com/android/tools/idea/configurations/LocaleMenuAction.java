@@ -26,6 +26,7 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.ListPopup;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.awt.RelativePoint;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -66,7 +67,7 @@ public class LocaleMenuAction extends FlatComboAction {
     Collections.sort(locales, Locale.LANGUAGE_CODE_COMPARATOR);
     for (Locale locale : locales) {
       String title = getLocaleLabel(locale, false);
-      group.add(new SetLocaleAction(title, locale));
+      group.add(new SetLocaleAction(myRenderContext, title, locale));
     }
 
     return group;
@@ -122,7 +123,8 @@ public class LocaleMenuAction extends FlatComboAction {
     Configuration configuration = myRenderContext.getConfiguration();
     boolean visible = configuration != null;
     if (visible) {
-      Locale locale = configuration.getLocale();
+      Locale locale = configuration.isLocaleSpecificLayout()
+                      ? configuration.getLocale() : configuration.getConfigurationManager().getLocale();
       if (locale == Locale.ANY) {
         presentation.setIcon(AndroidIcons.Globe);
       } else {
@@ -152,7 +154,7 @@ public class LocaleMenuAction extends FlatComboAction {
    * @return the label
    */
   @Nullable
-  public static String getLocaleLabel(@Nullable Locale locale, boolean brief) {
+  public String getLocaleLabel(@Nullable Locale locale, boolean brief) {
     if (locale == null) {
       return null;
     }
@@ -164,10 +166,9 @@ public class LocaleMenuAction extends FlatComboAction {
       }
 
       boolean hasLocale = false;
-// TODO: Hook up
-      ResourceRepository projectRes = null;
+      ResourceRepository projectRes = ProjectResources.get(myRenderContext.getModule());
       if (projectRes != null) {
-        hasLocale = projectRes.getLanguages().size() > 0;
+        hasLocale = !projectRes.getLanguages().isEmpty();
       }
 
       if (hasLocale) {
@@ -263,22 +264,25 @@ public class LocaleMenuAction extends FlatComboAction {
   }
   */
 
-  private class SetLocaleAction extends AnAction {
+  private static class SetLocaleAction extends ConfigurationAction {
     private final Locale myLocale;
 
-    public SetLocaleAction(String title, @NotNull Locale locale) {
+    public SetLocaleAction(RenderContext renderContext, String title, @NotNull Locale locale) {
       // TODO: Rather than passing in the title, update the code to implement update() instead; that
       // way we can lazily compute the label as part of the list rendering
-      super(title, null, locale.getFlagImage());
+      super(renderContext, title, locale.getFlagImage());
       myLocale = locale;
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    protected void updateConfiguration(@NotNull Configuration configuration) {
+      configuration.setLocale(myLocale);
+    }
+
+    protected void pickedBetterMatch(@NotNull VirtualFile file) {
+      super.pickedBetterMatch(file);
       Configuration configuration = myRenderContext.getConfiguration();
       if (configuration != null) {
-        configuration.setLocale(myLocale);
-
         // Also set the project-wide locale, since locales (and rendering targets) are project wide
         configuration.getConfigurationManager().setLocale(myLocale);
       }
@@ -303,6 +307,7 @@ public class LocaleMenuAction extends FlatComboAction {
       DefaultActionGroup group = new DefaultActionGroup(null, true);
       for (Locale locale : locales) {
         String title = getLocaleLabel(locale, false);
+        assert title != null;
         group.add(new CreateLocaleAction(title, locale));
       }
 
