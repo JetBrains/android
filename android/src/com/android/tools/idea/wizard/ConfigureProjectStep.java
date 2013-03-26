@@ -154,6 +154,11 @@ public class ConfigureProjectStep extends TemplateWizardStep {
   }
 
   @Override
+  public void onStepLeaving() {
+    ((NewProjectWizardState)myTemplateState).updateParameters();
+  }
+
+  @Override
   protected JLabel getDescription() {
     return myDescription;
   }
