@@ -103,6 +103,7 @@ public class ProjectResources extends ResourceRepository implements Disposable {
 
   private final List<ProjectResources> myLibResources;
   private final PsiListener myListener;
+  private int myGeneration;
 
   public ProjectResources(@NotNull Module module, @NotNull IAbstractFolder resFolder, @NotNull List<ProjectResources> libResources) {
     super(resFolder, false);
@@ -122,6 +123,34 @@ public class ProjectResources extends ResourceRepository implements Disposable {
     }
 
     return null;
+  }
+
+  /**
+   * Returns the current generation of the project resources. Any time the project resources are updated,
+   * the generation increases. This can be used to force refreshing of layouts etc (which will cache
+   * configured project resources) when the project resources have changed since last render.
+   * <p>
+   * Note that the generation is not a change count. If you change the contents of a layout drawable XML file,
+   * that will not affect the {@link ResourceItem} and {@link ResourceValue} results returned from
+   * this repository; we only store the presence of file based resources like layouts, menus, and drawables.
+   * Therefore, only additions or removals of these files will cause a generation change.
+   * <p>
+   * Value resource files, such as string files, will cause generation changes when they are edited.
+   * Later we should consider only updating the generation when the actual values are changed (such that
+   * we can ignore whitespace changes, comment changes, reordering changes (outside of arrays), and so on.
+   * The natural time to implement this is when we reimplement this class to directly work on top of
+   * the PSI data structures, rather than simply using a PSI listener and calling super methods to
+   * process ResourceFile objects as is currently done.
+   *
+   * @return the generation id
+   */
+  public int getGeneration() {
+    // First sync in case there are pending changes which will rev the generation
+    if (!ensureInitialized()) {
+      syncDirtyFiles();
+    }
+
+    return myGeneration;
   }
 
   @Override
@@ -195,6 +224,7 @@ public class ProjectResources extends ResourceRepository implements Disposable {
 
     // Clear flag right away such that we don't end up syncing again during initialization
     myHaveDirtyFiles = false;
+    boolean newGeneration = false;
 
     ScanningContext context = new ScanningContext(this);
 
@@ -208,6 +238,7 @@ public class ProjectResources extends ResourceRepository implements Disposable {
         }
       }
       myDeletedFiles.clear();
+      newGeneration = true;
     }
 
     if (!myAddedFiles.isEmpty()) {
@@ -221,6 +252,7 @@ public class ProjectResources extends ResourceRepository implements Disposable {
         }
       }
       myAddedFiles.clear();
+      newGeneration = true;
     }
 
     if (!myChangedFiles.isEmpty()) {
@@ -230,9 +262,19 @@ public class ProjectResources extends ResourceRepository implements Disposable {
         if (resourceFile != null) {
           ResourceFolder folder = resourceFile.getFolder();
           folder.processFile(resourceFile.getFile(), ResourceDeltaKind.CHANGED, context);
+          if (ResourceFolderType.VALUES == folder.getType()) {
+            // Changing the contents of a layout file, or drawable file etc, doesn't
+            // change the project resources; we only store the presence or absence of
+            // these types of resources.
+            newGeneration = true;
+          }
         }
       }
       myChangedFiles.clear();
+    }
+
+    if (newGeneration) {
+      myGeneration++;
     }
   }
 
