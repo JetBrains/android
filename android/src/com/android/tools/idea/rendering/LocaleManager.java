@@ -22,6 +22,9 @@ import com.android.ide.common.resources.configuration.RegionQualifier;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.ui.ColoredListCellRenderer;
+import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.util.Function;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
@@ -277,6 +280,56 @@ public class LocaleManager {
   @NotNull
   public static Set<String> getRegionCodes() {
     return Collections.unmodifiableSet(ourRegionNames.keySet());
+  }
+
+  /** Returns a {@link ListCellRenderer} suitable for displaying languages when the list model contains String language codes */
+  @NotNull
+  public ListCellRenderer getLanguageCodeCellRenderer() {
+    final Function<Object, String> nameMapper = getLanguageNameMapper();
+    return new ColoredListCellRenderer() {
+      @Override
+      protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+        append(nameMapper.fun(value));
+        setIcon(getFlag((String)value, null));
+      }
+    };
+  }
+
+  /** Returns a {@link ListCellRenderer} suitable for displaying regions when the list model contains String region codes */
+  @NotNull
+  public ListCellRenderer getRegionCodeCellRenderer() {
+    final Function<Object, String> nameMapper = getRegionNameMapper();
+    return new ColoredListCellRenderer() {
+      @Override
+      protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+        append(nameMapper.fun(value));
+        setIcon(getFlag(null, (String)value));
+      }
+    };
+  }
+
+  /** A function which maps from language code to a language label: code + name */
+  @NotNull
+  public static  Function<Object, String> getLanguageNameMapper() {
+    return new Function<Object, String>() {
+      @Override
+      public String fun(Object value) {
+        String languageCode = (String)value;
+        return String.format("%1$s: %2$s", languageCode, getLanguageName(languageCode));
+      }
+    };
+  }
+
+  /** A function which maps from language code to a language label: code + name */
+  @NotNull
+  public static Function<Object, String> getRegionNameMapper() {
+    return new Function<Object, String>() {
+      @Override
+      public String fun(Object value) {
+        String regionCode = (String)value;
+        return String.format("%1$s: %2$s", regionCode, getRegionName(regionCode));
+      }
+    };
   }
 
   /**

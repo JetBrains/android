@@ -17,22 +17,23 @@ package org.jetbrains.android.uipreview;
 
 import com.android.ide.common.resources.configuration.*;
 import com.android.resources.*;
+import com.android.tools.idea.rendering.LocaleManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.util.Comparing;
-import com.intellij.ui.CollectionListModel;
-import com.intellij.ui.DocumentAdapter;
-import com.intellij.ui.EnumComboBoxModel;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.speedSearch.ListWithFilter;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.ui.AbstractLayoutManager;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
@@ -65,6 +66,12 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
   private final DocumentListener myUpdatingDocumentListener = new DocumentAdapter() {
     @Override
     protected void textChanged(DocumentEvent e) {
+      applyEditors();
+    }
+  };
+  public final ListSelectionListener myUpdatingListListener = new ListSelectionListener() {
+    @Override
+    public void valueChanged(ListSelectionEvent listSelectionEvent) {
       applyEditors();
     }
   };
@@ -346,13 +353,13 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     leftPanel.add(new JBScrollPane(myAvailableQualifiersList, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                    ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER), BorderLayout.CENTER);
 
-    final JPanel rightPabel = new JPanel(new BorderLayout(5, 5));
+    final JPanel rightPanel = new JPanel(new BorderLayout(5, 5));
     myChosenQualifiersList = new JBList();
     myChosenQualifiersList.setMinimumSize(new Dimension(10, 10));
     label = new JBLabel(AndroidBundle.message("android.layout.preview.edit.configuration.choosen.qualifiers.label"));
     label.setLabelFor(myChosenQualifiersList);
-    rightPabel.add(label, BorderLayout.NORTH);
-    rightPabel.add(new JBScrollPane(myChosenQualifiersList, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+    rightPanel.add(label, BorderLayout.NORTH);
+    rightPanel.add(new JBScrollPane(myChosenQualifiersList, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                     ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER), BorderLayout.CENTER);
 
     final JPanel buttonsPanel = new JPanel(new VerticalFlowLayout(VerticalFlowLayout.MIDDLE, 0, 0, true, false));
@@ -369,7 +376,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       public Dimension preferredLayoutSize(Container target) {
         synchronized (target.getTreeLock()) {
           final Dimension leftPref = leftPanel.getPreferredSize();
-          final Dimension rightPref = rightPabel.getPreferredSize();
+          final Dimension rightPref = rightPanel.getPreferredSize();
           final Dimension middlePref = buttonsPanel.getPreferredSize();
           final Insets insets = target.getInsets();
 
@@ -395,11 +402,11 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
           final int height = bottom - top;
 
           leftPanel.setSize(listWidth, height);
-          rightPabel.setSize(listWidth, height);
+          rightPanel.setSize(listWidth, height);
           buttonsPanel.setSize(middleWidth, height);
 
           leftPanel.setBounds(left, top, listWidth, height);
-          rightPabel.setBounds(right - listWidth, top, listWidth, height);
+          rightPanel.setBounds(right - listWidth, top, listWidth, height);
           buttonsPanel.setBounds(left + listWidth + gap, top, middleWidth - gap * 2, height);
         }
       }
@@ -407,7 +414,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
 
     listsPanel.add(leftPanel);
     listsPanel.add(buttonsPanel);
-    listsPanel.add(rightPabel);
+    listsPanel.add(rightPanel);
     add(listsPanel, BorderLayout.CENTER);
     add(myQualifierOptionsPanel, BorderLayout.EAST);
   }
@@ -980,63 +987,120 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     }
   }
 
+  // See com.intellij.codeInsight.lookup.impl.Advertiser -- the class used to
+  // render tips at the bottom of code completion dialog
+  private static Font adFont() {
+    Font font = UIUtil.getLabelFont();
+    return font.deriveFont((float)(font.getSize() - 2));
+  }
+
   private class MyLanguageEditor extends MyQualifierEditor<LanguageQualifier> {
-    private final JTextField myTextField = new JTextField(2);
+    private final JBList myList = new JBList();
 
     @Override
     JComponent getComponent() {
-      final JPanel panel = new JPanel(new VerticalFlowLayout());
-      final JBLabel label = new JBLabel("<html><body>Language<br>(2 letter code):</body></html>");
-      panel.add(label);
-      label.setLabelFor(myTextField);
-      myTextField.getDocument().addDocumentListener(myUpdatingDocumentListener);
-      panel.add(myTextField);
+      BorderLayout layout = new BorderLayout(5, 5); // Matches constants in createUIComponents
+      final JPanel panel = new JPanel(layout);
+      panel.setBorder(new EmptyBorder(0, 20, 0, 0));
+      JBLabel header = new JBLabel("Language:");
+      header.setLabelFor(myList);
+      panel.add(header, BorderLayout.NORTH);
+      SortedListModel<String> model = new SortedListModel<String>(String.CASE_INSENSITIVE_ORDER);
+      model.addAll(LocaleManager.getLanguageCodes());
+      myList.setModel(model);
+      myList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+      myList.setCellRenderer(LocaleManager.get().getLanguageCodeCellRenderer());
+      JBScrollPane scroll = new JBScrollPane(myList);
+      JComponent list = ListWithFilter.wrap(myList, scroll, LocaleManager.getLanguageNameMapper());
+      panel.add(list, BorderLayout.CENTER);
+      JLabel tipLabel = new JBLabel("Tip: Type in list to filter");
+      tipLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+      tipLabel.setFont(adFont());
+      panel.add(tipLabel, BorderLayout.SOUTH);
+      myList.addListSelectionListener(myUpdatingListListener);
+
       return panel;
     }
 
     @Override
     void reset(@NotNull LanguageQualifier qualifier) {
-      myTextField.setText(qualifier.getValue());
+      if (qualifier.isValid() && !qualifier.hasFakeValue()) {
+        String value = qualifier.getValue();
+        ListModel model = myList.getModel();
+        for (int i = 0, n = model.getSize(); i < n; i++) {
+          if (value.equals(model.getElementAt(i))) {
+            myList.setSelectedIndex(i);
+            break;
+          }
+        }
+      } else {
+        myList.setSelectedIndex(-1);
+      }
     }
 
     @NotNull
     @Override
     LanguageQualifier apply() throws InvalidOptionValueException {
-      final String languageCode = myTextField.getText().trim();
-      if (languageCode.length() != 2) {
-        throw new InvalidOptionValueException("Incorrect language code");
+      Object selectedValue = myList.getSelectedValue();
+      if (selectedValue == null) {
+        throw new InvalidOptionValueException("Select a language");
       }
-      return new LanguageQualifier(languageCode);
+      return new LanguageQualifier((String) selectedValue);
     }
   }
 
   private class MyRegionEditor extends MyQualifierEditor<RegionQualifier> {
-    private final JTextField myTextField = new JTextField(2);
+    private final JBList myList = new JBList();
 
     @Override
     JComponent getComponent() {
-      final JPanel panel = new JPanel(new VerticalFlowLayout());
-      final JBLabel label = new JBLabel("<html><body>Region<br>(2 letter code):</body></html>");
-      panel.add(label);
-      label.setLabelFor(myTextField);
-      myTextField.getDocument().addDocumentListener(myUpdatingDocumentListener);
-      panel.add(myTextField);
+      BorderLayout layout = new BorderLayout(5, 5); // Matches constants in createUIComponents
+      final JPanel panel = new JPanel(layout);
+      panel.setBorder(new EmptyBorder(0, 20, 0, 0));
+      JBLabel header = new JBLabel("Region:");
+      header.setLabelFor(myList);
+      panel.add(header, BorderLayout.NORTH);
+      SortedListModel<String> model = new SortedListModel<String>(String.CASE_INSENSITIVE_ORDER);
+      model.addAll(LocaleManager.getRegionCodes());
+      myList.setModel(model);
+      myList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+      myList.setCellRenderer(LocaleManager.get().getRegionCodeCellRenderer());
+      JBScrollPane scroll = new JBScrollPane(myList);
+      JComponent list = ListWithFilter.wrap(myList, scroll, LocaleManager.getRegionNameMapper());
+      panel.add(list, BorderLayout.CENTER);
+      JLabel tipLabel = new JBLabel("Tip: Type in list to filter");
+      tipLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+      tipLabel.setFont(adFont());
+      panel.add(tipLabel, BorderLayout.SOUTH);
+      myList.addListSelectionListener(myUpdatingListListener);
+
       return panel;
     }
 
     @Override
     void reset(@NotNull RegionQualifier qualifier) {
-      myTextField.setText(qualifier.getValue());
+      if (qualifier.isValid() && !qualifier.hasFakeValue()) {
+        String value = qualifier.getValue();
+        ListModel model = myList.getModel();
+        for (int i = 0, n = model.getSize(); i < n; i++) {
+          if (value.equals(model.getElementAt(i))) {
+            myList.setSelectedIndex(i);
+            break;
+          }
+        }
+      } else {
+        myList.setSelectedIndex(-1);
+      }
     }
 
     @NotNull
     @Override
     RegionQualifier apply() throws InvalidOptionValueException {
-      final String languageCode = myTextField.getText().trim();
-      if (languageCode.length() != 2) {
-        throw new InvalidOptionValueException("Incorrect region code");
+      Object selectedValue = myList.getSelectedValue();
+      if (selectedValue == null) {
+        throw new InvalidOptionValueException("Select a region");
       }
-      return new RegionQualifier(languageCode);
+      return new RegionQualifier((String) selectedValue);
     }
   }
 
