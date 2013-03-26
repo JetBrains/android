@@ -872,9 +872,15 @@ public class Configuration {
   private FrameworkResources myFrameworkResources;
   private Map<ResourceType, Map<String, ResourceValue>> myConfiguredFrameworkRes;
   private Map<ResourceType, Map<String, ResourceValue>> myConfiguredProjectRes;
+  private int myCachedGeneration;
 
   @Nullable
   public ResourceResolver getResourceResolver() {
+    ProjectResources resources = ProjectResources.get(myManager.getModule());
+    if (resources != null && myCachedGeneration < resources.getGeneration()) {
+      myResourceResolver = null;
+    }
+
     if (myResourceResolver == null) {
       String themeStyle = getTheme();
       if (themeStyle == null) {
@@ -971,17 +977,18 @@ public class Configuration {
 
   @NotNull
   public Map<ResourceType, Map<String, ResourceValue>> getConfiguredProjectResources() {
-    if (myConfiguredProjectRes == null) {
-      ProjectResources resources = ProjectResources.get(myManager.getModule());
-
+    ProjectResources resources = ProjectResources.get(myManager.getModule());
+    if (resources == null) {
+      return Collections.emptyMap();
+    }
+    if (myConfiguredProjectRes == null || myCachedGeneration < resources.getGeneration()) {
       // get the project resource values based on the current config
-      myConfiguredProjectRes = resources != null ? resources.getConfiguredResources(getFullConfig())
-                                                 : Collections.<ResourceType, Map<String, ResourceValue>>emptyMap();
+      myConfiguredProjectRes = resources.getConfiguredResources(getFullConfig());
+      myCachedGeneration = resources.getGeneration();
     }
 
     return myConfiguredProjectRes;
   }
-
 
   // For debugging only
   @Override
