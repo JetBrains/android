@@ -216,6 +216,7 @@ public class Configuration {
     copy.myFrameworkResources = original.myFrameworkResources;
     copy.myResourceResolver = original.myResourceResolver;
     copy.myConfiguredProjectRes = original.myConfiguredProjectRes;
+    copy.myConfiguredFrameworkRes = original.myConfiguredFrameworkRes;
 
     assert copy.ensureValid();
     return copy;
@@ -594,7 +595,7 @@ public class Configuration {
    *
    * @param target rendering target
    */
-  public void setTarget(IAndroidTarget target) {
+  public void setTarget(@Nullable IAndroidTarget target) {
     if (myTarget != target) {
       myTarget = target;
       updated(CFG_TARGET);
@@ -644,7 +645,7 @@ public class Configuration {
    *
    * @param theme the theme
    */
-  public void setTheme(String theme) {
+  public void setTheme(@Nullable String theme) {
     if (!StringUtil.equals(myTheme, theme)) {
       myTheme = theme;
       checkThemePrefix();
@@ -821,6 +822,7 @@ public class Configuration {
     myFolderConfigDirty |= flags;
 
     if ((flags & MASK_RESOLVE_RESOURCES) != 0) {
+      myFrameworkResources = null;
       myConfiguredFrameworkRes = null;
       myConfiguredProjectRes = null;
       myResourceResolver = null;

@@ -489,20 +489,30 @@ public class ConfigurationManager implements Disposable {
 
   @NotNull
   public Locale getLocale() {
-    return getStateManager().getProjectState().getLocale(this);
+    String localeString = getStateManager().getProjectState().getLocale();
+    if (localeString != null) {
+      return ConfigurationProjectState.fromLocaleString(localeString);
+    }
+
+    return Locale.ANY;
   }
 
   public void setLocale(@NotNull Locale locale) {
-    getStateManager().getProjectState().setLocale(locale);
+    getStateManager().getProjectState().setLocale(ConfigurationProjectState.toLocaleString(locale));
   }
 
   @Nullable
   public IAndroidTarget getTarget() {
-    return getStateManager().getProjectState().getTarget(this);
+    String targetString = getStateManager().getProjectState().getTarget();
+    IAndroidTarget target = ConfigurationProjectState.fromTargetString(this, targetString);
+    if (target == null) {
+      target = getDefaultTarget();
+    }
+    return target;
   }
 
   public void setTarget(@NotNull IAndroidTarget target) {
-    getStateManager().getProjectState().setTarget(target);
+    getStateManager().getProjectState().setTarget(ConfigurationProjectState.toTargetString(target));
   }
 
   // --- Old theme code from the plugin; update/rewrite

@@ -19,7 +19,6 @@ package com.android.tools.idea.configurations;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.rendering.Locale;
 import com.intellij.util.xmlb.annotations.Tag;
-import com.intellij.util.xmlb.annotations.Transient;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,39 +50,28 @@ public class ConfigurationProjectState {
   }
 
   public void saveState(@NotNull Configuration configuration) {
-    setLocale(configuration.getLocale());
-    setTarget(configuration.getTarget());
+    setLocale(toLocaleString(configuration.getLocale()));
+    setTarget(toTargetString(configuration.getTarget()));
   }
 
   public void loadState(@NotNull Configuration configuration) {
     ConfigurationManager manager = configuration.getConfigurationManager();
-    IAndroidTarget target = getTarget(manager);
+    IAndroidTarget target = fromTargetString(manager, myTarget);
     configuration.startBulkEditing();
     if (target != null) {
       configuration.setTarget(target);
     }
     if (myLocale != null) {
-      configuration.setLocale(getLocale(manager));
+      configuration.setLocale(Locale.create(myLocale));
     }
     configuration.finishBulkEditing();
   }
 
-  @Transient
-  @NotNull
-  public Locale getLocale(@NotNull ConfigurationManager manager) {
-    if (myLocale != null) {
-      return Locale.create(myLocale);
-    }
-
-    return Locale.ANY;
-  }
-
-  @Transient
   @Nullable
-  public IAndroidTarget getTarget(@NotNull ConfigurationManager manager) {
-    if (myTarget != null) {
+  static IAndroidTarget fromTargetString(@NotNull ConfigurationManager manager, @Nullable String targetString) {
+    if (targetString != null) {
       for (IAndroidTarget target : manager.getTargets()) {
-        if (myTarget.equals(target.hashString())) {
+        if (targetString.equals(target.hashString())) {
           return target;
         }
       }
@@ -92,21 +80,29 @@ public class ConfigurationProjectState {
     return null;
   }
 
-  @Transient
-  public void setLocale(@Nullable Locale locale) {
+  @NotNull
+  static Locale fromLocaleString(@Nullable String locale) {
+    if (locale == null) {
+      return Locale.ANY;
+    }
+    return Locale.create(locale);
+  }
+
+  @Nullable
+  static String toLocaleString(@Nullable Locale locale) {
     if (locale == null || locale == Locale.ANY) {
-      myLocale = null;
+      return null;
     } else {
       if (locale.hasRegion()) {
-        myLocale = locale.language.getValue() + "-r" + locale.region.getValue();
+        return locale.language.getValue() + "-r" + locale.region.getValue();
       } else {
-        myLocale = locale.language.getValue();
+        return locale.language.getValue();
       }
     }
   }
 
-  @Transient
-  public void setTarget(@Nullable IAndroidTarget target) {
-    myTarget = target != null ? target.hashString() : null;
+  @Nullable
+  static String toTargetString(@Nullable IAndroidTarget target) {
+    return target != null ? target.hashString() : null;
   }
 }
