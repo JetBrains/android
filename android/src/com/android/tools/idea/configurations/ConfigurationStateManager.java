@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.annotations.VisibleForTesting;
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -44,7 +45,7 @@ import java.util.Map;
 )
 public class ConfigurationStateManager implements PersistentStateComponent<ConfigurationStateManager.State> {
   private final Map<VirtualFile, ConfigurationFileState> myFileToState = new HashMap<VirtualFile, ConfigurationFileState>();
-  private ConfigurationProjectState myProjectState;
+  private ConfigurationProjectState myProjectState = new ConfigurationProjectState();
 
   @NotNull
   public static ConfigurationStateManager get(@NotNull Project project) {
@@ -72,14 +73,11 @@ public class ConfigurationStateManager implements PersistentStateComponent<Confi
 
   @NotNull
   public ConfigurationProjectState getProjectState() {
-    if (myProjectState == null) {
-      myProjectState = new ConfigurationProjectState();
-    }
-
     return myProjectState;
   }
 
-  public void setProjectState(@NotNull ConfigurationProjectState projectState) {
+  @VisibleForTesting
+  void setProjectState(@NotNull ConfigurationProjectState projectState) {
     myProjectState = projectState;
   }
 
@@ -120,6 +118,7 @@ public class ConfigurationStateManager implements PersistentStateComponent<Confi
     private ConfigurationProjectState myProjectState;
 
     @Tag("shared")
+    @Property(surroundWithTag = false)
     public ConfigurationProjectState getProjectState() {
       return myProjectState;
     }

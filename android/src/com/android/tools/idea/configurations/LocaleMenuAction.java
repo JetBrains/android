@@ -276,11 +276,26 @@ public class LocaleMenuAction extends FlatComboAction {
 
     @Override
     protected void updateConfiguration(@NotNull Configuration configuration) {
+      if (configuration == myRenderContext.getConfiguration()) {
+        setProjectWideLocale();
+      }
       configuration.setLocale(myLocale);
     }
 
+    @Override
     protected void pickedBetterMatch(@NotNull VirtualFile file) {
       super.pickedBetterMatch(file);
+      Configuration configuration = myRenderContext.getConfiguration();
+      if (configuration != null) {
+        // Save project-wide configuration; not done by regular listening scheme since the previous configuration was not switched
+        setProjectWideLocale();
+        ConfigurationStateManager stateManager = ConfigurationStateManager.get(myRenderContext.getModule().getProject());
+        ConfigurationProjectState projectState = stateManager.getProjectState();
+        projectState.saveState(configuration);
+      }
+    }
+
+    private void setProjectWideLocale() {
       Configuration configuration = myRenderContext.getConfiguration();
       if (configuration != null) {
         // Also set the project-wide locale, since locales (and rendering targets) are project wide
