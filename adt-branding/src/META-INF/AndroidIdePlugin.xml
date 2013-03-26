@@ -13,6 +13,9 @@
     <component>
       <implementation-class>com.intellij.util.xml.impl.JavaDomApplicationComponent</implementation-class>
     </component>
+    <component>
+      <implementation-class>com.android.tools.idea.AndroidInitialConfigurator</implementation-class>
+    </component>
   </application-components>
 
   <project-components>
