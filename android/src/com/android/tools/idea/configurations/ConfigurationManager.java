@@ -17,6 +17,8 @@ package com.android.tools.idea.configurations;
 
 import com.android.SdkConstants;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.resources.configuration.LanguageQualifier;
+import com.android.ide.common.resources.configuration.RegionQualifier;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
@@ -110,16 +112,15 @@ public class ConfigurationManager implements Disposable {
     ConfigurationStateManager stateManager = getStateManager();
     ConfigurationProjectState projectState = stateManager.getProjectState();
     ConfigurationFileState fileState = stateManager.getConfigurationState(file);
-    // TODO: Use ResourceFolder resFolder = myResources.getResourceFolder(parent) instead
     FolderConfiguration config = FolderConfiguration.getConfigForFolder(file.getParent().getName());
     if (config == null) {
       config = new FolderConfiguration();
     }
-    Configuration configuration = Configuration.create(this, projectState, fileState, config);
+    Configuration configuration = Configuration.create(this, projectState, file, fileState, config);
     ProjectResources projectResources = ProjectResources.get(myModule);
     ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, projectResources, file);
     if (fileState != null) {
-      matcher.adaptConfigSelection(false);
+      matcher.adaptConfigSelection(true);
     } else {
       matcher.findAndSetCompatibleConfig(false);
     }
@@ -148,15 +149,10 @@ public class ConfigurationManager implements Disposable {
     if (config == null) {
       config = new FolderConfiguration();
     }
-    Configuration configuration = Configuration.create(this, projectState, fileState, config);
+    Configuration configuration = Configuration.create(this, projectState, file, fileState, config);
     ProjectResources projectResources = ProjectResources.get(myModule);
     ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, projectResources, file);
-    if (fileState != null) {
-      matcher.adaptConfigSelection(false);
-    } else {
-      matcher.findAndSetCompatibleConfig(false);
-    }
-
+    matcher.adaptConfigSelection(true /*needBestMatch*/);
     myCache.put(file, configuration);
 
     return configuration;
@@ -472,10 +468,21 @@ public class ConfigurationManager implements Disposable {
     return null;
   }
 
+  @NotNull
   public List<Locale> getLocales() {
     if (myLocales == null) {
-      // TODO: Compute from the project
-      myLocales = Collections.singletonList(Locale.ANY);
+      List<Locale> locales = new ArrayList<Locale>();
+      ProjectResources projectResources = ProjectResources.get(myModule);
+      if (projectResources != null) {
+        for (String language : projectResources.getLanguages()) {
+          LanguageQualifier languageQualifier = new LanguageQualifier(language);
+          locales.add(Locale.create(languageQualifier));
+          for (String region : projectResources.getRegions(language)) {
+            locales.add(Locale.create(languageQualifier, new RegionQualifier(region)));
+          }
+        }
+      }
+      myLocales = locales;
     }
 
     return myLocales;
@@ -514,121 +521,4 @@ public class ConfigurationManager implements Disposable {
   public void setTarget(@NotNull IAndroidTarget target) {
     getStateManager().getProjectState().setTarget(ConfigurationProjectState.toTargetString(target));
   }
-
-  // --- Old theme code from the plugin; update/rewrite
-
-  //@NotNull
-  //private static String getDefaultTheme(@Nullable IAndroidTarget target,
-  //                                      @Nullable IAndroidTarget renderingTarget,
-  //                                      @Nullable ScreenSize screenSize) {
-  //  final int targetApiLevel = target != null ? target.getVersion().getApiLevel() : 0;
-  //
-  //  final int renderingTargetApiLevel = renderingTarget != null
-  //                                      ? renderingTarget.getVersion().getApiLevel()
-  //                                      : targetApiLevel;
-  //
-  //  return targetApiLevel >= 11 && renderingTargetApiLevel >= 11 && screenSize == ScreenSize.XLARGE
-  //         ? SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Holo"
-  //         : SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX + "Theme";
-  //}
-  //
-  //@NotNull
-  //private List<String> computeManifestThemes() {
-  //  final AndroidFacet facet = AndroidFacet.getInstance(myModule);
-  //  if (facet == null) {
-  //    return Collections.emptyList();
-  //  }
-  //
-  //  // TODO: How do we invalidate this if the manifest theme set changes?
-  //  final ArrayList<String> projectThemes = new ArrayList<String>();
-  //  collectThemesFromManifest(facet, projectThemes, true);
-  //
-  //  return projectThemes;
-  //}
-  //
-  //private void collectThemesFromManifest(final AndroidFacet facet,
-  //                                       final List<String> resultList,
-  //                                       final boolean fromProject) {
-  //  ApplicationManager.getApplication().runReadAction(new Runnable() {
-  //    @Override
-  //    public void run() {
-  //      doCollectThemesFromManifest(facet, resultList, fromProject);
-  //    }
-  //  });
-  //}
-  //
-  //private void doCollectThemesFromManifest(AndroidFacet facet,
-  //                                         List<String> resultList,
-  //                                         boolean fromProject) {
-  //  final Manifest manifest = facet.getManifest();
-  //  if (manifest == null) {
-  //    return;
-  //  }
-  //
-  //  final Application application = manifest.getApplication();
-  //  if (application == null) {
-  //    return;
-  //  }
-  //
-  //  final List<ThemeData> activityThemesList = new ArrayList<ThemeData>();
-  //
-  //  final XmlTag applicationTag = application.getXmlTag();
-  //  ThemeData preferredTheme = null;
-  //  if (applicationTag != null) {
-  //    final String applicationThemeRef = applicationTag.getAttributeValue("theme", SdkConstants.NS_RESOURCES);
-  //    if (applicationThemeRef != null) {
-  //      preferredTheme = getThemeByRef(applicationThemeRef);
-  //    }
-  //  }
-  //
-  //  if (preferredTheme == null) {
-  //    final AndroidPlatform platform = AndroidPlatform.getInstance(facet.getModule());
-  //    final IAndroidTarget target = platform != null ? platform.getTarget() : null;
-  //    final IAndroidTarget renderingTarget = getSelectedTarget();
-  //    final State configuration = getSelectedDeviceConfiguration();
-  //    final ScreenSize screenSize = configuration != null
-  //                                  ? configuration.getHardware().getScreen().getSize()
-  //                                  : null;
-  //    preferredTheme = getThemeByRef(getDefaultTheme(target, renderingTarget, screenSize));
-  //  }
-  //
-  //  final HashSet<String> addedThemes = new HashSet<String>();
-  //  if (!addedThemes.contains(preferredTheme) && fromProject == preferredTheme.isProjectTheme()) {
-  //    addedThemes.add(preferredTheme);
-  //    resultList.add(preferredTheme);
-  //  }
-  //
-  //  for (Activity activity : application.getActivities()) {
-  //    final XmlTag activityTag = activity.getXmlTag();
-  //    if (activityTag != null) {
-  //      final String activityThemeRef = activityTag.getAttributeValue("theme", SdkConstants.NS_RESOURCES);
-  //      if (activityThemeRef != null) {
-  //        final ThemeData activityTheme = getThemeByRef(activityThemeRef);
-  //        if (!addedThemes.contains(activityTheme) && fromProject == activityTheme.isProjectTheme()) {
-  //          addedThemes.add(activityTheme);
-  //          activityThemesList.add(activityTheme);
-  //        }
-  //      }
-  //    }
-  //  }
-  //
-  //  Collections.sort(activityThemesList);
-  //  resultList.addAll(activityThemesList);
-  //}
-
-  //@Nullable
-  //public String getDefaultTheme(IAndroidTarget target) {
-  //  List<String> projectThemes = getProjectThemes();
-  //  if (!projectThemes.isEmpty()) {
-  //    return projectThemes.get(0);
-  //  }
-  //
-  //  List<String> frameworkThemes = getFrameworkThemes(target);
-  //  if (!frameworkThemes.isEmpty()) {
-  //    return frameworkThemes.get(0);
-  //  }
-  //
-  //  return null;
-  //}
-
 }

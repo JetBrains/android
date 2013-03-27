@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.FrameworkResources;
 import com.android.ide.common.resources.ResourceRepository;
@@ -34,6 +35,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
@@ -58,6 +60,9 @@ import static com.android.tools.idea.configurations.ConfigurationListener.*;
  */
 public class Configuration {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.configurations.Configuration");
+
+  /** The associated file */
+  @Nullable VirtualFile myFile;
 
   /**
    * The {@link com.android.ide.common.resources.configuration.FolderConfiguration} representing the state of the UI controls
@@ -132,7 +137,7 @@ public class Configuration {
   /** For nesting count use by {@link #startBulkEditing()} and {@link #finishBulkEditing()} */
   private int myBulkEditingCount;
 
-  /** Optional set of listeners to notify via {@link #updated(int, boolean)} */
+  /** Optional set of listeners to notify via {@link #updated(int)} */
   @Nullable
   private List<ConfigurationListener> myListeners;
 
@@ -145,8 +150,9 @@ public class Configuration {
   /**
    * Creates a new {@linkplain Configuration}
    */
-  protected Configuration(@NotNull ConfigurationManager manager, @NotNull FolderConfiguration editedConfig) {
+  protected Configuration(@NotNull ConfigurationManager manager, @Nullable VirtualFile file, @NotNull FolderConfiguration editedConfig) {
     myManager = manager;
+    myFile = file;
     myEditedConfig = editedConfig;
   }
 
@@ -156,8 +162,11 @@ public class Configuration {
    * @return a new configuration
    */
   @NotNull
-  public static Configuration create(@NotNull ConfigurationManager manager, @NotNull FolderConfiguration editedConfig) {
-    Configuration configuration = new Configuration(manager, editedConfig);
+  @VisibleForTesting
+  static Configuration create(@NotNull ConfigurationManager manager,
+                              @Nullable VirtualFile file,
+                              @NotNull FolderConfiguration editedConfig) {
+    Configuration configuration = new Configuration(manager, file, editedConfig);
     configuration.myDevice = manager.getDefaultDevice();
     assert configuration.ensureValid();
     return configuration;
@@ -166,9 +175,10 @@ public class Configuration {
   @NotNull
   public static Configuration create(@NotNull ConfigurationManager manager,
                                      @Nullable ConfigurationProjectState projectState,
+                                     @Nullable VirtualFile file,
                                      @Nullable ConfigurationFileState fileState,
                                      @NotNull FolderConfiguration editedConfig) {
-    Configuration configuration = new Configuration(manager, editedConfig);
+    Configuration configuration = new Configuration(manager, file, editedConfig);
 
     configuration.startBulkEditing();
     if (projectState != null) {
@@ -201,7 +211,7 @@ public class Configuration {
   public static Configuration copy(@NotNull Configuration original) {
     FolderConfiguration copiedConfig = new FolderConfiguration();
     copiedConfig.set(original.getEditedConfig());
-    Configuration copy = new Configuration(original.myManager, copiedConfig);
+    Configuration copy = new Configuration(original.myManager, original.myFile, copiedConfig);
     copy.myFullConfig.set(original.myFullConfig);
     copy.myFolderConfigDirty = original.myFolderConfigDirty;
     copy.myTarget = original.getTarget();
@@ -227,6 +237,18 @@ public class Configuration {
     return copy(this);
   }
 
+  public void save() {
+    ConfigurationStateManager stateManager = ConfigurationStateManager.get(myManager.getModule().getProject());
+    ConfigurationProjectState projectState = stateManager.getProjectState();
+    projectState.saveState(this);
+
+    if (myFile != null) {
+      ConfigurationFileState fileState = new ConfigurationFileState();
+      fileState.saveState(this);
+      stateManager.setConfigurationState(myFile, fileState);
+    }
+  }
+
   @SuppressWarnings("AssertWithSideEffects")
   protected boolean ensureValid() {
     // Asserting on getters rather than fields since some are initialized lazily
@@ -249,6 +271,17 @@ public class Configuration {
   public ConfigurationManager getConfigurationManager() {
     return myManager;
   }
+
+  /**
+   * Returns the file associated with this configuration, if any
+   *
+   * @return the file, or null
+   */
+  @Nullable
+  public VirtualFile getFile() {
+    return myFile;
+  }
+
   /**
    * Returns the associated activity
    *
@@ -435,7 +468,7 @@ public class Configuration {
    *
    * @param activity the activity
    */
-  public void setActivity(String activity) {
+  public void setActivity(@Nullable String activity) {
     if (!StringUtil.equals(myActivity, activity)) {
       myActivity = activity;
 

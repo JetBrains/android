@@ -53,6 +53,7 @@ public class LocaleMenuAction extends FlatComboAction {
     DefaultActionGroup group = new DefaultActionGroup(null, true);
 
     group.add(new AddTranslationAction());
+
     List<Locale> locales = getRelevantLocales();
     if (locales.size() > 1) {
       group.addSeparator();
@@ -67,12 +68,19 @@ public class LocaleMenuAction extends FlatComboAction {
     Collections.sort(locales, Locale.LANGUAGE_CODE_COMPARATOR);
     for (Locale locale : locales) {
       String title = getLocaleLabel(locale, false);
+      assert title != null;
       group.add(new SetLocaleAction(myRenderContext, title, locale));
     }
 
     return group;
   }
 
+  /**
+   * Like {@link ConfigurationManager#getLocales} but filters out locales not compatible
+   * with language and region qualifiers in the current configuration's folder config
+   *
+   * @return the list of relevant locales in the project
+   */
   @NotNull
   private List<Locale> getRelevantLocales() {
     List<Locale> locales = new ArrayList<Locale>();
@@ -87,12 +95,24 @@ public class LocaleMenuAction extends FlatComboAction {
       return locales;
     }
     SortedSet<String> languages = projectResources.getLanguages();
+
+    LanguageQualifier specificLanguage = configuration.getEditedConfig().getLanguageQualifier();
+    RegionQualifier specificRegion = configuration.getEditedConfig().getRegionQualifier();
+
     for (String language : languages) {
+      if (specificLanguage != null && !language.equals(specificLanguage.getValue())) {
+        continue;
+      }
+
       LanguageQualifier languageQualifier = new LanguageQualifier(language);
       locales.add(Locale.create(languageQualifier));
 
       SortedSet<String> regions = projectResources.getRegions(language);
       for (String region : regions) {
+        if (specificRegion != null && !region.equals(specificRegion.getValue())) {
+          continue;
+        }
+
         locales.add(Locale.create(languageQualifier, new RegionQualifier(region)));
       }
     }
