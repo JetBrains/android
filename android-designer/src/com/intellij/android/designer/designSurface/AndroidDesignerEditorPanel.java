@@ -1115,13 +1115,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   }
 
   private void saveState() {
-    ConfigurationStateManager stateManager = ConfigurationStateManager.get(getProject());
-    ConfigurationProjectState projectState = stateManager.getProjectState();
-    projectState.saveState(myConfiguration);
-
-    ConfigurationFileState fileState = new ConfigurationFileState();
-    fileState.saveState(myConfiguration);
-    stateManager.setConfigurationState(myFile, fileState);
+    myConfiguration.save();
   }
 
   // ---- Implements RenderContext ----

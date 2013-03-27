@@ -21,6 +21,7 @@ import com.google.common.base.Objects;
 import com.intellij.openapi.util.text.StringUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Comparator;
@@ -84,8 +85,8 @@ public class Locale {
    * @return a locale with the given language and region
    */
   @NotNull
-  public static Locale create(@NotNull LanguageQualifier language, @NotNull RegionQualifier region) {
-    return new Locale(language, region);
+  public static Locale create(@NotNull LanguageQualifier language, @Nullable RegionQualifier region) {
+    return new Locale(language, region != null ? region : ANY_REGION);
   }
 
   /**
