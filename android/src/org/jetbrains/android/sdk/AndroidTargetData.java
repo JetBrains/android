@@ -3,11 +3,8 @@ package org.jetbrains.android.sdk;
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
-import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileTypes.StdFileTypes;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
@@ -15,17 +12,13 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.psi.XmlRecursiveElementVisitor;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.xml.NanoXmlUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.FilteredAttributeDefinitions;
-import org.jetbrains.android.resourceManagers.SystemResourceManager;
 import org.jetbrains.android.uipreview.RenderServiceFactory;
 import org.jetbrains.android.uipreview.RenderingException;
 import org.jetbrains.annotations.NotNull;
@@ -46,8 +39,6 @@ public class AndroidTargetData {
 
   private volatile AttributeDefinitionsImpl myAttrDefs;
   private volatile RenderServiceFactory myRenderServiceFactory;
-  private volatile Set<String> myThemes;
-  private volatile boolean myThemesLoaded;
 
   private final Object myPublicResourceCacheLock = new Object();
   private volatile Map<String, Set<String>> myPublicResourceCache;
@@ -134,62 +125,6 @@ public class AndroidTargetData {
     return myRenderServiceFactory;
   }
 
-  public boolean areThemesCached() {
-    return myThemesLoaded;
-  }
-
-  @NotNull
-  public synchronized Set<String> getThemes(@NotNull final AndroidFacet facet) {
-    if (myThemes == null) {
-      myThemes = new HashSet<String>();
-      final Module module = facet.getModule();
-      final SystemResourceManager systemResourceManager = new SystemResourceManager(facet, new AndroidPlatform(mySdkData, myTarget));
-
-      for (VirtualFile valueResourceDir : systemResourceManager.getResourceSubdirs("values")) {
-        for (final VirtualFile valueResourceFile : valueResourceDir.getChildren()) {
-          if (!valueResourceFile.isDirectory() && valueResourceFile.getFileType().equals(StdFileTypes.XML)) {
-            
-            ApplicationManager.getApplication().runReadAction(new Runnable() {
-              @Override
-              public void run() {
-                final Project project = module.getProject();
-
-                if (module.isDisposed() || project.isDisposed()) {
-                  return;
-                }
-                final PsiManager psiManager = PsiManager.getInstance(project);
-                final PsiFile psiFile = psiManager.findFile(valueResourceFile);
-                
-                if (psiFile instanceof XmlFile) {
-                  psiFile.accept(new XmlRecursiveElementVisitor() {
-                    @Override
-                    public void visitXmlTag(XmlTag tag) {
-                      super.visitXmlTag(tag);
-                      
-                      if (ResourceType.STYLE.getName().equals(tag.getName())) {
-                        final String styleName = tag.getAttributeValue("name");
-
-                        if (styleName != null && (styleName.equals("Theme") || styleName.startsWith("Theme."))) {
-                          myThemes.add(styleName);
-                        }
-                      }
-                    }
-                  });
-  
-                  psiManager.dropResolveCaches();
-                  InjectedLanguageManager.getInstance(project).dropFileCaches(psiFile);
-                }
-              }
-            });
-          }
-        }
-      }
-
-      myThemesLoaded = true;
-    }
-    return myThemes;
-  }
-
   @NotNull
   public IAndroidTarget getTarget() {
     return myTarget;
@@ -202,6 +137,7 @@ public class AndroidTargetData {
       String path = paths[i];
       final VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
       PsiFile psiFile = file != null ? ApplicationManager.getApplication().runReadAction(new Computable<PsiFile>() {
+        @Override
         @Nullable
         public PsiFile compute() {
           return PsiManager.getInstance(project).findFile(file);

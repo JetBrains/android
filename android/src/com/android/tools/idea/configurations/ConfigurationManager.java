@@ -70,8 +70,6 @@ public class ConfigurationManager implements Disposable {
   private List<IAndroidTarget> myTargets;
   private final UserDeviceManager myUserDeviceManager;
   private final WeakValueHashMap<VirtualFile, Configuration> myCache = new WeakValueHashMap<VirtualFile, Configuration>();
-  private List<String> myCachedFrameworkThemes;
-  private IAndroidTarget myCachedFrameworkThemeKey;
   private List<Locale> myLocales;
 
   private ConfigurationManager(@NotNull Module module) {
@@ -312,19 +310,6 @@ public class ConfigurationManager implements Disposable {
   }
 
   @NotNull
-  public List<String> getFrameworkThemes(@Nullable IAndroidTarget target) {
-    if (target == myCachedFrameworkThemeKey && target != null) {
-      return myCachedFrameworkThemes;
-    }
-
-    List<String> themes = computeFrameworkThemes(target);
-    myCachedFrameworkThemeKey = target;
-    myCachedFrameworkThemes = themes;
-
-    return myCachedFrameworkThemes;
-  }
-
-  @NotNull
   public Module getModule() {
     return myModule;
   }
@@ -334,50 +319,10 @@ public class ConfigurationManager implements Disposable {
     return myModule.getProject();
   }
 
-  @NotNull
-  private List<String> computeFrameworkThemes(@Nullable IAndroidTarget target) {
-    final AndroidFacet facet = AndroidFacet.getInstance(myModule);
-    if (facet == null) {
-      return Collections.emptyList();
-    }
-
-    final Module module = facet.getModule();
-    AndroidTargetData targetData = null;
-    final AndroidPlatform androidPlatform = AndroidPlatform.getInstance(module);
-    if (androidPlatform != null) {
-      if (target == null) {
-        target = androidPlatform.getTarget();
-      }
-      targetData = androidPlatform.getSdkData().getTargetData(target);
-    }
-
-    return collectFrameworkThemes(facet, targetData);
-  }
-
   @Override
   public void dispose() {
     myUserDeviceManager.dispose();
   }
-
-  @NotNull
-  private static List<String> collectFrameworkThemes(
-    @Nullable AndroidFacet facet,
-    @Nullable AndroidTargetData targetData) {
-    if (targetData != null && facet != null) {
-      final List<String> frameworkThemeNames = new ArrayList<String>(targetData.getThemes(facet));
-      Collections.sort(frameworkThemeNames);
-      final List<String> themes = new ArrayList<String>();
-      for (String themeName : frameworkThemeNames) {
-        String theme = SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX + themeName;
-        themes.add(theme);
-      }
-
-      return themes;
-    }
-
-    return Collections.emptyList();
-  }
-
 
   private static Map<String, ResourceElement> buildStyleMap(AndroidFacet facet) {
     final Map<String, ResourceElement> result = new HashMap<String, ResourceElement>();

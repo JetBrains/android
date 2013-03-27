@@ -23,7 +23,6 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.util.Function;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
