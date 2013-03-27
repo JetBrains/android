@@ -958,6 +958,7 @@ public class Configuration {
    */
   @Nullable
   public ResourceRepository getFrameworkResources() {
+    // TODO: This should be cached elsewhere!
     if (myFrameworkResources == null) {
       IAndroidTarget target = getTarget();
       if (target != null) {
@@ -1036,5 +1037,9 @@ public class Configuration {
       .add("uimode", getUiMode())
       .add("nightmode", getNightMode())
       .toString();
+  }
+
+  public Module getModule() {
+    return myManager.getModule();
   }
 }

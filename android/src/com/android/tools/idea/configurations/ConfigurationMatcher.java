@@ -354,8 +354,9 @@ public class ConfigurationMatcher {
         }
 
         // just display the warning
-        LOG.warn(String.format("'%1$s' is not a best match for any device/locale combination.\nDisplaying it with '%2$s'.",
-                               editedConfig.toDisplayString(), currentConfig.toDisplayString()));
+        LOG.warn(String.format("'%1$s' is not a best match for any device/locale combination for %2$s.\n" +
+                               "Displaying it with '%3$s'.",
+                               editedConfig.toDisplayString(), myConfiguration.getFile(), currentConfig.toDisplayString()));
       }
       else if (anyMatches.size() > 0) {
         // select the best device anyway.
@@ -370,10 +371,12 @@ public class ConfigurationMatcher {
         myConfiguration.finishBulkEditing();
 
         // TODO: display a better warning!
-        LOG.warn(String.format("'%1$s' is not a best match for any device/locale combination.\n" +
-                               "isplaying it with '%2$s' which is compatible, but will actually be displayed with " +
+        LOG.warn(String.format("'%1$s' is not a best match for any device/locale combination for %2$s.\n" +
+                               "Displaying it with\n" +
+                               "  %3$s\n" +
+                               "which is compatible, but will actually be displayed with " +
                                "another more specific version of the layout.", editedConfig.toDisplayString(),
-                               currentConfig.toDisplayString()));
+                               myConfiguration.getFile(), currentConfig.toDisplayString()));
       }
       else {
         // TODO: there is no device/config able to display the layout, create one.
