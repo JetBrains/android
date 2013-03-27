@@ -59,7 +59,7 @@ import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
 import org.jetbrains.android.actions.AndroidRunDdmsAction;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.logcat.AndroidLogcatToolWindowFactory;
+import org.jetbrains.android.logcat.AndroidToolWindowFactory;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidUtils;
@@ -635,7 +635,8 @@ public class AndroidSdkUtils {
   }
 
   public static void restartDdmlib(@NotNull Project project) {
-    ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(AndroidLogcatToolWindowFactory.TOOL_WINDOW_ID);
+    ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(
+      AndroidToolWindowFactory.TOOL_WINDOW_ID);
     boolean hidden = false;
     if (toolWindow != null && toolWindow.isVisible()) {
       hidden = true;

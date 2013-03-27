@@ -17,18 +17,24 @@
 package org.jetbrains.android.logcat;
 
 import com.android.ddmlib.Log;
+import com.android.tools.idea.ddms.DeviceContext;
+import com.android.tools.idea.ddms.DevicePanel;
 import com.intellij.ProjectTopics;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.execution.ui.RunnerLayoutUi;
+import com.intellij.execution.ui.layout.PlaceInGrid;
 import com.intellij.facet.ProjectFacetManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootAdapter;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.util.Comparing;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -36,14 +42,15 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerAdapter;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
-import com.intellij.ui.content.impl.ContentImpl;
 import com.intellij.util.messages.MessageBusConnection;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
+import org.jetbrains.android.run.AndroidDebugRunner;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,60 +60,127 @@ import java.util.List;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidLogcatToolWindowFactory implements ToolWindowFactory {
+public class AndroidToolWindowFactory implements ToolWindowFactory {
   public static final String TOOL_WINDOW_ID = AndroidBundle.message("android.logcat.title");
 
+  @NonNls private static final String DEVICE_PANEL_CONTENT = "DevicePanelContent";
+  @NonNls private static final String ADBLOGS_CONTENT_ID = "AdbLogsContent";
+  private static final Key<DevicePanel> DEVICES_PANEL_KEY = Key.create("DevicePanel");
+
   public void createToolWindowContent(final Project project, final ToolWindow toolWindow) {
+    RunnerLayoutUi layoutUi = RunnerLayoutUi.Factory.getInstance(project).create(
+      "ddms", "ddms", "ddms", project);
+
     toolWindow.setIcon(AndroidIcons.AndroidToolWindow);
     toolWindow.setAvailable(true, null);
     toolWindow.setToHideOnEmptyContent(true);
     toolWindow.setTitle(TOOL_WINDOW_ID);
 
-    final AndroidLogcatView view = new AndroidLogcatView(project, null) {
+    DeviceContext deviceContext = new DeviceContext();
+
+    Content devicesContent = createDeviceContent(layoutUi, project, deviceContext);
+    Content logcatContent = createLogcatContent(layoutUi, project, deviceContext);
+    Content adbLogsContent = createAdbLogsContent(layoutUi, project);
+
+    final AndroidLogcatView logcatView = logcatContent.getUserData(
+      AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY);
+    final DevicePanel devicePanel = devicesContent.getUserData(DEVICES_PANEL_KEY);
+
+    // The search component is used only from the first content in a tab, so we set it on
+    // the devicesContent instead of logcatContent
+    devicesContent.setSearchComponent(logcatView.createSearchComponent(project));
+
+    layoutUi.addContent(devicesContent, 0, PlaceInGrid.left, false);
+    layoutUi.addContent(logcatContent, 0, PlaceInGrid.center, false);
+    layoutUi.addContent(adbLogsContent, 1, PlaceInGrid.center, false);
+
+    layoutUi.getOptions().setLeftToolbar(devicePanel.getToolbarActions(), ActionPlaces.UNKNOWN);
+
+    final ContentManager contentManager = toolWindow.getContentManager();
+    Content c = contentManager.getFactory().createContent(layoutUi.getComponent(), "DDMS", true);
+    contentManager.addContent(c);
+
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      public void run() {
+        logcatView.activate();
+        final ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID);
+        if (window != null && window.isVisible()) {
+          checkFacetAndSdk(project, logcatView.getLogConsole().getConsole());
+        }
+      }
+    });
+  }
+
+  private Content createDeviceContent(RunnerLayoutUi layoutUi,
+                                      Project project,
+                                      DeviceContext deviceContext) {
+    DevicePanel devicePanel = new DevicePanel(project, deviceContext);
+    Content devicesContent = layoutUi.createContent(
+      DEVICE_PANEL_CONTENT,
+      devicePanel.getContentPanel(),
+      AndroidBundle.message("android.ddms.devicepanel.title"),
+      AndroidIcons.Android,
+      null);
+    devicesContent.setCloseable(false);
+    devicesContent.putUserData(DEVICES_PANEL_KEY, devicePanel);
+    return devicesContent;
+  }
+
+  private Content createLogcatContent(RunnerLayoutUi layoutUi,
+                                      final Project project,
+                                      DeviceContext deviceContext) {
+    final AndroidLogcatView logcatView = new AndroidLogcatView(project, deviceContext) {
       @Override
       protected boolean isActive() {
         ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID);
         return window.isVisible();
       }
     };
-    ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(new ToolWindowManagerAdapter() {
-      boolean myToolWindowVisible;
+    ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(
+      new ToolWindowManagerAdapter() {
+        boolean myToolWindowVisible;
 
-      @Override
-      public void stateChanged() {
-        ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID);
-        if (window != null) {
-          boolean visible = window.isVisible();
-          if (visible != myToolWindowVisible) {
-            myToolWindowVisible = visible;
-            view.activate();
-            if (visible) {
-              checkFacetAndSdk(project, view);
+        @Override
+        public void stateChanged() {
+          ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID);
+          if (window != null) {
+            boolean visible = window.isVisible();
+            if (visible != myToolWindowVisible) {
+              myToolWindowVisible = visible;
+              logcatView.activate();
+              if (visible) {
+                checkFacetAndSdk(project, logcatView.getLogConsole().getConsole());
+              }
             }
           }
         }
-      }
-    });
-    
+      });
+
     final MessageBusConnection connection = project.getMessageBus().connect(project);
-    connection.subscribe(ProjectTopics.PROJECT_ROOTS, new MyAndroidPlatformListener(view));
-    
-    JPanel contentPanel = view.getContentPanel();
-    final ContentManager contentManager = toolWindow.getContentManager();
+    connection.subscribe(ProjectTopics.PROJECT_ROOTS, new MyAndroidPlatformListener(logcatView));
+
+    JPanel logcatContentPanel = logcatView.getContentPanel();
 
     final Content logcatContent =
-      contentManager.getFactory().createContent(contentPanel, AndroidBundle.message("android.logcat.tab.title"), false);
-    logcatContent.putUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY, view);
-    logcatContent.setDisposer(view);
+      layoutUi.createContent(AndroidDebugRunner.ANDROID_LOGCAT_CONTENT_ID,
+                             logcatContentPanel,
+                             "logcat",
+                             AndroidIcons.Android, null);
+    logcatContent.putUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY, logcatView);
+    logcatContent.setDisposer(logcatView);
     logcatContent.setCloseable(false);
-    logcatContent.setPreferredFocusableComponent(contentPanel);
-    contentManager.addContent(logcatContent);
-    contentManager.setSelectedContent(logcatContent, true);
+    logcatContent.setPreferredFocusableComponent(logcatContentPanel);
 
+    return logcatContent;
+  }
+
+  private Content createAdbLogsContent(RunnerLayoutUi layoutUi, Project project) {
     final ConsoleView console = new ConsoleViewImpl(project, false);
-    final Content adbLogsContent = new ContentImpl(console.getComponent(), AndroidBundle.message("android.adb.logs.tab.title"), false);
+    Content adbLogsContent = layoutUi.createContent(ADBLOGS_CONTENT_ID, console.getComponent(),
+                                                    AndroidBundle
+                                                      .message("android.adb.logs.tab.title"), null,
+                                                    null);
     adbLogsContent.setCloseable(false);
-    contentManager.addContent(adbLogsContent);
 
     //noinspection UnnecessaryFullyQualifiedName
     com.android.ddmlib.Log.setLogOutput(new Log.ILogOutput() {
@@ -122,15 +196,7 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory {
       }
     });
 
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      public void run() {
-        view.activate();
-        final ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID);
-        if (window != null && window.isVisible()) {
-          checkFacetAndSdk(project, view);
-        }
-      }
-    });
+    return adbLogsContent;
   }
 
   private static void reportAdbLogMessage(Log.LogLevel logLevel, String tag, String message, @NotNull ConsoleView consoleView) {
@@ -175,10 +241,8 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory {
     return null;
   }
 
-  private static void checkFacetAndSdk(Project project, AndroidLogcatView view) {
+  private static void checkFacetAndSdk(Project project, @NotNull final ConsoleView console) {
     final List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
-    final ConsoleView console = view.getLogConsole().getConsole();
-    assert console != null;
 
     if (facets.size() == 0) {
       console.clear();

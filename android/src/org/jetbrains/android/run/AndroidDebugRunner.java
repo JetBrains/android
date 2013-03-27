@@ -55,7 +55,7 @@ import com.intellij.xdebugger.XDebuggerBundle;
 import icons.AndroidIcons;
 import org.jetbrains.android.dom.manifest.Instrumentation;
 import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.logcat.AndroidLogcatToolWindowFactory;
+import org.jetbrains.android.logcat.AndroidToolWindowFactory;
 import org.jetbrains.android.logcat.AndroidLogcatView;
 import org.jetbrains.android.run.testing.AndroidTestRunConfiguration;
 import org.jetbrains.android.util.AndroidBundle;
@@ -191,7 +191,8 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
   }
 
   private static boolean shouldActivateExecWindow(Project project) {
-    final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(AndroidLogcatToolWindowFactory.TOOL_WINDOW_ID);
+    final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(
+      AndroidToolWindowFactory.TOOL_WINDOW_ID);
     return toolWindow == null || !toolWindow.isVisible();
   }
 
@@ -455,7 +456,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
       layoutUi.addContent(logcatContent, 2, PlaceInGrid.bottom, false);
       final String selectedTabProperty = ANDROID_DEBUG_SELECTED_TAB_PROPERTY + myConfigurationId;
 
-        final String tabName = PropertiesComponent.getInstance().getValue(selectedTabProperty);
+      final String tabName = PropertiesComponent.getInstance().getValue(selectedTabProperty);
       Content selectedContent = logcatContent;
 
       if (tabName != null) {
