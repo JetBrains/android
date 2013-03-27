@@ -18,13 +18,16 @@ package com.android.tools.idea.configurations;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LanguageQualifier;
 import com.android.ide.common.resources.configuration.RegionQualifier;
+import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.NightMode;
 import com.android.resources.ScreenOrientation;
+import com.android.resources.ScreenSize;
 import com.android.resources.UiMode;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.rendering.Locale;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
@@ -32,7 +35,11 @@ import static com.android.tools.idea.configurations.ConfigurationListener.CFG_AC
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_NIGHT_MODE;
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_THEME;
 
+@SuppressWarnings("ConstantConditions")
 public class ConfigurationTest extends AndroidTestCase {
+  // The specific file doesn't matter; we're only using the destination folder
+  private static final String TEST_FILE = "xmlpull/layout.xml";
+
   private int myChangeCount;
   private int myFlags;
 
@@ -43,7 +50,7 @@ public class ConfigurationTest extends AndroidTestCase {
     assertNotNull(manager);
     assertSame(manager, facet.getConfigurationManager());
 
-    Configuration configuration = Configuration.create(manager, new FolderConfiguration());
+    Configuration configuration = Configuration.create(manager, null, new FolderConfiguration());
     assertNotNull(configuration);
 
     configuration.startBulkEditing();
@@ -108,7 +115,7 @@ public class ConfigurationTest extends AndroidTestCase {
     assertNotNull(manager);
     assertSame(manager, facet.getConfigurationManager());
 
-    Configuration configuration = Configuration.create(manager, new FolderConfiguration());
+    Configuration configuration = Configuration.create(manager, null, new FolderConfiguration());
     assertNotNull(configuration);
 
     ConfigurationListener listener = new ConfigurationListener() {
@@ -155,5 +162,92 @@ public class ConfigurationTest extends AndroidTestCase {
     configuration.finishBulkEditing();
     assertEquals(1, myChangeCount);
     assertEquals(CFG_THEME | CFG_ACTIVITY | CFG_NIGHT_MODE, myFlags);
+  }
+
+  public void testLocaleSpecificFolder() throws Exception {
+    VirtualFile file1 = myFixture.copyFileToProject(TEST_FILE, "res/layout/layout1.xml");
+    VirtualFile file2 = myFixture.copyFileToProject(TEST_FILE, "res/layout-no-rNO/layout1.xml");
+    VirtualFile file3 = myFixture.copyFileToProject(TEST_FILE, "res/layout-no/layout1.xml");
+    VirtualFile file4 = myFixture.copyFileToProject(TEST_FILE, "res/layout-xlarge-land/layout1.xml");
+    myFixture.copyFileToProject(TEST_FILE, "res/layout-se/layout2.xml");
+
+    final AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    assertNotNull(facet);
+    ConfigurationManager manager = facet.getConfigurationManager();
+    assertNotNull(manager);
+    assertSame(manager, facet.getConfigurationManager());
+
+    // Default locale in the project: se
+    manager.setLocale(Locale.create("se"));
+
+    Configuration configuration1 = manager.get(file1);
+    assertEquals(Locale.create("se"), configuration1.getLocale());
+
+    Configuration configuration2 = manager.get(file2);
+    assertEquals(Locale.create("no-rNO"), configuration2.getLocale());
+
+    Configuration configuration3 = manager.get(file3);
+    assertEquals(Locale.create("no"), configuration3.getLocale());
+
+    Configuration configuration4 = manager.get(file4);
+    assertEquals("Portrait", configuration1.getDeviceState().getName());
+    assertEquals("Landscape", configuration4.getDeviceState().getName());
+    assertEquals(ScreenSize.XLARGE, configuration4.getDevice().getDefaultHardware().getScreen().getSize());
+  }
+
+  public void testCreateSimilar() throws Exception {
+    VirtualFile file1 = myFixture.copyFileToProject(TEST_FILE, "res/layout/layout1.xml");
+    VirtualFile file2 = myFixture.copyFileToProject(TEST_FILE, "res/layout-no-rNO/layout1.xml");
+    VirtualFile file3 = myFixture.copyFileToProject(TEST_FILE, "res/layout-xlarge-land/layout1.xml");
+    myFixture.copyFileToProject(TEST_FILE, "res/layout-en/layout2.xml");
+
+    final AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    assertNotNull(facet);
+    ConfigurationManager manager = facet.getConfigurationManager();
+    assertNotNull(manager);
+    assertSame(manager, facet.getConfigurationManager());
+
+    Configuration configuration1 = manager.get(file1);
+    configuration1.setLocale(Locale.create("en"));
+    configuration1.setTheme("Theme.Dialog");
+    Device device = manager.getDevices().get(manager.getDevices().size() / 2);
+    State state = device.getAllStates().get(device.getAllStates().size() - 1);
+    configuration1.setDevice(device, false);
+    configuration1.setDeviceState(state);
+    configuration1.save();
+
+    Configuration configuration2 = manager.createSimilar(file2, file1);
+    assertEquals(configuration1.getTheme(), configuration2.getTheme());
+    assertEquals(configuration1.getDevice(), configuration2.getDevice());
+    assertEquals(Locale.create("no-rNO"), configuration2.getLocale());
+    assertEquals(Locale.create("en"), configuration1.getLocale());
+
+    State portrait = device.getState("Portrait");
+    assertNotNull(portrait);
+    configuration1.setDeviceState(portrait);
+
+    Configuration configuration3 = manager.createSimilar(file3, file1);
+    assertEquals(configuration1.getTheme(), configuration3.getTheme());
+    assertNotSame(configuration3.getDeviceState(), portrait);
+    assertEquals("Landscape", configuration3.getDeviceState().getName());
+    assertEquals(ScreenSize.XLARGE, configuration3.getDevice().getDefaultHardware().getScreen().getSize());
+    assertEquals(configuration1.getLocale(), configuration3.getLocale());
+  }
+
+  public void testTargetSpecificFolder() throws Exception {
+    final AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    assertNotNull(facet);
+    ConfigurationManager manager = facet.getConfigurationManager();
+    assertNotNull(manager);
+    assertSame(manager, facet.getConfigurationManager());
+
+    manager.setTarget(manager.getTargets().get(0));
+    FolderConfiguration folderConfig = new FolderConfiguration();
+    folderConfig.setVersionQualifier(new VersionQualifier(11));
+    Configuration configuration = Configuration.create(manager, null, folderConfig);
+    assertNotNull(configuration);
+    IAndroidTarget target = configuration.getTarget();
+    assertNotNull(target);
+    assertTrue(target.getVersion().getApiLevel() >= 11);
   }
 }

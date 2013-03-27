@@ -61,14 +61,12 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
   private final AndroidLayoutPreviewToolWindowManager myToolWindowManager;
   private final ActionToolbar myActionToolBar;
   private final AndroidLayoutPreviewToolWindowSettings mySettings;
-  private final ConfigurationStateManager myConfigurationStateManager;
 
   public AndroidLayoutPreviewToolWindowForm(final Project project, AndroidLayoutPreviewToolWindowManager toolWindowManager) {
     Disposer.register(this, myPreviewPanel);
 
     myToolWindowManager = toolWindowManager;
     mySettings = AndroidLayoutPreviewToolWindowSettings.getInstance(project);
-    myConfigurationStateManager = ConfigurationStateManager.get(project);
 
     final DefaultActionGroup actionGroup = new DefaultActionGroup();
     actionGroup.add(new ZoomToFitAction());
@@ -183,41 +181,8 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
   
   private void saveState() {
     if (myConfiguration != null) {
-      ConfigurationProjectState projectState = myConfigurationStateManager.getProjectState();
-      projectState.saveState(myConfiguration);
-
-      final VirtualFile file = getVirtualFile();
-      if (file != null) {
-        ConfigurationFileState fileState = new ConfigurationFileState();
-        fileState.saveState(myConfiguration);
-        myConfigurationStateManager.setConfigurationState(file, fileState);
-      }
+      myConfiguration.save();
     }
-  }
-
-  // TODO: Use better configuration matcher algorithm!
-  @Nullable
-  private State getDefaultDeviceConfigForFile(@NotNull Device device, @NotNull VirtualFile vFile) {
-    final VirtualFile folder = vFile.getParent();
-
-    if (folder == null) {
-      return null;
-    }
-    final String[] folderSegments = folder.getName().split(SdkConstants.RES_QUALIFIER_SEP);
-
-    if (folderSegments.length == 0) {
-      return null;
-    }
-    final FolderConfiguration config = FolderConfiguration.getConfig(folderSegments);
-
-    if (config != null) {
-      for (State deviceConfig : device.getAllStates()) {
-        if (DeviceConfigHelper.getFolderConfig(deviceConfig).isMatchFor(config)) {
-          return deviceConfig;
-        }
-      }
-    }
-    return null;
   }
 
   @Override
