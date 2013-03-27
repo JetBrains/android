@@ -92,8 +92,10 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
       @Override
       protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
         if (value == null) {
-          append("[none]", myAvdCombo.getComboBox().isEnabled() ? SimpleTextAttributes.ERROR_ATTRIBUTES :
-                           SimpleTextAttributes.REGULAR_ATTRIBUTES);
+          append(AndroidBundle.message("android.ddms.nodevices"),
+                 myAvdCombo.getComboBox().isEnabled()
+                 ? SimpleTextAttributes.ERROR_ATTRIBUTES
+                 : SimpleTextAttributes.REGULAR_ATTRIBUTES);
         }
         else {
           append(value.toString());

@@ -334,7 +334,7 @@
                       facetIdList="android"
                       anchor="bottom"
                       icon="AndroidIcons.AndroidToolWindow"
-                      factoryClass="org.jetbrains.android.logcat.AndroidLogcatToolWindowFactory"/>
+                      factoryClass="org.jetbrains.android.logcat.AndroidToolWindowFactory"/>
     <projectService serviceInterface="org.jetbrains.android.logcat.AndroidLogcatFiltersPreferences"
                     serviceImplementation="org.jetbrains.android.logcat.AndroidLogcatFiltersPreferences"/>
     <projectService serviceInterface="org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowSettings"
