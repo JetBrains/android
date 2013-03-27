@@ -62,7 +62,7 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory {
     toolWindow.setToHideOnEmptyContent(true);
     toolWindow.setTitle(TOOL_WINDOW_ID);
 
-    final AndroidLogcatView view = new AndroidLogcatView(project, null, false) {
+    final AndroidLogcatView view = new AndroidLogcatView(project, null) {
       @Override
       protected boolean isActive() {
         ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID);
