@@ -29,13 +29,20 @@ import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.ProjectResources;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.google.common.base.Objects;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
@@ -289,8 +296,40 @@ public class Configuration {
    */
   @Nullable
   public String getActivity() {
+    if (myActivity == NO_ACTIVITY) {
+      return null;
+    } else if (myActivity == null && myFile != null) {
+      myActivity = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+        @Nullable
+        @Override
+        public String compute() {
+          PsiFile file = PsiManager.getInstance(myManager.getProject()).findFile(myFile);
+          if (file instanceof XmlFile) {
+            XmlFile xmlFile = (XmlFile)file;
+            XmlTag rootTag = xmlFile.getRootTag();
+            if (rootTag != null) {
+              XmlAttribute attribute = rootTag.getAttribute(ATTR_CONTEXT, TOOLS_URI);
+              if (attribute != null) {
+                return attribute.getValue();
+              }
+            }
+
+          }
+          return null;
+        }
+      });
+      if (myActivity == null) {
+        myActivity = NO_ACTIVITY;
+        return null;
+      }
+    }
+
     return myActivity;
   }
+
+  /** Special marker value which indicates that this activity has been checked and has no activity
+   * (whereas a null {@link #myActivity} field means that it has not yet been initialized */
+  private static final String NO_ACTIVITY = new String();
 
   /**
    * Returns the chosen device.
