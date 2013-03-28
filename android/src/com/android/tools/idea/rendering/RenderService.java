@@ -24,7 +24,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
-import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
@@ -446,7 +445,7 @@ public class RenderService {
           try {
             // Get the name of the layout actually being edited, without the extension
             // as it's what IXmlPullParser.getParser(String) will receive.
-            String queryLayoutName = LintUtils.getBaseName(myPsiFile.getName());
+            String queryLayoutName = ResourceHelper.getResourceName(myPsiFile);
             myProjectCallback.setLayoutParser(queryLayoutName, modelParser);
             topParser = new ContextPullParser(myProjectCallback);
             topParser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);

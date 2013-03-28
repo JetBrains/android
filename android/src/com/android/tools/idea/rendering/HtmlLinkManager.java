@@ -461,8 +461,7 @@ public class HtmlLinkManager {
   private static void handleAssignFragmentUrl(@NotNull String url, @NotNull Module module, @NotNull final PsiFile file) {
     assert url.startsWith(URL_ASSIGN_FRAGMENT_URL) : url;
 
-    ChooseClassDialog dialog =
-      new ChooseClassDialog(module, "Fragments", true, "android.app.Fragment", "android.support.v4.app.Fragment");
+    ChooseClassDialog dialog = new ChooseClassDialog(module, "Fragments", true, CLASS_FRAGMENT, CLASS_V4_FRAGMENT);
     dialog.show();
     if (!dialog.isOK()) {
       return;
