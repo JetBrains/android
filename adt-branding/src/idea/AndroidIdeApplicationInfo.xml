@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 <component>
-  <version codename="Community Edition" major="1" minor="0" eap="true"/>
+  <version codename="Diamond" major="1" minor="0" eap="true"/>
   <company name="Google" url="http://developer.android.com"/>
   <build number="__BUILD_NUMBER__" date="__BUILD_DATE__"/>
   <install-over minbuild="123.1" maxbuild="123.9999" version="12"/>
