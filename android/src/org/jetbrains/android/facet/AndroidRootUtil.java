@@ -194,7 +194,7 @@ public class AndroidRootUtil {
   // works even if there is no Android facet in a module
 
   @Nullable
-  public static VirtualFile getStandartGenDir(@NotNull Module module) {
+  public static VirtualFile getStandardGenDir(@NotNull Module module) {
     return getFileByRelativeModulePath(module, '/' + SdkConstants.FD_GEN_SOURCES, false);
   }
 

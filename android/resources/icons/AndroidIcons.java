@@ -37,8 +37,6 @@ public class AndroidIcons {
   public static final Icon FlipPortrait = load("/icons/flip_portrait.png"); // 16x16
   public static final Icon Display = load("/icons/display.png"); // 16x16
   public static final Icon Themes = load("/icons/themes.png"); // 16x16
-  public static final Icon DockMode = load("/icons/dockmode.png"); // 16x16
-  public static final Icon Nightmode = load("/icons/nightmode.png"); // 16x16
 
   public static final Icon EmptyFlag = load("/icons/flags/flag_empty.png"); // 16x16
 }
