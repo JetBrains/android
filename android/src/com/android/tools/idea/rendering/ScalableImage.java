@@ -220,7 +220,9 @@ public class ScalableImage {
         } finally {
           g2.dispose();
         }
-        ShadowPainter.drawRectangleShadow(g, 0, 0, scaledWidth, scaledHeight);
+        if (getShowDropShadow()) {
+          ShadowPainter.drawRectangleShadow(g, 0, 0, scaledWidth, scaledHeight);
+        }
       }
     } else {
       g.drawImage(myScaledImage, 0, 0, null);
