@@ -10,6 +10,8 @@
     <orderEntry type="module" module-name="util" />
     <orderEntry type="module" module-name="platform-api" />
     <orderEntry type="module" module-name="lang-impl" />
+    <orderEntry type="module" module-name="android" />
+    <orderEntry type="module" module-name="idea-ui" />
   </component>
 </module>
 
