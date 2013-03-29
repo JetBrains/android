@@ -36,12 +36,12 @@ public class DeviceContext {
     myEventDispatcher.addListener(l, parentDisposable);
   }
 
-  public void fireDeviceSelected(IDevice d) {
+  public void fireDeviceSelected(@Nullable IDevice d) {
     mySelectedDevice = d;
     myEventDispatcher.getMulticaster().deviceSelected(d);
   }
 
-  public void fireClientSelected(Client c) {
+  public void fireClientSelected(@Nullable Client c) {
     mySelectedClient = c;
     myEventDispatcher.getMulticaster().clientSelected(c);
   }

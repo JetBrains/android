@@ -113,22 +113,14 @@ public class DevicePanel implements Disposable,
                                            int index,
                                            boolean selected,
                                            boolean hasFocus) {
-        if (value == null) {
-          append(AndroidBundle.message("android.ddms.nodevices"),
-                 SimpleTextAttributes.ERROR_ATTRIBUTES);
+        if (value instanceof String) {
+          append((String)value, SimpleTextAttributes.ERROR_ATTRIBUTES);
         } else if (value instanceof IDevice) {
           IDevice d = (IDevice)value;
-          if (d.isEmulator()) {
-            append(AndroidBundle.message("android.emulator"));
-            append(" ");
-            append(d.getAvdName());
-          } else {
-            append(DevicePropertyUtil.getManufacturer(d, ""));
-            append(" ");
-            append(DevicePropertyUtil.getModel(d, ""));
+          List<Pair<String, SimpleTextAttributes>> components = renderDeviceName(d);
+          for (Pair<String, SimpleTextAttributes> c : components) {
+            append(c.getFirst(), c.getSecond());
           }
-          append(" ");
-          append(DevicePropertyUtil.getBuild(d), SimpleTextAttributes.GRAY_ATTRIBUTES);
         }
       }
     });
@@ -163,7 +155,7 @@ public class DevicePanel implements Disposable,
         ClientData cd = c.getClientData();
         String name = cd.getClientDescription();
         if (name != null) {
-          List<Pair<String, SimpleTextAttributes>> nameComponents = getAppNameRenderOptions(name);
+          List<Pair<String, SimpleTextAttributes>> nameComponents = renderAppName(name);
           for (Pair<String, SimpleTextAttributes> component: nameComponents) {
             append(component.getFirst(), component.getSecond());
           }
@@ -196,7 +188,7 @@ public class DevicePanel implements Disposable,
   }
 
   @VisibleForTesting
-  static List<Pair<String, SimpleTextAttributes>> getAppNameRenderOptions(String name) {
+  static List<Pair<String, SimpleTextAttributes>> renderAppName(String name) {
     int index = name.lastIndexOf('.');
     if (index == -1) {
       return Collections.singletonList(Pair.of(name, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES));
@@ -208,6 +200,28 @@ public class DevicePanel implements Disposable,
       }
       return components;
     }
+  }
+
+  @VisibleForTesting
+  static List<Pair<String, SimpleTextAttributes>> renderDeviceName(IDevice d) {
+    List<Pair<String, SimpleTextAttributes>> components = new ArrayList<Pair<String, SimpleTextAttributes>>(3);
+    String name;
+    if (d.isEmulator()) {
+      name = String.format("%1$s %2$s ", AndroidBundle.message("android.emulator"), d.getAvdName());
+    } else {
+      name = String.format("%1$s %2$s ", DevicePropertyUtil.getManufacturer(d, ""), DevicePropertyUtil.getModel(d, ""));
+    }
+
+    components.add(Pair.of(name, SimpleTextAttributes.REGULAR_ATTRIBUTES));
+
+    if (d.getState() != IDevice.DeviceState.ONLINE) {
+      String state = String.format("%1$s [%2$s] ", d.getSerialNumber(), d.getState());
+      components.add(Pair.of(state, SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES));
+    }
+
+    components.add(Pair.of(DevicePropertyUtil.getBuild(d), SimpleTextAttributes.GRAY_ATTRIBUTES));
+
+    return components;
   }
 
   @Override

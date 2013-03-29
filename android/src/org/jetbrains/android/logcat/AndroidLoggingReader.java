@@ -43,7 +43,7 @@ public abstract class AndroidLoggingReader extends Reader {
   @Override
   public boolean ready() throws IOException {
     Reader reader = getReader();
-    return reader != null ? reader.ready() : false;
+    return reader != null && reader.ready();
   }
 
   @Override
