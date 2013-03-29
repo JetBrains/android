@@ -585,7 +585,7 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
 
   @Nullable
   private static VirtualFile findSourceRoot(ModifiableRootModel model) {
-    VirtualFile genSourceRoot = AndroidRootUtil.getStandartGenDir(model.getModule());
+    VirtualFile genSourceRoot = AndroidRootUtil.getStandardGenDir(model.getModule());
     for (VirtualFile root : model.getSourceRoots()) {
       if (!Comparing.equal(root, genSourceRoot)) {
         return root;
