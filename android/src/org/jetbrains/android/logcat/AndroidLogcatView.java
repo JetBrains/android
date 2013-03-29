@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.logcat;
 
-import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceContext;
@@ -56,10 +55,8 @@ public abstract class AndroidLogcatView implements Disposable {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.logcat.AndroidLogcatView");
   public static final Key<AndroidLogcatView> ANDROID_LOGCAT_VIEW_KEY =
     Key.create("ANDROID_LOGCAT_VIEW_KEY");
-  public static final String NO_FILTERS =
-    AndroidBundle.message("android.logcat.filters.none");
-  public static final String EDIT_FILTER_CONFIGURATION =
-    AndroidBundle.message("android.logcat.filters.edit");
+  public static final String NO_FILTERS = AndroidBundle.message("android.logcat.filters.none");
+  public static final String EDIT_FILTER_CONFIGURATION = AndroidBundle.message("android.logcat.filters.edit");
 
   private final Project myProject;
   private final DeviceContext myDeviceContext;
@@ -78,28 +75,6 @@ public abstract class AndroidLogcatView implements Disposable {
   private volatile Writer myCurrentWriter;
 
   private final IDevice myPreselectedDevice;
-
-  private final AndroidDebugBridge.IDeviceChangeListener myDeviceChangeListener = new AndroidDebugBridge.IDeviceChangeListener() {
-    @Override
-    public void deviceConnected(IDevice device) {
-      updateInUIThread();
-    }
-
-    @Override
-    public void deviceDisconnected(IDevice device) {
-      updateInUIThread();
-    }
-
-    @Override
-    public void deviceChanged(IDevice device, int changeMask) {
-      if ((changeMask & IDevice.CHANGE_STATE) != 0) {
-        if (device == myDevice) {
-          myDevice = null;
-          updateInUIThread();
-        }
-      }
-    }
-  };
 
   private void updateInUIThread() {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
@@ -157,7 +132,7 @@ public abstract class AndroidLogcatView implements Disposable {
 
     myLogFilterModel =
       new AndroidLogFilterModel() {
-        private ConfiguredFilter myConfiguredFilter;
+        @Nullable private ConfiguredFilter myConfiguredFilter;
         
         @Override
         protected void setCustomFilter(String filter) {
@@ -180,7 +155,7 @@ public abstract class AndroidLogcatView implements Disposable {
         }
 
         @Override
-        protected void setConfiguredFilter(ConfiguredFilter filter) {
+        protected void setConfiguredFilter(@Nullable ConfiguredFilter filter) {
           AndroidLogcatFiltersPreferences.getInstance(project).TOOL_WINDOW_CONFIGURED_FILTER = filter != null ? filter.getName() : "";
           myConfiguredFilter = filter;
         }
@@ -210,25 +185,28 @@ public abstract class AndroidLogcatView implements Disposable {
       }
     });
 
-    if (preselectedDevice == null) {
+    if (preselectedDevice == null && deviceContext != null) {
       DeviceContext.DeviceSelectionListener deviceSelectionListener =
         new DeviceContext.DeviceSelectionListener() {
           @Override
           public void deviceSelected(@Nullable IDevice device) {
-            updateLogConsole();
+            updateInUIThread();
           }
 
           @Override
           public void clientSelected(@Nullable Client c) {
           }
         };
-      myDeviceContext.addListener(deviceSelectionListener, this);
+      deviceContext.addListener(deviceSelectionListener, this);
     }
 
     JComponent consoleComponent = myLogConsole.getComponent();
 
     final DefaultActionGroup group1 = new DefaultActionGroup();
-    group1.addAll(myLogConsole.getToolbarActions());
+    ActionGroup toolbarActions = myLogConsole.getToolbarActions();
+    if (toolbarActions != null) {
+      group1.addAll(toolbarActions);
+    }
     group1.add(new MyRestartAction());
     final JComponent tbComp1 =
       ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group1, false).getComponent();
@@ -236,8 +214,6 @@ public abstract class AndroidLogcatView implements Disposable {
 
     myPanel.add(consoleComponent, BorderLayout.CENTER);
     Disposer.register(this, myLogConsole);
-
-    AndroidDebugBridge.addDeviceChangeListener(myDeviceChangeListener);
 
     updateLogConsole();
 
@@ -278,13 +254,13 @@ public abstract class AndroidLogcatView implements Disposable {
           if (dialog.isOK()) {
             final AndroidConfiguredLogFilters.MyFilterEntry newEntry =
               dialog.getCustomLogFiltersEntry();
-            updateConfiguredFilters(newEntry != null ? newEntry.getName() : null);
+            updateConfiguredFilters(newEntry != null ? newEntry.getName() : NO_FILTERS);
           } else {
             myCurrentFilterName = prev;
             editFiltersCombo.setSelectedItem(myCurrentFilterName);
           }
         } else {
-          selectFilter(myCurrentFilterName != null ? myCurrentFilterName : NO_FILTERS);
+          selectFilter(myCurrentFilterName);
         }
       }
     });
@@ -366,7 +342,13 @@ public abstract class AndroidLogcatView implements Disposable {
 
   @Nullable
   public IDevice getSelectedDevice() {
-    return myPreselectedDevice != null ? myPreselectedDevice : myDeviceContext.getSelectedDevice();
+    if (myPreselectedDevice != null) {
+      return myPreselectedDevice;
+    } else if (myDeviceContext != null) {
+      return myDeviceContext.getSelectedDevice();
+    } else {
+      return null;
+    }
   }
 
   private void selectFilter(@NotNull String filterName) {
@@ -406,7 +388,6 @@ public abstract class AndroidLogcatView implements Disposable {
 
   @Override
   public void dispose() {
-    AndroidDebugBridge.removeDeviceChangeListener(myDeviceChangeListener);
   }
 
   private class MyRestartAction extends AnAction {
@@ -425,7 +406,7 @@ public abstract class AndroidLogcatView implements Disposable {
   class MyLogConsole extends LogConsoleBase {
     @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
     public MyLogConsole(Project project, AndroidLogFilterModel logFilterModel) {
-      super(project, new MyLoggingReader(), null, false, logFilterModel);
+      super(project, new MyLoggingReader(), "", false, logFilterModel);
     }
 
     @Override

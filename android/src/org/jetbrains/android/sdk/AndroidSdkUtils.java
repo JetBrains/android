@@ -604,7 +604,7 @@ public class AndroidSdkUtils {
       int result = Messages.showYesNoDialog(project, AndroidBundle.message("android.ddms.disabled.error"),
                                             AndroidBundle.message("android.ddms.disabled.dialog.title"),
                                             Messages.getQuestionIcon());
-      if (result != 0) {
+      if (result != Messages.YES) {
         return false;
       }
       AndroidEnableAdbServiceAction.setAdbServiceEnabled(project, true);
@@ -635,7 +635,7 @@ public class AndroidSdkUtils {
 
         if (clients.length > 0) {
           ClientData clientData = clients[0].getClientData();
-          return clientData == null || clientData.getVmIdentifier() == null;
+          return clientData.getVmIdentifier() == null;
         }
       }
     }

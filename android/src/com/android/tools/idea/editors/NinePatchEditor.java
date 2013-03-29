@@ -55,8 +55,9 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
   private ImageEditorPanel myImageEditorPanel;
   private boolean myDirtyFlag;
 
-  private final FileDocumentManagerListener myFileDocumentManagerListener =
-    new FileDocumentManagerAdapter() {
+  public NinePatchEditor(Project project, VirtualFile file) {
+    // Listen for 'Save All' events
+    FileDocumentManagerListener saveListener = new FileDocumentManagerAdapter() {
       @Override
       public void beforeAllDocumentsSaving() {
         try {
@@ -67,11 +68,7 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
         }
       }
     };
-
-  public NinePatchEditor(Project project, VirtualFile file) {
-    // Listen for 'Save All' events
-    project.getMessageBus().connect(this).subscribe(AppTopics.FILE_DOCUMENT_SYNC,
-                                                    myFileDocumentManagerListener);
+    project.getMessageBus().connect(this).subscribe(AppTopics.FILE_DOCUMENT_SYNC, saveListener);
 
     myFile = file;
     try {

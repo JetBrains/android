@@ -63,7 +63,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
     fireTextFilterChange();
   }
 
-  public void updateConfiguredFilter(ConfiguredFilter filter) {
+  public void updateConfiguredFilter(@Nullable ConfiguredFilter filter) {
     setConfiguredFilter(filter);
     fireTextFilterChange();
   }

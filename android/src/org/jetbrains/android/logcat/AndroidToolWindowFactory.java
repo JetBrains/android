@@ -87,6 +87,9 @@ public class AndroidToolWindowFactory implements ToolWindowFactory {
       AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY);
     final DevicePanel devicePanel = devicesContent.getUserData(DEVICES_PANEL_KEY);
 
+    assert logcatView != null;
+    assert devicePanel != null;
+
     // The search component is used only from the first content in a tab, so we set it on
     // the devicesContent instead of logcatContent
     devicesContent.setSearchComponent(logcatView.createSearchComponent(project));
@@ -107,15 +110,18 @@ public class AndroidToolWindowFactory implements ToolWindowFactory {
         logcatView.activate();
         final ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID);
         if (window != null && window.isVisible()) {
-          checkFacetAndSdk(project, logcatView.getLogConsole().getConsole());
+          ConsoleView console = logcatView.getLogConsole().getConsole();
+          if (console != null) {
+            checkFacetAndSdk(project, console);
+          }
         }
       }
     });
   }
 
-  private Content createDeviceContent(RunnerLayoutUi layoutUi,
-                                      Project project,
-                                      DeviceContext deviceContext) {
+  private static Content createDeviceContent(RunnerLayoutUi layoutUi,
+                                             Project project,
+                                             DeviceContext deviceContext) {
     DevicePanel devicePanel = new DevicePanel(project, deviceContext);
     Content devicesContent = layoutUi.createContent(
       DEVICE_PANEL_CONTENT,
@@ -128,9 +134,9 @@ public class AndroidToolWindowFactory implements ToolWindowFactory {
     return devicesContent;
   }
 
-  private Content createLogcatContent(RunnerLayoutUi layoutUi,
-                                      final Project project,
-                                      DeviceContext deviceContext) {
+  private static Content createLogcatContent(RunnerLayoutUi layoutUi,
+                                             final Project project,
+                                             DeviceContext deviceContext) {
     final AndroidLogcatView logcatView = new AndroidLogcatView(project, deviceContext) {
       @Override
       protected boolean isActive() {
@@ -151,7 +157,10 @@ public class AndroidToolWindowFactory implements ToolWindowFactory {
               myToolWindowVisible = visible;
               logcatView.activate();
               if (visible) {
-                checkFacetAndSdk(project, logcatView.getLogConsole().getConsole());
+                ConsoleView console = logcatView.getLogConsole().getConsole();
+                if (console != null) {
+                  checkFacetAndSdk(project, console);
+                }
               }
             }
           }
