@@ -17,10 +17,13 @@ package com.android.tools.idea.rendering;
 
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.dom.manifest.Application;
 
 import java.util.Collection;
 
@@ -35,7 +38,7 @@ public class ProjectResourcesTest extends AndroidTestCase {
     assertNotNull(resources);
 
     Collection<ResourceItem> layouts = resources.getResourceItemsOfType(ResourceType.LAYOUT);
-    assertEquals(layouts.size(), 2);
+    assertEquals(2, layouts.size());
 
     assertNotNull(resources.getResourceItem(ResourceType.LAYOUT, "layout1"));
     assertNotNull(resources.getResourceItem(ResourceType.LAYOUT, "layout2"));
@@ -47,6 +50,46 @@ public class ProjectResourcesTest extends AndroidTestCase {
     VirtualFile file3 = myFixture.copyFileToProject(TEST_FILE, "res/layout-xlarge-land/layout3.xml");
     PsiFile psiFile3 = PsiManager.getInstance(getProject()).findFile(file3);
     assertNotNull(psiFile3);
+
+    layouts = resources.getResourceItemsOfType(ResourceType.LAYOUT);
+    assertEquals(3, layouts.size());
+
+    Collection<ResourceItem> drawables = resources.getResourceItemsOfType(ResourceType.DRAWABLE);
+    assertEquals(drawables.toString(), 0, drawables.size());
+    VirtualFile file4 = myFixture.copyFileToProject(TEST_FILE, "res/drawable-mdpi/foo.png");
+    final PsiFile psiFile4 = PsiManager.getInstance(getProject()).findFile(file4);
+    assertNotNull(psiFile4);
+    drawables = resources.getResourceItemsOfType(ResourceType.DRAWABLE);
+    assertEquals(1, drawables.size());
+    assertEquals("foo", drawables.iterator().next().getName());
+
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        psiFile4.delete();
+      }
+    });
+    drawables = resources.getResourceItemsOfType(ResourceType.DRAWABLE);
+    assertEquals(0, drawables.size());
+
+    // Try deleting a whole resource directory and ensure we're notified of the missing files within
+    /* This does not yet work: We don't respond to resource directory removes;
+       the PSI listener hook does not get access to the individual files in the directory
+       that were removed (even if checking in a before-hook.) To fix this we need to handle the
+       way the resources are kept up to date; when we do the PSI rewrite that would be a good time.
+
+    assertEquals(3, layouts.size());
+    final PsiDirectory directory = psiFile4.getContainingDirectory();
+    assertNotNull(directory);
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        directory.delete();
+      }
+    });
+    layouts = resources.getResourceItemsOfType(ResourceType.LAYOUT);
+    assertEquals(2, layouts.size());
+    */
 
     /* TODO: The PSI change listener does not appear to fire when run in the unit test; figure out why.
     layouts = resources.getResourceItemsOfType(ResourceType.LAYOUT);

@@ -26,16 +26,16 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.util.Pair;
 import com.google.common.collect.Sets;
-import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
-import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
 import gnu.trove.TIntObjectHashMap;
@@ -50,6 +50,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 
+import static com.android.SdkConstants.EXT_PNG;
 import static com.android.SdkConstants.FD_RESOURCES;
 
 /**
@@ -92,6 +93,7 @@ public class ProjectResources extends ResourceRepository implements Disposable {
   private static final int DYNAMIC_ID_SEED_START = 0x7fff0000;
   private final Module myModule;
 
+  private final IntArrayWrapper myWrapper = new IntArrayWrapper(null);
   private Map<ResourceType, TObjectIntHashMap<String>> myResourceValueMap;
   private TIntObjectHashMap<Pair<ResourceType, String>> myResIdValueToNameMap;
   private Map<IntArrayWrapper, String> myStyleableValueToNameMap;
@@ -178,8 +180,8 @@ public class ProjectResources extends ResourceRepository implements Disposable {
   @Nullable
   public String resolveStyleable(int[] id) {
     if (myStyleableValueToNameMap != null) {
-      mWrapper.set(id);
-      return myStyleableValueToNameMap.get(mWrapper);
+      myWrapper.set(id);
+      return myStyleableValueToNameMap.get(myWrapper);
     }
 
     return null;
@@ -235,6 +237,7 @@ public class ProjectResources extends ResourceRepository implements Disposable {
         if (resourceFile != null) {
           ResourceFolder folder = resourceFile.getFolder();
           folder.processFile(resourceFile.getFile(), ResourceDeltaKind.REMOVED, context);
+          removeFile(resourceFile.getResourceTypes(), resourceFile);
         }
       }
       myDeletedFiles.clear();
@@ -601,6 +604,19 @@ public class ProjectResources extends ResourceRepository implements Disposable {
   // up the new path when processing it.
   private Set<File> myDeletedFiles = Sets.newHashSet();
 
+  private static boolean isRelevantFileType(@NotNull FileType fileType) {
+    return fileType == StdFileTypes.XML ||
+           (fileType.isBinary() && fileType == FileTypeManager.getInstance().getFileTypeByExtension(EXT_PNG));
+  }
+
+  private static boolean isRelevantFile(@NotNull VirtualFile file) {
+    return isRelevantFileType(file.getFileType());
+  }
+
+  private static boolean isRelevantFile(@NotNull PsiFile file) {
+    return isRelevantFileType(file.getFileType());
+  }
+
   private final class PsiListener implements PsiTreeChangeListener {
     private boolean myIgnoreChildrenChanged;
 
@@ -609,15 +625,25 @@ public class ProjectResources extends ResourceRepository implements Disposable {
       PsiFile psiFile = event.getFile();
       if (psiFile == null) {
         PsiElement child = event.getChild();
-        if (child != null && child.getLanguage() == XMLLanguage.INSTANCE && child instanceof PsiFile
-            && isResourceFolder(event.getParent())) {
+        if (child instanceof PsiFile) {
           VirtualFile file = ((PsiFile)child).getVirtualFile();
-          if (file != null) {
+          if (file != null && isRelevantFile(file) && isResourceFolder(event.getParent())) {
             myAddedFiles.add(file);
             myHaveDirtyFiles = true;
           }
+        } else if (child instanceof PsiDirectory) {
+          PsiDirectory directory = (PsiDirectory)child;
+          if (isResourceFolder(directory)) {
+            for (PsiFile file : directory.getFiles()) {
+              VirtualFile virtualFile = file.getVirtualFile();
+              if (virtualFile != null) {
+                myAddedFiles.add(virtualFile);
+                myHaveDirtyFiles = true;
+              }
+            }
+          }
         }
-      } else if (psiFile.getFileType() == StdFileTypes.XML) {
+      } else if (isRelevantFile(psiFile)) {
         VirtualFile virtualFile = psiFile.getVirtualFile();
         if (virtualFile != null) {
           myChangedFiles.add(virtualFile);
@@ -630,19 +656,21 @@ public class ProjectResources extends ResourceRepository implements Disposable {
 
     @Override
     public void childRemoved(@NotNull PsiTreeChangeEvent event) {
-      // TODO: Handle non-XML drawable files!
       PsiFile psiFile = event.getFile();
       if (psiFile == null) {
         PsiElement child = event.getChild();
-        if (child != null && child.getLanguage() == XMLLanguage.INSTANCE && child instanceof PsiFile
-          && isResourceFolder(event.getParent())) {
+        if (child instanceof PsiFile) {
           VirtualFile file = ((PsiFile)child).getVirtualFile();
-          if (file != null) {
+          if (file != null && isRelevantFile(file) && isResourceFolder(event.getParent())) {
             myDeletedFiles.add(VfsUtilCore.virtualToIoFile(file));
             myHaveDirtyFiles = true;
           }
-        }
-      } else if (psiFile.getFileType() == StdFileTypes.XML) {
+        }// else if (child instanceof PsiDirectory) {
+        //   TODO: We can't iterate the children here and record them in myDeletedFiles because dir is empty
+        //   (even if we do this in #beforeChildRemoval.
+        //   Fix this during the full PSI rewrite.
+        //}
+      } else if (isRelevantFile(psiFile)) {
         VirtualFile file = psiFile.getVirtualFile();
         if (file != null) {
           myChangedFiles.add(file);
@@ -658,7 +686,7 @@ public class ProjectResources extends ResourceRepository implements Disposable {
       // TODO: If getOldChild() is a PsiWhiteSpace and getNewChild() is PsiWhiteSpace, do nothing
       PsiFile psiFile = event.getFile();
       if (psiFile != null) {
-        if (psiFile.getFileType() == StdFileTypes.XML) {
+        if (isRelevantFile(psiFile)) {
           VirtualFile file = psiFile.getVirtualFile();
           if (file != null) {
             myChangedFiles.add(file);
@@ -679,12 +707,11 @@ public class ProjectResources extends ResourceRepository implements Disposable {
     @Override
     public void childMoved(@NotNull PsiTreeChangeEvent event) {
       PsiElement child = event.getChild();
-      // TODO: Handle non-XML drawable resources
       PsiFile psiFile = event.getFile();
       if (psiFile == null) {
-        if (child instanceof XmlFile) {
+        if (child instanceof PsiFile && isRelevantFile((PsiFile)child)) {
           if (isResourceFolder(event.getNewParent())) {
-            VirtualFile file = ((XmlFile)child).getVirtualFile();
+            VirtualFile file = ((PsiFile)child).getVirtualFile();
             if (file != null) {
               myAddedFiles.add(file);
               myHaveDirtyFiles = true;
@@ -695,14 +722,14 @@ public class ProjectResources extends ResourceRepository implements Disposable {
           if (oldParent instanceof PsiDirectory) {
             PsiDirectory directory = (PsiDirectory)oldParent;
             VirtualFile dir = directory.getVirtualFile();
-            myDeletedFiles.add(new File(VfsUtilCore.virtualToIoFile(dir), ((XmlFile)child).getName()));
+            myDeletedFiles.add(new File(VfsUtilCore.virtualToIoFile(dir), ((PsiFile)child).getName()));
             myHaveDirtyFiles = true;
           }
         }
       } else {
         // Change inside a file
         VirtualFile file = psiFile.getVirtualFile();
-        if (file != null && file.getFileType() == StdFileTypes.XML) {
+        if (file != null && isRelevantFile(file)) {
           myChangedFiles.add(file);
           myHaveDirtyFiles = true;
         }
@@ -724,9 +751,9 @@ public class ProjectResources extends ResourceRepository implements Disposable {
       }
 
       PsiFile psiFile = event.getFile();
-      if (psiFile != null) {
+      if (psiFile != null && isRelevantFile(psiFile)) {
         VirtualFile file = psiFile.getVirtualFile();
-        if (file != null && file.getFileType() == StdFileTypes.XML) {
+        if (file != null) {
           myChangedFiles.add(file);
           myHaveDirtyFiles = true;
         }
@@ -741,28 +768,32 @@ public class ProjectResources extends ResourceRepository implements Disposable {
     public final void beforePropertyChange(@NotNull PsiTreeChangeEvent event) {
       if (PsiTreeChangeEvent.PROP_FILE_NAME == event.getPropertyName()) {
         PsiElement child = event.getChild();
-        // TODO: Handle non-XML drawable resources
-        if (child instanceof XmlFile && isResourceFolder(event.getParent())) {
-          VirtualFile file = ((XmlFile)child).getVirtualFile();
-          if (file != null) {
-            myDeletedFiles.add(VfsUtilCore.virtualToIoFile(file));
-            myHaveDirtyFiles = true;
+        if (child instanceof PsiFile) {
+          PsiFile psiFile = (PsiFile)child;
+          if (isRelevantFile(psiFile) && isResourceFolder(event.getParent())) {
+            VirtualFile file = psiFile.getVirtualFile();
+            if (file != null) {
+              myDeletedFiles.add(VfsUtilCore.virtualToIoFile(file));
+              myHaveDirtyFiles = true;
+            }
           }
         }
         // The new name will be added in the post hook (propertyChanged rather than beforePropertyChange)
       }
     }
 
-
     @Override
     public void propertyChanged(@NotNull PsiTreeChangeEvent event) {
       if (PsiTreeChangeEvent.PROP_FILE_NAME == event.getPropertyName() && isResourceFolder(event.getParent())) {
         PsiElement child = event.getElement();
-        if (child instanceof XmlFile && isResourceFolder(event.getParent())) {
-          VirtualFile file = ((XmlFile)child).getVirtualFile();
-          if (file != null) {
-            myAddedFiles.add(file);
-            myHaveDirtyFiles = true;
+        if (child instanceof PsiFile) {
+          PsiFile psiFile = (PsiFile)child;
+          if (isRelevantFile(psiFile) && isResourceFolder(event.getParent())) {
+            VirtualFile file = psiFile.getVirtualFile();
+            if (file != null) {
+              myAddedFiles.add(file);
+              myHaveDirtyFiles = true;
+            }
           }
         }
       }

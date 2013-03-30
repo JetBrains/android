@@ -352,10 +352,10 @@ public class LocaleMenuAction extends FlatComboAction {
         dialog.show();
         if (dialog.isOK()) {
           if (dialog.createTranslation()) {
-            Configuration configuration = myRenderContext.getConfiguration();
-            if (configuration != null) {
-              configuration.setLocale(myLocale);
-            }
+            // Switch to the newly created translation. Reuse the SetLocaleAction
+            // such that we don't just set the locale on the configuration, but project-wide
+            // as well .
+            new SetLocaleAction(myRenderContext, "", myLocale).actionPerformed(e);
           }
         }
       }
