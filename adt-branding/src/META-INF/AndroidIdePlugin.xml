@@ -2,6 +2,8 @@
   <id>com.intellij</id>
   <name>IDEA CORE</name>
 
+  <module value="com.intellij.modules.androidide"/>
+
   <xi:include href="/idea/RichPlatformPlugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <module value="com.intellij.modules.java"/>
   <module value="com.intellij.modules.all"/>
@@ -43,6 +45,9 @@
   </project-components>
 
   <extensionPoints>
+    <extensionPoint name="androidIdeInitializer"
+                    interface="com.intellij.openapi.actionSystem.AnAction"/>
+
     <extensionPoint name="codeInsight.changeVariableTypeQuickFixProvider"
                     interface="com.intellij.codeInsight.quickfix.ChangeVariableTypeQuickFixProvider"/>
     <extensionPoint name="conversion.rule"

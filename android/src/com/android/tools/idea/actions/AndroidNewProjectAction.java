@@ -24,7 +24,7 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.DumbAware;
 
 public class AndroidNewProjectAction extends AnAction implements DumbAware {
-  private static final String NEW_NEW_PROJECT_WIZARD = "android.newProjectWizard";
+  public static final String NEW_NEW_PROJECT_WIZARD = "android.newProjectWizard";
 
   public AndroidNewProjectAction() {
     super("New Project...");
