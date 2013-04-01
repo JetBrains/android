@@ -16,13 +16,14 @@
 
 package com.android.tools.idea;
 
-import com.android.tools.idea.actions.AndroidNewProjectAction;
 import com.intellij.codeInsight.CodeInsightSettings;
-import com.intellij.ide.actions.NewProjectAction;
 import com.intellij.ide.ui.UISettings;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.KeyboardShortcut;
+import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.editor.ex.EditorSettingsExternalizable;
+import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.ex.KeymapManagerEx;
@@ -32,6 +33,10 @@ import org.jetbrains.annotations.Nullable;
 
 /** Customize Android IDE specific experience. */
 public class AndroidInitialConfigurator {
+  @NonNls
+  private static final ExtensionPointName<AnAction> EP_NAME =
+    ExtensionPointName.create("com.intellij.androidIdeInitializer");
+
   @NonNls private static final String CONFIG_V1 = "AndroidConfig.V1";
   @NonNls private static final String TODO_TOOLWINDOW_ACTION_ID = "ActivateTODOToolWindow";
   @NonNls private static final String ANDROID_TOOLWINDOW_ACTION_ID = "ActivateAndroidToolWindow";
@@ -44,8 +49,7 @@ public class AndroidInitialConfigurator {
     // change default key maps to add a activate Android ToolWindow shortcut
     setActivateAndroidToolWindowShortcut();
 
-    // Fix New Project actions
-    fixNewProjectActions();
+    activateAndroidIdeInitializerExtensions();
   }
 
   private static void customizeSettings(PropertiesComponent propertiesComponent) {
@@ -79,23 +83,10 @@ public class AndroidInitialConfigurator {
     return null;
   }
 
-  private static void fixNewProjectActions() {
-    // TODO: This is temporary code. We should build out our own menu set and welcome screen exactly how we want.
-
-    // Register the New Project action manually since we need to unregister the platform one
-    ActionManager am = ActionManager.getInstance();
-    am.unregisterAction("NewProject");
-
-    AnAction action = new AndroidNewProjectAction();
-    am.registerAction("NewProject", action);
-
-    DefaultActionGroup ag = (DefaultActionGroup)am.getAction("WelcomeScreen.QuickStart.IDEA");
-    AnAction[] children = ag.getChildren(null);
-    for (AnAction child : children) {
-      if (child instanceof NewProjectAction) {
-        ag.remove(child);
-      }
+  private void activateAndroidIdeInitializerExtensions() {
+    AnAction[] extensions = EP_NAME.getExtensions();
+    for (AnAction a : extensions) {
+      a.actionPerformed(null);
     }
-    ag.add(action, Constraints.FIRST);
   }
 }
