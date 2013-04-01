@@ -19,45 +19,60 @@ import com.android.tools.idea.templates.TemplateMetadata;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
+import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
 
 /**
- * NewProjectWizard runs the wizard for creating entirely new Android projects. It takes the user
- * through steps to configure the project, setting its location and build parameters, and allows
- * the user to choose an activity to populate it. The wizard is template-driven, using templates
- * that live in the ADK.
+ * {@linkplain NewModuleWizard} guides the user through adding a new module to an existing project. It has a template-based flow and as the
+ * first step of the wizard allows the user to choose a template which will guide the rest of the wizard flow.
  */
-public class NewProjectWizard extends TemplateWizard {
-  private static final Logger LOG = Logger.getInstance("#" + NewProjectWizard.class.getName());
+public class NewModuleWizard extends TemplateWizard {
+  private static final Logger LOG = Logger.getInstance("#" + NewModuleWizard.class.getName());
 
-  private NewProjectWizardState myWizardState;
+  private NewModuleWizardState myWizardState;
+  private Project myProject;
+  private ChooseTemplateStep myChooseModuleStep;
   private ConfigureAndroidModuleStep myConfigureAndroidModuleStep;
+  private TemplateParameterStep myTemplateParameterStep;
   private LauncherIconStep myLauncherIconStep;
   private ChooseTemplateStep myChooseActivityStep;
-  private TemplateParameterStep myActivityParameterStep;
+  private TemplateParameterStep myActivityTemplateParameterStep;
   private boolean myInitializationComplete = false;
 
-  public NewProjectWizard() {
-    super("New Project", (Project)null);
+  public NewModuleWizard(@Nullable Project project) {
+    super("New Module", project);
+    myProject = project;
     init();
   }
 
   @Override
   protected void init() {
-    myWizardState = new NewProjectWizardState();
+    myWizardState = new NewModuleWizardState() {
+      @Override
+      public void setTemplateLocation(@NotNull File file) {
+        super.setTemplateLocation(file);
+        update();
+      }
+    };
 
+    myChooseModuleStep = new ChooseTemplateStep(this, myWizardState, CATEGORY_PROJECTS);
     myConfigureAndroidModuleStep = new ConfigureAndroidModuleStep(this, myWizardState);
+    myTemplateParameterStep = new TemplateParameterStep(this, myWizardState);
     myLauncherIconStep = new LauncherIconStep(this, myWizardState.getLauncherIconState());
     myChooseActivityStep = new ChooseTemplateStep(this, myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES);
-    myActivityParameterStep = new TemplateParameterStep(this, myWizardState.getActivityTemplateState());
+    myActivityTemplateParameterStep = new TemplateParameterStep(this, myWizardState.getActivityTemplateState());
 
+    mySteps.add(myChooseModuleStep);
     mySteps.add(myConfigureAndroidModuleStep);
+    mySteps.add(myTemplateParameterStep);
     mySteps.add(myLauncherIconStep);
     mySteps.add(myChooseActivityStep);
-    mySteps.add(myActivityParameterStep);
+    mySteps.add(myActivityTemplateParameterStep);
 
     myInitializationComplete = true;
     super.init();
@@ -68,26 +83,30 @@ public class NewProjectWizard extends TemplateWizard {
     if (!myInitializationComplete) {
       return;
     }
-    myLauncherIconStep.setVisible((Boolean)myWizardState.get(TemplateMetadata.ATTR_CREATE_ICONS));
-    myChooseActivityStep.setVisible((Boolean)myWizardState.get(NewProjectWizardState.ATTR_CREATE_ACTIVITY));
-    myActivityParameterStep.setVisible((Boolean)myWizardState.get(NewProjectWizardState.ATTR_CREATE_ACTIVITY));
+    myConfigureAndroidModuleStep.setVisible(myWizardState.myIsAndroidModule);
+    myTemplateParameterStep.setVisible(!myWizardState.myIsAndroidModule);
+    myLauncherIconStep.setVisible(myWizardState.myIsAndroidModule && (Boolean)myWizardState.get(TemplateMetadata.ATTR_CREATE_ICONS));
+    myChooseActivityStep.setVisible(
+      myWizardState.myIsAndroidModule && (Boolean)myWizardState.get(NewProjectWizardState.ATTR_CREATE_ACTIVITY));
+    myActivityTemplateParameterStep.setVisible(
+      myWizardState.myIsAndroidModule && (Boolean)myWizardState.get(NewProjectWizardState.ATTR_CREATE_ACTIVITY));
     super.update();
   }
 
-  public void createProject() {
+  public void createModule() {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
         try {
-          File projectRoot = new File((String)myWizardState.get(NewProjectWizardState.ATTR_PROJECT_LOCATION));
+          File projectRoot = new File(myProject.getBasePath());
           File moduleRoot = new File(projectRoot, (String)myWizardState.get(NewProjectWizardState.ATTR_PROJECT_NAME));
           projectRoot.mkdirs();
-          if ((Boolean)myWizardState.get(TemplateMetadata.ATTR_CREATE_ICONS)) {
+          if (myLauncherIconStep.isStepVisible() && (Boolean)myWizardState.get(TemplateMetadata.ATTR_CREATE_ICONS)) {
             myWizardState.getLauncherIconState().outputImages(moduleRoot);
           }
           myWizardState.updateParameters();
           myWizardState.myTemplate.render(projectRoot, moduleRoot, myWizardState.myParameters);
-          if ((Boolean)myWizardState.get(NewProjectWizardState.ATTR_CREATE_ACTIVITY)) {
+          if (myActivityTemplateParameterStep.isStepVisible() && (Boolean)myWizardState.get(NewProjectWizardState.ATTR_CREATE_ACTIVITY)) {
             myWizardState.getActivityTemplateState().getTemplate()
               .render(moduleRoot, moduleRoot, myWizardState.getActivityTemplateState().myParameters);
           }
@@ -98,5 +117,4 @@ public class NewProjectWizard extends TemplateWizard {
       }
     });
   }
-
 }

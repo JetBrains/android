@@ -31,11 +31,13 @@ import com.android.utils.SdkUtils;
 import com.android.utils.StdLogger;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.util.SystemProperties;
 import freemarker.cache.TemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
@@ -51,8 +53,9 @@ import org.xml.sax.helpers.DefaultHandler;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.*;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
@@ -98,6 +101,12 @@ public class Template {
 
   /** Reserved filename which describes each template */
   static final String TEMPLATE_XML = "template.xml";
+
+  /** The settings.gradle lives at project root and points gradle at the build files for individual modules in their subdirectories */
+  public static final String GRADLE_PROJECT_SETTINGS_FILE = "settings.gradle";
+
+  /** Finds include ':module_name_1', ':module_name_2',... statements in settings.gradle files */
+  private static final Pattern INCLUDE_PATTERN = Pattern.compile("include +(':[^']+', *)*':[^']+'");
 
   /**
    * Most recent thrown exception during template instantiation. This should
@@ -157,6 +166,10 @@ public class Template {
   /** Path to the directory containing the templates */
   private final File myTemplateRoot;
 
+  /* The base directory the template is expanded into */
+  private File myOutputRoot;
+
+  /* The directory of the module root for the project being worked with */
   private File myModuleRoot;
 
   /** The template loader which is responsible for finding (and sharing) template files */
@@ -196,14 +209,16 @@ public class Template {
   /**
    * Executes the template, rendering it to output files under the given module root directory.
    *
-   * @param moduleRootPath the filesystem directory that represents the root of the module where the template outputs should be rendered.
+   * @param outputRootPath the filesystem directory that represents the root directory where the template will be expanded.
+   * @param moduleRootPath the filesystem directory that represents the root of the IDE project module for the template being expanded.
    * @param args the key/value pairs that are fed into the input parameters for the template.
    */
   @NotNull
-  public void render(@NotNull File moduleRootPath, @NotNull Map<String, Object> args) {
-    assert moduleRootPath.isDirectory();
+  public void render(@NotNull File outputRootPath, @NotNull File moduleRootPath, @NotNull Map<String, Object> args) {
+    assert outputRootPath.isDirectory() : outputRootPath;
 
     myFilesToOpen.clear();
+    myOutputRoot = outputRootPath;
     myModuleRoot = moduleRootPath;
 
     Map<String, Object> paramMap = createParameterMap(args);
@@ -314,8 +329,10 @@ public class Template {
               File path = getSupportJarFile();
               if (path != null) {
                 try {
+                  // The dependency library always goes in a libs directory off the module root.
                   String to = FD_NATIVE_LIBS + File.separator + path.getName();
-                  copy(path, getTargetFile(to));
+                  File targetFile = new File(myModuleRoot, to.replace('/', File.separatorChar));
+                  copy(path, targetFile);
                 } catch (IOException ioe) {
                   LOG.warn(ioe);
                 }
@@ -443,14 +460,18 @@ public class Template {
                      @NotNull String relativeFrom,
                      @NotNull String toPath) throws IOException, TemplateException {
 
-    String currentXml = null;
+    String targetText = null;
 
     File to = getTargetFile(toPath);
-    if (to.exists()) {
-      currentXml = Files.toString(to, Charsets.UTF_8);
+    if (!(toPath.endsWith(EXT_XML) || to.getName().equals(GRADLE_PROJECT_SETTINGS_FILE))) {
+      throw new RuntimeException("Only XML or Gradle build files can be merged at this point: " + to);
     }
 
-    if (currentXml == null) {
+    if (to.exists()) {
+      targetText = Files.toString(to, Charsets.UTF_8);
+    }
+
+    if (targetText == null) {
       // The target file doesn't exist: don't merge, just copy
       boolean instantiate = relativeFrom.endsWith(DOT_FTL);
       if (instantiate) {
@@ -461,40 +482,47 @@ public class Template {
       return;
     }
 
-    if (!to.getName().endsWith("" + EXT_XML)) {
-      throw new RuntimeException("Only XML files can be merged at this point: " + to);
-    }
-
-    String xml = null;
+    String sourceText = null;
     File from = getFullPath(relativeFrom);
     if (relativeFrom.endsWith(DOT_FTL)) {
       // Perform template substitution of the template prior to merging
       myLoader.setTemplateFile(from);
-      xml = processFreemarkerTemplate(freemarker, paramMap, from.getName());
+      sourceText = processFreemarkerTemplate(freemarker, paramMap, from.getName());
     } else {
-      xml = readTextFile(from);
-      if (xml == null) {
+      sourceText = readTextFile(from);
+      if (sourceText == null) {
         return;
       }
     }
 
-    Document currentDocument = XmlUtils.parseDocumentSilently(currentXml, true);
-    assert currentDocument != null : currentXml;
-    Document fragment = XmlUtils.parseDocumentSilently(xml, true);
-    assert fragment != null : xml;
+    String contents;
+    if (to.getName().equals(GRADLE_PROJECT_SETTINGS_FILE)) {
+      contents = mergeGradleSettingsFile(sourceText, targetText, freemarker, paramMap);
+    } else {
+      contents = mergeXml(sourceText, targetText, to, paramMap);
+    }
+
+    Files.write(contents, to, Charsets.UTF_8);
+  }
+
+  private String mergeXml(String sourceXml, String targetXml, File targetFile, Map<String, Object> paramMap) {
+    Document currentDocument = XmlUtils.parseDocumentSilently(targetXml, true);
+    assert currentDocument != null : targetXml;
+    Document fragment = XmlUtils.parseDocumentSilently(sourceXml, true);
+    assert fragment != null : sourceXml;
 
     XmlFormatStyle formatStyle = XmlFormatStyle.MANIFEST;
     boolean modified;
     boolean ok;
-    String fileName = to.getName();
+    String fileName = targetFile.getName();
     if (fileName.equals(SdkConstants.FN_ANDROID_MANIFEST_XML)) {
       modified = ok = mergeManifest(currentDocument, fragment);
     } else {
       // Merge plain XML files
-      String parentFolderName = to.getParent();
+      String parentFolderName = targetFile.getParent();
       ResourceFolderType folderType = ResourceFolderType.getFolderType(parentFolderName);
       if (folderType != null) {
-        formatStyle = getXmlFormatStyleForFile(toPath);
+        formatStyle = getXmlFormatStyleForFile(targetFile);
       } else {
         formatStyle = XmlFormatStyle.FILE;
       }
@@ -507,8 +535,7 @@ public class Template {
     String contents = null;
     if (ok) {
       if (modified) {
-        contents = XmlPrettyPrinter.prettyPrint(currentDocument, createXmlFormatPreferences(), formatStyle, null,
-                                                currentXml.endsWith("\n"));
+        contents = XmlPrettyPrinter.prettyPrint(currentDocument, createXmlFormatPreferences(), formatStyle, null, targetXml.endsWith("\n"));
       }
     } else {
       // Just insert into file along with comment, using the "standard" conflict
@@ -516,21 +543,12 @@ public class Template {
       String sep = SdkUtils.getLineSeparator();
       contents =
         "<<<<<<< Original" + sep
-        + currentXml + sep
+        + targetXml + sep
         + "=======" + sep
-        + xml
+        + sourceXml
         + ">>>>>>> Added" + sep;
     }
-
-    if (contents != null) {
-      FileWriter w = null;
-      try {
-        w = new FileWriter(to);
-        w.write(contents);
-      } finally {
-        Closeables.close(w, false);
-      }
-    }
+    return contents;
   }
 
   /** Merges the given resource file contents into the given resource file
@@ -648,6 +666,31 @@ public class Template {
            merger.process(currentManifest, fragment);
   }
 
+  private String mergeGradleSettingsFile(@NotNull String source,
+                                         @NotNull String dest,
+                                         @NotNull final Configuration freemarker,
+                                         @NotNull final Map<String, Object> paramMap) throws IOException, TemplateException {
+    // TODO: Right now this is implemented as a dumb text merge. It would be much better to read it into PSI using IJ's Groovy support.
+    // If Gradle build files get first-class PSI support in the future, we will pick that up cheaply.
+
+    StringBuilder contents = new StringBuilder(dest);
+
+    for (String line : Splitter.on('\n').omitEmptyStrings().trimResults().split(source)) {
+      if (!line.startsWith("include")) {
+        throw new RuntimeException("When merging settings.gradle files, only include directives can be merged.");
+      }
+      line = line.substring("include".length()).trim();
+
+      Matcher matcher = INCLUDE_PATTERN.matcher(contents);
+      if (matcher.find()) {
+        contents.insert(matcher.end(), ", " + line);
+      } else {
+        contents.insert(0, "include " + line + SystemProperties.getLineSeparator());
+      }
+    }
+    return contents.toString();
+  }
+
   /** Instantiates the given template file into the given output file */
   private void instantiate(
     @NotNull final Configuration freemarker,
@@ -668,14 +711,7 @@ public class Template {
       contents = format(contents, to);
       File targetFile = getTargetFile(to);
       targetFile.getParentFile().mkdirs();
-
-      FileWriter w = null;
-      try {
-        w = new FileWriter(targetFile);
-        w.write(contents);
-      } finally {
-        Closeables.close(w, false);
-      }
+      Files.write(contents, targetFile, Charsets.UTF_8);
     }
   }
 
@@ -691,7 +727,7 @@ public class Template {
 
   @NotNull
   private File getTargetFile(@NotNull String path) throws IOException {
-    return new File(myModuleRoot, path.replace('/', File.separatorChar));
+    return new File(myOutputRoot, path.replace('/', File.separatorChar));
   }
 
   @NotNull
@@ -711,7 +747,7 @@ public class Template {
 
   /** Reads the given file as text. */
   @Nullable
-  private String readTextFile(@NotNull File file) {
+  private static String readTextFile(@NotNull File file) {
     assert file.isAbsolute();
     try {
       return Files.toString(file, Charsets.UTF_8);
@@ -730,12 +766,11 @@ public class Template {
   /**
    * Returns the {@link XmlFormatStyle} to use for resource files of the given path.
    *
-   * @param path the path to the resource file
+   * @param file the file to find the style for
    * @return the suitable format style to use
    */
   @NotNull
-  private static XmlFormatStyle getXmlFormatStyleForFile(@NotNull String path) {
-    File file = new File(path);
+  private static XmlFormatStyle getXmlFormatStyleForFile(@NotNull File file) {
     if (SdkConstants.FN_ANDROID_MANIFEST_XML.equals(file.getName())) {
       return XmlFormatStyle.MANIFEST;
     }
