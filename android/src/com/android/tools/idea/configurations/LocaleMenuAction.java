@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LanguageQualifier;
 import com.android.ide.common.resources.configuration.RegionQualifier;
@@ -198,6 +197,15 @@ public class LocaleMenuAction extends FlatComboAction {
       return "";
     }
 
+    return getLocaleLabel(ProjectResources.get(myRenderContext.getModule()), locale, brief);
+  }
+
+  @NotNull
+  public static String getLocaleLabel(@Nullable ProjectResources projectRes, @Nullable Locale locale, boolean brief) {
+    if (locale == null) {
+      return "";
+    }
+
     if (!locale.hasLanguage()) {
       if (brief) {
         // Just use the icon
@@ -205,7 +213,6 @@ public class LocaleMenuAction extends FlatComboAction {
       }
 
       boolean hasLocale = false;
-      ResourceRepository projectRes = ProjectResources.get(myRenderContext.getModule());
       if (projectRes != null) {
         hasLocale = !projectRes.getLanguages().isEmpty();
       }
@@ -248,60 +255,6 @@ public class LocaleMenuAction extends FlatComboAction {
       return String.format("%1$s / %2$s", languageCode, regionCode);
     }
   }
-
-  /*
-  private class SetLocaleByLanguage extends ActionGroup {
-    private AnAction[] myChildren;
-
-    private SetLocaleByLanguage() {
-      super("Set Locale By Language Name", null, null);
-    }
-
-    @Override
-    @NotNull
-    public AnAction[] getChildren(@org.jetbrains.annotations.Nullable AnActionEvent e) {
-      if (myChildren == null) {
-        List<Locale> locales = getRelevantLocales();
-
-        // Sort by name
-        Collections.sort(locales, Locale.LANGUAGE_NAME_COMPARATOR);
-        List<AnAction> actions = new ArrayList<AnAction>(locales.size());
-        for (Locale locale : locales) {
-          String title = locale.language.getValue();
-          actions.add(new SetLocaleAction(title, locale));
-        }
-        myChildren = actions.toArray(new AnAction[actions.size()]);
-      }
-
-      return myChildren;
-    }
-  }
-
-  private class SetLocaleByCode extends ActionGroup {
-    private AnAction[] myChildren;
-
-    private SetLocaleByCode() {
-      super("Set Locale By ISO Code", null, null);
-    }
-
-    @Override
-    @NotNull
-    public AnAction[] getChildren(@org.jetbrains.annotations.Nullable AnActionEvent e) {
-      if (myChildren == null) {
-        List<Locale> locales = getRelevantLocales();
-        Collections.sort(locales, Locale.LANGUAGE_CODE_COMPARATOR);
-        List<AnAction> actions = new ArrayList<AnAction>(locales.size());
-        for (Locale locale : locales) {
-          String title = getLocaleLabel(locale, false);
-          actions.add(new SetLocaleAction(title, locale));
-        }
-        myChildren = actions.toArray(new AnAction[actions.size()]);
-      }
-
-      return myChildren;
-    }
-  }
-  */
 
   private static class SetLocaleAction extends ConfigurationAction {
     private final Locale myLocale;
@@ -376,12 +329,13 @@ public class LocaleMenuAction extends FlatComboAction {
       }
       RelativePoint relativePoint = JBPopupFactory.getInstance().guessBestPopupLocation(context);
       popup.show(relativePoint);
+
       // To use a popup menu instead:
       //ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.EDITOR_POPUP, group);
     }
   }
 
-  private static class CreateLocaleAction extends AnAction {
+  private class CreateLocaleAction extends AnAction {
     private final Locale myLocale;
 
     public CreateLocaleAction(String title, @NotNull Locale locale) {
@@ -391,8 +345,20 @@ public class LocaleMenuAction extends FlatComboAction {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-      // TODO: Create locale
-      throw new RuntimeException("Not yet implemented: Create locale " + myLocale);
+      Module module = myRenderContext.getModule();
+      ProjectResources projectResources = ProjectResources.get(module);
+      if (projectResources != null) {
+        TranslationDialog dialog = new TranslationDialog(module, projectResources, myLocale);
+        dialog.show();
+        if (dialog.isOK()) {
+          if (dialog.createTranslation()) {
+            Configuration configuration = myRenderContext.getConfiguration();
+            if (configuration != null) {
+              configuration.setLocale(myLocale);
+            }
+          }
+        }
+      }
     }
   }
 }
