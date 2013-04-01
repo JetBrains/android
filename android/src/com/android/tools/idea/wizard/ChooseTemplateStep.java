@@ -31,31 +31,26 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API;
+import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
- * ChooseActivityStep is a page in the New Project wizard that lets the user choose an activity type to populate the new project. It picks
- * from available activity templates.
+ * ChooseTemplateStep is a wizard page that shows the user a list of templates of a given type and lets the user choose one.
  */
-public class ChooseActivityStep extends TemplateWizardStep implements ListSelectionListener {
-  private static final Logger LOG = Logger.getInstance("#" + ChooseActivityStep.class.getName());
+public class ChooseTemplateStep extends TemplateWizardStep implements ListSelectionListener {
+  private static final Logger LOG = Logger.getInstance("#" + ChooseTemplateStep.class.getName());
 
-  private NewProjectWizardState myWizardState;
   private JPanel myPanel;
   private JBList myTemplateList;
   private ImageComponent myTemplateImage;
   private JLabel myDescription;
   private JLabel myError;
 
-  public ChooseActivityStep(TemplateWizard templateWizard, NewProjectWizardState state) {
+  public ChooseTemplateStep(TemplateWizard templateWizard, TemplateWizardState state, String templateCategory) {
     super(templateWizard, state);
-    myWizardState = state;
 
     myTemplateList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     TemplateManager manager = TemplateManager.getInstance();
-    List<File> templates = manager.getTemplates(CATEGORY_ACTIVITIES);
+    List<File> templates = manager.getTemplates(templateCategory);
     List<MetadataListItem> metadataList = new ArrayList<MetadataListItem>(templates.size());
     for (int i = 0, n = templates.size(); i < n; i++) {
       File template = templates.get(i);
@@ -66,11 +61,12 @@ public class ChooseActivityStep extends TemplateWizardStep implements ListSelect
       metadataList.add(new MetadataListItem(template, metadata));
     }
 
-    myTemplateList.addListSelectionListener(this);
     myTemplateList.setModel(JBList.createDefaultListModel(ArrayUtil.toObjectArray(metadataList)));
     if (!metadataList.isEmpty()) {
       myTemplateList.setSelectedIndex(0);
     }
+    myTemplateList.addListSelectionListener(this);
+    validate();
   }
 
   @Override
@@ -95,27 +91,33 @@ public class ChooseActivityStep extends TemplateWizardStep implements ListSelect
       MetadataListItem template = (MetadataListItem)myTemplateList.getModel().getElementAt(index);
 
       if (template != null) {
-        myWizardState.getActivityTemplateState().setTemplateLocation(template.myTemplate);
+        myTemplateState.setTemplateLocation(template.myTemplate);
+        myTemplateState.convertToInt(ATTR_MIN_API);
+        myTemplateState.convertToInt(ATTR_BUILD_API);
+        myTemplateState.convertToInt(ATTR_MIN_API_LEVEL);
+        myTemplateState.convertToInt(ATTR_TARGET_API);
         String thumb = template.myMetadata.getThumbnailPath();
         if (thumb != null && !thumb.isEmpty()) {
-          File file = new File(myWizardState.getActivityTemplateState().myTemplate.getRootPath(),
-                               thumb.replace('/', File.separatorChar));
+          File file = new File(myTemplateState.myTemplate.getRootPath(), thumb.replace('/', File.separatorChar));
           try {
             byte[] bytes = Files.toByteArray(file);
             ImageIcon previewImage = new ImageIcon(bytes);
             myTemplateImage.setIcon(previewImage);
-          } catch (IOException e) {
+          }
+          catch (IOException e) {
             LOG.warn(e);
           }
         }
         setDescriptionHtml(template.myMetadata.getDescription());
         int minSdk = template.myMetadata.getMinSdk();
-        if (minSdk > (Integer)myWizardState.get(ATTR_MIN_API)) {
+        Integer minApi = (Integer)myTemplateState.get(ATTR_MIN_API);
+        if (minApi != null && minSdk > minApi) {
           setErrorHtml(String.format("The activity %s has a minimum SDK level of %d.", template.myMetadata.getTitle(), minSdk));
           return false;
         }
         int minBuildApi = template.myMetadata.getMinBuildApi();
-        if (minSdk > (Integer)myWizardState.get(ATTR_BUILD_API)) {
+        Integer buildApi = (Integer)myTemplateState.get(ATTR_BUILD_API);
+        if (buildApi != null && minSdk > buildApi) {
           setErrorHtml(String.format("The activity %s has a minimum build API level of %d.", template.myMetadata.getTitle(), minBuildApi));
           return false;
         }
@@ -132,11 +134,6 @@ public class ChooseActivityStep extends TemplateWizardStep implements ListSelect
   @Override
   protected JLabel getError() {
     return myError;
-  }
-
-  @Override
-  public boolean isStepVisible() {
-    return (Boolean)myTemplateState.get(NewProjectWizardState.ATTR_CREATE_ACTIVITY);
   }
 
   private static class MetadataListItem {

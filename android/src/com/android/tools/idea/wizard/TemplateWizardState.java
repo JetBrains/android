@@ -19,6 +19,7 @@ package com.android.tools.idea.wizard;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,6 +78,10 @@ public class TemplateWizardState {
     return myParameters.get(key);
   }
 
+  public boolean hasAttr(String key) {
+    return myParameters.containsKey(key);
+  }
+
   public void put(@NotNull String key, @Nullable Object value) {
     myParameters.put(key, value);
   }
@@ -86,6 +91,12 @@ public class TemplateWizardState {
    */
   public void setTemplateLocation(@NotNull File file) {
     if (myTemplate == null || !myTemplate.getRootPath().getAbsolutePath().equals(file.getAbsolutePath())) {
+      // Clear out any parameters from the old template and bring in the defaults for the new template.
+      if (myTemplate != null && myTemplate.getMetadata() != null) {
+        for (Parameter param : myTemplate.getMetadata().getParameters()) {
+          myParameters.remove(param.id);
+        }
+      }
       myTemplate = Template.createFromPath(file);
       setParameterDefaults();
     }
@@ -96,6 +107,12 @@ public class TemplateWizardState {
       if (!myParameters.containsKey(param.id) && param.initial != null) {
         put(param.id, param.initial);
       }
+    }
+  }
+
+  protected void convertToInt(String attr) {
+    if (get(attr) != null) {
+      put(attr, Integer.parseInt(get(attr).toString()));
     }
   }
 }
