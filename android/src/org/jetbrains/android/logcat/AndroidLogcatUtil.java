@@ -75,7 +75,7 @@ public class AndroidLogcatUtil {
       LOG.info(e);
       ApplicationManager.getApplication().invokeLater(new Runnable() {
         public void run() {
-          Messages.showErrorDialog(project, e.getMessage(), AndroidBundle.message("android.logcat.error.dialog.title"));
+          Messages.showErrorDialog(project, "Error: " + e.getMessage(), AndroidBundle.message("android.logcat.error.dialog.title"));
         }
       });
     }
