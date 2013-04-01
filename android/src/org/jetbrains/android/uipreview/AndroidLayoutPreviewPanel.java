@@ -430,6 +430,15 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
           }
         }
       }
+      if (point.y <= 2) {
+        ScalableImage image = myRenderResult.getImage();
+        // If there's a drop shadow
+        if (image != null) {
+          if (image.getShowDropShadow()) {
+            point.y += ShadowPainter.SHADOW_SIZE / 3;
+          }
+        }
+      }
       myImagePanel.setLocation(point);
     }
 

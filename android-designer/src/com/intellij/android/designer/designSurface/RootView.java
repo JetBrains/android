@@ -79,6 +79,9 @@ public class RootView extends com.intellij.designer.designSurface.RootView imple
 
   protected void updateBounds(boolean imageChanged) {
     if (myImage != null) {
+      if (myPanel != null && myPanel.isZoomToFit()) {
+        myPanel.zoomToFitIfNecessary();
+      }
       double zoom = getScale();
       int newWidth = (int)(zoom * myImage.getWidth());
       int newHeight = (int)(zoom * myImage.getHeight());
@@ -139,12 +142,17 @@ public class RootView extends com.intellij.designer.designSurface.RootView imple
         // (without this, you can easily zoom in 10 times and hit an OOM exception)
         int w = myImage.getWidth();
         int h = myImage.getHeight();
+        int scaledWidth = (int)(scale * w);
+        int scaledHeight = (int)(scale * h);
         Graphics2D g2 = (Graphics2D)g.create();
         try {
           g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BILINEAR);
-          g2.drawImage(myImage, 0, 0, (int) (scale * w), (int) (scale * h), 0, 0, w, h, null);
+          g2.drawImage(myImage, 0, 0, scaledWidth, scaledHeight, 0, 0, w, h, null);
         } finally {
           g2.dispose();
+        }
+        if (getShowDropShadow()) {
+          ShadowPainter.drawRectangleShadow(g, 0, 0, scaledWidth, scaledHeight);
         }
       }
     } else {
