@@ -32,6 +32,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -64,14 +65,11 @@ public class IdeaITNProxy {
   public static int postNewThread (String login, String password, ErrorBean error, String compilationTimestamp)
     throws IOException, NoSuchEAPUserException, InternalEAPException, UpdateAvailableException {
 
-    @NonNls List<Pair<String, String>> params = createParametersFor(login,
-                                                                    password,
-                                                                    error,
-                                                                    compilationTimestamp,
-                                                                    ApplicationManager.getApplication(),
-                                                                    (ApplicationInfoEx) ApplicationInfo.getInstance(),
-                                                                    ApplicationNamesInfo.getInstance(),
-                                                                    UpdateSettings.getInstance());
+    @NonNls List<Pair<String, String>> params =
+      getKeyValuePairs(login, password, error, compilationTimestamp,
+                       ApplicationManager.getApplication(),
+                       (ApplicationInfoEx)ApplicationInfo.getInstance(),
+                       ApplicationNamesInfo.getInstance(), UpdateSettings.getInstance());
 
     HttpURLConnection connection = post(new URL(NEW_THREAD_URL), join(params));
     int responseCode = connection.getResponseCode();
@@ -109,18 +107,22 @@ public class IdeaITNProxy {
     }
   }
 
-  private static List<Pair<String, String>> createParametersFor(String login,
-                                                                String password,
-                                                                ErrorBean error,
-                                                                String compilationTimestamp, Application application, ApplicationInfoEx appInfo,
-                                                                ApplicationNamesInfo namesInfo,
-                                                                UpdateSettings updateSettings) {
+  public static List<Pair<String, String>> getKeyValuePairs(@Nullable String login,
+                                                             @Nullable String password,
+                                                             ErrorBean error,
+                                                             String compilationTimestamp,
+                                                             Application application,
+                                                             ApplicationInfoEx appInfo,
+                                                             ApplicationNamesInfo namesInfo,
+                                                             UpdateSettings updateSettings) {
     @NonNls List<Pair<String,String>> params = new ArrayList<Pair<String, String>>();
 
     params.add(Pair.create("protocol.version", "1"));
 
-    params.add(Pair.create("user.login", login));
-    params.add(Pair.create("user.password", password));
+    if (login != null) {
+      params.add(Pair.create("user.login", login));
+      params.add(Pair.create("user.password", password));
+    }
 
     params.add(Pair.create("os.name", SystemProperties.getOsName()));
 
@@ -176,7 +178,7 @@ public class IdeaITNProxy {
   }
 
   private static String format(Calendar calendar) {
-    return calendar == null ?  null : Long.toString(calendar.getTime().getTime());
+    return calendar == null ?  "" : Long.toString(calendar.getTime().getTime());
   }
 
   private static HttpURLConnection post(URL url, byte[] bytes) throws IOException {

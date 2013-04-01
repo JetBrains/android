@@ -1,0 +1,167 @@
+/*
+ * Copyright (C) 2013 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.android.tools.idea.diagnostics.error;
+
+import com.google.common.collect.Maps;
+import com.intellij.diagnostic.IdeErrorsDialog;
+import com.intellij.diagnostic.LogMessageEx;
+import com.intellij.diagnostic.ReportMessages;
+import com.intellij.errorreport.bean.ErrorBean;
+import com.intellij.ide.DataManager;
+import com.intellij.ide.plugins.IdeaPluginDescriptor;
+import com.intellij.ide.plugins.PluginManager;
+import com.intellij.idea.IdeaLogger;
+import com.intellij.notification.NotificationListener;
+import com.intellij.notification.NotificationType;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.application.ApplicationInfo;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ApplicationNamesInfo;
+import com.intellij.openapi.application.ex.ApplicationInfoEx;
+import com.intellij.openapi.diagnostic.ErrorReportSubmitter;
+import com.intellij.openapi.diagnostic.IdeaLoggingEvent;
+import com.intellij.openapi.diagnostic.SubmittedReportInfo;
+import com.intellij.openapi.extensions.PluginId;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.updateSettings.impl.UpdateSettings;
+import com.intellij.openapi.util.Pair;
+import com.intellij.util.Consumer;
+import org.jetbrains.android.diagnostics.error.IdeaITNProxy;
+import org.jetbrains.android.util.AndroidBundle;
+
+import java.awt.*;
+import java.util.List;
+import java.util.Map;
+
+/** Sends crash reports to Google. Patterned after {@link com.intellij.diagnostic.ITNReporter} */
+public class ErrorReporter extends ErrorReportSubmitter {
+  @Override
+  public String getReportActionText() {
+    return AndroidBundle.message("error.report.to.google.action");
+  }
+
+  @Override
+  public SubmittedReportInfo submit(IdeaLoggingEvent[] events, Component parentComponent) {
+    // obsolete API
+    return new SubmittedReportInfo(null, "0", SubmittedReportInfo.SubmissionStatus.FAILED);
+  }
+
+  @Override
+  public boolean trySubmitAsync(IdeaLoggingEvent[] events,
+                                String additionalInfo,
+                                Component parentComponent,
+                                Consumer<SubmittedReportInfo> consumer) {
+    return sendError(events[0], additionalInfo, parentComponent, consumer);
+  }
+
+  private static boolean sendError(IdeaLoggingEvent event,
+                                   String additionalInfo,
+                                   final Component parentComponent,
+                                   final Consumer<SubmittedReportInfo> callback) {
+    ErrorBean errorBean = new ErrorBean(event.getThrowable(), IdeaLogger.ourLastActionId);
+
+    return doSubmit(event, parentComponent, callback, errorBean, additionalInfo);
+  }
+
+  private static boolean doSubmit(final IdeaLoggingEvent event,
+                                  final Component parentComponent,
+                                  final Consumer<SubmittedReportInfo> callback,
+                                  final ErrorBean bean,
+                                  final String description) {
+    final DataContext dataContext = DataManager.getInstance().getDataContext(parentComponent);
+
+    bean.setDescription(description);
+    bean.setMessage(event.getMessage());
+
+    Throwable t = event.getThrowable();
+    if (t != null) {
+      final PluginId pluginId = IdeErrorsDialog.findPluginId(t);
+      if (pluginId != null) {
+        final IdeaPluginDescriptor ideaPluginDescriptor = PluginManager.getPlugin(pluginId);
+        if (ideaPluginDescriptor != null && !ideaPluginDescriptor.isBundled()) {
+          bean.setPluginName(ideaPluginDescriptor.getName());
+          bean.setPluginVersion(ideaPluginDescriptor.getVersion());
+        }
+      }
+    }
+
+    Object data = event.getData();
+
+    if (data instanceof LogMessageEx) {
+      bean.setAttachments(((LogMessageEx)data).getAttachments());
+    }
+
+    List<Pair<String, String>> kv = IdeaITNProxy
+      .getKeyValuePairs(null, null, bean, IdeaLogger.getOurCompilationTimestamp(),
+                        ApplicationManager.getApplication(),
+                        (ApplicationInfoEx)ApplicationInfo.getInstance(),
+                        ApplicationNamesInfo.getInstance(), UpdateSettings.getInstance());
+
+    final Project project = PlatformDataKeys.PROJECT.getData(dataContext);
+
+    Consumer<String> successCallback = new Consumer<String>() {
+      @Override
+      public void consume(String token) {
+        final SubmittedReportInfo reportInfo = new SubmittedReportInfo(
+          null, "Issue " + token, SubmittedReportInfo.SubmissionStatus.NEW_ISSUE);
+        callback.consume(reportInfo);
+
+        ReportMessages.GROUP.createNotification(ReportMessages.ERROR_REPORT,
+                                                "Submitted",
+                                                NotificationType.INFORMATION,
+                                                null).setImportant(false).notify(project);
+      }
+    };
+
+    Consumer<Exception> errorCallback = new Consumer<Exception>() {
+      @Override
+      public void consume(Exception e) {
+        // TODO: check for updates
+        String message = AndroidBundle.message("error.report.at.b.android", e.getMessage());
+        NotificationListener listener = new NotificationListener.UrlOpeningListener(true);
+        ReportMessages.GROUP.createNotification(ReportMessages.ERROR_REPORT,
+                                                message,
+                                                NotificationType.ERROR,
+                                                listener).setImportant(false).notify(project);
+      }
+    };
+    AnonymousFeedbackTask task =
+      new AnonymousFeedbackTask(project, "Submitting error report", true, pair2map(kv),
+                                bean.getMessage(), bean.getDescription(),
+                                ApplicationInfo.getInstance().getBuild().asString(),
+                                successCallback, errorCallback);
+    if (project == null) {
+      task.run(new EmptyProgressIndicator());
+    } else {
+      ProgressManager.getInstance().run(task);
+    }
+    return true;
+  }
+
+  private static Map<String, String> pair2map(List<Pair<String, String>> kv) {
+    Map<String, String> m = Maps.newHashMapWithExpectedSize(kv.size());
+
+    for (Pair<String, String> i : kv) {
+      m.put(i.getFirst(), i.getSecond());
+    }
+
+    return m;
+  }
+}
