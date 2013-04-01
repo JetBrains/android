@@ -16,30 +16,27 @@
 package com.android.tools.idea.rendering;
 
 import com.android.annotations.Nullable;
-import com.android.io.IAbstractFile;
+import com.android.annotations.VisibleForTesting;
 import com.android.resources.ScreenSize;
 import com.android.sdklib.IAndroidTarget;
-import com.android.xml.AndroidManifest;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.uipreview.VirtualFolderWrapper;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.util.HashMap;
 import java.util.Map;
 
 import static com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX;
-import static com.android.SdkConstants.NS_RESOURCES;
+import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.xml.AndroidManifest.*;
 
 /**
@@ -55,8 +52,8 @@ public class ManifestInfo {
   private String myPackage;
   private String myManifestTheme;
   private Map<String, String> myActivityThemes;
-  private IAbstractFile myManifestFile;
-  private long myLastModified;
+  private XmlFile myManifestFile;
+  private long myLastModified = -1;
   private long myLastChecked;
   private String myMinSdkName;
   private int myMinSdk;
@@ -68,7 +65,8 @@ public class ManifestInfo {
    * Key for the per-project non-persistent property storing the {@link ManifestInfo} for
    * this project
    */
-  private final static Key<ManifestInfo> MANIFEST_FINDER = new Key<ManifestInfo>("adt-manifest-info"); //$NON-NLS-1$
+  @VisibleForTesting
+  final static Key<ManifestInfo> MANIFEST_FINDER = new Key<ManifestInfo>("adt-manifest-info"); //$NON-NLS-1$
 
   /**
    * Constructs an {@link ManifestInfo} for the given module. Don't use this method;
@@ -89,17 +87,17 @@ public class ManifestInfo {
   }
 
   /**
-   * Returns the {@link ManifestInfo} for the given project
+   * Returns the {@link ManifestInfo} for the given module
    *
-   * @param project the project the finder is associated with
-   * @return a {@ManifestInfo} for the given project, never null
+   * @param module the module the finder is associated with
+   * @return a {@ManifestInfo} for the given module, never null
    */
   @NotNull
-  public static ManifestInfo get(Module project) {
-    ManifestInfo finder = project.getUserData(MANIFEST_FINDER);
+  public static ManifestInfo get(Module module) {
+    ManifestInfo finder = module.getUserData(MANIFEST_FINDER);
     if (finder == null) {
-      finder = new ManifestInfo(project);
-      project.putUserData(MANIFEST_FINDER, finder);
+      finder = new ManifestInfo(module);
+      module.putUserData(MANIFEST_FINDER, finder);
     }
 
     return finder;
@@ -118,11 +116,25 @@ public class ManifestInfo {
     }
     myLastChecked = now;
 
+    ApplicationManager.getApplication().runReadAction(new Runnable() {
+      @Override
+      public void run() {
+        syncWithReadPermission();
+      }
+    });
+  }
+
+  private void syncWithReadPermission() {
     if (myManifestFile == null) {
-      Project project = myModule.getProject();
-      VirtualFile projectDir = project.getBaseDir();
-      VirtualFolderWrapper projectFolder = new VirtualFolderWrapper(project, projectDir);
-      myManifestFile = AndroidManifest.getManifest(projectFolder);
+      AndroidFacet facet = AndroidFacet.getInstance(myModule);
+      if (facet == null) {
+        return;
+      }
+      final VirtualFile manifestFile = AndroidRootUtil.getManifestFile(facet);
+      if (manifestFile == null) {
+        return;
+      }
+      myManifestFile = (XmlFile)PsiManager.getInstance(myModule.getProject()).findFile(manifestFile);
       if (myManifestFile == null) {
         return;
       }
@@ -145,75 +157,55 @@ public class ManifestInfo {
     myApplicationIcon = null;
     myApplicationLabel = null;
 
-    // TODO: Switch to using the PSI structure to infer these things instead!
     try {
-      DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-      InputSource is = new InputSource(myManifestFile.getContents());
-
-      factory.setNamespaceAware(true);
-      factory.setValidating(false);
-      DocumentBuilder builder = factory.newDocumentBuilder();
-      Document document = builder.parse(is);
-
-      Element root = document.getDocumentElement();
-      myPackage = root.getAttribute(ATTRIBUTE_PACKAGE);
-      NodeList activities = document.getElementsByTagName(NODE_ACTIVITY);
-      for (int i = 0, n = activities.getLength(); i < n; i++) {
-        Element activity = (Element)activities.item(i);
-        String theme = activity.getAttributeNS(NS_RESOURCES, ATTRIBUTE_THEME);
-        if (theme != null && theme.length() > 0) {
-          String name = activity.getAttributeNS(NS_RESOURCES, ATTRIBUTE_NAME);
-          if (name.startsWith(".")  //$NON-NLS-1$
-              && myPackage != null && myPackage.length() > 0) {
-            name = myPackage + name;
-          }
-          myActivityThemes.put(name, theme);
-        }
+      XmlTag root = myManifestFile.getRootTag();
+      if (root == null) {
+        return;
       }
 
-      NodeList applications = root.getElementsByTagName(AndroidManifest.NODE_APPLICATION);
-      if (applications.getLength() > 0) {
-        assert applications.getLength() == 1;
-        Element application = (Element)applications.item(0);
-        if (application.hasAttributeNS(NS_RESOURCES, ATTRIBUTE_ICON)) {
-          myApplicationIcon = application.getAttributeNS(NS_RESOURCES, ATTRIBUTE_ICON);
-        }
-        if (application.hasAttributeNS(NS_RESOURCES, ATTRIBUTE_LABEL)) {
-          myApplicationLabel = application.getAttributeNS(NS_RESOURCES, ATTRIBUTE_LABEL);
-        }
+      myPackage = root.getAttributeValue(ATTRIBUTE_PACKAGE);
 
-        String defaultTheme = application.getAttributeNS(NS_RESOURCES, ATTRIBUTE_THEME);
-        if (defaultTheme != null && !defaultTheme.isEmpty()) {
-          // From manifest theme documentation:
-          // "If that attribute is also not set, the default system theme is used."
-          myManifestTheme = defaultTheme;
+      XmlTag[] applications = root.findSubTags(NODE_APPLICATION);
+      if (applications.length > 0) {
+        assert applications.length == 1;
+        XmlTag application = applications[0];
+        myApplicationIcon = application.getAttributeValue(ATTRIBUTE_ICON, ANDROID_URI);
+        myApplicationLabel = application.getAttributeValue(ATTRIBUTE_LABEL, ANDROID_URI);
+        myManifestTheme = application.getAttributeValue(ATTRIBUTE_THEME, ANDROID_URI);
+
+        XmlTag[] activities = application.findSubTags(NODE_ACTIVITY);
+        for (XmlTag activity : activities) {
+          String theme = activity.getAttributeValue(ATTRIBUTE_THEME, ANDROID_URI);
+          if (theme != null && theme.length() > 0) {
+            String name = activity.getAttributeValue(ATTRIBUTE_NAME, ANDROID_URI);
+            if (name != null) {
+              int index = name.indexOf('.');
+              if (index <= 0 && myPackage != null && !myPackage.isEmpty()) {
+                name =  myPackage + (index == -1 ? "." : "") + name;
+              }
+              myActivityThemes.put(name, theme);
+            }
+          }
         }
       }
 
       // Look up target SDK
-      NodeList usesSdks = root.getElementsByTagName(NODE_USES_SDK);
-      if (usesSdks.getLength() > 0) {
-        Element usesSdk = (Element)usesSdks.item(0);
+      XmlTag[] usesSdks = root.findSubTags(NODE_USES_SDK);
+      if (usesSdks.length > 0) {
+        XmlTag usesSdk = usesSdks[0];
         myMinSdk = getApiVersion(usesSdk, ATTRIBUTE_MIN_SDK_VERSION, 1);
         myTargetSdk = getApiVersion(usesSdk, ATTRIBUTE_TARGET_SDK_VERSION, myMinSdk);
       }
-
-    }
-    catch (SAXException e) {
-      LOG.error("Malformed manifest", e);
     }
     catch (Exception e) {
       LOG.error("Could not read Manifest data", e);
     }
   }
 
-  private int getApiVersion(Element usesSdk, String attribute, int defaultApiLevel) {
-    String valueString = null;
-    if (usesSdk.hasAttributeNS(NS_RESOURCES, attribute)) {
-      valueString = usesSdk.getAttributeNS(NS_RESOURCES, attribute);
-      if (attribute.equals(ATTRIBUTE_MIN_SDK_VERSION)) {
-        myMinSdkName = valueString;
-      }
+  private int getApiVersion(XmlTag usesSdk, String attribute, int defaultApiLevel) {
+    String valueString = usesSdk.getAttributeValue(attribute, ANDROID_URI);
+    if (attribute.equals(ATTRIBUTE_MIN_SDK_VERSION)) {
+      myMinSdkName = valueString;
     }
 
     if (valueString != null) {
@@ -223,15 +215,14 @@ public class ManifestInfo {
       }
       catch (NumberFormatException e) {
         // Handle codename
-// TODO: Add codename lookup
-//                if (Sdk.getCurrent() != null) {
-//                    IAndroidTarget target = Sdk.getCurrent().getTargetFromHashString(
-//                            "android-" + valueString); //$NON-NLS-1$
-//                    if (target != null) {
-//                        // codename future API level is current api + 1
-//                        apiLevel = target.getVersion().getApiLevel() + 1;
-//                    }
-//                }
+        AndroidFacet facet = AndroidFacet.getInstance(myModule);
+        if (facet != null) {
+          IAndroidTarget target = facet.getTargetFromHashString("android-" + valueString);
+          if (target != null) {
+            // codename future API level is current api + 1
+            apiLevel = target.getVersion().getApiLevel() + 1;
+          }
+        }
       }
 
       return apiLevel;
@@ -260,6 +251,9 @@ public class ManifestInfo {
   @NotNull
   public Map<String, String> getActivityThemes() {
     sync();
+    if (myActivityThemes == null) {
+      sync();
+    }
     return myActivityThemes;
   }
 
@@ -289,6 +283,9 @@ public class ManifestInfo {
     if (myManifestTheme != null) {
       return myManifestTheme;
     }
+
+    // From manifest theme documentation:
+    // "If that attribute is also not set, the default system theme is used."
 
     int renderingTargetSdk = myTargetSdk;
     if (renderingTarget != null) {
@@ -380,50 +377,4 @@ public class ManifestInfo {
 
     return null;
   }
-
-//    /**
-//     * Computes the minimum SDK and target SDK versions for the project
-//     *
-//     * @param project the project to look up the versions for
-//     * @return a pair of (minimum SDK, target SDK) versions, never null
-//     */
-//    @NotNull
-//    public static Pair<Integer, Integer> computeSdkVersions(IProject project) {
-//        int mMinSdkVersion = 1;
-//        int mTargetSdkVersion = 1;
-//
-//        IAbstractFile manifestFile = AndroidManifest.getManifest(new IFolderWrapper(project));
-//        if (manifestFile != null) {
-//            try {
-//                Object value = AndroidManifest.getMinSdkVersion(manifestFile);
-//                mMinSdkVersion = 1; // Default case if missing
-//                if (value instanceof Integer) {
-//                    mMinSdkVersion = ((Integer) value).intValue();
-//                } else if (value instanceof String) {
-//                    // handle codename, only if we can resolve it.
-//                    if (Sdk.getCurrent() != null) {
-//                        IAndroidTarget target = Sdk.getCurrent().getTargetFromHashString(
-//                                "android-" + value); //$NON-NLS-1$
-//                        if (target != null) {
-//                            // codename future API level is current api + 1
-//                            mMinSdkVersion = target.getVersion().getApiLevel() + 1;
-//                        }
-//                    }
-//                }
-//
-//                Integer i = AndroidManifest.getTargetSdkVersion(manifestFile);
-//                if (i == null) {
-//                    mTargetSdkVersion = mMinSdkVersion;
-//                } else {
-//                    mTargetSdkVersion = i.intValue();
-//                }
-//            } catch (XPathExpressionException e) {
-//                // do nothing we'll use 1 below.
-//            } catch (StreamException e) {
-//                // do nothing we'll use 1 below.
-//            }
-//        }
-//
-//        return Pair.of(mMinSdkVersion, mTargetSdkVersion);
-//    }
 }
