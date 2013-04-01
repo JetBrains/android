@@ -109,7 +109,7 @@
   <depends optional="true" config-file="eclipse.xml">org.jetbrains.idea.eclipse</depends>
 
   <extensions defaultExtensionNs="com.intellij">
-    <errorHandler implementation="com.intellij.diagnostic.ITNReporter"/>
+    <errorHandler implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.DrawableStateListDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.BitmapOrNinePatchDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.LayerListDomFileDescription"/>
