@@ -35,8 +35,9 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class AndroidDesignerActionPanel extends DesignerActionPanel {
   public AndroidDesignerActionPanel(DesignerEditorPanel designer, JComponent shortcuts) {
@@ -94,9 +95,16 @@ public class AndroidDesignerActionPanel extends DesignerActionPanel {
   private ActionGroup getRhsActions() {
     DefaultActionGroup group = new DefaultActionGroup();
 
-    group.add(new AnAction(null, "Zoom to Fit (0)", AndroidIcons.ZoomFit) {
+    group.add(new ToggleAction(null, "Zoom to Fit (0)", AndroidIcons.ZoomFit) {
       @Override
-      public void actionPerformed(AnActionEvent e) { myDesigner.zoom(ZoomType.FIT); }
+      public boolean isSelected(AnActionEvent e) {
+        return ((AndroidDesignerEditorPanel)myDesigner).isZoomToFit();
+      }
+
+      @Override
+      public void setSelected(AnActionEvent e, boolean state) {
+        myDesigner.zoom(ZoomType.FIT);
+      }
     });
     group.add(new AnAction(null, "Reset Zoom to 100% (1)", AndroidIcons.ZoomActual) {
       @Override

@@ -19,7 +19,10 @@ import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.configurations.*;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationListener;
+import com.android.tools.idea.configurations.ConfigurationToolBar;
+import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.rendering.*;
 import com.google.common.primitives.Ints;
 import com.intellij.android.designer.componentTree.AndroidTreeDecorator;
@@ -74,6 +77,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.Collections;
@@ -103,9 +108,9 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   private volatile long mySessionId;
   private final Lock myRendererLock = new ReentrantLock();
   private WrapInProvider myWrapInProvider;
-  private boolean myZoomRequested = true;
   private RootView myRootView;
   private boolean myShowingRoot;
+
   @NotNull
   private Configuration myConfiguration;
   private int myConfigurationDirty;
@@ -113,6 +118,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
   /** Zoom level (1 = 100%). TODO: Persist this setting across IDE sessions (on a per file basis) */
   private double myZoom = 1;
+  private ZoomType myZoomMode = ZoomType.FIT_INTO;
 
   public AndroidDesignerEditorPanel(@NotNull DesignerEditor editor,
                                     @NotNull Project project,
@@ -269,6 +275,12 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
         boolean insertPanel = !myShowingRoot;
         if (myRootView == null) {
           myRootView = new RootView(AndroidDesignerEditorPanel.this, 0, 0, session.getImage(), session.isAlphaChannelImage());
+          myRootView.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent componentEvent) {
+              zoomToFitIfNecessary();
+            }
+          });
           insertPanel = true;
         }
         else {
@@ -337,6 +349,19 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
               myRootView.updateBounds(false);
               int x = Math.max(2, Math.min(DEFAULT_HORIZONTAL_MARGIN, (container.getWidth() - myRootView.getWidth()) / 2));
               int y = Math.max(2, Math.min(DEFAULT_VERTICAL_MARGIN, (container.getHeight() - myRootView.getHeight()) / 2));
+
+              // If we're squeezing the image to fit, and there's a drop shadow showing
+              // shift *some* space away from the tail portion of the drop shadow over to
+              // the left to make the image look more balanced
+              if (myRootView.getShowDropShadow()) {
+                if (x <= 2) {
+                  x += ShadowPainter.SHADOW_SIZE / 3;
+                }
+                if (y <= 2) {
+                  y += ShadowPainter.SHADOW_SIZE / 3;
+                }
+              }
+
               myRootView.setLocation(x, y);
             }
           });
@@ -347,7 +372,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
           myLayeredPane.add(rootPanel, LAYER_COMPONENT);
           myShowingRoot = true;
         }
-        autoZoom();
+        zoomToFitIfNecessary();
 
         loadInspections(new EmptyProgressIndicator());
         updateInspections();
@@ -523,7 +548,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
         rootView.setImage(session.getImage(), session.isAlphaChannelImage());
         ModelParser.updateRootComponent(myConfiguration.getFullConfig(), rootComponent, session, rootView);
 
-        autoZoom();
+        zoomToFitIfNecessary();
 
         myLayeredPane.revalidate();
         myHorizontalCaption.update();
@@ -538,16 +563,22 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
    * Auto fits the scene, if requested. This will be the case the first time
    * the layout is opened, and after orientation or device changes.
    */
-  private synchronized void autoZoom() {
-    if (myZoomRequested) {
-      myZoomRequested = false;
-      zoom(ZoomType.FIT_INTO);
+  synchronized void zoomToFitIfNecessary() {
+    if (isZoomToFit()) {
+      if (myZoomInProgress) {
+        // Prevent nested zooming when (e.g. oscillating between two values)
+        return;
+      }
+      try {
+        myZoomInProgress = true;
+        updateZoom();
+      } finally {
+        myZoomInProgress = false;
+      }
     }
   }
 
-  private synchronized void requestZoomFit() {
-    myZoomRequested = true;
-  }
+  private boolean myZoomInProgress;
 
   private void removeNativeRoot() {
     if (myRootComponent != null) {
@@ -880,12 +911,17 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
   private static final double ZOOM_FACTOR = 1.2;
 
+  public boolean isZoomToFit() {
+    return myZoomMode == ZoomType.FIT || myZoomMode == ZoomType.FIT_INTO;
+  }
+
   @Override
   public boolean isZoomSupported() {
     return true;
   }
 
   /** Sets the zoom level. Note that this should be 1, not 100 (percent), for an image at its actual size */
+  @Override
   public void setZoom(double zoom) {
     if (zoom != myZoom) {
       myZoom = zoom;
@@ -918,7 +954,12 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   /** Zooms the designer view */
   @Override
   public void zoom(@NotNull ZoomType type) {
-    switch (type) {
+    myZoomMode = type;
+    updateZoom();
+  }
+
+  private void updateZoom() {
+    switch (myZoomMode) {
       case IN:
         setZoom(myZoom * ZOOM_FACTOR);
         break;
@@ -932,7 +973,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       case FIT: {
         Dimension sceneSize = myRootComponent.getBounds().getSize();
         Dimension screenSize = getDesignerViewSize();
-        if (screenSize != null && screenSize.width > 0 && screenSize.height > 0) {
+        if (screenSize.width > 0 && screenSize.height > 0) {
           int sceneWidth = sceneSize.width;
           int sceneHeight = sceneSize.height;
           if (sceneWidth > 0 && sceneHeight > 0) {
@@ -958,10 +999,9 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
             double hScale = (viewWidth - 2 * xMargin) / (double) sceneWidth;
             double vScale = (viewHeight - 2 * yMargin) / (double) sceneHeight;
-
             double scale = Math.min(hScale, vScale);
 
-            if (type == FIT_INTO) {
+            if (myZoomMode == FIT_INTO) {
               scale = Math.min(1.0, scale);
             }
 
@@ -972,7 +1012,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       }
       case SCREEN:
       default:
-        throw new UnsupportedOperationException("Not yet implemented: " + type);
+        throw new UnsupportedOperationException("Not yet implemented: " + myZoomMode);
     }
   }
 
@@ -1120,6 +1160,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
   // ---- Implements RenderContext ----
 
+  @Override
   @NotNull
   public Configuration getConfiguration() {
     return myConfiguration;
@@ -1130,6 +1171,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     updateRenderer(false);
   }
 
+  @Override
   @NotNull
   public UsageType getType() {
     return UsageType.LAYOUT_EDITOR;
@@ -1155,10 +1197,6 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       }
 
       if (myActive) {
-        if ((flags & CFG_DEVICE_STATE) != 0) {
-          requestZoomFit();
-        }
-
         updateRenderer(false);
 
         if ((flags & CFG_TARGET) != 0) {
