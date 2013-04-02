@@ -40,6 +40,9 @@ public class NewProjectWizardState extends TemplateWizardState {
   public static final String ATTR_PROJECT_LOCATION = "projectLocation";
   public static final String ATTR_PROJECT_NAME = "projectName";
 
+  private static final String LIBRARY_TEMPLATE = "NewAndroidLibrary";
+  private static final String APPLICATION_TEMPLATE = "NewAndroidApplication";
+
   /**
    * State for the template wizard, used to embed an activity template
    */
@@ -51,6 +54,11 @@ public class NewProjectWizardState extends TemplateWizardState {
   private final LauncherIconWizardState myLauncherIconState;
 
   /**
+   * Tracks changes to the is-library flag so we can change our template
+   */
+  private boolean myPreviousLibraryState;
+
+  /**
    * The compilation target to use for this project
    */
   private IAndroidTarget myBuildTarget;
@@ -59,11 +67,12 @@ public class NewProjectWizardState extends TemplateWizardState {
     super();
     myActivityTemplateState = new TemplateWizardState();
     myLauncherIconState = new LauncherIconWizardState();
-    myTemplate = Template.createFromName(CATEGORY_PROJECTS, "NewAndroidApplication");
+
+    put(ATTR_LIBRARY, false);
+    updateTemplate();
     setParameterDefaults();
 
     put(ATTR_IS_LAUNCHER, true);
-    put(ATTR_LIBRARY, false);
     put(ATTR_CREATE_ICONS, true);
     put(ATTR_IS_NEW_PROJECT, true);
     put(ATTR_CREATE_ACTIVITY, true);
@@ -120,6 +129,7 @@ public class NewProjectWizardState extends TemplateWizardState {
    * (i.e. states for other template wizards that are part of the same dialog).
    */
   public void updateParameters() {
+    updateTemplate();
     put(ATTR_COPY_ICONS, !Boolean.parseBoolean(get(ATTR_CREATE_ICONS).toString()));
     copyParameters(myParameters, myActivityTemplateState.myParameters, ATTR_PACKAGE_NAME, ATTR_APP_TITLE, ATTR_MIN_API, ATTR_MIN_API_LEVEL,
                    ATTR_TARGET_API, ATTR_BUILD_API, ATTR_COPY_ICONS, ATTR_IS_NEW_PROJECT, ATTR_IS_LAUNCHER, ATTR_CREATE_ACTIVITY,
@@ -127,6 +137,16 @@ public class NewProjectWizardState extends TemplateWizardState {
     copyParameters(myParameters, myLauncherIconState.myParameters, ATTR_PACKAGE_NAME, ATTR_APP_TITLE, ATTR_MIN_API, ATTR_MIN_API_LEVEL,
                    ATTR_TARGET_API, ATTR_BUILD_API, ATTR_COPY_ICONS, ATTR_IS_NEW_PROJECT, ATTR_IS_LAUNCHER, ATTR_CREATE_ACTIVITY,
                    ATTR_CREATE_ICONS);
+  }
+
+  /**
+   * Updates the template the wizard is using to reflect whether the project is an application or library.
+   */
+  private void updateTemplate() {
+    boolean isLibrary = (Boolean)get(ATTR_LIBRARY);
+    if (myTemplate == null || isLibrary != myPreviousLibraryState) {
+      myTemplate = Template.createFromName(CATEGORY_PROJECTS, isLibrary? LIBRARY_TEMPLATE : APPLICATION_TEMPLATE);
+    }
   }
 
   private void copyParameters(@NotNull Map<String, Object> from, @NotNull Map<String, Object> to, String... keys) {
