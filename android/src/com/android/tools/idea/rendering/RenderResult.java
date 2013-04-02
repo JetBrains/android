@@ -25,8 +25,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class RenderResult {
-  @NotNull public static final RenderResult NONE = new RenderResult();
-
   @NotNull private final PsiFile myFile;
   @NotNull private final RenderLogger myLogger;
   @Nullable private final List<ViewInfo> myRootViews;
@@ -50,15 +48,6 @@ public class RenderResult {
       myRootViews = null;
       myImage = null;
     }
-  }
-
-  private RenderResult() { // For the NONE instance
-    myFile = null;
-    mySession = null;
-    myRootViews = null;
-    myImage = null;
-    myLogger = new RenderLogger(null, null);
-    myRenderService = null;
   }
 
   @Nullable

@@ -230,8 +230,7 @@ public class ShadowPainter {
    * @param width the width of the rectangle
    * @param height the height of the rectangle
    */
-  public static void drawRectangleShadow(Graphics gc,
-                                               int x, int y, int width, int height) {
+  public static void drawRectangleShadow(Graphics gc, int x, int y, int width, int height) {
     assert ShadowBottomLeft != null;
     assert ShadowBottomRight.getWidth(null) == SHADOW_SIZE;
     assert ShadowBottomRight.getHeight(null) == SHADOW_SIZE;
@@ -272,8 +271,7 @@ public class ShadowPainter {
    * @param width the width of the rectangle
    * @param height the height of the rectangle
    */
-  public static void drawSmallRectangleShadow(Graphics gc,
-                                                    int x, int y, int width, int height) {
+  public static void drawSmallRectangleShadow(Graphics gc, int x, int y, int width, int height) {
     assert Shadow2BottomLeft != null;
     assert Shadow2TopRight != null;
     assert Shadow2BottomRight.getWidth(null) == SMALL_SHADOW_SIZE;

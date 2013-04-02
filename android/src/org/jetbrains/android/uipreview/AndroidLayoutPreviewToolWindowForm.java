@@ -16,12 +16,8 @@
 package org.jetbrains.android.uipreview;
 
 
-import com.android.SdkConstants;
-import com.android.ide.common.resources.configuration.DeviceConfigHelper;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.sdklib.devices.Device;
-import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.*;
+import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.RenderResult;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
@@ -101,7 +97,7 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
     Dimension preferredToolbarSize = toolbar.getPreferredSize();
     Dimension minimumToolbarSize = toolbar.getMinimumSize();
     toolBarWrapper.setPreferredSize(new Dimension(preferredToolbarSize.width, minimumToolbarSize.height));
-    toolBarWrapper.setMinimumSize(new Dimension(10, minimumToolbarSize.height));
+    toolBarWrapper.setMinimumSize(new Dimension(Math.max(10, preferredToolbarSize.width), minimumToolbarSize.height));
 
     final JPanel fullToolbarComponent = new JPanel(new BorderLayout());
     fullToolbarComponent.add(toolBarWrapper, BorderLayout.CENTER);
@@ -171,7 +167,7 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
           final AndroidFacet facet = AndroidFacet.getInstance(file);
           if (facet != null) {
             ConfigurationManager manager = facet.getConfigurationManager();
-            myConfiguration = manager.get(virtualFile);
+            myConfiguration = manager.getConfiguration(virtualFile);
             myConfiguration.addListener(this);
           }
         }
@@ -215,6 +211,19 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
   }
 
   @Override
+  public void setConfiguration(@NotNull Configuration configuration) {
+    if (configuration != myConfiguration) {
+      if (myConfiguration != null) {
+        myConfiguration.removeListener(this);
+      }
+      myConfiguration = configuration;
+      myConfiguration.addListener(this);
+      changed(MASK_ALL);
+      // TODO: Cause immediate toolbar updates?
+    }
+  }
+
+  @Override
   public void requestRender() {
     if (myFile != null) {
       myToolWindowManager.render();
@@ -239,7 +248,7 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
     return myFile != null ? myFile.getVirtualFile() : null;
   }
 
-  @NotNull
+  @Nullable
   @Override
   public Module getModule() {
     if (myFile != null) {
@@ -252,12 +261,73 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
     return null;
   }
 
+  @Override
+  public boolean hasAlphaChannel() {
+    return myPreviewPanel.hasAlphaChannel();
+  }
+
+  @Override
+  @NotNull
+  public Component getComponent() {
+    return myPreviewPanel.getRenderComponent();
+  }
+
+  @Override
+  public void updateLayout() {
+    myPreviewPanel.update();
+    myPreviewPanel.getRenderComponent().repaint();
+  }
+
+  @Override
+  @NotNull
+  public Dimension getFullImageSize() {
+    return myPreviewPanel.getFullImageSize();
+  }
+
+  @Override
+  @NotNull
+  public Dimension getScaledImageSize() {
+    return myPreviewPanel.getScaledImageSize();
+  }
+
+  @Override
+  @NotNull
+  public Rectangle getClientArea() {
+    return myScrollPane.getViewport().getViewRect();
+  }
+
+  @Override
+  public boolean supportsPreviews() {
+    return true;
+  }
+
+  @Nullable
+  @Override
+  public RenderPreviewManager getPreviewManager(boolean createIfNecessary) {
+    return myPreviewPanel.getPreviewManager(this, createIfNecessary);
+  }
+
+  @Override
+  public void setMaxSize(int width, int height) {
+    myPreviewPanel.setMaxSize(width, height);
+  }
+
+  @Override
+  public void zoomFit(boolean onlyZoomOut, boolean allowZoomIn) {
+    myPreviewPanel.setZoomToFit(true);
+  }
+
   // ---- Implements ConfigurationListener ----
 
   @Override
   public boolean changed(int flags) {
     saveState();
     myToolWindowManager.render();
+
+    RenderPreviewManager previewManager = myPreviewPanel.getPreviewManager(this, false);
+    if (previewManager != null) {
+      previewManager.configurationChanged(flags);
+    }
 
     return true;
   }

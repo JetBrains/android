@@ -15,7 +15,9 @@
  */
 package org.jetbrains.android.uipreview;
 
+import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -57,8 +59,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
   /** FileEditorProvider ID for the layout editor */
   public static final String ANDROID_DESIGNER_ID = "android-designer";
 
-  @NotNull
-  private RenderResult myRenderResult = RenderResult.NONE;
+  private RenderResult myRenderResult;
 
   private final JPanel myTitlePanel;
   private boolean myZoomToFit = true;
@@ -89,6 +90,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
       updateCaret();
     }
   };
+  private RenderPreviewManager myPreviewManager;
 
   public AndroidLayoutPreviewPanel() {
     super(new VerticalFlowLayout(VerticalFlowLayout.TOP, 0, 0, true, true));
@@ -98,11 +100,19 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     myImagePanel.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent mouseEvent) {
+        if (myRenderResult == null) {
+          return;
+        }
+
         selectViewAt(mouseEvent.getX(), mouseEvent.getY());
       }
 
       @Override
       public void mouseClicked(MouseEvent mouseEvent) {
+        if (myRenderResult == null) {
+          return;
+        }
+
         if (mouseEvent.getClickCount() == 2) {
           // Double click: open in the UI editor
           switchToLayoutEditor();
@@ -148,14 +158,16 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
   }
 
   private void switchToLayoutEditor() {
-    if (myEditor != null && myRenderResult.getFile() != null) {
+    if (myEditor != null && myRenderResult != null && myRenderResult.getFile() != null) {
       ApplicationManager.getApplication().invokeLater(new Runnable() {
         @Override
         public void run() {
           VirtualFile file = myRenderResult.getFile().getVirtualFile();
           if (file != null) {
             Project project = myEditor.getEditor().getProject();
-            FileEditorManager.getInstance(project).setSelectedEditor(file, ANDROID_DESIGNER_ID);
+            if (project != null) {
+              FileEditorManager.getInstance(project).setSelectedEditor(file, ANDROID_DESIGNER_ID);
+            }
           }
         }
       }, ModalityState.NON_MODAL);
@@ -181,6 +193,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
       if (leaf != null) {
         int offset = leaf.tag.getTextOffset();
         if (offset != -1) {
+          // TODO: Figure out how to scroll the view, too!
           myEditor.getEditor().getCaretModel().moveToOffset(offset);
         }
       }
@@ -188,6 +201,9 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
   }
 
   private void paintRenderedImage(Graphics g) {
+    if (myRenderResult == null) {
+      return;
+    }
     ScalableImage image = myRenderResult.getImage();
     if (image != null) {
       image.paint(g);
@@ -242,10 +258,18 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
   }
 
   public void setRenderResult(@NotNull final RenderResult renderResult, @Nullable final TextEditor editor) {
-    double prevScale = myRenderResult.getImage() != null ? myRenderResult.getImage().getScale() : 1;
+    double prevScale = myRenderResult != null && myRenderResult.getImage() != null ? myRenderResult.getImage().getScale() : 1;
     myRenderResult = renderResult;
-    if (myRenderResult.getImage() != null) {
-      myRenderResult.getImage().setScale(prevScale);
+    ScalableImage image = myRenderResult.getImage();
+    if (image != null) {
+      if (myPreviewManager != null) {
+        Dimension fixedRenderSize = myPreviewManager.getFixedRenderSize();
+        if (fixedRenderSize != null) {
+          image.setMaxSize(fixedRenderSize.width, fixedRenderSize.height);
+          image.setUseLargeShadows(false);
+        }
+      }
+      image.setScale(prevScale);
     }
 
     mySelectedView = null;
@@ -267,6 +291,11 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     setEditor(editor);
     updateCaret();
     doRevalidate();
+
+    // Ensure that if we have a a preview mode enabled, it's shown
+    if (myPreviewManager != null && myPreviewManager.hasPreviews()) {
+      myPreviewManager.renderPreviews();
+    }
   }
 
   private void setEditor(@Nullable TextEditor editor) {
@@ -329,6 +358,9 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
   }
 
   void updateImageSize() {
+    if (myRenderResult == null) {
+      return;
+    }
     ScalableImage image = myRenderResult.getImage();
     if (image == null) {
       myImagePanel.setSize(0, 0);
@@ -337,6 +369,11 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
       if (myZoomToFit) {
         double availableHeight = getPanelHeight() - myTitlePanel.getSize().getHeight();
         double availableWidth = getPanelWidth();
+        final int MIN_SIZE = 200;
+        if (myPreviewManager != null && availableWidth > MIN_SIZE) {
+          int previewWidth  = myPreviewManager.computePreviewWidth();
+          availableWidth = Math.max(MIN_SIZE, availableWidth - previewWidth);
+        }
         image.zoomToFit((int)availableWidth, (int)availableHeight, false, 0, 0);
       }
 
@@ -387,8 +424,89 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
 
   @Override
   public void dispose() {
+    if (myPreviewManager != null) {
+      myPreviewManager.dispose();
+      myPreviewManager = null;
+    }
     myErrorPanel.dispose();
     myErrorPanel = null;
+  }
+
+  // RenderContext helpers
+
+  public boolean hasAlphaChannel() {
+    return myRenderResult.getImage() != null && !myRenderResult.getImage().getShowDropShadow();
+  }
+
+  @NotNull
+  public Dimension getFullImageSize() {
+    if (myRenderResult != null) {
+      ScalableImage scaledImage = myRenderResult.getImage();
+      if (scaledImage != null) {
+        return new Dimension(scaledImage.getOriginalWidth(), scaledImage.getOriginalHeight());
+      }
+    }
+
+    return RenderContext.NO_SIZE;
+  }
+
+  @NotNull
+  public Dimension getScaledImageSize() {
+    if (myRenderResult != null) {
+      ScalableImage scaledImage = myRenderResult.getImage();
+      if (scaledImage != null) {
+        return new Dimension(scaledImage.getScaledWidth(), scaledImage.getScaledHeight());
+      }
+    }
+
+    return RenderContext.NO_SIZE;
+  }
+
+  @NotNull
+  public Dimension getClientSize() {
+    return myImagePanel.getParent().getSize();
+  }
+
+  @NotNull
+  public Rectangle getClientArea() {
+    return myImagePanel.getParent().getBounds();
+  }
+
+  public Component getRenderComponent() {
+    return myImagePanel.getParent();
+  }
+
+  public void setPreviewManager(@Nullable RenderPreviewManager manager) {
+    if (manager == myPreviewManager) {
+      return;
+    }
+    Component renderComponent = getRenderComponent();
+    if (myPreviewManager != null) {
+      myPreviewManager.unregisterMouseListener(renderComponent);
+      myPreviewManager.dispose();;
+    }
+    myPreviewManager = manager;
+    if (myPreviewManager != null) {
+      myPreviewManager.registerMouseListener(renderComponent);
+    }
+  }
+
+  @Nullable
+  public RenderPreviewManager getPreviewManager(@Nullable RenderContext context, boolean createIfNecessary) {
+    if (myPreviewManager == null && createIfNecessary && context != null) {
+      setPreviewManager(new RenderPreviewManager(context));
+    }
+
+    return myPreviewManager;
+  }
+
+  public void setMaxSize(int width, int height) {
+    ScalableImage scaledImage = myRenderResult.getImage();
+    if (scaledImage != null) {
+      scaledImage.setMaxSize(width, height);
+      scaledImage.setUseLargeShadows(false);
+    }
+    myTitlePanel.setVisible(width <= 0);
   }
 
   /**
@@ -411,7 +529,25 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     public void doLayout() {
       super.doLayout();
       positionErrorPanel();
-      centerComponents();
+
+      if (myPreviewManager == null || !myPreviewManager.hasPreviews()) {
+        centerComponents();
+      } else {
+        if (myRenderResult != null) {
+          ScalableImage image = myRenderResult.getImage();
+          if (image != null) {
+            int fixedWidth = image.getMaxWidth();
+            int fixedHeight = image.getFixedHeight();
+            if (fixedWidth > 0) {
+              myImagePanel.setLocation(Math.max(0, (fixedWidth - image.getScaledWidth()) / 2),
+                                       2 + Math.max(0, (fixedHeight - image.getScaledHeight()) / 2));
+              return;
+            }
+          }
+        }
+
+        myImagePanel.setLocation(0, 0);
+      }
     }
 
     private void centerComponents() {
@@ -422,21 +558,23 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
       // If we're squeezing the image to fit, and there's a drop shadow showing
       // shift *some* space away from the tail portion of the drop shadow over to
       // the left to make the image look more balanced
-      if (point.x <= 2) {
-        ScalableImage image = myRenderResult.getImage();
-        // If there's a drop shadow
-        if (image != null) {
-          if (image.getShowDropShadow()) {
-            point.x += ShadowPainter.SHADOW_SIZE / 3;
+      if (myRenderResult != null) {
+        if (point.x <= 2) {
+          ScalableImage image = myRenderResult.getImage();
+          // If there's a drop shadow
+          if (image != null) {
+            if (image.getShowDropShadow()) {
+              point.x += ShadowPainter.SHADOW_SIZE / 3;
+            }
           }
         }
-      }
-      if (point.y <= 2) {
-        ScalableImage image = myRenderResult.getImage();
-        // If there's a drop shadow
-        if (image != null) {
-          if (image.getShowDropShadow()) {
-            point.y += ShadowPainter.SHADOW_SIZE / 3;
+        if (point.y <= 2) {
+          ScalableImage image = myRenderResult.getImage();
+          // If there's a drop shadow
+          if (image != null) {
+            if (image.getShowDropShadow()) {
+              point.y += ShadowPainter.SHADOW_SIZE / 3;
+            }
           }
         }
       }
@@ -466,6 +604,19 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
 
       myErrorPanel.setSize(width, size);
       myErrorPanel.setLocation(0, height - size);
+    }
+
+
+    @Override
+    protected void paintChildren(Graphics graphics) {
+      // Done as part of paintChildren rather than paintComponent to ensure these are painted after the myImagePanel render.
+      // This is to avoid having the drop shadow painting of the main image overlap on top of the previews to its right and
+      // below.
+      if (myPreviewManager != null) {
+        myPreviewManager.paint((Graphics2D)graphics);
+      }
+
+      super.paintChildren(graphics);
     }
 
     @Override

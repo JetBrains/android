@@ -141,7 +141,7 @@ public class ConfigurationMatcher {
   }
 
   @Nullable
-  private static VirtualFile getVirtualFile(@NotNull IAbstractFile file) {
+  public static VirtualFile getVirtualFile(@NotNull IAbstractFile file) {
     if (file instanceof VirtualFileWrapper) {
       return ((VirtualFileWrapper)file).getFile();
     } else if (file instanceof BufferingFileWrapper) {
@@ -520,7 +520,7 @@ public class ConfigurationMatcher {
         VirtualFile file = documentManager.getFile(activeEditor.getDocument());
         if (file != null && file != myFile && file.getFileType() == StdFileTypes.XML
             && ResourceFolderType.LAYOUT.equals(ResourceFolderType.getFolderType(file.getParent().getName()))) {
-          Configuration configuration = myManager.get(file);
+          Configuration configuration = myManager.getConfiguration(file);
           FolderConfiguration fullConfig = configuration.getFullConfig();
           for (ConfigMatch match : matches) {
             if (fullConfig.equals(match.testConfig)) {

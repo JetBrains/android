@@ -51,11 +51,11 @@ public class ConfigurationManagerTest extends AndroidTestCase {
     assertSame(manager, facet.getConfigurationManager());
     assertSame(myModule, manager.getModule());
 
-    Configuration configuration1 = manager.get(file1);
-    Configuration configuration2 = manager.get(file2);
+    Configuration configuration1 = manager.getConfiguration(file1);
+    Configuration configuration2 = manager.getConfiguration(file2);
     assertNotSame(configuration1, configuration2);
-    assertSame(configuration1, manager.get(file1));
-    assertSame(configuration2, manager.get(file2));
+    assertSame(configuration1, manager.getConfiguration(file1));
+    assertSame(configuration2, manager.getConfiguration(file2));
     assertSame(file1, configuration1.getFile());
     assertSame(file2, configuration2.getFile());
   }

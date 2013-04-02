@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.SdkConstants;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -120,7 +119,11 @@ public class ResourceHelper {
    */
   @NotNull
   public static String getResourceName(@NotNull PsiFile file) {
-    return getResourceName(file.getVirtualFile());
+    // See getResourceName(VirtualFile)
+    // We're replicating that code here rather than just calling
+    // getResourceName(file.getVirtualFile());
+    // since file.getVirtualFile can return null
+    return LintUtils.getBaseName(file.getName());
   }
 
   /**

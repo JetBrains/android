@@ -21,6 +21,8 @@ import com.android.ide.common.resources.configuration.ScreenSizeQualifier;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenSize;
+import com.android.tools.idea.rendering.multi.RenderPreviewManager;
+import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.utils.Pair;
 import com.intellij.icons.AllIcons;
@@ -54,6 +56,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.android.SdkConstants.FD_RES_LAYOUT;
+import static com.android.tools.idea.rendering.multi.RenderPreviewManager.SUPPORTS_MANUAL_PREVIEWS;
 
 public class ConfigurationMenuAction extends FlatComboAction {
   private final RenderContext myRenderContext;
@@ -73,6 +76,9 @@ public class ConfigurationMenuAction extends FlatComboAction {
     VirtualFile virtualFile = myRenderContext.getVirtualFile();
     if (virtualFile != null) {
       Module module = myRenderContext.getModule();
+      if (module == null) {
+        return group;
+      }
       Project project = module.getProject();
 
       List<VirtualFile> variations = ResourceHelper.getResourceVariations(virtualFile, true);
@@ -120,9 +126,134 @@ public class ConfigurationMenuAction extends FlatComboAction {
         //group.add(new CreateVariationAction(myRenderContext, "Create layout-sw600dp Variation...", "layout-sw600dp"));
       }
       group.add(new CreateVariationAction(myRenderContext, "Create Other...", null));
+
+      if (myRenderContext.supportsPreviews()) {
+        addMultiConfigActions(group);
+      }
     }
 
     return group;
+  }
+
+  private void addMultiConfigActions(DefaultActionGroup group) {
+    VirtualFile file = myRenderContext.getVirtualFile();
+    if (file == null) {
+      return;
+    }
+    Configuration configuration = myRenderContext.getConfiguration();
+    if (configuration == null) {
+      return;
+    }
+    ConfigurationManager configurationManager = configuration.getConfigurationManager();
+
+    group.addSeparator();
+
+    // Configuration Previews
+    if (SUPPORTS_MANUAL_PREVIEWS) {
+      group.add(new PreviewAction(myRenderContext, "Add As Thumbnail...", ACTION_ADD, null, true));
+      RenderPreviewMode mode = RenderPreviewMode.getCurrent();
+      if (mode == RenderPreviewMode.CUSTOM) {
+        RenderPreviewManager previewManager = myRenderContext.getPreviewManager(false);
+        boolean hasPreviews = previewManager != null && previewManager.hasManualPreviews();
+        group.add(new PreviewAction(myRenderContext, "Delete All Thumbnails", ACTION_DELETE_ALL, null, hasPreviews));
+      }
+      group.addSeparator();
+    }
+
+    group.add(new PreviewAction(myRenderContext, "Preview Representative Sample", ACTION_PREVIEW_MODE, RenderPreviewMode.DEFAULT, true));
+
+    addScreenSizeAction(myRenderContext, group);
+
+    boolean haveMultipleLocales = configurationManager.getLocales().size() > 1;
+    addLocalePreviewAction(myRenderContext, group, haveMultipleLocales);
+
+    boolean canPreviewIncluded = false;
+    // TODO: Support included layouts
+    //canPreviewIncluded = includedBy != null && !includedBy.isEmpty();
+    //if (!graphicalEditor.renderingSupports(Capability.EMBEDDED_LAYOUT)) {
+    //    canPreviewIncluded = false;
+    //}
+    group.add(new PreviewAction(myRenderContext, "Preview Included", ACTION_PREVIEW_MODE, RenderPreviewMode.INCLUDES, canPreviewIncluded));
+    List<VirtualFile> variations = ResourceHelper.getResourceVariations(file, true);
+    group.add(new PreviewAction(myRenderContext, "Preview Layout Versions", ACTION_PREVIEW_MODE, RenderPreviewMode.VARIATIONS,
+                                variations.size() > 1));
+    if (SUPPORTS_MANUAL_PREVIEWS) {
+      group.add(new PreviewAction(myRenderContext, "Manual Previews", ACTION_PREVIEW_MODE, RenderPreviewMode.CUSTOM, true));
+    }
+
+    group.add(new PreviewAction(myRenderContext, "None", ACTION_PREVIEW_MODE, RenderPreviewMode.NONE, true));
+
+    // Debugging only
+    group.addSeparator();
+    group.add(new AnAction("Toggle Layout Mode") {
+      @Override
+      public void actionPerformed(AnActionEvent e) {
+        RenderPreviewManager.toggleLayoutMode(myRenderContext);
+      }
+    });
+
+  }
+
+  static void addLocalePreviewAction(@NotNull RenderContext context, @NotNull DefaultActionGroup group, boolean enabled) {
+    group.add(new PreviewAction(context, "Preview All Locales", ACTION_PREVIEW_MODE, RenderPreviewMode.LOCALES, enabled));
+  }
+
+  static void addScreenSizeAction(@NotNull RenderContext context, @NotNull DefaultActionGroup group) {
+    group.add(new PreviewAction(context, "Preview All Screen Sizes", ACTION_PREVIEW_MODE, RenderPreviewMode.SCREENS, true));
+  }
+
+  private static final int ACTION_ADD = 1;
+  private static final int ACTION_DELETE_ALL = 2;
+  private static final int ACTION_PREVIEW_MODE = 3;
+
+  private static class PreviewAction extends AnAction {
+    private final int myAction;
+    private final RenderPreviewMode myMode;
+    private final RenderContext myRenderContext;
+
+    public PreviewAction(@NotNull RenderContext renderContext, @NotNull String title, int action,
+                         @Nullable RenderPreviewMode mode, boolean enabled) {
+      super(title, null, null);
+      myRenderContext = renderContext;
+      myAction = action;
+      myMode = mode;
+
+      if (mode != null && mode == RenderPreviewMode.getCurrent()) {
+        // Select
+        Presentation templatePresentation = getTemplatePresentation();
+        templatePresentation.setIcon(AllIcons.Actions.Checked);
+        templatePresentation.setEnabled(false);
+      }
+
+      if (!enabled) {
+        getTemplatePresentation().setEnabled(false);
+      }
+    }
+
+    @Override
+    public void actionPerformed(AnActionEvent e) {
+      RenderPreviewManager previewManager = myRenderContext.getPreviewManager(true);
+      assert previewManager != null;
+      switch (myAction) {
+        case ACTION_ADD: {
+          previewManager.addAsThumbnail();
+          break;
+        }
+        case ACTION_PREVIEW_MODE: {
+          assert myMode != null;
+          previewManager.selectMode(myMode);
+          break;
+        }
+        case ACTION_DELETE_ALL: {
+          previewManager.deleteManualPreviews();
+          break;
+        }
+        default: assert false : myAction;
+      }
+
+      myRenderContext.updateLayout();
+      //myRenderContext.zoomFit(true /*onlyZoomOut*/, false /*allowZoomIn*/);
+    }
   }
 
   private static class SwitchToVariationAction extends AnAction {
@@ -164,7 +295,12 @@ public class ConfigurationMenuAction extends FlatComboAction {
         assert false;
         return; // Should not happen
       }
-      final Project project = myRenderContext.getModule().getProject();
+      Module module = myRenderContext.getModule();
+      if (module == null) {
+        assert false;
+        return; // Should not happen
+      }
+      final Project project = module.getProject();
       final FolderConfiguration folderConfig;
       if (myNewFolder == null) {
         // Open a file chooser to select the configuration to be created

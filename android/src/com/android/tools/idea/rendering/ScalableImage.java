@@ -23,6 +23,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 
 import static com.android.tools.idea.rendering.ShadowPainter.SHADOW_SIZE;
+import static com.android.tools.idea.rendering.ShadowPainter.SMALL_SHADOW_SIZE;
 import static java.awt.RenderingHints.KEY_INTERPOLATION;
 import static java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR;
 
@@ -32,6 +33,9 @@ public class ScalableImage {
   @Nullable private BufferedImage myScaledImage;
   private final boolean myAlphaChannelImage;
   private double myScale = 1;
+  private int myMaxWidth;
+  private int myFixedHeight;
+  private boolean myUseLargeShadows = true;
 
   public ScalableImage(@NotNull BufferedImage image, boolean alphaChannelImage) {
     myImage = image;
@@ -59,12 +63,20 @@ public class ScalableImage {
   }
 
   public void setScale(double scale) {
+    if (myMaxWidth > 0) {
+      // If we have a fixed size, ignore scale factor
+      assert myFixedHeight > 0;
+      double imageWidth = myImage.getWidth();
+      double imageHeight = myImage.getHeight();
+      scale = Math.min(myMaxWidth / imageWidth, myFixedHeight / imageHeight);
+    }
+
     if (myScale != scale) {
       myScaledImage = null;
       myScale = scale;
 
       // Normalize the scale:
-      // Some operations are faster if the zoom is EXACTLY 1.0 rather than ALMOST 1.0.
+      // Some operations are faster if the zoom is EXACTLY 1.0 rather than ALsMOST 1.0.
       // (This is because there is a fast-path when image copying and the scale is 1.0;
       // in that case it does not have to do any scaling).
       //
@@ -91,8 +103,9 @@ public class ScalableImage {
     int sceneWidth = myImage.getWidth();
     int sceneHeight = myImage.getHeight();
     if (getShowDropShadow()) {
-      availableWidth -= SHADOW_SIZE;
-      availableHeight -= SHADOW_SIZE;
+      int shadowSize = myUseLargeShadows ? SHADOW_SIZE : SMALL_SHADOW_SIZE;
+      availableWidth -= shadowSize;
+      availableHeight -= shadowSize;
     }
 
     if (sceneWidth > 0 && sceneHeight > 0) {
@@ -168,12 +181,12 @@ public class ScalableImage {
 
   /** Returns the required width to show the scaled image, including drop shadows if applicable */
   public int getRequiredWidth() {
-    return getScaledWidth() + (getShowDropShadow() ? SHADOW_SIZE : 0);
+    return getScaledWidth() + (getShowDropShadow() ? myUseLargeShadows ? SHADOW_SIZE : SMALL_SHADOW_SIZE : 0);
   }
 
   /** Returns the required height to show the scaled image, including drop shadows if applicable */
   public int getRequiredHeight() {
-    return getScaledHeight() + (getShowDropShadow() ? SHADOW_SIZE : 0);
+    return getScaledHeight() + (getShowDropShadow() ? myUseLargeShadows ? SHADOW_SIZE : SMALL_SHADOW_SIZE : 0);
   }
 
   /** Returns the required size to show the scaled image, including drop shadows if applicable */
@@ -197,10 +210,16 @@ public class ScalableImage {
         // When scaling down we need to do an expensive scaling to ensure that
         // the thumbnails look good
         if (getShowDropShadow()) {
+          int shadowSize = myUseLargeShadows ? SHADOW_SIZE : SMALL_SHADOW_SIZE;
           myScaledImage = ImageUtils.scale(myImage, myScale, myScale,
-                                           SHADOW_SIZE, SHADOW_SIZE);
-          ShadowPainter.drawRectangleShadow(myScaledImage, 0, 0, myScaledImage.getWidth() - SHADOW_SIZE,
-                                            myScaledImage.getHeight() - SHADOW_SIZE);
+                                           shadowSize, shadowSize);
+          if (myUseLargeShadows) {
+            ShadowPainter.drawRectangleShadow(myScaledImage, 0, 0, myScaledImage.getWidth() - shadowSize,
+                                            myScaledImage.getHeight() - shadowSize);
+          } else {
+            ShadowPainter.drawSmallRectangleShadow(myScaledImage, 0, 0, myScaledImage.getWidth() - shadowSize,
+                                                   myScaledImage.getHeight() - shadowSize);
+          }
         } else {
           myScaledImage = ImageUtils.scale(myImage, myScale, myScale);
         }
@@ -227,5 +246,27 @@ public class ScalableImage {
     } else {
       g.drawImage(myScaledImage, 0, 0, null);
     }
+  }
+
+  public void setMaxSize(int width, int height) {
+    myMaxWidth = width;
+    myFixedHeight = height;
+    setScale(1);
+  }
+
+  public int getMaxWidth() {
+    return myMaxWidth;
+  }
+
+  public int getFixedHeight() {
+    return myFixedHeight;
+  }
+
+  public boolean isUseLargeShadows() {
+    return myUseLargeShadows;
+  }
+
+  public void setUseLargeShadows(boolean useLargeShadows) {
+    myUseLargeShadows = useLargeShadows;
   }
 }

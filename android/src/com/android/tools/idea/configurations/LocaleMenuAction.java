@@ -22,6 +22,7 @@ import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.LocaleManager;
 import com.android.tools.idea.rendering.ProjectResources;
 import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
@@ -59,7 +60,7 @@ public class LocaleMenuAction extends FlatComboAction {
     // allowing typing to filter, etc.
 
     List<Locale> locales = getRelevantLocales();
-    if (locales.size() > 1) {
+    if (locales.size() > 0) {
       group.add(new SetLocaleAction(myRenderContext, getLocaleLabel(Locale.ANY, false), Locale.ANY));
       group.addSeparator();
 
@@ -73,6 +74,11 @@ public class LocaleMenuAction extends FlatComboAction {
     }
 
     group.add(new AddTranslationAction());
+
+    if (locales.size() > 1) {
+      group.addSeparator();
+      ConfigurationMenuAction.addLocalePreviewAction(myRenderContext, group, true);
+    }
 
     return group;
   }
@@ -218,7 +224,7 @@ public class LocaleMenuAction extends FlatComboAction {
       }
 
       if (hasLocale) {
-        return "Other";
+        return "Default";
       }
       else {
         return "Any";
@@ -357,6 +363,7 @@ public class LocaleMenuAction extends FlatComboAction {
             // as well .
             new SetLocaleAction(myRenderContext, "", myLocale).actionPerformed(e);
           }
+          RenderPreviewManager.bumpRevision();
         }
       }
     }

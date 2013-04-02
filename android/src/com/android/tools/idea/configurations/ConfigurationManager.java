@@ -27,7 +27,9 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.ManifestInfo;
 import com.android.tools.idea.rendering.ProjectResources;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -92,7 +94,7 @@ public class ConfigurationManager implements Disposable {
    * @return the {@link Configuration} for the given file
    */
   @NotNull
-  public Configuration get(@NotNull VirtualFile file) {
+  public Configuration getConfiguration(@NotNull VirtualFile file) {
     Configuration configuration = myCache.get(file);
     if (configuration == null) {
       configuration = create(file);
@@ -128,7 +130,7 @@ public class ConfigurationManager implements Disposable {
   }
 
   /**
-   * Similar to {@link #get(com.intellij.openapi.vfs.VirtualFile)}, but creates a configuration
+   * Similar to {@link #getConfiguration(com.intellij.openapi.vfs.VirtualFile)}, but creates a configuration
    * for a file known to be new, and crucially, bases the configuration on the existing configuration
    * for a known file. This is intended for when you fork a layout, and you expect the forked layout
    * to have a configuration that is (as much as possible) similar to the configuration of the
@@ -477,5 +479,46 @@ public class ConfigurationManager implements Disposable {
 
   public void setTarget(@NotNull IAndroidTarget target) {
     getStateManager().getProjectState().setTarget(ConfigurationProjectState.toTargetString(target));
+  }
+
+  /**
+   * Synchronizes changes to the given attributes (indicated by the mask
+   * referencing the {@code CFG_} configuration attribute bit flags in
+   * {@link Configuration} to the layout variations of the given updated file.
+   *
+   * @param flags the attributes which were updated
+   * @param updatedFile the file which was updated
+   * @param base the base configuration to base the chooser off of
+   * @param includeSelf whether the updated file itself should be updated
+   * @param async whether the updates should be performed asynchronously
+   */
+  public void syncToVariations(
+    final int flags,
+    final @NotNull VirtualFile updatedFile,
+    final @NotNull Configuration base,
+    final boolean includeSelf,
+    boolean async) {
+    if (async) {
+      ApplicationManager.getApplication().runReadAction(new Runnable() {
+        @Override
+        public void run() {
+          doSyncToVariations(flags, updatedFile, includeSelf, base);
+        }
+      });
+    } else {
+      doSyncToVariations(flags, updatedFile, includeSelf, base);
+    }
+  }
+
+  private void doSyncToVariations(int flags, VirtualFile updatedFile, boolean includeSelf,
+                                  Configuration base) {
+    // Synchronize the given changes to other configurations as well
+    Project project = getProject();
+    List<VirtualFile> files = ResourceHelper.getResourceVariations(updatedFile, includeSelf);
+    for (VirtualFile file : files) {
+      Configuration configuration = getConfiguration(file);
+      Configuration.copyCompatible(base, configuration);
+      configuration.save();
+    }
   }
 }

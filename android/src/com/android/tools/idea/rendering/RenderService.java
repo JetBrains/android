@@ -426,6 +426,7 @@ public class RenderService {
 
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
+    ApplicationManager.getApplication().assertReadAccessAllowed();
     XmlTagPullParser modelParser = new XmlTagPullParser(myPsiFile, myExpandNodes, hardwareConfig.getDensity(), myLogger);
     ILayoutPullParser topParser = modelParser;
 
@@ -530,21 +531,22 @@ public class RenderService {
 
   @Nullable
   public RenderResult render() {
-    RenderResult renderResult = RenderResult.NONE;
+    ApplicationManager.getApplication().assertReadAccessAllowed();
+
+    RenderResult renderResult;
     try {
       RenderSession session = createRenderSession();
-      if (session == null) {
-        return RenderResult.NONE;
-      }
-
       renderResult = new RenderResult(this, session, myPsiFile, myLogger);
-      addDiagnostics(session);
+      if (session != null) {
+        addDiagnostics(session);
+      }
     } catch (final Exception e) {
       String message = e.getMessage();
       if (message == null) {
         message = e.toString();
       }
       myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myModule.getProject(), myLogger.getLinkManager(), e));
+      renderResult = new RenderResult(this, null, myPsiFile, myLogger);
     }
 
     return renderResult;
