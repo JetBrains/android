@@ -41,8 +41,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -144,9 +142,8 @@ public class RadGridLayout extends RadViewLayoutWithData implements ILayoutDecor
   @Override
   public void addContainerSelectionActions(DesignerEditorPanel designer,
                                            DefaultActionGroup actionGroup,
-                                           JComponent shortcuts,
                                            List<? extends RadViewComponent> selection) {
-    super.addContainerSelectionActions(designer, actionGroup, shortcuts, selection);
+    super.addContainerSelectionActions(designer, actionGroup, selection);
 
     actionGroup.add(new OrientationAction(designer, (RadViewComponent)myContainer, true));
     actionGroup.add(new AllGravityAction(designer, selection));

@@ -20,8 +20,10 @@ import com.android.tools.idea.rendering.ShadowPainter;
 import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.designer.designSurface.ScalableComponent;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -32,17 +34,39 @@ import static java.awt.RenderingHints.KEY_INTERPOLATION;
 import static java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR;
 
 /**
- * @author Alexander Lobas
+ * Root component used for the Android designer. Note that this view
+ * does not extend {@link com.intellij.designer.designSurface.RootView};
+ * the designer infrastructure does not require that, and that particular
+ * RootView calls setImage from its constructor. We need to handle
+ * the alpha channel flag in concert with the image property, since
+ * layout of the image depends on the alpha channel property. (We're
+ * storing the opposite of the alpha channel attribute in the drop shadow
+ * property.)
  */
-public class RootView extends com.intellij.designer.designSurface.RootView implements ScalableComponent {
+public class RootView extends JComponent implements ScalableComponent {
   private List<EmptyRegion> myEmptyRegions;
   private final AndroidDesignerEditorPanel myPanel;
   private BufferedImage myScaledImage;
   private boolean myShowDropShadow;
+  protected int myX;
+  protected int myY;
+  protected BufferedImage myImage;
 
   public RootView(AndroidDesignerEditorPanel panel, int x, int y, BufferedImage image, boolean isAlphaChannelImage) {
-    super(x, y, image, isAlphaChannelImage);
+    myX = x;
+    myY = y;
     myPanel = panel;
+    myImage = image;
+    myShowDropShadow = !isAlphaChannelImage;
+  }
+
+  public AndroidDesignerEditorPanel getPanel() {
+    return myPanel;
+  }
+
+  @NotNull
+  public BufferedImage getImage() {
+    return myImage;
   }
 
   /**
@@ -54,11 +78,12 @@ public class RootView extends com.intellij.designer.designSurface.RootView imple
    * @param image The image to be rendered
    * @param isAlphaChannelImage whether the alpha channel of the image is relevant
    */
-  @Override
   public void setImage(@Nullable BufferedImage image, boolean isAlphaChannelImage) {
     myShowDropShadow = !isAlphaChannelImage;
-    myEmptyRegions = new ArrayList<EmptyRegion>();
-    super.setImage(image, isAlphaChannelImage);
+    myEmptyRegions = null;
+    myImage = image;
+    updateSize();
+    repaint();
   }
 
   /**
@@ -73,7 +98,12 @@ public class RootView extends com.intellij.designer.designSurface.RootView imple
   }
 
   @Override
-  protected void updateSize() {
+  public void paintComponent(Graphics g) {
+    super.paintComponent(g);
+    paintImage(g);
+  }
+
+  public void updateSize() {
     updateBounds(true);
   }
 
@@ -106,11 +136,13 @@ public class RootView extends com.intellij.designer.designSurface.RootView imple
       r.myWidth = width;
       r.myHeight = height;
       r.myColor = new Color(~myImage.getRGB(x, y));
+      if (myEmptyRegions == null) {
+        myEmptyRegions = new ArrayList<EmptyRegion>();
+      }
       myEmptyRegions.add(r);
     }
   }
 
-  @Override
   protected void paintImage(Graphics g) {
     double scale = myPanel.getZoom();
     if (myScaledImage == null) {
@@ -159,7 +191,7 @@ public class RootView extends com.intellij.designer.designSurface.RootView imple
       g.drawImage(myScaledImage, 0, 0, null);
     }
 
-    if (!myEmptyRegions.isEmpty()) {
+    if (myEmptyRegions != null && !myEmptyRegions.isEmpty()) {
       if (scale == 1) {
         for (EmptyRegion r : myEmptyRegions) {
           DesignerGraphics.drawFilledRect(DrawingStyle.EMPTY, g, r.myX, r.myY, r.myWidth, r.myHeight);

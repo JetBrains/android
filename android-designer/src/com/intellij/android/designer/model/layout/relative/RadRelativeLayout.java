@@ -33,8 +33,6 @@ import com.intellij.designer.propertyTable.PropertyTable;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -147,9 +145,8 @@ public class RadRelativeLayout extends RadViewLayoutWithData implements ILayoutD
   @Override
   public void addContainerSelectionActions(DesignerEditorPanel designer,
                                            DefaultActionGroup actionGroup,
-                                           JComponent shortcuts,
                                            List<? extends RadViewComponent> selection) {
-    super.addContainerSelectionActions(designer, actionGroup, shortcuts, selection);
+    super.addContainerSelectionActions(designer, actionGroup, selection);
 
     actionGroup.add(new AllGravityAction(designer, selection));
   }

@@ -25,7 +25,6 @@ import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.model.RadLayout;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 
-import javax.swing.*;
 import java.util.Collections;
 import java.util.List;
 
@@ -53,7 +52,6 @@ public class RadSingleChildrenViewLayout extends RadViewLayout {
   @Override
   public void addContainerSelectionActions(DesignerEditorPanel designer,
                                            DefaultActionGroup actionGroup,
-                                           JComponent shortcuts,
                                            List<? extends RadViewComponent> selection) {
 
     // Add in the selection actions on the child
@@ -61,14 +59,13 @@ public class RadSingleChildrenViewLayout extends RadViewLayout {
       RadComponent component = myContainer.getChildren().get(0);
       RadLayout layout = component.getLayout();
       if (layout instanceof RadViewLayout) {
-        ((RadViewLayout) layout).addContainerSelectionActions(designer, actionGroup, shortcuts,
-                                                              Collections.<RadViewComponent>emptyList());
+        ((RadViewLayout) layout).addContainerSelectionActions(designer, actionGroup, Collections.<RadViewComponent>emptyList());
         if (component instanceof RadViewComponent) {
           RadViewLayout.addFillActions(designer, actionGroup, Collections.singletonList((RadViewComponent) component));
         }
       }
     } else {
-      super.addContainerSelectionActions(designer, actionGroup, shortcuts, selection);
+      super.addContainerSelectionActions(designer, actionGroup, selection);
     }
   }
 }

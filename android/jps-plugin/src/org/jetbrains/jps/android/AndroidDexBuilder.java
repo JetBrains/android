@@ -372,7 +372,7 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
     final AndroidProGuardStateStorage.MyState newState = new AndroidProGuardStateStorage.MyState(
       proguardCfgFiles, includeSystemProguardCfg);
 
-    if (context.isMake() && !hasDirtyFiles && newState.equals(oldState)) {
+    if (!hasDirtyFiles && newState.equals(oldState)) {
       return Pair.create(false, null);
     }
     final List<String> classesDirs = new ArrayList<String>();

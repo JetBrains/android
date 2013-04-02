@@ -177,7 +177,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
     final AndroidFacet facet = state.getFacet();
     final AndroidFacetConfiguration configuration = facet.getConfiguration();
     
-    if (!configuration.PACK_TEST_CODE) {
+    if (!configuration.getState().PACK_TEST_CODE) {
       final Module module = facet.getModule();
       final int count = getTestSourceRootCount(module);
       
@@ -189,7 +189,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
           Messages.showYesNoCancelDialog(getProject(), message, "Test code not included into APK", Messages.getQuestionIcon());
         
         if (result == Messages.YES) {
-          configuration.PACK_TEST_CODE = true;
+          configuration.getState().PACK_TEST_CODE = true;
         }
         else if (result == Messages.CANCEL) {
           return null;

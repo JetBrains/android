@@ -80,7 +80,9 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
 
   private final MergingUpdateQueue myToolWindowUpdateQueue;
 
-  private final MergingUpdateQueue myRenderingQueue;
+  private final Object myRenderingQueueLock = new Object();
+  private MergingUpdateQueue myRenderingQueue;
+
   private final MergingUpdateQueue mySaveAndRenderQueue;
 
   private final Project myProject;
@@ -99,7 +101,6 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
     myFileEditorManager = fileEditorManager;
 
     myToolWindowUpdateQueue = new MergingUpdateQueue("android.layout.preview", 300, true, null, project);
-    myRenderingQueue = new MergingUpdateQueue("android.layout.rendering", 300, true, null, project, null, Alarm.ThreadToUse.OWN_THREAD);
     mySaveAndRenderQueue = new MergingUpdateQueue("android.layout.preview.save.and.render", 1000, true, null, project, null, true);
 
     final MessageBusConnection connection = project.getMessageBus().connect(project);
@@ -147,6 +148,17 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
         return true;
       }
     });
+  }
+
+  @NotNull
+  private MergingUpdateQueue getRenderingQueue() {
+    synchronized (myRenderingQueueLock) {
+      if (myRenderingQueue == null) {
+        myRenderingQueue = new MergingUpdateQueue("android.layout.rendering", 300, true, null,
+                                                  myProject, null, Alarm.ThreadToUse.OWN_THREAD);
+      }
+      return myRenderingQueue;
+    }
   }
 
   private void update(PsiTreeChangeEvent event) {
@@ -326,7 +338,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
       return;
     }
 
-    myRenderingQueue.queue(new Update("render") {
+    getRenderingQueue().queue(new Update("render") {
       @Override
       public void run() {
         ProgressManager.getInstance().runProcess(new Runnable() {
@@ -376,7 +388,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
       }
     }
 
-    if (!myRenderingQueue.isEmpty()) {
+    if (!getRenderingQueue().isEmpty()) {
       return;
     }
 

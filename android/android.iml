@@ -41,6 +41,7 @@
     <orderEntry type="module" module-name="images" />
     <orderEntry type="module" module-name="assetstudio" />
     <orderEntry type="module" module-name="platform-api" />
+    <orderEntry type="module" module-name="eclipse" />
   </component>
 </module>
 

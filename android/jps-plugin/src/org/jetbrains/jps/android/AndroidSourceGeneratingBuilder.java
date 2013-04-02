@@ -5,6 +5,7 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.build.BuildConfigGenerator;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
@@ -27,6 +28,7 @@ import org.jetbrains.jps.android.model.JpsAndroidApplicationArtifactProperties;
 import org.jetbrains.jps.android.model.JpsAndroidModuleExtension;
 import org.jetbrains.jps.builders.DirtyFilesHolder;
 import org.jetbrains.jps.builders.FileProcessor;
+import org.jetbrains.jps.builders.java.JavaBuilderUtil;
 import org.jetbrains.jps.builders.java.JavaModuleBuildTargetType;
 import org.jetbrains.jps.builders.java.JavaSourceRootDescriptor;
 import org.jetbrains.jps.builders.storage.SourceToOutputMapping;
@@ -58,6 +60,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
   @NonNls private static final String ANDROID_RENDERSCRIPT_COMPILER = "android-renderscript-compiler";
   @NonNls private static final String ANDROID_BUILD_CONFIG_GENERATOR = "android-buildconfig-generator";
   @NonNls private static final String ANDROID_APT_COMPILER = "android-apt-compiler";
+  @NonNls private static final String ANDROID_GENERATED_SOURCES_PROCESSOR = "android-generated-sources-processor";
   @NonNls private static final String BUILDER_NAME = "Android Source Generator";
 
   @NonNls private static final String AIDL_EXTENSION = "aidl";
@@ -114,7 +117,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
       return ExitCode.ABORT;
     }
 
-    if (context.isProjectRebuild()) {
+    if (JavaBuilderUtil.isForcedRecompilationAllJavaModules(context)) {
       if (!clearAndroidStorages(context, chunk.getModules())) {
         return ExitCode.ABORT;
       }
@@ -146,7 +149,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
     boolean success = true;
 
     final BuildDataManager dataManager = context.getProjectDescriptor().dataManager;
-    if (context.isProjectRebuild()) {
+    if (JavaBuilderUtil.isForcedRecompilationAllJavaModules(context)) {
       for (JpsModule module : moduleDataMap.keySet()) {
         final File generatedSourcesStorage = AndroidJpsUtil.getGeneratedSourcesStorage(module, dataManager);
         if (generatedSourcesStorage.exists() &&
@@ -200,10 +203,214 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
     if (!success) {
       return ExitCode.ABORT;
     }
-    else if (didSomething) {
+    status = copyGeneratedSources(moduleDataMap, dataManager, context);
+    if (status == MyExitStatus.FAIL) {
+      return ExitCode.ABORT;
+    }
+    else if (status == MyExitStatus.OK) {
+      didSomething = true;
+    }
+
+    if (didSomething) {
       return ExitCode.OK;
     }
     return ExitCode.NOTHING_DONE;
+  }
+
+  @NotNull
+  private static MyExitStatus copyGeneratedSources(@NotNull Map<JpsModule, MyModuleData> moduleDataMap,
+                                                   @NotNull BuildDataManager dataManager,
+                                                   @NotNull final CompileContext context)
+    throws IOException {
+    final Ref<Boolean> didSomething = Ref.create(false);
+    final Ref<Boolean> success = Ref.create(true);
+
+    for (Map.Entry<JpsModule, MyModuleData> entry : moduleDataMap.entrySet()) {
+      final JpsModule module = entry.getKey();
+      final MyModuleData data = entry.getValue();
+
+      final ModuleBuildTarget moduleTarget = new ModuleBuildTarget(module, JavaModuleBuildTargetType.PRODUCTION);
+      final AndroidGenSourcesCopyingStorage storage = context.getProjectDescriptor().dataManager.getStorage(
+        moduleTarget, AndroidGenSourcesCopyingStorage.PROVIDER);
+
+      final Set<String> genDirs = AndroidJpsUtil.getGenDirs(data.getAndroidExtension());
+      final AndroidFileSetState savedState = storage.read();
+
+      final AndroidFileSetState currentState = new AndroidFileSetState(genDirs, new Condition<File>() {
+        @Override
+        public boolean value(File file) {
+          if (!file.isFile()) {
+            return false;
+          }
+          try {
+            return !FileUtilRt.extensionEquals(file.getName(), "java") ||
+                   !isGeneratedByIdea(file);
+          }
+          catch (IOException e) {
+            return false;
+          }
+        }
+      }, true);
+
+      if (currentState.equalsTo(savedState)) {
+        continue;
+      }
+      final File outDir = AndroidJpsUtil.getCopiedSourcesStorage(module, dataManager.getDataPaths());
+      clearDirectoryIfNotEmpty(outDir, context, ANDROID_GENERATED_SOURCES_PROCESSOR);
+      final List<Pair<String, String>> copiedFiles = new ArrayList<Pair<String, String>>();
+
+      for (String path : genDirs) {
+        final File dir = new File(path);
+
+        if (dir.isDirectory()) {
+          FileUtil.processFilesRecursively(dir, new Processor<File>() {
+            @Override
+            public boolean process(File file) {
+              try {
+                if (FileUtilRt.extensionEquals(file.getName(), "java") &&
+                    isGeneratedByIdea(file)) {
+                  return true;
+                }
+                if (!file.isFile()) {
+                  return true;
+                }
+                final String relPath = FileUtil.getRelativePath(dir, file);
+                final File dstFile = new File(outDir.getPath() + "/" + relPath);
+                final File dstDir = dstFile.getParentFile();
+
+                if (!dstDir.exists() && !dstDir.mkdirs()) {
+                  context.processMessage(new CompilerMessage(
+                    ANDROID_GENERATED_SOURCES_PROCESSOR, BuildMessage.Kind.ERROR, AndroidJpsBundle.message(
+                    "android.jps.cannot.create.directory", dstDir.getPath())));
+                  return true;
+                }
+                FileUtil.copy(file, dstFile);
+                copiedFiles.add(Pair.create(file.getPath(), dstFile.getPath()));
+                didSomething.set(true);
+              }
+              catch (IOException e) {
+                AndroidJpsUtil.reportExceptionError(context, null, e, ANDROID_GENERATED_SOURCES_PROCESSOR);
+                success.set(false);
+                return true;
+              }
+              return true;
+            }
+          });
+        }
+      }
+      final File generatedSourcesDir = AndroidJpsUtil.getGeneratedSourcesStorage(
+        module, dataManager.getDataPaths());
+      final List<String> deletedFiles = new ArrayList<String>();
+
+      if (!removeCopiedFilesDuplicatingGeneratedFiles(context, outDir, generatedSourcesDir, deletedFiles)) {
+        success.set(false);
+        continue;
+      }
+      final AndroidBuildTestingManager testingManager = AndroidBuildTestingManager.getTestingManager();
+
+      if (testingManager != null) {
+        logGeneratedSourcesProcessing(testingManager, copiedFiles, deletedFiles);
+      }
+      markDirtyRecursively(outDir, context, ANDROID_GENERATED_SOURCES_PROCESSOR, false);
+      storage.saveState(currentState);
+    }
+    if (didSomething.get()) {
+      return success.get() ? MyExitStatus.OK : MyExitStatus.FAIL;
+    }
+    else {
+      return MyExitStatus.NOTHING_CHANGED;
+    }
+  }
+
+  private static boolean removeCopiedFilesDuplicatingGeneratedFiles(final CompileContext context,
+                                                                    final File copiedFilesDir,
+                                                                    final File generatedSourcesDir,
+                                                                    final List<String> deletedFiles) {
+    if (!generatedSourcesDir.isDirectory()) {
+      return true;
+    }
+    final File[] genRoots = generatedSourcesDir.listFiles();
+
+    if (genRoots == null || genRoots.length == 0) {
+      return true;
+    }
+    final Ref<Boolean> success = Ref.create(true);
+
+    FileUtil.processFilesRecursively(copiedFilesDir, new Processor<File>() {
+      @Override
+      public boolean process(File file) {
+        if (!file.isFile()) {
+          return true;
+        }
+        final String relPath = FileUtil.getRelativePath(copiedFilesDir, file);
+
+        if (relPath != null) {
+          boolean toDelete = false;
+
+          for (File genRoot : genRoots) {
+            final File genFile = new File(genRoot.getPath() + "/" + relPath);
+
+            if (genFile.exists()) {
+              LOG.debug("File " + file.getPath() + " duplicates generated file " + genFile.getPath() + ", so it'll be deleted");
+              toDelete = true;
+              break;
+            }
+          }
+
+          if (toDelete) {
+            if (!FileUtil.delete(file)) {
+              context.processMessage(new CompilerMessage(ANDROID_GENERATED_SOURCES_PROCESSOR, BuildMessage.Kind.ERROR,
+                                                         "Cannot remove file " + file.getPath()));
+              success.set(false);
+            }
+            else {
+              deletedFiles.add(file.getPath());
+            }
+          }
+        }
+        return true;
+      }
+    });
+    return success.get();
+  }
+
+  private static void logGeneratedSourcesProcessing(AndroidBuildTestingManager manager,
+                                                    List<Pair<String, String>> copiedFiles,
+                                                    List<String> deletedFiles) {
+    if (copiedFiles.size() == 0 && deletedFiles.size() == 0) {
+      return;
+    }
+    final StringBuilder message = new StringBuilder(ANDROID_GENERATED_SOURCES_PROCESSOR);
+    message.append("\n");
+
+    if (copiedFiles.size() > 0) {
+      Collections.sort(copiedFiles, new Comparator<Pair<String, String>>() {
+        @Override
+        public int compare(Pair<String, String> o1, Pair<String, String> o2) {
+          return (o1.getFirst() + o1.getSecond()).compareTo(o2.getFirst() + o2.getSecond());
+        }
+      });
+      message.append("Copied files\n");
+
+      for (Pair<String, String> pair : copiedFiles) {
+        message.append(pair.getFirst()).append('\n').append(pair.getSecond()).append('\n');
+      }
+    }
+
+    if (deletedFiles.size() > 0) {
+      Collections.sort(deletedFiles);
+      message.append("Deleted files\n");
+
+      for (String path : deletedFiles) {
+        message.append(path).append('\n');
+      }
+    }
+    manager.getCommandExecutor().log(message.toString());
+  }
+
+  private static boolean isGeneratedByIdea(File file) throws IOException {
+    final String text = FileUtil.loadFile(file);
+    return text.startsWith(AndroidCommonUtils.AUTOGENERATED_JAVA_FILE_HEADER);
   }
 
   private static boolean clearAndroidStorages(@NotNull CompileContext context, @NotNull Collection<JpsModule> modules) {
@@ -325,11 +532,9 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
 
         final AndroidBuildConfigState newState = new AndroidBuildConfigState(packageName, libPackages, debug);
 
-        if (context.isMake()) {
-          final AndroidBuildConfigState oldState = storage.getState(module.getName());
-          if (newState.equalsTo(oldState)) {
-            continue;
-          }
+        final AndroidBuildConfigState oldState = storage.getState(module.getName());
+        if (newState.equalsTo(oldState)) {
+          continue;
         }
         didSomething = true;
         context.processMessage(new ProgressMessage(AndroidJpsBundle.message("android.jps.progress.build.config", module.getName())));
@@ -342,7 +547,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
 
         if (doBuildConfigGeneration(packageName, libPackages, debug, outputDirectory, context)) {
           storage.update(module.getName(), newState);
-          markDirtyRecursively(outputDirectory, context, ANDROID_BUILD_CONFIG_GENERATOR);
+          markDirtyRecursively(outputDirectory, context, ANDROID_BUILD_CONFIG_GENERATOR, true);
         }
         else {
           storage.update(module.getName(), null);
@@ -635,11 +840,9 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
         final AndroidAptValidityState newState =
           new AndroidAptValidityState(resources, manifestElements, depLibPackagesSet, packageName, proguardOutputCfgFilePath);
 
-        if (context.isMake()) {
-          final AndroidAptValidityState oldState = storage.getState(module.getName());
-          if (newState.equalsTo(oldState)) {
-            continue;
-          }
+        final AndroidAptValidityState oldState = storage.getState(module.getName());
+        if (newState.equalsTo(oldState)) {
+          continue;
         }
         didSomething = true;
         context.processMessage(new ProgressMessage(AndroidJpsBundle.message("android.jps.progress.aapt", module.getName())));
@@ -673,7 +876,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
               // we use copyDir instead of moveDirWithContent here, because tmp directory may be located on other disk and
               // moveDirWithContent doesn't work for such case
               FileUtil.copyDir(tmpOutputDir, aptOutputDirectory);
-              markDirtyRecursively(aptOutputDirectory, context, ANDROID_APT_COMPILER);
+              markDirtyRecursively(aptOutputDirectory, context, ANDROID_APT_COMPILER, true);
             }
             storage.update(module.getName(), newState);
           }
@@ -741,13 +944,14 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
 
   private static boolean markDirtyRecursively(@NotNull File dir,
                                               @NotNull final CompileContext context,
-                                              @NotNull final String compilerName) {
+                                              @NotNull final String compilerName,
+                                              final boolean javaFilesOnly) {
     final Ref<Boolean> success = Ref.create(true);
 
     FileUtil.processFilesRecursively(dir, new Processor<File>() {
       @Override
       public boolean process(File file) {
-        if (file.isFile() && FileUtilRt.extensionEquals(file.getName(), "java")) {
+        if (file.isFile() && (!javaFilesOnly || FileUtilRt.extensionEquals(file.getName(), "java"))) {
           try {
             FSOperations.markDirty(context, file);
           }
@@ -906,7 +1110,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
         @Override
         public void startElement(String name, String nsPrefix, String nsURI, String systemID, int lineNr)
           throws Exception {
-            myLastName = null;
+          myLastName = null;
         }
 
         @Override
@@ -1086,7 +1290,9 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
     return null;
   }
 
-  private static boolean checkUnambiguousArtifacts(CompileContext context, List<JpsArtifact> artifacts) {
+  private static boolean checkUnambiguousAndRecursiveArtifacts(CompileContext context, List<JpsArtifact> artifacts) {
+    boolean success = true;
+
     for (JpsArtifact artifact : artifacts) {
       if (artifact.getArtifactType() instanceof AndroidApplicationArtifactType) {
         final List<JpsAndroidModuleExtension> facets = AndroidJpsUtil.getAllPackagedFacets(artifact);
@@ -1095,17 +1301,31 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
           context.processMessage(new CompilerMessage(
             ANDROID_VALIDATOR, BuildMessage.Kind.ERROR, "Cannot build artifact '" + artifact.getName() +
                                                         "' because it contains more than one Android package"));
-          return false;
+          success = false;
+          continue;
+        }
+        final String artifactOutputPath = artifact.getOutputFilePath();
+
+        if (artifactOutputPath != null && facets.size() > 0) {
+          final JpsAndroidModuleExtension facet = facets.get(0);
+          final String apkPath = AndroidFinalPackageElementBuilder.getApkPath(facet);
+
+          if (FileUtil.pathsEqual(apkPath, artifactOutputPath)) {
+            context.processMessage(new CompilerMessage(
+              ANDROID_VALIDATOR, BuildMessage.Kind.ERROR,
+              "Incorrect output path for artifact '" + artifact.getName() + "': " + FileUtil.toSystemDependentName(apkPath)));
+            success = false;
+          }
         }
       }
     }
-    return true;
+    return success;
   }
 
   private static boolean checkArtifacts(@NotNull CompileContext context) {
     final List<JpsArtifact> artifacts = AndroidJpsUtil.getAndroidArtifactsToBuild(context);
 
-    if (!checkUnambiguousArtifacts(context, artifacts)) {
+    if (!checkUnambiguousAndRecursiveArtifacts(context, artifacts)) {
       return false;
     }
 
@@ -1172,11 +1392,11 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
           if (!Arrays.equals(getProGuardOptions(artifact), firstArtifactProGuardOptions)) {
             context.processMessage(new CompilerMessage(
               ANDROID_VALIDATOR, BuildMessage.Kind.ERROR, "Artifacts related to the same module '" +
-                                                     moduleName +
-                                                     "' have different ProGuard options: " +
-                                                     firstArtifact.getName() +
-                                                     ", " +
-                                                     artifact.getName()));
+                                                          moduleName +
+                                                          "' have different ProGuard options: " +
+                                                          firstArtifact.getName() +
+                                                          ", " +
+                                                          artifact.getName()));
             success = false;
             break;
           }
@@ -1196,8 +1416,8 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
       final boolean runProGuard = p.isRunProGuard();
 
       return runProGuard
-             ? new Object[] {runProGuard, p.getProGuardCfgFileUrl(), p.isIncludeSystemProGuardCfgFile()}
-             : new Object[] {runProGuard};
+             ? new Object[]{runProGuard, p.getProGuardCfgFileUrl(), p.isIncludeSystemProGuardCfgFile()}
+             : new Object[]{runProGuard};
     }
     return ArrayUtil.EMPTY_OBJECT_ARRAY;
   }

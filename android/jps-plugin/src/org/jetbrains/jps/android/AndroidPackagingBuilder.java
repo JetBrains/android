@@ -166,7 +166,7 @@ public class AndroidPackagingBuilder extends TargetBuilder<BuildRootDescriptor, 
     final AndroidApkBuilderConfigState currentApkBuilderConfigState =
       new AndroidApkBuilderConfigState(outputPath, customKeyStorePath, additionalNativeLibs);
 
-    if (!hasDirtyFiles && context.isMake()) {
+    if (!hasDirtyFiles) {
       final AndroidApkBuilderConfigState savedApkBuilderConfigState = apkBuilderConfigStateStorage.getState(module.getName());
       final AndroidPackagingStateStorage.MyState packagingState = packagingStateStorage.read();
 

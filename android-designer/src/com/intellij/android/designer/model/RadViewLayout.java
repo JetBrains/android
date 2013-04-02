@@ -52,12 +52,10 @@ public class RadViewLayout extends RadLayout {
    *
    * @param designer the associated designer
    * @param actionGroup the action group to add the actions into
-   * @param shortcuts the component to look up shortcuts for
    * @param selection the selection of children in the layout (which may or may not be empty)
    */
   public void addContainerSelectionActions(DesignerEditorPanel designer,
                                            DefaultActionGroup actionGroup,
-                                           JComponent shortcuts,
                                            List<? extends RadViewComponent> selection) {
     if (!selection.isEmpty()) {
       addFillActions(designer, actionGroup, selection);

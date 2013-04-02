@@ -11,9 +11,13 @@ import org.jetbrains.jps.android.AndroidPlatform;
 import org.jetbrains.jps.android.model.JpsAndroidDexCompilerConfiguration;
 import org.jetbrains.jps.android.model.JpsAndroidExtensionService;
 import org.jetbrains.jps.android.model.JpsAndroidModuleExtension;
-import org.jetbrains.jps.builders.*;
+import org.jetbrains.jps.builders.BuildRootDescriptor;
+import org.jetbrains.jps.builders.BuildTarget;
+import org.jetbrains.jps.builders.BuildTargetRegistry;
+import org.jetbrains.jps.builders.TargetOutputIndex;
 import org.jetbrains.jps.builders.java.JavaModuleBuildTargetType;
 import org.jetbrains.jps.builders.storage.BuildDataPaths;
+import org.jetbrains.jps.cmdline.ProjectDescriptor;
 import org.jetbrains.jps.incremental.CompileContext;
 import org.jetbrains.jps.incremental.ModuleBuildTarget;
 import org.jetbrains.jps.indices.IgnoredFileIndex;
@@ -34,8 +38,8 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
   }
 
   @Override
-  public void writeConfiguration(PrintWriter out, BuildDataPaths dataPaths, BuildRootIndex buildRootIndex) {
-    super.writeConfiguration(out, dataPaths, buildRootIndex);
+  public void writeConfiguration(ProjectDescriptor pd, PrintWriter out) {
+    super.writeConfiguration(pd, out);
 
     final JpsAndroidDexCompilerConfiguration c = JpsAndroidExtensionService.
       getInstance().getDexCompilerConfiguration(getModule().getProject());
