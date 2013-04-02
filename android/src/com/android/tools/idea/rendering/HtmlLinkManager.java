@@ -19,7 +19,6 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.util.SparseArray;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.lint.detector.api.LintUtils;
-import com.google.common.collect.Lists;
 import com.intellij.codeInsight.daemon.impl.quickfix.CreateClassKind;
 import com.intellij.codeInsight.intention.impl.CreateClassDialog;
 import com.intellij.compiler.actions.CompileDirtyAction;
@@ -56,7 +55,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Collection;
-import java.util.List;
 
 import static com.android.SdkConstants.*;
 

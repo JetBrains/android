@@ -186,13 +186,8 @@ public class DeviceMenuAction extends FlatComboAction {
 
     group.addSeparator();
     group.add(new RunAndroidAvdManagerAction("Add Device Definition..."));
-
-// TODO: Add multiconfiguration editing
-//    group.addSeparator();
-//
-//      ConfigurationMenuListener.addTogglePreviewModeAction(menu,
-//              "Preview All Screens", chooser, RenderPreviewMode.SCREENS);
-//
+    group.addSeparator();
+    ConfigurationMenuAction.addScreenSizeAction(myRenderContext, group);
 
     return group;
   }

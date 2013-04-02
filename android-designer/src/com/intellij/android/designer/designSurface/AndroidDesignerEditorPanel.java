@@ -24,6 +24,7 @@ import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationToolBar;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.google.common.primitives.Ints;
 import com.intellij.android.designer.componentTree.AndroidTreeDecorator;
 import com.intellij.android.designer.inspection.ErrorAnalyzer;
@@ -79,6 +80,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.Collections;
@@ -86,6 +88,7 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static com.android.tools.idea.configurations.ConfigurationListener.MASK_ALL;
 import static com.android.tools.idea.configurations.ConfigurationListener.MASK_RENDERING;
 import static com.android.tools.idea.rendering.RenderErrorPanel.SIZE_ERROR_PANEL_DYNAMICALLY;
 import static com.intellij.designer.designSurface.ZoomType.FIT_INTO;
@@ -119,6 +122,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   /** Zoom level (1 = 100%). TODO: Persist this setting across IDE sessions (on a per file basis) */
   private double myZoom = 1;
   private ZoomType myZoomMode = ZoomType.FIT_INTO;
+  private RenderPreviewManager myPreviewManager;
 
   public AndroidDesignerEditorPanel(@NotNull DesignerEditor editor,
                                     @NotNull Project project,
@@ -130,7 +134,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
     AndroidFacet facet = AndroidFacet.getInstance(getModule());
     assert facet != null;
-    myConfiguration = facet.getConfigurationManager().get(file);
+    myConfiguration = facet.getConfigurationManager().getConfiguration(file);
     myConfigListener = new LayoutConfigurationListener();
     myConfiguration.addListener(myConfigListener);
 
@@ -440,9 +444,16 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
           RenderContext renderContext = AndroidDesignerEditorPanel.this;
           if (myRendererLock.tryLock()) {
             try {
-              RenderService service = RenderService.create(facet, module, myXmlFile, myConfiguration, logger, renderContext);
+              final RenderService service = RenderService.create(facet, module, myXmlFile, myConfiguration, logger, renderContext);
               if (service != null) {
-                renderResult = service.render();
+                // Prefetch outside of read lock
+                service.getResourceResolver();
+                renderResult = ApplicationManager.getApplication().runReadAction(new Computable<RenderResult>() {
+                  @Override
+                  public RenderResult compute() {
+                    return service.render();
+                  }
+                });
                 service.dispose();
               } else {
                 renderResult = new RenderResult(null, null, myXmlFile, logger);
@@ -1171,6 +1182,17 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   }
 
   @Override
+  public void setConfiguration(@NotNull Configuration configuration) {
+    if (configuration != myConfiguration) {
+      myConfiguration.removeListener(myConfigListener);
+      myConfiguration = configuration;
+      myConfiguration.addListener(myConfigListener);
+      myConfigListener.changed(MASK_ALL);
+      // TODO: Cause immediate toolbar updates?
+    }
+  }
+
+  @Override
   public void requestRender() {
     updateRenderer(false);
   }
@@ -1191,6 +1213,84 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   @Override
   public VirtualFile getVirtualFile() {
     return myFile;
+  }
+
+  @Override
+  public boolean hasAlphaChannel() {
+    return !myRootView.getShowDropShadow();
+  }
+
+  @Override
+  @NotNull
+  public Component getComponent() {
+    return myRootView;
+  }
+
+  @Override
+  public void updateLayout() {
+    Component component = getComponent();
+    if (component instanceof JComponent) {
+      JComponent jc = (JComponent)component;
+      jc.revalidate();
+    } else {
+      component.validate();
+    }
+    component.repaint();
+  }
+
+  @Override
+  @NotNull
+  public Dimension getFullImageSize() {
+    if (myRootView != null) {
+      BufferedImage image = myRootView.getImage();
+      return new Dimension(image.getWidth(), image.getHeight());
+    }
+
+    return NO_SIZE;
+  }
+
+  @Override
+  @NotNull
+  public Dimension getScaledImageSize() {
+    if (myRootView != null) {
+      BufferedImage image = myRootView.getImage();
+      return new Dimension((int)(myZoom * image.getWidth()), (int)(myZoom * image.getHeight()));
+    }
+
+    return NO_SIZE;
+  }
+
+  @Override
+  public void setMaxSize(int width, int height) {
+    // Must implement when we add preview support
+    assert !supportsPreviews();
+  }
+
+  @Override
+  public void zoomFit(boolean onlyZoomOut, boolean allowZoomIn) {
+    assert !supportsPreviews();
+  }
+
+  @Override
+  @NotNull
+  public Rectangle getClientArea() {
+    return myScrollPane.getViewport().getViewRect();
+  }
+
+  @Override
+  public boolean supportsPreviews() {
+    return false;
+  }
+
+  @Nullable
+  @Override
+  public RenderPreviewManager getPreviewManager(boolean createIfNecessary) {
+    assert supportsPreviews();
+    if (myPreviewManager == null && createIfNecessary) {
+      myPreviewManager = new RenderPreviewManager(this);
+    }
+
+    return myPreviewManager;
   }
 
   private class LayoutConfigurationListener implements ConfigurationListener {

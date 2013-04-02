@@ -180,16 +180,16 @@ public class ConfigurationTest extends AndroidTestCase {
     // Default locale in the project: se
     manager.setLocale(Locale.create("se"));
 
-    Configuration configuration1 = manager.get(file1);
+    Configuration configuration1 = manager.getConfiguration(file1);
     assertEquals(Locale.create("se"), configuration1.getLocale());
 
-    Configuration configuration2 = manager.get(file2);
+    Configuration configuration2 = manager.getConfiguration(file2);
     assertEquals(Locale.create("no-rNO"), configuration2.getLocale());
 
-    Configuration configuration3 = manager.get(file3);
+    Configuration configuration3 = manager.getConfiguration(file3);
     assertEquals(Locale.create("no"), configuration3.getLocale());
 
-    Configuration configuration4 = manager.get(file4);
+    Configuration configuration4 = manager.getConfiguration(file4);
     assertEquals("Portrait", configuration1.getDeviceState().getName());
     assertEquals("Landscape", configuration4.getDeviceState().getName());
     assertEquals(ScreenSize.XLARGE, configuration4.getDevice().getDefaultHardware().getScreen().getSize());
@@ -207,7 +207,7 @@ public class ConfigurationTest extends AndroidTestCase {
     assertNotNull(manager);
     assertSame(manager, facet.getConfigurationManager());
 
-    Configuration configuration1 = manager.get(file1);
+    Configuration configuration1 = manager.getConfiguration(file1);
     configuration1.setLocale(Locale.create("en"));
     configuration1.setTheme("Theme.Dialog");
     Device device = manager.getDevices().get(manager.getDevices().size() / 2);

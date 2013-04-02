@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.awt.*;
 
 /**
  * A {@link RenderContext} can provide an optional configuration.
@@ -29,10 +32,18 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface RenderContext {
   /**
-   * Returns the current configuration, if any
+   * Returns the current configuration, if any (should never return null when
+   * a file is being rendered; can only be null if no file is showing)
    */
   @Nullable
   Configuration getConfiguration();
+
+  /**
+   * Sets the given configuration to be used for rendering
+   *
+   * @param configuration the configuration to use
+   */
+  void setConfiguration(@NotNull Configuration configuration);
 
   /**
    * Update the rendering
@@ -53,6 +64,8 @@ public interface RenderContext {
 
   /**
    * Returns the current virtual file, if any
+   * <p>
+   * TODO: Get rid of this now that configurations carry file info!
    */
   @Nullable
   VirtualFile getVirtualFile();
@@ -61,12 +74,94 @@ public interface RenderContext {
    * Returns the current module
    * @return the module
    */
-  @NotNull
+  @Nullable
   Module getModule();
 
   /**
-   * Types of uses of the {@link com.android.tools.idea.rendering.RenderService} which can drive some decisions, such as how and whether to report {@code <fragment/>}
-   * tags without a known preview layout, and so on.
+   * Returns whether the current scene has an alpha channel
+   * @return true if the scene has an alpha channel, false if not or if unknown
+   */
+  boolean hasAlphaChannel();
+
+  /**
+   * Returns the Swing component the rendering is painted into
+   * @return the component
+   */
+  @NotNull
+  Component getComponent();
+
+  /** No size, or unknown size */
+  Dimension NO_SIZE = new Dimension(0, 0);
+
+  /**
+   * Returns the size of the full/original rendered image, without scaling applied
+   *
+   * @return the image size, or {@link #NO_SIZE}
+   */
+  @NotNull
+  Dimension getFullImageSize();
+
+  /**
+   * Returns the size of the (possibly zoomed) image
+   *
+   * @return the scaled image, or {@link #NO_SIZE}
+   */
+  @NotNull
+  Dimension getScaledImageSize();
+
+  /**
+   * Returns the rectangle which defines the client area (the space available for
+   * the rendering)
+   *
+   * @return the client area
+   */
+  @NotNull
+  Rectangle getClientArea();
+
+  /**
+   * Returns true if this render context supports render previews
+   *
+   * @return true if render previews are supported
+   */
+  boolean supportsPreviews();
+
+  /**
+   * Returns the preview manager for this render context, if any. Will only
+   * be called if this context returns true from {@link #supportsPreviews()}.
+   *
+   * @param createIfNecessary if true, create the preview manager if it does not exist, otherwise
+   *                          only return it if it has already been created
+   * @return the preview manager, or null if it doesn't exist and {@code createIfNecessary} was false
+   */
+  @Nullable
+  RenderPreviewManager getPreviewManager(boolean createIfNecessary);
+
+  /**
+   * Sets the rendering size to be at most the given width and the given height.
+   *
+   * @param width the maximum width, or 0 to use any size
+   * @param height the maximum height, or 0 to use any height
+   */
+  void setMaxSize(int width, int height);
+
+  /**
+   * Perform a zoom to fit operation
+   *
+   * @param onlyZoomOut if true, only adjust the zoom if it would be zooming out
+   * @param allowZoomIn if true, allow the zoom factor to be greater than 1 (e.g. bigger than real size)
+   */
+  void zoomFit(boolean onlyZoomOut, boolean allowZoomIn);
+
+  /**
+   * Called when the content of the rendering has changed, so the view
+   * should update the layout (to for example recompute zoom fit, if applicable,
+   * and to revalidate the components
+   */
+  void updateLayout();
+
+  /**
+   * Types of uses of the {@link com.android.tools.idea.rendering.RenderService} which can drive some decisions, such as how and whether
+   * to report {@code <fragment/>} tags without a known preview layout, and so on.
    */
   enum UsageType {
     /**
@@ -82,7 +177,7 @@ public interface RenderContext {
      */
     LAYOUT_EDITOR,
     /**
-     * Some sort of thumnail preview, e.g. in a resource chooser
+     * Some sort of thumbnail preview, e.g. in a resource chooser
      */
     THUMBNAIL_PREVIEW
   }

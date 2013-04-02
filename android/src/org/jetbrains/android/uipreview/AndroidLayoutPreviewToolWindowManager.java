@@ -16,9 +16,9 @@
 package org.jetbrains.android.uipreview;
 
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.rendering.RenderLogger;
-import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.multi.RenderPreviewManager;
+import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.intellij.ProjectTopics;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -41,6 +41,7 @@ import com.intellij.openapi.roots.ModuleRootAdapter;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.*;
 import com.intellij.openapi.wm.ToolWindow;
@@ -384,7 +385,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
     if (layoutXmlFile == null) {
       return;
     }
-    final RenderResult renderResult;
+    RenderResult result = null;
     synchronized (RENDERING_LOCK) {
       Module module = facet.getModule();
       Configuration configuration = myToolWindowForm.getConfiguration();
@@ -392,12 +393,21 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
         return;
       }
       final RenderLogger logger = new RenderLogger(layoutXmlFile.getName(), module);
-      RenderService service = RenderService.create(facet, module, psiFile, configuration, logger, myToolWindowForm);
+      final RenderService service = RenderService.create(facet, module, psiFile, configuration, logger, myToolWindowForm);
       if (service != null) {
-        renderResult = service.render();
+        // Prefetch outside of read lock
+        service.getResourceResolver();
+
+        result = ApplicationManager.getApplication().runReadAction(new Computable<RenderResult>() {
+          @Override
+          public RenderResult compute() {
+            return service.render();
+          }
+        });
         service.dispose();
-      } else {
-        renderResult = new RenderResult(null, null, psiFile, logger);
+      }
+      if (result == null) {
+        result = new RenderResult(null, null, psiFile, logger);
       }
     }
 
@@ -405,6 +415,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
       return;
     }
 
+    final RenderResult renderResult = result;
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
@@ -414,6 +425,13 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
         final TextEditor editor = getActiveLayoutXmlEditor(); // Must be run from read thread
         myToolWindowForm.setRenderResult(renderResult, editor);
         myToolWindowForm.updatePreviewPanel();
+
+        if (RenderPreviewMode.getCurrent() != RenderPreviewMode.NONE) {
+          RenderPreviewManager previewManager = myToolWindowForm.getPreviewPanel().getPreviewManager(myToolWindowForm, true);
+          if (previewManager != null) {
+            previewManager.renderPreviews();
+          }
+        }
       }
     });
   }

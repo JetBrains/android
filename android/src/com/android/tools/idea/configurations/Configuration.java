@@ -16,8 +16,10 @@
 package com.android.tools.idea.configurations;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.Capability;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.FrameworkResources;
+import com.android.ide.common.resources.ResourceFile;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.*;
@@ -27,8 +29,10 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.ProjectResources;
+import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.google.common.base.Objects;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -65,7 +69,7 @@ import static com.android.tools.idea.configurations.ConfigurationListener.*;
  * A {@linkplain Configuration} is a selection of device, orientation, theme,
  * etc for use when rendering a layout.
  */
-public class Configuration {
+public class Configuration implements Disposable {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.configurations.Configuration");
 
   /** The associated file */
@@ -79,7 +83,7 @@ public class Configuration {
 
   /** The associated {@link ConfigurationManager} */
   @NotNull
-  private final ConfigurationManager myManager;
+  protected final ConfigurationManager myManager;
 
   /**
    * The {@link com.android.ide.common.resources.configuration.FolderConfiguration} being edited.
@@ -179,6 +183,27 @@ public class Configuration {
     return configuration;
   }
 
+  /**
+   * Creates a configuration suitable for the given file
+   *
+   * @param base the base configuration to base the file configuration off of
+   * @param file the file to look up a configuration for
+   * @return a suitable configuration
+   */
+  @NotNull
+  public static Configuration create(@NotNull Configuration base,
+                                     @NotNull VirtualFile file) {
+    // TODO: Figure out whether we need this, or if it should be replaced by
+    // a call to ConfigurationManager#createSimilar()
+    Configuration configuration = base.clone();
+    ProjectResources resources = ProjectResources.get(base.getModule());
+    ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, resources, file);
+    configuration.getEditedConfig().set(FolderConfiguration.getConfigForFolder(file.getParent().getName()));
+    matcher.adaptConfigSelection(true /*needBestMatch*/);
+
+    return configuration;
+  }
+
   @NotNull
   public static Configuration create(@NotNull ConfigurationManager manager,
                                      @Nullable ConfigurationProjectState projectState,
@@ -243,6 +268,57 @@ public class Configuration {
   public Configuration clone() {
     return copy(this);
   }
+
+  /**
+   * Copies attributes from the given source configuration into the given destination configuration,
+   * as long as the attributes are compatible with the folder of the destination file.
+   *
+   * @param source the original to copy from
+   * @return a new configuration copied from the original
+   */
+  @NotNull
+  public static Configuration copyCompatible(@NotNull Configuration source, @NotNull Configuration destination) {
+    assert source.myFile != destination.myFile; // This method is intended to sync configurations for resource variations
+
+    FolderConfiguration editedConfig = destination.getEditedConfig();
+
+    if (editedConfig.getVersionQualifier() == null) {
+      destination.myTarget = source.getTarget();
+    }
+    if (editedConfig.getScreenSizeQualifier() == null) {
+      destination.myDevice = source.getDevice();
+    }
+    if (editedConfig.getScreenOrientationQualifier() == null && editedConfig.getSmallestScreenWidthQualifier() == null) {
+      destination.myState = source.getDeviceState();
+    }
+    if (editedConfig.getLanguageQualifier() == null) {
+      destination.myLocale = source.getLocale();
+    }
+    if (editedConfig.getUiModeQualifier() == null) {
+      destination.myUiMode = source.getUiMode();
+    }
+    if (editedConfig.getNightModeQualifier() == null) {
+      destination.myNightMode = source.getNightMode();
+    }
+    destination.myActivity = source.getActivity();
+    destination.myTheme = source.getTheme();
+    //destination.myDisplayName = source.getDisplayName();
+    destination.myFrameworkResources = null;
+    destination.myResourceResolver = null;
+    destination.myConfiguredProjectRes = null;
+    destination.myConfiguredFrameworkRes = null;
+
+    assert destination.ensureValid();
+
+    ProjectResources resources = ProjectResources.get(source.myManager.getModule());
+    ConfigurationMatcher matcher = new ConfigurationMatcher(destination, resources, destination.myFile);
+    //if (!matcher.isCurrentFileBestMatchFor(editedConfig)) {
+      matcher.adaptConfigSelection(true /*needBestMatch*/);
+    //}
+
+    return destination;
+  }
+
 
   public void save() {
     ConfigurationStateManager stateManager = ConfigurationStateManager.get(myManager.getModule().getProject());
@@ -527,6 +603,8 @@ public class Configuration {
 
       myDevice = device;
 
+      int updateFlags = CFG_DEVICE;
+
       if (device != null) {
         State state = null;
         // Attempt to preserve the device state?
@@ -549,25 +627,19 @@ public class Configuration {
         if (state == null) {
           state = device.getDefaultState();
         }
-        // Set the state, but don't notify yet
-        startBulkEditing();
-        setDeviceState(state);
-        finishBulkEditing();
-      }
-
-      if (myDevice != null) {
-        if (preserveState && myState != null) {
-          State equivalentState = myDevice.getState(myState.getName());
-          if (equivalentState == null) {
-            equivalentState = myDevice.getDefaultState();
-          }
-          myState = equivalentState;
-        } else {
-          myState = myDevice.getDefaultState();
+        if (myState != state) {
+          myState = state;
+          updateFlags |= CFG_DEVICE_STATE;
         }
       }
 
-      updated(CFG_DEVICE);
+      // TODO: Is this redundant with the stuff above?
+      if (myDevice != null && myState == null) {
+        myState = myDevice.getDefaultState();
+        updateFlags |= CFG_DEVICE_STATE;
+      }
+
+      updated(updateFlags);
     }
   }
 
@@ -729,7 +801,7 @@ public class Configuration {
    * configuration state such as the device orientation, the UI mode, the
    * rendering target, etc.
    */
-  private void syncFolderConfig() {
+  protected void syncFolderConfig() {
     Device device = getDevice();
     if (device == null) {
       return;
@@ -852,7 +924,31 @@ public class Configuration {
       }
     }
 
+    // Search by name instead
+    String name = from.getName();
+    for (int i = 0; i < states.size(); i++) {
+      if (states.get(i).getName().equals(name)) {
+        return states.get((i + 1) % states.size());
+      }
+    }
+
     return null;
+  }
+
+  /**
+   * Returns true if this configuration supports the given rendering
+   * capability
+   *
+   * @param capability the capability to check
+   * @return true if the capability is supported
+   */
+  public boolean supports(Capability capability) {
+    IAndroidTarget target = getTarget();
+    if (target != null) {
+      return RenderService.supportsCapability(getModule(), target, capability);
+    }
+
+    return false;
   }
 
   /**
@@ -888,7 +984,7 @@ public class Configuration {
   }
 
   /** Called when one or more attributes of the configuration has changed */
-  protected void updated(int flags) {
+  public void updated(int flags) {
     myNotifyDirty |= flags;
     myFolderConfigDirty |= flags;
 
@@ -1079,5 +1175,14 @@ public class Configuration {
 
   public Module getModule() {
     return myManager.getModule();
+  }
+
+  public boolean isBestMatchFor(VirtualFile file, FolderConfiguration config) {
+    ProjectResources resources = ProjectResources.get(getModule());
+    return new ConfigurationMatcher(this, resources, file).isCurrentFileBestMatchFor(config);
+  }
+
+  @Override
+  public void dispose() {
   }
 }
