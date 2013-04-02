@@ -28,7 +28,7 @@ public class ResourceMergerTest extends BaseProjectViewTestCase {
   }
 
   public void testMerger() {
-    final AbstractProjectViewPSIPane pane = createPane();
+    final AbstractProjectViewPSIPane pane = myStructure.createPane();
     getProjectTreeStructure().setProviders(new ResourceMergerTreeStructureProvider());
 
     PsiDirectory directory = getContentDirectory();

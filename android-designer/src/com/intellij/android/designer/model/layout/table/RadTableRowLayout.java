@@ -29,9 +29,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.awt.*;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -136,9 +134,8 @@ public class RadTableRowLayout extends RadLinearLayout {
   @Override
   public void addContainerSelectionActions(DesignerEditorPanel designer,
                                            DefaultActionGroup actionGroup,
-                                           JComponent shortcuts,
                                            List<? extends RadViewComponent> selectedChildren) {
-    super.addContainerSelectionActions(designer, actionGroup, shortcuts, selectedChildren);
+    super.addContainerSelectionActions(designer, actionGroup, selectedChildren);
     if (isTableParent()) {
       actionGroup.add(new AllGravityAction(designer, selectedChildren));
     }

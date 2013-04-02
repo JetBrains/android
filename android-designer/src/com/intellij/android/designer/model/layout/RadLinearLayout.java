@@ -198,7 +198,6 @@ public class RadLinearLayout extends RadViewLayoutWithData implements ILayoutDec
   @Override
   public void addContainerSelectionActions(DesignerEditorPanel designer,
                                            DefaultActionGroup actionGroup,
-                                           JComponent shortcuts,
                                            List<? extends RadViewComponent> selectedChildren) {
     RadViewComponent layout = (RadViewComponent)myContainer;
     List<? extends RadViewComponent> children = RadViewComponent.getViewComponents(layout.getChildren());
@@ -228,7 +227,7 @@ public class RadLinearLayout extends RadViewLayoutWithData implements ILayoutDec
     }
 
     // Add in wrap width/height actions from the parent
-    super.addContainerSelectionActions(designer, actionGroup, shortcuts, selectedChildren);
+    super.addContainerSelectionActions(designer, actionGroup, selectedChildren);
 
     actionGroup.addSeparator();
 

@@ -148,7 +148,7 @@ public class AndroidDesignerActionPanel extends DesignerActionPanel {
   }
 
   @Override
-  protected void addSelectionActions(List<RadComponent> selection, DefaultActionGroup group, JComponent shortcuts) {
+  protected void addSelectionActions(List<RadComponent> selection, DefaultActionGroup group) {
     if (!selection.isEmpty()) {
       // Segment the selected components into lists of siblings
       Map<RadComponent, List<RadComponent>> siblingLists = RadComponent.groupSiblings(selection);
@@ -159,23 +159,21 @@ public class AndroidDesignerActionPanel extends DesignerActionPanel {
         if (parent != null) {
           RadLayout layout = parent.getLayout();
           if (layout instanceof RadViewLayout) {
-            ((RadViewLayout) layout).addContainerSelectionActions(myDesigner, group, shortcuts,
-                                                                  RadViewComponent.getViewComponents(children));
+            ((RadViewLayout) layout).addContainerSelectionActions(myDesigner, group, RadViewComponent.getViewComponents(children));
           } else {
-            layout.addSelectionActions(myDesigner, group, shortcuts, children);
+            layout.addSelectionActions(myDesigner, group, getShortcuts(), children);
           }
         } else if (selection.size() == 1) {
           // If you select a root layout, offer selection actions on it as well
           RadLayout selected = selection.get(0).getLayout();
           if (selected instanceof RadViewLayout) {
-            ((RadViewLayout) selected).addContainerSelectionActions(myDesigner, group, shortcuts,
-                                                                  RadViewComponent.getViewComponents(children));
+            ((RadViewLayout) selected).addContainerSelectionActions(myDesigner, group, RadViewComponent.getViewComponents(children));
           }
         }
       }
 
       for (RadComponent component : selection) {
-        component.addSelectionActions(myDesigner, group, shortcuts, Collections.<RadComponent>singletonList(component));
+        component.addSelectionActions(myDesigner, group, getShortcuts(), Collections.<RadComponent>singletonList(component));
       }
     }
   }

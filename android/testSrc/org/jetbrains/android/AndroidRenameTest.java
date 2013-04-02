@@ -174,11 +174,29 @@ public class AndroidRenameTest extends AndroidTestCase {
     doTestStyleInheritance("styles3.xml", "styles3_after.xml");
   }
 
+  public void testStyleInheritance3() throws Throwable {
+    doTestStyleInheritance("styles4.xml", "styles4_after.xml");
+  }
+
+  public void testStyleInheritance4() throws Throwable {
+    doTestStyleInheritance("styles5.xml", "styles5_after.xml", "Dilimiter.Horisontal");
+  }
+
+  public void testStyleInheritance5() throws Throwable {
+    myFixture.copyFileToProject(BASE_PATH + "styles6_1.xml", "res/values-en/styles6.xml");
+    myFixture.copyFileToProject(BASE_PATH + "styles6_2.xml", "res/values-ru/styles6.xml");
+    doTestStyleInheritance("styles6.xml", "styles6_after.xml");
+  }
+
   private void doTestStyleInheritance(String before, String after) throws IOException {
+    doTestStyleInheritance(before, after, "newStyle");
+  }
+
+  private void doTestStyleInheritance(String before, String after, String newName) throws IOException {
     createManifest();
     final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + before, "res/values/" + before);
     myFixture.configureFromExistingVirtualFile(file);
-    findHandlerAndDoRename("newStyle");
+    findHandlerAndDoRename(newName);
     myFixture.checkResultByFile(BASE_PATH + after);
   }
 

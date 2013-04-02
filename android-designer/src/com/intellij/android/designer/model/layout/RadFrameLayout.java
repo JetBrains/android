@@ -128,9 +128,8 @@ public class RadFrameLayout extends RadViewLayoutWithData {
   @Override
   public void addContainerSelectionActions(DesignerEditorPanel designer,
                                            DefaultActionGroup actionGroup,
-                                           JComponent shortcuts,
                                            List<? extends RadViewComponent> selection) {
-    super.addContainerSelectionActions(designer, actionGroup, shortcuts, selection);
+    super.addContainerSelectionActions(designer, actionGroup, selection);
 
     if (selection.size() != 1) {
       return;

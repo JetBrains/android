@@ -85,7 +85,7 @@ public class AndroidLibraryProjectTest extends UsefulTestCase {
 
     myAppFacet = AndroidTestCase.addAndroidFacet(myAppModule, getDefaultTestSdkPath(), getDefaultPlatformDir());
     myLibFacet = AndroidTestCase.addAndroidFacet(myLibModule, getDefaultTestSdkPath(), getDefaultPlatformDir());
-    myLibFacet.getConfiguration().LIBRARY_PROJECT = true;
+    myLibFacet.getConfiguration().getState().LIBRARY_PROJECT = true;
 
     ModuleRootModificationUtil.addDependency(myAppModule, myLibModule);
     ModuleRootModificationUtil.addDependency(myLibModule, myLibGenModule);
@@ -211,13 +211,13 @@ public class AndroidLibraryProjectTest extends UsefulTestCase {
   }
 
   public void testFileResourceFindUsagesFromJava1() throws Throwable {
-    boolean temp = myLibFacet.getConfiguration().LIBRARY_PROJECT;
+    boolean temp = myLibFacet.getConfiguration().getState().LIBRARY_PROJECT;
     try {
-      myLibFacet.getConfiguration().LIBRARY_PROJECT = true;
+      myLibFacet.getConfiguration().getState().LIBRARY_PROJECT = true;
       doFindUsagesTest("java", "app/src/p1/p2/lib/");
     }
     finally {
-      myLibFacet.getConfiguration().LIBRARY_PROJECT = temp;
+      myLibFacet.getConfiguration().getState().LIBRARY_PROJECT = temp;
     }
   }
 

@@ -9,6 +9,7 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.jps.api.CmdlineProtoUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,8 +24,8 @@ import static org.jetbrains.jps.api.CmdlineRemoteProto.Message.ControllerMessage
 public class AndroidBuildTargetScopeProvider extends BuildTargetScopeProvider {
   @NotNull
   @Override
-  public List<TargetTypeBuildScope> getBuildTargetScopes(
-    @NotNull CompileScope baseScope, @NotNull CompilerFilter filter, @NotNull Project project) {
+  public List<TargetTypeBuildScope> getBuildTargetScopes(@NotNull CompileScope baseScope, @NotNull CompilerFilter filter,
+                                                         @NotNull Project project, boolean forceBuild) {
 
     if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
       return Collections.emptyList();
@@ -44,7 +45,7 @@ public class AndroidBuildTargetScopeProvider extends BuildTargetScopeProvider {
       allTargetIds.add(module.getName());
 
       if (fullBuild) {
-        if (facet.getConfiguration().LIBRARY_PROJECT) {
+        if (facet.getProperties().LIBRARY_PROJECT) {
           libTargetIds.add(module.getName());
         }
         else {
@@ -53,15 +54,11 @@ public class AndroidBuildTargetScopeProvider extends BuildTargetScopeProvider {
       }
     }
     return Arrays.asList(
-      TargetTypeBuildScope.newBuilder().setTypeId(AndroidCommonUtils.DEX_BUILD_TARGET_TYPE_ID).
-        addAllTargetId(appTargetIds).build(),
-      TargetTypeBuildScope.newBuilder().setTypeId(AndroidCommonUtils.RESOURCE_CACHING_BUILD_TARGET_ID).
-        addAllTargetId(allTargetIds).build(),
-      TargetTypeBuildScope.newBuilder().setTypeId(AndroidCommonUtils.RESOURCE_PACKAGING_BUILD_TARGET_ID).
-        addAllTargetId(appTargetIds).build(),
-      TargetTypeBuildScope.newBuilder().setTypeId(AndroidCommonUtils.PACKAGING_BUILD_TARGET_TYPE_ID).
-        addAllTargetId(allTargetIds).build(),
-      TargetTypeBuildScope.newBuilder().setTypeId(AndroidCommonUtils.LIBRARY_PACKAGING_BUILD_TARGET_ID).
-        addAllTargetId(libTargetIds).build());
+      CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.DEX_BUILD_TARGET_TYPE_ID, appTargetIds, forceBuild),
+      CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.RESOURCE_CACHING_BUILD_TARGET_ID, allTargetIds, forceBuild),
+      CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.RESOURCE_PACKAGING_BUILD_TARGET_ID, appTargetIds, forceBuild),
+      CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.PACKAGING_BUILD_TARGET_TYPE_ID, allTargetIds, forceBuild),
+      CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.LIBRARY_PACKAGING_BUILD_TARGET_ID, libTargetIds, forceBuild)
+    );
   }
 }

@@ -145,10 +145,11 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
 
       if (myProjectType == ProjectType.TEST) {
         assert myTestedModule != null;
-        facet.getConfiguration().PACK_TEST_CODE = true;
+        facet.getProperties().PACK_TEST_CODE = true;
         ModuleOrderEntry entry = rootModel.addModuleOrderEntry(myTestedModule);
         entry.setScope(DependencyScope.PROVIDED);
       }
+      facet.getProperties().UPDATE_PROPERTY_FILES = Boolean.TRUE.toString();
 
       StartupManager.getInstance(project).runWhenProjectIsInitialized(new DumbAwareRunnable() {
         public void run() {

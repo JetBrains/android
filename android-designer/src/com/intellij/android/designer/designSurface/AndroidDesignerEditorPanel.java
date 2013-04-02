@@ -285,7 +285,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
         }
         else {
           myRootView.setImage(session.getImage(), session.isAlphaChannelImage());
-          myRootView.updateSize();
+          myRootView.updateBounds(true);
         }
         try {
           parser.updateRootComponent(myConfiguration.getFullConfig(), session, myRootView);
@@ -746,7 +746,11 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   }
 
   @Override
-  public boolean isDeprecated(@NotNull String deprecatedIn) {
+  public boolean isDeprecated(@Nullable String deprecatedIn) {
+    if (deprecatedIn == null) {
+      return false;
+    }
+
     IAndroidTarget target = myConfiguration.getTarget();
     if (target == null) {
       return super.isDeprecated(deprecatedIn);

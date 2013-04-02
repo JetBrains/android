@@ -17,11 +17,15 @@ package com.intellij.android.designer;
 
 import com.android.resources.Density;
 import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
+import com.intellij.android.designer.designSurface.RootView;
 import com.intellij.designer.designSurface.EditableArea;
+import com.intellij.designer.model.RadComponent;
+import com.intellij.designer.model.RadVisualComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.Locale;
 
 import static com.android.SdkConstants.VALUE_N_DP;
@@ -39,9 +43,12 @@ public class AndroidDesignerUtils {
 
   @Nullable
   public static AndroidDesignerEditorPanel getPanel(@NotNull EditableArea area) {
-    JComponent designer = area.getDesigner().getDesignerPanel();
-    if (designer instanceof AndroidDesignerEditorPanel) {
-      return (AndroidDesignerEditorPanel)designer;
+    RadComponent root = area.getRootComponent();
+    if (root instanceof RadVisualComponent) {
+      Component nativeComponent = ((RadVisualComponent)root).getNativeComponent();
+      if (nativeComponent instanceof RootView) {
+        return ((RootView)nativeComponent).getPanel();
+      }
     }
 
     return null;
@@ -49,9 +56,8 @@ public class AndroidDesignerUtils {
 
   /** Returns the dpi used to render in the designer corresponding to the given {@link EditableArea} */
   public static int getDpi(@NotNull EditableArea area) {
-    JComponent designer = area.getDesigner().getDesignerPanel();
-    if (designer instanceof AndroidDesignerEditorPanel) {
-      AndroidDesignerEditorPanel panel = (AndroidDesignerEditorPanel)designer;
+    AndroidDesignerEditorPanel panel = getPanel(area);
+    if (panel != null) {
       return panel.getDpi();
     }
 

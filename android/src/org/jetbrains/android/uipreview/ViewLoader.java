@@ -33,6 +33,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.util.containers.HashSet;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TObjectIntHashMap;
+import org.jetbrains.android.dom.layout.FragmentLayoutDomFileDescription;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
@@ -163,7 +164,9 @@ public class ViewLoader {
       return myProjectClassLoader.loadClass(className);
     }
     catch (ClassNotFoundException e) {
-      myLogger.addMissingClass(className);
+      if (!className.equals(FragmentLayoutDomFileDescription.FRAGMENT_TAG_NAME)) {
+        myLogger.addMissingClass(className);
+      }
       return null;
     }
   }

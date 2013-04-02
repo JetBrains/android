@@ -25,6 +25,7 @@ import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.logcat.AndroidLogcatReceiver.LogMessageHeader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,7 +37,7 @@ import java.util.List;
  * @author Eugene.Kudelevsky
  */
 public abstract class AndroidLogFilterModel extends LogFilterModel {
-  private final List<LogFilterListener> myListeners = new ArrayList<LogFilterListener>();
+  private final List<LogFilterListener> myListeners = ContainerUtil.createLockFreeCopyOnWriteList();
 
   private Log.LogLevel myPrevMessageLogLevel;
   private String myPrevTag;

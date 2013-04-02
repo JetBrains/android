@@ -17,6 +17,9 @@
       <implementation-class>org.jetbrains.android.AndroidProjectComponent</implementation-class>
     </component>
     <component>
+      <implementation-class>org.jetbrains.android.AndroidPropertyFilesUpdater</implementation-class>
+    </component>
+    <component>
       <implementation-class>org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager</implementation-class>
       <skipForDefaultProject/>
       <headless-implementation-class></headless-implementation-class>
@@ -103,6 +106,7 @@
   <depends optional="true" config-file="test-ng.xml">TestNG-J</depends>
   <depends optional="true" config-file="intention-power-pack.xml">IntentionPowerPack</depends>
   <depends optional="true" config-file="androidide.xml">com.intellij.modules.androidide</depends>
+  <depends optional="true" config-file="eclipse.xml">org.jetbrains.idea.eclipse</depends>
 
   <extensions defaultExtensionNs="com.intellij">
     <errorHandler implementation="com.intellij.diagnostic.ITNReporter"/>
@@ -116,7 +120,8 @@
     <dom.fileDescription implementation="org.jetbrains.android.dom.color.ColorDomFileDescription"/>
 
     <dom.fileDescription implementation="org.jetbrains.android.dom.manifest.ManifestDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.layout.LayoutDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.layout.ViewLayoutDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.layout.FragmentLayoutDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.animation.AnimationDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.animator.AnimatorDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.menu.MenuDomFileDescription"/>
