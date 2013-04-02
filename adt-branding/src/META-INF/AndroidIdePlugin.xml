@@ -46,7 +46,7 @@
 
   <extensionPoints>
     <extensionPoint name="androidIdeInitializer"
-                    interface="com.intellij.openapi.actionSystem.AnAction"/>
+                    interface="java.lang.Runnable"/>
 
     <extensionPoint name="codeInsight.changeVariableTypeQuickFixProvider"
                     interface="com.intellij.codeInsight.quickfix.ChangeVariableTypeQuickFixProvider"/>
