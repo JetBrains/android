@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
 /** Customize Android IDE specific experience. */
 public class AndroidInitialConfigurator {
   @NonNls
-  private static final ExtensionPointName<AnAction> EP_NAME =
+  private static final ExtensionPointName<Runnable> EP_NAME =
     ExtensionPointName.create("com.intellij.androidIdeInitializer");
 
   @NonNls private static final String CONFIG_V1 = "AndroidConfig.V1";
@@ -84,9 +84,9 @@ public class AndroidInitialConfigurator {
   }
 
   private void activateAndroidIdeInitializerExtensions() {
-    AnAction[] extensions = EP_NAME.getExtensions();
-    for (AnAction a : extensions) {
-      a.actionPerformed(null);
+    Runnable[] extensions = EP_NAME.getExtensions();
+    for (Runnable r : extensions) {
+      r.run();
     }
   }
 }
