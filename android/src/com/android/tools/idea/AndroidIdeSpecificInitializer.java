@@ -19,9 +19,9 @@ import com.android.tools.idea.actions.AndroidNewProjectAction;
 import com.intellij.ide.actions.NewProjectAction;
 import com.intellij.openapi.actionSystem.*;
 
-public class AndroidIdeSpecificInitializer extends AnAction {
+public class AndroidIdeSpecificInitializer implements Runnable {
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void run() {
     // Fix New Project actions
     if (Boolean.getBoolean(AndroidNewProjectAction.NEW_NEW_PROJECT_WIZARD)) {
       fixNewProjectActions();
