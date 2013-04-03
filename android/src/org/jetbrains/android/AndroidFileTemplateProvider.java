@@ -48,6 +48,7 @@ public class AndroidFileTemplateProvider implements FileTemplateGroupDescriptorF
   @NonNls public static final String BROADCAST_RECEIVER = "Broadcast_Receiver.java";
   @NonNls public static final String DEFAULT_PROPERTIES_TEMPLATE = "default.properties";
 
+  @Override
   public FileTemplateGroupDescriptor getFileTemplatesDescriptor() {
     final FileTemplateGroupDescriptor group = new FileTemplateGroupDescriptor("Android", AndroidIcons.Android);
     group.addTemplate(new FileTemplateDescriptor(ANDROID_MANIFEST_TEMPLATE, StdFileTypes.XML.getIcon()));

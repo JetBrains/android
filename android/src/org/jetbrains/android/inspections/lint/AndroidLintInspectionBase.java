@@ -348,6 +348,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool imp
            || scope == Scope.PROGUARD_FILE || scope == Scope.OTHER;
   }
 
+  @Override
   public boolean worksInBatchModeOnly() {
     Implementation implementation = myIssue.getImplementation();
     if (isSingleFileScope(implementation.getScope())) {

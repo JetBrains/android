@@ -48,10 +48,12 @@ public class AndroidTestConfigurationProducer extends JavaRuntimeConfigurationPr
     super(AndroidTestRunConfigurationType.getInstance());
   }
 
+  @Override
   public PsiElement getSourceElement() {
     return mySourceElement;
   }
 
+  @Override
   @Nullable
   protected RunnerAndConfigurationSettings createConfigurationByElement(Location location, ConfigurationContext context) {
     if (location == null) return null;
@@ -160,6 +162,7 @@ public class AndroidTestConfigurationProducer extends JavaRuntimeConfigurationPr
     return false;
   }
 
+  @Override
   public int compareTo(Object o) {
     return PREFERED;
   }

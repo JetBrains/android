@@ -109,24 +109,29 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
 
     LocalFileSystem.getInstance().addVirtualFileListener(myListener);
     Disposer.register(project, new Disposable() {
+      @Override
       public void dispose() {
         LocalFileSystem.getInstance().removeVirtualFileListener(myListener);
       }
     });
 
     PsiManager.getInstance(project).addPsiTreeChangeListener(new PsiTreeChangeAdapter() {
+      @Override
       public void childrenChanged(@NotNull PsiTreeChangeEvent event) {
         update(event);
       }
 
+      @Override
       public void childRemoved(@NotNull PsiTreeChangeEvent event) {
         update(event);
       }
 
+      @Override
       public void childAdded(@NotNull PsiTreeChangeEvent event) {
         update(event);
       }
 
+      @Override
       public void childReplaced(@NotNull PsiTreeChangeEvent event) {
         update(event);
       }
@@ -201,8 +206,10 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
     }
   }
 
+  @Override
   public void projectOpened() {
     StartupManager.getInstance(myProject).registerPostStartupActivity(new Runnable() {
+      @Override
       public void run() {
         myToolWindowReady = true;
       }
@@ -249,6 +256,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
     myToolWindow.setAvailable(false, null);
   }
 
+  @Override
   public void projectClosed() {
     if (myToolWindowForm != null) {
       Disposer.dispose(myToolWindowForm);
@@ -258,21 +266,25 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
     }
   }
 
+  @Override
   @NotNull
   @NonNls
   public String getComponentName() {
     return "AndroidLayoutPreviewToolWindowManager";
   }
 
+  @Override
   public void initComponent() {
   }
 
+  @Override
   public void disposeComponent() {
   }
 
   private void processFileEditorChange(final TextEditor newEditor) {
     myToolWindowUpdateQueue.cancelAllUpdates();
     myToolWindowUpdateQueue.queue(new Update("update") {
+      @Override
       public void run() {
         if (!myToolWindowReady || myToolWindowDisposed) {
           return;
@@ -529,10 +541,12 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
   }
 
   private class MyFileEditorManagerListener implements FileEditorManagerListener {
+    @Override
     public void fileOpened(FileEditorManager source, VirtualFile file) {
       processFileEditorChange(getActiveLayoutXmlEditor());
     }
 
+    @Override
     public void fileClosed(FileEditorManager source, VirtualFile file) {
       ApplicationManager.getApplication().invokeLater(new Runnable() {
         @Override
@@ -542,6 +556,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
       });
     }
 
+    @Override
     public void selectionChanged(FileEditorManagerEvent event) {
       final FileEditor newEditor = event.getNewEditor();
       TextEditor layoutXmlEditor = null;

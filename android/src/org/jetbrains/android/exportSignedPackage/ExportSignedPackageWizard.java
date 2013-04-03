@@ -97,6 +97,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     super.doOKAction();
 
     CompilerManager.getInstance(myProject).make(myCompileScope, new CompileStatusNotification() {
+      @Override
       public void finished(boolean aborted, int errors, int warnings, CompileContext compileContext) {
         if (aborted || errors != 0) {
           return;
@@ -104,6 +105,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
         final String title = AndroidBundle.message("android.extract.package.task.title");
         ProgressManager.getInstance().run(new Task.Backgroundable(myProject, title, true, null) {
+          @Override
           public void run(@NotNull ProgressIndicator indicator) {
             createAndAlignApk(myApkPath);
           }
@@ -155,6 +157,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     super.updateStep();
 
     SwingUtilities.invokeLater(new Runnable() {
+      @Override
       public void run() {
         getRootPane().setDefaultButton(getNextButton());
 
@@ -242,6 +245,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
       }
     }
     ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
       public void run() {
         String title = AndroidBundle.message("android.export.package.wizard.title");
         final Project project = getProject();
@@ -286,6 +290,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
   private void showErrorInDispatchThread(final String message) {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
       public void run() {
         Messages.showErrorDialog(getProject(), "Error: " + message, CommonBundle.getErrorTitle());
       }

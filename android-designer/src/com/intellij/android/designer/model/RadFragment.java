@@ -140,6 +140,7 @@ public class RadFragment extends RadViewComponent implements IConfigurableCompon
     }
   }
 
+  @Override
   public boolean addPopupActions(@NotNull AndroidDesignerEditorPanel designer,
                                  @NotNull DefaultActionGroup beforeGroup,
                                  @NotNull DefaultActionGroup afterGroup,

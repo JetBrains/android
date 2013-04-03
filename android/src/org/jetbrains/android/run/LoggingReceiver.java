@@ -38,6 +38,7 @@ public class LoggingReceiver extends AndroidOutputReceiver {
     myLogger.info(line);
   }
 
+  @Override
   public synchronized boolean isCancelled() {
     return false;
   }

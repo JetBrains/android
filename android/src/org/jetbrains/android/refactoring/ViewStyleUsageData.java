@@ -28,11 +28,13 @@ class ViewStyleUsageData implements StyleUsageData {
     myReference = reference;
   }
 
+  @Override
   @Nullable
   public PsiFile getFile() {
     return myTag.getContainingFile();
   }
 
+  @Override
   public void inline(@NotNull Map<AndroidAttributeInfo, String> attributeValues, @Nullable StyleRefData parentStyleRef) {
     for (Map.Entry<AndroidAttributeInfo, String> entry : attributeValues.entrySet()) {
       final AndroidAttributeInfo info = entry.getKey();
@@ -49,6 +51,7 @@ class ViewStyleUsageData implements StyleUsageData {
                               : null);
   }
 
+  @Override
   @NotNull
   public AndroidResourceReferenceBase getReference() {
     return myReference;

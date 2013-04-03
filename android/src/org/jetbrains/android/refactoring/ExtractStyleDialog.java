@@ -128,8 +128,10 @@ class ExtractStyleDialog extends DialogWrapper {
       }
     };
     myTree = new CheckboxTree(renderer, myRootNode) {
+      @Override
       protected void installSpeedSearch() {
         new TreeSpeedSearch(this, new Convertor<TreePath, String>() {
+          @Override
           public String convert(TreePath path) {
             Object object = path.getLastPathComponent();
             if (object instanceof CheckedTreeNode) {

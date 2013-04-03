@@ -118,6 +118,7 @@ public class OnClickConverter extends Converter<String> implements CustomReferen
       final Set<String> methodNames = new HashSet<String>();
 
       ClassInheritorsSearch.search(activityClass, module.getModuleWithDependenciesScope(), true).forEach(new Processor<PsiClass>() {
+        @Override
         public boolean process(PsiClass c) {
           for (PsiMethod method : c.getMethods()) {
             if (checkSignature(method) && methodNames.add(method.getName())) {

@@ -123,6 +123,7 @@ public class ResourcesValidityState implements ValidityState {
     myAndroidTargetName = is.readUTF();
   }
 
+  @Override
   public boolean equalsTo(ValidityState otherState) {
     if (!(otherState instanceof ResourcesValidityState)) {
       return false;
@@ -134,6 +135,7 @@ public class ResourcesValidityState implements ValidityState {
     return true;
   }
 
+  @Override
   public void save(DataOutput os) throws IOException {
     os.writeInt(myResourceTimestamps.size());
     for (Map.Entry<String, Long> e : myResourceTimestamps.entrySet()) {

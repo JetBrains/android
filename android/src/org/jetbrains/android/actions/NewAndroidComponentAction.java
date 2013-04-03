@@ -41,6 +41,7 @@ public class NewAndroidComponentAction extends AnAction {
           AndroidIcons.Android);
   }
 
+  @Override
   public void update(AnActionEvent e) {
     e.getPresentation().setVisible(isAvailable(e.getDataContext()));
   }

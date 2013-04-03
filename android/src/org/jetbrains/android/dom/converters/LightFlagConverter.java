@@ -42,6 +42,7 @@ public class LightFlagConverter extends ResolvingConverter<String> {
     Collections.addAll(myValues, values);
   }
 
+  @Override
   @NotNull
   public Collection<? extends String> getVariants(ConvertContext context) {
     Set<String> result = new HashSet<String>();
@@ -61,10 +62,12 @@ public class LightFlagConverter extends ResolvingConverter<String> {
     return result;
   }
 
+  @Override
   public String fromString(@Nullable String s, ConvertContext convertContext) {
     return s;
   }
 
+  @Override
   public String toString(@Nullable String s, ConvertContext convertContext) {
     return s;
   }

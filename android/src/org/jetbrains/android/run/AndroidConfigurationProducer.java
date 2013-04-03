@@ -41,10 +41,12 @@ public class AndroidConfigurationProducer extends JavaRuntimeConfigurationProduc
     super(AndroidRunConfigurationType.getInstance());
   }
 
+  @Override
   public PsiElement getSourceElement() {
     return mySourceElement;
   }
 
+  @Override
   @Nullable
   protected RunnerAndConfigurationSettings createConfigurationByElement(Location location, ConfigurationContext context) {
     final Module module = context.getModule();
@@ -94,6 +96,7 @@ public class AndroidConfigurationProducer extends JavaRuntimeConfigurationProduc
     return settings;
   }
 
+  @Override
   public int compareTo(Object o) {
     return PREFERED;
   }

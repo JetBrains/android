@@ -45,6 +45,7 @@ public abstract class AvdComboBox extends ComboboxWithBrowseButton {
     myShowNotLaunchedOnly = showNotLaunchedOnly;
 
     addActionListener(new ActionListener() {
+      @Override
       public void actionPerformed(ActionEvent e) {
         final AndroidPlatform platform = findAndroidPlatform();
         if (platform == null) {

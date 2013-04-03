@@ -47,6 +47,7 @@ public class AndroidTestListener implements ITestRunListener {
     myRunningState = runningState;
   }
 
+  @Override
   public void testRunStopped(long elapsedTime) {
     ProcessHandler handler = getProcessHandler();
     handler.notifyTextAvailable("Test running stopped\n", ProcessOutputTypes.STDOUT);
@@ -72,6 +73,7 @@ public class AndroidTestListener implements ITestRunListener {
     handler.notifyTextAvailable(builder.toString() + '\n', ProcessOutputTypes.STDOUT);
   }
 
+  @Override
   public void testStarted(TestIdentifier test) {
     if (!Comparing.equal(test.getClassName(), myTestClassName)) {
       if (myTestClassName != null) {
@@ -105,6 +107,7 @@ public class AndroidTestListener implements ITestRunListener {
     myTestClassName = null;
   }
 
+  @Override
   public void testFailed(TestFailure status, TestIdentifier test, String stackTrace) {
     ServiceMessageBuilder builder = new ServiceMessageBuilder("testFailed");
     builder.addAttribute("name", test.getTestName());
@@ -124,6 +127,7 @@ public class AndroidTestListener implements ITestRunListener {
     getProcessHandler().notifyTextAvailable(builder.toString() + '\n', ProcessOutputTypes.STDOUT);
   }
 
+  @Override
   public void testRunFailed(String errorMessage) {
     ProcessHandler handler = getProcessHandler();
     handler.notifyTextAvailable("Test running failed: " + errorMessage + "\n", ProcessOutputTypes.STDERR);

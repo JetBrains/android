@@ -231,6 +231,7 @@ public class DevicePanel implements Disposable,
   @Override
   public void deviceConnected(final IDevice device) {
     UIUtil.invokeLaterIfNeeded(new Runnable() {
+      @Override
       public void run() {
         myComboBoxModel.removeElement(NO_DEVICES);
         myComboBoxModel.addElement(device);
@@ -241,6 +242,7 @@ public class DevicePanel implements Disposable,
   @Override
   public void deviceDisconnected(final IDevice device) {
     UIUtil.invokeLaterIfNeeded(new Runnable() {
+      @Override
       public void run() {
         myComboBoxModel.removeElement(device);
         if (myComboBoxModel.getSize() == 0) {
@@ -253,6 +255,7 @@ public class DevicePanel implements Disposable,
   @Override
   public void deviceChanged(final IDevice device, int changeMask) {
     UIUtil.invokeLaterIfNeeded(new Runnable() {
+      @Override
       public void run() {
         if (!myDevicesComboBox.getSelectedItem().equals(device)) {
           return;

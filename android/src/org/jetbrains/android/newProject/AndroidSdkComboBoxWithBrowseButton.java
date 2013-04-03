@@ -54,6 +54,7 @@ public class AndroidSdkComboBoxWithBrowseButton extends ComboboxWithBrowseButton
     });
 
     addActionListener(new ActionListener() {
+      @Override
       public void actionPerformed(ActionEvent e) {
         ProjectJdksEditor editor =
           new ProjectJdksEditor(null, ProjectManager.getInstance().getDefaultProject(), AndroidSdkComboBoxWithBrowseButton.this);

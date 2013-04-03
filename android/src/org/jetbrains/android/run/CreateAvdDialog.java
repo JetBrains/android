@@ -168,6 +168,7 @@ public class CreateAvdDialog extends DialogWrapper {
     IAndroidTarget[] targets = sdkData.getTargets();
     myTargetBox.setModel(new DefaultComboBoxModel(targets));
     myTargetBox.addActionListener(new ActionListener() {
+      @Override
       public void actionPerformed(ActionEvent e) {
         Object selected = myTargetBox.getSelectedItem();
         mySkinField.setEnabled(selected != null);
@@ -324,6 +325,7 @@ public class CreateAvdDialog extends DialogWrapper {
     mySdCardSizeUnitCombo.setEnabled(!file);
   }
 
+  @Override
   protected JComponent createCenterPanel() {
     return myPanel;
   }

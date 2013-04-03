@@ -97,6 +97,7 @@ class CreateNewModuleTask extends ModuleProvidingTask {
     return result;
   }
 
+  @Override
   @NotNull
   public VirtualFile getContentRoot() {
     return myContentRoot;

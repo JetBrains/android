@@ -54,6 +54,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
     return internalJavaSdk == null ? null : JavaSdk.getInstance().getBinPath(internalJavaSdk);
   }
 
+  @Override
   @Nullable
   public String getToolsPath(Sdk sdk) {
     final Sdk jdk = getInternalJavaSdk(sdk);
@@ -63,6 +64,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
     return null;
   }
 
+  @Override
   @Nullable
   public String getVMExecutablePath(Sdk sdk) {
     final Sdk internalJavaSdk = getInternalJavaSdk(sdk);
@@ -158,6 +160,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
     return new AndroidSdkConfigurable(sdkModel, sdkModificator);
   }
 
+  @Override
   public void saveAdditionalData(SdkAdditionalData data, Element e) {
     if (data instanceof AndroidSdkAdditionalData) {
       ((AndroidSdkAdditionalData)data).save(e);

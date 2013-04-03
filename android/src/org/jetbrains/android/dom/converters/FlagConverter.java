@@ -59,15 +59,18 @@ public class FlagConverter extends DelimitedListConverter<String> {
     return result;
   }
 
+  @Override
   protected String convertString(final @Nullable String s, final ConvertContext context) {
     if (s == null || myValues.contains(s)) return s;
     return additionalConverter != null ? additionalConverter.fromString(s, context) : null;
   }
 
+  @Override
   protected String toString(final @Nullable String s) {
     return s;
   }
 
+  @Override
   protected Object[] getReferenceVariants(final ConvertContext context, final GenericDomValue<List<String>> value) {
     List<String> variants = new ArrayList<String>(myValues);
     filterVariants(variants, value);
@@ -93,10 +96,12 @@ public class FlagConverter extends DelimitedListConverter<String> {
     return new TextRange(tagRange.getStartOffset() + start - 1, tagRange.getStartOffset() + end - 1);
   }
 
+  @Override
   protected PsiElement resolveReference(@Nullable final String s, final ConvertContext context) {
     return s == null ? null : context.getReferenceXmlElement();
   }
 
+  @Override
   protected String getUnresolvedMessage(final String value) {
     return MessageFormat.format(AndroidBundle.message("cannot.resolve.flag.error"), value);
   }

@@ -52,6 +52,7 @@ public class CreateValueResourceQuickFix implements LocalQuickFix, IntentionActi
     myChooseName = chooseName;
   }
 
+  @Override
   @NotNull
   public String getName() {
     return AndroidBundle.message("create.value.resource.quickfix.name", myResourceName,
@@ -64,6 +65,7 @@ public class CreateValueResourceQuickFix implements LocalQuickFix, IntentionActi
     return AndroidBundle.message("create.value.resource.intention.name", myResourceType, myResourceName);
   }
 
+  @Override
   @NotNull
   public String getFamilyName() {
     return AndroidBundle.message("quick.fixes.family");
@@ -137,6 +139,7 @@ public class CreateValueResourceQuickFix implements LocalQuickFix, IntentionActi
     return false;
   }
 
+  @Override
   public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
     // todo: implement local fix
   }

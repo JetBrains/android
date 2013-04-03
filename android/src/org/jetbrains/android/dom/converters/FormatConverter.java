@@ -43,16 +43,19 @@ public class FormatConverter extends DelimitedListConverter<AttributeFormat> {
     super("|");
   }
 
+  @Override
   protected AttributeFormat convertString(@Nullable String string, ConvertContext context) {
     if (string == null) return null;
     return NamedEnumUtil.getEnumElementByValue(AttributeFormat.class, StringUtil.capitalize(string));
   }
 
+  @Override
   protected String toString(@Nullable AttributeFormat format) {
     if (format == null) return null;
     return format.name().toLowerCase();
   }
 
+  @Override
   protected Object[] getReferenceVariants(final ConvertContext context, final GenericDomValue<List<AttributeFormat>> value) {
     List<AttributeFormat> variants = new ArrayList<AttributeFormat>();
     Collections.addAll(variants, AttributeFormat.values());
@@ -64,10 +67,12 @@ public class FormatConverter extends DelimitedListConverter<AttributeFormat> {
     return stringVariants;
   }
 
+  @Override
   protected PsiElement resolveReference(@Nullable final AttributeFormat s, final ConvertContext context) {
     return s == null ? null : context.getReferenceXmlElement();
   }
 
+  @Override
   protected String getUnresolvedMessage(final String value) {
     return MessageFormat.format(AndroidBundle.message("cannot.resolve.format.error"), value);
   }

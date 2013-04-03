@@ -30,12 +30,14 @@ public class LayoutDomFileDescription<T extends LayoutElement> extends AndroidRe
     super(rootElementClass, rootTagName, ResourceType.LAYOUT.getName());
   }
 
+  @Override
   public boolean acceptsOtherRootTagNames() {
     return true;
   }
 
   public static boolean isLayoutFile(@NotNull final XmlFile file) {
     return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
+      @Override
       public Boolean compute() {
         return AndroidResourceDomFileDescription.doIsMyFile(file, new String[]{ResourceType.LAYOUT.getName()});
       }

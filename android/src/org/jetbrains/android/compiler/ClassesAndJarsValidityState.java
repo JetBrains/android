@@ -53,11 +53,13 @@ class ClassesAndJarsValidityState implements ValidityState {
     }
   }
 
+  @Override
   public boolean equalsTo(ValidityState otherState) {
     return otherState instanceof ClassesAndJarsValidityState
            && myFiles.equals(((ClassesAndJarsValidityState)otherState).myFiles);
   }
 
+  @Override
   public void save(DataOutput out) throws IOException {
     out.writeInt(myFiles.size());
     for (String dependency : myFiles.keySet()) {

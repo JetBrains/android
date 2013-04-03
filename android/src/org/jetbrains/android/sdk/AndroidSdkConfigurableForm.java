@@ -78,6 +78,7 @@ class AndroidSdkConfigurableForm {
     });
 
     myBuildTargetComboBox.addItemListener(new ItemListener() {
+      @Override
       public void itemStateChanged(final ItemEvent e) {
         if (myFreeze) {
           return;

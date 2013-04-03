@@ -127,6 +127,7 @@ public class AndroidModuleWizardStep extends ModuleWizardStep {
 
 
     myAvdCombo.addActionListener(new ActionListener() {
+      @Override
       public void actionPerformed(ActionEvent e) {
         final Sdk selectedSdk = context.getProjectJdk();
         if (selectedSdk == null || !(selectedSdk.getSdkType() instanceof AndroidSdkType)) {
@@ -220,6 +221,7 @@ public class AndroidModuleWizardStep extends ModuleWizardStep {
     }
   }
 
+  @Override
   public JComponent getComponent() {
     return myPanel;
   }
@@ -258,6 +260,7 @@ public class AndroidModuleWizardStep extends ModuleWizardStep {
     return true;
   }
 
+  @Override
   public void updateDataModel() {
 
     final PropertiesComponent properties = PropertiesComponent.getInstance();

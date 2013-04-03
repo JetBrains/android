@@ -35,18 +35,21 @@ public class AndroidDomInspection extends BasicDomElementsInspection<AndroidDomE
     super(AndroidDomElement.class);
   }
 
+  @Override
   @Nls
   @NotNull
   public String getGroupDisplayName() {
     return AndroidBundle.message("android.inspections.group.name");
   }
 
+  @Override
   @Nls
   @NotNull
   public String getDisplayName() {
     return AndroidBundle.message("android.inspections.dom.name");
   }
 
+  @Override
   @NonNls
   @NotNull
   public String getShortName() {

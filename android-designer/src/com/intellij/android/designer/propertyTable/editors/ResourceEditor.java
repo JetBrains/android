@@ -143,6 +143,7 @@ public class ResourceEditor extends PropertyEditor {
       });
       textField.getDocument().addDocumentListener(
         new DocumentAdapter() {
+          @Override
           protected void textChanged(final DocumentEvent e) {
             preferredSizeChanged();
           }

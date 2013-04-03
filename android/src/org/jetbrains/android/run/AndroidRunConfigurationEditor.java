@@ -115,6 +115,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     Disposer.register(this, myAvdCombo);
 
     final ActionListener listener = new ActionListener() {
+      @Override
       public void actionPerformed(ActionEvent e) {
         boolean emulatorSelected = myEmulatorRadioButton.isSelected();
         myAvdComboComponent.setEnabled(emulatorSelected);
@@ -125,6 +126,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
       }
     };
     myModulesComboBox.addActionListener(new ActionListener() {
+      @Override
       public void actionPerformed(ActionEvent e) {
         myAvdCombo.startUpdatingAvds(ModalityState.current());
       }
@@ -194,6 +196,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     return false;
   }
 
+  @Override
   protected void resetEditorFrom(T configuration) {
     myModuleSelector.reset(configuration);
     final String avd = configuration.PREFERRED_AVD;
@@ -255,6 +258,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     }
   }
 
+  @Override
   protected void applyEditorTo(T configuration) throws ConfigurationException {
     myModuleSelector.applyTo(configuration);
 
@@ -287,11 +291,13 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myConfigurationSpecificEditor.applyTo(configuration);
   }
 
+  @Override
   @NotNull
   protected JComponent createEditor() {
     return myPanel;
   }
 
+  @Override
   protected void disposeEditor() {
   }
 

@@ -24,14 +24,17 @@ import org.jetbrains.annotations.NotNull;
  */
 public class AndroidPlugin implements ApplicationComponent {
 
+  @Override
   @NotNull
   public String getComponentName() {
     return "AndroidApplicationComponent";
   }
 
+  @Override
   public void initComponent() {
   }
 
+  @Override
   public void disposeComponent() {
     AndroidSdkData.terminateDdmlib();
   }

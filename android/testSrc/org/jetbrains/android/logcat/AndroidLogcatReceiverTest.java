@@ -26,6 +26,7 @@ public class AndroidLogcatReceiverTest extends TestCase {
   private StringWriter myWriter;
   private AndroidLogcatReceiver myReceiver;
 
+  @Override
   public void setUp() {
     myWriter = new StringWriter();
     myReceiver = new AndroidLogcatReceiver(null, myWriter);

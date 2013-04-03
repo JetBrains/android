@@ -102,6 +102,7 @@ class TestRunParameters implements ConfigurationSpecificEditor<AndroidTestRunCon
   private void addTestingType(final int type, JRadioButton button) {
     myTestingType2RadioButton[type] = button;
     button.addActionListener(new ActionListener() {
+      @Override
       public void actionPerformed(ActionEvent e) {
         updateLabelComponents(type);
       }
@@ -146,6 +147,7 @@ class TestRunParameters implements ConfigurationSpecificEditor<AndroidTestRunCon
       super(myProject);
     }
 
+    @Override
     protected String showDialog() {
       Module module = myModuleSelector.getModule();
       if (module == null) {
@@ -165,6 +167,7 @@ class TestRunParameters implements ConfigurationSpecificEditor<AndroidTestRunCon
       super(myProject);
     }
 
+    @Override
     protected String showDialog() {
       final String className = myClassComponent.getComponent().getText();
       if (className.trim().length() == 0) {
@@ -200,6 +203,7 @@ class TestRunParameters implements ConfigurationSpecificEditor<AndroidTestRunCon
     return -1;
   }
 
+  @Override
   public void applyTo(AndroidTestRunConfiguration configuration) {
     configuration.TESTING_TYPE = getTestingType();
     configuration.CLASS_NAME = myClassComponent.getComponent().getText();
@@ -208,6 +212,7 @@ class TestRunParameters implements ConfigurationSpecificEditor<AndroidTestRunCon
     configuration.INSTRUMENTATION_RUNNER_CLASS = myRunnerComponent.getComponent().getText();
   }
 
+  @Override
   public void resetFrom(AndroidTestRunConfiguration configuration) {
     updateButtonsAndLabelComponents(configuration.TESTING_TYPE);
     myPackageComponent.getComponent().setText(configuration.PACKAGE_NAME);
@@ -216,6 +221,7 @@ class TestRunParameters implements ConfigurationSpecificEditor<AndroidTestRunCon
     myRunnerComponent.getComponent().setText(configuration.INSTRUMENTATION_RUNNER_CLASS);
   }
 
+  @Override
   public Component getComponent() {
     return myPanel;
   }

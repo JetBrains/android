@@ -47,8 +47,10 @@ public class GotoResourceAction extends AnAction {
     super(AndroidBundle.message("navigate.to.android.resource.action"));
   }
 
+  @Override
   public void update(final AnActionEvent e) {
     ApplicationManager.getApplication().runReadAction(new Runnable() {
+      @Override
       public void run() {
         Presentation presentation = e.getPresentation();
         DataContext dataContext = e.getDataContext();
@@ -179,6 +181,7 @@ public class GotoResourceAction extends AnAction {
     return null;
   }
 
+  @Override
   public void actionPerformed(AnActionEvent e) {
     DataContext context = e.getDataContext();
     PsiElement[] targets = findTargets(context);

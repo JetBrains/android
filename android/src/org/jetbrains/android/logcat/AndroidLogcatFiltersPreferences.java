@@ -39,10 +39,12 @@ public class AndroidLogcatFiltersPreferences implements PersistentStateComponent
     return ServiceManager.getService(project, AndroidLogcatFiltersPreferences.class);
   }
 
+  @Override
   public AndroidLogcatFiltersPreferences getState() {
     return this;
   }
 
+  @Override
   public void loadState(AndroidLogcatFiltersPreferences object) {
     XmlSerializerUtil.copyBean(object, this);
   }

@@ -51,6 +51,7 @@ public class CompoundProperty extends Property<RadViewComponent> implements IPro
     return property;
   }
 
+  @Override
   public void decorate(@NotNull MetaModel model) {
     String name = getName();
     model.decorate0(this, name);

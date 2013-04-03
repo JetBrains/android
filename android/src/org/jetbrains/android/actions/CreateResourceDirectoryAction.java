@@ -90,6 +90,7 @@ public class CreateResourceDirectoryAction extends CreateElementActionBase {
       return false;
     }
     return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
+      @Override
       public Boolean compute() {
         return AndroidResourceUtil.isResourceDirectory((PsiDirectory)element);
       }

@@ -93,6 +93,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
           @Override
           public void processTerminated(ProcessEvent event) {
             ApplicationManager.getApplication().invokeLater(new Runnable() {
+              @Override
               public void run() {
                 manager.getContentManager().removeRunContent(executor, info.getDescriptor());
               }
@@ -361,14 +362,17 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
       myDevice = device;
     }
 
+    @Override
     public RunnerSettings getRunnerSettings() {
       return myRunnerSettings;
     }
 
+    @Override
     public ConfigurationPerRunnerSettings getConfigurationSettings() {
       return myConfigurationSettings;
     }
 
+    @Override
     public ExecutionResult execute(final Executor executor, @NotNull final ProgramRunner runner) throws ExecutionException {
       RemoteDebugProcessHandler process = new RemoteDebugProcessHandler(myProject);
       myState.setProcessHandler(process);
@@ -378,6 +382,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
       return new DefaultExecutionResult(console, process);
     }
 
+    @Override
     public RemoteConnection getRemoteConnection() {
       return myConnection;
     }
@@ -400,11 +405,13 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     }
   }
 
+  @Override
   @NotNull
   public String getRunnerId() {
     return "AndroidDebugRunner";
   }
 
+  @Override
   public boolean canRun(@NotNull String executorId, @NotNull RunProfile profile) {
     return (DefaultDebugExecutor.EXECUTOR_ID.equals(executorId) || DefaultRunExecutor.EXECUTOR_ID.equals(executorId)) &&
            profile instanceof AndroidRunConfigurationBase;
@@ -469,6 +476,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
       layoutUi.getContentManager().setSelectedContent(selectedContent);
 
       layoutUi.addListener(new ContentManagerAdapter() {
+        @Override
         public void selectionChanged(final ContentManagerEvent event) {
           final Content content = event.getContent();
 
@@ -536,8 +544,10 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
       myRunDescriptor = runDescriptor;
     }
 
+    @Override
     public void launchDebug(final IDevice device, final String debugPort) {
       ApplicationManager.getApplication().invokeLater(new Runnable() {
+        @Override
         @SuppressWarnings({"IOResourceOpenedButNotSafelyClosed"})
         public void run() {
           final DebuggerPanelsManager manager = DebuggerPanelsManager.getInstance(myProject);

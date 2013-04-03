@@ -234,6 +234,7 @@ public class AndroidRootUtil {
       return;
     }
     ApplicationManager.getApplication().runReadAction(new Runnable() {
+      @Override
       public void run() {
         ModuleRootManager manager = ModuleRootManager.getInstance(module);
         for (OrderEntry entry : manager.getOrderEntries()) {

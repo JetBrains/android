@@ -95,6 +95,7 @@ public class AndroidProjectWizardTest extends ProjectWizardTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
       public void run() {
         ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();
         Sdk defaultJdk = jdkTable.createSdk(ANDROID, AndroidSdkType.getInstance());

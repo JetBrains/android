@@ -144,6 +144,7 @@ public class AndroidCompileUtil {
                           @Nullable final Map<VirtualFile, VirtualFile> presentableFilesMap,
                           @Nullable final Module module) {
     ApplicationManager.getApplication().runReadAction(new Runnable() {
+      @Override
       public void run() {
         if (context.getProject().isDisposed()) return;
         for (CompilerMessageCategory category : messages.keySet()) {
@@ -408,6 +409,7 @@ public class AndroidCompileUtil {
     final Project project = module.getProject();
 
     ApplicationManager.getApplication().runReadAction(new Runnable() {
+      @Override
       public void run() {
         if (project.isDisposed()) return;
         CompilerTask task = new CompilerTask(project, "Android auto-generation", true, false, true, true);
@@ -477,6 +479,7 @@ public class AndroidCompileUtil {
             }
             else {
               ApplicationManager.getApplication().invokeLater(new Runnable() {
+                @Override
                 public void run() {
                   Messages.showErrorDialog(project, "Can't delete file " + path, CommonBundle.getErrorTitle());
                 }

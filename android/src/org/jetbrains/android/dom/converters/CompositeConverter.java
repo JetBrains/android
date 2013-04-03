@@ -41,6 +41,7 @@ public class CompositeConverter extends ResolvingConverter<String> {
     return converters.size();
   }
 
+  @Override
   @NotNull
   public Collection<String> getVariants(ConvertContext context) {
     List<String> variants = new ArrayList<String>();
@@ -50,10 +51,12 @@ public class CompositeConverter extends ResolvingConverter<String> {
     return variants;
   }
 
+  @Override
   public String fromString(@Nullable String s, ConvertContext context) {
     return s;
   }
 
+  @Override
   public String toString(@Nullable String s, ConvertContext context) {
     return s;
   }

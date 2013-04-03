@@ -184,6 +184,7 @@ public class AndroidAutogenerator {
     catch (final IOException e) {
       LOG.info(e);
       ApplicationManager.getApplication().runReadAction(new Runnable() {
+        @Override
         public void run() {
           if (module.getProject().isDisposed()) return;
           context.addMessage(CompilerMessageCategory.ERROR, "I/O error: " + e.getMessage(), null, -1, -1);
@@ -333,6 +334,7 @@ public class AndroidAutogenerator {
     catch (final IOException e) {
       LOG.info(e);
       ApplicationManager.getApplication().runReadAction(new Runnable() {
+        @Override
         public void run() {
           if (module.getProject().isDisposed()) return;
           context.addMessage(CompilerMessageCategory.ERROR, "I/O error: " + e.getMessage(), null, -1, -1);
@@ -509,6 +511,7 @@ public class AndroidAutogenerator {
           AndroidIdl.execute(item.myTarget, fileOsPath, item.myOutFileOsPath, item.mySourceRootOsPaths));
 
         ApplicationManager.getApplication().runReadAction(new Runnable() {
+          @Override
           public void run() {
             if (module.getProject().isDisposed()) return;
 
@@ -536,6 +539,7 @@ public class AndroidAutogenerator {
       catch (final IOException e) {
         LOG.info(e);
         ApplicationManager.getApplication().runReadAction(new Runnable() {
+          @Override
           public void run() {
             if (module.getProject().isDisposed()) return;
             context.addMessage(CompilerMessageCategory.ERROR, e.getMessage(), file.getUrl(), -1, -1);
@@ -628,6 +632,7 @@ public class AndroidAutogenerator {
         }
 
         ApplicationManager.getApplication().runReadAction(new Runnable() {
+          @Override
           public void run() {
             if (module.getProject().isDisposed()) {
               return;
@@ -650,6 +655,7 @@ public class AndroidAutogenerator {
       catch (final IOException e) {
         LOG.info(e);
         ApplicationManager.getApplication().runReadAction(new Runnable() {
+          @Override
           public void run() {
             if (module.getProject().isDisposed()) return;
             context.addMessage(CompilerMessageCategory.ERROR, e.getMessage(), file.getUrl(), -1, -1);
@@ -692,6 +698,7 @@ public class AndroidAutogenerator {
                                              @NotNull final String sourceRootPath) {
     if (generatedFile.exists()) {
       ApplicationManager.getApplication().runReadAction(new Runnable() {
+        @Override
         public void run() {
           if (module.getProject().isDisposed() || module.isDisposed()) {
             return;

@@ -61,6 +61,7 @@ public class AndroidSelectedFileEditorProvider implements SelectedFileEditorProv
     @Override
     public void projectOpened() {
       StartupManager.getInstance(myProject).registerPostStartupActivity(new Runnable() {
+        @Override
         public void run() {
           MessageBusConnection connection = myProject.getMessageBus().connect(myProject);
           connection.subscribe(FileEditorManagerListener.Before.FILE_EDITOR_MANAGER, new FileEditorManagerListener.Before.Adapter() {

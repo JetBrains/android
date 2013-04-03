@@ -82,6 +82,7 @@ public class AndroidColorAnnotator implements Annotator {
     myColors.put("magenta", Integer.valueOf(MAGENTA));
   }
 
+  @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
     if (element instanceof XmlTag) {
       XmlTag tag = (XmlTag)element;
@@ -158,6 +159,7 @@ public class AndroidColorAnnotator implements Annotator {
               ColorChooser.chooseColor(editor.getComponent(), AndroidBundle.message("android.choose.color"), getCurrentColor());
             if (color != null) {
               ApplicationManager.getApplication().runWriteAction(new Runnable() {
+                @Override
                 public void run() {
                   myElement.getValue().setText(colorToString(color));
                 }

@@ -64,35 +64,42 @@ public class AndroidLogcatColorPage implements ColorSettingsPage {
       new AttributesDescriptor(AndroidBundle.message("error.level.title"), AndroidLogcatConstants.ERROR_OUTPUT_KEY),
       new AttributesDescriptor(AndroidBundle.message("assert.level.title"), AndroidLogcatConstants.ASSERT_OUTPUT_KEY)};
 
+  @Override
   @NotNull
   public String getDisplayName() {
     return AndroidBundle.message("android.logcat.color.page.name");
   }
 
+  @Override
   public Icon getIcon() {
     return AndroidIcons.Android;
   }
 
+  @Override
   @NotNull
   public AttributesDescriptor[] getAttributeDescriptors() {
     return ATTRIBUTES_DESCRIPTORS;
   }
 
+  @Override
   @NotNull
   public ColorDescriptor[] getColorDescriptors() {
     return ColorDescriptor.EMPTY_ARRAY;
   }
 
+  @Override
   @NotNull
   public SyntaxHighlighter getHighlighter() {
     return new PlainSyntaxHighlighter();
   }
 
+  @Override
   @NotNull
   public String getDemoText() {
     return DEMO_TEXT;
   }
 
+  @Override
   public Map<String, TextAttributesKey> getAdditionalHighlightingTagToDescriptorMap() {
     return ADDITIONAL_HIGHLIGHT_DESCRIPTORS;
   }

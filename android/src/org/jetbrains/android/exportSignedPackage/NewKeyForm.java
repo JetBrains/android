@@ -154,11 +154,13 @@ public abstract class NewKeyForm {
       createdStore = KeystoreHelper
         .createNewStore(keystoreLocation, null, keystorePassword, keyAlias, keyPassword, dname, getValidity(),
                         new DebugKeyProvider.IKeyGenOutput() {
+                          @Override
                           public void err(String message) {
                             errorBuilder.append(message).append('\n');
                             LOG.info("Error: " + message);
                           }
 
+                          @Override
                           public void out(String message) {
                             outBuilder.append(message).append('\n');
                             LOG.info(message);

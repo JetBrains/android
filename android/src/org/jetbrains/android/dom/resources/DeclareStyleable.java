@@ -25,6 +25,7 @@ import java.util.List;
  * @author coyote
  */
 public interface DeclareStyleable extends ResourceElement {
+  @Override
   @Convert(DeclareStyleableNameConverter.class)
   GenericAttributeValue<String> getName();
   List<Attr> getAttrs();

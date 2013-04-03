@@ -67,8 +67,10 @@ public class AndroidRenameResourceProcessor extends RenamePsiElementProcessor {
   // for tests
   public static volatile boolean ASK = true;
 
+  @Override
   public boolean canProcessElement(@NotNull final PsiElement element) {
     return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
+      @Override
       public Boolean compute() {
         final PsiElement element1 = LazyValueResourceElementWrapper.computeLazyElement(element);
         if (element1 == null) {

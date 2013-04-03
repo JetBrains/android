@@ -168,6 +168,7 @@ public class AndroidPngFilesCachingCompiler implements SourceGeneratingCompiler 
       return myResourceDir;
     }
 
+    @Override
     @NotNull
     public Module getModule() {
       return myModule;

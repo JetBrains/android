@@ -119,6 +119,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   protected abstract void checkConfiguration(@NotNull AndroidFacet facet) throws RuntimeConfigurationException;
 
+  @Override
   public Collection<Module> getValidModules() {
     final List<Module> result = new ArrayList<Module>();
     Module[] modules = ModuleManager.getInstance(getProject()).getModules();
@@ -145,6 +146,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     TARGET_SELECTION_MODE = mode.name();
   }
 
+  @Override
   public AndroidRunningState getState(@NotNull final Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
     final Module module = getConfigurationModule().getModule();
     if (module == null) {
@@ -267,12 +269,14 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   protected abstract boolean supportMultipleDevices();
 
+  @Override
   public void readExternal(Element element) throws InvalidDataException {
     super.readExternal(element);
     readModule(element);
     DefaultJDOMExternalizer.readExternal(this, element);
   }
 
+  @Override
   public void writeExternal(Element element) throws WriteExternalException {
     super.writeExternal(element);
     writeModule(element);

@@ -30,6 +30,7 @@ public class AndroidNewProjectAction extends AnAction implements DumbAware {
     super("New Project...");
   }
 
+  @Override
   public void actionPerformed(AnActionEvent e) {
     String prop = System.getProperty(NEW_NEW_PROJECT_WIZARD);
     if (prop != null && Boolean.parseBoolean(prop)) {

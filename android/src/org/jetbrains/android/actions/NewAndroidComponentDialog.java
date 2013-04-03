@@ -109,6 +109,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
   private static boolean containsCustomApplicationClass(@NotNull final Module module) {
     final JavaPsiFacade facade = JavaPsiFacade.getInstance(module.getProject());
     PsiClass applicationClass = ApplicationManager.getApplication().runReadAction(new Computable<PsiClass>() {
+      @Override
       @Nullable
       public PsiClass compute() {
         return facade.findClass(AndroidUtils.APPLICATION_CLASS_NAME, module.getModuleWithDependenciesAndLibrariesScope(false));

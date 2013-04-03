@@ -67,6 +67,7 @@ class ChooseModuleStep extends ExportSignedPackageWizardStep {
       }
     });
     myModuleCombo.addActionListener(new ActionListener() {
+      @Override
       public void actionPerformed(ActionEvent e) {
         myCheckModulePanel.updateMessages(getSelectedFacet());
       }

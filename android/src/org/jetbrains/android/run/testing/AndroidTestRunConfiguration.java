@@ -243,6 +243,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
     return new AndroidTestRunConfiguration(getName(), getProject(), AndroidTestRunConfigurationType.getInstance().getFactory());
   }
 
+  @Override
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
     Project project = getProject();
     AndroidRunConfigurationEditor<AndroidTestRunConfiguration> editor =
@@ -300,6 +301,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
       this.myInstrumentationTestRunner = instrumentationTestRunner;
     }
 
+    @Override
     public LaunchResult launch(@NotNull AndroidRunningState state, @NotNull IDevice device)
       throws IOException, AdbCommandRejectedException, TimeoutException {
       state.getProcessHandler().notifyTextAvailable("Running tests\n", ProcessOutputTypes.STDOUT);

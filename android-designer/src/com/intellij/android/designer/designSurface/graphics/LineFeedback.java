@@ -26,12 +26,14 @@ public class LineFeedback extends com.intellij.designer.designSurface.feedbacks.
     myStyle = style;
   }
 
+  @Override
   protected void paintHorizontal(Graphics g, Dimension size) {
     int lineWidth = myStyle.getLineWidth();
     int middle = lineWidth / 2;
     DesignerGraphics.drawLine(myStyle, g, 0, middle, size.width, middle);
   }
 
+  @Override
   protected void paintVertical(Graphics g, Dimension size) {
     int lineWidth = myStyle.getLineWidth();
     int middle = lineWidth / 2;

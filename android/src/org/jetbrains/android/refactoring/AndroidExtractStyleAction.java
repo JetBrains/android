@@ -57,6 +57,7 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
     myTestConfig = testConfig;
   }
 
+  @Override
   protected boolean isEnabledForTags(@NotNull XmlTag[] tags) {
     return tags.length == 1 && doIsEnabled(tags[0]);
   }

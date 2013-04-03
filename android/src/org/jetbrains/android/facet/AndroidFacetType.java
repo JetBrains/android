@@ -36,10 +36,12 @@ public class AndroidFacetType extends FacetType<AndroidFacet, AndroidFacetConfig
   }
 
 
+  @Override
   public AndroidFacetConfiguration createDefaultConfiguration() {
     return new AndroidFacetConfiguration();
   }
 
+  @Override
   public AndroidFacet createFacet(@NotNull Module module,
                                   String name,
                                   @NotNull AndroidFacetConfiguration configuration,
@@ -50,10 +52,12 @@ public class AndroidFacetType extends FacetType<AndroidFacet, AndroidFacetConfig
     return new AndroidFacet(module, name, configuration);
   }
 
+  @Override
   public boolean isSuitableModuleType(ModuleType moduleType) {
     return moduleType instanceof JavaModuleType;
   }
 
+  @Override
   public Icon getIcon() {
     return AndroidIcons.Android;
   }

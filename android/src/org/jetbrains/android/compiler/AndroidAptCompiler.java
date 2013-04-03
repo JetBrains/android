@@ -73,10 +73,12 @@ public class AndroidAptCompiler implements SourceGeneratingCompiler {
     return false;
   }
 
+  @Override
   public GenerationItem[] getGenerationItems(CompileContext context) {
     return ApplicationManager.getApplication().runReadAction(new PrepareAction(context));
   }
 
+  @Override
   public GenerationItem[] generate(final CompileContext context, final GenerationItem[] items, VirtualFile outputRootDirectory) {
     if (items != null && items.length > 0) {
       context.getProgressIndicator().setText(AndroidBundle.message("android.compile.messages.generating.r.java"));
@@ -143,6 +145,7 @@ public class AndroidAptCompiler implements SourceGeneratingCompiler {
         catch (final IOException e) {
           LOG.info(e);
           ApplicationManager.getApplication().runReadAction(new Runnable() {
+            @Override
             public void run() {
               if (context.getProject().isDisposed()) return;
               context.addMessage(CompilerMessageCategory.ERROR, "I/O error: " + e.getMessage(), null, -1, -1);
@@ -163,15 +166,18 @@ public class AndroidAptCompiler implements SourceGeneratingCompiler {
     return results.toArray(new GenerationItem[results.size()]);
   }
 
+  @Override
   @NotNull
   public String getDescription() {
     return FileUtil.getNameWithoutExtension(SdkConstants.FN_AAPT);
   }
 
+  @Override
   public boolean validateConfiguration(CompileScope scope) {
     return true;
   }
 
+  @Override
   public ValidityState createValidityState(DataInput is) throws IOException {
     return new MyValidityState(is);
   }
@@ -219,18 +225,22 @@ public class AndroidAptCompiler implements SourceGeneratingCompiler {
                                             proguardCfgOutputFileOsPath != null ? proguardCfgOutputFileOsPath : "");
     }
 
+    @Override
     public String getPath() {
       return "FAKE";
     }
 
+    @Override
     public ValidityState getValidityState() {
       return myValidityState;
     }
 
+    @Override
     public Module getModule() {
       return myModule;
     }
 
+    @Override
     public boolean isTestSource() {
       return false;
     }
@@ -248,6 +258,7 @@ public class AndroidAptCompiler implements SourceGeneratingCompiler {
       myContext = context;
     }
 
+    @Override
     public GenerationItem[] compute() {
       if (myContext.getProject().isDisposed()) {
         return EMPTY_GENERATION_ITEM_ARRAY;

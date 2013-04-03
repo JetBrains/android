@@ -38,48 +38,58 @@ public class AndroidIdlParserDefinition implements ParserDefinition {
   public static final IElementType AIDL_TEXT = new IElementType("AIDL_TEXT", AndroidIdlFileType.ourFileType.getLanguage());
 
   public static final IFileElementType AIDL_FILE_ELEMENT_TYPE = new IFileElementType(AndroidIdlFileType.ourFileType.getLanguage()) {
+    @Override
     public ASTNode parseContents(ASTNode chameleon) {
       return ASTFactory.leaf(AIDL_TEXT, chameleon.getChars());
     }
   };
 
+  @Override
   @NotNull
   public Lexer createLexer(Project project) {
     return new EmptyLexer();
   }
 
+  @Override
   public PsiParser createParser(Project project) {
     throw new UnsupportedOperationException();
   }
 
+  @Override
   public IFileElementType getFileNodeType() {
     return AIDL_FILE_ELEMENT_TYPE;
   }
 
+  @Override
   @NotNull
   public TokenSet getWhitespaceTokens() {
     return TokenSet.EMPTY;
   }
 
+  @Override
   @NotNull
   public TokenSet getCommentTokens() {
     return TokenSet.EMPTY;
   }
 
+  @Override
   @NotNull
   public TokenSet getStringLiteralElements() {
     return TokenSet.EMPTY;
   }
 
+  @Override
   @NotNull
   public PsiElement createElement(ASTNode node) {
     return PsiUtilCore.NULL_PSI_ELEMENT;
   }
 
+  @Override
   public PsiFile createFile(FileViewProvider viewProvider) {
     return new AndroidIdlFileImpl(viewProvider);
   }
 
+  @Override
   public SpaceRequirements spaceExistanceTypeBetweenTokens(ASTNode left, ASTNode right) {
     return ParserDefinition.SpaceRequirements.MAY;
   }

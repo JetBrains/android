@@ -59,6 +59,7 @@ public class RadTableLayoutComponent extends RadViewContainer implements IGridPr
     }
   }
 
+  @Override
   public GridInfo getGridInfo() {
     if (myGridInfo == null) {
       myGridInfo = new GridInfo(this);
@@ -102,6 +103,7 @@ public class RadTableLayoutComponent extends RadViewContainer implements IGridPr
     return myGridInfo;
   }
 
+  @Override
   public GridInfo getVirtualGridInfo() {
     if (myVirtualGridInfo == null) {
       myVirtualGridInfo = new GridInfo(this);

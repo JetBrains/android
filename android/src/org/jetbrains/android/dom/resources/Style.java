@@ -40,6 +40,7 @@ public interface Style extends ResourceElement {
   @Convert(ParentStyleConverter.class)
   GenericAttributeValue<ResourceValue> getParentStyle();
 
+  @Override
   @Required
   @Convert(ResourceNameConverter.class)
   GenericAttributeValue<String> getName();

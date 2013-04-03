@@ -35,6 +35,7 @@ public class ResourcesDomFileDescription extends DomFileDescription<Resources> {
   @Override
   public boolean isMyFile(@NotNull final XmlFile file, @Nullable Module module) {
     return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
+      @Override
       public Boolean compute() {
         return AndroidResourceUtil.isInResourceSubdirectory(file, "values");
       }

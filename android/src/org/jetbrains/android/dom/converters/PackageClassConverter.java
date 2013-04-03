@@ -56,11 +56,13 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     myExtendClassesNames = ArrayUtil.EMPTY_STRING_ARRAY;
   }
 
+  @Override
   @NotNull
   public Collection<? extends PsiClass> getVariants(ConvertContext context) {
     return Collections.emptyList();
   }
 
+  @Override
   public PsiClass fromString(@Nullable @NonNls String s, ConvertContext context) {
     if (s == null) return null;
     DomElement domElement = context.getInvocationElement();
@@ -167,6 +169,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     return aClass.getName();
   }
 
+  @Override
   @Nullable
   public String toString(@Nullable PsiClass psiClass, ConvertContext context) {
     DomElement domElement = context.getInvocationElement();

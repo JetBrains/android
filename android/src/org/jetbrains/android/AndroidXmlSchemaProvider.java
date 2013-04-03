@@ -75,6 +75,7 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
     }
     CachedValuesManager manager = CachedValuesManager.getManager(module.getProject());
     reference = manager.createCachedValue(new CachedValueProvider<XmlFile>() {
+      @Override
       public Result<XmlFile> compute() {
         final URL resource = AndroidXmlSchemaProvider.class.getResource("android.xsd");
         final VirtualFile fileByURL = VfsUtil.findFileByURL(resource);
@@ -96,6 +97,7 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
     final XmlFile originalFile = (XmlFile)f;
 
     return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
+      @Override
       public Boolean compute() {
         if (isXmlResourceFile(originalFile) ||
             ManifestDomFileDescription.isManifestFile(originalFile)) {
@@ -149,6 +151,7 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
     final Manifest manifest = facet.getManifest();
     if (manifest != null) {
       String aPackage = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+        @Override
         @Nullable
         public String compute() {
           return manifest.getPackage().getValue();

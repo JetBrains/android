@@ -33,6 +33,7 @@ public class ManifestDomFileDescription extends DomFileDescription<Manifest> {
     super(Manifest.class, "manifest");
   }
 
+  @Override
   public boolean isMyFile(@NotNull XmlFile file, @Nullable Module module) {
     return isManifestFile(file);
   }
@@ -45,6 +46,7 @@ public class ManifestDomFileDescription extends DomFileDescription<Manifest> {
     return module == null || !module.isDisposed() && AndroidFacet.getInstance(module) != null;
   }
 
+  @Override
   protected void initializeFileDescription() {
     registerNamespacePolicy(AndroidUtils.NAMESPACE_KEY, SdkConstants.NS_RESOURCES);
   }

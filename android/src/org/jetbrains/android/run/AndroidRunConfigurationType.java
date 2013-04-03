@@ -31,6 +31,7 @@ import javax.swing.*;
  */
 public class AndroidRunConfigurationType implements ConfigurationType {
   private final ConfigurationFactory myFactory = new ConfigurationFactory(this) {
+    @Override
     public RunConfiguration createTemplateConfiguration(Project project) {
       return new AndroidRunConfiguration("", project, this);
     }
@@ -45,23 +46,28 @@ public class AndroidRunConfigurationType implements ConfigurationType {
     return ConfigurationTypeUtil.findConfigurationType(AndroidRunConfigurationType.class);
   }
 
+  @Override
   public String getDisplayName() {
     return AndroidBundle.message("android.run.configuration.type.name");
   }
 
+  @Override
   public String getConfigurationTypeDescription() {
     return AndroidBundle.message("android.run.configuration.type.description");
   }
 
+  @Override
   public Icon getIcon() {
     return AndroidIcons.Android;
   }
 
+  @Override
   @NotNull
   public String getId() {
     return "AndroidRunConfigurationType";
   }
 
+  @Override
   public ConfigurationFactory[] getConfigurationFactories() {
     return new ConfigurationFactory[]{myFactory};
   }

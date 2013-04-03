@@ -59,6 +59,7 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
     ImportDependenciesUtil.importDependencies(module, true);
 
     StartupManager.getInstance(project).runWhenProjectIsInitialized(new Runnable() {
+      @Override
       public void run() {
         doImportSdkAndFacetConfiguration(facet, model);
         ApplicationManager.getApplication().saveAll();

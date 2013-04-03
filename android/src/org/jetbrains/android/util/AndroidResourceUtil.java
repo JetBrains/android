@@ -172,6 +172,7 @@ public class AndroidResourceUtil {
 
     if (packageName != null) {
       ModulePackageIndex.getInstance(module).getDirsByPackageName(packageName, false).forEach(new Processor<VirtualFile>() {
+        @Override
         public boolean process(final VirtualFile directory) {
           final PsiDirectory psiDir = PsiManager.getInstance(project).findDirectory(directory);
 
@@ -191,6 +192,7 @@ public class AndroidResourceUtil {
 
       if (ownPackageName != null && !ownPackageName.equals(packageName)) {
         ModulePackageIndex.getInstance(module).getDirsByPackageName(ownPackageName, false).forEach(new Processor<VirtualFile>() {
+          @Override
           public boolean process(final VirtualFile directory) {
             final PsiDirectory psiDir = PsiManager.getInstance(project).findDirectory(directory);
 
