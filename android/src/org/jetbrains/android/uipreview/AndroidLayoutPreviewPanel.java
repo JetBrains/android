@@ -18,13 +18,17 @@ package org.jetbrains.android.uipreview;
 import com.android.tools.idea.rendering.*;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.event.CaretEvent;
 import com.intellij.openapi.editor.event.CaretListener;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.Gray;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBLayeredPane;
@@ -50,6 +54,8 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
   public static final Gray DESIGNER_BACKGROUND_COLOR = Gray._150;
   public static final Color SELECTION_BORDER_COLOR = new Color(0x00, 0x99, 0xFF, 255);
   public static final Color SELECTION_FILL_COLOR = new Color(0x00, 0x99, 0xFF, 32);
+  /** FileEditorProvider ID for the layout editor */
+  public static final String ANDROID_DESIGNER_ID = "android-designer";
 
   @NotNull
   private RenderResult myRenderResult = RenderResult.NONE;
@@ -99,7 +105,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
       public void mouseClicked(MouseEvent mouseEvent) {
         if (mouseEvent.getClickCount() == 2) {
           // Double click: open in the UI editor
-          switchtoLayoutEditor();
+          switchToLayoutEditor();
         }
       }
     });
@@ -141,8 +147,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     previewPanel.add(myErrorPanel, JLayeredPane.POPUP_LAYER);
   }
 
-  private void switchtoLayoutEditor() {
-    /* TODO: Find out how to implement this correctly
+  private void switchToLayoutEditor() {
     if (myEditor != null && myRenderResult.getFile() != null) {
       ApplicationManager.getApplication().invokeLater(new Runnable() {
         @Override
@@ -150,23 +155,11 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
           VirtualFile file = myRenderResult.getFile().getVirtualFile();
           if (file != null) {
             Project project = myEditor.getEditor().getProject();
-            OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file);
-            List<FileEditor> editors = FileEditorManager.getInstance(project).openEditor(descriptor, true);
-
-            for (FileEditor editor : editors) {
-              // TODO: When we merge the layout editor code into this plugin we
-              // can avoid stringly typed expressions like this and reference
-              // the android designer classes directly:
-              if (editor.getClass().getSimpleName().contains("Designer")) {
-                editor.getComponent().getParent().getParent();
-                IdeFocusManager.getInstance(project).requestFocus(editor.getComponent(), true);
-              }
-            }
+            FileEditorManager.getInstance(project).setSelectedEditor(file, ANDROID_DESIGNER_ID);
           }
         }
       }, ModalityState.NON_MODAL);
     }
-    */
   }
 
   private void selectViewAt(int x1, int y1) {
