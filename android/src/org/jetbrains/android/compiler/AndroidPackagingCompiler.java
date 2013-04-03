@@ -57,6 +57,7 @@ import java.util.*;
 public class AndroidPackagingCompiler implements PackagingCompiler {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.compiler.AndroidPackagingCompiler");
 
+  @Override
   public void processOutdatedItem(CompileContext context, String url, @Nullable ValidityState state) {
   }
 
@@ -105,6 +106,7 @@ public class AndroidPackagingCompiler implements PackagingCompiler {
     return VfsUtil.toVirtualFileArray(result);
   }
 
+  @Override
   @NotNull
   public ProcessingItem[] getProcessingItems(CompileContext context) {
     final List<ProcessingItem> items = new ArrayList<ProcessingItem>();
@@ -196,6 +198,7 @@ public class AndroidPackagingCompiler implements PackagingCompiler {
     return result;
   }
 
+  @Override
   public ProcessingItem[] process(final CompileContext context, ProcessingItem[] items) {
     if (!AndroidCompileUtil.isFullBuild(context)) {
       return ProcessingItem.EMPTY_ARRAY;
@@ -265,6 +268,7 @@ public class AndroidPackagingCompiler implements PackagingCompiler {
     catch (final IOException e) {
       LOG.info(e);
       ApplicationManager.getApplication().runReadAction(new Runnable() {
+        @Override
         public void run() {
           if (context.getProject().isDisposed()) return;
           context.addMessage(CompilerMessageCategory.ERROR, e.getMessage(), null, -1, -1);
@@ -291,15 +295,18 @@ public class AndroidPackagingCompiler implements PackagingCompiler {
     return false;
   }
 
+  @Override
   @NotNull
   public String getDescription() {
     return "Android Packaging Compiler";
   }
 
+  @Override
   public boolean validateConfiguration(CompileScope scope) {
     return true;
   }
 
+  @Override
   public ValidityState createValidityState(DataInput is) throws IOException {
     return new MyValidityState(is);
   }
@@ -396,11 +403,13 @@ public class AndroidPackagingCompiler implements PackagingCompiler {
       myNativeLibsFolders = nativeLibsFolders;
     }
 
+    @Override
     @NotNull
     public VirtualFile getFile() {
       return myManifestFile;
     }
 
+    @Override
     @Nullable
     public ValidityState getValidityState() {
       return new MyValidityState(myModule.getProject(), myResPackagePath, myClassesDexPath, myFinalPath, myGenerateUnsigendApk,

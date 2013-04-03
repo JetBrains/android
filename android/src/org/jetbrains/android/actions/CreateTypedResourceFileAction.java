@@ -154,6 +154,7 @@ public class CreateTypedResourceFileAction extends CreateElementActionBase {
     }
 
     return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
+      @Override
       public Boolean compute() {
         PsiElement e = element;
         while (e != null) {

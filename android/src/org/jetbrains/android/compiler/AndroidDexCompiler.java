@@ -52,11 +52,13 @@ import java.util.*;
  */
 public class AndroidDexCompiler implements ClassPostProcessingCompiler {
 
+  @Override
   @NotNull
   public ProcessingItem[] getProcessingItems(CompileContext context) {
     return ApplicationManager.getApplication().runReadAction(new PrepareAction(context));
   }
 
+  @Override
   public ProcessingItem[] process(CompileContext context, ProcessingItem[] items) {
     if (!AndroidCompileUtil.isFullBuild(context)) {
       return ProcessingItem.EMPTY_ARRAY;
@@ -69,15 +71,18 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
     return ProcessingItem.EMPTY_ARRAY;
   }
 
+  @Override
   @NotNull
   public String getDescription() {
     return FileUtil.getNameWithoutExtension(SdkConstants.FN_DX);
   }
 
+  @Override
   public boolean validateConfiguration(CompileScope scope) {
     return true;
   }
 
+  @Override
   public ValidityState createValidityState(DataInput in) throws IOException {
     return new MyValidityState(in);
   }
@@ -114,6 +119,7 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
       myContext = context;
     }
 
+    @Override
     public ProcessingItem[] compute() {
       final AndroidDexCompilerConfiguration dexConfig =
         AndroidDexCompilerConfiguration.getInstance(myContext.getProject());
@@ -202,6 +208,7 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
       myItems = items;
     }
 
+    @Override
     public ProcessingItem[] compute() {
       List<ProcessingItem> results = new ArrayList<ProcessingItem>(myItems.length);
       for (ProcessingItem item : myItems) {
@@ -267,11 +274,13 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
       myOptimize = optimize;
     }
 
+    @Override
     @NotNull
     public VirtualFile getFile() {
       return myClassDir;
     }
 
+    @Override
     @Nullable
     public ValidityState getValidityState() {
       return new MyValidityState(myFiles, myAdditionalVmParams, myMaxHeapSize, myOptimize);

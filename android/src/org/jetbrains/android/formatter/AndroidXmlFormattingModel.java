@@ -39,24 +39,29 @@ class AndroidXmlFormattingModel implements FormattingModel {
     }
   }
 
+  @Override
   @NotNull
   public Block getRootBlock() {
     return myRootBlock;
   }
 
+  @Override
   @NotNull
   public FormattingDocumentModel getDocumentModel() {
     return myModel.getDocumentModel();
   }
 
+  @Override
   public TextRange replaceWhiteSpace(TextRange textRange, String whiteSpace) {
     return myModel.replaceWhiteSpace(textRange, whiteSpace);
   }
 
+  @Override
   public TextRange shiftIndentInsideRange(TextRange range, int indent) {
     return myModel.shiftIndentInsideRange(range, indent);
   }
 
+  @Override
   public void commitChanges() {
     myModel.commitChanges();
   }

@@ -199,6 +199,7 @@ public class AndroidResourcesPackagingCompiler implements ClassPostProcessingCom
     catch (final IOException e) {
       LOG.info(e);
       ApplicationManager.getApplication().runReadAction(new Runnable() {
+        @Override
         public void run() {
           if (context.getProject().isDisposed()) return;
           context.addMessage(CompilerMessageCategory.ERROR, e.getMessage(), null, -1, -1);

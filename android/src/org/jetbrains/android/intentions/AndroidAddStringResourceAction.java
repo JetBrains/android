@@ -72,6 +72,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
   private static final String CONTEXT = "android.content.Context";
   private static final String RESOURCES = "android.content.res.Resources";
 
+  @Override
   @NotNull
   public String getText() {
     return AndroidBundle.message("add.string.resource.intention.text");
@@ -83,6 +84,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     return getText();
   }
 
+  @Override
   public boolean isAvailable(@NotNull Project project, Editor editor, PsiFile file) {
     AndroidFacet facet = AndroidFacet.getInstance(file);
     if (facet == null) {
@@ -151,6 +153,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     return element != null ? element.getParent() : null;
   }
 
+  @Override
   public void invoke(@NotNull final Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
     doInvoke(project, editor, file, null);
   }
@@ -291,6 +294,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     return "get" + Character.toUpperCase(type.charAt(0)) + type.substring(1);
   }
 
+  @Override
   public boolean startInWriteAction() {
     return true;
   }

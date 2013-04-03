@@ -53,6 +53,7 @@ public class AndroidXmlExtension extends DefaultXmlExtension {
         return false;
       }
       return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
+        @Override
         public Boolean compute() {
           return AndroidResourceUtil.isInResourceSubdirectory(file, null) ||
                  ManifestDomFileDescription.isManifestFile((XmlFile)file);

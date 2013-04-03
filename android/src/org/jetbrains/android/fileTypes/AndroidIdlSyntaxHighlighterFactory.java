@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
  * @author yole
  */
 public class AndroidIdlSyntaxHighlighterFactory extends SyntaxHighlighterFactory {
+  @Override
   @NotNull
   public SyntaxHighlighter getSyntaxHighlighter(Project project, VirtualFile virtualFile) {
     return new JavaFileHighlighter(LanguageLevel.HIGHEST);

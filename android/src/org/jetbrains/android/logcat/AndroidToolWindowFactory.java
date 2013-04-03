@@ -67,6 +67,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory {
   @NonNls private static final String ADBLOGS_CONTENT_ID = "AdbLogsContent";
   private static final Key<DevicePanel> DEVICES_PANEL_KEY = Key.create("DevicePanel");
 
+  @Override
   public void createToolWindowContent(final Project project, final ToolWindow toolWindow) {
     RunnerLayoutUi layoutUi = RunnerLayoutUi.Factory.getInstance(project).create(
       "ddms", "ddms", "ddms", project);
@@ -101,6 +102,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory {
     contentManager.addContent(c);
 
     ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
       public void run() {
         logcatView.activate();
         final ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID);

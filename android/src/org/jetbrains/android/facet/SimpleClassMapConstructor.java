@@ -42,9 +42,11 @@ public class SimpleClassMapConstructor implements ClassMapConstructor {
     return SimpleClassMapConstructorHolder.INSTANCE;
   }
 
+  @Override
   @NotNull
   public String[] getTagNamesByClass(@NotNull final PsiClass c) {
     return ApplicationManager.getApplication().runReadAction(new Computable<String[]>() {
+      @Override
       public String[] compute() {
         String name = c.getName();
         if (name != null) {

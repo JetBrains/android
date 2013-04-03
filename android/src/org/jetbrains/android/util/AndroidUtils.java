@@ -145,6 +145,7 @@ public class AndroidUtils {
                                                         @NotNull final VirtualFile file,
                                                         @NotNull final Class<T> aClass) {
     return ApplicationManager.getApplication().runReadAction(new Computable<T>() {
+      @Override
       @Nullable
       public T compute() {
         if (module.isDisposed()) {
@@ -212,6 +213,7 @@ public class AndroidUtils {
     final Project project = module.getProject();
 
     final Runnable r = new Runnable() {
+      @Override
       public void run() {
         final RunManagerEx runManager = RunManagerEx.getInstanceEx(project);
         final RunnerAndConfigurationSettings settings = runManager.
@@ -242,6 +244,7 @@ public class AndroidUtils {
     }
     else {
       UIUtil.invokeLaterIfNeeded(new Runnable() {
+        @Override
         public void run() {
           final String moduleName = facet.getModule().getName();
           final int result = Messages.showYesNoDialog(project, AndroidBundle.message("create.run.configuration.question", moduleName),
@@ -350,6 +353,7 @@ public class AndroidUtils {
     OSProcessHandler handler = new OSProcessHandler(commandLine.createProcess(), "");
 
     final ProcessAdapter listener = new ProcessAdapter() {
+      @Override
       public void onTextAvailable(final ProcessEvent event, final Key outputType) {
         if (processor != null) {
           final String message = event.getText();
@@ -498,6 +502,7 @@ public class AndroidUtils {
 
   public static int getIntAttrValue(@NotNull final XmlTag tag, @NotNull final String attrName) {
     String value = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+      @Override
       public String compute() {
         return tag.getAttributeValue(attrName, SdkConstants.NS_RESOURCES);
       }

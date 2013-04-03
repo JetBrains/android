@@ -39,22 +39,26 @@ public class AndroidIdlFileType extends LanguageFileType {
         super(new AndroidIdlLanguage());
     }
 
+    @Override
     @NotNull
     @NonNls
     public String getDefaultExtension() {
         return DEFAULT_ASSOCIATED_EXTENSION;
     }
 
+    @Override
     @NotNull
     public String getDescription() {
         return AndroidBundle.message("aidl.filetype.description");
     }
 
+    @Override
     @Nullable
     public Icon getIcon() {
         return AndroidIcons.Android;
     }
 
+    @Override
     @NotNull
     @NonNls
     public String getName() {

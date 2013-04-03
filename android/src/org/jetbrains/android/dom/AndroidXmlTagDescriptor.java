@@ -44,10 +44,12 @@ public class AndroidXmlTagDescriptor implements XmlElementDescriptor {
     myDeclarationClass = declarationClass;
   }
 
+  @Override
   public String getQualifiedName() {
     return getDefaultName();
   }
 
+  @Override
   public String getDefaultName() {
     if (myDeclarationClass == null) {
       return myParentDescriptor.getDefaultName();
@@ -56,10 +58,12 @@ public class AndroidXmlTagDescriptor implements XmlElementDescriptor {
     return qualifiedName != null ? qualifiedName : myDeclarationClass.getName();
   }
 
+  @Override
   public XmlElementDescriptor[] getElementsDescriptors(XmlTag context) {
     return myParentDescriptor.getElementsDescriptors(context);
   }
 
+  @Override
   public XmlElementDescriptor getElementDescriptor(XmlTag childTag, XmlTag contextTag) {
     final XmlElementDescriptor descriptor = myParentDescriptor.getElementDescriptor(childTag, contextTag);
     if (descriptor != null) {
@@ -70,20 +74,24 @@ public class AndroidXmlTagDescriptor implements XmlElementDescriptor {
     return nsDescriptor != null ? new AndroidAnyTagDescriptor(nsDescriptor) : null;
   }
 
+  @Override
   public XmlAttributeDescriptor[] getAttributesDescriptors(@Nullable XmlTag context) {
     return myParentDescriptor.getAttributesDescriptors(context);
   }
 
+  @Override
   public XmlAttributeDescriptor getAttributeDescriptor(@NonNls String attributeName, @Nullable XmlTag context) {
     final XmlAttributeDescriptor descriptor = myParentDescriptor.getAttributeDescriptor(attributeName, context);
     return descriptor != null ? descriptor : new AndroidAnyAttributeDescriptor(attributeName);
   }
 
+  @Override
   public XmlAttributeDescriptor getAttributeDescriptor(XmlAttribute attribute) {
     final XmlAttributeDescriptor descriptor = myParentDescriptor.getAttributeDescriptor(attribute);
     return descriptor != null ? descriptor : new AndroidAnyAttributeDescriptor(attribute.getName());
   }
 
+  @Override
   public XmlNSDescriptor getNSDescriptor() {
     return myParentDescriptor.getNSDescriptor();
   }
@@ -93,6 +101,7 @@ public class AndroidXmlTagDescriptor implements XmlElementDescriptor {
     return null;
   }
 
+  @Override
   public int getContentType() {
     return myParentDescriptor.getContentType();
   }
@@ -102,22 +111,27 @@ public class AndroidXmlTagDescriptor implements XmlElementDescriptor {
     return null;
   }
 
+  @Override
   public PsiElement getDeclaration() {
     return myDeclarationClass != null ? myDeclarationClass : myParentDescriptor.getDeclaration();
   }
 
+  @Override
   public String getName(PsiElement context) {
     return getDefaultName();
   }
 
+  @Override
   public String getName() {
     return getDefaultName();
   }
 
+  @Override
   public void init(PsiElement element) {
     myParentDescriptor.init(element);
   }
 
+  @Override
   public Object[] getDependences() {
     return myParentDescriptor.getDependences();
   }

@@ -54,6 +54,7 @@ public abstract class AndroidResourceDomFileDescription<T extends DomElement> ex
 
   public static boolean doIsMyFile(final XmlFile file, final String[] resourceTypes) {
     return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
+      @Override
       public Boolean compute() {
         if (file.getProject().isDisposed()) {
           return false;
@@ -68,6 +69,7 @@ public abstract class AndroidResourceDomFileDescription<T extends DomElement> ex
     });
   }
 
+  @Override
   protected void initializeFileDescription() {
     registerNamespacePolicy(AndroidUtils.NAMESPACE_KEY, SdkConstants.NS_RESOURCES);
   }

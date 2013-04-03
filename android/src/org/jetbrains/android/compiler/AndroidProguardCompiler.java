@@ -413,6 +413,7 @@ public class AndroidProguardCompiler implements ClassPostProcessingCompiler {
       myLogsDirectoryPath = CompilerIOUtil.readString(in);
     }
   
+    @Override
     public boolean equalsTo(ValidityState otherState) {
       if (!(otherState instanceof MyValidityState)) {
         return false;
@@ -430,6 +431,7 @@ public class AndroidProguardCompiler implements ClassPostProcessingCompiler {
              myLogsDirectoryPath.equals(other.myLogsDirectoryPath);
     }
   
+    @Override
     public void save(DataOutput out) throws IOException {
       out.writeUTF(myTargetHashString);
       CompilerIOUtil.writeString(mySdkPath, out);

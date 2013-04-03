@@ -87,6 +87,7 @@ public class DeviceChooser implements Disposable {
                                    ListSelectionModel.MULTIPLE_INTERVAL_SELECTION :
                                    ListSelectionModel.SINGLE_SELECTION);
     myDeviceTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+      @Override
       public void valueChanged(ListSelectionEvent e) {
         if (myProcessSelectionFlag) {
           fireSelectedDevicesChanged();
@@ -273,14 +274,17 @@ public class DeviceChooser implements Disposable {
       return COLUMN_TITLES[column];
     }
 
+    @Override
     public int getRowCount() {
       return myDevices.length;
     }
 
+    @Override
     public int getColumnCount() {
       return COLUMN_TITLES.length;
     }
 
+    @Override
     @Nullable
     public Object getValueAt(int rowIndex, int columnIndex) {
       if (rowIndex >= myDevices.length) {

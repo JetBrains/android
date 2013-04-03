@@ -189,6 +189,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
     return "AndroidExtendedDeviceChooserDialog";
   }
 
+  @Override
   protected JComponent createCenterPanel() {
     return myPanel;
   }

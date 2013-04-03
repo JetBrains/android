@@ -44,6 +44,7 @@ public abstract class SaveFileListener implements ActionListener {
   @Nullable
   protected abstract String getDefaultLocation();
 
+  @Override
   public void actionPerformed(ActionEvent e) {
     String path = myTextField.getText().trim();
     if (path.length() == 0) {
@@ -56,6 +57,7 @@ public abstract class SaveFileListener implements ActionListener {
     }
     JFileChooser fileChooser = new JFileChooser(path);
     FileView fileView = new FileView() {
+      @Override
       public Icon getIcon(File f) {
         if (f.isDirectory()) return super.getIcon(f);
         FileType fileType = FileTypeManager.getInstance().getFileTypeByFileName(f.getName());

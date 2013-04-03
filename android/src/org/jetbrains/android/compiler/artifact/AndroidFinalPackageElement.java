@@ -112,6 +112,7 @@ public class AndroidFinalPackageElement extends PackagingElement<AndroidFinalPac
            : myFacetPointer.equals(packageElement.myFacetPointer);
   }
 
+  @Override
   public AndroidFinalPackageElementState getState() {
     final AndroidFinalPackageElementState state = new AndroidFinalPackageElementState();
     state.myFacetPointer = myFacetPointer != null ? myFacetPointer.getId() : null;
@@ -123,6 +124,7 @@ public class AndroidFinalPackageElement extends PackagingElement<AndroidFinalPac
     return myFacetPointer != null ? myFacetPointer.findFacet(context.getModulesProvider(), context.getFacetsProvider()) : null;
   }
 
+  @Override
   public void loadState(AndroidFinalPackageElementState state) {
     myFacetPointer = state.myFacetPointer != null
                      ? FacetPointersManager.getInstance(myProject).<AndroidFacet>create(state.myFacetPointer)

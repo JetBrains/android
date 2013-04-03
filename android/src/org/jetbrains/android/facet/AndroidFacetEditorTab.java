@@ -283,15 +283,18 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     return ArrayUtil.toStringArray(result);
   }
 
+  @Override
   @Nls
   public String getDisplayName() {
     return "Android SDK Settings";
   }
 
+  @Override
   public JComponent createComponent() {
     return myContentPanel;
   }
 
+  @Override
   public boolean isModified() {
     //if (myAddAndroidLibrary.isSelected() != myConfiguration.ADD_ANDROID_LIBRARY) return true;
     if (myIsLibraryProjectCheckbox.isSelected() != myConfiguration.getState().LIBRARY_PROJECT) return true;
@@ -403,6 +406,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     return "reference.settings.project.modules.android.facet";
   }
 
+  @Override
   public void apply() throws ConfigurationException {
     if (!isModified()) return;
     String absGenPathR = myRGenPathField.getText().trim();
@@ -534,6 +538,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     return relativeGenPathR;
   }
 
+  @Override
   public void reset() {
     resetOptions(myConfiguration);
     myIsLibraryProjectCheckbox.setSelected(myConfiguration.getState().LIBRARY_PROJECT);
@@ -629,6 +634,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     return path != null ? PathUtil.getLocalPath(path) : null;
   }
 
+  @Override
   public void disposeUIResources() {
   }
 
@@ -645,6 +651,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
       myDefaultPath = defaultPath;
     }
 
+    @Override
     public void actionPerformed(ActionEvent e) {
       VirtualFile initialFile = null;
       String path = myTextField.getText().trim();

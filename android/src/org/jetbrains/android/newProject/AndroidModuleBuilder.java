@@ -112,6 +112,7 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
     myProjectType = type;
   }
 
+  @Override
   public void setupRootModel(final ModifiableRootModel rootModel) throws ConfigurationException {
     super.setupRootModel(rootModel);
 
@@ -152,10 +153,13 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
       facet.getProperties().UPDATE_PROPERTY_FILES = Boolean.TRUE.toString();
 
       StartupManager.getInstance(project).runWhenProjectIsInitialized(new DumbAwareRunnable() {
+        @Override
         public void run() {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
+            @Override
             public void run() {
               ApplicationManager.getApplication().runWriteAction(new Runnable() {
+                @Override
                 public void run() {
                   createProject(contentRoot, sourceRoot, facet);
                 }
@@ -323,6 +327,7 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
         }
 
         StartupManager.getInstance(project).runWhenProjectIsInitialized(new Runnable() {
+          @Override
           public void run() {
             FileDocumentManager.getInstance().saveAllDocuments();
           }
@@ -600,6 +605,7 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
     if (sourceDir != null) {
       final String[] ids = packageName.split("\\.");
       return ApplicationManager.getApplication().runWriteAction(new Computable<PsiDirectory>() {
+        @Override
         public PsiDirectory compute() {
           PsiDirectory dir = sourceDir;
           for (String id : ids) {
@@ -616,8 +622,10 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
   private void createActivityAndSetupManifest(final AndroidFacet facet, final PsiDirectory sourceDir) {
     if (myPackageName != null) {
       CommandProcessor.getInstance().executeCommand(facet.getModule().getProject(), new ExternalChangeAction() {
+        @Override
         public void run() {
           Runnable action = new Runnable() {
+            @Override
             public void run() {
               PsiDirectory packageDir = createPackageIfPossible(sourceDir, myPackageName);
               if (packageDir == null) return;
@@ -627,6 +635,7 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
                 final Module module = facet.getModule();
                 final Project project = module.getProject();
                 StartupManager.getInstance(project).runWhenProjectIsInitialized(new Runnable() {
+                  @Override
                   public void run() {
                     FileDocumentManager.getInstance().saveAllDocuments();
                   }
@@ -652,6 +661,7 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
 
   private void createResourcesAndLibs(final Project project, final VirtualFile rootDir) {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
       public void run() {
         try {
           createChildDirectoryIfNotExist(project, rootDir, SdkConstants.FD_ASSETS);
@@ -701,6 +711,7 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
     myPackageName = packageName;
   }
 
+  @Override
   public ModuleType getModuleType() {
     return StdModuleTypes.JAVA;
   }
@@ -742,6 +753,7 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
     return new ModuleWizardStep[] { new AndroidModuleWizardStep(this, wizardContext, modulesProvider, myProjectType) };
   }
 
+  @Override
   public Icon getBigIcon() {
     return AndroidIcons.Android24;
   }
@@ -751,10 +763,12 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
     return AndroidIcons.Android;
   }
 
+  @Override
   public String getDescription() {
     return AndroidBundle.message("android.module.type.description");
   }
 
+  @Override
   public String getPresentableName() {
     return AndroidBundle.message("android.module.type.name");
   }

@@ -31,6 +31,7 @@ public class AndroidArtifactUtil {
   public static boolean containsAndroidPackage(ArtifactEditorContext editorContext, Artifact artifact) {
     return !ArtifactUtil
       .processPackagingElements(artifact, AndroidFinalPackageElementType.getInstance(), new Processor<AndroidFinalPackageElement>() {
+        @Override
         public boolean process(AndroidFinalPackageElement e) {
           return false;
         }
@@ -43,6 +44,7 @@ public class AndroidArtifactUtil {
     final PackagingElementResolvingContext resolvingContext = ArtifactManager.getInstance(project).getResolvingContext();
     ArtifactUtil
       .processPackagingElements(artifact, AndroidFinalPackageElementType.getInstance(), new Processor<AndroidFinalPackageElement>() {
+        @Override
         public boolean process(AndroidFinalPackageElement e) {
           elementRef.set(e);
           return false;

@@ -65,10 +65,12 @@ public class AndroidIdlCompiler implements SourceGeneratingCompiler {
     return null;
   }
 
+  @Override
   public GenerationItem[] getGenerationItems(CompileContext context) {
     return ApplicationManager.getApplication().runReadAction(new PrepareAction(context));
   }
 
+  @Override
   public GenerationItem[] generate(CompileContext context, GenerationItem[] items, VirtualFile outputRootDirectory) {
     if (items != null && items.length > 0) {
       context.getProgressIndicator().setText("Generating AIDL files...");
@@ -77,15 +79,18 @@ public class AndroidIdlCompiler implements SourceGeneratingCompiler {
     return EMPTY_GENERATION_ITEM_ARRAY;
   }
 
+  @Override
   @NotNull
   public String getDescription() {
     return FileUtil.getNameWithoutExtension(SdkConstants.FN_AIDL);
   }
 
+  @Override
   public boolean validateConfiguration(CompileScope scope) {
     return true;
   }
 
+  @Override
   @Nullable
   public ValidityState createValidityState(DataInput is) throws IOException {
     return TimestampValidityState.load(is);
@@ -112,20 +117,24 @@ public class AndroidIdlCompiler implements SourceGeneratingCompiler {
       myValidityState = new TimestampValidityState(myFile.getTimeStamp());
     }
 
+    @Override
     @Nullable
     public String getPath() {
       return myPackageName.replace('.', '/') + '/' + myFile.getNameWithoutExtension() + ".java";
     }
 
+    @Override
     @Nullable
     public ValidityState getValidityState() {
       return myValidityState;
     }
 
+    @Override
     public Module getModule() {
       return myModule;
     }
 
+    @Override
     public boolean isTestSource() {
       return myTestSource;
     }
@@ -138,6 +147,7 @@ public class AndroidIdlCompiler implements SourceGeneratingCompiler {
       myContext = context;
     }
 
+    @Override
     public GenerationItem[] compute() {
       if (myContext.getProject().isDisposed()) {
         return EMPTY_GENERATION_ITEM_ARRAY;
@@ -210,6 +220,7 @@ public class AndroidIdlCompiler implements SourceGeneratingCompiler {
             AndroidIdl.execute(idlItem.myAndroidTarget, idlItem.myFile.getPath(), outFilePath, sourceRootPaths));
 
           ApplicationManager.getApplication().runReadAction(new Runnable() {
+            @Override
             public void run() {
               if (context.getProject().isDisposed()) return;
               addMessages(context, messages, idlItem.myFile.getUrl());
@@ -223,6 +234,7 @@ public class AndroidIdlCompiler implements SourceGeneratingCompiler {
         catch (final IOException e) {
           LOG.info(e);
           ApplicationManager.getApplication().runReadAction(new Runnable() {
+            @Override
             public void run() {
               if (context.getProject().isDisposed()) return;
               context.addMessage(CompilerMessageCategory.ERROR, e.getMessage(), idlItem.myFile.getUrl(), -1, -1);

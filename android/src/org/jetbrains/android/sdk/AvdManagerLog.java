@@ -10,6 +10,7 @@ import com.intellij.openapi.diagnostic.Logger;
 public class AvdManagerLog implements ILogger {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.sdk.AvdManagerLog");
 
+  @Override
   public void warning(String warningFormat, Object... args) {
     if (warningFormat != null) {
       LOG.debug(String.format(warningFormat, args));
@@ -27,6 +28,7 @@ public class AvdManagerLog implements ILogger {
   public void verbose(@NonNull String msgFormat, Object... args) {
   }
 
+  @Override
   public void error(Throwable t, String errorFormat, Object... args) {
     if (t != null) {
       LOG.debug(t);

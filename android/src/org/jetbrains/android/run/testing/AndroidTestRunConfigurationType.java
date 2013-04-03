@@ -47,6 +47,7 @@ public class AndroidTestRunConfigurationType implements ConfigurationType {
   }
 
   private final ConfigurationFactory myFactory = new ConfigurationFactory(this) {
+    @Override
     public RunConfiguration createTemplateConfiguration(Project project) {
       return new AndroidTestRunConfiguration("", project, this);
     }
@@ -61,23 +62,28 @@ public class AndroidTestRunConfigurationType implements ConfigurationType {
     return ConfigurationTypeUtil.findConfigurationType(AndroidTestRunConfigurationType.class);
   }
 
+  @Override
   public String getDisplayName() {
     return AndroidBundle.message("android.test.run.configuration.type.name");
   }
 
+  @Override
   public String getConfigurationTypeDescription() {
     return AndroidBundle.message("android.test.run.configuration.type.description");
   }
 
+  @Override
   public Icon getIcon() {
     return ANDROID_TEST_ICON;
   }
 
+  @Override
   @NotNull
   public String getId() {
     return "AndroidTestRunConfigurationType";
   }
 
+  @Override
   public ConfigurationFactory[] getConfigurationFactories() {
     return new ConfigurationFactory[]{myFactory};
   }

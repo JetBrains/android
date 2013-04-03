@@ -56,6 +56,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
   }
 
 
+  @Override
   public void updateCustomFilter(String filter) {
     super.updateCustomFilter(filter);
     setCustomFilter(filter);
@@ -79,10 +80,12 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
 
   protected abstract void saveLogLevel(String logLevelName);
 
+  @Override
   public void addFilterListener(LogFilterListener listener) {
     myListeners.add(listener);
   }
 
+  @Override
   public void removeFilterListener(LogFilterListener listener) {
     myListeners.remove(listener);
   }
@@ -164,6 +167,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
     return configuredFilterName.isApplicable(message, tag, pkg, pid, logLevel);
   }
 
+  @Override
   public List<? extends LogFilter> getLogFilters() {
     return myLogFilters;
   }
@@ -206,10 +210,12 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
     return null;
   }
 
+  @Override
   public boolean isFilterSelected(LogFilter filter) {
     return filter == getSelectedLogLevelFilter();
   }
 
+  @Override
   public void selectFilter(LogFilter filter) {
     if (!(filter instanceof AndroidLogFilter)) {
       return;
@@ -221,6 +227,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
     }
   }
 
+  @Override
   public void processingStarted() {
     myPrevMessageLogLevel = null;
     myPrevTag = null;
@@ -231,6 +238,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
     myMessageBuilder = new StringBuilder();
   }
 
+  @Override
   @NotNull
   public MyProcessingResult processLine(String line) {
     Pair<LogMessageHeader, String> result = AndroidLogcatFormatter.parseMessage(line);

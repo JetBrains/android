@@ -26,6 +26,7 @@ public class LogWrapper implements ILogger {
     myLog = log;
   }
 
+  @Override
   public void warning(String warningFormat, Object... args) {
     if (warningFormat != null) {
       myLog.debug(String.format(warningFormat, args));
@@ -43,6 +44,7 @@ public class LogWrapper implements ILogger {
   public void verbose(@NonNull String msgFormat, Object... args) {
   }
 
+  @Override
   public void error(Throwable t, String errorFormat, Object... args) {
     if (t != null) {
       myLog.debug(t);

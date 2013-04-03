@@ -56,14 +56,17 @@ public class AndroidMavenResourcesCompiler implements SourceGeneratingCompiler {
     return null;
   }
 
+  @Override
   public GenerationItem[] getGenerationItems(CompileContext context) {
     return ApplicationManager.getApplication().runReadAction(new PrepareAction(context));
   }
 
+  @Override
   public GenerationItem[] generate(final CompileContext context, final GenerationItem[] items, VirtualFile outputRootDirectory) {
     if (items != null && items.length > 0) {
       context.getProgressIndicator().setText("Processing resources by Maven...");
       Computable<GenerationItem[]> computation = new Computable<GenerationItem[]>() {
+        @Override
         public GenerationItem[] compute() {
           if (context.getProject().isDisposed()) {
             return EMPTY_GENERATION_ITEM_ARRAY;
@@ -108,6 +111,7 @@ public class AndroidMavenResourcesCompiler implements SourceGeneratingCompiler {
         }
         if (genItem.myGeneratedFile.exists()) {
           ApplicationManager.getApplication().runReadAction(new Runnable() {
+            @Override
             public void run() {
               String className = FileUtil.getNameWithoutExtension(genItem.myGeneratedFile);
               AndroidCompileUtil.removeDuplicatingClasses(genItem.myModule, genItem.myPackage, className, genItem.myGeneratedFile,
@@ -120,15 +124,18 @@ public class AndroidMavenResourcesCompiler implements SourceGeneratingCompiler {
     return results.toArray(new GenerationItem[results.size()]);
   }
 
+  @Override
   @NotNull
   public String getDescription() {
     return "Android Maven Resources Compiler";
   }
 
+  @Override
   public boolean validateConfiguration(CompileScope scope) {
     return true;
   }
 
+  @Override
   public ValidityState createValidityState(DataInput is) throws IOException {
     return new MyValidityState(is);
   }
@@ -149,19 +156,23 @@ public class AndroidMavenResourcesCompiler implements SourceGeneratingCompiler {
       myValidityState = new MyValidityState(myModule);
     }
 
+    @Override
     @Nullable
     public String getPath() {
       return myPackage.replace('.', '/') + '/' + AndroidCommonUtils.R_JAVA_FILENAME;
     }
 
+    @Override
     public ValidityState getValidityState() {
       return myValidityState;
     }
 
+    @Override
     public Module getModule() {
       return myModule;
     }
 
+    @Override
     public boolean isTestSource() {
       return false;
     }
@@ -218,6 +229,7 @@ public class AndroidMavenResourcesCompiler implements SourceGeneratingCompiler {
       myContext = context;
     }
 
+    @Override
     public GenerationItem[] compute() {
       if (myContext.getProject().isDisposed()) {
         return EMPTY_GENERATION_ITEM_ARRAY;

@@ -208,6 +208,7 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
 
   // ---- Implements RenderContext ----
 
+  @Override
   @Nullable
   public Configuration getConfiguration() {
     return myConfiguration;
@@ -220,6 +221,7 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
     }
   }
 
+  @Override
   @NotNull
   public UsageType getType() {
     return UsageType.XML_PREVIEW;

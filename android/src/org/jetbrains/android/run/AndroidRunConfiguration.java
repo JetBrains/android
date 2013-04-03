@@ -77,6 +77,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     super(name, project, factory);
   }
 
+  @Override
   protected void checkConfiguration(@NotNull AndroidFacet facet) throws RuntimeConfigurationException {
     final boolean packageContainMavenProperty = doesPackageContainMavenProperty(facet);
     final JavaRunConfigurationModule configurationModule = getConfigurationModule();
@@ -130,10 +131,12 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     return state;
   }
 
+  @Override
   protected ModuleBasedConfiguration createInstance() {
     return new AndroidRunConfiguration(getName(), getProject(), AndroidRunConfigurationType.getInstance().getFactory());
   }
 
+  @Override
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
     Project project = getProject();
     AndroidRunConfigurationEditor<AndroidRunConfiguration> editor = new AndroidRunConfigurationEditor<AndroidRunConfiguration>(project);
@@ -141,10 +144,12 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     return editor;
   }
 
+  @Override
   @Nullable
   public RefactoringElementListener getRefactoringElementListener(PsiElement element) {
     if (element instanceof PsiClass && Comparing.strEqual(((PsiClass)element).getQualifiedName(), ACTIVITY_CLASS, true)) {
       return new RefactoringElementAdapter() {
+        @Override
         public void elementRenamedOrMoved(@NotNull PsiElement newElement) {
           ACTIVITY_CLASS = ((PsiClass)newElement).getQualifiedName();
         }
@@ -297,6 +302,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
       return super.isReadyForDebugging(data, processHandler);
     }
 
+    @Override
     public LaunchResult launch(@NotNull AndroidRunningState state, @NotNull IDevice device)
       throws IOException, AdbCommandRejectedException, TimeoutException {
       ProcessHandler processHandler = state.getProcessHandler();

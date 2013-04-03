@@ -60,6 +60,7 @@ public class AndroidAnimationUtils {
     List<String> children = new ArrayList<String>();
     Collections.addAll(children, TAG_NAMES);
     children.addAll(facet.getClassMap(INTERPOLATOR_CLASS_NAME, new ClassMapConstructor() {
+      @Override
       @NotNull
       public String[] getTagNamesByClass(@NotNull PsiClass c) {
         String name = c.getName();

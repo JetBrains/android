@@ -138,6 +138,7 @@ public class AndroidMavenProviderImpl implements AndroidMavenProvider {
     return mavenProjectsManager != null ? mavenProjectsManager.isMavenizedModule(module) : null;
   }
 
+  @Override
   @NotNull
   public List<File> getMavenDependencyArtifactFiles(@NotNull Module module) {
     MavenProject mavenProject = MavenProjectsManager.getInstance(module.getProject()).findProject(module);

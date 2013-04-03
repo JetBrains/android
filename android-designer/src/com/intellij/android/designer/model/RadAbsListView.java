@@ -39,6 +39,7 @@ import static com.android.tools.idea.rendering.LayoutMetadata.*;
 
 public class RadAbsListView extends RadViewComponent {
 
+  @Override
   public boolean addPopupActions(@NotNull AndroidDesignerEditorPanel designer,
                                  @NotNull DefaultActionGroup beforeGroup,
                                  @NotNull DefaultActionGroup afterGroup,

@@ -103,6 +103,7 @@ public abstract class AndroidLogcatView implements Disposable {
 
   private void updateInUIThread() {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
       public void run() {
         if (myProject.isDisposed()) {
           return;
@@ -123,11 +124,13 @@ public abstract class AndroidLogcatView implements Disposable {
   }
 
   private class MyLoggingReader extends AndroidLoggingReader {
+    @Override
     @NotNull
     protected Object getLock() {
       return myLock;
     }
 
+    @Override
     protected Reader getReader() {
       return myCurrentReader;
     }
@@ -245,6 +248,7 @@ public abstract class AndroidLogcatView implements Disposable {
   public JPanel createSearchComponent(final Project project) {
     final JButton clearLogButton = new JButton(AndroidBundle.message("android.logcat.clear.log.button.title"));
     clearLogButton.addActionListener(new ActionListener() {
+      @Override
       public void actionPerformed(ActionEvent e) {
         IDevice device = getSelectedDevice();
         if (device != null) {
@@ -400,6 +404,7 @@ public abstract class AndroidLogcatView implements Disposable {
     return myPanel;
   }
 
+  @Override
   public void dispose() {
     AndroidDebugBridge.removeDeviceChangeListener(myDeviceChangeListener);
   }

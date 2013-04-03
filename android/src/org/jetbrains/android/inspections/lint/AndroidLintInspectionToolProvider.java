@@ -170,6 +170,7 @@ public class AndroidLintInspectionToolProvider {
       super(AndroidBundle.message("android.lint.inspections.content.description"), AccessibilityDetector.ISSUE);
     }
 
+    @Override
     @NotNull
     public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
       return new AndroidLintQuickFix[]{

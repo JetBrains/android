@@ -22,6 +22,7 @@ public class AnimatorDomFileDescription extends AndroidResourceDomFileDescriptio
 
   public static boolean isAnimatorFile(@NotNull final XmlFile file) {
     return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
+      @Override
       public Boolean compute() {
         return new AnimatorDomFileDescription().isMyFile(file, null);
       }

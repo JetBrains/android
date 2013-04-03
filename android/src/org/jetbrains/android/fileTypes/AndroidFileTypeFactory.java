@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
  * @author yole
  */
 public class AndroidFileTypeFactory extends FileTypeFactory {
+    @Override
     public void createFileTypes(@NotNull FileTypeConsumer consumer) {
       consumer.consume(AndroidIdlFileType.ourFileType, AndroidIdlFileType.DEFAULT_ASSOCIATED_EXTENSION);
       consumer.consume(AndroidRenderscriptFileType.INSTANCE,

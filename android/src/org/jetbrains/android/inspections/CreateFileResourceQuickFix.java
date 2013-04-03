@@ -49,6 +49,7 @@ public class CreateFileResourceQuickFix implements LocalQuickFix, IntentionActio
     myChooseResName = chooseResName;
   }
 
+  @Override
   @NotNull
   public String getName() {
     return AndroidBundle.message("create.file.resource.quickfix.name", myResourceName,
@@ -61,6 +62,7 @@ public class CreateFileResourceQuickFix implements LocalQuickFix, IntentionActio
     return AndroidBundle.message("create.file.resource.intention.name", myResourceType, myResourceName + ".xml");
   }
 
+  @Override
   @NotNull
   public String getFamilyName() {
     return AndroidBundle.message("quick.fixes.family");
@@ -85,6 +87,7 @@ public class CreateFileResourceQuickFix implements LocalQuickFix, IntentionActio
     return false;
   }
 
+  @Override
   public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
     final VirtualFile resourceDir = myFacet.getLocalResourceManager().getResourceDir();
     if (resourceDir == null) {
@@ -99,6 +102,7 @@ public class CreateFileResourceQuickFix implements LocalQuickFix, IntentionActio
 
     if (resSubdir == null) {
       resSubdir = ApplicationManager.getApplication().runWriteAction(new Computable<PsiDirectory>() {
+        @Override
         public PsiDirectory compute() {
           return psiResDir.createSubdirectory(resDirName);
         }

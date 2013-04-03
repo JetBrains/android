@@ -42,6 +42,7 @@ public class AnimationDomFileDescription extends AndroidResourceDomFileDescripti
 
   public static boolean isAnimationFile(@NotNull final XmlFile file) {
     return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
+      @Override
       public Boolean compute() {
         return new AnimationDomFileDescription().isMyFile(file, null);
       }

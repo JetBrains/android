@@ -32,6 +32,7 @@ public class AndroidIdlFileImpl extends PsiFileBase {
     myFileType = viewProvider.getVirtualFile().getFileType();
   }
 
+  @Override
   @NotNull
   public FileType getFileType() {
     return myFileType;

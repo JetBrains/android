@@ -97,6 +97,7 @@ public class AndroidFindStyleApplicationsDialog extends DialogWrapper {
 
     myProcessor.configureScope(scope, myFile);
     myProcessor.setPrepareSuccessfulSwingThreadCallback(new Runnable() {
+      @Override
       public void run() {
         close(DialogWrapper.OK_EXIT_CODE);
       }

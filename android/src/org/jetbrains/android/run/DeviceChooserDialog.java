@@ -66,6 +66,7 @@ public class DeviceChooserDialog extends DialogWrapper {
     return "AndroidDeviceChooserDialog";
   }
 
+  @Override
   protected JComponent createCenterPanel() {
     return myDeviceChooser.getPanel();
   }

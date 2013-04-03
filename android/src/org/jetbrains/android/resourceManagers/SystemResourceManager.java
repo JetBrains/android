@@ -36,17 +36,20 @@ public class SystemResourceManager extends ResourceManager {
     myPlatform = androidPlatform;
   }
 
+  @Override
   protected boolean isResourcePublic(@NotNull String type, @NotNull String name) {
     return myPlatform.getSdkData().getTargetData(myPlatform.getTarget()).
       isResourcePublic(type, name);
   }
 
+  @Override
   @NotNull
   public VirtualFile[] getAllResourceDirs() {
     VirtualFile resDir = getResourceDir();
     return resDir != null ? new VirtualFile[]{resDir} : VirtualFile.EMPTY_ARRAY;
   }
 
+  @Override
   @Nullable
   public VirtualFile getResourceDir() {
     String resPath = myPlatform.getTarget().getPath(IAndroidTarget.RESOURCES);
@@ -59,6 +62,7 @@ public class SystemResourceManager extends ResourceManager {
     return facet != null ? facet.getSystemResourceManager() : null;
   }
 
+  @Override
   @Nullable
   public synchronized AttributeDefinitions getAttributeDefinitions() {
     return myPlatform.getSdkData().getTargetData(myPlatform.getTarget()).

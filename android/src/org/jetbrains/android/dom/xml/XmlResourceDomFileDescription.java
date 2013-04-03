@@ -42,6 +42,7 @@ public class XmlResourceDomFileDescription extends AndroidResourceDomFileDescrip
 
   public static boolean isXmlResourceFile(@NotNull final XmlFile file) {
     return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
+      @Override
       public Boolean compute() {
         return new XmlResourceDomFileDescription().isMyFile(file, null);
       }

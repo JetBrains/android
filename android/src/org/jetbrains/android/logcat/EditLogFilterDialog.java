@@ -131,6 +131,7 @@ class EditLogFilterDialog extends DialogWrapper {
     init();
   }
 
+  @Override
   @Nullable
   @NonNls
   protected String getDimensionServiceKey() {

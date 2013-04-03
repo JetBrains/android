@@ -35,6 +35,7 @@ import java.util.List;
  * @author yole
  */
 public class ConstantFieldConverter extends ResolvingConverter<String> {
+    @Override
     @NotNull
     public Collection<? extends String> getVariants(ConvertContext context) {
         List<String> result = new ArrayList<String>();
@@ -66,10 +67,12 @@ public class ConstantFieldConverter extends ResolvingConverter<String> {
         return result;
     }
 
+    @Override
     public String fromString(@Nullable @NonNls String s, ConvertContext context) {
         return s;
     }
 
+    @Override
     public String toString(@Nullable String  value, ConvertContext context) {
         return value;
     }

@@ -26,6 +26,7 @@ import java.util.List;
  * @author coyote
  */
 public interface Attr extends ResourceElement {
+  @Override
   GenericAttributeValue<String> getName();
 
   @Convert(FormatConverter.class)

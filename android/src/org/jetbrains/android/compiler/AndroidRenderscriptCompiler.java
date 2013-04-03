@@ -201,6 +201,7 @@ public class AndroidRenderscriptCompiler implements SourceGeneratingCompiler {
             AndroidCompileUtil.markDirty(outputRootDirectory, true);
 
             ApplicationManager.getApplication().runReadAction(new Runnable() {
+              @Override
               public void run() {
                 if (context.getProject().isDisposed()) {
                   return;
@@ -216,6 +217,7 @@ public class AndroidRenderscriptCompiler implements SourceGeneratingCompiler {
           catch (final IOException e) {
             LOG.info(e);
             ApplicationManager.getApplication().runReadAction(new Runnable() {
+              @Override
               public void run() {
                 if (context.getProject().isDisposed()) return;
                 context.addMessage(CompilerMessageCategory.ERROR, e.getMessage(), sourceFile.getUrl(), -1, -1);
@@ -287,20 +289,24 @@ public class AndroidRenderscriptCompiler implements SourceGeneratingCompiler {
       myValidityState = new MyValidityState(myFiles);
     }
 
+    @Override
     @Nullable
     public String getPath() {
       return "";
     }
 
+    @Override
     @Nullable
     public ValidityState getValidityState() {
       return myValidityState;
     }
 
+    @Override
     public Module getModule() {
       return myModule;
     }
 
+    @Override
     public boolean isTestSource() {
       return false;
     }

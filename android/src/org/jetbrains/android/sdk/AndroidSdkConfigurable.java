@@ -37,24 +37,28 @@ public class AndroidSdkConfigurable implements AdditionalDataConfigurable {
     mySdkModel = sdkModel;
     myForm = new AndroidSdkConfigurableForm(sdkModel, sdkModificator);
     myListener = new SdkModel.Listener() {
+      @Override
       public void sdkAdded(Sdk sdk) {
         if (sdk.getSdkType().equals(JavaSdk.getInstance())) {
           myForm.addJavaSdk(sdk);
         }
       }
 
+      @Override
       public void beforeSdkRemove(Sdk sdk) {
         if (sdk.getSdkType().equals(JavaSdk.getInstance())) {
           myForm.removeJavaSdk(sdk);
         }
       }
 
+      @Override
       public void sdkChanged(Sdk sdk, String previousName) {
         if (sdk.getSdkType().equals(JavaSdk.getInstance())) {
           myForm.updateJdks(sdk, previousName);
         }
       }
 
+      @Override
       public void sdkHomeSelected(final Sdk sdk, final String newSdkHome) {
         if (sdk.getSdkType().equals(AndroidSdkType.getInstance())) {
           myForm.internalJdkUpdate(sdk);
@@ -93,6 +97,7 @@ public class AndroidSdkConfigurable implements AdditionalDataConfigurable {
     modificator.setVersionString(javaSdk != null ? javaSdk.getVersionString() : null);
     modificator.setSdkAdditionalData(newData);
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
       public void run() {
         modificator.commitChanges();
       }

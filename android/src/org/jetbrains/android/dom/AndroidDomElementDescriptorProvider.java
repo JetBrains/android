@@ -79,6 +79,7 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
     return null;
   }
 
+  @Override
   public XmlElementDescriptor getDescriptor(XmlTag tag) {
     final Pair<AndroidDomElement, String> pair = getDomElementAndBaseClassQName(tag);
     if (pair == null) {

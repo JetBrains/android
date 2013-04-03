@@ -57,6 +57,7 @@ class ApplicationRunParameters implements ConfigurationSpecificEditor<AndroidRun
     myModuleSelector = moduleSelector;
 
     myActivityField.addActionListener(new ActionListener() {
+      @Override
       public void actionPerformed(ActionEvent e) {
         if (!project.isInitialized()) {
           return;
@@ -84,6 +85,7 @@ class ApplicationRunParameters implements ConfigurationSpecificEditor<AndroidRun
       }
     });
     ActionListener listener = new ActionListener() {
+      @Override
       public void actionPerformed(ActionEvent e) {
         myActivityField.setEnabled(myLaunchCustomButton.isSelected());
       }
@@ -93,6 +95,7 @@ class ApplicationRunParameters implements ConfigurationSpecificEditor<AndroidRun
     myDoNothingButton.addActionListener(listener);
   }
 
+  @Override
   public void resetFrom(AndroidRunConfiguration configuration) {
     boolean launchSpecificActivity = configuration.MODE.equals(AndroidRunConfiguration.LAUNCH_SPECIFIC_ACTIVITY);
     if (configuration.MODE.equals(AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY)) {
@@ -109,10 +112,12 @@ class ApplicationRunParameters implements ConfigurationSpecificEditor<AndroidRun
     myDeployAndInstallCheckBox.setSelected(configuration.DEPLOY);
   }
 
+  @Override
   public Component getComponent() {
     return myPanel;
   }
 
+  @Override
   public void applyTo(AndroidRunConfiguration configuration) {
     configuration.ACTIVITY_CLASS = myActivityField.getText();
     if (myLaunchDefaultButton.isSelected()) {

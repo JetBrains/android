@@ -151,6 +151,7 @@ public abstract class ResourceManager {
         if ((extensions.length == 0 || extensionSet.contains(extension)) &&
             (resName1 == null || AndroidUtils.equal(resName1, resName, distinguishDelimetersInName))) {
           final PsiFile file = ApplicationManager.getApplication().runReadAction(new Computable<PsiFile>() {
+            @Override
             @Nullable
             public PsiFile compute() {
               return PsiManager.getInstance(myModule.getProject()).findFile(resFile);

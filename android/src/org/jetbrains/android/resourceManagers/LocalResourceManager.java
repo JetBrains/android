@@ -170,6 +170,7 @@ public class LocalResourceManager extends ResourceManager {
     return result;
   }
 
+  @Override
   @NotNull
   public AttributeDefinitions getAttributeDefinitions() {
     if (myAttrDefs == null) {

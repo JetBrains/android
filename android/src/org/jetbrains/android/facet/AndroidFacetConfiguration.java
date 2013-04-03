@@ -98,13 +98,16 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
     facet.androidPlatformChanged();
   }
 
+  @Override
   public FacetEditorTab[] createEditorTabs(FacetEditorContext editorContext, FacetValidatorsManager validatorsManager) {
     return new FacetEditorTab[]{new AndroidFacetEditorTab(editorContext, this)};
   }
 
+  @Override
   public void readExternal(Element element) throws InvalidDataException {
   }
 
+  @Override
   public void writeExternal(Element element) throws WriteExternalException {
   }
 

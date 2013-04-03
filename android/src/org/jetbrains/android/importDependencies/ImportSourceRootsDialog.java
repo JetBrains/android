@@ -24,6 +24,7 @@ class ImportSourceRootsDialog extends DialogWrapper {
     setTitle(AndroidBundle.message("android.import.dependencies.source.roots.dialog.title"));
 
     mySourcePathsChooser = new ElementsChooser<JavaModuleSourceRoot>(true) {
+      @Override
       public String getItemText(@NotNull JavaModuleSourceRoot sourceRoot) {
         final String packagePrefix = sourceRoot.getPackagePrefix();
         final String path = sourceRoot.getDirectory().getAbsolutePath();

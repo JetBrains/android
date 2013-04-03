@@ -47,6 +47,7 @@ public class LazyValueResourceElementWrapper extends RenameableFakePsiElement im
   @Override
   public ItemPresentation getPresentation() {
     return new ItemPresentation() {
+      @Override
       @Nullable
       public String getPresentableText() {
         final String name = myResourceInfo.getName();
@@ -59,10 +60,12 @@ public class LazyValueResourceElementWrapper extends RenameableFakePsiElement im
                File.separatorChar + file.getName() + ')';
       }
 
+      @Override
       public String getLocationString() {
         return null;
       }
 
+      @Override
       public Icon getIcon(boolean open) {
         return null;
       }

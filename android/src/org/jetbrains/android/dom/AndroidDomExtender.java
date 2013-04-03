@@ -236,6 +236,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
   @Nullable
   protected static PsiClass getSuperclass(@NotNull final PsiClass c) {
     return ApplicationManager.getApplication().runReadAction(new Computable<PsiClass>() {
+      @Override
       @Nullable
       public PsiClass compute() {
         return c.isValid() ? c.getSuperClass() : null;
@@ -341,6 +342,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     final String styleableName = AndroidAnimationUtils.getStyleableNameByTagName(tagName);
     final JavaPsiFacade facade = JavaPsiFacade.getInstance(facet.getModule().getProject());
     final PsiClass c = ApplicationManager.getApplication().runReadAction(new Computable<PsiClass>() {
+      @Override
       @Nullable
       public PsiClass compute() {
         return facade.findClass(AndroidAnimationUtils.ANIMATION_PACKAGE + '.' + styleableName,
@@ -451,18 +453,22 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
   };
 
   private static class MyRequired implements Required {
+    @Override
     public boolean value() {
       return true;
     }
 
+    @Override
     public boolean nonEmpty() {
       return true;
     }
 
+    @Override
     public boolean identifier() {
       return false;
     }
 
+    @Override
     public Class<? extends Annotation> annotationType() {
       return Required.class;
     }
@@ -583,6 +589,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     }
   }
 
+  @Override
   public void registerExtensions(@NotNull AndroidDomElement element, @NotNull DomExtensionsRegistrar registrar) {
     AndroidFacet facet = AndroidFacet.getInstance(element);
     if (facet == null) return;

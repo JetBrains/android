@@ -175,6 +175,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     }
   }
 
+  @Override
   public ExecutionResult execute(@NotNull Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
     myProcessHandler = new DefaultDebugProcessHandler();
     AndroidProcessText.attach(myProcessHandler);
@@ -218,6 +219,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     }
 
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+      @Override
       public void run() {
         LocalFileSystem.getInstance().refresh(false);
 
@@ -325,16 +327,19 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     return true;
   }
 
+  @Override
   @NotNull
   public AndroidRunConfigurationBase getConfiguration() {
     return myConfiguration;
   }
 
+  @Override
   @Nullable
   public RunnerSettings getRunnerSettings() {
     return myEnv.getRunnerSettings();
   }
 
+  @Override
   public ConfigurationPerRunnerSettings getConfigurationSettings() {
     return myEnv.getConfigurationSettings();
   }
@@ -398,6 +403,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       return errorType;
     }
 
+    @Override
     public boolean isCancelled() {
       return myStopped;
     }
@@ -517,6 +523,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       catch (final AndroidLocation.AndroidLocationException e) {
         LOG.info(e);
         runInDispatchedThread(new Runnable() {
+          @Override
           public void run() {
             Messages.showErrorDialog(project, e.getMessage(), CommonBundle.getErrorTitle());
           }
@@ -525,6 +532,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       }
       final AvdManager finalManager = manager;
       runInDispatchedThread(new Runnable() {
+        @Override
         public void run() {
           CreateAvdDialog dialog = new CreateAvdDialog(project, myFacet, finalManager, true, true);
           dialog.show();
@@ -638,6 +646,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     getProcessHandler().notifyTextAvailable(message + '\n', outputKey);
   }
 
+  @Override
   public void clientChanged(Client client, int changeMask) {
     synchronized (myDebugLock) {
       if (myDebugLauncher == null) {
@@ -1062,6 +1071,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       installed = false;
     }
 
+    @Override
     public void deviceConnected(final IDevice device) {
       // avd may be null if usb device is used, or if it didn't set by ddmlib yet
       if (device.getAvdName() == null || isMyDevice(device)) {
@@ -1072,12 +1082,14 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       }
     }
 
+    @Override
     public void deviceDisconnected(IDevice device) {
       if (isMyDevice(device)) {
         message("Device disconnected: " + device.getSerialNumber(), STDOUT);
       }
     }
 
+    @Override
     public void deviceChanged(final IDevice device, int changeMask) {
       myQueue.queue(new Update(device.getSerialNumber()) {
         @Override
@@ -1100,6 +1112,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       }
     }
 
+    @Override
     public void dispose() {
     }
 

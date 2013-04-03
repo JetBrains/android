@@ -109,6 +109,7 @@ public class AndroidLogcatReceiver extends AndroidOutputReceiver {
     return logLevel;
   }
 
+  @Override
   public boolean isCancelled() {
     return myCanceled;
   }

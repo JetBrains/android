@@ -36,6 +36,7 @@ public class ColorDomFileDescription extends AndroidResourceDomFileDescription<C
 
   public static boolean isColorResourceFile(final XmlFile file) {
     return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
+      @Override
       public Boolean compute() {
         return new ColorDomFileDescription().isMyFile(file, null);
       }

@@ -47,6 +47,7 @@ public class AndroidResourceReference extends AndroidResourceReferenceBase {
     myValue = value;
   }
 
+  @Override
   @NotNull
   public Object[] getVariants() {
     final Converter converter = WrappingConverter.getDeepestConverter(myValue.getConverter(), myValue);

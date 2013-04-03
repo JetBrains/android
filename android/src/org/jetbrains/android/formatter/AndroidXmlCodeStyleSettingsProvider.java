@@ -19,10 +19,12 @@ public class AndroidXmlCodeStyleSettingsProvider extends CodeStyleSettingsProvid
   @Override
   public Configurable createSettingsPage(CodeStyleSettings settings, CodeStyleSettings originalSettings) {
     return new CodeStyleAbstractConfigurable(settings, originalSettings, getConfigurableDisplayName()){
+      @Override
       protected CodeStyleAbstractPanel createPanel(final CodeStyleSettings settings) {
         return new AndroidXmlCodeStylePanel(getCurrentSettings(), settings);
       }
 
+      @Override
       public String getHelpTopic() {
         return null;
       }

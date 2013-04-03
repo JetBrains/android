@@ -57,6 +57,7 @@ public class AndroidAppPropertiesEditor {
       myPackageNameField.setText(getDefaultPackageNameByModuleName(moduleName));
     }
     myHelloAndroidCheckBox.addActionListener(new ActionListener() {
+      @Override
       public void actionPerformed(ActionEvent e) {
         updateActivityPanel();
       }

@@ -102,6 +102,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     return null;
   }
 
+  @Override
   @NotNull
   public Collection<? extends ResourceValue> getVariants(ConvertContext context) {
     Set<ResourceValue> result = new HashSet<ResourceValue>();
@@ -246,6 +247,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     return ResourceValue.referenceTo(prefix, resPackage, explicitResourceType ? type : null, name);
   }
 
+  @Override
   public ResourceValue fromString(@Nullable @NonNls String s, ConvertContext context) {
     if (s == null) return null;
     ResourceValue parsed = ResourceValue.parse(s, true, myWithPrefix);
@@ -307,6 +309,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     return null;
   }
 
+  @Override
   public String toString(@Nullable ResourceValue element, ConvertContext context) {
     if (element == null) {
       return null;
@@ -359,6 +362,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     return LocalQuickFix.EMPTY_ARRAY;
   }
 
+  @Override
   @NotNull
   public PsiReference[] createReferences(GenericDomValue<ResourceValue> value, PsiElement element, ConvertContext context) {
     if ("@null".equals(value.getStringValue())) {
