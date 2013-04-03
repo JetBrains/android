@@ -28,7 +28,10 @@ import com.intellij.psi.xml.XmlFile;
 import org.jdom.Element;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.uipreview.AndroidLayoutPreviewPanel;
 import org.jetbrains.annotations.NotNull;
+
+import static org.jetbrains.android.uipreview.AndroidLayoutPreviewPanel.ANDROID_DESIGNER_ID;
 
 /**
  * @author Alexander Lobas
@@ -82,7 +85,7 @@ public final class AndroidDesignerEditorProvider implements FileEditorProvider, 
   @NotNull
   @Override
   public String getEditorTypeId() {
-    return "android-designer";
+    return ANDROID_DESIGNER_ID;
   }
 
   @NotNull

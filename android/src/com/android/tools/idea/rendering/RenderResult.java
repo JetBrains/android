@@ -57,7 +57,7 @@ public class RenderResult {
     mySession = null;
     myRootViews = null;
     myImage = null;
-    myLogger = null;
+    myLogger = new RenderLogger(null, null);
     myRenderService = null;
   }
 
