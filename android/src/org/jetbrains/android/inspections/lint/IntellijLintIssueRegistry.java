@@ -45,7 +45,7 @@ public class IntellijLintIssueRegistry extends BuiltinIssueRegistry {
   public List<Issue> getIssues() {
     if (ourFilteredIssues == null) {
       List<Issue> sIssues = super.getIssues();
-      ourFilteredIssues = new ArrayList<Issue>(sIssues.size());
+      List<Issue> result = new ArrayList<Issue>(sIssues.size());
       for (Issue issue : sIssues) {
         Implementation implementation = issue.getImplementation();
         EnumSet<Scope> scope = implementation.getScope();
@@ -72,8 +72,9 @@ public class IntellijLintIssueRegistry extends BuiltinIssueRegistry {
             continue;
           }
         }
-        ourFilteredIssues.add(issue);
+        result.add(issue);
       }
+      ourFilteredIssues = result;
     }
 
     return ourFilteredIssues;
