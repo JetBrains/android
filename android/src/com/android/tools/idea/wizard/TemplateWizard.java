@@ -38,12 +38,32 @@ public class TemplateWizard extends AbstractWizard<ModuleWizardStep> {
 
   @Override
   protected boolean canGoNext() {
-    return ((TemplateWizardStep)mySteps.get(getCurrentStep())).isValid();
+    return !mySteps.isEmpty() && ((TemplateWizardStep)mySteps.get(getCurrentStep())).isValid();
   }
 
   @Nullable
   @Override
   protected String getHelpID() {
     return null;
+  }
+
+  @Override
+  protected final int getNextStep(final int step) {
+    for (int i = step + 1; i < mySteps.size(); i++) {
+      if (mySteps.get(i).isStepVisible()) {
+        return i;
+      }
+    }
+    return step;
+  }
+
+  @Override
+  protected final int getPreviousStep(final int step) {
+    for (int i = step - 1; i >= 0; i--) {
+      if (mySteps.get(i).isStepVisible()) {
+        return i;
+      }
+    }
+    return step;
   }
 }

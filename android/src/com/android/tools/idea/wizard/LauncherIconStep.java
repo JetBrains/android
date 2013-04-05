@@ -203,9 +203,4 @@ public class LauncherIconStep extends TemplateWizardStep {
   protected JLabel getError() {
     return myError;
   }
-
-  @Override
-  public boolean isStepVisible() {
-    return (Boolean)myWizardState.get(TemplateMetadata.ATTR_CREATE_ICONS);
-  }
 }
