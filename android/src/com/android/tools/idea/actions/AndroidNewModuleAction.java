@@ -16,26 +16,26 @@
 
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.wizard.NewProjectWizard;
-import com.intellij.ide.impl.NewProjectUtil;
+import com.android.tools.idea.wizard.NewModuleWizard;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.DumbAware;
+import com.intellij.openapi.roots.ui.configuration.actions.NewModuleAction;
 
-public class AndroidNewProjectAction extends AnAction implements DumbAware {
+public class AndroidNewModuleAction extends AnAction implements DumbAware {
 
-  public AndroidNewProjectAction() {
-    super("New Project...");
+  public AndroidNewModuleAction() {
+    super("New Module...");
   }
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    NewProjectWizard dialog = new NewProjectWizard();
+    NewModuleWizard dialog = new NewModuleWizard(PlatformDataKeys.PROJECT.getData(e.getDataContext()));
     dialog.show();
     if (!dialog.isOK()) {
       return;
     }
-    dialog.createProject();
+    dialog.createModule();
   }
 }

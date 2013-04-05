@@ -27,6 +27,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.ColorPanel;
+import com.intellij.ui.ColorUtil;
+import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -64,6 +66,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
   protected final TemplateWizard myTemplateWizard;
   protected boolean myIgnoreUpdates = false;
   protected boolean myIsValid = true;
+  protected boolean myVisible = true;
 
   public TemplateWizardStep(@NotNull TemplateWizard templateWizard, @NotNull TemplateWizardState state) {
     myTemplateState = state;
@@ -85,7 +88,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       s = "";
     }
     if (!s.startsWith("<html>")) {
-      s = "<html>" + XmlUtils.toXmlTextValue(s) + "</html>";
+      s = "<html>" + s + "</html>";
       s.replaceAll("\n", "<br>");
     }
     JLabel label = getDescription();
@@ -102,7 +105,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       s = "";
     }
     if (!s.startsWith("<html>")) {
-      s = "<html><font color='#aa0000'>" + XmlUtils.toXmlTextValue(s) + "</font></html>";
+      s = "<html><font color='#" + ColorUtil.toHex(JBColor.RED) + "'>" + XmlUtils.toXmlTextValue(s) + "</font></html>";
       s.replaceAll("\n", "<br>");
     }
     JLabel label = getError();
@@ -144,14 +147,23 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     return myIsValid;
   }
 
+  public void setVisible(boolean visible) {
+    myVisible = visible;
+  }
+
+  @Override
+  public boolean isStepVisible() {
+    return myVisible;
+  }
+
   @Override
   public boolean validate() {
-    if (myIgnoreUpdates) {
+    if (!myVisible) {
       return true;
     }
     JComponent focusedComponent = (JComponent)KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
-    int minApi = (Integer)myTemplateState.get(ATTR_MIN_API);
-    int buildApi = (Integer)myTemplateState.get(ATTR_BUILD_API);
+    Integer minApi = (Integer)myTemplateState.get(ATTR_MIN_API);
+    Integer buildApi = (Integer)myTemplateState.get(ATTR_BUILD_API);
     setDescriptionHtml("");
     setErrorHtml("");
     for (String paramName : myParamFields.keySet()) {
@@ -171,12 +183,12 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
         if (selectedItem != null) {
           newValue = selectedItem.id;
         }
-        if (selectedItem.minApi > minApi) {
+        if (minApi != null && selectedItem.minApi > minApi) {
           setErrorHtml(String.format("The \"%s\" option for %s requires a minimum API level of %d", selectedItem.label, param.name,
                                      selectedItem.minApi));
           return false;
         }
-        if (selectedItem.minBuildApi > buildApi) {
+        if (buildApi != null && selectedItem.minBuildApi > buildApi) {
           setErrorHtml(String.format("The \"%s\" option for %s requires a minimum API level of %d", selectedItem.label, param.name,
                                      selectedItem.minBuildApi));
           return false;
@@ -352,6 +364,10 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
 
   /** Revalidates the UI and asks the parent wizard to update its state to reflect changes. */
   protected void update() {
+    if (myIgnoreUpdates) {
+      return;
+    }
+
     myIsValid = validate();
     myTemplateWizard.update();
   }

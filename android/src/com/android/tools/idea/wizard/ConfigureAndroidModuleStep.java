@@ -35,10 +35,10 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.NewProjectWizardState.*;
 
 /**
- * ConfigureProjectStep is the first page in the New Project wizard that sets project name, location, and other project-global parameters.
+ * ConfigureAndroidModuleStep is the first page in the New Project wizard that sets project name, location, and other project-global parameters.
  */
-public class ConfigureProjectStep extends TemplateWizardStep {
-  private static final Logger LOG = Logger.getInstance("#" + ConfigureProjectStep.class.getName());
+public class ConfigureAndroidModuleStep extends TemplateWizardStep {
+  private static final Logger LOG = Logger.getInstance("#" + ConfigureAndroidModuleStep.class.getName());
   private static final String SAMPLE_PACKAGE_PREFIX = "com.example.";
 
   private JTextField myProjectLocation;
@@ -55,8 +55,9 @@ public class ConfigureProjectStep extends TemplateWizardStep {
   private JTextField myProjectName;
   private JLabel myDescription;
   private JLabel myError;
+  private JLabel myProjectLocationLabel;
 
-  public ConfigureProjectStep(TemplateWizard templateWizard, NewProjectWizardState state) {
+  public ConfigureAndroidModuleStep(TemplateWizard templateWizard, TemplateWizardState state) {
     super(templateWizard, state);
 
     IAndroidTarget[] targets = getCompilationTargets();
@@ -95,6 +96,14 @@ public class ConfigureProjectStep extends TemplateWizardStep {
     register(ATTR_CREATE_ACTIVITY, myCreateActivityCheckBox);
     register(ATTR_CREATE_ICONS, myCreateCustomLauncherIconCheckBox);
     register(ATTR_LIBRARY, myLibraryCheckBox);
+
+    if (myTemplateState.myHidden.contains(ATTR_PROJECT_LOCATION)) {
+      myProjectLocation.setVisible(false);
+      myProjectLocationLabel.setVisible(false);
+    }
+    if (myTemplateState.myHidden.contains(ATTR_IS_LIBRARY_PROJECT)) {
+      myLibraryCheckBox.setVisible(false);
+    }
   }
 
   @Override
@@ -130,11 +139,8 @@ public class ConfigureProjectStep extends TemplateWizardStep {
     } else if (param.equals(ATTR_PACKAGE_NAME)) {
       return "The package name must be a unique identifier for your application.\n It is typically not shown to users, " +
              "but it <b>must</b> stay the same for the lifetime of your application; it is how multiple versions of the same application " +
-             "" +
-             "are" +
-             ""  +
-             "considered the \"same app\".\nThis is typically the reverse domain name of your organization plus one or more application " +
-             "identifiers, and it must be a valid Java package name.";
+             "are considered the \"same app\".\nThis is typically the reverse domain name of your organization plus one or more " +
+             "application identifiers, and it must be a valid Java package name.";
     } else if (param.equals(ATTR_MIN_API)) {
       return "Choose the lowest version of Android that your application will support. Lower API levels target more devices, " +
              "but means fewer features are available. By targeting API 8 and later, you reach approximately 95% of the market.";
@@ -155,7 +161,7 @@ public class ConfigureProjectStep extends TemplateWizardStep {
 
   @Override
   public void onStepLeaving() {
-    ((NewProjectWizardState)myTemplateState).updateParameters();
+    ((NewModuleWizardState)myTemplateState).updateParameters();
   }
 
   @Override
@@ -170,14 +176,11 @@ public class ConfigureProjectStep extends TemplateWizardStep {
 
   @Override
   public boolean validate() {
-    if (myIgnoreUpdates) {
-      return true;
-    }
     if (!super.validate()) {
       return false;
     }
 
-    ((NewProjectWizardState)myTemplateState).updateParameters();
+    ((NewModuleWizardState)myTemplateState).updateParameters();
 
     SwingUtilities.invokeLater(new Runnable() { @Override public void run() {
       updateDerivedValue(ATTR_APP_TITLE, myAppName, new Callable<String>() {

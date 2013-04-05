@@ -36,30 +36,35 @@ public class TemplateParameterStep extends TemplateWizardStep {
 
   public TemplateParameterStep(TemplateWizard templateWizard, TemplateWizardState state) {
     super(templateWizard, state);
+  }
 
+  @Override
+  public void _init() {
+    myParamContainer.removeAll();
     int row = 0;
     Collection<Parameter> parameters = myTemplateState.getTemplateMetadata().getParameters();
     myParamContainer.setLayout(new GridLayoutManager(parameters.size() + 1, 3));
     GridConstraints c = new GridConstraints();
-    c.setHSizePolicy(GridConstraints.SIZEPOLICY_CAN_GROW);
     c.setVSizePolicy(GridConstraints.SIZEPOLICY_FIXED);
-    c.setAnchor(GridConstraints.ANCHOR_NORTHWEST);
+    c.setAnchor(GridConstraints.ANCHOR_WEST);
     c.setFill(GridConstraints.FILL_HORIZONTAL);
     for (Parameter parameter : parameters) {
       if (myTemplateState.myHidden.contains(parameter.id)) {
         continue;
       }
       JLabel label = new JLabel(parameter.name);
+      c.setHSizePolicy(GridConstraints.SIZEPOLICY_CAN_GROW);
       c.setColumn(0);
+      c.setColSpan(1);
       c.setRow(row++);
       Object value = myTemplateState.get(parameter.id) != null ? myTemplateState.get(parameter.id) : parameter.initial;
       myTemplateState.put(parameter.id, value);
       switch(parameter.type) {
         case BOOLEAN:
-          myParamContainer.add(label, c);
           JCheckBox checkBox = new JCheckBox();
           register(parameter.id, checkBox);
           myParamContainer.add(checkBox, c);
+          myParamContainer.add(label, c);
           break;
         case ENUM:
           myParamContainer.add(label, c);
@@ -74,8 +79,10 @@ public class TemplateParameterStep extends TemplateWizardStep {
           break;
         case STRING:
           myParamContainer.add(label, c);
+          c.setHSizePolicy(GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW);
           JTextField textField = new JTextField();
           c.setColumn(1);
+          c.setColSpan(2);
           register(parameter.id, textField);
           myParamContainer.add(textField, c);
           break;
@@ -84,6 +91,7 @@ public class TemplateParameterStep extends TemplateWizardStep {
     c.setHSizePolicy(GridConstraints.SIZEPOLICY_WANT_GROW);
     c.setVSizePolicy(GridConstraints.SIZEPOLICY_WANT_GROW);
     c.setRow(row);
+    c.setColSpan(1);
     c.setColumn(2);
     myParamContainer.add(new Spacer(), c);
   }
@@ -105,6 +113,16 @@ public class TemplateParameterStep extends TemplateWizardStep {
 
   @Override
   public boolean isStepVisible() {
-    return (Boolean)myTemplateState.get(NewProjectWizardState.ATTR_CREATE_ACTIVITY);
+    boolean hasVisibleParameter = false;
+    if (myTemplateState.hasTemplate()) {
+      Collection<Parameter> parameters = myTemplateState.getTemplateMetadata().getParameters();
+      for (Parameter parameter : parameters) {
+        if (!myTemplateState.myHidden.contains(parameter.id)) {
+          hasVisibleParameter = true;
+          break;
+        }
+      }
+    }
+    return hasVisibleParameter && myVisible;
   }
 }
