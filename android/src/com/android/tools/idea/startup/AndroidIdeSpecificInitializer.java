@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.startup;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.AndroidNewModuleAction;
 import com.android.tools.idea.actions.AndroidNewProjectAction;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
@@ -57,38 +60,41 @@ public class AndroidIdeSpecificInitializer implements Runnable {
     PropertiesComponent propertiesComponent = PropertiesComponent.getInstance();
     if (!propertiesComponent.getBoolean(CONFIG_V1, false)) {
       propertiesComponent.setValue(CONFIG_V1, "true");
-      setupSDKs();
+      setupSdks();
     }
   }
 
   // Setup JDK and Android SDK
-  private void setupSDKs() {
-    Sdk javaSdk = createJavaSdk();
-    if (javaSdk == null) {
-      return;
-    }
+  private static void setupSdks() {
+    final String jdkHome = getJdkHome();
+    final String sdkHome = getAndroidSdkHome();
 
-    Sdk androidSdk = createAndroidSdk(javaSdk);
-    if (androidSdk == null) {
-      return;
+    if (jdkHome != null && sdkHome != null) {
+      createSdks(jdkHome, sdkHome);
+    } else {
+      // Show a simpler dialog to add these SDK's if they can't be added automatically
+      ApplicationManager.getApplication().invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          final SelectSdkDialog dlg = new SelectSdkDialog(jdkHome, sdkHome);
+          dlg.show();
+          if (dlg.isOK()) {
+            createSdks(dlg.getJdkHome(), dlg.getAndroidHome());
+          }
+        }
+      }, ModalityState.any());
     }
+  }
 
-    //ApplicationManager.getApplication().invokeAndWait(new Runnable() {
-    //  @Override
-    //  public void run() {
-    //    SelectSdkDialog dlg = new SelectSdkDialog();
-    //    dlg.show();
-    //  }
-    //}, ModalityState.any());
+  private static void createSdks(@NotNull String jdkHome, @NotNull String sdkHome) {
+    Sdk javaSdk = createJavaSdk(jdkHome);
+    if (javaSdk != null) {
+      createAndroidSdk(sdkHome, javaSdk);
+    }
   }
 
   @Nullable
-  private Sdk createAndroidSdk(@NotNull Sdk javaSdk) {
-    String androidHome = getAndroidSdk();
-    if (androidHome == null) {
-      return null;
-    }
-
+  private static Sdk createAndroidSdk(@NotNull String androidHome, @NotNull Sdk javaSdk) {
     Sdk androidSdk = SdkConfigurationUtil.createAndAddSDK(androidHome, AndroidSdkType.getInstance());
     if (androidSdk == null) {
       return null;
@@ -100,11 +106,11 @@ public class AndroidIdeSpecificInitializer implements Runnable {
       return null;
     }
     IAndroidTarget[] targets = sdkData.getTargets();
-    if (targets.length == 0) {
+    IAndroidTarget target = findBestTarget(targets);
+    if (target == null) {
       return null;
     }
 
-    IAndroidTarget target = targets[0];
     AndroidSdkUtils.setUpSdk(androidSdk,
                              javaSdk,
                              new Sdk[] { javaSdk },
@@ -114,6 +120,27 @@ public class AndroidIdeSpecificInitializer implements Runnable {
     return androidSdk;
   }
 
+  @Nullable
+  private static IAndroidTarget findBestTarget(@NotNull IAndroidTarget[] targets) {
+    if (targets.length == 0) {
+      return null;
+    }
+
+    IAndroidTarget bestTarget = null;
+    int maxApiLevel = -1;
+
+    for (IAndroidTarget target : targets) {
+      AndroidVersion version = target.getVersion();
+
+      if (target.isPlatform() && !version.isPreview() && version.getApiLevel() > maxApiLevel) {
+        bestTarget = target;
+        maxApiLevel = version.getApiLevel();
+      }
+    }
+
+    return bestTarget;
+  }
+
   /** Paths relative to the IDE installation folder where the Android SDK maybe present. */
   private static final String[] ANDROID_SDK_RELATIVE_PATHS = {
     ANDROID_SDK_FOLDER_NAME,
@@ -121,7 +148,7 @@ public class AndroidIdeSpecificInitializer implements Runnable {
   };
 
   @Nullable
-  private String getAndroidSdk() {
+  private static String getAndroidSdkHome() {
     String ideaHome = PathManager.getHomePath();
     if (ideaHome == null) {
       return null;
@@ -138,14 +165,12 @@ public class AndroidIdeSpecificInitializer implements Runnable {
   }
 
   @Nullable
-  private static Sdk createJavaSdk() {
-    String jdkHome = getBestJdk();
-    return (jdkHome != null) ?
-           SdkConfigurationUtil.createAndAddSDK(jdkHome, JavaSdk.getInstance()) : null;
+  private static Sdk createJavaSdk(@NotNull String jdkHome) {
+    return SdkConfigurationUtil.createAndAddSDK(jdkHome, JavaSdk.getInstance());
   }
 
   @Nullable
-  private static String getBestJdk() {
+  private static String getJdkHome() {
     Collection<String> jdks = JavaSdk.getInstance().suggestHomePaths();
 
     if (jdks.isEmpty()) {
