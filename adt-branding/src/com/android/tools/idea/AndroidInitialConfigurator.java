@@ -36,7 +36,7 @@ public class AndroidInitialConfigurator {
   private static final ExtensionPointName<Runnable> EP_NAME =
     ExtensionPointName.create("com.intellij.androidIdeInitializer");
 
-  @NonNls private static final String CONFIG_V1 = "AndroidIdeConfig.V1";
+  @NonNls private static final String CONFIG_V1 = "AndroidInitConfigurator.V1";
   @NonNls private static final String TODO_TOOLWINDOW_ACTION_ID = "ActivateTODOToolWindow";
   @NonNls private static final String ANDROID_TOOLWINDOW_ACTION_ID = "ActivateAndroidToolWindow";
 
