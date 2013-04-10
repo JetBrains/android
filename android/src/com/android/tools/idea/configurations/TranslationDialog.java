@@ -16,8 +16,8 @@
 package com.android.tools.idea.configurations;
 
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ValueResourceParser;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -281,7 +281,7 @@ public class TranslationDialog extends DialogWrapper {
         sb.append("    <string name=\"");
         sb.append(key);
         sb.append("\">");
-        sb.append(ValueResourceParser.escapeResourceString(value));
+        sb.append(ValueXmlHelper.escapeResourceString(value));
         sb.append("</string>\n");
       }
       sb.append("\n</resources>");
