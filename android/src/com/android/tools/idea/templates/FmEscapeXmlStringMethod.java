@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.ide.common.resources.ValueResourceParser;
-
+import com.android.ide.common.res2.ValueXmlHelper;
 import freemarker.template.SimpleScalar;
 import freemarker.template.TemplateMethodModel;
 import freemarker.template.TemplateModel;
@@ -38,6 +37,6 @@ public class FmEscapeXmlStringMethod implements TemplateMethodModel {
             throw new TemplateModelException("Wrong arguments");
         }
         String string = args.get(0).toString();
-        return new SimpleScalar(ValueResourceParser.escapeResourceString(string));
+        return new SimpleScalar(ValueXmlHelper.escapeResourceString(string));
     }
 }
