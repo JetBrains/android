@@ -39,6 +39,9 @@ import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
 import freemarker.cache.TemplateLoader;
 import freemarker.template.Configuration;
@@ -504,7 +507,7 @@ public class Template {
       contents = mergeXml(sourceText, targetText, to, paramMap);
     }
 
-    Files.write(contents, to, Charsets.UTF_8);
+    writeFile(contents, to);
   }
 
   private String mergeXml(String sourceXml, String targetXml, File targetFile, Map<String, Object> paramMap) {
@@ -521,7 +524,7 @@ public class Template {
       modified = ok = mergeManifest(currentDocument, fragment);
     } else {
       // Merge plain XML files
-      String parentFolderName = targetFile.getParent();
+      String parentFolderName = targetFile.getParentFile().getName();
       ResourceFolderType folderType = ResourceFolderType.getFolderType(parentFolderName);
       if (folderType != null) {
         formatStyle = getXmlFormatStyleForFile(targetFile);
@@ -712,8 +715,8 @@ public class Template {
 
       contents = format(contents, to);
       File targetFile = getTargetFile(to);
-      targetFile.getParentFile().mkdirs();
-      Files.write(contents, targetFile, Charsets.UTF_8);
+      VfsUtil.createDirectories(targetFile.getParentFile().getAbsolutePath());
+      writeFile(contents, targetFile);
     }
   }
 
@@ -782,7 +785,7 @@ public class Template {
     }
 
     if (file.getParent() != null) {
-      String parentName = file.getParent();
+      String parentName = file.getParentFile().getName();
       ResourceFolderType folderType = ResourceFolderType.getFolderType(parentName);
       return getXmlFormatStyleForFolderType(folderType);
     }
@@ -845,6 +848,26 @@ public class Template {
     } else {
       FileUtil.copyContent(src, dest);
     }
+  }
+
+  /**
+   * Replaces the contents of the given file with the given string. Outputs
+   * text in UTF-8 character encoding. The file is created if it does not
+   * already exist.
+   */
+  private void writeFile(@Nullable String contents, @NotNull File to) throws IOException {
+    if (contents == null) {
+      return;
+    }
+    VirtualFile vf = LocalFileSystem.getInstance().findFileByIoFile(to);
+    if (vf == null) {
+      try {
+        vf = LocalFileSystem.getInstance().findFileByIoFile(to.getParentFile()).createChildData(this, to.getName());
+      } catch (NullPointerException e) {
+        throw new IOException("Unable to create file " + to.getAbsolutePath());
+      }
+    }
+    vf.setBinaryContent(contents.getBytes(Charsets.UTF_8));
   }
 
   /**
