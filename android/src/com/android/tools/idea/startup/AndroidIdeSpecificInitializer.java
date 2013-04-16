@@ -57,6 +57,10 @@ public class AndroidIdeSpecificInitializer implements Runnable {
       fixNewProjectActions();
     }
 
+    // Set up JDK & Android SDK at startup (if possible)
+    // TODO: Rather than make these conditional on CONFIG_V1, perhaps they should be conditional
+    // on whether a JDK or SDK has already been setup. The disadvantage would be that the
+    // setup SDK/JDK dialog will pop up on every launch until they are setup.
     PropertiesComponent propertiesComponent = PropertiesComponent.getInstance();
     if (!propertiesComponent.getBoolean(CONFIG_V1, false)) {
       propertiesComponent.setValue(CONFIG_V1, "true");
