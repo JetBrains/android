@@ -42,13 +42,17 @@ import java.util.List;
  * Helper code for attaching the external annotations .jar file
  * to the user's Android SDK platforms, if necessary
  */
+@SuppressWarnings("SpellCheckingInspection") // "Modificator" in API usage
 public class ExternalAnnotationsSupport {
   private static final Logger LOG = Logger.getInstance("#" + ExternalAnnotationsSupport.class.getName());
   private static final String ANNOTATIONS_JAR = "androidAnnotations.jar";
   private static final String LIB_ANNOTATIONS_JAR = "/lib/" + ANNOTATIONS_JAR;
 
   // Based on similar code in MagicConstantInspection
-  public static void checkAnnotationsJarAttached(@NotNull PsiFile file, @NotNull ProblemsHolder holder) {
+  @SuppressWarnings("ALL")
+  private static void checkAnnotationsJarAttached(@NotNull PsiFile file, @NotNull ProblemsHolder holder) {
+    // Not yet used
+    if (false) {
     final Project project = file.getProject();
     PsiClass actionBar = JavaPsiFacade.getInstance(project).findClass("android.app.ActionBar", GlobalSearchScope.allScope(project));
     if (actionBar == null) {
@@ -104,7 +108,6 @@ public class ExternalAnnotationsSupport {
         ApplicationManager.getApplication().runWriteAction(new Runnable() {
           @Override
           public void run() {
-            @SuppressWarnings("SpellCheckingInspection")
             SdkModificator modifier = finalSdk.getSdkModificator();
             attachJdkAnnotations(modifier);
             modifier.commitChanges();
@@ -112,10 +115,10 @@ public class ExternalAnnotationsSupport {
         });
       }
     });
+    }
   }
 
   // Based on similar code in JavaSdkImpl
-  @SuppressWarnings("SpellCheckingInspection")
   public static void attachJdkAnnotations(@NotNull SdkModificator modificator) {
     String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
     VirtualFileManager fileManager = VirtualFileManager.getInstance();
@@ -133,14 +136,19 @@ public class ExternalAnnotationsSupport {
     modificator.addRoot(root, annoType);
   }
 
-  public static void addAnnotationsIfNecessary(Sdk sdk) {
-    // Attempt to insert SDK annotations
-    @SuppressWarnings("SpellCheckingInspection")
+  public static void addAnnotations(@NotNull Sdk sdk) {
     SdkModificator modifier = sdk.getSdkModificator();
-    VirtualFile[] roots = modifier.getRoots(AnnotationOrderRootType.getInstance());
+    attachJdkAnnotations(modifier);
+    modifier.commitChanges();
+  }
+
+  public static void addAnnotationsIfNecessary(@NotNull Sdk sdk) {
+    // Attempt to insert SDK annotations
+    VirtualFile[] roots = sdk.getRootProvider().getFiles(AnnotationOrderRootType.getInstance());
     if (roots.length > 0) {
       return;
     }
+    SdkModificator modifier = sdk.getSdkModificator();
     attachJdkAnnotations(modifier);
     modifier.commitChanges();
   }
