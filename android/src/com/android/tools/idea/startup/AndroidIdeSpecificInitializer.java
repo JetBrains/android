@@ -19,6 +19,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.AndroidNewModuleAction;
 import com.android.tools.idea.actions.AndroidNewProjectAction;
+import com.google.common.io.Closeables;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
@@ -26,6 +27,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
+import com.intellij.util.SystemProperties;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -36,10 +38,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.*;
 
 /** Initialization performed only in the context of the Android IDE. */
 public class AndroidIdeSpecificInitializer implements Runnable {
@@ -168,18 +169,54 @@ public class AndroidIdeSpecificInitializer implements Runnable {
   @Nullable
   private static String getAndroidSdkHome() {
     String ideaHome = PathManager.getHomePath();
-    if (ideaHome == null) {
-      return null;
-    }
-
-    for (String path : ANDROID_SDK_RELATIVE_PATHS) {
-      File f = new File(ideaHome, path);
-      if (f.isDirectory()) {
-        return f.getAbsolutePath();
+    if (ideaHome != null) {
+      for (String path : ANDROID_SDK_RELATIVE_PATHS) {
+        File f = new File(ideaHome, path);
+        if (f.isDirectory()) {
+          return f.getAbsolutePath();
+        }
       }
     }
 
-    return null;
+    return getLaskSdkPathFromEclipse();
+  }
+
+  /**
+   * Returns the value for property lastSdkPath as stored in the properties file
+   * at $HOME/.android/ddms.cfg, or null if the file or property doesn't exist.
+   *
+   * This is only useful in a scenario where existing users of ADT/Eclipse get Diamond,
+   * but without the bundle. This method duplicates some functionality of
+   * {@link com.android.prefs.AndroidLocation} since we don't want any file system
+   * writes to happen during this process.
+   */
+  @Nullable
+  private static String getLaskSdkPathFromEclipse() {
+    String userHome = SystemProperties.getUserHome();
+    if (userHome == null) {
+      return null;
+    }
+
+    File f = new File(new File(userHome, ".android"), "ddms.cfg");
+    if (!f.exists()) {
+      return null;
+    }
+
+    Properties props = new Properties();
+    FileInputStream fis = null;
+    try {
+      //noinspection IOResourceOpenedButNotSafelyClosed
+      fis = new FileInputStream(f);
+      props.load(fis);
+    } catch (IOException e) {
+      return null;
+    } finally {
+      if (fis != null) {
+        Closeables.closeQuietly(fis);
+      }
+    }
+
+    return props.getProperty("lastSdkPath");
   }
 
   @Nullable
