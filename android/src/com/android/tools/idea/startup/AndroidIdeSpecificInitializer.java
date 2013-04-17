@@ -19,24 +19,13 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.AndroidNewModuleAction;
 import com.android.tools.idea.actions.AndroidNewProjectAction;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.projectRoots.*;
-import com.intellij.openapi.projectRoots.JavaSdk;
-import com.intellij.openapi.projectRoots.JavaSdkVersion;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
-import com.intellij.openapi.roots.AnnotationOrderRootType;
-import com.intellij.openapi.roots.OrderRootType;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -55,12 +44,12 @@ import java.util.List;
 /** Initialization performed only in the context of the Android IDE. */
 public class AndroidIdeSpecificInitializer implements Runnable {
   @NonNls public static final String NEW_NEW_PROJECT_WIZARD = "android.newProjectWizard";
-  @NonNls private static final String CONFIG_V1 = "AndroidIdeConfig.V1";
   @NonNls private static final String ANDROID_SDK_FOLDER_NAME = "sdk";
 
   @Override
   public void run() {
     // Fix New Project actions
+    //noinspection UseOfArchaicSystemPropertyAccessors
     if (Boolean.getBoolean(NEW_NEW_PROJECT_WIZARD)) {
       fixNewProjectActions();
     }
@@ -127,10 +116,7 @@ public class AndroidIdeSpecificInitializer implements Runnable {
     }
 
     // Attempt to insert SDK annotations
-    @SuppressWarnings("SpellCheckingInspection")
-    SdkModificator modifier = androidSdk.getSdkModificator();
-    ExternalAnnotationsSupport.attachJdkAnnotations(modifier);
-    modifier.commitChanges();
+    ExternalAnnotationsSupport.addAnnotations(androidSdk);
 
     MessageBuildingSdkLog log = new MessageBuildingSdkLog();
     AndroidSdkData sdkData = AndroidSdkData.parse(androidHome, log);
