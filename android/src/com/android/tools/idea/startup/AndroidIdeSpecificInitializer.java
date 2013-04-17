@@ -26,7 +26,17 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.projectRoots.*;
+import com.intellij.openapi.projectRoots.JavaSdk;
+import com.intellij.openapi.projectRoots.JavaSdkVersion;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
+import com.intellij.openapi.roots.AnnotationOrderRootType;
+import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -63,6 +73,7 @@ public class AndroidIdeSpecificInitializer implements Runnable {
     Sdk sdk = getExistingSdk(AndroidSdkType.getInstance());
     if (sdk != null) {
       // already have a Android SDK (and its dependent JDK)
+      ExternalAnnotationsSupport.addAnnotationsIfNecessary(sdk);
       return;
     }
 
@@ -114,6 +125,12 @@ public class AndroidIdeSpecificInitializer implements Runnable {
     if (androidSdk == null) {
       return null;
     }
+
+    // Attempt to insert SDK annotations
+    @SuppressWarnings("SpellCheckingInspection")
+    SdkModificator modifier = androidSdk.getSdkModificator();
+    ExternalAnnotationsSupport.attachJdkAnnotations(modifier);
+    modifier.commitChanges();
 
     MessageBuildingSdkLog log = new MessageBuildingSdkLog();
     AndroidSdkData sdkData = AndroidSdkData.parse(androidHome, log);
