@@ -25,9 +25,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.projectRoots.JavaSdk;
-import com.intellij.openapi.projectRoots.JavaSdkVersion;
-import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
@@ -57,24 +55,23 @@ public class AndroidIdeSpecificInitializer implements Runnable {
       fixNewProjectActions();
     }
 
-    // Set up JDK & Android SDK at startup (if possible)
-    // TODO: Rather than make these conditional on CONFIG_V1, perhaps they should be conditional
-    // on whether a JDK or SDK has already been setup. The disadvantage would be that the
-    // setup SDK/JDK dialog will pop up on every launch until they are setup.
-    PropertiesComponent propertiesComponent = PropertiesComponent.getInstance();
-    if (!propertiesComponent.getBoolean(CONFIG_V1, false)) {
-      propertiesComponent.setValue(CONFIG_V1, "true");
-      setupSdks();
-    }
+    // Setup JDK and Android SDK if necessary
+    setupSdks();
   }
 
-  // Setup JDK and Android SDK
   private static void setupSdks() {
-    final String jdkHome = getJdkHome();
+    Sdk sdk = getExistingSdk(AndroidSdkType.getInstance());
+    if (sdk != null) {
+      // already have a Android SDK (and its dependent JDK)
+      return;
+    }
+
+    final Sdk jdk = getExistingSdk(JavaSdk.getInstance());
+    final String jdkHome = jdk == null ? getJdkHome() : jdk.getHomePath();
     final String sdkHome = getAndroidSdkHome();
 
     if (jdkHome != null && sdkHome != null) {
-      createSdks(jdkHome, sdkHome);
+      createSdks(jdk, jdkHome, sdkHome);
     } else {
       // Show a simpler dialog to add these SDK's if they can't be added automatically
       ApplicationManager.getApplication().invokeLater(new Runnable() {
@@ -83,15 +80,29 @@ public class AndroidIdeSpecificInitializer implements Runnable {
           final SelectSdkDialog dlg = new SelectSdkDialog(jdkHome, sdkHome);
           dlg.show();
           if (dlg.isOK()) {
-            createSdks(dlg.getJdkHome(), dlg.getAndroidHome());
+            createSdks(jdk, dlg.getJdkHome(), dlg.getAndroidHome());
           }
         }
       }, ModalityState.any());
     }
   }
 
-  private static void createSdks(@NotNull String jdkHome, @NotNull String sdkHome) {
-    Sdk javaSdk = createJavaSdk(jdkHome);
+  @Nullable
+  private static Sdk getExistingSdk(SdkTypeId type) {
+    Sdk[] sdks = ProjectJdkTable.getInstance().getAllJdks();
+    if (sdks != null) {
+      for (Sdk sdk : sdks) {
+        if (sdk.getSdkType() == type) {
+          return sdk;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private static void createSdks(@Nullable Sdk jdk, @NotNull String jdkHome, @NotNull String sdkHome) {
+    Sdk javaSdk = jdk != null ? jdk : createJavaSdk(jdkHome);
     if (javaSdk != null) {
       createAndroidSdk(sdkHome, javaSdk);
     }

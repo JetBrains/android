@@ -35,6 +35,8 @@ public class SelectSdkDialog extends DialogWrapper {
   private TextFieldWithBrowseButton myJdkTextFieldWithButton;
   private TextFieldWithBrowseButton mySdkTextFieldWithButton;
   private JBLabel myDescriptionLabel;
+  private JBLabel mySelectJdkLabel;
+  private JBLabel mySelectSdkLabel;
 
   private String myJdkHome = "";
   private String mySdkHome = "";
@@ -55,8 +57,12 @@ public class SelectSdkDialog extends DialogWrapper {
       myDescriptionLabel.setText(AndroidBundle.message("android.startup.missing.both"));
     } else if (jdkPath == null) {
       myDescriptionLabel.setText(AndroidBundle.message("android.startup.missing.jdk"));
+      mySdkTextFieldWithButton.setVisible(false);
+      mySelectSdkLabel.setVisible(false);
     } else {
       myDescriptionLabel.setText(AndroidBundle.message("android.startup.missing.sdk"));
+      myJdkTextFieldWithButton.setVisible(false);
+      mySelectJdkLabel.setVisible(false);
     }
 
     myJdkTextFieldWithButton.setTextFieldPreferredWidth(50);
