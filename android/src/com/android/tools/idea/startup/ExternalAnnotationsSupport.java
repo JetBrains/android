@@ -124,7 +124,7 @@ public class ExternalAnnotationsSupport {
     VirtualFileManager fileManager = VirtualFileManager.getInstance();
 
     // release build?
-    String releaseLocation = homePath + "/lib/androidAnnotations.jar";
+    String releaseLocation = homePath + "/plugins/android/lib/androidAnnotations.jar";
     VirtualFile root = fileManager.findFileByUrl("jar://" + releaseLocation + "!/");
     if (root == null) {
       // development
