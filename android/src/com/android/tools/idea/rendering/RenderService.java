@@ -211,7 +211,7 @@ public class RenderService {
 
     myHardwareConfigHelper.setOrientation(configuration.getFullConfig().getScreenOrientationQualifier().getValue());
     myLayoutLib = factory.getLibrary(); // TODO: editor.getReadyLayoutLib(true /*displayError*/);
-    ProjectResources projectResources = facet.getProjectResources();
+    ProjectResources projectResources = facet.getProjectResources(true);
     myProjectCallback = new ProjectCallback(myLayoutLib, projectResources, myModule, myLogger); // TODO: true: /* reset*/
     myProjectCallback.loadAndParseRClass();
     Pair<Integer, Integer> sdkVersions = getSdkVersions(myFacet);

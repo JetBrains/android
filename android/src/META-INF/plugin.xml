@@ -109,6 +109,13 @@
   <depends optional="true" config-file="eclipse.xml">org.jetbrains.idea.eclipse</depends>
 
   <extensions defaultExtensionNs="com.intellij">
+    <lang.foldingBuilder language="JAVA" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
+    <lang.foldingBuilder language="XML" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
+    <codeFoldingOptionsProvider instance="com.android.tools.idea.folding.AndroidCodeFoldingOptionsProvider"/>
+    <applicationService serviceInterface="com.android.tools.idea.folding.AndroidFoldingSettings"
+                        serviceImplementation="com.android.tools.idea.folding.AndroidFoldingSettings"/>
+    <exportable serviceInterface="com.android.tools.idea.folding.AndroidFoldingSettings"/>
+
     <errorHandler implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.DrawableStateListDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.BitmapOrNinePatchDomFileDescription"/>
