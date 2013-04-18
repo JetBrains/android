@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="java.lang.ref.Reference T get()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+</root>
+

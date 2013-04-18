@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.webkit.CookieSyncManager android.webkit.CookieSyncManager createInstance(android.content.Context)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.webkit.CookieSyncManager android.webkit.CookieSyncManager createInstance(android.content.Context) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.webkit.CookieSyncManager android.webkit.CookieSyncManager getInstance()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.webkit.DateSorter DateSorter(android.content.Context) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.webkit.MimeTypeMap android.webkit.MimeTypeMap getSingleton()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.webkit.MimeTypeMap java.lang.String getFileExtensionFromUrl(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.webkit.PluginStub android.view.View getEmbeddedView(int, android.content.Context)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.webkit.PluginStub android.view.View getFullScreenView(int, android.content.Context)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.webkit.URLUtil boolean isAboutUrl(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.webkit.URLUtil boolean isAssetUrl(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.webkit.URLUtil boolean isContentUrl(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.webkit.URLUtil boolean isCookielessProxyUrl(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.webkit.URLUtil boolean isDataUrl(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.webkit.URLUtil boolean isFileUrl(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.webkit.URLUtil boolean isHttpUrl(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.webkit.URLUtil boolean isHttpsUrl(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.webkit.URLUtil boolean isJavaScriptUrl(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.webkit.URLUtil boolean isNetworkUrl(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.webkit.URLUtil boolean isValidUrl(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.webkit.URLUtil byte[] decode(byte[])">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.webkit.URLUtil byte[] decode(byte[]) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.webkit.URLUtil java.lang.String composeSearchUrl(java.lang.String, java.lang.String, java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.webkit.URLUtil java.lang.String composeSearchUrl(java.lang.String, java.lang.String, java.lang.String) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.webkit.URLUtil java.lang.String composeSearchUrl(java.lang.String, java.lang.String, java.lang.String) 2">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.webkit.URLUtil java.lang.String guessFileName(java.lang.String, java.lang.String, java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.webkit.URLUtil java.lang.String guessFileName(java.lang.String, java.lang.String, java.lang.String) 1">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.webkit.URLUtil java.lang.String guessFileName(java.lang.String, java.lang.String, java.lang.String) 2">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.webkit.URLUtil java.lang.String guessUrl(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.webkit.URLUtil java.lang.String guessUrl(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.webkit.URLUtil java.lang.String stripAnchor(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.webkit.WebChromeClient android.graphics.Bitmap getDefaultVideoPoster()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.webkit.WebChromeClient android.view.View getVideoLoadingProgressView()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.webkit.WebChromeClient boolean onConsoleMessage(android.webkit.ConsoleMessage) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.webkit.WebChromeClient void onExceededDatabaseQuota(java.lang.String, java.lang.String, long, long, long, android.webkit.WebStorage.QuotaUpdater) 5">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.webkit.WebChromeClient void onReachedMaxAppCacheSize(long, long, android.webkit.WebStorage.QuotaUpdater) 2">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.webkit.WebSettings android.webkit.WebSettings.TextSize getTextSize()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.webkit.WebSettings void setTextSize(android.webkit.WebSettings.TextSize) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.webkit.WebStorage.Origin java.lang.String getOrigin()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.webkit.WebSyncManager WebSyncManager(android.content.Context, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.webkit.WebView void dispatchDraw(android.graphics.Canvas) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.webkit.WebView void onInitializeAccessibilityEvent(android.view.accessibility.AccessibilityEvent) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.webkit.WebView void onInitializeAccessibilityNodeInfo(android.view.accessibility.AccessibilityNodeInfo) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.webkit.WebViewClient android.webkit.WebResourceResponse shouldInterceptRequest(android.webkit.WebView, java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.webkit.WebViewClient void onFormResubmission(android.webkit.WebView, android.os.Message, android.os.Message) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.webkit.WebViewClient void onReceivedHttpAuthRequest(android.webkit.WebView, android.webkit.HttpAuthHandler, java.lang.String, java.lang.String) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.webkit.WebViewClient void onReceivedSslError(android.webkit.WebView, android.webkit.SslErrorHandler, android.net.http.SslError) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.webkit.WebViewClient void onTooManyRedirects(android.webkit.WebView, android.os.Message, android.os.Message) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.webkit.WebViewClient void onUnhandledKeyEvent(android.webkit.WebView, android.view.KeyEvent) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.webkit.WebViewClient void onUnhandledKeyEvent(android.webkit.WebView, android.view.KeyEvent) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.webkit.WebViewFragment android.webkit.WebView getWebView()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+</root>
+

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.speech.tts.SynthesisRequest SynthesisRequest(java.lang.String, android.os.Bundle) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.speech.tts.SynthesisRequest android.os.Bundle getParams()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.speech.tts.TextToSpeech int isLanguageAvailable(java.util.Locale) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.speech.tts.TextToSpeech int setLanguage(java.util.Locale) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.speech.tts.TextToSpeech java.lang.String getDefaultEngine()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.speech.tts.TextToSpeech java.util.List&lt;android.speech.tts.TextToSpeech.EngineInfo&gt; getEngines()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.speech.tts.TextToSpeech java.util.Locale getDefaultLanguage()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.speech.tts.TextToSpeech java.util.Locale getLanguage()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.speech.tts.TextToSpeech java.util.Set&lt;java.lang.String&gt; getFeatures(java.util.Locale)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.speech.tts.TextToSpeech java.util.Set&lt;java.lang.String&gt; getFeatures(java.util.Locale) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.speech.tts.TextToSpeechService android.os.IBinder onBind(android.content.Intent)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.speech.tts.TextToSpeechService android.os.IBinder onBind(android.content.Intent) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.speech.tts.TextToSpeechService java.util.Set&lt;java.lang.String&gt; onGetFeaturesForLanguage(java.lang.String, java.lang.String, java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+</root>
+

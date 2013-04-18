@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.bluetooth.BluetoothAdapter android.bluetooth.BluetoothDevice getRemoteDevice(byte[])">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothAdapter android.bluetooth.BluetoothDevice getRemoteDevice(byte[]) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.bluetooth.BluetoothAdapter android.bluetooth.BluetoothDevice getRemoteDevice(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothAdapter boolean checkBluetoothAddress(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.bluetooth.BluetoothAdapter boolean getProfileProxy(android.content.Context, android.bluetooth.BluetoothProfile.ServiceListener, int) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.bluetooth.BluetoothAdapter boolean getProfileProxy(android.content.Context, android.bluetooth.BluetoothProfile.ServiceListener, int) 1">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.bluetooth.BluetoothAdapter java.lang.String getAddress()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.bluetooth.BluetoothAdapter java.lang.String getName()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.bluetooth.BluetoothAdapter java.util.Set&lt;android.bluetooth.BluetoothDevice&gt; getBondedDevices()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.bluetooth.BluetoothAdapter void closeProfileProxy(int, android.bluetooth.BluetoothProfile) 1">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.bluetooth.BluetoothClass void writeToParcel(android.os.Parcel, int) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothDevice android.bluetooth.BluetoothClass getBluetoothClass()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.bluetooth.BluetoothDevice android.bluetooth.BluetoothSocket createInsecureRfcommSocketToServiceRecord(java.util.UUID)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothDevice android.bluetooth.BluetoothSocket createRfcommSocketToServiceRecord(java.util.UUID)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothDevice android.os.ParcelUuid[] getUuids()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.bluetooth.BluetoothDevice java.lang.String getName()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.bluetooth.BluetoothDevice void writeToParcel(android.os.Parcel, int) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothGatt boolean readCharacteristic(android.bluetooth.BluetoothGattCharacteristic) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothGatt boolean readDescriptor(android.bluetooth.BluetoothGattDescriptor) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothGatt boolean setCharacteristicNotification(android.bluetooth.BluetoothGattCharacteristic, boolean) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothGatt boolean writeCharacteristic(android.bluetooth.BluetoothGattCharacteristic) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothGatt boolean writeDescriptor(android.bluetooth.BluetoothGattDescriptor) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothGatt int getConnectionState(android.bluetooth.BluetoothDevice) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothGatt void abortReliableWrite(android.bluetooth.BluetoothDevice) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothGattCharacteristic android.bluetooth.BluetoothGattDescriptor getDescriptor(java.util.UUID)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.bluetooth.BluetoothGattCharacteristic boolean setValue(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothGattCharacteristic byte[] getValue()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.bluetooth.BluetoothGattCharacteristic java.lang.Float getFloatValue(int, int)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.bluetooth.BluetoothGattCharacteristic java.lang.Integer getIntValue(int, int)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.bluetooth.BluetoothGattCharacteristic java.lang.String getStringValue(int)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.bluetooth.BluetoothGattServer android.bluetooth.BluetoothGattService getService(java.util.UUID)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.bluetooth.BluetoothGattServer boolean addService(android.bluetooth.BluetoothGattService) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothGattServer boolean connect(android.bluetooth.BluetoothDevice, boolean) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothGattServer boolean notifyCharacteristicChanged(android.bluetooth.BluetoothDevice, android.bluetooth.BluetoothGattCharacteristic, boolean) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothGattServer boolean notifyCharacteristicChanged(android.bluetooth.BluetoothDevice, android.bluetooth.BluetoothGattCharacteristic, boolean) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothGattServer boolean removeService(android.bluetooth.BluetoothGattService) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothGattServer boolean sendResponse(android.bluetooth.BluetoothDevice, int, int, int, byte[]) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothGattServer int getConnectionState(android.bluetooth.BluetoothDevice) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothGattServer void cancelConnection(android.bluetooth.BluetoothDevice) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothGattService android.bluetooth.BluetoothGattCharacteristic getCharacteristic(java.util.UUID)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.bluetooth.BluetoothGattService android.bluetooth.BluetoothGattCharacteristic getCharacteristic(java.util.UUID) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothHealth android.os.ParcelFileDescriptor getMainChannelFd(android.bluetooth.BluetoothDevice, android.bluetooth.BluetoothHealthAppConfiguration)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.bluetooth.BluetoothHealth android.os.ParcelFileDescriptor getMainChannelFd(android.bluetooth.BluetoothDevice, android.bluetooth.BluetoothHealthAppConfiguration) 1">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.bluetooth.BluetoothHealth boolean connectChannelToSource(android.bluetooth.BluetoothDevice, android.bluetooth.BluetoothHealthAppConfiguration) 1">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.bluetooth.BluetoothHealth boolean disconnectChannel(android.bluetooth.BluetoothDevice, android.bluetooth.BluetoothHealthAppConfiguration, int) 1">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.bluetooth.BluetoothHealth boolean registerSinkAppConfiguration(java.lang.String, int, android.bluetooth.BluetoothHealthCallback) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.bluetooth.BluetoothHealth boolean unregisterAppConfiguration(android.bluetooth.BluetoothHealthAppConfiguration) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.bluetooth.BluetoothHealthAppConfiguration void writeToParcel(android.os.Parcel, int) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothSocket android.bluetooth.BluetoothDevice getRemoteDevice()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.bluetooth.BluetoothSocket java.io.InputStream getInputStream()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.bluetooth.BluetoothSocket java.io.OutputStream getOutputStream()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+</root>
+

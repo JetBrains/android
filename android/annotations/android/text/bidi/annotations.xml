@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.text.bidi.BidiFormatter android.text.bidi.BidiFormatter getInstance(boolean)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter android.text.bidi.BidiFormatter getInstance(java.util.Locale)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter boolean isRtl(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String dirAttr(boolean)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String dirAttr(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String dirAttr(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String dirAttr(java.lang.String, android.text.TextDirectionHeuristic)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String dirAttr(java.lang.String, android.text.TextDirectionHeuristic) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String dirAttr(java.lang.String, android.text.TextDirectionHeuristic) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String dirAttrValue(boolean)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String dirAttrValue(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String dirAttrValue(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String dirAttrValue(java.lang.String, android.text.TextDirectionHeuristic)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String dirAttrValue(java.lang.String, android.text.TextDirectionHeuristic) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String dirAttrValue(java.lang.String, android.text.TextDirectionHeuristic) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String endEdge()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String markAfter(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String markAfter(java.lang.String, android.text.TextDirectionHeuristic) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String markAfter(java.lang.String, android.text.TextDirectionHeuristic) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String markBefore(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String markBefore(java.lang.String, android.text.TextDirectionHeuristic) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String markBefore(java.lang.String, android.text.TextDirectionHeuristic) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String spanWrap(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String spanWrap(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String spanWrap(java.lang.String, android.text.TextDirectionHeuristic)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String spanWrap(java.lang.String, android.text.TextDirectionHeuristic) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String spanWrap(java.lang.String, android.text.TextDirectionHeuristic) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String spanWrap(java.lang.String, android.text.TextDirectionHeuristic, boolean)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String spanWrap(java.lang.String, android.text.TextDirectionHeuristic, boolean) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String spanWrap(java.lang.String, android.text.TextDirectionHeuristic, boolean) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String spanWrap(java.lang.String, boolean)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String spanWrap(java.lang.String, boolean) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String startEdge()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String unicodeWrap(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String unicodeWrap(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String unicodeWrap(java.lang.String, android.text.TextDirectionHeuristic)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String unicodeWrap(java.lang.String, android.text.TextDirectionHeuristic) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String unicodeWrap(java.lang.String, android.text.TextDirectionHeuristic) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String unicodeWrap(java.lang.String, android.text.TextDirectionHeuristic, boolean)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String unicodeWrap(java.lang.String, android.text.TextDirectionHeuristic, boolean) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String unicodeWrap(java.lang.String, android.text.TextDirectionHeuristic, boolean) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String unicodeWrap(java.lang.String, boolean)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter java.lang.String unicodeWrap(java.lang.String, boolean) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter.Builder android.text.bidi.BidiFormatter build()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter.Builder android.text.bidi.BidiFormatter.Builder setTextDirectionHeuristic(android.text.TextDirectionHeuristic)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.text.bidi.BidiFormatter.Builder android.text.bidi.BidiFormatter.Builder stereoReset(boolean)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+</root>
+

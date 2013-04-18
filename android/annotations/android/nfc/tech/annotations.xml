@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.nfc.tech.IsoDep android.nfc.tech.IsoDep get(android.nfc.Tag)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.nfc.tech.IsoDep android.nfc.tech.IsoDep get(android.nfc.Tag) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.nfc.tech.IsoDep byte[] getHiLayerResponse()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.nfc.tech.IsoDep byte[] getHistoricalBytes()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.nfc.tech.MifareClassic android.nfc.tech.MifareClassic get(android.nfc.Tag)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.nfc.tech.MifareClassic android.nfc.tech.MifareClassic get(android.nfc.Tag) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.nfc.tech.MifareClassic void writeBlock(int, byte[]) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.nfc.tech.MifareUltralight android.nfc.tech.MifareUltralight get(android.nfc.Tag)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.nfc.tech.MifareUltralight android.nfc.tech.MifareUltralight get(android.nfc.Tag) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.nfc.tech.MifareUltralight void writePage(int, byte[]) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.nfc.tech.Ndef android.nfc.NdefMessage getCachedNdefMessage()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.nfc.tech.Ndef android.nfc.NdefMessage getNdefMessage()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.nfc.tech.Ndef android.nfc.tech.Ndef get(android.nfc.Tag)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.nfc.tech.Ndef android.nfc.tech.Ndef get(android.nfc.Tag) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.nfc.tech.Ndef java.lang.String getType()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.nfc.tech.NdefFormatable android.nfc.tech.NdefFormatable get(android.nfc.Tag)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.nfc.tech.NdefFormatable android.nfc.tech.NdefFormatable get(android.nfc.Tag) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.nfc.tech.NfcA android.nfc.tech.NfcA get(android.nfc.Tag)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.nfc.tech.NfcA android.nfc.tech.NfcA get(android.nfc.Tag) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.nfc.tech.NfcA byte[] getAtqa()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.nfc.tech.NfcB android.nfc.tech.NfcB get(android.nfc.Tag)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.nfc.tech.NfcB android.nfc.tech.NfcB get(android.nfc.Tag) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.nfc.tech.NfcB byte[] getApplicationData()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.nfc.tech.NfcB byte[] getProtocolInfo()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.nfc.tech.NfcBarcode android.nfc.tech.NfcBarcode get(android.nfc.Tag)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.nfc.tech.NfcBarcode android.nfc.tech.NfcBarcode get(android.nfc.Tag) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.nfc.tech.NfcBarcode byte[] getBarcode()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.nfc.tech.NfcF android.nfc.tech.NfcF get(android.nfc.Tag)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.nfc.tech.NfcF android.nfc.tech.NfcF get(android.nfc.Tag) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.nfc.tech.NfcF byte[] getManufacturer()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.nfc.tech.NfcF byte[] getSystemCode()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.nfc.tech.NfcV android.nfc.tech.NfcV get(android.nfc.Tag)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.nfc.tech.NfcV android.nfc.tech.NfcV get(android.nfc.Tag) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+</root>
+

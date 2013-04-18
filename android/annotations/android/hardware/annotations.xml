@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.hardware.Camera android.hardware.Camera open()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera android.hardware.Camera open(int)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.Camera android.hardware.Camera.Parameters getParameters()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.Camera void getCameraInfo(int, android.hardware.Camera.CameraInfo) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.Camera void setOneShotPreviewCallback(android.hardware.Camera.PreviewCallback) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera void setParameters(android.hardware.Camera.Parameters) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.Camera void setPreviewCallback(android.hardware.Camera.PreviewCallback) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera void setPreviewCallbackWithBuffer(android.hardware.Camera.PreviewCallback) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera void setPreviewDisplay(android.view.SurfaceHolder) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera.Face leftEye">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera.Face mouth">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera.Face rightEye">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera.Parameters android.hardware.Camera.Size getJpegThumbnailSize()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.Camera.Parameters android.hardware.Camera.Size getPictureSize()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera.Parameters android.hardware.Camera.Size getPreferredPreviewSizeForVideo()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera.Parameters android.hardware.Camera.Size getPreviewSize()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera.Parameters java.lang.String flatten()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.Camera.Parameters java.util.List&lt;android.hardware.Camera.Area&gt; getFocusAreas()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera.Parameters java.util.List&lt;android.hardware.Camera.Area&gt; getMeteringAreas()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera.Parameters java.util.List&lt;android.hardware.Camera.Size&gt; getSupportedJpegThumbnailSizes()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera.Parameters java.util.List&lt;android.hardware.Camera.Size&gt; getSupportedPictureSizes()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera.Parameters java.util.List&lt;android.hardware.Camera.Size&gt; getSupportedPreviewSizes()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera.Parameters java.util.List&lt;android.hardware.Camera.Size&gt; getSupportedVideoSizes()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera.Parameters java.util.List&lt;int[]&gt; getSupportedPreviewFpsRange()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera.Parameters java.util.List&lt;java.lang.Integer&gt; getSupportedPictureFormats()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.Camera.Parameters java.util.List&lt;java.lang.Integer&gt; getSupportedPreviewFormats()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.Camera.Parameters java.util.List&lt;java.lang.Integer&gt; getSupportedPreviewFrameRates()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera.Parameters java.util.List&lt;java.lang.Integer&gt; getZoomRatios()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera.Parameters java.util.List&lt;java.lang.String&gt; getSupportedAntibanding()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera.Parameters java.util.List&lt;java.lang.String&gt; getSupportedColorEffects()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera.Parameters java.util.List&lt;java.lang.String&gt; getSupportedFlashModes()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera.Parameters java.util.List&lt;java.lang.String&gt; getSupportedFocusModes()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera.Parameters java.util.List&lt;java.lang.String&gt; getSupportedSceneModes()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera.Parameters java.util.List&lt;java.lang.String&gt; getSupportedWhiteBalance()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera.Parameters void getFocusDistances(float[]) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera.Parameters void getPreviewFpsRange(int[]) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.Camera.Parameters void set(java.lang.String, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.Camera.Parameters void set(java.lang.String, java.lang.String) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.Camera.Parameters void setAntibanding(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.Camera.Parameters void setColorEffect(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.Camera.Parameters void setFlashMode(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.Camera.Parameters void setFocusMode(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.Camera.Parameters void setGpsProcessingMethod(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.Camera.Parameters void setSceneMode(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.Camera.Parameters void setWhiteBalance(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.SensorEvent values">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.SensorManager android.hardware.Sensor getDefaultSensor(int)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.SensorManager boolean getRotationMatrix(float[], float[], float[], float[]) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.SensorManager boolean getRotationMatrix(float[], float[], float[], float[]) 1">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.SensorManager boolean registerListener(android.hardware.SensorEventListener, android.hardware.Sensor, int, android.os.Handler) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.SensorManager boolean registerListener(android.hardware.SensorEventListener, android.hardware.Sensor, int, android.os.Handler) 1">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.SensorManager boolean remapCoordinateSystem(float[], int, int, float[]) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.SensorManager boolean remapCoordinateSystem(float[], int, int, float[]) 3">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.SensorManager float getInclination(float[]) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.SensorManager float[] getOrientation(float[], float[]) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.SensorManager void getAngleChange(float[], float[], float[]) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.SensorManager void getAngleChange(float[], float[], float[]) 2">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.SensorManager void getQuaternionFromVector(float[], float[]) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.SensorManager void getRotationMatrixFromVector(float[], float[]) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.SensorManager void getRotationMatrixFromVector(float[], float[]) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.SensorManager void unregisterListener(android.hardware.SensorEventListener) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.SensorManager void unregisterListener(android.hardware.SensorEventListener, android.hardware.Sensor) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.SensorManager void unregisterListener(android.hardware.SensorEventListener, android.hardware.Sensor) 1">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+</root>
+
