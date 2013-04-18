@@ -15,15 +15,27 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.tools.idea.templates.TemplateManager;
+import com.android.tools.idea.templates.TemplateMetadata;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.wizard.AbstractWizard;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * TemplateWizard is a base class for Freemarker template-based wizards.
  */
 public class TemplateWizard extends AbstractWizard<ModuleWizardStep> {
+  public static final String MAIN_FLAVOR_SOURCE_PATH = "src/main";
+  public static final String JAVA_SOURCE_PATH = "java";
+  public static final String RESOURCE_SOURCE_PATH = "res";
+  public static final String GRADLE_WRAPPER_PATH = "gradle/wrapper";
+  protected static final String MAVEN_URL_PROPERTY = "android.mavenRepoUrl";
+
   public TemplateWizard(String title, Project project) {
     super(title, project);
   }
@@ -65,5 +77,27 @@ public class TemplateWizard extends AbstractWizard<ModuleWizardStep> {
       }
     }
     return step;
+  }
+
+  /**
+   * Sets a number of parameters that get picked up as globals in the Freemarker templates. These are used to specify the directories where
+   * a number of files go. The templates use these globals to allow them to service both old-style Ant builds with the old directory
+   * structure and new-style Gradle builds with the new structure.
+   */
+  protected void populateDirectoryParameters(TemplateWizardState wizardState) throws IOException {
+    File projectRoot = new File((String)wizardState.get(NewModuleWizardState.ATTR_PROJECT_LOCATION));
+    File moduleRoot = new File(projectRoot, (String)wizardState.get(NewProjectWizardState.ATTR_PROJECT_NAME));
+    File mainFlavorSourceRoot = new File(moduleRoot, MAIN_FLAVOR_SOURCE_PATH);
+    File javaSourceRoot = new File(mainFlavorSourceRoot, JAVA_SOURCE_PATH);
+    File resourceSourceRoot = new File(mainFlavorSourceRoot, RESOURCE_SOURCE_PATH);
+    String mavenUrl = System.getProperty(MAVEN_URL_PROPERTY);
+    wizardState.put(TemplateMetadata.ATTR_TOP_OUT, projectRoot.getPath());
+    wizardState.put(TemplateMetadata.ATTR_PROJECT_OUT, moduleRoot.getPath());
+    wizardState.put(TemplateMetadata.ATTR_MANIFEST_OUT, mainFlavorSourceRoot.getPath());
+    wizardState.put(TemplateMetadata.ATTR_SRC_OUT, javaSourceRoot.getPath());
+    wizardState.put(TemplateMetadata.ATTR_RES_OUT, resourceSourceRoot.getPath());
+    if (mavenUrl != null) {
+      wizardState.put(TemplateMetadata.ATTR_MAVEN_URL, mavenUrl);
+    }
   }
 }
