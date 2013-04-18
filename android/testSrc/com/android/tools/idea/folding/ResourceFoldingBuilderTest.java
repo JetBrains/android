@@ -21,13 +21,13 @@ import org.jetbrains.android.AndroidTestCase;
 public class ResourceFoldingBuilderTest extends AndroidTestCase {
 
   public void testJavaStrings() throws Throwable { performTest(".java"); }
+  public void testJavaStrings2() throws Throwable { performTest(".java"); }
   public void testXmlString() throws Throwable { performTest(".xml"); }
 
   @SuppressWarnings("JUnitTestCaseWithNonTrivialConstructors")
   public ResourceFoldingBuilderTest() {
     IdeaTestCase.initPlatformPrefix();
   }
-
 
   private void performTest(String extension) throws Throwable {
     myFixture.copyFileToProject(getTestDataPath() + "/folding/strings.xml", "res/values/strings.xml");
