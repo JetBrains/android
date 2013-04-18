@@ -145,8 +145,8 @@ public class Template {
   public static final String ATTR_FROM = "from";
   public static final String ATTR_CONSTRAINTS = "constraints";
 
-  public static final String CATEGORY_ACTIVITIES = "activities-gradle";
-  public static final String CATEGORY_PROJECTS = "projects-gradle";
+  public static final String CATEGORY_ACTIVITIES = "activities";
+  public static final String CATEGORY_PROJECTS = "projects";
 
   /** The vendor ID of the support library. */
   private static final String VENDOR_ID = "android";
@@ -727,6 +727,10 @@ public class Template {
 
   @NotNull
   private File getTargetFile(@NotNull String path) throws IOException {
+    File p = new File(path);
+    if (p.isAbsolute()) {
+      return p;
+    }
     return new File(myOutputRoot, path.replace('/', File.separatorChar));
   }
 
