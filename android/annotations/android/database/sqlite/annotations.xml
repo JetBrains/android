@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.database.sqlite.SQLiteCursor SQLiteCursor(android.database.sqlite.SQLiteCursorDriver, java.lang.String, android.database.sqlite.SQLiteQuery) 2">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteCursor int getColumnIndex(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteDatabase android.database.Cursor query(boolean, java.lang.String, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, java.lang.String, java.lang.String, java.lang.String) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteDatabase android.database.Cursor query(boolean, java.lang.String, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, java.lang.String, java.lang.String, java.lang.String, android.os.CancellationSignal) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteDatabase android.database.Cursor query(java.lang.String, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, java.lang.String, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteDatabase android.database.Cursor query(java.lang.String, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, java.lang.String, java.lang.String, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteDatabase android.database.Cursor queryWithFactory(android.database.sqlite.SQLiteDatabase.CursorFactory, boolean, java.lang.String, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, java.lang.String, java.lang.String, java.lang.String) 2">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteDatabase android.database.Cursor queryWithFactory(android.database.sqlite.SQLiteDatabase.CursorFactory, boolean, java.lang.String, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, java.lang.String, java.lang.String, java.lang.String, android.os.CancellationSignal) 2">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteDatabase android.database.Cursor rawQueryWithFactory(android.database.sqlite.SQLiteDatabase.CursorFactory, java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteDatabase android.database.sqlite.SQLiteDatabase create(android.database.sqlite.SQLiteDatabase.CursorFactory)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteDatabase android.database.sqlite.SQLiteDatabase openDatabase(java.lang.String, android.database.sqlite.SQLiteDatabase.CursorFactory, int)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteDatabase android.database.sqlite.SQLiteDatabase openDatabase(java.lang.String, android.database.sqlite.SQLiteDatabase.CursorFactory, int, android.database.DatabaseErrorHandler)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteDatabase android.database.sqlite.SQLiteDatabase openOrCreateDatabase(java.io.File, android.database.sqlite.SQLiteDatabase.CursorFactory)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteDatabase android.database.sqlite.SQLiteDatabase openOrCreateDatabase(java.io.File, android.database.sqlite.SQLiteDatabase.CursorFactory) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteDatabase android.database.sqlite.SQLiteDatabase openOrCreateDatabase(java.lang.String, android.database.sqlite.SQLiteDatabase.CursorFactory)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteDatabase android.database.sqlite.SQLiteDatabase openOrCreateDatabase(java.lang.String, android.database.sqlite.SQLiteDatabase.CursorFactory, android.database.DatabaseErrorHandler)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteDatabase android.database.sqlite.SQLiteStatement compileStatement(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteDatabase boolean deleteDatabase(java.io.File) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteDatabase int updateWithOnConflict(java.lang.String, android.content.ContentValues, java.lang.String, java.lang.String[], int) 1">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteDatabase int updateWithOnConflict(java.lang.String, android.content.ContentValues, java.lang.String, java.lang.String[], int) 3">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteDatabase java.lang.String findEditTable(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteDatabase java.util.List&lt;android.util.Pair&lt;java.lang.String,java.lang.String&gt;&gt; getAttachedDbs()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteDatabase java.util.Map&lt;java.lang.String,java.lang.String&gt; getSyncedTables()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteDatabase long insertWithOnConflict(java.lang.String, java.lang.String, android.content.ContentValues, int) 2">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteDatabase void execSQL(java.lang.String, java.lang.Object[]) 1">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteDatabase void setLocale(java.util.Locale) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteOpenHelper android.database.sqlite.SQLiteDatabase getReadableDatabase()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteOpenHelper android.database.sqlite.SQLiteDatabase getWritableDatabase()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteProgram void bindAllArgsAsStrings(java.lang.String[]) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteProgram void bindBlob(int, byte[]) 1">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteProgram void bindString(int, java.lang.String) 1">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteQueryBuilder android.database.Cursor query(android.database.sqlite.SQLiteDatabase, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, java.lang.String, java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteQueryBuilder android.database.Cursor query(android.database.sqlite.SQLiteDatabase, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, java.lang.String, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteQueryBuilder android.database.Cursor query(android.database.sqlite.SQLiteDatabase, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, java.lang.String, java.lang.String, java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteQueryBuilder android.database.Cursor query(android.database.sqlite.SQLiteDatabase, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, java.lang.String, java.lang.String, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteQueryBuilder android.database.Cursor query(android.database.sqlite.SQLiteDatabase, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, java.lang.String, java.lang.String, java.lang.String, android.os.CancellationSignal)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteQueryBuilder android.database.Cursor query(android.database.sqlite.SQLiteDatabase, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, java.lang.String, java.lang.String, java.lang.String, android.os.CancellationSignal) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteQueryBuilder android.database.Cursor query(android.database.sqlite.SQLiteDatabase, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, java.lang.String, java.lang.String, java.lang.String, android.os.CancellationSignal) 2">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteQueryBuilder java.lang.String buildQuery(java.lang.String[], java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteQueryBuilder java.lang.String buildQuery(java.lang.String[], java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String) 1">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteQueryBuilder java.lang.String buildQuery(java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, java.lang.String, java.lang.String, java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteQueryBuilder java.lang.String buildQueryString(boolean, java.lang.String, java.lang.String[], java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteQueryBuilder java.lang.String buildQueryString(boolean, java.lang.String, java.lang.String[], java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String) 2">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteQueryBuilder java.lang.String buildUnionQuery(java.lang.String[], java.lang.String, java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteQueryBuilder java.lang.String buildUnionQuery(java.lang.String[], java.lang.String, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteQueryBuilder java.lang.String buildUnionSubQuery(java.lang.String, java.lang.String[], java.util.Set&lt;java.lang.String&gt;, int, java.lang.String, java.lang.String, java.lang.String, java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteQueryBuilder java.lang.String buildUnionSubQuery(java.lang.String, java.lang.String[], java.util.Set&lt;java.lang.String&gt;, int, java.lang.String, java.lang.String, java.lang.String, java.lang.String) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteQueryBuilder java.lang.String buildUnionSubQuery(java.lang.String, java.lang.String[], java.util.Set&lt;java.lang.String&gt;, int, java.lang.String, java.lang.String, java.lang.String, java.lang.String) 2">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteQueryBuilder java.lang.String buildUnionSubQuery(java.lang.String, java.lang.String[], java.util.Set&lt;java.lang.String&gt;, int, java.lang.String, java.lang.String, java.lang.String[], java.lang.String, java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteQueryBuilder java.lang.String buildUnionSubQuery(java.lang.String, java.lang.String[], java.util.Set&lt;java.lang.String&gt;, int, java.lang.String, java.lang.String, java.lang.String[], java.lang.String, java.lang.String) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteQueryBuilder java.lang.String buildUnionSubQuery(java.lang.String, java.lang.String[], java.util.Set&lt;java.lang.String&gt;, int, java.lang.String, java.lang.String, java.lang.String[], java.lang.String, java.lang.String) 2">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteQueryBuilder void appendColumns(java.lang.StringBuilder, java.lang.String[]) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteQueryBuilder void appendColumns(java.lang.StringBuilder, java.lang.String[]) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteQueryBuilder void appendWhere(java.lang.CharSequence) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteQueryBuilder void appendWhereEscapeString(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.database.sqlite.SQLiteStatement android.os.ParcelFileDescriptor simpleQueryForBlobFileDescriptor()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.database.sqlite.SQLiteStatement java.lang.String simpleQueryForString()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+</root>
+

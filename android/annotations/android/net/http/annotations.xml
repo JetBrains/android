@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.net.http.AndroidHttpClient AbstractHttpEntity getCompressedEntity(byte[], android.content.ContentResolver) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.http.AndroidHttpClient android.net.http.AndroidHttpClient newInstance(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.http.AndroidHttpClient android.net.http.AndroidHttpClient newInstance(java.lang.String, android.content.Context)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.http.AndroidHttpClient android.net.http.AndroidHttpClient newInstance(java.lang.String, android.content.Context) 1">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.http.AndroidHttpClient void enableCurlLogging(java.lang.String, int) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.http.HttpResponseCache android.net.http.HttpResponseCache getInstalled()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.http.HttpResponseCache android.net.http.HttpResponseCache install(java.io.File, long)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.http.SslCertificate SslCertificate(java.security.cert.X509Certificate) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.http.SslCertificate android.net.http.SslCertificate restoreState(android.os.Bundle)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.http.SslCertificate android.net.http.SslCertificate restoreState(android.os.Bundle) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.http.SslCertificate android.net.http.SslCertificate.DName getIssuedBy()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.http.SslCertificate android.net.http.SslCertificate.DName getIssuedTo()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.http.SslCertificate android.os.Bundle saveState(android.net.http.SslCertificate)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.http.SslCertificate android.os.Bundle saveState(android.net.http.SslCertificate) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.http.SslCertificate java.util.Date getValidNotAfterDate()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.http.SslCertificate java.util.Date getValidNotBeforeDate()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.http.SslCertificate.DName DName(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.http.SslCertificate.DName java.lang.String getCName()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.http.SslCertificate.DName java.lang.String getDName()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.http.SslCertificate.DName java.lang.String getOName()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.http.SslCertificate.DName java.lang.String getUName()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.http.SslError SslError(int, android.net.http.SslCertificate) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.http.SslError SslError(int, android.net.http.SslCertificate, java.lang.String) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.http.SslError SslError(int, android.net.http.SslCertificate, java.lang.String) 2">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.http.SslError SslError(int, java.security.cert.X509Certificate, java.lang.String) 2">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.http.SslError android.net.http.SslCertificate getCertificate()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.http.SslError java.lang.String getUrl()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+</root>
+

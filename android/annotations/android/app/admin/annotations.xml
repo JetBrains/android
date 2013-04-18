@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.app.admin.DeviceAdminInfo DeviceAdminInfo(android.content.Context, android.content.pm.ResolveInfo) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.app.admin.DeviceAdminInfo DeviceAdminInfo(android.content.Context, android.content.pm.ResolveInfo) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.app.admin.DeviceAdminInfo android.content.ComponentName getComponent()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.app.admin.DeviceAdminInfo java.lang.CharSequence loadDescription(android.content.pm.PackageManager) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.app.admin.DeviceAdminInfo void dump(android.util.Printer, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.app.admin.DeviceAdminInfo void writeToParcel(android.os.Parcel, int) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.app.admin.DeviceAdminReceiver android.app.admin.DevicePolicyManager getManager(android.content.Context) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.app.admin.DeviceAdminReceiver java.lang.CharSequence onDisableRequested(android.content.Context, android.content.Intent)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.app.admin.DeviceAdminReceiver void onReceive(android.content.Context, android.content.Intent) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.app.admin.DevicePolicyManager java.util.List&lt;android.content.ComponentName&gt; getActiveAdmins()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+</root>
+

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.hardware.input.InputManager android.view.InputDevice getInputDevice(int)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.input.InputManager int[] getInputDeviceIds()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.hardware.input.InputManager void registerInputDeviceListener(android.hardware.input.InputManager.InputDeviceListener, android.os.Handler) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.hardware.input.InputManager void unregisterInputDeviceListener(android.hardware.input.InputManager.InputDeviceListener) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+</root>
+

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.test.AndroidTestCase android.content.Context getContext()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.test.AndroidTestCase mContext">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.test.InstrumentationTestCase T launchActivity(java.lang.String, java.lang.Class&lt;T&gt;, android.os.Bundle)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.test.InstrumentationTestCase T launchActivity(java.lang.String, java.lang.Class&lt;T&gt;, android.os.Bundle) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.test.InstrumentationTestCase T launchActivity(java.lang.String, java.lang.Class&lt;T&gt;, android.os.Bundle) 2">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.test.InstrumentationTestCase T launchActivityWithIntent(java.lang.String, java.lang.Class&lt;T&gt;, android.content.Intent)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.test.InstrumentationTestCase T launchActivityWithIntent(java.lang.String, java.lang.Class&lt;T&gt;, android.content.Intent) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.test.InstrumentationTestCase T launchActivityWithIntent(java.lang.String, java.lang.Class&lt;T&gt;, android.content.Intent) 2">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.test.InstrumentationTestCase void runTestOnUiThread(java.lang.Runnable) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.test.InstrumentationTestCase void sendKeys(int...) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.test.InstrumentationTestCase void sendKeys(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.test.InstrumentationTestCase void sendRepeatedKeys(int...) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+</root>
+

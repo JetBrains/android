@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.net.ConnectivityManager android.net.NetworkInfo getActiveNetworkInfo()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.ConnectivityManager android.net.NetworkInfo getNetworkInfo(int)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.ConnectivityManager android.net.NetworkInfo[] getAllNetworkInfo()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.DhcpInfo void writeToParcel(android.os.Parcel, int) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.LocalServerSocket android.net.LocalSocket accept()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.LocalServerSocket android.net.LocalSocketAddress getLocalSocketAddress()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.LocalServerSocket java.io.FileDescriptor getFileDescriptor()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.LocalSocket android.net.LocalSocketAddress getRemoteSocketAddress()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.MailTo android.net.MailTo parse(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.MailTo android.net.MailTo parse(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.MailTo boolean isMailTo(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.NetworkInfo void writeToParcel(android.os.Parcel, int) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.Proxy int getPort(android.content.Context) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.Proxy java.lang.String getDefaultHost()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Proxy java.lang.String getHost(android.content.Context)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Proxy java.lang.String getHost(android.content.Context) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.SSLCertificateSocketFactory java.net.Socket createSocket()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.SSLCertificateSocketFactory java.net.Socket createSocket(java.lang.String, int)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.SSLCertificateSocketFactory java.net.Socket createSocket(java.lang.String, int, java.net.InetAddress, int)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.SSLCertificateSocketFactory java.net.Socket createSocket(java.net.InetAddress, int)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.SSLCertificateSocketFactory java.net.Socket createSocket(java.net.InetAddress, int, java.net.InetAddress, int)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.SSLCertificateSocketFactory java.net.Socket createSocket(java.net.Socket, java.lang.String, int, boolean)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.SSLCertificateSocketFactory javax.net.SocketFactory getDefault(int)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.SSLCertificateSocketFactory javax.net.ssl.SSLSocketFactory getDefault(int, android.net.SSLSessionCache)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.SSLCertificateSocketFactory javax.net.ssl.SSLSocketFactory getInsecure(int, android.net.SSLSessionCache)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.SSLCertificateSocketFactory org.apache.http.conn.ssl.SSLSocketFactory getHttpSocketFactory(int, android.net.SSLSessionCache)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.SSLSessionCache SSLSessionCache(android.content.Context) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.Uri CREATOR">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri EMPTY">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri android.net.Uri fromFile(java.io.File)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.Uri android.net.Uri fromFile(java.io.File) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri android.net.Uri fromParts(java.lang.String, java.lang.String, java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.Uri android.net.Uri fromParts(java.lang.String, java.lang.String, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri android.net.Uri fromParts(java.lang.String, java.lang.String, java.lang.String) 1">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri android.net.Uri normalizeScheme()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri android.net.Uri parse(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.Uri android.net.Uri withAppendedPath(android.net.Uri, java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri android.net.Uri withAppendedPath(android.net.Uri, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.Uri android.net.Uri.Builder buildUpon()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.Uri int compareTo(android.net.Uri) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.Uri java.lang.String decode(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String decode(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String encode(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String encode(java.lang.String, java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String encode(java.lang.String, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getAuthority()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getEncodedAuthority()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getEncodedFragment()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getEncodedPath()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getEncodedQuery()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getEncodedSchemeSpecificPart()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getEncodedUserInfo()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getFragment()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getHost()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getLastPathSegment()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getPath()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getQuery()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getQueryParameter(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getQueryParameter(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getScheme()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getSchemeSpecificPart()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getUserInfo()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String toString()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri java.util.List&lt;java.lang.String&gt; getPathSegments()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri java.util.List&lt;java.lang.String&gt; getQueryParameters(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri void writeToParcel(android.os.Parcel, android.net.Uri) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.Uri void writeToParcel(android.os.Parcel, android.net.Uri) 1">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri.Builder android.net.Uri build()">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.Uri.Builder android.net.Uri.Builder appendEncodedPath(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.Uri.Builder android.net.Uri.Builder appendPath(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.Uri.Builder android.net.Uri.Builder appendQueryParameter(java.lang.String, java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.Uri.Builder android.net.Uri.Builder authority(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.Uri.Builder android.net.Uri.Builder clearQuery()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.Uri.Builder android.net.Uri.Builder encodedAuthority(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.Uri.Builder android.net.Uri.Builder encodedFragment(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.Uri.Builder android.net.Uri.Builder encodedOpaquePart(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.Uri.Builder android.net.Uri.Builder encodedPath(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.Uri.Builder android.net.Uri.Builder encodedQuery(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.Uri.Builder android.net.Uri.Builder fragment(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.Uri.Builder android.net.Uri.Builder opaquePart(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.Uri.Builder android.net.Uri.Builder path(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.Uri.Builder android.net.Uri.Builder query(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.Uri.Builder android.net.Uri.Builder scheme(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.UrlQuerySanitizer UrlQuerySanitizer(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.UrlQuerySanitizer android.net.UrlQuerySanitizer.ValueSanitizer getAllButNulAndAngleBracketsLegal()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.UrlQuerySanitizer android.net.UrlQuerySanitizer.ValueSanitizer getAllButNulLegal()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.UrlQuerySanitizer android.net.UrlQuerySanitizer.ValueSanitizer getAllButWhitespaceLegal()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.UrlQuerySanitizer android.net.UrlQuerySanitizer.ValueSanitizer getAllIllegal()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.UrlQuerySanitizer android.net.UrlQuerySanitizer.ValueSanitizer getAmpAndSpaceLegal()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.UrlQuerySanitizer android.net.UrlQuerySanitizer.ValueSanitizer getAmpLegal()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.UrlQuerySanitizer android.net.UrlQuerySanitizer.ValueSanitizer getSpaceLegal()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.UrlQuerySanitizer android.net.UrlQuerySanitizer.ValueSanitizer getUrlAndSpaceLegal()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.UrlQuerySanitizer android.net.UrlQuerySanitizer.ValueSanitizer getUrlLegal()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.UrlQuerySanitizer java.lang.String unescape(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.UrlQuerySanitizer java.lang.String unescape(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.UrlQuerySanitizer java.util.List&lt;android.net.UrlQuerySanitizer.ParameterValuePair&gt; getParameterList()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.UrlQuerySanitizer java.util.Set&lt;java.lang.String&gt; getParameterSet()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.UrlQuerySanitizer void parseEntry(java.lang.String, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.UrlQuerySanitizer void parseEntry(java.lang.String, java.lang.String) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.UrlQuerySanitizer void parseUrl(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.UrlQuerySanitizer void registerParameter(java.lang.String, android.net.UrlQuerySanitizer.ValueSanitizer) 1">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.UrlQuerySanitizer void registerParameters(java.lang.String[], android.net.UrlQuerySanitizer.ValueSanitizer) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.UrlQuerySanitizer.IllegalCharacterValueSanitizer java.lang.String sanitize(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.UrlQuerySanitizer.IllegalCharacterValueSanitizer java.lang.String sanitize(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.UrlQuerySanitizer.ValueSanitizer java.lang.String sanitize(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.VpnService android.content.Intent prepare(android.content.Context)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.VpnService android.content.Intent prepare(android.content.Context) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.VpnService android.os.IBinder onBind(android.content.Intent)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.VpnService android.os.IBinder onBind(android.content.Intent) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.VpnService boolean protect(java.net.DatagramSocket) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.VpnService boolean protect(java.net.Socket) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.VpnService.Builder android.net.VpnService.Builder addAddress(java.net.InetAddress, int)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.VpnService.Builder android.net.VpnService.Builder addAddress(java.net.InetAddress, int) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.VpnService.Builder android.net.VpnService.Builder addDnsServer(java.net.InetAddress)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.VpnService.Builder android.net.VpnService.Builder addDnsServer(java.net.InetAddress) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.VpnService.Builder android.net.VpnService.Builder addRoute(java.net.InetAddress, int)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.VpnService.Builder android.net.VpnService.Builder addRoute(java.net.InetAddress, int) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.VpnService.Builder android.net.VpnService.Builder addSearchDomain(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.VpnService.Builder android.net.VpnService.Builder setConfigureIntent(android.app.PendingIntent)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.VpnService.Builder android.net.VpnService.Builder setMtu(int)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.VpnService.Builder android.net.VpnService.Builder setSession(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+</root>
+

@@ -28,6 +28,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.*;
@@ -36,6 +37,7 @@ import com.intellij.psi.util.PsiUtilCore;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -45,8 +47,6 @@ import java.util.List;
 @SuppressWarnings("SpellCheckingInspection") // "Modificator" in API usage
 public class ExternalAnnotationsSupport {
   private static final Logger LOG = Logger.getInstance("#" + ExternalAnnotationsSupport.class.getName());
-  private static final String ANNOTATIONS_JAR = "androidAnnotations.jar";
-  private static final String LIB_ANNOTATIONS_JAR = "/lib/" + ANNOTATIONS_JAR;
 
   // Based on similar code in MagicConstantInspection
   @SuppressWarnings("ALL")
@@ -122,12 +122,19 @@ public class ExternalAnnotationsSupport {
   public static void attachJdkAnnotations(@NotNull SdkModificator modificator) {
     String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
     VirtualFileManager fileManager = VirtualFileManager.getInstance();
-    VirtualFile root = fileManager.findFileByUrl("jar://" + homePath + "/../adt/idea/android" + LIB_ANNOTATIONS_JAR + "!/");
+
+    // release build?
+    String releaseLocation = homePath + "/lib/androidAnnotations.jar";
+    VirtualFile root = fileManager.findFileByUrl("jar://" + releaseLocation + "!/");
     if (root == null) {
-      root = fileManager.findFileByUrl("jar://" + homePath + LIB_ANNOTATIONS_JAR + "!/");
+      // development
+      String developmentLocation = homePath + "/../adt/idea/android/annotations";
+      root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(developmentLocation));
     }
+
     if (root == null) {
-      LOG.error("jdk annotations not found in: "+ homePath + LIB_ANNOTATIONS_JAR + "!/");
+      // error message tailored for release build file layout
+      LOG.error("jdk annotations not found in: " + releaseLocation);
       return;
     }
 

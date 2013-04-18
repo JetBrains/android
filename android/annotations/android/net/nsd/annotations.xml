@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.net.nsd.NsdManager void discoverServices(java.lang.String, int, android.net.nsd.NsdManager.DiscoveryListener) 2">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.nsd.NsdManager void registerService(android.net.nsd.NsdServiceInfo, int, android.net.nsd.NsdManager.RegistrationListener) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.nsd.NsdManager void registerService(android.net.nsd.NsdServiceInfo, int, android.net.nsd.NsdManager.RegistrationListener) 2">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.nsd.NsdManager void resolveService(android.net.nsd.NsdServiceInfo, android.net.nsd.NsdManager.ResolveListener) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.net.nsd.NsdManager void resolveService(android.net.nsd.NsdServiceInfo, android.net.nsd.NsdManager.ResolveListener) 1">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.nsd.NsdManager void stopServiceDiscovery(android.net.nsd.NsdManager.DiscoveryListener) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.nsd.NsdManager void unregisterService(android.net.nsd.NsdManager.RegistrationListener) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.nsd.NsdServiceInfo CREATOR">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.net.nsd.NsdServiceInfo void writeToParcel(android.os.Parcel, int) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+</root>
+

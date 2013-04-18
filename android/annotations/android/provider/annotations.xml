@@ -1,0 +1,790 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.provider.Browser android.database.Cursor getAllBookmarks(android.content.ContentResolver)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.Browser android.database.Cursor getAllBookmarks(android.content.ContentResolver) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Browser android.database.Cursor getAllVisitedUrls(android.content.ContentResolver)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.Browser android.database.Cursor getAllVisitedUrls(android.content.ContentResolver) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Browser boolean canClearHistory(android.content.ContentResolver) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Browser void addSearchUrl(android.content.ContentResolver, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Browser void clearHistory(android.content.ContentResolver) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Browser void clearSearches(android.content.ContentResolver) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Browser void deleteFromHistory(android.content.ContentResolver, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Browser void deleteHistoryTimeFrame(android.content.ContentResolver, long, long) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Browser void saveBookmark(android.content.Context, java.lang.String, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Browser void sendString(android.content.Context, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Browser void truncateHistory(android.content.ContentResolver) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Browser void updateVisitedHistory(android.content.ContentResolver, java.lang.String, boolean) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.CalendarContract.Attendees android.database.Cursor query(android.content.ContentResolver, long, java.lang.String[])">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.CalendarContract.Attendees android.database.Cursor query(android.content.ContentResolver, long, java.lang.String[]) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.CalendarContract.CalendarEntity android.content.EntityIterator newEntityIterator(android.database.Cursor)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.CalendarContract.EventDays android.database.Cursor query(android.content.ContentResolver, int, int, java.lang.String[])">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.CalendarContract.EventDays android.database.Cursor query(android.content.ContentResolver, int, int, java.lang.String[]) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.CalendarContract.EventsEntity android.content.EntityIterator newEntityIterator(android.database.Cursor, android.content.ContentProviderClient)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.CalendarContract.EventsEntity android.content.EntityIterator newEntityIterator(android.database.Cursor, android.content.ContentResolver)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.CalendarContract.Instances android.database.Cursor query(android.content.ContentResolver, java.lang.String[], long, long)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.CalendarContract.Instances android.database.Cursor query(android.content.ContentResolver, java.lang.String[], long, long) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.CalendarContract.Instances android.database.Cursor query(android.content.ContentResolver, java.lang.String[], long, long, java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.CalendarContract.Instances android.database.Cursor query(android.content.ContentResolver, java.lang.String[], long, long, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.CalendarContract.Reminders android.database.Cursor query(android.content.ContentResolver, long, java.lang.String[])">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.CalendarContract.Reminders android.database.Cursor query(android.content.ContentResolver, long, java.lang.String[]) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.CallLog.Calls java.lang.String getLastOutgoingCall(android.content.Context)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.CallLog.Calls java.lang.String getLastOutgoingCall(android.content.Context) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Contacts.ContactMethods java.lang.CharSequence getDisplayLabel(android.content.Context, int, int, java.lang.CharSequence) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Contacts.ContactMethods java.lang.Object decodeImProtocol(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.Contacts.ContactMethods java.lang.Object decodeImProtocol(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.Contacts.ContactMethods java.lang.String encodeCustomImProtocol(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Contacts.ContactMethods java.lang.String encodePredefinedImProtocol(int)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Contacts.ContactMethods void addPostalLocation(android.content.Context, long, double, double) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Contacts.Organizations java.lang.CharSequence getDisplayLabel(android.content.Context, int, java.lang.CharSequence) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Contacts.People android.database.Cursor queryGroups(android.content.ContentResolver, long)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.Contacts.People android.database.Cursor queryGroups(android.content.ContentResolver, long) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Contacts.People android.graphics.Bitmap loadContactPhoto(android.content.Context, android.net.Uri, int, android.graphics.BitmapFactory.Options)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.Contacts.People android.graphics.Bitmap loadContactPhoto(android.content.Context, android.net.Uri, int, android.graphics.BitmapFactory.Options) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Contacts.People android.graphics.Bitmap loadContactPhoto(android.content.Context, android.net.Uri, int, android.graphics.BitmapFactory.Options) 1">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.Contacts.People android.net.Uri addToGroup(android.content.ContentResolver, long, java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.Contacts.People android.net.Uri addToGroup(android.content.ContentResolver, long, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Contacts.People android.net.Uri addToGroup(android.content.ContentResolver, long, long)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.Contacts.People android.net.Uri addToGroup(android.content.ContentResolver, long, long) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Contacts.People android.net.Uri addToMyContactsGroup(android.content.ContentResolver, long)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.Contacts.People android.net.Uri addToMyContactsGroup(android.content.ContentResolver, long) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Contacts.People android.net.Uri createPersonInMyContactsGroup(android.content.ContentResolver, android.content.ContentValues)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.Contacts.People android.net.Uri createPersonInMyContactsGroup(android.content.ContentResolver, android.content.ContentValues) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Contacts.People java.io.InputStream openContactPhotoInputStream(android.content.ContentResolver, android.net.Uri)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.Contacts.People java.io.InputStream openContactPhotoInputStream(android.content.ContentResolver, android.net.Uri) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Contacts.People void markAsContacted(android.content.ContentResolver, long) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Contacts.People void setPhotoData(android.content.ContentResolver, android.net.Uri, byte[]) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Contacts.Phones java.lang.CharSequence getDisplayLabel(android.content.Context, int, java.lang.CharSequence)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.Contacts.Phones java.lang.CharSequence getDisplayLabel(android.content.Context, int, java.lang.CharSequence) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Contacts.Phones java.lang.CharSequence getDisplayLabel(android.content.Context, int, java.lang.CharSequence, java.lang.CharSequence[])">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.Contacts.Phones java.lang.CharSequence getDisplayLabel(android.content.Context, int, java.lang.CharSequence, java.lang.CharSequence[]) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Contacts.Phones java.lang.CharSequence getDisplayLabel(android.content.Context, int, java.lang.CharSequence, java.lang.CharSequence[]) 3">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.Contacts.Settings java.lang.String getSetting(android.content.ContentResolver, java.lang.String, java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.Contacts.Settings java.lang.String getSetting(android.content.ContentResolver, java.lang.String, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Contacts.Settings java.lang.String getSetting(android.content.ContentResolver, java.lang.String, java.lang.String) 1">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.Contacts.Settings void setSetting(android.content.ContentResolver, java.lang.String, java.lang.String, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.ContactsContract.AggregationExceptions CONTENT_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.CommonDataKinds.Email CONTENT_FILTER_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.CommonDataKinds.Email CONTENT_LOOKUP_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.CommonDataKinds.Email CONTENT_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.CommonDataKinds.Email java.lang.CharSequence getTypeLabel(android.content.res.Resources, int, java.lang.CharSequence) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.ContactsContract.CommonDataKinds.Event int getTypeResource(java.lang.Integer) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.CommonDataKinds.Im java.lang.CharSequence getProtocolLabel(android.content.res.Resources, int, java.lang.CharSequence) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.ContactsContract.CommonDataKinds.Im java.lang.CharSequence getTypeLabel(android.content.res.Resources, int, java.lang.CharSequence) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.ContactsContract.CommonDataKinds.Organization java.lang.CharSequence getTypeLabel(android.content.res.Resources, int, java.lang.CharSequence) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.ContactsContract.CommonDataKinds.Phone CONTENT_FILTER_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.CommonDataKinds.Phone CONTENT_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.CommonDataKinds.Phone java.lang.CharSequence getTypeLabel(android.content.res.Resources, int, java.lang.CharSequence) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.ContactsContract.CommonDataKinds.Relation java.lang.CharSequence getTypeLabel(android.content.res.Resources, int, java.lang.CharSequence) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.ContactsContract.CommonDataKinds.SipAddress java.lang.CharSequence getTypeLabel(android.content.res.Resources, int, java.lang.CharSequence) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.ContactsContract.CommonDataKinds.StructuredPostal CONTENT_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.CommonDataKinds.StructuredPostal java.lang.CharSequence getTypeLabel(android.content.res.Resources, int, java.lang.CharSequence) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.ContactsContract.Contacts CONTENT_FILTER_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.Contacts CONTENT_GROUP_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.Contacts CONTENT_LOOKUP_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.Contacts CONTENT_STREQUENT_FILTER_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.Contacts CONTENT_STREQUENT_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.Contacts CONTENT_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.Contacts CONTENT_VCARD_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.Contacts android.net.Uri getLookupUri(android.content.ContentResolver, android.net.Uri)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.Contacts android.net.Uri getLookupUri(android.content.ContentResolver, android.net.Uri) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.ContactsContract.Contacts android.net.Uri getLookupUri(android.content.ContentResolver, android.net.Uri) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.ContactsContract.Contacts android.net.Uri getLookupUri(long, java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.Contacts android.net.Uri lookupContact(android.content.ContentResolver, android.net.Uri)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.Contacts android.net.Uri lookupContact(android.content.ContentResolver, android.net.Uri) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.ContactsContract.Contacts android.net.Uri lookupContact(android.content.ContentResolver, android.net.Uri) 1">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.Contacts java.io.InputStream openContactPhotoInputStream(android.content.ContentResolver, android.net.Uri)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.Contacts java.io.InputStream openContactPhotoInputStream(android.content.ContentResolver, android.net.Uri) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.ContactsContract.Contacts java.io.InputStream openContactPhotoInputStream(android.content.ContentResolver, android.net.Uri) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.ContactsContract.Contacts java.io.InputStream openContactPhotoInputStream(android.content.ContentResolver, android.net.Uri, boolean)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.Contacts java.io.InputStream openContactPhotoInputStream(android.content.ContentResolver, android.net.Uri, boolean) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.ContactsContract.Contacts java.io.InputStream openContactPhotoInputStream(android.content.ContentResolver, android.net.Uri, boolean) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.ContactsContract.Contacts void markAsContacted(android.content.ContentResolver, long) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.ContactsContract.Data CONTENT_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.Data android.net.Uri getContactLookupUri(android.content.ContentResolver, android.net.Uri)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.Data android.net.Uri getContactLookupUri(android.content.ContentResolver, android.net.Uri) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.ContactsContract.Data android.net.Uri getContactLookupUri(android.content.ContentResolver, android.net.Uri) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.ContactsContract.DataUsageFeedback DELETE_USAGE_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.DataUsageFeedback FEEDBACK_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.Directory CONTENT_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.Directory void notifyDirectoryChange(android.content.ContentResolver) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.ContactsContract.DisplayPhoto CONTENT_MAX_DIMENSIONS_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.DisplayPhoto CONTENT_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.Groups CONTENT_SUMMARY_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.Groups CONTENT_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.Groups android.content.EntityIterator newEntityIterator(android.database.Cursor)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.ContactsContract.PhoneLookup CONTENT_FILTER_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.Profile CONTENT_RAW_CONTACTS_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.Profile CONTENT_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.Profile CONTENT_VCARD_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.ProfileSyncState CONTENT_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.QuickContact void showQuickContact(android.content.Context, android.graphics.Rect, android.net.Uri, int, java.lang.String[]) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.ContactsContract.QuickContact void showQuickContact(android.content.Context, android.view.View, android.net.Uri, int, java.lang.String[]) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.ContactsContract.QuickContact void showQuickContact(android.content.Context, android.view.View, android.net.Uri, int, java.lang.String[]) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.ContactsContract.RawContacts CONTENT_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.RawContacts android.content.EntityIterator newEntityIterator(android.database.Cursor)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.ContactsContract.RawContacts android.net.Uri getContactLookupUri(android.content.ContentResolver, android.net.Uri)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.RawContacts android.net.Uri getContactLookupUri(android.content.ContentResolver, android.net.Uri) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.ContactsContract.RawContacts android.net.Uri getContactLookupUri(android.content.ContentResolver, android.net.Uri) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.ContactsContract.RawContactsEntity CONTENT_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.RawContactsEntity PROFILE_CONTENT_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.Settings CONTENT_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.StatusUpdates CONTENT_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.StatusUpdates PROFILE_CONTENT_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.StreamItems CONTENT_LIMIT_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.StreamItems CONTENT_PHOTO_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.StreamItems CONTENT_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.ContactsContract.SyncState CONTENT_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.MediaStore java.lang.String getVersion(android.content.Context)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.MediaStore java.lang.String getVersion(android.content.Context) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Audio java.lang.String keyFor(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.MediaStore.Audio java.lang.String keyFor(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.MediaStore.Audio.Media android.net.Uri getContentUri(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Audio.Media android.net.Uri getContentUriForPath(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Audio.Media android.net.Uri getContentUriForPath(java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Audio.Playlists.Members boolean moveItem(android.content.ContentResolver, long, int, int) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Files android.net.Uri getContentUri(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Files android.net.Uri getContentUri(java.lang.String, long)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Media android.database.Cursor query(android.content.ContentResolver, android.net.Uri, java.lang.String[])">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Media android.database.Cursor query(android.content.ContentResolver, android.net.Uri, java.lang.String[]) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Media android.database.Cursor query(android.content.ContentResolver, android.net.Uri, java.lang.String[]) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Media android.database.Cursor query(android.content.ContentResolver, android.net.Uri, java.lang.String[], java.lang.String, java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Media android.database.Cursor query(android.content.ContentResolver, android.net.Uri, java.lang.String[], java.lang.String, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Media android.database.Cursor query(android.content.ContentResolver, android.net.Uri, java.lang.String[], java.lang.String, java.lang.String) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Media android.database.Cursor query(android.content.ContentResolver, android.net.Uri, java.lang.String[], java.lang.String, java.lang.String) 4">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Media android.database.Cursor query(android.content.ContentResolver, android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Media android.database.Cursor query(android.content.ContentResolver, android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Media android.database.Cursor query(android.content.ContentResolver, android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Media android.database.Cursor query(android.content.ContentResolver, android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String) 5">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Media android.graphics.Bitmap getBitmap(android.content.ContentResolver, android.net.Uri) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Media android.graphics.Bitmap getBitmap(android.content.ContentResolver, android.net.Uri) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Media android.net.Uri getContentUri(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Media java.lang.String insertImage(android.content.ContentResolver, android.graphics.Bitmap, java.lang.String, java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Media java.lang.String insertImage(android.content.ContentResolver, android.graphics.Bitmap, java.lang.String, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Media java.lang.String insertImage(android.content.ContentResolver, android.graphics.Bitmap, java.lang.String, java.lang.String) 1">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Media java.lang.String insertImage(android.content.ContentResolver, java.lang.String, java.lang.String, java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Media java.lang.String insertImage(android.content.ContentResolver, java.lang.String, java.lang.String, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Thumbnails android.database.Cursor query(android.content.ContentResolver, android.net.Uri, java.lang.String[])">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Thumbnails android.database.Cursor query(android.content.ContentResolver, android.net.Uri, java.lang.String[]) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Thumbnails android.database.Cursor query(android.content.ContentResolver, android.net.Uri, java.lang.String[]) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Thumbnails android.database.Cursor queryMiniThumbnail(android.content.ContentResolver, long, int, java.lang.String[])">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Thumbnails android.database.Cursor queryMiniThumbnail(android.content.ContentResolver, long, int, java.lang.String[]) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Thumbnails android.database.Cursor queryMiniThumbnails(android.content.ContentResolver, android.net.Uri, int, java.lang.String[])">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Thumbnails android.database.Cursor queryMiniThumbnails(android.content.ContentResolver, android.net.Uri, int, java.lang.String[]) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Thumbnails android.database.Cursor queryMiniThumbnails(android.content.ContentResolver, android.net.Uri, int, java.lang.String[]) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Thumbnails android.graphics.Bitmap getThumbnail(android.content.ContentResolver, long, int, android.graphics.BitmapFactory.Options)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Thumbnails android.graphics.Bitmap getThumbnail(android.content.ContentResolver, long, int, android.graphics.BitmapFactory.Options) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Thumbnails android.graphics.Bitmap getThumbnail(android.content.ContentResolver, long, long, int, android.graphics.BitmapFactory.Options)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Thumbnails android.graphics.Bitmap getThumbnail(android.content.ContentResolver, long, long, int, android.graphics.BitmapFactory.Options) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Thumbnails android.net.Uri getContentUri(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Thumbnails void cancelThumbnailRequest(android.content.ContentResolver, long) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Images.Thumbnails void cancelThumbnailRequest(android.content.ContentResolver, long, long) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Video android.database.Cursor query(android.content.ContentResolver, android.net.Uri, java.lang.String[])">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.MediaStore.Video android.database.Cursor query(android.content.ContentResolver, android.net.Uri, java.lang.String[]) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Video android.database.Cursor query(android.content.ContentResolver, android.net.Uri, java.lang.String[]) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Video.Thumbnails android.graphics.Bitmap getThumbnail(android.content.ContentResolver, long, int, android.graphics.BitmapFactory.Options)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.MediaStore.Video.Thumbnails android.graphics.Bitmap getThumbnail(android.content.ContentResolver, long, int, android.graphics.BitmapFactory.Options) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Video.Thumbnails android.graphics.Bitmap getThumbnail(android.content.ContentResolver, long, long, int, android.graphics.BitmapFactory.Options)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.MediaStore.Video.Thumbnails android.graphics.Bitmap getThumbnail(android.content.ContentResolver, long, long, int, android.graphics.BitmapFactory.Options) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Video.Thumbnails void cancelThumbnailRequest(android.content.ContentResolver, long) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.MediaStore.Video.Thumbnails void cancelThumbnailRequest(android.content.ContentResolver, long, long) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.SearchRecentSuggestions void truncateHistory(android.content.ContentResolver, int) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.Global android.net.Uri getUriFor(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.Settings.Global boolean putFloat(android.content.ContentResolver, java.lang.String, float) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.Global boolean putInt(android.content.ContentResolver, java.lang.String, int) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.Global boolean putLong(android.content.ContentResolver, java.lang.String, long) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.Global boolean putString(android.content.ContentResolver, java.lang.String, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.Global float getFloat(android.content.ContentResolver, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.Global float getFloat(android.content.ContentResolver, java.lang.String, float) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.Global int getInt(android.content.ContentResolver, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.Global int getInt(android.content.ContentResolver, java.lang.String, int) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.Global java.lang.String getString(android.content.ContentResolver, java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.Settings.Global java.lang.String getString(android.content.ContentResolver, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.Global long getLong(android.content.ContentResolver, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.Global long getLong(android.content.ContentResolver, java.lang.String, long) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.NameValueTable android.net.Uri getUriFor(android.net.Uri, java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.Settings.NameValueTable android.net.Uri getUriFor(android.net.Uri, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.NameValueTable boolean putString(android.content.ContentResolver, android.net.Uri, java.lang.String, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.NameValueTable boolean putString(android.content.ContentResolver, android.net.Uri, java.lang.String, java.lang.String) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.Secure android.net.Uri getUriFor(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.Settings.Secure boolean isLocationProviderEnabled(android.content.ContentResolver, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.Secure boolean isLocationProviderEnabled(android.content.ContentResolver, java.lang.String) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.Secure boolean putFloat(android.content.ContentResolver, java.lang.String, float) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.Secure boolean putInt(android.content.ContentResolver, java.lang.String, int) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.Secure boolean putLong(android.content.ContentResolver, java.lang.String, long) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.Secure boolean putString(android.content.ContentResolver, java.lang.String, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.Secure float getFloat(android.content.ContentResolver, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.Secure float getFloat(android.content.ContentResolver, java.lang.String, float) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.Secure int getInt(android.content.ContentResolver, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.Secure int getInt(android.content.ContentResolver, java.lang.String, int) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.Secure java.lang.String getString(android.content.ContentResolver, java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.Settings.Secure java.lang.String getString(android.content.ContentResolver, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.Secure long getLong(android.content.ContentResolver, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.Secure long getLong(android.content.ContentResolver, java.lang.String, long) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.Secure void setLocationProviderEnabled(android.content.ContentResolver, java.lang.String, boolean) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.System DEFAULT_ALARM_ALERT_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.Settings.System DEFAULT_NOTIFICATION_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.Settings.System DEFAULT_RINGTONE_URI">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.Settings.System android.net.Uri getUriFor(java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.Settings.System boolean getShowGTalkServiceStatus(android.content.ContentResolver) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.System boolean putConfiguration(android.content.ContentResolver, android.content.res.Configuration) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.System boolean putConfiguration(android.content.ContentResolver, android.content.res.Configuration) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.System boolean putFloat(android.content.ContentResolver, java.lang.String, float) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.System boolean putInt(android.content.ContentResolver, java.lang.String, int) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.System boolean putLong(android.content.ContentResolver, java.lang.String, long) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.System boolean putString(android.content.ContentResolver, java.lang.String, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.System float getFloat(android.content.ContentResolver, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.System float getFloat(android.content.ContentResolver, java.lang.String, float) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.System int getInt(android.content.ContentResolver, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.System int getInt(android.content.ContentResolver, java.lang.String, int) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.System java.lang.String getString(android.content.ContentResolver, java.lang.String)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.Settings.System java.lang.String getString(android.content.ContentResolver, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.System long getLong(android.content.ContentResolver, java.lang.String) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.System long getLong(android.content.ContentResolver, java.lang.String, long) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.System void getConfiguration(android.content.ContentResolver, android.content.res.Configuration) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.System void getConfiguration(android.content.ContentResolver, android.content.res.Configuration) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.Settings.System void setShowGTalkServiceStatus(android.content.ContentResolver, boolean) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.SyncStateContract.Helpers android.content.ContentProviderOperation newSetOperation(android.net.Uri, android.accounts.Account, byte[])">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.SyncStateContract.Helpers android.content.ContentProviderOperation newSetOperation(android.net.Uri, android.accounts.Account, byte[]) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.SyncStateContract.Helpers android.content.ContentProviderOperation newUpdateOperation(android.net.Uri, byte[])">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.SyncStateContract.Helpers android.net.Uri insert(android.content.ContentProviderClient, android.net.Uri, android.accounts.Account, byte[])">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.SyncStateContract.Helpers android.net.Uri insert(android.content.ContentProviderClient, android.net.Uri, android.accounts.Account, byte[]) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.SyncStateContract.Helpers android.net.Uri insert(android.content.ContentProviderClient, android.net.Uri, android.accounts.Account, byte[]) 2">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.SyncStateContract.Helpers android.util.Pair&lt;android.net.Uri,byte[]&gt; getWithUri(android.content.ContentProviderClient, android.net.Uri, android.accounts.Account)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.SyncStateContract.Helpers android.util.Pair&lt;android.net.Uri,byte[]&gt; getWithUri(android.content.ContentProviderClient, android.net.Uri, android.accounts.Account) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.SyncStateContract.Helpers android.util.Pair&lt;android.net.Uri,byte[]&gt; getWithUri(android.content.ContentProviderClient, android.net.Uri, android.accounts.Account) 1">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.SyncStateContract.Helpers android.util.Pair&lt;android.net.Uri,byte[]&gt; getWithUri(android.content.ContentProviderClient, android.net.Uri, android.accounts.Account) 2">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.SyncStateContract.Helpers byte[] get(android.content.ContentProviderClient, android.net.Uri, android.accounts.Account)">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.provider.SyncStateContract.Helpers byte[] get(android.content.ContentProviderClient, android.net.Uri, android.accounts.Account) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.SyncStateContract.Helpers byte[] get(android.content.ContentProviderClient, android.net.Uri, android.accounts.Account) 2">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.SyncStateContract.Helpers void set(android.content.ContentProviderClient, android.net.Uri, android.accounts.Account, byte[]) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.SyncStateContract.Helpers void set(android.content.ContentProviderClient, android.net.Uri, android.accounts.Account, byte[]) 2">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.SyncStateContract.Helpers void update(android.content.ContentProviderClient, android.net.Uri, byte[]) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.UserDictionary.Words void addWord(android.content.Context, java.lang.String, int, int) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.UserDictionary.Words void addWord(android.content.Context, java.lang.String, int, java.lang.String, java.util.Locale) 0">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.provider.UserDictionary.Words void addWord(android.content.Context, java.lang.String, int, java.lang.String, java.util.Locale) 4">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+</root>
+
