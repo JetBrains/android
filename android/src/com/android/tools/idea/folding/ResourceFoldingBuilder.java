@@ -41,12 +41,12 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import static com.android.SdkConstants.R_CLASS;
 import static com.android.SdkConstants.STRING_PREFIX;
 
 public class ResourceFoldingBuilder extends FoldingBuilderEx {
   private static final boolean FORCE_PROJECT_RESOURCE_LOADING = true;
   private static final int FOLD_MAX_LENGTH = 50;
-  private static final String R_STRING = "R.string.";
 
   public ResourceFoldingBuilder() {
   }
@@ -75,6 +75,7 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
         @Override
         public void visitMethodCallExpression(PsiMethodCallExpression expression) {
           checkMethodCall(expression, result);
+          super.visitMethodCallExpression(expression);
         }
       });
     } else {
@@ -118,18 +119,9 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
       return;
     }
     PsiExpression[] expressions = expression.getArgumentList().getExpressions();
-    if (expressions.length == 0) {
+    if (expressions.length == 0 || !isStringResourceRef(expressions[0])) {
       return;
     }
-    PsiExpression first = expressions[0];
-    if (!(first instanceof PsiReferenceExpression)) {
-      return;
-    }
-    String reference = ((PsiReferenceExpression)expressions[0]).getQualifiedName();
-    if (!reference.startsWith(R_STRING)) {
-      return;
-    }
-
     Module module = ModuleUtilCore.findModuleForPsiElement(expression);
 
     //noinspection ConstantConditions
@@ -142,6 +134,27 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
     result.add(new FoldingDescriptor(ObjectUtils.assertNotNull(expression.getNode()), expression.getTextRange(), null, set));
   }
 
+  private static boolean isStringResourceRef(PsiExpression expression) {
+    // Check whether the expression corresponds to R.string.<name>
+    if (expression instanceof PsiReferenceExpression) {
+      PsiReferenceExpression refExp = (PsiReferenceExpression)expression;
+      PsiExpression qualifier = refExp.getQualifierExpression();
+      if (qualifier instanceof PsiReferenceExpression) {
+        PsiReferenceExpression refExp2 = (PsiReferenceExpression)qualifier;
+        if (ResourceType.STRING.getName().equals(refExp2.getReferenceName())) {
+          PsiExpression qualifier2 = refExp2.getQualifierExpression();
+          if (qualifier2 instanceof PsiReferenceExpression) {
+            PsiReferenceExpression refExp3 = (PsiReferenceExpression)qualifier2;
+            if (R_CLASS.equals(refExp3.getReferenceName()) && refExp3.getQualifierExpression() == null) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   @Override
   public String getPlaceholderText(@NotNull ASTNode node) {
     final PsiElement element = SourceTreeToPsiMap.treeElementToPsi(node);
@@ -151,10 +164,9 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
       PsiExpression[] expressions = argumentList.getExpressions();
       if (expressions.length > 0) {
         PsiExpression first = expressions[0];
-        if (first instanceof PsiReferenceExpression && first.isValid()) {
-          String reference = ((PsiReferenceExpression)expressions[0]).getQualifiedName();
-          if (reference.startsWith(R_STRING)) {
-            String name = reference.substring(R_STRING.length());
+        if (first.isValid() && isStringResourceRef(first)) {
+          String name = ((PsiReferenceExpression) first).getReferenceName();
+          if (name != null) {
             String resolvedString = getResolvedString(element, name);
             if (resolvedString != null) {
               return resolvedString;
