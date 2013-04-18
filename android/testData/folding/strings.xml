@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Application Name</string>
+    <string name="foobar">This is a really really really long string, and the folding code should be truncating it</string>
+    <string name="empty"></string>
+    <string name="string_width_formatting">Vibration level is %s.</string>
+
+</resources>

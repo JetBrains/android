@@ -119,9 +119,14 @@ public class ProjectResources extends ResourceRepository implements Disposable {
 
   @Nullable
   public static ProjectResources get(@NotNull Module module) {
+    return get(module, true);
+  }
+
+  @Nullable
+  public static ProjectResources get(@NotNull Module module, boolean createIfNecessary) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
-      return facet.getProjectResources();
+      return facet.getProjectResources(createIfNecessary);
     }
 
     return null;
@@ -457,7 +462,7 @@ public class ProjectResources extends ResourceRepository implements Disposable {
 
   @Override
   @NonNull
-  protected ResourceItem getResourceItem(@NonNull ResourceType type, @NonNull String name) {
+  public ResourceItem getResourceItem(@NonNull ResourceType type, @NonNull String name) {
     if (!ensureInitialized()) {
       syncDirtyFiles();
     }

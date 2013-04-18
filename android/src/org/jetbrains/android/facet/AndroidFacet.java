@@ -756,9 +756,9 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return myConfigurationManager;
   }
 
-  public ProjectResources getProjectResources() {
+  public ProjectResources getProjectResources(boolean createIfNecessary) {
     synchronized (this) {
-      if (myProjectResources == null) {
+      if (myProjectResources == null && createIfNecessary) {
         myProjectResources = ProjectResources.create(this);
       }
 
