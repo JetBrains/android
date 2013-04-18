@@ -30,6 +30,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
 import com.intellij.psi.impl.source.SourceTreeToPsiMap;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
@@ -40,13 +41,15 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.R_CLASS;
 import static com.android.SdkConstants.STRING_PREFIX;
 
 public class ResourceFoldingBuilder extends FoldingBuilderEx {
   private static final boolean FORCE_PROJECT_RESOURCE_LOADING = true;
-  private static final int FOLD_MAX_LENGTH = 50;
+  private static final int FOLD_MAX_LENGTH = 60;
 
   public ResourceFoldingBuilder() {
   }
@@ -205,11 +208,95 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
             if (text == null) {
               return null;
             }
+
+            if (element instanceof PsiMethodCallExpression) {
+              text = insertArguments((PsiMethodCallExpression) element, text);
+            }
+
             return '"' + StringUtil.shortenTextWithEllipsis(text, FOLD_MAX_LENGTH - 2, 0) + '"';
           }
         }
       }
     }
     return null;
+  }
+
+  // See lint's StringFormatDetector
+  private static final Pattern FORMAT = Pattern.compile("%(\\d+\\$)?([-+#, 0(<]*)?(\\d+)?(\\.\\d+)?([tT])?([a-zA-Z%])");
+
+  @NotNull
+  private static String insertArguments(@NotNull PsiMethodCallExpression methodCallExpression, @NotNull String s) {
+    if (s.indexOf('%') == -1) {
+      return s;
+    }
+    final PsiExpression[] args = methodCallExpression.getArgumentList().getExpressions();
+    if (args.length == 0 || !args[0].isValid()) {
+      return s;
+    }
+
+    Matcher matcher = FORMAT.matcher(s);
+    int index = 0;
+    int prevIndex = 0;
+    int nextNumber = 1;
+    int start = 0;
+    StringBuilder sb = new StringBuilder(2 * s.length());
+    while (true) {
+      if (matcher.find(index)) {
+        if ("%".equals(matcher.group(6))) {
+          index = matcher.end();
+          continue;
+        }
+        int matchStart = matcher.start();
+        // Make sure this is not an escaped '%'
+        for (; prevIndex < matchStart; prevIndex++) {
+          char c = s.charAt(prevIndex);
+          if (c == '\\') {
+            prevIndex++;
+          }
+        }
+        if (prevIndex > matchStart) {
+          // We're in an escape, ignore this result
+          index = prevIndex;
+          continue;
+        }
+
+        index = matcher.end();
+
+        // Shouldn't throw a number format exception since we've already
+        // matched the pattern in the regexp
+        int number;
+        String numberString = matcher.group(1);
+        if (numberString != null) {
+          // Strip off trailing $
+          numberString = numberString.substring(0, numberString.length() - 1);
+          number = Integer.parseInt(numberString);
+          nextNumber = number + 1;
+        } else {
+          number = nextNumber++;
+        }
+
+        if (number > 0 && number < args.length) {
+          PsiExpression argExpression = args[number];
+          Object value = JavaConstantExpressionEvaluator.computeConstantExpression(argExpression, false);
+          if (value == null) {
+            value = args[number].getText();
+          }
+          for (int i = start; i < matchStart; i++) {
+            sb.append(s.charAt(i));
+          }
+          sb.append('{');
+          sb.append(value);
+          sb.append('}');
+          start = index;
+        }
+      } else {
+        for (int i = start, n = s.length(); i < n; i++) {
+          sb.append(s.charAt(i));
+        }
+        break;
+      }
+    }
+
+    return sb.toString();
   }
 }
