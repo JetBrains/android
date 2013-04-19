@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.folding;
 
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.LanguageQualifier;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.ProjectResources;
+import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.folding.FoldingBuilderEx;
 import com.intellij.lang.folding.FoldingDescriptor;
@@ -28,28 +25,28 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
-import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
 import com.intellij.psi.impl.source.SourceTreeToPsiMap;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.util.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.R_CLASS;
 import static com.android.SdkConstants.STRING_PREFIX;
+import static com.android.tools.idea.folding.ResourceString.NONE;
 
 public class ResourceFoldingBuilder extends FoldingBuilderEx {
+  private static final String ANDROID_RESOURCE_INT = "android.annotation.ResourceInt";
   private static final boolean FORCE_PROJECT_RESOURCE_LOADING = true;
-  private static final int FOLD_MAX_LENGTH = 60;
+  private static final Key<ResourceString> CACHE = Key.create("android.resourceString.cache");
+  private static final boolean UNIT_TEST_MODE =  ApplicationManager.getApplication().isUnitTestMode();
 
   public ResourceFoldingBuilder() {
   }
@@ -63,12 +60,26 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
     return isFoldingEnabled();
   }
 
-  private static final boolean SKIP_QUICK =  !ApplicationManager.getApplication().isUnitTestMode();
+  @Override
+  public String getPlaceholderText(@NotNull ASTNode node) {
+    PsiElement element = SourceTreeToPsiMap.treeElementToPsi(node);
+    if (element != null) {
+      ResourceString string = getResolvedString(element);
+      if (string != NONE) {
+        String foldLabel = string.getResolvedString();
+        if (foldLabel != null) {
+          return foldLabel;
+        }
+      }
+    }
+
+    return element != null ? element.getText() : node.getText();
+  }
 
   @Override
   @NotNull
   public FoldingDescriptor[] buildFoldRegions(@NotNull PsiElement element, @NotNull Document document, boolean quick) {
-    if (!(element instanceof PsiJavaFile || element instanceof XmlFile) || quick && SKIP_QUICK || !isFoldingEnabled()) {
+    if (!(element instanceof PsiJavaFile || element instanceof XmlFile) || quick && !UNIT_TEST_MODE || !isFoldingEnabled()) {
       return FoldingDescriptor.EMPTY;
     }
     final List<FoldingDescriptor> result = new ArrayList<FoldingDescriptor>();
@@ -77,7 +88,10 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
       file.accept(new JavaRecursiveElementWalkingVisitor() {
         @Override
         public void visitMethodCallExpression(PsiMethodCallExpression expression) {
-          checkMethodCall(expression, result);
+          ResourceString resourceString = getResolvedString(expression);
+          if (resourceString != NONE) {
+            result.add(resourceString.getDescriptor());
+          }
           super.visitMethodCallExpression(expression);
         }
       });
@@ -86,7 +100,11 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
       file.accept(new XmlRecursiveElementVisitor() {
         @Override
         public void visitXmlAttributeValue(XmlAttributeValue value) {
-          checkAttributeValue(value, result);
+          ResourceString resourceString = getResolvedString(value);
+          if (resourceString != NONE) {
+            result.add(resourceString.getDescriptor());
+          }
+          super.visitXmlAttributeValue(value);
         }
       });
     }
@@ -94,50 +112,141 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
     return result.toArray(new FoldingDescriptor[result.size()]);
   }
 
-  private static void checkAttributeValue(XmlAttributeValue value, List<FoldingDescriptor> result) {
-    if (!(value.getValue().startsWith(STRING_PREFIX))) {
-      return;
+  @NotNull
+  private static ResourceString getResolvedString(PsiElement element) {
+    ResourceString item = element.getUserData(CACHE);
+    if (item != null) {
+      return item;
+    }
+    if (element instanceof PsiMethodCallExpression) {
+      item = findJavaExpressionReference((PsiMethodCallExpression)element);
+    } else if (element instanceof XmlAttributeValue) {
+      item = findXmlValueReference((XmlAttributeValue)element);
+    } else {
+      item = NONE;
+    }
+    element.putUserData(CACHE, item);
+    if (item != NONE) {
+      PsiElement itemElement = item.getElement();
+      if (itemElement != element && itemElement != null) {
+        // Store cache item on the sub-node of the expression as well,
+        // such that string lookup can find it from there
+        itemElement.putUserData(CACHE, item);
+      }
     }
 
-    Module module = ModuleUtilCore.findModuleForPsiElement(value);
-
-    //noinspection ConstantConditions
-    if (module == null || !FORCE_PROJECT_RESOURCE_LOADING && ProjectResources.get(module, false) == null) {
-      return;
-    }
-
-    final HashSet<Object> set = new HashSet<Object>();
-    set.add(value);
-    result.add(new FoldingDescriptor(ObjectUtils.assertNotNull(value.getNode()), value.getTextRange(), null, set));
+    return item;
   }
 
-  private static void checkMethodCall(PsiMethodCallExpression expression, List<FoldingDescriptor> result) {
+  @NotNull
+  private static ResourceString findXmlValueReference(XmlAttributeValue element) {
+    String value = element.getValue();
+    if (!(value.startsWith(STRING_PREFIX))) {
+      return NONE;
+    }
+    Module module = ModuleUtilCore.findModuleForPsiElement(element);
+    if (module == null) {
+      return NONE;
+    }
+    ProjectResources projectResources = ProjectResources.get(module, FORCE_PROJECT_RESOURCE_LOADING);
+    if (projectResources == null) {
+      return NONE;
+    }
+    ASTNode node = element.getNode();
+    if (node == null) {
+      return NONE;
+    }
+    String name = value.substring(STRING_PREFIX.length());
+    TextRange textRange = element.getTextRange();
+    HashSet<Object> dependencies = new HashSet<Object>();
+    dependencies.add(element);
+    FoldingDescriptor descriptor = new FoldingDescriptor(node, textRange, null, dependencies);
+    ResourceString resourceString = new ResourceString(name, projectResources, descriptor, element);
+    dependencies.add(resourceString);
+    return resourceString;
+  }
+
+  @NotNull
+  private static ResourceString findJavaExpressionReference(PsiMethodCallExpression expression) {
     PsiReferenceExpression methodExpression = expression.getMethodExpression();
-    PsiElement element = methodExpression.getReferenceNameElement();
-    if (!(element instanceof PsiIdentifier)) {
-      return;
-    }
-    PsiIdentifier identifier = (PsiIdentifier)element;
-    if (!"getString".equals(identifier.getText())) {
-      return;
-    }
     PsiExpression[] expressions = expression.getArgumentList().getExpressions();
-    if (expressions.length == 0 || !isStringResourceRef(expressions[0])) {
-      return;
-    }
-    Module module = ModuleUtilCore.findModuleForPsiElement(expression);
 
-    //noinspection ConstantConditions
-    if (module == null || !FORCE_PROJECT_RESOURCE_LOADING && ProjectResources.get(module, false) == null) {
-      return;
+    // Only check the first couple of parameters since those are the only occurrences
+    // in the SDK
+    int parameterCount = Math.min(2, expressions.length);
+    PsiParameter[] parameters = null;
+    for (int i = 0; i < parameterCount; i++) {
+      String name = getStringResourceName(expressions[i]);
+      if (name == null) {
+        continue;
+      }
+
+      if (parameters == null) {
+        PsiMethod method = expression.resolveMethod();
+        if (!UNIT_TEST_MODE) { // For some reason, we can't resolve PsiMethods from the unit tests
+          if (method == null) {
+            return NONE;
+          }
+          PsiParameterList parameterList = method.getParameterList();
+          parameters = parameterList.getParameters();
+          if (parameters.length == 0) {
+            return NONE;
+          }
+          parameterCount = Math.min(parameters.length, parameterCount);
+        }
+      }
+
+      if (UNIT_TEST_MODE || allowsResourceType(ResourceType.STRING, parameters[i])) {
+        Module module = ModuleUtilCore.findModuleForPsiElement(expression);
+        if (module == null) {
+          return NONE;
+        }
+
+        ProjectResources projectResources = ProjectResources.get(module, FORCE_PROJECT_RESOURCE_LOADING);
+        if (projectResources == null) {
+          return NONE;
+        }
+
+        // Determine whether we should just replace the parameter expression, or the
+        // whole method call. For now, we just replace calls into Resources or calls called getText/getString
+        PsiElement foldElement = expressions[0]; // same arg
+        String referenceName = expression.getMethodExpression().getReferenceName();
+        if ("getString".equals(referenceName) || "getText".equals(referenceName)) {
+          foldElement = expression;
+        } else {
+          PsiElement resolve = methodExpression.resolve();
+          if (resolve instanceof PsiMethod) {
+            PsiClass containingClass = ((PsiMethod)resolve).getContainingClass();
+            if (containingClass != null && "Resources".equals(containingClass.getName())) {
+              // Fold the entire element, e.g.
+              //    getResources().getString(R.string, ...) => "...."
+              // instead of just the parameter containing the string reference:
+              //    getResources().getString(R.string, ...) => getResources().getString("...")
+              // In other cases we don't want to do this; for example for
+              //    button.setText(R.string...) we just want button.setText("...")
+              foldElement = expression;
+            }
+          }
+        }
+
+        ASTNode node = foldElement.getNode();
+        if (node != null) {
+          TextRange textRange = foldElement.getTextRange();
+          HashSet<Object> dependencies = new HashSet<Object>();
+          dependencies.add(foldElement);
+          FoldingDescriptor descriptor = new FoldingDescriptor(node, textRange, null, dependencies);
+          ResourceString resourceString = new ResourceString(name, projectResources, descriptor, foldElement);
+          dependencies.add(resourceString);
+          return resourceString;
+        }
+      }
     }
 
-    final HashSet<Object> set = new HashSet<Object>();
-    set.add(expression);
-    result.add(new FoldingDescriptor(ObjectUtils.assertNotNull(expression.getNode()), expression.getTextRange(), null, set));
+    return NONE;
   }
 
-  private static boolean isStringResourceRef(PsiExpression expression) {
+  @Nullable
+  private static String getStringResourceName(@NotNull PsiExpression expression) {
     // Check whether the expression corresponds to R.string.<name>
     if (expression instanceof PsiReferenceExpression) {
       PsiReferenceExpression refExp = (PsiReferenceExpression)expression;
@@ -149,154 +258,87 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
           if (qualifier2 instanceof PsiReferenceExpression) {
             PsiReferenceExpression refExp3 = (PsiReferenceExpression)qualifier2;
             if (R_CLASS.equals(refExp3.getReferenceName()) && refExp3.getQualifierExpression() == null) {
-              return true;
+              return refExp.getReferenceName();
             }
           }
         }
       }
     }
-    return false;
-  }
 
-  @Override
-  public String getPlaceholderText(@NotNull ASTNode node) {
-    final PsiElement element = SourceTreeToPsiMap.treeElementToPsi(node);
-    if (element instanceof PsiMethodCallExpression && element.isValid()) {
-      PsiMethodCallExpression expression = (PsiMethodCallExpression)element;
-      PsiExpressionList argumentList = expression.getArgumentList();
-      PsiExpression[] expressions = argumentList.getExpressions();
-      if (expressions.length > 0) {
-        PsiExpression first = expressions[0];
-        if (first.isValid() && isStringResourceRef(first)) {
-          String name = ((PsiReferenceExpression) first).getReferenceName();
-          if (name != null) {
-            String resolvedString = getResolvedString(element, name);
-            if (resolvedString != null) {
-              return resolvedString;
-            }
-          }
-        }
-      }
-    } else if (element instanceof XmlAttributeValue) {
-      String value = ((XmlAttributeValue)element).getValue();
-      if (value.startsWith(STRING_PREFIX)) {
-        String name = value.substring(STRING_PREFIX.length());
-        String resolvedString = getResolvedString(element, name);
-        if (resolvedString != null) {
-          return resolvedString;
-        }
-      }
-    }
-
-    return element != null ? element.getText() : node.getText();
-  }
-
-  @Nullable
-  private static String getResolvedString(@NotNull PsiElement element, @NotNull String name) {
-    Module module = ModuleUtilCore.findModuleForPsiElement(element);
-    if (module != null) {
-      ProjectResources resources = ProjectResources.get(module);
-      if (resources != null) {
-        if (resources.hasResourceItem(ResourceType.STRING, name)) {
-          ResourceItem item = resources.getResourceItem(ResourceType.STRING, name);
-          FolderConfiguration referenceConfig = new FolderConfiguration();
-          // Nonexistent language qualifier: trick it to fall back to the default locale
-          referenceConfig.setLanguageQualifier(new LanguageQualifier("xx"));
-          ResourceValue value = item.getResourceValue(ResourceType.STRING, referenceConfig, false);
-          if (value != null) {
-            String text = value.getValue();
-            if (text == null) {
-              return null;
-            }
-
-            if (element instanceof PsiMethodCallExpression) {
-              text = insertArguments((PsiMethodCallExpression) element, text);
-            }
-
-            return '"' + StringUtil.shortenTextWithEllipsis(text, FOLD_MAX_LENGTH - 2, 0) + '"';
-          }
-        }
-      }
-    }
     return null;
   }
 
-  // See lint's StringFormatDetector
-  private static final Pattern FORMAT = Pattern.compile("%(\\d+\\$)?([-+#, 0(<]*)?(\\d+)?(\\.\\d+)?([tT])?([a-zA-Z%])");
-
-  @NotNull
-  private static String insertArguments(@NotNull PsiMethodCallExpression methodCallExpression, @NotNull String s) {
-    if (s.indexOf('%') == -1) {
-      return s;
+  /**
+   * Returns true if the given modifier list owner (such as a method or parameter)
+   * specifies a {@code @ResourceInt} which includes the given {@code type}.
+   *
+   * @param type the resource type to check
+   * @param owner the potentially annotated element to check
+   * @return true if the resource type is allowed
+   */
+  public static boolean allowsResourceType(@NotNull ResourceType type, @Nullable PsiModifierListOwner owner) {
+    if (owner == null) {
+      return false;
     }
-    final PsiExpression[] args = methodCallExpression.getArgumentList().getExpressions();
-    if (args.length == 0 || !args[0].isValid()) {
-      return s;
+    PsiAnnotation annotation = AnnotationUtil.findAnnotation(owner, ANDROID_RESOURCE_INT);
+    Boolean allowed = allowsResourceType(type, annotation);
+    return allowed != null && allowed.booleanValue();
+  }
+
+  /**
+   * Returns true if the given {@code @ResourceInt} annotation usage specifies that the given resource type
+   * is allowed
+   *
+   * @param type the resource type to check
+   * @param annotation an annotation usage on an element
+   * @return true if the resource type is allowed, false if it is not, and null if no annotation
+   *   was found
+   */
+  @Nullable
+  public static Boolean allowsResourceType(@NotNull ResourceType type, @Nullable PsiAnnotation annotation) {
+    if (annotation == null) {
+      return null;
     }
-
-    Matcher matcher = FORMAT.matcher(s);
-    int index = 0;
-    int prevIndex = 0;
-    int nextNumber = 1;
-    int start = 0;
-    StringBuilder sb = new StringBuilder(2 * s.length());
-    while (true) {
-      if (matcher.find(index)) {
-        if ("%".equals(matcher.group(6))) {
-          index = matcher.end();
-          continue;
-        }
-        int matchStart = matcher.start();
-        // Make sure this is not an escaped '%'
-        for (; prevIndex < matchStart; prevIndex++) {
-          char c = s.charAt(prevIndex);
-          if (c == '\\') {
-            prevIndex++;
+    assert ANDROID_RESOURCE_INT.equals(annotation.getQualifiedName());
+    PsiAnnotationParameterList annotationParameters = annotation.getParameterList();
+    for (PsiNameValuePair pair : annotationParameters.getAttributes()) {
+      String name = pair.getName();
+      PsiAnnotationMemberValue value = pair.getValue();
+      assert name == null || name.equals("value") : name;
+      if (value instanceof PsiReferenceExpression) {
+        PsiReferenceExpression expression = (PsiReferenceExpression) value;
+        return allowsResourceType(type, expression);
+      } else if (value instanceof PsiArrayInitializerMemberValue) {
+        PsiArrayInitializerMemberValue mv = (PsiArrayInitializerMemberValue) value;
+        for (PsiAnnotationMemberValue v : mv.getInitializers()) {
+          if (v instanceof PsiReferenceExpression) {
+            Boolean b = allowsResourceType(type, (PsiReferenceExpression)v);
+            if (b != null) {
+              return b;
+            }
           }
         }
-        if (prevIndex > matchStart) {
-          // We're in an escape, ignore this result
-          index = prevIndex;
-          continue;
-        }
-
-        index = matcher.end();
-
-        // Shouldn't throw a number format exception since we've already
-        // matched the pattern in the regexp
-        int number;
-        String numberString = matcher.group(1);
-        if (numberString != null) {
-          // Strip off trailing $
-          numberString = numberString.substring(0, numberString.length() - 1);
-          number = Integer.parseInt(numberString);
-          nextNumber = number + 1;
-        } else {
-          number = nextNumber++;
-        }
-
-        if (number > 0 && number < args.length) {
-          PsiExpression argExpression = args[number];
-          Object value = JavaConstantExpressionEvaluator.computeConstantExpression(argExpression, false);
-          if (value == null) {
-            value = args[number].getText();
-          }
-          for (int i = start; i < matchStart; i++) {
-            sb.append(s.charAt(i));
-          }
-          sb.append('{');
-          sb.append(value);
-          sb.append('}');
-          start = index;
-        }
-      } else {
-        for (int i = start, n = s.length(); i < n; i++) {
-          sb.append(s.charAt(i));
-        }
-        break;
       }
     }
 
-    return sb.toString();
+    return null;
+  }
+
+  private static Boolean allowsResourceType(ResourceType type, PsiReferenceExpression v) {
+    // When the @ResourceInt annotation is added to the SDK and potentially added to the
+    // user's classpath, we should resolve this constant properly as follows:
+    //  PsiElement resolved = v.resolve();
+    //  if (resolved instanceof PsiEnumConstant) {
+    //    String name = ((PsiEnumConstant) resolved).getName();
+    // However, for now these are just annotations in the external annotations file,
+    // so we simply use the text tokens:
+    String name = v.getText();
+    if (name.equals("all")) { // Corresponds to ResourceInt.Type.ALL
+      return true;
+    } else if (name.equals("none")) { // Corresponds to ResourceInt.Type.NONE
+      return false;
+    } else {
+      return type.getName().equalsIgnoreCase(name);
+    }
   }
 }

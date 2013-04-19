@@ -399,6 +399,11 @@
   <item name="android.widget.CheckedTextView void setCheckMarkDrawable(android.graphics.drawable.Drawable) 0">
     <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
+  <item name="android.widget.CheckedTextView void setCheckMarkDrawable(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{drawable}" />
+    </annotation>
+  </item>
   <item name="android.widget.Chronometer Chronometer(android.content.Context) 0">
     <annotation name="org.jetbrains.annotations.NotNull" />
   </item>
@@ -443,6 +448,11 @@
   </item>
   <item name="android.widget.CompoundButton void setButtonDrawable(android.graphics.drawable.Drawable) 0">
     <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.widget.CompoundButton void setButtonDrawable(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{drawable}" />
+    </annotation>
   </item>
   <item name="android.widget.CursorAdapter android.database.Cursor getCursor()">
     <annotation name="org.jetbrains.annotations.Nullable" />
@@ -945,6 +955,11 @@
   <item name="android.widget.ImageSwitcher void onInitializeAccessibilityNodeInfo(android.view.accessibility.AccessibilityNodeInfo) 0">
     <annotation name="org.jetbrains.annotations.NotNull" />
   </item>
+  <item name="android.widget.ImageSwitcher void setImageResource(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{drawable}" />
+    </annotation>
+  </item>
   <item name="android.widget.ImageView ImageView(android.content.Context, android.util.AttributeSet) 0">
     <annotation name="org.jetbrains.annotations.NotNull" />
   </item>
@@ -980,6 +995,11 @@
   </item>
   <item name="android.widget.ImageView void setImageMatrix(android.graphics.Matrix) 0">
     <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.widget.ImageView void setImageResource(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{drawable}" />
+    </annotation>
   </item>
   <item name="android.widget.ImageView void setImageURI(android.net.Uri) 0">
     <annotation name="org.jetbrains.annotations.Nullable" />
@@ -1727,6 +1747,11 @@
   <item name="android.widget.Spinner void onInitializeAccessibilityNodeInfo(android.view.accessibility.AccessibilityNodeInfo) 0">
     <annotation name="org.jetbrains.annotations.NotNull" />
   </item>
+  <item name="android.widget.Spinner void setPopupBackgroundResource(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{drawable}" />
+    </annotation>
+  </item>
   <item name="android.widget.SpinnerAdapter android.view.View getDropDownView(int, android.view.View, android.view.ViewGroup)">
     <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
@@ -1784,8 +1809,23 @@
   <item name="android.widget.Switch void setSwitchTextAppearance(android.content.Context, int) 0">
     <annotation name="org.jetbrains.annotations.NotNull" />
   </item>
+  <item name="android.widget.Switch void setSwitchTextAppearance(android.content.Context, int) 1">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{style}" />
+    </annotation>
+  </item>
   <item name="android.widget.Switch void setSwitchTypeface(android.graphics.Typeface, int) 0">
     <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.widget.Switch void setThumbResource(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{drawable}" />
+    </annotation>
+  </item>
+  <item name="android.widget.Switch void setTrackResource(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{drawable}" />
+    </annotation>
   </item>
   <item name="android.widget.TabHost TabHost(android.content.Context, android.util.AttributeSet) 0">
     <annotation name="org.jetbrains.annotations.NotNull" />
@@ -1864,6 +1904,21 @@
   </item>
   <item name="android.widget.TabWidget void sendAccessibilityEventUnchecked(android.view.accessibility.AccessibilityEvent) 0">
     <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.widget.TabWidget void setDividerDrawable(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{drawable}" />
+    </annotation>
+  </item>
+  <item name="android.widget.TabWidget void setLeftStripDrawable(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{drawable}" />
+    </annotation>
+  </item>
+  <item name="android.widget.TabWidget void setRightStripDrawable(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{drawable}" />
+    </annotation>
   </item>
   <item name="android.widget.TableLayout TableLayout(android.content.Context, android.util.AttributeSet) 0">
     <annotation name="org.jetbrains.annotations.NotNull" />
@@ -2126,6 +2181,11 @@
   <item name="android.widget.TextView void setFilters(android.text.InputFilter[]) 0">
     <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
+  <item name="android.widget.TextView void setHint(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{string}" />
+    </annotation>
+  </item>
   <item name="android.widget.TextView void setKeyListener(android.text.method.KeyListener) 0">
     <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
@@ -2135,11 +2195,21 @@
   <item name="android.widget.TextView void setText(char[], int, int) 0">
     <annotation name="org.jetbrains.annotations.NotNull" />
   </item>
+  <item name="android.widget.TextView void setText(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{string}" />
+    </annotation>
+  </item>
   <item name="android.widget.TextView void setText(java.lang.CharSequence, android.widget.TextView.BufferType) 0">
     <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
   <item name="android.widget.TextView void setTextAppearance(android.content.Context, int) 0">
     <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.widget.TextView void setTextAppearance(android.content.Context, int) 1">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{style}" />
+    </annotation>
   </item>
   <item name="android.widget.TextView void setTextColor(android.content.res.ColorStateList) 0">
     <annotation name="org.jetbrains.annotations.Nullable" />
@@ -2192,6 +2262,11 @@
   <item name="android.widget.Toast android.widget.Toast makeText(android.content.Context, int, int) 0">
     <annotation name="org.jetbrains.annotations.NotNull" />
   </item>
+  <item name="android.widget.Toast android.widget.Toast makeText(android.content.Context, int, int) 1">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{string}" />
+    </annotation>
+  </item>
   <item name="android.widget.Toast android.widget.Toast makeText(android.content.Context, int, int) 2">
     <annotation name="org.intellij.lang.annotations.MagicConstant">
       <val name="intValues" val="{android.widget.Toast.LENGTH_SHORT, android.widget.Toast.LENGTH_LONG}" />
@@ -2216,6 +2291,11 @@
   <item name="android.widget.Toast void setDuration(int) 0">
     <annotation name="org.intellij.lang.annotations.MagicConstant">
       <val name="intValues" val="{android.widget.Toast.LENGTH_SHORT, android.widget.Toast.LENGTH_LONG}" />
+    </annotation>
+  </item>
+  <item name="android.widget.Toast void setText(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{string}" />
     </annotation>
   </item>
   <item name="android.widget.ToggleButton ToggleButton(android.content.Context) 0">

@@ -46,6 +46,7 @@ public class MyActivity2 extends Activity {
                                                                                                                                                    42, "fourth")</fold>);
     button.setContentDescription(<fold text='"Escaped: \%s First: {searchText} Invalid: %20$s"' expand='false'>getResources().getString(R.string.formatting_key2, searchText, "second")</fold>);
     button.setContentDescription(<fold text='"Third: {true} Repeated: {true} First: {null} Second: {a}"' expand='false'>getResources().getString(R.string.formatting_key, null, 'a', true)</fold>);
+    button.setText(<fold text='"Application Name"' expand='false'>R.string.app_name</fold>);
     return viewGroup;
   }</fold>
 }

@@ -120,8 +120,18 @@
   <item name="android.content.res.Resources Resources(android.content.res.AssetManager, android.util.DisplayMetrics, android.content.res.Configuration) 0">
     <annotation name="org.jetbrains.annotations.NotNull" />
   </item>
+  <item name="android.content.res.Resources android.content.res.AssetFileDescriptor openRawResourceFd(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{raw}" />
+    </annotation>
+  </item>
   <item name="android.content.res.Resources android.content.res.ColorStateList getColorStateList(int)">
     <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.content.res.Resources android.content.res.ColorStateList getColorStateList(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{color}" />
+    </annotation>
   </item>
   <item name="android.content.res.Resources android.content.res.Resources getSystem()">
     <annotation name="org.jetbrains.annotations.Nullable" />
@@ -138,29 +148,169 @@
   <item name="android.content.res.Resources android.content.res.TypedArray obtainTypedArray(int)">
     <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
+  <item name="android.content.res.Resources android.content.res.TypedArray obtainTypedArray(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{array, styleable}" />
+    </annotation>
+  </item>
   <item name="android.content.res.Resources android.content.res.XmlResourceParser getAnimation(int)">
     <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.content.res.Resources android.content.res.XmlResourceParser getAnimation(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{anim}" />
+    </annotation>
   </item>
   <item name="android.content.res.Resources android.content.res.XmlResourceParser getLayout(int)">
     <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
+  <item name="android.content.res.Resources android.content.res.XmlResourceParser getLayout(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{layout}" />
+    </annotation>
+  </item>
   <item name="android.content.res.Resources android.content.res.XmlResourceParser getXml(int)">
     <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.content.res.Resources android.content.res.XmlResourceParser getXml(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{xml}" />
+    </annotation>
   </item>
   <item name="android.content.res.Resources android.graphics.drawable.Drawable getDrawable(int)">
     <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
+  <item name="android.content.res.Resources android.graphics.drawable.Drawable getDrawable(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{drawable}" />
+    </annotation>
+  </item>
   <item name="android.content.res.Resources android.graphics.drawable.Drawable getDrawableForDensity(int, int)">
     <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.content.res.Resources android.graphics.drawable.Drawable getDrawableForDensity(int, int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{drawable}" />
+    </annotation>
+  </item>
+  <item name="android.content.res.Resources boolean getBoolean(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{bool}" />
+    </annotation>
+  </item>
+  <item name="android.content.res.Resources float getDimension(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{dimen}" />
+    </annotation>
+  </item>
+  <item name="android.content.res.Resources float getFraction(int, int, int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{fraction}" />
+    </annotation>
+  </item>
+  <item name="android.content.res.Resources int getColor(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{color}" />
+    </annotation>
+  </item>
+  <item name="android.content.res.Resources int getDimensionPixelOffset(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{dimen}" />
+    </annotation>
+  </item>
+  <item name="android.content.res.Resources int getDimensionPixelSize(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{dimen}" />
+    </annotation>
   </item>
   <item name="android.content.res.Resources int getIdentifier(java.lang.String, java.lang.String, java.lang.String) 0">
     <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
+  <item name="android.content.res.Resources int getInteger(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{integer}" />
+    </annotation>
+  </item>
+  <item name="android.content.res.Resources int[] getIntArray(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{array, styleable}" />
+    </annotation>
+  </item>
+  <item name="android.content.res.Resources java.io.InputStream openRawResource(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{raw}" />
+    </annotation>
+  </item>
+  <item name="android.content.res.Resources java.io.InputStream openRawResource(int, android.util.TypedValue) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{raw}" />
+    </annotation>
+  </item>
   <item name="android.content.res.Resources java.io.InputStream openRawResource(int, android.util.TypedValue) 1">
     <annotation name="org.jetbrains.annotations.NotNull" />
   </item>
+  <item name="android.content.res.Resources java.lang.CharSequence getQuantityText(int, int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{plurals}" />
+    </annotation>
+  </item>
+  <item name="android.content.res.Resources java.lang.CharSequence getText(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{string}" />
+    </annotation>
+  </item>
   <item name="android.content.res.Resources java.lang.CharSequence getText(int, java.lang.CharSequence)">
     <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.content.res.Resources java.lang.CharSequence[] getTextArray(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{array, styleable}" />
+    </annotation>
+  </item>
+  <item name="android.content.res.Resources java.lang.String getQuantityString(int, int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{plurals}" />
+    </annotation>
+  </item>
+  <item name="android.content.res.Resources java.lang.String getQuantityString(int, int, java.lang.Object...) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{plurals}" />
+    </annotation>
+  </item>
+  <item name="android.content.res.Resources java.lang.String getResourceEntryName(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{}" />
+    </annotation>
+  </item>
+  <item name="android.content.res.Resources java.lang.String getResourceName(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{}" />
+    </annotation>
+  </item>
+  <item name="android.content.res.Resources java.lang.String getResourcePackageName(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{}" />
+    </annotation>
+  </item>
+  <item name="android.content.res.Resources java.lang.String getResourceTypeName(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{}" />
+    </annotation>
+  </item>
+  <item name="android.content.res.Resources java.lang.String getString(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{string, styleable}" />
+    </annotation>
+  </item>
+  <item name="android.content.res.Resources java.lang.String getString(int, java.lang.Object...) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{string, styleable}" />
+    </annotation>
+  </item>
+  <item name="android.content.res.Resources java.lang.String[] getStringArray(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{array, styleable}" />
+    </annotation>
   </item>
   <item name="android.content.res.Resources void parseBundleExtra(java.lang.String, android.util.AttributeSet, android.os.Bundle) 1">
     <annotation name="org.jetbrains.annotations.NotNull" />
