@@ -29,6 +29,10 @@ public class AndroidIcons {
 
   public static final Icon ArrowDown = load("/icons/comboArrow.png"); // 16x16
 
+  public static final Icon AndroidFile = load("/icons/android_file.png"); // 16x16
+  public static final Icon Configuration = load("/icons/configuration.png"); // 16x16
+  public static final Icon Activity = load("/icons/activity.png"); // 16x16
+  public static final Icon Targets = load("/icons/targets.png"); // 16x16
   public static final Icon Globe = load("/icons/globe.png"); // 16x16
   public static final Icon Square = load("/icons/square.png"); // 16x16
   public static final Icon Landscape = load("/icons/landscape.png"); // 16x16

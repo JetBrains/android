@@ -44,6 +44,7 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
+import icons.AndroidIcons;
 import org.jetbrains.android.actions.CreateResourceDirectoryDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,7 +62,7 @@ public class ConfigurationMenuAction extends FlatComboAction {
     myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("Configuration to render this layout with in the IDE");
-    presentation.setIcon(AllIcons.FileTypes.Xml);
+    presentation.setIcon(AndroidIcons.AndroidFile);
   }
 
   @Override

@@ -96,4 +96,7 @@ public class AndroidDesignerIcons {
   public static final Icon ClearWeights = load("/icons/clearweights.png"); // 16x16
   public static final Icon DominateWeight = load("/icons/allweight.png"); // 16x16
   public static final Icon Weights = load("/icons/weights.png"); // 16x16
+
+  public static final Icon SwitchHorizontalLinear = load("/icons/hlinear.png"); // 16x16
+  public static final Icon SwitchVerticalLinear = load("/icons/vlinear.png"); // 16x16
 }
