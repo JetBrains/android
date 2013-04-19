@@ -35,6 +35,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.psi.SearchUtils;
+import icons.AndroidIcons;
 import org.jetbrains.android.inspections.lint.SuppressLintIntentionAction;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +53,7 @@ public class ActivityMenuAction extends FlatComboAction {
   public ActivityMenuAction(RenderContext renderContext) {
     myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
-    presentation.setIcon(AllIcons.Nodes.Class);
+    presentation.setIcon(AndroidIcons.Activity);
     updatePresentation(presentation);
   }
 

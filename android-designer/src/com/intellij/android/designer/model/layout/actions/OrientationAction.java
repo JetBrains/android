@@ -23,6 +23,8 @@ import com.intellij.psi.xml.XmlAttribute;
 import icons.AndroidDesignerIcons;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
+
 import static com.android.SdkConstants.*;
 
 /**
@@ -68,7 +70,8 @@ public class OrientationAction extends LayoutAction {
 
   protected void update(Presentation presentation) {
     presentation.setDescription("Convert orientation to " + (myHorizontal ? VALUE_VERTICAL : VALUE_HORIZONTAL));
-    presentation.setIcon(myHorizontal ? AndroidDesignerIcons.LinearLayout : AndroidDesignerIcons.VerticalLinearLayout);
-    presentation.setHoveredIcon(myHorizontal ? AndroidDesignerIcons.VerticalLinearLayout : AndroidDesignerIcons.LinearLayout);
+    Icon icon = myHorizontal ? AndroidDesignerIcons.SwitchHorizontalLinear : AndroidDesignerIcons.SwitchVerticalLinear;
+    presentation.setIcon(icon);
+    presentation.setHoveredIcon(icon);
   }
 }

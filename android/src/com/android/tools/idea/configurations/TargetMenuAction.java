@@ -36,7 +36,7 @@ public class TargetMenuAction extends FlatComboAction {
     myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("Android version to use when rendering layouts in the IDE");
-    presentation.setIcon(AndroidIcons.Android);
+    presentation.setIcon(AndroidIcons.Targets);
     updatePresentation(presentation);
   }
 
