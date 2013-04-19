@@ -326,7 +326,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
         if (visible) {
           myToolWindow.show(null);
         }
-        
+
         if (toRender) {
           render();
         }
@@ -340,12 +340,12 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
     if (myToolWindow == null || !myToolWindow.isVisible()) {
       return;
     }
-    
+
     final PsiFile psiFile = myToolWindowForm.getFile();
     if (psiFile == null) {
       return;
     }
-    
+
     final AndroidFacet facet = AndroidFacet.getInstance(psiFile);
     if (facet == null) {
       return;
@@ -621,11 +621,11 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
   }
 
   private class MyFileEditorManagerListener implements FileEditorManagerListener {
-    public void fileOpened(FileEditorManager source, VirtualFile file) {
+    public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
       processFileEditorChange(getActiveLayoutXmlEditor());
     }
 
-    public void fileClosed(FileEditorManager source, VirtualFile file) {
+    public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
       ApplicationManager.getApplication().invokeLater(new Runnable() {
         @Override
         public void run() {
@@ -634,7 +634,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
       });
     }
 
-    public void selectionChanged(FileEditorManagerEvent event) {
+    public void selectionChanged(@NotNull FileEditorManagerEvent event) {
       final FileEditor newEditor = event.getNewEditor();
       TextEditor layoutXmlEditor = null;
       if (newEditor instanceof TextEditor) {
