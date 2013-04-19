@@ -1,5 +1,6 @@
 package org.jetbrains.android;
 
+import com.android.sdklib.IAndroidTarget;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
@@ -16,6 +17,7 @@ import org.jetbrains.android.facet.AndroidFacetType;
 import org.jetbrains.android.maven.AndroidFacetImporter2;
 import org.jetbrains.android.maven.AndroidFacetImporterBase;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.idea.maven.importing.FacetImporter;
 import org.jetbrains.idea.maven.importing.FacetImporterTestCase;
@@ -105,6 +107,89 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
     final Sdk mavenSdk = ModuleRootManager.getInstance(module).getSdk();
     assertFalse(sdk.equals(mavenSdk));
     checkSdk(mavenSdk);
+
+    assert mavenSdk != null;
+    final AndroidSdkAdditionalData mavenSdkData = (AndroidSdkAdditionalData)mavenSdk.getSdkAdditionalData();
+    @SuppressWarnings("ConstantConditions")
+    final AndroidSdkData sdkData = mavenSdkData.getAndroidPlatform().getSdkData();
+    final IAndroidTarget[] targets = sdkData.getTargets();
+    IAndroidTarget lowTarget = null;
+
+    for (IAndroidTarget target : targets) {
+      if (target.getVersion().getApiLevel() == 2) {
+        lowTarget = target;
+      }
+    }
+    assertNotNull(lowTarget);
+    mavenSdkData.setBuildTarget(lowTarget);
+    importProject();
+    final Sdk mavenSdk2 = ModuleRootManager.getInstance(module).getSdk();
+    assertNotSame(mavenSdk, mavenSdk2);
+    checkSdk(mavenSdk2, "Maven Android 4.2 Platform (1)");
+  }
+
+  public void testNewSdk3() throws Exception {
+    final Sdk sdk = AndroidTestCase.createAndroidSdk(AndroidTestCase.getTestSdkPath());
+
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        ProjectJdkTable.getInstance().addJdk(sdk);
+      }
+    });
+
+    importProject("<groupId>test</groupId>" +
+                  "<artifactId>" + "module" + "</artifactId>" +
+                  "<version>1</version>" +
+                  "<packaging>apk</packaging>" +
+                  "<build>" +
+                  "  <plugins>" +
+                  "    <plugin>" +
+                  "      <groupId>com.jayway.maven.plugins.android.generation2</groupId>" +
+                  "      <artifactId>android-maven-plugin</artifactId>" +
+                  "    </plugin>" +
+                  "  </plugins>" +
+                  "</build>");
+    assertModules("module");
+    final Module module = getModule("module");
+    final Sdk mavenSdk = ModuleRootManager.getInstance(module).getSdk();
+    assertNotNull(mavenSdk);
+    assertFalse(sdk.equals(mavenSdk));
+    checkSdk(mavenSdk);
+    setSdk(module, myJdk);
+    importProject();
+    assertEquals(mavenSdk, ModuleRootManager.getInstance(module).getSdk());
+    setSdk(module, sdk);
+    importProject();
+    assertEquals(mavenSdk, ModuleRootManager.getInstance(module).getSdk());
+    final SdkAdditionalData androidSdkData = mavenSdk.getSdkAdditionalData();
+    final AndroidSdkAdditionalData mavenSdkData = (AndroidSdkAdditionalData)androidSdkData;
+    @SuppressWarnings("ConstantConditions")
+    final AndroidSdkData sdkData = mavenSdkData.getAndroidPlatform().getSdkData();
+    final IAndroidTarget[] targets = sdkData.getTargets();
+    IAndroidTarget lowTarget = null;
+
+    for (IAndroidTarget target : targets) {
+      if (target.getVersion().getApiLevel() == 2) {
+        lowTarget = target;
+      }
+    }
+    assertNotNull(lowTarget);
+    mavenSdkData.setBuildTarget(lowTarget);
+    importProject();
+    assertEquals(mavenSdk, ModuleRootManager.getInstance(module).getSdk());
+  }
+
+  private static void setSdk(Module module, Sdk sdk) {
+    final ModifiableRootModel modifiableModel = ModuleRootManager.getInstance(module).getModifiableModel();
+    modifiableModel.setSdk(sdk);
+
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        modifiableModel.commit();
+      }
+    });
   }
 
   public void testFacetProperties1() throws Exception {
@@ -423,8 +508,12 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
   }
 
   private void checkSdk(Sdk sdk) {
+    checkSdk(sdk, "Maven Android 4.2 Platform");
+  }
+
+  private void checkSdk(Sdk sdk, String sdkName) {
     assertNotNull(sdk);
-    assertEquals("Maven Android 4.2 Platform", sdk.getName());
+    assertEquals(sdkName, sdk.getName());
     assertTrue(FileUtil.pathsEqual(AndroidTestCase.getTestSdkPath(), sdk.getHomePath()));
     assertEquals(AndroidSdkType.getInstance(), sdk.getSdkType());
     final SdkAdditionalData additionalData = sdk.getSdkAdditionalData();
