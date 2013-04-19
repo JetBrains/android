@@ -5,8 +5,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestUtil;
@@ -240,6 +240,155 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
     finally {
       AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = null;
     }
+  }
+
+  public void testExternalApklib1() throws Exception {
+    setRepositoryPath(new File(myDir, "__repo").getPath());
+    FileUtil.copyDir(new File(AndroidTestCase.getTestDataPath() + "/maven/myapklib"), new File(getRepositoryPath(), "com/myapklib/1.0"));
+    FileUtil.copyDir(new File(AndroidTestCase.getTestDataPath() + "/maven/myjar"), new File(getRepositoryPath(), "com/myjar/1.0"));
+
+    AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = AndroidTestCase.getTestSdkPath();
+    try {
+      importProject(getPomContent("apk", "module", "") +
+                    "<dependencies>" +
+                    "  <dependency>" +
+                    "    <groupId>com</groupId>\n" +
+                    "    <artifactId>myapklib</artifactId>\n" +
+                    "    <version>1.0</version>\n" +
+                    "    <type>apklib</type>" +
+                    "  </dependency>" +
+                    "</dependencies>");
+
+      assertModules("module", "~apklib-com_myapklib_1.0");
+      final Module module = getModule("module");
+      final AndroidFacet facet = AndroidFacet.getInstance(module);
+      assertNotNull(facet);
+      assertFalse(facet.getProperties().LIBRARY_PROJECT);
+
+      final Module apklibModule = getModule("~apklib-com_myapklib_1.0");
+      final AndroidFacet apklibFacet = AndroidFacet.getInstance(apklibModule);
+      assertNotNull(apklibFacet);
+      assertTrue(apklibFacet.getProperties().LIBRARY_PROJECT);
+
+      final Library jarLib = checkAppModuleDeps(module, apklibModule);
+      checkApklibModule(apklibModule, jarLib);
+      final VirtualFile[] apklibRoots = ModuleRootManager.getInstance(apklibModule).getContentRoots();
+      assertEquals(1, apklibRoots.length);
+      assertEquals(FileUtil.toCanonicalPath(myDir.getPath() + "/project/gen-external-apklibs/com_myapklib_1.0"), apklibRoots[0].getPath());
+    }
+    finally {
+      AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = null;
+    }
+  }
+
+  public void testExternalApklib2() throws Exception {
+    setRepositoryPath(new File(myDir, "__repo").getPath());
+    FileUtil.copyDir(new File(AndroidTestCase.getTestDataPath() + "/maven/myapklib"), new File(getRepositoryPath(), "com/myapklib/1.0"));
+    FileUtil.copyDir(new File(AndroidTestCase.getTestDataPath() + "/maven/myjar"), new File(getRepositoryPath(), "com/myjar/1.0"));
+
+    AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = AndroidTestCase.getTestSdkPath();
+    try {
+      importProject(getPomContent("apk", "module", "") +
+                    "<dependencies>" +
+                    "  <dependency>" +
+                    "    <groupId>com</groupId>\n" +
+                    "    <artifactId>myapklib</artifactId>\n" +
+                    "    <version>1.0</version>\n" +
+                    "    <type>apklib</type>" +
+                    "    <scope>provided</scope>" +
+                    "  </dependency>" +
+                    "</dependencies>");
+      assertModules("module");
+    }
+    finally {
+      AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = null;
+    }
+  }
+
+  public void testExternalApklib3() throws Exception {
+    setRepositoryPath(new File(myDir, "__repo").getPath());
+    FileUtil.copyDir(new File(AndroidTestCase.getTestDataPath() + "/maven/myapklib"), new File(getRepositoryPath(), "com/myapklib/1.0"));
+    FileUtil.copyDir(new File(AndroidTestCase.getTestDataPath() + "/maven/myjar"), new File(getRepositoryPath(), "com/myjar/1.0"));
+
+    AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = AndroidTestCase.getTestSdkPath();
+    try {
+      final VirtualFile pom1 = createModulePom("module1", getPomContent("apk", "module1", "") +
+                                                          "<dependencies>" +
+                                                          "  <dependency>" +
+                                                          "    <groupId>com</groupId>\n" +
+                                                          "    <artifactId>myapklib</artifactId>\n" +
+                                                          "    <version>1.0</version>\n" +
+                                                          "    <type>apklib</type>" +
+                                                          "  </dependency>" +
+                                                          "</dependencies>");
+      final VirtualFile pom2 = createModulePom("module2", getPomContent("apk", "module2", "") +
+                                                          "<dependencies>" +
+                                                          "  <dependency>" +
+                                                          "    <groupId>com</groupId>\n" +
+                                                          "    <artifactId>myapklib</artifactId>\n" +
+                                                          "    <version>1.0</version>\n" +
+                                                          "    <type>apklib</type>" +
+                                                          "  </dependency>" +
+                                                          "</dependencies>");
+      importProjects(pom1, pom2);
+      assertModules("module1", "module2", "~apklib-com_myapklib_1.0");
+
+      final Module module1 = getModule("module1");
+      final AndroidFacet facet1 = AndroidFacet.getInstance(module1);
+      assertNotNull(facet1);
+      assertFalse(facet1.getProperties().LIBRARY_PROJECT);
+
+      final Module module2 = getModule("module1");
+      final AndroidFacet facet2 = AndroidFacet.getInstance(module2);
+      assertNotNull(facet2);
+      assertFalse(facet2.getProperties().LIBRARY_PROJECT);
+
+      final Module apklibModule = getModule("~apklib-com_myapklib_1.0");
+      final AndroidFacet apklibFacet = AndroidFacet.getInstance(apklibModule);
+      assertNotNull(apklibFacet);
+      assertTrue(apklibFacet.getProperties().LIBRARY_PROJECT);
+
+      final Library jarLib1 = checkAppModuleDeps(module1, apklibModule);
+      final Library jarLib2 = checkAppModuleDeps(module2, apklibModule);
+      assertEquals(jarLib1, jarLib2);
+      checkApklibModule(apklibModule, jarLib1);
+      final VirtualFile[] apklibRoots = ModuleRootManager.getInstance(apklibModule).getContentRoots();
+      assertEquals(1, apklibRoots.length);
+      final String apklibRootPath = apklibRoots[0].getPath();
+      assertTrue(
+        apklibRootPath.equals(FileUtil.toCanonicalPath(myDir.getPath() + "/project/module1/gen-external-apklibs/com_myapklib_1.0")) ||
+        apklibRootPath.equals(FileUtil.toCanonicalPath(myDir.getPath() + "/project/module2/gen-external-apklibs/com_myapklib_1.0")));
+    }
+    finally {
+      AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = null;
+    }
+  }
+
+  private static void checkApklibModule(Module apklibModule, Library jarLib) {
+    final OrderEntry[] apklibDeps = ModuleRootManager.getInstance(apklibModule).getOrderEntries();
+    assertEquals(2, apklibDeps.length);
+    assertInstanceOf(apklibDeps[0], ModuleSourceOrderEntry.class);
+    assertInstanceOf(apklibDeps[1], LibraryOrderEntry.class);
+    final LibraryOrderEntry libraryOrderEntry = (LibraryOrderEntry)apklibDeps[1];
+    assertEquals(jarLib, libraryOrderEntry.getLibrary());
+  }
+
+  private static Library checkAppModuleDeps(Module module, Module apklibModule) {
+    final OrderEntry[] deps = ModuleRootManager.getInstance(module).getOrderEntries();
+    assertEquals(4, deps.length);
+    assertInstanceOf(deps[0], ModuleJdkOrderEntry.class);
+    assertEquals("< Maven Android 4.2 Platform >", deps[0].getPresentableName());
+    assertInstanceOf(deps[1], ModuleSourceOrderEntry.class);
+    assertInstanceOf(deps[2], LibraryOrderEntry.class);
+    assertEquals(deps[2].getPresentableName(), "Maven: com:myjar:1.0");
+    final Library jarLib = ((LibraryOrderEntry)deps[2]).getLibrary();
+    assertNotNull(jarLib);
+    final String[] dep3Urls = jarLib.getUrls(OrderRootType.CLASSES);
+    assertEquals(1, dep3Urls.length);
+    assertTrue(dep3Urls[0].endsWith("com/myjar/1.0/myjar-1.0.jar!/"));
+    assertInstanceOf(deps[3], ModuleOrderEntry.class);
+    assertEquals(apklibModule, ((ModuleOrderEntry)deps[3]).getModule());
+    return jarLib;
   }
 
   private static String getPomContent(final String packaging, final String artifactId, final String androidPluginConfig) {
