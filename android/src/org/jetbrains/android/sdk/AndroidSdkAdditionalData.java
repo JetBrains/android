@@ -17,7 +17,10 @@ package org.jetbrains.android.sdk;
 
 import com.android.sdklib.IAndroidTarget;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.projectRoots.*;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkModel;
+import com.intellij.openapi.projectRoots.ValidatableSdkAdditionalData;
 import org.jdom.Element;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
@@ -112,6 +115,11 @@ public class AndroidSdkAdditionalData implements ValidatableSdkAdditionalData {
   @Nullable
   public IAndroidTarget getBuildTarget(@NotNull AndroidSdkData sdkData) {
     return myBuildTarget != null ? sdkData.findTargetByHashString(myBuildTarget) : null;
+  }
+
+  @Nullable
+  public String getBuildTargetHashString() {
+    return myBuildTarget;
   }
 
   @Nullable

@@ -66,21 +66,21 @@ public class AndroidSelectedFileEditorProvider implements SelectedFileEditorProv
           MessageBusConnection connection = myProject.getMessageBus().connect(myProject);
           connection.subscribe(FileEditorManagerListener.Before.FILE_EDITOR_MANAGER, new FileEditorManagerListener.Before.Adapter() {
             @Override
-            public void beforeFileOpened(FileEditorManager source, VirtualFile file) {
+            public void beforeFileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
               myCurrentOpenedFile = file;
             }
           });
           connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new FileEditorManagerListener() {
             @Override
-            public void fileOpened(FileEditorManager source, VirtualFile file) {
+            public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
             }
 
             @Override
-            public void fileClosed(FileEditorManager source, VirtualFile file) {
+            public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
             }
 
             @Override
-            public void selectionChanged(FileEditorManagerEvent event) {
+            public void selectionChanged(@NotNull FileEditorManagerEvent event) {
               VirtualFile file = event.getNewFile();
               if (file != null && AndroidDesignerEditorProvider.acceptLayout(myProject, file)) {
                 FileEditorProvider provider = EditorHistoryManager.getInstance(myProject).getSelectedProvider(file);
