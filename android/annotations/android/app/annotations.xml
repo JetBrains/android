@@ -122,6 +122,11 @@
   <item name="android.app.Activity android.view.View findViewById(int)">
     <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
+  <item name="android.app.Activity android.view.View findViewById(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{id}" />
+    </annotation>
+  </item>
   <item name="android.app.Activity android.view.View getCurrentFocus()">
     <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
@@ -268,6 +273,11 @@
   <item name="android.app.Activity void setDefaultKeyMode(int) 0">
     <annotation name="org.intellij.lang.annotations.MagicConstant">
       <val name="intValues" val="{android.app.Activity.DEFAULT_KEYS_DISABLE, android.app.Activity.DEFAULT_KEYS_DIALER, android.app.Activity.DEFAULT_KEYS_SHORTCUT, android.app.Activity.DEFAULT_KEYS_SEARCH_LOCAL, android.app.Activity.DEFAULT_KEYS_SEARCH_GLOBAL}" />
+    </annotation>
+  </item>
+  <item name="android.app.Activity void setFeatureDrawableResource(int, int) 1">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{drawable}" />
     </annotation>
   </item>
   <item name="android.app.Activity void setRequestedOrientation(int) 0">
@@ -877,6 +887,21 @@
   </item>
   <item name="android.app.Fragment android.view.View onCreateView(android.view.LayoutInflater, android.view.ViewGroup, android.os.Bundle)">
     <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.app.Fragment java.lang.CharSequence getText(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{string}" />
+    </annotation>
+  </item>
+  <item name="android.app.Fragment java.lang.String getString(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{string}" />
+    </annotation>
+  </item>
+  <item name="android.app.Fragment java.lang.String getString(int, java.lang.Object...) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{string}" />
+    </annotation>
   </item>
   <item name="android.app.Fragment java.lang.String getTag()">
     <annotation name="org.jetbrains.annotations.Nullable" />

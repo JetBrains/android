@@ -559,6 +559,11 @@
   <item name="android.view.View android.view.View findViewById(int)">
     <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
+  <item name="android.view.View android.view.View findViewById(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{id}" />
+    </annotation>
+  </item>
   <item name="android.view.View android.view.View findViewWithTag(java.lang.Object)">
     <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
@@ -877,12 +882,27 @@
   <item name="android.view.View void setBackgroundDrawable(android.graphics.drawable.Drawable) 0">
     <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
+  <item name="android.view.View void setBackgroundResource(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{drawable}" />
+    </annotation>
+  </item>
   <item name="android.view.View void setContentDescription(java.lang.CharSequence) 0">
     <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
   <item name="android.view.View void setDrawingCacheQuality(int) 0">
     <annotation name="org.intellij.lang.annotations.MagicConstant">
       <val name="intValues" val="{android.view.View.DRAWING_CACHE_QUALITY_LOW, android.view.View.DRAWING_CACHE_QUALITY_HIGH, android.view.View.DRAWING_CACHE_QUALITY_AUTO}" />
+    </annotation>
+  </item>
+  <item name="android.view.View void setId(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{id}" />
+    </annotation>
+  </item>
+  <item name="android.view.View void setLabelFor(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{id}" />
     </annotation>
   </item>
   <item name="android.view.View void setLayerPaint(android.graphics.Paint) 0">
@@ -1306,6 +1326,11 @@
   </item>
   <item name="android.view.Window void setContainer(android.view.Window) 0">
     <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.view.Window void setFeatureDrawableResource(int, int) 1">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{drawable}" />
+    </annotation>
   </item>
   <item name="android.view.Window void setWindowManager(android.view.WindowManager, android.os.IBinder, java.lang.String, boolean) 0">
     <annotation name="org.jetbrains.annotations.Nullable" />

@@ -649,6 +649,11 @@
   <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(int, int[])">
     <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
+  <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(int, int[]) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{styleable}" />
+    </annotation>
+  </item>
   <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(int, int[]) 1">
     <annotation name="org.jetbrains.annotations.NotNull" />
   </item>
@@ -766,6 +771,11 @@
       <val name="intValues" val="{android.content.Context.MODE_PRIVATE, android.content.Context.MODE_APPEND, android.content.Context.MODE_WORLD_READABLE, android.content.Context.MODE_WORLD_WRITEABLE}" />
     </annotation>
   </item>
+  <item name="android.content.Context java.lang.CharSequence getText(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{string}" />
+    </annotation>
+  </item>
   <item name="android.content.Context java.lang.ClassLoader getClassLoader()">
     <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
@@ -783,6 +793,16 @@
   </item>
   <item name="android.content.Context java.lang.String getPackageResourcePath()">
     <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.content.Context java.lang.String getString(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{string}" />
+    </annotation>
+  </item>
+  <item name="android.content.Context java.lang.String getString(int, java.lang.Object...) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{string}" />
+    </annotation>
   </item>
   <item name="android.content.Context java.util.List&lt;android.content.RestrictionEntry&gt; getApplicationRestrictions()">
     <annotation name="org.jetbrains.annotations.Nullable" />
@@ -900,6 +920,11 @@
   </item>
   <item name="android.content.Context void sendStickyOrderedBroadcastAsUser(android.content.Intent, android.os.UserHandle, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 6">
     <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.content.Context void setTheme(int) 0">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{style}" />
+    </annotation>
   </item>
   <item name="android.content.Context void startActivity(android.content.Intent, android.os.Bundle) 1">
     <annotation name="org.jetbrains.annotations.Nullable" />

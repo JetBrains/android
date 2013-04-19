@@ -248,11 +248,26 @@
   <item name="android.content.pm.PackageManager android.content.res.XmlResourceParser getXml(java.lang.String, int, android.content.pm.ApplicationInfo)">
     <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
+  <item name="android.content.pm.PackageManager android.content.res.XmlResourceParser getXml(java.lang.String, int, android.content.pm.ApplicationInfo) 1">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{xml}" />
+    </annotation>
+  </item>
   <item name="android.content.pm.PackageManager android.graphics.drawable.Drawable getDrawable(java.lang.String, int, android.content.pm.ApplicationInfo)">
     <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
+  <item name="android.content.pm.PackageManager android.graphics.drawable.Drawable getDrawable(java.lang.String, int, android.content.pm.ApplicationInfo) 1">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{drawable}" />
+    </annotation>
+  </item>
   <item name="android.content.pm.PackageManager java.lang.CharSequence getText(java.lang.String, int, android.content.pm.ApplicationInfo)">
     <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
+  <item name="android.content.pm.PackageManager java.lang.CharSequence getText(java.lang.String, int, android.content.pm.ApplicationInfo) 1">
+    <annotation name="android.annotation.ResourceInt">
+      <val name="value" val="{string}" />
+    </annotation>
   </item>
   <item name="android.content.pm.PackageManager java.lang.String getInstallerPackageName(java.lang.String)">
     <annotation name="org.jetbrains.annotations.Nullable" />
