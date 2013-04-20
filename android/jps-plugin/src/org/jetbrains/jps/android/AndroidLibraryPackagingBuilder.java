@@ -14,6 +14,7 @@ import org.jetbrains.jps.builders.BuildRootDescriptor;
 import org.jetbrains.jps.builders.DirtyFilesHolder;
 import org.jetbrains.jps.incremental.CompileContext;
 import org.jetbrains.jps.incremental.ProjectBuildException;
+import org.jetbrains.jps.incremental.StopBuildException;
 import org.jetbrains.jps.incremental.TargetBuilder;
 import org.jetbrains.jps.incremental.messages.ProgressMessage;
 import org.jetbrains.jps.model.module.JpsModule;
@@ -45,7 +46,7 @@ public class AndroidLibraryPackagingBuilder extends TargetBuilder<BuildRootDescr
     assert !AndroidJpsUtil.isLightBuild(context);
 
     if (!doBuild(context, target.getModule(), outputConsumer)) {
-      throw new ProjectBuildException();
+      throw new StopBuildException();
     }
   }
 
