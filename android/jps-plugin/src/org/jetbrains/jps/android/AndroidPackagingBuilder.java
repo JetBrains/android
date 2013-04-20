@@ -22,6 +22,7 @@ import org.jetbrains.jps.builders.DirtyFilesHolder;
 import org.jetbrains.jps.builders.storage.BuildDataPaths;
 import org.jetbrains.jps.incremental.CompileContext;
 import org.jetbrains.jps.incremental.ProjectBuildException;
+import org.jetbrains.jps.incremental.StopBuildException;
 import org.jetbrains.jps.incremental.TargetBuilder;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
@@ -65,7 +66,7 @@ public class AndroidPackagingBuilder extends TargetBuilder<BuildRootDescriptor, 
 
     try {
       if (!doPackaging(target, context, target.getModule(), hasDirtyFiles, outputConsumer)) {
-        throw new ProjectBuildException();
+        throw new StopBuildException();
       }
     }
     catch (ProjectBuildException e) {

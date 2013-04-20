@@ -41,10 +41,7 @@ import org.jetbrains.jps.builders.BuildOutputConsumer;
 import org.jetbrains.jps.builders.BuildRootDescriptor;
 import org.jetbrains.jps.builders.DirtyFilesHolder;
 import org.jetbrains.jps.cmdline.ClasspathBootstrap;
-import org.jetbrains.jps.incremental.CompileContext;
-import org.jetbrains.jps.incremental.ExternalProcessUtil;
-import org.jetbrains.jps.incremental.ProjectBuildException;
-import org.jetbrains.jps.incremental.TargetBuilder;
+import org.jetbrains.jps.incremental.*;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 import org.jetbrains.jps.incremental.messages.ProgressMessage;
@@ -79,7 +76,7 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
 
     try {
       if (!doDexBuild(buildTarget, context, holder.hasDirtyFiles() || holder.hasRemovedFiles(), outputConsumer)) {
-        throw new ProjectBuildException();
+        throw new StopBuildException();
       }
     }
     catch (ProjectBuildException e) {
