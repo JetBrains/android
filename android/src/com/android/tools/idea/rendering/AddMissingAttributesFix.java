@@ -16,6 +16,9 @@
 
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.resources.ResourceResolver;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
@@ -35,10 +38,12 @@ import static com.android.SdkConstants.*;
 
 public class AddMissingAttributesFix extends WriteCommandAction<Void> {
   @NotNull private final XmlFile myFile;
+  @Nullable private final ResourceResolver myResourceResolver;
 
-  public AddMissingAttributesFix(@NotNull Project project, @NotNull XmlFile file) {
+  public AddMissingAttributesFix(@NotNull Project project, @NotNull XmlFile file, @Nullable ResourceResolver resourceResolver) {
     super(project, "Add Size Attributes", file);
     myFile = file;
+    myResourceResolver = resourceResolver;
   }
 
   @NotNull
@@ -50,7 +55,7 @@ public class AddMissingAttributesFix extends WriteCommandAction<Void> {
         Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(myFile, XmlTag.class);
         for (XmlTag tag : xmlTags) {
           if (requiresSize(tag)) {
-            if (!definesWidth(tag) || !definesHeight(tag)) {
+            if (!definesWidth(tag, myResourceResolver) || !definesHeight(tag, myResourceResolver)) {
               missing.add(tag);
             }
           }
@@ -66,25 +71,51 @@ public class AddMissingAttributesFix extends WriteCommandAction<Void> {
   protected void run(Result<Void> result) throws Throwable {
     final List<XmlTag> missing = findViewsMissingSizes();
     for (XmlTag tag : missing) {
-      if (!definesWidth(tag)) {
-        tag.setAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI, getDefaulWidth(tag));
+      if (!definesWidth(tag, myResourceResolver)) {
+        tag.setAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI, getDefaultWidth(tag));
       }
-      if (!definesHeight(tag)) {
+      if (!definesHeight(tag, myResourceResolver)) {
         tag.setAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI, getDefaultHeight(tag));
       }
     }
   }
 
-  public static boolean definesHeight(XmlTag tag) {
-    return tag.getAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI) != null;
+  public static boolean definesHeight(@NotNull XmlTag tag, @Nullable ResourceResolver resourceResolver) {
+    boolean definesHeight = tag.getAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI) != null;
+
+    if (!definesHeight && resourceResolver != null) {
+      String style = tag.getAttributeValue(ATTR_STYLE);
+      if (style != null) {
+        ResourceValue st = resourceResolver.findResValue(style, false);
+        if (st instanceof StyleResourceValue) {
+          StyleResourceValue styleValue = (StyleResourceValue)st;
+          definesHeight = resourceResolver.findItemInStyle(styleValue, ATTR_LAYOUT_HEIGHT, true) != null;
+        }
+      }
+    }
+
+    return definesHeight;
   }
 
-  public static boolean definesWidth(XmlTag tag) {
-    return tag.getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI) != null;
+  public static boolean definesWidth(@NotNull XmlTag tag, @Nullable ResourceResolver resourceResolver) {
+    boolean definesWidth = tag.getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI) != null;
+
+    if (!definesWidth && resourceResolver != null) {
+      String style = tag.getAttributeValue(ATTR_STYLE);
+      if (style != null) {
+        ResourceValue st = resourceResolver.findResValue(style, false);
+        if (st instanceof StyleResourceValue) {
+          StyleResourceValue styleValue = (StyleResourceValue)st;
+          definesWidth = resourceResolver.findItemInStyle(styleValue, ATTR_LAYOUT_WIDTH, true) != null;
+        }
+      }
+    }
+
+    return definesWidth;
   }
 
   @NotNull
-  private static String getDefaulWidth(@NotNull XmlTag tag) {
+  private static String getDefaultWidth(@NotNull XmlTag tag) {
     // Depends on parent and child. For now, just do wrap unless it's a layout
     //String tagName = tag.getName();
 

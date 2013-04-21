@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.Density;
 import com.android.tools.idea.configurations.RenderContext;
 import com.google.common.collect.Lists;
@@ -203,7 +204,7 @@ public class RenderErrorPanel extends JPanel {
     }
   }
 
-  public int getPreferredHeight(int width) {
+  public int getPreferredHeight(@SuppressWarnings("UnusedParameters") int width) {
     return myHTMLViewer.getPreferredSize().height;
   }
 
@@ -268,10 +269,10 @@ public class RenderErrorPanel extends JPanel {
         addTypoSuggestions(builder, className, androidViewClassNames, false);
 
         builder.addLink("Fix Build Path", myLinkManager.createEditClassPathUrl());
-        builder.add(", ");
 
         RenderContext renderContext = renderService.getRenderContext();
         if (renderContext != null && renderContext.getType() == LAYOUT_EDITOR) {
+          builder.add(", ");
           builder.addLink("Edit XML", myLinkManager.createShowTagUrl(className));
         }
 
@@ -582,7 +583,8 @@ public class RenderErrorPanel extends JPanel {
       // Emit hyperlink about missing attributes; the action will operate on all of them
       builder.addBold("NOTE: One or more layouts are missing the layout_width or layout_height attributes. " +
                       "These are required in most layouts.").newline();
-      AddMissingAttributesFix fix = new AddMissingAttributesFix(project, renderService.getPsiFile());
+      ResourceResolver resourceResolver = myResult.getRenderService().getResourceResolver();
+      AddMissingAttributesFix fix = new AddMissingAttributesFix(project, renderService.getPsiFile(), resourceResolver);
 
       List<XmlTag> missing = fix.findViewsMissingSizes();
 
@@ -594,8 +596,8 @@ public class RenderErrorPanel extends JPanel {
       }
 
       for (XmlTag tag : missing) {
-        boolean missingWidth = !AddMissingAttributesFix.definesWidth(tag);
-        boolean missingHeight = !AddMissingAttributesFix.definesHeight(tag);
+        boolean missingWidth = !AddMissingAttributesFix.definesWidth(tag, resourceResolver);
+        boolean missingHeight = !AddMissingAttributesFix.definesHeight(tag, resourceResolver);
         assert missingWidth || missingHeight;
 
         String id = tag.getAttributeValue(ATTR_ID);
