@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class RenderedView implements Iterable<RenderedView> {
+  @Nullable public final RenderedView parent;
   @Nullable public final XmlTag tag;
   public final int x;
   public final int y;
@@ -32,7 +33,8 @@ public class RenderedView implements Iterable<RenderedView> {
   public final int h;
   private List<RenderedView> myChildren;
 
-  public RenderedView(@Nullable XmlTag tag, int x, int y, int w, int h) {
+  public RenderedView(@Nullable RenderedView parent, @Nullable XmlTag tag, int x, int y, int w, int h) {
+    this.parent = parent;
     this.x = x;
     this.y = y;
     this.w = w;
@@ -46,6 +48,11 @@ public class RenderedView implements Iterable<RenderedView> {
 
   public final int y2() {
     return y + h;
+  }
+
+  @Nullable
+  public RenderedView getParent() {
+    return parent;
   }
 
   public void setChildren(List<RenderedView> children) {

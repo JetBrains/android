@@ -36,11 +36,11 @@ public class RenderedViewHierarchy {
 
   @NotNull
   public static RenderedViewHierarchy create(@NotNull PsiFile file, @NotNull List<ViewInfo> roots) {
-    return new RenderedViewHierarchy(file, convert(roots, 0, 0));
+    return new RenderedViewHierarchy(file, convert(null, roots, 0, 0));
   }
 
   @NotNull
-  private static List<RenderedView> convert(@NotNull List<ViewInfo> roots, int parentX, int parentY) {
+  private static List<RenderedView> convert(@Nullable RenderedView parent, @NotNull List<ViewInfo> roots, int parentX, int parentY) {
     List<RenderedView> views = new ArrayList<RenderedView>(roots.size());
     for (ViewInfo info : roots) {
       XmlTag tag = null;
@@ -54,10 +54,10 @@ public class RenderedViewHierarchy {
       int height = info.getBottom() - y;
       x += parentX;
       y += parentY;
-      RenderedView view = new RenderedView(tag, x, y, width, height);
+      RenderedView view = new RenderedView(parent, tag, x, y, width, height);
       List<ViewInfo> children = info.getChildren();
       if (children != null && !children.isEmpty()) {
-        view.setChildren(convert(children, x, y));
+        view.setChildren(convert(view, children, x, y));
       }
       views.add(view);
     }
