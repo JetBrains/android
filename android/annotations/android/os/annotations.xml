@@ -3,6 +3,9 @@
   <item name="android.os.AsyncTask Result get(long, java.util.concurrent.TimeUnit) 1">
     <annotation name="org.jetbrains.annotations.NotNull" />
   </item>
+  <item name="android.os.AsyncTask android.os.AsyncTask.Status getStatus()">
+    <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
   <item name="android.os.AsyncTask android.os.AsyncTask&lt;Params,Progress,Result&gt; execute(Params...)">
     <annotation name="org.jetbrains.annotations.NotNull" />
   </item>
@@ -10,9 +13,6 @@
     <annotation name="org.jetbrains.annotations.NotNull" />
   </item>
   <item name="android.os.AsyncTask android.os.AsyncTask&lt;Params,Progress,Result&gt; executeOnExecutor(java.util.concurrent.Executor, Params...) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.AsyncTask android.os.AsyncTask.Status getStatus()">
     <annotation name="org.jetbrains.annotations.NotNull" />
   </item>
   <item name="android.os.AsyncTask void execute(java.lang.Runnable) 0">
