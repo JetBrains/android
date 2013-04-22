@@ -116,6 +116,10 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
   private static ResourceString getResolvedString(PsiElement element) {
     ResourceString item = element.getUserData(CACHE);
     if (item != null) {
+      // We need to refresh the folding descriptors since their text positions
+      // need to be recomputed from the AST node ranges after edits earlier in
+      // the document
+      item.refreshTextPosition();
       return item;
     }
     if (element instanceof PsiMethodCallExpression) {

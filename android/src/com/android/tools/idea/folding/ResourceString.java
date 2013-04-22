@@ -21,6 +21,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LanguageQualifier;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.ProjectResources;
+import com.intellij.lang.ASTNode;
 import com.intellij.lang.folding.FoldingDescriptor;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
@@ -31,6 +32,7 @@ import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -183,5 +185,13 @@ class ResourceString implements ModificationTracker {
     }
 
     return sb.toString();
+  }
+
+  public void refreshTextPosition() {
+    if (myDescriptor != null && myElement != null) {
+      ASTNode node = myElement.getNode();
+      Set<Object> dependencies = myDescriptor.getDependencies();
+      myDescriptor = new FoldingDescriptor(node, node.getTextRange(), null, dependencies);
+    }
   }
 }
