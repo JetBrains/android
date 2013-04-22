@@ -159,7 +159,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
   private MergingUpdateQueue getRenderingQueue() {
     synchronized (myRenderingQueueLock) {
       if (myRenderingQueue == null) {
-        myRenderingQueue = new MergingUpdateQueue("android.layout.rendering", 300, true, null,
+        myRenderingQueue = new MergingUpdateQueue("android.layout.rendering", 800, true, null,
                                                   myProject, null, Alarm.ThreadToUse.OWN_THREAD);
       }
       return myRenderingQueue;
@@ -178,6 +178,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
     }
 
     if (fileInPreview == file) {
+      getRenderingQueue().cancelAllUpdates();
       render();
       return;
     }
