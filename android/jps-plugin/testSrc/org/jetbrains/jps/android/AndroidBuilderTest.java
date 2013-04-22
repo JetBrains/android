@@ -20,6 +20,7 @@ import org.jetbrains.jps.builders.JpsBuildTestCase;
 import org.jetbrains.jps.cmdline.BuildMain;
 import org.jetbrains.jps.incremental.java.JavaBuilder;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
+import org.jetbrains.jps.maven.model.JpsMavenExtensionService;
 import org.jetbrains.jps.model.JpsElement;
 import org.jetbrains.jps.model.JpsSimpleElement;
 import org.jetbrains.jps.model.impl.JpsSimpleElementImpl;
@@ -772,6 +773,48 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
       }
     }
     assertTrue(containsForciblyExcludedRootWarn);
+  }
+
+  public void testMaven() throws Exception {
+    final MyExecutor executor = new MyExecutor("com.example.simple");
+    final JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> androidSdk = addJdkAndAndroidSdk();
+    addPathPatterns(executor, androidSdk);
+
+    final JpsModule appModule = addAndroidModule("app", new String[]{"src"}, "app", "app", androidSdk).getFirst();
+    final JpsModule libModule = addAndroidModule("lib", new String[]{"src"}, "lib", "lib", androidSdk).getFirst();
+    final JpsModule libModule1 = addAndroidModule("lib1", new String[]{"src"}, "lib1", "lib1", androidSdk).getFirst();
+
+    JpsMavenExtensionService.getInstance().getOrCreateExtension(appModule);
+
+    final JpsAndroidModuleExtension libExtension = AndroidJpsUtil.getExtension(libModule);
+    assert libExtension != null;
+    final JpsAndroidModuleProperties libProps = ((JpsAndroidModuleExtensionImpl)libExtension).getProperties();
+    libProps.LIBRARY_PROJECT = true;
+
+    final JpsAndroidModuleExtension libExtension1 = AndroidJpsUtil.getExtension(libModule1);
+    assert libExtension1 != null;
+    final JpsAndroidModuleProperties libProps1 = ((JpsAndroidModuleExtensionImpl)libExtension1).getProperties();
+    libProps1.LIBRARY_PROJECT = true;
+
+    appModule.getDependenciesList().addModuleDependency(libModule);
+    libModule.getDependenciesList().addModuleDependency(libModule1);
+
+    rebuildAll();
+    checkBuildLog(executor, "expected_log");
+
+    assertOutput(appModule, TestFileSystemItem.fs()
+      .file("com")
+      .archive("app.apk")
+      .dir("lib")
+      .file("lib_resource.txt")
+      .end()
+      .dir("com")
+      .file("app_resource.txt")
+      .end()
+      .file("META-INF")
+      .file("res_apk_entry", "res_apk_entry_content")
+      .file("classes.dex", "classes_dex_content"));
+    checkMakeUpToDate(executor);
   }
 
   private void checkMakeUpToDate(MyExecutor executor) {
