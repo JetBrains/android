@@ -170,7 +170,15 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
       RenderedViewHierarchy hierarchy = myRenderResult.getHierarchy();
       assert hierarchy != null; // because image != null
       RenderedView leaf = hierarchy.findLeafAt(x, y);
-      if (leaf != null && leaf.tag != null) {
+
+      // If you've clicked on for example a list item, the view you clicked
+      // on may not correspond to a tag, it could be a designtime preview item,
+      // so search upwards for the nearest surrounding tag
+      while (leaf != null && leaf.tag == null) {
+        leaf = leaf.getParent();
+      }
+
+      if (leaf != null) {
         int offset = leaf.tag.getTextOffset();
         if (offset != -1) {
           myEditor.getEditor().getCaretModel().moveToOffset(offset);
