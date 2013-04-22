@@ -62,7 +62,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
       "<BR/>\n" +
       "<BR/>\n" +
       "The following classes could not be found:<DL>\n" +
-      "<DD>- LinerLayout (<A HREF=\"action:classpath\">Fix Build Path</A>, <A HREF=\"action:showxml\">Edit XML</A>)\n" +
+      "<DD>-&NBSP;LinerLayout (<A HREF=\"action:classpath\">Fix Build Path</A>)\n" +
       "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project<BR/>\n" +
       "<BR/>\n" +
       "</BODY></HTML>",
