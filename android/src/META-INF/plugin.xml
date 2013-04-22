@@ -101,6 +101,11 @@
 
   <depends>JUnit</depends>
   <depends>com.intellij.properties</depends>
+  <depends>org.jetbrains.plugins.gradle</depends>
+
+  <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
+    <projectResolve implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectResolver"/>
+  </extensions>
 
   <depends optional="true" config-file="maven-support.xml">org.jetbrains.idea.maven</depends>
   <depends optional="true" config-file="test-ng.xml">TestNG-J</depends>
