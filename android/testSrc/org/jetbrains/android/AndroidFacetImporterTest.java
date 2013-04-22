@@ -125,7 +125,7 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
     importProject();
     final Sdk mavenSdk2 = ModuleRootManager.getInstance(module).getSdk();
     assertNotSame(mavenSdk, mavenSdk2);
-    checkSdk(mavenSdk2, "Maven Android 4.2 Platform (1)");
+    checkSdk(mavenSdk2, "Maven Android 4.2 Platform (1)", "android-17");
   }
 
   public void testNewSdk3() throws Exception {
@@ -178,6 +178,57 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
     mavenSdkData.setBuildTarget(lowTarget);
     importProject();
     assertEquals(mavenSdk, ModuleRootManager.getInstance(module).getSdk());
+  }
+
+  public void testNewSdk4() throws Exception {
+    AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = AndroidTestCase.getTestSdkPath();
+    try {
+      importProject("<groupId>test</groupId>" +
+                    "<artifactId>module</artifactId>" +
+                    "<version>1</version>" +
+                    "<packaging>apk</packaging>" +
+                    "<build>" +
+                    "  <plugins>" +
+                    "    <plugin>" +
+                    "      <groupId>com.jayway.maven.plugins.android.generation2</groupId>" +
+                    "      <artifactId>android-maven-plugin</artifactId>" +
+                    "    </plugin>" +
+                    "  </plugins>" +
+                    "</build>" +
+                    "<properties>" +
+                    "  <android.sdk.platform>2</android.sdk.platform>" +
+                    "</properties>");
+
+      assertModules("module");
+      final Sdk sdk = ModuleRootManager.getInstance(getModule("module")).getSdk();
+      checkSdk(sdk, "Maven Android 1.1 Platform", "android-2");
+    }
+    finally {
+      AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = null;
+    }
+  }
+
+  public void testNewSdk5() throws Exception {
+    importProject("<groupId>test</groupId>" +
+                  "<artifactId>module</artifactId>" +
+                  "<version>1</version>" +
+                  "<packaging>apk</packaging>" +
+                  "<build>" +
+                  "  <plugins>" +
+                  "    <plugin>" +
+                  "      <groupId>com.jayway.maven.plugins.android.generation2</groupId>" +
+                  "      <artifactId>android-maven-plugin</artifactId>" +
+                  "    </plugin>" +
+                  "  </plugins>" +
+                  "</build>" +
+                  "<properties>" +
+                  "  <android.sdk.platform>2</android.sdk.platform>" +
+                  "  <android.sdk.path>" + AndroidTestCase.getTestSdkPath() + "</android.sdk.path>" +
+                  "</properties>");
+
+    assertModules("module");
+    final Sdk sdk = ModuleRootManager.getInstance(getModule("module")).getSdk();
+    checkSdk(sdk, "Maven Android 1.1 Platform", "android-2");
   }
 
   private static void setSdk(Module module, Sdk sdk) {
@@ -354,6 +405,7 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
       final AndroidFacet apklibFacet = AndroidFacet.getInstance(apklibModule);
       assertNotNull(apklibFacet);
       assertTrue(apklibFacet.getProperties().LIBRARY_PROJECT);
+      checkSdk(ModuleRootManager.getInstance(apklibModule).getSdk(), "Maven Android 1.1 Platform", "android-2");
 
       final Library jarLib = checkAppModuleDeps(module, apklibModule);
       checkApklibModule(apklibModule, jarLib);
@@ -449,12 +501,63 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
     }
   }
 
+  public void testExternalApklib4() throws Exception {
+    setRepositoryPath(new File(myDir, "__repo").getPath());
+    FileUtil.copyDir(new File(AndroidTestCase.getTestDataPath() + "/maven/myapklib1"), new File(getRepositoryPath(), "com/myapklib1/1.0"));
+
+    AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = AndroidTestCase.getTestSdkPath();
+    try {
+      importProject(getPomContent("apk", "module", "") +
+                    "<dependencies>" +
+                    "  <dependency>" +
+                    "    <groupId>com</groupId>\n" +
+                    "    <artifactId>myapklib1</artifactId>\n" +
+                    "    <version>1.0</version>\n" +
+                    "    <type>apklib</type>" +
+                    "  </dependency>" +
+                    "</dependencies>");
+
+      assertModules("module", "~apklib-com_myapklib1_1.0");
+      final Module apklibModule = getModule("~apklib-com_myapklib1_1.0");
+      checkSdk(ModuleRootManager.getInstance(apklibModule).getSdk(), "Maven Android 4.2 Platform", "android-17");
+    }
+    finally {
+      AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = null;
+    }
+  }
+
+  public void testExternalApklib5() throws Exception {
+    setRepositoryPath(new File(myDir, "__repo").getPath());
+    FileUtil.copyDir(new File(AndroidTestCase.getTestDataPath() + "/maven/myapklib2"), new File(getRepositoryPath(), "com/myapklib2/1.0"));
+
+    AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = AndroidTestCase.getTestSdkPath();
+    try {
+      importProject(getPomContent("apk", "module", "") +
+                    "<dependencies>" +
+                    "  <dependency>" +
+                    "    <groupId>com</groupId>\n" +
+                    "    <artifactId>myapklib2</artifactId>\n" +
+                    "    <version>1.0</version>\n" +
+                    "    <type>apklib</type>" +
+                    "  </dependency>" +
+                    "</dependencies>");
+
+      assertModules("module", "~apklib-com_myapklib2_1.0");
+      final Module apklibModule = getModule("~apklib-com_myapklib2_1.0");
+      checkSdk(ModuleRootManager.getInstance(apklibModule).getSdk(), "Maven Android 1.1 Platform", "android-2");
+    }
+    finally {
+      AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = null;
+    }
+  }
+
   private static void checkApklibModule(Module apklibModule, Library jarLib) {
     final OrderEntry[] apklibDeps = ModuleRootManager.getInstance(apklibModule).getOrderEntries();
-    assertEquals(2, apklibDeps.length);
-    assertInstanceOf(apklibDeps[0], ModuleSourceOrderEntry.class);
-    assertInstanceOf(apklibDeps[1], LibraryOrderEntry.class);
-    final LibraryOrderEntry libraryOrderEntry = (LibraryOrderEntry)apklibDeps[1];
+    assertEquals(3, apklibDeps.length);
+    assertInstanceOf(apklibDeps[0], ModuleJdkOrderEntry.class);
+    assertInstanceOf(apklibDeps[1], ModuleSourceOrderEntry.class);
+    assertInstanceOf(apklibDeps[2], LibraryOrderEntry.class);
+    final LibraryOrderEntry libraryOrderEntry = (LibraryOrderEntry)apklibDeps[2];
     assertEquals(jarLib, libraryOrderEntry.getLibrary());
   }
 
@@ -508,10 +611,10 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
   }
 
   private void checkSdk(Sdk sdk) {
-    checkSdk(sdk, "Maven Android 4.2 Platform");
+    checkSdk(sdk, "Maven Android 4.2 Platform", "android-17");
   }
 
-  private void checkSdk(Sdk sdk, String sdkName) {
+  private void checkSdk(Sdk sdk, String sdkName, String buildTarget) {
     assertNotNull(sdk);
     assertEquals(sdkName, sdk.getName());
     assertTrue(FileUtil.pathsEqual(AndroidTestCase.getTestSdkPath(), sdk.getHomePath()));
@@ -520,7 +623,7 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
     assertNotNull(additionalData);
     assertInstanceOf(additionalData, AndroidSdkAdditionalData.class);
     final AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)additionalData;
-    assertEquals("android-17", data.getBuildTargetHashString());
+    assertEquals(buildTarget, data.getBuildTargetHashString());
     assertEquals(myJdk, data.getJavaSdk());
     final HashSet<String> urls = new HashSet<String>(Arrays.asList(sdk.getRootProvider().getUrls(OrderRootType.CLASSES)));
     assertTrue(urls.containsAll(Arrays.asList(myJdk.getRootProvider().getUrls(OrderRootType.CLASSES))));
