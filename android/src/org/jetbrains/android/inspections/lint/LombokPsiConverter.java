@@ -788,67 +788,7 @@ public class LombokPsiConverter {
       }
 
       IElementType operation = p.getOperationTokenType();
-      BinaryOperator operator = null;
-      if (operation == JavaTokenType.EQEQ) {
-        operator = BinaryOperator.EQUALS;
-      }
-      else if (operation == JavaTokenType.EQ) {
-        operator = BinaryOperator.ASSIGN;
-      }
-      else if (operation == JavaTokenType.OROR) {
-        operator = BinaryOperator.LOGICAL_OR;
-      }
-      else if (operation == JavaTokenType.ANDAND) {
-        operator = BinaryOperator.LOGICAL_AND;
-      }
-      else if (operation == JavaTokenType.NE) {
-        operator = BinaryOperator.NOT_EQUALS;
-      }
-      else if (operation == JavaTokenType.GT) {
-        operator = BinaryOperator.GREATER;
-      }
-      else if (operation == JavaTokenType.GE) {
-        operator = BinaryOperator.GREATER_OR_EQUAL;
-      }
-      else if (operation == JavaTokenType.LT) {
-        operator = BinaryOperator.LESS;
-      }
-      else if (operation == JavaTokenType.LE) {
-        operator = BinaryOperator.LESS_OR_EQUAL;
-      }
-      else if (operation == JavaTokenType.OR) {
-        operator = BinaryOperator.BITWISE_OR;
-      }
-      else if (operation == JavaTokenType.AND) {
-        operator = BinaryOperator.BITWISE_AND;
-      }
-      else if (operation == JavaTokenType.XOR) {
-        operator = BinaryOperator.BITWISE_XOR;
-      }
-      else if (operation == JavaTokenType.LTLT) {
-        operator = BinaryOperator.SHIFT_LEFT;
-      }
-      else if (operation == JavaTokenType.GTGT) {
-        operator = BinaryOperator.SHIFT_RIGHT;
-      }
-      else if (operation == JavaTokenType.GTGTGT) {
-        operator = BinaryOperator.BITWISE_SHIFT_RIGHT;
-      }
-      else if (operation == JavaTokenType.PLUS) {
-        operator = BinaryOperator.PLUS;
-      }
-      else if (operation == JavaTokenType.MINUS) {
-        operator = BinaryOperator.MINUS;
-      }
-      else if (operation == JavaTokenType.ASTERISK) {
-        operator = BinaryOperator.MULTIPLY;
-      }
-      else if (operation == JavaTokenType.DIV) {
-        operator = BinaryOperator.DIVIDE;
-      }
-      else if (operation == JavaTokenType.PERC) {
-        operator = BinaryOperator.REMAINDER;
-      }
+      BinaryOperator operator = convertOperation(operation);
 
       if (operator != null) {
         binary.astOperator(operator);
@@ -900,7 +840,12 @@ public class LombokPsiConverter {
       binary.astLeft(toExpression(p.getLExpression()));
       PsiExpression rExpression = p.getRExpression();
       if (rExpression != null) {
-        binary.astRight(toExpression(rExpression));
+        Expression right = toExpression(rExpression);
+        if (right != null) {
+          binary.astRight(right);
+        } else {
+          assert false : rExpression;
+        }
       }
       return binary;
     } else if (expression instanceof PsiQualifiedExpression) {
@@ -1052,12 +997,103 @@ public class LombokPsiConverter {
         unary.astOperand(toExpression(operand));
       }
       return unary;
-    } else if (expression instanceof PsiPolyadicExpression || expression instanceof PsiLambdaExpression) {
+    } else if (expression instanceof PsiPolyadicExpression) {
+      // Example: A + B + C + D; IDEA parses this as a single
+      // polyadic expression with operator type + of A, B, C and D.
+      // Fold them into nested BinaryExpressions for Lombok.
+      PsiPolyadicExpression p = (PsiPolyadicExpression)expression;
+      IElementType operation = p.getOperationTokenType();
+      BinaryOperator operator = convertOperation(operation);
+      if (operator == null) {
+        assert false : operation;
+      }
+      PsiExpression[] operands = p.getOperands();
+      assert operands.length >= 1;
+      Expression left = toExpression(operands[0]);
+      for (int i = 1, n = operands.length; i < n; i++) {
+        Expression right = toExpression(operands[i]);
+        BinaryExpression binary = new BinaryExpression();
+        bind(binary, expression);
+        binary.astOperator(operator);
+
+        binary.astLeft(left);
+        binary.astRight(right);
+
+        left = binary;
+      }
+
+      return left;
+    } else if (expression instanceof PsiLambdaExpression) {
       // Is this used in Java?
       // TODO: Implement. Not yet used by lint.
       return null;
     }
     return null;
+  }
+
+  private static BinaryOperator convertOperation(IElementType operation) {
+    BinaryOperator operator = null;
+    if (operation == JavaTokenType.EQEQ) {
+      operator = BinaryOperator.EQUALS;
+    }
+    else if (operation == JavaTokenType.EQ) {
+      operator = BinaryOperator.ASSIGN;
+    }
+    else if (operation == JavaTokenType.OROR) {
+      operator = BinaryOperator.LOGICAL_OR;
+    }
+    else if (operation == JavaTokenType.ANDAND) {
+      operator = BinaryOperator.LOGICAL_AND;
+    }
+    else if (operation == JavaTokenType.NE) {
+      operator = BinaryOperator.NOT_EQUALS;
+    }
+    else if (operation == JavaTokenType.GT) {
+      operator = BinaryOperator.GREATER;
+    }
+    else if (operation == JavaTokenType.GE) {
+      operator = BinaryOperator.GREATER_OR_EQUAL;
+    }
+    else if (operation == JavaTokenType.LT) {
+      operator = BinaryOperator.LESS;
+    }
+    else if (operation == JavaTokenType.LE) {
+      operator = BinaryOperator.LESS_OR_EQUAL;
+    }
+    else if (operation == JavaTokenType.OR) {
+      operator = BinaryOperator.BITWISE_OR;
+    }
+    else if (operation == JavaTokenType.AND) {
+      operator = BinaryOperator.BITWISE_AND;
+    }
+    else if (operation == JavaTokenType.XOR) {
+      operator = BinaryOperator.BITWISE_XOR;
+    }
+    else if (operation == JavaTokenType.LTLT) {
+      operator = BinaryOperator.SHIFT_LEFT;
+    }
+    else if (operation == JavaTokenType.GTGT) {
+      operator = BinaryOperator.SHIFT_RIGHT;
+    }
+    else if (operation == JavaTokenType.GTGTGT) {
+      operator = BinaryOperator.BITWISE_SHIFT_RIGHT;
+    }
+    else if (operation == JavaTokenType.PLUS) {
+      operator = BinaryOperator.PLUS;
+    }
+    else if (operation == JavaTokenType.MINUS) {
+      operator = BinaryOperator.MINUS;
+    }
+    else if (operation == JavaTokenType.ASTERISK) {
+      operator = BinaryOperator.MULTIPLY;
+    }
+    else if (operation == JavaTokenType.DIV) {
+      operator = BinaryOperator.DIVIDE;
+    }
+    else if (operation == JavaTokenType.PERC) {
+      operator = BinaryOperator.REMAINDER;
+    }
+    return operator;
   }
 
   @NonNull
