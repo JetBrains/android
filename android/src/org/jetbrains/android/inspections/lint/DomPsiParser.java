@@ -25,6 +25,7 @@ import com.android.tools.lint.detector.api.Position;
 import com.android.tools.lint.detector.api.XmlContext;
 import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
@@ -123,6 +124,14 @@ class DomPsiParser implements IDomParser {
     @NonNull
     @Override
     public Location resolve() {
+      if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
+        return ApplicationManager.getApplication().runReadAction(new Computable<Location>() {
+          @Override
+          public Location compute() {
+            return resolve();
+          }
+        });
+      }
       TextRange textRange = DomPsiConverter.getTextRange(myNode);
       Position start = new DefaultPosition(-1, -1, textRange.getStartOffset());
       Position end = new DefaultPosition(-1, -1, textRange.getEndOffset());
