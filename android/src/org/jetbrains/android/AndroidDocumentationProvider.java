@@ -16,6 +16,10 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
+import com.android.resources.ResourceType;
+import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
+import com.android.tools.idea.rendering.ProjectResources;
 import com.intellij.codeInsight.javadoc.JavaDocExternalFilter;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.lang.documentation.DocumentationProvider;
@@ -23,6 +27,8 @@ import com.intellij.lang.documentation.ExternalDocumentationProvider;
 import com.intellij.lang.java.JavaDocumentationProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
@@ -59,7 +65,27 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
 
   @Override
   public String generateDoc(PsiElement element, PsiElement originalElement) {
-    return null;
+    if (!AndroidPsiUtils.isResourceReference(originalElement)) {
+      return null;
+    }
+
+    Module module = ModuleUtilCore.findModuleForPsiElement(originalElement);
+    if (module == null) {
+      return null;
+    }
+
+    ProjectResources projectResources = ProjectResources.get(module, true);
+    if (projectResources == null) {
+      return null;
+    }
+
+    ResourceType type = AndroidPsiUtils.getResourceType(originalElement);
+    if (type == null) {
+      return null;
+    }
+
+    String name = originalElement.getText();
+    return AndroidJavaDocRenderer.render(projectResources, type, name);
   }
 
   @Override
