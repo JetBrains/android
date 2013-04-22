@@ -5,18 +5,14 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com</groupId>
-  <artifactId>myapklib</artifactId>
-  <name>MyApklib</name>
+  <artifactId>myapklib2</artifactId>
+  <name>MyApklib2</name>
   <packaging>apklib</packaging>
   <version>1.0</version>
 
-  <dependencies>
-    <dependency>
-      <groupId>com</groupId>
-      <artifactId>myjar</artifactId>
-      <version>1.0</version>
-    </dependency>
-  </dependencies>
+  <properties>
+    <android.sdk.platform>2</android.sdk.platform>
+  </properties>
 
   <build>
     <sourceDirectory>src</sourceDirectory>
@@ -26,11 +22,6 @@
         <groupId>com.jayway.maven.plugins.android.generation2</groupId>
         <artifactId>android-maven-plugin</artifactId>
         <extensions>true</extensions>
-        <configuration>
-          <sdk>
-            <platform>2</platform>
-          </sdk>
-        </configuration>
       </plugin>
     </plugins>
   </build>
