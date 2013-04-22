@@ -393,6 +393,23 @@ public class LombokPsiConverterTest extends AndroidTestCase {
     check(file, testClass);
   }
 
+  public void testPsiToLombokConversion11() {
+    // Test Polyadic Expression
+    String testClass =
+      "package test.pkg;\n" +
+      "\n" +
+      "public final class R5 {\n" +
+      "    public static final int test = 5;\n" +
+      "    public String getString(int id) { return \"\"; }\n" +
+      "    public void foo() {\n" +
+      "        String trackName = \"test\";\n" +
+      "        String x = trackName + \" - \" + getString(R5.test);\n" +
+      "    }\n" +
+      "}";
+    PsiFile file = myFixture.addFileToProject("src/test/pkg/R5.java", testClass);
+    check(file, testClass);
+  }
+
   private void check(VirtualFile file) {
     assertNotNull(file);
     assertTrue(file.exists());
