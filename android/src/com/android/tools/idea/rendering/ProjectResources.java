@@ -27,7 +27,10 @@ import com.android.resources.ResourceType;
 import com.android.util.Pair;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
@@ -264,17 +267,55 @@ public class ProjectResources extends ResourceRepository implements Disposable {
     }
 
     if (!myChangedFiles.isEmpty()) {
+      final FileDocumentManager documentManager = FileDocumentManager.getInstance();
+
       // First process
       for (VirtualFile file : myChangedFiles) {
         ResourceFile resourceFile = getResourceFile(file);
         if (resourceFile != null) {
-          ResourceFolder folder = resourceFile.getFolder();
-          folder.processFile(resourceFile.getFile(), ResourceDeltaKind.CHANGED, context);
+          final Document document = documentManager.getDocument(file);
+          boolean unsaved = false;
+          boolean isDispatchThread = ApplicationManager.getApplication().isDispatchThread();
+          if (document != null) {
+            unsaved = documentManager.isDocumentUnsaved(document);
+            if (unsaved && isDispatchThread) {
+              documentManager.saveDocument(document);
+              unsaved = false;
+            }
+          }
+
+          final ResourceFolder folder = resourceFile.getFolder();
+          final IAbstractFile sdkFile = resourceFile.getFile();
+          folder.processFile(sdkFile, ResourceDeltaKind.CHANGED, context);
           if (ResourceFolderType.VALUES == folder.getType()) {
             // Changing the contents of a layout file, or drawable file etc, doesn't
             // change the project resources; we only store the presence or absence of
             // these types of resources.
             newGeneration = true;
+          }
+
+          // If we're not on the dispatch thread, we're not allowed to save the
+          // document, which means the resource repository refresh might be
+          // looking at stale data. We also can't invokeAndWait, since that can
+          // lead to a deadlock.
+          //
+          // The real solution is to have the ProjectResource data be built directly
+          // from the edited PSI data structure rather than read from disk.
+          //
+          // But in the mean time, work around this by scheduling a save on the
+          // dispatch thread, followed by another refresh of this file.
+          if (unsaved && !isDispatchThread && document != null) {
+            ApplicationManager.getApplication().invokeLater(new Runnable() {
+              @Override
+              public void run() {
+                ScanningContext context = new ScanningContext(ProjectResources.this);
+                documentManager.saveDocument(document);
+                folder.processFile(sdkFile, ResourceDeltaKind.CHANGED, context);
+                if (ResourceFolderType.VALUES == folder.getType()) {
+                  myGeneration++;
+                }
+              }
+            });
           }
         }
       }
