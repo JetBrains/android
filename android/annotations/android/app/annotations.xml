@@ -888,6 +888,9 @@
   <item name="android.app.Fragment android.view.View onCreateView(android.view.LayoutInflater, android.view.ViewGroup, android.os.Bundle)">
     <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
+  <item name="android.app.Fragment android.view.View onCreateView(android.view.LayoutInflater, android.view.ViewGroup, android.os.Bundle) 1">
+    <annotation name="org.jetbrains.annotations.Nullable" />
+  </item>
   <item name="android.app.Fragment java.lang.CharSequence getText(int) 0">
     <annotation name="android.annotation.ResourceInt">
       <val name="value" val="{string}" />
@@ -908,6 +911,9 @@
   </item>
   <item name="android.app.Fragment void dump(java.lang.String, java.io.FileDescriptor, java.io.PrintWriter, java.lang.String[]) 2">
     <annotation name="org.jetbrains.annotations.NotNull" />
+  </item>
+  <item name="android.app.Fragment void onViewCreated(android.view.View, android.os.Bundle) 1">
+    <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
   <item name="android.app.Fragment void registerForContextMenu(android.view.View) 0">
     <annotation name="org.jetbrains.annotations.NotNull" />
