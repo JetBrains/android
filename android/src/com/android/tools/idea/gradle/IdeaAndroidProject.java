@@ -25,21 +25,32 @@ import java.io.Serializable;
  */
 public class IdeaAndroidProject implements Serializable {
   @NotNull private final AndroidProject myDelegate;
+  @NotNull private final String myRootDirPath;
   @NotNull private String mySelectedVariantName;
 
   /**
    * Creates a new {@link IdeaAndroidProject}.
    *
-   * @param delegate            the structure of an imported Android-Gradle project.
-   * @param selectedVariantName the name of the selected build variant.
+   * @param rootDirPath         absolute path of the root directory of the imported Android-Gradle project.
+   * @param delegate            imported Android-Gradle project.
+   * @param selectedVariantName name of the selected build variant.
    */
-  public IdeaAndroidProject(@NotNull AndroidProject delegate, @NotNull String selectedVariantName) {
-    this.myDelegate = delegate;
+  public IdeaAndroidProject( @NotNull String rootDirPath, @NotNull AndroidProject delegate, @NotNull String selectedVariantName) {
+    myRootDirPath = rootDirPath;
+    myDelegate = delegate;
     setSelectedVariantName(selectedVariantName);
   }
 
   /**
-   * @return the structure of an imported Android-Gradle project.
+   * @return the absolute path of the root directory of the imported Android-Gradle project.
+   */
+  @NotNull
+  public String getRootDirPath() {
+    return myRootDirPath;
+  }
+
+  /**
+   * @return the imported Android-Gradle project.
    */
   @NotNull
   public AndroidProject getDelegate() {
