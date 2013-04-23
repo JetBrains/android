@@ -25,6 +25,7 @@ import com.android.sdklib.SdkManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.rendering.ProjectResources;
 import com.android.utils.ILogger;
 import com.intellij.CommonBundle;
@@ -96,6 +97,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.facet.AndroidFacet");
 
   public static final FacetTypeId<AndroidFacet> ID = new FacetTypeId<AndroidFacet>("android");
+  public static final String NAME = "Android";
   private AndroidResourceFilesListener myListener;
 
   private AvdManager myAvdManager = null;
@@ -116,6 +118,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   private ConfigurationManager myConfigurationManager;
   private ProjectResources myProjectResources;
+  private IdeaAndroidProject myIdeaAndroidProject;
 
   public AndroidFacet(@NotNull Module module, String name, @NotNull AndroidFacetConfiguration configuration) {
     super(getFacetType(), module, name, configuration, null);
@@ -768,5 +771,22 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   public JpsAndroidModuleProperties getProperties() {
     return getConfiguration().getState();
+  }
+
+  /**
+   * Associates the given Android-Gradle project to this facet.
+   *
+   * @param project the new project.
+   */
+  public void setIdeaAndroidProject(@Nullable IdeaAndroidProject project) {
+    myIdeaAndroidProject = project;
+  }
+
+  /**
+   * @return the Android-Gradle project associated to this facet.
+   */
+  @Nullable
+  public IdeaAndroidProject getIdeaAndroidProject() {
+    return myIdeaAndroidProject;
   }
 }

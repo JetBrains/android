@@ -99,7 +99,7 @@ class ProjectResolverStrategy {
     return null;
   }
 
-  private void handleProjectImportError(@NotNull RuntimeException e) {
+  private static void handleProjectImportError(@NotNull RuntimeException e) {
     if (e instanceof UnknownModelException) {
       return;
     }
@@ -149,7 +149,8 @@ class ProjectResolverStrategy {
     contentRoot.storePaths(androidProject, selectedVariant);
     contentRoot.addTo(moduleInfo);
 
-    moduleInfo.createChild(AndroidProjectKeys.IDE_ANDROID_PROJECT, new IdeaAndroidProject(androidProject, selectedVariant.getName()));
+    IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(moduleDirPath, androidProject, selectedVariant.getName());
+    moduleInfo.createChild(AndroidProjectKeys.IDE_ANDROID_PROJECT, ideaAndroidProject);
     return moduleInfo;
   }
 

@@ -19,6 +19,7 @@ import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.model.FileStructure;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Set;
@@ -32,6 +33,8 @@ public class SourceProviderStub implements SourceProvider {
   @NotNull private final Set<File> myResDirectories = Sets.newHashSet();
   @NotNull private final Set<File> myResourcesDirectories = Sets.newHashSet();
 
+  @Nullable File myManifestFile;
+
   @NotNull private final FileStructure myFileStructure;
 
   /**
@@ -43,9 +46,16 @@ public class SourceProviderStub implements SourceProvider {
     myFileStructure = fileStructure;
   }
 
+  public void setManifestFile(@NotNull String manifestFilePath) {
+    myManifestFile = myFileStructure.createProjectFile(manifestFilePath);
+  }
+
   @NotNull
   @Override
   public File getManifestFile() {
+    if (myManifestFile != null) {
+      return myManifestFile;
+    }
     throw new UnsupportedOperationException();
   }
 
