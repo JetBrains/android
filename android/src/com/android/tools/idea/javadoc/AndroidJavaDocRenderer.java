@@ -20,12 +20,14 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceFile;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.ProjectResources;
 import com.android.utils.XmlUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.*;
 
 public class AndroidJavaDocRenderer {
   /** Renders the Javadoc for a resource of given type and name. */
@@ -33,14 +35,99 @@ public class AndroidJavaDocRenderer {
   public static String render(ProjectResources projectResources, ResourceType type, String name) {
     if (ResourceType.STRING.equals(type)) {
       ResourceItem item = projectResources.getResourceItem(type, name);
-      return renderKeyValues(item.getSourceFileList(), type, name);
+      return renderStringValues(sort(item.getSourceFileList()), type, name);
+    } else if (ResourceType.DIMEN.equals(type)) {
+      ResourceItem item = projectResources.getResourceItem(type, name);
+      return renderDimension(sort(item.getSourceFileList()), type, name);
     } else {
       return null;
     }
   }
 
+  private static List<ResourceFile> sort(List<ResourceFile> resourceFiles) {
+    List<ResourceFile> copy = new ArrayList<ResourceFile>(resourceFiles);
+    Collections.sort(copy, new Comparator<ResourceFile>() {
+      @Override
+      public int compare(ResourceFile f1, ResourceFile f2) {
+        String k1 = f1.getFolder().getFolder().getName();
+        String k2 = f2.getFolder().getFolder().getName();
+        return k1.compareTo(k2);
+      }
+    });
+    return copy;
+  }
+
   @Nullable
-  private static String renderKeyValues(List<ResourceFile> files, ResourceType type, String name) {
+  private static String renderDimension(List<ResourceFile> files, ResourceType type, String name) {
+    if (files.isEmpty()) {
+      return null;
+    }
+
+    StringBuilder sb = new StringBuilder(files.size() * 40);
+
+    startTableRow(sb);
+    addTableColumnData(sb, "Configuration");
+    addTableColumnData(sb, "Value");
+    for (Density d : Density.values()) {
+      if (!d.isValidValueForDevice()) {
+        continue;
+      }
+
+      addTableColumnData(sb, d.getResourceValue().toUpperCase());
+    }
+    endTableRow(sb);
+
+    for (ResourceFile f : files) {
+      String v = f.getValue(type, name).getValue();
+      startTableRow(sb);
+      addTableColumnData(sb, renderFolderName(f.getFolder().getFolder().getName()));
+      addTableColumnData(sb, "<b>" + v + "</b>");
+      for (Density d : Density.values()) {
+        if (!d.isValidValueForDevice()) {
+          continue;
+        }
+
+        addTableColumnData(sb, dpToPixels(v, d));
+      }
+      endTableRow(sb);
+    }
+
+    return String.format("<html><body><table>%s</table><body></html>", sb.toString());
+  }
+
+  private static void addTableColumnData(StringBuilder sb, String data) {
+    sb.append("<td>");
+    sb.append(data);
+    sb.append("</td>");
+  }
+
+  private static void endTableRow(StringBuilder sb) {
+    sb.append("</tr>");
+  }
+
+  private static void startTableRow(StringBuilder sb) {
+    sb.append("<tr>");
+  }
+
+  /** Converts from {@link SdkConstants#UNIT_DP}'s at given density to pixels. */
+  public static String dpToPixels(@NotNull String dp, Density density) {
+    if (!dp.endsWith(SdkConstants.UNIT_DIP) && !dp.endsWith(SdkConstants.UNIT_DP)) {
+      return dp;
+    }
+
+    float dpf;
+    try {
+      dpf = (float) (Integer.parseInt(dp.substring(0, dp.indexOf('d'))));
+    } catch (NumberFormatException e) {
+      return dp;
+    }
+
+    return String.format(Locale.US, "%dpx",
+                         (int)(dpf * density.getDpiValue() / Density.DEFAULT_DENSITY));
+  }
+
+  @Nullable
+  private static String renderStringValues(List<ResourceFile> files, ResourceType type, String name) {
     if (files.isEmpty()) {
       return null;
     }
