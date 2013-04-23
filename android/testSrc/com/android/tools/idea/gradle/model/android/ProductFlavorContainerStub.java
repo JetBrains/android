@@ -51,6 +51,7 @@ public class ProductFlavorContainerStub implements ProductFlavorContainer {
     mySourceProvider.addRenderscriptDirectory("src/" + flavorName + "/renderscript");
     mySourceProvider.addResDirectory("src/" + flavorName + "/rs");
     mySourceProvider.addResourcesDirectory("src/" + flavorName + "/resources");
+    mySourceProvider.setManifestFile("src/" + flavorName + "/manifest.xml");
 
     String nameSuffix = flavorName.equals("main") ? "" : StringUtil.capitalize(flavorName);
 

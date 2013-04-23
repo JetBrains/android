@@ -38,6 +38,7 @@ public class AndroidProjectStub implements AndroidProject {
   @NotNull private final File myBuildFile;
 
   @Nullable private VariantStub myFirstVariant;
+  private boolean myLibrary;
 
   public AndroidProjectStub(@NotNull String name) {
     this(name, new FileStructure(name));
@@ -60,9 +61,13 @@ public class AndroidProjectStub implements AndroidProject {
     return myName;
   }
 
+  public void setIsLibrary(boolean isLibrary) {
+    myLibrary = isLibrary;
+  }
+
   @Override
   public boolean isLibrary() {
-    throw new UnsupportedOperationException();
+    return myLibrary;
   }
 
   @NotNull
