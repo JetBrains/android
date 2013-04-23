@@ -259,13 +259,12 @@ public class Configuration {
   @SuppressWarnings("AssertWithSideEffects")
   protected boolean ensureValid() {
     // Asserting on getters rather than fields since some are initialized lazily
-    assert getDevice() != null;
-    assert getDeviceState() != null;
     assert getTheme() != null;
     assert getUiMode() != null;
     assert getNightMode() != null;
     assert getLocale() != null;
-    assert getTarget() != null;
+    // Not checking device, state and target since this causes problem if you open
+    // projects without a proper SDK configured
     return true;
   }
 
