@@ -16,6 +16,7 @@
 
 package org.jetbrains.android;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.resources.ResourceType;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
@@ -26,6 +27,7 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.ColorChooser;
@@ -96,6 +98,53 @@ public class AndroidColorAnnotator implements Annotator {
     }
   }
 
+  /** Converts the supported color formats (#rgb, #argb, #rrggbb, #aarrggbb, or color name to Java color. */
+  @Nullable
+  @VisibleForTesting
+  static Color parseColor(String s) {
+    if (StringUtil.isEmpty(s)) {
+      return null;
+    }
+
+    if (s.charAt(0) == '#') {
+      long longColor;
+      try {
+        longColor = Long.parseLong(s.substring(1), 16);
+      }
+      catch (NumberFormatException e) {
+        return null;
+      }
+
+      if (s.length() == 4 || s.length() == 5) {
+        long a = s.length() == 4 ? 0xff : extend((longColor & 0xf000) >> 12);
+        long r = extend((longColor & 0xf00) >> 8);
+        long g = extend((longColor & 0x0f0) >> 4);
+        long b = extend((longColor & 0x00f));
+        longColor = (a << 24) | (r << 16) | (g << 8) | b;
+        return new Color((int)longColor, true);
+      }
+
+      if (s.length() == 7) {
+        longColor |= 0x00000000ff000000;
+      }
+      else if (s.length() != 9) {
+        return null;
+      }
+      return new Color((int)longColor, true);
+    }
+    else {
+      if (myColors == null) {
+        initializeColors();
+      }
+      Integer intColor = myColors.get(s.toLowerCase(Locale.US));
+      return intColor != null ? new Color(intColor) : null;
+    }
+  }
+
+  private static long extend(long nibble) {
+    return nibble | nibble << 4;
+  }
+
   private static class MyRenderer extends GutterIconRenderer {
     private final XmlTag myElement;
 
@@ -113,33 +162,7 @@ public class AndroidColorAnnotator implements Annotator {
     // see android.graphics.Color#parseColor in android.jar library
     @Nullable
     private Color getCurrentColor() {
-      String s = myElement.getValue().getText();
-      if (s.length() > 0) {
-        if (s.charAt(0) == '#') {
-          try {
-            long longColor = Long.parseLong(s.substring(1), 16);
-            if (s.length() == 7) {
-              longColor |= 0x00000000ff000000;
-            }
-            else if (s.length() != 9) {
-              return null;
-            }
-            return new Color((int)longColor);
-          }
-          catch (NumberFormatException e) {
-          }
-        }
-        else {
-          if (myColors == null) {
-            initializeColors();
-          }
-          Integer intColor = myColors.get(s.toLowerCase(Locale.US));
-          if (intColor != null) {
-            return new Color(intColor);
-          }
-        }
-      }
-      return null;
+      return parseColor(myElement.getValue().getText());
     }
 
     // see see android.graphics.Color in android.jar library
