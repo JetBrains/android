@@ -200,7 +200,8 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
         }
       }
 
-      if (UNIT_TEST_MODE || allowsResourceType(ResourceType.STRING, parameters[i])) {
+      if (UNIT_TEST_MODE || allowsResourceType(ResourceType.STRING, parameters[i])
+          || i == 0 && "getString".equals(methodExpression.getReferenceName())) {
         Module module = ModuleUtilCore.findModuleForPsiElement(expression);
         if (module == null) {
           return NONE;
