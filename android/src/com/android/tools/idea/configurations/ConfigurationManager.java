@@ -71,6 +71,7 @@ public class ConfigurationManager implements Disposable {
   private final UserDeviceManager myUserDeviceManager;
   private final WeakValueHashMap<VirtualFile, Configuration> myCache = new WeakValueHashMap<VirtualFile, Configuration>();
   private List<Locale> myLocales;
+  private Device myDefaultDevice;
 
   private ConfigurationManager(@NotNull Module module) {
     myModule = module;
@@ -386,14 +387,25 @@ public class ConfigurationManager implements Disposable {
 
   @Nullable
   public Device getDefaultDevice() {
-    // TODO: Persistence
-    // TODO: Pick
-    List<Device> devices = getDevices();
-    if (!devices.isEmpty()) {
-      return devices.get(0);
+    if (myDefaultDevice == null) {
+      List<Device> devices = getDevices();
+      if (!devices.isEmpty()) {
+        Device device = devices.get(0);
+        for (Device d : devices) {
+          String name = d.getName();
+          if (name.equals("Nexus 4")) {
+            device = d;
+            break;
+          } else if (name.equals("Galaxy Nexus")) {
+            device = d;
+          }
+        }
+
+        myDefaultDevice = device;
+      }
     }
 
-    return null;
+    return myDefaultDevice;
   }
 
   /**
