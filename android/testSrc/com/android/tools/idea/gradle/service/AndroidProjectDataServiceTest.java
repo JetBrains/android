@@ -67,10 +67,10 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
     assertEquals(key, service.getTargetDataKey());
 
     // ModuleCustomizers should be called.
-    myCustomizer1.customizeModule(myModule, myIdeaAndroidProject);
+    myCustomizer1.customizeModule(myModule, myProject, myIdeaAndroidProject);
     expectLastCall();
 
-    myCustomizer2.customizeModule(myModule, myIdeaAndroidProject);
+    myCustomizer2.customizeModule(myModule, myProject, myIdeaAndroidProject);
     expectLastCall();
 
     replay(myCustomizer1, myCustomizer2);

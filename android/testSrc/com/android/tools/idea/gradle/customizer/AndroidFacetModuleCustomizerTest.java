@@ -43,7 +43,8 @@ public class AndroidFacetModuleCustomizerTest extends IdeaTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myAndroidProject = TestProjects.createBasicProject();
+    File rootDirPath = new File(myProject.getBasePath());
+    myAndroidProject = TestProjects.createBasicProject(rootDirPath);
     myAndroidProject.setIsLibrary(true);
     myCustomizer = new AndroidFacetModuleCustomizer();
   }
@@ -62,7 +63,7 @@ public class AndroidFacetModuleCustomizerTest extends IdeaTestCase {
     assertNotNull(selectedVariant);
     String selectedVariantName = selectedVariant.getName();
     IdeaAndroidProject project = new IdeaAndroidProject(rootDirPath, myAndroidProject, selectedVariantName);
-    myCustomizer.customizeModule(myModule, project);
+    myCustomizer.customizeModule(myModule, myProject, project);
 
     // Verify that AndroidFacet was added and configured.
     AndroidFacet facet = getAndroidFacet();
@@ -105,7 +106,7 @@ public class AndroidFacetModuleCustomizerTest extends IdeaTestCase {
 
   @NotNull
   private String getRelativePath(@NotNull File file) {
-    String basePath = myAndroidProject.getRootDir().getAbsolutePath();
+    String basePath = myProject.getBasePath();
     String relativePath = FileUtilRt.getRelativePath(basePath, file.getAbsolutePath(), File.separatorChar);
     assertNotNull(relativePath);
     return "/" + FileUtilRt.toSystemIndependentName(relativePath);
