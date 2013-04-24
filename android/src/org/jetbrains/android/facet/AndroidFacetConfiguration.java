@@ -46,6 +46,8 @@ import java.util.List;
  * @author Eugene.Kudelevsky
  */
 public class AndroidFacetConfiguration implements FacetConfiguration, PersistentStateComponent<JpsAndroidModuleProperties> {
+  private static final FacetEditorTab[] NO_EDITOR_TABS = new FacetEditorTab[0];
+
   private AndroidFacet myFacet = null;
 
   private JpsAndroidModuleProperties myProperties = new JpsAndroidModuleProperties();
@@ -100,7 +102,10 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
 
   @Override
   public FacetEditorTab[] createEditorTabs(FacetEditorContext editorContext, FacetValidatorsManager validatorsManager) {
-    return new FacetEditorTab[]{new AndroidFacetEditorTab(editorContext, this)};
+    if (getState().ALLOW_USER_CONFIGURATION) {
+      return new FacetEditorTab[]{new AndroidFacetEditorTab(editorContext, this)};
+    }
+    return NO_EDITOR_TABS;
   }
 
   @Override

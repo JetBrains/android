@@ -163,6 +163,7 @@
     <configurationType implementation="org.jetbrains.android.run.testing.AndroidTestRunConfigurationType"/>
     <programRunner implementation="org.jetbrains.android.run.AndroidDebugRunner" order="first"/>
     <facetType implementation="org.jetbrains.android.facet.AndroidFacetType"/>
+    <facetType implementation="com.android.tools.idea.gradle.facet.AndroidGradleFacetType"/>
     <framework.detector implementation="org.jetbrains.android.facet.AndroidFrameworkDetector"/>
     <fileTemplateGroup implementation="org.jetbrains.android.AndroidFileTemplateProvider"/>
 

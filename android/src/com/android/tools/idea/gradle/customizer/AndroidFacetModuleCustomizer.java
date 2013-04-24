@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Adds Android facets to a module imported from an {@link com.android.build.gradle.model.AndroidProject}.
+ * Adds the Android facet to modules imported from {@link com.android.build.gradle.model.AndroidProject}s.
  */
 public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
   private static final String EMPTY_PATH = "";
@@ -49,7 +49,7 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
     if (ideaAndroidProject != null) {
       AndroidFacet facet = getAndroidFacet(module);
       if (facet != null) {
-        configureAndroidFacet(facet, ideaAndroidProject);
+        configureFacet(facet, ideaAndroidProject);
         return;
       }
 
@@ -59,7 +59,7 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
       try {
         facet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
         model.addFacet(facet);
-        configureAndroidFacet(facet, ideaAndroidProject);
+        configureFacet(facet, ideaAndroidProject);
       } finally {
         model.commit();
       }
@@ -69,16 +69,16 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
   @Nullable
   private static AndroidFacet getAndroidFacet(@NotNull Module module) {
     FacetManager facetManager = FacetManager.getInstance(module);
-    Collection<AndroidFacet> androidFacets = facetManager.getFacetsByType(AndroidFacet.ID);
-    return ContainerUtil.getFirstItem(androidFacets);
+    Collection<AndroidFacet> facets = facetManager.getFacetsByType(AndroidFacet.ID);
+    return ContainerUtil.getFirstItem(facets);
   }
 
-  private static void configureAndroidFacet(@NotNull AndroidFacet facet,
-                                            @NotNull IdeaAndroidProject ideaAndroidProject) {
+  private static void configureFacet(@NotNull AndroidFacet facet, @NotNull IdeaAndroidProject ideaAndroidProject) {
     String rootDirPath = ideaAndroidProject.getRootDirPath();
 
     facet.setIdeaAndroidProject(ideaAndroidProject);
     JpsAndroidModuleProperties facetState = facet.getConfiguration().getState();
+    facetState.ALLOW_USER_CONFIGURATION = false;
 
     AndroidProject project = ideaAndroidProject.getDelegate();
 

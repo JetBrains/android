@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.service;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.AndroidFacetModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.AndroidGradleFacetModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.AndroidSdkModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.google.common.annotations.VisibleForTesting;
@@ -46,7 +47,8 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
 
   // This constructor is called by the IDE. See this module's plugin.xml file, implementation of extension 'externalProjectDataService'.
   public AndroidProjectDataService() {
-    myCustomizers = ImmutableList.of(new AndroidSdkModuleCustomizer(), new AndroidFacetModuleCustomizer());
+    myCustomizers =
+      ImmutableList.of(new AndroidSdkModuleCustomizer(), new AndroidFacetModuleCustomizer(), new AndroidGradleFacetModuleCustomizer());
   }
 
   @VisibleForTesting

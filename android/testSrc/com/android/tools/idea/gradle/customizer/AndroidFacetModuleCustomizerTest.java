@@ -70,6 +70,7 @@ public class AndroidFacetModuleCustomizerTest extends IdeaTestCase {
     assertSame(project, facet.getIdeaAndroidProject());
 
     JpsAndroidModuleProperties facetState = facet.getConfiguration().getState();
+    assertFalse(facetState.ALLOW_USER_CONFIGURATION);
     assertEquals(myAndroidProject.isLibrary(), facetState.LIBRARY_PROJECT);
     assertEquals(selectedVariantName, facetState.SELECTED_BUILD_VARIANT);
 
