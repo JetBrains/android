@@ -39,8 +39,8 @@ public class RenderProblemTest extends TestCase {
     assertEquals("Plain<BR/>\n" +
                  "<A HREF=\"runnable:0\">mylink</A><BR/>\n" +
                  "<DL>\n" +
-                 "<DD>- item 1\n" +
-                 "<DD>- item 2\n" +
+                 "<DD>-&NBSP;item 1\n" +
+                 "<DD>-&NBSP;item 2\n" +
                  "</DL>", message.getHtml());
   }
 
