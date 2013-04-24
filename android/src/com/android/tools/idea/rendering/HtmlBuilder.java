@@ -140,6 +140,26 @@ public class HtmlBuilder {
     return this;
   }
 
+  public HtmlBuilder beginDiv() {
+    return beginDiv(null);
+  }
+
+  public HtmlBuilder beginDiv(@Nullable String cssStyle) {
+    myStringBuilder.append("<div");
+    if (cssStyle != null) {
+      myStringBuilder.append(" style=\"");
+      myStringBuilder.append(cssStyle);
+      myStringBuilder.append("\"");
+    }
+    myStringBuilder.append('>');
+    return this;
+  }
+
+  public HtmlBuilder endDiv() {
+    myStringBuilder.append("</div>");
+    return this;
+  }
+
   public HtmlBuilder addHeading(String text) {
     // See om.intellij.codeInspection.HtmlComposer.addHeading
     // (which operates on StringBuffers)
@@ -189,6 +209,26 @@ public class HtmlBuilder {
     return this;
   }
 
+  public HtmlBuilder addImage(URL url, @Nullable String altText) {
+    String link = "";
+    try {
+      link = url.toURI().toURL().toExternalForm();
+    }
+    catch (Throwable t) {
+      // pass
+    }
+    myStringBuilder.append("<img src='");
+    myStringBuilder.append(link);
+
+    if (altText != null) {
+      myStringBuilder.append("' alt=\"");
+      myStringBuilder.append(altText);
+      myStringBuilder.append("\"");
+    }
+    myStringBuilder.append(" />");
+
+    return this;
+  }
 
   private void addIcon(String relative) {
     try {

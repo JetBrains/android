@@ -79,4 +79,18 @@ public class ResourceJavadocTest extends AndroidTestCase {
                  "<tr><td>sw720dp</td><td>300dip</td></tr>" +
                  "</table></body></html>");
   }
+
+  public void testDrawables() {
+    String p1 = myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/ic_launcher.png",
+                                            "res/drawable/ic_launcher.png").getPath();
+    String p2 = myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/ic_launcher.png",
+                                            "res/drawable-hdpi/ic_launcher.png").getPath();
+
+    checkJavadoc("/javadoc/drawables/Activity1.java",
+                 String.format("<html><body><table>" +
+                 "<tr><th>Configuration</th><th>Value</th></tr>" +
+                 "<tr><td>drawable</td><td><div style=\"background-color:gray;padding:10px\"><img src='file:%1$s' alt=\"%1$s\" /></div></td></tr>" +
+                 "<tr><td>drawable-hdpi</td><td><div style=\"background-color:gray;padding:10px\"><img src='file:%2$s' alt=\"%2$s\" /></div></td></tr>" +
+                 "</table></body></html>", p1, p2));
+  }
 }
