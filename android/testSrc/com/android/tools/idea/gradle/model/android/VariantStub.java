@@ -20,7 +20,6 @@ import com.android.builder.model.ProductFlavor;
 import com.android.tools.idea.gradle.model.FileStructure;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Arrays;
@@ -149,7 +148,7 @@ public class VariantStub implements Variant {
     myGeneratedTestSourceFolders.add(directory);
   }
 
-  @Nullable
+  @NotNull
   @Override
   public List<File> getGeneratedTestSourceFolders() {
     return myGeneratedTestSourceFolders;
@@ -165,7 +164,7 @@ public class VariantStub implements Variant {
     myGeneratedTestResourceFolders.add(directory);
   }
 
-  @Nullable
+  @NotNull
   @Override
   public List<File> getGeneratedTestResourceFolders() {
     return myGeneratedTestResourceFolders;

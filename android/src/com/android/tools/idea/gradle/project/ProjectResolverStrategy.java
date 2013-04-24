@@ -30,16 +30,19 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
 import com.intellij.util.ExceptionUtil;
 import com.intellij.util.PathUtil;
+import com.intellij.util.containers.ContainerUtil;
 import org.gradle.tooling.BuildException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.UnknownModelException;
+import org.gradle.tooling.model.idea.IdeaModule;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -116,8 +119,13 @@ class ProjectResolverStrategy {
     String name = androidProject.getName();
 
     DataNode<ProjectData> projectInfo = createProjectInfo(projectDirPath, name);
+    DataNode<ModuleData> moduleInfo = createModuleInfo(androidProject, name, projectInfo, projectDirPath);
 
-    createModuleInfo(androidProject, name, projectInfo, projectDirPath);
+    IdeaAndroidProject ideaAndroidProject = getIdeaAndroidProject(moduleInfo);
+    if (ideaAndroidProject != null) {
+      AndroidDependencies.populate(moduleInfo, projectInfo, ideaAndroidProject);
+    }
+
     return projectInfo;
   }
 
@@ -163,5 +171,17 @@ class ProjectResolverStrategy {
     List<String> variantNames = Lists.newArrayList(variants.keySet());
     Collections.sort(variantNames);
     return variants.get(variantNames.get(0));
+  }
+
+  @Nullable
+  static IdeaAndroidProject getIdeaAndroidProject(@NotNull DataNode<ModuleData> moduleInfo) {
+    Collection<DataNode<IdeaAndroidProject>> projects = ExternalSystemUtil.getChildren(moduleInfo, AndroidProjectKeys.IDE_ANDROID_PROJECT);
+    return getFirstNodeData(projects);
+  }
+
+  @Nullable
+  static <T> T getFirstNodeData(Collection<DataNode<T>> nodes) {
+    DataNode<T> node = ContainerUtil.getFirstItem(nodes);
+    return node != null ? node.getData() : null;
   }
 }
