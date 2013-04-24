@@ -21,6 +21,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +33,7 @@ import java.util.Collection;
  */
 public class AndroidGradleFacetModuleCustomizer implements ModuleCustomizer {
   @Override
-  public void customizeModule(@NotNull Module module, @Nullable IdeaAndroidProject ideaAndroidProject) {
+  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
     AndroidGradleFacet facet = getAndroidGradleFacet(module);
     if (facet != null) {
       return;

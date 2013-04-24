@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.customizer;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,7 +30,8 @@ public interface ModuleCustomizer {
    * Customizes the given module (e.g. add facets, SDKs, etc.)
    *
    * @param module             module to customize.
+   * @param project            project that owns the module to customize.
    * @param ideaAndroidProject the imported Android-Gradle project.
    */
-  void customizeModule(@NotNull Module module, @Nullable IdeaAndroidProject ideaAndroidProject);
+  void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject ideaAndroidProject);
 }

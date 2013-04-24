@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.customizer;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.AndroidSdkModuleCustomizer.AndroidPlatformParser;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -32,6 +33,7 @@ import static org.easymock.classextension.EasyMock.*;
  */
 public class AndroidSdkModuleCustomizerTest extends TestCase {
   private Module myModule;
+  private Project myProject;
   private ModuleRootManager myModuleRootManager;
   private ModifiableRootModel myModel;
   private ProjectJdkTable myProjectJdkTable;
@@ -43,6 +45,7 @@ public class AndroidSdkModuleCustomizerTest extends TestCase {
   public void setUp() throws Exception {
     super.setUp();
     myModule = createMock(Module.class);
+    myProject = createMock(Project.class);
     myModuleRootManager = createMock(ModuleRootManager.class);
     myModel = createMock(ModifiableRootModel.class);
     myProjectJdkTable = createMock(ProjectJdkTable.class);
@@ -54,7 +57,7 @@ public class AndroidSdkModuleCustomizerTest extends TestCase {
     replay(myModule, myModuleRootManager, myModel, myProjectJdkTable, myParser);
 
     // Nothing should be customized since IdeaAndroidProject is null.
-    myCustomizer.customizeModule(myModule, null);
+    myCustomizer.customizeModule(myModule, myProject, null);
 
     verify(myModule, myModuleRootManager, myModel, myProjectJdkTable, myParser);
   }
@@ -69,7 +72,7 @@ public class AndroidSdkModuleCustomizerTest extends TestCase {
     replay(myModule, myModuleRootManager, myModel, myProjectJdkTable, myParser);
 
     // Nothing should be customized since there are no Android SDKs.
-    myCustomizer.customizeModule(myModule, createMock(IdeaAndroidProject.class));
+    myCustomizer.customizeModule(myModule, myProject, createMock(IdeaAndroidProject.class));
 
     verify(myModule, myModuleRootManager, myModel, myProjectJdkTable, myParser);
   }
@@ -95,7 +98,7 @@ public class AndroidSdkModuleCustomizerTest extends TestCase {
 
     replay(myModule, myModuleRootManager, myModel, myProjectJdkTable, myParser);
 
-    myCustomizer.customizeModule(myModule, createMock(IdeaAndroidProject.class));
+    myCustomizer.customizeModule(myModule, myProject, createMock(IdeaAndroidProject.class));
 
     verify(myModule, myModuleRootManager, myModel, myProjectJdkTable, myParser);
   }

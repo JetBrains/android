@@ -16,12 +16,7 @@
 package com.android.tools.idea.gradle.customizer;
 
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.intellij.facet.FacetManager;
 import com.intellij.testFramework.IdeaTestCase;
-import com.intellij.util.containers.ContainerUtil;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
 
 /**
  * Tests for {@link AndroidGradleFacetModuleCustomizer}.
@@ -36,7 +31,7 @@ public class AndroidGradleFacetModuleCustomizerTest extends IdeaTestCase {
   }
 
   public void testCustomizeModule() {
-    myCustomizer.customizeModule(myModule, null);
+    myCustomizer.customizeModule(myModule, myProject, null);
 
     // Verify that AndroidGradleFacet was added.
     AndroidGradleFacet facet = AndroidGradleFacetModuleCustomizer.getAndroidGradleFacet(myModule);

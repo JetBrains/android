@@ -84,7 +84,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
         Map<String, IdeaAndroidProject> androidProjectsByName = indexByAndroidProjectName(toImport);
         for (Module module : modules) {
           IdeaAndroidProject androidProject = androidProjectsByName.get(module.getName());
-          customizeModule(module, androidProject);
+          customizeModule(module, project, androidProject);
         }
       }
     });
@@ -100,9 +100,9 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
     return index;
   }
 
-  private void customizeModule(@NotNull Module module, @Nullable IdeaAndroidProject ideaAndroidProject) {
+  private void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
     for (ModuleCustomizer customizer : myCustomizers) {
-      customizer.customizeModule(module, ideaAndroidProject);
+      customizer.customizeModule(module, project, ideaAndroidProject);
     }
   }
 

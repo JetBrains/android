@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.customizer;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -52,10 +53,11 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer {
    * </ol>
    *
    * @param module             module to customize.
+   * @param project            project that owns the module to customize.
    * @param ideaAndroidProject the imported Android-Gradle project.
    */
   @Override
-  public void customizeModule(@NotNull Module module, @Nullable IdeaAndroidProject ideaAndroidProject) {
+  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
     Sdk androidSdk = getAndroidSdk(ideaAndroidProject);
     if (androidSdk == null) {
       return;

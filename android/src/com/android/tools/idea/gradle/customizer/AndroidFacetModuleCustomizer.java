@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.util.containers.ContainerUtil;
@@ -45,11 +46,11 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
   private static final String SEPARATOR = "/";
 
   @Override
-  public void customizeModule(@NotNull Module module, @Nullable IdeaAndroidProject ideaAndroidProject) {
+  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
     if (ideaAndroidProject != null) {
       AndroidFacet facet = getAndroidFacet(module);
       if (facet != null) {
-        configureFacet(facet, ideaAndroidProject);
+        configureFacet(facet, project, ideaAndroidProject);
         return;
       }
 
@@ -59,7 +60,7 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
       try {
         facet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
         model.addFacet(facet);
-        configureFacet(facet, ideaAndroidProject);
+        configureFacet(facet, project, ideaAndroidProject);
       } finally {
         model.commit();
       }
@@ -73,20 +74,22 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
     return ContainerUtil.getFirstItem(facets);
   }
 
-  private static void configureFacet(@NotNull AndroidFacet facet, @NotNull IdeaAndroidProject ideaAndroidProject) {
-    String rootDirPath = ideaAndroidProject.getRootDirPath();
+  private static void configureFacet(@NotNull AndroidFacet facet,
+                                     @NotNull Project project,
+                                     @NotNull IdeaAndroidProject ideaAndroidProject) {
+    String rootDirPath = project.getBasePath();
 
     facet.setIdeaAndroidProject(ideaAndroidProject);
     JpsAndroidModuleProperties facetState = facet.getConfiguration().getState();
     facetState.ALLOW_USER_CONFIGURATION = false;
 
-    AndroidProject project = ideaAndroidProject.getDelegate();
+    AndroidProject androidProject = ideaAndroidProject.getDelegate();
 
     String selectedVariantName = ideaAndroidProject.getSelectedVariantName();
     facetState.SELECTED_BUILD_VARIANT = selectedVariantName;
-    facetState.LIBRARY_PROJECT = project.isLibrary();
+    facetState.LIBRARY_PROJECT = androidProject.isLibrary();
 
-    SourceProvider sourceProvider = project.getDefaultConfig().getSourceProvider();
+    SourceProvider sourceProvider = androidProject.getDefaultConfig().getSourceProvider();
 
     File manifestFile = sourceProvider.getManifestFile();
     facetState.MANIFEST_FILE_RELATIVE_PATH = getRelativePath(rootDirPath, manifestFile);
@@ -97,17 +100,18 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
     Set<File> assetsDirs = sourceProvider.getAssetsDirectories();
     facetState.ASSETS_FOLDER_RELATIVE_PATH = getRelativePath(rootDirPath, assetsDirs);
 
-    Variant selectedVariant = project.getVariants().get(selectedVariantName);
+    Variant selectedVariant = androidProject.getVariants().get(selectedVariantName);
     if (selectedVariant != null) {
+      String moduleDirPath = ideaAndroidProject.getRootDirPath();
       for (File child : selectedVariant.getGeneratedSourceFolders()) {
-        String relativePath = getRelativePath(rootDirPath, child);
+        String relativePath = getRelativePath(moduleDirPath, child);
         // TODO(alruiz): Obtain these paths from Gradle model instead of hard-coding them.
         if (dirMatches(relativePath, "build", "source", "r")) {
-          facetState.GEN_FOLDER_RELATIVE_PATH_APT = relativePath;
+          facetState.GEN_FOLDER_RELATIVE_PATH_APT = getRelativePath(rootDirPath, child);
           continue;
         }
         if (dirMatches(relativePath, "build", "source", "aidl")) {
-          facetState.GEN_FOLDER_RELATIVE_PATH_AIDL = relativePath;
+          facetState.GEN_FOLDER_RELATIVE_PATH_APT = getRelativePath(rootDirPath, child);
         }
       }
     }
