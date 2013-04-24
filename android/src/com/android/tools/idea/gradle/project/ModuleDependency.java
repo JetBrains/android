@@ -21,7 +21,7 @@ import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ModuleDependencyData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
-import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.roots.DependencyScope;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,7 +51,7 @@ class ModuleDependency {
 
   void addTo(@NotNull DataNode<ModuleData> moduleInfo, @NotNull DataNode<ProjectData> projectInfo) {
     Set<String> registeredModuleNames = Sets.newHashSet();
-    Collection<DataNode<ModuleData>> modules = ExternalSystemUtil.getChildren(projectInfo, ProjectKeys.MODULE);
+    Collection<DataNode<ModuleData>> modules = ExternalSystemApiUtil.getChildren(projectInfo, ProjectKeys.MODULE);
     for (DataNode<ModuleData> m : modules) {
       String name = m.getData().getName();
       registeredModuleNames.add(name);

@@ -25,7 +25,8 @@ import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
+import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.Function;
 import com.intellij.util.PathUtil;
@@ -74,7 +75,7 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
                                            @NotNull String projectPath,
                                            @Nullable GradleExecutionSettings settings,
                                            @NotNull ProjectConnection connection) {
-    String projectDirPath = ExternalSystemUtil.toCanonicalPath(PathUtil.getParentPath(projectPath));
+    String projectDirPath = ExternalSystemApiUtil.toCanonicalPath(PathUtil.getParentPath(projectPath));
 
     ModelBuilder<IdeaProject> modelBuilder = myHelper.getModelBuilder(IdeaProject.class, id, settings, connection);
     IdeaProject ideaProject = modelBuilder.get();
@@ -146,7 +147,7 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
   private static DataNode<ModuleData> createModuleInfo(@NotNull IdeaModule module,
                                                        @NotNull DataNode<ProjectData> projectInfo) {
     String projectDirPath = projectInfo.getData().getProjectFileDirectoryPath();
-    ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, module.getName(), projectDirPath);
+    ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), module.getName(), projectDirPath);
     DataNode<ModuleData> moduleInfo = projectInfo.createChild(ProjectKeys.MODULE, moduleData);
 
     // Populate content roots.
@@ -176,7 +177,7 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
   }
 
   private static void populateDependencies(@NotNull DataNode<ProjectData> projectInfo) {
-    Collection<DataNode<ModuleData>> modules = ExternalSystemUtil.getChildren(projectInfo, ProjectKeys.MODULE);
+    Collection<DataNode<ModuleData>> modules = ExternalSystemApiUtil.getChildren(projectInfo, ProjectKeys.MODULE);
     for (DataNode<ModuleData> moduleInfo : modules) {
       IdeaAndroidProject androidProject = getIdeaAndroidProject(moduleInfo);
       if (androidProject != null) {
@@ -192,7 +193,7 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
 
   @Nullable
   private static IdeaModule getIdeaModule(@NotNull DataNode<ModuleData> moduleInfo) {
-    Collection<DataNode<IdeaModule>> modules = ExternalSystemUtil.getChildren(moduleInfo, AndroidProjectKeys.IDEA_MODULE);
+    Collection<DataNode<IdeaModule>> modules = ExternalSystemApiUtil.getChildren(moduleInfo, AndroidProjectKeys.IDEA_MODULE);
     return getFirstNodeData(modules);
   }
 }

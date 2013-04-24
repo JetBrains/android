@@ -20,14 +20,15 @@ import com.android.build.gradle.model.Variant;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.google.common.collect.Lists;
+import com.intellij.externalSystem.JavaProjectData;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
-import com.intellij.openapi.externalSystem.model.project.JavaProjectData;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
+import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.util.ExceptionUtil;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
@@ -115,7 +116,7 @@ class ProjectResolverStrategy {
 
   @NotNull
   private DataNode<ProjectData> createProjectInfo(@NotNull AndroidProject androidProject, @NotNull String projectPath) {
-    String projectDirPath = ExternalSystemUtil.toCanonicalPath(PathUtil.getParentPath(projectPath));
+    String projectDirPath = ExternalSystemApiUtil.toCanonicalPath(PathUtil.getParentPath(projectPath));
     String name = androidProject.getName();
 
     DataNode<ProjectData> projectInfo = createProjectInfo(projectDirPath, name);
@@ -138,7 +139,7 @@ class ProjectResolverStrategy {
 
     // Gradle API doesn't expose project compile output path yet.
     JavaProjectData javaProjectData = new JavaProjectData(GradleConstants.SYSTEM_ID, projectDirPath + "/build/classes");
-    projectInfo.createChild(ProjectKeys.JAVA_PROJECT, javaProjectData);
+    projectInfo.createChild(JavaProjectData.KEY, javaProjectData);
 
     return projectInfo;
   }
@@ -149,7 +150,7 @@ class ProjectResolverStrategy {
                                         @NotNull DataNode<ProjectData> projectInfo,
                                         @NotNull String moduleDirPath) {
     String projectDirPath = projectInfo.getData().getProjectFileDirectoryPath();
-    ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, name, projectDirPath);
+    ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), name, projectDirPath);
     DataNode<ModuleData> moduleInfo = projectInfo.createChild(ProjectKeys.MODULE, moduleData);
 
     AndroidContentRoot contentRoot = new AndroidContentRoot(moduleDirPath);
@@ -175,7 +176,7 @@ class ProjectResolverStrategy {
 
   @Nullable
   static IdeaAndroidProject getIdeaAndroidProject(@NotNull DataNode<ModuleData> moduleInfo) {
-    Collection<DataNode<IdeaAndroidProject>> projects = ExternalSystemUtil.getChildren(moduleInfo, AndroidProjectKeys.IDE_ANDROID_PROJECT);
+    Collection<DataNode<IdeaAndroidProject>> projects = ExternalSystemApiUtil.getChildren(moduleInfo, AndroidProjectKeys.IDE_ANDROID_PROJECT);
     return getFirstNodeData(projects);
   }
 

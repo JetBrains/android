@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.*;
-import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.BooleanFunction;
@@ -66,7 +66,7 @@ class LibraryDependency {
 
   void addTo(@NotNull DataNode<ModuleData> moduleInfo, @NotNull DataNode<ProjectData> projectInfo) {
     DataNode<LibraryData> libraryInfo =
-      ExternalSystemUtil.find(projectInfo, ProjectKeys.LIBRARY, new BooleanFunction<DataNode<LibraryData>>() {
+      ExternalSystemApiUtil.find(projectInfo, ProjectKeys.LIBRARY, new BooleanFunction<DataNode<LibraryData>>() {
         @Override
         public boolean fun(DataNode<LibraryData> node) {
           return myLibraryData.equals(node.getData());

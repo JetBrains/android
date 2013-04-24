@@ -24,7 +24,8 @@ import com.android.tools.idea.gradle.model.android.VariantStub;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.*;
-import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
+import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.util.containers.ContainerUtil;
 import junit.framework.TestCase;
@@ -59,7 +60,7 @@ public class AndroidDependenciesTest extends TestCase {
     projectData.setName(projectName);
     myProjectInfo = new DataNode<ProjectData>(ProjectKeys.PROJECT, projectData, null);
 
-    ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, projectName, rootDirPath);
+    ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), projectName, rootDirPath);
     myModuleInfo = myProjectInfo.createChild(ProjectKeys.MODULE, moduleData);
   }
 
@@ -72,7 +73,7 @@ public class AndroidDependenciesTest extends TestCase {
 
     AndroidDependencies.populate(myModuleInfo, myProjectInfo, myIdeaAndroidProject);
 
-    Collection<DataNode<LibraryDependencyData>> deps = ExternalSystemUtil.getChildren(myModuleInfo, ProjectKeys.LIBRARY_DEPENDENCY);
+    Collection<DataNode<LibraryDependencyData>> deps = ExternalSystemApiUtil.getChildren(myModuleInfo, ProjectKeys.LIBRARY_DEPENDENCY);
     assertEquals(1, deps.size());
 
     DataNode<LibraryDependencyData> dependencyInfo = ContainerUtil.getFirstItem(deps);
@@ -100,7 +101,7 @@ public class AndroidDependenciesTest extends TestCase {
 
     AndroidDependencies.populate(myModuleInfo, myProjectInfo, myIdeaAndroidProject);
 
-    Collection<DataNode<LibraryDependencyData>> deps = ExternalSystemUtil.getChildren(myModuleInfo, ProjectKeys.LIBRARY_DEPENDENCY);
+    Collection<DataNode<LibraryDependencyData>> deps = ExternalSystemApiUtil.getChildren(myModuleInfo, ProjectKeys.LIBRARY_DEPENDENCY);
     assertEquals(1, deps.size());
 
     DataNode<LibraryDependencyData> dependencyInfo = ContainerUtil.getFirstItem(deps);

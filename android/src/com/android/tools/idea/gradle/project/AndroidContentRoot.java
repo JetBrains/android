@@ -25,7 +25,7 @@ import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ContentRootData;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
-import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.util.PathUtil;
@@ -170,6 +170,6 @@ class AndroidContentRoot {
   }
 
   private void storePath(@NotNull ExternalSystemSourceType sourceType, @NotNull File directory) {
-    myContentRootData.storePath(sourceType, ExternalSystemUtil.toCanonicalPath(directory.getAbsolutePath()));
+    myContentRootData.storePath(sourceType, ExternalSystemApiUtil.toCanonicalPath(directory.getAbsolutePath()));
   }
 }

@@ -28,7 +28,7 @@ import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataService;
-import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -78,7 +78,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
     }
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     final List<Module> modules = ImmutableList.copyOf(moduleManager.getModules());
-    ExternalSystemUtil.executeProjectChangeAction(project, ProjectSystemId.IDE, modules, synchronous, new Runnable() {
+    ExternalSystemApiUtil.executeProjectChangeAction(project, ProjectSystemId.IDE, modules, synchronous, new Runnable() {
       @Override
       public void run() {
         Map<String, IdeaAndroidProject> androidProjectsByName = indexByAndroidProjectName(toImport);

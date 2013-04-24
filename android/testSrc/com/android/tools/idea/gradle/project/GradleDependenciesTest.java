@@ -22,7 +22,8 @@ import com.android.tools.idea.gradle.model.gradle.IdeaSingleEntryLibraryDependen
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.*;
-import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
+import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.util.containers.ContainerUtil;
 import junit.framework.TestCase;
@@ -55,7 +56,7 @@ public class GradleDependenciesTest extends TestCase {
     projectData.setName(projectName);
     myProjectInfo = new DataNode<ProjectData>(ProjectKeys.PROJECT, projectData, null);
 
-    ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, projectName, rootDirPath);
+    ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), projectName, rootDirPath);
     myModuleInfo = myProjectInfo.createChild(ProjectKeys.MODULE, moduleData);
   }
 
@@ -72,7 +73,7 @@ public class GradleDependenciesTest extends TestCase {
 
     GradleDependencies.populate(myModuleInfo, myProjectInfo, myModule);
 
-    Collection<DataNode<LibraryDependencyData>> deps = ExternalSystemUtil.getChildren(myModuleInfo, ProjectKeys.LIBRARY_DEPENDENCY);
+    Collection<DataNode<LibraryDependencyData>> deps = ExternalSystemApiUtil.getChildren(myModuleInfo, ProjectKeys.LIBRARY_DEPENDENCY);
     assertEquals(1, deps.size());
 
     DataNode<LibraryDependencyData> dependencyInfo = ContainerUtil.getFirstItem(deps);
@@ -104,7 +105,7 @@ public class GradleDependenciesTest extends TestCase {
     String dependencyModuleName = "util";
 
     String rootDirPath = myProject.getRootDir().getAbsolutePath();
-    ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, dependencyModuleName, rootDirPath);
+    ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), dependencyModuleName, rootDirPath);
     myProjectInfo.createChild(ProjectKeys.MODULE, moduleData);
 
     IdeaModuleStub dependencyModule = myProject.addModule(dependencyModuleName);
@@ -113,7 +114,7 @@ public class GradleDependenciesTest extends TestCase {
 
     GradleDependencies.populate(myModuleInfo, myProjectInfo, myModule);
 
-    Collection<DataNode<ModuleDependencyData>> deps = ExternalSystemUtil.getChildren(myModuleInfo, ProjectKeys.MODULE_DEPENDENCY);
+    Collection<DataNode<ModuleDependencyData>> deps = ExternalSystemApiUtil.getChildren(myModuleInfo, ProjectKeys.MODULE_DEPENDENCY);
     assertEquals(1, deps.size());
 
     DataNode<ModuleDependencyData> dependencyInfo = ContainerUtil.getFirstItem(deps);
