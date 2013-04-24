@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.build.gradle.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -42,6 +43,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -109,6 +111,7 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
       return null;
     }
 
+    populateDependencies(projectInfo);
     return projectInfo;
   }
 
@@ -151,6 +154,7 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
       contentRoot.addTo(moduleInfo);
     }
 
+    moduleInfo.createChild(AndroidProjectKeys.IDEA_MODULE, module);
     return moduleInfo;
   }
 
@@ -169,5 +173,26 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
       return contentRoots;
     }
     return ImmutableList.of();
+  }
+
+  private static void populateDependencies(@NotNull DataNode<ProjectData> projectInfo) {
+    Collection<DataNode<ModuleData>> modules = ExternalSystemUtil.getChildren(projectInfo, ProjectKeys.MODULE);
+    for (DataNode<ModuleData> moduleInfo : modules) {
+      IdeaAndroidProject androidProject = getIdeaAndroidProject(moduleInfo);
+      if (androidProject != null) {
+        AndroidDependencies.populate(moduleInfo, projectInfo, androidProject);
+        continue;
+      }
+      IdeaModule module = getIdeaModule(moduleInfo);
+      if (module != null) {
+        GradleDependencies.populate(moduleInfo, projectInfo, module);
+      }
+    }
+  }
+
+  @Nullable
+  private static IdeaModule getIdeaModule(@NotNull DataNode<ModuleData> moduleInfo) {
+    Collection<DataNode<IdeaModule>> modules = ExternalSystemUtil.getChildren(moduleInfo, AndroidProjectKeys.IDEA_MODULE);
+    return getFirstNodeData(modules);
   }
 }

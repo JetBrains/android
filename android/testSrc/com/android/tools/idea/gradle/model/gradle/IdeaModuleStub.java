@@ -32,6 +32,7 @@ import java.util.List;
 
 public class IdeaModuleStub implements IdeaModule {
   @NotNull private final List<IdeaContentRoot> myContentRoots = Lists.newArrayList();
+  @NotNull private final List<IdeaDependency> myDependencies = Lists.newArrayList();
 
   @NotNull private final String myName;
   @NotNull private final IdeaProjectStub myParent;
@@ -85,9 +86,13 @@ public class IdeaModuleStub implements IdeaModule {
     throw new UnsupportedOperationException();
   }
 
+  public void addDependency(@NotNull IdeaDependency dependency) {
+    myDependencies.add(dependency);
+  }
+
   @Override
   public DomainObjectSet<? extends IdeaDependency> getDependencies() {
-    throw new UnsupportedOperationException();
+    return ImmutableDomainObjectSet.of(myDependencies);
   }
 
   @NotNull

@@ -17,22 +17,34 @@ package com.android.tools.idea.gradle.model.android;
 
 import com.android.build.gradle.model.Dependencies;
 import com.android.builder.model.AndroidLibrary;
+import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.List;
 
 public class DependenciesStub implements Dependencies {
+  @NotNull private final List<AndroidLibrary> myLibraries = Lists.newArrayList();
+  @NotNull private final List<File> myJars = Lists.newArrayList();
+
+  public void addLibrary(@NotNull AndroidLibraryStub library) {
+    myLibraries.add(library);
+  }
+
   @NotNull
   @Override
   public List<AndroidLibrary> getLibraries() {
-    throw new UnsupportedOperationException();
+    return myLibraries;
+  }
+
+  public void addJar(@NotNull File jar) {
+    myJars.add(jar);
   }
 
   @NotNull
   @Override
   public List<File> getJars() {
-    throw new UnsupportedOperationException();
+    return myJars;
   }
 
   @NotNull
