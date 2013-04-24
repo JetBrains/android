@@ -17,28 +17,25 @@
 package com.android.tools.idea.javadoc;
 
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceFile;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.resources.Density;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.rendering.HtmlBuilder;
 import com.android.tools.idea.rendering.ProjectResources;
-import com.android.utils.XmlUtils;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class AndroidJavaDocRenderer {
   /** Renders the Javadoc for a resource of given type and name. */
   @Nullable
   public static String render(ProjectResources projectResources, ResourceType type, String name) {
-    if (ResourceType.STRING.equals(type)) {
+    if (ResourceType.STRING.equals(type) || ResourceType.DIMEN.equals(type) || ResourceType.INTEGER.equals(type)) {
       ResourceItem item = projectResources.getResourceItem(type, name);
-      return renderStringValues(sort(item.getSourceFileList()), type, name);
-    } else if (ResourceType.DIMEN.equals(type)) {
-      ResourceItem item = projectResources.getResourceItem(type, name);
-      return renderDimension(sort(item.getSourceFileList()), type, name);
+      return renderKeyValues(sort(item.getSourceFileList()), type, name);
     } else {
       return null;
     }
@@ -58,94 +55,27 @@ public class AndroidJavaDocRenderer {
   }
 
   @Nullable
-  private static String renderDimension(List<ResourceFile> files, ResourceType type, String name) {
+  private static String renderKeyValues(List<ResourceFile> files, ResourceType type, String name) {
     if (files.isEmpty()) {
       return null;
     }
 
-    StringBuilder sb = new StringBuilder(files.size() * 40);
-
-    startTableRow(sb);
-    addTableColumnData(sb, "Configuration");
-    addTableColumnData(sb, "Value");
-    for (Density d : Density.values()) {
-      if (!d.isValidValueForDevice()) {
-        continue;
-      }
-
-      addTableColumnData(sb, d.getResourceValue().toUpperCase());
-    }
-    endTableRow(sb);
-
-    for (ResourceFile f : files) {
-      String v = f.getValue(type, name).getValue();
-      startTableRow(sb);
-      addTableColumnData(sb, renderFolderName(f.getFolder().getFolder().getName()));
-      addTableColumnData(sb, "<b>" + v + "</b>");
-      for (Density d : Density.values()) {
-        if (!d.isValidValueForDevice()) {
-          continue;
-        }
-
-        addTableColumnData(sb, dpToPixels(v, d));
-      }
-      endTableRow(sb);
-    }
-
-    return String.format("<html><body><table>%s</table><body></html>", sb.toString());
-  }
-
-  private static void addTableColumnData(StringBuilder sb, String data) {
-    sb.append("<td>");
-    sb.append(data);
-    sb.append("</td>");
-  }
-
-  private static void endTableRow(StringBuilder sb) {
-    sb.append("</tr>");
-  }
-
-  private static void startTableRow(StringBuilder sb) {
-    sb.append("<tr>");
-  }
-
-  /** Converts from {@link SdkConstants#UNIT_DP}'s at given density to pixels. */
-  public static String dpToPixels(@NotNull String dp, Density density) {
-    if (!dp.endsWith(SdkConstants.UNIT_DIP) && !dp.endsWith(SdkConstants.UNIT_DP)) {
-      return dp;
-    }
-
-    float dpf;
-    try {
-      dpf = (float) (Integer.parseInt(dp.substring(0, dp.indexOf('d'))));
-    } catch (NumberFormatException e) {
-      return dp;
-    }
-
-    return String.format(Locale.US, "%dpx",
-                         (int)(dpf * density.getDpiValue() / Density.DEFAULT_DENSITY));
-  }
-
-  @Nullable
-  private static String renderStringValues(List<ResourceFile> files, ResourceType type, String name) {
-    if (files.isEmpty()) {
-      return null;
-    }
-
+    HtmlBuilder builder = new HtmlBuilder();
     if (files.size() == 1) {
-      return String.format("<html><body>%1$s</body></html>",
-                           files.get(0).getValue(type, name).getValue());
-    }
+      String value = files.get(0).getValue(type, name).getValue();
+      builder.add(value);
+    } else {
+      builder.beginTable();
+      builder.addTableRow(true, "Configuration", "Value");
 
-    StringBuilder sb = new StringBuilder(files.size() * 20);
-    for (ResourceFile f : files) {
-      ResourceValue value = f.getValue(type, name);
-      String k = renderFolderName(f.getFolder().getFolder().getName());
-      String v = XmlUtils.toXmlTextValue(value.getValue());
-      sb.append(String.format("<tr><td>%1$s</td><td>%2$s</td></tr>", k, v));
-    }
+      for (ResourceFile f : files) {
+        String v = f.getValue(type, name).getValue();
+        builder.addTableRow(renderFolderName(f.getFolder().getFolder().getName()), v);
+      }
 
-    return String.format("<html><body><table>%s</table><body></html>", sb.toString());
+      builder.endTable();
+    }
+    return String.format("<html><body>%s</body></html>", builder.getHtml());
   }
 
   private static String renderFolderName(String name) {

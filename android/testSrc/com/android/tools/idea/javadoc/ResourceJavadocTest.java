@@ -56,10 +56,11 @@ public class ResourceJavadocTest extends AndroidTestCase {
   public void testString2() {
     // Use LocaleManagerTest#checkEncoding to get Unicode encoding
     checkStrings("/javadoc/strings/Activity2.java", "<html><body><table>" +
+                                                    "<tr><th>Configuration</th><th>Value</th></tr>" +
                                                     "<tr><td>Default</td><td>Cancel</td></tr>" +
                                                     "<tr><td>ta</td><td>\u0bb0\u0ba4\u0bcd\u0ba4\u0bc1</td></tr>" +
                                                     "<tr><td>zh-rTW</td><td>\u53d6\u6d88</td></tr>" +
-                                                    "</table><body></html>");
+                                                    "</table></body></html>");
   }
 
   public void testString3() {
@@ -71,11 +72,11 @@ public class ResourceJavadocTest extends AndroidTestCase {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/dimens/dimens-sw720dp.xml", "res/values-sw720dp/dimens.xml");
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/dimens/dimens-land.xml", "res/values-land/dimens.xml");
     checkJavadoc("/javadoc/dimens/Activity1.java",
-    "<html><body><table>" +
-    "<tr><td>Configuration</td><td>Value</td><td>XXHDPI</td><td>XHDPI</td><td>HDPI</td><td>TVDPI</td><td>MDPI</td><td>LDPI</td></tr>" +
-    "<tr><td>Default</td><td><b>200dp</b></td><td>600px</td><td>400px</td><td>300px</td><td>266px</td><td>200px</td><td>150px</td></tr>" +
-    "<tr><td>land</td><td><b>200px</b></td><td>200px</td><td>200px</td><td>200px</td><td>200px</td><td>200px</td><td>200px</td></tr>" +
-    "<tr><td>sw720dp</td><td><b>300dip</b></td><td>900px</td><td>600px</td><td>450px</td><td>399px</td><td>300px</td><td>225px</td></tr>" +
-    "</table><body></html>");
+                 "<html><body><table>" +
+                 "<tr><th>Configuration</th><th>Value</th></tr>" +
+                 "<tr><td>Default</td><td>200dp</td></tr>" +
+                 "<tr><td>land</td><td>200px</td></tr>" +
+                 "<tr><td>sw720dp</td><td>300dip</td></tr>" +
+                 "</table></body></html>");
   }
 }

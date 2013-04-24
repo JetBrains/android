@@ -224,6 +224,46 @@ public class HtmlBuilder {
     return this;
   }
 
+  public HtmlBuilder beginTable() {
+    myStringBuilder.append("<table>");
+    return this;
+  }
+
+  public HtmlBuilder endTable() {
+    myStringBuilder.append("</table>");
+    return this;
+  }
+
+  public HtmlBuilder beginTableRow() {
+    myStringBuilder.append("<tr>");
+    return this;
+  }
+
+  public HtmlBuilder endTableRow() {
+    myStringBuilder.append("</tr>");
+    return this;
+  }
+
+  public HtmlBuilder addTableRow(boolean isHeader, String... columns) {
+    if (columns == null || columns.length == 0) {
+      return this;
+    }
+
+    beginTableRow();
+    for (String c : columns) {
+      myStringBuilder.append(isHeader ? "<th>" : "<td>");
+      myStringBuilder.append(c);
+      myStringBuilder.append(isHeader ? "</th>" : "</td>");
+    }
+    endTableRow();
+
+    return this;
+  }
+
+  public HtmlBuilder addTableRow(String... columns) {
+    return addTableRow(false, columns);
+  }
+
   @NotNull
   public StringBuilder getStringBuilder() {
     return myStringBuilder;
