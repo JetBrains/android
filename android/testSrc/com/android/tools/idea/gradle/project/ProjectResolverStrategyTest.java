@@ -29,7 +29,7 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
-import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import junit.framework.TestCase;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
@@ -96,7 +96,7 @@ public class ProjectResolverStrategyTest extends TestCase {
     assertEquals(myAndroidProject.getRootDir().getAbsolutePath(), projectData.getProjectFileDirectoryPath());
 
     // Verify module.
-    Collection<DataNode<ModuleData>> modules = ExternalSystemUtil.getChildren(projectInfo, ProjectKeys.MODULE);
+    Collection<DataNode<ModuleData>> modules = ExternalSystemApiUtil.getChildren(projectInfo, ProjectKeys.MODULE);
     assertEquals("Module count", 1, modules.size());
     DataNode<ModuleData> moduleInfo = modules.iterator().next();
     ModuleData moduleData = moduleInfo.getData();
@@ -104,7 +104,7 @@ public class ProjectResolverStrategyTest extends TestCase {
 
     // Verify that IdeaAndroidProject was stored in module.
     Collection<DataNode<IdeaAndroidProject>> ideAndroidProjects =
-      ExternalSystemUtil.getChildren(moduleInfo, AndroidProjectKeys.IDE_ANDROID_PROJECT);
+      ExternalSystemApiUtil.getChildren(moduleInfo, AndroidProjectKeys.IDE_ANDROID_PROJECT);
     assertEquals(1, ideAndroidProjects.size());
     IdeaAndroidProject ideaAndroidProject = ideAndroidProjects.iterator().next().getData();
     assertSame(myAndroidProject, ideaAndroidProject.getDelegate());
@@ -115,7 +115,7 @@ public class ProjectResolverStrategyTest extends TestCase {
     assertEquals(selectedVariant.getName(), ideaAndroidProject.getSelectedVariantName());
 
     // Verify content root.
-    Collection<DataNode<ContentRootData>> contentRoots = ExternalSystemUtil.getChildren(moduleInfo, ProjectKeys.CONTENT_ROOT);
+    Collection<DataNode<ContentRootData>> contentRoots = ExternalSystemApiUtil.getChildren(moduleInfo, ProjectKeys.CONTENT_ROOT);
     assertEquals(1, contentRoots.size());
 
     String projectRootDirPath = myAndroidProject.getRootDir().getAbsolutePath();

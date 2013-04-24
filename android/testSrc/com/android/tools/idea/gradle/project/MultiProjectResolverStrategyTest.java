@@ -28,7 +28,7 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
-import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import junit.framework.TestCase;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
@@ -105,7 +105,7 @@ public class MultiProjectResolverStrategyTest extends TestCase {
     assertEquals(myIdeaProject.getRootDir().getAbsolutePath(), projectData.getProjectFileDirectoryPath());
 
     // Verify modules.
-    List<DataNode<ModuleData>> modules = Lists.newArrayList(ExternalSystemUtil.getChildren(projectInfo, ProjectKeys.MODULE));
+    List<DataNode<ModuleData>> modules = Lists.newArrayList(ExternalSystemApiUtil.getChildren(projectInfo, ProjectKeys.MODULE));
     assertEquals("Module count", 2, modules.size());
 
     // Verify 'basic' module.
@@ -114,7 +114,7 @@ public class MultiProjectResolverStrategyTest extends TestCase {
     assertEquals(myAndroidProject.getName(), moduleData.getName());
 
     // Verify content root in 'basic' module.
-    List<DataNode<ContentRootData>> contentRoots = Lists.newArrayList(ExternalSystemUtil.getChildren(moduleInfo, ProjectKeys.CONTENT_ROOT));
+    List<DataNode<ContentRootData>> contentRoots = Lists.newArrayList(ExternalSystemApiUtil.getChildren(moduleInfo, ProjectKeys.CONTENT_ROOT));
     assertEquals(1, contentRoots.size());
 
     String projectRootDirPath = myAndroidProject.getRootDir().getAbsolutePath();
@@ -129,7 +129,7 @@ public class MultiProjectResolverStrategyTest extends TestCase {
     assertEquals(myUtilModule.getName(), moduleData.getName());
 
     // Verify content root in 'util' module.
-    contentRoots = Lists.newArrayList(ExternalSystemUtil.getChildren(moduleInfo, ProjectKeys.CONTENT_ROOT));
+    contentRoots = Lists.newArrayList(ExternalSystemApiUtil.getChildren(moduleInfo, ProjectKeys.CONTENT_ROOT));
     assertEquals(1, contentRoots.size());
 
     String moduleRootDirPath = myUtilModule.getRootDir().getPath();

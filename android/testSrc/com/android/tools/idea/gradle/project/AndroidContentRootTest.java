@@ -23,7 +23,8 @@ import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ContentRootData;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
-import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
+import com.intellij.openapi.module.StdModuleTypes;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -74,7 +75,8 @@ public class AndroidContentRootTest extends TestCase {
   @NotNull
   private ContentRootData createContentRoot() {
     String rootDirPath = myAndroidProject.getRootDir().getAbsolutePath();
-    ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), rootDirPath);
+    ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), myAndroidProject.getName(),
+                                           rootDirPath);
     DataNode<ModuleData> moduleInfo = new DataNode<ModuleData>(ProjectKeys.MODULE, moduleData, null);
     AndroidContentRoot contentRoot = new AndroidContentRoot(rootDirPath);
     VariantStub selectedVariant = myAndroidProject.getFirstVariant();
@@ -82,7 +84,7 @@ public class AndroidContentRootTest extends TestCase {
     contentRoot.storePaths(myAndroidProject, selectedVariant);
     contentRoot.addTo(moduleInfo);
 
-    Collection<DataNode<ContentRootData>> contentRoots = ExternalSystemUtil.getChildren(moduleInfo, ProjectKeys.CONTENT_ROOT);
+    Collection<DataNode<ContentRootData>> contentRoots = ExternalSystemApiUtil.getChildren(moduleInfo, ProjectKeys.CONTENT_ROOT);
     assertEquals("Content root count", 1, contentRoots.size());
     return contentRoots.iterator().next().getData();
   }

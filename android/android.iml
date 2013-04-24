@@ -51,7 +51,7 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="external-system" />
+    <orderEntry type="module" module-name="external-system-api" />
     <orderEntry type="module" module-name="gradle" />
     <orderEntry type="module-library">
       <library name="android-gradle-model">

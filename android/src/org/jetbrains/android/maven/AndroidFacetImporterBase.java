@@ -208,7 +208,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
                                                        Map<MavenProject, String> mavenProject2ModuleName,
                                                        List<MavenProjectsProcessorTask> tasks) {
     final ModifiableRootModel rootModel = rootModelAdapter.getRootModel();
-    removeExtApklibDependencies(rootModel);
+    removeExtApklibDependencies(rootModel, modelsProvider);
 
     for (MavenArtifact depArtifact : mavenProject.getDependencies()) {
       if (AndroidMavenUtil.APKLIB_DEPENDENCY_AND_PACKAGING_TYPE.equals(depArtifact.getType()) &&
@@ -267,7 +267,8 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     return null;
   }
 
-  private static void removeExtApklibDependencies(ModifiableRootModel modifiableRootModel) {
+  private static void removeExtApklibDependencies(ModifiableRootModel modifiableRootModel,
+                                                  MavenModifiableModelsProvider modelsProvider) {
     for (OrderEntry entry : modifiableRootModel.getOrderEntries()) {
       if (entry instanceof ModuleOrderEntry) {
         final Module depModule = ((ModuleOrderEntry)entry).getModule();
@@ -276,14 +277,17 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
         }
       }
       else if (entry instanceof LibraryOrderEntry &&
-               containsDependencyOnApklibFile((LibraryOrderEntry)entry)) {
+               containsDependencyOnApklibFile((LibraryOrderEntry)entry, modelsProvider)) {
         modifiableRootModel.removeOrderEntry(entry);
       }
     }
   }
 
-  private static boolean containsDependencyOnApklibFile(@NotNull LibraryOrderEntry libraryOrderEntry) {
-    final String[] urls = libraryOrderEntry.getRootUrls(OrderRootType.CLASSES);
+  private static boolean containsDependencyOnApklibFile(@NotNull LibraryOrderEntry libraryOrderEntry,
+                                                        @NotNull MavenModifiableModelsProvider modelsProvider) {
+    final Library library = libraryOrderEntry.getLibrary();
+    final Library.ModifiableModel libraryModel = modelsProvider.getLibraryModel(library);
+    final String[] urls = libraryModel.getUrls(OrderRootType.CLASSES);
 
     for (String url : urls) {
       final String fileName = PathUtil.getFileName(PathUtil.toPresentableUrl(url));
@@ -462,7 +466,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
 
     if (resolvedInfo != null) {
       final String apiLevel = resolvedInfo.getApiLevel();
-      final Sdk sdk = findOrCreateAndroidPlatform(apiLevel, resolvedInfo.getSdkPath());
+      final Sdk sdk = findOrCreateAndroidPlatform(apiLevel, null);
 
       if (sdk != null) {
         apklibModuleModel.setSdk(sdk);
@@ -606,7 +610,6 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     projectForExternalApklib.resolve(project, generalSettings, embedder, mavenProjectReader, locator);
 
     final String apiLevel = getPlatformFromConfig(projectForExternalApklib);
-    final String sdkPath = getSdkPathFromConfig(projectForExternalApklib);
 
     final List<AndroidExternalApklibDependenciesManager.MavenDependencyInfo> dependencies =
       new ArrayList<AndroidExternalApklibDependenciesManager.MavenDependencyInfo>();
@@ -623,11 +626,10 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     final AndroidExternalApklibDependenciesManager apklibDependenciesManager =
       AndroidExternalApklibDependenciesManager.getInstance(project);
 
-    final AndroidExternalApklibDependenciesManager.MyResolvedInfo info = new AndroidExternalApklibDependenciesManager.MyResolvedInfo(
+    final AndroidExternalApklibDependenciesManager.MyResolvedInfo info =
+      new AndroidExternalApklibDependenciesManager.MyResolvedInfo(
       apiLevel != null ? apiLevel : "",
-      sdkPath != null ? sdkPath : "",
-      dependencies
-    );
+      dependencies);
     
     apklibDependenciesManager.setSdkInfoForArtifact(artifact.getMavenId(), info);
   }
@@ -658,11 +660,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     if (!(sdk.getSdkType() == AndroidSdkType.getInstance())) {
       return false;
     }
-
     final String platformId = getPlatformFromConfig(mavenProject);
-    if (platformId == null) {
-      return false;
-    }
 
     final AndroidSdkAdditionalData sdkAdditionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
     if (sdkAdditionalData == null) {
@@ -675,7 +673,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     }
 
     final IAndroidTarget target = androidPlatform.getTarget();
-    return AndroidSdkUtils.targetHasId(target, platformId) &&
+    return (platformId == null || AndroidSdkUtils.targetHasId(target, platformId)) &&
            AndroidSdkUtils.checkSdkRoots(sdk, target, true);
   }
 
@@ -717,15 +715,13 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
   }
 
   @Nullable
-  private static Sdk doFindOrCreateAndroidPlatform(String sdkPath, String apiLevel) {
+  private static Sdk doFindOrCreateAndroidPlatform(@Nullable String sdkPath, @Nullable String apiLevel) {
     if (sdkPath != null) {
-      if (apiLevel == null) {
-        return null;
-      }
-
       AndroidSdkData sdkData = AndroidSdkData.parse(sdkPath, NullLogger.getLogger());
       if (sdkData != null) {
-        IAndroidTarget target = sdkData.findTargetByApiLevel(apiLevel);
+        IAndroidTarget target = apiLevel != null && apiLevel.length() > 0
+                                ? sdkData.findTargetByApiLevel(apiLevel)
+                                : findNewestPlatformTarget(sdkData);
         if (target != null) {
           Sdk library = AndroidSdkUtils.findAppropriateAndroidPlatform(target, sdkData, true);
           if (library == null) {
@@ -736,6 +732,18 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       }
     }
     return null;
+  }
+
+  @Nullable
+  private static IAndroidTarget findNewestPlatformTarget(AndroidSdkData data) {
+    IAndroidTarget result = null;
+
+    for (IAndroidTarget target : data.getTargets()) {
+      if (target.isPlatform() && (result == null || result.getVersion().compareTo(target.getVersion()) < 0)) {
+        result = target;
+      }
+    }
+    return result;
   }
 
   @Nullable
@@ -779,6 +787,12 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
         return platform.getValue();
       }
     }
+    final String platformFromProperty =
+      project.getProperties().getProperty("android.sdk.platform");
+
+    if (platformFromProperty != null) {
+      return platformFromProperty;
+    }
     return null;
   }
   
@@ -790,6 +804,12 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       if (path != null) {
         return path.getValue();
       }
+    }
+    final String pathFromProperty =
+      project.getProperties().getProperty("android.sdk.path");
+
+    if (pathFromProperty != null) {
+      return pathFromProperty;
     }
     return null;
   }

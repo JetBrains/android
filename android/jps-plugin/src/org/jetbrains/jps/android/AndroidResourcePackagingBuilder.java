@@ -17,6 +17,7 @@ import org.jetbrains.jps.builders.BuildRootDescriptor;
 import org.jetbrains.jps.builders.DirtyFilesHolder;
 import org.jetbrains.jps.incremental.CompileContext;
 import org.jetbrains.jps.incremental.ProjectBuildException;
+import org.jetbrains.jps.incremental.StopBuildException;
 import org.jetbrains.jps.incremental.TargetBuilder;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
@@ -61,7 +62,7 @@ public class AndroidResourcePackagingBuilder extends TargetBuilder<BuildRootDesc
     assert !AndroidJpsUtil.isLightBuild(context);
 
     if (!packageResources(target, context, outputConsumer, releaseBuild)) {
-      throw new ProjectBuildException();
+      throw new StopBuildException();
     }
     packagingStateStorage.saveState(new AndroidPackagingStateStorage.MyState(releaseBuild));
   }
