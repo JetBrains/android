@@ -54,7 +54,7 @@ public class AndroidGradleFacetModuleCustomizer implements ModuleCustomizer {
   @Nullable
   static AndroidGradleFacet getAndroidGradleFacet(@NotNull Module module) {
     FacetManager facetManager = FacetManager.getInstance(module);
-    Collection<AndroidGradleFacet> facets = facetManager.getFacetsByType(AndroidGradleFacet.ID);
+    Collection<AndroidGradleFacet> facets = facetManager.getFacetsByType(AndroidGradleFacet.TYPE_ID);
     return ContainerUtil.getFirstItem(facets);
   }
 }

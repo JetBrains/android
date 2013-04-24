@@ -48,6 +48,9 @@ public class AndroidResourcePackagingBuilder extends TargetBuilder<BuildRootDesc
                     @NotNull DirtyFilesHolder<BuildRootDescriptor, AndroidResourcePackagingBuildTarget> holder,
                     @NotNull BuildOutputConsumer outputConsumer,
                     @NotNull CompileContext context) throws ProjectBuildException, IOException {
+    if (!AndroidSourceGeneratingBuilder.IS_ENABLED.get(context, true)) {
+      return;
+    }
     final boolean releaseBuild = AndroidJpsUtil.isReleaseBuild(context);
     final AndroidPackagingStateStorage packagingStateStorage =
       context.getProjectDescriptor().dataManager.getStorage(target, AndroidPackagingStateStorage.Provider.INSTANCE);

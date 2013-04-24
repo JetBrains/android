@@ -72,6 +72,9 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
                     @NotNull DirtyFilesHolder<BuildRootDescriptor, AndroidDexBuildTarget> holder,
                     @NotNull BuildOutputConsumer outputConsumer,
                     @NotNull CompileContext context) throws ProjectBuildException, IOException {
+    if (!AndroidSourceGeneratingBuilder.IS_ENABLED.get(context, true)) {
+      return;
+    }
     assert !AndroidJpsUtil.isLightBuild(context);
 
     try {
