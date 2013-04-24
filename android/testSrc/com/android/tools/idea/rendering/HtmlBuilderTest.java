@@ -35,8 +35,8 @@ public class HtmlBuilderTest extends TestCase {
     assertEquals("Plain<BR/>\n" +
                  "<A HREF=\"runnable:0\">mylink</A><BR/>\n" +
                  "<DL>\n" +
-                 "<DD>- item 1\n" +
-                 "<DD>- item 2\n" +
+                 "<DD>-&NBSP;item 1\n" +
+                 "<DD>-&NBSP;item 2\n" +
                  "</DL>", builder.getHtml());
   }
 
@@ -68,5 +68,12 @@ public class HtmlBuilderTest extends TestCase {
     HtmlBuilder builder = new HtmlBuilder();
     builder.addLink("This is the ", "linked text", "!", "foo://bar");
     assertEquals("This is the <A HREF=\"foo://bar\">linked text</A>!", builder.getHtml());
+  }
+
+  public void testTable() {
+    HtmlBuilder builder = new HtmlBuilder();
+    builder.beginTable().addTableRow(true, "Header1", "Header2").addTableRow("Data1", "Data2").endTable();
+    assertEquals("<table><tr><th>Header1</th><th>Header2</th></tr><tr><td>Data1</td><td>Data2</td></tr></table>",
+                 builder.getHtml());
   }
 }
