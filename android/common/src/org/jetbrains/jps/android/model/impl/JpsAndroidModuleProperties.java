@@ -30,6 +30,7 @@ import java.util.List;
  */
 public class JpsAndroidModuleProperties {
   public String SELECTED_BUILD_VARIANT = "";
+  public boolean ALLOW_USER_CONFIGURATION = true;
 
   public String GEN_FOLDER_RELATIVE_PATH_APT = "/" + SdkConstants.FD_GEN_SOURCES;
   public String GEN_FOLDER_RELATIVE_PATH_AIDL = "/" + SdkConstants.FD_GEN_SOURCES;
