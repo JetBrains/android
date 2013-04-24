@@ -40,8 +40,9 @@ import org.jetbrains.annotations.NotNull;
 public class AndroidGradleFacet extends Facet<AndroidGradleFacetConfiguration> {
   private static final Logger LOG = Logger.getInstance(AndroidGradleFacet.class);
 
-  @NotNull public static final FacetTypeId<AndroidGradleFacet> ID = new FacetTypeId<AndroidGradleFacet>("android-gradle");
+  @NotNull public static final FacetTypeId<AndroidGradleFacet> TYPE_ID = new FacetTypeId<AndroidGradleFacet>("android-gradle");
 
+  @NonNls public static final String ID = "android-gradle";
   @NonNls public static final String NAME = "Android-Gradle";
 
   @SuppressWarnings("ConstantConditions")

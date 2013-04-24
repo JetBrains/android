@@ -40,6 +40,9 @@ public class AndroidLibraryPackagingBuilder extends TargetBuilder<BuildRootDescr
                     @NotNull DirtyFilesHolder<BuildRootDescriptor, AndroidLibraryPackagingTarget> holder,
                     @NotNull BuildOutputConsumer outputConsumer,
                     @NotNull CompileContext context) throws ProjectBuildException, IOException {
+    if (!AndroidSourceGeneratingBuilder.IS_ENABLED.get(context, true)) {
+      return;
+    }
     if (!holder.hasDirtyFiles() && !holder.hasRemovedFiles()) {
       return;
     }

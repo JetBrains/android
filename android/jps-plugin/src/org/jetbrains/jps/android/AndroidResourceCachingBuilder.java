@@ -42,7 +42,9 @@ public class AndroidResourceCachingBuilder extends TargetBuilder<BuildRootDescri
                     @NotNull DirtyFilesHolder<BuildRootDescriptor, AndroidResourceCachingBuildTarget> holder,
                     @NotNull BuildOutputConsumer outputConsumer,
                     @NotNull CompileContext context) throws ProjectBuildException, IOException {
-    if (AndroidJpsUtil.isLightBuild(context) || (!holder.hasDirtyFiles() && !holder.hasRemovedFiles())) {
+    if (!AndroidSourceGeneratingBuilder.IS_ENABLED.get(context, true) ||
+        AndroidJpsUtil.isLightBuild(context) ||
+        (!holder.hasDirtyFiles() && !holder.hasRemovedFiles())) {
       return;
     }
 

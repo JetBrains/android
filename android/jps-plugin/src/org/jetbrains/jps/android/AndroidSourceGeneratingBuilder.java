@@ -6,6 +6,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.build.BuildConfigGenerator;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
@@ -77,8 +78,15 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
   private static final int MIN_PLATFORM_TOOLS_REVISION = 11;
   private static final int MIN_SDK_TOOLS_REVISION = 19;
 
+  public static final Key<Boolean> IS_ENABLED = Key.create("_android_source_generator_enabled_");
+
   public AndroidSourceGeneratingBuilder() {
     super(BuilderCategory.SOURCE_GENERATOR);
+  }
+
+  @Override
+  public void buildStarted(CompileContext context) {
+    IS_ENABLED.set(context, true);
   }
 
   @Override
@@ -86,7 +94,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
                                            ModuleChunk chunk,
                                            DirtyFilesHolder<JavaSourceRootDescriptor, ModuleBuildTarget> dirtyFilesHolder,
                                            OutputConsumer outputConsumer) throws ProjectBuildException {
-    if (chunk.containsTests() || !AndroidJpsUtil.containsAndroidFacet(chunk)) {
+    if (!IS_ENABLED.get(context, Boolean.TRUE) || chunk.containsTests() || !AndroidJpsUtil.containsAndroidFacet(chunk)) {
       return ExitCode.NOTHING_DONE;
     }
 

@@ -116,6 +116,7 @@
   <depends optional="true" config-file="eclipse.xml">org.jetbrains.idea.eclipse</depends>
 
   <extensions defaultExtensionNs="com.intellij">
+    <compileServer.pathProvider implementation="com.android.tools.idea.compiler.AndroidCompileServerPathProvider"/>
     <externalProjectDataService implementation="com.android.tools.idea.gradle.service.AndroidProjectDataService" />
     <lang.foldingBuilder language="JAVA" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
     <lang.foldingBuilder language="XML" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
@@ -408,7 +409,7 @@
     <packaging.artifactPropertiesProvider implementation="org.jetbrains.android.compiler.artifact.AndroidArtifactPropertiesProvider"/>
     <packaging.artifactType implementation="org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactType"/>
 
-    <compileServer.plugin classpath="jps/android-jps-plugin.jar;android-common.jar;android-rt.jar"/>
+    <compileServer.plugin classpath="jps/android-jps-plugin.jar;jps/android-gradle-jps.jar;android-common.jar;android-rt.jar"/>
 <!-- TODO: Check these dependencies -->
     <compileServer.plugin classpath="sdklib.jar;guava-13.0.1.jar;common.jar;jarutils.jar;layoutlib-api.jar"/>
 

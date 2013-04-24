@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Configuration options for the Android-Gradle facet. These options are <em>not</em> user configurable.
+ * Configuration options for the Android-Gradle facet. These options <em>cannot</em> be directly changed by users.
  */
 public class AndroidGradleFacetConfiguration implements FacetConfiguration {
   @NonNls public String PROJECT_ABSOLUTE_PATH;
@@ -36,6 +36,7 @@ public class AndroidGradleFacetConfiguration implements FacetConfiguration {
   @Override
   public FacetEditorTab[] createEditorTabs(FacetEditorContext editorContext,
                                            FacetValidatorsManager validatorsManager) {
+    // No UI for configuring the Android-Gradle facet.
     return new FacetEditorTab[0];
   }
 

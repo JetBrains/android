@@ -31,10 +31,8 @@ import javax.swing.*;
  * {@link AndroidGradleFacet}'s type.
  */
 public class AndroidGradleFacetType extends FacetType<AndroidGradleFacet, AndroidGradleFacetConfiguration> {
-  @NonNls private static final String ID = "android-gradle";
-
   public AndroidGradleFacetType() {
-    super(AndroidGradleFacet.ID, ID, AndroidGradleFacet.NAME);
+    super(AndroidGradleFacet.TYPE_ID, AndroidGradleFacet.ID, AndroidGradleFacet.NAME);
   }
 
   @NotNull
