@@ -25,6 +25,8 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.Nullable;
 
 public class ResourceJavadocTest extends AndroidTestCase {
+  private static final String VERTICAL_ALIGN = "valign=\"top\"";
+
   @SuppressWarnings("JUnitTestCaseWithNonTrivialConstructors")
   public ResourceJavadocTest() {
     IdeaTestCase.initPlatformPrefix();
@@ -55,12 +57,13 @@ public class ResourceJavadocTest extends AndroidTestCase {
 
   public void testString2() {
     // Use LocaleManagerTest#checkEncoding to get Unicode encoding
-    checkStrings("/javadoc/strings/Activity2.java", "<html><body><table>" +
-                                                    "<tr><th>Configuration</th><th>Value</th></tr>" +
-                                                    "<tr><td>Default</td><td>Cancel</td></tr>" +
-                                                    "<tr><td>ta</td><td>\u0bb0\u0ba4\u0bcd\u0ba4\u0bc1</td></tr>" +
-                                                    "<tr><td>zh-rTW</td><td>\u53d6\u6d88</td></tr>" +
-                                                    "</table></body></html>");
+    checkStrings("/javadoc/strings/Activity2.java",
+                 String.format("<html><body><table>" +
+                               "<tr><th %1$s>Configuration</th><th %1$s>Value</th></tr>" +
+                               "<tr><td %1$s>Default</td><td %1$s>Cancel</td></tr>" +
+                               "<tr><td %1$s>ta</td><td %1$s>\u0bb0\u0ba4\u0bcd\u0ba4\u0bc1</td></tr>" +
+                               "<tr><td %1$s>zh-rTW</td><td %1$s>\u53d6\u6d88</td></tr>" +
+                               "</table></body></html>", VERTICAL_ALIGN));
   }
 
   public void testString3() {
@@ -72,12 +75,12 @@ public class ResourceJavadocTest extends AndroidTestCase {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/dimens/dimens-sw720dp.xml", "res/values-sw720dp/dimens.xml");
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/dimens/dimens-land.xml", "res/values-land/dimens.xml");
     checkJavadoc("/javadoc/dimens/Activity1.java",
-                 "<html><body><table>" +
-                 "<tr><th>Configuration</th><th>Value</th></tr>" +
-                 "<tr><td>Default</td><td>200dp</td></tr>" +
-                 "<tr><td>land</td><td>200px</td></tr>" +
-                 "<tr><td>sw720dp</td><td>300dip</td></tr>" +
-                 "</table></body></html>");
+                 String.format("<html><body><table>" +
+                 "<tr><th %1$s>Configuration</th><th %1$s>Value</th></tr>" +
+                 "<tr><td %1$s>Default</td><td %1$s>200dp</td></tr>" +
+                 "<tr><td %1$s>land</td><td %1$s>200px</td></tr>" +
+                 "<tr><td %1$s>sw720dp</td><td %1$s>300dip</td></tr>" +
+                 "</table></body></html>", VERTICAL_ALIGN));
   }
 
   public void testDrawables() {
@@ -86,11 +89,14 @@ public class ResourceJavadocTest extends AndroidTestCase {
     String p2 = myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/ic_launcher.png",
                                             "res/drawable-hdpi/ic_launcher.png").getPath();
 
+    String divTag = "<div style=\"background-color:gray;padding:10px\">";
+    String imgTag1 = String.format("<img src='file:%1$s' alt=\"%1$s\" />", p1);
+    String imgTag2 = String.format("<img src='file:%1$s' alt=\"%1$s\" />", p2);
     checkJavadoc("/javadoc/drawables/Activity1.java",
                  String.format("<html><body><table>" +
-                 "<tr><th>Configuration</th><th>Value</th></tr>" +
-                 "<tr><td>drawable</td><td><div style=\"background-color:gray;padding:10px\"><img src='file:%1$s' alt=\"%1$s\" /></div></td></tr>" +
-                 "<tr><td>drawable-hdpi</td><td><div style=\"background-color:gray;padding:10px\"><img src='file:%2$s' alt=\"%2$s\" /></div></td></tr>" +
-                 "</table></body></html>", p1, p2));
+                 "<tr><th %1$s>Configuration</th><th %1$s>Value</th></tr>" +
+                 "<tr><td %1$s>drawable</td><td %1$s>%2$s%3$s</div>12&#xd7;12 px (12&#xd7;12 dp @ mdpi)<BR/>\n</td></tr>" +
+                 "<tr><td %1$s>drawable-hdpi</td><td %1$s>%2$s%4$s</div>12&#xd7;12 px (8&#xd7;8 dp @ hdpi)<BR/>\n</td></tr>" +
+                 "</table></body></html>", VERTICAL_ALIGN, divTag, imgTag1, imgTag2));
   }
 }
