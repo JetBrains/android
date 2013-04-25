@@ -73,10 +73,17 @@ public class HtmlBuilderTest extends TestCase {
     assertEquals("This is the <A HREF=\"foo://bar\">linked text</A>!", builder.getHtml());
   }
 
-  public void testTable() {
+  public void testTable1() {
     HtmlBuilder builder = new HtmlBuilder();
     builder.beginTable().addTableRow(true, "Header1", "Header2").addTableRow("Data1", "Data2").endTable();
     assertEquals("<table><tr><th>Header1</th><th>Header2</th></tr><tr><td>Data1</td><td>Data2</td></tr></table>",
+                 builder.getHtml());
+  }
+
+  public void testTable2() {
+    HtmlBuilder builder = new HtmlBuilder();
+    builder.beginTable("valign=\"top\"").addTableRow("Data1", "Data2").endTable();
+    assertEquals("<table><tr><td valign=\"top\">Data1</td><td valign=\"top\">Data2</td></tr></table>",
                  builder.getHtml());
   }
 

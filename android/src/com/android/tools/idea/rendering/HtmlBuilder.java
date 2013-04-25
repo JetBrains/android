@@ -28,6 +28,7 @@ public class HtmlBuilder {
   @NotNull private final StringBuilder myStringBuilder;
   private SparseArray<Runnable> myLinkRunnables;
   private int myNextLinkId = 0;
+  private String myTableDataExtra;
 
   public HtmlBuilder(@NotNull StringBuilder stringBuilder) {
     myStringBuilder = stringBuilder;
@@ -264,9 +265,14 @@ public class HtmlBuilder {
     return this;
   }
 
-  public HtmlBuilder beginTable() {
+  public HtmlBuilder beginTable(@Nullable String tdExtra) {
     myStringBuilder.append("<table>");
+    myTableDataExtra = tdExtra;
     return this;
+  }
+
+  public HtmlBuilder beginTable() {
+    return beginTable(null);
   }
 
   public HtmlBuilder endTable() {
@@ -289,11 +295,23 @@ public class HtmlBuilder {
       return this;
     }
 
+    String tag = "t" + (isHeader ? 'h' : 'd');
+
     beginTableRow();
     for (String c : columns) {
-      myStringBuilder.append(isHeader ? "<th>" : "<td>");
+      myStringBuilder.append('<');
+      myStringBuilder.append(tag);
+      if (myTableDataExtra != null) {
+        myStringBuilder.append(' ');
+        myStringBuilder.append(myTableDataExtra);
+      }
+      myStringBuilder.append('>');
+
       myStringBuilder.append(c);
-      myStringBuilder.append(isHeader ? "</th>" : "</td>");
+
+      myStringBuilder.append("</");
+      myStringBuilder.append(tag);
+      myStringBuilder.append('>');
     }
     endTableRow();
 
