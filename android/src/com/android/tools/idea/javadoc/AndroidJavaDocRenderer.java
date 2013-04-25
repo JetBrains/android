@@ -22,8 +22,12 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.HtmlBuilder;
 import com.android.tools.idea.rendering.ProjectResources;
+import com.android.utils.XmlUtils;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -33,9 +37,13 @@ public class AndroidJavaDocRenderer {
   /** Renders the Javadoc for a resource of given type and name. */
   @Nullable
   public static String render(ProjectResources projectResources, ResourceType type, String name) {
-    if (ResourceType.STRING.equals(type) || ResourceType.DIMEN.equals(type) || ResourceType.INTEGER.equals(type)) {
+    if (ResourceType.STRING.equals(type) || ResourceType.DIMEN.equals(type)
+        || ResourceType.INTEGER.equals(type)) {
       ResourceItem item = projectResources.getResourceItem(type, name);
-      return renderKeyValues(sort(item.getSourceFileList()), type, name);
+      return renderKeyValues(sort(item.getSourceFileList()), type, name, new TextValueRenderer());
+    } else if (ResourceType.DRAWABLE.equals(type)) {
+      ResourceItem item = projectResources.getResourceItem(type, name);
+      return renderKeyValues(sort(item.getSourceFileList()), type, name, new DrawableValueRenderer());
     } else {
       return null;
     }
@@ -55,21 +63,22 @@ public class AndroidJavaDocRenderer {
   }
 
   @Nullable
-  private static String renderKeyValues(List<ResourceFile> files, ResourceType type, String name) {
+  private static String renderKeyValues(List<ResourceFile> files, ResourceType type, String name,
+                                        ResourceValueRenderer renderer) {
     if (files.isEmpty()) {
       return null;
     }
 
     HtmlBuilder builder = new HtmlBuilder();
     if (files.size() == 1) {
-      String value = files.get(0).getValue(type, name).getValue();
-      builder.add(value);
+      String value = renderer.renderToHtml(files.get(0), type, name);
+      builder.addHtml(value);
     } else {
       builder.beginTable();
       builder.addTableRow(true, "Configuration", "Value");
 
       for (ResourceFile f : files) {
-        String v = f.getValue(type, name).getValue();
+        String v = renderer.renderToHtml(f, type, name);
         builder.addTableRow(renderFolderName(f.getFolder().getFolder().getName()), v);
       }
 
@@ -89,6 +98,55 @@ public class AndroidJavaDocRenderer {
       return name.substring(prefix.length() + 1);
     } else {
       return name;
+    }
+  }
+
+  private interface ResourceValueRenderer {
+    String renderToHtml(ResourceFile f, ResourceType type, String name);
+  }
+
+  private static class TextValueRenderer implements ResourceValueRenderer {
+    @Override
+    public String renderToHtml(ResourceFile f, ResourceType type, String name) {
+      String v = f.getValue(type, name).getValue();
+      return XmlUtils.toXmlTextValue(v);
+    }
+  }
+
+  private static class DrawableValueRenderer implements ResourceValueRenderer {
+    @Override
+    public String renderToHtml(ResourceFile f, ResourceType type, String name) {
+      String v = f.getValue(type, name).getValue();
+      if (isBitmapDrawable(v)) {
+        File bitmap = new File(v);
+        if (bitmap.exists()) {
+          URL url = null;
+          try {
+            url = bitmap.toURI().toURL();
+          }
+          catch (MalformedURLException e) {
+            // pass
+          }
+
+          if (url != null) {
+            HtmlBuilder builder = new HtmlBuilder();
+            builder.beginDiv("background-color:gray;padding:10px");
+            builder.addImage(url, v);
+            builder.endDiv();
+            return builder.getHtml();
+          }
+        }
+      }
+
+      return XmlUtils.toXmlTextValue(v);
+    }
+
+    private static boolean isBitmapDrawable(String v) {
+      return v.endsWith(SdkConstants.DOT_PNG)
+             || v.endsWith(SdkConstants.DOT_9PNG)
+             || v.endsWith(SdkConstants.DOT_GIF)
+             || v.endsWith(SdkConstants.DOT_JPEG)
+             || v.endsWith(SdkConstants.DOT_JPG);
     }
   }
 }

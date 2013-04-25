@@ -17,6 +17,9 @@ package com.android.tools.idea.rendering;
 
 import junit.framework.TestCase;
 
+import java.io.File;
+import java.io.IOException;
+
 public class HtmlBuilderTest extends TestCase {
   public void test1() {
     HtmlBuilder builder = new HtmlBuilder();
@@ -75,5 +78,25 @@ public class HtmlBuilderTest extends TestCase {
     builder.beginTable().addTableRow(true, "Header1", "Header2").addTableRow("Data1", "Data2").endTable();
     assertEquals("<table><tr><th>Header1</th><th>Header2</th></tr><tr><td>Data1</td><td>Data2</td></tr></table>",
                  builder.getHtml());
+  }
+
+  public void testDiv1() {
+    HtmlBuilder builder = new HtmlBuilder();
+    assertEquals("<div>Hello</div>", builder.beginDiv().add("Hello").endDiv().getHtml());
+  }
+
+  public void testDiv2() {
+    HtmlBuilder builder = new HtmlBuilder();
+    assertEquals("<div style=\"padding: 10px; text-color: gray\">Hello</div>",
+                 builder.beginDiv("padding: 10px; text-color: gray").add("Hello").endDiv().getHtml());
+  }
+
+  public void testImage() throws IOException {
+    File f = File.createTempFile("img", "png");
+    f.deleteOnExit();
+
+    String actual = new HtmlBuilder().addImage(f.toURI().toURL(), "preview").getHtml();
+    String expected = String.format("<img src='file:%1$s' alt=\"preview\" />", f.getAbsolutePath());
+    assertEquals(expected, actual);
   }
 }
