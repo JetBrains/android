@@ -24,6 +24,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.SdkManager;
+import com.android.sdklib.devices.DeviceManager;
 import com.android.utils.ILogger;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.application.ApplicationManager;
@@ -65,6 +66,7 @@ public class AndroidSdkData {
     new HashMap<IAndroidTarget, SoftReference<AndroidTargetData>>();
 
   private final SdkManager mySdkManager;
+  private final DeviceManager myDeviceManager;
   private IAndroidTarget[] myTargets = null;
 
   private final int myPlatformToolsRevision;
@@ -74,6 +76,7 @@ public class AndroidSdkData {
     mySdkManager = sdkManager;
     myPlatformToolsRevision = AndroidCommonUtils.parsePackageRevision(sdkDirOsPath, SdkConstants.FD_PLATFORM_TOOLS);
     mySdkToolsRevision = AndroidCommonUtils.parsePackageRevision(sdkDirOsPath, SdkConstants.FD_TOOLS);
+    myDeviceManager = DeviceManager.createInstance(sdkDirOsPath, new MessageBuildingSdkLog());
   }
 
   @NotNull
@@ -353,6 +356,11 @@ public class AndroidSdkData {
   @NotNull
   public SdkManager getSdkManager() {
     return mySdkManager;
+  }
+
+  @NotNull
+  public DeviceManager getDeviceManager() {
+    return myDeviceManager;
   }
 
   @NotNull
