@@ -20,6 +20,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.AndroidNewModuleAction;
 import com.android.tools.idea.actions.AndroidNewProjectAction;
 import com.google.common.io.Closeables;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
@@ -27,7 +28,10 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
+import com.intellij.psi.codeStyle.CodeStyleScheme;
+import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.util.SystemProperties;
+import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -44,6 +48,7 @@ import java.util.*;
 
 /** Initialization performed only in the context of the Android IDE. */
 public class AndroidIdeSpecificInitializer implements Runnable {
+  @NonNls private static final String CONFIG_V1 = "AndroidIdeSpecificInitializer.V1";
   @NonNls public static final String NEW_NEW_PROJECT_WIZARD = "android.newProjectWizard";
   @NonNls private static final String ANDROID_SDK_FOLDER_NAME = "sdk";
 
@@ -57,6 +62,18 @@ public class AndroidIdeSpecificInitializer implements Runnable {
 
     // Setup JDK and Android SDK if necessary
     setupSdks();
+
+
+    PropertiesComponent propertiesComponent = PropertiesComponent.getInstance();
+    if (!propertiesComponent.getBoolean(CONFIG_V1, false)) {
+      propertiesComponent.setValue(CONFIG_V1, "true");
+      CodeStyleScheme[] schemes = CodeStyleSchemes.getInstance().getSchemes();
+      if (schemes != null) {
+        for (CodeStyleScheme scheme : schemes) {
+          AndroidXmlCodeStyleSettings.getInstance(scheme.getCodeStyleSettings()).USE_CUSTOM_SETTINGS = true;
+        }
+      }
+    }
   }
 
   private static void setupSdks() {

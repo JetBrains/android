@@ -82,7 +82,7 @@ public class AndroidInitialConfigurator {
     return null;
   }
 
-  private void activateAndroidIdeInitializerExtensions() {
+  private static void activateAndroidIdeInitializerExtensions() {
     Runnable[] extensions = EP_NAME.getExtensions();
     for (Runnable r : extensions) {
       r.run();
