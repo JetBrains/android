@@ -122,6 +122,7 @@
     <codeFoldingOptionsProvider instance="com.android.tools.idea.folding.AndroidCodeFoldingOptionsProvider"/>
     <applicationService serviceInterface="com.android.tools.idea.folding.AndroidFoldingSettings"
                         serviceImplementation="com.android.tools.idea.folding.AndroidFoldingSettings"/>
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.NewAndroidProjectImporter"/>
     <exportable serviceInterface="com.android.tools.idea.folding.AndroidFoldingSettings"/>
 
     <errorHandler implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
