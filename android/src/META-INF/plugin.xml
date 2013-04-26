@@ -47,7 +47,7 @@
            class="org.jetbrains.android.actions.AndroidToolsActionGroup">
       <add-to-group group-id="ToolsMenu" anchor="last"/>
     </group>
-    <action id="Android.RunDdms" class="org.jetbrains.android.actions.AndroidRunDdmsAction">
+    <action id="Android.RunDdms" class="org.jetbrains.android.actions.AndroidRunDdmsAction" icon="AndroidIcons.Android">
       <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
     </action>
     <!--<action id="Android.RunHierarchyViewer" class="org.jetbrains.android.actions.AndroidRunHierarchyViewerAction">
@@ -62,10 +62,12 @@
     <action id="Android.ExportUnsignedPackage" class="org.jetbrains.android.actions.AndroidExportUnsignedPackageAction">
       <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
     </action>
-    <action id="Android.RunAndroidAvdManager" class="org.jetbrains.android.actions.RunAndroidAvdManagerAction">
+    <action id="Android.RunAndroidAvdManager" class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"
+        icon="AndroidIcons.AvdManager">
       <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
     </action>
-    <action id="Android.RunAndroidSdkManager" class="org.jetbrains.android.actions.RunAndroidSdkManagerAction">
+    <action id="Android.RunAndroidSdkManager" class="org.jetbrains.android.actions.RunAndroidSdkManagerAction"
+        icon="AndroidIcons.SdkManager">
       <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
     </action>
     <action id="Android.EnableDdms" class="org.jetbrains.android.actions.AndroidEnableAdbServiceAction">

@@ -19,4 +19,16 @@
   <extensions defaultExtensionNs="com.intellij">
     <androidIdeInitializer implementation="com.android.tools.idea.startup.AndroidIdeSpecificInitializer" />
   </extensions>
+
+  <actions>
+    <group id="Android.MainToolBarActionGroup">
+      <separator/>
+      <reference id="Android.RunAndroidAvdManager" />
+      <reference id="Android.RunAndroidSdkManager" />
+      <reference id="Android.RunDdms" />
+      <separator/>
+
+      <add-to-group group-id="MainToolBar" anchor="before" relative-to-action="HelpTopics" />
+    </group>
+  </actions>
 </idea-plugin>
