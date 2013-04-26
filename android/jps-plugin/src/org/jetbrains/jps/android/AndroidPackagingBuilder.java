@@ -1,5 +1,6 @@
 package org.jetbrains.jps.android;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.ArrayUtil;
@@ -8,7 +9,6 @@ import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.compiler.tools.AndroidApkBuilder;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
 import org.jetbrains.android.util.AndroidNativeLibData;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.ProjectPaths;
 import org.jetbrains.jps.android.builder.AndroidDexBuildTarget;
@@ -41,7 +41,8 @@ import java.util.*;
  * @author Eugene.Kudelevsky
  */
 public class AndroidPackagingBuilder extends TargetBuilder<BuildRootDescriptor, AndroidPackagingBuildTarget> {
-  @NonNls private static final String BUILDER_NAME = "Android Packager";
+  private static final Logger LOG = Logger.getInstance("#org.jetbrains.jps.android.AndroidPackagingBuilder");
+  private static final String BUILDER_NAME = "Android Packager";
 
 
   public AndroidPackagingBuilder() {
@@ -73,7 +74,7 @@ public class AndroidPackagingBuilder extends TargetBuilder<BuildRootDescriptor, 
       throw e;
     }
     catch (Exception e) {
-      AndroidJpsUtil.handleException(context, e, BUILDER_NAME);
+      AndroidJpsUtil.handleException(context, e, BUILDER_NAME, LOG);
     }
   }
 
