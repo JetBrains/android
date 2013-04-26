@@ -24,6 +24,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
@@ -199,6 +201,33 @@ public class RenderLogger extends LayoutLog {
         myMissingSize = true;
         addTag(TAG_MISSING_DIMENSION);
         return;
+      }
+      if (description.endsWith(" is not a valid value")) {
+        // TODO: Consider performing the attribute search up front, rather than on link-click,
+        // such that we don't add a link where we can't find the attribute in the current layout
+        // (e.g. it is coming somewhere from an <include> context, etc
+        Pattern pattern = Pattern.compile("\"(.*)\" in attribute \"(.*)\" is not a valid value");
+        Matcher matcher = pattern.matcher(description);
+        if (matcher.matches()) {
+          addTag(tag);
+          RenderProblem.Html problem = RenderProblem.create(WARNING);
+          String url = getLinkManager().createEditAttributeUrl(matcher.group(2), matcher.group(1));
+          problem.getHtmlBuilder().add(description).add(" (").addLink("Edit", url).add(")");
+          addMessage(problem);
+          return;
+        }
+      }
+      if (description.endsWith(" is not a valid format.")) {
+        Pattern pattern = Pattern.compile("\"(.*)\" in attribute \"(.*)\" is not a valid format.");
+        Matcher matcher = pattern.matcher(description);
+        if (matcher.matches()) {
+          addTag(tag);
+          RenderProblem.Html problem = RenderProblem.create(WARNING);
+          String url = getLinkManager().createEditAttributeUrl(matcher.group(2), matcher.group(1));
+          problem.getHtmlBuilder().add(description).add(" (").addLink("Edit", url).add(")");
+          addMessage(problem);
+          return;
+        }
       }
     } else if (TAG_MISSING_FRAGMENT.equals(tag)) {
       if (!ourIgnoreFragments) {

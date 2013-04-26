@@ -19,6 +19,7 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.util.SparseArray;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.lint.detector.api.LintUtils;
+import com.google.common.collect.Lists;
 import com.intellij.codeInsight.daemon.impl.quickfix.CreateClassKind;
 import com.intellij.codeInsight.intention.impl.CreateClassDialog;
 import com.intellij.compiler.actions.CompileDirtyAction;
@@ -43,6 +44,7 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.PsiNavigateUtil;
@@ -54,6 +56,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Collection;
+import java.util.List;
 
 import static com.android.SdkConstants.*;
 
@@ -71,6 +74,7 @@ public class HtmlLinkManager {
   private static final String URL_OPEN_CLASS = "openClass:";
   private static final String URL_ASSIGN_FRAGMENT_URL = "assignFragmentUrl:";
   private static final String URL_ASSIGN_LAYOUT_URL = "assignLayoutUrl:";
+  private static final String URL_EDIT_ATTRIBUTE = "editAttribute:";
 
   private SparseArray<Runnable> myLinkRunnables;
   private SparseArray<WriteCommandAction> myLinkCommands;
@@ -117,6 +121,9 @@ public class HtmlLinkManager {
     } else if (url.equals(URL_ACTION_IGNORE_FRAGMENTS)) {
       assert result != null;
       handleIgnoreFragments(url, result);
+    } else if (url.startsWith(URL_EDIT_ATTRIBUTE)) {
+      assert result != null;
+      handleEditAttribute(url, module, file);
     } else if (url.startsWith(URL_RUNNABLE)) {
       Runnable linkRunnable = getLinkRunnable(url);
       if (linkRunnable != null) {
@@ -587,6 +594,40 @@ public class HtmlLinkManager {
     RenderContext renderContext = renderService.getRenderContext();
     if (renderContext != null) {
       renderContext.requestRender();
+    }
+  }
+
+  public String createEditAttributeUrl(String attribute, String value) {
+    return URL_EDIT_ATTRIBUTE + attribute + '/' + value;
+  }
+
+  private void handleEditAttribute(@NotNull String url, @NotNull Module module, @NotNull final PsiFile file) {
+    assert url.startsWith(URL_EDIT_ATTRIBUTE);
+    int attributeStart = URL_EDIT_ATTRIBUTE.length();
+    int valueStart = url.indexOf('/');
+    final String attributeName = url.substring(attributeStart, valueStart);
+    final String value = url.substring(valueStart + 1);
+
+    XmlAttribute first = ApplicationManager.getApplication().runReadAction(new Computable<XmlAttribute>() {
+      @Override
+      @Nullable
+      public XmlAttribute compute() {
+        Collection<XmlAttribute> xmlTags = PsiTreeUtil.findChildrenOfType(file, XmlAttribute.class);
+        for (XmlAttribute attribute : xmlTags) {
+          if (attributeName.equals(attribute.getLocalName()) && value.equals(attribute.getValue())) {
+            return attribute;
+          }
+        }
+
+        return null;
+      }
+    });
+
+    if (first != null) {
+      PsiNavigateUtil.navigate(first.getValueElement());
+    } else {
+      // Fall back to just opening the editor
+      openEditor(module.getProject(), file, 0, -1);
     }
   }
 }
