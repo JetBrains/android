@@ -291,7 +291,7 @@ public class XmlTagPullParser implements ILegacyPullParser {
     XmlAttribute attribute = getAttribute(i);
     if (attribute != null) {
       String value = attribute.getValue();
-      if (myIncreaseExistingPadding && ATTR_PADDING.equals(attribute.getLocalName()) &&
+      if (value != null && myIncreaseExistingPadding && ATTR_PADDING.equals(attribute.getLocalName()) &&
           ANDROID_URI.equals(attribute.getNamespace())) {
         // add the padding and return the value
         return addPaddingToValue(value);
@@ -343,23 +343,29 @@ public class XmlTagPullParser implements ILegacyPullParser {
 
       if (attribute != null) {
         String value = attribute.getValue();
-        if (myIncreaseExistingPadding && ATTR_PADDING.equals(localName) &&
-            ANDROID_URI.equals(namespace)) {
-          // add the padding and return the value
-          return addPaddingToValue(value);
-        }
+        if (value != null) {
+          if (value.isEmpty()) {
+            return null;
+          }
 
-        // on the fly convert match_parent to fill_parent for compatibility with older
-        // platforms.
-        if (VALUE_MATCH_PARENT.equals(value) &&
-            (ATTR_LAYOUT_WIDTH.equals(localName) || ATTR_LAYOUT_HEIGHT.equals(localName)) &&
-            ANDROID_URI.equals(namespace)) {
-          return VALUE_FILL_PARENT;
-        }
+          if (myIncreaseExistingPadding && ATTR_PADDING.equals(localName) &&
+              ANDROID_URI.equals(namespace)) {
+            // add the padding and return the value
+            return addPaddingToValue(value);
+          }
 
-        // Handle unicode escapes
-        if (value.indexOf('\\') != -1) {
-          value = replaceUnicodeEscapes(value);
+          // on the fly convert match_parent to fill_parent for compatibility with older
+          // platforms.
+          if (VALUE_MATCH_PARENT.equals(value) &&
+              (ATTR_LAYOUT_WIDTH.equals(localName) || ATTR_LAYOUT_HEIGHT.equals(localName)) &&
+              ANDROID_URI.equals(namespace)) {
+            return VALUE_FILL_PARENT;
+          }
+
+          // Handle unicode escapes
+          if (value.indexOf('\\') != -1) {
+            value = replaceUnicodeEscapes(value);
+          }
         }
 
         return value;

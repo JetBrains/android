@@ -25,6 +25,7 @@ import com.intellij.compiler.impl.javaCompiler.javac.JavacConfiguration;
 import com.intellij.ide.DataManager;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
@@ -41,6 +42,7 @@ import com.intellij.openapi.roots.ui.configuration.ClasspathEditor;
 import com.intellij.openapi.roots.ui.configuration.ModulesConfigurator;
 import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.problems.WolfTheProblemSolver;
@@ -111,7 +113,7 @@ public class RenderErrorPanel extends JPanel {
   }
 
   @Nullable
-  public String showErrors(@NotNull RenderResult result) {
+  public String showErrors(@NotNull final RenderResult result) {
     RenderLogger logger = result.getLogger();
     if (!logger.hasProblems()) {
       showEmpty();
@@ -123,7 +125,14 @@ public class RenderErrorPanel extends JPanel {
     myLinkManager = result.getLogger().getLinkManager();
 
     try {
-      String html = generateHtml(result);
+      // Generate HTML under a read lock, since many errors require peeking into the PSI
+      // to for example find class names to suggest as typo replacements
+      String html = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+        @Override
+        public String compute() {
+          return generateHtml(result);
+        }
+      });
       myHTMLViewer.read(new StringReader(html), null);
       setupStyle();
       myHTMLViewer.setCaretPosition(0);
