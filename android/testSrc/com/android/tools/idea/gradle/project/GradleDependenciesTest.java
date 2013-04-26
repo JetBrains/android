@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.gradle.model.gradle.IdeaModuleDependencyStub;
-import com.android.tools.idea.gradle.model.gradle.IdeaModuleStub;
-import com.android.tools.idea.gradle.model.gradle.IdeaProjectStub;
-import com.android.tools.idea.gradle.model.gradle.IdeaSingleEntryLibraryDependencyStub;
+import com.android.tools.idea.gradle.stubs.gradle.IdeaModuleDependencyStub;
+import com.android.tools.idea.gradle.stubs.gradle.IdeaModuleStub;
+import com.android.tools.idea.gradle.stubs.gradle.IdeaProjectStub;
+import com.android.tools.idea.gradle.stubs.gradle.IdeaSingleEntryLibraryDependencyStub;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.*;

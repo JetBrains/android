@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.model.gradle;
+package com.android.tools.idea.gradle.stubs.gradle;
 
-import org.gradle.tooling.model.idea.IdeaSourceDirectory;
+import org.gradle.tooling.model.idea.IdeaDependencyScope;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
+public class IdeaDependencyScopeStub implements IdeaDependencyScope {
+  public static final IdeaDependencyScope COMPILE = new IdeaDependencyScopeStub("compile");
 
-public class IdeaSourceDirectoryStub implements IdeaSourceDirectory {
-  @NotNull private final File myDir;
+  @NotNull private final String myScope;
 
-  IdeaSourceDirectoryStub(@NotNull File dir) {
-    myDir = dir;
+  private IdeaDependencyScopeStub(@NotNull String scope) {
+    myScope = scope;
   }
 
   @Override
-  public File getDirectory() {
-    return myDir;
+  public String getScope() {
+    return myScope;
   }
 }

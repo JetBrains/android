@@ -15,59 +15,40 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.intellij.openapi.externalSystem.model.DataNode;
-import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ContentRootData;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
-import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaSourceDirectory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.util.Set;
 
 /**
- * Creates a module content root from an {@link IdeaContentRoot}.
+ * Configures a module's content root from an {@link IdeaContentRoot}.
  */
-class GradleContentRoot {
-  @NotNull private final ContentRootData myContentRootData;
-
-  GradleContentRoot(@NotNull String rootPath) {
-    myContentRootData = new ContentRootData(GradleConstants.SYSTEM_ID, rootPath);
+final class GradleContentRoot {
+  private GradleContentRoot() {
   }
 
-  /**
-   * Adds this content root to the given IDE module.
-   *
-   * @param moduleInfo the given IDE module.
-   */
-  void addTo(@NotNull DataNode<ModuleData> moduleInfo) {
-    moduleInfo.createChild(ProjectKeys.CONTENT_ROOT, myContentRootData);
-  }
-
-  /**
-   * Stores the paths of 'source'/'test'/'excluded' directories, according to the structure of the given {@link IdeaContentRoot}.
-   *
-   * @param contentRoot structure of an IDEA module content root, provided by the Gradle Tooling API.
-   */
-  void storePaths(@NotNull IdeaContentRoot contentRoot) {
-    storePaths(ExternalSystemSourceType.SOURCE, contentRoot.getSourceDirectories());
-    storePaths(ExternalSystemSourceType.TEST, contentRoot.getTestDirectories());
-    Set<File> excluded = contentRoot.getExcludeDirectories();
+  static void storePaths(@NotNull IdeaContentRoot from, @NotNull ContentRootData to) {
+    storePaths(to, ExternalSystemSourceType.SOURCE, from.getSourceDirectories());
+    storePaths(to, ExternalSystemSourceType.TEST, from.getTestDirectories());
+    Set<File> excluded = from.getExcludeDirectories();
     if (excluded != null) {
       for (File f : excluded) {
-        myContentRootData.storePath(ExternalSystemSourceType.EXCLUDED, f.getAbsolutePath());
+        to.storePath(ExternalSystemSourceType.EXCLUDED, f.getAbsolutePath());
       }
     }
   }
 
-  private void storePaths(@NotNull ExternalSystemSourceType sourceType, @Nullable Iterable<? extends IdeaSourceDirectory> dirs) {
+  private static void storePaths(@NotNull ContentRootData contentRootData,
+                                 @NotNull ExternalSystemSourceType sourceType,
+                                 @Nullable Iterable<? extends IdeaSourceDirectory> dirs) {
     if (dirs != null) {
       for (IdeaSourceDirectory dir : dirs) {
-        myContentRootData.storePath(sourceType, dir.getDirectory().getAbsolutePath());
+        contentRootData.storePath(sourceType, dir.getDirectory().getAbsolutePath());
       }
     }
   }

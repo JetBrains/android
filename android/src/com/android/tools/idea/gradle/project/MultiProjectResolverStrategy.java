@@ -18,10 +18,9 @@ package com.android.tools.idea.gradle.project;
 import com.android.build.gradle.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
+import com.intellij.openapi.externalSystem.model.project.ContentRootData;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -32,7 +31,6 @@ import com.intellij.util.Function;
 import com.intellij.util.PathUtil;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
@@ -45,7 +43,6 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Imports a multiple Android-Gradle projects into IDEA. The set of projects to import may include regular Java projects as well.
@@ -151,40 +148,28 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
     DataNode<ModuleData> moduleInfo = projectInfo.createChild(ProjectKeys.MODULE, moduleData);
 
     // Populate content roots.
-    for (GradleContentRoot contentRoot : createContentRoots(module.getContentRoots())) {
-      contentRoot.addTo(moduleInfo);
+    for (IdeaContentRoot from : module.getContentRoots()) {
+      if (from == null || from.getRootDirectory() == null) {
+        continue;
+      }
+      ContentRootData contentRootData = new ContentRootData(GradleConstants.SYSTEM_ID, from.getRootDirectory().getAbsolutePath());
+      GradleContentRoot.storePaths(from, contentRootData);
+      moduleInfo.createChild(ProjectKeys.CONTENT_ROOT, contentRootData);
     }
 
     moduleInfo.createChild(AndroidProjectKeys.IDEA_MODULE, module);
     return moduleInfo;
   }
 
-  @NotNull
-  private static List<GradleContentRoot> createContentRoots(@Nullable DomainObjectSet<? extends IdeaContentRoot> roots) {
-    if (roots != null) {
-      List<GradleContentRoot> contentRoots = Lists.newArrayListWithExpectedSize(roots.size());
-      for (IdeaContentRoot root : roots) {
-        if (root == null || root.getRootDirectory() == null) {
-          continue;
-        }
-        GradleContentRoot contentRoot = new GradleContentRoot(root.getRootDirectory().getAbsolutePath());
-        contentRoot.storePaths(root);
-        contentRoots.add(contentRoot);
-      }
-      return contentRoots;
-    }
-    return ImmutableList.of();
-  }
-
-  private static void populateDependencies(@NotNull DataNode<ProjectData> projectInfo) {
+  private void populateDependencies(@NotNull DataNode<ProjectData> projectInfo) {
     Collection<DataNode<ModuleData>> modules = ExternalSystemApiUtil.getChildren(projectInfo, ProjectKeys.MODULE);
     for (DataNode<ModuleData> moduleInfo : modules) {
       IdeaAndroidProject androidProject = getIdeaAndroidProject(moduleInfo);
       if (androidProject != null) {
-        AndroidDependencies.populate(moduleInfo, projectInfo, androidProject);
+        populateDependencies(projectInfo, moduleInfo, androidProject);
         continue;
       }
-      IdeaModule module = getIdeaModule(moduleInfo);
+      IdeaModule module = extractIdeaModule(moduleInfo);
       if (module != null) {
         GradleDependencies.populate(moduleInfo, projectInfo, module);
       }
@@ -192,8 +177,10 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
   }
 
   @Nullable
-  private static IdeaModule getIdeaModule(@NotNull DataNode<ModuleData> moduleInfo) {
+  private static IdeaModule extractIdeaModule(@NotNull DataNode<ModuleData> moduleInfo) {
     Collection<DataNode<IdeaModule>> modules = ExternalSystemApiUtil.getChildren(moduleInfo, AndroidProjectKeys.IDEA_MODULE);
+    // it is safe to remove this node. We only needed it to resolve dependencies.
+    moduleInfo.getChildren().removeAll(modules);
     return getFirstNodeData(modules);
   }
 }

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.customizer;
 import com.android.build.gradle.model.AndroidProject;
 import com.android.build.gradle.model.Variant;
 import com.android.builder.model.SourceProvider;
+import com.android.tools.idea.gradle.util.Facets;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
@@ -48,7 +49,7 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
   @Override
   public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
     if (ideaAndroidProject != null) {
-      AndroidFacet facet = getAndroidFacet(module);
+      AndroidFacet facet = Facets.getFirstFacet(module, AndroidFacet.ID);
       if (facet != null) {
         configureFacet(facet, project, ideaAndroidProject);
         return;
@@ -67,13 +68,6 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
     }
   }
 
-  @Nullable
-  private static AndroidFacet getAndroidFacet(@NotNull Module module) {
-    FacetManager facetManager = FacetManager.getInstance(module);
-    Collection<AndroidFacet> facets = facetManager.getFacetsByType(AndroidFacet.ID);
-    return ContainerUtil.getFirstItem(facets);
-  }
-
   private static void configureFacet(@NotNull AndroidFacet facet,
                                      @NotNull Project project,
                                      @NotNull IdeaAndroidProject ideaAndroidProject) {
@@ -85,8 +79,8 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
 
     AndroidProject androidProject = ideaAndroidProject.getDelegate();
 
-    String selectedVariantName = ideaAndroidProject.getSelectedVariantName();
-    facetState.SELECTED_BUILD_VARIANT = selectedVariantName;
+    Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
+    facetState.SELECTED_BUILD_VARIANT = selectedVariant.getName();
     facetState.LIBRARY_PROJECT = androidProject.isLibrary();
 
     SourceProvider sourceProvider = androidProject.getDefaultConfig().getSourceProvider();
@@ -100,19 +94,16 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
     Set<File> assetsDirs = sourceProvider.getAssetsDirectories();
     facetState.ASSETS_FOLDER_RELATIVE_PATH = getRelativePath(rootDirPath, assetsDirs);
 
-    Variant selectedVariant = androidProject.getVariants().get(selectedVariantName);
-    if (selectedVariant != null) {
-      String moduleDirPath = ideaAndroidProject.getRootDirPath();
-      for (File child : selectedVariant.getGeneratedSourceFolders()) {
-        String relativePath = getRelativePath(moduleDirPath, child);
-        // TODO(alruiz): Obtain these paths from Gradle model instead of hard-coding them.
-        if (dirMatches(relativePath, "build", "source", "r")) {
-          facetState.GEN_FOLDER_RELATIVE_PATH_APT = getRelativePath(rootDirPath, child);
-          continue;
-        }
-        if (dirMatches(relativePath, "build", "source", "aidl")) {
-          facetState.GEN_FOLDER_RELATIVE_PATH_APT = getRelativePath(rootDirPath, child);
-        }
+    String moduleDirPath = ideaAndroidProject.getRootDirPath();
+    for (File child : selectedVariant.getGeneratedSourceFolders()) {
+      String relativePath = getRelativePath(moduleDirPath, child);
+      // TODO: Obtain these paths from Gradle model instead of hard-coding them.
+      if (dirMatches(relativePath, "build", "source", "r")) {
+        facetState.GEN_FOLDER_RELATIVE_PATH_APT = getRelativePath(rootDirPath, child);
+        continue;
+      }
+      if (dirMatches(relativePath, "build", "source", "aidl")) {
+        facetState.GEN_FOLDER_RELATIVE_PATH_APT = getRelativePath(rootDirPath, child);
       }
     }
   }

@@ -13,22 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.model.gradle;
+package com.android.tools.idea.gradle.variant.view;
 
-import org.gradle.tooling.model.idea.IdeaDependencyScope;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowFactory;
 
-public class IdeaDependencyScopeStub implements IdeaDependencyScope {
-  public static final IdeaDependencyScope COMPILE = new IdeaDependencyScopeStub("compile");
-
-  @NotNull private final String myScope;
-
-  private IdeaDependencyScopeStub(@NotNull String scope) {
-    myScope = scope;
-  }
+/**
+ * Creates the contents of the "Build Variants" tool window.
+ */
+public class BuildVariantToolWindowFactory implements ToolWindowFactory {
+  public static final String ID = "Build Variants";
 
   @Override
-  public String getScope() {
-    return myScope;
+  public void createToolWindowContent(Project project, ToolWindow toolWindow) {
+    BuildVariantView.getInstance(project).createToolWindowContent(toolWindow);
   }
 }

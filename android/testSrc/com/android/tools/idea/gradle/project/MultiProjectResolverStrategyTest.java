@@ -17,13 +17,14 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.gradle.ContentRootSourcePaths;
 import com.android.tools.idea.gradle.TestProjects;
-import com.android.tools.idea.gradle.model.android.AndroidProjectStub;
-import com.android.tools.idea.gradle.model.gradle.IdeaModuleStub;
-import com.android.tools.idea.gradle.model.gradle.IdeaProjectStub;
+import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
+import com.android.tools.idea.gradle.stubs.gradle.IdeaModuleStub;
+import com.android.tools.idea.gradle.stubs.gradle.IdeaProjectStub;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ContentRootData;
+import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -33,6 +34,7 @@ import junit.framework.TestCase;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.model.idea.IdeaProject;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
 import java.util.List;
@@ -121,7 +123,8 @@ public class MultiProjectResolverStrategyTest extends TestCase {
     ContentRootData contentRootData = contentRoots.get(0).getData();
     assertEquals(projectRootDirPath, contentRootData.getRootPath());
     myExpectedSourcePaths.storeExpectedSourcePaths(myAndroidProject);
-    myExpectedSourcePaths.assertCorrectSourceDirectoryPaths(contentRootData);
+    assertCorrectStoredDirPaths(contentRootData, ExternalSystemSourceType.SOURCE);
+    assertCorrectStoredDirPaths(contentRootData, ExternalSystemSourceType.TEST);
 
     // Verify 'util' module.
     moduleInfo = modules.get(1);
@@ -135,5 +138,9 @@ public class MultiProjectResolverStrategyTest extends TestCase {
     String moduleRootDirPath = myUtilModule.getRootDir().getPath();
     contentRootData = contentRoots.get(0).getData();
     assertEquals(moduleRootDirPath, contentRootData.getRootPath());
+  }
+
+  private void assertCorrectStoredDirPaths(@NotNull ContentRootData contentRootData, @NotNull ExternalSystemSourceType sourceType) {
+    myExpectedSourcePaths.assertCorrectStoredDirPaths(contentRootData.getPaths(sourceType), sourceType);
   }
 }

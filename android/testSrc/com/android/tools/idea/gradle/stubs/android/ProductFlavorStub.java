@@ -13,85 +13,79 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.model.android;
+package com.android.tools.idea.gradle.stubs.android;
 
-import com.android.annotations.NonNull;
-import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.ProductFlavor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.List;
 
-public class AndroidLibraryStub implements AndroidLibrary {
-  @NotNull private final File myJarFile;
+public class ProductFlavorStub implements ProductFlavor {
+  @NotNull private final String myName;
 
-  public AndroidLibraryStub(@NotNull File jarFile) {
-    myJarFile = jarFile;
+  /**
+   * Creates a new {@code ProductFlavorStub}.
+   *
+   * @param name the name of the product flavor.
+   */
+  ProductFlavorStub(@NotNull String name) {
+    this.myName = name;
   }
 
-  @NonNull
+  @NotNull
   @Override
-  public File getFolder() {
+  public String getName() {
+    return myName;
+  }
+
+  @Nullable
+  @Override
+  public String getPackageName() {
     throw new UnsupportedOperationException();
   }
 
-  @NonNull
   @Override
-  public List<? extends AndroidLibrary> getLibraryDependencies() {
+  public int getVersionCode() {
     throw new UnsupportedOperationException();
   }
 
-  @NonNull
+  @Nullable
   @Override
-  public File getJarFile() {
-    return myJarFile;
-  }
-
-  @NonNull
-  @Override
-  public List<File> getLocalJars() {
+  public String getVersionName() {
     throw new UnsupportedOperationException();
   }
 
-  @NonNull
   @Override
-  public File getResFolder() {
+  public int getMinSdkVersion() {
     throw new UnsupportedOperationException();
   }
 
-  @NonNull
   @Override
-  public File getAssetsFolder() {
+  public int getTargetSdkVersion() {
     throw new UnsupportedOperationException();
   }
 
-  @NonNull
   @Override
-  public File getJniFolder() {
+  public int getRenderscriptTargetApi() {
     throw new UnsupportedOperationException();
   }
 
-  @NonNull
+  @Nullable
   @Override
-  public File getAidlFolder() {
+  public String getTestPackageName() {
     throw new UnsupportedOperationException();
   }
 
-  @NonNull
+  @Nullable
   @Override
-  public File getRenderscriptFolder() {
+  public String getTestInstrumentationRunner() {
     throw new UnsupportedOperationException();
   }
 
-  @NonNull
+  @NotNull
   @Override
-  public File getProguardRules() {
-    throw new UnsupportedOperationException();
-  }
-
-  @NonNull
-  @Override
-  public File getLintJar() {
+  public List<String> getBuildConfig() {
     throw new UnsupportedOperationException();
   }
 }

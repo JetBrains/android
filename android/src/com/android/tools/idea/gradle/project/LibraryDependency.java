@@ -39,7 +39,7 @@ class LibraryDependency {
   /**
    * Creates a new {@link LibraryDependency}.
    *
-   * @param binaryPath the path of the library file to depend to.
+   * @param binaryPath the path of the library file to depend on.
    */
   LibraryDependency(@NotNull File binaryPath) {
     this(FileUtil.getNameWithoutExtension(binaryPath));
@@ -69,7 +69,10 @@ class LibraryDependency {
       ExternalSystemApiUtil.find(projectInfo, ProjectKeys.LIBRARY, new BooleanFunction<DataNode<LibraryData>>() {
         @Override
         public boolean fun(DataNode<LibraryData> node) {
-          return myLibraryData.equals(node.getData());
+          // Match only by name and binary path. Source and Javadoc paths are not relevant for comparison.
+          LibraryData other = node.getData();
+          return myLibraryData.getName().equals(other.getName()) &&
+                 myLibraryData.getPaths(LibraryPathType.BINARY).equals(other.getPaths(LibraryPathType.BINARY));
         }
       });
     if (libraryInfo == null) {

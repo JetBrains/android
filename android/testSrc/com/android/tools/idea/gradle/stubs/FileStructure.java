@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.model;
+package com.android.tools.idea.gradle.stubs;
 
 import com.google.common.io.Files;
 import com.intellij.openapi.util.io.FileUtil;
