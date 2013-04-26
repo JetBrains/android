@@ -18,7 +18,8 @@ package com.android.tools.idea.gradle;
 import com.android.build.gradle.model.ProductFlavorContainer;
 import com.android.build.gradle.model.Variant;
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.gradle.model.android.AndroidProjectStub;
+import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
+import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.externalSystem.model.project.ContentRootData;
@@ -28,10 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Verifies that the source paths of a {@link ContentRootData} are correct.
@@ -55,7 +53,9 @@ public class ContentRootSourcePaths {
    * @param androidProject the given {@code AndroidProject}.
    */
   public void storeExpectedSourcePaths(@NotNull AndroidProjectStub androidProject) {
-    addSourceDirectoryPaths(androidProject.getFirstVariant());
+    VariantStub selectedVariant = androidProject.getFirstVariant();
+    Assert.assertNotNull(selectedVariant);
+    addSourceDirectoryPaths(selectedVariant);
     addSourceDirectoryPaths(androidProject.getDefaultConfig());
     for (ProductFlavorContainer flavor : androidProject.getProductFlavors().values()) {
       addSourceDirectoryPaths(flavor);
@@ -95,21 +95,11 @@ public class ContentRootSourcePaths {
     Collections.sort(paths);
   }
 
-  public void assertCorrectSourceDirectoryPaths(@NotNull ContentRootData contentRootData) {
-    assertCorrectSourceDirectoryPaths(contentRootData, ExternalSystemSourceType.SOURCE);
-    assertCorrectSourceDirectoryPaths(contentRootData, ExternalSystemSourceType.TEST);
-  }
-
-  private void assertCorrectSourceDirectoryPaths(@NotNull ContentRootData contentRootData, @NotNull ExternalSystemSourceType sourceType) {
+  public void assertCorrectStoredDirPaths(@NotNull Collection<String> paths, @NotNull ExternalSystemSourceType sourceType) {
+    List<String> sortedPaths = Lists.newArrayList(paths);
+    Collections.sort(sortedPaths);
     List<String> expectedPaths = myDirectoryPathsBySourceType.get(sourceType);
     String msg = String.format("Source paths (%s)", sourceType.toString().toLowerCase());
-    Assert.assertEquals(msg, expectedPaths, getSourcePaths(contentRootData, sourceType));
-  }
-
-  @NotNull
-  private static List<String> getSourcePaths(@NotNull ContentRootData contentRootData, @NotNull ExternalSystemSourceType sourceType) {
-    List<String> sourcePaths = Lists.newArrayList(contentRootData.getPaths(sourceType));
-    Collections.sort(sourcePaths);
-    return sourcePaths;
+    Assert.assertEquals(msg, expectedPaths, sortedPaths);
   }
 }

@@ -16,9 +16,12 @@
 package com.android.tools.idea.gradle;
 
 import com.android.build.gradle.model.AndroidProject;
+import com.android.build.gradle.model.Variant;
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
+import java.util.Collection;
 
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
@@ -35,7 +38,7 @@ public class IdeaAndroidProject implements Serializable {
    * @param delegate            imported Android-Gradle project.
    * @param selectedVariantName name of the selected build variant.
    */
-  public IdeaAndroidProject( @NotNull String rootDirPath, @NotNull AndroidProject delegate, @NotNull String selectedVariantName) {
+  public IdeaAndroidProject(@NotNull String rootDirPath, @NotNull AndroidProject delegate, @NotNull String selectedVariantName) {
     myRootDirPath = rootDirPath;
     myDelegate = delegate;
     setSelectedVariantName(selectedVariantName);
@@ -58,11 +61,12 @@ public class IdeaAndroidProject implements Serializable {
   }
 
   /**
-   * @return the name of the selected build variant.
+   * @return the selected build variant.
    */
   @NotNull
-  public String getSelectedVariantName() {
-    return mySelectedVariantName;
+  public Variant getSelectedVariant() {
+    Variant selected = myDelegate.getVariants().get(mySelectedVariantName);
+    return Preconditions.checkNotNull(selected);
   }
 
   /**
@@ -72,5 +76,10 @@ public class IdeaAndroidProject implements Serializable {
    */
   public void setSelectedVariantName(@NotNull String name) {
     mySelectedVariantName = name;
+  }
+
+  @NotNull
+  public Collection<String> getVariantNames() {
+    return myDelegate.getVariants().keySet();
   }
 }

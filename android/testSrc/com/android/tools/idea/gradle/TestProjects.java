@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle;
 
-import com.android.tools.idea.gradle.model.android.AndroidProjectStub;
-import com.android.tools.idea.gradle.model.android.VariantStub;
+import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
+import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -40,7 +40,12 @@ public final class TestProjects {
 
   @NotNull
   public static AndroidProjectStub createBasicProject(@NotNull File parentDir) {
-    AndroidProjectStub androidProject = new AndroidProjectStub(parentDir, BASIC_PROJECT_NAME);
+    return createBasicProject(parentDir, BASIC_PROJECT_NAME);
+  }
+
+  @NotNull
+  public static AndroidProjectStub createBasicProject(@NotNull File parentDir, @NotNull String name) {
+    AndroidProjectStub androidProject = new AndroidProjectStub(parentDir, name);
     createBasicProject(androidProject);
     return androidProject;
   }

@@ -15,18 +15,15 @@
  */
 package com.android.tools.idea.gradle.customizer;
 
+import com.android.tools.idea.gradle.util.Facets;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
 
 /**
  * Adds the Android-Gradle facet to modules that need to be built using Gradle.
@@ -34,7 +31,7 @@ import java.util.Collection;
 public class AndroidGradleFacetModuleCustomizer implements ModuleCustomizer {
   @Override
   public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
-    AndroidGradleFacet facet = getAndroidGradleFacet(module);
+    AndroidGradleFacet facet = Facets.getFirstFacet(module, AndroidGradleFacet.TYPE_ID);
     if (facet != null) {
       return;
     }
@@ -48,13 +45,5 @@ public class AndroidGradleFacetModuleCustomizer implements ModuleCustomizer {
     } finally {
       model.commit();
     }
-  }
-
-  @VisibleForTesting
-  @Nullable
-  static AndroidGradleFacet getAndroidGradleFacet(@NotNull Module module) {
-    FacetManager facetManager = FacetManager.getInstance(module);
-    Collection<AndroidGradleFacet> facets = facetManager.getFacetsByType(AndroidGradleFacet.TYPE_ID);
-    return ContainerUtil.getFirstItem(facets);
   }
 }

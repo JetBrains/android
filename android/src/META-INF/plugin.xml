@@ -357,6 +357,13 @@
                       anchor="bottom"
                       icon="AndroidIcons.AndroidToolWindow"
                       factoryClass="org.jetbrains.android.logcat.AndroidToolWindowFactory"/>
+    <facet.toolWindow id="Build Variants"
+                      facetIdList="android"
+                      anchor="left"
+                      secondary="true"
+                      icon="AndroidIcons.AndroidToolWindow"
+                      factoryClass="com.android.tools.idea.gradle.variant.view.BuildVariantToolWindowFactory"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantView"/>
     <projectService serviceInterface="org.jetbrains.android.logcat.AndroidLogcatFiltersPreferences"
                     serviceImplementation="org.jetbrains.android.logcat.AndroidLogcatFiltersPreferences"/>
     <projectService serviceInterface="org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowSettings"

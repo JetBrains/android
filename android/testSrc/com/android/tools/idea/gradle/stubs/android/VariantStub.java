@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.model.android;
+package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.build.gradle.model.Variant;
 import com.android.builder.model.ProductFlavor;
-import com.android.tools.idea.gradle.model.FileStructure;
+import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 

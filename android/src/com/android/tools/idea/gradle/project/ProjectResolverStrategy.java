@@ -19,16 +19,21 @@ import com.android.build.gradle.model.AndroidProject;
 import com.android.build.gradle.model.Variant;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.model.AndroidContentRoot;
+import com.android.tools.idea.gradle.model.AndroidContentRoot.ContentRootStorage;
+import com.android.tools.idea.gradle.model.AndroidDependencies;
+import com.android.tools.idea.gradle.model.AndroidDependencies.DependencyFactory;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.externalSystem.JavaProjectData;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
-import com.intellij.openapi.externalSystem.model.project.ModuleData;
-import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.externalSystem.model.project.*;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.StdModuleTypes;
+import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.util.ExceptionUtil;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
@@ -36,17 +41,14 @@ import org.gradle.tooling.BuildException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.UnknownModelException;
-import org.gradle.tooling.model.idea.IdeaModule;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.io.File;
+import java.util.*;
 
 /**
  * Imports a single Android-Gradle project into IDEA.
@@ -124,12 +126,11 @@ class ProjectResolverStrategy {
 
     IdeaAndroidProject ideaAndroidProject = getIdeaAndroidProject(moduleInfo);
     if (ideaAndroidProject != null) {
-      AndroidDependencies.populate(moduleInfo, projectInfo, ideaAndroidProject);
+      populateDependencies(projectInfo, moduleInfo, ideaAndroidProject);
     }
 
     return projectInfo;
   }
-
   @NotNull
   DataNode<ProjectData> createProjectInfo(@NotNull String projectDirPath, @NotNull String name) {
     ProjectData projectData = new ProjectData(GradleConstants.SYSTEM_ID, projectDirPath);
@@ -153,14 +154,41 @@ class ProjectResolverStrategy {
     ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), name, projectDirPath);
     DataNode<ModuleData> moduleInfo = projectInfo.createChild(ProjectKeys.MODULE, moduleData);
 
-    AndroidContentRoot contentRoot = new AndroidContentRoot(moduleDirPath);
     Variant selectedVariant = getFirstVariant(androidProject);
-    contentRoot.storePaths(androidProject, selectedVariant);
-    contentRoot.addTo(moduleInfo);
-
     IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(moduleDirPath, androidProject, selectedVariant.getName());
+    addContentRoot(ideaAndroidProject, moduleInfo, moduleDirPath);
+
     moduleInfo.createChild(AndroidProjectKeys.IDE_ANDROID_PROJECT, ideaAndroidProject);
     return moduleInfo;
+  }
+
+  private static void addContentRoot(@NotNull IdeaAndroidProject androidProject,
+                                     @NotNull DataNode<ModuleData> moduleInfo,
+                                     @NotNull String moduleDirPath) {
+    final ContentRootData contentRootData = new ContentRootData(GradleConstants.SYSTEM_ID, moduleDirPath);
+    ContentRootStorage storage = new ContentRootStorage() {
+      @Override
+      @NotNull
+      public String getRootDirPath() {
+        return contentRootData.getRootPath();
+      }
+
+      @Override
+      @NotNull
+      public Collection<String> getIncludedDirPaths() {
+        Set<String> dirPaths = Sets.newHashSet();
+        dirPaths.addAll(contentRootData.getPaths(ExternalSystemSourceType.SOURCE));
+        dirPaths.addAll(contentRootData.getPaths(ExternalSystemSourceType.TEST));
+        return dirPaths;
+      }
+
+      @Override
+      public void storePath(@NotNull ExternalSystemSourceType sourceType, @NotNull File directory) {
+        contentRootData.storePath(sourceType, directory.getAbsolutePath());
+      }
+    };
+    AndroidContentRoot.storePaths(androidProject, storage, true);
+    moduleInfo.createChild(ProjectKeys.CONTENT_ROOT, contentRootData);
   }
 
   @NotNull
@@ -176,7 +204,8 @@ class ProjectResolverStrategy {
 
   @Nullable
   static IdeaAndroidProject getIdeaAndroidProject(@NotNull DataNode<ModuleData> moduleInfo) {
-    Collection<DataNode<IdeaAndroidProject>> projects = ExternalSystemApiUtil.getChildren(moduleInfo, AndroidProjectKeys.IDE_ANDROID_PROJECT);
+    Collection<DataNode<IdeaAndroidProject>> projects =
+      ExternalSystemApiUtil.getChildren(moduleInfo, AndroidProjectKeys.IDE_ANDROID_PROJECT);
     return getFirstNodeData(projects);
   }
 
@@ -184,5 +213,20 @@ class ProjectResolverStrategy {
   static <T> T getFirstNodeData(Collection<DataNode<T>> nodes) {
     DataNode<T> node = ContainerUtil.getFirstItem(nodes);
     return node != null ? node.getData() : null;
+  }
+
+  void populateDependencies(@NotNull final DataNode<ProjectData> projectInfo,
+                            @NotNull final DataNode<ModuleData> moduleInfo,
+                            @NotNull IdeaAndroidProject ideaAndroidProject) {
+    DependencyFactory dependencyFactory = new DependencyFactory() {
+      @Override
+      public void addDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull File binaryPath) {
+        LibraryDependency dependency = new LibraryDependency(name);
+        dependency.setScope(scope);
+        dependency.addPath(LibraryPathType.BINARY, binaryPath);
+        dependency.addTo(moduleInfo, projectInfo);
+      }
+    };
+    AndroidDependencies.populate(ideaAndroidProject, dependencyFactory);
   }
 }

@@ -16,17 +16,16 @@
 package com.android.tools.idea.gradle.customizer;
 
 import com.android.builder.model.SourceProvider;
+import com.android.tools.idea.gradle.util.Facets;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.TestProjects;
-import com.android.tools.idea.gradle.model.android.AndroidProjectStub;
-import com.android.tools.idea.gradle.model.android.VariantStub;
-import com.intellij.facet.FacetManager;
+import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
+import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.io.File;
@@ -66,7 +65,7 @@ public class AndroidFacetModuleCustomizerTest extends IdeaTestCase {
     myCustomizer.customizeModule(myModule, myProject, project);
 
     // Verify that AndroidFacet was added and configured.
-    AndroidFacet facet = getAndroidFacet();
+    AndroidFacet facet = Facets.getFirstFacet(myModule, AndroidFacet.ID);
     assertNotNull(facet);
     assertSame(project, facet.getIdeaAndroidProject());
 
@@ -85,16 +84,6 @@ public class AndroidFacetModuleCustomizerTest extends IdeaTestCase {
 
     Set<File> resDirs = sourceProvider.getResDirectories();
     assertEquals(getRelativePath(resDirs), facetState.RES_FOLDER_RELATIVE_PATH);
-  }
-
-  @Nullable
-  private AndroidFacet getAndroidFacet() {
-    FacetManager facetManager = FacetManager.getInstance(myModule);
-    Collection<AndroidFacet> androidFacets = facetManager.getFacetsByType(AndroidFacet.ID);
-    if (androidFacets.isEmpty()) {
-      return null;
-    }
-    return androidFacets.iterator().next();
   }
 
   @NotNull

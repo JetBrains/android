@@ -20,11 +20,12 @@ import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.ContentRootSourcePaths;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.TestProjects;
-import com.android.tools.idea.gradle.model.android.AndroidProjectStub;
-import com.android.tools.idea.gradle.model.android.VariantStub;
+import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
+import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ContentRootData;
+import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -33,6 +34,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import junit.framework.TestCase;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper;
 
 import java.util.Collection;
@@ -112,7 +114,7 @@ public class ProjectResolverStrategyTest extends TestCase {
     // Verify that there is a selected build variant.
     VariantStub selectedVariant = myAndroidProject.getFirstVariant();
     assertNotNull(selectedVariant);
-    assertEquals(selectedVariant.getName(), ideaAndroidProject.getSelectedVariantName());
+    assertSame(selectedVariant, ideaAndroidProject.getSelectedVariant());
 
     // Verify content root.
     Collection<DataNode<ContentRootData>> contentRoots = ExternalSystemApiUtil.getChildren(moduleInfo, ProjectKeys.CONTENT_ROOT);
@@ -122,6 +124,11 @@ public class ProjectResolverStrategyTest extends TestCase {
     ContentRootData contentRootData = contentRoots.iterator().next().getData();
     assertEquals(projectRootDirPath, contentRootData.getRootPath());
     myExpectedSourcePaths.storeExpectedSourcePaths(myAndroidProject);
-    myExpectedSourcePaths.assertCorrectSourceDirectoryPaths(contentRootData);
+    assertCorrectStoredDirPaths(contentRootData, ExternalSystemSourceType.SOURCE);
+    assertCorrectStoredDirPaths(contentRootData, ExternalSystemSourceType.TEST);
+  }
+
+  private void assertCorrectStoredDirPaths(@NotNull ContentRootData contentRootData, @NotNull ExternalSystemSourceType sourceType) {
+    myExpectedSourcePaths.assertCorrectStoredDirPaths(contentRootData.getPaths(sourceType), sourceType);
   }
 }
