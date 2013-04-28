@@ -16,8 +16,14 @@
 
 package org.jetbrains.android;
 
-import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.rendering.ProjectResources;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
@@ -27,8 +33,14 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
-import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.ColorChooser;
 import com.intellij.util.ui.ColorIcon;
@@ -36,53 +48,25 @@ import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.dom.resources.ResourceElement;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.HashMap;
-import java.util.Locale;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Aug 26, 2009
- * Time: 3:24:05 PM
- * To change this template use File | Settings | File Templates.
+ * Annotator which puts colors in the editor gutter for both color files, as well
+ * as any XML resource that references a color attribute (\@color) or color literal (#AARRGGBBB),
+ * or references it from Java code (R.color.name)
+ * <p>
+ * TODO: Resolve resource references in Java files
  */
 public class AndroidColorAnnotator implements Annotator {
   private static final int ICON_SIZE = 8;
-
-  private static final int BLACK = 0xFF000000;
-  private static final int DKGRAY = 0xFF444444;
-  private static final int GRAY = 0xFF888888;
-  private static final int LTGRAY = 0xFFCCCCCC;
-  private static final int WHITE = 0xFFFFFFFF;
-  private static final int RED = 0xFFFF0000;
-  private static final int GREEN = 0xFF00FF00;
-  private static final int BLUE = 0xFF0000FF;
-  private static final int YELLOW = 0xFFFFFF00;
-  private static final int CYAN = 0xFF00FFFF;
-  private static final int MAGENTA = 0xFFFF00FF;
-
-  private static HashMap<String, Integer> myColors;
-
-  private static void initializeColors() {
-    myColors = new HashMap<String, Integer>();
-    myColors.put("black", Integer.valueOf(BLACK));
-    myColors.put("darkgray", Integer.valueOf(DKGRAY));
-    myColors.put("gray", Integer.valueOf(GRAY));
-    myColors.put("lightgray", Integer.valueOf(LTGRAY));
-    myColors.put("white", Integer.valueOf(WHITE));
-    myColors.put("red", Integer.valueOf(RED));
-    myColors.put("green", Integer.valueOf(GREEN));
-    myColors.put("blue", Integer.valueOf(BLUE));
-    myColors.put("yellow", Integer.valueOf(YELLOW));
-    myColors.put("cyan", Integer.valueOf(CYAN));
-    myColors.put("magenta", Integer.valueOf(MAGENTA));
-  }
+  private static final String COLOR_PREFIX = "@color/";
+  private static final String ANDROID_COLOR_PREFIX = "@android:color/";
 
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
@@ -91,65 +75,105 @@ public class AndroidColorAnnotator implements Annotator {
       if ((ResourceType.COLOR.getName().equals(tag.getName()) || ResourceType.DRAWABLE.getName().equals(tag.getName()))) {
         DomElement domElement = DomManager.getDomManager(element.getProject()).getDomElement(tag);
         if (domElement instanceof ResourceElement) {
-          Annotation annotation = holder.createInfoAnnotation(element, null);
-          annotation.setGutterIconRenderer(new MyRenderer((XmlTag)element));
+          String value = tag.getValue().getText().trim();
+          if (value.startsWith("#")) {
+            Annotation annotation = holder.createInfoAnnotation(element, null);
+            annotation.setGutterIconRenderer(new MyRenderer(element, null));
+          } else if (value.startsWith(COLOR_PREFIX)) {
+            annotateResourceReference(holder, element, value.substring(COLOR_PREFIX.length()), false);
+          } else if (value.startsWith(ANDROID_COLOR_PREFIX)) {
+            annotateResourceReference(holder, element, value.substring(ANDROID_COLOR_PREFIX.length()), true);
+          }
         }
       }
+    } else if (element instanceof XmlAttributeValue) {
+      XmlAttributeValue v = (XmlAttributeValue)element;
+      String value = v.getValue();
+      if (value == null || value.isEmpty()) {
+        return;
+      }
+      if (value.startsWith("#")) {
+        Color color = ResourceHelper.parseColor(value);
+        if (color != null) {
+          Annotation annotation = holder.createInfoAnnotation(element, null);
+          annotation.setGutterIconRenderer(new MyRenderer(element, null));
+        }
+      } else if (value.startsWith(COLOR_PREFIX)) {
+        annotateResourceReference(holder, v, value.substring(COLOR_PREFIX.length()), false);
+      } else if (value.startsWith(ANDROID_COLOR_PREFIX)) {
+        annotateResourceReference(holder, v, value.substring(ANDROID_COLOR_PREFIX.length()), true);
+      }
     }
   }
 
-  /** Converts the supported color formats (#rgb, #argb, #rrggbb, #aarrggbb, or color name to Java color. */
-  @Nullable
-  @VisibleForTesting
-  static Color parseColor(String s) {
-    if (StringUtil.isEmpty(s)) {
-      return null;
+  private static void annotateResourceReference(@NotNull AnnotationHolder holder,
+                                                @NotNull PsiElement element,
+                                                @NotNull String name,
+                                                boolean isFramework) {
+    Module module = ModuleUtilCore.findModuleForPsiElement(element);
+    if (module == null) {
+      return;
+    }
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      return;
     }
 
-    if (s.charAt(0) == '#') {
-      long longColor;
-      try {
-        longColor = Long.parseLong(s.substring(1), 16);
-      }
-      catch (NumberFormatException e) {
-        return null;
-      }
-
-      if (s.length() == 4 || s.length() == 5) {
-        long a = s.length() == 4 ? 0xff : extend((longColor & 0xf000) >> 12);
-        long r = extend((longColor & 0xf00) >> 8);
-        long g = extend((longColor & 0x0f0) >> 4);
-        long b = extend((longColor & 0x00f));
-        longColor = (a << 24) | (r << 16) | (g << 8) | b;
-        return new Color((int)longColor, true);
-      }
-
-      if (s.length() == 7) {
-        longColor |= 0x00000000ff000000;
-      }
-      else if (s.length() != 9) {
-        return null;
-      }
-      return new Color((int)longColor, true);
+    PsiFile file = PsiTreeUtil.getParentOfType(element, PsiFile.class);
+    if (file == null) {
+      return;
     }
-    else {
-      if (myColors == null) {
-        initializeColors();
-      }
-      Integer intColor = myColors.get(s.toLowerCase(Locale.US));
-      return intColor != null ? new Color(intColor) : null;
+    VirtualFile virtualFile = file.getVirtualFile();
+    if (virtualFile == null) {
+      return;
     }
-  }
 
-  private static long extend(long nibble) {
-    return nibble | nibble << 4;
+    Configuration configuration = facet.getConfigurationManager().getConfiguration(virtualFile);
+    ResourceItem item;
+    if (isFramework) {
+      ResourceRepository frameworkResources = configuration.getFrameworkResources();
+      if (frameworkResources == null) {
+        return;
+      }
+      if (!frameworkResources.hasResourceItem(ResourceType.COLOR, name)) {
+        return;
+      }
+      item = frameworkResources.getResourceItem(ResourceType.COLOR, name);
+    } else {
+      ProjectResources projectResources = ProjectResources.get(module, true);
+      if (projectResources == null) {
+        return;
+      }
+      if (!projectResources.hasResourceItem(ResourceType.COLOR, name)) {
+        return;
+      }
+      item = projectResources.getResourceItem(ResourceType.COLOR, name);
+    }
+
+    ResourceValue value = item.getResourceValue(ResourceType.COLOR, configuration.getFullConfig(), false);
+    if (value == null) {
+      return;
+    }
+    // TODO: Use a *shared* fallback resolver for this?
+    ResourceResolver resourceResolver = configuration.getResourceResolver();
+    if (resourceResolver == null) {
+      return;
+    }
+    Color color = ResourceHelper.resolveColor(resourceResolver, value);
+    if (color != null) {
+      Annotation annotation = holder.createInfoAnnotation(element, null);
+      annotation.setGutterIconRenderer(new MyRenderer(element, color));
+    }
   }
 
   private static class MyRenderer extends GutterIconRenderer {
-    private final XmlTag myElement;
+    private final PsiElement myElement;
+    private final Color myColor;
 
-    private MyRenderer(XmlTag element) {
+    private MyRenderer(@NotNull PsiElement element, @Nullable Color color) {
+      assert element instanceof XmlTag || element instanceof XmlAttributeValue;
       myElement = element;
+      myColor = color;
     }
 
     @NotNull
@@ -162,7 +186,15 @@ public class AndroidColorAnnotator implements Annotator {
     // see android.graphics.Color#parseColor in android.jar library
     @Nullable
     private Color getCurrentColor() {
-      return parseColor(myElement.getValue().getText());
+      if (myColor != null) {
+        return myColor;
+      } else if (myElement instanceof XmlTag) {
+        return ResourceHelper.parseColor(((XmlTag)myElement).getValue().getText());
+      } else if (myElement instanceof XmlAttributeValue) {
+        return ResourceHelper.parseColor(((XmlAttributeValue)myElement).getValue());
+      } else {
+        return null;
+      }
     }
 
     // see see android.graphics.Color in android.jar library
@@ -173,6 +205,9 @@ public class AndroidColorAnnotator implements Annotator {
 
     @Override
     public AnAction getClickAction() {
+      if (myColor != null) { // Cannot set colors that were derived
+        return null;
+      }
       return new AnAction() {
         @Override
         public void actionPerformed(AnActionEvent e) {
@@ -184,7 +219,14 @@ public class AndroidColorAnnotator implements Annotator {
               ApplicationManager.getApplication().runWriteAction(new Runnable() {
                 @Override
                 public void run() {
-                  myElement.getValue().setText(colorToString(color));
+                  if (myElement instanceof XmlTag) {
+                    ((XmlTag)myElement).getValue().setText(colorToString(color));
+                  } else if (myElement instanceof XmlAttributeValue) {
+                    XmlAttribute attribute = PsiTreeUtil.getParentOfType(myElement, XmlAttribute.class);
+                    if (attribute != null) {
+                      attribute.setValue(colorToString(color));
+                    }
+                  }
                 }
               });
             }
@@ -200,14 +242,17 @@ public class AndroidColorAnnotator implements Annotator {
 
       MyRenderer that = (MyRenderer)o;
 
-      if (myElement != null ? !myElement.equals(that.myElement) : that.myElement != null) return false;
+      if (myColor != null ? !myColor.equals(that.myColor) : that.myColor != null) return false;
+      if (!myElement.equals(that.myElement)) return false;
 
       return true;
     }
 
     @Override
     public int hashCode() {
-      return myElement != null ? myElement.hashCode() : 0;
+      int result = myElement.hashCode();
+      result = 31 * result + (myColor != null ? myColor.hashCode() : 0);
+      return result;
     }
   }
 }
