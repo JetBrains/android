@@ -120,7 +120,8 @@
     <applicationService serviceImplementation="com.android.tools.idea.gradle.NewAndroidProjectImporter"/>
     <exportable serviceInterface="com.android.tools.idea.folding.AndroidFoldingSettings"/>
 
-    <errorHandler implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
+    <errorHandler        implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
+    <statisticsService   implementationClass="com.android.tools.idea.stats.AndroidStatisticsService" key="android-studio" />
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.DrawableStateListDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.BitmapOrNinePatchDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.LayerListDomFileDescription"/>
