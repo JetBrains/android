@@ -15,16 +15,26 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.lint.detector.api.LintUtils;
+import com.android.utils.XmlUtils;
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.*;
 
 import java.awt.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -32,6 +42,7 @@ import java.util.List;
 import static com.android.SdkConstants.*;
 
 public class ResourceHelper {
+  private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.ResourceHelper");
   /**
    * Returns true if the given style represents a project theme
    *
@@ -239,50 +250,135 @@ public class ResourceHelper {
     return !(fqcn.startsWith(ANDROID_WIDGET_PREFIX) || fqcn.startsWith(ANDROID_VIEW_PKG) || fqcn.startsWith(ANDROID_WEBKIT_PKG));
   }
 
+  /**
+   * Tries to resolve the given resource value to an actual RGB color. For state lists
+   * it will pick the simplest/fallback color.
+   *
+   * @param resources the resource resolver to use to follow color references
+   * @param color the color to resolve
+   * @return the corresponding {@link Color} color, or null
+   */
   @Nullable
-  public static Color parseColor(String value) {
-    if (value == null || !value.startsWith("#")) {
+  public static Color resolveColor(@NotNull ResourceResolver resources, @Nullable ResourceValue color) {
+    if (color != null) {
+      color = resources.resolveResValue(color);
+    }
+    if (color == null) {
       return null;
     }
-    switch (value.length() - 1) {
-      case 3:  // #RGB
-        return parseColor(value, 1, false);
-      case 4:  // #ARGB
-        return parseColor(value, 1, true);
-      case 6:  // #RRGGBB
-        return parseColor(value, 2, false);
-      case 8:  // #AARRGGBB
-        return parseColor(value, 2, true);
-      default:
+    String value = color.getValue();
+
+    while (value != null) {
+      if (value.startsWith("#")) {
+        return parseColor(value);
+      }
+      if (value.startsWith(PREFIX_RESOURCE_REF)) {
+        boolean isFramework = color.isFramework();
+        color = resources.findResValue(value, isFramework);
+        if (color != null) {
+          value = color.getValue();
+        } else {
+          break;
+        }
+      } else {
+        File file = new File(value);
+        if (file.exists() && file.getName().endsWith(DOT_XML)) {
+          // Parse
+          try {
+            String xml = Files.toString(file, Charsets.UTF_8);
+            Document document = XmlUtils.parseDocumentSilently(xml, true);
+            if (document != null) {
+              NodeList items = document.getElementsByTagName(TAG_ITEM);
+
+              value = findColorValue(items);
+              continue;
+            }
+          } catch (Exception e) {
+            LOG.warn(String.format("Failed parsing color file %1$s", file.getName()), e);
+          }
+        }
+
         return null;
+      }
     }
+
+    return null;
   }
 
-  private static Color parseColor(String value, int size, boolean isAlpha) {
-    int alpha = 255;
-    int offset = 1;
+  /**
+   * Searches a color XML file for the color definition element that does not
+   * have an associated state and returns its color
+   */
+  @Nullable
+  private static String findColorValue(@NotNull NodeList items) {
+    for (int i = 0, n = items.getLength(); i < n; i++) {
+      // Find non-state color definition
+      Node item = items.item(i);
+      boolean hasState = false;
+      if (item.getNodeType() == Node.ELEMENT_NODE) {
+        Element element = (Element) item;
+        if (element.hasAttributeNS(ANDROID_URI, ATTR_COLOR)) {
+          NamedNodeMap attributes = element.getAttributes();
+          for (int j = 0, m = attributes.getLength(); j < m; j++) {
+            Attr attribute = (Attr) attributes.item(j);
+            if (attribute.getLocalName().startsWith("state_")) { //$NON-NLS-1$
+              hasState = true;
+              break;
+            }
+          }
 
-    if (isAlpha) {
-      alpha = parseInt(value, offset, size);
-      offset += size;
+          if (!hasState) {
+            return element.getAttributeNS(ANDROID_URI, ATTR_COLOR);
+          }
+        }
+      }
     }
 
-    int red = parseInt(value, offset, size);
-    offset += size;
-
-    int green = parseInt(value, offset, size);
-    offset += size;
-
-    int blue = parseInt(value, offset, size);
-
-    return new Color(red, green, blue, alpha);
+    return null;
   }
 
-  private static int parseInt(String value, int offset, int size) {
-    String number = value.substring(offset, offset + size);
-    if (size == 1) {
-      number += number;
+  /**
+   * Converts the supported color formats (#rgb, #argb, #rrggbb, #aarrggbb to a Color
+   * http://developer.android.com/guide/topics/resources/more-resources.html#Color
+   */
+  @Nullable
+  @VisibleForTesting
+  public static Color parseColor(String s) {
+    if (StringUtil.isEmpty(s)) {
+      return null;
     }
-    return Integer.parseInt(number, 16);
+
+    if (s.charAt(0) == '#') {
+      long longColor;
+      try {
+        longColor = Long.parseLong(s.substring(1), 16);
+      }
+      catch (NumberFormatException e) {
+        return null;
+      }
+
+      if (s.length() == 4 || s.length() == 5) {
+        long a = s.length() == 4 ? 0xff : extend((longColor & 0xf000) >> 12);
+        long r = extend((longColor & 0xf00) >> 8);
+        long g = extend((longColor & 0x0f0) >> 4);
+        long b = extend((longColor & 0x00f));
+        longColor = (a << 24) | (r << 16) | (g << 8) | b;
+        return new Color((int)longColor, true);
+      }
+
+      if (s.length() == 7) {
+        longColor |= 0x00000000ff000000;
+      }
+      else if (s.length() != 9) {
+        return null;
+      }
+      return new Color((int)longColor, true);
+    }
+
+    return null;
+  }
+
+  private static long extend(long nibble) {
+    return nibble | nibble << 4;
   }
 }
