@@ -6,9 +6,6 @@
   <item name="android.service.dreams.DreamService android.view.ActionMode onWindowStartingActionMode(android.view.ActionMode.Callback)">
     <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
-  <item name="android.service.dreams.DreamService android.view.View findViewById(int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
   <item name="android.service.dreams.DreamService android.view.View onCreatePanelView(int)">
     <annotation name="org.jetbrains.annotations.Nullable" />
   </item>

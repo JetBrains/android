@@ -42,9 +42,6 @@
   <item name="android.view.ContextMenu android.view.ContextMenu setHeaderView(android.view.View)">
     <annotation name="org.jetbrains.annotations.NotNull" />
   </item>
-  <item name="android.view.ContextThemeWrapper java.lang.Object getSystemService(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
   <item name="android.view.ContextThemeWrapper void onApplyThemeResource(android.content.res.Resources.Theme, int, boolean) 0">
     <annotation name="org.jetbrains.annotations.NotNull" />
   </item>
@@ -554,9 +551,6 @@
     <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
   <item name="android.view.View android.view.View findFocus()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View android.view.View findViewById(int)">
     <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
   <item name="android.view.View android.view.View findViewById(int) 0">
@@ -1311,9 +1305,6 @@
   </item>
   <item name="android.view.Window android.view.LayoutInflater getLayoutInflater()">
     <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.Window android.view.View findViewById(int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
   <item name="android.view.Window android.view.View getCurrentFocus()">
     <annotation name="org.jetbrains.annotations.Nullable" />
