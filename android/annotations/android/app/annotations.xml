@@ -119,9 +119,6 @@
   <item name="android.app.Activity android.view.MenuInflater getMenuInflater()">
     <annotation name="org.jetbrains.annotations.NotNull" />
   </item>
-  <item name="android.app.Activity android.view.View findViewById(int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
   <item name="android.app.Activity android.view.View findViewById(int) 0">
     <annotation name="android.annotation.ResourceInt">
       <val name="value" val="{id}" />
@@ -211,9 +208,6 @@
     <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
   <item name="android.app.Activity java.lang.Object getLastNonConfigurationInstance()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.app.Activity java.lang.Object getSystemService(java.lang.String)">
     <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
   <item name="android.app.Activity java.lang.Object getSystemService(java.lang.String) 0">
