@@ -46,6 +46,13 @@ public class TemplateMetadata {
   public static final String ATTR_APP_TITLE = "appTitle";
   public static final String ATTR_BASE_THEME = "baseTheme";
   public static final String ATTR_IS_NEW_PROJECT = "isNewProject";
+  public static final String ATTR_IS_GRADLE = "isGradle";
+  public static final String ATTR_TOP_OUT = "topOut";
+  public static final String ATTR_PROJECT_OUT = "projectOut";
+  public static final String ATTR_SRC_OUT = "srcOut";
+  public static final String ATTR_RES_OUT = "resOut";
+  public static final String ATTR_MANIFEST_OUT = "manifestOut";
+  public static final String ATTR_MAVEN_URL = "mavenUrl";
 
   private final Document myDocument;
   private final Map<String, Parameter> myParameterMap;
