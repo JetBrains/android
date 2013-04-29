@@ -43,6 +43,25 @@ public class AndroidPsiUtils {
     return false;
   }
 
+  /**
+   * Returns the resource name; e.g. for "R.string.foo" it returns "foo".
+   * NOTE: This method should only be called for elements <b>known</b> to be
+   * resource references!
+   * */
+  @NotNull
+  public static String getResourceName(@NotNull PsiElement element) {
+    assert isResourceReference(element);
+    if (element instanceof PsiReferenceExpression) {
+      PsiReferenceExpression refExp = (PsiReferenceExpression)element;
+      String name = refExp.getReferenceName();
+      if (name != null) {
+        return name;
+      }
+    }
+
+    return element.getText();
+  }
+
   private static boolean isResourceReference(PsiReferenceExpression element) {
     PsiExpression exp = element.getQualifierExpression();
     if (!(exp instanceof PsiReferenceExpression)) {
