@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
 
 import java.io.File;
 
@@ -79,14 +81,18 @@ public class NewProjectWizard extends TemplateWizard {
       @Override
       public void run() {
         try {
+          populateDirectoryParameters(myWizardState);
           File projectRoot = new File((String)myWizardState.get(NewProjectWizardState.ATTR_PROJECT_LOCATION));
           File moduleRoot = new File(projectRoot, (String)myWizardState.get(NewProjectWizardState.ATTR_PROJECT_NAME));
+          File gradleWrapperSrc = new File(TemplateManager.getTemplateRootFolder(), GRADLE_WRAPPER_PATH);
           projectRoot.mkdirs();
+          FileUtil.copyDirContent(gradleWrapperSrc, projectRoot);
           if ((Boolean)myWizardState.get(TemplateMetadata.ATTR_CREATE_ICONS)) {
             myWizardState.getLauncherIconState().outputImages(moduleRoot);
           }
           myWizardState.updateParameters();
           myWizardState.myTemplate.render(projectRoot, moduleRoot, myWizardState.myParameters);
+          FileUtil.copyDirContent(gradleWrapperSrc, moduleRoot);
           if ((Boolean)myWizardState.get(NewProjectWizardState.ATTR_CREATE_ACTIVITY)) {
             myWizardState.getActivityTemplateState().getTemplate()
               .render(moduleRoot, moduleRoot, myWizardState.getActivityTemplateState().myParameters);

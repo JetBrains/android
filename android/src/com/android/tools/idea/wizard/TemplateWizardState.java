@@ -57,6 +57,7 @@ public class TemplateWizardState {
    */
   public TemplateWizardState() {
     put(TemplateMetadata.ATTR_IS_NEW_PROJECT, false);
+    put(TemplateMetadata.ATTR_IS_GRADLE, "true");
   }
 
   public boolean hasTemplate() {
