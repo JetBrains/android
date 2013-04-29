@@ -35,7 +35,7 @@ public class AndroidGradleFacetModuleCustomizerTest extends IdeaTestCase {
     myCustomizer.customizeModule(myModule, myProject, null);
 
     // Verify that AndroidGradleFacet was added.
-    AndroidGradleFacet facet = Facets.getFirstFacet(myModule, AndroidGradleFacet.ID);
+    AndroidGradleFacet facet = Facets.getFirstFacet(myModule, AndroidGradleFacet.TYPE_ID);
     assertNotNull(facet);
   }
 }
