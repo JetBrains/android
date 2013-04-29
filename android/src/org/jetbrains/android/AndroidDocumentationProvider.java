@@ -41,6 +41,7 @@ import com.intellij.psi.PsiManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -64,7 +65,10 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
   }
 
   @Override
-  public String generateDoc(PsiElement element, PsiElement originalElement) {
+  public String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
+    if (originalElement == null) {
+      return null;
+    }
     if (!AndroidPsiUtils.isResourceReference(originalElement)) {
       return null;
     }
