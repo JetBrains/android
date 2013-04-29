@@ -17,8 +17,9 @@ package com.android.tools.idea.rendering;
 
 import com.android.resources.ResourceType;
 import com.intellij.psi.PsiFile;
-import junit.framework.TestCase;
 import org.jetbrains.android.AndroidTestCase;
+
+import java.awt.*;
 
 import static com.android.tools.idea.rendering.ResourceHelper.getResourceName;
 import static com.android.tools.idea.rendering.ResourceHelper.getResourceUrl;
@@ -78,5 +79,23 @@ public class ResourceHelperTest extends AndroidTestCase {
     assertEquals("@layout/foo1", getResourceUrl(file1.getVirtualFile()));
     assertEquals("@menu/foo2", getResourceUrl(file2.getVirtualFile()));
     assertEquals("@drawable/foo3", getResourceUrl(file3.getVirtualFile()));
+  }
+
+  public void testRGB() {
+    Color c = ResourceHelper.parseColor("#0f4");
+    assert c != null;
+    assertEquals(0xff00ff44, c.getRGB());
+
+    c = ResourceHelper.parseColor("#1237");
+    assert c != null;
+    assertEquals(0x11223377, c.getRGB());
+
+    c = ResourceHelper.parseColor("#123456");
+    assert c != null;
+    assertEquals(0xff123456, c.getRGB());
+
+    c = ResourceHelper.parseColor("#08123456");
+    assert c != null;
+    assertEquals(0x08123456, c.getRGB());
   }
 }
