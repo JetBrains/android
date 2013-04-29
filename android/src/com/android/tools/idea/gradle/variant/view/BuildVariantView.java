@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
-import com.android.tools.idea.gradle.util.Facets;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.util.Facets;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -27,14 +27,12 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.table.JBTable;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
@@ -181,8 +179,7 @@ public class BuildVariantView {
           Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
           if (c instanceof JComponent) {
             // add some padding to table cells. It is hard to read text of combo box.
-            Border border = UIUtil.getTableFocusCellHighlightBorder();
-            ((JComponent)c).setBorder(border);
+            ((JComponent)c).setBorder(BorderFactory.createEmptyBorder(4, 3, 5, 3));
           }
           return c;
         }
