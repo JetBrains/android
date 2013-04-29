@@ -36,6 +36,7 @@ import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.util.AndroidNativeLibData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jps.android.model.impl.AndroidImportableProperty;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import org.jetbrains.jps.util.JpsPathUtil;
 
@@ -140,6 +141,10 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
       data.myTargetFileName = lib.getTargetFileName();
       myProperties.myNativeLibs.add(data);
     }
+  }
+
+  public boolean isImportedProperty(@NotNull AndroidImportableProperty property) {
+    return !myProperties.myNotImportedProperties.contains(property);
   }
 
   public boolean isIncludeAssetsFromLibraries() {
