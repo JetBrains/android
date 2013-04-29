@@ -16,11 +16,14 @@
 
 package com.android.tools.idea.ddms;
 
+import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.ddms.screenshot.ScreenshotTask;
+import com.android.tools.idea.ddms.screenshot.ScreenshotViewer;
 import com.android.utils.Pair;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
@@ -28,9 +31,14 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.CollectionListModel;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ListSpeedSearch;
@@ -42,11 +50,13 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -296,6 +306,7 @@ public class DevicePanel implements Disposable,
   public ActionGroup getToolbarActions() {
     DefaultActionGroup group = new DefaultActionGroup();
 
+    group.add(new MyScreenshotAction());
     group.add(new MyTerminateVMAction());
     group.add(new MyGcAction());
     return group;
@@ -347,6 +358,59 @@ public class DevicePanel implements Disposable,
     @Override
     void performAction(@NotNull Client c) {
       c.executeGarbageCollector();
+    }
+  }
+
+  private class MyScreenshotAction extends AnAction {
+    public MyScreenshotAction() {
+      super(AndroidBundle.message("android.ddms.actions.screenshot"),
+            AndroidBundle.message("android.ddms.actions.screenshot.description"),
+            AllIcons.Actions.Dump); // the thread dump icon looks like a camera
+    }
+
+    @Override
+    public void update(AnActionEvent e) {
+      e.getPresentation().setEnabled(myDeviceContext.getSelectedDevice() != null);
+    }
+
+    @Override
+    public void actionPerformed(AnActionEvent e) {
+      final IDevice d = myDeviceContext.getSelectedDevice();
+      if (d == null) {
+        return;
+      }
+
+      final Project project = myProject;
+
+      new ScreenshotTask(project, d) {
+        @Override
+        public void onSuccess() {
+          String msg = getError();
+          if (msg != null) {
+            Messages.showErrorDialog(project, msg, AndroidBundle.message("android.ddms.actions.screenshot"));
+            return;
+          }
+
+          try {
+            File backingFile = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG, true);
+            ImageIO.write(getScreenshot(), SdkConstants.EXT_PNG, backingFile);
+
+            ScreenshotViewer viewer = new ScreenshotViewer(project, getScreenshot(), backingFile, d);
+            if (viewer.showAndGet()) {
+              File screenshot = viewer.getScreenshot();
+              VirtualFile vf = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(screenshot);
+              if (vf != null) {
+                FileEditorManager.getInstance(project).openFile(vf, true);
+              }
+            }
+          }
+          catch (Exception e) {
+            Messages.showErrorDialog(project,
+                                     AndroidBundle.message("android.ddms.screenshot.generic.error", e),
+                                     AndroidBundle.message("android.ddms.actions.screenshot"));
+          }
+        }
+      }.queue();
     }
   }
 }
