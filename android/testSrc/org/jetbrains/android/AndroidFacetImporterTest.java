@@ -21,6 +21,7 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.idea.maven.importing.FacetImporter;
 import org.jetbrains.idea.maven.importing.FacetImporterTestCase;
+import org.jetbrains.jps.android.model.impl.AndroidImportableProperty;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.io.File;
@@ -372,6 +373,70 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
       assertEquals("/AndroidManifest.xml", properties.MANIFEST_FILE_RELATIVE_PATH);
       assertEquals(true, properties.USE_CUSTOM_COMPILER_MANIFEST);
       assertEquals("/target/filtered-manifest/AndroidManifest.xml", properties.CUSTOM_COMPILER_MANIFEST);
+
+      properties.myNotImportedProperties.add(AndroidImportableProperty.MANIFEST_FILE_PATH);
+      properties.myNotImportedProperties.add(AndroidImportableProperty.RESOURCES_DIR_PATH);
+
+      importProject(getPomContent(
+        "apk", "module",
+        "<androidManifestFile>${project.build.directory}/filtered-manifest1/AndroidManifest.xml</androidManifestFile>" +
+        "<resourceDirectory>${project.build.directory}/filtered-res1</resourceDirectory>",
+
+        "<plugin>" +
+        "  <artifactId>maven-resources-plugin</artifactId>" +
+        "  <executions>" +
+        "    <execution>" +
+        "      <phase>initialize</phase>" +
+        "      <goals>" +
+        "        <goal>resources</goal>" +
+        "      </goals>" +
+        "    </execution>" +
+        "  </executions>" +
+        "</plugin>",
+
+        "<resources>" +
+        "  <resource>" +
+        "    <directory>${project.basedir}</directory>" +
+        "    <filtering>true</filtering>" +
+        "    <targetPath>${project.build.directory}/filtered-manifest1</targetPath>" +
+        "    <includes>" +
+        "      <include>AndroidManifest.xml</include>" +
+        "    </includes>" +
+        "  </resource>" +
+        "  <resource>" +
+        "    <directory>${project.basedir}/res</directory>" +
+        "    <filtering>true</filtering>" +
+        "    <targetPath>${project.build.directory}/filtered-res1</targetPath>" +
+        "    <includes>" +
+        "      <include>**/*.xml</include>" +
+        "    </includes>" +
+        "  </resource>" +
+        "  <resource>" +
+        "    <directory>${project.basedir}/res</directory>" +
+        "    <filtering>false</filtering>" +
+        "    <targetPath>${project.build.directory}/filtered-res1</targetPath>" +
+        "    <excludes>" +
+        "      <exclude>**/*.xml</exclude>" +
+        "    </excludes>" +
+        "  </resource>" +
+        "</resources>"));
+
+      assertEquals("/res", properties.RES_FOLDER_RELATIVE_PATH);
+      assertEquals(true, properties.USE_CUSTOM_APK_RESOURCE_FOLDER);
+      assertEquals("/target/filtered-res", properties.CUSTOM_APK_RESOURCE_FOLDER);
+      assertEquals("/AndroidManifest.xml", properties.MANIFEST_FILE_RELATIVE_PATH);
+      assertEquals(true, properties.USE_CUSTOM_COMPILER_MANIFEST);
+      assertEquals("/target/filtered-manifest/AndroidManifest.xml", properties.CUSTOM_COMPILER_MANIFEST);
+
+      properties.myNotImportedProperties.clear();
+      importProject();
+
+      assertEquals("/res", properties.RES_FOLDER_RELATIVE_PATH);
+      assertEquals(true, properties.USE_CUSTOM_APK_RESOURCE_FOLDER);
+      assertEquals("/target/filtered-res1", properties.CUSTOM_APK_RESOURCE_FOLDER);
+      assertEquals("/AndroidManifest.xml", properties.MANIFEST_FILE_RELATIVE_PATH);
+      assertEquals(true, properties.USE_CUSTOM_COMPILER_MANIFEST);
+      assertEquals("/target/filtered-manifest1/AndroidManifest.xml", properties.CUSTOM_COMPILER_MANIFEST);
     }
     finally {
       AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = null;
@@ -549,6 +614,95 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
     finally {
       AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = null;
     }
+  }
+
+  public void testBlockOptionImporting() throws Exception {
+    final Sdk sdk = AndroidTestCase.createAndroidSdk(AndroidTestCase.getTestSdkPath());
+
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        ProjectJdkTable.getInstance().addJdk(sdk);
+      }
+    });
+
+    importProject(getPomContent("apk", "module", ""));
+    final AndroidFacet facet = getFacet("module");
+    assertNotNull(facet);
+    final JpsAndroidModuleProperties properties = facet.getProperties();
+    assertEmpty(properties.myNotImportedProperties);
+
+    importProject(getPomContent("apk", "module",
+                                "<resourceDirectory>${project.basedir}/res1</resourceDirectory>" +
+                                "<assetsDirectory>${project.basedir}/assets1</assetsDirectory>" +
+                                "<nativeLibrariesDirectory>${project.basedir}/libs1</nativeLibrariesDirectory>" +
+                                "<androidManifestFile>${project.basedir}/manifest1/AndroidManifest.xml</androidManifestFile>"));
+
+    assertEquals("/res1", properties.RES_FOLDER_RELATIVE_PATH);
+    assertEquals("/assets1", properties.ASSETS_FOLDER_RELATIVE_PATH);
+    assertEquals("/libs1", properties.LIBS_FOLDER_RELATIVE_PATH);
+    assertEquals("/manifest1/AndroidManifest.xml", properties.MANIFEST_FILE_RELATIVE_PATH);
+
+    properties.myNotImportedProperties.add(AndroidImportableProperty.RESOURCES_DIR_PATH);
+
+    importProject(getPomContent("apk", "module",
+                                "<resourceDirectory>${project.basedir}/res2</resourceDirectory>" +
+                                "<assetsDirectory>${project.basedir}/assets2</assetsDirectory>" +
+                                "<nativeLibrariesDirectory>${project.basedir}/libs2</nativeLibrariesDirectory>" +
+                                "<androidManifestFile>${project.basedir}/manifest2/AndroidManifest.xml</androidManifestFile>"));
+
+    assertEquals("/res1", properties.RES_FOLDER_RELATIVE_PATH);
+    assertEquals("/assets2", properties.ASSETS_FOLDER_RELATIVE_PATH);
+    assertEquals("/libs2", properties.LIBS_FOLDER_RELATIVE_PATH);
+    assertEquals("/manifest2/AndroidManifest.xml", properties.MANIFEST_FILE_RELATIVE_PATH);
+
+    properties.myNotImportedProperties.add(AndroidImportableProperty.ASSETS_DIR_PATH);
+
+    importProject(getPomContent("apk", "module",
+                                "<resourceDirectory>${project.basedir}/res3</resourceDirectory>" +
+                                "<assetsDirectory>${project.basedir}/assets3</assetsDirectory>" +
+                                "<nativeLibrariesDirectory>${project.basedir}/libs3</nativeLibrariesDirectory>" +
+                                "<androidManifestFile>${project.basedir}/manifest3/AndroidManifest.xml</androidManifestFile>"));
+
+    assertEquals("/res1", properties.RES_FOLDER_RELATIVE_PATH);
+    assertEquals("/assets2", properties.ASSETS_FOLDER_RELATIVE_PATH);
+    assertEquals("/libs3", properties.LIBS_FOLDER_RELATIVE_PATH);
+    assertEquals("/manifest3/AndroidManifest.xml", properties.MANIFEST_FILE_RELATIVE_PATH);
+
+    properties.myNotImportedProperties.add(AndroidImportableProperty.NATIVE_LIBS_DIR_PATH);
+
+    importProject(getPomContent("apk", "module",
+                                "<resourceDirectory>${project.basedir}/res4</resourceDirectory>" +
+                                "<assetsDirectory>${project.basedir}/assets4</assetsDirectory>" +
+                                "<nativeLibrariesDirectory>${project.basedir}/libs4</nativeLibrariesDirectory>" +
+                                "<androidManifestFile>${project.basedir}/manifest4/AndroidManifest.xml</androidManifestFile>"));
+
+    assertEquals("/res1", properties.RES_FOLDER_RELATIVE_PATH);
+    assertEquals("/assets2", properties.ASSETS_FOLDER_RELATIVE_PATH);
+    assertEquals("/libs3", properties.LIBS_FOLDER_RELATIVE_PATH);
+    assertEquals("/manifest4/AndroidManifest.xml", properties.MANIFEST_FILE_RELATIVE_PATH);
+
+    properties.myNotImportedProperties.add(AndroidImportableProperty.MANIFEST_FILE_PATH);
+
+    importProject(getPomContent("apk", "module",
+                                "<resourceDirectory>${project.basedir}/res5</resourceDirectory>" +
+                                "<assetsDirectory>${project.basedir}/assets5</assetsDirectory>" +
+                                "<nativeLibrariesDirectory>${project.basedir}/libs5</nativeLibrariesDirectory>" +
+                                "<androidManifestFile>${project.basedir}/manifest5/AndroidManifest.xml</androidManifestFile>"));
+
+    assertEquals("/res1", properties.RES_FOLDER_RELATIVE_PATH);
+    assertEquals("/assets2", properties.ASSETS_FOLDER_RELATIVE_PATH);
+    assertEquals("/libs3", properties.LIBS_FOLDER_RELATIVE_PATH);
+    assertEquals("/manifest4/AndroidManifest.xml", properties.MANIFEST_FILE_RELATIVE_PATH);
+
+    properties.myNotImportedProperties.clear();
+
+    importProject();
+
+    assertEquals("/res5", properties.RES_FOLDER_RELATIVE_PATH);
+    assertEquals("/assets5", properties.ASSETS_FOLDER_RELATIVE_PATH);
+    assertEquals("/libs5", properties.LIBS_FOLDER_RELATIVE_PATH);
+    assertEquals("/manifest5/AndroidManifest.xml", properties.MANIFEST_FILE_RELATIVE_PATH);
   }
 
   private static void checkApklibModule(Module apklibModule, Library jarLib) {
