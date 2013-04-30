@@ -818,6 +818,7 @@ public class RenderPreview implements Disposable {
     y += myTitleHeight;
     y += 2;
 
+    Component component = myRenderContext.getComponent();
     gc.setFont(UIUtil.getToolTipFont());
     FontMetrics fontMetrics = gc.getFontMetrics();
     int fontHeight = fontMetrics.getHeight();
@@ -849,7 +850,7 @@ public class RenderPreview implements Disposable {
       gc.setClip(x, y, width, height);
       Icon icon = AndroidIcons.RenderError;
 
-      icon.paintIcon(myRenderContext.getComponent(), gc, x + (width - icon.getIconWidth()) / 2, y + (height - icon.getIconHeight()) / 2);
+      icon.paintIcon(component, gc, x + (width - icon.getIconWidth()) / 2, y + (height - icon.getIconHeight()) / 2);
       Composite prevComposite = gc.getComposite();
       gc.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f));
       gc.setColor(Color.WHITE);
@@ -887,7 +888,7 @@ public class RenderPreview implements Disposable {
       Icon icon = AndroidIcons.RefreshPreview;
       Composite prevComposite = gc.getComposite();
       gc.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.35f));
-      icon.paintIcon(myRenderContext.getComponent(), gc, x + (width - icon.getIconWidth()) / 2, y + (height - icon.getIconHeight()) / 2);
+      icon.paintIcon(component, gc, x + (width - icon.getIconWidth()) / 2, y + (height - icon.getIconHeight()) / 2);
       gc.setComposite(prevComposite);
     }
 
@@ -903,7 +904,6 @@ public class RenderPreview implements Disposable {
       y += 2;
 
       // Paint icons
-      Component component = myRenderContext.getComponent();
       AllIcons.Actions.CloseNewHovered.paintIcon(component, gc, left, y);
       left += AllIcons.Actions.CloseNewHovered.getIconWidth();
 

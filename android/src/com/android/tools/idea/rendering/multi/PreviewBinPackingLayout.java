@@ -23,6 +23,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.tools.idea.rendering.ShadowPainter.SHADOW_SIZE;
+import static com.android.tools.idea.rendering.multi.RenderPreviewManager.HORIZONTAL_GAP;
+import static com.android.tools.idea.rendering.multi.RenderPreviewManager.VERTICAL_GAP;
+
 /**
  * Regular row layout for render previews
  */
@@ -52,9 +56,8 @@ public class PreviewBinPackingLayout {
     int availableWidth = clientArea.x + clientArea.width - myX;
     int availableHeight = clientArea.y + clientArea.height - myY;
     int maxVisibleY = clientArea.y + clientArea.height;
-    @SuppressWarnings("UnnecessaryLocalVariable") // Makes the code more readable
-    int bottomBorder = scaledImageHeight;
-    int rightHandSide = scaledImageWidth + RenderPreviewManager.HORIZONTAL_GAP;
+    int bottomBorder = scaledImageHeight + SHADOW_SIZE;
+    int rightHandSide = scaledImageWidth + HORIZONTAL_GAP + SHADOW_SIZE;
 
     int minWidth = Integer.MAX_VALUE;
     int minHeight = Integer.MAX_VALUE;
@@ -72,10 +75,10 @@ public class PreviewBinPackingLayout {
 
     // Add in gap on right and bottom since we'll add that requirement on the width and
     // height rectangles too (for spacing)
-    packer.addSpace(new Rectangle(rightHandSide, 0, availableWidth - rightHandSide + RenderPreviewManager.HORIZONTAL_GAP, availableHeight + RenderPreviewManager.VERTICAL_GAP));
+    packer.addSpace(new Rectangle(rightHandSide, 0, availableWidth - rightHandSide + HORIZONTAL_GAP, availableHeight + VERTICAL_GAP));
     if (maxVisibleY > bottomBorder) {
-      packer.addSpace(new Rectangle(0, bottomBorder + RenderPreviewManager.VERTICAL_GAP, availableWidth + RenderPreviewManager.HORIZONTAL_GAP,
-                                    maxVisibleY - bottomBorder + RenderPreviewManager.VERTICAL_GAP));
+      packer.addSpace(new Rectangle(0, bottomBorder + VERTICAL_GAP, availableWidth + HORIZONTAL_GAP,
+                                    maxVisibleY - bottomBorder + VERTICAL_GAP));
     }
 
     // TODO: Sort previews first before attempting to position them?
@@ -90,11 +93,11 @@ public class PreviewBinPackingLayout {
     for (RenderPreview preview : aspectOrder) {
       int previewWidth = preview.getLayoutWidth();
       int previewHeight = preview.getLayoutHeight();
-      previewHeight += RenderPreviewManager.VERTICAL_GAP;
+      previewHeight += VERTICAL_GAP;
       if (preview.isForked()) {
-        previewHeight += RenderPreviewManager.VERTICAL_GAP;
+        previewHeight += VERTICAL_GAP;
       }
-      previewWidth += RenderPreviewManager.HORIZONTAL_GAP;
+      previewWidth += HORIZONTAL_GAP;
       // title height? how do I account for that?
       Rectangle position = packer.occupy(previewWidth, previewHeight);
       if (position != null) {

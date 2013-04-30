@@ -93,9 +93,11 @@ public final class GuidelinePainter extends JComponent {
             Graphics2D g2d = (Graphics2D)g.getGraphics();
             Composite prevComposite = g2d.getComposite();
             try {
-              g2d.setComposite(ALPHA_COMPOSITE);
-              g2d.drawImage(image, bounds.x, bounds.y, bounds.x + targetBounds.width, bounds.y + targetBounds.height, sourceBounds.x,
-                            sourceBounds.y, sourceBounds.x + sourceBounds.width, sourceBounds.y + sourceBounds.height, null);
+              if (image != null) {
+                g2d.setComposite(ALPHA_COMPOSITE);
+                g2d.drawImage(image, bounds.x, bounds.y, bounds.x + targetBounds.width, bounds.y + targetBounds.height, sourceBounds.x,
+                              sourceBounds.y, sourceBounds.x + sourceBounds.width, sourceBounds.y + sourceBounds.height, null);
+              }
             } finally {
               g2d.setComposite(prevComposite);
             }

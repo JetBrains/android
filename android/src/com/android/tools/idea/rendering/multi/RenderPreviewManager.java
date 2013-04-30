@@ -48,6 +48,7 @@ import java.util.List;
 
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_DEVICE;
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_DEVICE_STATE;
+import static com.android.tools.idea.rendering.ShadowPainter.SHADOW_SIZE;
 import static com.android.tools.idea.rendering.ShadowPainter.SMALL_SHADOW_SIZE;
 import static com.intellij.util.Alarm.ThreadToUse.POOLED_THREAD;
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
@@ -88,7 +89,6 @@ public class RenderPreviewManager implements Disposable {
   private int myPrevImageWidth;
   private int myPrevImageHeight;
   private int myPendingRenderCount;
-
 
   /**
    * Last seen state revision in this {@link RenderPreviewManager}. If less
@@ -137,21 +137,25 @@ public class RenderPreviewManager implements Disposable {
         myPreviewMouseListener = new MouseAdapter() {
           @Override
           public void mouseMoved(MouseEvent mouseEvent) {
+            super.mouseMoved(mouseEvent);
             RenderPreviewManager.this.moved(mouseEvent);
           }
 
           @Override
           public void mouseClicked(MouseEvent mouseEvent) {
+            super.mouseClicked(mouseEvent);
             RenderPreviewManager.this.click(mouseEvent);
           }
 
           @Override
           public void mouseEntered(MouseEvent mouseEvent) {
+            super.mouseEntered(mouseEvent);
             RenderPreviewManager.this.enter(mouseEvent);
           }
 
           @Override
           public void mouseExited(MouseEvent mouseEvent) {
+            super.mouseExited(mouseEvent);
             RenderPreviewManager.this.exit(mouseEvent);
           }
         };
@@ -380,8 +384,8 @@ public class RenderPreviewManager implements Disposable {
 
     myLayoutHeight = 0;
 
-    if (myRenderContext.getType() == RenderContext.UsageType.XML_PREVIEW
-          && !ourClassicLayout) {
+    RenderContext.UsageType usageType = myRenderContext.getType();
+    if (!ourClassicLayout && (usageType == RenderContext.UsageType.XML_PREVIEW || usageType == RenderContext.UsageType.LAYOUT_EDITOR)) {
       // Quadrant rendering. In XML preview, the "main" rendering isn't
       // directly edited, so doesn't need to be nearly as visually prominent;
       // instead we subdivide the space equally and size all the thumbnails
@@ -471,8 +475,7 @@ public class RenderPreviewManager implements Disposable {
 
     int availableWidth = clientArea.x + clientArea.width - getX();
     int availableHeight = clientArea.y + clientArea.height - getY();
-    @SuppressWarnings("UnnecessaryLocalVariable") // Makes code more readable
-    int bottomBorder = scaledImageHeight;
+    int bottomBorder = scaledImageHeight + SHADOW_SIZE;
     int rightHandSide = scaledImageWidth + HORIZONTAL_GAP;
 
     // First see if we can fit everything; if so, we can try to make the layouts
@@ -521,12 +524,12 @@ public class RenderPreviewManager implements Disposable {
         return;
       }
 
-      Rectangle bounds = myRenderContext.getComponent().getBounds();
+      Rectangle clientArea = myRenderContext.getClientArea();
       for (RenderPreview preview : myPreviews) {
         if (preview.isVisible()) {
           int x = rootX + preview.getX();
           int y = rootY + preview.getY();
-          gc.setClip(0, 0, bounds.width, bounds.height);
+          gc.setClip(0, 0, clientArea.width, clientArea.height);
           preview.paint(gc, x, y);
         }
       }
@@ -1050,6 +1053,10 @@ public class RenderPreviewManager implements Disposable {
     }
 
     myNeedRender = false;
+
+    if (myClassicLayout != ourClassicLayout) {
+      setClassicLayout(ourClassicLayout);
+    }
   }
 
   /**
@@ -1350,15 +1357,19 @@ public class RenderPreviewManager implements Disposable {
           if (mouseY >= y && mouseY <= y + 4 * ZOOM_ICON_HEIGHT) {
             if (mouseY < y + ZOOM_ICON_HEIGHT) {
               zoomIn();
+              mouseEvent.consume();
             }
             else if (mouseY < y + 2 * ZOOM_ICON_HEIGHT) {
               zoomOut();
+              mouseEvent.consume();
             }
             else if (mouseY < y + 3 * ZOOM_ICON_HEIGHT) {
               zoomReset();
+              mouseEvent.consume();
             }
             else {
               selectMode(RenderPreviewMode.NONE);
+              mouseEvent.consume();
             }
             return true;
           }
@@ -1374,6 +1385,7 @@ public class RenderPreviewManager implements Disposable {
         // under this coordinate now, so make sure it's hover etc
         // shows up
         moved(mouseEvent);
+        mouseEvent.consume();
         return true;
       }
     }
@@ -1488,26 +1500,39 @@ public class RenderPreviewManager implements Disposable {
     myAlarm.cancelAllRequests();
     myAlarm.dispose();
     if (myAnimator != null) {
-      myAnimator.dispose();;
+      myAnimator.dispose();
       myAnimator = null;
     }
   }
 
   // Debugging only
-  static boolean ourClassicLayout = false;
+  private static boolean ourClassicLayout = false;
+  private boolean myClassicLayout = false;
+
   public static void toggleLayoutMode(RenderContext context) {
     ourClassicLayout = !ourClassicLayout;
     RenderPreviewManager previewManager = context.getPreviewManager(false);
-    if (previewManager != null) {
-      if (ourClassicLayout) {
-        previewManager.myFixedRenderSize = null;
-        context.setMaxSize(0, 0);
-        context.zoomFit(false, true);
-      }
-
-      previewManager.layout(true);
-      previewManager.redraw();
+    if (previewManager != null && previewManager.myClassicLayout != ourClassicLayout) {
+      previewManager.setClassicLayout(ourClassicLayout);
     }
+  }
+
+  private void setClassicLayout(boolean classicLayout) {
+    myClassicLayout = classicLayout;
+    if (classicLayout) {
+      myFixedRenderSize = null;
+      myRenderContext.setMaxSize(0, 0);
+      myRenderContext.zoomFit(false, true);
+      if (myPreviews != null) {
+        for (RenderPreview preview : myPreviews) {
+          preview.setMaxSize(getMaxWidth(), getMaxHeight());
+        }
+      }
+    }
+
+    myRenderContext.updateLayout();
+    layout(true);
+    redraw();
   }
 
   /**

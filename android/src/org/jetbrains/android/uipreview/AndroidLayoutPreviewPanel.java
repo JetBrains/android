@@ -18,6 +18,7 @@ package org.jetbrains.android.uipreview;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
+import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -265,7 +266,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     myRenderResult = renderResult;
     ScalableImage image = myRenderResult.getImage();
     if (image != null) {
-      if (myPreviewManager != null) {
+      if (myPreviewManager != null && RenderPreviewMode.getCurrent() != RenderPreviewMode.NONE) {
         Dimension fixedRenderSize = myPreviewManager.getFixedRenderSize();
         if (fixedRenderSize != null) {
           image.setMaxSize(fixedRenderSize.width, fixedRenderSize.height);
@@ -465,14 +466,8 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     return RenderContext.NO_SIZE;
   }
 
-  @NotNull
-  public Dimension getClientSize() {
-    return myImagePanel.getParent().getSize();
-  }
-
-  @NotNull
-  public Rectangle getClientArea() {
-    return myImagePanel.getParent().getBounds();
+  int getTitleBarHeight() {
+    return myTitlePanel.isVisible() ? myTitlePanel.getSize().height : 0;
   }
 
   public Component getRenderComponent() {
@@ -507,7 +502,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     ScalableImage scaledImage = myRenderResult.getImage();
     if (scaledImage != null) {
       scaledImage.setMaxSize(width, height);
-      scaledImage.setUseLargeShadows(false);
+      scaledImage.setUseLargeShadows(width <= 0);
     }
     myTitlePanel.setVisible(width <= 0);
   }
@@ -540,7 +535,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
           ScalableImage image = myRenderResult.getImage();
           if (image != null) {
             int fixedWidth = image.getMaxWidth();
-            int fixedHeight = image.getFixedHeight();
+            int fixedHeight = image.getMaxHeight();
             if (fixedWidth > 0) {
               myImagePanel.setLocation(Math.max(0, (fixedWidth - image.getScaledWidth()) / 2),
                                        2 + Math.max(0, (fixedHeight - image.getScaledHeight()) / 2));

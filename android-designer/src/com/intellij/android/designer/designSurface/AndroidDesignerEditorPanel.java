@@ -25,6 +25,7 @@ import com.android.tools.idea.configurations.ConfigurationToolBar;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
+import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.google.common.primitives.Ints;
 import com.intellij.android.designer.componentTree.AndroidTreeDecorator;
 import com.intellij.android.designer.inspection.ErrorAnalyzer;
@@ -36,6 +37,7 @@ import com.intellij.designer.componentTree.TreeComponentDecorator;
 import com.intellij.designer.designSurface.*;
 import com.intellij.designer.designSurface.tools.ComponentCreationFactory;
 import com.intellij.designer.designSurface.tools.ComponentPasteFactory;
+import com.intellij.designer.designSurface.tools.InputTool;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.model.RadVisualComponent;
 import com.intellij.designer.model.WrapInProvider;
@@ -80,6 +82,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -100,6 +103,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   private static final int DEFAULT_HORIZONTAL_MARGIN = 30;
   private static final int DEFAULT_VERTICAL_MARGIN = 20;
   private static final Integer LAYER_ERRORS = LAYER_INPLACE_EDITING + 150; // Must be an Integer, not an int; see JLayeredPane.addImpl
+  private static final Integer LAYER_PREVIEW = LAYER_INPLACE_EDITING + 170; // Must be an Integer, not an int; see JLayeredPane.addImpl
 
   private final TreeComponentDecorator myTreeDecorator = new AndroidTreeDecorator();
   private final XmlFile myXmlFile;
@@ -113,6 +117,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   private WrapInProvider myWrapInProvider;
   private RootView myRootView;
   private boolean myShowingRoot;
+  private RenderPreviewTool myPreviewTool;
 
   @NotNull
   private Configuration myConfiguration;
@@ -179,8 +184,10 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       @Override
       public void actionPerformed(AnActionEvent e) {
         EditableArea area = e.getData(EditableArea.DATA_KEY);
-        RadViewComponent component = (RadViewComponent)area.getSelection().get(0);
-        PsiNavigateUtil.navigate(component.getTag());
+        if (area != null) {
+          RadViewComponent component = (RadViewComponent)area.getSelection().get(0);
+          PsiNavigateUtil.navigate(component.getTag());
+        }
       }
     };
     myActionPanel.registerAction(gotoDeclaration, IdeActions.ACTION_GOTO_DECLARATION);
@@ -366,7 +373,10 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
                 }
               }
 
-              myRootView.setLocation(x, y);
+              if (myMaxWidth > 0) {
+                myRootView.setLocation(Math.max(0, (myMaxWidth - myRootView.getScaledWidth()) / 2),
+                                         2 + Math.max(0, (myMaxHeight - myRootView.getScaledHeight()) / 2));
+              }
             }
           });
 
@@ -380,6 +390,13 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
         loadInspections(new EmptyProgressIndicator());
         updateInspections();
+
+        if (RenderPreviewMode.getCurrent() != RenderPreviewMode.NONE) {
+          RenderPreviewManager previewManager = getPreviewManager(true);
+          if (previewManager != null) {
+            previewManager.renderPreviews();
+          }
+        }
 
         runnable.run();
       }
@@ -449,6 +466,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
                 // Prefetch outside of read lock
                 service.getResourceResolver();
                 renderResult = ApplicationManager.getApplication().runReadAction(new Computable<RenderResult>() {
+                  @Nullable
                   @Override
                   public RenderResult compute() {
                     return service.render();
@@ -522,7 +540,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
   private void updateErrors(@NotNull RenderResult result) {
     RenderLogger logger = result.getLogger();
-    if (logger == null || !logger.hasProblems()) {
+    if (!logger.hasProblems()) {
       if (myErrorPanelWrapper == null) {
         return;
       }
@@ -566,6 +584,13 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
         myVerticalCaption.update();
 
         DesignerToolWindowManager.getInstance(getProject()).refresh(updateProperties);
+
+        if (RenderPreviewMode.getCurrent() != RenderPreviewMode.NONE) {
+          RenderPreviewManager previewManager = getPreviewManager(true);
+          if (previewManager != null) {
+            previewManager.renderPreviews();
+          }
+        }
       }
     });
   }
@@ -622,8 +647,10 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
     try {
       AndroidPlatform platform = AndroidPlatform.getInstance(getModule());
-      IAndroidTarget target = platform.getTarget();
-      builder.append(target.getFullName()).append(" - ").append(target.getVersion());
+      if (platform != null) {
+        IAndroidTarget target = platform.getTarget();
+        builder.append(target.getFullName()).append(" - ").append(target.getVersion());
+      }
     }
     catch (Throwable e) {
       builder.append("<unknown>");
@@ -632,8 +659,13 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     if (renderCreator != null) {
       builder.append("\nCreateRendererStack:\n");
       ByteArrayOutputStream stream = new ByteArrayOutputStream();
-      renderCreator.printStackTrace(new PrintStream(stream));
-      builder.append(stream.toString());
+      PrintStream printStream = new PrintStream(stream);
+      try {
+        renderCreator.printStackTrace(printStream);
+        builder.append(stream.toString());
+      } finally {
+        printStream.close();
+      }
     }
 
     if (info.myThrowable instanceof IndexOutOfBoundsException && myRootComponent != null && mySession != null) {
@@ -663,6 +695,13 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
     if (myPsiChangeListener.isUpdateRenderer() || ((myConfigurationDirty & MASK_RENDERING) != 0)) {
       updateRenderer(true);
+    } else if (myRootComponent != null && myRootView != null) {
+      if (RenderPreviewMode.getCurrent() != RenderPreviewMode.NONE) {
+        RenderPreviewManager previewManager = getPreviewManager(true);
+        if (previewManager != null) {
+          previewManager.renderPreviews();
+        }
+      }
     }
     myConfigurationDirty = 0;
   }
@@ -686,6 +725,11 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     super.dispose();
 
     disposeRenderer();
+
+    if (myPreviewManager != null) {
+      myPreviewManager.dispose();
+      myPreviewManager = null;
+    }
   }
 
   @Override
@@ -795,7 +839,12 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
   @Override
   public ComponentPasteFactory createPasteFactory(String xmlComponents) {
-    return new AndroidPasteFactory(getModule(), myConfiguration.getTarget(), xmlComponents);
+    IAndroidTarget target = myConfiguration.getTarget();
+    if (target != null) {
+      return new AndroidPasteFactory(getModule(), target, xmlComponents);
+    }
+
+    return null;
   }
 
   private void updatePalette(IAndroidTarget target) {
@@ -820,6 +869,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       PaletteToolWindowManager.getInstance(getProject()).refresh();
     }
     catch (Throwable e) {
+      // Pass
     }
   }
 
@@ -938,6 +988,17 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   /** Sets the zoom level. Note that this should be 1, not 100 (percent), for an image at its actual size */
   @Override
   public void setZoom(double zoom) {
+    if (myMaxWidth > 0 && myRootComponent != null) {
+      // If we have a fixed size, ignore scale factor
+      assert myMaxHeight > 0;
+      Rectangle bounds = myRootComponent.getBounds();
+      double imageWidth = bounds.getWidth();
+      double imageHeight = bounds.getHeight();
+      if (imageHeight > 0) {
+        zoom = Math.min(myMaxWidth / imageWidth, myMaxHeight / imageHeight);
+      }
+    }
+
     if (zoom != myZoom) {
       myZoom = zoom;
       normalizeScale();
@@ -964,6 +1025,14 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   @Override
   public double getZoom() {
     return myZoom;
+  }
+
+  private int myMaxWidth;
+  private int myMaxHeight;
+  private boolean myUseLargeShadows = true;
+
+  public boolean isUseLargeShadows() {
+    return myUseLargeShadows;
   }
 
   /** Zooms the designer view */
@@ -1043,6 +1112,12 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
         size.width -= ShadowPainter.SHADOW_SIZE;
         size.height -= ShadowPainter.SHADOW_SIZE;
       }
+
+      final int MIN_SIZE = 200;
+      if (myPreviewManager != null && size.width > MIN_SIZE) {
+        int previewWidth  = myPreviewManager.computePreviewWidth();
+        size.width = Math.max(MIN_SIZE, size.width - previewWidth);
+      }
     }
 
     return size;
@@ -1102,6 +1177,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     return null;
   }
 
+  @Nullable
   @Override
   protected RadComponent findTarget(int x, int y, @Nullable ComponentTargetFilter filter) {
     RadComponent target = super.findTarget(x, y, filter);
@@ -1223,17 +1299,21 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   @Override
   @NotNull
   public Component getComponent() {
-    return myRootView;
+    return myLayeredPane;
   }
 
   @Override
   public void updateLayout() {
+    zoom(ZoomType.FIT);
     Component component = getComponent();
     if (component instanceof JComponent) {
       JComponent jc = (JComponent)component;
       jc.revalidate();
     } else {
       component.validate();
+    }
+    if (myRootView != null) {
+      ((JComponent)myRootView.getParent()).revalidate();
     }
     component.repaint();
   }
@@ -1243,7 +1323,9 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   public Dimension getFullImageSize() {
     if (myRootView != null) {
       BufferedImage image = myRootView.getImage();
-      return new Dimension(image.getWidth(), image.getHeight());
+      if (image != null) {
+        return new Dimension(image.getWidth(), image.getHeight());
+      }
     }
 
     return NO_SIZE;
@@ -1254,7 +1336,9 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   public Dimension getScaledImageSize() {
     if (myRootView != null) {
       BufferedImage image = myRootView.getImage();
-      return new Dimension((int)(myZoom * image.getWidth()), (int)(myZoom * image.getHeight()));
+      if (image != null) {
+        return new Dimension((int)(myZoom * image.getWidth()), (int)(myZoom * image.getHeight()));
+      }
     }
 
     return NO_SIZE;
@@ -1262,13 +1346,14 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
   @Override
   public void setMaxSize(int width, int height) {
-    // Must implement when we add preview support
-    assert !supportsPreviews();
+    myMaxWidth = width;
+    myMaxHeight = height;
+    myUseLargeShadows = width <= 0;
   }
 
   @Override
   public void zoomFit(boolean onlyZoomOut, boolean allowZoomIn) {
-    assert !supportsPreviews();
+    zoom(allowZoomIn ? ZoomType.FIT : ZoomType.FIT_INTO);
   }
 
   @Override
@@ -1279,15 +1364,18 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
   @Override
   public boolean supportsPreviews() {
-    return false;
+    return true;
   }
 
   @Nullable
   @Override
   public RenderPreviewManager getPreviewManager(boolean createIfNecessary) {
-    assert supportsPreviews();
     if (myPreviewManager == null && createIfNecessary) {
       myPreviewManager = new RenderPreviewManager(this);
+      RenderPreviewPanel panel = new RenderPreviewPanel();
+      myLayeredPane.add(panel, LAYER_PREVIEW);
+      myLayeredPane.revalidate();
+      myLayeredPane.repaint();
     }
 
     return myPreviewManager;
@@ -1316,6 +1404,77 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       }
 
       return true;
+    }
+  }
+
+  private class RenderPreviewPanel extends JComponent {
+    RenderPreviewPanel() {
+      //super(new BorderLayout());
+      setBackground(null);
+      setOpaque(false);
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+      if (myPreviewManager != null) {
+        myPreviewManager.paint((Graphics2D)g);
+      }
+    }
+  }
+
+  @Override
+  protected DesignerEditableArea createEditableArea() {
+    return new AndroidEditableArea();
+  }
+
+  private class AndroidEditableArea extends DesignerEditableArea {
+    @Override
+    public InputTool findTargetTool(int x, int y) {
+      if (myPreviewManager != null && myRootView != null) {
+        if (myPreviewTool == null) {
+          myPreviewTool = new RenderPreviewTool();
+        }
+
+        if (x > (myRootView.getX() + myRootView.getWidth()) ||
+            y > (myRootView.getY() + myRootView.getHeight())) {
+          return myPreviewTool;
+        }
+      }
+
+      return super.findTargetTool(x, y);
+    }
+  }
+
+  private class RenderPreviewTool extends InputTool {
+    @Override
+    public void mouseMove(MouseEvent event, EditableArea area) throws Exception {
+      if (myPreviewManager != null) {
+        myPreviewManager.moved(event);
+      }
+    }
+
+    @Override
+    public void mouseUp(MouseEvent event, EditableArea area) throws Exception {
+      super.mouseUp(event, area);
+      if (myPreviewManager != null && event.getClickCount() > 0) {
+        myPreviewManager.click(event);
+      }
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent event, EditableArea area) throws Exception {
+      super.mouseEntered(event, area);
+      if (myPreviewManager != null) {
+        myPreviewManager.enter(event);
+      }
+    }
+
+    @Override
+    public void mouseExited(MouseEvent event, EditableArea area) throws Exception {
+      super.mouseExited(event, area);
+      if (myPreviewManager != null) {
+        myPreviewManager.exit(event);
+      }
     }
   }
 }

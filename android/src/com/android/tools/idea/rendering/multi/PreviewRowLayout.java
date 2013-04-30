@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.tools.idea.rendering.ShadowPainter.SHADOW_SIZE;
 import static com.android.tools.idea.rendering.multi.RenderPreviewManager.HORIZONTAL_GAP;
 import static com.android.tools.idea.rendering.multi.RenderPreviewManager.VERTICAL_GAP;
 
@@ -55,10 +56,8 @@ public class PreviewRowLayout {
     int availableWidth = clientArea.width;
     int availableHeight = clientArea.height;
     int maxVisibleY = clientArea.y + clientArea.height;
-
-    @SuppressWarnings("UnnecessaryLocalVariable") // Makes the code more readable
-    int bottomBorder = scaledImageHeight;
-    int rightHandSide = scaledImageWidth + HORIZONTAL_GAP;
+    int bottomBorder = scaledImageHeight + SHADOW_SIZE;
+    int rightHandSide = scaledImageWidth + HORIZONTAL_GAP + SHADOW_SIZE;
     int nextY = 0;
 
     // First lay out images across the top right hand side
