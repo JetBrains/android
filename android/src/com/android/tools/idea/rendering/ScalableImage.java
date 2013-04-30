@@ -34,7 +34,7 @@ public class ScalableImage {
   private final boolean myAlphaChannelImage;
   private double myScale = 1;
   private int myMaxWidth;
-  private int myFixedHeight;
+  private int myMaxHeight;
   private boolean myUseLargeShadows = true;
 
   public ScalableImage(@NotNull BufferedImage image, boolean alphaChannelImage) {
@@ -65,10 +65,10 @@ public class ScalableImage {
   public void setScale(double scale) {
     if (myMaxWidth > 0) {
       // If we have a fixed size, ignore scale factor
-      assert myFixedHeight > 0;
+      assert myMaxHeight > 0;
       double imageWidth = myImage.getWidth();
       double imageHeight = myImage.getHeight();
-      scale = Math.min(myMaxWidth / imageWidth, myFixedHeight / imageHeight);
+      scale = Math.min(myMaxWidth / imageWidth, myMaxHeight / imageHeight);
     }
 
     if (myScale != scale) {
@@ -250,7 +250,7 @@ public class ScalableImage {
 
   public void setMaxSize(int width, int height) {
     myMaxWidth = width;
-    myFixedHeight = height;
+    myMaxHeight = height;
     setScale(1);
   }
 
@@ -258,8 +258,8 @@ public class ScalableImage {
     return myMaxWidth;
   }
 
-  public int getFixedHeight() {
-    return myFixedHeight;
+  public int getMaxHeight() {
+    return myMaxHeight;
   }
 
   public boolean isUseLargeShadows() {

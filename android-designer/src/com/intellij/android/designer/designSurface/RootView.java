@@ -17,6 +17,7 @@ package com.intellij.android.designer.designSurface;
 
 import com.android.tools.idea.rendering.ImageUtils;
 import com.android.tools.idea.rendering.ShadowPainter;
+import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.designer.designSurface.ScalableComponent;
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.tools.idea.rendering.ShadowPainter.SHADOW_SIZE;
+import static com.android.tools.idea.rendering.ShadowPainter.SMALL_SHADOW_SIZE;
 import static java.awt.RenderingHints.KEY_INTERPOLATION;
 import static java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR;
 
@@ -42,17 +44,20 @@ import static java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR;
  * layout of the image depends on the alpha channel property. (We're
  * storing the opposite of the alpha channel attribute in the drop shadow
  * property.)
+ * <p>
+ * TODO: Use {@link com.android.tools.idea.rendering.ScalableImage} here!
+ * </p>
  */
 public class RootView extends JComponent implements ScalableComponent {
-  private List<EmptyRegion> myEmptyRegions;
-  private final AndroidDesignerEditorPanel myPanel;
-  private BufferedImage myScaledImage;
+  @Nullable private List<EmptyRegion> myEmptyRegions;
+  @NotNull private final AndroidDesignerEditorPanel myPanel;
+  @Nullable private BufferedImage myScaledImage;
   private boolean myShowDropShadow;
   protected int myX;
   protected int myY;
-  protected BufferedImage myImage;
+  @Nullable protected BufferedImage myImage;
 
-  public RootView(AndroidDesignerEditorPanel panel, int x, int y, BufferedImage image, boolean isAlphaChannelImage) {
+  public RootView(@NotNull AndroidDesignerEditorPanel panel, int x, int y, @Nullable BufferedImage image, boolean isAlphaChannelImage) {
     myX = x;
     myY = y;
     myPanel = panel;
@@ -64,7 +69,7 @@ public class RootView extends JComponent implements ScalableComponent {
     return myPanel;
   }
 
-  @NotNull
+  @Nullable
   public BufferedImage getImage() {
     return myImage;
   }
@@ -109,15 +114,16 @@ public class RootView extends JComponent implements ScalableComponent {
 
   protected void updateBounds(boolean imageChanged) {
     if (myImage != null) {
-      if (myPanel != null && myPanel.isZoomToFit()) {
+      if (myPanel.isZoomToFit()) {
         myPanel.zoomToFitIfNecessary();
       }
       double zoom = getScale();
       int newWidth = (int)(zoom * myImage.getWidth());
       int newHeight = (int)(zoom * myImage.getHeight());
       if (myShowDropShadow) {
-        newWidth += SHADOW_SIZE;
-        newHeight += SHADOW_SIZE;
+        int shadowSize = myPanel.isUseLargeShadows() ? SHADOW_SIZE : SMALL_SHADOW_SIZE;
+        newWidth += shadowSize;
+        newHeight += shadowSize;
       }
       if (getWidth() != newWidth || getHeight() != newHeight) {
         setSize(newWidth, newHeight);
@@ -129,7 +135,7 @@ public class RootView extends JComponent implements ScalableComponent {
   }
 
   public void addEmptyRegion(int x, int y, int width, int height) {
-    if (new Rectangle(0, 0, myImage.getWidth(), myImage.getHeight()).contains(x, y)) {
+    if (myImage != null && new Rectangle(0, 0, myImage.getWidth(), myImage.getHeight()).contains(x, y)) {
       EmptyRegion r = new EmptyRegion();
       r.myX = x;
       r.myY = y;
@@ -144,6 +150,10 @@ public class RootView extends JComponent implements ScalableComponent {
   }
 
   protected void paintImage(Graphics g) {
+    if (myImage == null) {
+      return;
+    }
+
     double scale = myPanel.getZoom();
     if (myScaledImage == null) {
       // Special cases scale=1 to be fast
@@ -153,17 +163,28 @@ public class RootView extends JComponent implements ScalableComponent {
 
         if (myShowDropShadow) {
           // Just need to draw drop shadows
-          myScaledImage = ShadowPainter.createRectangularDropShadow(myImage);
+          if (myPanel.isUseLargeShadows()) {
+            myScaledImage = ShadowPainter.createRectangularDropShadow(myImage);
+          } else {
+            myScaledImage = ShadowPainter.createSmallRectangularDropShadow(myImage);
+          }
         }
         g.drawImage(myScaledImage, 0, 0, null);
       } else if (scale < 1) {
         // When scaling down we need to do an expensive scaling to ensure that
         // the thumbnails look good
         if (myShowDropShadow) {
-          myScaledImage = ImageUtils.scale(myImage, scale, scale, SHADOW_SIZE, SHADOW_SIZE);
-          ShadowPainter.drawRectangleShadow(myScaledImage, 0, 0,
-                                         myScaledImage.getWidth() - SHADOW_SIZE,
-                                         myScaledImage.getHeight() - SHADOW_SIZE);
+          if (myPanel.isUseLargeShadows()) {
+            myScaledImage = ImageUtils.scale(myImage, scale, scale, SHADOW_SIZE, SHADOW_SIZE);
+            ShadowPainter.drawRectangleShadow(myScaledImage, 0, 0,
+                                              myScaledImage.getWidth() - SHADOW_SIZE,
+                                              myScaledImage.getHeight() - SHADOW_SIZE);
+          } else {
+            myScaledImage = ImageUtils.scale(myImage, scale, scale, SMALL_SHADOW_SIZE, SMALL_SHADOW_SIZE);
+            ShadowPainter.drawSmallRectangleShadow(myScaledImage, 0, 0,
+                                                   myScaledImage.getWidth() - SMALL_SHADOW_SIZE,
+                                                    myScaledImage.getHeight() - SMALL_SHADOW_SIZE);
+          }
         } else {
           myScaledImage = ImageUtils.scale(myImage, scale, scale);
         }
@@ -184,7 +205,11 @@ public class RootView extends JComponent implements ScalableComponent {
           g2.dispose();
         }
         if (getShowDropShadow()) {
-          ShadowPainter.drawRectangleShadow(g, 0, 0, scaledWidth, scaledHeight);
+          if (myPanel.isUseLargeShadows()) {
+            ShadowPainter.drawRectangleShadow(g, 0, 0, scaledWidth, scaledHeight);
+          } else {
+            ShadowPainter.drawSmallRectangleShadow(g, 0, 0, scaledWidth, scaledHeight);
+          }
         }
       }
     } else {
@@ -205,13 +230,20 @@ public class RootView extends JComponent implements ScalableComponent {
     }
   }
 
+  /** Returns the width of the image itself, when scaled */
+  public int getScaledWidth() {
+    return myImage != null ? (int)(getScale() * myImage.getWidth()) : 0;
+  }
+
+  /** Returns the height of the image itself, when scaled */
+  public int getScaledHeight() {
+    return myImage != null ? (int)(getScale() * myImage.getHeight()) : 0;
+  }
+
   // Implements ScalableComponent
   @Override
   public double getScale() {
-    if (myPanel != null) {
-      return myPanel.getZoom();
-    }
-    return 1;
+    return myPanel.getZoom();
   }
 
   private static class EmptyRegion {

@@ -164,6 +164,31 @@ public class ShadowPainter {
   }
 
   /**
+   * Draws a small rectangular drop shadow (of size {@link #SMALL_SHADOW_SIZE} by
+   * {@link #SMALL_SHADOW_SIZE} around the given source and returns a new image with
+   * both combined
+   *
+   * @param source the source image
+   * @return the source image with a drop shadow on the bottom and right
+   */
+  public static BufferedImage createSmallRectangularDropShadow(BufferedImage source) {
+    int type = source.getType();
+    if (type == BufferedImage.TYPE_CUSTOM) {
+      type = BufferedImage.TYPE_INT_ARGB;
+    }
+
+    int width = source.getWidth();
+    int height = source.getHeight();
+    BufferedImage image = new BufferedImage(width + SMALL_SHADOW_SIZE, height + SMALL_SHADOW_SIZE, type);
+    Graphics g = image.getGraphics();
+    g.drawImage(source, 0, 0, width, height, null);
+    drawSmallRectangleShadow(image, 0, 0, width, height);
+    g.dispose();
+
+    return image;
+  }
+
+  /**
    * Draws a drop shadow for the given rectangle into the given context. It
    * will not draw anything if the rectangle is smaller than a minimum
    * determined by the assets used to draw the shadow graphics.
