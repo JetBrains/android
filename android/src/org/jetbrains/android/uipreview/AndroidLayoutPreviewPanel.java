@@ -22,6 +22,8 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.editor.CaretModel;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.editor.event.CaretEvent;
 import com.intellij.openapi.editor.event.CaretListener;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -193,8 +195,9 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
       if (leaf != null) {
         int offset = leaf.tag.getTextOffset();
         if (offset != -1) {
-          // TODO: Figure out how to scroll the view, too!
-          myEditor.getEditor().getCaretModel().moveToOffset(offset);
+          Editor editor = myEditor.getEditor();
+          editor.getCaretModel().moveToOffset(offset);
+          editor.getScrollingModel().scrollToCaret(ScrollType.MAKE_VISIBLE);
         }
       }
     }
