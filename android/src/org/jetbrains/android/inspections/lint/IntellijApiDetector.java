@@ -23,6 +23,7 @@ import com.android.tools.lint.detector.api.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import lombok.ast.AstVisitor;
 import lombok.ast.CompilationUnit;
@@ -47,6 +48,7 @@ import static org.jetbrains.android.inspections.lint.IntellijLintUtils.SUPPRESS_
  * </ul>
  */
 public class IntellijApiDetector extends ApiDetector {
+  @SuppressWarnings("unchecked")
   static final Implementation IMPLEMENTATION = new Implementation(
     IntellijApiDetector.class,
     EnumSet.of(Scope.RESOURCE_FILE, Scope.MANIFEST, Scope.JAVA_FILE),
@@ -368,6 +370,10 @@ public class IntellijApiDetector extends ApiDetector {
             return;
           }
 
+          if (isWithinVersionCheckConditional(expression, api)) {
+            return;
+          }
+
           Location location = IntellijLintUtils.getLocation(myContext.file, expression);
           String fqcn = containingClass.getQualifiedName();
           String message = String.format(
@@ -487,6 +493,10 @@ public class IntellijApiDetector extends ApiDetector {
           return;
         }
 
+        if (isWithinVersionCheckConditional(expression, api)) {
+          return;
+        }
+
         PsiElement locationNode = IntellijLintUtils.getCallName(expression);
         if (locationNode == null) {
           locationNode = expression;
@@ -500,5 +510,83 @@ public class IntellijApiDetector extends ApiDetector {
 
       super.visitCallExpression(expression);
     }
+  }
+
+  private static boolean isWithinVersionCheckConditional(PsiElement element, int api) {
+    PsiElement current = element.getParent();
+    PsiElement prev = current;
+    while (true) {
+      if (current instanceof PsiIfStatement) {
+        PsiIfStatement ifStatement = (PsiIfStatement)current;
+        PsiExpression condition = ifStatement.getCondition();
+        if (condition != prev && condition instanceof PsiBinaryExpression) {
+          PsiBinaryExpression binary = (PsiBinaryExpression)condition;
+          IElementType tokenType = binary.getOperationTokenType();
+          if (tokenType == JavaTokenType.GT || tokenType == JavaTokenType.GE ||
+              tokenType == JavaTokenType.LE || tokenType == JavaTokenType.LT) {
+            PsiExpression left = binary.getLOperand();
+            if (left instanceof PsiReferenceExpression) {
+              PsiReferenceExpression ref = (PsiReferenceExpression)left;
+              if ("SDK_INT".equals(ref.getReferenceName())) {
+                PsiExpression right = binary.getROperand();
+                int level = -1;
+                if (right instanceof PsiReferenceExpression) {
+                  PsiReferenceExpression ref2 = (PsiReferenceExpression)right;
+                  String codeName = ref2.getReferenceName();
+                  level = getApiForCodenameField(codeName);
+                } else if (right instanceof PsiLiteralExpression) {
+                  PsiLiteralExpression lit = (PsiLiteralExpression)right;
+                  Object value = lit.getValue();
+                  if (value instanceof Integer) {
+                    level = ((Integer)value).intValue();
+                  }
+                }
+                if (level != -1) {
+                  boolean fromThen = prev == ifStatement.getThenBranch();
+                  boolean fromElse = prev == ifStatement.getElseBranch();
+                  assert fromThen == !fromElse;
+                  if (tokenType == JavaTokenType.GE) {
+                    // if (SDK_INT >= ICE_CREAM_SANDWICH) { <call> } else { ... }
+                    return api >= level && fromThen;
+                  }
+                  else if (tokenType == JavaTokenType.GT) {
+                    // if (SDK_INT > ICE_CREAM_SANDWICH) { <call> } else { ... }
+                    return api > level && fromThen;
+                  }
+                  else if (tokenType == JavaTokenType.LE) {
+                    // if (SDK_INT <= ICE_CREAM_SANDWICH) { ... } else { <call> }
+                    return api > level && fromElse;
+                  }
+                  else if (tokenType == JavaTokenType.LT) {
+                    // if (SDK_INT < ICE_CREAM_SANDWICH) { ... } else { <call> }
+                    return api >= level && fromElse;
+                  } else {
+                    assert false : tokenType;
+                  }
+                }
+              }
+            }
+          }
+        }
+        break;
+      } else if (current instanceof PsiMethod || current instanceof PsiFile) {
+        return false;
+      }
+      prev = current;
+      current = current.getParent();
+    }
+
+    return false;
+  }
+
+  private static int getApiForCodenameField(@Nullable String codeName) {
+    for (int level = 1; level < SdkVersionInfo.HIGHEST_KNOWN_API; level++) {
+      String s = SdkVersionInfo.getBuildCode(level);
+      if (s != null && s.equals(codeName)) {
+        return level;
+      }
+    }
+
+    return -1;
   }
 }
