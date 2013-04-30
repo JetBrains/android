@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.model.AndroidContentRoot;
 import com.android.tools.idea.gradle.model.AndroidContentRoot.ContentRootStorage;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -33,7 +32,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Collection;
 
 /**
  * Sets the content roots of an IDEA module imported from an {@link com.android.build.gradle.model.AndroidProject}.
@@ -92,12 +90,6 @@ public class ContentRootModuleCustomizer implements ModuleCustomizer {
       public String getRootDirPath() {
         VirtualFile file = Preconditions.checkNotNull(contentEntry.getFile());
         return file.getPath();
-      }
-
-      @Override
-      @NotNull
-      public Collection<String> getIncludedDirPaths() {
-        return ImmutableList.of();
       }
 
       @Override

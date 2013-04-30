@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.model.AndroidContentRoot.ContentRootStorage;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import junit.framework.TestCase;
@@ -29,7 +28,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -57,12 +55,6 @@ public class AndroidContentRootTest extends TestCase {
       @NotNull
       public String getRootDirPath() {
         return myAndroidProject.getRootDir().getAbsolutePath();
-      }
-
-      @Override
-      @NotNull
-      public Collection<String> getIncludedDirPaths() {
-        return ImmutableList.of();
       }
 
       @Override
