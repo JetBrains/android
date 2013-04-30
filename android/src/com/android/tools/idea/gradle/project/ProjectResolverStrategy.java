@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.model.AndroidContentRoot.ContentRootStorage
 import com.android.tools.idea.gradle.model.AndroidDependencies;
 import com.android.tools.idea.gradle.model.AndroidDependencies.DependencyFactory;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.intellij.externalSystem.JavaProjectData;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -48,7 +47,10 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Imports a single Android-Gradle project into IDEA.
@@ -171,15 +173,6 @@ class ProjectResolverStrategy {
       @NotNull
       public String getRootDirPath() {
         return contentRootData.getRootPath();
-      }
-
-      @Override
-      @NotNull
-      public Collection<String> getIncludedDirPaths() {
-        Set<String> dirPaths = Sets.newHashSet();
-        dirPaths.addAll(contentRootData.getPaths(ExternalSystemSourceType.SOURCE));
-        dirPaths.addAll(contentRootData.getPaths(ExternalSystemSourceType.TEST));
-        return dirPaths;
       }
 
       @Override

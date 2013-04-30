@@ -20,25 +20,26 @@ import com.android.build.gradle.model.ProductFlavorContainer;
 import com.android.build.gradle.model.Variant;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.io.FileUtilRt;
-import com.intellij.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Configures a module's content root from an {@link AndroidProject}.
  */
 public final class AndroidContentRoot {
   private static final String OUTPUT_DIR_NAME = "build";
+
+  // TODO: Retrieve this information from Gradle.
+  private static final List<String> EXCLUDED_OUTPUT_DIR_NAMES =
+    ImmutableList.of("apk", "assets", "bundles", "classes", "dependency-cache", "exploded-bundles", "incremental", "libs", "manifests",
+                     "symbols", "tmp");
 
   private AndroidContentRoot() {
   }
@@ -55,7 +56,6 @@ public final class AndroidContentRoot {
                                 boolean excludeOutputDirs) {
     Variant selectedVariant = androidProject.getSelectedVariant();
     storePaths(selectedVariant, storage);
-    Collection<String> generatedDirPaths = storage.getIncludedDirPaths();
 
     AndroidProject delegate = androidProject.getDelegate();
     Map<String, ProductFlavorContainer> productFlavors = delegate.getProductFlavors();
@@ -70,7 +70,7 @@ public final class AndroidContentRoot {
     storePaths(defaultConfig, storage);
 
     if (excludeOutputDirs) {
-      excludeDirsExcept(generatedDirPaths, storage);
+      excludeOutputDirs(storage);
     }
   }
 
@@ -109,56 +109,27 @@ public final class AndroidContentRoot {
     }
   }
 
-  /**
-   * Marks directories as 'excluded'. An 'excluded' directory may:
-   * <ol>
-   * <li>have a name starting with "."</li>
-   * <li>be a child of the output directory 'build'. The directories whose paths are specified in {@code generatedDirPaths} are not
-   * excluded</li>
-   * </ol>
-   *
-   * @param generatedDirPaths the paths of the directories where generated source code is stored.
-   * @param storage           persists the configuration of a content root.
-   */
-  private static void excludeDirsExcept(@NotNull Collection<String> generatedDirPaths, @NotNull ContentRootStorage storage) {
+  private static void excludeOutputDirs(@NotNull ContentRootStorage storage) {
     for (File child : childrenOf(new File(storage.getRootDirPath()))) {
       if (child.isDirectory()) {
-        exclude(child, generatedDirPaths, storage);
+        exclude(child, storage);
       }
     }
   }
 
-  private static void exclude(@NotNull File dir, @NotNull Collection<String> generatedDirPaths, @NotNull ContentRootStorage storage) {
+  private static void exclude(@NotNull File dir, @NotNull ContentRootStorage storage) {
     String name = dir.getName();
     if (name.startsWith(".")) {
       storage.storePath(ExternalSystemSourceType.EXCLUDED, dir);
       return;
     }
     if (name.equals(OUTPUT_DIR_NAME)) {
-      Collection<String> dirsToExclude = getChildDirNames(dir, generatedDirPaths);
       for (File child : childrenOf(dir)) {
-        if (child.isDirectory() && !dirsToExclude.contains(child.getName())) {
+        if (child.isDirectory() && EXCLUDED_OUTPUT_DIR_NAMES.contains(child.getName())) {
           storage.storePath(ExternalSystemSourceType.EXCLUDED, child);
         }
       }
     }
-  }
-
-  @NotNull
-  private static Collection<String> getChildDirNames(@NotNull File base, @NotNull Collection<String> paths) {
-    String basePath = base.getAbsolutePath();
-    Set<String> dirNames = Sets.newHashSet();
-    for (String path : paths) {
-      String relativePath = FileUtilRt.getRelativePath(basePath, path, File.separatorChar);
-      if (relativePath != null && !relativePath.startsWith("..") && !relativePath.startsWith(File.separator)) {
-        relativePath = PathUtil.getCanonicalPath(relativePath);
-        List<String> segments = FileUtil.splitPath(relativePath);
-        if (!segments.isEmpty()) {
-          dirNames.add(segments.get(0));
-        }
-      }
-    }
-    return dirNames;
   }
 
   @NotNull
@@ -176,12 +147,6 @@ public final class AndroidContentRoot {
      */
     @NotNull
     String getRootDirPath();
-
-    /**
-     * @return the paths of the directories marked as 'source' and 'test.'
-     */
-    @NotNull
-    Collection<String> getIncludedDirPaths();
 
     /**
      * Stores the path of the given directory as a directory of the given type.
