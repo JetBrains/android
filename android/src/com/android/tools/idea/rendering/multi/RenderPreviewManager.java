@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering.multi;
 
+import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.Capability;
 import com.android.ide.common.resources.configuration.*;
 import com.android.resources.Density;
@@ -402,7 +403,7 @@ public class RenderPreviewManager implements Disposable {
 
   private void tiledLayout() {
     assert myPreviews != null;
-    PreviewTileLayout tileLayout = new PreviewTileLayout(myPreviews, myRenderContext);
+    PreviewTileLayout tileLayout = new PreviewTileLayout(myPreviews, myRenderContext, fixedOrder());
     tileLayout.performLayout();
     myFixedRenderSize = tileLayout.getFixedRenderSize();
     myLayoutHeight = tileLayout.getLayoutHeight();
@@ -833,12 +834,11 @@ public class RenderPreviewManager implements Disposable {
     // to the front
     // 10" tablet, 7" tablet, reference phones, tiny phone, and in general the first
     // version of each seen screen size
-    List<Device> sorted = new ArrayList<Device>(devices);
     Set<ScreenSize> seenSizes = EnumSet.noneOf(ScreenSize.class);
     State currentState = configuration.getDeviceState();
     String currentStateName = currentState != null ? currentState.getName() : "";
 
-    for (Device device : sorted) {
+    for (Device device : devices) {
       boolean interesting = false;
 
       State state = device.getState(currentStateName);
@@ -885,7 +885,19 @@ public class RenderPreviewManager implements Disposable {
         NestedConfiguration screenConfig = NestedConfiguration.create(configuration);
         screenConfig.setOverrideDevice(true);
         screenConfig.setDevice(device, false);
-        screenConfig.setDisplayName(DeviceMenuAction.getDeviceLabel(device, true));
+        String label;
+        if (HardwareConfigHelper.isNexus(device)) {
+          // Similar to HardwareConfigHelper#getNexusLabel, but narrower (omits dimensions and density)
+          String name = device.getName();
+          Screen screen = device.getDefaultHardware().getScreen();
+          float length = (float) screen.getDiagonalLength();
+          // Round dimensions to the nearest tenth
+          length = Math.round(10 * length) / 10.0f;
+          label = String.format(java.util.Locale.US, "%1$s (%2$s\")", name, Float.toString(length));
+        } else {
+          label = DeviceMenuAction.getDeviceLabel(device, true);
+        }
+        screenConfig.setDisplayName(label);
         addPreview(RenderPreview.create(this, screenConfig));
       }
     }
