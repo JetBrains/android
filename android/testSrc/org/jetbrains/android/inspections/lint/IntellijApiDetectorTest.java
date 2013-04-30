@@ -42,6 +42,16 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
     doTest(inspection, "Add @SuppressLint(\"NewApi\") annotation");
   }
 
+  /**
+   * For unknown reasons this test doesn't work; it cannot resolve the symbol android.os.Build. This
+   * is probably related to the fact that the unit tests work with an incomplete snapshot of an ancient
+   * SDK (1.5 or something like that.)
+  public void testVersionConditional() throws Exception {
+    AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
+    doTest(inspection, null);
+  }
+  */
+
   private void doTest(@NotNull final AndroidLintInspectionBase inspection, @Nullable String quickFixName) throws Exception {
     createManifest();
     myFixture.enableInspections(inspection);
