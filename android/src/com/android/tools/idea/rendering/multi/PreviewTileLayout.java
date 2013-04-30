@@ -37,10 +37,12 @@ public class PreviewTileLayout {
 
   private final @NotNull List<RenderPreview> myPreviews;
   private final @NotNull RenderContext myRenderContext;
+  private final boolean myFixedOrder;
 
-  public PreviewTileLayout(@NotNull List<RenderPreview> previews, @NotNull RenderContext renderContext) {
+  public PreviewTileLayout(@NotNull List<RenderPreview> previews, @NotNull RenderContext renderContext, boolean fixedOrder) {
     myPreviews = previews;
     myRenderContext = renderContext;
+    myFixedOrder = fixedOrder;
   }
 
   private int myLayoutHeight;
@@ -56,11 +58,22 @@ public class PreviewTileLayout {
     int availableWidth = clientArea.width;
     int availableHeight = clientArea.height;
     availableWidth -= HORIZONTAL_GAP;
-    List<RenderPreview> aspectOrder = new ArrayList<RenderPreview>(myPreviews);
+
     Dimension fullImageSize = myRenderContext.getFullImageSize();
+    List<RenderPreview> aspectOrder = new ArrayList<RenderPreview>(myPreviews);
+    if (!myFixedOrder) {
+      if (FILL_FROM_BOTTOM) {
+        Collections.sort(aspectOrder, fullImageSize.width <= fullImageSize.height
+                                      ? RenderPreview.DECREASING_ASPECT_RATIO
+                                      : RenderPreview.INCREASING_ASPECT_RATIO);
+      } else {
+        Collections.sort(aspectOrder, fullImageSize.width >= fullImageSize.height ?
+                                   RenderPreview.DECREASING_ASPECT_RATIO : RenderPreview.INCREASING_ASPECT_RATIO);
+      }
+    }
 
     // Compute best row/column size
-    int cellCount = myPreviews.size() + 1;  // +1: for main preview
+    int cellCount = aspectOrder.size() + 1;  // +1: for main preview
 
     Pair<Integer,Integer> shape = computeOptimalShape(availableWidth, availableHeight, cellCount);
     int rows = shape.getFirst();
@@ -182,7 +195,7 @@ public class PreviewTileLayout {
     }
   }
 
-  private static RenderPreview[][] computeGrid(List<RenderPreview> aspectOrder, Dimension fullImageSize, int rows, int columns) {
+  private RenderPreview[][] computeGrid(List<RenderPreview> previews, Dimension fullImageSize, int rows, int columns) {
     int row;
     int column;
     RenderPreview[][] grid = new RenderPreview[rows][columns];
@@ -199,10 +212,7 @@ public class PreviewTileLayout {
 
       row = rows - 1;
       column = columns - 1;
-      Collections.sort(aspectOrder, fullImageSize.width <= fullImageSize.height
-                                    ? RenderPreview.DECREASING_ASPECT_RATIO
-                                    : RenderPreview.INCREASING_ASPECT_RATIO);
-      for (RenderPreview preview : aspectOrder) {
+      for (RenderPreview preview : previews) {
         grid[row][column] = preview;
         column--;
         if (column < 0) {
@@ -214,8 +224,6 @@ public class PreviewTileLayout {
         }
       }
     } else {
-      Collections.sort(aspectOrder, fullImageSize.width >= fullImageSize.height ?
-                                    RenderPreview.DECREASING_ASPECT_RATIO : RenderPreview.INCREASING_ASPECT_RATIO);
       if (columns > 1) {
         row = 0;
         //// Reserve spot 0 for the default preview
@@ -224,7 +232,7 @@ public class PreviewTileLayout {
         row = 1;
         column = 0;
       }
-      for (RenderPreview preview : aspectOrder) {
+      for (RenderPreview preview : previews) {
         grid[row][column] = preview;
         column++;
         if (column == columns) {
