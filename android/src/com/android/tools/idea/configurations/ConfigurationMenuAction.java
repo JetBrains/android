@@ -324,7 +324,7 @@ public class ConfigurationMenuAction extends FlatComboAction {
             VirtualFile parentFolder = file.getParent();
             assert parentFolder != null;
             VirtualFile res = parentFolder.getParent();
-            VirtualFile newParentFolder = res.findOrCreateChildData(this, folderName);
+            VirtualFile newParentFolder = res.createChildDirectory(this, folderName);
             if (newParentFolder == null) {
               String message = String.format("Could not create folder %1$s in %2$s", folderName, res.getPath());
               return Pair.of(message, null);
