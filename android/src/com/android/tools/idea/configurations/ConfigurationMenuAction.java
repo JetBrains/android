@@ -202,6 +202,10 @@ public class ConfigurationMenuAction extends FlatComboAction {
     group.add(new PreviewAction(context, "Preview All Screen Sizes", ACTION_PREVIEW_MODE, RenderPreviewMode.SCREENS, true));
   }
 
+  static void addRemovePreviewsAction(@NotNull RenderContext context, @NotNull DefaultActionGroup group) {
+    group.add(new PreviewAction(context, "Remove Previews", ACTION_PREVIEW_MODE, RenderPreviewMode.NONE, true));
+  }
+
   private static final int ACTION_ADD = 1;
   private static final int ACTION_DELETE_ALL = 2;
   private static final int ACTION_PREVIEW_MODE = 3;

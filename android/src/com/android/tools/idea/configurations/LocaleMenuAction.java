@@ -23,6 +23,7 @@ import com.android.tools.idea.rendering.LocaleManager;
 import com.android.tools.idea.rendering.ProjectResources;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
+import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
@@ -77,7 +78,11 @@ public class LocaleMenuAction extends FlatComboAction {
 
     if (locales.size() > 1) {
       group.addSeparator();
-      ConfigurationMenuAction.addLocalePreviewAction(myRenderContext, group, true);
+      if (RenderPreviewMode.getCurrent() != RenderPreviewMode.LOCALES) {
+        ConfigurationMenuAction.addLocalePreviewAction(myRenderContext, group, true);
+      } else {
+        ConfigurationMenuAction.addRemovePreviewsAction(myRenderContext, group);
+      }
     }
 
     return group;
