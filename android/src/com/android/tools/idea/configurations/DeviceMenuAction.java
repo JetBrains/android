@@ -19,6 +19,7 @@ import com.android.annotations.Nullable;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -187,7 +188,11 @@ public class DeviceMenuAction extends FlatComboAction {
     group.addSeparator();
     group.add(new RunAndroidAvdManagerAction("Add Device Definition..."));
     group.addSeparator();
-    ConfigurationMenuAction.addScreenSizeAction(myRenderContext, group);
+    if (RenderPreviewMode.getCurrent() != RenderPreviewMode.SCREENS) {
+      ConfigurationMenuAction.addScreenSizeAction(myRenderContext, group);
+    } else {
+      ConfigurationMenuAction.addRemovePreviewsAction(myRenderContext, group);
+    }
 
     return group;
   }
