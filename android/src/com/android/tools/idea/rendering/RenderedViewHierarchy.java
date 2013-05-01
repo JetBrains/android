@@ -86,7 +86,11 @@ public class RenderedViewHierarchy {
 
   @Nullable
   public RenderedView findLeafAt(int x, int y) {
-    for (RenderedView view : myRoots) {
+    // Search BACKWARDS such that if the children are painted on top of each
+    // other (as is the case in a FrameLayout) I pick the last one which will
+    // be topmost!
+    for (int i = myRoots.size() - 1; i >= 0; i--) {
+      RenderedView view = myRoots.get(i);
       RenderedView leaf = view.findLeafAt(x, y);
       if (leaf != null) {
         return leaf;
