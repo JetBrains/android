@@ -97,6 +97,20 @@ public class AndroidDesignerIcons {
   public static final Icon DominateWeight = load("/icons/allweight.png"); // 16x16
   public static final Icon Weights = load("/icons/weights.png"); // 16x16
 
+  // GridLayout layout actions
+  public static final Icon ShowGrid = load("/icons/showgrid.png"); // 16x16
+  public static final Icon GridMode = load("/icons/gridmode.png"); // 16x16
+  public static final Icon AddCol = load("/icons/addcol.png"); // 16x16
+  public static final Icon AddRow = load("/icons/addrow.png"); // 16x16
+  public static final Icon RemoveCol = load("/icons/removecol.png"); // 16x16
+  public static final Icon RemoveRow = load("/icons/removerow.png"); // 16x16
+
+  // RelativeLayout layout actions
+  public static final Icon Constraints = load("/icons/constraints.png"); // 16x16
+  public static final Icon Snap = load("/icons/snap.png"); // 16x16
+  public static final Icon Structure = load("/icons/structure.png"); // 16x16
+
+
   public static final Icon SwitchHorizontalLinear = load("/icons/hlinear.png"); // 16x16
   public static final Icon SwitchVerticalLinear = load("/icons/vlinear.png"); // 16x16
 }

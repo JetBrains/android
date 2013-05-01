@@ -40,7 +40,7 @@ public class OrientationAction extends LayoutAction {
   public OrientationAction(@NotNull DesignerEditorPanel designer,
                            @NotNull RadViewComponent layout,
                            boolean defaultHorizontal) {
-    super(designer, "Change attribute 'orientation'", null, AndroidDesignerIcons.LinearLayout);
+    super(designer, "Change attribute 'orientation'", null, AndroidDesignerIcons.SwitchHorizontalLinear);
     myLayout = layout;
     myDefaultHorizontal = defaultHorizontal;
     update(getTemplatePresentation());
