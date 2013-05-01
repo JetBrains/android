@@ -63,7 +63,8 @@ import java.util.*;
 public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
   private static final NotificationGroup PROPERTY_FILES_UPDATING_NOTIFICATION =
     NotificationGroup.balloonGroup("Android Property Files Updating");
-  private static final Key<String[]> ANDROID_DEPENDENCIES_KEY = Key.create("ANDROID_DEPENDENCIES");
+  private static final Key<List<Object>> ANDROID_PROPERTIES_STATE_KEY = Key.create("ANDROID_PROPERTIES_STATE");
+  private Notification myNotification;
 
   private Disposable myDisposable;
 
@@ -83,6 +84,10 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
 
   @Override
   public void disposeComponent() {
+    if (myNotification != null && !myNotification.isExpired()) {
+      myNotification.expire();
+    }
+
     Disposer.dispose(myDisposable);
   }
 
@@ -196,16 +201,21 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
       AndroidRootUtil.readPropertyFile(module, SdkConstants.FN_LOCAL_PROPERTIES);
     final List<Runnable> changes = new ArrayList<Runnable>();
 
-    updateTargetProperty(facet, projectProperties, changes);
-    updateLibraryProperty(facet, projectProperties, changes);
-
+    final IAndroidTarget androidTarget = facet.getConfiguration().getAndroidTarget();
+    final String androidTargetHashString = androidTarget != null ? androidTarget.hashString() : null;
     final VirtualFile[] dependencies = collectDependencies(module);
     final String[] dependencyPaths = toSortedPaths(dependencies);
-    final String[] androidDeps = facet.getUserData(ANDROID_DEPENDENCIES_KEY);
 
-    if (androidDeps == null || !Comparing.equal(androidDeps, dependencyPaths)) {
+    final List<Object> newState = Arrays.asList(androidTargetHashString, facet.getProperties().
+      LIBRARY_PROJECT, Arrays.asList(dependencyPaths));
+    final List<Object> state = facet.getUserData(ANDROID_PROPERTIES_STATE_KEY);
+
+    if (state == null || !Comparing.equal(state, newState)) {
+      updateTargetProperty(facet, projectProperties, changes);
+      updateLibraryProperty(facet, projectProperties, changes);
       updateDependenciesInPropertyFile(projectProperties, localProperties, dependencies, changes);
-      facet.putUserData(ANDROID_DEPENDENCIES_KEY, dependencyPaths);
+
+      facet.putUserData(ANDROID_PROPERTIES_STATE_KEY, newState);
     }
     return changes.size() > 0 ? Pair.create(projectPropertiesVFile, changes) : null;
   }
@@ -371,7 +381,7 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
     return result;
   }
 
-  private static void askUserIfUpdatePropertyFile(@NotNull Project project,
+  private void askUserIfUpdatePropertyFile(@NotNull Project project,
                                                   @NotNull Collection<AndroidFacet> facets,
                                                   @NotNull final Processor<MyResult> callback) {
     final StringBuilder moduleList = new StringBuilder();
@@ -379,7 +389,10 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
     for (AndroidFacet facet : facets) {
       moduleList.append(facet.getModule().getName()).append("<br>");
     }
-    PROPERTY_FILES_UPDATING_NOTIFICATION.createNotification(
+    if (myNotification != null && !myNotification.isExpired()) {
+      myNotification.expire();
+    }
+    myNotification = PROPERTY_FILES_UPDATING_NOTIFICATION.createNotification(
       AndroidBundle.message("android.update.project.properties.dialog.title"),
       AndroidBundle.message("android.update.project.properties.dialog.text", moduleList.toString()),
       NotificationType.INFORMATION, new NotificationListener() {
@@ -400,7 +413,8 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
           notification.expire();
         }
       }
-    }).notify(project);
+    });
+    myNotification.notify(project);
   }
 
   private enum MyResult {

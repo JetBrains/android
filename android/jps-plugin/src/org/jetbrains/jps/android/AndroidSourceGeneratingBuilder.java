@@ -102,7 +102,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
       return doBuild(context, chunk, dirtyFilesHolder);
     }
     catch (Exception e) {
-      return AndroidJpsUtil.handleException(context, e, BUILDER_NAME);
+      return AndroidJpsUtil.handleException(context, e, BUILDER_NAME, LOG);
     }
   }
 

@@ -63,16 +63,16 @@ public class AndroidSdkData {
     new HashMap<IAndroidTarget, SoftReference<AndroidTargetData>>();
 
   private final SdkManager mySdkManager;
+  private final DeviceManager myDeviceManager;
 
   private final int myPlatformToolsRevision;
   private final int mySdkToolsRevision;
-
-  private DeviceManager myLayoutDeviceManager;
 
   public AndroidSdkData(@NotNull SdkManager sdkManager, @NotNull String sdkDirOsPath) {
     mySdkManager = sdkManager;
     myPlatformToolsRevision = AndroidCommonUtils.parsePackageRevision(sdkDirOsPath, SdkConstants.FD_PLATFORM_TOOLS);
     mySdkToolsRevision = AndroidCommonUtils.parsePackageRevision(sdkDirOsPath, SdkConstants.FD_TOOLS);
+    myDeviceManager = DeviceManager.createInstance(sdkDirOsPath, new MessageBuildingSdkLog());
   }
 
   @NotNull
@@ -151,15 +151,6 @@ public class AndroidSdkData {
       }
     }
     return sdkData;
-  }
-
-  @NotNull
-  public DeviceManager getDeviceManager() {
-    if (myLayoutDeviceManager == null) {
-      myLayoutDeviceManager = DeviceManager.createInstance(getLocation(), new MessageBuildingSdkLog());
-    }
-
-    return myLayoutDeviceManager;
   }
 
   @Override
@@ -351,6 +342,11 @@ public class AndroidSdkData {
   @NotNull
   public SdkManager getSdkManager() {
     return mySdkManager;
+  }
+
+  @NotNull
+  public DeviceManager getDeviceManager() {
+    return myDeviceManager;
   }
 
   @NotNull

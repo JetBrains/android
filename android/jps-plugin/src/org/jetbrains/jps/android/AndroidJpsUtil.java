@@ -23,10 +23,7 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidFinalPackageElement;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleExtensionImpl;
 import org.jetbrains.jps.builders.java.JavaModuleBuildTargetType;
 import org.jetbrains.jps.builders.storage.BuildDataPaths;
-import org.jetbrains.jps.incremental.CompileContext;
-import org.jetbrains.jps.incremental.ModuleBuildTarget;
-import org.jetbrains.jps.incremental.ModuleLevelBuilder;
-import org.jetbrains.jps.incremental.ProjectBuildException;
+import org.jetbrains.jps.incremental.*;
 import org.jetbrains.jps.incremental.artifacts.ArtifactBuildTarget;
 import org.jetbrains.jps.incremental.artifacts.impl.JpsArtifactUtil;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
@@ -50,7 +47,9 @@ import org.jetbrains.jps.model.module.*;
 import org.jetbrains.jps.model.serialization.JpsModelSerializationDataService;
 import org.jetbrains.jps.util.JpsPathUtil;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 
@@ -429,18 +428,14 @@ public class AndroidJpsUtil {
 
   public static ModuleLevelBuilder.ExitCode handleException(@NotNull CompileContext context,
                                                             @NotNull Exception e,
-                                                            @NotNull String builderName)
-    throws ProjectBuildException {
-    String message = e.getMessage();
-
-    if (message == null) {
-      final ByteArrayOutputStream out = new ByteArrayOutputStream();
-      //noinspection IOResourceOpenedButNotSafelyClosed
-      e.printStackTrace(new PrintStream(out));
-      message = "Internal error: \n" + out.toString();
+                                                            @NotNull String builderName,
+                                                            @Nullable Logger logger) throws ProjectBuildException {
+    
+    if (logger != null) {
+      logger.info(e);
     }
-    context.processMessage(new CompilerMessage(builderName, BuildMessage.Kind.ERROR, message));
-    throw new ProjectBuildException(message, e);
+    context.processMessage(new CompilerMessage(builderName, e));
+    throw new StopBuildException();
   }
 
   @Nullable

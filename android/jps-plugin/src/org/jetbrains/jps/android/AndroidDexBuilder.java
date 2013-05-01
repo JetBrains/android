@@ -86,7 +86,7 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
       throw e;
     }
     catch (Exception e) {
-      AndroidJpsUtil.handleException(context, e, DEX_BUILDER_NAME);
+      AndroidJpsUtil.handleException(context, e, DEX_BUILDER_NAME, LOG);
     }
   }
 
