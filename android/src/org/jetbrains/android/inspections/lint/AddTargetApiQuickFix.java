@@ -16,9 +16,8 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.ide.common.sdk.SdkVersionInfo;
-import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.codeInsight.AnnotationUtil;
-import com.intellij.codeInsight.CodeInsightUtilBase;
+import com.intellij.codeInsight.FileModificationService;
 import com.intellij.codeInsight.intention.AddAnnotationFix;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
@@ -69,7 +68,7 @@ class AddTargetApiQuickFix implements AndroidLintQuickFix {
       return;
     }
 
-    if (!CodeInsightUtilBase.preparePsiElementForWrite(container)) {
+    if (!FileModificationService.getInstance().preparePsiElementForWrite(container)) {
       return;
     }
     final PsiModifierList modifierList = container.getModifierList();

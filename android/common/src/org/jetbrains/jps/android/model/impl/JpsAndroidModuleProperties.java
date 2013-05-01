@@ -21,9 +21,7 @@ import com.intellij.util.xmlb.annotations.Attribute;
 import com.intellij.util.xmlb.annotations.Tag;
 import org.jetbrains.android.util.AndroidCommonUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author nik
@@ -78,6 +76,10 @@ public class JpsAndroidModuleProperties {
   @Tag(AndroidCommonUtils.ADDITIONAL_NATIVE_LIBS_ELEMENT)
   @AbstractCollection(surroundWithTag = false)
   public List<AndroidNativeLibDataEntry> myNativeLibs = new ArrayList<AndroidNativeLibDataEntry>();
+
+  @Tag("importedProperties")
+  @AbstractCollection(surroundWithTag = false, elementTag = "property", elementValueAttribute = "")
+  public Set<AndroidImportableProperty> myNotImportedProperties = EnumSet.noneOf(AndroidImportableProperty.class);
 
   @Tag(AndroidCommonUtils.ITEM_ELEMENT)
   public static class AndroidNativeLibDataEntry {
