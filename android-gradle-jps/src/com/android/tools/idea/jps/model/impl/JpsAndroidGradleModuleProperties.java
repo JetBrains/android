@@ -22,4 +22,5 @@ import org.jetbrains.annotations.NonNls;
  */
 public class JpsAndroidGradleModuleProperties {
   @NonNls public String PROJECT_ABSOLUTE_PATH;
+  @NonNls public String GRADLE_HOME_DIR_PATH;
 }
