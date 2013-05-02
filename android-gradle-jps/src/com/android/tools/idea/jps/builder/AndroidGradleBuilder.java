@@ -32,6 +32,7 @@ import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.ModuleChunk;
 import org.jetbrains.jps.android.AndroidSourceGeneratingBuilder;
 import org.jetbrains.jps.android.model.JpsAndroidSdkProperties;
@@ -58,41 +59,13 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
   private static final Logger LOG = Logger.getInstance(AndroidGradleBuilder.class);
   private static final GradleErrorOutputParser ERROR_OUTPUT_PARSER = new GradleErrorOutputParser();
 
+  @NonNls private static final String ANDROID_HOME_JVM_ARG_FORMAT_WIN = "\"-Dandroid.home=%1$s\"";
+  @NonNls private static final String ANDROID_HOME_JVM_ARG_FORMAT_UNIX = "-Dandroid.home=%1$s";
+
   @NonNls private static final String BUILDER_NAME = "Android Gradle Builder";
 
   protected AndroidGradleBuilder() {
     super(BuilderCategory.TRANSLATOR);
-  }
-
-  @NotNull
-  private static File getProjectDirectory(@NotNull CompileContext context, @NotNull JpsAndroidGradleModuleExtension extension)
-    throws ProjectBuildException {
-    JpsAndroidGradleModuleProperties properties = extension.getProperties();
-    String projectPath = properties.PROJECT_ABSOLUTE_PATH;
-    if (Strings.isNullOrEmpty(projectPath)) {
-      String format = "Unable to obtain path of project '%1$s'. Please re-import the project.";
-      String msg = String.format(format, getProjectName(context));
-      context.processMessage(createCompilerErrorMessage(msg));
-      throw new ProjectBuildException(msg);
-    }
-    File projectDirectory = new File(projectPath);
-    if (!projectDirectory.isDirectory()) {
-      String format = "The path '%1$s' does not belong to an existing directory";
-      String msg = String.format(format, projectPath);
-      context.processMessage(createCompilerErrorMessage(msg));
-      throw new ProjectBuildException(msg);
-    }
-    return projectDirectory;
-  }
-
-  @NotNull
-  private static CompilerMessage createCompilerErrorMessage(@NotNull String msg) {
-    return AndroidGradleJps.createCompilerMessage(msg, BuildMessage.Kind.ERROR);
-  }
-
-  @NotNull
-  private static String getProjectName(@NotNull CompileContext context) {
-    return context.getProjectDescriptor().getProject().getName();
   }
 
   /**
@@ -127,44 +100,102 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
       LOG.info(String.format(format, getProjectName(context), AndroidGradleFacet.NAME));
       return ExitCode.NOTHING_DONE;
     }
-    File projectDirectory = getProjectDirectory(context, extension);
+    File projectDir = getProjectDir(context, extension);
+    File gradleHomeDir = getGradleHomeDir(context, extension);
     String androidHome = getAndroidHome(context, chunk);
     String format = "About to build project '%1$s' located at %2$s";
-    LOG.info(String.format(format, getProjectName(context), projectDirectory.getAbsolutePath()));
-    return doBuild(context, projectDirectory, androidHome);
+    LOG.info(String.format(format, getProjectName(context), projectDir.getAbsolutePath()));
+    return doBuild(context, projectDir, gradleHomeDir, androidHome);
   }
 
   @NotNull
-  private static String getAndroidHome(@NotNull CompileContext context, @NotNull ModuleChunk chunk) throws ProjectBuildException {
-    JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> androidSdk = AndroidGradleJps.getFirstAndroidSdk(chunk);
-    if (androidSdk == null) {
-      String format = "There is no Android SDK specified for project '%1$s'";
+  private static File getProjectDir(@NotNull CompileContext context, @NotNull JpsAndroidGradleModuleExtension extension)
+    throws ProjectBuildException {
+    JpsAndroidGradleModuleProperties properties = extension.getProperties();
+    String projectPath = properties.PROJECT_ABSOLUTE_PATH;
+    if (Strings.isNullOrEmpty(projectPath)) {
+      String format = "Unable to obtain path of project '%1$s'. Please re-import the project.";
       String msg = String.format(format, getProjectName(context));
       context.processMessage(createCompilerErrorMessage(msg));
       throw new ProjectBuildException(msg);
     }
+    File projectDir = new File(projectPath);
+    if (!projectDir.isDirectory()) {
+      String format = "The project path, '%1$s', does not belong to an existing directory";
+      String msg = String.format(format, projectPath);
+      context.processMessage(createCompilerErrorMessage(msg));
+      throw new ProjectBuildException(msg);
+    }
+    return projectDir;
+  }
+
+
+  @NotNull
+  private static CompilerMessage createCompilerErrorMessage(@NotNull String msg) {
+    return AndroidGradleJps.createCompilerMessage(msg, BuildMessage.Kind.ERROR);
+  }
+
+  @Nullable
+  private static File getGradleHomeDir(@NotNull CompileContext context, @NotNull JpsAndroidGradleModuleExtension extension)
+    throws ProjectBuildException {
+    JpsAndroidGradleModuleProperties properties = extension.getProperties();
+    String gradleHomeDirPath = properties.GRADLE_HOME_DIR_PATH;
+    if (Strings.isNullOrEmpty(gradleHomeDirPath)) {
+      return null;
+    }
+    File gradleHomeDir = new File(gradleHomeDirPath);
+    if (!gradleHomeDir.isDirectory()) {
+      String format = "The gradle home path, '%1$s', does not belong to an existing directory";
+      String msg = String.format(format, gradleHomeDir);
+      context.processMessage(createCompilerErrorMessage(msg));
+      throw new ProjectBuildException(msg);
+    }
+    return gradleHomeDir;
+  }
+
+  @Nullable
+  private static String getAndroidHome(@NotNull CompileContext context, @NotNull ModuleChunk chunk) throws ProjectBuildException {
+    JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> androidSdk = AndroidGradleJps.getFirstAndroidSdk(chunk);
+    if (androidSdk == null) {
+      // TODO: Figure out what changes in IDEA made androidSdk null. It used to work.
+      String format = "There is no Android SDK specified for project '%1$s'";
+      String msg = String.format(format, getProjectName(context));
+      LOG.warn(msg);
+      return null;
+    }
     String androidHome = androidSdk.getHomePath();
     if (Strings.isNullOrEmpty(androidHome)) {
       String msg = "Selected Android SDK does not have a home directory path";
-      context.processMessage(createCompilerErrorMessage(msg));
-      throw new ProjectBuildException(msg);
+      LOG.warn(msg);
     }
     return androidHome;
   }
 
   @NotNull
-  private static ExitCode doBuild(@NotNull CompileContext context, @NotNull File projectDirectory, @NotNull String androidHome)
-    throws ProjectBuildException {
+  private static String getProjectName(@NotNull CompileContext context) {
+    return context.getProjectDescriptor().getProject().getName();
+  }
+
+  @NotNull
+  private static ExitCode doBuild(@NotNull CompileContext context,
+                                  @NotNull File projectDir,
+                                  @Nullable File gradleHomeDir,
+                                  @Nullable String androidHome) throws ProjectBuildException {
     GradleConnector connector = GradleConnector.newConnector();
-    connector.forProjectDirectory(projectDirectory);
+    connector.forProjectDirectory(projectDir);
+    if (gradleHomeDir != null) {
+      connector.useInstallation(gradleHomeDir);
+    }
     ProjectConnection connection = connector.connect();
     ByteArrayOutputStream stdout = new ByteArrayOutputStream();
     ByteArrayOutputStream stderr = new ByteArrayOutputStream();
     try {
       BuildLauncher launcher = connection.newBuild();
       launcher.forTasks("build");
-      String androidSdkArg = String.format("-Dandroid.home=\"%1$s\"", androidHome);
-      launcher.setJvmArguments(androidSdkArg);
+      if (!Strings.isNullOrEmpty(androidHome)) {
+        String androidSdkArg = getAndroidHomeJvmArg(androidHome);
+        launcher.setJvmArguments(androidSdkArg);
+      }
       launcher.setStandardOutput(stdout);
       launcher.setStandardError(stderr);
       launcher.run();
@@ -180,6 +211,13 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
       connection.close();
     }
     return ExitCode.OK;
+  }
+
+  @NotNull
+  private static String getAndroidHomeJvmArg(@NotNull String androidHome) {
+    boolean isWin = File.separator.equals("\\");
+    String argName = isWin ? ANDROID_HOME_JVM_ARG_FORMAT_WIN : ANDROID_HOME_JVM_ARG_FORMAT_UNIX;
+    return String.format(argName, androidHome);
   }
 
   /**

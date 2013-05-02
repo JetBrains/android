@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.facet;
 
+import com.google.common.base.Strings;
 import com.intellij.ProjectTopics;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetTypeId;
@@ -23,6 +24,8 @@ import com.intellij.facet.impl.FacetUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.roots.ModuleRootAdapter;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.util.WriteExternalException;
@@ -30,6 +33,7 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 /**
  * Android-Gradle facet.
@@ -68,24 +72,36 @@ public class AndroidGradleFacet extends Facet<AndroidGradleFacetConfiguration> {
           public void run() {
             if (!isDisposed()) {
               PsiDocumentManager.getInstance(getModule().getProject()).commitAllDocuments();
-              storeProjectPath();
+              updateConfiguration();
             }
           }
         });
       }
     });
-    storeProjectPath();
+    updateConfiguration();
   }
 
-  private void storeProjectPath() {
+  private void updateConfiguration() {
     AndroidGradleFacetConfiguration config = getConfiguration();
     // Store the project path. JPS Builder needs this information to invoke Gradle.
     config.PROJECT_ABSOLUTE_PATH = getModule().getProject().getBasePath();
+    config.GRADLE_HOME_DIR_PATH = getGradleHomeDirPath();
     try {
       FacetUtil.saveFacetConfiguration(config);
     }
     catch (WriteExternalException e) {
       LOG.error("Unable to save contents of 'Android-Gradle' facet", e);
     }
+  }
+
+  private String getGradleHomeDirPath() {
+    GradleSettings settings = GradleSettings.getInstance(getModule().getProject());
+    String homeDirPath = settings.getGradleHome();
+    if (!Strings.isNullOrEmpty(homeDirPath)) {
+      return homeDirPath;
+    }
+    Project defaultProject = ProjectManager.getInstance().getDefaultProject();
+    settings = GradleSettings.getInstance(defaultProject);
+    return settings.getGradleHome();
   }
 }
