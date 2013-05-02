@@ -231,7 +231,8 @@ public class ImageUtils {
    * @return a cropped version of the source image, or null if the whole image was blank
    *         and cropping completely removed everything
    */
-  public static BufferedImage cropBlank(BufferedImage image, Rectangle initialCrop, int imageType) {
+  @Nullable
+  public static BufferedImage cropBlank(@Nullable BufferedImage image, @Nullable Rectangle initialCrop, int imageType) {
     CropFilter filter = new CropFilter() {
       @Override
       public boolean crop(BufferedImage bufferedImage, int x, int y) {
@@ -244,7 +245,21 @@ public class ImageUtils {
     return crop(image, filter, initialCrop, imageType);
   }
 
-  private static BufferedImage crop(BufferedImage image, CropFilter filter, Rectangle initialCrop, int imageType) {
+  /**
+   * Determines the crop bounds for the given image
+   *
+   *
+   * @param image       the image to be cropped
+   * @param filter      the filter determining whether a pixel is blank or not
+   * @param initialCrop If not null, specifies a rectangle which contains an initial
+   *                    crop to continue. This can be used to crop an image where you already
+   *                    know about margins in the image
+   * @return the bounds of the crop in the given image, or null if the whole image was blank
+   *         and cropping completely removed everything
+   */
+  public static Rectangle getCropBounds(@Nullable BufferedImage image,
+                                        @NotNull CropFilter filter,
+                                        @Nullable Rectangle initialCrop) {
     if (image == null) {
       return null;
     }
@@ -325,7 +340,7 @@ public class ImageUtils {
 
     // No need to crop?
     if (x1 == 0 && y1 == 0 && x2 == image.getWidth() && y2 == image.getHeight()) {
-      return image;
+      return null;
     }
 
     if (x1 == x2 || y1 == y2) {
@@ -336,6 +351,35 @@ public class ImageUtils {
     int width = x2 - x1;
     int height = y2 - y1;
 
+    return new Rectangle(x1, y1, width, height);
+  }
+
+  /**
+   * Crops a given image with the given crop filter
+   * @param image       the image to be cropped
+   * @param filter      the filter determining whether a pixel is blank or not
+   * @param initialCrop If not null, specifies a rectangle which contains an initial
+   *                    crop to continue. This can be used to crop an image where you already
+   *                    know about margins in the image
+   * @param imageType   the type of {@link BufferedImage} to create, or -1 if unknown
+   * @return a cropped version of the source image, or null if the whole image was blank
+   *         and cropping completely removed everything
+   */
+  @Nullable
+  public static BufferedImage crop(@Nullable BufferedImage image, @NotNull CropFilter filter, @Nullable Rectangle initialCrop,
+                                   int imageType) {
+    if (image == null) {
+      return null;
+    }
+
+    Rectangle cropBounds = getCropBounds(image, filter, initialCrop);
+    int x1 = cropBounds.x;
+    int y1 = cropBounds.y;
+    int width = cropBounds.width;
+    int height = cropBounds.height;
+    int x2 = x1 + width;
+    int y2 = y1 + height;
+
     // Now extract the sub-image
     if (imageType == -1) {
       imageType = image.getType();
@@ -343,6 +387,7 @@ public class ImageUtils {
     if (imageType == BufferedImage.TYPE_CUSTOM) {
       imageType = BufferedImage.TYPE_INT_ARGB;
     }
+
     BufferedImage cropped = new BufferedImage(width, height, imageType);
     Graphics g = cropped.getGraphics();
     g.drawImage(image, 0, 0, width, height, x1, y1, x2, y2, null);
@@ -356,7 +401,7 @@ public class ImageUtils {
    * Interface implemented by cropping functions that determine whether
    * a pixel should be cropped or not.
    */
-  private static interface CropFilter {
+  public interface CropFilter {
     /**
      * Returns true if the pixel is should be cropped.
      *

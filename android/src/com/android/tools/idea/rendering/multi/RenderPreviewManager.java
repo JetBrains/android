@@ -24,6 +24,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.*;
+import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.ProjectResources;
 import com.android.tools.idea.rendering.ResourceHelper;
@@ -50,6 +51,7 @@ import static com.android.tools.idea.configurations.ConfigurationListener.CFG_DE
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_DEVICE_STATE;
 import static com.android.tools.idea.rendering.ShadowPainter.SHADOW_SIZE;
 import static com.android.tools.idea.rendering.ShadowPainter.SMALL_SHADOW_SIZE;
+import static com.android.tools.idea.rendering.multi.RenderPreviewMode.*;
 import static com.intellij.util.Alarm.ThreadToUse.POOLED_THREAD;
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
@@ -79,7 +81,7 @@ public class RenderPreviewManager implements Disposable {
   private static final int ZOOM_ICON_HEIGHT = 16;
   private @Nullable List<RenderPreview> myPreviews;
   private @NotNull final RenderContext myRenderContext;
-  private @NotNull RenderPreviewMode myMode = RenderPreviewMode.NONE;
+  private @NotNull RenderPreviewMode myMode = NONE;
   private @Nullable RenderPreview myActivePreview;
   private @Nullable VirtualFile myCurrentFile;
   private @Nullable SwapAnimation myAnimator;
@@ -263,7 +265,7 @@ public class RenderPreviewManager implements Disposable {
    */
   @SuppressWarnings("ConstantConditions")
   public boolean hasManualPreviews() {
-    assert myMode == RenderPreviewMode.CUSTOM;
+    assert myMode == CUSTOM;
     // Not yet implemented; this shouldn't be called
     assert !SUPPORTS_MANUAL_PREVIEWS;
     return false;
@@ -275,7 +277,7 @@ public class RenderPreviewManager implements Disposable {
   @SuppressWarnings("ConstantConditions")
   public void deleteManualPreviews() {
     disposePreviews();
-    selectMode(RenderPreviewMode.NONE);
+    selectMode(NONE);
     myRenderContext.zoomFit(true /* onlyZoomOut */, true /*allowZoomIn*/);
 
     // Not yet implemented; this shouldn't be called
@@ -436,7 +438,7 @@ public class RenderPreviewManager implements Disposable {
   }
 
   private boolean fixedOrder() {
-    return myMode == RenderPreviewMode.SCREENS;
+    return myMode == SCREENS;
   }
 
   /**
@@ -643,7 +645,7 @@ public class RenderPreviewManager implements Disposable {
     //addIncludedInPreviews();
 
     // Make a placeholder preview for the current screen, in case we switch from it
-    RenderPreview preview = RenderPreview.create(this, parent);
+    RenderPreview preview = RenderPreview.create(this, parent, false);
     setStashedPreview(preview);
 
     sortPreviewsByOrientation();
@@ -667,7 +669,7 @@ public class RenderPreviewManager implements Disposable {
     if (nextState != currentState) {
       VaryingConfiguration configuration = VaryingConfiguration.create(parent);
       configuration.setAlternateDeviceState(true);
-      addPreview(RenderPreview.create(this, configuration));
+      addPreview(RenderPreview.create(this, configuration, false));
     }
   }
 
@@ -678,7 +680,7 @@ public class RenderPreviewManager implements Disposable {
       if (!language.equals(currentLanguage)) {
         VaryingConfiguration configuration = VaryingConfiguration.create(parent);
         configuration.setAlternateLocale(true);
-        addPreview(RenderPreview.create(this, configuration));
+        addPreview(RenderPreview.create(this, configuration, false));
         break;
       }
     }
@@ -690,12 +692,12 @@ public class RenderPreviewManager implements Disposable {
     configuration = VaryingConfiguration.create(parent);
     configuration.setVariation(0);
     configuration.setAlternateDevice(true);
-    addPreview(RenderPreview.create(this, configuration));
+    addPreview(RenderPreview.create(this, configuration, false));
 
     configuration = VaryingConfiguration.create(parent);
     configuration.setVariation(1);
     configuration.setAlternateDevice(true);
-    addPreview(RenderPreview.create(this, configuration));
+    addPreview(RenderPreview.create(this, configuration, false));
   }
 
   /**
@@ -718,10 +720,10 @@ public class RenderPreviewManager implements Disposable {
    *         already showing and the mode not changed
    */
   public boolean recomputePreviews(boolean force) {
-    RenderPreviewMode newMode = RenderPreviewMode.getCurrent();
+    RenderPreviewMode newMode = getCurrent();
     myCurrentFile = myRenderContext.getVirtualFile();
 
-    if (newMode == myMode && !force && (myRevision == ourRevision || myMode == RenderPreviewMode.NONE || myMode == RenderPreviewMode.CUSTOM)) {
+    if (newMode == myMode && !force && (myRevision == ourRevision || myMode == NONE || myMode == CUSTOM)) {
       return false;
     }
 
@@ -732,6 +734,9 @@ public class RenderPreviewManager implements Disposable {
       setScale(1.0);
     }
     disposePreviews();
+
+    // Only show device frames when showing screen sizes
+    myRenderContext.setDeviceFramesEnabled(myMode == NONE || myMode == SCREENS);
 
     switch (myMode) {
       case DEFAULT:
@@ -783,7 +788,7 @@ public class RenderPreviewManager implements Disposable {
    */
   public void selectMode(@NotNull RenderPreviewMode mode) {
     if (mode != myMode) {
-      RenderPreviewMode.setCurrent(mode);
+      setCurrent(mode);
 
       recomputePreviews(false);
     }
@@ -809,14 +814,14 @@ public class RenderPreviewManager implements Disposable {
       configuration.setLocale(locale);
       String displayName = LocaleMenuAction.getLocaleLabel(projectRes, locale, false);
       configuration.setDisplayName(displayName);
-      addPreview(RenderPreview.create(this, configuration));
+      addPreview(RenderPreview.create(this, configuration, false));
     }
 
     // Make a placeholder preview for the current screen, in case we switch from it
     Locale locale = parent.getLocale();
     String label = LocaleMenuAction.getLocaleLabel(projectRes, locale, false);
     parent.setDisplayName(label);
-    RenderPreview preview = RenderPreview.create(this, parent);
+    RenderPreview preview = RenderPreview.create(this, parent, false);
     setStashedPreview(preview);
 
     // No need to sort: they should all be identical
@@ -833,6 +838,12 @@ public class RenderPreviewManager implements Disposable {
     List<Device> devices = configuration.getConfigurationManager().getDevices();
     boolean canScaleNinePatch = configuration.supports(Capability.FIXED_SCALABLE_NINE_PATCH);
 
+    // TODO: Only do this if there is no *better* fit for the other orientation
+    boolean useDefaultState = configuration.getDeviceState() == configuration.getDevice().getDefaultState();
+    if (configuration.getEditedConfig().getScreenOrientationQualifier() != null) {
+      useDefaultState = false;
+    }
+
     // Rearrange the devices a bit such that the most interesting devices bubble
     // to the front
     // 10" tablet, 7" tablet, reference phones, tiny phone, and in general the first
@@ -840,6 +851,7 @@ public class RenderPreviewManager implements Disposable {
     Set<ScreenSize> seenSizes = EnumSet.noneOf(ScreenSize.class);
     State currentState = configuration.getDeviceState();
     String currentStateName = currentState != null ? currentState.getName() : "";
+    DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
 
     for (Device device : devices) {
       boolean interesting = false;
@@ -885,9 +897,23 @@ public class RenderPreviewManager implements Disposable {
       }
 
       if (interesting) {
+        // For now only preview items
+        if (!framePainter.hasDeviceFrame(device)) {
+          continue;
+        }
+
+        if (device == configuration.getDevice()) {
+          // Show the OTHER devices
+          continue;
+        }
+
         NestedConfiguration screenConfig = NestedConfiguration.create(configuration);
         screenConfig.setOverrideDevice(true);
         screenConfig.setDevice(device, false);
+        if (useDefaultState) {
+          screenConfig.setOverrideDeviceState(true);
+          screenConfig.setDeviceState(device.getDefaultState());
+        }
         String label;
         if (HardwareConfigHelper.isNexus(device)) {
           // Similar to HardwareConfigHelper#getNexusLabel, but narrower (omits dimensions and density)
@@ -901,9 +927,15 @@ public class RenderPreviewManager implements Disposable {
           label = DeviceMenuAction.getDeviceLabel(device, true);
         }
         screenConfig.setDisplayName(label);
-        addPreview(RenderPreview.create(this, screenConfig));
+        RenderPreview preview = RenderPreview.create(this, screenConfig, true);
+        preview.setShowFrame(true);
+        addPreview(preview);
       }
     }
+
+    RenderPreview preview = RenderPreview.create(this, configuration, true);
+    preview.setShowFrame(true);
+    setStashedPreview(preview);
 
     // Sorted by screen size, in decreasing order
     sortPreviewsByScreenSize();
@@ -967,7 +999,7 @@ public class RenderPreviewManager implements Disposable {
       Configuration variationConfiguration = Configuration.create(configuration, variation);
       variationConfiguration.setTheme(configuration.getTheme());
       variationConfiguration.setActivity(configuration.getActivity());
-      RenderPreview preview = RenderPreview.create(this, variationConfiguration);
+      RenderPreview preview = RenderPreview.create(this, variationConfiguration, false);
       preview.setDisplayName(title);
       preview.setAlternateInput(variation);
 
@@ -1181,7 +1213,7 @@ public class RenderPreviewManager implements Disposable {
     // chooser up until this point:
     RenderPreview newPreview = getStashedPreview();
     if (newPreview == null) {
-      newPreview = RenderPreview.create(this, originalConfiguration);
+      newPreview = RenderPreview.create(this, originalConfiguration, false);
     }
 
     // Update its configuration such that it is complementing or inheriting
@@ -1368,7 +1400,7 @@ public class RenderPreviewManager implements Disposable {
               mouseEvent.consume();
             }
             else {
-              selectMode(RenderPreviewMode.NONE);
+              selectMode(NONE);
               mouseEvent.consume();
             }
             return true;

@@ -57,7 +57,6 @@ public class GutterIconCache {
             if (image.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
               // Indexed images look terrible if they are scaled directly; instead, paint into an ARGB blank image
               BufferedImage bg = UIUtil.createImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
-              //BufferedImage bg = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
               Graphics g = bg.getGraphics();
               g.setColor(new Color(255, 255, 255, 0));
               g.fillRect(0, 0, bg.getWidth(), bg.getHeight());

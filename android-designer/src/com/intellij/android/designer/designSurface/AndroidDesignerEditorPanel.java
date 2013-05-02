@@ -1319,6 +1319,12 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   }
 
   @Override
+  public void setDeviceFramesEnabled(boolean on) {
+    // TODO
+  }
+
+
+  @Override
   @NotNull
   public Dimension getFullImageSize() {
     if (myRootView != null) {
