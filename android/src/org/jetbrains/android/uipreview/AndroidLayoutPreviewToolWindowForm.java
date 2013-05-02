@@ -90,6 +90,31 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
         mySettings.getGlobalState().setHideForNonLayoutFiles(state);
       }
     }).setAsSecondary(true);
+    optionsGroup.addAction(new CheckboxAction("Include Device Frames (if available)") {
+      @Override
+      public boolean isSelected(AnActionEvent e) {
+        return mySettings.getGlobalState().isShowDeviceFrames();
+      }
+
+      @Override
+      public void setSelected(AnActionEvent e, boolean state) {
+        mySettings.getGlobalState().setShowDeviceFrames(state);
+        myPreviewPanel.update();
+        myToolWindowManager.render();
+      }
+    }).setAsSecondary(true);
+    optionsGroup.addAction(new CheckboxAction("Show Lighting Effects") {
+      @Override
+      public boolean isSelected(AnActionEvent e) {
+        return mySettings.getGlobalState().isShowEffects();
+      }
+
+      @Override
+      public void setSelected(AnActionEvent e, boolean state) {
+        mySettings.getGlobalState().setShowEffects(state);
+        myToolWindowManager.render();
+      }
+    }).setAsSecondary(true);
 
     final JComponent toolbar = myActionToolBar.getComponent();
     final JPanel toolBarWrapper = new JPanel(new BorderLayout());
@@ -276,6 +301,11 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
   public void updateLayout() {
     myPreviewPanel.update();
     myPreviewPanel.getRenderComponent().repaint();
+  }
+
+  @Override
+  public void setDeviceFramesEnabled(boolean on) {
+    myPreviewPanel.setDeviceFramesEnabled(on);
   }
 
   @Override

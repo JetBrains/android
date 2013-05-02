@@ -35,6 +35,7 @@ import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.Gray;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.util.ui.AsyncProcessIcon;
@@ -61,6 +62,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
   public static final Color SELECTION_FILL_COLOR = new Color(0x00, 0x99, 0xFF, 32);
   /** FileEditorProvider ID for the layout editor */
   public static final String ANDROID_DESIGNER_ID = "android-designer";
+  private static final boolean SHOW_TITLE_PANEL = false;
 
   private RenderResult myRenderResult;
 
@@ -69,12 +71,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
 
   private final List<ProgressIndicator> myProgressIndicators = new ArrayList<ProgressIndicator>();
   private boolean myProgressVisible = false;
-
-  private final JComponent myImagePanel = new JPanel() {
-    @Override
-    public void paintComponent(Graphics g) {
-      paintRenderedImage(g);
-    }
+  private final JComponent myImagePanel = new JComponent() {
   };
 
   private AsyncProcessIcon myProgressIcon;
@@ -97,10 +94,11 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
 
   public AndroidLayoutPreviewPanel() {
     super(new VerticalFlowLayout(VerticalFlowLayout.TOP, 0, 0, true, true));
-    setBackground(DESIGNER_BACKGROUND_COLOR);
+    updateBackgroundColor();
     myImagePanel.setBackground(null);
 
-    myImagePanel.addMouseListener(new MouseAdapter() {
+    MyImagePanelWrapper previewPanel = new MyImagePanelWrapper();
+    previewPanel.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent mouseEvent) {
         if (myRenderResult == null) {
@@ -148,11 +146,14 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     myTitlePanel.add(myFileNameLabel, BorderLayout.CENTER);
     myTitlePanel.add(progressPanel, BorderLayout.EAST);
 
+    //noinspection ConstantConditions
+    if (!SHOW_TITLE_PANEL) {
+      myTitlePanel.setVisible(false);
+    }
+
     ((CardLayout)myProgressIconWrapper.getLayout()).show(myProgressIconWrapper, EMPTY_CARD_NAME);
 
     add(myTitlePanel);
-
-    MyImagePanelWrapper previewPanel = new MyImagePanelWrapper();
     add(previewPanel);
 
     myErrorPanel = new RenderErrorPanel();
@@ -179,9 +180,17 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
 
   private void selectViewAt(int x1, int y1) {
     if (myEditor != null && myRenderResult.getImage() != null) {
-      double zoomFactor = myRenderResult.getImage().getScale();
-      int x = (int)(x1 / zoomFactor);
-      int y = (int)(y1 / zoomFactor);
+
+      x1 -= myImagePanel.getX();
+      y1 -= myImagePanel.getY();
+
+      Point p = fromScreenToModel(x1, y1);
+      if (p == null) {
+        return;
+      }
+      int x = p.x;
+      int y = p.y;
+
       RenderedViewHierarchy hierarchy = myRenderResult.getHierarchy();
       assert hierarchy != null; // because image != null
       RenderedView leaf = hierarchy.findLeafAt(x, y);
@@ -204,22 +213,87 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     }
   }
 
-  private void paintRenderedImage(Graphics g) {
+  /**
+   * Computes the corresponding layoutlib point from a screen point (relative to the top left corner of the rendered image)
+   */
+  @Nullable
+  private Point fromScreenToModel(int x, int y) {
+    if (myRenderResult == null) {
+      return null;
+    }
+    ScalableImage image = myRenderResult.getImage();
+    if (image != null) {
+      double zoomFactor = image.getScale();
+      Rectangle imageBounds = image.getImageBounds();
+      if (imageBounds != null) {
+        x -= imageBounds.x;
+        y -= imageBounds.y;
+        double deviceFrameFactor = imageBounds.getWidth() / (double) image.getScaledWidth();
+        zoomFactor *= deviceFrameFactor;
+      }
+
+      x /= zoomFactor;
+      y /= zoomFactor;
+
+      return new Point(x, y);
+    }
+
+    return null;
+  }
+
+  /**
+   * Computes the corresponding screen coordinates (relative to the top left corner of the rendered image)
+   * for a layoutlib rectangle.
+   */
+  @Nullable
+  private Rectangle fromModelToScreen(int x, int y, int width, int height) {
+    if (myRenderResult == null) {
+      return null;
+    }
+    ScalableImage image = myRenderResult.getImage();
+    if (image != null) {
+      double zoomFactor = image.getScale();
+      Rectangle imageBounds = image.getImageBounds();
+      if (imageBounds != null) {
+        double deviceFrameFactor = imageBounds.getWidth() / (double) image.getScaledWidth();
+        zoomFactor *= deviceFrameFactor;
+      }
+
+      x *= zoomFactor;
+      y *= zoomFactor;
+      width *= zoomFactor;
+      height *= zoomFactor;
+
+      if (imageBounds != null) {
+        x += imageBounds.x;
+        y += imageBounds.y;
+      }
+
+      return new Rectangle(x, y, width, height);
+    }
+
+    return null;
+  }
+
+  private void paintRenderedImage(Graphics g, int px, int py) {
     if (myRenderResult == null) {
       return;
     }
     ScalableImage image = myRenderResult.getImage();
     if (image != null) {
-      image.paint(g);
+      image.paint(g, px, py);
 
       // TODO: Use layout editor's static feedback rendering
       RenderedView selected = mySelectedView;
       if (selected != null && !myErrorPanel.isVisible()) {
-        double zoomFactor = image.getScale();
-        int x = (int)(selected.x * zoomFactor);
-        int y = (int)(selected.y * zoomFactor);
-        int w = (int)(selected.w * zoomFactor);
-        int h = (int)(selected.h * zoomFactor);
+        Rectangle r = fromModelToScreen(selected.x, selected.y, selected.w, selected.h);
+        if (r == null) {
+          return;
+        }
+        int x = r.x + px;
+        int y = r.y + py;
+        int w = r.width;
+        int h = r.height;
 
         g.setColor(SELECTION_FILL_COLOR);
         g.fillRect(x, y, w, h);
@@ -237,6 +311,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
           h -= y;
           h = 0;
         }
+
         g.drawRect(x, y, w, h);
       }
     }
@@ -266,6 +341,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     myRenderResult = renderResult;
     ScalableImage image = myRenderResult.getImage();
     if (image != null) {
+      image.setDeviceFrameEnabled(myShowDeviceFrames);
       if (myPreviewManager != null && RenderPreviewMode.getCurrent() != RenderPreviewMode.NONE) {
         Dimension fixedRenderSize = myPreviewManager.getFixedRenderSize();
         if (fixedRenderSize != null) {
@@ -365,6 +441,9 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     if (myRenderResult == null) {
       return;
     }
+    updateBackgroundColor();
+
+
     ScalableImage image = myRenderResult.getImage();
     if (image == null) {
       myImagePanel.setSize(0, 0);
@@ -381,7 +460,33 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
         image.zoomToFit((int)availableWidth, (int)availableHeight, false, 0, 0);
       }
 
-      myImagePanel.setSize(image.getRequiredSize());
+      myImagePanel.setSize(getScaledImageSize());
+      repaint();
+    }
+  }
+
+  private void updateBackgroundColor() {
+    // Ensure the background color is right: light/dark when showing device chrome, gray when not
+    boolean useGray = false;
+    if (!myShowDeviceFrames) {
+      useGray = true;
+    } else if (myPreviewManager != null && RenderPreviewMode.getCurrent() != RenderPreviewMode.NONE) {
+      useGray = true;
+    } else {
+      if (myRenderResult != null) {
+        ScalableImage image = myRenderResult.getImage();
+        if (image != null) {
+          Boolean framed = image.isFramed();
+          if (framed == null) {
+            return;
+          }
+          useGray = !framed;
+        }
+      }
+    }
+    Color background = useGray ? DESIGNER_BACKGROUND_COLOR : JBColor.WHITE;
+    if (getBackground() != background) {
+      setBackground(background);
     }
   }
 
@@ -481,7 +586,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     Component renderComponent = getRenderComponent();
     if (myPreviewManager != null) {
       myPreviewManager.unregisterMouseListener(renderComponent);
-      myPreviewManager.dispose();;
+      myPreviewManager.dispose();
     }
     myPreviewManager = manager;
     if (myPreviewManager != null) {
@@ -504,7 +609,21 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
       scaledImage.setMaxSize(width, height);
       scaledImage.setUseLargeShadows(width <= 0);
     }
-    myTitlePanel.setVisible(width <= 0);
+    if (SHOW_TITLE_PANEL) {
+      myTitlePanel.setVisible(width <= 0);
+    }
+  }
+
+  private boolean myShowDeviceFrames = true;
+
+  public void setDeviceFramesEnabled(boolean on) {
+    myShowDeviceFrames = on;
+    if (myRenderResult != null) {
+      ScalableImage image = myRenderResult.getImage();
+      if (image != null) {
+        image.setDeviceFrameEnabled(on);
+      }
+    }
   }
 
   /**
@@ -515,7 +634,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     public MyImagePanelWrapper() {
       add(myImagePanel);
       setBackground(null);
-      setOpaque(false);
+      setOpaque(true);
     }
 
     @Override
@@ -552,6 +671,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
       Rectangle bounds = getBounds();
       Point point = myImagePanel.getLocation();
       point.x = (bounds.width - myImagePanel.getWidth()) / 2;
+      point.y = (bounds.height - myImagePanel.getHeight()) / 2;
 
       // If we're squeezing the image to fit, and there's a drop shadow showing
       // shift *some* space away from the tail portion of the drop shadow over to
@@ -604,17 +724,15 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
       myErrorPanel.setLocation(0, height - size);
     }
 
-
     @Override
-    protected void paintChildren(Graphics graphics) {
-      // Done as part of paintChildren rather than paintComponent to ensure these are painted after the myImagePanel render.
-      // This is to avoid having the drop shadow painting of the main image overlap on top of the previews to its right and
-      // below.
+    protected void paintComponent(Graphics graphics) {
+      paintRenderedImage(graphics, myImagePanel.getX(), myImagePanel.getY());
+
       if (myPreviewManager != null) {
         myPreviewManager.paint((Graphics2D)graphics);
       }
 
-      super.paintChildren(graphics);
+      super.paintComponent(graphics);
     }
 
     @Override

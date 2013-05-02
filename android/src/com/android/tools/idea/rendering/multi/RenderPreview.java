@@ -28,6 +28,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.*;
+import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
 import com.android.tools.idea.rendering.*;
 import com.android.utils.SdkUtils;
 import com.intellij.icons.AllIcons;
@@ -47,6 +48,7 @@ import com.intellij.util.PairFunction;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -110,6 +112,11 @@ public class RenderPreview implements Disposable {
   private int myTitleHeight;
   private double myScale = 1.0;
   private double myAspectRatio;
+  /** Whether the preview wants a device frame (but it may still not show it if the option isc currently off) */
+  private boolean myShowFrame;
+  /** Whether current thumbnail actually has a device frame */
+  private boolean myThumbnailHasFrame;
+  private @Nullable Rectangle myViewBounds;
 
   private @Nullable Runnable myPendingRendering;
 
@@ -162,14 +169,17 @@ public class RenderPreview implements Disposable {
    * @param manager       the manager
    * @param renderContext canvas where preview is painted
    * @param configuration the associated configuration
+   * @param showFrame     whether device frames should be shown
    */
   @SuppressWarnings("AssertWithSideEffects")
   private RenderPreview(@NotNull RenderPreviewManager manager,
                         @NotNull RenderContext renderContext,
-                        @NotNull Configuration configuration) {
+                        @NotNull Configuration configuration,
+                        boolean showFrame) {
     myManager = manager;
     myRenderContext = renderContext;
     myConfiguration = configuration;
+    myShowFrame = showFrame;
 
     // Should only attempt to create configurations for fully configured devices
     //noinspection AssertWithSideEffects
@@ -252,7 +262,17 @@ public class RenderPreview implements Disposable {
     boolean changed = myFullWidth != screenWidth || myFullHeight != screenHeight;
     myFullWidth = screenWidth;
     myFullHeight = screenHeight;
-    myAspectRatio = screenHeight == 0 ? 1 : screenWidth / (double)screenHeight;
+
+    if (myShowFrame) {
+      DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
+      double xScale = framePainter.getFrameWidthOverhead(device, orientation);
+      double yScale = framePainter.getFrameHeightOverhead(device, orientation);
+      myFullWidth *= xScale;
+      myFullHeight *= yScale;
+    }
+
+
+    myAspectRatio = myFullHeight == 0 ? 1 : myFullWidth / (double)myFullHeight;
     return changed;
   }
 
@@ -454,12 +474,13 @@ public class RenderPreview implements Disposable {
    *
    * @param manager       the manager
    * @param configuration the associated configuration
+   * @param showFrame     whether device frames should be shown
    * @return a new configuration
    */
   @NotNull
-  public static RenderPreview create(@NotNull RenderPreviewManager manager, @NotNull Configuration configuration) {
+  public static RenderPreview create(@NotNull RenderPreviewManager manager, @NotNull Configuration configuration, boolean showFrame) {
     RenderContext context = manager.getRenderContext();
-    return new RenderPreview(manager, context, configuration);
+    return new RenderPreview(manager, context, configuration, showFrame);
   }
 
   /**
@@ -612,8 +633,6 @@ public class RenderPreview implements Disposable {
         ScalableImage scalableImage = result.getImage();
         if (scalableImage != null) {
           myFullImage = scalableImage.getOriginalImage();
-          myFullWidth = myFullImage.getWidth();
-          myFullHeight = myFullImage.getHeight();
         }
       }
 
@@ -645,14 +664,43 @@ public class RenderPreview implements Disposable {
       return;
     }
 
-    boolean drawShadows = !myRenderContext.hasAlphaChannel();
-    double scale = getLayoutWidth() / (double)image.getWidth();
-    int shadowSize;
-    shadowSize = drawShadows ? SMALL_SHADOW_SIZE : 0;
-    if (scale < 1.0) {
-      image = ImageUtils.scale(image, scale, scale, shadowSize, shadowSize);
-      if (drawShadows) {
-        ShadowPainter.drawSmallRectangleShadow(image, 0, 0, image.getWidth() - shadowSize, image.getHeight() - shadowSize);
+    int shadowSize = 0;
+    myThumbnailHasFrame = false;
+    boolean showFrame = myShowFrame;
+
+    Project project = myConfiguration.getModule().getProject();
+    AndroidLayoutPreviewToolWindowSettings.GlobalState settings =
+      AndroidLayoutPreviewToolWindowSettings.getInstance(project).getGlobalState();
+    if (showFrame && settings.isShowDeviceFrames()) {
+      DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
+      Device device = myConfiguration.getDevice();
+      assert framePainter.hasDeviceFrame(device) : device;
+      boolean showEffects = settings.isShowEffects();
+      State deviceState = myConfiguration.getDeviceState();
+      if (device != null && deviceState != null) {
+        double scale = getLayoutWidth() / (double)image.getWidth();
+        ScreenOrientation orientation = deviceState.getOrientation();
+        double frameScale = framePainter.getFrameMaxOverhead(device, orientation);
+        scale /= frameScale;
+        if (myViewBounds == null) {
+          myViewBounds = new Rectangle();
+        }
+        image = framePainter.createFrame(image, device, orientation, showEffects, scale, myViewBounds);
+        myThumbnailHasFrame = true;
+      } else {
+        // TODO: Do drop shadow painting if frame fails?
+        double scale = getLayoutWidth() / (double)image.getWidth();
+        image = ImageUtils.scale(image, scale, scale, 0, 0);
+      }
+    } else {
+      boolean drawShadows = !myRenderContext.hasAlphaChannel();
+      double scale = getLayoutWidth() / (double)image.getWidth();
+      shadowSize = drawShadows ? SMALL_SHADOW_SIZE : 0;
+      if (scale < 1.0) {
+        image = ImageUtils.scale(image, scale, scale, shadowSize, shadowSize);
+        if (drawShadows) {
+          ShadowPainter.drawSmallRectangleShadow(image, 0, 0, image.getWidth() - shadowSize, image.getHeight() - shadowSize);
+        }
       }
     }
 
@@ -831,10 +879,23 @@ public class RenderPreview implements Disposable {
       gc.drawImage(thumbnail, x, y, null);
 
       if (myActive) {
+        // TODO: Can I figure out the actual frame bounds again?
+        int x1 = x;
+        int y1 = y;
+        int w = myLayoutWidth;
+        int h = myLayoutHeight;
+
+        if (myThumbnailHasFrame && myViewBounds != null) {
+          x1 = myViewBounds.x + x1;
+          y1 = myViewBounds.y + y1;
+          w = myViewBounds.width;
+          h = myViewBounds.height;
+        }
+
         gc.setColor(new Color(181, 213, 255));
-        gc.drawRect(x - 1, y - 1, myLayoutWidth + 1, myLayoutHeight + 1);
-        gc.drawRect(x - 2, y - 2, myLayoutWidth + 3, myLayoutHeight + 3);
-        gc.drawRect(x - 3, y - 3, myLayoutWidth + 5, myLayoutHeight + 5);
+        gc.drawRect(x1 - 1, y1 - 1, w + 1, h + 1);
+        gc.drawRect(x1 - 2, y1 - 2, w + 3, h + 3);
+        gc.drawRect(x1 - 3, y1 - 3, w + 5, h + 5);
       }
     }
     else if (myError != null && !myError.isEmpty()) {
@@ -892,7 +953,7 @@ public class RenderPreview implements Disposable {
       gc.setComposite(prevComposite);
     }
 
-    if (myActive) {
+    if (myActive && !myShowFrame) {
       int left = x;
 
       Composite prevComposite = gc.getComposite();
@@ -1167,9 +1228,13 @@ public class RenderPreview implements Disposable {
     myMaxWidth = width;
     myMaxHeight = height;
 
-    double scale = Math.min(width / (double) myFullWidth, (height - RenderPreviewManager.TITLE_HEIGHT) / (double)myFullHeight);
-    myLayoutWidth = (int)(myFullWidth * scale);
-    myLayoutHeight = (int)(myFullHeight * scale);
+    if (width == 0 || height == 0) {
+      computeInitialSize();
+    } else {
+      double scale = Math.min(width / (double) myFullWidth, (height - RenderPreviewManager.TITLE_HEIGHT) / (double)myFullHeight);
+      myLayoutWidth = (int)(myFullWidth * scale);
+      myLayoutHeight = (int)(myFullHeight * scale);
+    }
 
     if (myThumbnail != null && (Math.abs(myLayoutWidth - myThumbnail.getWidth()) > 1)) {
       // Note that we null out myThumbnail, we *don't* call disposeThumbnail because we
@@ -1195,5 +1260,13 @@ public class RenderPreview implements Disposable {
   /** Sets or clears the current pending rendering request */
   public void setPendingRendering(@Nullable Runnable pendingRendering) {
     myPendingRendering = pendingRendering;
+  }
+
+  public boolean isShowFrame() {
+    return myShowFrame;
+  }
+
+  public void setShowFrame(boolean showFrame) {
+    myShowFrame = showFrame;
   }
 }

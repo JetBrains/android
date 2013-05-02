@@ -609,12 +609,7 @@ public class Configuration implements Disposable {
         State state = null;
         // Attempt to preserve the device state?
         if (preserveState && prevDevice != null) {
-          if (prevState == prevDevice.getDefaultState()) {
-            // If you had the default state before, use the default state now.
-            // This means switching from a Nexus 4 portrait to a Nexus 10 will
-            // switch to landscape as well
-            state = device.getDefaultState();
-          } else if (prevState != null) {
+          if (prevState != null) {
             FolderConfiguration oldConfig = DeviceConfigHelper.getFolderConfig(prevState);
             if (oldConfig != null) {
               String stateName = getClosestMatch(oldConfig, device.getAllStates());

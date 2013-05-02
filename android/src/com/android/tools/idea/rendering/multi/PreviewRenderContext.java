@@ -141,4 +141,9 @@ class PreviewRenderContext implements RenderContext {
   public void updateLayout() {
     myRenderContext.updateLayout();
   }
+
+  @Override
+  public void setDeviceFramesEnabled(boolean on) {
+    myRenderContext.setDeviceFramesEnabled(on);
+  }
 }

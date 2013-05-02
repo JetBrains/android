@@ -64,7 +64,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   private final ImageFileEditor myImageFileEditor;
   private final FileEditorProvider myProvider;
 
-  private final List<DeviceArtSpec> myDeviceArtSpecs;
+  private final List<DeviceArtDescriptor> myDeviceArtSpecs;
 
   private JPanel myPanel;
   private JButton myRefreshButton;
@@ -134,7 +134,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     myDropShadowCheckBox.addActionListener(l);
     myScreenGlareCheckBox.addActionListener(l);
 
-    myDeviceArtSpecs = DeviceArtGenerator.getSpecs(null);
+    myDeviceArtSpecs = DeviceArtDescriptor.getDescriptors(null);
     String[] titles = new String[myDeviceArtSpecs.size()];
     for (int i = 0; i < myDeviceArtSpecs.size(); i++) {
       titles[i] = myDeviceArtSpecs.get(i).getName();
@@ -190,7 +190,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   }
 
   private void frameScreenshot(int rotateByAngle) {
-    DeviceArtSpec spec = myDeviceArtSpecs.get(myDeviceArtCombo.getSelectedIndex());
+    DeviceArtDescriptor spec = myDeviceArtSpecs.get(myDeviceArtCombo.getSelectedIndex());
     boolean shadow = myDropShadowCheckBox.isSelected();
     boolean reflection = myScreenGlareCheckBox.isSelected();
 
@@ -207,7 +207,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   private static class ImageProcessorTask extends Task.Modal {
     private final BufferedImage mySrcImage;
     private final int myRotationAngle;
-    private final DeviceArtSpec mySpec;
+    private final DeviceArtDescriptor mySpec;
     private final boolean myAddShadow;
     private final boolean myAddReflection;
 
@@ -217,7 +217,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     public ImageProcessorTask(@Nullable Project project,
                               @NotNull BufferedImage srcImage,
                               int rotateByAngle,
-                              @Nullable DeviceArtSpec spec,
+                              @Nullable DeviceArtDescriptor spec,
                               boolean addShadow,
                               boolean addReflection) {
       super(project, AndroidBundle.message("android.ddms.screenshot.image.processor.task.title"), false);
@@ -238,7 +238,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       }
 
       if (mySpec != null) {
-        myProcessedImage = DeviceArtGenerator.frame(myRotatedImage, mySpec, myAddShadow, myAddReflection);
+        myProcessedImage = DeviceArtPainter.createFrame(myRotatedImage, mySpec, myAddShadow, myAddReflection);
       } else {
         myProcessedImage = myRotatedImage;
       }
@@ -332,7 +332,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     super.doOKAction();
   }
 
-  private String getDefaultFileName() {
+  private static String getDefaultFileName() {
     Calendar now = Calendar.getInstance();
     return String.format("device-%tF-%tH%tM%tS.png", now, now, now, now);
   }
