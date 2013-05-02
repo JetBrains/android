@@ -163,7 +163,7 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
     try {
       BuildLauncher launcher = connection.newBuild();
       launcher.forTasks("build");
-      String androidSdkArg = String.format("-Dandroid.sdk=\"%1$s\"", androidHome);
+      String androidSdkArg = String.format("-Dandroid.home=\"%1$s\"", androidHome);
       launcher.setJvmArguments(androidSdkArg);
       launcher.setStandardOutput(stdout);
       launcher.setStandardError(stderr);
