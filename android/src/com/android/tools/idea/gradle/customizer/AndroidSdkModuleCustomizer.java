@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.customizer;
 
+import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
@@ -24,6 +24,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,20 +32,6 @@ import org.jetbrains.annotations.Nullable;
  * Sets an Android SDK to a module imported from an {@link com.android.build.gradle.model.AndroidProject}.
  */
 public class AndroidSdkModuleCustomizer implements ModuleCustomizer {
-  @NotNull private final ProjectJdkTable myProjectJdkTable;
-  @NotNull private final AndroidPlatformParser myParser;
-
-  public AndroidSdkModuleCustomizer() {
-    myProjectJdkTable = ProjectJdkTable.getInstance();
-    myParser = new AndroidPlatformParser();
-  }
-
-  @VisibleForTesting
-  AndroidSdkModuleCustomizer(@NotNull ProjectJdkTable projectJdkTable, @NotNull AndroidPlatformParser parser) {
-    myProjectJdkTable = projectJdkTable;
-    myParser = parser;
-  }
-
   /**
    * Sets an Android SDK to the given module only if:
    * <ol>
@@ -72,24 +59,21 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer {
   }
 
   @Nullable
-  private Sdk getAndroidSdk(@Nullable IdeaAndroidProject ideaAndroidProject) {
+  private static Sdk getAndroidSdk(@Nullable IdeaAndroidProject ideaAndroidProject) {
     if (ideaAndroidProject != null) {
-      for (Sdk sdk : myProjectJdkTable.getAllJdks()) {
-        AndroidPlatform androidPlatform = myParser.parse(sdk);
+      String compileTarget = ideaAndroidProject.getDelegate().getCompileTarget();
+      for (Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
+        AndroidPlatform androidPlatform = AndroidPlatform.parse(sdk);
         if (androidPlatform != null) {
-          // TODO(alruiz): select Android SDK based on API level. Gradle model (AndroidProject) does not provide this information yet.
-          return sdk;
+          AndroidSdkData sdkData = androidPlatform.getSdkData();
+          IAndroidTarget target = sdkData.findTargetByHashString(compileTarget);
+          if (target != null) {
+            return sdk;
+          }
         }
       }
     }
+    // TODO: Prompt user for path of an Android SDK.
     return null;
-  }
-
-  // The purpose of this class is to mock invocations to the static method AndroidPlatform#parse(Sdk).
-  static class AndroidPlatformParser {
-    @Nullable
-    AndroidPlatform parse(@NotNull Sdk sdk) {
-      return AndroidPlatform.parse(sdk);
-    }
   }
 }

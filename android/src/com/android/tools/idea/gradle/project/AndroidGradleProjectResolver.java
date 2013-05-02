@@ -19,16 +19,21 @@ import com.android.build.gradle.internal.tasks.BaseTask;
 import com.android.build.gradle.model.AndroidProject;
 import com.android.builder.model.ProductFlavor;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.execution.configurations.SimpleJavaParameters;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.util.Function;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.gradle.tooling.ProjectConnection;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper;
@@ -83,8 +88,12 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   }
 
   /**
-   * Adds the paths of the 'android' module and jar files of the Android-Gradle project to the classpath of the slave process that performs
-   * the Gradle project import.
+   * <ol>
+   * <li>Adds the paths of the 'android' module and jar files of the Android-Gradle project to the classpath of the slave process that
+   * performs the Gradle project import.</li>
+   * <li>Sets the value of the environment variable "ANDROID_HOME" with the path of the first found Android SDK, if the environment
+   * variable has not been set.</li>
+   * </ol>
    *
    * @param parameters parameters to be applied to the slave process which will be used for external system communication.
    */
@@ -93,6 +102,16 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
     List<String> jarPaths = getJarPathsOf(getClass(), AndroidProject.class, BaseTask.class, ProductFlavor.class);
     for (String jarPath : jarPaths) {
       parameters.getClassPath().add(jarPath);
+    }
+    String androidHome = System.getenv(AndroidSdkUtils.ANDROID_HOME_ENV);
+    if (Strings.isNullOrEmpty(androidHome)) {
+      for (Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
+        AndroidPlatform androidPlatform = AndroidPlatform.parse(sdk);
+        if (androidPlatform != null && sdk.getHomePath() != null) {
+          parameters.addEnv(AndroidSdkUtils.ANDROID_HOME_ENV, sdk.getHomePath());
+          break;
+        }
+      }
     }
   }
 
