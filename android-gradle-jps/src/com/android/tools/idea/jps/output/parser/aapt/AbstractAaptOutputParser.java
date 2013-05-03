@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.jps.parser;
+package com.android.tools.idea.jps.output.parser.aapt;
 
 import com.android.tools.idea.jps.AndroidGradleJps;
+import com.android.tools.idea.jps.output.parser.CompilerOutputParser;
+import com.android.tools.idea.jps.output.parser.OutputLineReader;
+import com.android.tools.idea.jps.output.parser.ParsingFailedException;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.incremental.messages.BuildMessage.Kind;
+import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 
 import java.io.File;
@@ -29,11 +32,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Creates a {@link org.jetbrains.jps.incremental.messages.CompilerMessage} from a parsed line of AAPT output.
- */
-class AaptProblemMessageFactory extends ProblemMessageFactory {
-  private static final Logger LOG = Logger.getInstance(GradleErrorOutputParser.class);
+abstract class AbstractAaptOutputParser implements CompilerOutputParser {
+  private static final Logger LOG = Logger.getInstance(AbstractAaptOutputParser.class);
 
   /**
    * Portion of the error message which states the context in which the error occurred,
@@ -75,52 +75,63 @@ class AaptProblemMessageFactory extends ProblemMessageFactory {
 
   @NotNull private final Map<String, ReadOnlyDocument> myDocumentsByPathCache = Maps.newHashMap();
 
-  AaptProblemMessageFactory(@NotNull LineReader outputReader) {
-    super(outputReader);
+  @Nullable
+  final Matcher getNextLineMatcher(@NotNull OutputLineReader reader, @NotNull Pattern pattern) {
+    // unless we can't, because we reached the last line
+    String line = reader.readLine();
+    if (line == null) {
+      // we expected a 2nd line, so we flag as error and we bail
+      return null;
+    }
+    Matcher m = pattern.matcher(line);
+    return m.matches() ? m : null;
   }
 
-  /**
-   * Creates a new {@link org.jetbrains.jps.incremental.messages.CompilerMessage} using the given information.
-   *
-   * @param msgText    the text of the message.
-   * @param severity   the severity of the message.
-   * @param sourcePath the absolute path of the file owning the message.
-   * @param lineNumber the line number where the message will be.
-   * @return the created {@code CompilerMessage}. It returns {@code null} if {@code sourcePath}
-   *         is specified but does not point to an existing file, or if {@code lineNumber} is not
-   *         {@code null} <strong>and</strong> not a parsable integer.
-   */
-  @Override
-  @Nullable
-  CompilerMessage createMessage(@NotNull String msgText, @NotNull Kind severity, @Nullable String sourcePath, @Nullable String lineNumber) {
+  @NotNull
+  CompilerMessage createErrorMessage(@NotNull String text, @Nullable String sourcePath, @Nullable String lineNumberAsText)
+    throws ParsingFailedException {
+    return createMessage(BuildMessage.Kind.ERROR, text, sourcePath, lineNumberAsText);
+  }
+
+  @NotNull
+  CompilerMessage createWarningMessage(@NotNull String text, @Nullable String sourcePath, @Nullable String lineNumberAsText)
+    throws ParsingFailedException {
+    return createMessage(BuildMessage.Kind.WARNING, text, sourcePath, lineNumberAsText);
+  }
+
+  @NotNull
+  private CompilerMessage createMessage(@NotNull BuildMessage.Kind kind,
+                                        @NotNull String text,
+                                        @Nullable String sourcePath,
+                                        @Nullable String lineNumberAsText) throws ParsingFailedException {
     File file = null;
     if (sourcePath != null) {
       file = new File(sourcePath);
       if (!file.isFile()) {
-        return null;
+        throw new ParsingFailedException();
       }
     }
-    long locationLine = -1L;
-    if (lineNumber != null) {
+    long lineNumber = -1L;
+    if (lineNumberAsText != null) {
       try {
-        locationLine = Integer.parseInt(lineNumber);
+        lineNumber = Integer.parseInt(lineNumberAsText);
       }
       catch (NumberFormatException e) {
-        return null;
+        throw new ParsingFailedException();
       }
     }
-    long locationColumn = -1L;
+    long column = -1L;
     // Attempt to determine the exact range of characters affected by this error.
     // This will look up the actual text of the file, go to the particular error line and findText for the specific string mentioned in the
     // error.
-    if (file != null && locationLine != -1) {
-      Position errorPosition = findMessagePositionInFile(file, msgText, locationLine);
+    if (file != null && lineNumber != -1) {
+      Position errorPosition = findMessagePositionInFile(file, text, lineNumber);
       if (errorPosition != null) {
-        locationLine = errorPosition.locationLine;
-        locationColumn = errorPosition.locationColumn;
+        lineNumber = errorPosition.myLineNumber;
+        column = errorPosition.myColumn;
       }
     }
-    return AndroidGradleJps.createCompilerMessage(sourcePath, msgText, severity, locationLine, locationColumn);
+    return AndroidGradleJps.createCompilerMessage(kind, text, sourcePath, lineNumber, column);
   }
 
   @Nullable
@@ -144,7 +155,7 @@ class AaptProblemMessageFactory extends ProblemMessageFactory {
       else if (position2 == null) {
         return position1;
       }
-      else if (position1.offset < position2.offset) {
+      else if (position1.myOffset < position2.myOffset) {
         return position1;
       }
       else {
@@ -217,7 +228,7 @@ class AaptProblemMessageFactory extends ProblemMessageFactory {
     }
     long resultOffset = -1;
     for (long i = lineOffset; i < nextLineOffset; i++) {
-      char c = document.getCharAt(i);
+      char c = document.charAt(i);
       if (!Character.isWhitespace(c)) {
         resultOffset = i;
         break;
@@ -248,14 +259,14 @@ class AaptProblemMessageFactory extends ProblemMessageFactory {
   }
 
   private static class Position {
-    final long locationLine;
-    final long locationColumn;
-    final long offset;
+    final long myLineNumber;
+    final long myColumn;
+    final long myOffset;
 
-    Position(long locationLine, long locationColumn, long offset) {
-      this.locationLine = locationLine;
-      this.locationColumn = locationColumn;
-      this.offset = offset;
+    Position(long lineNumber, long column, long offset) {
+      myLineNumber = lineNumber;
+      myColumn = column;
+      myOffset = offset;
     }
   }
 }

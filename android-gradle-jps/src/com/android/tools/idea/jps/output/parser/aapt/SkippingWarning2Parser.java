@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.jps.parser;
+package com.android.tools.idea.jps.output.parser.aapt;
 
+import com.android.tools.idea.jps.output.parser.OutputLineReader;
+import com.android.tools.idea.jps.output.parser.ParsingFailedException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 
+import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class SkippingWarning2Parser extends ProblemParser {
+class SkippingWarning2Parser extends AbstractAaptOutputParser {
   /**
    * Error message emitted when aapt skips a file because for example it's name is
    * invalid, such as a layout file name which starts with _.
@@ -30,24 +33,19 @@ class SkippingWarning2Parser extends ProblemParser {
    */
   private static final Pattern MSG_PATTERN = Pattern.compile("    \\(skipping .+ '(.+)' due to ANDROID_AAPT_IGNORE pattern '.+'\\)");
 
-  @NotNull private final ProblemMessageFactory myMessageFactory;
-
-  SkippingWarning2Parser(@NotNull AaptProblemMessageFactory messageFactory) {
-    this.myMessageFactory = messageFactory;
-  }
-
-  @NotNull
   @Override
-  ParsingResult parse(@NotNull String line) {
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull Collection<CompilerMessage> messages)
+    throws ParsingFailedException {
     Matcher m = MSG_PATTERN.matcher(line);
     if (!m.matches()) {
-      return ParsingResult.NO_MATCH;
+      return false;
     }
     String sourcePath = m.group(1);
     if (sourcePath != null && (sourcePath.startsWith(".") || sourcePath.endsWith("~"))) {
-      return ParsingResult.IGNORE;
+      return true;
     }
-    CompilerMessage msg = myMessageFactory.createWarningMessage(line, sourcePath, null);
-    return new ParsingResult(msg);
+    CompilerMessage msg = createWarningMessage(line, sourcePath, null);
+    messages.add(msg);
+    return true;
   }
 }
