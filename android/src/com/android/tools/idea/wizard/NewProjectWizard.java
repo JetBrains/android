@@ -15,16 +15,28 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.SdkManager;
+import com.android.tools.idea.gradle.NewAndroidProjectImporter;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.utils.SdkUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.io.FileUtil;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
+import static com.android.tools.idea.templates.Template.ATTR_NAME;
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
 
 /**
  * NewProjectWizard runs the wizard for creating entirely new Android projects. It takes the user
@@ -82,8 +94,9 @@ public class NewProjectWizard extends TemplateWizard {
       public void run() {
         try {
           populateDirectoryParameters(myWizardState);
+          String projectName = (String)myWizardState.get(NewProjectWizardState.ATTR_PROJECT_NAME);
           File projectRoot = new File((String)myWizardState.get(NewProjectWizardState.ATTR_PROJECT_LOCATION));
-          File moduleRoot = new File(projectRoot, (String)myWizardState.get(NewProjectWizardState.ATTR_PROJECT_NAME));
+          File moduleRoot = new File(projectRoot, projectName);
           File gradleWrapperSrc = new File(TemplateManager.getTemplateRootFolder(), GRADLE_WRAPPER_PATH);
           projectRoot.mkdirs();
           FileUtil.copyDirContent(gradleWrapperSrc, projectRoot);
@@ -97,6 +110,8 @@ public class NewProjectWizard extends TemplateWizard {
             myWizardState.getActivityTemplateState().getTemplate()
               .render(moduleRoot, moduleRoot, myWizardState.getActivityTemplateState().myParameters);
           }
+          Sdk sdk = getSdk((Integer)myWizardState.get(ATTR_BUILD_API));
+          new NewAndroidProjectImporter().importProject(projectName, projectRoot, sdk);
         }
         catch (Exception e) {
           LOG.error(e);
@@ -105,4 +120,18 @@ public class NewProjectWizard extends TemplateWizard {
     });
   }
 
+  @Nullable
+  private Sdk getSdk(int apiLevel) {
+    for (Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
+      AndroidPlatform androidPlatform = AndroidPlatform.parse(sdk);
+      if (androidPlatform != null) {
+        AndroidSdkData sdkData = androidPlatform.getSdkData();
+        IAndroidTarget target = sdkData.findTargetByApiLevel(Integer.toString(apiLevel));
+        if (target != null) {
+          return sdk;
+        }
+      }
+    }
+    return null;
+  }
 }
