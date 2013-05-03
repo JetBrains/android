@@ -36,7 +36,7 @@
   <help file="ideahelp.jar" root="idea"/>
   <documentation url="http://www.jetbrains.com/idea/documentation"/>
   <support url="http://go/android-diamond/"/>
-  <feedback eap-url="http://go/android-diamond-bug"
+  <feedback eap-url="http://go/android-diamond-bug?notes=Build:%20__BUILD_NUMBER__,%20__BUILD_DATE__"
             release-url="http://www.jetbrains.com/feedback/feedback.jsp?product=IDEA&amp;build=$BUILD&amp;timezone=$TIMEZONE&amp;eval=$EVAL"/>
   <plugins url="http://plugins.intellij.net"/>
   <whatsnew url="http://go/android-diamond/whats-new"/>
