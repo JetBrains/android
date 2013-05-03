@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.jps.AndroidGradleJps;
 import com.android.tools.idea.jps.model.JpsAndroidGradleModuleExtension;
 import com.android.tools.idea.jps.model.impl.JpsAndroidGradleModuleProperties;
-import com.android.tools.idea.jps.parser.GradleErrorOutputParser;
+import com.android.tools.idea.jps.output.parser.GradleErrorOutputParser;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Closeables;
@@ -50,6 +50,7 @@ import org.jetbrains.jps.model.library.sdk.JpsSdk;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -132,7 +133,7 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
 
   @NotNull
   private static CompilerMessage createCompilerErrorMessage(@NotNull String msg) {
-    return AndroidGradleJps.createCompilerMessage(msg, BuildMessage.Kind.ERROR);
+    return AndroidGradleJps.createCompilerMessage(BuildMessage.Kind.ERROR, msg);
   }
 
   @Nullable
@@ -227,7 +228,7 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
    */
   @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
   private static void handleBuildException(BuildException e, CompileContext context, String stdErr) throws ProjectBuildException {
-    List<CompilerMessage> compilerMessages = ERROR_OUTPUT_PARSER.parseErrorOutput(stdErr);
+    Collection<CompilerMessage> compilerMessages = ERROR_OUTPUT_PARSER.parseErrorOutput(stdErr);
     if (!compilerMessages.isEmpty()) {
       for (CompilerMessage message : compilerMessages) {
         context.processMessage(message);

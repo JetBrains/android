@@ -13,33 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.jps.parser;
+package com.android.tools.idea.jps.output.parser.aapt;
 
+import com.android.tools.idea.jps.output.parser.OutputLineReader;
+import com.android.tools.idea.jps.output.parser.ParsingFailedException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 
+import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class Error7Parser extends ProblemParser {
-  private static final Pattern MSG_PATTERN = Pattern.compile("^(invalid resource directory name): (.*)$");
+class SkippingHiddenFileParser extends AbstractAaptOutputParser {
+  /**
+   * Single-line aapt warning for skipping files.
+   * <pre>
+   *   (skipping hidden file '&lt;file path&gt;')
+   * </pre>
+   */
+  private static final Pattern MSG_PATTERN = Pattern.compile("^\\s+\\(skipping hidden file\\s'(.*)'\\)$");
 
-  @NotNull private final ProblemMessageFactory myMessageFactory;
-
-  Error7Parser(@NotNull AaptProblemMessageFactory messageFactory) {
-    myMessageFactory = messageFactory;
-  }
-
-  @NotNull
   @Override
-  ParsingResult parse(@NotNull String line) {
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull Collection<CompilerMessage> messages)
+    throws ParsingFailedException {
     Matcher m = MSG_PATTERN.matcher(line);
-    if (!m.matches()) {
-      return ParsingResult.NO_MATCH;
-    }
-    String sourcePath = m.group(2);
-    String msgText = m.group(1);
-    CompilerMessage msg = myMessageFactory.createErrorMessage(msgText, sourcePath, null);
-    return new ParsingResult(msg);
+    return m.matches();
   }
 }

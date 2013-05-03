@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.jps.parser;
+package com.android.tools.idea.jps.output.parser.aapt;
 
+import com.android.tools.idea.jps.output.parser.OutputLineReader;
+import com.android.tools.idea.jps.output.parser.ParsingFailedException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 
+import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class SkippingWarning1Parser extends ProblemParser {
+class SkippingWarning1Parser extends AbstractAaptOutputParser {
   /**
    * Error message emitted when aapt skips a file because for example it's name is
    * invalid, such as a layout file name which starts with _.
@@ -30,18 +33,12 @@ class SkippingWarning1Parser extends ProblemParser {
    */
   private static final Pattern MSG_PATTERN = Pattern.compile("    \\(skipping (.+) .+ '(.*)'\\)");
 
-  @NotNull private final ProblemMessageFactory myMessageFactory;
-
-  SkippingWarning1Parser(@NotNull AaptProblemMessageFactory messageFactory) {
-    myMessageFactory = messageFactory;
-  }
-
-  @NotNull
   @Override
-  ParsingResult parse(@NotNull String line) {
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull Collection<CompilerMessage> messages)
+    throws ParsingFailedException {
     Matcher m = MSG_PATTERN.matcher(line);
     if (!m.matches()) {
-      return ParsingResult.NO_MATCH;
+      return false;
     }
     String sourcePath = m.group(2);
     // Certain files can safely be skipped without marking the project as having errors.
@@ -50,9 +47,10 @@ class SkippingWarning1Parser extends ProblemParser {
     if (type.equals("backup")         // main.xml~, etc
         || type.equals("hidden")      // .gitignore, etc
         || type.equals("index")) {    // thumbs.db, etc
-      return ParsingResult.IGNORE;
+      return true;
     }
-    CompilerMessage msg = myMessageFactory.createWarningMessage(line, sourcePath, null);
-    return new ParsingResult(msg);
+    CompilerMessage msg = createWarningMessage(line, sourcePath, null);
+    messages.add(msg);
+    return true;
   }
 }
