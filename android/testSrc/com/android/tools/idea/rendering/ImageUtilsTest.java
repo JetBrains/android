@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.tools.idea.rendering.ImageUtils;
 import junit.framework.TestCase;
+import org.jetbrains.android.AndroidTestCase;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
 
 public class ImageUtilsTest extends TestCase {
   public void testScaleImage() throws Exception {
@@ -60,6 +62,42 @@ public class ImageUtilsTest extends TestCase {
     assertEquals(0xFF00FF00, scaled.getRGB(0, 0));
     assertEquals(0xFF00FF00, scaled.getRGB(24, 24));
     assertEquals(0xFFFF0000, scaled.getRGB(13, 13));
+  }
+
+  public void testRotation() throws IOException {
+    String path = AndroidTestCase.getAbsoluteTestDataPath() + File.separator + "render" + File.separator + "imageutils";
+
+    BufferedImage srcImage = readImage(path, "0.png");
+    BufferedImage expected90 = readImage(path, "90.png");
+    BufferedImage expected180 = readImage(path, "180.png");
+    BufferedImage expected270 = readImage(path, "270.png");
+
+    assertEqualsImage(expected90, ImageUtils.rotateByRightAngle(srcImage, 90));
+    assertEqualsImage(expected180, ImageUtils.rotateByRightAngle(srcImage, 180));
+    assertEqualsImage(expected270, ImageUtils.rotateByRightAngle(srcImage, 270));
+
+    // verify that rotating the image 4 times by 90 degrees doesn't lose any data
+    BufferedImage img = readImage(path, "0.png");
+    for (int i = 0; i < 4; i++) {
+      img = ImageUtils.rotateByRightAngle(img, 90);
+    }
+    assertEqualsImage(srcImage, img);
+  }
+
+  private static BufferedImage readImage(String folder, String fileName) throws IOException {
+    File f = new File(folder, fileName);
+    return ImageIO.read(f);
+  }
+
+  private static void assertEqualsImage(BufferedImage expected, BufferedImage actual) {
+    assertEquals(expected.getWidth(), actual.getWidth());
+    assertEquals(expected.getHeight(), actual.getHeight());
+
+    for (int x = 0; x < expected.getWidth(); x++) {
+      for (int y = 0; y < expected.getHeight(); y++) {
+        assertEquals(expected.getRGB(x, y), actual.getRGB(x, y));
+      }
+    }
   }
 
   public void testCropBlank() throws Exception {

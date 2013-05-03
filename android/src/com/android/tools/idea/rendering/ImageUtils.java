@@ -27,7 +27,45 @@ import static java.awt.RenderingHints.*;
 /**
  * Utilities related to image processing.
  */
+@SuppressWarnings("UndesirableClassUsage") // BufferedImage is ok, no need for UiUtil.createImage
 public class ImageUtils {
+  /**
+   * Rotates given image by given degrees which should be a multiple of 90
+   * @param source image to be rotated
+   * @param degrees the angle by which to rotate, should be a multiple of 90
+   * @return the rotated image
+   */
+  public static BufferedImage rotateByRightAngle(BufferedImage source, int degrees) {
+    assert degrees % 90 == 0;
+    degrees = degrees % 360;
+
+    int w = source.getWidth();
+    int h = source.getHeight();
+    if (degrees == 90 || degrees == 270) {
+        w = source.getHeight();
+        h = source.getWidth();
+    }
+
+    int xOffset = 0;
+    if (degrees == 180 || degrees == 270) {
+      xOffset = -source.getWidth();
+    }
+
+    int yOffset = 0;
+    if (degrees == 90 || degrees == 180) {
+      yOffset = -source.getHeight();
+    }
+
+    BufferedImage rotated = new BufferedImage(w, h, source.getType());
+    Graphics2D g = rotated.createGraphics();
+    if (degrees != 0) {
+      g.rotate(Math.toRadians(degrees));
+    }
+    g.drawImage(source, xOffset, yOffset, null);
+    g.dispose();
+    return rotated;
+  }
+
   /**
    * Resize the given image
    *
