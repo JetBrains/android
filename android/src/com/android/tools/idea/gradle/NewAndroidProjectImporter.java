@@ -21,6 +21,7 @@ import com.intellij.ide.impl.NewProjectUtil;
 import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
+import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -38,11 +39,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
@@ -92,8 +95,8 @@ public class NewAndroidProjectImporter {
 
     createIdeaProjectDir(projectRootDir);
 
-    Project newProject = createProject(projectName, projectFilePath);
-    applyAndroidSdk(newProject, androidSdk);
+    final Project newProject = createProject(projectName, projectFilePath);
+    setUpProject(newProject, androidSdk);
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       newProject.save();
     }
@@ -109,6 +112,12 @@ public class NewAndroidProjectImporter {
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       newProject.save();
     }
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        CompilerManager.getInstance(newProject).make(null);
+      }
+    });
     return newProject;
   }
 
@@ -141,7 +150,7 @@ public class NewAndroidProjectImporter {
     return GradleSettings.getInstance(defaultProject);
   }
 
-  private static void applyAndroidSdk(@NotNull final Project newProject, @NotNull final Sdk androidSdk) {
+  private static void setUpProject(@NotNull final Project newProject, @NotNull final Sdk androidSdk) {
     CommandProcessor.getInstance().executeCommand(newProject, new Runnable() {
       @Override
       public void run() {
@@ -149,6 +158,10 @@ public class NewAndroidProjectImporter {
           @Override
           public void run() {
             NewProjectUtil.applyJdkToProject(newProject, androidSdk);
+            // In practice, it really does not matter where the compiler output folder is. Gradle handles that. This is done just to please
+            // IDEA.
+            String compileOutputUrl = VfsUtilCore.pathToUrl(newProject.getBasePath() + "/build/classes");
+            CompilerProjectExtension.getInstance(newProject).setCompilerOutputUrl(compileOutputUrl);
           }
         });
       }
