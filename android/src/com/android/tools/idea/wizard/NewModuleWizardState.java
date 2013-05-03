@@ -44,11 +44,6 @@ public class NewModuleWizardState extends TemplateWizardState {
   protected final LauncherIconWizardState myLauncherIconState;
 
   /**
-   * The compilation target to use for this project
-   */
-  protected IAndroidTarget myBuildTarget;
-
-  /**
    * True if the module being created is an Android module (as opposed to a generic Java module with no Android support)
    */
   protected boolean myIsAndroidModule;
@@ -87,11 +82,6 @@ public class NewModuleWizardState extends TemplateWizardState {
   @NotNull
   public LauncherIconWizardState getLauncherIconState() {
     return myLauncherIconState;
-  }
-
-  @Nullable
-  public IAndroidTarget getBuildTarget() {
-    return myBuildTarget;
   }
 
   @Override
