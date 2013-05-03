@@ -176,7 +176,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory {
       layoutUi.createContent(AndroidDebugRunner.ANDROID_LOGCAT_CONTENT_ID,
                              logcatContentPanel,
                              "logcat",
-                             AndroidIcons.Logcat, null);
+                             AndroidIcons.Ddms.Logcat, null);
     logcatContent.putUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY, logcatView);
     logcatContent.setDisposer(logcatView);
     logcatContent.setCloseable(false);
