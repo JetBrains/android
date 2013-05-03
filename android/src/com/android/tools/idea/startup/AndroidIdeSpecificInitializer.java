@@ -56,7 +56,7 @@ public class AndroidIdeSpecificInitializer implements Runnable {
   public void run() {
     // Fix New Project actions
     //noinspection UseOfArchaicSystemPropertyAccessors
-    if (Boolean.getBoolean(NEW_NEW_PROJECT_WIZARD)) {
+    if (System.getProperty(NEW_NEW_PROJECT_WIZARD) == null || Boolean.getBoolean(NEW_NEW_PROJECT_WIZARD)) {
       fixNewProjectActions();
     }
 
