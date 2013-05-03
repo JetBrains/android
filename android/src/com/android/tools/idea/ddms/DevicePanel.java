@@ -27,10 +27,7 @@ import com.android.tools.idea.ddms.screenshot.ScreenshotViewer;
 import com.android.utils.Pair;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.ActionGroup;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -45,6 +42,7 @@ import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.UIUtil;
+import icons.AndroidIcons;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -127,6 +125,7 @@ public class DevicePanel implements Disposable,
           append((String)value, SimpleTextAttributes.ERROR_ATTRIBUTES);
         } else if (value instanceof IDevice) {
           IDevice d = (IDevice)value;
+          setIcon(d.isEmulator() ? AndroidIcons.Ddms.Emulator2 : AndroidIcons.Ddms.RealDevice);
           List<Pair<String, SimpleTextAttributes>> components = renderDeviceName(d);
           for (Pair<String, SimpleTextAttributes> c : components) {
             append(c.getFirst(), c.getSecond());
@@ -307,8 +306,17 @@ public class DevicePanel implements Disposable,
     DefaultActionGroup group = new DefaultActionGroup();
 
     group.add(new MyScreenshotAction());
+    //group.add(new MyFileExplorerAction());
+    //group.add(new Separator());
+
     group.add(new MyTerminateVMAction());
     group.add(new MyGcAction());
+    //group.add(new MyDumpHprofAction());
+    //group.add(new MyAllocationTrackerAction());
+    //group.add(new Separator());
+
+    //group.add(new MyToggleMethodProfilingAction());
+    //group.add(new MyThreadDumpAction()); // thread dump -> systrace
     return group;
   }
 
@@ -352,7 +360,7 @@ public class DevicePanel implements Disposable,
     public MyGcAction() {
       super(AndroidBundle.message("android.ddms.actions.initiate.gc"),
             AndroidBundle.message("android.ddms.actions.initiate.gc.description"),
-            AllIcons.Actions.GC);
+            AndroidIcons.Ddms.Gc); // Alternate: AllIcons.Actions.GC
     }
 
     @Override
@@ -365,7 +373,7 @@ public class DevicePanel implements Disposable,
     public MyScreenshotAction() {
       super(AndroidBundle.message("android.ddms.actions.screenshot"),
             AndroidBundle.message("android.ddms.actions.screenshot.description"),
-            AllIcons.Actions.Dump); // the thread dump icon looks like a camera
+            AndroidIcons.Ddms.ScreenCapture); // Alternate: AllIcons.Actions.Dump looks like a camera
     }
 
     @Override

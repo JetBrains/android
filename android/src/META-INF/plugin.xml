@@ -77,7 +77,7 @@
             class="org.jetbrains.android.actions.AndroidConnectDebuggerAction"
             text="Attach debugger to Android process"
             description="Attach debugger to Android process"
-            icon="AndroidIcons.AttachDebugger">
+            icon="AndroidIcons.Ddms.AttachDebugger">
       <add-to-group group-id="ToolbarRunGroup" anchor="after" relative-to-action="RunnerActions"/>
       <add-to-group group-id="RunMenu"/>
     </action>
