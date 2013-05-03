@@ -89,12 +89,13 @@ public class TemplateWizard extends AbstractWizard<ModuleWizardStep> {
     File moduleRoot = new File(projectRoot, (String)wizardState.get(NewProjectWizardState.ATTR_PROJECT_NAME));
     File mainFlavorSourceRoot = new File(moduleRoot, MAIN_FLAVOR_SOURCE_PATH);
     File javaSourceRoot = new File(mainFlavorSourceRoot, JAVA_SOURCE_PATH);
+    File javaSourcePackageRoot = new File(javaSourceRoot, ((String)wizardState.get(TemplateMetadata.ATTR_PACKAGE_NAME)).replace('.', '/'));
     File resourceSourceRoot = new File(mainFlavorSourceRoot, RESOURCE_SOURCE_PATH);
     String mavenUrl = System.getProperty(MAVEN_URL_PROPERTY);
     wizardState.put(TemplateMetadata.ATTR_TOP_OUT, projectRoot.getPath());
     wizardState.put(TemplateMetadata.ATTR_PROJECT_OUT, moduleRoot.getPath());
     wizardState.put(TemplateMetadata.ATTR_MANIFEST_OUT, mainFlavorSourceRoot.getPath());
-    wizardState.put(TemplateMetadata.ATTR_SRC_OUT, javaSourceRoot.getPath());
+    wizardState.put(TemplateMetadata.ATTR_SRC_OUT, javaSourcePackageRoot.getPath());
     wizardState.put(TemplateMetadata.ATTR_RES_OUT, resourceSourceRoot.getPath());
     if (mavenUrl != null) {
       wizardState.put(TemplateMetadata.ATTR_MAVEN_URL, mavenUrl);
