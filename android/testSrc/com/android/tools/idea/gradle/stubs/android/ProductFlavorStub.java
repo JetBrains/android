@@ -88,4 +88,10 @@ public class ProductFlavorStub implements ProductFlavor {
   public List<String> getBuildConfig() {
     throw new UnsupportedOperationException();
   }
+
+  @NotNull
+  @Override
+  public List<Object> getProguardFiles() {
+    throw new UnsupportedOperationException();
+  }
 }

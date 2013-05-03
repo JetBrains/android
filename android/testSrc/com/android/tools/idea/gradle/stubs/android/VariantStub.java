@@ -55,12 +55,6 @@ public class VariantStub implements Variant {
 
   @NotNull
   @Override
-  public List<String> getBootClasspath() {
-    throw new UnsupportedOperationException();
-  }
-
-  @NotNull
-  @Override
   public File getOutputFile() {
     throw new UnsupportedOperationException();
   }
