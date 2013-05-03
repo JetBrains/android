@@ -46,11 +46,14 @@ public class DeviceArtGenerator {
   @Nullable
   private static File getBundledSpecsFolder() {
     // In the IDE distribution, this should be in plugins/android/lib/FN_BASE
-    String androidLibs = PathManager.getJarPathForClass(DeviceArtGenerator.class);
-    if (androidLibs != null) {
-      File base = new File(androidLibs, FN_BASE);
-      if (base.exists() && base.isDirectory()) {
-        return base;
+    String androidJarPath = PathManager.getJarPathForClass(DeviceArtGenerator.class);
+    if (androidJarPath != null) {
+      File androidJar = new File(androidJarPath);
+      if (androidJar.isFile()) {
+        File base = new File(androidJar.getParentFile(), FN_BASE);
+        if (base.exists() && base.isDirectory()) {
+          return base;
+        }
       }
     }
 
