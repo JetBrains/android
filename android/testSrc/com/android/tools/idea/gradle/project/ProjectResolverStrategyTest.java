@@ -95,7 +95,7 @@ public class ProjectResolverStrategyTest extends TestCase {
     assertNotNull(projectInfo);
     ProjectData projectData = projectInfo.getData();
     assertEquals(myAndroidProject.getName(), projectData.getName());
-    assertEquals(myAndroidProject.getRootDir().getAbsolutePath(), projectData.getProjectFileDirectoryPath());
+    assertEquals(myAndroidProject.getRootDir().getAbsolutePath(), projectData.getIdeProjectFileDirectoryPath());
 
     // Verify module.
     Collection<DataNode<ModuleData>> modules = ExternalSystemApiUtil.getChildren(projectInfo, ProjectKeys.MODULE);

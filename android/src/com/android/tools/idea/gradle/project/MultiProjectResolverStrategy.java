@@ -81,7 +81,7 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
     }
 
     String name = new File(projectDirPath).getName();
-    DataNode<ProjectData> projectInfo = createProjectInfo(projectDirPath, name);
+    DataNode<ProjectData> projectInfo = createProjectInfo(projectDirPath, projectPath, name);
 
     AndroidProject first = null;
 
@@ -143,7 +143,7 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
   @NotNull
   private static DataNode<ModuleData> createModuleInfo(@NotNull IdeaModule module,
                                                        @NotNull DataNode<ProjectData> projectInfo) {
-    String projectDirPath = projectInfo.getData().getProjectFileDirectoryPath();
+    String projectDirPath = projectInfo.getData().getIdeProjectFileDirectoryPath();
     ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), module.getName(), projectDirPath);
     DataNode<ModuleData> moduleInfo = projectInfo.createChild(ProjectKeys.MODULE, moduleData);
 

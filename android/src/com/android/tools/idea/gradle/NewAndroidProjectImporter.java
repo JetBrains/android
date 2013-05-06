@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
+import com.google.common.base.Preconditions;
 import com.intellij.ide.impl.NewProjectUtil;
 import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.openapi.application.ApplicationManager;
@@ -29,6 +29,7 @@ import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
@@ -42,7 +43,6 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.startup.StartupManager;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -52,7 +52,7 @@ import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.IdeFrameEx;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
@@ -91,7 +91,7 @@ public class NewAndroidProjectImporter {
     throws IOException, ConfigurationException {
     File projectFile = new File(projectRootDir, "build.gradle");
     FileUtilRt.createIfNotExists(projectFile);
-    String projectFilePath = projectFile.getAbsolutePath();
+    final String projectFilePath = projectFile.getAbsolutePath();
 
     createIdeaProjectDir(projectRootDir);
 
@@ -105,19 +105,34 @@ public class NewAndroidProjectImporter {
     FileUtilRt.createIfNotExists(localProperties);
     FileUtil.writeToFile(localProperties, "sdk.dir=" + androidSdk.getHomePath());
 
-    DataNode<ProjectData> projectInfo = myImporter.importProject(newProject, projectFilePath);
-    populateProject(newProject, projectInfo);
-
-    open(newProject, projectFilePath);
-    if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      newProject.save();
-    }
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+    ExternalProjectRefreshCallback callback = new ExternalProjectRefreshCallback() {
       @Override
-      public void run() {
-        CompilerManager.getInstance(newProject).make(null);
+      public void onSuccess(final @Nullable DataNode<ProjectData> projectInfo) {
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            populateProject(newProject, Preconditions.checkNotNull(projectInfo));
+
+            open(newProject, projectFilePath);
+            if (!ApplicationManager.getApplication().isUnitTestMode()) {
+              newProject.save();
+            }
+            CompilerManager.getInstance(newProject).make(null);
+          }
+        });
       }
-    });
+
+      @Override
+      public void onFailure(@NotNull String errorMessage, @Nullable String errorDetails) {
+        if (errorDetails != null) {
+          LOG.warn(errorDetails);
+        }
+        String msg = ExternalSystemBundle.message("error.resolve.with.reason", errorMessage);
+        throw new IllegalStateException(msg);
+      }
+    };
+
+    myImporter.importProject(newProject, projectFilePath, callback);
     return newProject;
   }
 
@@ -128,26 +143,11 @@ public class NewAndroidProjectImporter {
 
   @NotNull
   private static Project createProject(@NotNull String projectName, @NotNull String projectFilePath) throws ConfigurationException {
-    GradleSettings defaultSettings = getDefaultGradleSettings();
-
-    String gradleHomePath = defaultSettings.getGradleHome();
-    if (Strings.isNullOrEmpty(gradleHomePath)) {
-      throw new ConfigurationException("Please specify the path of your Gradle installation");
-    }
-
     Project newProject = ProjectManager.getInstance().createProject(projectName, projectFilePath);
     if (newProject == null) {
       throw new NullPointerException("Failed to create a new IDEA project");
     }
-    GradleSettings settings = GradleSettings.getInstance(newProject);
-    settings.applySettings(projectFilePath, gradleHomePath, defaultSettings.isPreferLocalInstallationToWrapper(),
-                           defaultSettings.isUseAutoImport(), defaultSettings.getServiceDirectoryPath());
     return newProject;
-  }
-
-  private static GradleSettings getDefaultGradleSettings() {
-    Project defaultProject = ProjectManager.getInstance().getDefaultProject();
-    return GradleSettings.getInstance(defaultProject);
   }
 
   private static void setUpProject(@NotNull final Project newProject, @NotNull final Sdk androidSdk) {
@@ -208,35 +208,15 @@ public class NewAndroidProjectImporter {
 
   // Makes it possible to mock invocations to the Gradle Tooling API.
   static class GradleProjectImporter {
-    @NotNull
-    DataNode<ProjectData> importProject(@NotNull Project newProject, @NotNull String projectFilePath)
+    void importProject(@NotNull Project newProject, @NotNull String projectFilePath, @NotNull ExternalProjectRefreshCallback callback)
       throws ConfigurationException {
-      String externalSystemName = ExternalSystemApiUtil.toReadableName(SYSTEM_ID);
-      Ref<String> errorMessage = new Ref<String>();
-      Ref<String> errorDetails = new Ref<String>();
       try {
-        DataNode<ProjectData> projectInfo =
-          ExternalSystemUtil.refreshProject(newProject, SYSTEM_ID, projectFilePath, errorMessage, errorDetails, true, true);
-        if (projectInfo != null) {
-          return projectInfo;
-        }
+        ExternalSystemUtil.refreshProject(newProject, SYSTEM_ID, projectFilePath, callback, true, true);
       }
       catch (RuntimeException e) {
+        String externalSystemName = ExternalSystemApiUtil.toReadableName(SYSTEM_ID);
         throw new ConfigurationException(e.getMessage(), ExternalSystemBundle.message("error.cannot.parse.project", externalSystemName));
       }
-      final String details = errorDetails.get();
-      if (!Strings.isNullOrEmpty(details)) {
-        LOG.warn(details);
-      }
-      String msg;
-      String reason = errorMessage.get();
-      if (reason == null) {
-        msg = ExternalSystemBundle.message("error.resolve.generic.without.reason", externalSystemName, projectFilePath);
-      }
-      else {
-        msg = ExternalSystemBundle.message("error.resolve.with.reason", reason);
-      }
-      throw new ConfigurationException(msg, ExternalSystemBundle.message("error.resolve.generic"));
     }
   }
 }
