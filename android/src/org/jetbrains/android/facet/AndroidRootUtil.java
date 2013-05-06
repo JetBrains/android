@@ -17,6 +17,9 @@
 package org.jetbrains.android.facet;
 
 import com.android.SdkConstants;
+import com.android.build.gradle.model.AndroidProject;
+import com.android.build.gradle.model.Variant;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.ide.highlighter.ArchiveFileType;
 import com.intellij.lang.properties.psi.PropertiesFile;
 import com.intellij.openapi.application.ApplicationManager;
@@ -515,6 +518,13 @@ public class AndroidRootUtil {
 
   @Nullable
   public static String getApkPath(@NotNull AndroidFacet facet) {
+    IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
+    if (ideaAndroidProject != null) {
+      // For Android-Gradle projects, IdeaAndroidProject is not null.
+      Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
+      File outputFile = selectedVariant.getOutputFile();
+      return outputFile.getAbsolutePath();
+    }
     String path = facet.getProperties().APK_PATH;
     if (path.length() == 0) {
       return AndroidCompileUtil.getOutputPackage(facet.getModule());
