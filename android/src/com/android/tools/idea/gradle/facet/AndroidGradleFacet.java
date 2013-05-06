@@ -25,7 +25,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.roots.ModuleRootAdapter;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.util.WriteExternalException;
@@ -33,6 +32,7 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 /**
@@ -94,14 +94,17 @@ public class AndroidGradleFacet extends Facet<AndroidGradleFacetConfiguration> {
     }
   }
 
+  @NotNull
   private String getGradleHomeDirPath() {
-    GradleSettings settings = GradleSettings.getInstance(getModule().getProject());
-    String homeDirPath = settings.getGradleHome();
-    if (!Strings.isNullOrEmpty(homeDirPath)) {
-      return homeDirPath;
+    Project project = getModule().getProject();
+    GradleSettings settings = GradleSettings.getInstance(project);
+    for (GradleProjectSettings s : settings.getLinkedProjectsSettings()) {
+      String gradleHome = s.getGradleHome();
+      if (!Strings.isNullOrEmpty(gradleHome)) {
+        return gradleHome;
+      }
     }
-    Project defaultProject = ProjectManager.getInstance().getDefaultProject();
-    settings = GradleSettings.getInstance(defaultProject);
-    return settings.getGradleHome();
+    String msg = String.format("Unable to find Gradle home directory for project '%1$s'", project.getName());
+    throw new NullPointerException(msg);
   }
 }

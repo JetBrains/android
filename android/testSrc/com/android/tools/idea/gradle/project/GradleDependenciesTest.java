@@ -51,8 +51,9 @@ public class GradleDependenciesTest extends TestCase {
     myModule = myProject.addModule(projectName);
 
     String rootDirPath = myProject.getRootDir().getAbsolutePath();
+    String buildFilePath = myProject.getBuildFile().getAbsolutePath();
 
-    ProjectData projectData = new ProjectData(GradleConstants.SYSTEM_ID, rootDirPath);
+    ProjectData projectData = new ProjectData(GradleConstants.SYSTEM_ID, rootDirPath, buildFilePath);
     projectData.setName(projectName);
     myProjectInfo = new DataNode<ProjectData>(ProjectKeys.PROJECT, projectData, null);
 
