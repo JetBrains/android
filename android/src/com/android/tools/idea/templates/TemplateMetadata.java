@@ -53,6 +53,7 @@ public class TemplateMetadata {
   public static final String ATTR_RES_OUT = "resOut";
   public static final String ATTR_MANIFEST_OUT = "manifestOut";
   public static final String ATTR_MAVEN_URL = "mavenUrl";
+  public static final String ATTR_BUILD_TOOLS_VERSION = "buildToolsVersion";
 
   private final Document myDocument;
   private final Map<String, Parameter> myParameterMap;
