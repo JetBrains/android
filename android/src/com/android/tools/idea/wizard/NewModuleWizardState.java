@@ -16,8 +16,8 @@
 
 package com.android.tools.idea.wizard;
 
-import com.android.annotations.Nullable;
-import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.BuildToolInfo;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -59,6 +59,12 @@ public class NewModuleWizardState extends TemplateWizardState {
     put(ATTR_CREATE_ICONS, true);
     put(ATTR_IS_NEW_PROJECT, true);
     put(ATTR_CREATE_ACTIVITY, true);
+
+    BuildToolInfo buildTool = AndroidSdkUtils.tryToChooseAndroidSdk().getLatestBuildTool();
+    if (buildTool != null) {
+      // If buildTool is null, the template will use buildApi instead, which might be good enough.
+      put(ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
+    }
 
     myActivityTemplateState.myHidden.add(ATTR_PACKAGE_NAME);
     myActivityTemplateState.myHidden.add(ATTR_APP_TITLE);
