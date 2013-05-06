@@ -46,6 +46,10 @@ public class DeviceContext {
     myEventDispatcher.getMulticaster().clientSelected(c);
   }
 
+  public void fireDeviceChanged(@NotNull IDevice device, int changeMask) {
+    myEventDispatcher.getMulticaster().deviceChanged(device, changeMask);
+  }
+
   public IDevice getSelectedDevice() {
     return mySelectedDevice;
   }
@@ -55,7 +59,16 @@ public class DeviceContext {
   }
 
   public interface DeviceSelectionListener extends EventListener {
+    /** Callback invoked when the selected device changes in the current device context. */
     void deviceSelected(@Nullable IDevice device);
+
+    /** Callback invoked when some property of a device changes.
+     * See {@link com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener#deviceChanged(com.android.ddmlib.IDevice, int)}
+     * for details regarding the change mask.
+     */
+    void deviceChanged(@NotNull IDevice device, int changeMask);
+
+    /** Callback invoked when current selected client changes in the current device context. */
     void clientSelected(@Nullable Client c);
   }
 }

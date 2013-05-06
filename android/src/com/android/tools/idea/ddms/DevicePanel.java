@@ -276,15 +276,26 @@ public class DevicePanel implements Disposable,
   }
 
   @Override
-  public void deviceChanged(final IDevice device, int changeMask) {
+  public void deviceChanged(final IDevice device, final int changeMask) {
     UIUtil.invokeLaterIfNeeded(new Runnable() {
       @Override
       public void run() {
+        UIUtil.invokeLaterIfNeeded(new Runnable() {
+          @Override
+          public void run() {
+            myDevicesComboBox.repaint();
+          }
+        });
+
         if (!myDevicesComboBox.getSelectedItem().equals(device)) {
           return;
         }
 
-        updateClientsForDevice(device);
+        if ((changeMask & IDevice.CHANGE_CLIENT_LIST) == IDevice.CHANGE_CLIENT_LIST) {
+          updateClientsForDevice(device);
+        }
+
+        myDeviceContext.fireDeviceChanged(device, changeMask);
       }
     });
   }

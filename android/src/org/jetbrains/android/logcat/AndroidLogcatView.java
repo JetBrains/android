@@ -194,6 +194,14 @@ public abstract class AndroidLogcatView implements Disposable {
           }
 
           @Override
+          public void deviceChanged(@NotNull IDevice device, int changeMask) {
+            if (device == myDevice && ((changeMask & IDevice.CHANGE_STATE) == IDevice.CHANGE_STATE)) {
+              myDevice = null;
+              updateInUIThread();
+            }
+          }
+
+          @Override
           public void clientSelected(@Nullable Client c) {
           }
         };
