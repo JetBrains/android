@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.jps.parser;
+package com.android.tools.idea.jps.output.parser.aapt;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.intellij.util.text.StringSearcher;
@@ -25,7 +26,6 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.Charset;
 import java.util.List;
 
 /**
@@ -38,10 +38,10 @@ class ReadOnlyDocument {
   /**
    * Creates a new {@link ReadOnlyDocument} for the given file.
    *
-   * @param file the file whose text will be stored in the document. UTF-8 charset is used to decode
-   *             the contents of the file.
+   * @param file the file whose text will be stored in the document. UTF-8 charset is used to decode the contents of the file.
    * @throws java.io.IOException if an error occurs while reading the file.
    */
+  @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
   ReadOnlyDocument(@NotNull File file) throws IOException {
     myOffsets = Lists.newArrayList();
     RandomAccessFile raf = null;
@@ -54,7 +54,7 @@ class ReadOnlyDocument {
       FileChannel channel = raf.getChannel();
       long channelSize = channel.size();
       ByteBuffer byteBuffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channelSize);
-      myContents = Charset.forName("UTF-8").newDecoder().decode(byteBuffer);
+      myContents = Charsets.UTF_8.newDecoder().decode(byteBuffer);
     }
     finally {
       Closeables.closeQuietly(raf);
@@ -65,8 +65,8 @@ class ReadOnlyDocument {
    * Returns the offset of the given line number, relative to the beginning of the document.
    *
    * @param lineNumber the given line number.
-   * @return the offset of the given line. -1 is returned if the document is empty, or if the given
-   *         line number is negative or greater than the number of lines in the document.
+   * @return the offset of the given line. -1 is returned if the document is empty, or if the given line number is negative or greater than
+   *         the number of lines in the document.
    */
   long lineOffset(long lineNumber) {
     int index = (int)lineNumber - 1;
@@ -112,7 +112,7 @@ class ReadOnlyDocument {
    * @return the character at the given offset.
    * @throws IndexOutOfBoundsException if the {@code offset} argument is negative or not less than the document's size.
    */
-  char getCharAt(long offset) {
+  char charAt(long offset) {
     return myContents.charAt((int)offset);
   }
 

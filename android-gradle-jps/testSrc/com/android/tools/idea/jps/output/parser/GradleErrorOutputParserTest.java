@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.jps.parser;
+package com.android.tools.idea.jps.output.parser;
 
 import com.google.common.io.Closeables;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.SystemProperties;
+import com.intellij.util.containers.ContainerUtil;
 import junit.framework.TestCase;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
@@ -26,7 +27,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Tests for {@link GradleErrorOutputParser}.
@@ -58,7 +59,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "  <application android:icon='@drawable/icon' android:label='@string/app_name2'>");
     String messageText = "No resource found that matches the given name (at 'label' with value " + "'@string/app_name2').";
     String err = sourceFilePath + ":4: error: Error: " + messageText;
-    List<CompilerMessage> messages = parser.parseErrorOutput(err);
+    Collection<CompilerMessage> messages = parser.parseErrorOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 4, 61);
   }
 
@@ -73,7 +74,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "  <application android:icon='@drawable/icon' android:label=", "      '@string/app_name2'>");
     String messageText = "No resource found that matches the given name (at 'label' with value " + "'@string/app_name2').";
     String err = sourceFilePath + ":4: error: Error: " + messageText;
-    List<CompilerMessage> messages = parser.parseErrorOutput(err);
+    Collection<CompilerMessage> messages = parser.parseErrorOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 5, 8);
   }
 
@@ -82,12 +83,15 @@ public class GradleErrorOutputParserTest extends TestCase {
     // and the original definition.
     // This tests the second, duplicate declaration ration.
     createTempXmlFile();
-    writeToFile("<resources xmlns:android='http://schemas.android.com/apk/res/android'>", "  <style name='repeatedStyle1'>",
-                "    <item name='android:gravity'>left</item>", "  </style>", "  <style name='repeatedStyle1'>",
+    writeToFile("<resources xmlns:android='http://schemas.android.com/apk/res/android'>",
+                "  <style name='repeatedStyle1'>",
+                "    <item name='android:gravity'>left</item>",
+                "  </style>",
+                "  <style name='repeatedStyle1'>",
                 "    <item name='android:gravity'>left</item>");
     String messageText = "Resource entry repeatedStyle1 already has bag item android:gravity.";
     String err = sourceFilePath + ":6: error: " + messageText;
-    List<CompilerMessage> messages = parser.parseErrorOutput(err);
+    Collection<CompilerMessage> messages = parser.parseErrorOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 6, 17);
   }
 
@@ -97,11 +101,12 @@ public class GradleErrorOutputParserTest extends TestCase {
     // This tests the original definition. Note that we don't have enough position info so we simply
     // highlight the whitespace portion of the line.
     createTempXmlFile();
-    writeToFile("<resources xmlns:android='http://schemas.android.com/apk/res/android'>", "  <style name='repeatedStyle1'>",
+    writeToFile("<resources xmlns:android='http://schemas.android.com/apk/res/android'>",
+                "  <style name='repeatedStyle1'>",
                 "    <item name='android:gravity'>left</item>");
     String messageText = "Originally defined here.";
     String err = sourceFilePath + ":3: " + messageText;
-    List<CompilerMessage> messages = parser.parseErrorOutput(err);
+    Collection<CompilerMessage> messages = parser.parseErrorOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 3, 5);
   }
 
@@ -109,83 +114,101 @@ public class GradleErrorOutputParserTest extends TestCase {
     // Check for aapt error which occurs when the attribute name in an item style declaration is
     // non-existent.
     createTempXmlFile();
-    writeToFile("<resources xmlns:android='http://schemas.android.com/apk/res/android'>", "  <style name='wrongAttribute'>",
+    writeToFile("<resources xmlns:android='http://schemas.android.com/apk/res/android'>",
+                "  <style name='wrongAttribute'>",
                 "    <item name='nonexistent'>left</item>");
     String messageText = "No resource found that matches the given name: attr 'nonexistent'.";
     String err = sourceFilePath + ":3: error: Error: " + messageText;
-    List<CompilerMessage> messages = parser.parseErrorOutput(err);
+    Collection<CompilerMessage> messages = parser.parseErrorOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 3, 17);
   }
 
   public void testParseAaptOutputWithRange6() throws IOException {
     // Test missing resource name.
     createTempXmlFile();
-    writeToFile("<resources xmlns:android='http://schemas.android.com/apk/res/android'>", "  <style>");
+    writeToFile("<resources xmlns:android='http://schemas.android.com/apk/res/android'>",
+                "  <style>");
     String messageText = "A 'name' attribute is required for <style>";
     String err = sourceFilePath + ":2: error: " + messageText;
-    List<CompilerMessage> messages = parser.parseErrorOutput(err);
+    Collection<CompilerMessage> messages = parser.parseErrorOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 2, 3);
   }
 
   public void testParseAaptOutputWithRange7() throws IOException {
     createTempXmlFile();
-    writeToFile("<resources xmlns:android='http://schemas.android.com/apk/res/android'>", "  <item>");
+    writeToFile("<resources xmlns:android='http://schemas.android.com/apk/res/android'>",
+                "  <item>");
     String messageText = "A 'type' attribute is required for <item>";
     String err = sourceFilePath + ":2: error: " + messageText;
-    List<CompilerMessage> messages = parser.parseErrorOutput(err);
+    Collection<CompilerMessage> messages = parser.parseErrorOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 2, 3);
   }
 
   public void testParseAaptOutputWithRange8() throws IOException {
     createTempXmlFile();
-    writeToFile("<resources xmlns:android='http://schemas.android.com/apk/res/android'>", "  <item>");
+    writeToFile("<resources xmlns:android='http://schemas.android.com/apk/res/android'>",
+                "  <item>");
     String messageText = "A 'name' attribute is required for <item>";
     String err = sourceFilePath + ":2: error: " + messageText;
-    List<CompilerMessage> messages = parser.parseErrorOutput(err);
+    Collection<CompilerMessage> messages = parser.parseErrorOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 2, 3);
   }
 
   public void testParseAaptOutputWithRange9() throws IOException {
     createTempXmlFile();
-    writeToFile("<resources xmlns:android='http://schemas.android.com/apk/res/android'>", "  <style name='test'>",
+    writeToFile("<resources xmlns:android='http://schemas.android.com/apk/res/android'>",
+                "  <style name='test'>",
                 "        <item name='android:layout_width'></item>");
     String messageText = "String types not allowed (at 'android:layout_width' with value '').";
     String err = sourceFilePath + ":3: error: " + messageText;
-    List<CompilerMessage> messages = parser.parseErrorOutput(err);
+    Collection<CompilerMessage> messages = parser.parseErrorOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 3, 21);
   }
 
   public void testParseAaptOutputWithRange10() throws IOException {
     createTempXmlFile();
-    writeToFile("<FrameLayout", "    xmlns:android='http://schemas.android.com/apk/res/android'", "    android:layout_width='wrap_content'",
-                "    android:layout_height='match_parent'>", "    <TextView", "        android:layout_width='fill_parent'",
-                "        android:layout_height='wrap_content'", "        android:layout_marginTop=''",
+    writeToFile("<FrameLayout", "    xmlns:android='http://schemas.android.com/apk/res/android'",
+                "    android:layout_width='wrap_content'",
+                "    android:layout_height='match_parent'>",
+                "    <TextView",
+                "        android:layout_width='fill_parent'",
+                "        android:layout_height='wrap_content'",
+                "        android:layout_marginTop=''",
                 "        android:layout_marginLeft=''");
     String messageText = "String types not allowed (at 'layout_marginTop' with value '').";
     String err = sourceFilePath + ":5: error: Error: " + messageText;
-    List<CompilerMessage> messages = parser.parseErrorOutput(err);
+    Collection<CompilerMessage> messages = parser.parseErrorOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 8, 34);
   }
 
   public void testParseAaptOutputWithRange11() throws IOException {
     createTempXmlFile();
-    writeToFile("<FrameLayout", "    xmlns:android='http://schemas.android.com/apk/res/android'", "    android:layout_width='wrap_content'",
-                "    android:layout_height='match_parent'>", "    <TextView", "        android:layout_width='fill_parent'",
-                "        android:layout_height='wrap_content'", "        android:layout_marginTop=''",
+    writeToFile("<FrameLayout",
+                "    xmlns:android='http://schemas.android.com/apk/res/android'",
+                "    android:layout_width='wrap_content'",
+                "    android:layout_height='match_parent'>",
+                "    <TextView",
+                "        android:layout_width='fill_parent'",
+                "        android:layout_height='wrap_content'",
+                "        android:layout_marginTop=''",
                 "        android:layout_marginLeft=''");
     String messageText = "String types not allowed (at 'layout_marginLeft' with value '').";
     String err = sourceFilePath + ":5: error: Error: " + messageText;
-    List<CompilerMessage> messages = parser.parseErrorOutput(err);
+    Collection<CompilerMessage> messages = parser.parseErrorOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 9, 35);
   }
 
   public void testParseAaptOutputWithRange12() throws IOException {
     createTempXmlFile();
-    writeToFile("<FrameLayout", "    xmlns:android='http://schemas.android.com/apk/res/android'", "    android:layout_width='wrap_content'",
-                "    android:layout_height='match_parent'>", "    <TextView", "        android:id=''");
+    writeToFile("<FrameLayout",
+                "    xmlns:android='http://schemas.android.com/apk/res/android'",
+                "    android:layout_width='wrap_content'",
+                "    android:layout_height='match_parent'>",
+                "    <TextView",
+                "        android:id=''");
     String messageText = "String types not allowed (at 'id' with value '').";
     String err = sourceFilePath + ":5: error: Error: " + messageText;
-    List<CompilerMessage> messages = parser.parseErrorOutput(err);
+    Collection<CompilerMessage> messages = parser.parseErrorOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 6, 20);
   }
 
@@ -195,28 +218,30 @@ public class GradleErrorOutputParserTest extends TestCase {
 
   public void testParseJavaOutput1() throws IOException {
     createTempFile(".java");
-    writeToFile("public class Test {", "  public static void main(String[] args) {", "    int v2 = v4");
-    String messageText = "cannot find symbol";
+    writeToFile("public class Test {",
+                "  public static void main(String[] args) {",
+                "    int v2 = v4");
     StringBuilder err = new StringBuilder();
-    err.append(sourceFilePath).append(":3: error: ").append(messageText).append(SystemProperties.getLineSeparator())
+    err.append(sourceFilePath).append(":3: error: ").append("cannot find symbol").append(SystemProperties.getLineSeparator())
        .append("symbol  : variable v4").append(SystemProperties.getLineSeparator())
        .append("location: Test").append(SystemProperties.getLineSeparator())
        .append("    int v2 = v4").append(SystemProperties.getLineSeparator())
        .append("             ^");
-    List<CompilerMessage> messages = parser.parseErrorOutput(err.toString());
-    assertHasCorrectErrorMessage(messages, messageText, 3, 14);
+    Collection<CompilerMessage> messages = parser.parseErrorOutput(err.toString());
+    assertHasCorrectErrorMessage(messages, "error: cannot find symbol variable v4", 3, 14);
   }
 
   public void testParseJavaOutput2() throws IOException {
     createTempFile(".java");
-    writeToFile("public class Test {", "  public static void main(String[] args) {", "    System.out.println();asd");
-    String messageText = "not a statement";
+    writeToFile("public class Test {",
+                "  public static void main(String[] args) {",
+                "    System.out.println();asd");
     StringBuilder err = new StringBuilder();
-    err.append(sourceFilePath).append(":3: error: ").append(messageText).append(SystemProperties.getLineSeparator())
+    err.append(sourceFilePath).append(":3: error: ").append("not a statement").append(SystemProperties.getLineSeparator())
        .append("    System.out.println();asd").append(SystemProperties.getLineSeparator())
        .append("                         ^").append(SystemProperties.getLineSeparator());
-    List<CompilerMessage> messages = parser.parseErrorOutput(err.toString());
-    assertHasCorrectErrorMessage(messages, messageText, 3, 26);
+    Collection<CompilerMessage> messages = parser.parseErrorOutput(err.toString());
+    assertHasCorrectErrorMessage(messages, "error: not a statement", 3, 26);
   }
 
   private void createTempFile(String fileExtension) throws IOException {
@@ -239,9 +264,12 @@ public class GradleErrorOutputParserTest extends TestCase {
     }
   }
 
-  private void assertHasCorrectErrorMessage(List<CompilerMessage> messages, String expectedText, long expectedLine, long expectedColumn) {
+  private void assertHasCorrectErrorMessage(Collection<CompilerMessage> messages,
+                                            String expectedText,
+                                            long expectedLine,
+                                            long expectedColumn) {
     assertEquals("[message count]", 1, messages.size());
-    CompilerMessage message = messages.get(0);
+    CompilerMessage message = ContainerUtil.getFirstItem(messages);
     assertEquals("[file path]", sourceFilePath, message.getSourcePath());
     assertEquals("[message severity]", BuildMessage.Kind.ERROR, message.getKind());
     assertEquals("[message text]", expectedText, message.getMessageText());

@@ -101,16 +101,16 @@ public final class AndroidGradleJps {
   }
 
   @NotNull
-  public static CompilerMessage createCompilerMessage(@NotNull String msg, @NotNull BuildMessage.Kind kind) {
-    return new CompilerMessage(COMPILER_NAME, kind, msg);
+  public static CompilerMessage createCompilerMessage(@NotNull BuildMessage.Kind kind, @NotNull String text) {
+    return new CompilerMessage(COMPILER_NAME, kind, text);
   }
 
   @NotNull
-  public static CompilerMessage createCompilerMessage(@Nullable String sourcePath,
-                                                      @NotNull String msgText,
-                                                      @NotNull BuildMessage.Kind kind,
-                                                      long locationLine,
-                                                      long locationColumn) {
-    return new CompilerMessage(COMPILER_NAME, kind, msgText.trim(), sourcePath, -1L, -1L, -1L, locationLine, locationColumn);
+  public static CompilerMessage createCompilerMessage(@NotNull BuildMessage.Kind kind,
+                                                      @NotNull String text,
+                                                      @Nullable String sourcePath,
+                                                      long lineNumber,
+                                                      long column) {
+    return new CompilerMessage(COMPILER_NAME, kind, text.trim(), sourcePath, -1L, -1L, -1L, lineNumber, column);
   }
 }

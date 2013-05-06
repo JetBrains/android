@@ -13,15 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.jps.parser;
+package com.android.tools.idea.jps.output.parser.aapt;
 
+import com.android.tools.idea.jps.output.parser.OutputLineReader;
+import com.android.tools.idea.jps.output.parser.ParsingFailedException;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class Error4Parser extends ProblemParser {
+class Error4Parser extends AbstractAaptOutputParser {
   /**
    * First line of dual-line aapt error.
    * <pre>
@@ -29,31 +34,29 @@ class Error4Parser extends ProblemParser {
    * &lt;error&gt; at line &lt;line&gt;
    * </pre>
    */
-  private static final Pattern MSG_LINE_1_PATTERN = Pattern.compile("^Error\\s+parsing\\s+XML\\s+file\\s(.+)$");
+  private static final List<Pattern> MSG_PATTERNS = ImmutableList.of(
+    Pattern.compile("^Error\\s+parsing\\s+XML\\s+file\\s(.+)$"),
+    Pattern.compile("^(.+)\\s+at\\s+line\\s+(\\d+)$")
+  );
 
-  private static final Pattern MSG_LINE_2_PATTERN = Pattern.compile("^(.+)\\s+at\\s+line\\s+(\\d+)$");
-
-  @NotNull private final ProblemMessageFactory myMessageFactory;
-
-  Error4Parser(@NotNull AaptProblemMessageFactory messageFactory) {
-    myMessageFactory = messageFactory;
-  }
-
-  @NotNull
   @Override
-  ParsingResult parse(@NotNull String line) {
-    Matcher m = MSG_LINE_1_PATTERN.matcher(line);
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull Collection<CompilerMessage> messages)
+    throws ParsingFailedException {
+    Matcher m = MSG_PATTERNS.get(0).matcher(line);
     if (!m.matches()) {
-      return ParsingResult.NO_MATCH;
+      return false;
     }
     String sourcePath = m.group(1);
-    m = getNextLineMatcher(myMessageFactory.getOutputReader(), MSG_LINE_2_PATTERN);
+
+    m = getNextLineMatcher(reader, MSG_PATTERNS.get(1));
     if (m == null) {
-      return ParsingResult.FAILED;
+      throw new ParsingFailedException();
     }
     String msgText = m.group(1);
     String lineNumber = m.group(2);
-    CompilerMessage msg = myMessageFactory.createErrorMessage(msgText, sourcePath, lineNumber);
-    return new ParsingResult(msg);
+
+    CompilerMessage msg = createErrorMessage(msgText, sourcePath, lineNumber);
+    messages.add(msg);
+    return true;
   }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.jps.parser;
+package com.android.tools.idea.jps.output.parser;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -21,9 +21,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.regex.Pattern;
 
 /**
- * Reads text line by line.
+ * Reads a compiler's output line-by-line.
  */
-class LineReader {
+public class OutputLineReader {
   private static final Pattern LINE_BREAK = Pattern.compile("\\r?\\n");
 
   @NotNull private final String[] myLines;
@@ -32,16 +32,16 @@ class LineReader {
   private int myPosition;
 
   /**
-   * Creates a new {@link LineReader}.
+   * Creates a new {@link OutputLineReader}.
    *
    * @param text the text to read.
    */
-  LineReader(@NotNull String text) {
+  OutputLineReader(@NotNull String text) {
     myLines = LINE_BREAK.split(text);
     myLineCount = myLines.length;
   }
 
-  int getLineCount() {
+  public int getLineCount() {
     return myLineCount;
   }
 
@@ -51,7 +51,7 @@ class LineReader {
    * @return the contents of the next line, or {@code null} if we reached the end of the text.
    */
   @Nullable
-  String readLine() {
+  public String readLine() {
     if (myPosition >= 0 && myPosition < myLineCount) {
       return myLines[myPosition++];
     }
@@ -65,7 +65,7 @@ class LineReader {
    * @return the contents of the specified line, or {@code null} if the specified position is greater than the end of the text.
    */
   @Nullable
-  String peek(int lineToSkipCount) {
+  public String peek(int lineToSkipCount) {
     int tempPosition = lineToSkipCount + myPosition;
     if (tempPosition >= 0 && tempPosition < myLineCount) {
       return myLines[tempPosition];
@@ -73,11 +73,15 @@ class LineReader {
     return null;
   }
 
-  boolean hasNextLine() {
+  public boolean hasNextLine() {
     return myPosition < myLineCount - 1;
   }
 
-  void skipNextLine() {
+  public void skipNextLine() {
     myPosition++;
+  }
+
+  public void pushBack(@NotNull String text) {
+    myPosition--;
   }
 }
