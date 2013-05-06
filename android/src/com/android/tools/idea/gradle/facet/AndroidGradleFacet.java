@@ -29,9 +29,11 @@ import com.intellij.openapi.roots.ModuleRootAdapter;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.psi.PsiDocumentManager;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
@@ -94,17 +96,24 @@ public class AndroidGradleFacet extends Facet<AndroidGradleFacetConfiguration> {
     }
   }
 
-  @NotNull
+  @Nullable
   private String getGradleHomeDirPath() {
     Project project = getModule().getProject();
     GradleSettings settings = GradleSettings.getInstance(project);
-    for (GradleProjectSettings s : settings.getLinkedProjectsSettings()) {
-      String gradleHome = s.getGradleHome();
-      if (!Strings.isNullOrEmpty(gradleHome)) {
-        return gradleHome;
-      }
+    GradleProjectSettings projectSettings = ContainerUtil.getFirstItem(settings.getLinkedProjectsSettings());
+    if (projectSettings == null) {
+      String msg = String.format("Unable to find Gradle settings for project '%1$s'", project.getName());
+      throw new IllegalStateException(msg);
     }
-    String msg = String.format("Unable to find Gradle home directory for project '%1$s'", project.getName());
-    throw new NullPointerException(msg);
+    if (projectSettings.isPreferLocalInstallationToWrapper()) {
+      String gradleHome = projectSettings.getGradleHome();
+      if (Strings.isNullOrEmpty(gradleHome)) {
+        String msg = String.format("Unable to find Gradle home directory for project '%1$s'", project.getName());
+        throw new IllegalStateException(msg);
+      }
+      return gradleHome;
+    }
+    // If we got here, the project is using Gradle wrapper.
+    return null;
   }
 }
