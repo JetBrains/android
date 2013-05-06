@@ -123,7 +123,7 @@ class ProjectResolverStrategy {
     String projectDirPath = ExternalSystemApiUtil.toCanonicalPath(PathUtil.getParentPath(projectPath));
     String name = androidProject.getName();
 
-    DataNode<ProjectData> projectInfo = createProjectInfo(projectDirPath, name);
+    DataNode<ProjectData> projectInfo = createProjectInfo(projectDirPath, projectPath, name);
     DataNode<ModuleData> moduleInfo = createModuleInfo(androidProject, name, projectInfo, projectDirPath);
 
     IdeaAndroidProject ideaAndroidProject = getIdeaAndroidProject(moduleInfo);
@@ -134,8 +134,8 @@ class ProjectResolverStrategy {
     return projectInfo;
   }
   @NotNull
-  DataNode<ProjectData> createProjectInfo(@NotNull String projectDirPath, @NotNull String name) {
-    ProjectData projectData = new ProjectData(GradleConstants.SYSTEM_ID, projectDirPath);
+  DataNode<ProjectData> createProjectInfo(@NotNull String projectDirPath, @NotNull String projectPath, @NotNull String name) {
+    ProjectData projectData = new ProjectData(GradleConstants.SYSTEM_ID, projectDirPath, projectPath);
     projectData.setName(name);
 
     DataNode<ProjectData> projectInfo = new DataNode<ProjectData>(ProjectKeys.PROJECT, projectData, null);
@@ -152,7 +152,7 @@ class ProjectResolverStrategy {
                                         @NotNull String name,
                                         @NotNull DataNode<ProjectData> projectInfo,
                                         @NotNull String moduleDirPath) {
-    String projectDirPath = projectInfo.getData().getProjectFileDirectoryPath();
+    String projectDirPath = projectInfo.getData().getIdeProjectFileDirectoryPath();
     ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), name, projectDirPath);
     DataNode<ModuleData> moduleInfo = projectInfo.createChild(ProjectKeys.MODULE, moduleData);
 
