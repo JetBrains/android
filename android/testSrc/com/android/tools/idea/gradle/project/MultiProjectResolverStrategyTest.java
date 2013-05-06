@@ -104,7 +104,7 @@ public class MultiProjectResolverStrategyTest extends TestCase {
     assertNotNull(projectInfo);
     ProjectData projectData = projectInfo.getData();
     assertEquals(myIdeaProject.getName(), projectData.getName());
-    assertEquals(myIdeaProject.getRootDir().getAbsolutePath(), projectData.getProjectFileDirectoryPath());
+    assertEquals(myIdeaProject.getRootDir().getAbsolutePath(), projectData.getIdeProjectFileDirectoryPath());
 
     // Verify modules.
     List<DataNode<ModuleData>> modules = Lists.newArrayList(ExternalSystemApiUtil.getChildren(projectInfo, ProjectKeys.MODULE));
