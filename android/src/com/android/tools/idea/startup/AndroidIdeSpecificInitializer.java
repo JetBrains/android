@@ -28,10 +28,8 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
-import com.intellij.psi.codeStyle.CodeStyleScheme;
-import com.intellij.psi.codeStyle.CodeStyleSchemes;
+import com.intellij.psi.codeStyle.*;
 import com.intellij.util.SystemProperties;
-import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -70,7 +68,8 @@ public class AndroidIdeSpecificInitializer implements Runnable {
       CodeStyleScheme[] schemes = CodeStyleSchemes.getInstance().getSchemes();
       if (schemes != null) {
         for (CodeStyleScheme scheme : schemes) {
-          AndroidXmlCodeStyleSettings.getInstance(scheme.getCodeStyleSettings()).USE_CUSTOM_SETTINGS = true;
+          CodeStyleSettings settings = scheme.getCodeStyleSettings();
+          AndroidCodeStyleSettingsModifier.modify(settings);
         }
       }
     }
