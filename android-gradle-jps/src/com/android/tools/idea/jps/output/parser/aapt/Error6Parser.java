@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.jps.parser;
+package com.android.tools.idea.jps.output.parser.aapt;
 
+import com.android.tools.idea.jps.output.parser.OutputLineReader;
+import com.android.tools.idea.jps.output.parser.ParsingFailedException;
 import com.google.common.base.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 
+import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class Error6Parser extends ProblemParser {
+class Error6Parser extends AbstractAaptOutputParser {
   /**
    * 4-line aapt error.
    * <pre>
@@ -36,31 +39,25 @@ class Error6Parser extends ProblemParser {
    */
   private static final Pattern MSG_PATTERN = Pattern.compile("^ERROR:\\s+9-patch\\s+image\\s+(.+)\\s+malformed\\.$");
 
-  @NotNull private final ProblemMessageFactory myMessageFactory;
-
-  Error6Parser(@NotNull AaptProblemMessageFactory messageFactory) {
-    myMessageFactory = messageFactory;
-  }
-
-  @NotNull
   @Override
-  ParsingResult parse(@NotNull String line) {
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull Collection<CompilerMessage> messages)
+    throws ParsingFailedException {
     Matcher m = MSG_PATTERN.matcher(line);
     if (!m.matches()) {
-      return ParsingResult.NO_MATCH;
+      return false;
     }
     String sourcePath = m.group(1);
     String msgText = line; // default message is the line in case we don't find anything else
-    LineReader outputReader = myMessageFactory.getOutputReader();
-    if (outputReader.hasNextLine()) {
-      msgText = Strings.nullToEmpty(outputReader.readLine()).trim();
-      if (outputReader.hasNextLine()) {
-        msgText = msgText + " - " + Strings.nullToEmpty(outputReader.readLine()).trim();
+    if (reader.hasNextLine()) {
+      msgText = Strings.nullToEmpty(reader.readLine()).trim();
+      if (reader.hasNextLine()) {
+        msgText = msgText + " - " + Strings.nullToEmpty(reader.readLine()).trim();
         // skip the next line
-        outputReader.skipNextLine();
+        reader.skipNextLine();
       }
     }
-    CompilerMessage msg = myMessageFactory.createErrorMessage(msgText, sourcePath, null);
-    return new ParsingResult(msg);
+    CompilerMessage msg = createErrorMessage(msgText, sourcePath, null);
+    messages.add(msg);
+    return true;
   }
 }
