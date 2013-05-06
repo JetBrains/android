@@ -608,6 +608,7 @@ public class ConfigurationMatcher {
    * Note: this comparator imposes orderings that are inconsistent with equals.
    */
   private static class PhoneConfigComparator implements Comparator<ConfigMatch> {
+    private static final String NEXUS_4 = "Nexus 4";
 
     private final SparseIntArray mDensitySort = new SparseIntArray(4);
 
@@ -632,6 +633,15 @@ public class ConfigurationMatcher {
         }
       }
       else if (config2 == null) {
+        return 1;
+      }
+
+      // Default to a modern device
+      String n1 = o1.device.getName();
+      String n2 = o2.device.getName();
+      if (n1.equals(NEXUS_4)) {
+        return n2.equals(NEXUS_4) ? 0 : -1;
+      } else if (n2.equals(NEXUS_4)) {
         return 1;
       }
 
