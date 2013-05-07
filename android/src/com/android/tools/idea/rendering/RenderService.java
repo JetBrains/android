@@ -137,7 +137,7 @@ public class RenderService {
       if (!AndroidMavenUtil.isMavenizedModule(module)) {
         RenderProblem.Html message = RenderProblem.create(ERROR);
         logger.addMessage(message);
-        message.getHtmlBuilder().addLink("Please ", "configure", " Android SDK",
+        message.getHtmlBuilder().addLink("No Android SDK found. Please ", "configure", " an Android SDK.",
                                          logger.getLinkManager().createRunnableLink(new Runnable() {
           @Override
           public void run() {

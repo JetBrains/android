@@ -226,15 +226,19 @@ public class RenderErrorPanel extends JPanel {
     builder.addHeading("Rendering Problems").newline();
 
     reportMissingStyles(logger, builder);
-    reportOldNinePathRenderLib(logger, builder, renderService);
-    reportRelevantCompilationErrors(logger, builder, renderService);
-    reportMissingSizeAttributes(logger, builder, renderService);
-    reportMissingClasses(logger, builder, renderService);
+    if (renderService != null) {
+      reportOldNinePathRenderLib(logger, builder, renderService);
+      reportRelevantCompilationErrors(logger, builder, renderService);
+      reportMissingSizeAttributes(logger, builder, renderService);
+      reportMissingClasses(logger, builder, renderService);
+    }
     reportBrokenClasses(logger, builder);
     reportInstantiationProblems(logger, builder);
     reportOtherProblems(logger, builder);
     reportUnknownFragments(logger, builder);
-    reportRenderingFidelityProblems(logger, builder);
+    if (renderService != null) {
+      reportRenderingFidelityProblems(logger, builder, renderService);
+    }
 
     return "<HTML><BODY>" + builder.getHtml() + "</BODY></HTML>";
   }
@@ -490,7 +494,8 @@ public class RenderErrorPanel extends JPanel {
     }
   }
 
-  private void reportRenderingFidelityProblems(@NotNull RenderLogger logger, @NotNull HtmlBuilder builder) {
+  private void reportRenderingFidelityProblems(@NotNull RenderLogger logger, @NotNull HtmlBuilder builder,
+                                               @NotNull final RenderService renderService) {
     List<RenderProblem> fidelityWarnings = logger.getFidelityWarnings();
     if (fidelityWarnings != null && !fidelityWarnings.isEmpty()) {
       builder.add("The graphics preview in the layout editor may not be accurate:").newline();
@@ -505,7 +510,6 @@ public class RenderErrorPanel extends JPanel {
             public void run() {
               assert false : "Need to look up the exact key to use for suppressing from now on!";
                 RenderLogger.ignoreFidelityWarning(clientData);
-              RenderService renderService = myResult.getRenderService();
               RenderContext renderContext = renderService.getRenderContext();
               if (renderContext != null) {
                 renderContext.requestRender();
@@ -535,7 +539,7 @@ public class RenderErrorPanel extends JPanel {
     }
   }
 
-  private static void reportOldNinePathRenderLib(RenderLogger logger, HtmlBuilder builder, RenderService renderService) {
+  private static void reportOldNinePathRenderLib(RenderLogger logger, HtmlBuilder builder, @NotNull RenderService renderService) {
     for (Throwable trace : logger.getTraces()) {
       if (trace.toString().contains("java.lang.IndexOutOfBoundsException: Index: 2, Size: 2") //$NON-NLS-1$
           && renderService.getConfiguration().getDensity() == Density.TV) {
@@ -592,7 +596,7 @@ public class RenderErrorPanel extends JPanel {
       // Emit hyperlink about missing attributes; the action will operate on all of them
       builder.addBold("NOTE: One or more layouts are missing the layout_width or layout_height attributes. " +
                       "These are required in most layouts.").newline();
-      ResourceResolver resourceResolver = myResult.getRenderService().getResourceResolver();
+      ResourceResolver resourceResolver = renderService.getResourceResolver();
       AddMissingAttributesFix fix = new AddMissingAttributesFix(project, renderService.getPsiFile(), resourceResolver);
 
       List<XmlTag> missing = fix.findViewsMissingSizes();
