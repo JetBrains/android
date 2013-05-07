@@ -18,17 +18,22 @@ package org.jetbrains.android.run;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.ddms.DevicePanel;
+import com.android.utils.Pair;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.util.Condition;
+import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.Alarm;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashSet;
 import gnu.trove.TIntArrayList;
+import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.BooleanCellRenderer;
 import org.jetbrains.annotations.NotNull;
@@ -51,9 +56,11 @@ import static com.intellij.openapi.util.text.StringUtil.capitalize;
  * @author Eugene.Kudelevsky
  */
 public class DeviceChooser implements Disposable {
-  private static final String[] COLUMN_TITLES = new String[]{"Manufacturer", "Model", "Serial Number", "State", "Compatible"};
-  private static final int SERIAL_COLUMN_INDEX = 2;
-  private static final int COMPATIBILITY_COLUMN_INDEX = 4;
+  private static final String[] COLUMN_TITLES = new String[]{"Device", "Serial Number", "State", "Compatible"};
+  private static final int DEVICE_NAME_COLUMN_INDEX = 0;
+  private static final int SERIAL_COLUMN_INDEX = 1;
+  private static final int DEVICE_STATE_COLUMN_INDEX = 2;
+  private static final int COMPATIBILITY_COLUMN_INDEX = 3;
 
   public static final IDevice[] EMPTY_DEVICE_ARRAY = new IDevice[0];
 
@@ -106,6 +113,7 @@ public class DeviceChooser implements Disposable {
     }.installOn(myDeviceTable);
 
     myDeviceTable.setDefaultRenderer(Boolean.class, new BooleanCellRenderer());
+    myDeviceTable.setDefaultRenderer(IDevice.class, new DeviceNameRenderer());
     myDeviceTable.addKeyListener(new KeyAdapter() {
       @Override
       public void keyPressed(KeyEvent e) {
@@ -114,6 +122,24 @@ public class DeviceChooser implements Disposable {
         }
       }
     });
+
+    setColumnWidth(myDeviceTable, DEVICE_NAME_COLUMN_INDEX, "Samsung Galaxy Nexus Android 4.1 (API 17)");
+    setColumnWidth(myDeviceTable, SERIAL_COLUMN_INDEX, "0000-0000-00000");
+    setColumnWidth(myDeviceTable, DEVICE_STATE_COLUMN_INDEX, "offline");
+    setColumnWidth(myDeviceTable, COMPATIBILITY_COLUMN_INDEX, "yes");
+
+    // Do not recreate columns on every model update - this should help maintain the column sizes set above
+    myDeviceTable.setAutoCreateColumnsFromModel(false);
+  }
+
+  private void setColumnWidth(JBTable deviceTable, int columnIndex, String sampleText) {
+    int width = getWidth(deviceTable, sampleText);
+    deviceTable.getColumnModel().getColumn(columnIndex).setPreferredWidth(width);
+  }
+
+  private int getWidth(JBTable deviceTable, String sampleText) {
+    FontMetrics metrics = deviceTable.getFontMetrics(deviceTable.getFont());
+    return metrics.stringWidth(sampleText);
   }
 
   public void init(@Nullable String[] selectedSerials) {
@@ -292,36 +318,48 @@ public class DeviceChooser implements Disposable {
       }
       IDevice device = myDevices[rowIndex];
       switch (columnIndex) {
-        case 0:
-          return safeGetProperty(device, IDevice.PROP_DEVICE_MANUFACTURER);
-        case 1:
-          return device.isEmulator() ? device.getAvdName()
-                                     : safeGetProperty(device, IDevice.PROP_DEVICE_MODEL);
-        case 2:
+        case DEVICE_NAME_COLUMN_INDEX:
+          return device;
+        case SERIAL_COLUMN_INDEX:
           return device.getSerialNumber();
-        case 3:
+        case DEVICE_STATE_COLUMN_INDEX:
           return getDeviceState(device);
-        case 4:
+        case COMPATIBILITY_COLUMN_INDEX:
           return myFacet.isCompatibleDevice(device);
       }
       return null;
-    }
-
-    private String safeGetProperty(IDevice device, String property) {
-      try {
-        return device.getPropertyCacheOrSync(property);
-      }
-      catch (Exception e) {
-        return "";
-      }
     }
 
     @Override
     public Class<?> getColumnClass(int columnIndex) {
       if (columnIndex == COMPATIBILITY_COLUMN_INDEX) {
         return Boolean.class;
+      } else if (columnIndex == DEVICE_NAME_COLUMN_INDEX) {
+        return IDevice.class;
+      } else {
+        return String.class;
       }
-      return String.class;
+    }
+  }
+
+  private static class DeviceNameRenderer extends ColoredTableCellRenderer {
+    @Override
+    protected void customizeCellRenderer(JTable table,
+                                         Object value,
+                                         boolean selected,
+                                         boolean hasFocus,
+                                         int row,
+                                         int column) {
+      if (!(value instanceof IDevice)) {
+        return;
+      }
+
+      IDevice device = (IDevice)value;
+      setIcon(device.isEmulator() ? AndroidIcons.Ddms.Emulator2 : AndroidIcons.Ddms.RealDevice);
+      List<Pair<String, SimpleTextAttributes>> l = DevicePanel.renderDeviceName(device);
+      for (Pair<String, SimpleTextAttributes> component : l) {
+        append(component.getFirst(), component.getSecond());
+      }
     }
   }
 }
