@@ -20,6 +20,7 @@ import com.android.build.gradle.model.Variant;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.util.Facets;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.module.Module;
@@ -52,19 +53,21 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
       AndroidFacet facet = Facets.getFirstFacet(module, AndroidFacet.ID);
       if (facet != null) {
         configureFacet(facet, project, ideaAndroidProject);
-        return;
       }
-
-      // Module does not have Android facet. Create one and add it.
-      FacetManager facetManager = FacetManager.getInstance(module);
-      ModifiableFacetModel model = facetManager.createModifiableModel();
-      try {
-        facet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
-        model.addFacet(facet);
-        configureFacet(facet, project, ideaAndroidProject);
-      } finally {
-        model.commit();
+      else {
+        // Module does not have Android facet. Create one and add it.
+        FacetManager facetManager = FacetManager.getInstance(module);
+        ModifiableFacetModel model = facetManager.createModifiableModel();
+        try {
+          facet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
+          model.addFacet(facet);
+          configureFacet(facet, project, ideaAndroidProject);
+        } finally {
+          model.commit();
+        }
       }
+      BuildVariantView buildVariantView = BuildVariantView.getInstance(project);
+      buildVariantView.updateContents();
     }
   }
 
