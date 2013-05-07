@@ -28,6 +28,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.util.Alarm;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.messages.MessageBusConnection;
@@ -35,6 +36,7 @@ import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.compiler.AndroidPrecompileTask;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidResourceFilesListener;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -67,7 +69,7 @@ public class AndroidProjectComponent extends AbstractProjectComponent {
         !ApplicationManager.getApplication().isHeadlessEnvironment()) {
 
       if (ProjectFacetManager.getInstance(myProject).hasFacets(AndroidFacet.ID)) {
-        createAlarmForAutogeneration();
+        createAndroidSpecificComponents();
       }
       else {
         final MessageBusConnection connection = myProject.getMessageBus().connect(myDisposable);
@@ -76,7 +78,7 @@ public class AndroidProjectComponent extends AbstractProjectComponent {
           @Override
           public void facetAdded(@NotNull Facet facet) {
             if (facet instanceof AndroidFacet) {
-              createAlarmForAutogeneration();
+              createAndroidSpecificComponents();
               connection.disconnect();
             }
           }
@@ -88,6 +90,14 @@ public class AndroidProjectComponent extends AbstractProjectComponent {
   @Override
   public void projectClosed() {
     Disposer.dispose(myDisposable);
+  }
+
+  private void createAndroidSpecificComponents() {
+    final AndroidResourceFilesListener listener = new AndroidResourceFilesListener(myProject);
+    LocalFileSystem.getInstance().addVirtualFileListener(listener);
+    Disposer.register(myDisposable, listener);
+
+    createAlarmForAutogeneration();
   }
 
   private void createAlarmForAutogeneration() {
