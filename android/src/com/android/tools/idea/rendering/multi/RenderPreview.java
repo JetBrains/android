@@ -232,32 +232,10 @@ public class RenderPreview implements Disposable {
       deviceState = device.getDefaultState();
     }
     ScreenOrientation orientation = deviceState.getOrientation();
-
-    // compute width and height to take orientation into account.
-    int x = screen.getXDimension();
-    int y = screen.getYDimension();
-    int screenWidth, screenHeight;
-
-    if (x > y) {
-      if (orientation == ScreenOrientation.LANDSCAPE) {
-        screenWidth = x;
-        screenHeight = y;
-      }
-      else {
-        screenWidth = y;
-        screenHeight = x;
-      }
-    }
-    else {
-      if (orientation == ScreenOrientation.LANDSCAPE) {
-        screenWidth = y;
-        screenHeight = x;
-      }
-      else {
-        screenWidth = x;
-        screenHeight = y;
-      }
-    }
+    Dimension size = device.getScreenSize(orientation);
+    assert size != null;
+    int screenWidth = size.width;
+    int screenHeight = size.height;
 
     boolean changed = myFullWidth != screenWidth || myFullHeight != screenHeight;
     myFullWidth = screenWidth;
@@ -674,7 +652,6 @@ public class RenderPreview implements Disposable {
     if (showFrame && settings.isShowDeviceFrames()) {
       DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
       Device device = myConfiguration.getDevice();
-      assert framePainter.hasDeviceFrame(device) : device;
       boolean showEffects = settings.isShowEffects();
       State deviceState = myConfiguration.getDeviceState();
       if (device != null && deviceState != null) {

@@ -16,8 +16,10 @@
 package com.android.tools.idea.ddms.screenshot;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.ninepatch.NinePatch;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.Screen;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.PathManager;
@@ -35,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.SdkConstants.DOT_PNG;
-import static com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor.NONE;
 import static java.awt.RenderingHints.*;
 
 /**
@@ -53,7 +54,6 @@ import static java.awt.RenderingHints.*;
  */
 public class DeviceArtPainter {
   @NotNull private static final DeviceArtPainter ourInstance = new DeviceArtPainter();
-  @NotNull private static final DeviceData NO_DATA = new DeviceData(NONE);
   @Nullable private static volatile String ourSystemPath;
   @NotNull private Map<Device,DeviceData> myDeviceData = Maps.newHashMap();
   @Nullable private List<DeviceArtDescriptor> myDescriptors;
@@ -69,22 +69,22 @@ public class DeviceArtPainter {
 
   /** Returns true if we have a dedicated frame image for the given device */
   public boolean hasDeviceFrame(@Nullable Device device) {
-    return getDeviceData(device) != NO_DATA;
+    DeviceData deviceData = getDeviceData(device);
+    if (deviceData == null) {
+      return false;
+    }
+    return !deviceData.getDescriptor().isStretchable();
   }
 
-  @NotNull
+  @Nullable
   private DeviceData getDeviceData(@Nullable Device device) {
     if (device == null) {
-      return NO_DATA;
+      return null;
     }
     DeviceData data = myDeviceData.get(device);
     if (data == null) {
       DeviceArtDescriptor spec = findDescriptor(device);
-      if (spec != NONE) {
-        data = new DeviceData(spec);
-      } else {
-        data = NO_DATA;
-      }
+      data = new DeviceData(device, spec);
       myDeviceData.put(device, data);
     }
     return data;
@@ -105,13 +105,39 @@ public class DeviceArtPainter {
     } else {
       id = name.replace(' ', '_');
     }
+    DeviceArtDescriptor descriptor = findDescriptor(id, name);
+    if (descriptor == null) {
+      // Fallback to generic stretchable images
+      boolean isTablet = isTablet(device);
+      descriptor = findDescriptor(isTablet ? "tablet" : "phone", null);
+      assert descriptor != null; // These should always exist
+    }
+
+    return descriptor;
+  }
+
+  private static boolean isTablet(Device device) {
+    boolean isTablet = false;
+    if (device.getName().contains("Tablet")) { // For example "10.1in WXGA (Tablet)"
+      isTablet = true;
+    } else {
+      Screen screen = device.getDefaultHardware().getScreen();
+      if (screen != null && screen.getDiagonalLength() >= 6.95) { // Arbitrary
+        isTablet = true;
+      }
+    }
+    return isTablet;
+  }
+
+  @Nullable
+  private DeviceArtDescriptor findDescriptor(@NotNull String id, @Nullable String name) {
     for (DeviceArtDescriptor descriptor : getDescriptors()) {
-      if (name.equalsIgnoreCase(descriptor.getName()) || id.equalsIgnoreCase(descriptor.getId())) {
+      if (id.equalsIgnoreCase(descriptor.getId()) || name != null && name.equalsIgnoreCase(descriptor.getName())) {
         return descriptor;
       }
     }
 
-    return NONE;
+    return null;
   }
 
   @VisibleForTesting
@@ -136,13 +162,7 @@ public class DeviceArtPainter {
                          int y1,
                          int height) {
     DeviceData data = getDeviceData(device);
-    if (data == NO_DATA) {
-      // No device art for this device. TODO: Create a generic ninepatch image we can use as a fallback, or possibly move
-      // drop shadow code in here (and tie it to the draw effects flag!)
-      return;
-    }
-
-    if (height == 0) {
+    if (data == null || height == 0) {
       return;
     }
 
@@ -173,9 +193,11 @@ public class DeviceArtPainter {
     ScreenOrientation orientation = imgAspectRatio >= (1 - EPSILON) ? ScreenOrientation.LANDSCAPE : ScreenOrientation.PORTRAIT;
 
     // Make sure the descriptor fits this image: its aspect ratio should be nearly identical to the image aspect ratio
-    double descriptorAspectRatio = descriptor.getAspectRatio(orientation);
-    if (Math.abs(imgAspectRatio - descriptorAspectRatio) > EPSILON) {
-      return image;
+    if (!descriptor.isStretchable()) {
+      double descriptorAspectRatio = descriptor.getAspectRatio(orientation);
+      if (Math.abs(imgAspectRatio - descriptorAspectRatio) > EPSILON) {
+        return image;
+      }
     }
 
     File shadow = descriptor.getDropShadow(orientation);
@@ -185,18 +207,34 @@ public class DeviceArtPainter {
     Graphics2D g2d = null;
     try {
       BufferedImage bg = ImageIO.read(background);
+      Dimension screen = descriptor.getScreenSize(orientation); // Size of screen in ninepatch; will be stretched
+      Dimension frameSize = descriptor.getFrameSize(orientation); // Size of full ninepatch, including stretchable screen area
+      Point screenPos = descriptor.getScreenPos(orientation);
+      boolean stretchable = descriptor.isStretchable();
+      if (stretchable) {
+        assert screen != null;
+        assert frameSize != null;
+        int newWidth = image.getWidth() + frameSize.width - screen.width;
+        int newHeight = image.getHeight() + frameSize.height - screen.height;
+        bg = stretchImage(bg, newWidth, newHeight);
+      }
       g2d = bg.createGraphics();
 
       if (addShadow && shadow != null) {
         BufferedImage shadowImage = ImageIO.read(shadow);
+        if (stretchable) {
+          shadowImage = stretchImage(shadowImage, bg.getWidth(), bg.getHeight());
+        }
         g2d.drawImage(shadowImage, 0, 0, null, null);
       }
 
-      Point offsets = descriptor.getScreenPos(orientation);
-      g2d.drawImage(image, offsets.x, offsets.y, null, null);
+      g2d.drawImage(image, screenPos.x, screenPos.y, null, null);
 
       if (addReflection && reflection != null) { // Nexus One for example does not supply reflection image
         BufferedImage reflectionImage = ImageIO.read(reflection);
+        if (stretchable) {
+          reflectionImage = stretchImage(reflectionImage, bg.getWidth(), bg.getHeight());
+        }
         g2d.drawImage(reflectionImage, 0, 0, null, null);
       }
       return bg;
@@ -221,10 +259,7 @@ public class DeviceArtPainter {
     BufferedImage scaledImage = ImageUtils.scale(image, scale, scale, 0, 0);
     DeviceData data = getDeviceData(device);
     int scaledHeight = (int)(scale * image.getHeight());
-    if (data == NO_DATA || scaledHeight == 0) {
-      // No device art for this device.
-      // TODO: Create a generic ninepatch image we can use as a fallback, or possibly move
-      // drop shadow code in here (and tie it to the draw effects flag)
+    if (data == null || scaledHeight == 0) {
       return scaledImage;
     }
     int scaledWidth = (int)(image.getWidth() * scale);
@@ -268,10 +303,25 @@ public class DeviceArtPainter {
     return scaledImage;
   }
 
+  @NotNull
+  private static BufferedImage stretchImage(BufferedImage image, int width, int height) {
+    @SuppressWarnings("UndesirableClassUsage") // Don't need Retina image here, and it's more expensive
+      BufferedImage composite = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D g = composite.createGraphics();
+    g.setColor(new Color(0, 0, 0, 0));
+    g.fillRect(0, 0, composite.getWidth(), composite.getHeight());
+
+    NinePatch ninePatch = NinePatch.load(image, true, false);
+    assert ninePatch != null;
+    ninePatch.draw(g, 0, 0, width, height);
+    g.dispose();
+    return composite;
+  }
+
   @Nullable
   public Point getScreenPosition(@NotNull Device device, @NotNull ScreenOrientation orientation, int screenHeight) {
     DeviceData data = getDeviceData(device);
-    if (data == NO_DATA) {
+    if (data == null) {
       return null;
     }
 
@@ -290,7 +340,7 @@ public class DeviceArtPainter {
   /** Like {@link #getFrameWidthOverhead} and {@link #getFrameHeightOverhead}, but returns the max of the two */
   public double getFrameMaxOverhead(@NotNull Device device, @NotNull ScreenOrientation orientation) {
     DeviceData data = getDeviceData(device);
-    if (data == NO_DATA) {
+    if (data == null) {
       return 1;
     }
 
@@ -301,7 +351,7 @@ public class DeviceArtPainter {
   /** Returns how much wider (as a factor of the width of the screenshot) the image will be with a device frame added in */
   public double getFrameWidthOverhead(@NotNull Device device, @NotNull ScreenOrientation orientation) {
     DeviceData data = getDeviceData(device);
-    if (data == NO_DATA) {
+    if (data == null) {
       return 1;
     }
 
@@ -312,7 +362,7 @@ public class DeviceArtPainter {
   /** Returns how much taller (as a factor of the height of the screenshot) the image will be with a device frame added in */
   public double getFrameHeightOverhead(@NotNull Device device, @NotNull ScreenOrientation orientation) {
     DeviceData data = getDeviceData(device);
-    if (data == NO_DATA) {
+    if (data == null) {
       return 1;
     }
 
@@ -323,7 +373,8 @@ public class DeviceArtPainter {
   /** Information about a particular device; keeps both portrait and landscape data, as well as multiple target image sizes */
   @VisibleForTesting
   static class DeviceData {
-    @NotNull private final DeviceArtDescriptor mySpec;
+    @NotNull private final DeviceArtDescriptor myDescriptor;
+    private final Device myDevice;
 
     @Nullable private FrameData myPortraitData;
     @Nullable private FrameData myLandscapeData;
@@ -332,8 +383,9 @@ public class DeviceArtPainter {
     @Nullable private FrameData mySmallLandscapeData;
 
     @VisibleForTesting
-    DeviceData(@NotNull DeviceArtDescriptor spec) {
-      mySpec = spec;
+    DeviceData(Device device, @NotNull DeviceArtDescriptor descriptor) {
+      myDevice = device;
+      myDescriptor = descriptor;
     }
 
     /** Derives a new {@link FrameData} from the given one, but with half size assets */
@@ -382,8 +434,12 @@ public class DeviceArtPainter {
     }
 
     @NotNull
-    private DeviceArtDescriptor getSpec() {
-      return mySpec;
+    private DeviceArtDescriptor getDescriptor() {
+      return myDescriptor;
+    }
+
+    public Device getDevice() {
+      return myDevice;
     }
   }
 
@@ -419,36 +475,60 @@ public class DeviceArtPainter {
       myOrientation = orientation;
       myDouble = null;
 
-      DeviceArtDescriptor descriptor = deviceData.getSpec();
-      Dimension fullSize = descriptor.getFrameSize(myOrientation);
-      int frameWidth = fullSize.width;
-      int frameHeight = fullSize.height;
+      DeviceArtDescriptor descriptor = deviceData.getDescriptor();
+      if (!isStretchable()) {
+        Dimension fullSize = descriptor.getFrameSize(myOrientation);
+        int frameWidth = fullSize.width;
+        int frameHeight = fullSize.height;
 
-      Rectangle crop = descriptor.getCrop(myOrientation);
-      if (crop != null) {
-        myCropX1 = crop.x;
-        myCropY1 = crop.y;
-        myCropX2 = crop.x + crop.width;
-        myCropY2 = crop.y + crop.height;
-        frameWidth = myCropX2 - myCropX1;
-        frameHeight = myCropY2 - myCropY1;
+        Rectangle crop = descriptor.getCrop(myOrientation);
+        if (crop != null) {
+          myCropX1 = crop.x;
+          myCropY1 = crop.y;
+          myCropX2 = crop.x + crop.width;
+          myCropY2 = crop.y + crop.height;
+          frameWidth = myCropX2 - myCropX1;
+          frameHeight = myCropY2 - myCropY1;
+        } else {
+          myCropX1 = 0;
+          myCropY1 = 0;
+          myCropX2 = frameWidth;
+          myCropY2 = frameHeight;
+        }
+
+        myFrameWidth = frameWidth;
+        myFrameHeight = frameHeight;
+
+        Point screenPos = descriptor.getScreenPos(myOrientation);
+        myX = screenPos.x - myCropX1;
+        myY = screenPos.y - myCropY1;
+
+        Dimension screenSize = descriptor.getScreenSize(myOrientation);
+        myWidth = screenSize.width;
+        myHeight = screenSize.height;
       } else {
+        // Generic device: use stretchable images and pick actual size based on device screen size
+        // plus overhead
+        Device device = myDeviceData.getDevice();
+        Dimension screenSize = device.getScreenSize(myOrientation); // Actual size of screen, e.g. 720x1280
+        Dimension screen = descriptor.getScreenSize(myOrientation); // Size of screen in ninepatch; will be stretched
+        Dimension frameSize = descriptor.getFrameSize(myOrientation); // Size of full ninepatch, including stretchable screen area
+        Point screenPos = descriptor.getScreenPos(myOrientation);
+        assert screenSize != null;
+        assert screen != null;
+        assert frameSize != null;
+        myX = screenPos.x;
+        myY = screenPos.y;
+        myWidth = screenSize.width;
+        myHeight = screenSize.height;
+
+        myFrameWidth = myWidth + frameSize.width - screen.width;
+        myFrameHeight = myHeight + frameSize.height - screen.height;
         myCropX1 = 0;
         myCropY1 = 0;
-        myCropX2 = frameWidth;
-        myCropY2 = frameHeight;
+        myCropX2 = myFrameWidth;
+        myCropY2 = myFrameHeight;
       }
-
-      myFrameWidth = frameWidth;
-      myFrameHeight = frameHeight;
-
-      Point screenPos = descriptor.getScreenPos(myOrientation);
-      myX = screenPos.x - myCropX1;
-      myY = screenPos.y - myCropY1;
-
-      Dimension screenSize = descriptor.getScreenSize(myOrientation);
-      myWidth = screenSize.width;
-      myHeight = screenSize.height;
     }
 
     /**
@@ -528,7 +608,16 @@ public class DeviceArtPainter {
     @NotNull
     private File getCacheFile(boolean showEffects) {
       StringBuilder sb = new StringBuilder(20);
-      sb.append(myDeviceData.getSpec().getId());
+      DeviceArtDescriptor descriptor = myDeviceData.getDescriptor();
+      sb.append(descriptor.getId());
+      if (isStretchable()) {
+        // Generic device
+        // Store resolution as well, since we need different pre-cached images for different resolutions
+        sb.append('-');
+        sb.append(Integer.toString(myWidth));
+        sb.append('x');
+        sb.append(Integer.toString(myHeight));
+      }
       sb.append('-');
       sb.append(isPortrait() ? "port" : "land");
       if (myDouble != null) {
@@ -539,6 +628,11 @@ public class DeviceArtPainter {
       }
       sb.append(DOT_PNG);
       return new File(getThumbnailCacheDir(), sb.toString());
+    }
+
+    private boolean isStretchable() {
+      DeviceArtDescriptor descriptor = myDeviceData.getDescriptor();
+      return descriptor.isStretchable();
     }
 
     @Nullable
@@ -638,10 +732,15 @@ public class DeviceArtPainter {
         assert false;
       }
 
-      DeviceArtDescriptor descriptor = myDeviceData.getSpec();
+      DeviceArtDescriptor descriptor = myDeviceData.getDescriptor();
       BufferedImage background = getImage(descriptor.getFrame(myOrientation));
       if (background == null) {
         return null;
+      }
+
+      boolean stretchable = isStretchable();
+      if (stretchable) {
+        background = stretchImage(background, myFrameWidth, myFrameHeight);
       }
 
       @SuppressWarnings("UndesirableClassUsage") // Don't need Retina image here, and it's more expensive
@@ -656,6 +755,10 @@ public class DeviceArtPainter {
       if (showEffects) {
         BufferedImage shadow = getImage(descriptor.getDropShadow(myOrientation));
         if (shadow != null) {
+          if (stretchable) {
+            shadow = stretchImage(shadow, myFrameWidth, myFrameHeight);
+          }
+
           g.drawImage(shadow, 0, 0, myFrameWidth, myFrameHeight, cropX1, cropY1, cropX2, cropY2, null);
         }
 
@@ -727,6 +830,9 @@ public class DeviceArtPainter {
       if (showEffects) {
         BufferedImage glare = getImage(descriptor.getReflectionOverlay(myOrientation));
         if (glare != null) {
+          if (stretchable) {
+            glare = stretchImage(glare, myFrameWidth, myFrameHeight);
+          }
           g.drawImage(glare, 0, 0, myFrameWidth, myFrameHeight, cropX1, cropY1, cropX2, cropY2, null);
         }
       }

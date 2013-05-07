@@ -202,7 +202,7 @@ public class ScalableImage {
     if (myThumbnailHasFrame) {
       DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
       Device device = myConfiguration.getDevice();
-      if (device != null && framePainter.hasDeviceFrame(device)) {
+      if (device != null) {
           State deviceState = myConfiguration.getDeviceState();
           if (deviceState != null) {
             double frameFactor = framePainter.getFrameWidthOverhead(device, deviceState.getOrientation());
@@ -225,7 +225,7 @@ public class ScalableImage {
     if (myThumbnailHasFrame) {
       DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
       Device device = myConfiguration.getDevice();
-      if (device != null && framePainter.hasDeviceFrame(device)) {
+      if (device != null) {
         State deviceState = myConfiguration.getDeviceState();
         if (deviceState != null) {
           double frameFactor = framePainter.getFrameHeightOverhead(device, deviceState.getOrientation());
@@ -256,13 +256,13 @@ public class ScalableImage {
       if (myScale <= 1 && myDeviceFrameEnabled) {
         DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
         Device device = myConfiguration.getDevice();
-        if (framePainter.hasDeviceFrame(device)) {
+        if (device != null) {
           AndroidLayoutPreviewToolWindowSettings.GlobalState settings =
             AndroidLayoutPreviewToolWindowSettings.getInstance(myConfiguration.getModule().getProject()).getGlobalState();
           if (settings.isShowDeviceFrames()) {
             boolean showEffects = settings.isShowEffects();
             State deviceState = myConfiguration.getDeviceState();
-            if (device != null && deviceState != null) {
+            if (deviceState != null) {
               double scale = myScale;
               ScreenOrientation orientation = deviceState.getOrientation();
               double frameFactor = framePainter.getFrameMaxOverhead(device, orientation);
@@ -327,11 +327,10 @@ public class ScalableImage {
         if (myDeviceFrameEnabled) {
           DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
           Device device = myConfiguration.getDevice();
-          if (framePainter.hasDeviceFrame(device)) {
+          if (device != null) {
             AndroidLayoutPreviewToolWindowSettings.GlobalState settings =
               AndroidLayoutPreviewToolWindowSettings.getInstance(myConfiguration.getModule().getProject()).getGlobalState();
             if (settings.isShowDeviceFrames()) {
-              assert device != null;
               State state = myConfiguration.getDeviceState();
               if (state != null) {
                 // Scaling larger than 1

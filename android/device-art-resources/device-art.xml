@@ -66,4 +66,19 @@
     <orientation name="land" size="1300,765" screenPos="200,130" screenSize="800,480" crop="0,78,1300,622" shadow="land_shadow.png"
                  back="land_back.png"/>
   </device>
+
+  <device id="phone" name="Generic Phone">
+    <orientation name="port" size="568,256" screenPos="113,93" screenSize="343,46" back="phone_back_simple_port.9.png"
+                 shadow="phone_shadow_simple_port.9.png" />
+    <orientation name="land" size="607,350" screenPos="141,36" screenSize="324,255" back="phone_back_simple_land.9.png"
+                 shadow="phone_shadow_simple_land.9.png"/>
+  </device>
+
+  <device id="tablet" name="Generic Tablet">
+    <orientation name="port" size="1310,313" screenPos="256,111" screenSize="802,55" back="tablet_back_simple.9.png"
+                 shadow="tablet_shadow_simple_port.9.png" />
+    <orientation name="land" size="1310,313" screenPos="256,111" screenSize="802,55" back="tablet_back_simple.9.png"
+                 shadow="tablet_shadow_simple_land.9.png"/>
+  </device>
+
 </devices>

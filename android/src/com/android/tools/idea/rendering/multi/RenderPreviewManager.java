@@ -897,7 +897,7 @@ public class RenderPreviewManager implements Disposable {
       }
 
       if (interesting) {
-        // For now only preview items
+        // For now only preview items that have dedicated device frames
         if (!framePainter.hasDeviceFrame(device)) {
           continue;
         }
