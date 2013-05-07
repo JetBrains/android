@@ -38,6 +38,7 @@ public class AndroidGradleFacetModuleCustomizerTest extends IdeaTestCase {
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     myGradleHome = "~/gradle-1.6";
     projectSettings.setGradleHome(myGradleHome);
+    projectSettings.setPreferLocalInstallationToWrapper(true);
     settings.setLinkedProjectsSettings(Collections.singletonList(projectSettings));
     myCustomizer = new AndroidGradleFacetModuleCustomizer();
   }
