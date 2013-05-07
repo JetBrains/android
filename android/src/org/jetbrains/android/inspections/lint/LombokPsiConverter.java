@@ -1603,7 +1603,10 @@ public class LombokPsiConverter {
 
     int arrayDimensions = variable.getType().getArrayDimensions();
     if (arrayDimensions != 0) {
-      definition.astTypeReference().astArrayDimensions(arrayDimensions);
+      TypeReference typeReference = definition.astTypeReference();
+      if (typeReference != null) {
+        typeReference.astArrayDimensions(arrayDimensions);
+      }
     }
 
     VariableDefinitionEntry entry = toVariableDefinitionEntry(variable);
