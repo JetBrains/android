@@ -211,8 +211,7 @@ public class DevicePanel implements Disposable,
     }
   }
 
-  @VisibleForTesting
-  static List<Pair<String, SimpleTextAttributes>> renderDeviceName(IDevice d) {
+  public static List<Pair<String, SimpleTextAttributes>> renderDeviceName(IDevice d) {
     List<Pair<String, SimpleTextAttributes>> components = new ArrayList<Pair<String, SimpleTextAttributes>>(3);
     String name;
     if (d.isEmulator()) {
