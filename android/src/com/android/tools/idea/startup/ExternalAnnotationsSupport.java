@@ -37,7 +37,6 @@ import com.intellij.psi.util.PsiUtilCore;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.util.List;
 
 /**
@@ -130,6 +129,11 @@ public class ExternalAnnotationsSupport {
       // development
       String developmentLocation = homePath + "/../adt/idea/android/annotations";
       root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(developmentLocation));
+    }
+    if (root == null) {
+      // development
+      String jetbrainsDevelopmentLocation = homePath + "/android/android/annotations";
+      root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(jetbrainsDevelopmentLocation));
     }
 
     if (root == null) {

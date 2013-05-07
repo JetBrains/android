@@ -132,9 +132,6 @@ public class AndroidIdeSpecificInitializer implements Runnable {
       return null;
     }
 
-    // Attempt to insert SDK annotations
-    ExternalAnnotationsSupport.addAnnotations(androidSdk);
-
     MessageBuildingSdkLog log = new MessageBuildingSdkLog();
     AndroidSdkData sdkData = AndroidSdkData.parse(androidHome, log);
     if (sdkData == null) {

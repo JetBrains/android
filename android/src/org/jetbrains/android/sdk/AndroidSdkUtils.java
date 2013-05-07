@@ -23,6 +23,7 @@ import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
+import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
 import com.android.utils.StdLogger;
@@ -319,6 +320,7 @@ public class AndroidSdkUtils {
       for (OrderRoot orderRoot : getLibraryRootsForTarget(target, androidSdk.getHomePath(), true)) {
         sdkModificator.addRoot(orderRoot.getFile(), orderRoot.getType());
       }
+      ExternalAnnotationsSupport.attachJdkAnnotations(sdkModificator);
     }
 
     sdkModificator.commitChanges();
