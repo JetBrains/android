@@ -342,7 +342,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       return result;
     }
 
-    @NonNull
+    @Nullable
     @Override
     public File getSdkHome() {
       File sdkHome = super.getSdkHome();
@@ -352,12 +352,31 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
 
       for (Module module : ModuleManager.getInstance(myProject).getModules()) {
         Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
-        String path = moduleSdk.getHomePath();
-        if (path != null) {
-          File home = new File(path);
-          if (home.exists()) {
-            return home;
+        if (moduleSdk != null) {
+          String path = moduleSdk.getHomePath();
+          if (path != null) {
+            File home = new File(path);
+            if (home.exists()) {
+              return home;
+            }
           }
+        }
+      }
+
+      return null;
+    }
+
+
+    // Overridden such that lint doesn't complain about missing a bin dir property in the event
+    // that no SDK is configured
+    @Nullable
+    @Override
+    public File findResource(@NonNull String relativePath) {
+      File top = getSdkHome();
+      if (top != null) {
+        File file = new File(top, relativePath);
+        if (file.exists()) {
+          return file;
         }
       }
 

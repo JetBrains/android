@@ -186,18 +186,36 @@ class IntellijLintClient extends LintClient implements Disposable {
   public void dispose() {
   }
 
-  @NonNull
   @Override
+  @Nullable
   public File getSdkHome() {
     Sdk moduleSdk = ModuleRootManager.getInstance(myState.getModule()).getSdk();
-    String path = moduleSdk.getHomePath();
-    if (path != null) {
-      File home = new File(path);
-      if (home.exists()) {
-        return home;
+    if (moduleSdk != null) {
+      String path = moduleSdk.getHomePath();
+      if (path != null) {
+        File home = new File(path);
+        if (home.exists()) {
+          return home;
+        }
       }
     }
 
     return super.getSdkHome();
+  }
+
+  // Overridden such that lint doesn't complain about missing a bin dir property in the event
+  // that no SDK is configured
+  @Override
+  @Nullable
+  public File findResource(@NonNull String relativePath) {
+    File top = getSdkHome();
+    if (top != null) {
+      File file = new File(top, relativePath);
+      if (file.exists()) {
+        return file;
+      }
+    }
+
+    return null;
   }
 }

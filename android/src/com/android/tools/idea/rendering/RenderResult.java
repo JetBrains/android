@@ -33,10 +33,10 @@ public class RenderResult {
   @Nullable private final List<ViewInfo> myRootViews;
   @Nullable private final ScalableImage myImage;
   @Nullable private RenderedViewHierarchy myHierarchy;
-  @NotNull private final RenderService myRenderService;
+  @Nullable private final RenderService myRenderService;
   @Nullable private final RenderSession mySession; // TEMPORARY
 
-  public RenderResult(@Nullable RenderService renderService, // TEMPORARY NULLABLE, FOR RENDER UTIL MIGRATION
+  public RenderResult(@Nullable RenderService renderService,
                       @Nullable RenderSession session,
                       @NotNull PsiFile file,
                       @NotNull RenderLogger logger) {
@@ -44,7 +44,7 @@ public class RenderResult {
     mySession = session;
     myFile = file;
     myLogger = logger;
-    if (session != null && session.getResult().isSuccess()) {
+    if (session != null && session.getResult().isSuccess() && renderService != null) {
       myRootViews = session.getRootViews();
       Configuration configuration = renderService.getConfiguration();
       myImage = new ScalableImage(session, configuration);
@@ -88,7 +88,7 @@ public class RenderResult {
     return myFile;
   }
 
-  @NotNull
+  @Nullable
   public RenderService getRenderService() {
     return myRenderService;
   }
