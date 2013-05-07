@@ -35,7 +35,7 @@ public class DeviceArtPainterTest extends TestCase {
   public void generateCropData() {
     DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
     for (DeviceArtDescriptor spec : framePainter.getDescriptors()) {
-      DeviceData data = new DeviceData(spec);
+      DeviceData data = new DeviceData(null, spec);
       System.out.println("for spec " + spec.getName() + " -- " + spec.getId());
       FrameData landscapeData = data.getFrameData(ScreenOrientation.LANDSCAPE, Integer.MAX_VALUE);
       // Must use computeImage rather than getImage here since we want to get the

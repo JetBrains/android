@@ -230,6 +230,10 @@ public class DeviceArtDescriptor {
     return getArtDescriptor(orientation).getAspectRatio();
   }
 
+  public boolean isStretchable() {
+    return myId.equals("phone") || myId.equals("tablet");
+  }
+
   /** Descriptor for a particular device frame (e.g. a set of images for a particular device in a particular orientation) */
   private static class OrientationData {
     private final DeviceArtDescriptor myDevice;
