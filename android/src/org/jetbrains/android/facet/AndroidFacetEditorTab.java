@@ -34,13 +34,13 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.CheckBoxList;
-import com.intellij.ui.CollectionListModel;
 import com.intellij.ui.ComboboxWithBrowseButton;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.Function;
 import com.intellij.util.PathUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.compiler.AndroidAptCompiler;
@@ -62,10 +62,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.EnumSet;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author yole
@@ -109,7 +107,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   private JBCheckBox myUseCustomManifestPackage;
   private JTextField myCustomManifestPackageField;
   private ComboBox myUpdateProjectPropertiesCombo;
-  private CheckBoxList myImportedOptionsList;
+  private CheckBoxList<AndroidImportableProperty> myImportedOptionsList;
   private JBTabbedPane myTabbedPane;
 
   private static final String MAVEN_TAB_TITLE = "Maven";
@@ -279,12 +277,12 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   }
 
   private void buildImportedOptionsList() {
-    final List<JCheckBox> checkBoxes = new ArrayList<JCheckBox>();
-
-    for (AndroidImportableProperty property : AndroidImportableProperty.values()) {
-      checkBoxes.add(new MyImportedPropertyItem(property));
-    }
-    myImportedOptionsList.setModel(new CollectionListModel<JCheckBox>(checkBoxes));
+    myImportedOptionsList.setItems(Arrays.asList(AndroidImportableProperty.values()), new Function<AndroidImportableProperty, String>() {
+      @Override
+      public String fun(AndroidImportableProperty property) {
+        return property.getDisplayName();
+      }
+    });
   }
 
   private void updateAptPanel() {
@@ -393,11 +391,11 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     }
     final Set<AndroidImportableProperty> newNotImportedProperties = EnumSet.noneOf(AndroidImportableProperty.class);
 
-    for (int i = 0, n = myImportedOptionsList.getModel().getSize(); i < n; i++) {
-      final MyImportedPropertyItem item = (MyImportedPropertyItem)myImportedOptionsList.getModel().getElementAt(i);
+    for (int i = 0; i < myImportedOptionsList.getItemsCount(); i++) {
+      final AndroidImportableProperty property = (AndroidImportableProperty)myImportedOptionsList.getItemAt(i);
 
-      if (!item.isSelected()) {
-        newNotImportedProperties.add(item.myProperty);
+      if (!myImportedOptionsList.isItemSelected(i)) {
+        newNotImportedProperties.add(property);
       }
     }
 
@@ -515,11 +513,11 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     final Set<AndroidImportableProperty> notImportedProperties = myConfiguration.getState().myNotImportedProperties;
     notImportedProperties.clear();
 
-    for (int i = 0, n = myImportedOptionsList.getModel().getSize(); i < n; i++) {
-      final MyImportedPropertyItem item = (MyImportedPropertyItem)myImportedOptionsList.getModel().getElementAt(i);
+    for (int i = 0; i < myImportedOptionsList.getItemsCount(); i++) {
+      final AndroidImportableProperty property = (AndroidImportableProperty)myImportedOptionsList.getItemAt(i);
 
-      if (!item.isSelected()) {
-        notImportedProperties.add(item.myProperty);
+      if (!myImportedOptionsList.isItemSelected(i)) {
+        notImportedProperties.add(property);
       }
     }
 
@@ -677,10 +675,9 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     if (mavenizedModule) {
       myTabbedPane.insertTab(MAVEN_TAB_TITLE, null, myMavenTabComponent, null, 2);
 
-      for (int i = 0, n = myImportedOptionsList.getModel().getSize(); i < n; i++) {
-        final MyImportedPropertyItem item = (MyImportedPropertyItem)
-          myImportedOptionsList.getModel().getElementAt(i);
-        item.setSelected(configuration.isImportedProperty(item.myProperty));
+      for (int i = 0; i < myImportedOptionsList.getItemsCount(); i++) {
+        final AndroidImportableProperty property = (AndroidImportableProperty)myImportedOptionsList.getItemAt(i);
+        myImportedOptionsList.setItemSelected(property, configuration.isImportedProperty(property));
       }
     }
   }
@@ -821,15 +818,6 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     @Override
     public boolean value(VirtualFile file) {
       return file.isDirectory() || file.getName().equals(SdkConstants.FN_ANDROID_MANIFEST_XML);
-    }
-  }
-
-  private static class MyImportedPropertyItem extends JBCheckBox {
-    final AndroidImportableProperty myProperty;
-
-    private MyImportedPropertyItem(@NotNull AndroidImportableProperty property) {
-      super(property.getDisplayName());
-      myProperty = property;
     }
   }
 }

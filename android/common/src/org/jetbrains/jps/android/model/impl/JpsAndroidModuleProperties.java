@@ -77,7 +77,7 @@ public class JpsAndroidModuleProperties {
   @AbstractCollection(surroundWithTag = false)
   public List<AndroidNativeLibDataEntry> myNativeLibs = new ArrayList<AndroidNativeLibDataEntry>();
 
-  @Tag("importedProperties")
+  @Tag("notImportedProperties")
   @AbstractCollection(surroundWithTag = false, elementTag = "property", elementValueAttribute = "")
   public Set<AndroidImportableProperty> myNotImportedProperties = EnumSet.noneOf(AndroidImportableProperty.class);
 

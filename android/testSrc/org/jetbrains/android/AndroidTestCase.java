@@ -92,8 +92,11 @@ public abstract class AndroidTestCase extends UsefulTestCase {
   private static String getAndroidPluginHome() {
     // Now that the Android plugin is kept in a separate place, we need to look in
     // a relative position instead
-    //return PluginPathManager.getPluginHomePath("android");
-    return PathManager.getHomePath() + "/../adt/idea/android";
+    String adtPath = PathManager.getHomePath() + "/../adt/idea/android";
+    if (new File(adtPath).exists()) {
+      return adtPath;
+    }
+    return new File(PathManager.getHomePath(), "android/android").getPath();
   }
 
   public static String getDefaultTestSdkPath() {

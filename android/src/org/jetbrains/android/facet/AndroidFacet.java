@@ -98,7 +98,6 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   public static final FacetTypeId<AndroidFacet> ID = new FacetTypeId<AndroidFacet>("android");
   public static final String NAME = "Android";
-  private AndroidResourceFilesListener myListener;
 
   private AvdManager myAvdManager = null;
   private SdkManager mySdkManager;
@@ -434,37 +433,36 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @Override
   public void initFacet() {
     StartupManager.getInstance(getModule().getProject()).runWhenProjectIsInitialized(new Runnable() {
-      @Override
-      public void run() {
-        myListener = new AndroidResourceFilesListener(AndroidFacet.this);
-        LocalFileSystem.getInstance().addVirtualFileListener(myListener);
-        if (ApplicationManager.getApplication().isUnitTestMode()) {
-          return;
-        }
-
-        addResourceFolderToSdkRootsIfNecessary();
-        
-        ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-          @Override
-          public void run() {
-            Module module = getModule();
-            Project project = module.getProject();
-            if (project.isDisposed()) {
-              return;
-            }
-
-            if (AndroidAptCompiler.isToCompileModule(module, getConfiguration())) {
-              AndroidCompileUtil.generate(module, AndroidAutogeneratorMode.AAPT);
-            }
-            AndroidCompileUtil.generate(module, AndroidAutogeneratorMode.AIDL);
-            AndroidCompileUtil.generate(module, AndroidAutogeneratorMode.RENDERSCRIPT);
-            AndroidCompileUtil.generate(module, AndroidAutogeneratorMode.BUILDCONFIG);
-
-            activateSourceAutogenerating();
+        @Override
+        public void run() {
+          AndroidResourceFilesListener.notifyFacetInitialized(AndroidFacet.this);
+          if (ApplicationManager.getApplication().isUnitTestMode()) {
+            return;
           }
-        });
-      }
-    });
+
+          addResourceFolderToSdkRootsIfNecessary();
+
+          ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+            @Override
+            public void run() {
+              Module module = getModule();
+              Project project = module.getProject();
+              if (project.isDisposed()) {
+                return;
+              }
+
+              if (AndroidAptCompiler.isToCompileModule(module, getConfiguration())) {
+                AndroidCompileUtil.generate(module, AndroidAutogeneratorMode.AAPT);
+              }
+              AndroidCompileUtil.generate(module, AndroidAutogeneratorMode.AIDL);
+              AndroidCompileUtil.generate(module, AndroidAutogeneratorMode.RENDERSCRIPT);
+              AndroidCompileUtil.generate(module, AndroidAutogeneratorMode.BUILDCONFIG);
+
+              activateSourceAutogenerating();
+            }
+          });
+        }
+      });
 
     getModule().getMessageBus().connect(this).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
       private Sdk myPrevSdk;
@@ -549,9 +547,6 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @Override
   public void disposeFacet() {
-    if (myListener != null) {
-      LocalFileSystem.getInstance().removeVirtualFileListener(myListener);
-    }
     if (myConfigurationManager != null) {
       myConfigurationManager.dispose();
     }
