@@ -16,6 +16,9 @@
 package org.jetbrains.android.facet;
 
 import com.android.SdkConstants;
+import com.android.annotations.NonNull;
+import com.android.build.gradle.model.Variant;
+import com.android.builder.model.SourceProvider;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.prefs.AndroidLocation;
@@ -28,6 +31,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.rendering.ProjectResources;
 import com.android.utils.ILogger;
+import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
 import com.intellij.ProjectTopics;
 import com.intellij.execution.ExecutionException;
@@ -60,6 +64,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -126,6 +131,79 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   public boolean isAutogenerationEnabled() {
     return myAutogenerationEnabled;
+  }
+
+  /**
+   * Returns the main source set of the project. For non-Gradle projects it returns a {@link SourceProvider} wrapper
+   * which provides information about the old project.
+   *
+   * @return the main source set
+   */
+  @NotNull
+  public SourceProvider getMainSourceSet() {
+    if (myIdeaAndroidProject != null) {
+      return myIdeaAndroidProject.getDelegate().getDefaultConfig().getSourceProvider();
+    } else {
+      return new LegacySourceProvider();
+    }
+  }
+
+  /**
+   * Returns the source provider for the current build type, which will never be null for a Gradle based
+   * Android project, and always null for a legacy Android project
+   *
+   * @return the build type source set or null
+   */
+  @Nullable
+  public SourceProvider getBuildTypeSourceSet() {
+    if (myIdeaAndroidProject != null) {
+      Variant selectedVariant = myIdeaAndroidProject.getSelectedVariant();
+      return myIdeaAndroidProject.getDelegate().getBuildTypes().get(selectedVariant.getBuildType()).getSourceProvider();
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Returns the source providers for the available flavors, which will never be null for a Gradle based
+   * Android project, and always null for a legacy Android project
+   *
+   * @return the flavor source providers
+   */
+  @Nullable
+  public List<SourceProvider> getFlavorSourceSets() {
+    if (myIdeaAndroidProject != null) {
+      Variant selectedVariant = myIdeaAndroidProject.getSelectedVariant();
+      List<String> productFlavors = selectedVariant.getProductFlavors();
+      List<SourceProvider> providers = Lists.newArrayList();
+      for (String flavor : productFlavors) {
+        providers.add(myIdeaAndroidProject.getDelegate().getProductFlavors().get(flavor).getSourceProvider());
+      }
+
+      return providers;
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * This returns the primary resource directory; the default location to place
+   * newly created resources etc.  This method is marked deprecated since we should
+   * be gradually adding in UI to allow users to choose specific resource folders
+   * among the available flavors (see {@link #getFlavorSourceSets()} etc).
+   *
+   * @return the primary resource dir, if any
+   */
+  @Deprecated
+  @Nullable
+  public VirtualFile getPrimaryResourceDir() {
+    SourceProvider sourceSet = getMainSourceSet();
+    Set<File> resDirectories = sourceSet.getResDirectories();
+    if (!resDirectories.isEmpty()) {
+      return LocalFileSystem.getInstance().findFileByIoFile(resDirectories.iterator().next());
+    }
+
+    return null;
   }
 
   public boolean isGeneratedFileRemoved(@NotNull AndroidAutogeneratorMode mode) {
@@ -783,5 +861,75 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @Nullable
   public IdeaAndroidProject getIdeaAndroidProject() {
     return myIdeaAndroidProject;
+  }
+
+  // Compatibility bridge for old (non-Gradle) projects
+  private class LegacySourceProvider implements SourceProvider {
+    @NonNull
+    @Override
+    public File getManifestFile() {
+      final VirtualFile manifestFile = AndroidRootUtil.getManifestFile(AndroidFacet.this);
+      assert manifestFile != null;
+      return VfsUtilCore.virtualToIoFile(manifestFile);
+    }
+
+    @NonNull
+    @Override
+    public Set<File> getJavaDirectories() {
+      Set<File> dirs = new HashSet<File>();
+
+      final Module module = getModule();
+      final VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
+      if (contentRoots.length != 0) {
+        for (VirtualFile root : contentRoots) {
+          dirs.add(VfsUtilCore.virtualToIoFile(root));
+        }
+      }
+      return dirs;
+    }
+
+    @NonNull
+    @Override
+    public Set<File> getResourcesDirectories() {
+      return Collections.emptySet();
+    }
+
+    @NonNull
+    @Override
+    public Set<File> getAidlDirectories() {
+      final VirtualFile dir = AndroidRootUtil.getAidlGenDir(AndroidFacet.this);
+      assert dir != null;
+      return Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
+    }
+
+    @NonNull
+    @Override
+    public Set<File> getRenderscriptDirectories() {
+      final VirtualFile dir = AndroidRootUtil.getRenderscriptGenDir(AndroidFacet.this);
+      assert dir != null;
+      return Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
+    }
+
+    @NonNull
+    @Override
+    public Set<File> getJniDirectories() {
+      return Collections.emptySet();
+    }
+
+    @NonNull
+    @Override
+    public Set<File> getResDirectories() {
+      final VirtualFile dir = AndroidRootUtil.getResourceDir(AndroidFacet.this);
+      assert dir != null;
+      return Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
+    }
+
+    @NonNull
+    @Override
+    public Set<File> getAssetsDirectories() {
+      final VirtualFile dir = AndroidRootUtil.getAssetsDir(AndroidFacet.this);
+      assert dir != null;
+      return Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
+    }
   }
 }
