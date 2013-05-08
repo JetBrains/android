@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
+import com.intellij.openapi.util.io.FileUtil;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 
@@ -60,7 +61,7 @@ public class AndroidContentRootTest extends TestCase {
       @Override
       public void storePath(@NotNull ExternalSystemSourceType sourceType, @NotNull File dir) {
         List<String> paths = myStoredPaths.get(sourceType);
-        paths.add(dir.getAbsolutePath());
+        paths.add(FileUtil.toSystemIndependentName(dir.getAbsolutePath()));
       }
     };
   }

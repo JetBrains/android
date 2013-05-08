@@ -31,6 +31,7 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
+import com.intellij.openapi.util.io.FileUtil;
 import junit.framework.TestCase;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
@@ -95,7 +96,8 @@ public class ProjectResolverStrategyTest extends TestCase {
     assertNotNull(projectInfo);
     ProjectData projectData = projectInfo.getData();
     assertEquals(myAndroidProject.getName(), projectData.getName());
-    assertEquals(myAndroidProject.getRootDir().getAbsolutePath(), projectData.getIdeProjectFileDirectoryPath());
+    assertEquals(FileUtil.toSystemIndependentName(myAndroidProject.getRootDir().getAbsolutePath()),
+                 projectData.getIdeProjectFileDirectoryPath());
 
     // Verify module.
     Collection<DataNode<ModuleData>> modules = ExternalSystemApiUtil.getChildren(projectInfo, ProjectKeys.MODULE);
@@ -120,7 +122,7 @@ public class ProjectResolverStrategyTest extends TestCase {
     Collection<DataNode<ContentRootData>> contentRoots = ExternalSystemApiUtil.getChildren(moduleInfo, ProjectKeys.CONTENT_ROOT);
     assertEquals(1, contentRoots.size());
 
-    String projectRootDirPath = myAndroidProject.getRootDir().getAbsolutePath();
+    String projectRootDirPath = FileUtil.toSystemIndependentName(myAndroidProject.getRootDir().getAbsolutePath());
     ContentRootData contentRootData = contentRoots.iterator().next().getData();
     assertEquals(projectRootDirPath, contentRootData.getRootPath());
     myExpectedSourcePaths.storeExpectedSourcePaths(myAndroidProject);
