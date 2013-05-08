@@ -30,6 +30,7 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
+import com.intellij.openapi.util.io.FileUtil;
 import junit.framework.TestCase;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
@@ -104,7 +105,8 @@ public class MultiProjectResolverStrategyTest extends TestCase {
     assertNotNull(projectInfo);
     ProjectData projectData = projectInfo.getData();
     assertEquals(myIdeaProject.getName(), projectData.getName());
-    assertEquals(myIdeaProject.getRootDir().getAbsolutePath(), projectData.getIdeProjectFileDirectoryPath());
+    assertEquals(FileUtil.toSystemIndependentName(myIdeaProject.getRootDir().getAbsolutePath()),
+                 projectData.getIdeProjectFileDirectoryPath());
 
     // Verify modules.
     List<DataNode<ModuleData>> modules = Lists.newArrayList(ExternalSystemApiUtil.getChildren(projectInfo, ProjectKeys.MODULE));
@@ -119,7 +121,7 @@ public class MultiProjectResolverStrategyTest extends TestCase {
     List<DataNode<ContentRootData>> contentRoots = Lists.newArrayList(ExternalSystemApiUtil.getChildren(moduleInfo, ProjectKeys.CONTENT_ROOT));
     assertEquals(1, contentRoots.size());
 
-    String projectRootDirPath = myAndroidProject.getRootDir().getAbsolutePath();
+    String projectRootDirPath = FileUtil.toSystemIndependentName(myAndroidProject.getRootDir().getAbsolutePath());
     ContentRootData contentRootData = contentRoots.get(0).getData();
     assertEquals(projectRootDirPath, contentRootData.getRootPath());
     myExpectedSourcePaths.storeExpectedSourcePaths(myAndroidProject);
@@ -135,7 +137,7 @@ public class MultiProjectResolverStrategyTest extends TestCase {
     contentRoots = Lists.newArrayList(ExternalSystemApiUtil.getChildren(moduleInfo, ProjectKeys.CONTENT_ROOT));
     assertEquals(1, contentRoots.size());
 
-    String moduleRootDirPath = myUtilModule.getRootDir().getPath();
+    String moduleRootDirPath = FileUtil.toSystemIndependentName(myUtilModule.getRootDir().getPath());
     contentRootData = contentRoots.get(0).getData();
     assertEquals(moduleRootDirPath, contentRootData.getRootPath());
   }
