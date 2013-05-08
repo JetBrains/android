@@ -10,8 +10,7 @@ import com.intellij.codeInsight.FileModificationService;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.codeInsight.intention.HighPriorityAction;
 import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.codeInspection.InspectionProfile;
-import com.intellij.codeInspection.SuppressIntentionAction;
+import com.intellij.codeInspection.*;
 import com.intellij.codeInspection.ex.CustomEditInspectionToolsSettingsAction;
 import com.intellij.codeInspection.ex.DisableInspectionToolAction;
 import com.intellij.lang.annotation.Annotation;
@@ -203,11 +202,10 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
             annotation.registerFix(new MyDisableInspectionFix(key));
             annotation.registerFix(new MyEditInspectionToolsSettingsAction(key, inspection));
 
-            final SuppressIntentionAction[] suppressActions = inspection.getSuppressActions(startElement);
-            if (suppressActions != null) {
-              for (SuppressIntentionAction action : suppressActions) {
-                annotation.registerFix(action);
-              }
+            final SuppressQuickFix[] suppressActions = inspection.getBatchSuppressActions(startElement);
+            for (SuppressQuickFix action : suppressActions) {
+              ProblemHighlightType type = annotation.getHighlightType();
+              annotation.registerFix(action, null, key, InspectionManager.getInstance(project).createProblemDescriptor(startElement, endElement, message, type, true, LocalQuickFix.EMPTY_ARRAY));
             }
           }
         }

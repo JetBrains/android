@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.intellij.openapi.util.io.FileUtil;
 import junit.framework.TestCase;
 
 import java.io.File;
@@ -103,7 +104,12 @@ public class HtmlBuilderTest extends TestCase {
     f.deleteOnExit();
 
     String actual = new HtmlBuilder().addImage(f.toURI().toURL(), "preview").getHtml();
-    String expected = String.format("<img src='file:%1$s' alt=\"preview\" />", f.getAbsolutePath());
+    String path = FileUtil.toSystemIndependentName(f.getAbsolutePath());
+
+    if (!path.startsWith("/")) {
+      path = '/' + path;
+    }
+    String expected = String.format("<img src='file:%1$s' alt=\"preview\" />", path);
     assertEquals(expected, actual);
   }
 }

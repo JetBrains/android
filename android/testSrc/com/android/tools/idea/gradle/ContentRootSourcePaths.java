@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.externalSystem.model.project.ContentRootData;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
+import com.intellij.openapi.util.io.FileUtil;
 import junit.framework.Assert;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -90,7 +91,7 @@ public class ContentRootSourcePaths {
     }
     List<String> paths = myDirectoryPathsBySourceType.get(sourceType);
     for (File directory : sourceDirectories) {
-      paths.add(directory.getAbsolutePath());
+      paths.add(FileUtil.toSystemIndependentName(directory.getAbsolutePath()));
     }
     Collections.sort(paths);
   }

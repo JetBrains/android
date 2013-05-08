@@ -25,6 +25,7 @@ import com.intellij.openapi.externalSystem.model.project.*;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.roots.DependencyScope;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.ContainerUtil;
 import junit.framework.TestCase;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -89,17 +90,17 @@ public class GradleDependenciesTest extends TestCase {
     Set<String> binaryPaths = libraryData.getPaths(LibraryPathType.BINARY);
     assertEquals(1, binaryPaths.size());
     String binaryPath = ContainerUtil.getFirstItem(binaryPaths);
-    assertEquals(jarFile.getAbsolutePath(), binaryPath);
+    assertEquals(FileUtil.toSystemIndependentName(jarFile.getAbsolutePath()), binaryPath);
 
     Set<String> sourcePaths = libraryData.getPaths(LibraryPathType.SOURCE);
     assertEquals(1, sourcePaths.size());
     String sourcePath = ContainerUtil.getFirstItem(sourcePaths);
-    assertEquals(sourceFile.getAbsolutePath(), sourcePath);
+    assertEquals(FileUtil.toSystemIndependentName(sourceFile.getAbsolutePath()), sourcePath);
 
     Set<String> javadocPaths = libraryData.getPaths(LibraryPathType.DOC);
     assertEquals(1, javadocPaths.size());
     String javadocPath = ContainerUtil.getFirstItem(javadocPaths);
-    assertEquals(javadocFile.getAbsolutePath(), javadocPath);
+    assertEquals(FileUtil.toSystemIndependentName(javadocFile.getAbsolutePath()), javadocPath);
   }
 
   public void testAddToWithModuleDependency() {

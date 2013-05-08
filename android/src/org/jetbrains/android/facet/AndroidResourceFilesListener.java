@@ -16,18 +16,25 @@
 
 package org.jetbrains.android.facet;
 
+import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.fileTypes.AndroidRenderscriptFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.vfs.*;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.vfs.newvfs.BulkFileListener;
+import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
+import com.intellij.util.containers.HashSet;
+import com.intellij.util.containers.MultiMap;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.android.compiler.AndroidAptCompiler;
@@ -40,8 +47,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static org.jetbrains.android.util.AndroidUtils.findSourceRoot;
 
@@ -52,7 +58,7 @@ import static org.jetbrains.android.util.AndroidUtils.findSourceRoot;
  * Time: 4:49:30 PM
  * To change this template use File | Settings | File Templates.
  */
-public class AndroidResourceFilesListener extends VirtualFileAdapter implements Disposable {
+public class AndroidResourceFilesListener extends BulkFileListener.Adapter implements Disposable {
   private static final Key<String> CACHED_PACKAGE_KEY = Key.create("ANDROID_RESOURCE_LISTENER_CACHED_PACKAGE");
 
   private final MergingUpdateQueue myQueue;
@@ -61,35 +67,49 @@ public class AndroidResourceFilesListener extends VirtualFileAdapter implements 
   public AndroidResourceFilesListener(@NotNull Project project) {
     myProject = project;
     myQueue = new MergingUpdateQueue("AndroidResourcesCompilationQueue", 300, true, null, this, null, false);
+    ApplicationManager.getApplication().getMessageBus().connect(this).subscribe(VirtualFileManager.VFS_CHANGES, this);
   }
 
   @Override
-  public void fileCreated(VirtualFileEvent event) {
-    fileChanged(event);
+  public void after(@NotNull List<? extends VFileEvent> events) {
+    final Set<VirtualFile> filesToProcess = getFilesToProcess(events);
+
+    if (filesToProcess.size() > 0) {
+      myQueue.queue(new MyUpdate(filesToProcess));
+    }
   }
 
-  @Override
-  public void fileDeleted(VirtualFileEvent event) {
-    fileChanged(event);
+  @NotNull
+  private static Set<VirtualFile> getFilesToProcess(@NotNull List<? extends VFileEvent> events) {
+    final Set<VirtualFile> result = new HashSet<VirtualFile>();
+
+    for (VFileEvent event : events) {
+      final VirtualFile file = event.getFile();
+
+      if (file != null && shouldScheduleUpdate(file)) {
+        result.add(file);
+      }
+    }
+    return result;
   }
 
-  @Override
-  public void fileMoved(VirtualFileMoveEvent event) {
-    fileChanged(event);
-  }
+  private static boolean shouldScheduleUpdate(@NotNull VirtualFile file) {
+    final FileType fileType = file.getFileType();
 
-  @Override
-  public void fileCopied(VirtualFileCopyEvent event) {
-    fileChanged(event);
-  }
+    if (fileType == AndroidIdlFileType.ourFileType ||
+        fileType == AndroidRenderscriptFileType.INSTANCE ||
+        SdkConstants.FN_ANDROID_MANIFEST_XML.equals(file.getName())) {
+      return true;
+    }
+    else if (fileType == StdFileTypes.XML) {
+      final VirtualFile parent = file.getParent();
 
-  @Override
-  public void contentsChanged(VirtualFileEvent event) {
-    fileChanged(event);
-  }
-
-  private void fileChanged(@NotNull final VirtualFileEvent e) {
-    myQueue.queue(new MyUpdate(e));
+      if (parent != null && parent.isDirectory()) {
+        final String resType = AndroidCommonUtils.getResourceTypeByDirName(parent.getName());
+        return ResourceFolderType.VALUES.getName().equals(resType);
+      }
+    }
+    return false;
   }
 
   @Override
@@ -110,11 +130,11 @@ public class AndroidResourceFilesListener extends VirtualFileAdapter implements 
   }
 
   private class MyUpdate extends Update {
-    private final VirtualFileEvent myEvent;
+    private final Set<VirtualFile> myFiles;
 
-    public MyUpdate(VirtualFileEvent event) {
-      super(event.getParent());
-      myEvent = event;
+    public MyUpdate(@NotNull Set<VirtualFile> files) {
+      super(files);
+      myFiles = files;
     }
 
     @Override
@@ -123,45 +143,61 @@ public class AndroidResourceFilesListener extends VirtualFileAdapter implements 
         return;
       }
 
-      final Pair<Module, List<AndroidAutogeneratorMode>> pair =
-        ApplicationManager.getApplication().runReadAction(new Computable<Pair<Module, List<AndroidAutogeneratorMode>>>() {
+      final MultiMap<Module, AndroidAutogeneratorMode> map =
+        ApplicationManager.getApplication().runReadAction(new Computable<MultiMap<Module, AndroidAutogeneratorMode>>() {
           @Override
           @Nullable
-          public Pair<Module, List<AndroidAutogeneratorMode>> compute() {
+          public MultiMap<Module, AndroidAutogeneratorMode> compute() {
             return computeCompilersToRunAndInvalidateLocalAttributesMap();
           }
         });
 
-      if (pair == null) {
+      if (map.isEmpty()) {
         return;
       }
-      final Module module = pair.getFirst();
 
-      for (AndroidAutogeneratorMode autogenerationMode : pair.getSecond()) {
-        AndroidCompileUtil.generate(module, autogenerationMode);
+      for (Map.Entry<Module, Collection<AndroidAutogeneratorMode>> entry : map.entrySet()) {
+        final Module module = entry.getKey();
+
+        for (AndroidAutogeneratorMode mode : entry.getValue()) {
+          AndroidCompileUtil.generate(module, mode);
+        }
       }
     }
 
-    @Nullable
-    private Pair<Module, List<AndroidAutogeneratorMode>> computeCompilersToRunAndInvalidateLocalAttributesMap() {
+    @NotNull
+    private MultiMap<Module, AndroidAutogeneratorMode> computeCompilersToRunAndInvalidateLocalAttributesMap() {
       if (myProject.isDisposed()) {
-        return null;
+        return MultiMap.emptyInstance();
       }
-      final VirtualFile file = myEvent.getFile();
-      final Module module = ModuleUtilCore.findModuleForFile(file, myProject);
+      final MultiMap<Module, AndroidAutogeneratorMode> result = MultiMap.create();
 
-      if (module == null || module.isDisposed()) {
-        return null;
-      }
-      final AndroidFacet facet = AndroidFacet.getInstance(module);
+      for (VirtualFile file : myFiles) {
+        final Module module = ModuleUtilCore.findModuleForFile(file, myProject);
 
-      if (facet == null) {
-        return null;
+        if (module == null || module.isDisposed()) {
+          continue;
+        }
+        final AndroidFacet facet = AndroidFacet.getInstance(module);
+
+        if (facet == null) {
+          continue;
+        }
+        final List<AndroidAutogeneratorMode> modes = computeCompilersToRunAndInvalidateLocalAttributesMap(facet, file);
+
+        if (modes.size() > 0) {
+          result.putValues(module, modes);
+        }
       }
-      final VirtualFile parent = myEvent.getParent();
+      return result;
+    }
+
+    @NotNull
+    private List<AndroidAutogeneratorMode> computeCompilersToRunAndInvalidateLocalAttributesMap(AndroidFacet facet, VirtualFile file) {
+      final VirtualFile parent = file.getParent();
 
       if (parent == null) {
-        return null;
+        return Collections.emptyList();
       }
       final VirtualFile gp = parent.getParent();
       final VirtualFile resourceDir = AndroidRootUtil.getResourceDir(facet);
@@ -172,6 +208,7 @@ public class AndroidResourceFilesListener extends VirtualFileAdapter implements 
       }
       final VirtualFile manifestFile = AndroidRootUtil.getManifestFile(facet);
       final List<AndroidAutogeneratorMode> modes = new ArrayList<AndroidAutogeneratorMode>();
+      final Module module = facet.getModule();
 
       if (Comparing.equal(manifestFile, file)) {
         if (AndroidAptCompiler.isToCompileModule(module, facet.getConfiguration())) {
@@ -200,30 +237,12 @@ public class AndroidResourceFilesListener extends VirtualFileAdapter implements 
           modes.add(AndroidAutogeneratorMode.RENDERSCRIPT);
         }
       }
-      return Pair.create(module, modes);
+      return modes;
     }
 
     @Override
     public boolean canEat(Update update) {
-      if (update instanceof MyUpdate) {
-        VirtualFile hisFile = ((MyUpdate)update).myEvent.getFile();
-        VirtualFile file = myEvent.getFile();
-
-        if (Comparing.equal(hisFile, file)) {
-          return true;
-        }
-        
-        if (hisFile.getFileType() == AndroidIdlFileType.ourFileType || file.getFileType() == AndroidIdlFileType.ourFileType) {
-          return hisFile.getFileType() == file.getFileType();
-        }
-        
-        if (hisFile.getFileType() == AndroidRenderscriptFileType.INSTANCE || file.getFileType() == AndroidRenderscriptFileType.INSTANCE) {
-          return hisFile.getFileType() == file.getFileType();
-        }
-        
-        return true;
-      }
-      return false;
+      return update instanceof MyUpdate && myFiles.containsAll(((MyUpdate)update).myFiles);
     }
   }
 }
