@@ -61,7 +61,7 @@ public class DeviceArtGenerator {
     String basePath = PathManager.getHomePath();
     if (basePath != null) {
       String[] paths = new String[] {
-        "plugins" + File.separatorChar + "android" + File.separatorChar,
+        "android" + File.separatorChar + "android" + File.separatorChar,
         ".." + File.separator + "adt" + File.separator + "idea" + File.separator + "android" + File.separatorChar,
       };
 
