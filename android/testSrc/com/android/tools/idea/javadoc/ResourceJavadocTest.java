@@ -18,6 +18,7 @@ package com.android.tools.idea.javadoc;
 
 import com.intellij.codeInsight.documentation.DocumentationManager;
 import com.intellij.lang.documentation.DocumentationProvider;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.IdeaTestCase;
@@ -90,8 +91,10 @@ public class ResourceJavadocTest extends AndroidTestCase {
                                             "res/drawable-hdpi/ic_launcher.png").getPath();
 
     String divTag = "<div style=\"background-color:gray;padding:10px\">";
-    String imgTag1 = String.format("<img src='file:%1$s' alt=\"%1$s\" />", p1);
-    String imgTag2 = String.format("<img src='file:%1$s' alt=\"%1$s\" />", p2);
+    String imgTag1 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p1.startsWith("/") ? p1 : '/' + p1),
+                                   FileUtil.toSystemDependentName(p1));
+    String imgTag2 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p2.startsWith("/") ? p2 : '/' + p2),
+                                   FileUtil.toSystemDependentName(p2));
     checkJavadoc("/javadoc/drawables/Activity1.java",
                  String.format("<html><body><table>" +
                  "<tr><th %1$s>Configuration</th><th %1$s>Value</th></tr>" +

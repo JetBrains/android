@@ -42,7 +42,7 @@ import java.util.Map;
 /**
  * Service that sets an Android SDK and facets to the modules of a project that has been imported from an Android-Gradle project.
  */
-public class AndroidProjectDataService implements ProjectDataService<IdeaAndroidProject> {
+public class AndroidProjectDataService implements ProjectDataService<IdeaAndroidProject, Void> {
   private final List<? extends ModuleCustomizer> myCustomizers;
 
   // This constructor is called by the IDE. See this module's plugin.xml file, implementation of extension 'externalProjectDataService'.
@@ -107,6 +107,6 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
   }
 
   @Override
-  public void removeData(@NotNull Collection<DataNode<IdeaAndroidProject>> toRemove, @NotNull Project project, boolean synchronous) {
+  public void removeData(@NotNull Collection<? extends Void> toRemove, @NotNull Project project, boolean synchronous) {
   }
 }
