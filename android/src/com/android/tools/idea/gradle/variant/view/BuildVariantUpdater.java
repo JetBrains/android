@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
-import com.android.tools.idea.gradle.util.Facets;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.customizer.AndroidFacetModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.ContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
-import com.google.common.collect.ImmutableList;
+import com.android.tools.idea.gradle.util.Facets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
@@ -32,20 +30,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
-import java.util.List;
-
 /**
  * Updates the contents/settings of a module when a build variant changes.
  */
 class BuildVariantUpdater {
   private static final Logger LOG = Logger.getInstance(BuildVariantUpdater.class);
 
-  private final List<ModuleCustomizer> myModuleCustomizers;
-
-  BuildVariantUpdater()  {
-    myModuleCustomizers =
-      ImmutableList.of(new ContentRootModuleCustomizer(), new AndroidFacetModuleCustomizer(), new DependenciesModuleCustomizer());
-  }
+  private final ModuleCustomizer[] myModuleCustomizers = {new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer()};
 
   void updateModule(@NotNull final Project project, @NotNull final String moduleName, @NotNull final String buildVariantName) {
     ExternalSystemApiUtil.executeProjectChangeAction(project, GradleConstants.SYSTEM_ID, project, true, new Runnable() {
@@ -73,6 +64,8 @@ class BuildVariantUpdater {
       return;
     }
     androidProject.setSelectedVariantName(buildVariantName);
+    facet.getConfiguration().getState().SELECTED_BUILD_VARIANT = buildVariantName;
+
     for (ModuleCustomizer customizer : myModuleCustomizers) {
       customizer.customizeModule(moduleToUpdate, project, androidProject);
     }
