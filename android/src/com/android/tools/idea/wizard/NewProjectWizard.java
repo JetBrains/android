@@ -24,6 +24,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -57,6 +58,13 @@ public class NewProjectWizard extends TemplateWizard {
 
   @Override
   protected void init() {
+    // Do a sanity check to see if we have templates that look compatible, otherwise we get really strange problems. The existence
+    // of a gradle wrapper in the templates directory is a good sign.
+    if (!(new File(TemplateManager.getTemplateRootFolder(), "gradle/wrapper/gradlew").exists())) {
+      String msg = "Your Android SDK is out of date or is missing templates. Please ensure you are using SDK version 22 or later.";
+      Messages.showErrorDialog(myContentPanel, msg);
+      throw new IllegalStateException(msg);
+    }
     myWizardState = new NewProjectWizardState();
 
     myConfigureAndroidModuleStep = new ConfigureAndroidModuleStep(this, myWizardState);
