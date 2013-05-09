@@ -16,17 +16,23 @@
 package com.android.tools.idea.gradle.variant.view;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.Facets;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.intellij.ProjectTopics;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.ModuleAdapter;
+import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -80,6 +86,18 @@ public class BuildVariantView {
     Content content = contentFactory.createContent(myToolWindowPanel, "", false);
     toolWindow.getContentManager().addContent(content);
     updateContents();
+    MessageBusConnection connection = myProject.getMessageBus().connect();
+    connection.subscribe(ProjectTopics.MODULES, new ModuleAdapter() {
+      @Override
+      public void moduleAdded(Project project, Module module) {
+        updateContents();
+      }
+
+      @Override
+      public void moduleRemoved(Project project, Module module) {
+        updateContents();
+      }
+    });
   }
 
   public void updateContents() {
@@ -93,6 +111,10 @@ public class BuildVariantView {
     for (Module module : moduleManager.getModules()) {
       AndroidFacet androidFacet = Facets.getFirstFacet(module, AndroidFacet.ID);
       if (androidFacet == null) {
+        continue;
+      }
+      if (Facets.getFirstFacet(module, AndroidGradleFacet.TYPE_ID) == null) {
+        // If the module does not have an Android-Gradle facet, just skip it.
         continue;
       }
       JpsAndroidModuleProperties facetProperties = androidFacet.getConfiguration().getState();
@@ -191,7 +213,22 @@ public class BuildVariantView {
     }
 
     void setModel(@NotNull List<String[]> rows, @NotNull List<BuildVariantItem[]> variantNamesPerRow) {
-      setModel(new BuildVariantTableModel(rows, !variantNamesPerRow.isEmpty()));
+      if (rows.isEmpty()) {
+        // This is most likely an old-style (pre-Gradle) Android project. Just leave the table empty.
+        setModel(new BuildVariantTableModel(rows));
+        return;
+      }
+
+      boolean hasVariants = !variantNamesPerRow.isEmpty();
+      List<String[]> content = ImmutableList.of();
+      if (hasVariants) {
+        content = rows;
+      }
+      // If the table does not have variants yet, it is because we are still loading them. Show a busy cursor.
+      setPaintBusy(!hasVariants);
+      getEmptyText().setText("Loading...");
+
+      setModel(new BuildVariantTableModel(content));
       addBuildVariants(variantNamesPerRow);
     }
 
@@ -235,18 +272,14 @@ public class BuildVariantView {
   }
 
   private static class BuildVariantTableModel extends DefaultTableModel {
-    // Indicates if the "variant" column is editable.
-    private final boolean myEditable;
-
-    BuildVariantTableModel(List<String[]> rows, boolean editable) {
+    BuildVariantTableModel(List<String[]> rows) {
       super(rows.toArray(new Object[rows.size()][TABLE_COLUMN_NAMES.length]), TABLE_COLUMN_NAMES);
-      myEditable = editable;
     }
 
     @Override
     public boolean isCellEditable(int row, int column) {
       // Only the "variant" column can be editable.
-      return myEditable && column == VARIANT_COLUMN_INDEX;
+      return column == VARIANT_COLUMN_INDEX;
     }
   }
 }
