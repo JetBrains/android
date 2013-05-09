@@ -687,7 +687,8 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @Nullable
   public Manifest getManifest() {
-    final VirtualFile manifestFile = AndroidRootUtil.getManifestFile(this);
+    final VirtualFile manifestFile =
+      LocalFileSystem.getInstance().findFileByIoFile(getMainSourceSet().getManifestFile());
     if (manifestFile == null) return null;
     return AndroidUtils.loadDomElement(getModule(), manifestFile, Manifest.class);
   }
