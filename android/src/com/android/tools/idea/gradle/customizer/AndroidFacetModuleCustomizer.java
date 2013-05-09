@@ -25,6 +25,7 @@ import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -32,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Adds the Android facet to modules imported from {@link com.android.build.gradle.model.AndroidProject}s.
@@ -78,6 +80,21 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
     facetState.MANIFEST_FILE_RELATIVE_PATH = getRelativePath(rootDirPath, manifestFile);
 
     syncSelectedVariant(facetState, ideaAndroidProject);
+
+    // This is done just to prevent IDEA create a 'gen' folder.
+    // TODO: Find where this 'gen' folder is generated so we can get rid of this code.
+    String moduleDirPath = ideaAndroidProject.getRootDirPath();
+    for (File child : ideaAndroidProject.getSelectedVariant().getGeneratedSourceFolders()) {
+      String relativePath = getRelativePath(moduleDirPath, child);
+      // TODO: Obtain these paths from Gradle model instead of hard-coding them.
+      if (dirMatches(relativePath, "build", "source", "r")) {
+        facetState.GEN_FOLDER_RELATIVE_PATH_APT = getRelativePath(rootDirPath, child);
+        continue;
+      }
+      if (dirMatches(relativePath, "build", "source", "aidl")) {
+        facetState.GEN_FOLDER_RELATIVE_PATH_APT = getRelativePath(rootDirPath, child);
+      }
+    }
   }
 
   private static void syncSelectedVariant(@NotNull JpsAndroidModuleProperties facetState, @NotNull IdeaAndroidProject ideaAndroidProject) {
@@ -100,5 +117,22 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
       return SEPARATOR + FileUtilRt.toSystemIndependentName(relativePath);
     }
     return EMPTY_PATH;
+  }
+
+  private static boolean dirMatches(@NotNull String relativeDirPath, @NotNull String...segmentsToMatch) {
+    List<String> segments = FileUtil.splitPath(relativeDirPath);
+    if (!segments.isEmpty() && segments.get(0).isEmpty()) {
+      // First segment is an empty String since the relative path starts with "/".
+      segments.remove(0);
+    }
+    if (segments.size() < segmentsToMatch.length) {
+      return false;
+    }
+    for (int i = 0; i < segmentsToMatch.length; i++) {
+      if (!segmentsToMatch[i].equals(segments.get(i))) {
+        return false;
+      }
+    }
+    return true;
   }
 }
