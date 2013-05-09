@@ -70,7 +70,7 @@ public class NewProjectWizardState extends NewModuleWizardState {
       return lastProjectLocation.replace('/', File.separatorChar);
     }
     final String userHome = SystemProperties.getUserHome();
-    String productName = ApplicationNamesInfo.getInstance().getProductName();
+    String productName = ApplicationNamesInfo.getInstance().getFullProductName();
     return userHome.replace('/', File.separatorChar) + File.separator + productName.replace(" ", "") + "Projects";
   }
 
