@@ -27,13 +27,16 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Adds the Android facet to modules imported from {@link com.android.build.gradle.model.AndroidProject}s.
@@ -75,11 +78,17 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
 
     SourceProvider sourceProvider = ideaAndroidProject.getDelegate().getDefaultConfig().getSourceProvider();
 
+    syncSelectedVariant(facetState, ideaAndroidProject);
+
     String rootDirPath = project.getBasePath();
     File manifestFile = sourceProvider.getManifestFile();
     facetState.MANIFEST_FILE_RELATIVE_PATH = getRelativePath(rootDirPath, manifestFile);
 
-    syncSelectedVariant(facetState, ideaAndroidProject);
+    Set<File> resDirs = sourceProvider.getResDirectories();
+    facetState.RES_FOLDER_RELATIVE_PATH = getRelativePath(rootDirPath, resDirs);
+
+    Set<File> assetsDirs = sourceProvider.getAssetsDirectories();
+    facetState.ASSETS_FOLDER_RELATIVE_PATH = getRelativePath(rootDirPath, assetsDirs);
 
     // This is done just to prevent IDEA create a 'gen' folder.
     // TODO: Find where this 'gen' folder is generated so we can get rid of this code.
@@ -104,6 +113,13 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
     }
     Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
     facetState.SELECTED_BUILD_VARIANT = selectedVariant.getName();
+  }
+
+  // We are only getting the relative of the first file in the collection, because JpsAndroidModuleProperties only accepts one path.
+  // TODO(alruiz): Change JpsAndroidModuleProperties (and callers) to use multiple paths.
+  @NotNull
+  private static String getRelativePath(@NotNull String basePath, @NotNull Collection<File> dirs) {
+    return getRelativePath(basePath, ContainerUtil.getFirstItem(dirs));
   }
 
   @NotNull
