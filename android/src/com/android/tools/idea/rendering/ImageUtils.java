@@ -41,28 +41,46 @@ public class ImageUtils {
 
     int w = source.getWidth();
     int h = source.getHeight();
-    if (degrees == 90 || degrees == 270) {
-        w = source.getHeight();
-        h = source.getWidth();
+    int w1, h1;
+    switch (degrees) {
+      case 90:
+      case 270:
+        w1 = h;
+        h1 = w;
+        break;
+      default:
+        w1 = w;
+        h1 = h;
+    }
+    BufferedImage rotated = new BufferedImage(w1, h1, source.getType());
+
+    for (int x = 0; x < w; x++) {
+      for (int y = 0; y < h; y++) {
+        int v = source.getRGB(x, y);
+        int x1, y1;
+        switch (degrees) {
+          case 90:
+            x1 = h - y - 1;
+            y1 = x;
+            break;
+          case 180:
+            x1 = w - x - 1;
+            y1 = h - y - 1;
+            break;
+          case 270:
+            x1 = y;
+            y1 = w - x - 1;
+            break;
+          default:
+            x1 = x;
+            y1 = y;
+            break;
+        }
+
+        rotated.setRGB(x1, y1, v);
+      }
     }
 
-    int xOffset = 0;
-    if (degrees == 180 || degrees == 270) {
-      xOffset = -source.getWidth();
-    }
-
-    int yOffset = 0;
-    if (degrees == 90 || degrees == 180) {
-      yOffset = -source.getHeight();
-    }
-
-    BufferedImage rotated = new BufferedImage(w, h, source.getType());
-    Graphics2D g = rotated.createGraphics();
-    if (degrees != 0) {
-      g.rotate(Math.toRadians(degrees));
-    }
-    g.drawImage(source, xOffset, yOffset, null);
-    g.dispose();
     return rotated;
   }
 
