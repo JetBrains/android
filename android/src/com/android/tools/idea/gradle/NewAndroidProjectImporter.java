@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.intellij.ide.impl.NewProjectUtil;
 import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.openapi.application.ApplicationManager;
@@ -53,6 +54,8 @@ import com.intellij.openapi.wm.ex.IdeFrameEx;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
@@ -114,7 +117,7 @@ public class NewAndroidProjectImporter {
         ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {
-            populateProject(newProject, Preconditions.checkNotNull(projectInfo));
+            populateProject(newProject, Preconditions.checkNotNull(projectInfo), projectFilePath);
             open(newProject, projectFilePath);
 
             if (!ApplicationManager.getApplication().isUnitTestMode()) {
@@ -172,7 +175,9 @@ public class NewAndroidProjectImporter {
     }, null, null);
   }
 
-  private static void populateProject(@NotNull final Project newProject, @NotNull final DataNode<ProjectData> projectInfo) {
+  private static void populateProject(@NotNull final Project newProject,
+                                      @NotNull final DataNode<ProjectData> projectInfo,
+                                      @NotNull final String projectFilePath) {
     System.setProperty(ExternalSystemConstants.NEWLY_IMPORTED_PROJECT, Boolean.TRUE.toString());
     StartupManager.getInstance(newProject).runWhenProjectIsInitialized(new Runnable() {
       @Override
@@ -180,6 +185,12 @@ public class NewAndroidProjectImporter {
         ExternalSystemApiUtil.executeProjectChangeAction(newProject, SYSTEM_ID, newProject, new Runnable() {
           @Override
           public void run() {
+            GradleSettings gradleSettings = GradleSettings.getInstance(newProject);
+            GradleProjectSettings projectSettings = new GradleProjectSettings();
+            projectSettings.setPreferLocalInstallationToWrapper(false);
+            projectSettings.setExternalProjectPath(projectFilePath);
+            gradleSettings.setLinkedProjectsSettings(ImmutableList.of(projectSettings));
+
             ProjectRootManagerEx.getInstanceEx(newProject).mergeRootsChangesDuring(new Runnable() {
               @Override
               public void run() {
