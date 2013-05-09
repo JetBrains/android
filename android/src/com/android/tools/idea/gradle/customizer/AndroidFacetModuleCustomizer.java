@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.customizer;
 
 import com.android.build.gradle.model.Variant;
+import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.util.Facets;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
@@ -24,21 +25,29 @@ import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtilRt;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
+import java.io.File;
+
 /**
  * Adds the Android facet to modules imported from {@link com.android.build.gradle.model.AndroidProject}s.
  */
 public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
+  private static final String EMPTY_PATH = "";
+
+  // It is safe to use "/" instead of File.separator. JpsAndroidModule uses it.
+  private static final String SEPARATOR = "/";
+
   @Override
   public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
     if (ideaAndroidProject != null) {
       AndroidFacet facet = Facets.getFirstFacet(module, AndroidFacet.ID);
       if (facet != null) {
-        configureFacet(facet, ideaAndroidProject);
+        configureFacet(project, facet, ideaAndroidProject);
       }
       else {
         // Module does not have Android facet. Create one and add it.
@@ -47,7 +56,7 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
         try {
           facet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
           model.addFacet(facet);
-          configureFacet(facet, ideaAndroidProject);
+          configureFacet(project, facet, ideaAndroidProject);
         } finally {
           model.commit();
         }
@@ -57,10 +66,17 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
     }
   }
 
-  private static void configureFacet(@NotNull AndroidFacet facet, @NotNull IdeaAndroidProject ideaAndroidProject) {
+  private static void configureFacet(Project project, @NotNull AndroidFacet facet, @NotNull IdeaAndroidProject ideaAndroidProject) {
     facet.setIdeaAndroidProject(ideaAndroidProject);
     JpsAndroidModuleProperties facetState = facet.getConfiguration().getState();
     facetState.ALLOW_USER_CONFIGURATION = false;
+
+    SourceProvider sourceProvider = ideaAndroidProject.getDelegate().getDefaultConfig().getSourceProvider();
+
+    String rootDirPath = project.getBasePath();
+    File manifestFile = sourceProvider.getManifestFile();
+    facetState.MANIFEST_FILE_RELATIVE_PATH = getRelativePath(rootDirPath, manifestFile);
+
     syncSelectedVariant(facetState, ideaAndroidProject);
   }
 
@@ -71,5 +87,18 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
     }
     Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
     facetState.SELECTED_BUILD_VARIANT = selectedVariant.getName();
+  }
+
+  @NotNull
+  private static String getRelativePath(@NotNull String basePath, @Nullable File file) {
+    String relativePath = null;
+    if (file != null) {
+      relativePath = FileUtilRt
+        .getRelativePath(basePath, file.getAbsolutePath(), File.separatorChar);
+    }
+    if (relativePath != null && !relativePath.startsWith(SEPARATOR)) {
+      return SEPARATOR + FileUtilRt.toSystemIndependentName(relativePath);
+    }
+    return EMPTY_PATH;
   }
 }
