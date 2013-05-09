@@ -16,11 +16,9 @@
 package com.android.tools.idea.wizard;
 
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkManager;
 import com.android.tools.idea.gradle.NewAndroidProjectImporter;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.android.utils.SdkUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -29,12 +27,10 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
-import static com.android.tools.idea.templates.Template.ATTR_NAME;
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
 
@@ -105,7 +101,6 @@ public class NewProjectWizard extends TemplateWizard {
           }
           myWizardState.updateParameters();
           myWizardState.myTemplate.render(projectRoot, moduleRoot, myWizardState.myParameters);
-          FileUtil.copyDirContent(gradleWrapperSrc, moduleRoot);
           if ((Boolean)myWizardState.get(NewProjectWizardState.ATTR_CREATE_ACTIVITY)) {
             myWizardState.getActivityTemplateState().getTemplate()
               .render(moduleRoot, moduleRoot, myWizardState.getActivityTemplateState().myParameters);
