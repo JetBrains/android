@@ -1044,255 +1044,255 @@ public class LocaleManager {
     ourLanguageNames.put("zu", "Zulu"); //$NON-NLS-1$
 
     // Region Name Map, ISO_3166-1, alpha-2
-    ourRegionNames.put("AD", "Andorra"); //$NON-NLS-1$
-    ourRegionNames.put("AE", "United Arab Emirates"); //$NON-NLS-1$
-    ourRegionNames.put("AF", "Afghanistan"); //$NON-NLS-1$
-    ourRegionNames.put("AG", "Antigua and Barbuda"); //$NON-NLS-1$
-    ourRegionNames.put("AI", "Anguilla"); //$NON-NLS-1$
-    ourRegionNames.put("AL", "Albania"); //$NON-NLS-1$
-    ourRegionNames.put("AM", "Armenia"); //$NON-NLS-1$
-    ourRegionNames.put("AO", "Angola"); //$NON-NLS-1$
-    ourRegionNames.put("AQ", "Antarctica"); //$NON-NLS-1$
-    ourRegionNames.put("AR", "Argentina"); //$NON-NLS-1$
-    ourRegionNames.put("AS", "American Samoa"); //$NON-NLS-1$
-    ourRegionNames.put("AT", "Austria"); //$NON-NLS-1$
-    ourRegionNames.put("AU", "Australia"); //$NON-NLS-1$
-    ourRegionNames.put("AW", "Aruba"); //$NON-NLS-1$
-    ourRegionNames.put("AX", "\u00c5land Islands" /*Åland Islands*/); //$NON-NLS-1$
-    ourRegionNames.put("AZ", "Azerbaijan"); //$NON-NLS-1$
-    ourRegionNames.put("BA", "Bosnia and Herzegovina"); //$NON-NLS-1$
-    ourRegionNames.put("BB", "Barbados"); //$NON-NLS-1$
-    ourRegionNames.put("BD", "Bangladesh"); //$NON-NLS-1$
-    ourRegionNames.put("BE", "Belgium"); //$NON-NLS-1$
-    ourRegionNames.put("BF", "Burkina Faso"); //$NON-NLS-1$
-    ourRegionNames.put("BG", "Bulgaria"); //$NON-NLS-1$
-    ourRegionNames.put("BH", "Bahrain"); //$NON-NLS-1$
-    ourRegionNames.put("BI", "Burundi"); //$NON-NLS-1$
-    ourRegionNames.put("BJ", "Benin"); //$NON-NLS-1$
-    ourRegionNames.put("BL", "Saint Barth\u00e9lemy" /*Saint Barthélemy*/); //$NON-NLS-1$
-    ourRegionNames.put("BM", "Bermuda"); //$NON-NLS-1$
-    ourRegionNames.put("BN", "Brunei Darussalam"); //$NON-NLS-1$
-    ourRegionNames.put("BO", "Bolivia, Plurinational State of"); //$NON-NLS-1$
-    ourRegionNames.put("BQ", "Bonaire, Sint Eustatius and Saba"); //$NON-NLS-1$
-    ourRegionNames.put("BR", "Brazil"); //$NON-NLS-1$
-    ourRegionNames.put("BS", "Bahamas"); //$NON-NLS-1$
-    ourRegionNames.put("BT", "Bhutan"); //$NON-NLS-1$
-    ourRegionNames.put("BV", "Bouvet Island"); //$NON-NLS-1$
-    ourRegionNames.put("BW", "Botswana"); //$NON-NLS-1$
-    ourRegionNames.put("BY", "Belarus"); //$NON-NLS-1$
-    ourRegionNames.put("BZ", "Belize"); //$NON-NLS-1$
-    ourRegionNames.put("CA", "Canada"); //$NON-NLS-1$
-    ourRegionNames.put("CC", "Cocos (Keeling) Islands"); //$NON-NLS-1$
-    ourRegionNames.put("CD", "Congo, the Democratic Republic of the"); //$NON-NLS-1$
-    ourRegionNames.put("CF", "Central African Republic"); //$NON-NLS-1$
-    ourRegionNames.put("CG", "Congo"); //$NON-NLS-1$
-    ourRegionNames.put("CH", "Switzerland"); //$NON-NLS-1$
-    ourRegionNames.put("CI", "C\u00f4te d'Ivoire" /*Côte d'Ivoire*/); //$NON-NLS-1$
-    ourRegionNames.put("CK", "Cook Islands"); //$NON-NLS-1$
-    ourRegionNames.put("CL", "Chile"); //$NON-NLS-1$
-    ourRegionNames.put("CM", "Cameroon"); //$NON-NLS-1$
-    ourRegionNames.put("CN", "China"); //$NON-NLS-1$
-    ourRegionNames.put("CO", "Colombia"); //$NON-NLS-1$
-    ourRegionNames.put("CR", "Costa Rica"); //$NON-NLS-1$
-    ourRegionNames.put("CU", "Cuba"); //$NON-NLS-1$
-    ourRegionNames.put("CV", "Cape Verde"); //$NON-NLS-1$
-    ourRegionNames.put("CW", "Cura\u00e7ao" /*Curaçao*/); //$NON-NLS-1$
-    ourRegionNames.put("CX", "Christmas Island"); //$NON-NLS-1$
-    ourRegionNames.put("CY", "Cyprus"); //$NON-NLS-1$
-    ourRegionNames.put("CZ", "Czech Republic"); //$NON-NLS-1$
-    ourRegionNames.put("DE", "Germany"); //$NON-NLS-1$
-    ourRegionNames.put("DJ", "Djibouti"); //$NON-NLS-1$
-    ourRegionNames.put("DK", "Denmark"); //$NON-NLS-1$
-    ourRegionNames.put("DM", "Dominica"); //$NON-NLS-1$
-    ourRegionNames.put("DO", "Dominican Republic"); //$NON-NLS-1$
-    ourRegionNames.put("DZ", "Algeria"); //$NON-NLS-1$
-    ourRegionNames.put("EC", "Ecuador"); //$NON-NLS-1$
-    ourRegionNames.put("EE", "Estonia"); //$NON-NLS-1$
-    ourRegionNames.put("EG", "Egypt"); //$NON-NLS-1$
-    ourRegionNames.put("EH", "Western Sahara"); //$NON-NLS-1$
-    ourRegionNames.put("ER", "Eritrea"); //$NON-NLS-1$
-    ourRegionNames.put("ES", "Spain"); //$NON-NLS-1$
-    ourRegionNames.put("ET", "Ethiopia"); //$NON-NLS-1$
-    ourRegionNames.put("FI", "Finland"); //$NON-NLS-1$
-    ourRegionNames.put("FJ", "Fiji"); //$NON-NLS-1$
-    ourRegionNames.put("FK", "Falkland Islands (Malvinas)"); //$NON-NLS-1$
-    ourRegionNames.put("FM", "Micronesia, Federated States of"); //$NON-NLS-1$
-    ourRegionNames.put("FO", "Faroe Islands"); //$NON-NLS-1$
-    ourRegionNames.put("FR", "France"); //$NON-NLS-1$
-    ourRegionNames.put("GA", "Gabon"); //$NON-NLS-1$
-    ourRegionNames.put("GB", "United Kingdom"); //$NON-NLS-1$
-    ourRegionNames.put("GD", "Grenada"); //$NON-NLS-1$
-    ourRegionNames.put("GE", "Georgia"); //$NON-NLS-1$
-    ourRegionNames.put("GF", "French Guiana"); //$NON-NLS-1$
-    ourRegionNames.put("GG", "Guernsey"); //$NON-NLS-1$
-    ourRegionNames.put("GH", "Ghana"); //$NON-NLS-1$
-    ourRegionNames.put("GI", "Gibraltar"); //$NON-NLS-1$
-    ourRegionNames.put("GL", "Greenland"); //$NON-NLS-1$
-    ourRegionNames.put("GM", "Gambia"); //$NON-NLS-1$
-    ourRegionNames.put("GN", "Guinea"); //$NON-NLS-1$
-    ourRegionNames.put("GP", "Guadeloupe"); //$NON-NLS-1$
-    ourRegionNames.put("GQ", "Equatorial Guinea"); //$NON-NLS-1$
-    ourRegionNames.put("GR", "Greece"); //$NON-NLS-1$
-    ourRegionNames.put("GS", "South Georgia and the South Sandwich Islands"); //$NON-NLS-1$
-    ourRegionNames.put("GT", "Guatemala"); //$NON-NLS-1$
-    ourRegionNames.put("GU", "Guam"); //$NON-NLS-1$
-    ourRegionNames.put("GW", "Guinea-Bissau"); //$NON-NLS-1$
-    ourRegionNames.put("GY", "Guyana"); //$NON-NLS-1$
-    ourRegionNames.put("HK", "Hong Kong"); //$NON-NLS-1$
-    ourRegionNames.put("HM", "Heard Island and McDonald Islands"); //$NON-NLS-1$
-    ourRegionNames.put("HN", "Honduras"); //$NON-NLS-1$
-    ourRegionNames.put("HR", "Croatia"); //$NON-NLS-1$
-    ourRegionNames.put("HT", "Haiti"); //$NON-NLS-1$
-    ourRegionNames.put("HU", "Hungary"); //$NON-NLS-1$
-    ourRegionNames.put("ID", "Indonesia"); //$NON-NLS-1$
-    ourRegionNames.put("IE", "Ireland"); //$NON-NLS-1$
-    ourRegionNames.put("IL", "Israel"); //$NON-NLS-1$
-    ourRegionNames.put("IM", "Isle of Man"); //$NON-NLS-1$
-    ourRegionNames.put("IN", "India"); //$NON-NLS-1$
-    ourRegionNames.put("IO", "British Indian Ocean Territory"); //$NON-NLS-1$
-    ourRegionNames.put("IQ", "Iraq"); //$NON-NLS-1$
-    ourRegionNames.put("IR", "Iran, Islamic Republic of"); //$NON-NLS-1$
-    ourRegionNames.put("IS", "Iceland"); //$NON-NLS-1$
-    ourRegionNames.put("IT", "Italy"); //$NON-NLS-1$
-    ourRegionNames.put("JE", "Jersey"); //$NON-NLS-1$
-    ourRegionNames.put("JM", "Jamaica"); //$NON-NLS-1$
-    ourRegionNames.put("JO", "Jordan"); //$NON-NLS-1$
-    ourRegionNames.put("JP", "Japan"); //$NON-NLS-1$
-    ourRegionNames.put("KE", "Kenya"); //$NON-NLS-1$
-    ourRegionNames.put("KG", "Kyrgyzstan"); //$NON-NLS-1$
-    ourRegionNames.put("KH", "Cambodia"); //$NON-NLS-1$
-    ourRegionNames.put("KI", "Kiribati"); //$NON-NLS-1$
-    ourRegionNames.put("KM", "Comoros"); //$NON-NLS-1$
-    ourRegionNames.put("KN", "Saint Kitts and Nevis"); //$NON-NLS-1$
-    ourRegionNames.put("KP", "Korea, Democratic People's Republic of"); //$NON-NLS-1$
-    ourRegionNames.put("KR", "Korea, Republic of"); //$NON-NLS-1$
-    ourRegionNames.put("KW", "Kuwait"); //$NON-NLS-1$
-    ourRegionNames.put("KY", "Cayman Islands"); //$NON-NLS-1$
-    ourRegionNames.put("KZ", "Kazakhstan"); //$NON-NLS-1$
-    ourRegionNames.put("LA", "Lao People's Democratic Republic"); //$NON-NLS-1$
-    ourRegionNames.put("LB", "Lebanon"); //$NON-NLS-1$
-    ourRegionNames.put("LC", "Saint Lucia"); //$NON-NLS-1$
-    ourRegionNames.put("LI", "Liechtenstein"); //$NON-NLS-1$
-    ourRegionNames.put("LK", "Sri Lanka"); //$NON-NLS-1$
-    ourRegionNames.put("LR", "Liberia"); //$NON-NLS-1$
-    ourRegionNames.put("LS", "Lesotho"); //$NON-NLS-1$
-    ourRegionNames.put("LT", "Lithuania"); //$NON-NLS-1$
-    ourRegionNames.put("LU", "Luxembourg"); //$NON-NLS-1$
-    ourRegionNames.put("LV", "Latvia"); //$NON-NLS-1$
-    ourRegionNames.put("LY", "Libya"); //$NON-NLS-1$
-    ourRegionNames.put("MA", "Morocco"); //$NON-NLS-1$
-    ourRegionNames.put("MC", "Monaco"); //$NON-NLS-1$
-    ourRegionNames.put("MD", "Moldova, Republic of"); //$NON-NLS-1$
-    ourRegionNames.put("ME", "Montenegro"); //$NON-NLS-1$
-    ourRegionNames.put("MF", "Saint Martin (French part)"); //$NON-NLS-1$
-    ourRegionNames.put("MG", "Madagascar"); //$NON-NLS-1$
-    ourRegionNames.put("MH", "Marshall Islands"); //$NON-NLS-1$
-    ourRegionNames.put("MK", "Macedonia, the former Yugoslav Republic of"); //$NON-NLS-1$
-    ourRegionNames.put("ML", "Mali"); //$NON-NLS-1$
-    ourRegionNames.put("MM", "Myanmar"); //$NON-NLS-1$
-    ourRegionNames.put("MN", "Mongolia"); //$NON-NLS-1$
-    ourRegionNames.put("MO", "Macao"); //$NON-NLS-1$
-    ourRegionNames.put("MP", "Northern Mariana Islands"); //$NON-NLS-1$
-    ourRegionNames.put("MQ", "Martinique"); //$NON-NLS-1$
-    ourRegionNames.put("MR", "Mauritania"); //$NON-NLS-1$
-    ourRegionNames.put("MS", "Montserrat"); //$NON-NLS-1$
-    ourRegionNames.put("MT", "Malta"); //$NON-NLS-1$
-    ourRegionNames.put("MU", "Mauritius"); //$NON-NLS-1$
-    ourRegionNames.put("MV", "Maldives"); //$NON-NLS-1$
-    ourRegionNames.put("MW", "Malawi"); //$NON-NLS-1$
-    ourRegionNames.put("MX", "Mexico"); //$NON-NLS-1$
-    ourRegionNames.put("MY", "Malaysia"); //$NON-NLS-1$
-    ourRegionNames.put("MZ", "Mozambique"); //$NON-NLS-1$
-    ourRegionNames.put("NA", "Namibia"); //$NON-NLS-1$
-    ourRegionNames.put("NC", "New Caledonia"); //$NON-NLS-1$
-    ourRegionNames.put("NE", "Niger"); //$NON-NLS-1$
-    ourRegionNames.put("NF", "Norfolk Island"); //$NON-NLS-1$
-    ourRegionNames.put("NG", "Nigeria"); //$NON-NLS-1$
-    ourRegionNames.put("NI", "Nicaragua"); //$NON-NLS-1$
-    ourRegionNames.put("NL", "Netherlands"); //$NON-NLS-1$
-    ourRegionNames.put("NO", "Norway"); //$NON-NLS-1$
-    ourRegionNames.put("NP", "Nepal"); //$NON-NLS-1$
-    ourRegionNames.put("NR", "Nauru"); //$NON-NLS-1$
-    ourRegionNames.put("NU", "Niue"); //$NON-NLS-1$
-    ourRegionNames.put("NZ", "New Zealand"); //$NON-NLS-1$
-    ourRegionNames.put("OM", "Oman"); //$NON-NLS-1$
-    ourRegionNames.put("PA", "Panama"); //$NON-NLS-1$
-    ourRegionNames.put("PE", "Peru"); //$NON-NLS-1$
-    ourRegionNames.put("PF", "French Polynesia"); //$NON-NLS-1$
-    ourRegionNames.put("PG", "Papua New Guinea"); //$NON-NLS-1$
-    ourRegionNames.put("PH", "Philippines"); //$NON-NLS-1$
-    ourRegionNames.put("PK", "Pakistan"); //$NON-NLS-1$
-    ourRegionNames.put("PL", "Poland"); //$NON-NLS-1$
-    ourRegionNames.put("PM", "Saint Pierre and Miquelon"); //$NON-NLS-1$
-    ourRegionNames.put("PN", "Pitcairn"); //$NON-NLS-1$
-    ourRegionNames.put("PR", "Puerto Rico"); //$NON-NLS-1$
-    ourRegionNames.put("PS", "Palestinian Territory, Occupied"); //$NON-NLS-1$
-    ourRegionNames.put("PT", "Portugal"); //$NON-NLS-1$
-    ourRegionNames.put("PW", "Palau"); //$NON-NLS-1$
-    ourRegionNames.put("PY", "Paraguay"); //$NON-NLS-1$
-    ourRegionNames.put("QA", "Qatar"); //$NON-NLS-1$
-    ourRegionNames.put("RE", "R\u00e9union" /*Réunion*/); //$NON-NLS-1$
-    ourRegionNames.put("RO", "Romania"); //$NON-NLS-1$
-    ourRegionNames.put("RS", "Serbia"); //$NON-NLS-1$
-    ourRegionNames.put("RU", "Russian Federation"); //$NON-NLS-1$
-    ourRegionNames.put("RW", "Rwanda"); //$NON-NLS-1$
-    ourRegionNames.put("SA", "Saudi Arabia"); //$NON-NLS-1$
-    ourRegionNames.put("SB", "Solomon Islands"); //$NON-NLS-1$
-    ourRegionNames.put("SC", "Seychelles"); //$NON-NLS-1$
-    ourRegionNames.put("SD", "Sudan"); //$NON-NLS-1$
-    ourRegionNames.put("SE", "Sweden"); //$NON-NLS-1$
-    ourRegionNames.put("SG", "Singapore"); //$NON-NLS-1$
-    ourRegionNames.put("SH", "Saint Helena, Ascension and Tristan da Cunha"); //$NON-NLS-1$
-    ourRegionNames.put("SI", "Slovenia"); //$NON-NLS-1$
-    ourRegionNames.put("SJ", "Svalbard and Jan Mayen"); //$NON-NLS-1$
-    ourRegionNames.put("SK", "Slovakia"); //$NON-NLS-1$
-    ourRegionNames.put("SL", "Sierra Leone"); //$NON-NLS-1$
-    ourRegionNames.put("SM", "San Marino"); //$NON-NLS-1$
-    ourRegionNames.put("SN", "Senegal"); //$NON-NLS-1$
-    ourRegionNames.put("SO", "Somalia"); //$NON-NLS-1$
-    ourRegionNames.put("SR", "Suriname"); //$NON-NLS-1$
-    ourRegionNames.put("SS", "South Sudan"); //$NON-NLS-1$
-    ourRegionNames.put("ST", "Sao Tome and Principe"); //$NON-NLS-1$
-    ourRegionNames.put("SV", "El Salvador"); //$NON-NLS-1$
-    ourRegionNames.put("SX", "Sint Maarten (Dutch part)"); //$NON-NLS-1$
-    ourRegionNames.put("SY", "Syrian Arab Republic"); //$NON-NLS-1$
-    ourRegionNames.put("SZ", "Swaziland"); //$NON-NLS-1$
-    ourRegionNames.put("TC", "Turks and Caicos Islands"); //$NON-NLS-1$
-    ourRegionNames.put("TD", "Chad"); //$NON-NLS-1$
-    ourRegionNames.put("TF", "French Southern Territories"); //$NON-NLS-1$
-    ourRegionNames.put("TG", "Togo"); //$NON-NLS-1$
-    ourRegionNames.put("TH", "Thailand"); //$NON-NLS-1$
-    ourRegionNames.put("TJ", "Tajikistan"); //$NON-NLS-1$
-    ourRegionNames.put("TK", "Tokelau"); //$NON-NLS-1$
-    ourRegionNames.put("TL", "Timor-Leste"); //$NON-NLS-1$
-    ourRegionNames.put("TM", "Turkmenistan"); //$NON-NLS-1$
-    ourRegionNames.put("TN", "Tunisia"); //$NON-NLS-1$
-    ourRegionNames.put("TO", "Tonga"); //$NON-NLS-1$
-    ourRegionNames.put("TR", "Turkey"); //$NON-NLS-1$
-    ourRegionNames.put("TT", "Trinidad and Tobago"); //$NON-NLS-1$
-    ourRegionNames.put("TV", "Tuvalu"); //$NON-NLS-1$
-    ourRegionNames.put("TW", "Taiwan, Province of China"); //$NON-NLS-1$
-    ourRegionNames.put("TZ", "Tanzania, United Republic of"); //$NON-NLS-1$
-    ourRegionNames.put("UA", "Ukraine"); //$NON-NLS-1$
-    ourRegionNames.put("UG", "Uganda"); //$NON-NLS-1$
-    ourRegionNames.put("UM", "United States Minor Outlying Islands"); //$NON-NLS-1$
-    ourRegionNames.put("US", "United States"); //$NON-NLS-1$
-    ourRegionNames.put("UY", "Uruguay"); //$NON-NLS-1$
-    ourRegionNames.put("UZ", "Uzbekistan"); //$NON-NLS-1$
-    ourRegionNames.put("VA", "Holy See (Vatican City State)"); //$NON-NLS-1$
-    ourRegionNames.put("VC", "Saint Vincent and the Grenadines"); //$NON-NLS-1$
-    ourRegionNames.put("VE", "Venezuela, Bolivarian Republic of"); //$NON-NLS-1$
-    ourRegionNames.put("VG", "Virgin Islands, British"); //$NON-NLS-1$
-    ourRegionNames.put("VI", "Virgin Islands, U.S."); //$NON-NLS-1$
-    ourRegionNames.put("VN", "Viet Nam"); //$NON-NLS-1$
-    ourRegionNames.put("VU", "Vanuatu"); //$NON-NLS-1$
-    ourRegionNames.put("WF", "Wallis and Futuna"); //$NON-NLS-1$
-    ourRegionNames.put("WS", "Samoa"); //$NON-NLS-1$
-    ourRegionNames.put("YE", "Yemen"); //$NON-NLS-1$
-    ourRegionNames.put("YT", "Mayotte"); //$NON-NLS-1$
-    ourRegionNames.put("ZA", "South Africa"); //$NON-NLS-1$
-    ourRegionNames.put("ZM", "Zambia"); //$NON-NLS-1$
-    ourRegionNames.put("ZW", "Zimbabwe"); //$NON-NLS-1$
+    ourRegionNames.put("AF", "Afghanistan");
+    ourRegionNames.put("AL", "Albania");
+    ourRegionNames.put("DZ", "Algeria");
+    ourRegionNames.put("AS", "American Samoa");
+    ourRegionNames.put("AD", "Andorra");
+    ourRegionNames.put("AO", "Angola");
+    ourRegionNames.put("AI", "Anguilla");
+    ourRegionNames.put("AQ", "Antarctica");
+    ourRegionNames.put("AG", "Antigua and Barbuda");
+    ourRegionNames.put("AR", "Argentina");
+    ourRegionNames.put("AM", "Armenia");
+    ourRegionNames.put("AW", "Aruba");
+    ourRegionNames.put("AU", "Australia");
+    ourRegionNames.put("AT", "Austria");
+    ourRegionNames.put("AZ", "Azerbaijan");
+    ourRegionNames.put("BS", "Bahamas");
+    ourRegionNames.put("BH", "Bahrain");
+    ourRegionNames.put("BD", "Bangladesh");
+    ourRegionNames.put("BB", "Barbados");
+    ourRegionNames.put("BY", "Belarus");
+    ourRegionNames.put("BE", "Belgium");
+    ourRegionNames.put("BZ", "Belize");
+    ourRegionNames.put("BJ", "Benin");
+    ourRegionNames.put("BM", "Bermuda");
+    ourRegionNames.put("BT", "Bhutan");
+    ourRegionNames.put("BO", "Bolivia, Plurinational State of");
+    ourRegionNames.put("BQ", "Bonaire, Sint Eustatius and Saba");
+    ourRegionNames.put("BA", "Bosnia and Herzegovina");
+    ourRegionNames.put("BW", "Botswana");
+    ourRegionNames.put("BV", "Bouvet Island");
+    ourRegionNames.put("BR", "Brazil");
+    ourRegionNames.put("IO", "British Indian Ocean Territory");
+    ourRegionNames.put("BN", "Brunei Darussalam");
+    ourRegionNames.put("BG", "Bulgaria");
+    ourRegionNames.put("BF", "Burkina Faso");
+    ourRegionNames.put("BI", "Burundi");
+    ourRegionNames.put("KH", "Cambodia");
+    ourRegionNames.put("CM", "Cameroon");
+    ourRegionNames.put("CA", "Canada");
+    ourRegionNames.put("CV", "Cape Verde");
+    ourRegionNames.put("KY", "Cayman Islands");
+    ourRegionNames.put("CF", "Central African Republic");
+    ourRegionNames.put("TD", "Chad");
+    ourRegionNames.put("CL", "Chile");
+    ourRegionNames.put("CN", "China");
+    ourRegionNames.put("CX", "Christmas Island");
+    ourRegionNames.put("CC", "Cocos (Keeling) Islands");
+    ourRegionNames.put("CO", "Colombia");
+    ourRegionNames.put("KM", "Comoros");
+    ourRegionNames.put("CG", "Congo");
+    ourRegionNames.put("CD", "Congo, the Democratic Republic of the");
+    ourRegionNames.put("CK", "Cook Islands");
+    ourRegionNames.put("CR", "Costa Rica");
+    ourRegionNames.put("HR", "Croatia");
+    ourRegionNames.put("CU", "Cuba");
+    ourRegionNames.put("CW", "Cura\u00e7ao");
+    ourRegionNames.put("CY", "Cyprus");
+    ourRegionNames.put("CZ", "Czech Republic");
+    ourRegionNames.put("CI", "C\u00f4te d'Ivoire");
+    ourRegionNames.put("DK", "Denmark");
+    ourRegionNames.put("DJ", "Djibouti");
+    ourRegionNames.put("DM", "Dominica");
+    ourRegionNames.put("DO", "Dominican Republic");
+    ourRegionNames.put("EC", "Ecuador");
+    ourRegionNames.put("EG", "Egypt");
+    ourRegionNames.put("SV", "El Salvador");
+    ourRegionNames.put("GQ", "Equatorial Guinea");
+    ourRegionNames.put("ER", "Eritrea");
+    ourRegionNames.put("EE", "Estonia");
+    ourRegionNames.put("ET", "Ethiopia");
+    ourRegionNames.put("FK", "Falkland Islands (Malvinas)");
+    ourRegionNames.put("FO", "Faroe Islands");
+    ourRegionNames.put("FJ", "Fiji");
+    ourRegionNames.put("FI", "Finland");
+    ourRegionNames.put("FR", "France");
+    ourRegionNames.put("GF", "French Guiana");
+    ourRegionNames.put("PF", "French Polynesia");
+    ourRegionNames.put("TF", "French Southern Territories");
+    ourRegionNames.put("GA", "Gabon");
+    ourRegionNames.put("GM", "Gambia");
+    ourRegionNames.put("GE", "Georgia");
+    ourRegionNames.put("DE", "Germany");
+    ourRegionNames.put("GH", "Ghana");
+    ourRegionNames.put("GI", "Gibraltar");
+    ourRegionNames.put("GR", "Greece");
+    ourRegionNames.put("GL", "Greenland");
+    ourRegionNames.put("GD", "Grenada");
+    ourRegionNames.put("GP", "Guadeloupe");
+    ourRegionNames.put("GU", "Guam");
+    ourRegionNames.put("GT", "Guatemala");
+    ourRegionNames.put("GG", "Guernsey");
+    ourRegionNames.put("GN", "Guinea");
+    ourRegionNames.put("GW", "Guinea-Bissau");
+    ourRegionNames.put("GY", "Guyana");
+    ourRegionNames.put("HT", "Haiti");
+    ourRegionNames.put("HM", "Heard Island and McDonald Islands");
+    ourRegionNames.put("VA", "Holy See (Vatican City State)");
+    ourRegionNames.put("HN", "Honduras");
+    ourRegionNames.put("HK", "Hong Kong");
+    ourRegionNames.put("HU", "Hungary");
+    ourRegionNames.put("IS", "Iceland");
+    ourRegionNames.put("IN", "India");
+    ourRegionNames.put("ID", "Indonesia");
+    ourRegionNames.put("IR", "Iran, Islamic Republic of");
+    ourRegionNames.put("IQ", "Iraq");
+    ourRegionNames.put("IE", "Ireland");
+    ourRegionNames.put("IM", "Isle of Man");
+    ourRegionNames.put("IL", "Israel");
+    ourRegionNames.put("IT", "Italy");
+    ourRegionNames.put("JM", "Jamaica");
+    ourRegionNames.put("JP", "Japan");
+    ourRegionNames.put("JE", "Jersey");
+    ourRegionNames.put("JO", "Jordan");
+    ourRegionNames.put("KZ", "Kazakhstan");
+    ourRegionNames.put("KE", "Kenya");
+    ourRegionNames.put("KI", "Kiribati");
+    ourRegionNames.put("KP", "Korea, Democratic People's Republic of");
+    ourRegionNames.put("KR", "Korea, Republic of");
+    ourRegionNames.put("KW", "Kuwait");
+    ourRegionNames.put("KG", "Kyrgyzstan");
+    ourRegionNames.put("LA", "Lao People's Democratic Republic");
+    ourRegionNames.put("LV", "Latvia");
+    ourRegionNames.put("LB", "Lebanon");
+    ourRegionNames.put("LS", "Lesotho");
+    ourRegionNames.put("LR", "Liberia");
+    ourRegionNames.put("LY", "Libya");
+    ourRegionNames.put("LI", "Liechtenstein");
+    ourRegionNames.put("LT", "Lithuania");
+    ourRegionNames.put("LU", "Luxembourg");
+    ourRegionNames.put("MO", "Macao");
+    ourRegionNames.put("MK", "Macedonia, the former Yugoslav Republic of");
+    ourRegionNames.put("MG", "Madagascar");
+    ourRegionNames.put("MW", "Malawi");
+    ourRegionNames.put("MY", "Malaysia");
+    ourRegionNames.put("MV", "Maldives");
+    ourRegionNames.put("ML", "Mali");
+    ourRegionNames.put("MT", "Malta");
+    ourRegionNames.put("MH", "Marshall Islands");
+    ourRegionNames.put("MQ", "Martinique");
+    ourRegionNames.put("MR", "Mauritania");
+    ourRegionNames.put("MU", "Mauritius");
+    ourRegionNames.put("YT", "Mayotte");
+    ourRegionNames.put("MX", "Mexico");
+    ourRegionNames.put("FM", "Micronesia, Federated States of");
+    ourRegionNames.put("MD", "Moldova, Republic of");
+    ourRegionNames.put("MC", "Monaco");
+    ourRegionNames.put("MN", "Mongolia");
+    ourRegionNames.put("ME", "Montenegro");
+    ourRegionNames.put("MS", "Montserrat");
+    ourRegionNames.put("MA", "Morocco");
+    ourRegionNames.put("MZ", "Mozambique");
+    ourRegionNames.put("MM", "Myanmar");
+    ourRegionNames.put("NA", "Namibia");
+    ourRegionNames.put("NR", "Nauru");
+    ourRegionNames.put("NP", "Nepal");
+    ourRegionNames.put("NL", "Netherlands");
+    ourRegionNames.put("NC", "New Caledonia");
+    ourRegionNames.put("NZ", "New Zealand");
+    ourRegionNames.put("NI", "Nicaragua");
+    ourRegionNames.put("NE", "Niger");
+    ourRegionNames.put("NG", "Nigeria");
+    ourRegionNames.put("NU", "Niue");
+    ourRegionNames.put("NF", "Norfolk Island");
+    ourRegionNames.put("MP", "Northern Mariana Islands");
+    ourRegionNames.put("NO", "Norway");
+    ourRegionNames.put("OM", "Oman");
+    ourRegionNames.put("PK", "Pakistan");
+    ourRegionNames.put("PW", "Palau");
+    ourRegionNames.put("PS", "Palestine");
+    ourRegionNames.put("PA", "Panama");
+    ourRegionNames.put("PG", "Papua New Guinea");
+    ourRegionNames.put("PY", "Paraguay");
+    ourRegionNames.put("PE", "Peru");
+    ourRegionNames.put("PH", "Philippines");
+    ourRegionNames.put("PN", "Pitcairn");
+    ourRegionNames.put("PL", "Poland");
+    ourRegionNames.put("PT", "Portugal");
+    ourRegionNames.put("PR", "Puerto Rico");
+    ourRegionNames.put("QA", "Qatar");
+    ourRegionNames.put("RO", "Romania");
+    ourRegionNames.put("RU", "Russian Federation");
+    ourRegionNames.put("RW", "Rwanda");
+    ourRegionNames.put("RE", "R\u00e9union");
+    ourRegionNames.put("BL", "Saint Barth\u00e9lemy");
+    ourRegionNames.put("SH", "Saint Helena, Ascension and Tristan da Cunha");
+    ourRegionNames.put("KN", "Saint Kitts and Nevis");
+    ourRegionNames.put("LC", "Saint Lucia");
+    ourRegionNames.put("MF", "Saint Martin (French part)");
+    ourRegionNames.put("PM", "Saint Pierre and Miquelon");
+    ourRegionNames.put("VC", "Saint Vincent and the Grenadines");
+    ourRegionNames.put("WS", "Samoa");
+    ourRegionNames.put("SM", "San Marino");
+    ourRegionNames.put("ST", "Sao Tome and Principe");
+    ourRegionNames.put("SA", "Saudi Arabia");
+    ourRegionNames.put("SN", "Senegal");
+    ourRegionNames.put("RS", "Serbia");
+    ourRegionNames.put("SC", "Seychelles");
+    ourRegionNames.put("SL", "Sierra Leone");
+    ourRegionNames.put("SG", "Singapore");
+    ourRegionNames.put("SX", "Sint Maarten (Dutch part)");
+    ourRegionNames.put("SK", "Slovakia");
+    ourRegionNames.put("SI", "Slovenia");
+    ourRegionNames.put("SB", "Solomon Islands");
+    ourRegionNames.put("SO", "Somalia");
+    ourRegionNames.put("ZA", "South Africa");
+    ourRegionNames.put("GS", "South Georgia and the South Sandwich Islands");
+    ourRegionNames.put("SS", "South Sudan");
+    ourRegionNames.put("ES", "Spain");
+    ourRegionNames.put("LK", "Sri Lanka");
+    ourRegionNames.put("SD", "Sudan");
+    ourRegionNames.put("SR", "Suriname");
+    ourRegionNames.put("SJ", "Svalbard and Jan Mayen");
+    ourRegionNames.put("SZ", "Swaziland");
+    ourRegionNames.put("SE", "Sweden");
+    ourRegionNames.put("CH", "Switzerland");
+    ourRegionNames.put("SY", "Syrian Arab Republic");
+    ourRegionNames.put("TW", "Taiwan, Province of China");
+    ourRegionNames.put("TJ", "Tajikistan");
+    ourRegionNames.put("TZ", "Tanzania, United Republic of");
+    ourRegionNames.put("TH", "Thailand");
+    ourRegionNames.put("TL", "Timor-Leste");
+    ourRegionNames.put("TG", "Togo");
+    ourRegionNames.put("TK", "Tokelau");
+    ourRegionNames.put("TO", "Tonga");
+    ourRegionNames.put("TT", "Trinidad and Tobago");
+    ourRegionNames.put("TN", "Tunisia");
+    ourRegionNames.put("TR", "Turkey");
+    ourRegionNames.put("TM", "Turkmenistan");
+    ourRegionNames.put("TC", "Turks and Caicos Islands");
+    ourRegionNames.put("TV", "Tuvalu");
+    ourRegionNames.put("UG", "Uganda");
+    ourRegionNames.put("UA", "Ukraine");
+    ourRegionNames.put("AE", "United Arab Emirates");
+    ourRegionNames.put("GB", "United Kingdom");
+    ourRegionNames.put("US", "United States");
+    ourRegionNames.put("UM", "United States Minor Outlying Islands");
+    ourRegionNames.put("UY", "Uruguay");
+    ourRegionNames.put("UZ", "Uzbekistan");
+    ourRegionNames.put("VU", "Vanuatu");
+    ourRegionNames.put("VE", "Venezuela, Bolivarian Republic of");
+    ourRegionNames.put("VN", "Viet Nam");
+    ourRegionNames.put("VG", "Virgin Islands, British");
+    ourRegionNames.put("VI", "Virgin Islands, U.S.");
+    ourRegionNames.put("WF", "Wallis and Futuna");
+    ourRegionNames.put("EH", "Western Sahara");
+    ourRegionNames.put("YE", "Yemen");
+    ourRegionNames.put("ZM", "Zambia");
+    ourRegionNames.put("ZW", "Zimbabwe");
+    ourRegionNames.put("AX", "\u00c5land Islands");
 
     // Aliases
     // http://developer.android.com/reference/java/util/Locale.html
