@@ -34,17 +34,20 @@ public class VariantStub implements Variant {
   @NotNull private final List<String> myProductFlavors = Lists.newArrayList();
 
   @NotNull private final String myName;
-  @NotNull private final FileStructure fileStructure;
+  @NotNull private final String myBuildType;
+  @NotNull private final FileStructure myFileStructure;
 
   /**
    * Creates a new {@link VariantStub}.
    *
    * @param name          the name of the variant.
+   * @param buildType     the name of the build type.
    * @param fileStructure the file structure of the Gradle project this variant belongs to.
    */
-  VariantStub(@NotNull String name, @NotNull FileStructure fileStructure) {
-    this.myName = name;
-    this.fileStructure = fileStructure;
+  VariantStub(@NotNull String name, @NotNull String buildType, @NotNull FileStructure fileStructure) {
+    myName = name;
+    myBuildType = buildType;
+    myFileStructure = fileStructure;
   }
 
   @NotNull
@@ -85,7 +88,7 @@ public class VariantStub implements Variant {
   @NotNull
   @Override
   public String getBuildType() {
-    throw new UnsupportedOperationException();
+    return myBuildType;
   }
 
   @NotNull
@@ -106,7 +109,7 @@ public class VariantStub implements Variant {
    * @param path path of the generated source directory to add, relative to the root directory of the Android project.
    */
   public void addGeneratedSourceFolder(@NotNull String path) {
-    File directory = fileStructure.createProjectDir(path);
+    File directory = myFileStructure.createProjectDir(path);
     myGeneratedSourceFolders.add(directory);
   }
 
@@ -122,7 +125,7 @@ public class VariantStub implements Variant {
    * @param path path of the generated resource directory to add, relative to the root directory of the Android project.
    */
   public void addGeneratedResourceFolder(@NotNull String path) {
-    File directory = fileStructure.createProjectDir(path);
+    File directory = myFileStructure.createProjectDir(path);
     myGeneratedResourceFolders.add(directory);
   }
 
@@ -138,7 +141,7 @@ public class VariantStub implements Variant {
    * @param path path of the generated test source directory to add, relative to the root directory of the Android project.
    */
   public void addGeneratedTestSourceFolder(@NotNull String path) {
-    File directory = fileStructure.createProjectDir(path);
+    File directory = myFileStructure.createProjectDir(path);
     myGeneratedTestSourceFolders.add(directory);
   }
 
@@ -154,7 +157,7 @@ public class VariantStub implements Variant {
    * @param path path of the generated test resource directory to add, relative to the root directory of the Android project.
    */
   public void addGeneratedTestResourceFolder(@NotNull String path) {
-    File directory = fileStructure.createProjectDir(path);
+    File directory = myFileStructure.createProjectDir(path);
     myGeneratedTestResourceFolders.add(directory);
   }
 

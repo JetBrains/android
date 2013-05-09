@@ -32,6 +32,8 @@ import static org.easymock.EasyMock.*;
  * Tests for {@link AndroidProjectDataService}.
  */
 public class AndroidProjectDataServiceTest extends IdeaTestCase {
+  private static final String DEBUG = "debug";
+
   private AndroidProjectStub myAndroidProject;
   private IdeaAndroidProject myIdeaAndroidProject;
   private ModuleCustomizer myCustomizer1;
@@ -43,9 +45,10 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myAndroidProject = new AndroidProjectStub(myModule.getName());
-    myAndroidProject.addNewVariant("debug");
+    myAndroidProject.addVariant(DEBUG);
+    myAndroidProject.addBuildType(DEBUG);
     String rootDirPath = myAndroidProject.getRootDir().getAbsolutePath();
-    myIdeaAndroidProject = new IdeaAndroidProject(rootDirPath, myAndroidProject, "debug");
+    myIdeaAndroidProject = new IdeaAndroidProject(rootDirPath, myAndroidProject, DEBUG);
     myCustomizer1 = createMock(ModuleCustomizer.class);
     myCustomizer2 = createMock(ModuleCustomizer.class);
     service = new AndroidProjectDataService(myCustomizer1, myCustomizer2);
