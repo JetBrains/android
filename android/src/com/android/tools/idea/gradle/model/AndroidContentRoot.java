@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.model;
 
 import com.android.build.gradle.model.AndroidProject;
+import com.android.build.gradle.model.BuildTypeContainer;
 import com.android.build.gradle.model.ProductFlavorContainer;
 import com.android.build.gradle.model.Variant;
 import com.android.builder.model.SourceProvider;
@@ -58,12 +59,19 @@ public final class AndroidContentRoot {
     storePaths(selectedVariant, storage);
 
     AndroidProject delegate = androidProject.getDelegate();
+
     Map<String, ProductFlavorContainer> productFlavors = delegate.getProductFlavors();
     for (String flavorName : selectedVariant.getProductFlavors()) {
       ProductFlavorContainer flavor = productFlavors.get(flavorName);
       if (flavor != null) {
         storePaths(flavor, storage);
       }
+    }
+
+    String buildTypeName = selectedVariant.getBuildType();
+    BuildTypeContainer buildTypeContainer = delegate.getBuildTypes().get(buildTypeName);
+    if (buildTypeContainer != null) {
+      storePaths(ExternalSystemSourceType.SOURCE, buildTypeContainer.getSourceProvider(), storage);
     }
 
     ProductFlavorContainer defaultConfig = delegate.getDefaultConfig();

@@ -77,6 +77,12 @@ public class AndroidProjectStub implements AndroidProject {
     return myDefaultConfig;
   }
 
+  public BuildTypeContainerStub addBuildType(@NotNull String buildTypeName) {
+    BuildTypeContainerStub buildType = new BuildTypeContainerStub(buildTypeName, myFileStructure);
+    myBuildTypes.put(buildTypeName, buildType);
+    return buildType;
+  }
+
   @NotNull
   @Override
   public Map<String, BuildTypeContainer> getBuildTypes() {
@@ -96,9 +102,15 @@ public class AndroidProjectStub implements AndroidProject {
     return myProductFlavors;
   }
 
+
   @NotNull
-  public VariantStub addNewVariant(String variantName) {
-    VariantStub variant = new VariantStub(variantName, myFileStructure);
+  public VariantStub addVariant(@NotNull String variantName) {
+    return addVariant(variantName, variantName);
+  }
+
+    @NotNull
+  public VariantStub addVariant(@NotNull String variantName, @NotNull String buildTypeName) {
+    VariantStub variant = new VariantStub(variantName, buildTypeName, myFileStructure);
     addVariant(variant);
     return variant;
   }
