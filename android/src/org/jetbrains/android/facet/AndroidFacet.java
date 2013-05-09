@@ -133,6 +133,10 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return myAutogenerationEnabled;
   }
 
+  public boolean isGradleProject() {
+    return !getConfiguration().getState().ALLOW_USER_CONFIGURATION;
+  }
+
   /**
    * Returns the main source set of the project. For non-Gradle projects it returns a {@link SourceProvider} wrapper
    * which provides information about the old project.
@@ -920,9 +924,13 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     @NonNull
     @Override
     public Set<File> getResDirectories() {
-      final VirtualFile dir = AndroidRootUtil.getResourceDir(AndroidFacet.this);
-      assert dir != null;
-      return Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
+      String resRelPath = getProperties().RES_FOLDER_RELATIVE_PATH;
+      final VirtualFile dir =  AndroidRootUtil.getFileByRelativeModulePath(getModule(), resRelPath, true);
+      if (dir != null) {
+        return Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
+      } else {
+        return Collections.emptySet();
+      }
     }
 
     @NonNull
