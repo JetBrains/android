@@ -111,7 +111,7 @@ public class NewProjectWizard extends TemplateWizard {
               .render(moduleRoot, moduleRoot, myWizardState.getActivityTemplateState().myParameters);
           }
           Sdk sdk = getSdk((Integer)myWizardState.get(ATTR_BUILD_API));
-          new NewAndroidProjectImporter().importProject(projectName, projectRoot, sdk);
+          new NewAndroidProjectImporter().importProject(projectName, projectRoot, sdk, null);
         }
         catch (Exception e) {
           LOG.error(e);

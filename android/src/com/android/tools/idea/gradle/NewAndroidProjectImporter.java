@@ -83,12 +83,15 @@ public class NewAndroidProjectImporter {
    * @param projectName    name of the project.
    * @param projectRootDir root directory of the project.
    * @param androidSdk     Android SDK to set.
+   * @param callback       called after the project has been imported.
    * @return the imported IDEA project.
    * @throws IOException            if any file I/O operation fails (e.g. creating the '.idea' directory.)
    * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
    */
-  public Project importProject(@NotNull String projectName, @NotNull File projectRootDir, @NotNull Sdk androidSdk)
-    throws IOException, ConfigurationException {
+  public void importProject(@NotNull String projectName,
+                            @NotNull File projectRootDir,
+                            @NotNull Sdk androidSdk,
+                            @Nullable final Callback callback) throws IOException, ConfigurationException {
     File projectFile = new File(projectRootDir, "build.gradle");
     FileUtilRt.createIfNotExists(projectFile);
     final String projectFilePath = projectFile.getAbsolutePath();
@@ -105,19 +108,23 @@ public class NewAndroidProjectImporter {
     FileUtilRt.createIfNotExists(localProperties);
     FileUtil.writeToFile(localProperties, "sdk.dir=" + androidSdk.getHomePath());
 
-    ExternalProjectRefreshCallback callback = new ExternalProjectRefreshCallback() {
+    myImporter.importProject(newProject, projectFilePath, new ExternalProjectRefreshCallback() {
       @Override
       public void onSuccess(final @Nullable DataNode<ProjectData> projectInfo) {
         ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {
             populateProject(newProject, Preconditions.checkNotNull(projectInfo));
-
             open(newProject, projectFilePath);
+
             if (!ApplicationManager.getApplication().isUnitTestMode()) {
               newProject.save();
+              CompilerManager.getInstance(newProject).make(null);
             }
-            CompilerManager.getInstance(newProject).make(null);
+
+            if (callback != null) {
+              callback.projectImported(newProject);
+            }
           }
         });
       }
@@ -130,10 +137,7 @@ public class NewAndroidProjectImporter {
         String msg = ExternalSystemBundle.message("error.resolve.with.reason", errorMessage);
         throw new IllegalStateException(msg);
       }
-    };
-
-    myImporter.importProject(newProject, projectFilePath, callback);
-    return newProject;
+    });
   }
 
   private static void createIdeaProjectDir(@NotNull File projectRootDir) throws IOException {
@@ -218,5 +222,14 @@ public class NewAndroidProjectImporter {
         throw new ConfigurationException(e.getMessage(), ExternalSystemBundle.message("error.cannot.parse.project", externalSystemName));
       }
     }
+  }
+
+  public interface Callback {
+    /**
+     * Invoked when a Gradle project has been imported. It is not guaranteed that the created IDEA project has been compiled.
+     *
+     * @param project the IDEA project created from the Gradle one.
+     */
+    void projectImported(@NotNull Project project);
   }
 }
