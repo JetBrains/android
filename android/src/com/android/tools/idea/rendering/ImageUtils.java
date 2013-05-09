@@ -391,6 +391,9 @@ public class ImageUtils {
     }
 
     Rectangle cropBounds = getCropBounds(image, filter, initialCrop);
+    if (cropBounds == null) {
+      return null;
+    }
     int x1 = cropBounds.x;
     int y1 = cropBounds.y;
     int width = cropBounds.width;

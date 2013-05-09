@@ -122,7 +122,20 @@ public class ImageUtilsTest extends TestCase {
     assertNull(crop);
   }
 
-  public void testCropNonblank() throws Exception {
+  public void testCropTopLine() throws Exception {
+    BufferedImage image = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB_PRE);
+    Graphics g = image.getGraphics();
+    g.setColor(new Color(0, false));
+    g.fillRect(0, 1, image.getWidth(), image.getHeight() - 1);
+    g.dispose();
+
+    BufferedImage crop = ImageUtils.cropBlank(image, null);
+    assertNotNull(crop);
+    assertEquals(image.getWidth(), crop.getWidth());
+    assertEquals(image.getHeight() - 1, crop.getHeight());
+  }
+
+  public void testCropNonBlank() throws Exception {
     BufferedImage image = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB_PRE);
     Graphics g = image.getGraphics();
     g.setColor(new Color(0, false));
@@ -130,9 +143,7 @@ public class ImageUtilsTest extends TestCase {
     g.dispose();
 
     BufferedImage crop = ImageUtils.cropBlank(image, null);
-    assertNotNull(crop);
-    assertEquals(image.getWidth(), crop.getWidth());
-    assertEquals(image.getHeight(), crop.getHeight());
+    assertNull(crop);
   }
 
   public void testCropSomething() throws Exception {
