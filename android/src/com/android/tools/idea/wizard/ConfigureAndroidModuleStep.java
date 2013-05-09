@@ -21,6 +21,8 @@ import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,7 +43,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   private static final Logger LOG = Logger.getInstance("#" + ConfigureAndroidModuleStep.class.getName());
   private static final String SAMPLE_PACKAGE_PREFIX = "com.example.";
 
-  private JTextField myProjectLocation;
+  private TextFieldWithBrowseButton myProjectLocation;
   private JTextField myAppName;
   private JTextField myPackageName;
   private JComboBox myMinSdk;
@@ -97,6 +99,8 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     register(ATTR_CREATE_ICONS, myCreateCustomLauncherIconCheckBox);
     register(ATTR_LIBRARY, myLibraryCheckBox);
 
+    myProjectLocation.addBrowseFolderListener("Please choose a project location", null, null,
+                                              FileChooserDescriptorFactory.createSingleFolderDescriptor());
     if (myTemplateState.myHidden.contains(ATTR_PROJECT_LOCATION)) {
       myProjectLocation.setVisible(false);
       myProjectLocationLabel.setVisible(false);
@@ -201,7 +205,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
           return computePackageName();
         }
       });
-      updateDerivedValue(ATTR_PROJECT_LOCATION, myProjectLocation, new Callable<String>() {
+      updateDerivedValue(ATTR_PROJECT_LOCATION, myProjectLocation.getTextField(), new Callable<String>() {
         @Override
         public String call() {
           return computeProjectLocation();
@@ -251,20 +255,20 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
     String projectLocation = (String)myTemplateState.get(ATTR_PROJECT_LOCATION);
     if (projectLocation == null || projectLocation.isEmpty()) {
-      setErrorHtml("The project location must be specified");
+      setErrorHtml("Please specify a project location");
       return false;
     }
     File file = new File(projectLocation);
     if (file.exists()) {
-      setErrorHtml("The project location must not already exist");
+      setErrorHtml("There must not already be a project at this location");
       return false;
     }
     if (file.getParent() == null) {
       setErrorHtml("The project location can not be at the filesystem root");
       return false;
     }
-    if (!file.getParentFile().exists() || !file.getParentFile().isDirectory()) {
-      setErrorHtml("The project location's parent directory must already exist");
+    if (file.getParentFile().exists() && !file.getParentFile().isDirectory()) {
+      setErrorHtml("The project location's parent directory must be a directory, not a plain file");
       return false;
     }
 
