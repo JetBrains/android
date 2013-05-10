@@ -229,10 +229,17 @@ public class LocaleManagerTest extends TestCase {
   }
 
   private static void checkEncoding(String s) {
+    String encoded = escape(s);
+    if (!encoded.equals(s)) {
+      System.out.println("Need unicode encoding for '" + s + "'");
+      System.out.println(" Replacement=" + encoded);
+    }
+  }
+
+  private static String escape(String s) {
     for (int i = 0, n = s.length(); i < n; i++) {
       char c = s.charAt(i);
       if (c >= 128) {
-        System.out.println("Need unicode encoding for '" + s + "'");
         StringBuilder sb = new StringBuilder();
         for (int j = 0, m = s.length(); j < m; j++) {
           char d = s.charAt(j);
@@ -245,9 +252,27 @@ public class LocaleManagerTest extends TestCase {
             sb.append(String.format("%04x", (int)d));
           }
         }
-        System.out.println(" Replacement=" + sb);
-        return;
+        return sb.toString();
       }
+    }
+    return s;
+  }
+
+  // Generates source code for region list sorted by region
+  public void sortRegions() {
+    final Map<String, String> map = LocaleManager.getRegionNamesMap();
+    List<String> sorted = new ArrayList<String>(map.keySet());
+    Collections.sort(sorted, new Comparator<String>() {
+      @Override
+      public int compare(String code1, String code2) {
+        String region1 = map.get(code1);
+        String region2 = map.get(code2);
+        return region1.compareTo(region2);
+      }
+    });
+    for (String code : sorted) {
+      String region = map.get(code);
+      System.out.println("    ourRegionNames.put(\"" + code + "\", \"" + escape(region) + "\");");
     }
   }
   */

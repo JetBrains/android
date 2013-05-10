@@ -390,6 +390,8 @@ public class ConfigurationManager implements Disposable {
   @Nullable
   public Device getDefaultDevice() {
     if (myDefaultDevice == null) {
+      // Note that this may not be the device actually used in new layouts; the ConfigMatcher
+      // has a PhoneComparator which sorts devices for a best match
       List<Device> devices = getDevices();
       if (!devices.isEmpty()) {
         Device device = devices.get(0);

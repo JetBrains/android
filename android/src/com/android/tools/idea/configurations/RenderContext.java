@@ -160,6 +160,18 @@ public interface RenderContext {
   void updateLayout();
 
   /**
+   * Sets whether device frames should be shown in the main window. Note that this
+   * is a flag which is and'ed with the user's own preference. If device frames are
+   * turned off, this flag will have no effect. But if they are on, they can be
+   * temporarily turned off with this method. This is used in render preview mode
+   * for example to ensure that the previews and the main rendering both agree on
+   * whether to show device frames.
+   *
+   * @param on whether device frames should be enabled or not
+   */
+  void setDeviceFramesEnabled(boolean on);
+
+  /**
    * Types of uses of the {@link com.android.tools.idea.rendering.RenderService} which can drive some decisions, such as how and whether
    * to report {@code <fragment/>} tags without a known preview layout, and so on.
    */

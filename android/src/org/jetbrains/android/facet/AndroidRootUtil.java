@@ -87,8 +87,7 @@ public class AndroidRootUtil {
 
   @Nullable
   public static VirtualFile getResourceDir(@NotNull AndroidFacet facet) {
-    String resRelPath = facet.getProperties().RES_FOLDER_RELATIVE_PATH;
-    return getFileByRelativeModulePath(facet.getModule(), resRelPath, true);
+    return facet.getPrimaryResourceDir();
   }
 
   @Nullable

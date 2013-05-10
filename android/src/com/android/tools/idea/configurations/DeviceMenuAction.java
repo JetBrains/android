@@ -17,6 +17,7 @@ package com.android.tools.idea.configurations;
 
 import com.android.annotations.Nullable;
 import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.State;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
@@ -24,6 +25,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -213,6 +215,21 @@ public class DeviceMenuAction extends FlatComboAction {
 
     @Override
     protected void updateConfiguration(@NotNull Configuration configuration) {
+      Device prevDevice = configuration.getDevice();
+      State prevState = configuration.getDeviceState();
+      if (prevDevice != null && prevState != null && configuration.getDeviceState() == prevDevice.getDefaultState() &&
+          !myDevice.getDefaultState().getName().equals(prevState.getName())) {
+        VirtualFile file = configuration.getFile();
+        if (file != null) {
+          configuration.setDevice(myDevice, false);
+          if (configuration.isBestMatchFor(file, configuration.getFullConfig())) {
+            return;
+          }
+          configuration.setDevice(prevDevice, false);
+          configuration.setDeviceState(prevState);
+        }
+      }
+
       configuration.setDevice(myDevice, true);
     }
   }

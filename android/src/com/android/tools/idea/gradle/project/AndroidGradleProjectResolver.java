@@ -17,12 +17,14 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.build.gradle.internal.tasks.BaseTask;
 import com.android.build.gradle.model.AndroidProject;
+import com.android.builder.AndroidBuilder;
 import com.android.builder.model.ProductFlavor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.execution.configurations.SimpleJavaParameters;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -46,6 +48,8 @@ import java.util.List;
  * Imports Android-Gradle projects into IDEA.
  */
 public class AndroidGradleProjectResolver implements GradleProjectResolverExtension {
+  private static final Logger LOG = Logger.getInstance(AndroidGradleProjectResolver.class);
+
   @NotNull private final GradleExecutionHelper myHelper;
   @NotNull private final ProjectResolverFunctionFactory myFunctionFactory;
 
@@ -99,7 +103,8 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
    */
   @Override
   public void enhanceParameters(@NotNull SimpleJavaParameters parameters) {
-    List<String> jarPaths = getJarPathsOf(getClass(), AndroidProject.class, BaseTask.class, ProductFlavor.class);
+    List<String> jarPaths = getJarPathsOf(getClass(), AndroidBuilder.class, AndroidProject.class, BaseTask.class, ProductFlavor.class);
+    LOG.info("Added to RMI/Gradle process classpath: " + jarPaths);
     for (String jarPath : jarPaths) {
       parameters.getClassPath().add(jarPath);
     }

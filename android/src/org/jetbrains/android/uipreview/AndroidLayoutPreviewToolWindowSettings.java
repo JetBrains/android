@@ -67,6 +67,8 @@ public class AndroidLayoutPreviewToolWindowSettings implements PersistentStateCo
   public static class GlobalState {
     private boolean myVisible = true;
     private boolean myHideForNonLayoutFiles = true;
+    private boolean myShowDeviceFrames = true;
+    private boolean myShowEffects = true;
 
     public boolean isVisible() {
       return myVisible;
@@ -82,6 +84,22 @@ public class AndroidLayoutPreviewToolWindowSettings implements PersistentStateCo
 
     public void setHideForNonLayoutFiles(boolean hideForNonLayoutFiles) {
       myHideForNonLayoutFiles = hideForNonLayoutFiles;
+    }
+
+    public boolean isShowDeviceFrames() {
+      return myShowDeviceFrames;
+    }
+
+    public void setShowDeviceFrames(boolean showDeviceFrames) {
+      myShowDeviceFrames = showDeviceFrames;
+    }
+
+    public boolean isShowEffects() {
+      return myShowEffects;
+    }
+
+    public void setShowEffects(boolean showEffects) {
+      myShowEffects = showEffects;
     }
   }
 }

@@ -25,7 +25,10 @@ import com.intellij.openapi.editor.ex.EditorSettingsExternalizable;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.keymap.Keymap;
+import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.keymap.ex.KeymapManagerEx;
+import com.intellij.openapi.keymap.impl.KeymapManagerImpl;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.messages.MessageBus;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.Nullable;
@@ -57,7 +60,31 @@ public class AndroidInitialConfigurator {
       CodeInsightSettings.getInstance().AUTO_POPUP_JAVADOC_INFO = true;
       UISettings.getInstance().SCROLL_TAB_LAYOUT_IN_EDITOR = true;
       EditorSettingsExternalizable.getInstance().setVirtualSpace(false);
+
+      // For Macs, use 10.5+ keymap as the default
+      if (SystemInfo.isMac) {
+        setDefaultMacKeymap();
+      }
     }
+  }
+
+  private static void setDefaultMacKeymap() {
+    KeymapManagerImpl instance = (KeymapManagerImpl)KeymapManager.getInstance();
+    Keymap mac105Keymap = getMac105Keymap();
+    if (mac105Keymap != null) {
+      instance.setActiveKeymap(mac105Keymap);
+    }
+  }
+
+  @Nullable
+  private static Keymap getMac105Keymap() {
+    for (Keymap keymap: KeymapManagerEx.getInstanceEx().getAllKeymaps()) {
+      if (keymap.getName().contains("10.5")) {
+        return keymap;
+      }
+    }
+
+    return null;
   }
 
   private static void setActivateAndroidToolWindowShortcut() {

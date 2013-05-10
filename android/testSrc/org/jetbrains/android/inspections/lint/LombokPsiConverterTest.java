@@ -410,6 +410,19 @@ public class LombokPsiConverterTest extends AndroidTestCase {
     check(file, testClass);
   }
 
+  public void testEmptyR() {
+    String testClass =
+      "/*___Generated_by_IDEA___*/\n" +
+      "\n" +
+      "package com.g.android.u;\n" +
+      "\n" +
+      "/* This stub is only used by the IDE. It is NOT the R class actually packed into the APK */\n" +
+      "public final class R {\n" +
+      "}";
+    PsiFile file = myFixture.addFileToProject("src/com/g/android/u/R.java", testClass);
+    check(file, testClass);
+  }
+
   private void check(VirtualFile file) {
     assertNotNull(file);
     assertTrue(file.exists());

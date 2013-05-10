@@ -17,6 +17,9 @@ package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.State;
+import com.android.tools.idea.configurations.Configuration;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
@@ -30,10 +33,10 @@ public class RenderResult {
   @Nullable private final List<ViewInfo> myRootViews;
   @Nullable private final ScalableImage myImage;
   @Nullable private RenderedViewHierarchy myHierarchy;
-  @NotNull private final RenderService myRenderService;
+  @Nullable private final RenderService myRenderService;
   @Nullable private final RenderSession mySession; // TEMPORARY
 
-  public RenderResult(@Nullable RenderService renderService, // TEMPORARY NULLABLE, FOR RENDER UTIL MIGRATION
+  public RenderResult(@Nullable RenderService renderService,
                       @Nullable RenderSession session,
                       @NotNull PsiFile file,
                       @NotNull RenderLogger logger) {
@@ -41,9 +44,10 @@ public class RenderResult {
     mySession = session;
     myFile = file;
     myLogger = logger;
-    if (session != null && session.getResult().isSuccess()) {
+    if (session != null && session.getResult().isSuccess() && renderService != null) {
       myRootViews = session.getRootViews();
-      myImage = new ScalableImage(session);
+      Configuration configuration = renderService.getConfiguration();
+      myImage = new ScalableImage(session, configuration);
     } else {
       myRootViews = null;
       myImage = null;
@@ -84,7 +88,7 @@ public class RenderResult {
     return myFile;
   }
 
-  @NotNull
+  @Nullable
   public RenderService getRenderService() {
     return myRenderService;
   }

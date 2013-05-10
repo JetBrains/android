@@ -15,22 +15,16 @@
  */
 package com.android.tools.idea.gradle.customizer;
 
-import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.gradle.util.Facets;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
-import com.intellij.openapi.util.io.FileUtilRt;
+import com.android.tools.idea.gradle.util.Facets;
 import com.intellij.testFramework.IdeaTestCase;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Set;
 
 /**
  * Tests for {@link AndroidFacetModuleCustomizer}.
@@ -71,33 +65,5 @@ public class AndroidFacetModuleCustomizerTest extends IdeaTestCase {
 
     JpsAndroidModuleProperties facetState = facet.getConfiguration().getState();
     assertFalse(facetState.ALLOW_USER_CONFIGURATION);
-    assertEquals(myAndroidProject.isLibrary(), facetState.LIBRARY_PROJECT);
-    assertEquals(selectedVariantName, facetState.SELECTED_BUILD_VARIANT);
-
-    SourceProvider sourceProvider = myAndroidProject.getDefaultConfig().getSourceProvider();
-
-    File manifestFile = sourceProvider.getManifestFile();
-    assertEquals(getRelativePath(manifestFile), facetState.MANIFEST_FILE_RELATIVE_PATH);
-
-    Set<File> assetsDirs = sourceProvider.getAssetsDirectories();
-    assertEquals(getRelativePath(assetsDirs), facetState.ASSETS_FOLDER_RELATIVE_PATH);
-
-    Set<File> resDirs = sourceProvider.getResDirectories();
-    assertEquals(getRelativePath(resDirs), facetState.RES_FOLDER_RELATIVE_PATH);
-  }
-
-  @NotNull
-  private String getRelativePath(@NotNull Collection<File> dirs) {
-    File first = ContainerUtil.getFirstItem(dirs);
-    assertNotNull(first);
-    return getRelativePath(first);
-  }
-
-  @NotNull
-  private String getRelativePath(@NotNull File file) {
-    String basePath = myProject.getBasePath();
-    String relativePath = FileUtilRt.getRelativePath(basePath, file.getAbsolutePath(), File.separatorChar);
-    assertNotNull(relativePath);
-    return "/" + FileUtilRt.toSystemIndependentName(relativePath);
   }
 }

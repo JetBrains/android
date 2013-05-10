@@ -172,8 +172,13 @@ public class LocaleMenuAction extends FlatComboAction {
     Configuration configuration = myRenderContext.getConfiguration();
     boolean visible = configuration != null;
     if (visible) {
-      Locale locale = configuration.isLocaleSpecificLayout()
-                      ? configuration.getLocale() : configuration.getConfigurationManager().getLocale();
+      // TEMPORARY WORKAROUND:
+      // We don't properly sync the project locale to layouts yet, so in the mean time
+      // show the actual locale being used rather than the intended locale, so as not
+      // to be totally confusing:
+      //Locale locale = configuration.isLocaleSpecificLayout()
+      //                ? configuration.getLocale() : configuration.getConfigurationManager().getLocale();
+      Locale locale = configuration.getLocale();
       if (locale == Locale.ANY) {
         presentation.setIcon(AndroidIcons.Globe);
       } else {

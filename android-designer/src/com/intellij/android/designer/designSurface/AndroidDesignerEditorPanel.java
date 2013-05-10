@@ -74,7 +74,6 @@ import org.jetbrains.android.refactoring.AndroidInlineStyleReferenceAction;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.uipreview.AndroidLayoutPreviewPanel;
 import org.jetbrains.android.uipreview.RenderingException;
-import org.jetbrains.android.util.AndroidSdkNotConfiguredException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -438,10 +437,6 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       public void run() {
         try {
           final Module module = getModule();
-          AndroidPlatform platform = AndroidPlatform.getInstance(module);
-          if (platform == null) {
-            throw new AndroidSdkNotConfiguredException();
-          }
           AndroidFacet facet = AndroidFacet.getInstance(module);
           if (facet == null) {
             throw new RenderingException();
@@ -1317,6 +1312,12 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     }
     component.repaint();
   }
+
+  @Override
+  public void setDeviceFramesEnabled(boolean on) {
+    // TODO
+  }
+
 
   @Override
   @NotNull
