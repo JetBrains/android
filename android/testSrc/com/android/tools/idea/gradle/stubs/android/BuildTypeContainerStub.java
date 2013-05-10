@@ -16,21 +16,19 @@
 package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.build.gradle.model.BuildTypeContainer;
-import com.android.build.gradle.model.Dependencies;
 import com.android.builder.model.BuildType;
-import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import org.jetbrains.annotations.NotNull;
 
 public class BuildTypeContainerStub implements BuildTypeContainer {
   @NotNull private final String myName;
-  @NotNull private final FileStructure myFileStructure;
   @NotNull private final SourceProviderStub mySourceProvider;
+  @NotNull private final DependenciesStub myDependencies;
 
   BuildTypeContainerStub(@NotNull String name, @NotNull FileStructure fileStructure) {
     myName = name;
-    myFileStructure = fileStructure;
     mySourceProvider = new SourceProviderStub(fileStructure);
+    myDependencies = new DependenciesStub();
     setUpPaths();
   }
   
@@ -43,7 +41,6 @@ public class BuildTypeContainerStub implements BuildTypeContainer {
     mySourceProvider.addResDirectory("src/" + myName + "/rs");
     mySourceProvider.addResourcesDirectory("src/" + myName + "/resources");
     mySourceProvider.setManifestFile("src/" + myName + "/manifest.xml");
-
   }
 
   @NotNull
@@ -59,13 +56,13 @@ public class BuildTypeContainerStub implements BuildTypeContainer {
 
   @Override
   @NotNull
-  public SourceProvider getSourceProvider() {
+  public SourceProviderStub getSourceProvider() {
     return mySourceProvider;
   }
 
   @Override
   @NotNull
-  public Dependencies getDependency() {
-    throw new UnsupportedOperationException();
+  public DependenciesStub getDependency() {
+    return myDependencies;
   }
 }
