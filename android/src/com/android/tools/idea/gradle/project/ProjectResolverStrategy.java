@@ -120,7 +120,7 @@ class ProjectResolverStrategy {
 
   @NotNull
   private DataNode<ProjectData> createProjectInfo(@NotNull AndroidProject androidProject, @NotNull String projectPath) {
-    String projectDirPath = ExternalSystemApiUtil.toCanonicalPath(PathUtil.getParentPath(projectPath));
+    String projectDirPath = PathUtil.getParentPath(projectPath);
     String name = androidProject.getName();
 
     DataNode<ProjectData> projectInfo = createProjectInfo(projectDirPath, projectPath, name);
