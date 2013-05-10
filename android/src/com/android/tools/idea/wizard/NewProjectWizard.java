@@ -38,6 +38,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.io.File;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
@@ -61,6 +62,7 @@ public class NewProjectWizard extends TemplateWizard {
 
   public NewProjectWizard() {
     super("New Project", (Project)null);
+    getWindow().setMinimumSize(new Dimension(800,640));
     init();
   }
 
