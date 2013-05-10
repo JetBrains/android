@@ -87,7 +87,6 @@ public class NewAndroidProjectImporter {
    * @param projectRootDir root directory of the project.
    * @param androidSdk     Android SDK to set.
    * @param callback       called after the project has been imported.
-   * @return the imported IDEA project.
    * @throws IOException            if any file I/O operation fails (e.g. creating the '.idea' directory.)
    * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
    */
