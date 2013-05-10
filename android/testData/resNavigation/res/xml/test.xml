@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ArrayList
+    xmlns="http://schemas.android.com?import=java.util.*;import=com.android.navigation.*">
+  <TestClassA
+      name="I'm A1"
+      value="1"/>
+  <TestClassA
+      name="I'm A2"
+      value="2">
+    <TestClassB
+        outer.property = "child"
+        name="I'm B1"
+        value="3"/>
+  </TestClassA>
+</ArrayList>

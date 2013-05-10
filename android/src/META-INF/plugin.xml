@@ -158,6 +158,9 @@
     <lang.commenter language="AIDL" implementationClass="com.intellij.lang.java.JavaCommenter"/>
     -->
     <fileEditorProvider implementation="com.android.tools.idea.editors.NinePatchEditorProvider" />
+    <!--
+    <fileEditorProvider implementation="com.android.tools.idea.editors.navigation.NavigationModelEditorProvider" />
+    -->
 
     <configurationType implementation="org.jetbrains.android.run.AndroidRunConfigurationType"/>
     <configurationType implementation="org.jetbrains.android.run.testing.AndroidTestRunConfigurationType"/>
