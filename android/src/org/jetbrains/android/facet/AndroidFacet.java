@@ -890,6 +890,15 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return myIdeaAndroidProject;
   }
 
+  public void syncSelectedVariant() {
+    if (myIdeaAndroidProject != null) {
+      Variant variant = myIdeaAndroidProject.getSelectedVariant();
+      JpsAndroidModuleProperties state = getConfiguration().getState();
+      state.ASSEMBLE_TASK_NAME = variant.getAssembleTaskName();
+      state.SELECTED_BUILD_VARIANT = variant.getName();
+    }
+  }
+
   // Compatibility bridge for old (non-Gradle) projects
   private class LegacySourceProvider implements SourceProvider {
     @NonNull
