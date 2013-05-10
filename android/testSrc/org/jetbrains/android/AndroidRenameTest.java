@@ -93,6 +93,7 @@ public class AndroidRenameTest extends AndroidTestCase {
   }
 
   public void testMoveApplicationClass() throws Throwable {
+    deleteManifest();
     myFixture.copyFileToProject(BASE_PATH + "MyApplication.java", "src/p1/p2/MyApplication.java");
     VirtualFile f = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + ".xml", "AndroidManifest.xml");
     myFixture.configureFromExistingVirtualFile(f);

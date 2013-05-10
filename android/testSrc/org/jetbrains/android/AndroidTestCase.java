@@ -37,6 +37,7 @@ import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.*;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
@@ -163,12 +164,14 @@ public abstract class AndroidTestCase extends UsefulTestCase {
     myFixture.setTestDataPath(getTestDataPath());
     myModule = moduleFixtureBuilder.getFixture().getModule();
 
+    // Must be done before addAndroidFacet, and must always be done, even if !myCreateManifest.
+    // We will delete it at the end of setUp; this is needed when unit tests want to rewrite
+    // the manifest on their own.
+    createManifest();
+
     myFacet = addAndroidFacet(myModule, getTestSdkPath(), getPlatformDir());
     myFixture.copyDirectoryToProject(getResDir(), "res");
 
-    if (myCreateManifest) {
-      createManifest();
-    }
     myAdditionalModules = new ArrayList<Module>();
 
     for (MyAdditionalModuleData data : modules) {
@@ -181,6 +184,10 @@ public abstract class AndroidTestCase extends UsefulTestCase {
       myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML,
                                   rootPath + '/' + SdkConstants.FN_ANDROID_MANIFEST_XML);
       ModuleRootModificationUtil.addDependency(myModule, additionalModule);
+    }
+
+    if (!myCreateManifest) {
+      deleteManifest();
     }
   }
 
@@ -223,6 +230,24 @@ public abstract class AndroidTestCase extends UsefulTestCase {
 
   protected void createProjectProperties() throws IOException {
     myFixture.copyFileToProject(SdkConstants.FN_PROJECT_PROPERTIES, SdkConstants.FN_PROJECT_PROPERTIES);
+  }
+
+  protected void deleteManifest() throws IOException {
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        String manifestRelativePath = myFacet.getProperties().MANIFEST_FILE_RELATIVE_PATH;
+        VirtualFile manifest = AndroidRootUtil.getFileByRelativeModulePath(myModule, manifestRelativePath, true);
+        if (manifest != null) {
+          try {
+            manifest.delete(this);
+          }
+          catch (IOException e) {
+            fail("Could not delete default manifest");
+          }
+        }
+      }
+    });
   }
 
   @Override

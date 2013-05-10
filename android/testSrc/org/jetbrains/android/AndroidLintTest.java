@@ -1,5 +1,6 @@
 package org.jetbrains.android;
 
+import com.android.SdkConstants;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.InspectionManager;
@@ -28,10 +29,6 @@ import java.io.IOException;
 public class AndroidLintTest extends AndroidTestCase {
   @NonNls private static final String BASE_PATH = "/lint/";
   @NonNls private static final String BASE_PATH_GLOBAL = BASE_PATH + "global/";
-
-  public AndroidLintTest() {
-    super(false);
-  }
 
   @Override
   public void setUp() throws Exception {
@@ -134,6 +131,7 @@ public class AndroidLintTest extends AndroidTestCase {
   }
 
   public void testExportedService() throws Exception {
+    deleteManifest();
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintExportedServiceInspection(),
                   AndroidBundle.message("android.lint.fix.add.permission.attribute"),
                   "AndroidManifest.xml", "xml");
@@ -175,11 +173,13 @@ public class AndroidLintTest extends AndroidTestCase {
   }
 
   public void testManifestOrder() throws Exception {
+    deleteManifest();
     myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "AndroidManifest.xml");
     doGlobalInspectionTest(new AndroidLintInspectionToolProvider.AndroidLintManifestOrderInspection());
   }
 
   public void testButtonsOrder() throws Exception {
+    deleteManifest();
     myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "AndroidManifest.xml");
     myFixture.copyFileToProject(getGlobalTestDir() + "/strings.xml", "res/values/strings.xml");
     myFixture.copyFileToProject(getGlobalTestDir() + "/layout.xml", "res/layout/layout.xml");
@@ -187,14 +187,12 @@ public class AndroidLintTest extends AndroidTestCase {
   }
 
   public void testViewType() throws Exception {
-    createManifest();
     myFixture.copyFileToProject(getGlobalTestDir() + "/MyActivity.java", "src/p1/p2/MyActivity.java");
     myFixture.copyFileToProject(getGlobalTestDir() + "/layout.xml", "res/layout/layout.xml");
     doGlobalInspectionTest(new AndroidLintInspectionToolProvider.AndroidLintWrongViewCastInspection());
   }
 
   public void testDuplicateIcons() throws Exception {
-    createManifest();
     myFixture.copyFileToProject(getGlobalTestDir() + "/dup1.png", "res/drawable/dup1.png");
     myFixture.copyFileToProject(getGlobalTestDir() + "/dup2.png", "res/drawable/dup2.png");
     myFixture.copyFileToProject(getGlobalTestDir() + "/other.png", "res/drawable/other.png");
@@ -326,10 +324,6 @@ public class AndroidLintTest extends AndroidTestCase {
 
   private void doTestHighlighting(@NotNull AndroidLintInspectionBase inspection, @NotNull String copyTo, @NotNull String extension)
     throws IOException {
-    if (!"AndroidManifest.xml".equals(copyTo)) {
-      createManifest();
-    }
-
     myFixture.enableInspections(new GlobalInspectionToolWrapper(inspection));
     final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + "." + extension, copyTo);
     myFixture.configureFromExistingVirtualFile(file);
