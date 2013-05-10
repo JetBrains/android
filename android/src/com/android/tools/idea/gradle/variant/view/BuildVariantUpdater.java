@@ -64,7 +64,7 @@ class BuildVariantUpdater {
       return;
     }
     androidProject.setSelectedVariantName(buildVariantName);
-    facet.getConfiguration().getState().SELECTED_BUILD_VARIANT = buildVariantName;
+    facet.syncSelectedVariant();
 
     for (ModuleCustomizer customizer : myModuleCustomizers) {
       customizer.customizeModule(moduleToUpdate, project, androidProject);

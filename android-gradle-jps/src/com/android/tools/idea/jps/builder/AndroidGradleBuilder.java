@@ -34,8 +34,11 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.ModuleChunk;
+import org.jetbrains.jps.android.AndroidJpsUtil;
 import org.jetbrains.jps.android.AndroidSourceGeneratingBuilder;
 import org.jetbrains.jps.android.model.JpsAndroidSdkProperties;
+import org.jetbrains.jps.android.model.impl.JpsAndroidModuleExtensionImpl;
+import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import org.jetbrains.jps.builders.DirtyFilesHolder;
 import org.jetbrains.jps.builders.java.JavaSourceRootDescriptor;
 import org.jetbrains.jps.incremental.*;
@@ -46,6 +49,7 @@ import org.jetbrains.jps.incremental.messages.ProgressMessage;
 import org.jetbrains.jps.model.JpsProject;
 import org.jetbrains.jps.model.JpsSimpleElement;
 import org.jetbrains.jps.model.library.sdk.JpsSdk;
+import org.jetbrains.jps.model.module.JpsModule;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -64,6 +68,7 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
   @NonNls private static final String ANDROID_HOME_JVM_ARG_FORMAT_UNIX = "-Dandroid.home=%1$s";
 
   @NonNls private static final String BUILDER_NAME = "Android Gradle Builder";
+  @NonNls private static final String DEFAULT_ASSEMBLE_TASKNAME = "assemble";
 
   protected AndroidGradleBuilder() {
     super(BuilderCategory.TRANSLATOR);
@@ -106,7 +111,7 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
     String androidHome = getAndroidHome(context, chunk);
     String format = "About to build project '%1$s' located at %2$s";
     LOG.info(String.format(format, getProjectName(context), projectDir.getAbsolutePath()));
-    return doBuild(context, projectDir, gradleHomeDir, androidHome);
+    return doBuild(context, chunk, projectDir, gradleHomeDir, androidHome);
   }
 
   @NotNull
@@ -179,6 +184,7 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
 
   @NotNull
   private static ExitCode doBuild(@NotNull CompileContext context,
+                                  @NotNull ModuleChunk chunk,
                                   @NotNull File projectDir,
                                   @Nullable File gradleHomeDir,
                                   @Nullable String androidHome) throws ProjectBuildException {
@@ -192,7 +198,9 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
     ByteArrayOutputStream stderr = new ByteArrayOutputStream();
     try {
       BuildLauncher launcher = connection.newBuild();
-      launcher.forTasks("build");
+      String buildTasks = getBuildTasks(chunk);
+      LOG.info("Gradle build using tasks: " + buildTasks);
+      launcher.forTasks(buildTasks);
       if (!Strings.isNullOrEmpty(androidHome)) {
         String androidSdkArg = getAndroidHomeJvmArg(androidHome);
         launcher.setJvmArguments(androidSdkArg);
@@ -212,6 +220,45 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
       connection.close();
     }
     return ExitCode.OK;
+  }
+
+  @NotNull
+  private static String getBuildTasks(@NotNull ModuleChunk chunk) {
+    StringBuilder tasks = new StringBuilder();
+    for (JpsModule module : chunk.getModules()) {
+      String buildTask = getBuildTask(module);
+      if (buildTask == null) {
+        continue;
+      }
+      if (tasks.length() > 0) {
+        tasks.append(" ");
+      }
+      tasks.append(buildTask);
+    }
+    String buildTasks = tasks.toString();
+    if (Strings.isNullOrEmpty(buildTasks)) {
+      buildTasks = "build";
+    }
+    return buildTasks;
+  }
+
+  @Nullable
+  private static String getBuildTask(@NotNull JpsModule module) {
+    JpsAndroidGradleModuleExtension androidGradleFacet = AndroidGradleJps.getExtension(module);
+    if (androidGradleFacet == null) {
+      return null;
+    }
+    String moduleName = module.getName();
+    String assembleTaskName = null;
+    JpsAndroidModuleExtensionImpl androidFacet = (JpsAndroidModuleExtensionImpl)AndroidJpsUtil.getExtension(module);
+    if (androidFacet != null) {
+      JpsAndroidModuleProperties properties = androidFacet.getProperties();
+      assembleTaskName = properties.ASSEMBLE_TASK_NAME;
+    }
+    if (Strings.isNullOrEmpty(assembleTaskName)) {
+      assembleTaskName = DEFAULT_ASSEMBLE_TASKNAME;
+    }
+    return moduleName + ":" + assembleTaskName;
   }
 
   @NotNull
