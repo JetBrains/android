@@ -32,10 +32,6 @@ import static com.android.resources.ScreenSize.*;
 
 @SuppressWarnings("javadoc")
 public class ManifestInfoTest extends AndroidTestCase {
-  public ManifestInfoTest() {
-    super(true);
-  }
-
   public void testGetActivityThemes1() throws Exception {
     ManifestInfo info = getManifestInfo("<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
                                         "    package='com.android.unittest'>\n" +
