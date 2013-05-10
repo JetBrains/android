@@ -72,7 +72,7 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
                                            @NotNull String projectPath,
                                            @Nullable GradleExecutionSettings settings,
                                            @NotNull ProjectConnection connection) {
-    String projectDirPath = ExternalSystemApiUtil.toCanonicalPath(PathUtil.getParentPath(projectPath));
+    String projectDirPath = PathUtil.getParentPath(projectPath);
 
     ModelBuilder<IdeaProject> modelBuilder = myHelper.getModelBuilder(IdeaProject.class, id, settings, connection);
     IdeaProject ideaProject = modelBuilder.get();
