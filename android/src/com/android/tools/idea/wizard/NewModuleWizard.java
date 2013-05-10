@@ -22,6 +22,7 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.io.File;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
@@ -47,6 +48,7 @@ public class NewModuleWizard extends TemplateWizard {
   public NewModuleWizard(@Nullable Project project) {
     super("New Module", project);
     myProject = project;
+    getWindow().setMinimumSize(new Dimension(800,640));
     init();
   }
 
