@@ -20,10 +20,6 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
 
   private CodeStyleSettings mySettings;
 
-  public AndroidXmlFormatterTest() {
-    super(false);
-  }
-
   public void testLayout1() throws Exception {
     new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     doTestLayout("layout1.xml");
