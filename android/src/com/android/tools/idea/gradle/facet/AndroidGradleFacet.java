@@ -102,8 +102,9 @@ public class AndroidGradleFacet extends Facet<AndroidGradleFacetConfiguration> {
     GradleSettings settings = GradleSettings.getInstance(project);
     GradleProjectSettings projectSettings = ContainerUtil.getFirstItem(settings.getLinkedProjectsSettings());
     if (projectSettings == null) {
-      String msg = String.format("Unable to find Gradle settings for project '%1$s'", project.getName());
-      throw new IllegalStateException(msg);
+      // New projects that use the Gradle wrapper do not have Gradle settings. The Gradle tooling API is able to build the project without
+      // problems.
+      return null;
     }
     if (projectSettings.isPreferLocalInstallationToWrapper()) {
       String gradleHome = projectSettings.getGradleHome();

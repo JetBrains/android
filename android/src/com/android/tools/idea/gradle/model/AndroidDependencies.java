@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.gradle.model;
 
-import com.android.build.gradle.model.AndroidProject;
-import com.android.build.gradle.model.Dependencies;
-import com.android.build.gradle.model.ProductFlavorContainer;
-import com.android.build.gradle.model.Variant;
+import com.android.build.gradle.model.*;
 import com.android.builder.model.AndroidLibrary;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.openapi.roots.DependencyScope;
@@ -51,6 +48,12 @@ public final class AndroidDependencies {
 
     ProductFlavorContainer defaultConfig = delegate.getDefaultConfig();
     populateDependencies(defaultConfig, dependencyFactory);
+
+    String buildTypeName = selectedVariant.getBuildType();
+    BuildTypeContainer buildType = delegate.getBuildTypes().get(buildTypeName);
+    if (buildType != null) {
+      populateDependencies(DependencyScope.COMPILE, buildType.getDependency(), dependencyFactory);
+    }
   }
 
   private static void populateDependencies(@NotNull ProductFlavorContainer productFlavor, @NotNull DependencyFactory dependencyFactory) {

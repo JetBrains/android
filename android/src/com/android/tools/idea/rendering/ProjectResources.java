@@ -24,6 +24,7 @@ import com.android.io.IAbstractFolder;
 import com.android.io.IAbstractResource;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.util.Pair;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
@@ -434,7 +435,13 @@ public class ProjectResources extends ResourceRepository implements Disposable {
   @NotNull
   private static ProjectResources loadProjectResources(@NotNull AndroidFacet facet,
                                                        @NotNull List<ProjectResources> libResources) {
-    final VirtualFile resourceDir = facet.getLocalResourceManager().getResourceDir();
+    final VirtualFile resourceDir;
+    if (facet.getIdeaAndroidProject() != null) {
+      // Temporary hack
+      resourceDir = facet.getPrimaryResourceDir();
+    } else {
+      resourceDir = facet.getLocalResourceManager().getResourceDir();
+    }
     if (resourceDir != null) {
       final IAbstractFolder resFolder = new BufferingFolderWrapper(new File(FileUtil.toSystemDependentName(resourceDir.getPath())));
       final ProjectResources

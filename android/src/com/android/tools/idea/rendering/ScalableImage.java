@@ -16,6 +16,12 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.RenderSession;
+import com.android.resources.ScreenOrientation;
+import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.State;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
+import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,19 +37,20 @@ import static java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR;
 public class ScalableImage {
   @NotNull private final BufferedImage myImage;
   @Nullable private BufferedImage myScaledImage;
+  @NotNull private Configuration myConfiguration;
+  @Nullable private Rectangle myImageBounds;
   private final boolean myAlphaChannelImage;
   private double myScale = 1;
   private int myMaxWidth;
   private int myMaxHeight;
   private boolean myUseLargeShadows = true;
+  private boolean myDeviceFrameEnabled = true;
+  /** Whether current thumbnail actually has a device frame */
+  private boolean myThumbnailHasFrame;
 
-  public ScalableImage(@NotNull BufferedImage image, boolean alphaChannelImage) {
-    myImage = image;
-    myAlphaChannelImage = alphaChannelImage;
-  }
-
-  public ScalableImage(RenderSession session) {
+  public ScalableImage(RenderSession session, @NotNull Configuration configuration) {
     myImage = session.getImage();
+    myConfiguration = configuration;
     myAlphaChannelImage = session.isAlphaChannelImage();
   }
 
@@ -90,6 +97,17 @@ public class ScalableImage {
   }
 
   /**
+   * Returns the bounds of the image itself, if it is surrounded by a device frame.
+   * Null otherwise.
+   *
+   * @return the image bounds, or null
+   */
+  @Nullable
+  public Rectangle getImageBounds() {
+    return myImageBounds;
+  }
+
+  /**
    * Zooms the view to fit.
    *
    * @param availableWidth the available view width
@@ -102,11 +120,10 @@ public class ScalableImage {
   public void zoomToFit(int availableWidth, int availableHeight, boolean allowZoomIn, int horizontalMargin, int verticalMargin) {
     int sceneWidth = myImage.getWidth();
     int sceneHeight = myImage.getHeight();
-    if (getShowDropShadow()) {
-      int shadowSize = myUseLargeShadows ? SHADOW_SIZE : SMALL_SHADOW_SIZE;
-      availableWidth -= shadowSize;
-      availableHeight -= shadowSize;
-    }
+
+    int shadowSize = getShowDropShadow() ? myUseLargeShadows ? SHADOW_SIZE : SMALL_SHADOW_SIZE : 0;
+    availableWidth -= shadowSize;
+    availableHeight -= shadowSize;
 
     if (sceneWidth > 0 && sceneHeight > 0) {
       // Reduce the margins if necessary
@@ -181,12 +198,48 @@ public class ScalableImage {
 
   /** Returns the required width to show the scaled image, including drop shadows if applicable */
   public int getRequiredWidth() {
-    return getScaledWidth() + (getShowDropShadow() ? myUseLargeShadows ? SHADOW_SIZE : SMALL_SHADOW_SIZE : 0);
+    int width = (int)(myScale * myImage.getWidth());
+    if (myThumbnailHasFrame) {
+      DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
+      Device device = myConfiguration.getDevice();
+      if (device != null) {
+          State deviceState = myConfiguration.getDeviceState();
+          if (deviceState != null) {
+            double frameFactor = framePainter.getFrameWidthOverhead(device, deviceState.getOrientation());
+            width *= frameFactor;
+            return width;
+          }
+      }
+    }
+
+    if (getShowDropShadow()) {
+      width += myUseLargeShadows ? SHADOW_SIZE : SMALL_SHADOW_SIZE;
+    }
+
+    return width;
   }
 
   /** Returns the required height to show the scaled image, including drop shadows if applicable */
   public int getRequiredHeight() {
-    return getScaledHeight() + (getShowDropShadow() ? myUseLargeShadows ? SHADOW_SIZE : SMALL_SHADOW_SIZE : 0);
+    int height = (int)(myScale * myImage.getHeight());
+    if (myThumbnailHasFrame) {
+      DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
+      Device device = myConfiguration.getDevice();
+      if (device != null) {
+        State deviceState = myConfiguration.getDeviceState();
+        if (deviceState != null) {
+          double frameFactor = framePainter.getFrameHeightOverhead(device, deviceState.getOrientation());
+          height *= frameFactor;
+          return height;
+        }
+      }
+    }
+
+    if (getShowDropShadow()) {
+      height += myUseLargeShadows ? SHADOW_SIZE : SMALL_SHADOW_SIZE;
+    }
+
+    return height;
   }
 
   /** Returns the required size to show the scaled image, including drop shadows if applicable */
@@ -194,9 +247,36 @@ public class ScalableImage {
     return new Dimension(getRequiredWidth(), getRequiredHeight());
   }
 
-  public void paint(@NotNull Graphics g) {
+  public void paint(@NotNull Graphics g, int x, int y) {
     if (myScaledImage == null) {
       // Special cases myScale=1 to be fast
+      myImageBounds = null;
+      myThumbnailHasFrame = false;
+
+      if (myScale <= 1 && myDeviceFrameEnabled) {
+        DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
+        Device device = myConfiguration.getDevice();
+        if (device != null) {
+          AndroidLayoutPreviewToolWindowSettings.GlobalState settings =
+            AndroidLayoutPreviewToolWindowSettings.getInstance(myConfiguration.getModule().getProject()).getGlobalState();
+          if (settings.isShowDeviceFrames()) {
+            boolean showEffects = settings.isShowEffects();
+            State deviceState = myConfiguration.getDeviceState();
+            if (deviceState != null) {
+              double scale = myScale;
+              ScreenOrientation orientation = deviceState.getOrientation();
+              double frameFactor = framePainter.getFrameMaxOverhead(device, orientation);
+              scale /= frameFactor;
+              myImageBounds = new Rectangle();
+              myScaledImage = framePainter.createFrame(myImage, device, orientation, showEffects, scale, myImageBounds);
+              myThumbnailHasFrame = true;
+              paint(g, x, y);
+              return;
+            }
+          }
+        }
+      }
+
       if (myScale == 1) {
         // Scaling to 100% is easy!
         myScaledImage = myImage;
@@ -205,7 +285,7 @@ public class ScalableImage {
           // Just need to draw drop shadows
           myScaledImage = ShadowPainter.createRectangularDropShadow(myImage);
         }
-        g.drawImage(myScaledImage, 0, 0, null);
+        g.drawImage(myScaledImage, x, y, null);
       } else if (myScale < 1) {
         // When scaling down we need to do an expensive scaling to ensure that
         // the thumbnails look good
@@ -223,28 +303,51 @@ public class ScalableImage {
         } else {
           myScaledImage = ImageUtils.scale(myImage, myScale, myScale);
         }
-        g.drawImage(myScaledImage, 0, 0, null);
+        g.drawImage(myScaledImage, x, y, null);
       } else {
         // Do a direct scaled paint when scaling up; we don't want to create giant internal images
         // for a zoomed in version of the canvas, since only a small portion is typically shown on the screen
         // (without this, you can easily zoom in 10 times and hit an OOM exception)
+        double scale = myScale;
         int w = myImage.getWidth();
         int h = myImage.getHeight();
-        int scaledWidth = (int)(myScale * w);
-        int scaledHeight = (int)(myScale * h);
+        int scaledWidth = (int)(scale * w);
+        int scaledHeight = (int)(scale * h);
+        myThumbnailHasFrame = false;
+
         Graphics2D g2 = (Graphics2D)g.create();
         try {
           g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BILINEAR);
-          g2.drawImage(myImage, 0, 0, scaledWidth, scaledHeight, 0, 0, w, h, null);
+          g2.drawImage(myImage, x, y, x + scaledWidth, y + scaledHeight, 0, 0, w, h, null);
         } finally {
           g2.dispose();
         }
+
+        myThumbnailHasFrame = false;
+        if (myDeviceFrameEnabled) {
+          DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
+          Device device = myConfiguration.getDevice();
+          if (device != null) {
+            AndroidLayoutPreviewToolWindowSettings.GlobalState settings =
+              AndroidLayoutPreviewToolWindowSettings.getInstance(myConfiguration.getModule().getProject()).getGlobalState();
+            if (settings.isShowDeviceFrames()) {
+              State state = myConfiguration.getDeviceState();
+              if (state != null) {
+                // Scaling larger than 1
+                framePainter.paintFrame(g, device, state.getOrientation(), true, x + 1, y, scaledHeight);
+                myThumbnailHasFrame = true;
+                return;
+              } // else: fall through and do usual drop shadow painting
+            }
+          }
+        }
+
         if (getShowDropShadow()) {
-          ShadowPainter.drawRectangleShadow(g, 0, 0, scaledWidth, scaledHeight);
+          ShadowPainter.drawRectangleShadow(g, x, y, scaledWidth, scaledHeight);
         }
       }
     } else {
-      g.drawImage(myScaledImage, 0, 0, null);
+      g.drawImage(myScaledImage, x, y, null);
     }
   }
 
@@ -262,11 +365,23 @@ public class ScalableImage {
     return myMaxHeight;
   }
 
-  public boolean isUseLargeShadows() {
-    return myUseLargeShadows;
-  }
-
   public void setUseLargeShadows(boolean useLargeShadows) {
     myUseLargeShadows = useLargeShadows;
+  }
+
+  public void setDeviceFrameEnabled(boolean deviceFrameEnabled) {
+    if (myDeviceFrameEnabled != deviceFrameEnabled) {
+      myDeviceFrameEnabled = deviceFrameEnabled;
+      myScaledImage = null;
+    }
+  }
+
+  /** Does the current image have a device frame around it? Returns true, false, or null if no image computed yet */
+  @Nullable
+  public Boolean isFramed() {
+    if (myScaledImage == null) {
+      return null;
+    }
+    return myThumbnailHasFrame;
   }
 }

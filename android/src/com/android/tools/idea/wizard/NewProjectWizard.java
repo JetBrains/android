@@ -16,25 +16,22 @@
 package com.android.tools.idea.wizard;
 
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkManager;
 import com.android.tools.idea.gradle.NewAndroidProjectImporter;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.android.utils.SdkUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
-import static com.android.tools.idea.templates.Template.ATTR_NAME;
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
 
@@ -61,6 +58,13 @@ public class NewProjectWizard extends TemplateWizard {
 
   @Override
   protected void init() {
+    // Do a sanity check to see if we have templates that look compatible, otherwise we get really strange problems. The existence
+    // of a gradle wrapper in the templates directory is a good sign.
+    if (!(new File(TemplateManager.getTemplateRootFolder(), "gradle/wrapper/gradlew").exists())) {
+      String msg = "Your Android SDK is out of date or is missing templates. Please ensure you are using SDK version 22 or later.";
+      Messages.showErrorDialog(myContentPanel, msg);
+      throw new IllegalStateException(msg);
+    }
     myWizardState = new NewProjectWizardState();
 
     myConfigureAndroidModuleStep = new ConfigureAndroidModuleStep(this, myWizardState);
@@ -105,13 +109,12 @@ public class NewProjectWizard extends TemplateWizard {
           }
           myWizardState.updateParameters();
           myWizardState.myTemplate.render(projectRoot, moduleRoot, myWizardState.myParameters);
-          FileUtil.copyDirContent(gradleWrapperSrc, moduleRoot);
           if ((Boolean)myWizardState.get(NewProjectWizardState.ATTR_CREATE_ACTIVITY)) {
             myWizardState.getActivityTemplateState().getTemplate()
               .render(moduleRoot, moduleRoot, myWizardState.getActivityTemplateState().myParameters);
           }
           Sdk sdk = getSdk((Integer)myWizardState.get(ATTR_BUILD_API));
-          new NewAndroidProjectImporter().importProject(projectName, projectRoot, sdk);
+          new NewAndroidProjectImporter().importProject(projectName, projectRoot, sdk, null);
         }
         catch (Exception e) {
           LOG.error(e);

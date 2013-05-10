@@ -51,7 +51,8 @@ public final class TestProjects {
   }
 
   private static void createBasicProject(@NotNull AndroidProjectStub androidProject) {
-    VariantStub debugVariant = androidProject.addNewVariant("debug");
+    androidProject.addBuildType("debug");
+    VariantStub debugVariant = androidProject.addVariant("debug");
 
     debugVariant.addGeneratedSourceFolder("build/source/aidl/debug");
     debugVariant.addGeneratedSourceFolder("build/source/buildConfig/debug");
@@ -70,9 +71,10 @@ public final class TestProjects {
 
   @NotNull
   public static AndroidProjectStub createFlavorsProject() {
-    AndroidProjectStub model = new AndroidProjectStub("flavors");
+    AndroidProjectStub project = new AndroidProjectStub("flavors");
 
-    VariantStub f1faDebugVariant = model.addNewVariant("f1fa-debug");
+    project.addBuildType("debug");
+    VariantStub f1faDebugVariant = project.addVariant("f1fa-debug", "debug");
 
     f1faDebugVariant.addGeneratedSourceFolder("build/source/aidl/f1fa/debug");
     f1faDebugVariant.addGeneratedSourceFolder("build/source/buildConfig/f1fa/debug");
@@ -90,9 +92,9 @@ public final class TestProjects {
 
     f1faDebugVariant.addProductFlavors("f1", "fa");
 
-    model.addProductFlavor("f1");
-    model.addProductFlavor("fa");
+    project.addProductFlavor("f1");
+    project.addProductFlavor("fa");
 
-    return model;
+    return project;
   }
 }

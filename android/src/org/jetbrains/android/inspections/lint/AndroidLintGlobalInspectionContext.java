@@ -4,6 +4,8 @@ import com.android.annotations.NonNull;
 import com.android.tools.lint.LintCliXmlParser;
 import com.android.tools.lint.client.api.*;
 import com.android.tools.lint.detector.api.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInspection.GlobalInspectionContext;
 import com.intellij.codeInspection.InspectionProfileEntry;
@@ -12,9 +14,12 @@ import com.intellij.codeInspection.lang.GlobalInspectionContextExtension;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.module.impl.scopes.ModuleWithDependenciesScope;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.util.ProgressWrapper;
@@ -25,9 +30,14 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.search.LocalSearchScope;
+import com.intellij.psi.search.SearchScope;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
@@ -87,13 +97,53 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       ProgressWrapper.unwrap(indicator).setText("Running Android Lint");
     }
 
-    LintRequest request = new IntellijLintRequest(client, Arrays.asList(ioContentRoots), project);
 
-    // Can't run class file based checks
+
     EnumSet<Scope> lintScope = EnumSet.copyOf(Scope.ALL);
+    // Can't run class file based checks
     lintScope.remove(Scope.CLASS_FILE);
     lintScope.remove(Scope.ALL_CLASS_FILES);
     lintScope.remove(Scope.JAVA_LIBRARIES);
+
+    List<File> files = Arrays.asList(ioContentRoots);
+
+    int scopeType = scope.getScopeType();
+    if (scopeType == AnalysisScope.MODULE) {
+      SearchScope searchScope = scope.toSearchScope();
+      if (searchScope instanceof ModuleWithDependenciesScope) {
+        ModuleWithDependenciesScope s = (ModuleWithDependenciesScope)searchScope;
+        if (!s.isSearchInLibraries()) {
+          Module module = s.getModule();
+          VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
+          files = Arrays.asList(toIoFiles(Arrays.<VirtualFile>asList(contentRoots)));
+        }
+      }
+    } else if (scopeType == AnalysisScope.FILE || scopeType == AnalysisScope.VIRTUAL_FILES) {
+      assert scope.getFileCount() == 1;
+      SearchScope searchScope = scope.toSearchScope();
+      if (searchScope instanceof LocalSearchScope) {
+        LocalSearchScope localSearchScope = (LocalSearchScope)searchScope;
+        PsiElement[] elements = localSearchScope.getScope();
+        Set<VirtualFile> virtualFiles = Sets.newHashSet();
+        for (PsiElement element : elements) {
+          if (element instanceof PsiFile) { // should be the case since scope type is FILE
+            VirtualFile virtualFile = ((PsiFile)element).getVirtualFile();
+            if (virtualFile != null) {
+              virtualFiles.add(virtualFile);
+            }
+          }
+        }
+        if (!virtualFiles.isEmpty()) {
+          files = Lists.newArrayList();
+          lintScope = null; // Lint will compute it lazily based on actual files in the request
+          for (VirtualFile virtualFile : virtualFiles) {
+            files.add(VfsUtilCore.virtualToIoFile(virtualFile));
+          }
+        }
+      }
+    }
+
+    LintRequest request = new IntellijLintRequest(client, files, project);
     request.setScope(lintScope);
 
     lint.analyze(request);
@@ -292,7 +342,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       return result;
     }
 
-    @NonNull
+    @Nullable
     @Override
     public File getSdkHome() {
       File sdkHome = super.getSdkHome();
@@ -302,12 +352,31 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
 
       for (Module module : ModuleManager.getInstance(myProject).getModules()) {
         Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
-        String path = moduleSdk.getHomePath();
-        if (path != null) {
-          File home = new File(path);
-          if (home.exists()) {
-            return home;
+        if (moduleSdk != null) {
+          String path = moduleSdk.getHomePath();
+          if (path != null) {
+            File home = new File(path);
+            if (home.exists()) {
+              return home;
+            }
           }
+        }
+      }
+
+      return null;
+    }
+
+
+    // Overridden such that lint doesn't complain about missing a bin dir property in the event
+    // that no SDK is configured
+    @Nullable
+    @Override
+    public File findResource(@NonNull String relativePath) {
+      File top = getSdkHome();
+      if (top != null) {
+        File file = new File(top, relativePath);
+        if (file.exists()) {
+          return file;
         }
       }
 

@@ -589,9 +589,11 @@ public class HtmlLinkManager {
     assert url.equals(URL_ACTION_IGNORE_FRAGMENTS);
     RenderLogger.ignoreFragments();
     RenderService renderService = result.getRenderService();
-    RenderContext renderContext = renderService.getRenderContext();
-    if (renderContext != null) {
-      renderContext.requestRender();
+    if (renderService != null) {
+      RenderContext renderContext = renderService.getRenderContext();
+      if (renderContext != null) {
+        renderContext.requestRender();
+      }
     }
   }
 

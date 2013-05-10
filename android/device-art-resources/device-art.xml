@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2013 The Android Open Source Project
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<devices>
+  <device id="nexus_4" name="Nexus 4" url="http://www.google.com/nexus/4/" physicalSize="4.7" physicalHeight="5.23" density="XHDPI">
+    <orientation name="port" size="1195,1994" screenPos="213,350" screenSize="768,1280" crop="119,163,959,1679" shadow="port_shadow.png"
+                 back="port_back.png" lights="port_fore.png"/>
+    <orientation name="land" size="1994,1195" screenPos="349,214" screenSize="1280,768" crop="92,169,1800,886" shadow="land_shadow.png"
+                 back="land_back.png" lights="land_fore.png"/>
+  </device>
+
+  <device id="nexus_7" name="Nexus 7" url="http://www.google.com/nexus/7/" physicalSize="7.0" physicalHeight="7.81" density="213dpi">
+    <orientation name="port" size="1334,1902" screenPos="264,311" screenSize="800,1280" crop="122,121,1095,1690" shadow="port_shadow.png"
+                 back="port_back.png" lights="port_fore.png"/>
+    <orientation name="land" size="1910,1334" screenPos="315,270" screenSize="1280,800" crop="55,165,1804,1046" shadow="land_shadow.png"
+                 back="land_back.png" lights="land_fore.png"/>
+  </device>
+
+  <device id="nexus_10" name="Nexus 10" url="http://www.google.com/nexus/10/" physicalSize="10.0" physicalHeight="7.0" density="XHDPI">
+    <orientation name="port" size="1248,1730" screenPos="217,223" screenSize="800,1280" crop="34,90,1166,1569" shadow="port_shadow.png"
+                 back="port_back.png" lights="port_fore.png"/>
+    <orientation name="land" size="1730,1248" screenPos="227,217" screenSize="1280,800" crop="33,84,1671,1089" shadow="land_shadow.png"
+                 back="land_back.png" lights="land_fore.png"/>
+  </device>
+
+  <device id="xoom" name="Motorola XOOM" url="http://www.google.com/phone/detail/motorola-xoom" physicalSize="10.0" physicalHeight="6.61"
+          density="MDPI">
+    <orientation name="port" size="1198,1700" screenPos="199,200" screenSize="800,1280" crop="14,117,1171,1472" shadow="port_shadow.png"
+                 back="port_back.png" lights="port_fore.png"/>
+    <orientation name="land" size="1700,1198" screenPos="218,191" screenSize="1280,800" crop="66,102,1570,999" shadow="land_shadow.png"
+                 back="land_back.png" lights="land_fore.png"/>
+  </device>
+
+  <device id="galaxy_nexus" name="Galaxy Nexus" url="http://www.android.com/devices/detail/galaxy-nexus" physicalSize="4.65"
+          physicalHeight="5.33" density="XHDPI">
+    <orientation name="port" size="1148,1994" screenPos="216,353" screenSize="720,1280" crop="24,140,1102,1710" shadow="port_shadow.png"
+                 back="port_back.png" lights="port_fore.png"/>
+    <orientation name="land" size="1994,1148" screenPos="371,199" screenSize="1280,720" crop="67,131,1848,887" shadow="land_shadow.png"
+                 back="land_back.png" lights="land_fore.png"/>
+  </device>
+
+  <device id="nexus_s" name="Nexus S" url="http://www.google.com/phone/detail/nexus-s" physicalSize="4.0" physicalHeight="4.88"
+          density="HDPI">
+    <orientation name="port" size="749,1308" screenPos="134,247" screenSize="480,800" crop="15,87,720,1140" shadow="port_shadow.png"
+                 back="port_back.png" lights="port_fore.png"/>
+    <orientation name="land" size="1308,749" screenPos="247,135" screenSize="800,480" crop="39,91,1211,587" shadow="land_shadow.png"
+                 back="land_back.png" lights="land_fore.png"/>
+  </device>
+
+  <device id="nexus_one" name="Nexus One" url="http://en.wikipedia.org/wiki/Nexus_One" physicalSize="3.7" physicalHeight="4.7"
+          density="HDPI">
+    <orientation name="port" size="765,1300" screenPos="141,191" screenSize="480,800" crop="19,60,727,1190" shadow="port_shadow.png"
+                 back="port_back.png"/>
+    <orientation name="land" size="1300,765" screenPos="200,130" screenSize="800,480" crop="0,78,1300,622" shadow="land_shadow.png"
+                 back="land_back.png"/>
+  </device>
+
+  <device id="phone" name="Generic Phone">
+    <orientation name="port" size="568,256" screenPos="113,93" screenSize="343,46" back="phone_back_simple_port.9.png"
+                 shadow="phone_shadow_simple_port.9.png" />
+    <orientation name="land" size="607,350" screenPos="141,36" screenSize="324,255" back="phone_back_simple_land.9.png"
+                 shadow="phone_shadow_simple_land.9.png"/>
+  </device>
+
+  <device id="tablet" name="Generic Tablet">
+    <orientation name="port" size="1310,313" screenPos="256,111" screenSize="802,55" back="tablet_back_simple.9.png"
+                 shadow="tablet_shadow_simple_port.9.png" />
+    <orientation name="land" size="1310,313" screenPos="256,111" screenSize="802,55" back="tablet_back_simple.9.png"
+                 shadow="tablet_shadow_simple_land.9.png"/>
+  </device>
+
+</devices>

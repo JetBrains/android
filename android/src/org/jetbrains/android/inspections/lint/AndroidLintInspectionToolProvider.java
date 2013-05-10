@@ -295,6 +295,7 @@ public class AndroidLintInspectionToolProvider {
   }
 
   // it seems we don't need it because we have our own 'deprecated api' inspection
+  // TODO: Double check this; Lint's deprecations are for XML; does IntelliJ check that?
   /*public static class AndroidLintDeprecatedInspection extends AndroidLintInspectionBase {
     public AndroidLintDeprecatedInspection() {
       super(AndroidBundle.message("android.lint.inspections.deprecated"), DeprecationDetector.ISSUE);
@@ -626,6 +627,32 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintOverrideInspection extends AndroidLintInspectionBase {
     public AndroidLintOverrideInspection() {
       super(AndroidBundle.message("android.lint.inspections.override"), ApiDetector.OVERRIDE);
+    }
+  }
+
+  public static class AndroidLintDuplicateUsesFeatureInspection extends AndroidLintInspectionBase {
+    public AndroidLintDuplicateUsesFeatureInspection() {
+      super(AndroidBundle.message("android.lint.inspections.duplicate.uses.feature"), ManifestOrderDetector.DUPLICATE_USES_FEATURE);
+    }
+  }
+  public static class AndroidLintMissingApplicationIconInspection extends AndroidLintInspectionBase {
+    public AndroidLintMissingApplicationIconInspection() {
+      super(AndroidBundle.message("android.lint.inspections.missing.application.icon"), ManifestOrderDetector.APPLICATION_ICON);
+    }
+  }
+  public static class AndroidLintRtlCompatInspection extends AndroidLintInspectionBase {
+    public AndroidLintRtlCompatInspection() {
+      super(AndroidBundle.message("android.lint.inspections.rtl.compat"), RtlDetector.COMPAT);
+    }
+  }
+  public static class AndroidLintRtlEnabledInspection extends AndroidLintInspectionBase {
+    public AndroidLintRtlEnabledInspection() {
+      super(AndroidBundle.message("android.lint.inspections.rtl.enabled"), RtlDetector.ENABLED);
+    }
+  }
+  public static class AndroidLintRtlHardcodedInspection extends AndroidLintInspectionBase {
+    public AndroidLintRtlHardcodedInspection() {
+      super(AndroidBundle.message("android.lint.inspections.rtl.hardcoded"), RtlDetector.USE_START);
     }
   }
 

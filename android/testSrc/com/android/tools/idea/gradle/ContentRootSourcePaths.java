@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle;
 
+import com.android.build.gradle.model.BuildTypeContainer;
 import com.android.build.gradle.model.ProductFlavorContainer;
 import com.android.build.gradle.model.Variant;
 import com.android.builder.model.SourceProvider;
@@ -60,6 +61,11 @@ public class ContentRootSourcePaths {
     addSourceDirectoryPaths(androidProject.getDefaultConfig());
     for (ProductFlavorContainer flavor : androidProject.getProductFlavors().values()) {
       addSourceDirectoryPaths(flavor);
+    }
+    String buildTypeName = selectedVariant.getBuildType();
+    BuildTypeContainer buildType = androidProject.getBuildTypes().get(buildTypeName);
+    if (buildType != null) {
+      addSourceDirectoryPaths(ExternalSystemSourceType.SOURCE, buildType.getSourceProvider());
     }
   }
 

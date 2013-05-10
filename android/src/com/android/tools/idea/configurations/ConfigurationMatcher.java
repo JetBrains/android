@@ -174,6 +174,22 @@ public class ConfigurationMatcher {
     return null;
   }
 
+  /** Like {@link ConfigurationManager#getLocales()}, but ensures that the currently selected locale is first in the list */
+  @NotNull
+  public List<Locale> getPrioritizedLocales() {
+    List<Locale> projectLocales = myManager.getLocales();
+    List<Locale> locales = new ArrayList<Locale>(projectLocales.size() + 1); // Locale.ANY is not in getLocales() list
+    Locale current = myManager.getLocale();
+    locales.add(current);
+    for (Locale locale : projectLocales) {
+      if (!locale.equals(current)) {
+        locales.add(locale);
+      }
+    }
+
+    return locales;
+  }
+
   /**
    * Adapts the current device/config selection so that it's compatible with
    * the configuration.
@@ -202,7 +218,7 @@ public class ConfigurationMatcher {
     }
 
     if (needConfigChange) {
-      List<Locale> localeList = myManager.getLocales();
+      List<Locale> localeList = getPrioritizedLocales();
 
       // if the current state/locale isn't a correct match, then
       // look for another state/locale in the same device.
@@ -212,10 +228,13 @@ public class ConfigurationMatcher {
       State matchState = null;
       int localeIndex = -1;
       Device device = myConfiguration.getDevice();
-      if (device != null) {
+      IAndroidTarget target = myConfiguration.getTarget();
+      if (device != null && target != null) {
+        VersionQualifier versionQualifier = new VersionQualifier(target.getVersion().getApiLevel());
         mainloop:
         for (State state : device.getAllStates()) {
           testConfig.set(DeviceConfigHelper.getFolderConfig(state));
+          testConfig.setVersionQualifier(versionQualifier);
 
           // loop on the locales.
           for (int i = 0; i < localeList.size(); i++) {
@@ -262,7 +281,7 @@ public class ConfigurationMatcher {
    *                           current config is compatible.
    */
   void findAndSetCompatibleConfig(boolean favorCurrentConfig) {
-    List<Locale> localeList = myManager.getLocales();
+    List<Locale> localeList = getPrioritizedLocales();
     List<Device> deviceList = myManager.getDevices();
     FolderConfiguration editedConfig = myConfiguration.getEditedConfig();
     FolderConfiguration currentConfig = myConfiguration.getFullConfig();
@@ -608,6 +627,8 @@ public class ConfigurationMatcher {
    * Note: this comparator imposes orderings that are inconsistent with equals.
    */
   private static class PhoneConfigComparator implements Comparator<ConfigMatch> {
+    private static final String NEXUS_4 = "Nexus 4";
+    private static final String GALAXY_NEXUS = "Galaxy Nexus";
 
     private final SparseIntArray mDensitySort = new SparseIntArray(4);
 
@@ -632,6 +653,23 @@ public class ConfigurationMatcher {
         }
       }
       else if (config2 == null) {
+        return 1;
+      }
+
+      // Default to a modern device
+      String n1 = o1.device.getName();
+      String n2 = o2.device.getName();
+      if (n1.equals(NEXUS_4)) {
+        return n2.equals(NEXUS_4) ? 0 : -1;
+      } else if (n2.equals(NEXUS_4)) {
+        return 1;
+      }
+
+      // Fallback to a slightly less modern device, since we just now added N4 to the devices.xml list, and
+      // it's not configured everywhere
+      if (n1.equals(GALAXY_NEXUS)) {
+        return n2.equals(GALAXY_NEXUS) ? 0 : -1;
+      } else if (n2.equals(GALAXY_NEXUS)) {
         return 1;
       }
 

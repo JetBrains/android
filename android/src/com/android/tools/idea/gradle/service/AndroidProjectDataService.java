@@ -17,10 +17,7 @@ package com.android.tools.idea.gradle.service;
 
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.customizer.AndroidFacetModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.AndroidGradleFacetModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.AndroidSdkModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -43,17 +40,20 @@ import java.util.Map;
  * Service that sets an Android SDK and facets to the modules of a project that has been imported from an Android-Gradle project.
  */
 public class AndroidProjectDataService implements ProjectDataService<IdeaAndroidProject, Void> {
-  private final List<? extends ModuleCustomizer> myCustomizers;
+  private final ModuleCustomizer[] myCustomizers;
 
   // This constructor is called by the IDE. See this module's plugin.xml file, implementation of extension 'externalProjectDataService'.
   public AndroidProjectDataService() {
     myCustomizers =
-      ImmutableList.of(new AndroidSdkModuleCustomizer(), new AndroidFacetModuleCustomizer(), new AndroidGradleFacetModuleCustomizer());
+      new ModuleCustomizer[]{
+        new AndroidSdkModuleCustomizer(), new AndroidFacetModuleCustomizer(), new ContentRootModuleCustomizer(),
+        new AndroidGradleFacetModuleCustomizer()
+      };
   }
 
   @VisibleForTesting
   AndroidProjectDataService(@NotNull ModuleCustomizer...customizers) {
-    myCustomizers = ImmutableList.copyOf(customizers);
+    myCustomizers = customizers;
   }
 
   @NotNull
