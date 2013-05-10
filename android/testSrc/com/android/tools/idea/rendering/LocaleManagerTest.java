@@ -17,19 +17,12 @@
 package com.android.tools.idea.rendering;
 
 import com.google.common.collect.Sets;
-
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
 import com.intellij.util.Function;
 import junit.framework.TestCase;
 
 import javax.swing.*;
+import java.util.*;
+import java.util.Locale;
 
 @SuppressWarnings("javadoc")
 public class LocaleManagerTest extends TestCase {
@@ -87,7 +80,7 @@ public class LocaleManagerTest extends TestCase {
 
   public void testGetLanguageNames() throws Exception {
     assertEquals("English", LocaleManager.getLanguageName("en"));
-    assertEquals("Norwegian Bokmål", LocaleManager.getLanguageName("nb"));
+    assertEquals("Norwegian Bokm\u00e5l", LocaleManager.getLanguageName("nb"));
     assertEquals("Norwegian", LocaleManager.getLanguageName("no"));
     assertEquals("French", LocaleManager.getLanguageName("fr"));
     assertEquals("German", LocaleManager.getLanguageName("de"));
