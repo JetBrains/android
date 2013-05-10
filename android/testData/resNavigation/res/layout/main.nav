@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<NavigationModel xmlns = "http://schemas.android.com?import=com.android.navigation.*">
+ <Transition
+    destination = "fragment_conversation.xml"
+    gesture = ""
+    source = "activity_account.xml"/>
+</NavigationModel>
