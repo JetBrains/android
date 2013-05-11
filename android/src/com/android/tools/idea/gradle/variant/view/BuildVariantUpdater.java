@@ -20,17 +20,13 @@ import com.android.tools.idea.gradle.customizer.ContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.util.Facets;
+import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.compiler.CompileContext;
-import com.intellij.openapi.compiler.CompileStatusNotification;
-import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -79,15 +75,7 @@ class BuildVariantUpdater {
     // We changed the way we build projects: now we build only the selected variant. If user changes variant, we need to rebuild the project
     // since the generated sources may not be there.
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      CompilerManager.getInstance(project).make(new CompileStatusNotification() {
-        @Override
-        public void finished(boolean aborted, int errors, int warnings, CompileContext compileContext) {
-          VirtualFile rootDir = LocalFileSystem.getInstance().findFileByPath(androidProject.getRootDirPath());
-          if (rootDir != null && rootDir.isDirectory()) {
-            rootDir.refresh(true, true);
-          }
-        }
-      });
+      Projects.compile(project, androidProject.getRootDirPath());
     }
   }
 
