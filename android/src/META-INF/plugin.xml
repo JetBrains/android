@@ -112,7 +112,7 @@
   <depends optional="true" config-file="maven-support.xml">org.jetbrains.idea.maven</depends>
   <depends optional="true" config-file="test-ng.xml">TestNG-J</depends>
   <depends optional="true" config-file="intention-power-pack.xml">IntentionPowerPack</depends>
-  <depends optional="true" config-file="androidide.xml">com.intellij.modules.androidide</depends>
+  <depends optional="true" config-file="androidstudio.xml">com.intellij.modules.androidstudio</depends>
   <depends optional="true" config-file="eclipse.xml">org.jetbrains.idea.eclipse</depends>
 
   <extensions defaultExtensionNs="com.intellij">
