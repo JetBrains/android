@@ -180,7 +180,7 @@ class ProjectResolverStrategy {
         contentRootData.storePath(sourceType, directory.getAbsolutePath());
       }
     };
-    AndroidContentRoot.storePaths(androidProject, storage, true);
+    AndroidContentRoot.storePaths(androidProject, storage);
     moduleInfo.createChild(ProjectKeys.CONTENT_ROOT, contentRootData);
   }
 
