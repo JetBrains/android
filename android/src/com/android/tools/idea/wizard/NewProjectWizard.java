@@ -23,6 +23,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.DumbAwareRunnable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
@@ -127,6 +128,13 @@ public class NewProjectWizard extends TemplateWizard {
           new NewAndroidProjectImporter().importProject(projectName, projectRoot, sdk, new ImportCompletedCallback());
         }
         catch (Exception e) {
+          String title;
+          if (e instanceof ConfigurationException) {
+            title = ((ConfigurationException)e).getTitle();
+          } else {
+            title = "New Project Wizard";
+          }
+          Messages.showErrorDialog(e.getMessage(), title);
           LOG.error(e);
         }
       }
