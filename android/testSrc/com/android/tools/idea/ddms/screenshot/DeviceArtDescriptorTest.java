@@ -29,8 +29,8 @@ public class DeviceArtDescriptorTest extends TestCase {
   public void test1() throws FileNotFoundException {
     List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
 
-    // Currently there are 7 devices for which we have device art.
-    assertEquals(7, specs.size());
+    // Currently there are 7 devices for which we have device art, plus 2 generic/stretchable
+    assertEquals(9, specs.size());
 
     DeviceArtDescriptor nexus4 = specs.get(0);
     assertEquals("nexus_4", nexus4.getId());
@@ -58,7 +58,11 @@ public class DeviceArtDescriptorTest extends TestCase {
         assertNotNull(id, descriptor.getFrameSize(orientation));
         assertNotNull(id, descriptor.getScreenPos(orientation));
         assertNotNull(id, descriptor.getScreenSize(orientation));
-        assertNotNull(id, descriptor.getCrop(orientation));
+        if (id.equals("phone") || id.equals("tablet")) {
+          // No crop for these
+        } else {
+          assertNotNull(id, descriptor.getCrop(orientation));
+        }
         assertTrue(id, descriptor.getFrame(orientation).exists());
         assertTrue(id, descriptor.getDropShadow(orientation).exists());
         File reflectionOverlay = descriptor.getReflectionOverlay(orientation);
