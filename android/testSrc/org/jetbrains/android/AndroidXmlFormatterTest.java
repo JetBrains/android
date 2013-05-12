@@ -65,17 +65,20 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
   }
 
   public void testManifest1() throws Exception {
+    deleteManifest();
     new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     doTestManifest("manifest1.xml");
   }
 
   public void testManifest2() throws Exception {
+    deleteManifest();
     final XmlCodeStyleSettings xmlSettings = mySettings.getCustomSettings(XmlCodeStyleSettings.class);
     xmlSettings.XML_ATTRIBUTE_WRAP = CommonCodeStyleSettings.DO_NOT_WRAP;
     doTestManifest("manifest1.xml");
   }
 
   public void testManifest3() throws Exception {
+    deleteManifest();
     new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     final XmlCodeStyleSettings xmlSettings = mySettings.getCustomSettings(XmlCodeStyleSettings.class);
     xmlSettings.XML_ATTRIBUTE_WRAP = CommonCodeStyleSettings.DO_NOT_WRAP;
@@ -84,6 +87,7 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
   }
 
   public void testManifest4() throws Exception {
+    deleteManifest();
     new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     final XmlCodeStyleSettings xmlSettings = mySettings.getCustomSettings(XmlCodeStyleSettings.class);
     xmlSettings.XML_ALIGN_ATTRIBUTES = true;
@@ -93,6 +97,7 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
   }
 
   public void testManifest5() throws Exception {
+    deleteManifest();
     new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     final AndroidXmlCodeStyleSettings androidSettings = mySettings.getCustomSettings(AndroidXmlCodeStyleSettings.class);
     androidSettings.MANIFEST_SETTINGS.WRAP_ATTRIBUTES = CommonCodeStyleSettings.DO_NOT_WRAP;
@@ -100,6 +105,7 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
   }
 
   public void testManifest6() throws Exception {
+    deleteManifest();
     new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     final AndroidXmlCodeStyleSettings androidSettings = mySettings.getCustomSettings(AndroidXmlCodeStyleSettings.class);
     androidSettings.MANIFEST_SETTINGS.GROUP_TAGS_WITH_SAME_NAME = false;
@@ -107,6 +113,7 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
   }
 
   public void testManifest7() throws Exception {
+    deleteManifest();
     final XmlCodeStyleSettings xmlSettings = mySettings.getCustomSettings(XmlCodeStyleSettings.class);
     xmlSettings.XML_ATTRIBUTE_WRAP = CommonCodeStyleSettings.WRAP_ON_EVERY_ITEM;
     doTestManifest("manifest1.xml");
