@@ -44,6 +44,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -110,6 +111,8 @@ public class NewAndroidProjectImporter {
     FileUtilRt.createIfNotExists(localProperties);
     FileUtil.writeToFile(localProperties, "sdk.dir=" + androidSdk.getHomePath());
 
+    final Ref<ConfigurationException> error = new Ref<ConfigurationException>();
+
     myImporter.importProject(newProject, projectFilePath, new ExternalProjectRefreshCallback() {
       @Override
       public void onSuccess(final @Nullable DataNode<ProjectData> projectInfo) {
@@ -132,14 +135,19 @@ public class NewAndroidProjectImporter {
       }
 
       @Override
-      public void onFailure(@NotNull String errorMessage, @Nullable String errorDetails) {
+      public void onFailure(@NotNull final String errorMessage, @Nullable String errorDetails) {
         if (errorDetails != null) {
           LOG.warn(errorDetails);
         }
-        String msg = ExternalSystemBundle.message("error.resolve.with.reason", errorMessage);
-        throw new IllegalStateException(msg);
+        String reason = "Failed to import new Gradle project: " + errorMessage;
+        error.set(new ConfigurationException(ExternalSystemBundle.message("error.resolve.with.reason", reason),
+                                             ExternalSystemBundle.message("error.resolve.generic")));
       }
     });
+
+    if (error.get() != null) {
+      throw error.get();
+    }
   }
 
   private static void createIdeaProjectDir(@NotNull File projectRootDir) throws IOException {
