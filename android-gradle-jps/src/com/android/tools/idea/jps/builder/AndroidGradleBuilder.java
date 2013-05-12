@@ -46,6 +46,8 @@ import org.jetbrains.jps.incremental.java.JavaBuilder;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 import org.jetbrains.jps.incremental.messages.ProgressMessage;
+import org.jetbrains.jps.incremental.resources.ResourcesBuilder;
+import org.jetbrains.jps.incremental.resources.StandardResourceBuilderEnabler;
 import org.jetbrains.jps.model.JpsProject;
 import org.jetbrains.jps.model.JpsSimpleElement;
 import org.jetbrains.jps.model.library.sdk.JpsSdk;
@@ -72,6 +74,13 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
 
   protected AndroidGradleBuilder() {
     super(BuilderCategory.TRANSLATOR);
+    ResourcesBuilder.registerEnabler(new StandardResourceBuilderEnabler() {
+      @Override
+      public boolean isResourceProcessingEnabled(JpsModule module) {
+        JpsProject project = module.getProject();
+        return !AndroidGradleJps.hasAndroidGradleFacet(project);
+      }
+    });
   }
 
   /**
