@@ -205,12 +205,14 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
           return computePackageName();
         }
       });
-      updateDerivedValue(ATTR_PROJECT_LOCATION, myProjectLocation.getTextField(), new Callable<String>() {
-        @Override
-        public String call() {
-          return computeProjectLocation();
-        }
-      });
+      if (!myTemplateState.myHidden.contains(ATTR_PROJECT_LOCATION)) {
+        updateDerivedValue(ATTR_PROJECT_LOCATION, myProjectLocation.getTextField(), new Callable<String>() {
+          @Override
+          public String call() {
+            return computeProjectLocation();
+          }
+        });
+      }
     }});
 
     AndroidTargetComboBoxItem item = (AndroidTargetComboBoxItem)myMinSdk.getSelectedItem();
@@ -253,23 +255,25 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       return false;
     }
 
-    String projectLocation = (String)myTemplateState.get(ATTR_PROJECT_LOCATION);
-    if (projectLocation == null || projectLocation.isEmpty()) {
-      setErrorHtml("Please specify a project location");
-      return false;
-    }
-    File file = new File(projectLocation);
-    if (file.exists()) {
-      setErrorHtml("There must not already be a project at this location");
-      return false;
-    }
-    if (file.getParent() == null) {
-      setErrorHtml("The project location can not be at the filesystem root");
-      return false;
-    }
-    if (file.getParentFile().exists() && !file.getParentFile().isDirectory()) {
-      setErrorHtml("The project location's parent directory must be a directory, not a plain file");
-      return false;
+    if (!myTemplateState.myHidden.contains(ATTR_PROJECT_LOCATION)) {
+      String projectLocation = (String)myTemplateState.get(ATTR_PROJECT_LOCATION);
+      if (projectLocation == null || projectLocation.isEmpty()) {
+        setErrorHtml("Please specify a project location");
+        return false;
+      }
+      File file = new File(projectLocation);
+      if (file.exists()) {
+        setErrorHtml("There must not already be a project at this location");
+        return false;
+      }
+      if (file.getParent() == null) {
+        setErrorHtml("The project location can not be at the filesystem root");
+        return false;
+      }
+      if (file.getParentFile().exists() && !file.getParentFile().isDirectory()) {
+        setErrorHtml("The project location's parent directory must be a directory, not a plain file");
+        return false;
+      }
     }
 
     return true;
