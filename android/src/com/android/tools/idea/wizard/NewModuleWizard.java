@@ -127,7 +127,7 @@ public class NewModuleWizard extends TemplateWizard implements ExternalProjectRe
             myWizardState.getActivityTemplateState().getTemplate()
               .render(moduleRoot, moduleRoot, myWizardState.getActivityTemplateState().myParameters);
           }
-          File moduleBuildFile = new File(moduleRoot, "build.gradle");
+          File moduleBuildFile = new File(projectRoot, "build.gradle");
           ExternalSystemUtil
             .refreshProject(myProject, GradleConstants.SYSTEM_ID, moduleBuildFile.getPath(), NewModuleWizard.this, true, true);
         } catch (Exception e) {
