@@ -21,10 +21,12 @@ import com.android.tools.idea.jps.AndroidGradleJps;
 import com.android.tools.idea.jps.model.JpsAndroidGradleModuleExtension;
 import com.android.tools.idea.jps.model.impl.JpsAndroidGradleModuleProperties;
 import com.android.tools.idea.jps.output.parser.GradleErrorOutputParser;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Closeables;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.SystemProperties;
 import org.gradle.tooling.BuildException;
 import org.gradle.tooling.BuildLauncher;
@@ -55,6 +57,7 @@ import org.jetbrains.jps.model.module.JpsModule;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Collection;
 import java.util.List;
@@ -115,12 +118,27 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
       LOG.info(String.format(format, getProjectName(context), AndroidGradleFacet.NAME));
       return ExitCode.NOTHING_DONE;
     }
+    ensureTempDirExists();
     File projectDir = getProjectDir(context, extension);
     File gradleHomeDir = getGradleHomeDir(context, extension);
     String androidHome = getAndroidHome(context, chunk);
     String format = "About to build project '%1$s' located at %2$s";
     LOG.info(String.format(format, getProjectName(context), projectDir.getAbsolutePath()));
     return doBuild(context, chunk, projectDir, gradleHomeDir, androidHome);
+  }
+
+  private static void ensureTempDirExists() {
+    // Gradle checks that the dir at "java.io.tmpdir" exists, and if it doesn't it fails (on Windows.)
+    String tmpDirProperty = System.getProperty("java.io.tmpdir");
+    if (!Strings.isNullOrEmpty(tmpDirProperty)) {
+      File tmpDir = new File(tmpDirProperty);
+      try {
+        FileUtil.ensureExists(tmpDir);
+      }
+      catch (IOException e) {
+        LOG.warn("Unable to create temp directory", e);
+      }
+    }
   }
 
   @NotNull
