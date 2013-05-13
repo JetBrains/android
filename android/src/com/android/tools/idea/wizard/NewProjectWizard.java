@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.NewAndroidProjectImporter;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
@@ -26,15 +25,12 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.DumbAwareRunnable;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.run.TargetSelectionMode;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,7 +59,7 @@ public class NewProjectWizard extends TemplateWizard {
 
   public NewProjectWizard() {
     super("New Project", (Project)null);
-    getWindow().setMinimumSize(new Dimension(800,640));
+    getWindow().setMinimumSize(new Dimension(800, 640));
     init();
   }
 
@@ -184,20 +180,5 @@ public class NewProjectWizard extends TemplateWizard {
 
       return null;
     }
-  }
-
-  @Nullable
-  private Sdk getSdk(int apiLevel) {
-    for (Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
-      AndroidPlatform androidPlatform = AndroidPlatform.parse(sdk);
-      if (androidPlatform != null) {
-        AndroidSdkData sdkData = androidPlatform.getSdkData();
-        IAndroidTarget target = sdkData.findTargetByApiLevel(Integer.toString(apiLevel));
-        if (target != null) {
-          return sdk;
-        }
-      }
-    }
-    return null;
   }
 }
