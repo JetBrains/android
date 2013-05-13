@@ -231,10 +231,15 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     }
     String packageName = (String)myTemplateState.get(ATTR_PACKAGE_NAME);
     if (packageName == null || packageName.isEmpty()) {
-      setErrorHtml("Package name must be specified.");
+      setErrorHtml("Please specify a package name.");
     } else if (packageName.startsWith(SAMPLE_PACKAGE_PREFIX)) {
       setErrorHtml(String.format("The prefix '%1$s' is meant as a placeholder and should " +
                                     "not be used", SAMPLE_PACKAGE_PREFIX));
+    }
+
+    String projectName = (String)myTemplateState.get(ATTR_PROJECT_NAME);
+    if (projectName == null || projectName.isEmpty()) {
+      setErrorHtml("Please specify a project name.");
     }
 
     Integer minSdk = (Integer)myTemplateState.get(ATTR_MIN_API);
@@ -302,6 +307,8 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   private String computePackageName() {
     String projectName = (String)myTemplateState.get(ATTR_PROJECT_NAME);
     if (projectName != null && !projectName.isEmpty()) {
+      projectName = projectName.replaceAll("[^a-zA-Z0-9_\\-]", "");
+      projectName = projectName.toLowerCase();
       return SAMPLE_PACKAGE_PREFIX + projectName;
     } else {
       return "";
@@ -314,7 +321,8 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     if (name == null) {
       return "";
     }
-    return name.toLowerCase();
+    name = name.replaceAll("[^a-zA-Z0-9_\\-.]", "");
+    return name;
   }
 
   @NotNull
