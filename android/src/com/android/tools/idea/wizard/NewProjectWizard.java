@@ -67,9 +67,12 @@ public class NewProjectWizard extends TemplateWizard {
   protected void init() {
     // Do a sanity check to see if we have templates that look compatible, otherwise we get really strange problems. The existence
     // of a gradle wrapper in the templates directory is a good sign.
-    if (!(new File(TemplateManager.getTemplateRootFolder(), "gradle/wrapper/gradlew").exists())) {
+    boolean exists = false;
+    try { exists = new File(TemplateManager.getTemplateRootFolder(), "gradle/wrapper/gradlew").exists(); } catch (Exception e) {}
+    if (!exists) {
+      String title = "SDK problem";
       String msg = "Your Android SDK is out of date or is missing templates. Please ensure you are using SDK version 22 or later.";
-      Messages.showErrorDialog(myContentPanel, msg);
+      Messages.showErrorDialog(msg, title);
       throw new IllegalStateException(msg);
     }
     myWizardState = new NewProjectWizardState();
