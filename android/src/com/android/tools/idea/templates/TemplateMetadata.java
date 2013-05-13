@@ -22,6 +22,7 @@ import org.w3c.dom.*;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static com.android.tools.idea.templates.Template.*;
@@ -62,7 +63,7 @@ public class TemplateMetadata {
     myDocument = document;
 
     NodeList parameters = myDocument.getElementsByTagName(TAG_PARAMETER);
-    myParameterMap = new HashMap<String, Parameter>(parameters.getLength());
+    myParameterMap = new LinkedHashMap<String, Parameter>(parameters.getLength());
     for (int index = 0, max = parameters.getLength(); index < max; index++) {
       Element element = (Element) parameters.item(index);
       Parameter parameter = new Parameter(this, element);
