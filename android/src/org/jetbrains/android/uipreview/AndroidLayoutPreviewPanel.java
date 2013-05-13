@@ -608,6 +608,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     if (scaledImage != null) {
       scaledImage.setMaxSize(width, height);
       scaledImage.setUseLargeShadows(width <= 0);
+      myImagePanel.revalidate();
     }
     if (SHOW_TITLE_PANEL) {
       myTitlePanel.setVisible(width <= 0);

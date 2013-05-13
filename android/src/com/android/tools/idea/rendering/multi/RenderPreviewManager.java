@@ -26,7 +26,7 @@ import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.ProjectResources;
+import com.android.tools.idea.rendering.LocaleManager;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
@@ -803,8 +803,6 @@ public class RenderPreviewManager implements Disposable {
       return;
     }
     List<Locale> locales = parent.getConfigurationManager().getLocales();
-    ProjectResources projectRes = ProjectResources.get(parent.getModule());
-
     for (Locale locale : locales) {
       if (!locale.hasLanguage() && !locale.hasRegion()) {
         continue;
@@ -812,19 +810,47 @@ public class RenderPreviewManager implements Disposable {
       NestedConfiguration configuration = NestedConfiguration.create(parent);
       configuration.setOverrideLocale(true);
       configuration.setLocale(locale);
-      String displayName = LocaleMenuAction.getLocaleLabel(projectRes, locale, false);
+      String displayName = getLocaleLabel(locale);
       configuration.setDisplayName(displayName);
       addPreview(RenderPreview.create(this, configuration, false));
     }
 
     // Make a placeholder preview for the current screen, in case we switch from it
     Locale locale = parent.getLocale();
-    String label = LocaleMenuAction.getLocaleLabel(projectRes, locale, false);
+    String label = getLocaleLabel(locale);
     parent.setDisplayName(label);
     RenderPreview preview = RenderPreview.create(this, parent, false);
     setStashedPreview(preview);
 
     // No need to sort: they should all be identical
+  }
+
+  private static String getLocaleLabel(Locale locale) {
+    if (!locale.hasLanguage()) {
+      return "Default";
+    }
+
+    // Similar to LocaleMenuAction.getLocaleLabel with brief=false, so it includes
+    // a full language name, but it inlines the region code without mentioning the
+    // full region name.
+    String languageCode = locale.language.getValue();
+    String languageName = LocaleManager.getLanguageName(languageCode);
+
+    if (!locale.hasRegion()) {
+      if (languageName != null) {
+        return String.format("%1$s (%2$s)", languageName, languageCode);
+      }
+      else {
+        return languageCode;
+      }
+    }
+    else {
+      String regionCode = locale.region.getValue();
+      if (languageName != null) {
+        return String.format("%1$s (%2$s/%3$s)", languageName, languageCode, regionCode);
+      }
+      return String.format("%1$s/%2$s", languageCode, regionCode);
+    }
   }
 
   /**
