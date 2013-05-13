@@ -26,12 +26,14 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Closeables;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.SystemProperties;
 import org.gradle.tooling.BuildException;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -216,6 +218,10 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
                                   @Nullable File gradleHomeDir,
                                   @Nullable String androidHome) throws ProjectBuildException {
     GradleConnector connector = GradleConnector.newConnector();
+    if (connector instanceof DefaultGradleConnector && SystemInfo.isWindows) {
+      LOG.info("Using Gradle embedded mode.");
+      ((DefaultGradleConnector)connector).embedded(true);
+    }
     connector.forProjectDirectory(projectDir);
     if (gradleHomeDir != null) {
       connector.useInstallation(gradleHomeDir);
