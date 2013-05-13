@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ProjectTopics;
 import com.intellij.ide.impl.NewProjectUtil;
@@ -225,7 +224,7 @@ public class NewAndroidProjectImporter {
       "# This file must *NOT* be checked into Version Control Systems,",
       "# as it contains information specific to your local configuration.",
       "",
-      "# Location of the SDK. This is only used by Gradle",
+      "# Location of the SDK. This is only used by Gradle.",
       "# For customization when using a Version Control System, please read the",
       "# header note.",
       "sdk.dir=" + androidSdk.getHomePath()
