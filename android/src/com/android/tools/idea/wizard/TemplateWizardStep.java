@@ -167,6 +167,9 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     setDescriptionHtml("");
     setErrorHtml("");
     for (String paramName : myParamFields.keySet()) {
+      if (myTemplateState.myHidden.contains(paramName)) {
+        continue;
+      }
       Parameter param = myTemplateState.hasTemplate() ? myTemplateState.getTemplateMetadata().getParameter(paramName) : null;
       Object oldValue = myTemplateState.get(paramName);
       JComponent component = myParamFields.get(paramName);
