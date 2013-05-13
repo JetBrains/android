@@ -53,7 +53,7 @@ public class NewModuleWizardState extends TemplateWizardState {
     myLauncherIconState = new LauncherIconWizardState();
 
     myHidden.add(ATTR_PROJECT_LOCATION);
-    myHidden.add(ATTR_IS_LIBRARY_PROJECT);
+    myHidden.add(ATTR_IS_LIBRARY_MODULE);
 
     put(ATTR_IS_LAUNCHER, true);
     put(ATTR_CREATE_ICONS, true);

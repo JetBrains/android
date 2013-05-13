@@ -34,7 +34,7 @@ public class TemplateMetadata {
   public static final String ATTR_PARENT_ACTIVITY_CLASS = "parentActivityClass";
   public static final String ATTR_ACTIVITY_TITLE = "activityTitle";
   public static final String ATTR_IS_LAUNCHER = "isLauncher";
-  public static final String ATTR_IS_LIBRARY_PROJECT = "isLibraryProject";
+  public static final String ATTR_IS_LIBRARY_MODULE = "isLibraryProject";
   public static final String ATTR_CREATE_ICONS = "createIcons";
   public static final String ATTR_COPY_ICONS = "copyIcons";
   public static final String ATTR_TARGET_API = "targetApi";
