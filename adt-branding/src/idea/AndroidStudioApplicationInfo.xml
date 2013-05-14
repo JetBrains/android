@@ -30,14 +30,14 @@
 
   <editor background-url="/artwork/studio_logo_background.png"/>
 
-  <update-urls check="http://dl-sdk.appspot.com/diamond/updates.xml"
-               patches="http://dl-sdk.appspot.com/diamond/patches/"/>
+  <update-urls check="http://dl-sdk.appspot.com/as/updates.xml"
+               patches="http://dl-sdk.appspot.com/as/patches/"/>
 
   <help file="ideahelp.jar" root="idea"/>
-  <documentation url="http://www.jetbrains.com/idea/documentation"/>
-  <support url="https://code.google.com/p/android/issues/entry?template=Android%20Studio%20bug&amp;comment=Build:%20__BUILD_NUMBER__,%20__BUILD_DATE__"/>
-  <feedback eap-url="https://code.google.com/p/android/issues/entry?template=Android%20Studio%20bug&amp;comment=Build:%20__BUILD_NUMBER__,%20__BUILD_DATE__"
-            release-url="https://code.google.com/p/android/issues/entry?template=Android%20Studio%20bug&amp;comment=Build:%20__BUILD_NUMBER__,%20__BUILD_DATE__"/>
+  <documentation url="http://dl-sdk.appspot.com/as/documentation"/>
+  <support url="https://dl-sdk.appspot.com/as/issues/entry?template=Android%20Studio%20bug&amp;comment=Build:%20__BUILD_NUMBER__,%20__BUILD_DATE__"/>
+  <feedback eap-url="https://dl-sdk.appspot.com/as/issues/entry?template=Android%20Studio%20bug&amp;comment=Build:%20__BUILD_NUMBER__,%20__BUILD_DATE__"
+            release-url="https://dl-sdk.appspot.com/as/issues/entry?template=Android%20Studio%20bug&amp;comment=Build:%20__BUILD_NUMBER__,%20__BUILD_DATE__"/>
   <plugins url="http://plugins.intellij.net"/>
   <whatsnew url="http://tools.android.com/recent"/>
   <keymap win="http://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard.pdf"
