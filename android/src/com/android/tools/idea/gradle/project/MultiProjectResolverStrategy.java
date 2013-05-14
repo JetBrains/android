@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project;
 import com.android.build.gradle.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ContentRootData;
@@ -31,10 +32,10 @@ import com.intellij.util.Function;
 import com.intellij.util.PathUtil;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper;
@@ -49,6 +50,8 @@ import java.util.Collection;
  * Imports a multiple Android-Gradle projects into IDEA. The set of projects to import may include regular Java projects as well.
  */
 class MultiProjectResolverStrategy extends ProjectResolverStrategy {
+  @NonNls private static final String GRADLE_PATH_SEPARATOR = ":";
+
   MultiProjectResolverStrategy(@NotNull GradleExecutionHelper helper) {
     super(helper);
   }
@@ -68,7 +71,6 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
    * @return the imported project, or {@link null} if the project to import is not an Android-Gradle project.
    */
   @Nullable
-  @Override
   DataNode<ProjectData> resolveProjectInfo(@NotNull ExternalSystemTaskId id,
                                            @NotNull String projectPath,
                                            @Nullable GradleExecutionSettings settings,
@@ -88,8 +90,9 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
 
     for (IdeaModule module : ideaProject.getModules()) {
       String moduleName = module.getName();
-      GradleProject gradleProject = module.getGradleProject();
-      String moduleDirPath = projectDirPath + File.separator + moduleName;
+      IdeaGradleProject gradleProject = new IdeaGradleProject(moduleName, module.getGradleProject().getPath());
+      String relativePath = gradleProject.getGradleProjectPath().replaceAll(GRADLE_PATH_SEPARATOR, File.separator);
+      String moduleDirPath = projectDirPath + relativePath;
       File moduleDir = new File(moduleDirPath);
       String gradleBuildFilePath = getGradleBuildFilePath(moduleDir);
       if (gradleBuildFilePath == null) {
@@ -145,7 +148,7 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
   @NotNull
   private static DataNode<ModuleData> createModuleInfo(@NotNull IdeaModule module,
                                                        @NotNull DataNode<ProjectData> projectInfo,
-                                                       @Nullable GradleProject gradleProject) {
+                                                       @NotNull IdeaGradleProject gradleProject) {
     String projectDirPath = projectInfo.getData().getIdeProjectFileDirectoryPath();
     ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), module.getName(), projectDirPath);
     DataNode<ModuleData> moduleInfo = projectInfo.createChild(ProjectKeys.MODULE, moduleData);
@@ -161,9 +164,7 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
     }
 
     moduleInfo.createChild(AndroidProjectKeys.IDEA_MODULE, module);
-    if (gradleProject != null) {
-      moduleInfo.createChild(AndroidProjectKeys.GRADLE_PROJECT_KEY, gradleProject);
-    }
+    moduleInfo.createChild(AndroidProjectKeys.GRADLE_PROJECT, gradleProject);
     return moduleInfo;
   }
 

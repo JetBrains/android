@@ -31,16 +31,14 @@ import static org.easymock.classextension.EasyMock.*;
  * Tests for {@link ProjectResolverFunctionFactory}.
  */
 public class ProjectResolverFunctionFactoryTest extends TestCase {
-  private ProjectResolverStrategy myStrategy1;
-  private ProjectResolverStrategy myStrategy2;
+  private MultiProjectResolverStrategy myStrategy;
   private ProjectResolverFunctionFactory myFunctionFactory;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myStrategy1 = createMock(ProjectResolverStrategy.class);
-    myStrategy2 = createMock(ProjectResolverStrategy.class);
-    myFunctionFactory = new ProjectResolverFunctionFactory(myStrategy1, myStrategy2);
+    myStrategy = createMock(MultiProjectResolverStrategy.class);
+    myFunctionFactory = new ProjectResolverFunctionFactory(myStrategy);
   }
 
   public void testCreateFunction() {
@@ -55,13 +53,12 @@ public class ProjectResolverFunctionFactoryTest extends TestCase {
     DataNode<ProjectData> projectInfo = createMock(DataNode.class);
 
     // Verify that function execution delegates to ProjectResolverDelegates.
-    expect(myStrategy1.resolveProjectInfo(id, projectPath, settings, connection)).andReturn(null);
-    expect(myStrategy2.resolveProjectInfo(id, projectPath, settings, connection)).andReturn(projectInfo);
-    replay(myStrategy1, myStrategy2);
+    expect(myStrategy.resolveProjectInfo(id, projectPath, settings, connection)).andReturn(projectInfo);
+    replay(myStrategy);
 
     DataNode<ProjectData> resolved = function.fun(connection);
 
-    verify(myStrategy1, myStrategy2);
+    verify(myStrategy);
 
     assertSame(projectInfo, resolved);
   }
