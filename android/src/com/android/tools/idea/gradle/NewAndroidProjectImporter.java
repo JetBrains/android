@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.gradle;
 
+import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.intellij.ProjectTopics;
 import com.intellij.ide.impl.NewProjectUtil;
 import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
-import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -36,14 +37,19 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.CompilerProjectExtension;
+import com.intellij.openapi.roots.ModuleRootAdapter;
+import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -52,6 +58,8 @@ import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.IdeFrameEx;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
+import com.intellij.util.SystemProperties;
+import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
@@ -87,7 +95,6 @@ public class NewAndroidProjectImporter {
    * @param projectRootDir root directory of the project.
    * @param androidSdk     Android SDK to set.
    * @param callback       called after the project has been imported.
-   * @return the imported IDEA project.
    * @throws IOException            if any file I/O operation fails (e.g. creating the '.idea' directory.)
    * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
    */
@@ -102,14 +109,14 @@ public class NewAndroidProjectImporter {
     createIdeaProjectDir(projectRootDir);
 
     final Project newProject = createProject(projectName, projectFilePath);
-    setUpProject(newProject, androidSdk);
+    setUpProject(newProject, projectFilePath, androidSdk);
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       newProject.save();
     }
 
-    File localProperties = new File(projectRootDir, "local.properties");
-    FileUtilRt.createIfNotExists(localProperties);
-    FileUtil.writeToFile(localProperties, "sdk.dir=" + androidSdk.getHomePath());
+    createLocalPropertiesFile(projectRootDir, androidSdk);
+
+    final Ref<ConfigurationException> error = new Ref<ConfigurationException>();
 
     myImporter.importProject(newProject, projectFilePath, new ExternalProjectRefreshCallback() {
       @Override
@@ -117,28 +124,47 @@ public class NewAndroidProjectImporter {
         ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {
-            populateProject(newProject, Preconditions.checkNotNull(projectInfo), projectFilePath);
+            populateProject(newProject, projectInfo);
             open(newProject, projectFilePath);
 
             if (!ApplicationManager.getApplication().isUnitTestMode()) {
               newProject.save();
-              CompilerManager.getInstance(newProject).make(null);
-            }
-
-            if (callback != null) {
-              callback.projectImported(newProject);
             }
           }
         });
       }
 
       @Override
-      public void onFailure(@NotNull String errorMessage, @Nullable String errorDetails) {
+      public void onFailure(@NotNull final String errorMessage, @Nullable String errorDetails) {
         if (errorDetails != null) {
           LOG.warn(errorDetails);
         }
-        String msg = ExternalSystemBundle.message("error.resolve.with.reason", errorMessage);
-        throw new IllegalStateException(msg);
+        String reason = "Failed to import new Gradle project: " + errorMessage;
+        error.set(new ConfigurationException(ExternalSystemBundle.message("error.resolve.with.reason", reason),
+                                             ExternalSystemBundle.message("error.resolve.generic")));
+      }
+    });
+
+    if (error.get() != null) {
+      throw error.get();
+    }
+
+    // We need to compile and call Callback when we have a module in the new project.
+    final MessageBusConnection connection = newProject.getMessageBus().connect();
+    final String projectRootDirPath = projectRootDir.getAbsolutePath();
+    connection.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
+      @Override
+      public void rootsChanged(ModuleRootEvent event) {
+        Module[] modules = ModuleManager.getInstance(newProject).getModules();
+        if (modules.length > 0) {
+          connection.disconnect();
+          if (!ApplicationManager.getApplication().isUnitTestMode()) {
+            Projects.compile(newProject, projectRootDirPath);
+          }
+          if (callback != null) {
+            callback.projectImported(newProject);
+          }
+        }
       }
     });
   }
@@ -150,14 +176,17 @@ public class NewAndroidProjectImporter {
 
   @NotNull
   private static Project createProject(@NotNull String projectName, @NotNull String projectFilePath) throws ConfigurationException {
-    Project newProject = ProjectManager.getInstance().createProject(projectName, projectFilePath);
+    ProjectManager projectManager = ProjectManager.getInstance();
+    Project newProject = projectManager.createProject(projectName, projectFilePath);
     if (newProject == null) {
       throw new NullPointerException("Failed to create a new IDEA project");
     }
     return newProject;
   }
 
-  private static void setUpProject(@NotNull final Project newProject, @NotNull final Sdk androidSdk) {
+  private static void setUpProject(@NotNull final Project newProject,
+                                   @NotNull final String projectFilePath,
+                                   @NotNull final Sdk androidSdk) {
     CommandProcessor.getInstance().executeCommand(newProject, new Runnable() {
       @Override
       public void run() {
@@ -169,15 +198,42 @@ public class NewAndroidProjectImporter {
             // IDEA.
             String compileOutputUrl = VfsUtilCore.pathToUrl(newProject.getBasePath() + "/build/classes");
             CompilerProjectExtension.getInstance(newProject).setCompilerOutputUrl(compileOutputUrl);
+            setUpGradleSettings(newProject, projectFilePath);
           }
         });
       }
     }, null, null);
   }
 
-  private static void populateProject(@NotNull final Project newProject,
-                                      @NotNull final DataNode<ProjectData> projectInfo,
-                                      @NotNull final String projectFilePath) {
+  private static void setUpGradleSettings(@NotNull Project newProject, @NotNull String projectFilePath) {
+    GradleSettings gradleSettings = GradleSettings.getInstance(newProject);
+    GradleProjectSettings projectSettings = new GradleProjectSettings();
+    projectSettings.setPreferLocalInstallationToWrapper(false);
+    projectSettings.setExternalProjectPath(projectFilePath);
+    gradleSettings.setLinkedProjectsSettings(ImmutableList.of(projectSettings));
+  }
+
+  private static void createLocalPropertiesFile(@NotNull File projectRootDir, @NotNull Sdk androidSdk) throws IOException {
+    File localProperties = new File(projectRootDir, "local.properties");
+    FileUtilRt.createIfNotExists(localProperties);
+    // TODO: create this file using a template and just populate the path of Android SDK.
+    String[] lines = {
+      "# This file is automatically generated by Android Studio.",
+      "# Do not modify this file -- YOUR CHANGES WILL BE ERASED!",
+      "#",
+      "# This file must *NOT* be checked into Version Control Systems,",
+      "# as it contains information specific to your local configuration.",
+      "",
+      "# Location of the SDK. This is only used by Gradle.",
+      "# For customization when using a Version Control System, please read the",
+      "# header note.",
+      "sdk.dir=" + androidSdk.getHomePath()
+    };
+    String contents = Joiner.on(SystemProperties.getLineSeparator()).join(lines);
+    FileUtil.writeToFile(localProperties, contents);
+  }
+
+  private static void populateProject(@NotNull final Project newProject, @NotNull final DataNode<ProjectData> projectInfo) {
     System.setProperty(ExternalSystemConstants.NEWLY_IMPORTED_PROJECT, Boolean.TRUE.toString());
     StartupManager.getInstance(newProject).runWhenProjectIsInitialized(new Runnable() {
       @Override
@@ -185,12 +241,6 @@ public class NewAndroidProjectImporter {
         ExternalSystemApiUtil.executeProjectChangeAction(newProject, SYSTEM_ID, newProject, new Runnable() {
           @Override
           public void run() {
-            GradleSettings gradleSettings = GradleSettings.getInstance(newProject);
-            GradleProjectSettings projectSettings = new GradleProjectSettings();
-            projectSettings.setPreferLocalInstallationToWrapper(false);
-            projectSettings.setExternalProjectPath(projectFilePath);
-            gradleSettings.setLinkedProjectsSettings(ImmutableList.of(projectSettings));
-
             ProjectRootManagerEx.getInstanceEx(newProject).mergeRootsChangesDuring(new Runnable() {
               @Override
               public void run() {
@@ -205,7 +255,7 @@ public class NewAndroidProjectImporter {
     });
   }
 
-  private static void open(@NotNull Project newProject, @NotNull String projectFilePath) {
+  private static void open(@NotNull final Project newProject, @NotNull String projectFilePath) {
     ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
     ProjectUtil.updateLastProjectLocation(projectFilePath);
     if (WindowManager.getInstance().isFullScreenSupportedInCurrentOS()) {

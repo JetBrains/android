@@ -1532,8 +1532,14 @@ public class LombokPsiConverter {
       literal = new CharLiteral().rawValue(expression.getText());
       bind(literal, expression);
     } else if (type != null && type.getCanonicalText().equals(CommonClassNames.JAVA_LANG_STRING)) {
-      literal = new StringLiteral().rawValue(expression.getText());
+      StringLiteral stringLiteral = new StringLiteral();
+      literal = stringLiteral.rawValue(expression.getText());
       bind(literal, expression);
+      if (stringLiteral.astValue() == null) {
+        Object value = expression.getValue();
+        String string = value instanceof String ? (String)value : expression.getText();
+        stringLiteral.astValue(string);
+      }
     }
 
     return literal;

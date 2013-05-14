@@ -37,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidInitialConfigurator {
   @NonNls
   private static final ExtensionPointName<Runnable> EP_NAME =
-    ExtensionPointName.create("com.intellij.androidIdeInitializer");
+    ExtensionPointName.create("com.intellij.androidStudioInitializer");
 
   @NonNls private static final String CONFIG_V1 = "AndroidInitConfigurator.V1";
   @NonNls private static final String TODO_TOOLWINDOW_ACTION_ID = "ActivateTODOToolWindow";
@@ -51,7 +51,7 @@ public class AndroidInitialConfigurator {
     // change default key maps to add a activate Android ToolWindow shortcut
     setActivateAndroidToolWindowShortcut();
 
-    activateAndroidIdeInitializerExtensions();
+    activateAndroidStudioInitializerExtensions();
   }
 
   private static void customizeSettings(PropertiesComponent propertiesComponent) {
@@ -109,7 +109,7 @@ public class AndroidInitialConfigurator {
     return null;
   }
 
-  private static void activateAndroidIdeInitializerExtensions() {
+  private static void activateAndroidStudioInitializerExtensions() {
     Runnable[] extensions = EP_NAME.getExtensions();
     for (Runnable r : extensions) {
       r.run();

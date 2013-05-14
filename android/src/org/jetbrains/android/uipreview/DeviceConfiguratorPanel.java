@@ -18,6 +18,7 @@ package org.jetbrains.android.uipreview;
 import com.android.ide.common.resources.configuration.*;
 import com.android.resources.*;
 import com.android.tools.idea.rendering.LocaleManager;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.util.Comparing;
@@ -29,8 +30,10 @@ import com.intellij.ui.speedSearch.ListWithFilter;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.ui.AbstractLayoutManager;
 import com.intellij.util.ui.UIUtil;
+import icons.AndroidIcons;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -155,27 +158,31 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       myQualifierOptionsPanel.add(editor.getComponent(), name);
     }
 
-    myAvailableQualifiersList.setCellRenderer(new DefaultListCellRenderer() {
+    myAvailableQualifiersList.setCellRenderer(new ColoredListCellRenderer() {
       @Override
-      public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+      protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
         if (value instanceof ResourceQualifier) {
-          value = ((ResourceQualifier)value).getShortName();
+          ResourceQualifier qualifier = (ResourceQualifier)value;
+          append(qualifier.getShortName());
+          setIcon(getResourceIcon(qualifier));
         }
-        return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       }
     });
-    myChosenQualifiersList.setCellRenderer(new DefaultListCellRenderer() {
+
+    myChosenQualifiersList.setCellRenderer(new ColoredListCellRenderer() {
       @Override
-      public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+      protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
         if (value instanceof ResourceQualifier) {
           final ResourceQualifier qualifier = getActualQualifier((ResourceQualifier)value);
           final String shortDisplayValue = qualifier.getShortDisplayValue();
-
-          value = shortDisplayValue != null && shortDisplayValue.length() > 0
-                  ? shortDisplayValue
-                  : qualifier.getShortName() + " (?)";
+          if (shortDisplayValue != null && !shortDisplayValue.isEmpty()) {
+            append(shortDisplayValue);
+          }
+          else {
+            append(qualifier.getShortName() + " (?)");
+          }
+          setIcon(getResourceIcon(qualifier));
         }
-        return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       }
     });
 
@@ -232,6 +239,39 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
         updateQualifierEditor();
       }
     });
+  }
+
+  private static final Map<String, Icon> ourIcons = Maps.newHashMapWithExpectedSize(25);
+  static {
+    ourIcons.put(UiModeQualifier.NAME, AndroidIcons.Configs.Dock);
+    ourIcons.put(NightModeQualifier.NAME, AndroidIcons.Configs.Night);
+    ourIcons.put(ScreenDimensionQualifier.NAME, AndroidIcons.Configs.Dimension);
+    ourIcons.put(DensityQualifier.NAME, AndroidIcons.Configs.Dpi);
+    ourIcons.put(ScreenHeightQualifier.NAME, AndroidIcons.Configs.Height);
+    ourIcons.put(KeyboardStateQualifier.NAME, AndroidIcons.Configs.Keyboard);
+    ourIcons.put(LanguageQualifier.NAME, AndroidIcons.Configs.Language);
+    ourIcons.put(CountryCodeQualifier.NAME, AndroidIcons.Configs.Mcc);
+    ourIcons.put(NetworkCodeQualifier.NAME, AndroidIcons.Configs.Mnc);
+    ourIcons.put(NavigationStateQualifier.NAME, AndroidIcons.Configs.Navpad);
+    ourIcons.put(NavigationMethodQualifier.NAME, AndroidIcons.Configs.NavpadMethod);
+    ourIcons.put(ScreenOrientationQualifier.NAME, AndroidIcons.Configs.Orientation);
+    ourIcons.put(ScreenRatioQualifier.NAME, AndroidIcons.Configs.Ratio);
+    ourIcons.put(RegionQualifier.NAME, AndroidIcons.Configs.Region);
+    ourIcons.put(ScreenSizeQualifier.NAME, AndroidIcons.Configs.Size);
+    ourIcons.put(SmallestScreenWidthQualifier.NAME, AndroidIcons.Configs.SmallestWidth);
+    ourIcons.put(ScreenWidthQualifier.NAME, AndroidIcons.Configs.Width);
+    ourIcons.put(TextInputMethodQualifier.NAME, AndroidIcons.Configs.TextInput);
+    ourIcons.put(TouchScreenQualifier.NAME, AndroidIcons.Configs.Touch);
+
+    // TODO: Get dedicated icon for the API version
+    ourIcons.put(VersionQualifier.NAME, AndroidIcons.Targets);
+
+    // TODO: Get icon for layout direction qualifier, and add it in here!
+  }
+
+  @Nullable
+  private static Icon getResourceIcon(ResourceQualifier qualifier) {
+    return ourIcons.get(qualifier.getName());
   }
 
   public void init(@NotNull FolderConfiguration config) {

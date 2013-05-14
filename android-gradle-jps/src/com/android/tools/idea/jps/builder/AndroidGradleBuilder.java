@@ -21,21 +21,28 @@ import com.android.tools.idea.jps.AndroidGradleJps;
 import com.android.tools.idea.jps.model.JpsAndroidGradleModuleExtension;
 import com.android.tools.idea.jps.model.impl.JpsAndroidGradleModuleProperties;
 import com.android.tools.idea.jps.output.parser.GradleErrorOutputParser;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Closeables;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.SystemProperties;
 import org.gradle.tooling.BuildException;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.ModuleChunk;
+import org.jetbrains.jps.android.AndroidJpsUtil;
 import org.jetbrains.jps.android.AndroidSourceGeneratingBuilder;
 import org.jetbrains.jps.android.model.JpsAndroidSdkProperties;
+import org.jetbrains.jps.android.model.impl.JpsAndroidModuleExtensionImpl;
+import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import org.jetbrains.jps.builders.DirtyFilesHolder;
 import org.jetbrains.jps.builders.java.JavaSourceRootDescriptor;
 import org.jetbrains.jps.incremental.*;
@@ -43,12 +50,16 @@ import org.jetbrains.jps.incremental.java.JavaBuilder;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 import org.jetbrains.jps.incremental.messages.ProgressMessage;
+import org.jetbrains.jps.incremental.resources.ResourcesBuilder;
+import org.jetbrains.jps.incremental.resources.StandardResourceBuilderEnabler;
 import org.jetbrains.jps.model.JpsProject;
 import org.jetbrains.jps.model.JpsSimpleElement;
 import org.jetbrains.jps.model.library.sdk.JpsSdk;
+import org.jetbrains.jps.model.module.JpsModule;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Collection;
 import java.util.List;
@@ -64,9 +75,17 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
   @NonNls private static final String ANDROID_HOME_JVM_ARG_FORMAT_UNIX = "-Dandroid.home=%1$s";
 
   @NonNls private static final String BUILDER_NAME = "Android Gradle Builder";
+  @NonNls private static final String DEFAULT_ASSEMBLE_TASKNAME = "assemble";
 
   protected AndroidGradleBuilder() {
     super(BuilderCategory.TRANSLATOR);
+    ResourcesBuilder.registerEnabler(new StandardResourceBuilderEnabler() {
+      @Override
+      public boolean isResourceProcessingEnabled(JpsModule module) {
+        JpsProject project = module.getProject();
+        return !AndroidGradleJps.hasAndroidGradleFacet(project);
+      }
+    });
   }
 
   /**
@@ -101,12 +120,27 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
       LOG.info(String.format(format, getProjectName(context), AndroidGradleFacet.NAME));
       return ExitCode.NOTHING_DONE;
     }
+    ensureTempDirExists();
     File projectDir = getProjectDir(context, extension);
     File gradleHomeDir = getGradleHomeDir(context, extension);
     String androidHome = getAndroidHome(context, chunk);
     String format = "About to build project '%1$s' located at %2$s";
     LOG.info(String.format(format, getProjectName(context), projectDir.getAbsolutePath()));
-    return doBuild(context, projectDir, gradleHomeDir, androidHome);
+    return doBuild(context, chunk, projectDir, gradleHomeDir, androidHome);
+  }
+
+  private static void ensureTempDirExists() {
+    // Gradle checks that the dir at "java.io.tmpdir" exists, and if it doesn't it fails (on Windows.)
+    String tmpDirProperty = System.getProperty("java.io.tmpdir");
+    if (!Strings.isNullOrEmpty(tmpDirProperty)) {
+      File tmpDir = new File(tmpDirProperty);
+      try {
+        FileUtil.ensureExists(tmpDir);
+      }
+      catch (IOException e) {
+        LOG.warn("Unable to create temp directory", e);
+      }
+    }
   }
 
   @NotNull
@@ -179,10 +213,15 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
 
   @NotNull
   private static ExitCode doBuild(@NotNull CompileContext context,
+                                  @NotNull ModuleChunk chunk,
                                   @NotNull File projectDir,
                                   @Nullable File gradleHomeDir,
                                   @Nullable String androidHome) throws ProjectBuildException {
     GradleConnector connector = GradleConnector.newConnector();
+    if (connector instanceof DefaultGradleConnector && SystemInfo.isWindows) {
+      LOG.info("Using Gradle embedded mode.");
+      ((DefaultGradleConnector)connector).embedded(true);
+    }
     connector.forProjectDirectory(projectDir);
     if (gradleHomeDir != null) {
       connector.useInstallation(gradleHomeDir);
@@ -192,7 +231,9 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
     ByteArrayOutputStream stderr = new ByteArrayOutputStream();
     try {
       BuildLauncher launcher = connection.newBuild();
-      launcher.forTasks("build");
+      String buildTasks = getBuildTasks(chunk);
+      LOG.info("Gradle build using tasks: " + buildTasks);
+      launcher.forTasks(buildTasks);
       if (!Strings.isNullOrEmpty(androidHome)) {
         String androidSdkArg = getAndroidHomeJvmArg(androidHome);
         launcher.setJvmArguments(androidSdkArg);
@@ -212,6 +253,45 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
       connection.close();
     }
     return ExitCode.OK;
+  }
+
+  @NotNull
+  private static String getBuildTasks(@NotNull ModuleChunk chunk) {
+    StringBuilder tasks = new StringBuilder();
+    for (JpsModule module : chunk.getModules()) {
+      String buildTask = getBuildTask(module);
+      if (buildTask == null) {
+        continue;
+      }
+      if (tasks.length() > 0) {
+        tasks.append(" ");
+      }
+      tasks.append(buildTask);
+    }
+    String buildTasks = tasks.toString();
+    if (Strings.isNullOrEmpty(buildTasks)) {
+      buildTasks = "build";
+    }
+    return buildTasks;
+  }
+
+  @Nullable
+  private static String getBuildTask(@NotNull JpsModule module) {
+    JpsAndroidGradleModuleExtension androidGradleFacet = AndroidGradleJps.getExtension(module);
+    if (androidGradleFacet == null) {
+      return null;
+    }
+    String moduleName = module.getName();
+    String assembleTaskName = null;
+    JpsAndroidModuleExtensionImpl androidFacet = (JpsAndroidModuleExtensionImpl)AndroidJpsUtil.getExtension(module);
+    if (androidFacet != null) {
+      JpsAndroidModuleProperties properties = androidFacet.getProperties();
+      assembleTaskName = properties.ASSEMBLE_TASK_NAME;
+    }
+    if (Strings.isNullOrEmpty(assembleTaskName)) {
+      assembleTaskName = DEFAULT_ASSEMBLE_TASKNAME;
+    }
+    return moduleName + ":" + assembleTaskName;
   }
 
   @NotNull

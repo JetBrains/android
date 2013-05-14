@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
  * Configuration options for the Android-Gradle facet. These options <em>cannot</em> be directly changed by users.
  */
 public class AndroidGradleFacetConfiguration implements FacetConfiguration {
+  @NonNls public String GRADLE_PROJECT_PATH;
   @NonNls public String PROJECT_ABSOLUTE_PATH;
   @NonNls public String GRADLE_HOME_DIR_PATH;
 

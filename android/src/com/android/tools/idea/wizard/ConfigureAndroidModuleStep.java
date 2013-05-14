@@ -37,7 +37,8 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.NewProjectWizardState.*;
 
 /**
- * ConfigureAndroidModuleStep is the first page in the New Project wizard that sets project name, location, and other project-global parameters.
+ * ConfigureAndroidModuleStep is the first page in the New Project wizard that sets project/module name, location, and other project-global
+ * parameters.
  */
 public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   private static final Logger LOG = Logger.getInstance("#" + ConfigureAndroidModuleStep.class.getName());
@@ -54,7 +55,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   private JCheckBox myCreateActivityCheckBox;
   private JCheckBox myLibraryCheckBox;
   private JPanel myPanel;
-  private JTextField myProjectName;
+  private JTextField myModuleName;
   private JLabel myDescription;
   private JLabel myError;
   private JLabel myProjectLocationLabel;
@@ -88,7 +89,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       }
     }
 
-    register(ATTR_PROJECT_NAME, myProjectName);
+    register(ATTR_MODULE_NAME, myModuleName);
     register(ATTR_PROJECT_LOCATION, myProjectLocation);
     register(ATTR_APP_TITLE, myAppName);
     register(ATTR_PACKAGE_NAME, myPackageName);
@@ -105,7 +106,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       myProjectLocation.setVisible(false);
       myProjectLocationLabel.setVisible(false);
     }
-    if (myTemplateState.myHidden.contains(ATTR_IS_LIBRARY_PROJECT)) {
+    if (myTemplateState.myHidden.contains(ATTR_IS_LIBRARY_MODULE)) {
       myLibraryCheckBox.setVisible(false);
     }
   }
@@ -136,8 +137,8 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   @Override
   @Nullable
   public String getHelpText(@NotNull String param) {
-    if (param.equals(ATTR_PROJECT_NAME)) {
-      return "This project name is used only by the IDE. It can typically be the same as the application name.";
+    if (param.equals(ATTR_MODULE_NAME)) {
+      return "This module name is used only by the IDE. It can typically be the same as the application name.";
     } else if (param.equals(ATTR_APP_TITLE)) {
       return "The application name is shown in the Play store, as well as in the Manage Applications list in Settings.";
     } else if (param.equals(ATTR_PACKAGE_NAME)) {
@@ -193,10 +194,10 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
           return computeAppName();
         }
       });
-      updateDerivedValue(ATTR_PROJECT_NAME, myProjectName, new Callable<String>() {
+      updateDerivedValue(ATTR_MODULE_NAME, myModuleName, new Callable<String>() {
         @Override
         public String call() {
-          return computeProjectName();
+          return computeModuleName();
         }
       });
       updateDerivedValue(ATTR_PACKAGE_NAME, myPackageName, new Callable<String>() {
@@ -205,12 +206,14 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
           return computePackageName();
         }
       });
-      updateDerivedValue(ATTR_PROJECT_LOCATION, myProjectLocation.getTextField(), new Callable<String>() {
-        @Override
-        public String call() {
-          return computeProjectLocation();
-        }
-      });
+      if (!myTemplateState.myHidden.contains(ATTR_PROJECT_LOCATION)) {
+        updateDerivedValue(ATTR_PROJECT_LOCATION, myProjectLocation.getTextField(), new Callable<String>() {
+          @Override
+          public String call() {
+            return computeProjectLocation();
+          }
+        });
+      }
     }});
 
     AndroidTargetComboBoxItem item = (AndroidTargetComboBoxItem)myMinSdk.getSelectedItem();
@@ -229,10 +232,15 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     }
     String packageName = (String)myTemplateState.get(ATTR_PACKAGE_NAME);
     if (packageName == null || packageName.isEmpty()) {
-      setErrorHtml("Package name must be specified.");
+      setErrorHtml("Please specify a package name.");
     } else if (packageName.startsWith(SAMPLE_PACKAGE_PREFIX)) {
       setErrorHtml(String.format("The prefix '%1$s' is meant as a placeholder and should " +
                                     "not be used", SAMPLE_PACKAGE_PREFIX));
+    }
+
+    String moduleName = (String)myTemplateState.get(ATTR_MODULE_NAME);
+    if (moduleName == null || moduleName.isEmpty()) {
+      setErrorHtml("Please specify a module name.");
     }
 
     Integer minSdk = (Integer)myTemplateState.get(ATTR_MIN_API);
@@ -253,23 +261,25 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       return false;
     }
 
-    String projectLocation = (String)myTemplateState.get(ATTR_PROJECT_LOCATION);
-    if (projectLocation == null || projectLocation.isEmpty()) {
-      setErrorHtml("Please specify a project location");
-      return false;
-    }
-    File file = new File(projectLocation);
-    if (file.exists()) {
-      setErrorHtml("There must not already be a project at this location");
-      return false;
-    }
-    if (file.getParent() == null) {
-      setErrorHtml("The project location can not be at the filesystem root");
-      return false;
-    }
-    if (file.getParentFile().exists() && !file.getParentFile().isDirectory()) {
-      setErrorHtml("The project location's parent directory must be a directory, not a plain file");
-      return false;
+    if (!myTemplateState.myHidden.contains(ATTR_PROJECT_LOCATION)) {
+      String projectLocation = (String)myTemplateState.get(ATTR_PROJECT_LOCATION);
+      if (projectLocation == null || projectLocation.isEmpty()) {
+        setErrorHtml("Please specify a project location");
+        return false;
+      }
+      File file = new File(projectLocation);
+      if (file.exists()) {
+        setErrorHtml("There must not already be a project at this location");
+        return false;
+      }
+      if (file.getParent() == null) {
+        setErrorHtml("The project location can not be at the filesystem root");
+        return false;
+      }
+      if (file.getParentFile().exists() && !file.getParentFile().isDirectory()) {
+        setErrorHtml("The project location's parent directory must be a directory, not a plain file");
+        return false;
+      }
     }
 
     return true;
@@ -296,31 +306,34 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   @NotNull
   private String computePackageName() {
-    String projectName = (String)myTemplateState.get(ATTR_PROJECT_NAME);
-    if (projectName != null && !projectName.isEmpty()) {
-      return SAMPLE_PACKAGE_PREFIX + projectName;
+    String moduleName = (String)myTemplateState.get(ATTR_MODULE_NAME);
+    if (moduleName != null && !moduleName.isEmpty()) {
+      moduleName = moduleName.replaceAll("[^a-zA-Z0-9_\\-]", "");
+      moduleName = moduleName.toLowerCase();
+      return SAMPLE_PACKAGE_PREFIX + moduleName;
     } else {
       return "";
     }
   }
 
   @NotNull
-  private String computeProjectName() {
+  private String computeModuleName() {
     String name = (String)myTemplateState.get(ATTR_APP_TITLE);
     if (name == null) {
       return "";
     }
-    return name.toLowerCase();
+    name = name.replaceAll("[^a-zA-Z0-9_\\-.]", "");
+    return name;
   }
 
   @NotNull
   private String computeAppName() {
-    return (String)myTemplateState.get(ATTR_PROJECT_NAME);
+    return (String)myTemplateState.get(ATTR_MODULE_NAME);
   }
 
   @NotNull
   private String computeProjectLocation() {
-    return new File(NewProjectWizardState.getProjectFileDirectory(), (String)myTemplateState.get(ATTR_PROJECT_NAME))
+    return new File(NewProjectWizardState.getProjectFileDirectory(), (String)myTemplateState.get(ATTR_MODULE_NAME))
       .getAbsolutePath();
   }
 

@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetTypeId;
+import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
@@ -47,4 +49,28 @@ public final class Facets {
     return ContainerUtil.getFirstItem(facets);
   }
 
+  /**
+   * Retrieves the Android-Gradle facet from the given module. If the given module does not have it, this method will create a new one.
+   *
+   * @param module the given module.
+   * @return the Android-Gradle facet from the given module.
+   */
+  @NotNull
+  public static AndroidGradleFacet getAndroidGradleFacet(Module module) {
+    AndroidGradleFacet facet = getFirstFacet(module, AndroidGradleFacet.TYPE_ID);
+    if (facet != null) {
+      return facet;
+    }
+
+    // Module does not have Android-Gradle facet. Create one and add it.
+    FacetManager facetManager = FacetManager.getInstance(module);
+    ModifiableFacetModel model = facetManager.createModifiableModel();
+    try {
+      facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
+      model.addFacet(facet);
+    } finally {
+      model.commit();
+    }
+    return facet;
+  }
 }
