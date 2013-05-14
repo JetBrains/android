@@ -87,7 +87,8 @@ public class AndroidIcons {
     public static final Icon Threads = load("/icons/ddms/threads.png"); // 16x16
   }
 
-  public static class Npw {
-    public static final Icon NewModuleSidePanel = load("/icons/npw/newprojectwizard7c-module.png"); // 143x627
+  public static class Wizards {
+    public static final Icon NewModuleSidePanel = load("/icons/wizards/newModule.png"); // 143x627
+    public static final Icon NewProjectSidePanel = load("/icons/wizards/newProject.png"); // 143x627
   }
 }

@@ -383,7 +383,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
 
   @Override
   public Icon getIcon() {
-    return AndroidIcons.Npw.NewModuleSidePanel;
+    return myTemplateWizard.getSidePanelIcon();
   }
 
   @Override
