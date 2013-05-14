@@ -89,7 +89,7 @@ public class TemplateWizard extends AbstractWizard<ModuleWizardStep> {
    */
   protected void populateDirectoryParameters(TemplateWizardState wizardState) throws IOException {
     File projectRoot = new File((String)wizardState.get(NewModuleWizardState.ATTR_PROJECT_LOCATION));
-    File moduleRoot = new File(projectRoot, (String)wizardState.get(NewProjectWizardState.ATTR_PROJECT_NAME));
+    File moduleRoot = new File(projectRoot, (String)wizardState.get(NewProjectWizardState.ATTR_MODULE_NAME));
     File mainFlavorSourceRoot = new File(moduleRoot, MAIN_FLAVOR_SOURCE_PATH);
     File javaSourceRoot = new File(mainFlavorSourceRoot, JAVA_SOURCE_PATH);
     File javaSourcePackageRoot = new File(javaSourceRoot, ((String)wizardState.get(TemplateMetadata.ATTR_PACKAGE_NAME)).replace('.', '/'));

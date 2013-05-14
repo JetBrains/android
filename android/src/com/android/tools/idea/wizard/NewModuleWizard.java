@@ -116,7 +116,7 @@ public class NewModuleWizard extends TemplateWizard implements ExternalProjectRe
         try {
           populateDirectoryParameters(myWizardState);
           File projectRoot = new File(myProject.getBasePath());
-          File moduleRoot = new File(projectRoot, (String)myWizardState.get(NewProjectWizardState.ATTR_PROJECT_NAME));
+          File moduleRoot = new File(projectRoot, (String)myWizardState.get(NewProjectWizardState.ATTR_MODULE_NAME));
           projectRoot.mkdirs();
           if (myLauncherIconStep.isStepVisible() && (Boolean)myWizardState.get(TemplateMetadata.ATTR_CREATE_ICONS)) {
             myWizardState.getLauncherIconState().outputImages(moduleRoot);

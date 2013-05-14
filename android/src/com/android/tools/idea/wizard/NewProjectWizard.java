@@ -108,7 +108,7 @@ public class NewProjectWizard extends TemplateWizard {
       public void run() {
         try {
           populateDirectoryParameters(myWizardState);
-          String projectName = (String)myWizardState.get(NewProjectWizardState.ATTR_PROJECT_NAME);
+          String projectName = (String)myWizardState.get(NewProjectWizardState.ATTR_MODULE_NAME);
           File projectRoot = new File((String)myWizardState.get(NewProjectWizardState.ATTR_PROJECT_LOCATION));
           File moduleRoot = new File(projectRoot, projectName);
           File gradleWrapperSrc = new File(TemplateManager.getTemplateRootFolder(), GRADLE_WRAPPER_PATH);
