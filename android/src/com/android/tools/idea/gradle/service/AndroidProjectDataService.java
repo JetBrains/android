@@ -46,8 +46,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
   public AndroidProjectDataService() {
     myCustomizers =
       new ModuleCustomizer[]{
-        new AndroidSdkModuleCustomizer(), new AndroidFacetModuleCustomizer(), new ContentRootModuleCustomizer(),
-        new AndroidGradleFacetModuleCustomizer()
+        new AndroidSdkModuleCustomizer(), new AndroidFacetModuleCustomizer(), new ContentRootModuleCustomizer()
       };
   }
 
@@ -81,9 +80,9 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
     ExternalSystemApiUtil.executeProjectChangeAction(project, ProjectSystemId.IDE, modules, synchronous, new Runnable() {
       @Override
       public void run() {
-        Map<String, IdeaAndroidProject> androidProjectsByName = indexByAndroidProjectName(toImport);
+        Map<String, IdeaAndroidProject> androidProjectsByModuleName = indexByModuleName(toImport);
         for (Module module : modules) {
-          IdeaAndroidProject androidProject = androidProjectsByName.get(module.getName());
+          IdeaAndroidProject androidProject = androidProjectsByModuleName.get(module.getName());
           customizeModule(module, project, androidProject);
         }
       }
@@ -91,11 +90,11 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
   }
 
   @NotNull
-  private static Map<String, IdeaAndroidProject> indexByAndroidProjectName(@NotNull Collection<DataNode<IdeaAndroidProject>> dataNodes) {
+  private static Map<String, IdeaAndroidProject> indexByModuleName(@NotNull Collection<DataNode<IdeaAndroidProject>> dataNodes) {
     Map<String, IdeaAndroidProject> index = Maps.newHashMap();
     for (DataNode<IdeaAndroidProject> d : dataNodes) {
       IdeaAndroidProject androidProject = d.getData();
-      index.put(androidProject.getDelegate().getName(), androidProject);
+      index.put(androidProject.getModuleName(), androidProject);
     }
     return index;
   }

@@ -21,7 +21,6 @@ import com.android.builder.AndroidBuilder;
 import com.android.builder.model.ProductFlavor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.execution.configurations.ParametersList;
 import com.intellij.execution.configurations.SimpleJavaParameters;
@@ -59,8 +58,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   // This constructor is called by the IDE. See this module's plugin.xml file, implementation of extension 'projectResolve'.
   public AndroidGradleProjectResolver() {
     myHelper = new GradleExecutionHelper();
-    myFunctionFactory =
-      new ProjectResolverFunctionFactory(new ProjectResolverStrategy(myHelper), new MultiProjectResolverStrategy(myHelper));
+    myFunctionFactory = new ProjectResolverFunctionFactory(new MultiProjectResolverStrategy(myHelper));
   }
 
   @VisibleForTesting
@@ -138,10 +136,10 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   }
 
   static class ProjectResolverFunctionFactory {
-    @NotNull private final List<ProjectResolverStrategy> myStrategies;
+    @NotNull private final MultiProjectResolverStrategy myStrategy;
 
-    ProjectResolverFunctionFactory(@NotNull ProjectResolverStrategy... strategies) {
-      myStrategies = ImmutableList.copyOf(strategies);
+    ProjectResolverFunctionFactory(@NotNull MultiProjectResolverStrategy strategy) {
+      myStrategy = strategy;
     }
 
     @NotNull
@@ -152,11 +150,9 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
         @Nullable
         @Override
         public DataNode<ProjectData> fun(ProjectConnection connection) {
-          for (ProjectResolverStrategy strategy : myStrategies) {
-            DataNode<ProjectData> projectInfo = strategy.resolveProjectInfo(id, projectPath, settings, connection);
-            if (projectInfo != null) {
-              return projectInfo;
-            }
+          DataNode<ProjectData> projectInfo = myStrategy.resolveProjectInfo(id, projectPath, settings, connection);
+          if (projectInfo != null) {
+            return projectInfo;
           }
           return null;
         }

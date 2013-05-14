@@ -55,7 +55,7 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
     Collection<Variant> variants = myAndroidProject.getVariants().values();
     Variant selectedVariant = ContainerUtil.getFirstItem(variants);
     assertNotNull(selectedVariant);
-    myIdeaAndroidProject = new IdeaAndroidProject(basePath, myAndroidProject, selectedVariant.getName());
+    myIdeaAndroidProject = new IdeaAndroidProject(myAndroidProject.getName(), basePath, myAndroidProject, selectedVariant.getName());
 
     addContentEntry();
     myCustomizer = new ContentRootModuleCustomizer();
