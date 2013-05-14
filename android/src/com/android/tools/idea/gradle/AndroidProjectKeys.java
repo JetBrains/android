@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 public class AndroidProjectKeys {
   @NotNull public static final Key<IdeaAndroidProject> IDE_ANDROID_PROJECT = Key.create(IdeaAndroidProject.class);
   @NotNull public static final Key<IdeaModule> IDEA_MODULE = Key.create(IdeaModule.class);
-  @NotNull public static final Key<GradleProject> GRADLE_PROJECT_KEY = Key.create(GradleProject.class);
+  @NotNull public static final Key<IdeaGradleProject> GRADLE_PROJECT = Key.create(IdeaGradleProject.class);
 
   private AndroidProjectKeys() {
   }

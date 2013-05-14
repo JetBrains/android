@@ -48,29 +48,4 @@ public final class Facets {
     Collection<T> facets = facetManager.getFacetsByType(typeId);
     return ContainerUtil.getFirstItem(facets);
   }
-
-  /**
-   * Retrieves the Android-Gradle facet from the given module. If the given module does not have it, this method will create a new one.
-   *
-   * @param module the given module.
-   * @return the Android-Gradle facet from the given module.
-   */
-  @NotNull
-  public static AndroidGradleFacet getAndroidGradleFacet(Module module) {
-    AndroidGradleFacet facet = getFirstFacet(module, AndroidGradleFacet.TYPE_ID);
-    if (facet != null) {
-      return facet;
-    }
-
-    // Module does not have Android-Gradle facet. Create one and add it.
-    FacetManager facetManager = FacetManager.getInstance(module);
-    ModifiableFacetModel model = facetManager.createModifiableModel();
-    try {
-      facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
-      model.addFacet(facet);
-    } finally {
-      model.commit();
-    }
-    return facet;
-  }
 }
