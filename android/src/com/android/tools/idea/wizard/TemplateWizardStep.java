@@ -29,6 +29,7 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.ColorPanel;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -378,6 +379,11 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
   @Override
   public JComponent getComponent() {
     return null;
+  }
+
+  @Override
+  public Icon getIcon() {
+    return AndroidIcons.Npw.NewModuleSidePanel;
   }
 
   @Override
