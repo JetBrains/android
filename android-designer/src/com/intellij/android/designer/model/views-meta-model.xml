@@ -26,6 +26,12 @@
     <palette title="requestFocus" icon="AndroidDesignerIcons.RequestFocus"
              tooltip="Requests focus for the parent element or one of its descendants."/>
 
+    <creation>
+      <![CDATA[
+          <requestFocus />
+      ]]>
+    </creation>
+
   </meta>
 
   <meta model="com.intellij.android.designer.model.RadIncludeLayout"
