@@ -16,11 +16,14 @@
 package org.jetbrains.android.run;
 
 import com.android.SdkConstants;
+import com.android.build.gradle.model.Variant;
+import com.android.builder.model.ProductFlavor;
 import com.android.ddmlib.*;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.CommonBundle;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
@@ -775,6 +778,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       clearLogcatAndConsole(getModule().getProject(), device);
     }
 
+    myPackageName = getCorrectPackageName(myPackageName, myFacet);
     message("Target device: " + getDevicePresentableName(device), STDOUT);
     try {
       if (myDeploy) {
@@ -931,11 +935,23 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     throws IOException, AdbCommandRejectedException, TimeoutException {
     for (AndroidFacet depFacet : myAdditionalFacet2PackageName.keySet()) {
       String packageName = myAdditionalFacet2PackageName.get(depFacet);
+      packageName = getCorrectPackageName(packageName, depFacet);
       if (!uploadAndInstall(device, packageName, depFacet)) {
         return false;
       }
     }
     return true;
+  }
+
+  @NotNull
+  private static String getCorrectPackageName(@NotNull String packageName, @NotNull AndroidFacet facet) {
+    IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
+    if (ideaAndroidProject != null) {
+      Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
+      ProductFlavor flavor = selectedVariant.getMergedFlavor();
+      return flavor.getPackageName();
+    }
+    return packageName;
   }
 
   private boolean uploadAndInstall(@NotNull IDevice device, @NotNull String packageName, AndroidFacet facet)
