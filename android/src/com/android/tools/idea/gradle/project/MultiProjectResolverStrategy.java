@@ -31,6 +31,7 @@ import com.intellij.util.Function;
 import com.intellij.util.PathUtil;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
@@ -72,7 +73,7 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
                                            @NotNull String projectPath,
                                            @Nullable GradleExecutionSettings settings,
                                            @NotNull ProjectConnection connection) {
-    String projectDirPath = ExternalSystemApiUtil.toCanonicalPath(PathUtil.getParentPath(projectPath));
+    String projectDirPath = PathUtil.getParentPath(projectPath);
 
     ModelBuilder<IdeaProject> modelBuilder = myHelper.getModelBuilder(IdeaProject.class, id, settings, connection);
     IdeaProject ideaProject = modelBuilder.get();
@@ -87,6 +88,7 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
 
     for (IdeaModule module : ideaProject.getModules()) {
       String moduleName = module.getName();
+      GradleProject gradleProject = module.getGradleProject();
       String moduleDirPath = projectDirPath + File.separator + moduleName;
       File moduleDir = new File(moduleDirPath);
       String gradleBuildFilePath = getGradleBuildFilePath(moduleDir);
@@ -95,13 +97,13 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
       }
       AndroidProject androidProject = getAndroidProject(id, gradleBuildFilePath, settings);
       if (androidProject != null) {
-        createModuleInfo(androidProject, moduleName, projectInfo, moduleDirPath);
+        createModuleInfo(androidProject, moduleName, projectInfo, moduleDirPath, gradleProject);
         if (first == null) {
           first = androidProject;
         }
         continue;
       }
-      createModuleInfo(module, projectInfo);
+      createModuleInfo(module, projectInfo, gradleProject);
     }
 
     if (first == null) {
@@ -142,7 +144,8 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
 
   @NotNull
   private static DataNode<ModuleData> createModuleInfo(@NotNull IdeaModule module,
-                                                       @NotNull DataNode<ProjectData> projectInfo) {
+                                                       @NotNull DataNode<ProjectData> projectInfo,
+                                                       @Nullable GradleProject gradleProject) {
     String projectDirPath = projectInfo.getData().getIdeProjectFileDirectoryPath();
     ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), module.getName(), projectDirPath);
     DataNode<ModuleData> moduleInfo = projectInfo.createChild(ProjectKeys.MODULE, moduleData);
@@ -158,6 +161,9 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
     }
 
     moduleInfo.createChild(AndroidProjectKeys.IDEA_MODULE, module);
+    if (gradleProject != null) {
+      moduleInfo.createChild(AndroidProjectKeys.GRADLE_PROJECT_KEY, gradleProject);
+    }
     return moduleInfo;
   }
 

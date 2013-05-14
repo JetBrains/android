@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.customizer;
 
-import com.android.build.gradle.model.Variant;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.util.Facets;
@@ -79,6 +78,7 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
     SourceProvider sourceProvider = ideaAndroidProject.getDelegate().getDefaultConfig().getSourceProvider();
 
     syncSelectedVariant(facetState, ideaAndroidProject);
+    facet.syncSelectedVariant();
 
     String rootDirPath = project.getBasePath();
     File manifestFile = sourceProvider.getManifestFile();
@@ -109,10 +109,7 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
   private static void syncSelectedVariant(@NotNull JpsAndroidModuleProperties facetState, @NotNull IdeaAndroidProject ideaAndroidProject) {
     if (!Strings.isNullOrEmpty(facetState.SELECTED_BUILD_VARIANT)) {
       ideaAndroidProject.setSelectedVariantName(facetState.SELECTED_BUILD_VARIANT);
-      return;
     }
-    Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
-    facetState.SELECTED_BUILD_VARIANT = selectedVariant.getName();
   }
 
   // We are only getting the relative of the first file in the collection, because JpsAndroidModuleProperties only accepts one path.

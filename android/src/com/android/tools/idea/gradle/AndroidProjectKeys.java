@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle;
 
 import com.android.build.gradle.model.AndroidProject;
 import com.intellij.openapi.externalSystem.model.Key;
+import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 public class AndroidProjectKeys {
   @NotNull public static final Key<IdeaAndroidProject> IDE_ANDROID_PROJECT = Key.create(IdeaAndroidProject.class);
   @NotNull public static final Key<IdeaModule> IDEA_MODULE = Key.create(IdeaModule.class);
+  @NotNull public static final Key<GradleProject> GRADLE_PROJECT_KEY = Key.create(GradleProject.class);
 
   private AndroidProjectKeys() {
   }

@@ -29,6 +29,7 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.ColorPanel;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -167,6 +168,9 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     setDescriptionHtml("");
     setErrorHtml("");
     for (String paramName : myParamFields.keySet()) {
+      if (myTemplateState.myHidden.contains(paramName)) {
+        continue;
+      }
       Parameter param = myTemplateState.hasTemplate() ? myTemplateState.getTemplateMetadata().getParameter(paramName) : null;
       Object oldValue = myTemplateState.get(paramName);
       JComponent component = myParamFields.get(paramName);
@@ -375,6 +379,11 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
   @Override
   public JComponent getComponent() {
     return null;
+  }
+
+  @Override
+  public Icon getIcon() {
+    return AndroidIcons.Npw.NewModuleSidePanel;
   }
 
   @Override

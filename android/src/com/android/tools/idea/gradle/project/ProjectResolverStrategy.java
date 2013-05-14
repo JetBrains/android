@@ -40,6 +40,7 @@ import org.gradle.tooling.BuildException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.UnknownModelException;
+import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper;
@@ -120,11 +121,11 @@ class ProjectResolverStrategy {
 
   @NotNull
   private DataNode<ProjectData> createProjectInfo(@NotNull AndroidProject androidProject, @NotNull String projectPath) {
-    String projectDirPath = ExternalSystemApiUtil.toCanonicalPath(PathUtil.getParentPath(projectPath));
+    String projectDirPath = PathUtil.getParentPath(projectPath);
     String name = androidProject.getName();
 
     DataNode<ProjectData> projectInfo = createProjectInfo(projectDirPath, projectPath, name);
-    DataNode<ModuleData> moduleInfo = createModuleInfo(androidProject, name, projectInfo, projectDirPath);
+    DataNode<ModuleData> moduleInfo = createModuleInfo(androidProject, name, projectInfo, projectDirPath, null);
 
     IdeaAndroidProject ideaAndroidProject = getIdeaAndroidProject(moduleInfo);
     if (ideaAndroidProject != null) {
@@ -151,16 +152,21 @@ class ProjectResolverStrategy {
   DataNode<ModuleData> createModuleInfo(@NotNull AndroidProject androidProject,
                                         @NotNull String name,
                                         @NotNull DataNode<ProjectData> projectInfo,
-                                        @NotNull String moduleDirPath) {
+                                        @NotNull String moduleDirPath,
+                                        @Nullable GradleProject gradleProject) {
     String projectDirPath = projectInfo.getData().getIdeProjectFileDirectoryPath();
     ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), name, projectDirPath);
     DataNode<ModuleData> moduleInfo = projectInfo.createChild(ProjectKeys.MODULE, moduleData);
 
     Variant selectedVariant = getFirstVariant(androidProject);
-    IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(moduleDirPath, androidProject, selectedVariant.getName());
+    IdeaAndroidProject ideaAndroidProject =
+      new IdeaAndroidProject(moduleDirPath, androidProject, selectedVariant.getName());
     addContentRoot(ideaAndroidProject, moduleInfo, moduleDirPath);
 
     moduleInfo.createChild(AndroidProjectKeys.IDE_ANDROID_PROJECT, ideaAndroidProject);
+    if (gradleProject != null) {
+      moduleInfo.createChild(AndroidProjectKeys.GRADLE_PROJECT_KEY, gradleProject);
+    }
     return moduleInfo;
   }
 
@@ -180,7 +186,7 @@ class ProjectResolverStrategy {
         contentRootData.storePath(sourceType, directory.getAbsolutePath());
       }
     };
-    AndroidContentRoot.storePaths(androidProject, storage, true);
+    AndroidContentRoot.storePaths(androidProject, storage);
     moduleInfo.createChild(ProjectKeys.CONTENT_ROOT, contentRootData);
   }
 

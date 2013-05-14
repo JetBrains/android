@@ -56,12 +56,6 @@
     <action id="Android.GenerateSignedApk" class="org.jetbrains.android.actions.GenerateSignedApkAction">
       <add-to-group group-id="BuildMenu" anchor="last"/>
     </action>
-    <action id="Android.ExportSignedPackage" class="org.jetbrains.android.actions.ExportSignedPackageAction">
-      <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
-    </action>
-    <action id="Android.ExportUnsignedPackage" class="org.jetbrains.android.actions.AndroidExportUnsignedPackageAction">
-      <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
-    </action>
     <action id="Android.RunAndroidAvdManager" class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"
         icon="AndroidIcons.AvdManager">
       <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
@@ -112,12 +106,13 @@
   <depends optional="true" config-file="maven-support.xml">org.jetbrains.idea.maven</depends>
   <depends optional="true" config-file="test-ng.xml">TestNG-J</depends>
   <depends optional="true" config-file="intention-power-pack.xml">IntentionPowerPack</depends>
-  <depends optional="true" config-file="androidide.xml">com.intellij.modules.androidide</depends>
+  <depends optional="true" config-file="androidstudio.xml">com.intellij.modules.androidstudio</depends>
   <depends optional="true" config-file="eclipse.xml">org.jetbrains.idea.eclipse</depends>
 
   <extensions defaultExtensionNs="com.intellij">
     <compileServer.pathProvider implementation="com.android.tools.idea.compiler.AndroidCompileServerPathProvider"/>
     <externalProjectDataService implementation="com.android.tools.idea.gradle.service.AndroidProjectDataService" />
+    <externalProjectDataService implementation="com.android.tools.idea.gradle.service.GradleProjectDataService" />
     <lang.foldingBuilder language="JAVA" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
     <lang.foldingBuilder language="XML" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
     <codeFoldingOptionsProvider instance="com.android.tools.idea.folding.AndroidCodeFoldingOptionsProvider"/>
@@ -126,7 +121,8 @@
     <applicationService serviceImplementation="com.android.tools.idea.gradle.NewAndroidProjectImporter"/>
     <exportable serviceInterface="com.android.tools.idea.folding.AndroidFoldingSettings"/>
 
-    <errorHandler implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
+    <errorHandler        implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
+    <statisticsService   implementationClass="com.android.tools.idea.stats.AndroidStatisticsService" key="android-studio" />
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.DrawableStateListDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.BitmapOrNinePatchDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.LayerListDomFileDescription"/>

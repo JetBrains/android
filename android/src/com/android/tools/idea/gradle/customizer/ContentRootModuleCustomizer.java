@@ -105,6 +105,6 @@ public class ContentRootModuleCustomizer implements ModuleCustomizer {
         return LocalFileSystem.PROTOCOL_PREFIX + f.getAbsolutePath();
       }
     };
-    AndroidContentRoot.storePaths(ideaAndroidProject, storage, false);
+    AndroidContentRoot.storePaths(ideaAndroidProject, storage);
   }
 }

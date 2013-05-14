@@ -2,7 +2,7 @@
   <id>com.intellij</id>
   <name>IDEA CORE</name>
 
-  <module value="com.intellij.modules.androidide"/>
+  <module value="com.intellij.modules.androidstudio"/>
 
   <xi:include href="/idea/RichPlatformPlugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <module value="com.intellij.modules.java"/>
@@ -45,7 +45,7 @@
   </project-components>
 
   <extensionPoints>
-    <extensionPoint name="androidIdeInitializer"
+    <extensionPoint name="androidStudioInitializer"
                     interface="java.lang.Runnable"/>
 
     <extensionPoint name="codeInsight.changeVariableTypeQuickFixProvider"
