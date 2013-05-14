@@ -210,6 +210,7 @@ public class NewAndroidProjectImporter {
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     projectSettings.setPreferLocalInstallationToWrapper(false);
     projectSettings.setExternalProjectPath(projectFilePath);
+    projectSettings.setUseAutoImport(true);
     gradleSettings.setLinkedProjectsSettings(ImmutableList.of(projectSettings));
   }
 
