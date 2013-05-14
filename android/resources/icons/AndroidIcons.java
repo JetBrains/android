@@ -86,4 +86,8 @@ public class AndroidIcons {
     public static final Icon StartMethodProfiling = load("/icons/ddms/start_method_profiling.png"); // 16x16
     public static final Icon Threads = load("/icons/ddms/threads.png"); // 16x16
   }
+
+  public static class Npw {
+    public static final Icon NewModuleSidePanel = load("/icons/npw/newprojectwizard7c-module.png"); // 143x627
+  }
 }
