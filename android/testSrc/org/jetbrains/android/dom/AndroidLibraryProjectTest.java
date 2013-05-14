@@ -83,12 +83,36 @@ public class AndroidLibraryProjectTest extends UsefulTestCase {
     myLibModule = libModuleBuilder.getFixture().getModule();
     myLibGenModule = libGenModuleBuilder.getFixture().getModule();
 
+    // Manifest must exist before facet is added
+    final VirtualFile manifest =
+      myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML);
+    final VirtualFile manifest2 =
+      myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, "app/" + SdkConstants.FN_ANDROID_MANIFEST_XML);
+    final VirtualFile manifest3 =
+      myFixture.copyFileToProject(BASE_PATH + "LibAndroidManifest.xml", "lib/" + SdkConstants.FN_ANDROID_MANIFEST_XML);
+
     myAppFacet = AndroidTestCase.addAndroidFacet(myAppModule, getDefaultTestSdkPath(), getDefaultPlatformDir());
     myLibFacet = AndroidTestCase.addAndroidFacet(myLibModule, getDefaultTestSdkPath(), getDefaultPlatformDir());
     myLibFacet.getConfiguration().getState().LIBRARY_PROJECT = true;
 
     ModuleRootModificationUtil.addDependency(myAppModule, myLibModule);
     ModuleRootModificationUtil.addDependency(myLibModule, myLibGenModule);
+
+    // Manifest files will be recreated using createInitialStructure or other custom code in each test case
+
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+          try {
+            manifest.delete(this);
+            manifest2.delete(this);
+            manifest3.delete(this);
+          }
+          catch (IOException e) {
+            fail("Could not delete default manifest");
+          }
+        }
+      });
   }
 
   private void createInitialStructure() {

@@ -20,6 +20,8 @@ import com.android.tools.idea.gradle.customizer.ContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.util.Facets;
+import com.android.tools.idea.gradle.util.Projects;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
@@ -58,16 +60,22 @@ class BuildVariantUpdater {
       LOG.warn(String.format("Unable to find 'Android' facet in module '%1$s', project '%2$s'", moduleName, project.getName()));
       return;
     }
-    IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
+    final IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
     if (androidProject == null) {
       LOG.warn(String.format("Unable to find AndroidProject for module '%1$s', project '%2$s'", moduleName, project.getName()));
       return;
     }
     androidProject.setSelectedVariantName(buildVariantName);
-    facet.getConfiguration().getState().SELECTED_BUILD_VARIANT = buildVariantName;
+    facet.syncSelectedVariant();
 
     for (ModuleCustomizer customizer : myModuleCustomizers) {
       customizer.customizeModule(moduleToUpdate, project, androidProject);
+    }
+
+    // We changed the way we build projects: now we build only the selected variant. If user changes variant, we need to rebuild the project
+    // since the generated sources may not be there.
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      Projects.compile(project, androidProject.getRootDirPath());
     }
   }
 

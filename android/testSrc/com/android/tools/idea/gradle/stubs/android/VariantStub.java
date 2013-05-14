@@ -26,6 +26,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class VariantStub implements Variant {
+  private static final String DEFAULT_ASSEMBLE_TASK_NAME = "assemble";
+
   @NotNull private final List<File> myGeneratedResourceFolders = Lists.newArrayList();
   @NotNull private final List<File> myGeneratedSourceFolders = Lists.newArrayList();
   @NotNull private final List<File> myGeneratedTestResourceFolders = Lists.newArrayList();
@@ -76,7 +78,7 @@ public class VariantStub implements Variant {
   @NotNull
   @Override
   public String getAssembleTaskName() {
-    throw new UnsupportedOperationException();
+    return DEFAULT_ASSEMBLE_TASK_NAME;
   }
 
   @NotNull

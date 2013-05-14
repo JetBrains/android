@@ -22,6 +22,7 @@ import org.w3c.dom.*;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static com.android.tools.idea.templates.Template.*;
@@ -33,7 +34,7 @@ public class TemplateMetadata {
   public static final String ATTR_PARENT_ACTIVITY_CLASS = "parentActivityClass";
   public static final String ATTR_ACTIVITY_TITLE = "activityTitle";
   public static final String ATTR_IS_LAUNCHER = "isLauncher";
-  public static final String ATTR_IS_LIBRARY_PROJECT = "isLibraryProject";
+  public static final String ATTR_IS_LIBRARY_MODULE = "isLibraryProject";
   public static final String ATTR_CREATE_ICONS = "createIcons";
   public static final String ATTR_COPY_ICONS = "copyIcons";
   public static final String ATTR_TARGET_API = "targetApi";
@@ -62,7 +63,7 @@ public class TemplateMetadata {
     myDocument = document;
 
     NodeList parameters = myDocument.getElementsByTagName(TAG_PARAMETER);
-    myParameterMap = new HashMap<String, Parameter>(parameters.getLength());
+    myParameterMap = new LinkedHashMap<String, Parameter>(parameters.getLength());
     for (int index = 0, max = parameters.getLength(); index < max; index++) {
       Element element = (Element) parameters.item(index);
       Parameter parameter = new Parameter(this, element);

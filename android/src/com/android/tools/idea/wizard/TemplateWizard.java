@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.tools.idea.templates.TemplateManager;
+import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.wizard.AbstractWizard;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
+import com.intellij.openapi.projectRoots.Sdk;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -86,7 +89,7 @@ public class TemplateWizard extends AbstractWizard<ModuleWizardStep> {
    */
   protected void populateDirectoryParameters(TemplateWizardState wizardState) throws IOException {
     File projectRoot = new File((String)wizardState.get(NewModuleWizardState.ATTR_PROJECT_LOCATION));
-    File moduleRoot = new File(projectRoot, (String)wizardState.get(NewProjectWizardState.ATTR_PROJECT_NAME));
+    File moduleRoot = new File(projectRoot, (String)wizardState.get(NewProjectWizardState.ATTR_MODULE_NAME));
     File mainFlavorSourceRoot = new File(moduleRoot, MAIN_FLAVOR_SOURCE_PATH);
     File javaSourceRoot = new File(mainFlavorSourceRoot, JAVA_SOURCE_PATH);
     File javaSourcePackageRoot = new File(javaSourceRoot, ((String)wizardState.get(TemplateMetadata.ATTR_PACKAGE_NAME)).replace('.', '/'));
@@ -100,5 +103,20 @@ public class TemplateWizard extends AbstractWizard<ModuleWizardStep> {
     if (mavenUrl != null) {
       wizardState.put(TemplateMetadata.ATTR_MAVEN_URL, mavenUrl);
     }
+  }
+
+  @Nullable
+  protected Sdk getSdk(int apiLevel) {
+    for (Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
+      AndroidPlatform androidPlatform = AndroidPlatform.parse(sdk);
+      if (androidPlatform != null) {
+        AndroidSdkData sdkData = androidPlatform.getSdkData();
+        IAndroidTarget target = sdkData.findTargetByApiLevel(Integer.toString(apiLevel));
+        if (target != null) {
+          return sdk;
+        }
+      }
+    }
+    return null;
   }
 }

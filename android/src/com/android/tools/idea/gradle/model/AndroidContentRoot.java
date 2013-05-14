@@ -38,9 +38,8 @@ public final class AndroidContentRoot {
   private static final String OUTPUT_DIR_NAME = "build";
 
   // TODO: Retrieve this information from Gradle.
-  private static final List<String> EXCLUDED_OUTPUT_DIR_NAMES =
-    ImmutableList.of("apk", "assets", "bundles", "classes", "dependency-cache", "exploded-bundles", "incremental", "libs", "manifests",
-                     "symbols", "tmp");
+  private static final String[] EXCLUDED_OUTPUT_DIR_NAMES =
+    {"apk", "assets", "bundles", "classes", "dependency-cache", "exploded-bundles", "incremental", "libs", "manifests", "symbols", "tmp"};
 
   private AndroidContentRoot() {
   }
@@ -50,11 +49,8 @@ public final class AndroidContentRoot {
    *
    * @param androidProject    structure of the Android-Gradle project.
    * @param storage           persists the configuration of a content root.
-   * @param excludeOutputDirs indicates whether output directories should be marked as 'excluded.'
    */
-  public static void storePaths(@NotNull IdeaAndroidProject androidProject,
-                                @NotNull ContentRootStorage storage,
-                                boolean excludeOutputDirs) {
+  public static void storePaths(@NotNull IdeaAndroidProject androidProject, @NotNull ContentRootStorage storage) {
     Variant selectedVariant = androidProject.getSelectedVariant();
     storePaths(selectedVariant, storage);
 
@@ -77,9 +73,7 @@ public final class AndroidContentRoot {
     ProductFlavorContainer defaultConfig = delegate.getDefaultConfig();
     storePaths(defaultConfig, storage);
 
-    if (excludeOutputDirs) {
-      excludeOutputDirs(storage);
-    }
+    excludeOutputDirs(storage);
   }
 
   private static void storePaths(@NotNull Variant variant, @NotNull ContentRootStorage storage) {
@@ -118,10 +112,16 @@ public final class AndroidContentRoot {
   }
 
   private static void excludeOutputDirs(@NotNull ContentRootStorage storage) {
-    for (File child : childrenOf(new File(storage.getRootDirPath()))) {
+    File rootDir = new File(storage.getRootDirPath());
+    for (File child : childrenOf(rootDir)) {
       if (child.isDirectory()) {
         exclude(child, storage);
       }
+    }
+    File outputDir = new File(rootDir, OUTPUT_DIR_NAME);
+    for (String childName : EXCLUDED_OUTPUT_DIR_NAMES) {
+      File child = new File(outputDir, childName);
+      storage.storePath(ExternalSystemSourceType.EXCLUDED, child);
     }
   }
 
@@ -130,13 +130,6 @@ public final class AndroidContentRoot {
     if (name.startsWith(".")) {
       storage.storePath(ExternalSystemSourceType.EXCLUDED, dir);
       return;
-    }
-    if (name.equals(OUTPUT_DIR_NAME)) {
-      for (File child : childrenOf(dir)) {
-        if (child.isDirectory() && EXCLUDED_OUTPUT_DIR_NAMES.contains(child.getName())) {
-          storage.storePath(ExternalSystemSourceType.EXCLUDED, child);
-        }
-      }
     }
   }
 

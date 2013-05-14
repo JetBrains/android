@@ -124,6 +124,8 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private ProjectResources myProjectResources;
   private IdeaAndroidProject myIdeaAndroidProject;
 
+  private final List<GradleProjectAvailableWizardListener> myGradleProjectAvailableWizardListeners = Lists.newArrayList();
+
   public AndroidFacet(@NotNull Module module, String name, @NotNull AndroidFacetConfiguration configuration) {
     super(getFacetType(), module, name, configuration, null);
     configuration.setFacet(this);
@@ -861,6 +863,26 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    */
   public void setIdeaAndroidProject(@Nullable IdeaAndroidProject project) {
     myIdeaAndroidProject = project;
+    if (project != null) {
+      for (GradleProjectAvailableWizardListener listener : myGradleProjectAvailableWizardListeners) {
+        listener.gradleProjectAvailable(project);
+      }
+    }
+  }
+
+  public void addListener(@NotNull GradleProjectAvailableWizardListener listener) {
+    if (myIdeaAndroidProject != null) {
+      listener.gradleProjectAvailable(myIdeaAndroidProject);
+    }
+    synchronized (this) {
+      myGradleProjectAvailableWizardListeners.add(listener);
+    }
+  }
+
+  public void removeListener(@NotNull GradleProjectAvailableWizardListener listener) {
+    synchronized (this) {
+      myGradleProjectAvailableWizardListeners.remove(listener);
+    }
   }
 
   /**
@@ -869,6 +891,15 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @Nullable
   public IdeaAndroidProject getIdeaAndroidProject() {
     return myIdeaAndroidProject;
+  }
+
+  public void syncSelectedVariant() {
+    if (myIdeaAndroidProject != null) {
+      Variant variant = myIdeaAndroidProject.getSelectedVariant();
+      JpsAndroidModuleProperties state = getConfiguration().getState();
+      state.ASSEMBLE_TASK_NAME = variant.getAssembleTaskName();
+      state.SELECTED_BUILD_VARIANT = variant.getName();
+    }
   }
 
   // Compatibility bridge for old (non-Gradle) projects
@@ -942,5 +973,9 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       assert dir != null;
       return Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
     }
+  }
+
+  public interface GradleProjectAvailableWizardListener {
+    void gradleProjectAvailable(@NotNull IdeaAndroidProject project);
   }
 }

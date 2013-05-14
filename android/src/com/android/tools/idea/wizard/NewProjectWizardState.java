@@ -33,7 +33,7 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
  */
 public class NewProjectWizardState extends NewModuleWizardState {
   public static final String ATTR_LIBRARY = "isLibrary";
-  public static final String ATTR_PROJECT_NAME = "projectName";
+  public static final String ATTR_MODULE_NAME = "projectName";
 
   private static final String LIBRARY_TEMPLATE = "NewAndroidLibrary";
   private static final String APPLICATION_TEMPLATE = "NewAndroidApplication";
@@ -45,7 +45,7 @@ public class NewProjectWizardState extends NewModuleWizardState {
 
   public NewProjectWizardState() {
     myHidden.remove(ATTR_PROJECT_LOCATION);
-    myHidden.remove(ATTR_IS_LIBRARY_PROJECT);
+    myHidden.remove(ATTR_IS_LIBRARY_MODULE);
 
     put(ATTR_LIBRARY, false);
     put(ATTR_PROJECT_LOCATION, getProjectFileDirectory());

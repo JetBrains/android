@@ -62,7 +62,7 @@ public class IdeaModuleStub implements IdeaModule {
 
   @Override
   public GradleProject getGradleProject() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @NotNull
