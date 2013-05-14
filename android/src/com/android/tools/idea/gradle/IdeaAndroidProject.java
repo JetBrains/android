@@ -27,21 +27,32 @@ import java.util.Collection;
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
 public class IdeaAndroidProject implements Serializable {
-  @NotNull private final AndroidProject myDelegate;
+  @NotNull private final String myModuleName;
   @NotNull private final String myRootDirPath;
+  @NotNull private final AndroidProject myDelegate;
   @NotNull private String mySelectedVariantName;
 
   /**
    * Creates a new {@link IdeaAndroidProject}.
    *
+   * @param moduleName          the name of the IDEA module, created from {@code delegate}.
    * @param rootDirPath         absolute path of the root directory of the imported Android-Gradle project.
    * @param delegate            imported Android-Gradle project.
    * @param selectedVariantName name of the selected build variant.
    */
-  public IdeaAndroidProject(@NotNull String rootDirPath, @NotNull AndroidProject delegate, @NotNull String selectedVariantName) {
+  public IdeaAndroidProject(@NotNull String moduleName,
+                            @NotNull String rootDirPath,
+                            @NotNull AndroidProject delegate,
+                            @NotNull String selectedVariantName) {
+    myModuleName = moduleName;
     myRootDirPath = rootDirPath;
     myDelegate = delegate;
     setSelectedVariantName(selectedVariantName);
+  }
+
+  @NotNull
+  public String getModuleName() {
+    return myModuleName;
   }
 
   /**
