@@ -31,19 +31,6 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidGradleFacetModuleCustomizer implements ModuleCustomizer {
   @Override
   public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
-    AndroidGradleFacet facet = Facets.getFirstFacet(module, AndroidGradleFacet.TYPE_ID);
-    if (facet != null) {
-      return;
-    }
-
-    // Module does not have Android-Gradle facet. Create one and add it.
-    FacetManager facetManager = FacetManager.getInstance(module);
-    ModifiableFacetModel model = facetManager.createModifiableModel();
-    try {
-      facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
-      model.addFacet(facet);
-    } finally {
-      model.commit();
-    }
+    Facets.getAndroidGradleFacet(module);
   }
 }

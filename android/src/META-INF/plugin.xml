@@ -112,6 +112,7 @@
   <extensions defaultExtensionNs="com.intellij">
     <compileServer.pathProvider implementation="com.android.tools.idea.compiler.AndroidCompileServerPathProvider"/>
     <externalProjectDataService implementation="com.android.tools.idea.gradle.service.AndroidProjectDataService" />
+    <externalProjectDataService implementation="com.android.tools.idea.gradle.service.GradleProjectDataService" />
     <lang.foldingBuilder language="JAVA" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
     <lang.foldingBuilder language="XML" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
     <codeFoldingOptionsProvider instance="com.android.tools.idea.folding.AndroidCodeFoldingOptionsProvider"/>
