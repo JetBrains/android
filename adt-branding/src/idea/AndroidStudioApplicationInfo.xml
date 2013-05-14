@@ -18,8 +18,8 @@
   <company name="Google Inc." url="http://developer.android.com"/>
   <build number="__BUILD_NUMBER__" date="__BUILD_DATE__"/>
   <install-over minbuild="0.1" maxbuild="0.9999" version="0"/>
-  <logo url="/artwork/diamond-splash7d.png" textcolor="cccccc" progressColor="ffaa16" progressY="238" progressTailIcon="/community_progress_tail.png"/>
-  <about url="/artwork/diamond-splash7d-about.png" foreground="cccccc"/>
+  <logo url="/artwork/studio_splash.png" textcolor="cccccc" progressColor="ffaa16" progressY="238" progressTailIcon="/community_progress_tail.png"/>
+  <about url="/artwork/studio_about.png" foreground="cccccc"/>
   <icon size32="/icon_CE.png" size16="/icon_CEsmall.png" size32opaque="/icon_CEwhite.png" size12="/toolwindows/toolWindowProject.png"/>
   <package code="__PACKAGE_CODE__"/>
   <names product="Android Studio" fullname="Android Studio" script="studio"/> <!-- fullname is used by NPW to show default folder for projects as -->
