@@ -1670,7 +1670,6 @@
       <item tag="RatingBar"/>
       <item tag="Spinner"/>
       <item tag="WebView"/>
-      <item tag="KeyboardView"/>
     </group>
 
     <group name="Text Fields">
