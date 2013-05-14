@@ -15,27 +15,31 @@
  */
 package com.android.tools.idea.ddms.screenshot;
 
+import com.android.dvlib.DeviceSchemaTest;
 import com.android.resources.ScreenOrientation;
+import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.DeviceParser;
 import com.android.tools.idea.rendering.ImageUtils;
 import junit.framework.TestCase;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.InputStream;
 
 import static com.android.tools.idea.ddms.screenshot.DeviceArtPainter.DeviceData;
 import static com.android.tools.idea.ddms.screenshot.DeviceArtPainter.FrameData;
 
 public class DeviceArtPainterTest extends TestCase {
-
-  public void testGenerateCropData() {
+  public void testGenerateCropData() throws Exception {
     // TODO: Assert that the crop data is right
     generateCropData();
   }
 
-  public void generateCropData() {
+  public void generateCropData() throws Exception {
     DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
+    Device device = newDevice();
     for (DeviceArtDescriptor spec : framePainter.getDescriptors()) {
-      DeviceData data = new DeviceData(null, spec);
+      DeviceData data = new DeviceData(device, spec);
       System.out.println("for spec " + spec.getName() + " -- " + spec.getId());
       FrameData landscapeData = data.getFrameData(ScreenOrientation.LANDSCAPE, Integer.MAX_VALUE);
       // Must use computeImage rather than getImage here since we want to get the
@@ -76,5 +80,20 @@ public class DeviceArtPainterTest extends TestCase {
       System.out.print(crop.y+crop.height);
       System.out.println("],");
     }
+  }
+
+  private static Device newDevice() throws Exception {
+    java.util.List<Device> devices;
+    InputStream stream = null;
+    try {
+      stream = DeviceSchemaTest.class.getResourceAsStream("devices_minimal.xml");
+      devices = DeviceParser.parse(stream);
+    } finally {
+      if (stream != null) {
+        stream.close();
+      }
+    }
+    assertTrue(!devices.isEmpty());
+    return devices.get(0);
   }
 }

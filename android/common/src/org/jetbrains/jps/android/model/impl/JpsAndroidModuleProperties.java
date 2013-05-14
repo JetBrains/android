@@ -28,6 +28,7 @@ import java.util.*;
  */
 public class JpsAndroidModuleProperties {
   public String SELECTED_BUILD_VARIANT = "";
+  public String ASSEMBLE_TASK_NAME = "";
   public boolean ALLOW_USER_CONFIGURATION = true;
 
   public String GEN_FOLDER_RELATIVE_PATH_APT = "/" + SdkConstants.FD_GEN_SOURCES;

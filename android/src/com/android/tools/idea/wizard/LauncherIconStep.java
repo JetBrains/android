@@ -139,7 +139,6 @@ public class LauncherIconStep extends TemplateWizardStep {
     myHDpiPreview.setIcon(new ImageIcon(getImage(imageMap, "hdpi")));
     myXHDpiPreview.setIcon(new ImageIcon(getImage(imageMap, "xhdpi")));
     myXXHdpiPreview.setIcon(new ImageIcon(getImage(imageMap, "xxhdpi")));
-    myTemplateWizard.pack();
     return true;
   }
 

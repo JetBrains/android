@@ -410,6 +410,21 @@ public class LombokPsiConverterTest extends AndroidTestCase {
     check(file, testClass);
   }
 
+  public void testPsiNullValue() {
+    // From the IO scheduling app:
+    //  String SESSIONS_SNIPPET = "snippet(" + Tables.SESSIONS_SEARCH + ",'{','}','\u2026')";
+    String testClass =
+      "package test.pkg;\n" +
+      "\n" +
+      "public final class R6 {\n" +
+      "    public void foo() {\n" +
+      "        String s = \",'{','}','\\u2026')\";\n" +
+      "    }\n" +
+      "}";
+    PsiFile file = myFixture.addFileToProject("src/test/pkg/R6.java", testClass);
+    check(file, testClass);
+  }
+
   public void testEmptyR() {
     String testClass =
       "/*___Generated_by_IDEA___*/\n" +

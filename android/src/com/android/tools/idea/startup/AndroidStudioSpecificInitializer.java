@@ -45,8 +45,8 @@ import java.io.IOException;
 import java.util.*;
 
 /** Initialization performed only in the context of the Android IDE. */
-public class AndroidIdeSpecificInitializer implements Runnable {
-  @NonNls private static final String CONFIG_V1 = "AndroidIdeSpecificInitializer.V1";
+public class AndroidStudioSpecificInitializer implements Runnable {
+  @NonNls private static final String CONFIG_V1 = "AndroidStudioSpecificInitializer.V1";
   @NonNls public static final String NEW_NEW_PROJECT_WIZARD = "android.newProjectWizard";
   @NonNls private static final String ANDROID_SDK_FOLDER_NAME = "sdk";
 
