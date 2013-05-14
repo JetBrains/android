@@ -16,6 +16,7 @@
 package org.jetbrains.android.run;
 
 import com.android.SdkConstants;
+import com.android.build.gradle.model.ProductFlavorContainer;
 import com.android.build.gradle.model.Variant;
 import com.android.builder.model.ProductFlavor;
 import com.android.ddmlib.*;
@@ -24,6 +25,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.google.common.base.Strings;
 import com.intellij.CommonBundle;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
@@ -874,8 +876,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     ApplicationManager.getApplication().invokeAndWait(new Runnable() {
       @Override
       public void run() {
-        final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(
-          AndroidToolWindowFactory.TOOL_WINDOW_ID);
+        final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(AndroidToolWindowFactory.TOOL_WINDOW_ID);
         if (toolWindow == null) {
           result[0] = false;
           return;
@@ -949,7 +950,18 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     if (ideaAndroidProject != null) {
       Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
       ProductFlavor flavor = selectedVariant.getMergedFlavor();
-      return flavor.getPackageName();
+      String correctPackageName = flavor.getPackageName();
+      if (!Strings.isNullOrEmpty(correctPackageName)) {
+        return correctPackageName;
+      }
+      Map<String,ProductFlavorContainer> productFlavors = ideaAndroidProject.getDelegate().getProductFlavors();
+      for (String flavorName : selectedVariant.getProductFlavors()) {
+        ProductFlavorContainer flavorContainer = productFlavors.get(flavorName);
+        correctPackageName = flavorContainer.getProductFlavor().getPackageName();
+        if (!Strings.isNullOrEmpty(correctPackageName)) {
+          return correctPackageName;
+        }
+      }
     }
     return packageName;
   }
