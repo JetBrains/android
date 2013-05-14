@@ -22,10 +22,12 @@ import com.intellij.ide.wizard.AbstractWizard;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
+import icons.AndroidIcons;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 
@@ -80,6 +82,10 @@ public class TemplateWizard extends AbstractWizard<ModuleWizardStep> {
       }
     }
     return step;
+  }
+
+  public Icon getSidePanelIcon() {
+    return AndroidIcons.Wizards.NewModuleSidePanel;
   }
 
   /**
