@@ -16,6 +16,8 @@
 package org.jetbrains.android.run;
 
 import com.android.SdkConstants;
+import com.android.build.gradle.model.AndroidProject;
+import com.android.build.gradle.model.BuildTypeContainer;
 import com.android.build.gradle.model.ProductFlavorContainer;
 import com.android.build.gradle.model.Variant;
 import com.android.builder.model.ProductFlavor;
@@ -951,17 +953,17 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
       ProductFlavor flavor = selectedVariant.getMergedFlavor();
       String correctPackageName = flavor.getPackageName();
-      if (!Strings.isNullOrEmpty(correctPackageName)) {
-        return correctPackageName;
+      if (correctPackageName == null) {
+        correctPackageName = packageName;
       }
-      Map<String,ProductFlavorContainer> productFlavors = ideaAndroidProject.getDelegate().getProductFlavors();
-      for (String flavorName : selectedVariant.getProductFlavors()) {
-        ProductFlavorContainer flavorContainer = productFlavors.get(flavorName);
-        correctPackageName = flavorContainer.getProductFlavor().getPackageName();
-        if (!Strings.isNullOrEmpty(correctPackageName)) {
-          return correctPackageName;
-        }
+      String buildTypeName = selectedVariant.getBuildType();
+      AndroidProject delegate = ideaAndroidProject.getDelegate();
+      BuildTypeContainer buildTypeContainer = delegate.getBuildTypes().get(buildTypeName);
+      String packageNameSuffix = buildTypeContainer.getBuildType().getPackageNameSuffix();
+      if (packageNameSuffix != null) {
+        correctPackageName = correctPackageName + packageNameSuffix;
       }
+      return correctPackageName;
     }
     return packageName;
   }
