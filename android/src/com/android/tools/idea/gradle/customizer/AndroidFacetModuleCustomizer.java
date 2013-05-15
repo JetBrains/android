@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -133,7 +134,7 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
   }
 
   private static boolean dirMatches(@NotNull String relativeDirPath, @NotNull String...segmentsToMatch) {
-    List<String> segments = FileUtil.splitPath(relativeDirPath);
+    List<String> segments = splitPathSystemIndependent(relativeDirPath, '/');
     if (!segments.isEmpty() && segments.get(0).isEmpty()) {
       // First segment is an empty String since the relative path starts with "/".
       segments.remove(0);
@@ -147,5 +148,18 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
       }
     }
     return true;
+  }
+
+  @NotNull
+  public static List<String> splitPathSystemIndependent(@NotNull String path, char separator) {
+    ArrayList<String> list = new ArrayList<String>();
+    int index = 0;
+    int nextSeparator;
+    while ((nextSeparator = path.indexOf(separator, index)) != -1) {
+      list.add(path.substring(index, nextSeparator));
+      index = nextSeparator + 1;
+    }
+    list.add(path.substring(index, path.length()));
+    return list;
   }
 }
