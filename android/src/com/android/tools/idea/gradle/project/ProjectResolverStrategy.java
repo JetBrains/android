@@ -125,7 +125,7 @@ class ProjectResolverStrategy {
     String name = androidProject.getName();
 
     DataNode<ProjectData> projectInfo = createProjectInfo(projectDirPath, projectPath, name);
-    DataNode<ModuleData> moduleInfo = createModuleInfo(androidProject, name, projectInfo, projectDirPath, null);
+    DataNode<ModuleData> moduleInfo = createModuleInfo(androidProject, name, projectInfo, projectDirPath, projectPath, null);
 
     IdeaAndroidProject ideaAndroidProject = getIdeaAndroidProject(moduleInfo);
     if (ideaAndroidProject != null) {
@@ -153,9 +153,11 @@ class ProjectResolverStrategy {
                                         @NotNull String name,
                                         @NotNull DataNode<ProjectData> projectInfo,
                                         @NotNull String moduleDirPath,
+                                        @NotNull String externalProjectConfigPath,
                                         @Nullable GradleProject gradleProject) {
     String projectDirPath = projectInfo.getData().getIdeProjectFileDirectoryPath();
-    ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), name, projectDirPath);
+    ModuleData moduleData
+      = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), name, projectDirPath, externalProjectConfigPath);
     DataNode<ModuleData> moduleInfo = projectInfo.createChild(ProjectKeys.MODULE, moduleData);
 
     Variant selectedVariant = getFirstVariant(androidProject);

@@ -97,7 +97,7 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
       }
       AndroidProject androidProject = getAndroidProject(id, gradleBuildFilePath, settings);
       if (androidProject != null) {
-        createModuleInfo(androidProject, moduleName, projectInfo, moduleDirPath, gradleProject);
+        createModuleInfo(androidProject, moduleName, projectInfo, moduleDirPath, gradleProject.getPath(), gradleProject);
         if (first == null) {
           first = androidProject;
         }
@@ -145,9 +145,10 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
   @NotNull
   private static DataNode<ModuleData> createModuleInfo(@NotNull IdeaModule module,
                                                        @NotNull DataNode<ProjectData> projectInfo,
-                                                       @Nullable GradleProject gradleProject) {
+                                                       @NotNull GradleProject gradleProject) {
     String projectDirPath = projectInfo.getData().getIdeProjectFileDirectoryPath();
-    ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), module.getName(), projectDirPath);
+    ModuleData moduleData
+      = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), module.getName(), projectDirPath, gradleProject.getPath());
     DataNode<ModuleData> moduleInfo = projectInfo.createChild(ProjectKeys.MODULE, moduleData);
 
     // Populate content roots.
@@ -161,9 +162,7 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
     }
 
     moduleInfo.createChild(AndroidProjectKeys.IDEA_MODULE, module);
-    if (gradleProject != null) {
-      moduleInfo.createChild(AndroidProjectKeys.GRADLE_PROJECT_KEY, gradleProject);
-    }
+    moduleInfo.createChild(AndroidProjectKeys.GRADLE_PROJECT_KEY, gradleProject);
     return moduleInfo;
   }
 
