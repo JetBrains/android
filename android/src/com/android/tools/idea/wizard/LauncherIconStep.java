@@ -192,6 +192,11 @@ public class LauncherIconStep extends TemplateWizardStep {
     return myPanel;
   }
 
+  @Override
+  public JComponent getPreferredFocusedComponent() {
+    return myImageRadioButton;
+  }
+
   @NotNull
   @Override
   protected JLabel getDescription() {

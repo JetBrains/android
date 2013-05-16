@@ -23,6 +23,7 @@ import com.android.tools.idea.templates.TemplateUtils;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.wm.IdeFocusManager;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -102,6 +103,9 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
     myProjectLocation.addBrowseFolderListener("Please choose a project location", null, null,
                                               FileChooserDescriptorFactory.createSingleFolderDescriptor());
+    myProjectLocation.getTextField().addFocusListener(this);
+    myProjectLocation.getTextField().addActionListener(this);
+    myProjectLocation.getTextField().getDocument().addDocumentListener(this);
     if (myTemplateState.myHidden.contains(ATTR_PROJECT_LOCATION)) {
       myProjectLocation.setVisible(false);
       myProjectLocationLabel.setVisible(false);
@@ -115,6 +119,11 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   @NotNull
   public JComponent getComponent() {
     return myPanel;
+  }
+
+  @Override
+  public JComponent getPreferredFocusedComponent() {
+    return myAppName;
   }
 
   @NotNull
@@ -187,35 +196,43 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
     ((NewModuleWizardState)myTemplateState).updateParameters();
 
-    SwingUtilities.invokeLater(new Runnable() { @Override public void run() {
-      updateDerivedValue(ATTR_APP_TITLE, myAppName, new Callable<String>() {
-        @Override
-        public String call() {
-          return computeAppName();
+    SwingUtilities.invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        boolean updated = false;
+        if (myTemplateState.myModified.contains(ATTR_MODULE_NAME)) {
+          updated |= updateDerivedValue(ATTR_APP_TITLE, myAppName, new Callable<String>() {
+            @Override
+            public String call() {
+              return computeAppName();
+            }
+          });
         }
-      });
-      updateDerivedValue(ATTR_MODULE_NAME, myModuleName, new Callable<String>() {
-        @Override
-        public String call() {
-          return computeModuleName();
-        }
-      });
-      updateDerivedValue(ATTR_PACKAGE_NAME, myPackageName, new Callable<String>() {
-        @Override
-        public String call() {
-          return computePackageName();
-        }
-      });
-      if (!myTemplateState.myHidden.contains(ATTR_PROJECT_LOCATION)) {
-        updateDerivedValue(ATTR_PROJECT_LOCATION, myProjectLocation.getTextField(), new Callable<String>() {
+        updated |= updateDerivedValue(ATTR_MODULE_NAME, myModuleName, new Callable<String>() {
           @Override
           public String call() {
-            return computeProjectLocation();
+            return computeModuleName();
           }
         });
+        updated |= updateDerivedValue(ATTR_PACKAGE_NAME, myPackageName, new Callable<String>() {
+          @Override
+          public String call() {
+            return computePackageName();
+          }
+        });
+        if (!myTemplateState.myHidden.contains(ATTR_PROJECT_LOCATION)) {
+          updated |= updateDerivedValue(ATTR_PROJECT_LOCATION, myProjectLocation.getTextField(), new Callable<String>() {
+            @Override
+            public String call() {
+              return computeProjectLocation();
+            }
+          });
+        }
+        if (updated) {
+          validate();
+        }
       }
-    }});
-
+    });
     AndroidTargetComboBoxItem item = (AndroidTargetComboBoxItem)myMinSdk.getSelectedItem();
     if (item != null) {
       myTemplateState.put(ATTR_MIN_API_LEVEL, item.apiLevel);
@@ -285,7 +302,8 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     return true;
   }
 
-  private void updateDerivedValue(@NotNull String attrName, @NotNull JTextField textField, @NotNull Callable<String> valueDeriver) {
+  private boolean updateDerivedValue(@NotNull String attrName, @NotNull JTextField textField, @NotNull Callable<String> valueDeriver) {
+    boolean updated = false;
     try {
       myIgnoreUpdates = true;
       if (!myTemplateState.myModified.contains(attrName)) {
@@ -294,6 +312,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
           myTemplateState.put(attrName, s);
           textField.setText(s);
           myTemplateState.myModified.remove(attrName);
+          updated = true;
         }
       }
     }
@@ -302,6 +321,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     finally {
       myIgnoreUpdates = false;
     }
+    return updated;
   }
 
   @NotNull
