@@ -44,7 +44,7 @@ public class ProjectResolverFunctionFactoryTest extends TestCase {
   }
 
   public void testCreateFunction() {
-    ExternalSystemTaskId id = ExternalSystemTaskId.create(ExternalSystemTaskType.RESOLVE_PROJECT);
+    ExternalSystemTaskId id = ExternalSystemTaskId.create(ExternalSystemTaskType.RESOLVE_PROJECT, "dummy");
     String projectPath = "~/basic/build.gradle";
     GradleExecutionSettings settings = createMock(GradleExecutionSettings.class);
     ProjectConnection connection = createMock(ProjectConnection.class);

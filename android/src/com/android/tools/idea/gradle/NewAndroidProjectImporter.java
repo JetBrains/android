@@ -279,7 +279,7 @@ public class NewAndroidProjectImporter {
         ExternalSystemUtil.refreshProject(newProject, SYSTEM_ID, projectFilePath, callback, true, true);
       }
       catch (RuntimeException e) {
-        String externalSystemName = ExternalSystemApiUtil.toReadableName(SYSTEM_ID);
+        String externalSystemName = SYSTEM_ID.getReadableName();
         throw new ConfigurationException(e.getMessage(), ExternalSystemBundle.message("error.cannot.parse.project", externalSystemName));
       }
     }

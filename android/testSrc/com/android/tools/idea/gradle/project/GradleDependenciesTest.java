@@ -58,7 +58,8 @@ public class GradleDependenciesTest extends TestCase {
     projectData.setName(projectName);
     myProjectInfo = new DataNode<ProjectData>(ProjectKeys.PROJECT, projectData, null);
 
-    ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), projectName, rootDirPath);
+    String configPath = rootDirPath + "/build.gradle";
+    ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), projectName, rootDirPath, configPath);
     myModuleInfo = myProjectInfo.createChild(ProjectKeys.MODULE, moduleData);
   }
 
@@ -107,7 +108,9 @@ public class GradleDependenciesTest extends TestCase {
     String dependencyModuleName = "util";
 
     String rootDirPath = myProject.getRootDir().getAbsolutePath();
-    ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), dependencyModuleName, rootDirPath);
+    String configPath = rootDirPath + "/build.gradle";
+    ModuleData moduleData
+      = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), dependencyModuleName, rootDirPath, configPath);
     myProjectInfo.createChild(ProjectKeys.MODULE, moduleData);
 
     IdeaModuleStub dependencyModule = myProject.addModule(dependencyModuleName);

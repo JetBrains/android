@@ -62,7 +62,7 @@ public class ProjectResolverStrategyTest extends TestCase {
     super.setUp();
     myExpectedSourcePaths = new ContentRootSourcePaths();
     myAndroidProject = TestProjects.createBasicProject();
-    myId = ExternalSystemTaskId.create(ExternalSystemTaskType.RESOLVE_PROJECT);
+    myId = ExternalSystemTaskId.create(ExternalSystemTaskType.RESOLVE_PROJECT, "dummy");
     myConnection = createMock(ProjectConnection.class);
     myHelper = createMock(GradleExecutionHelper.class);
     myModelBuilder = createMock(ModelBuilder.class);
