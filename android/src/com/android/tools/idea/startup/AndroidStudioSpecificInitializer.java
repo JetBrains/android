@@ -26,8 +26,10 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.codeStyle.*;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -46,6 +48,8 @@ import java.util.*;
 
 /** Initialization performed only in the context of the Android IDE. */
 public class AndroidStudioSpecificInitializer implements Runnable {
+  private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.startup.AndroidStudioSpecificInitializer");
+
   @NonNls private static final String CONFIG_V1 = "AndroidStudioSpecificInitializer.V1";
   @NonNls public static final String NEW_NEW_PROJECT_WIZARD = "android.newProjectWizard";
   @NonNls private static final String ANDROID_SDK_FOLDER_NAME = "sdk";
@@ -60,7 +64,6 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
     // Setup JDK and Android SDK if necessary
     setupSdks();
-
 
     PropertiesComponent propertiesComponent = PropertiesComponent.getInstance();
     if (!propertiesComponent.getBoolean(CONFIG_V1, false)) {
@@ -181,17 +184,25 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
   @Nullable
   private static String getAndroidSdkHome() {
-    String ideaHome = PathManager.getHomePath();
-    if (ideaHome != null) {
+    String studioHome = PathManager.getHomePath();
+    LOG.info("Looking for Android SDK relative to Studio installation at: "
+             + (studioHome == null ? "<unable to obtain Studio home>" : studioHome));
+
+    if (studioHome != null) {
       for (String path : ANDROID_SDK_RELATIVE_PATHS) {
-        File f = new File(ideaHome, path);
+        File f = new File(studioHome, path);
+        LOG.info("Looking for Android SDK at " + f.getAbsolutePath());
         if (f.isDirectory()) {
+          LOG.info("Found Android SDK at " + f.getAbsolutePath());
           return f.getAbsolutePath();
         }
       }
     }
 
-    return getLaskSdkPathFromEclipse();
+    String sdkPathFromEclipse = getLaskSdkPathFromEclipse();
+    LOG.info("Unable to locate SDK within the Android Studio installation. Last SDK used by eclipse: "
+             + (sdkPathFromEclipse == null ? "<null>" : sdkPathFromEclipse));
+    return sdkPathFromEclipse;
   }
 
   /**
@@ -248,8 +259,10 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     // search for JDKs in both the suggest folder and all its sub folders
     List<String> roots = new ArrayList<String>();
     for (String j : jdks) {
-      roots.add(j);
-      roots.addAll(getSubFolders(j));
+      if (StringUtil.isNotEmpty(j)) {
+        roots.add(j);
+        roots.addAll(getSubFolders(j));
+      }
     }
 
     return getBestJdk(roots);
