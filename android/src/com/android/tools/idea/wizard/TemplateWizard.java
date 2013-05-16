@@ -54,6 +54,16 @@ public class TemplateWizard extends AbstractWizard<ModuleWizardStep> {
   }
 
   @Override
+  protected void init() {
+    super.init();
+    TemplateWizardStep step = (TemplateWizardStep)mySteps.get(getCurrentStep());
+    step.getPreferredFocusedComponent();
+    if (step != null) {
+      step.update();
+    }
+  }
+
+  @Override
   protected boolean canGoNext() {
     return !mySteps.isEmpty() && ((TemplateWizardStep)mySteps.get(getCurrentStep())).isValid();
   }
