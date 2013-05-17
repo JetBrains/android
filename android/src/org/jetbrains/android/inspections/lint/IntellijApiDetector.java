@@ -294,7 +294,7 @@ public class IntellijApiDetector extends ApiDetector {
           continue;
         }
         int minSdk = getMinSdk(myContext);
-        if (api < minSdk) {
+        if (api <= minSdk) {
           continue;
         }
         if (mySeenTargetApi) {
@@ -353,7 +353,7 @@ public class IntellijApiDetector extends ApiDetector {
             return;
           }
           int minSdk = getMinSdk(myContext);
-          if (api < minSdk) {
+          if (api <= minSdk) {
             return;
           }
           if (mySeenTargetApi) {
@@ -476,7 +476,7 @@ public class IntellijApiDetector extends ApiDetector {
           return;
         }
         int minSdk = getMinSdk(myContext);
-        if (api < minSdk) {
+        if (api <= minSdk) {
           return;
         }
         if (mySeenTargetApi) {
