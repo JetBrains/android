@@ -20,7 +20,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.AndroidNewModuleAction;
 import com.android.tools.idea.actions.AndroidNewProjectAction;
 import com.google.common.io.Closeables;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
@@ -55,7 +54,6 @@ import java.util.*;
 public class AndroidStudioSpecificInitializer implements Runnable {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.startup.AndroidStudioSpecificInitializer");
 
-  @NonNls private static final String CONFIG_V1 = "AndroidStudioSpecificInitializer.V1";
   @NonNls public static final String NEW_NEW_PROJECT_WIZARD = "android.newProjectWizard";
   @NonNls private static final String ANDROID_SDK_FOLDER_NAME = "sdk";
 
@@ -70,15 +68,13 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     // Setup JDK and Android SDK if necessary
     setupSdks();
 
-    PropertiesComponent propertiesComponent = PropertiesComponent.getInstance();
-    if (!propertiesComponent.getBoolean(CONFIG_V1, false)) {
-      propertiesComponent.setValue(CONFIG_V1, "true");
-      CodeStyleScheme[] schemes = CodeStyleSchemes.getInstance().getSchemes();
-      if (schemes != null) {
-        for (CodeStyleScheme scheme : schemes) {
-          CodeStyleSettings settings = scheme.getCodeStyleSettings();
-          AndroidCodeStyleSettingsModifier.modify(settings);
-        }
+    // Always reset the Default scheme to match Android standards
+    // User modifications won't be lost since they are made in a separate scheme (copied off of this default scheme)
+    CodeStyleScheme scheme = CodeStyleSchemes.getInstance().getDefaultScheme();
+    if (scheme != null) {
+      CodeStyleSettings settings = scheme.getCodeStyleSettings();
+      if (settings != null) {
+        AndroidCodeStyleSettingsModifier.modify(settings);
       }
     }
   }
