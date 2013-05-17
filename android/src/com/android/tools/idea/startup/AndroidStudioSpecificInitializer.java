@@ -27,10 +27,15 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.codeStyle.*;
+import com.intellij.psi.codeStyle.CodeStyleScheme;
+import com.intellij.psi.codeStyle.CodeStyleSchemes;
+import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
@@ -124,7 +129,16 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   private static void createSdks(@Nullable Sdk jdk, @NotNull String jdkHome, @NotNull String sdkHome) {
     Sdk javaSdk = jdk != null ? jdk : createJavaSdk(jdkHome);
     if (javaSdk != null) {
-      createAndroidSdk(sdkHome, javaSdk);
+      final Sdk androidSdk = createAndroidSdk(sdkHome, javaSdk);
+      if (androidSdk != null) {
+        final Project defaultProject = ProjectManagerEx.getInstanceEx().getDefaultProject();
+        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+          @Override
+          public void run() {
+            ProjectRootManager.getInstance(defaultProject).setProjectSdk(androidSdk);
+          }
+        });
+      }
     }
   }
 
