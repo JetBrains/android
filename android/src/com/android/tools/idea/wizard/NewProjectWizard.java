@@ -73,7 +73,8 @@ public class NewProjectWizard extends TemplateWizard {
     try { exists = new File(TemplateManager.getTemplateRootFolder(), "gradle/wrapper/gradlew").exists(); } catch (Exception e) {}
     if (!exists) {
       String title = "SDK problem";
-      String msg = "Your Android SDK is out of date or is missing templates. Please ensure you are using SDK version 22 or later.";
+      String msg = "<html>Your Android SDK is out of date or is missing templates. Please ensure you are using SDK version 22 or later.<br>"
+        + "You can configure your SDK via <b>Configure | Project Defaults | Project Structure | SDKs</b></html>";
       Messages.showErrorDialog(msg, title);
       throw new IllegalStateException(msg);
     }
