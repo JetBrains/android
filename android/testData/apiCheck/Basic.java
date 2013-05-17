@@ -139,4 +139,8 @@ public class Class extends Activity {
             super.toString(); throw new IOException((Throwable) null); // API 9
         }
     }
+
+    public void closeTest(android.database.sqlite.SQLiteDatabase db) throws Exception {
+        db.close();
+    }
 }
