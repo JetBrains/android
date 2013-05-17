@@ -47,7 +47,7 @@ public class AndroidEclipseNatureImporter extends EclipseNatureImporter {
 
       if (contentRoot == null) {
         AndroidUtils.reportImportErrorToEventLog("Cannot find content root containing " +
-                                                 SdkConstants.FN_ANDROID_MANIFEST_XML + " file", module.getName());
+                                                 SdkConstants.FN_ANDROID_MANIFEST_XML + " file", module.getName(), project);
         continue;
       }
       final AndroidFacet facet = AndroidUtils.addAndroidFacetInWriteAction(module, contentRoot, false);

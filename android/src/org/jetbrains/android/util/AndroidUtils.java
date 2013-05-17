@@ -786,14 +786,10 @@ public class AndroidUtils {
     return lexer.getTokenType() == null;
   }
 
-  public static void reportImportErrorToEventLog(String message, String modName) {
-    reportImportMessageToEventLog(message, modName, NotificationType.ERROR);
-  }
-
-  private static void reportImportMessageToEventLog(String message, String modName, NotificationType notificationType) {
+  public static void reportImportErrorToEventLog(String message, String modName, Project project) {
     Notifications.Bus.notify(new Notification(AndroidBundle.message("android.facet.importing.notification.group"),
                                               AndroidBundle.message("android.facet.importing.title", modName),
-                                              message, notificationType, null));
+                                              message, NotificationType.ERROR, null), project);
     LOG.debug(message);
   }
 }
