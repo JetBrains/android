@@ -113,15 +113,16 @@ class ProjectResolver {
       if (gradleBuildFilePath == null) {
         continue;
       }
+      String moduleDirPath = moduleDir.getAbsolutePath();
       AndroidProject androidProject = getAndroidProject(id, gradleBuildFilePath, settings);
       if (androidProject != null) {
-        createModuleInfo(androidProject, moduleName, projectInfo, moduleDir.getAbsolutePath(), gradleProject);
+        createModuleInfo(androidProject, moduleName, projectInfo, moduleDirPath, gradleProject);
         if (first == null) {
           first = androidProject;
         }
         continue;
       }
-      createModuleInfo(module, projectInfo, gradleProject);
+      createModuleInfo(module, projectInfo, moduleDirPath, gradleProject);
     }
 
     if (first == null) {
@@ -217,17 +218,16 @@ class ProjectResolver {
 
   @NotNull
   private static DataNode<ModuleData> createModuleInfo(@NotNull AndroidProject androidProject,
-                                                       @NotNull String name,
+                                                       @NotNull String moduleName,
                                                        @NotNull DataNode<ProjectData> projectInfo,
                                                        @NotNull String moduleDirPath,
                                                        @NotNull IdeaGradleProject gradleProject) {
-    String projectDirPath = projectInfo.getData().getIdeProjectFileDirectoryPath();
-    ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), name, projectDirPath);
+    ModuleData moduleData = createModuleData(moduleName, moduleDirPath);
     DataNode<ModuleData> moduleInfo = projectInfo.createChild(ProjectKeys.MODULE, moduleData);
 
     Variant selectedVariant = getFirstVariant(androidProject);
     IdeaAndroidProject ideaAndroidProject =
-      new IdeaAndroidProject(name, moduleDirPath, androidProject, selectedVariant.getName());
+      new IdeaAndroidProject(moduleName, moduleDirPath, androidProject, selectedVariant.getName());
     addContentRoot(ideaAndroidProject, moduleInfo, moduleDirPath);
 
     moduleInfo.createChild(AndroidProjectKeys.IDE_ANDROID_PROJECT, ideaAndroidProject);
@@ -269,9 +269,9 @@ class ProjectResolver {
   @NotNull
   private static DataNode<ModuleData> createModuleInfo(@NotNull IdeaModule module,
                                                        @NotNull DataNode<ProjectData> projectInfo,
+                                                       @NotNull String moduleDirPath,
                                                        @NotNull IdeaGradleProject gradleProject) {
-    String projectDirPath = projectInfo.getData().getIdeProjectFileDirectoryPath();
-    ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), module.getName(), projectDirPath);
+    ModuleData moduleData = createModuleData(module.getName(), moduleDirPath);
     DataNode<ModuleData> moduleInfo = projectInfo.createChild(ProjectKeys.MODULE, moduleData);
 
     // Populate content roots.
@@ -287,6 +287,10 @@ class ProjectResolver {
     moduleInfo.createChild(AndroidProjectKeys.IDEA_MODULE, module);
     moduleInfo.createChild(AndroidProjectKeys.GRADLE_PROJECT, gradleProject);
     return moduleInfo;
+  }
+
+  private static ModuleData createModuleData(String name, String dirPath) {
+    return new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), name, dirPath);
   }
 
   private static void populateDependencies(@NotNull DataNode<ProjectData> projectInfo) {
@@ -318,7 +322,6 @@ class ProjectResolver {
     };
     AndroidDependencies.populate(ideaAndroidProject, dependencyFactory);
   }
-
 
   @Nullable
   private static IdeaModule extractIdeaModule(@NotNull DataNode<ModuleData> moduleInfo) {
