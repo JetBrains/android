@@ -58,7 +58,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   // This constructor is called by the IDE. See this module's plugin.xml file, implementation of extension 'projectResolve'.
   public AndroidGradleProjectResolver() {
     myHelper = new GradleExecutionHelper();
-    myFunctionFactory = new ProjectResolverFunctionFactory(new MultiProjectResolverStrategy(myHelper));
+    myFunctionFactory = new ProjectResolverFunctionFactory(new ProjectResolver(myHelper));
   }
 
   @VisibleForTesting
@@ -136,10 +136,10 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   }
 
   static class ProjectResolverFunctionFactory {
-    @NotNull private final MultiProjectResolverStrategy myStrategy;
+    @NotNull private final ProjectResolver myResolver;
 
-    ProjectResolverFunctionFactory(@NotNull MultiProjectResolverStrategy strategy) {
-      myStrategy = strategy;
+    ProjectResolverFunctionFactory(@NotNull ProjectResolver resolver) {
+      myResolver = resolver;
     }
 
     @NotNull
@@ -150,7 +150,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
         @Nullable
         @Override
         public DataNode<ProjectData> fun(ProjectConnection connection) {
-          DataNode<ProjectData> projectInfo = myStrategy.resolveProjectInfo(id, projectPath, settings, connection);
+          DataNode<ProjectData> projectInfo = myResolver.resolveProjectInfo(id, projectPath, settings, connection);
           if (projectInfo != null) {
             return projectInfo;
           }
