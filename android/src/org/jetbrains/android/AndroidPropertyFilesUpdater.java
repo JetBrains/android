@@ -384,6 +384,9 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
   private void askUserIfUpdatePropertyFile(@NotNull Project project,
                                                   @NotNull Collection<AndroidFacet> facets,
                                                   @NotNull final Processor<MyResult> callback) {
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      return;
+    }
     final StringBuilder moduleList = new StringBuilder();
 
     for (AndroidFacet facet : facets) {
