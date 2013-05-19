@@ -238,7 +238,7 @@ public class NewAndroidProjectImporter {
     StartupManager.getInstance(newProject).runWhenProjectIsInitialized(new Runnable() {
       @Override
       public void run() {
-        ExternalSystemApiUtil.executeProjectChangeAction(newProject, SYSTEM_ID, newProject, new Runnable() {
+        ExternalSystemApiUtil.executeProjectChangeAction(new Runnable() {
           @Override
           public void run() {
             ProjectRootManagerEx.getInstanceEx(newProject).mergeRootsChangesDuring(new Runnable() {

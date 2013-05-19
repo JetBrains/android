@@ -30,7 +30,6 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 /**
  * Updates the contents/settings of a module when a build variant changes.
@@ -41,7 +40,7 @@ class BuildVariantUpdater {
   private final ModuleCustomizer[] myModuleCustomizers = {new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer()};
 
   void updateModule(@NotNull final Project project, @NotNull final String moduleName, @NotNull final String buildVariantName) {
-    ExternalSystemApiUtil.executeProjectChangeAction(project, GradleConstants.SYSTEM_ID, project, true, new Runnable() {
+    ExternalSystemApiUtil.executeProjectChangeAction(true, new Runnable() {
       @Override
       public void run() {
         doUpdate(project, moduleName, buildVariantName);

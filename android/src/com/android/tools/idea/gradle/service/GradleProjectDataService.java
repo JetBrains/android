@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
-import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataService;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
@@ -54,7 +53,7 @@ public class GradleProjectDataService implements ProjectDataService<GradleProjec
     }
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     final List<Module> modules = ImmutableList.copyOf(moduleManager.getModules());
-    ExternalSystemApiUtil.executeProjectChangeAction(project, ProjectSystemId.IDE, modules, synchronous, new Runnable() {
+    ExternalSystemApiUtil.executeProjectChangeAction(synchronous, new Runnable() {
       @Override
       public void run() {
         Map<String, GradleProject> gradleProjectsByName = indexByGradleProjectName(toImport);
