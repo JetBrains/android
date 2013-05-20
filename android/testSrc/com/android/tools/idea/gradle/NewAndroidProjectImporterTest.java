@@ -75,6 +75,17 @@ public class NewAndroidProjectImporterTest extends IdeaTestCase {
     myImporter = new NewAndroidProjectImporter(delegate);
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    Project[] projects = myProjectManager.getOpenProjects();
+    for (Project project : projects) {
+      if (project != getProject()) {
+        myProjectManager.closeAndDispose(project);
+      }
+    }
+    super.tearDown();
+  }
+
   public void testImportProject() throws Exception {
     Sdk sdk = getTestProjectJdk();
     assertNotNull(sdk);

@@ -121,7 +121,7 @@ public class NewAndroidProjectImporter {
     myImporter.importProject(newProject, projectFilePath, new ExternalProjectRefreshCallback() {
       @Override
       public void onSuccess(final @Nullable DataNode<ProjectData> projectInfo) {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
+        Runnable runnable = new Runnable() {
           @Override
           public void run() {
             populateProject(newProject, projectInfo);
@@ -131,7 +131,13 @@ public class NewAndroidProjectImporter {
               newProject.save();
             }
           }
-        });
+        };
+        if (ApplicationManager.getApplication().isUnitTestMode()) {
+          runnable.run();
+        }
+        else {
+          ApplicationManager.getApplication().invokeLater(runnable);
+        }
       }
 
       @Override
