@@ -26,6 +26,7 @@ public class AndroidIcons {
   public static final Icon ZoomFit = load("/icons/zoomFit.png"); // 16x16
   public static final Icon ZoomIn = load("/icons/zoomIn.png"); // 16x16
   public static final Icon ZoomOut = load("/icons/zoomOut.png"); // 16x16
+  public static final Icon ZoomReal = load("/icons/zoomReal.png"); // 16x16
   public static final Icon Renderscript = load("/icons/renderscript.png"); // 16x16
   public static final Icon ErrorBadge = load("/icons/error-badge.png"); // 16x16
   public static final Icon WarningBadge = load("/icons/warning-badge.png"); // 16x16
