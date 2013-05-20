@@ -40,6 +40,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
+import org.jetbrains.plugins.gradle.util.GradleUtil;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -97,7 +98,8 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
       }
       AndroidProject androidProject = getAndroidProject(id, gradleBuildFilePath, settings);
       if (androidProject != null) {
-        createModuleInfo(androidProject, moduleName, projectInfo, moduleDirPath, gradleProject.getPath(), gradleProject);
+        String subProjectConfigPath = GradleUtil.getConfigPath(gradleProject, projectPath);
+        createModuleInfo(androidProject, moduleName, projectInfo, moduleDirPath, subProjectConfigPath, gradleProject);
         if (first == null) {
           first = androidProject;
         }
@@ -147,8 +149,9 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
                                                        @NotNull DataNode<ProjectData> projectInfo,
                                                        @NotNull GradleProject gradleProject) {
     String projectDirPath = projectInfo.getData().getIdeProjectFileDirectoryPath();
+    String subProjectConfigPath = GradleUtil.getConfigPath(gradleProject, projectInfo.getData().getLinkedExternalProjectPath());
     ModuleData moduleData
-      = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), module.getName(), projectDirPath, gradleProject.getPath());
+      = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), module.getName(), projectDirPath, subProjectConfigPath);
     DataNode<ModuleData> moduleInfo = projectInfo.createChild(ProjectKeys.MODULE, moduleData);
 
     // Populate content roots.
