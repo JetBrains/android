@@ -49,7 +49,7 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
     if (ideaAndroidProject != null) {
       AndroidFacet facet = Facets.getFirstFacet(module, AndroidFacet.ID);
       if (facet != null) {
-        configureFacet(project, facet, ideaAndroidProject);
+        configureFacet(facet, ideaAndroidProject);
       }
       else {
         // Module does not have Android facet. Create one and add it.
@@ -58,7 +58,7 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
         try {
           facet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
           model.addFacet(facet);
-          configureFacet(project, facet, ideaAndroidProject);
+          configureFacet(facet, ideaAndroidProject);
         } finally {
           model.commit();
         }
@@ -68,7 +68,7 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
     }
   }
 
-  private static void configureFacet(Project project, @NotNull AndroidFacet facet, @NotNull IdeaAndroidProject ideaAndroidProject) {
+  private static void configureFacet(@NotNull AndroidFacet facet, @NotNull IdeaAndroidProject ideaAndroidProject) {
     facet.setIdeaAndroidProject(ideaAndroidProject);
     JpsAndroidModuleProperties facetState = facet.getConfiguration().getState();
     facetState.ALLOW_USER_CONFIGURATION = false;
@@ -78,15 +78,15 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
     syncSelectedVariant(facetState, ideaAndroidProject);
     facet.syncSelectedVariant();
 
-    String rootDirPath = project.getBasePath();
+    String moduleDirPath = ideaAndroidProject.getRootDirPath();
     File manifestFile = sourceProvider.getManifestFile();
-    facetState.MANIFEST_FILE_RELATIVE_PATH = getRelativePath(rootDirPath, manifestFile);
+    facetState.MANIFEST_FILE_RELATIVE_PATH = getRelativePath(moduleDirPath, manifestFile);
 
     Set<File> resDirs = sourceProvider.getResDirectories();
-    facetState.RES_FOLDER_RELATIVE_PATH = getRelativePath(rootDirPath, resDirs);
+    facetState.RES_FOLDER_RELATIVE_PATH = getRelativePath(moduleDirPath, resDirs);
 
     Set<File> assetsDirs = sourceProvider.getAssetsDirectories();
-    facetState.ASSETS_FOLDER_RELATIVE_PATH = getRelativePath(rootDirPath, assetsDirs);
+    facetState.ASSETS_FOLDER_RELATIVE_PATH = getRelativePath(moduleDirPath, assetsDirs);
   }
 
   private static void syncSelectedVariant(@NotNull JpsAndroidModuleProperties facetState, @NotNull IdeaAndroidProject ideaAndroidProject) {
