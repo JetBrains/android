@@ -24,15 +24,21 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.lexer.JavaLexer;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.fileChooser.FileChooserFactory;
+import com.intellij.openapi.fileChooser.FileSaverDescriptor;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.wm.IdeFocusManager;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -113,10 +119,25 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     register(ATTR_CREATE_ICONS, myCreateCustomLauncherIconCheckBox);
     register(ATTR_LIBRARY, myLibraryCheckBox);
 
-    myProjectLocation.addBrowseFolderListener("Please choose a project location", null, null,
-                                              FileChooserDescriptorFactory.createSingleFolderDescriptor());
+    myProjectLocation.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        FileSaverDescriptor fileSaverDescriptor = new FileSaverDescriptor("Project location", "Please choose a location for your project");
+        File currentPath = new File(myProjectLocation.getText());
+        File parentPath = currentPath.getParentFile();
+        if (parentPath == null) {
+          parentPath = new File("/");
+        }
+        VirtualFile parent = LocalFileSystem.getInstance().findFileByIoFile(parentPath);
+        String filename = currentPath.getName();
+        VirtualFileWrapper fileWrapper =
+            FileChooserFactory.getInstance().createSaveFileDialog(fileSaverDescriptor, (Project)null).save(parent, filename);
+        if (fileWrapper != null && fileWrapper.getFile() != null) {
+          myProjectLocation.setText(fileWrapper.getFile().getAbsolutePath());
+        }
+      }
+    });
     myProjectLocation.getTextField().addFocusListener(this);
-    myProjectLocation.getTextField().addActionListener(this);
     myProjectLocation.getTextField().getDocument().addDocumentListener(this);
     if (myTemplateState.myHidden.contains(ATTR_PROJECT_LOCATION)) {
       myProjectLocation.setVisible(false);
@@ -306,7 +327,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       }
       File file = new File(projectLocation);
       if (file.exists()) {
-        setErrorHtml("There must not already be a project at this location");
+        setErrorHtml("There must not already be a file or directory at the project location");
         return false;
       }
       if (file.getParent() == null) {
@@ -397,7 +418,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   @NotNull
   private String computeProjectLocation() {
-    return new File(NewProjectWizardState.getProjectFileDirectory(), (String)myTemplateState.get(ATTR_MODULE_NAME))
+    return new File(NewProjectWizardState.getProjectFileDirectory(), (String)myTemplateState.get(ATTR_MODULE_NAME) + "Project")
       .getAbsolutePath();
   }
 
