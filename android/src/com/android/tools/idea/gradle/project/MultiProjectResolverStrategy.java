@@ -45,7 +45,6 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.Collection;
-import java.util.regex.Pattern;
 
 /**
  * Imports a multiple Android-Gradle projects into IDEA. The set of projects to import may include regular Java projects as well.
@@ -92,12 +91,7 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
     for (IdeaModule module : ideaProject.getModules()) {
       String moduleName = module.getName();
       IdeaGradleProject gradleProject = new IdeaGradleProject(moduleName, module.getGradleProject().getPath());
-      String sep = File.separator;
-      if (sep.equals("\\")) {
-        sep = "\\\\";
-      }
-      String relativePath = gradleProject.getGradleProjectPath();
-      relativePath = relativePath.replaceAll(GRADLE_PATH_SEPARATOR, sep);
+      String relativePath = getRelativePath(gradleProject);
       File moduleDir = new File(projectDirPath, relativePath);
       String gradleBuildFilePath = getGradleBuildFilePath(moduleDir);
       if (gradleBuildFilePath == null) {
@@ -121,6 +115,15 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
 
     populateDependencies(projectInfo);
     return projectInfo;
+  }
+
+  private static String getRelativePath(@NotNull IdeaGradleProject gradleProject) {
+    String separator = File.separator;
+    if (separator.equals("\\")) {
+      separator = "\\\\";
+    }
+    String gradleProjectPath = gradleProject.getGradleProjectPath();
+    return gradleProjectPath.replaceAll(GRADLE_PATH_SEPARATOR, separator);
   }
 
   @Nullable
