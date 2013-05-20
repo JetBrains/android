@@ -1,6 +1,13 @@
+Debug
+Debug-Win32
+Debug-x64
+obj
+ipch
 *.opensdf
 *.suo
 *.sdf
-Debug
-Release
-ipch
+*.aps
+*.user
+*.pdb
+*.ncb
+
