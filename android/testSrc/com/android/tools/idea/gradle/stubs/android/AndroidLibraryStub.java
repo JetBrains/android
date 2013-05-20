@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidLibrary;
+import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -24,6 +25,7 @@ import java.util.List;
 
 public class AndroidLibraryStub implements AndroidLibrary {
   @NotNull private final File myJarFile;
+  @NotNull private final List<File> myLocalJars = Lists.newArrayList();
 
   public AndroidLibraryStub(@NotNull File jarFile) {
     myJarFile = jarFile;
@@ -47,10 +49,14 @@ public class AndroidLibraryStub implements AndroidLibrary {
     return myJarFile;
   }
 
+  public void addLocalJar(@NotNull File localJar) {
+    myLocalJars.add(localJar);
+  }
+
   @NonNull
   @Override
   public List<File> getLocalJars() {
-    throw new UnsupportedOperationException();
+    return myLocalJars;
   }
 
   @NonNull
