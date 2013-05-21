@@ -102,8 +102,7 @@ public class NewAndroidProjectImporter {
                             @NotNull File projectRootDir,
                             @NotNull Sdk androidSdk,
                             @Nullable final Callback callback) throws IOException, ConfigurationException {
-    File projectFile = new File(projectRootDir, "build.gradle");
-    FileUtilRt.createIfNotExists(projectFile);
+    File projectFile = createTopLevelBuildFile(projectRootDir);
     final String projectFilePath = projectFile.getAbsolutePath();
 
     createIdeaProjectDir(projectRootDir);
@@ -167,6 +166,15 @@ public class NewAndroidProjectImporter {
         }
       }
     });
+  }
+
+  private static File createTopLevelBuildFile(File projectRootDir) throws IOException {
+    File projectFile = new File(projectRootDir, "build.gradle");
+    FileUtilRt.createIfNotExists(projectFile);
+    String contents = "// Top-level build file where you can add configuration options common to all sub-projects/modules." +
+                      SystemProperties.getLineSeparator();
+    FileUtil.writeToFile(projectFile, contents);
+    return projectFile;
   }
 
   private static void createIdeaProjectDir(@NotNull File projectRootDir) throws IOException {
