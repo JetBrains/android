@@ -1645,7 +1645,7 @@ public class LombokPsiConverter {
   }
 
   @NonNull
-  private static Select toSelect(@NonNull PsiQualifiedReference reference) {
+  private static Select toSelect(@NonNull PsiQualifiedReferenceElement reference) {
     Select select = new Select();
     bind(select, reference);
 
