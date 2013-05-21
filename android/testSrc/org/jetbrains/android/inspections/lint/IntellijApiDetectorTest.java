@@ -26,6 +26,12 @@ import static org.jetbrains.android.inspections.lint.AndroidLintInspectionToolPr
 public class IntellijApiDetectorTest extends AndroidTestCase {
   private static final String BASE_PATH = "apiCheck/";
 
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    AndroidLintInspectionBase.invalidateInspectionShortName2IssueMap();
+  }
+
   public void testBasic() throws Exception {
     AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
     doTest(inspection, null);
@@ -57,7 +63,7 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
     myFixture.enableInspections(inspection);
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".java", "src/p1/p2/Class.java");
     myFixture.configureFromExistingVirtualFile(file);
-    myFixture.doHighlighting();
+    //myFixture.doHighlighting();
     myFixture.checkHighlighting(true, false, false);
 
     if (quickFixName != null) {
