@@ -349,9 +349,6 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     }
     myParamFields.put(paramName, (JComponent)field);
     field.addFocusListener(this);
-    field.addActionListener(this);
-    // For the time being, assume that this is a file chooser and put up the OS file picker dialog when the button is pressed.
-    field.addBrowseFolderListener(null, null, null, FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor());
   }
 
   protected void register(@NotNull String paramName, @NotNull ColorPanel colorPanel) {
