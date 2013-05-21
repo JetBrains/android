@@ -148,33 +148,51 @@ public class NewAndroidProjectImporter {
       throw error.get();
     }
 
-    // We need to compile and call Callback when we have a module in the new project.
-    final MessageBusConnection connection = newProject.getMessageBus().connect();
     final String projectRootDirPath = projectRootDir.getAbsolutePath();
+    // Since importing is synchronous we should have modules now. Compile project and notify callback.
+    if (compileAndNotifyCallback(projectRootDirPath, newProject, callback)) {
+      return;
+    }
+
+    // If we got here, there is some bad timing and the module creation got delayed somehow. Compile and notify callback as soon as
+    // the project roots are created.
+    final MessageBusConnection connection = newProject.getMessageBus().connect();
     connection.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
       @Override
       public void rootsChanged(ModuleRootEvent event) {
         Module[] modules = ModuleManager.getInstance(newProject).getModules();
         if (modules.length > 0) {
           connection.disconnect();
-          if (!ApplicationManager.getApplication().isUnitTestMode()) {
-            Projects.compile(newProject, projectRootDirPath);
-          }
-          if (callback != null) {
-            callback.projectImported(newProject);
-          }
+          compileAndNotifyCallback(projectRootDirPath, newProject, callback);
         }
       }
     });
   }
 
-  private static File createTopLevelBuildFile(File projectRootDir) throws IOException {
+  @NotNull
+  private static File createTopLevelBuildFile(@NotNull File projectRootDir) throws IOException {
     File projectFile = new File(projectRootDir, "build.gradle");
     FileUtilRt.createIfNotExists(projectFile);
     String contents = "// Top-level build file where you can add configuration options common to all sub-projects/modules." +
                       SystemProperties.getLineSeparator();
     FileUtil.writeToFile(projectFile, contents);
     return projectFile;
+  }
+
+  private static boolean compileAndNotifyCallback(@NotNull String projectRootDirPath,
+                                                  @NotNull Project newProject,
+                                                  @Nullable Callback callback) {
+    Module[] modules = ModuleManager.getInstance(newProject).getModules();
+    if (modules.length == 0) {
+      return false;
+    }
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      Projects.compile(newProject, projectRootDirPath);
+    }
+    if (callback != null) {
+      callback.projectImported(newProject);
+    }
+    return true;
   }
 
   private static void createIdeaProjectDir(@NotNull File projectRootDir) throws IOException {
