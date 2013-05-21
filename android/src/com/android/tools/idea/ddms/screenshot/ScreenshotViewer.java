@@ -261,6 +261,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     double zoom = zoomModel.getZoomFactor();
 
     imageEditor.getDocument().setValue(image);
+    pack();
+
     zoomModel.setZoomFactor(zoom);
   }
 
