@@ -57,7 +57,7 @@ public class ResourceJavadocTest extends AndroidTestCase {
   }
 
   public void testString2() {
-    // Use LocaleManagerTest#checkEncoding to get Unicode encoding
+    // Use FlagManagerTest#checkEncoding to get Unicode encoding
     checkStrings("/javadoc/strings/Activity2.java",
                  String.format("<html><body><table>" +
                                "<tr><th %1$s>Configuration</th><th %1$s>Value</th></tr>" +
