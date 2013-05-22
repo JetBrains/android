@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LanguageQualifier;
 import com.android.ide.common.resources.configuration.RegionQualifier;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.LocaleManager;
 import com.android.tools.idea.rendering.ProjectResources;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
