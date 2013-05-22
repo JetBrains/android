@@ -16,6 +16,7 @@
 
 package org.jetbrains.android;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
@@ -288,6 +289,12 @@ public class AndroidColorAnnotator implements Annotator {
     return item;
   }
 
+  @VisibleForTesting
+  static String colorToString(Color color) {
+    long longColor = ((long)color.getAlpha() << 24) | (color.getRed() << 16) | (color.getGreen() << 8) | color.getBlue();
+    return '#' + Long.toHexString(longColor);
+  }
+
   private static class MyRenderer extends GutterIconRenderer {
     private final PsiElement myElement;
     private final Color myColor;
@@ -315,12 +322,6 @@ public class AndroidColorAnnotator implements Annotator {
       } else {
         return null;
       }
-    }
-
-    // see see android.graphics.Color in android.jar library
-    private static String colorToString(Color color) {
-      int intColor = (color.getAlpha() << 24) | (color.getRed() << 16) | (color.getGreen() << 8) | color.getBlue();
-      return '#' + Long.toHexString(intColor);
     }
 
     @Override

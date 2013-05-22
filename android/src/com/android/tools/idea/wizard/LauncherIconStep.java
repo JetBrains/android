@@ -19,6 +19,7 @@ package com.android.tools.idea.wizard;
 import com.android.assetstudiolib.GraphicGenerator;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.ColorPanel;
 import org.jetbrains.annotations.NotNull;
@@ -95,6 +96,7 @@ public class LauncherIconStep extends TemplateWizardStep {
     register(ATTR_FOREGROUND_COLOR, myForegroundColor);
     register(ATTR_BACKGROUND_COLOR, myBackgroundColor);
 
+    myImageFile.addBrowseFolderListener(null, null, null, FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor());
     myForegroundColor.setSelectedColor(Color.BLUE);
     myBackgroundColor.setSelectedColor(Color.WHITE);
 
@@ -190,6 +192,11 @@ public class LauncherIconStep extends TemplateWizardStep {
   @Override
   public JComponent getComponent() {
     return myPanel;
+  }
+
+  @Override
+  public JComponent getPreferredFocusedComponent() {
+    return myImageRadioButton;
   }
 
   @NotNull

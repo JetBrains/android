@@ -43,9 +43,9 @@ import java.util.List;
 import static org.easymock.classextension.EasyMock.*;
 
 /**
- * Tests for {@link MultiProjectResolverStrategy}.
+ * Tests for {@link ProjectResolver}.
  */
-public class MultiProjectResolverStrategyTest extends TestCase {
+public class ProjectResolverTest extends TestCase {
   private ContentRootSourcePaths myExpectedSourcePaths;
   private IdeaProjectStub myIdeaProject;
   private AndroidProjectStub myAndroidProject;
@@ -53,7 +53,7 @@ public class MultiProjectResolverStrategyTest extends TestCase {
   private ProjectConnection myConnection;
   private GradleExecutionHelperDouble myHelper;
   private GradleExecutionSettings mySettings;
-  private MultiProjectResolverStrategy myStrategy;
+  private ProjectResolver myStrategy;
   private IdeaModuleStub myUtilModule;
 
   @Override
@@ -68,7 +68,7 @@ public class MultiProjectResolverStrategyTest extends TestCase {
     myConnection = createMock(ProjectConnection.class);
     myHelper = GradleExecutionHelperDouble.newMock();
     mySettings = createMock(GradleExecutionSettings.class);
-    myStrategy = new MultiProjectResolverStrategy(myHelper);
+    myStrategy = new ProjectResolver(myHelper);
   }
 
   @Override
