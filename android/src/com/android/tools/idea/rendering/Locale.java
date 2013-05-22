@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.LanguageQualifier;
 import com.android.ide.common.resources.configuration.RegionQualifier;
 import com.google.common.base.Objects;
@@ -137,7 +138,7 @@ public class Locale {
   public Icon getFlagImage() {
     String languageCode = hasLanguage() ? language.getValue() : null;
     String regionCode = hasRegion() ? region.getValue() : null;
-    LocaleManager icons = LocaleManager.get();
+    FlagManager icons = FlagManager.get();
     if (languageCode == null && regionCode == null) {
       return AndroidIcons.Globe;
     }
