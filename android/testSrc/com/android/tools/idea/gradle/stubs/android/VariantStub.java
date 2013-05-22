@@ -172,7 +172,8 @@ public class VariantStub implements Variant {
   @NotNull
   @Override
   public File getClassesFolder() {
-    throw new UnsupportedOperationException();
+    String path = "build/classes/" + getBuildType();
+    return new File(myFileStructure.getRootDir(), path);
   }
 
   public void addProductFlavors(@NotNull String... flavorNames) {

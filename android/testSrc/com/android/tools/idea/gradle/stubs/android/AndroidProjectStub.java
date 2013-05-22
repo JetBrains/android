@@ -59,7 +59,7 @@ public class AndroidProjectStub implements AndroidProject {
   @NotNull
   @Override
   public String getModelVersion() {
-    throw new UnsupportedOperationException();
+    return "0.4-SNAPSHOT";
   }
 
   @NotNull
