@@ -1,7 +1,18 @@
 package org.jetbrains.android.refactoring;
 
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.usageView.UsageInfo;
+import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Eugene.Kudelevsky
@@ -11,6 +22,26 @@ public class AndroidFindStyleApplicationsTest extends AndroidTestCase {
 
   public void test1() throws Exception {
     doTest();
+  }
+
+  public void testGranular1() throws Exception {
+    myFixture.copyFileToProject(BASE_PATH + "1_layout.xml", "res/layout/layout.xml");
+    final VirtualFile f = myFixture.copyFileToProject(BASE_PATH + "1.xml", "res/values/styles.xml");
+    myFixture.configureFromExistingVirtualFile(f);
+    XmlTag tag = PsiTreeUtil.getParentOfType(myFixture.getElementAtCaret(), XmlTag.class);
+    AndroidFindStyleApplicationsAction.MyStyleData styleData = AndroidFindStyleApplicationsAction.getStyleData(tag);
+    assertNotNull(styleData);
+    AndroidFindStyleApplicationsProcessor processor =
+      AndroidFindStyleApplicationsAction.createFindStyleApplicationsProcessor(tag, styleData, null);
+    processor.configureScope(AndroidFindStyleApplicationsProcessor.MyScope.PROJECT, null);
+    Collection<PsiFile> files = processor.collectFilesToProcess();
+    assertEquals(1, files.size());
+    XmlFile layoutFile = (XmlFile)files.iterator().next();
+    assertInstanceOf(DomManager.getDomManager(myFixture.getProject()).getDomFileDescription(
+      (XmlFile)layoutFile), LayoutDomFileDescription.class);
+    final List<UsageInfo> usages = new ArrayList<UsageInfo>();
+    processor.collectPossibleStyleApplications(layoutFile, usages);
+    assertEquals(2, usages.size());
   }
 
   public void test2() throws Exception {
