@@ -16,6 +16,7 @@
 package com.android.tools.idea.roots.ui.configuration;
 
 import com.android.tools.idea.actions.DisabledProjectStructureAction;
+import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.OrderEntry;
@@ -29,42 +30,73 @@ import org.jetbrains.annotations.Nullable;
  * Disables any calls to the "Project Structure" dialog for any project.
  */
 public class GradleProjectSettingsService extends IdeaProjectSettingsService {
+  private final boolean myIsGradleProject;
+
   public GradleProjectSettingsService(Project project) {
     super(project);
+    myIsGradleProject = Projects.isGradleProject(project);
   }
 
   @Override
   public void openArtifactSettings(@Nullable Artifact artifact) {
-    DisabledProjectStructureAction.showDisabledProjectStructureDialogMessage();
+    if (myIsGradleProject) {
+      DisabledProjectStructureAction.showDisabledProjectStructureDialogMessage();
+      return;
+    }
+    super.openArtifactSettings(artifact);
   }
 
   @Override
   public void openContentEntriesSettings(Module module) {
-    DisabledProjectStructureAction.showDisabledProjectStructureDialogMessage();
+    if (myIsGradleProject) {
+      DisabledProjectStructureAction.showDisabledProjectStructureDialogMessage();
+      return;
+    }
+    super.openContentEntriesSettings(module);
   }
 
   @Override
   public void openLibrary(@NotNull Library library) {
-    DisabledProjectStructureAction.showDisabledProjectStructureDialogMessage();
+    if (myIsGradleProject) {
+      DisabledProjectStructureAction.showDisabledProjectStructureDialogMessage();
+      return;
+    }
+    super.openLibrary(library);
   }
 
   @Override
   public void openModuleDependenciesSettings(@NotNull Module module, @Nullable OrderEntry orderEntry) {
-    DisabledProjectStructureAction.showDisabledProjectStructureDialogMessage();
+    if (myIsGradleProject) {
+      DisabledProjectStructureAction.showDisabledProjectStructureDialogMessage();
+      return;
+    }
+    super.openModuleDependenciesSettings(module, orderEntry);
   }
 
   @Override
   public void openModuleLibrarySettings(Module module) {
-    DisabledProjectStructureAction.showDisabledProjectStructureDialogMessage();
+    if (myIsGradleProject) {
+      DisabledProjectStructureAction.showDisabledProjectStructureDialogMessage();
+      return;
+    }
+    super.openModuleLibrarySettings(module);
   }
 
   @Override
   public void openModuleSettings(Module module) {
-    DisabledProjectStructureAction.showDisabledProjectStructureDialogMessage();
+    if (myIsGradleProject) {
+      DisabledProjectStructureAction.showDisabledProjectStructureDialogMessage();
+      return;
+    }
+    super.openModuleSettings(module);
   }
 
   @Override
   public void openLibraryOrSdkSettings(@NotNull OrderEntry orderEntry) {
-    DisabledProjectStructureAction.showDisabledProjectStructureDialogMessage();
+    if (myIsGradleProject) {
+      DisabledProjectStructureAction.showDisabledProjectStructureDialogMessage();
+      return;
+    }
+    super.openLibraryOrSdkSettings(orderEntry);
   }
 }
