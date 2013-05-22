@@ -15,9 +15,10 @@
  */
 package org.jetbrains.android.uipreview;
 
+import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.*;
 import com.android.resources.*;
-import com.android.tools.idea.rendering.LocaleManager;
+import com.android.tools.idea.rendering.FlagManager;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.VerticalFlowLayout;
@@ -1049,9 +1050,9 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       model.addAll(LocaleManager.getLanguageCodes());
       myList.setModel(model);
       myList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-      myList.setCellRenderer(LocaleManager.get().getLanguageCodeCellRenderer());
+      myList.setCellRenderer(FlagManager.get().getLanguageCodeCellRenderer());
       JBScrollPane scroll = new JBScrollPane(myList);
-      JComponent list = ListWithFilter.wrap(myList, scroll, LocaleManager.getLanguageNameMapper());
+      JComponent list = ListWithFilter.wrap(myList, scroll, FlagManager.getLanguageNameMapper());
       panel.add(list, BorderLayout.CENTER);
       JLabel tipLabel = new JBLabel("Tip: Type in list to filter");
       tipLabel.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -1104,9 +1105,9 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       model.addAll(LocaleManager.getRegionCodes());
       myList.setModel(model);
       myList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-      myList.setCellRenderer(LocaleManager.get().getRegionCodeCellRenderer());
+      myList.setCellRenderer(FlagManager.get().getRegionCodeCellRenderer());
       JBScrollPane scroll = new JBScrollPane(myList);
-      JComponent list = ListWithFilter.wrap(myList, scroll, LocaleManager.getRegionNameMapper());
+      JComponent list = ListWithFilter.wrap(myList, scroll, FlagManager.getRegionNameMapper());
       panel.add(list, BorderLayout.CENTER);
       JLabel tipLabel = new JBLabel("Tip: Type in list to filter");
       tipLabel.setHorizontalAlignment(SwingConstants.RIGHT);
