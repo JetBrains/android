@@ -107,15 +107,20 @@ public final class ProjectClassLoader extends ClassLoader {
         if (gradleProject != null) {
           Variant variant = gradleProject.getSelectedVariant();
           String variantName = variant.getName();
-          File file = variant.getOutputFile();
-          // This isn't the *right* file; it's the APK, but it gives us a hint about the root folder containing outputs
-          // (in case it has been customized from the default; build/classes)
+          File classesFolder = variant.getClassesFolder();
 
-          File buildFolder = file.getParentFile().getParentFile();
-          File outFolder = new File(buildFolder,
-                                    "classes" // See AndroidContentRoot
+          // Older models may not supply it; in that case, we rely on looking relative
+          // to the .APK file location:
+          //noinspection ConstantConditions
+          if (classesFolder == null) {
+            File file = variant.getOutputFile();
+            File buildFolder = file.getParentFile().getParentFile();
+            classesFolder = new File(buildFolder, "classes"); // See AndroidContentRoot
+          }
+
+          File outFolder = new File(classesFolder,
                                     // Change variant name variant-release into variant/release directories
-                                    + File.separator + variantName.replace('-', File.separatorChar));
+                                    variantName.replace('-', File.separatorChar));
           if (outFolder.exists()) {
             vOutFolder = LocalFileSystem.getInstance().findFileByIoFile(outFolder);
             if (vOutFolder != null) {
