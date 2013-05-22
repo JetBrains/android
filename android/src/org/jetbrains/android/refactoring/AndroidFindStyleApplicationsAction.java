@@ -3,7 +3,6 @@ package org.jetbrains.android.refactoring;
 import com.android.resources.ResourceType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -65,35 +64,13 @@ public class AndroidFindStyleApplicationsAction extends AndroidBaseXmlRefactorin
     final MyStyleData styleData = getStyleData(tag);
     assert styleData != null;
 
-    doRefactoringForTag(project, tag, styleData, null, myTestConfig);
+    doRefactoringForTag(tag, styleData, null, myTestConfig);
   }
 
-  static void doRefactoringForTag(Project project, XmlTag tag, MyStyleData styleData, PsiFile context, MyTestConfig testConfig) {
-    final ErrorReporter errorReporter = new ProjectBasedErrorReporter(project);
-    final Style style = styleData.getStyle();
-    final Map<AndroidAttributeInfo, String> attrMap =
-      AndroidRefactoringUtil.computeAttributeMap(style, new ProjectBasedErrorReporter(project),
-                                                 AndroidBundle.message("android.find.style.applications.title"));
-
-    if (attrMap == null || attrMap.size() == 0) {
-      return;
-    }
-    final AndroidFacet facet = styleData.getFacet();
-    final Module module = facet.getModule();
-    final StyleRefData parentStyleRef = AndroidRefactoringUtil.getParentStyle(style);
-    PsiElement parentStyleAttrName = null;
-
-    if (parentStyleRef != null) {
-      parentStyleAttrName = resolveStyleRef(parentStyleRef, facet);
-
-      if (parentStyleAttrName == null) {
-        errorReporter.report("Cannot resolve parent style '" + parentStyleRef.getStyleName() + "'",
-                             AndroidBundle.message("android.find.style.applications.title"));
-        return;
-      }
-    }
-    final AndroidFindStyleApplicationsProcessor processor = new AndroidFindStyleApplicationsProcessor(
-      module, attrMap, styleData.getName(), tag, styleData.getNameAttrValue(), parentStyleAttrName, context);
+  static void doRefactoringForTag(XmlTag tag, MyStyleData styleData, @Nullable PsiFile context, MyTestConfig testConfig) {
+    final AndroidFindStyleApplicationsProcessor processor = createFindStyleApplicationsProcessor(tag, styleData, context);
+    if (processor == null) return;
+    final Module module = styleData.getFacet().getModule();
     final VirtualFile contextVFile = context != null ? context.getVirtualFile() : null;
 
     if (testConfig != null) {
@@ -113,6 +90,35 @@ public class AndroidFindStyleApplicationsAction extends AndroidBaseXmlRefactorin
     else {
       processor.run();
     }
+  }
+
+  public static AndroidFindStyleApplicationsProcessor createFindStyleApplicationsProcessor(XmlTag tag,
+                                                                                            MyStyleData styleData,
+                                                                                            PsiFile context) {
+    final ErrorReporter errorReporter = new ProjectBasedErrorReporter(tag.getProject());
+    final Style style = styleData.getStyle();
+    final Map<AndroidAttributeInfo, String> attrMap =
+      AndroidRefactoringUtil.computeAttributeMap(style, new ProjectBasedErrorReporter(tag.getProject()),
+                                                 AndroidBundle.message("android.find.style.applications.title"));
+
+    if (attrMap == null || attrMap.size() == 0) {
+      return null;
+    }
+    final AndroidFacet facet = styleData.getFacet();
+    final StyleRefData parentStyleRef = AndroidRefactoringUtil.getParentStyle(style);
+    PsiElement parentStyleAttrName = null;
+
+    if (parentStyleRef != null) {
+      parentStyleAttrName = resolveStyleRef(parentStyleRef, facet);
+
+      if (parentStyleAttrName == null) {
+        errorReporter.report("Cannot resolve parent style '" + parentStyleRef.getStyleName() + "'",
+                             AndroidBundle.message("android.find.style.applications.title"));
+        return null;
+      }
+    }
+    return new AndroidFindStyleApplicationsProcessor(styleData.getFacet().getModule(), attrMap, styleData.getName(), tag,
+                                                     styleData.getNameAttrValue(), parentStyleAttrName, context);
   }
 
   private static PsiElement resolveStyleRef(StyleRefData styleRef, AndroidFacet facet) {

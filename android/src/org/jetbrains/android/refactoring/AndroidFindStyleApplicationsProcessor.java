@@ -185,9 +185,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
     return result;
   }
 
-  @NotNull
-  private List<UsageInfo> findAllStyleApplications() {
-    final ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
+  public Collection<PsiFile> collectFilesToProcess() {
     final Project project = myModule.getProject();
     final List<VirtualFile> resDirs = new ArrayList<VirtualFile>();
 
@@ -233,12 +231,19 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
       filterFilesToScan(cacheManager, entry.getValue(), psiFilesToProcess, projectScope);
     }
 
+    return psiFilesToProcess;
+  }
+
+  @NotNull
+  private List<UsageInfo> findAllStyleApplications() {
+    Collection<PsiFile> psiFilesToProcess = collectFilesToProcess();
     if (psiFilesToProcess.size() == 0) {
       return Collections.emptyList();
     }
     final int n = psiFilesToProcess.size();
     int i = 0;
 
+    final ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
     if (indicator != null) {
       indicator.setText("Searching for style applications");
     }
@@ -254,9 +259,9 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
 
       if (indicator != null) {
         indicator.setFraction((double)i / n);
-        indicator.setText2(ProjectUtil.calcRelativeToProjectPath(vFile, project));
+        indicator.setText2(ProjectUtil.calcRelativeToProjectPath(vFile, myProject));
       }
-      findAllStyleApplications(project, vFile, myAttrMap, myParentStyleNameAttrValue, usages);
+      findAllStyleApplications(vFile, usages);
     }
     return usages;
   }
@@ -291,35 +296,35 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
     }
   }
 
-  private static void findAllStyleApplications(final Project project,
-                                               final VirtualFile layoutVFile,
-                                               final Map<AndroidAttributeInfo, String> attrMap,
-                                               final PsiElement parentStyleNameAttrValue,
-                                               final List<UsageInfo> usages) {
+  private void findAllStyleApplications(final VirtualFile layoutVFile, final List<UsageInfo> usages) {
     ApplicationManager.getApplication().runReadAction(new Runnable() {
       @Override
       public void run() {
-        final PsiFile layoutFile = PsiManager.getInstance(project).findFile(layoutVFile);
+        final PsiFile layoutFile = PsiManager.getInstance(myProject).findFile(layoutVFile);
 
         if (!(layoutFile instanceof XmlFile)) {
           return;
         }
-        if (!(DomManager.getDomManager(project).getDomFileDescription(
+        if (!(DomManager.getDomManager(myProject).getDomFileDescription(
           (XmlFile)layoutFile) instanceof LayoutDomFileDescription)) {
           return;
         }
-        layoutFile.accept(new XmlRecursiveElementVisitor() {
-          @Override
-          public void visitXmlTag(XmlTag tag) {
-            super.visitXmlTag(tag);
+        collectPossibleStyleApplications(layoutFile, usages);
+        PsiManager.getInstance(myProject).dropResolveCaches();
+        InjectedLanguageManager.getInstance(myProject).dropFileCaches(layoutFile);
+      }
+    });
+  }
 
-            if (isPossibleApplicationOfStyle(project, tag, attrMap, parentStyleNameAttrValue)) {
-              usages.add(new UsageInfo(tag));
-            }
-          }
-        });
-        PsiManager.getInstance(project).dropResolveCaches();
-        InjectedLanguageManager.getInstance(project).dropFileCaches(layoutFile);
+  public void collectPossibleStyleApplications(PsiFile layoutFile, final List<UsageInfo> usages) {
+    layoutFile.accept(new XmlRecursiveElementVisitor() {
+      @Override
+      public void visitXmlTag(XmlTag tag) {
+        super.visitXmlTag(tag);
+
+        if (isPossibleApplicationOfStyle(tag)) {
+          usages.add(new UsageInfo(tag));
+        }
       }
     });
   }
@@ -339,11 +344,8 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
     return null;
   }
 
-  private static boolean isPossibleApplicationOfStyle(Project project,
-                                                      XmlTag candidate,
-                                                      Map<AndroidAttributeInfo, String> attrMap,
-                                                      PsiElement parentStyleNameAttrValue) {
-    final DomElement domCandidate = DomManager.getDomManager(project).getDomElement(candidate);
+  private boolean isPossibleApplicationOfStyle(XmlTag candidate) {
+    final DomElement domCandidate = DomManager.getDomManager(myProject).getDomElement(candidate);
 
     if (!(domCandidate instanceof LayoutViewElement)) {
       return false;
@@ -352,7 +354,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
     final Map<Pair<String, String>, String> attrsInCandidateMap = new HashMap<Pair<String, String>, String>();
     final List<XmlAttribute> attrsInCandidate = AndroidExtractStyleAction.getExtractableAttributes(candidate);
 
-    if (attrsInCandidate.size() < attrMap.size()) {
+    if (attrsInCandidate.size() < myAttrMap.size()) {
       return false;
     }
 
@@ -364,7 +366,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
       }
     }
 
-    for (Map.Entry<AndroidAttributeInfo, String> entry : attrMap.entrySet()) {
+    for (Map.Entry<AndroidAttributeInfo, String> entry : myAttrMap.entrySet()) {
       final String ns = entry.getKey().getNamespace();
       final String name = entry.getKey().getName();
       final String value = entry.getValue();
@@ -376,17 +378,17 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
     }
 
     if (candidateView.getStyle().getStringValue() != null) {
-      if (parentStyleNameAttrValue == null) {
+      if (myParentStyleNameAttrValue == null) {
         return false;
       }
       final PsiElement styleNameAttrValueForTag = getStyleNameAttrValueForTag(candidateView);
 
       if (styleNameAttrValueForTag == null ||
-          !parentStyleNameAttrValue.equals(styleNameAttrValueForTag)) {
+          !myParentStyleNameAttrValue.equals(styleNameAttrValueForTag)) {
         return false;
       }
     }
-    else if (parentStyleNameAttrValue != null) {
+    else if (myParentStyleNameAttrValue != null) {
       return false;
     }
     return true;
