@@ -149,7 +149,7 @@ public class IntellijApiDetector extends ApiDetector {
       element = element.getParent();
     }
 
-    return Integer.MAX_VALUE;
+    return -1;
   }
 
   private static int codeNameToApi(String text) {
