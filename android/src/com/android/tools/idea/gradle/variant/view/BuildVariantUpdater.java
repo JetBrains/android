@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.variant.view;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.customizer.CompilerOutputPathModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.ContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
@@ -38,7 +39,9 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 class BuildVariantUpdater {
   private static final Logger LOG = Logger.getInstance(BuildVariantUpdater.class);
 
-  private final ModuleCustomizer[] myModuleCustomizers = {new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer()};
+  private final ModuleCustomizer[] myModuleCustomizers = {
+    new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputPathModuleCustomizer()
+  };
 
   void updateModule(@NotNull final Project project, @NotNull final String moduleName, @NotNull final String buildVariantName) {
     ExternalSystemApiUtil.executeProjectChangeAction(project, GradleConstants.SYSTEM_ID, project, true, new Runnable() {
