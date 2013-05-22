@@ -294,7 +294,7 @@ public class IntellijApiDetector extends ApiDetector {
           continue;
         }
         int minSdk = getMinSdk(myContext);
-        if (api < minSdk) {
+        if (api <= minSdk) {
           continue;
         }
         if (mySeenTargetApi) {
@@ -353,7 +353,7 @@ public class IntellijApiDetector extends ApiDetector {
             return;
           }
           int minSdk = getMinSdk(myContext);
-          if (api < minSdk) {
+          if (api <= minSdk) {
             return;
           }
           if (mySeenTargetApi) {
@@ -476,9 +476,54 @@ public class IntellijApiDetector extends ApiDetector {
           return;
         }
         int minSdk = getMinSdk(myContext);
-        if (api < minSdk) {
+        if (api <= minSdk) {
           return;
         }
+
+        // The lint API database contains two optimizations:
+        // First, all members that were available in API 1 are omitted from the database, since that saves
+        // about half of the size of the database, and for API check purposes, we don't need to distinguish
+        // between "doesn't exist" and "available in all versions".
+        // Second, all inherited members were inlined into each class, so that it doesn't have to do a
+        // repeated search up the inheritance chain.
+        //
+        // Unfortunately, in this custom PSI detector, we look up the real resolved method, which can sometimes
+        // have a different minimum API.
+        //
+        // For example, SQLiteDatabase had a close() method from API 1. Therefore, calling SQLiteDatabase is supported
+        // in all versions. However, it extends SQLiteClosable, which in API 16 added "implements Closable". In
+        // this detector, if we have the following code:
+        //     void test(SQLiteDatabase db) { db.close }
+        // here the call expression will be the close method on type SQLiteClosable. And that will result in an API
+        // requirement of API 16, since the close method it now resolves to is in API 16.
+        //
+        // To work around this, we can now look up the type of the call expression ("db" in the above, but it could
+        // have been more complicated), and if that's a different type than the type of the method, we look up
+        // *that* method from lint's database instead. Furthermore, it's possible for that method to return "-1"
+        // and we can't tell if that means "doesn't exist" or "present in API 1", we then check the package prefix
+        // to see whether we know it's an API method whose members should all have been inlined.
+        if (expression instanceof PsiMethodCallExpression) {
+          PsiExpression qualifier = ((PsiMethodCallExpression)expression).getMethodExpression().getQualifierExpression();
+          if (qualifier != null) {
+            PsiType type = qualifier.getType();
+            if (type != null && type instanceof PsiClassType) {
+              String expressionOwner = IntellijLintUtils.getInternalName((PsiClassType)type);
+              if (expressionOwner != null && !expressionOwner.equals(owner)) {
+                int specificApi = mApiDatabase.getCallVersion(expressionOwner, name, desc);
+                if (specificApi == -1) {
+                  if (expressionOwner.startsWith("android/")
+                           || expressionOwner.startsWith("java/")
+                           || expressionOwner.startsWith("javax/")) {
+                    return;
+                  }
+                } else if (specificApi <= minSdk) {
+                  return;
+                }
+              }
+            }
+          }
+        }
+
         if (mySeenTargetApi) {
           int target = getTargetApi(expression, myFile);
           if (target != -1) {

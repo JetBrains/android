@@ -48,7 +48,7 @@ public class Class extends Activity {
         return null;
     }
 
-    public static class ApiCallTest10 extends <error descr="Class requires API level 1 (current min is 1): View">View</error> {
+    public static class ApiCallTest10 extends View {
         public ApiCallTest10() {
             super(null, null, 0);
         }
@@ -82,7 +82,7 @@ public class Class extends Activity {
         }
     }
 
-    public static class ApiCallTest11 extends <error descr="Class requires API level 1 (current min is 1): Activity">Activity</error> {
+    public static class ApiCallTest11 extends Activity {
         public boolean isDestroyed() {
             return true;
         }
@@ -91,7 +91,7 @@ public class Class extends Activity {
         public void finishAffinity() {
         }
 
-        private class MyLinear extends <error descr="Class requires API level 1 (current min is 1): LinearLayout">LinearLayout</error> {
+        private class MyLinear extends LinearLayout {
             private Drawable mDividerDrawable;
 
             public MyLinear(Context context) {
@@ -138,5 +138,9 @@ public class Class extends Activity {
         public void fun() throws IOException {
             super.toString(); throw new IOException((Throwable) null); // API 9
         }
+    }
+
+    public void closeTest(android.database.sqlite.SQLiteDatabase db) throws Exception {
+        db.close();
     }
 }

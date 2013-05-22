@@ -31,13 +31,13 @@ import static org.easymock.classextension.EasyMock.*;
  * Tests for {@link ProjectResolverFunctionFactory}.
  */
 public class ProjectResolverFunctionFactoryTest extends TestCase {
-  private MultiProjectResolverStrategy myStrategy;
+  private ProjectResolver myStrategy;
   private ProjectResolverFunctionFactory myFunctionFactory;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myStrategy = createMock(MultiProjectResolverStrategy.class);
+    myStrategy = createMock(ProjectResolver.class);
     myFunctionFactory = new ProjectResolverFunctionFactory(myStrategy);
   }
 

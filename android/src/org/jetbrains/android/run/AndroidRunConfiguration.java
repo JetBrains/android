@@ -316,7 +316,11 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
       boolean debug = state.isDebugMode();
       while (true) {
         if (state.isStopped()) return LaunchResult.STOP;
-        String command = "am start " + (debug ? "-D " : "") + "-n \"" + activityPath + "\"";
+        String command = "am start " +
+                         (debug ? "-D " : "") +
+                         "-n \"" + activityPath + "\" " +
+                         "-a android.intent.action.MAIN " +
+                         "-c android.intent.category.LAUNCHER";
         boolean deviceNotResponding = false;
         try {
           state.executeDeviceCommandAndWriteToConsole(device, command, receiver);
