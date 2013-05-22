@@ -58,6 +58,12 @@ public class AndroidProjectStub implements AndroidProject {
 
   @NotNull
   @Override
+  public String getModelVersion() {
+    throw new UnsupportedOperationException();
+  }
+
+  @NotNull
+  @Override
   public String getName() {
     return myName;
   }

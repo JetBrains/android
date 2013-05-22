@@ -169,6 +169,12 @@ public class VariantStub implements Variant {
     return myGeneratedTestResourceFolders;
   }
 
+  @NotNull
+  @Override
+  public File getClassesFolder() {
+    throw new UnsupportedOperationException();
+  }
+
   public void addProductFlavors(@NotNull String... flavorNames) {
     myProductFlavors.addAll(Arrays.asList(flavorNames));
   }

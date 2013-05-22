@@ -15,35 +15,25 @@
  */
 package com.android.tools.idea.actions;
 
-import com.intellij.openapi.actionSystem.AnAction;
+import com.android.tools.idea.gradle.util.Projects;
+import com.intellij.ide.actions.ShowStructureSettingsAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.options.ShowSettingsUtil;
-import com.intellij.openapi.options.newEditor.OptionsEditorDialog;
-import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable;
 import com.intellij.openapi.ui.Messages;
 
 /**
  * Action that notifies the user that the UI for configuring a project is disabled.
  */
-public class DisabledProjectStructureAction extends AnAction implements DumbAware {
-  public DisabledProjectStructureAction() {
-    super("Project Structure...");
-  }
-
+public class DisabledProjectStructureAction extends ShowStructureSettingsAction {
   @Override
   public void actionPerformed(AnActionEvent e) {
     Project project = PlatformDataKeys.PROJECT.getData(e.getDataContext());
-    if (project != null) {
+    if (project != null && Projects.isGradleProject(project)) {
       showDisabledProjectStructureDialogMessage();
       return;
     }
-    project = ProjectManager.getInstance().getDefaultProject();
-    ShowSettingsUtil settings = ShowSettingsUtil.getInstance();
-    settings.editConfigurable(project, OptionsEditorDialog.DIMENSION_KEY, ProjectStructureConfigurable.getInstance(project));
+    super.actionPerformed(e);
   }
 
   public static void showDisabledProjectStructureDialogMessage() {

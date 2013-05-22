@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileStatusNotification;
 import com.intellij.openapi.compiler.CompilerManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -47,5 +50,21 @@ public final class Projects {
         }
       }
     });
+  }
+
+  /**
+   * Indicates whether the given project has at least one module that has the {@link AndroidGradleFacet}.
+   *
+   * @param project the given project.
+   * @return {@code true} if the given project has at least one module that has the Android-Gradle facet, {@code false} otherwise.
+   */
+  public static boolean isGradleProject(@NotNull Project project) {
+    ModuleManager moduleManager = ModuleManager.getInstance(project);
+    for (Module module : moduleManager.getModules()) {
+      if (Facets.getFirstFacet(module, AndroidGradleFacet.TYPE_ID) != null) {
+        return true;
+      }
+    }
+    return false;
   }
 }
