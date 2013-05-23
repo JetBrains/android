@@ -16,6 +16,7 @@ import com.intellij.util.Processor;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import gnu.trove.THashSet;
+import gnu.trove.TObjectLongHashMap;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactSigningMode;
 import org.jetbrains.android.compiler.tools.AndroidApt;
 import org.jetbrains.android.compiler.tools.AndroidIdl;
@@ -846,7 +847,8 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
   }
 
   private static MyExitStatus runAaptCompiler(@NotNull final CompileContext context,
-                                              @NotNull Map<JpsModule, MyModuleData> moduleDataMap) throws IOException {
+                                              @NotNull Map<JpsModule, MyModuleData> moduleDataMap)
+    throws IOException {
     boolean success = true;
     boolean didSomething = false;
 
@@ -898,7 +900,19 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
         }
         final boolean generateNonFinalFields = extension.isLibrary() || circularDepLibWithSamePackage != null;
 
-        final Map<String, ResourceFileData> resources = collectResources(resPaths);
+        AndroidAptValidityState oldState;
+
+        try {
+          oldState = storage.getState(module.getName());
+        }
+        catch (IOException e) {
+          LOG.info(e);
+          oldState = null;
+        }
+        final Map<String, ResourceFileData> resources = new HashMap<String, ResourceFileData>();
+        final TObjectLongHashMap<String> valueResFilesTimestamps = new TObjectLongHashMap<String>();
+        collectResources(resPaths, resources, valueResFilesTimestamps, oldState);
+
         final List<ResourceEntry> manifestElements = collectManifestElements(manifestFile);
 
         final Set<String> depLibPackagesSet = new HashSet<String>(packageMap.values());
@@ -918,9 +932,9 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
           proguardOutputCfgFilePath = null;
         }
         final AndroidAptValidityState newState =
-          new AndroidAptValidityState(resources, manifestElements, depLibPackagesSet, packageName, proguardOutputCfgFilePath);
+          new AndroidAptValidityState(resources, valueResFilesTimestamps, manifestElements,
+                                      depLibPackagesSet, packageName, proguardOutputCfgFilePath);
 
-        final AndroidAptValidityState oldState = storage.getState(module.getName());
         if (newState.equalsTo(oldState)) {
           continue;
         }
@@ -1119,8 +1133,11 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
   }
 
   @NotNull
-  private static Map<String, ResourceFileData> collectResources(@NotNull String[] resPaths) throws IOException {
-    final Map<String, ResourceFileData> result = new HashMap<String, ResourceFileData>();
+  private static Map<String, ResourceFileData> collectResources(@NotNull String[] resPaths,
+                                                                @NotNull Map<String, ResourceFileData> resDataMap,
+                                                                @NotNull TObjectLongHashMap<String> valueResFilesTimestamps,
+                                                                @Nullable AndroidAptValidityState oldState)
+    throws IOException {
 
     for (String resDirPath : resPaths) {
       final File[] resSubdirs = new File(resDirPath).listFiles();
@@ -1134,18 +1151,37 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
 
             if (resFiles != null) {
               for (File resFile : resFiles) {
+                final String resFilePath = FileUtil.toSystemIndependentName(resFile.getPath());
+                final long resFileTimestamp = resFile.lastModified();
+
                 if (ResourceFolderType.VALUES.getName().equals(resType) && FileUtilRt.extensionEquals(resFile.getName(), "xml")) {
-                  final ArrayList<ResourceEntry> entries = new ArrayList<ResourceEntry>();
-                  collectValueResources(resFile, entries);
-                  result.put(FileUtil.toSystemIndependentName(resFile.getPath()), new ResourceFileData(entries, 0));
+                  ResourceFileData dataToReuse = null;
+
+                  if (oldState != null) {
+                    final long oldTimestamp = oldState.getValueResourceFilesTimestamps().get(resFilePath);
+
+                    if (resFileTimestamp == oldTimestamp) {
+                      dataToReuse = oldState.getResources().get(resFilePath);
+                    }
+                  }
+
+                  if (dataToReuse != null) {
+                    resDataMap.put(resFilePath, dataToReuse);
+                  }
+                  else {
+                    final ArrayList<ResourceEntry> entries = new ArrayList<ResourceEntry>();
+                    collectValueResources(resFile, entries);
+                    resDataMap.put(resFilePath, new ResourceFileData(entries, 0));
+                  }
+                  valueResFilesTimestamps.put(resFilePath, resFileTimestamp);
                 }
                 else {
                   final ResourceType resTypeObj = ResourceType.getEnum(resType);
                   final boolean idProvidingType =
                     resTypeObj != null && ArrayUtil.find(AndroidCommonUtils.ID_PROVIDING_RESOURCE_TYPES, resTypeObj) >= 0;
                   final ResourceFileData data =
-                    new ResourceFileData(Collections.<ResourceEntry>emptyList(), idProvidingType ? resFile.lastModified() : 0);
-                  result.put(FileUtil.toSystemIndependentName(resFile.getPath()), data);
+                    new ResourceFileData(Collections.<ResourceEntry>emptyList(), idProvidingType ? resFileTimestamp : 0);
+                  resDataMap.put(resFilePath, data);
                 }
               }
             }
@@ -1153,7 +1189,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
         }
       }
     }
-    return result;
+    return resDataMap;
   }
 
   private static void collectValueResources(@NotNull File valueResXmlFile, @NotNull final List<ResourceEntry> result)
