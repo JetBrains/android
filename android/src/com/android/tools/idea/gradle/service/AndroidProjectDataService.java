@@ -46,7 +46,8 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
   public AndroidProjectDataService() {
     myCustomizers =
       new ModuleCustomizer[]{
-        new AndroidSdkModuleCustomizer(), new AndroidFacetModuleCustomizer(), new ContentRootModuleCustomizer()
+        new AndroidSdkModuleCustomizer(), new AndroidFacetModuleCustomizer(), new ContentRootModuleCustomizer(),
+        new CompilerOutputPathModuleCustomizer()
       };
   }
 
