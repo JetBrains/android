@@ -90,6 +90,11 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
   }
 
   @Override
+  public void buildFinished(CompileContext context) {
+    AndroidBuildDataCache.clean();
+  }
+
+  @Override
   public ModuleLevelBuilder.ExitCode build(CompileContext context,
                                            ModuleChunk chunk,
                                            DirtyFilesHolder<JavaSourceRootDescriptor, ModuleBuildTarget> dirtyFilesHolder,
