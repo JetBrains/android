@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.roots.ui.configuration;
 
-import com.android.tools.idea.actions.DisabledProjectStructureAction;
 import com.android.tools.idea.gradle.util.Projects;
+import com.intellij.ide.actions.ShowStructureSettingsAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.OrderEntry;
@@ -40,7 +40,7 @@ public class GradleProjectSettingsService extends IdeaProjectSettingsService {
   @Override
   public void openArtifactSettings(@Nullable Artifact artifact) {
     if (myIsGradleProject) {
-      DisabledProjectStructureAction.showDisabledProjectStructureDialogMessage();
+      ShowStructureSettingsAction.showDisabledProjectStructureDialogMessage();
       return;
     }
     super.openArtifactSettings(artifact);
@@ -49,7 +49,7 @@ public class GradleProjectSettingsService extends IdeaProjectSettingsService {
   @Override
   public void openContentEntriesSettings(Module module) {
     if (myIsGradleProject) {
-      DisabledProjectStructureAction.showDisabledProjectStructureDialogMessage();
+      ShowStructureSettingsAction.showDisabledProjectStructureDialogMessage();
       return;
     }
     super.openContentEntriesSettings(module);
@@ -58,7 +58,7 @@ public class GradleProjectSettingsService extends IdeaProjectSettingsService {
   @Override
   public void openLibrary(@NotNull Library library) {
     if (myIsGradleProject) {
-      DisabledProjectStructureAction.showDisabledProjectStructureDialogMessage();
+      ShowStructureSettingsAction.showDisabledProjectStructureDialogMessage();
       return;
     }
     super.openLibrary(library);
@@ -67,7 +67,7 @@ public class GradleProjectSettingsService extends IdeaProjectSettingsService {
   @Override
   public void openModuleDependenciesSettings(@NotNull Module module, @Nullable OrderEntry orderEntry) {
     if (myIsGradleProject) {
-      DisabledProjectStructureAction.showDisabledProjectStructureDialogMessage();
+      ShowStructureSettingsAction.showDisabledProjectStructureDialogMessage();
       return;
     }
     super.openModuleDependenciesSettings(module, orderEntry);
@@ -76,7 +76,7 @@ public class GradleProjectSettingsService extends IdeaProjectSettingsService {
   @Override
   public void openModuleLibrarySettings(Module module) {
     if (myIsGradleProject) {
-      DisabledProjectStructureAction.showDisabledProjectStructureDialogMessage();
+      ShowStructureSettingsAction.showDisabledProjectStructureDialogMessage();
       return;
     }
     super.openModuleLibrarySettings(module);
@@ -85,7 +85,7 @@ public class GradleProjectSettingsService extends IdeaProjectSettingsService {
   @Override
   public void openModuleSettings(Module module) {
     if (myIsGradleProject) {
-      DisabledProjectStructureAction.showDisabledProjectStructureDialogMessage();
+      ShowStructureSettingsAction.showDisabledProjectStructureDialogMessage();
       return;
     }
     super.openModuleSettings(module);
@@ -94,7 +94,7 @@ public class GradleProjectSettingsService extends IdeaProjectSettingsService {
   @Override
   public void openLibraryOrSdkSettings(@NotNull OrderEntry orderEntry) {
     if (myIsGradleProject) {
-      DisabledProjectStructureAction.showDisabledProjectStructureDialogMessage();
+      ShowStructureSettingsAction.showDisabledProjectStructureDialogMessage();
       return;
     }
     super.openLibraryOrSdkSettings(orderEntry);
