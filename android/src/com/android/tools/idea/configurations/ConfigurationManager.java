@@ -43,6 +43,7 @@ import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.sdk.*;
 import org.jetbrains.android.uipreview.UserDeviceManager;
 import org.jetbrains.android.util.AndroidUtils;
@@ -178,7 +179,10 @@ public class ConfigurationManager implements Disposable {
   @Nullable
   private AndroidPlatform getPlatform() {
     // TODO: How do we refresh this if the user remaps chosen target?
-    final Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
+    Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
+    if (sdk == null) {
+      sdk = AndroidFacetConfiguration.findAndSetAndroidSdk(myModule);
+    }
     if (sdk != null && sdk.getSdkType() instanceof AndroidSdkType) {
       final AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
       if (additionalData != null) {
