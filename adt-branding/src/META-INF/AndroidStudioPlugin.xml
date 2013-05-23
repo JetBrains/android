@@ -1420,7 +1420,7 @@
   </extensions>
 
   <actions>
-    <action id="ShowProjectStructureSettings" class="com.android.tools.idea.actions.DisabledProjectStructureAction"
+    <action id="ShowProjectStructureSettings" class="com.intellij.ide.actions.ShowStructureSettingsAction"
             icon="AllIcons.General.ProjectStructure">
       <add-to-group group-id="FileMainSettingsGroup" anchor="after" relative-to-action="ShowSettings"/>
       <add-to-group group-id="MainToolBarSettings" anchor="after" relative-to-action="ShowSettings"/>
