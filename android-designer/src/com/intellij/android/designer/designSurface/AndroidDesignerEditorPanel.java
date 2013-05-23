@@ -439,11 +439,15 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
           final Module module = getModule();
           AndroidFacet facet = AndroidFacet.getInstance(module);
           if (facet == null) {
-            throw new RenderingException();
+            throw new RenderingException("No facet available");
           }
 
-          if (myConfiguration.getTarget() == null || myConfiguration.getTheme() == null) {
-            throw new RenderingException();
+          if (myConfiguration.getTarget() == null) {
+            throw new RenderingException("No target selected");
+          }
+
+          if (myConfiguration.getTheme() == null) {
+            throw new RenderingException("No theme");
           }
 
           if (sessionId != mySessionId) {
