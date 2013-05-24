@@ -39,7 +39,10 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
 
 import static com.android.SdkConstants.*;
 
@@ -222,8 +225,10 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
     if (displayLevel == HighlightDisplayLevel.ERROR) {
       return holder.createErrorAnnotation(range, message);
     }
-    else if (displayLevel == HighlightDisplayLevel.WEAK_WARNING ||
-             displayLevel == HighlightDisplayLevel.INFO) {
+    else if (displayLevel == HighlightDisplayLevel.WEAK_WARNING) {
+      return holder.createWeakWarningAnnotation(range, message);
+    }
+    else if (displayLevel == HighlightDisplayLevel.INFO) {
       return holder.createInfoAnnotation(range, message);
     }
     else {
