@@ -60,7 +60,8 @@ public class AndroidInitialConfigurator {
    * This makes it easier to do local testing.
    */
   private static void setupSystemProperties() {
-    // If defined, AS_UPDATE_URL should point to the *root* of the updates.xml file to use.
+    // If defined, AS_UPDATE_URL should point to the *root* of the updates.xml file to use
+    // and patches are expected to be in the same folder.
     String updateUrl = System.getenv("AS_UPDATE_URL");
     if (updateUrl != null) {
       if (!updateUrl.endsWith("/")) {
@@ -68,7 +69,7 @@ public class AndroidInitialConfigurator {
       }
       // Set the Java system properties expected by UpdateChecker.
       System.setProperty("idea.updates.url", updateUrl + "updates.xml");
-      System.setProperty("idea.patches.url", updateUrl + "patches");
+      System.setProperty("idea.patches.url", updateUrl);
     }
 
   }
