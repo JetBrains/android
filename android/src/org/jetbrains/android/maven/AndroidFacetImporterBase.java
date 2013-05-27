@@ -450,8 +450,8 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       configuration.getState().MANIFEST_FILE_RELATIVE_PATH = s + AndroidMavenUtil.APK_LIB_ARTIFACT_MANIFEST_FILE;
     }
 
-    importSdkAndDependenciesForApklibArtifact(project, apklibModuleModel, modelsProvider,
-                                              mavenTree, artifact, mavenProject2ModuleName);
+    importSdkAndDependenciesForApklibArtifact(project, apklibModuleModel, modelsProvider, mavenTree,
+                                              artifactMavenId, mavenProject2ModuleName);
     return apklibModule;
   }
 
@@ -459,12 +459,12 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
                                                                 ModifiableRootModel apklibModuleModel,
                                                                 MavenModifiableModelsProvider modelsProvider,
                                                                 MavenProjectsTree mavenTree,
-                                                                MavenArtifact artifact,
+                                                                MavenId artifactMavenId,
                                                                 Map<MavenProject, String> mavenProject2ModuleName) {
     final String apklibModuleName = apklibModuleModel.getModule().getName();
     final AndroidExternalApklibDependenciesManager adm = AndroidExternalApklibDependenciesManager.getInstance(project);
     final MavenArtifactResolvedInfo resolvedInfo =
-      adm.getResolvedInfoForArtifact(artifact.getMavenId());
+      adm.getResolvedInfoForArtifact(artifactMavenId);
 
     for (OrderEntry entry : apklibModuleModel.getOrderEntries()) {
       if (entry instanceof ModuleOrderEntry || entry instanceof LibraryOrderEntry) {
@@ -521,7 +521,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       }
     }
     else {
-      AndroidUtils.reportImportErrorToEventLog("Cannot find sdk info for artifact " + artifact.getMavenId().getKey(), apklibModuleName,
+      AndroidUtils.reportImportErrorToEventLog("Cannot find sdk info for artifact " + artifactMavenId.getKey(), apklibModuleName,
                                                project);
     }
   }
