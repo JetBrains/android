@@ -573,6 +573,8 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
                       NativeMavenProjectHolder nativeMavenProject,
                       MavenEmbedderWrapper embedder)
     throws MavenProcessCanceledException {
+    final AndroidExternalApklibDependenciesManager adm =
+      AndroidExternalApklibDependenciesManager.getInstance(project);
 
     for (MavenArtifact depArtifact : mavenProject.getDependencies()) {
       final MavenProjectsManager mavenProjectsManager = MavenProjectsManager.getInstance(project);
@@ -581,16 +583,19 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
           mavenProjectsManager.findProject(depArtifact) == null &&
           MavenConstants.SCOPE_COMPILE.equals(depArtifact.getScope())) {
 
-        doResolveApklibArtifact(project, depArtifact, embedder, mavenProjectsManager, mavenProject.getName());
+        if (adm.getResolvedInfoForArtifact(depArtifact.getMavenId()) == null) {
+          doResolveApklibArtifact(project, depArtifact, embedder, mavenProjectsManager, mavenProject.getName(), adm);
       }
     }
+  }
   }
 
   private void doResolveApklibArtifact(Project project,
                                        MavenArtifact artifact,
                                        MavenEmbedderWrapper embedder,
                                        MavenProjectsManager mavenProjectsManager,
-                                       String moduleName) throws MavenProcessCanceledException {
+                                       String moduleName,
+                                       AndroidExternalApklibDependenciesManager adm) throws MavenProcessCanceledException {
     final File depArtifacetFile = new File(FileUtil.getNameWithoutExtension(artifact.getPath()) + ".pom");
     if (!depArtifacetFile.exists()) {
       AndroidUtils.reportImportErrorToEventLog("Cannot find file " + depArtifacetFile.getPath(), moduleName, project);
@@ -614,6 +619,8 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
         return null;
       }
     };
+    final MavenArtifactResolvedInfo info = new MavenArtifactResolvedInfo();
+    adm.setResolvedInfoForArtifact(artifact.getMavenId(), info);
 
     projectForExternalApklib.read(generalSettings, mavenProjectsManager.getAvailableProfiles(), mavenProjectReader, locator);
     projectForExternalApklib.resolve(project, generalSettings, embedder, mavenProjectReader, locator);
@@ -626,16 +633,8 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     for (MavenArtifact depArtifact : projectForExternalApklib.getDependencies()) {
       dependencies.add(AndroidExternalApklibDependenciesManager.MavenDependencyInfo.create(depArtifact));
     }
-
-    final AndroidExternalApklibDependenciesManager apklibDependenciesManager =
-      AndroidExternalApklibDependenciesManager.getInstance(project);
-
-    final MavenArtifactResolvedInfo info =
-      new MavenArtifactResolvedInfo(
-      apiLevel != null ? apiLevel : "",
-      dependencies);
-    
-    apklibDependenciesManager.setResolvedInfoForArtifact(artifact.getMavenId(), info);
+    info.setApiLevel(apiLevel != null ? apiLevel : "");
+    info.setDependencies(dependencies);
   }
 
   private void configureAndroidPlatform(AndroidFacet facet, MavenProject project, MavenModifiableModelsProvider modelsProvider) {
