@@ -24,6 +24,7 @@ import com.intellij.openapi.externalSystem.model.project.ContentRootData;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.util.io.FileUtil;
@@ -73,10 +74,11 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
   DataNode<ProjectData> resolveProjectInfo(@NotNull ExternalSystemTaskId id,
                                            @NotNull String projectPath,
                                            @Nullable GradleExecutionSettings settings,
-                                           @NotNull ProjectConnection connection) {
+                                           @NotNull ProjectConnection connection,
+                                           @NotNull ExternalSystemTaskNotificationListener listener) {
     String projectDirPath = PathUtil.getParentPath(projectPath);
 
-    ModelBuilder<IdeaProject> modelBuilder = myHelper.getModelBuilder(IdeaProject.class, id, settings, connection);
+    ModelBuilder<IdeaProject> modelBuilder = myHelper.getModelBuilder(IdeaProject.class, id, settings, connection, listener);
     IdeaProject ideaProject = modelBuilder.get();
     if (ideaProject == null || ideaProject.getModules().isEmpty()) {
       return null;
@@ -96,7 +98,7 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
       if (gradleBuildFilePath == null) {
         continue;
       }
-      AndroidProject androidProject = getAndroidProject(id, gradleBuildFilePath, settings);
+      AndroidProject androidProject = getAndroidProject(id, gradleBuildFilePath, settings, listener);
       if (androidProject != null) {
         String subProjectConfigPath = GradleUtil.getConfigPath(gradleProject, projectPath);
         createModuleInfo(androidProject, moduleName, projectInfo, moduleDirPath, subProjectConfigPath, gradleProject);
@@ -134,12 +136,13 @@ class MultiProjectResolverStrategy extends ProjectResolverStrategy {
   @Nullable
   private AndroidProject getAndroidProject(@NotNull final ExternalSystemTaskId id,
                                            @NotNull String projectPath,
-                                           @Nullable final GradleExecutionSettings settings) {
+                                           @Nullable final GradleExecutionSettings settings,
+                                           @NotNull final ExternalSystemTaskNotificationListener listener) {
     return myHelper.execute(projectPath, settings, new Function<ProjectConnection, AndroidProject>() {
       @Nullable
       @Override
       public AndroidProject fun(ProjectConnection connection) {
-        return getAndroidProject(id, settings, connection);
+        return getAndroidProject(id, settings, connection, listener);
       }
     });
   }

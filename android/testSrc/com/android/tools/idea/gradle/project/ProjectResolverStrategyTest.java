@@ -40,6 +40,7 @@ import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper;
 
 import java.util.Collection;
 
+import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter.NULL_OBJECT;
 import static org.easymock.classextension.EasyMock.*;
 
 /**
@@ -78,7 +79,7 @@ public class ProjectResolverStrategyTest extends TestCase {
 
   public void testResolveProjectInfo() {
     // Record mock expectations.
-    myHelper.getModelBuilder(AndroidProject.class, myId, null, myConnection);
+    myHelper.getModelBuilder(AndroidProject.class, myId, null, myConnection, NULL_OBJECT);
     expectLastCall().andReturn(myModelBuilder);
 
     expect(myModelBuilder.get()).andReturn(myAndroidProject);
@@ -87,7 +88,7 @@ public class ProjectResolverStrategyTest extends TestCase {
 
     // Code under test.
     String projectPath = myAndroidProject.getBuildFile().getAbsolutePath();
-    DataNode<ProjectData> projectInfo = myStrategy.resolveProjectInfo(myId, projectPath, null, myConnection);
+    DataNode<ProjectData> projectInfo = myStrategy.resolveProjectInfo(myId, projectPath, null, myConnection, NULL_OBJECT);
 
     // Verify mock expectations.
     verify(myConnection, myHelper, myModelBuilder);

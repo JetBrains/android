@@ -40,6 +40,7 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
 import java.util.List;
 
+import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter.NULL_OBJECT;
 import static org.easymock.classextension.EasyMock.*;
 
 /**
@@ -83,7 +84,7 @@ public class MultiProjectResolverStrategyTest extends TestCase {
   public void testResolveProjectInfo() {
     // Record mock expectations.
     ModelBuilder<IdeaProject> ideaProjectModelBuilder = createMock(ModelBuilder.class);
-    myHelper.getModelBuilder(IdeaProject.class, myId, mySettings, myConnection);
+    myHelper.getModelBuilder(IdeaProject.class, myId, mySettings, myConnection, NULL_OBJECT);
     expectLastCall().andReturn(ideaProjectModelBuilder);
 
     // Simulate retrieval of the top-level IdeaProject.
@@ -96,7 +97,7 @@ public class MultiProjectResolverStrategyTest extends TestCase {
 
     // Code under test.
     String projectPath = myIdeaProject.getBuildFile().getAbsolutePath();
-    DataNode<ProjectData> projectInfo = myStrategy.resolveProjectInfo(myId, projectPath, mySettings, myConnection);
+    DataNode<ProjectData> projectInfo = myStrategy.resolveProjectInfo(myId, projectPath, mySettings, myConnection, NULL_OBJECT);
 
     // Verify mock expectations.
     verify(myConnection, myHelper, ideaProjectModelBuilder);

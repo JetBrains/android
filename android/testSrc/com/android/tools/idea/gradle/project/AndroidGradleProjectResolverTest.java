@@ -26,6 +26,7 @@ import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
+import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter.NULL_OBJECT;
 import static org.easymock.classextension.EasyMock.*;
 
 /**
@@ -53,13 +54,13 @@ public class AndroidGradleProjectResolverTest extends TestCase {
     String projectPath = "~/basic/build.gradle";
     GradleExecutionSettings settings = createMock(GradleExecutionSettings.class);
 
-    expect(myFunctionFactory.createFunction(id, projectPath, settings)).andReturn(myProjectResolverFunction);
+    expect(myFunctionFactory.createFunction(id, projectPath, settings, NULL_OBJECT)).andReturn(myProjectResolverFunction);
     DataNode<ProjectData> projectInfo = createMock(DataNode.class);
     expect(myHelper.execute(projectPath, settings, myProjectResolverFunction)).andReturn(projectInfo);
 
     replay(myFunctionFactory, myHelper);
 
-    DataNode<ProjectData> resolved = myProjectResolver.resolveProjectInfo(id, projectPath, true, settings);
+    DataNode<ProjectData> resolved = myProjectResolver.resolveProjectInfo(id, projectPath, true, settings, NULL_OBJECT);
     assertSame(projectInfo, resolved);
 
     verify(myFunctionFactory, myHelper);
