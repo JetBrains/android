@@ -631,6 +631,105 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
     }
   }
 
+  public void testExternalApklib6() throws Exception {
+    setRepositoryPath(new File(myDir, "__repo").getPath());
+    FileUtil.copyDir(new File(AndroidTestCase.getTestDataPath() + "/maven/myapklib3"),
+                     new File(getRepositoryPath(), "com/myapklib3/1.0"));
+    FileUtil.copyDir(new File(AndroidTestCase.getTestDataPath() + "/maven/myapklib4_1"),
+                     new File(getRepositoryPath(), "com/myapklib4/1.0"));
+    FileUtil.copyDir(new File(AndroidTestCase.getTestDataPath() + "/maven/myapklib4_2"),
+                     new File(getRepositoryPath(), "com/myapklib4/2.0"));
+
+    AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = AndroidTestCase.getDefaultTestSdkPath();
+    try {
+      importProject(getPomContent("apk", "module", "") +
+                    "<dependencies>" +
+                    "  <dependency>" +
+                    "    <groupId>com</groupId>\n" +
+                    "    <artifactId>myapklib3</artifactId>\n" +
+                    "    <version>1.0</version>\n" +
+                    "    <type>apklib</type>" +
+                    "  </dependency>" +
+                    "  <dependency>" +
+                    "    <groupId>com</groupId>\n" +
+                    "    <artifactId>myapklib4</artifactId>\n" +
+                    "    <version>1.0</version>\n" +
+                    "    <type>apklib</type>" +
+                    "  </dependency>" +
+                    "</dependencies>");
+
+      assertModules("module", "~apklib-com_myapklib3_1.0", "~apklib-com_myapklib4_1.0", "~apklib-com_myapklib4_2.0");
+      assertModuleModuleDeps("module", "~apklib-com_myapklib3_1.0", "~apklib-com_myapklib4_1.0");
+      assertModuleModuleDeps("~apklib-com_myapklib3_1.0", "~apklib-com_myapklib4_2.0");
+      assertModuleModuleDeps("~apklib-com_myapklib4_1.0");
+      assertModuleModuleDeps("~apklib-com_myapklib4_2.0");
+
+      Module module = getModule("~apklib-com_myapklib3_1.0");
+      checkSdk(ModuleRootManager.getInstance(module).getSdk(), "Maven Android 1.1 Platform", "android-2");
+      module = getModule("~apklib-com_myapklib4_1.0");
+      checkSdk(ModuleRootManager.getInstance(module).getSdk(), "Maven Android 4.2 Platform", "android-17");
+      module = getModule("~apklib-com_myapklib4_2.0");
+      checkSdk(ModuleRootManager.getInstance(module).getSdk(), "Maven Android 1.1 Platform", "android-2");
+    }
+    finally {
+      AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = null;
+    }
+  }
+
+  public void testExternalApklib7() throws Exception {
+    setRepositoryPath(new File(myDir, "__repo").getPath());
+    FileUtil.copyDir(new File(AndroidTestCase.getTestDataPath() + "/maven/myapklib5"),
+                     new File(getRepositoryPath(), "com/myapklib5/1.0"));
+    FileUtil.copyDir(new File(AndroidTestCase.getTestDataPath() + "/maven/myapklib6_1"),
+                     new File(getRepositoryPath(), "com/myapklib6/1.0"));
+    FileUtil.copyDir(new File(AndroidTestCase.getTestDataPath() + "/maven/myapklib6_2"),
+                     new File(getRepositoryPath(), "com/myapklib6/2.0"));
+    FileUtil.copyDir(new File(AndroidTestCase.getTestDataPath() + "/maven/myapklib7_1"),
+                     new File(getRepositoryPath(), "com/myapklib7/1.0"));
+    FileUtil.copyDir(new File(AndroidTestCase.getTestDataPath() + "/maven/myapklib7_2"),
+                     new File(getRepositoryPath(), "com/myapklib7/2.0"));
+    FileUtil.copyDir(new File(AndroidTestCase.getTestDataPath() + "/maven/myapklib7_3"),
+                     new File(getRepositoryPath(), "com/myapklib7/3.0"));
+
+    AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = AndroidTestCase.getDefaultTestSdkPath();
+    try {
+      importProject(getPomContent("apk", "module", "") +
+                    "<dependencies>" +
+                    "  <dependency>" +
+                    "    <groupId>com</groupId>\n" +
+                    "    <artifactId>myapklib5</artifactId>\n" +
+                    "    <version>1.0</version>\n" +
+                    "    <type>apklib</type>" +
+                    "  </dependency>" +
+                    "  <dependency>" +
+                    "    <groupId>com</groupId>\n" +
+                    "    <artifactId>myapklib6</artifactId>\n" +
+                    "    <version>2.0</version>\n" +
+                    "    <type>apklib</type>" +
+                    "  </dependency>" +
+                    "  <dependency>" +
+                    "    <groupId>com</groupId>\n" +
+                    "    <artifactId>myapklib7</artifactId>\n" +
+                    "    <version>2.0</version>\n" +
+                    "    <type>apklib</type>" +
+                    "  </dependency>" +
+                    "</dependencies>");
+
+      assertModules("module", "~apklib-com_myapklib5_1.0", "~apklib-com_myapklib6_1.0", "~apklib-com_myapklib6_2.0",
+                    "~apklib-com_myapklib7_1.0", "~apklib-com_myapklib7_2.0", "~apklib-com_myapklib7_3.0");
+      assertModuleModuleDeps("module", "~apklib-com_myapklib5_1.0", "~apklib-com_myapklib6_2.0", "~apklib-com_myapklib7_2.0");
+      assertModuleModuleDeps("~apklib-com_myapklib5_1.0", "~apklib-com_myapklib6_1.0", "~apklib-com_myapklib7_1.0");
+      assertModuleModuleDeps("~apklib-com_myapklib6_1.0", "~apklib-com_myapklib7_3.0");
+      assertModuleModuleDeps("~apklib-com_myapklib6_2.0", "~apklib-com_myapklib7_1.0", "~apklib-com_myapklib5_1.0");
+      assertModuleModuleDeps("~apklib-com_myapklib7_1.0");
+      assertModuleModuleDeps("~apklib-com_myapklib7_2.0");
+      assertModuleModuleDeps("~apklib-com_myapklib7_3.0", "~apklib-com_myapklib6_2.0");
+    }
+    finally {
+      AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = null;
+    }
+  }
+
   public void testBlockOptionImporting() throws Exception {
     final Sdk sdk = AndroidTestCase.createAndroidSdk(AndroidTestCase.getDefaultTestSdkPath(), AndroidTestCase.getDefaultPlatformDir());
 
