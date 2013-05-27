@@ -29,6 +29,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.KeyValue;
@@ -57,6 +58,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   @NotNull private final ProjectResolverFunctionFactory myFunctionFactory;
 
   // This constructor is called by the IDE. See this module's plugin.xml file, implementation of extension 'projectResolve'.
+  @SuppressWarnings("UnusedDeclaration")
   public AndroidGradleProjectResolver() {
     myHelper = new GradleExecutionHelper();
     myFunctionFactory =
@@ -89,8 +91,9 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   public DataNode<ProjectData> resolveProjectInfo(@NotNull ExternalSystemTaskId id,
                                                   @NotNull String projectPath,
                                                   boolean downloadLibraries,
-                                                  @Nullable GradleExecutionSettings settings) {
-    Function<ProjectConnection, DataNode<ProjectData>> function = myFunctionFactory.createFunction(id, projectPath, settings);
+                                                  @Nullable GradleExecutionSettings settings,
+                                                  @NotNull ExternalSystemTaskNotificationListener listener) {
+    Function<ProjectConnection, DataNode<ProjectData>> function = myFunctionFactory.createFunction(id, projectPath, settings, listener);
     return myHelper.execute(projectPath, settings, function);
   }
 
@@ -147,13 +150,14 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
     @NotNull
     Function<ProjectConnection, DataNode<ProjectData>> createFunction(@NotNull final ExternalSystemTaskId id,
                                                                       @NotNull final String projectPath,
-                                                                      @Nullable final GradleExecutionSettings settings) {
+                                                                      @Nullable final GradleExecutionSettings settings,
+                                                                      @NotNull final ExternalSystemTaskNotificationListener listener) {
       return new Function<ProjectConnection, DataNode<ProjectData>>() {
         @Nullable
         @Override
         public DataNode<ProjectData> fun(ProjectConnection connection) {
           for (ProjectResolverStrategy strategy : myStrategies) {
-            DataNode<ProjectData> projectInfo = strategy.resolveProjectInfo(id, projectPath, settings, connection);
+            DataNode<ProjectData> projectInfo = strategy.resolveProjectInfo(id, projectPath, settings, connection, listener);
             if (projectInfo != null) {
               return projectInfo;
             }

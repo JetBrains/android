@@ -30,6 +30,7 @@ import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.*;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.roots.DependencyScope;
@@ -78,8 +79,9 @@ class ProjectResolverStrategy {
   DataNode<ProjectData> resolveProjectInfo(@NotNull ExternalSystemTaskId id,
                                            @NotNull String projectPath,
                                            @Nullable GradleExecutionSettings settings,
-                                           @NotNull ProjectConnection connection) {
-    AndroidProject androidProject = getAndroidProject(id, settings, connection);
+                                           @NotNull ProjectConnection connection,
+                                           @NotNull ExternalSystemTaskNotificationListener listener) {
+    AndroidProject androidProject = getAndroidProject(id, settings, connection, listener);
     if (androidProject == null) {
       return null;
     }
@@ -97,9 +99,10 @@ class ProjectResolverStrategy {
   @Nullable
   AndroidProject getAndroidProject(@NotNull ExternalSystemTaskId id,
                                    @Nullable GradleExecutionSettings settings,
-                                   @NotNull ProjectConnection connection) {
+                                   @NotNull ProjectConnection connection,
+                                   @NotNull ExternalSystemTaskNotificationListener listener) {
     try {
-      ModelBuilder<AndroidProject> modelBuilder = myHelper.getModelBuilder(AndroidProject.class, id, settings, connection);
+      ModelBuilder<AndroidProject> modelBuilder = myHelper.getModelBuilder(AndroidProject.class, id, settings, connection, listener);
       return modelBuilder.get();
     }
     catch (RuntimeException e) {

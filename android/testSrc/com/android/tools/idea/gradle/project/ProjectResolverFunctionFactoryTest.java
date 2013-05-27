@@ -25,6 +25,7 @@ import junit.framework.TestCase;
 import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
+import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter.NULL_OBJECT;
 import static org.easymock.classextension.EasyMock.*;
 
 /**
@@ -49,14 +50,14 @@ public class ProjectResolverFunctionFactoryTest extends TestCase {
     GradleExecutionSettings settings = createMock(GradleExecutionSettings.class);
     ProjectConnection connection = createMock(ProjectConnection.class);
 
-    Function<ProjectConnection,DataNode<ProjectData>> function = myFunctionFactory.createFunction(id, projectPath, settings);
+    Function<ProjectConnection,DataNode<ProjectData>> function = myFunctionFactory.createFunction(id, projectPath, settings, NULL_OBJECT);
     assertNotNull(function);
 
     DataNode<ProjectData> projectInfo = createMock(DataNode.class);
 
     // Verify that function execution delegates to ProjectResolverDelegates.
-    expect(myStrategy1.resolveProjectInfo(id, projectPath, settings, connection)).andReturn(null);
-    expect(myStrategy2.resolveProjectInfo(id, projectPath, settings, connection)).andReturn(projectInfo);
+    expect(myStrategy1.resolveProjectInfo(id, projectPath, settings, connection, NULL_OBJECT)).andReturn(null);
+    expect(myStrategy2.resolveProjectInfo(id, projectPath, settings, connection, NULL_OBJECT)).andReturn(projectInfo);
     replay(myStrategy1, myStrategy2);
 
     DataNode<ProjectData> resolved = function.fun(connection);
