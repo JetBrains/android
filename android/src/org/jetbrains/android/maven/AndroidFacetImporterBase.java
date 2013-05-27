@@ -463,7 +463,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
                                                                 Map<MavenProject, String> mavenProject2ModuleName) {
     final String apklibModuleName = apklibModuleModel.getModule().getName();
     final AndroidExternalApklibDependenciesManager adm = AndroidExternalApklibDependenciesManager.getInstance(project);
-    final AndroidExternalApklibDependenciesManager.MyResolvedInfo resolvedInfo =
+    final MavenArtifactResolvedInfo resolvedInfo =
       adm.getResolvedInfoForArtifact(artifact.getMavenId());
 
     for (OrderEntry entry : apklibModuleModel.getOrderEntries()) {
@@ -635,8 +635,8 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     final AndroidExternalApklibDependenciesManager apklibDependenciesManager =
       AndroidExternalApklibDependenciesManager.getInstance(project);
 
-    final AndroidExternalApklibDependenciesManager.MyResolvedInfo info =
-      new AndroidExternalApklibDependenciesManager.MyResolvedInfo(
+    final MavenArtifactResolvedInfo info =
+      new MavenArtifactResolvedInfo(
       apiLevel != null ? apiLevel : "",
       dependencies);
     
