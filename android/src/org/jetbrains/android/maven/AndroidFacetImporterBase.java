@@ -483,7 +483,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
         reportCannotFindAndroidPlatformError(apklibModuleName, apiLevel, project);
       }
 
-      for (AndroidExternalApklibDependenciesManager.MavenDependencyInfo depArtifactInfo : resolvedInfo.getApklibDependencies()) {
+      for (AndroidExternalApklibDependenciesManager.MavenDependencyInfo depArtifactInfo : resolvedInfo.getDependencies()) {
         final MavenId depMavenId = new MavenId(depArtifactInfo.getGroupId(), depArtifactInfo.getArtifactId(),
                                                depArtifactInfo.getVersion());
 
@@ -640,7 +640,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       apiLevel != null ? apiLevel : "",
       dependencies);
     
-    apklibDependenciesManager.setSdkInfoForArtifact(artifact.getMavenId(), info);
+    apklibDependenciesManager.setResolvedInfoForArtifact(artifact.getMavenId(), info);
   }
 
   private void configureAndroidPlatform(AndroidFacet facet, MavenProject project, MavenModifiableModelsProvider modelsProvider) {
