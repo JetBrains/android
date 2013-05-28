@@ -124,7 +124,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private ProjectResources myProjectResources;
   private IdeaAndroidProject myIdeaAndroidProject;
 
-  private final List<GradleProjectAvailableWizardListener> myGradleProjectAvailableWizardListeners = Lists.newArrayList();
+  private final List<GradleProjectAvailableListener> myGradleProjectAvailableListeners = Lists.newArrayList();
 
   public AndroidFacet(@NotNull Module module, String name, @NotNull AndroidFacetConfiguration configuration) {
     super(getFacetType(), module, name, configuration, null);
@@ -861,24 +861,24 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public void setIdeaAndroidProject(@Nullable IdeaAndroidProject project) {
     myIdeaAndroidProject = project;
     if (project != null) {
-      for (GradleProjectAvailableWizardListener listener : myGradleProjectAvailableWizardListeners) {
+      for (GradleProjectAvailableListener listener : myGradleProjectAvailableListeners) {
         listener.gradleProjectAvailable(project);
       }
     }
   }
 
-  public void addListener(@NotNull GradleProjectAvailableWizardListener listener) {
+  public void addListener(@NotNull GradleProjectAvailableListener listener) {
     if (myIdeaAndroidProject != null) {
       listener.gradleProjectAvailable(myIdeaAndroidProject);
     }
     synchronized (this) {
-      myGradleProjectAvailableWizardListeners.add(listener);
+      myGradleProjectAvailableListeners.add(listener);
     }
   }
 
-  public void removeListener(@NotNull GradleProjectAvailableWizardListener listener) {
+  public void removeListener(@NotNull GradleProjectAvailableListener listener) {
     synchronized (this) {
-      myGradleProjectAvailableWizardListeners.remove(listener);
+      myGradleProjectAvailableListeners.remove(listener);
     }
   }
 
@@ -973,7 +973,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     }
   }
 
-  public interface GradleProjectAvailableWizardListener {
+  public interface GradleProjectAvailableListener {
     void gradleProjectAvailable(@NotNull IdeaAndroidProject project);
   }
 }
