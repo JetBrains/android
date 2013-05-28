@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.variant.view;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.Facets;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.ProjectTopics;
@@ -26,7 +27,6 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.ModuleAdapter;
-import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.content.Content;
@@ -58,18 +58,37 @@ public class BuildVariantView {
   private static final int VARIANT_COLUMN_INDEX = 1;
 
   private final Project myProject;
-  private final BuildVariantUpdater myUpdater;
+  private BuildVariantUpdater myUpdater;
 
   private JPanel myToolWindowPanel;
   private JBTable myVariantsTable;
+
+  private final List<BuildVariantSelectionChangeListener> myBuildVariantSelectionChangeListeners = Lists.newArrayList();
 
   public BuildVariantView(@NotNull Project project) {
     myProject = project;
     myUpdater = new BuildVariantUpdater();
   }
 
+  @VisibleForTesting
+  void setUpdater(@NotNull BuildVariantUpdater updater) {
+    myUpdater = updater;
+  }
+
   public static BuildVariantView getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, BuildVariantView.class);
+  }
+
+  public void addListener(@NotNull BuildVariantSelectionChangeListener listener) {
+    synchronized (this) {
+      myBuildVariantSelectionChangeListeners.add(listener);
+    }
+  }
+
+  public void removeListener(@NotNull BuildVariantSelectionChangeListener listener) {
+    synchronized (this) {
+      myBuildVariantSelectionChangeListeners.remove(listener);
+    }
   }
 
   private void createUIComponents() {
@@ -160,6 +179,23 @@ public class BuildVariantView {
   private static IdeaAndroidProject getAndroidProject(@NotNull Module module) {
     AndroidFacet androidFacet = Facets.getFirstFacet(module, AndroidFacet.ID);
     return androidFacet != null ? androidFacet.getIdeaAndroidProject() : null;
+  }
+
+  public interface BuildVariantSelectionChangeListener {
+    /**
+     * Indicates that a user selected a build variant from the "Build Variants" tool window.
+     * <p/>
+     * This notification occurs:
+     * <ul>
+     *  <li>after the user selected a build variant from the drop-down</li>
+     *  <li>project structure has been updated according to selected build variant</li>
+     * </ul>
+     * <p/>
+     * This listener will not be invoked if the project structure update fails.
+     *
+     * @param facet the Android facet containing the selected build variant.
+     */
+    void buildVariantSelected(@NotNull AndroidFacet facet);
   }
 
   private static class BuildVariantItem implements Comparable<BuildVariantItem> {
@@ -254,7 +290,7 @@ public class BuildVariantView {
           public void itemStateChanged(ItemEvent e) {
             if (e.getStateChange() == ItemEvent.SELECTED) {
               BuildVariantItem selected = (BuildVariantItem)e.getItem();
-              myUpdater.updateModule(myProject, selected.myModuleName, selected.myBuildVariantName);
+              buildVariantSelected(selected.myModuleName, selected.myBuildVariantName);
             }
           }
         });
@@ -269,6 +305,21 @@ public class BuildVariantView {
       }
       return super.getCellEditor(row, column);
     }
+  }
+
+  @VisibleForTesting
+  void buildVariantSelected(@NotNull String moduleName, @NotNull String variantName) {
+    final AndroidFacet updatedFacet = myUpdater.updateModule(myProject, moduleName, variantName);
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        if (updatedFacet != null) {
+          for (BuildVariantSelectionChangeListener listener : myBuildVariantSelectionChangeListeners) {
+            listener.buildVariantSelected(updatedFacet);
+          }
+        }
+      }
+    });
   }
 
   private static class BuildVariantTableModel extends DefaultTableModel {
