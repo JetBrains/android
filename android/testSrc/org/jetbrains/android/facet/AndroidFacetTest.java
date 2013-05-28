@@ -33,11 +33,11 @@ public class AndroidFacetTest extends AndroidTestCase {
   }
 
   public void testSetIdeaAndroidProject() {
-    AndroidFacet.GradleProjectAvailableWizardListener listener1 = createMock(AndroidFacet.GradleProjectAvailableWizardListener.class);
+    AndroidFacet.GradleProjectAvailableListener listener1 = createMock(AndroidFacet.GradleProjectAvailableListener.class);
     listener1.gradleProjectAvailable(myAndroidProject);
     expectLastCall().once();
 
-    AndroidFacet.GradleProjectAvailableWizardListener listener2 = createMock(AndroidFacet.GradleProjectAvailableWizardListener.class);
+    AndroidFacet.GradleProjectAvailableListener listener2 = createMock(AndroidFacet.GradleProjectAvailableListener.class);
     listener2.gradleProjectAvailable(myAndroidProject);
     expectLastCall().times(2);
 
