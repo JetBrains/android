@@ -45,7 +45,7 @@ import java.util.List;
  */
 @SuppressWarnings("SpellCheckingInspection") // "Modificator" in API usage
 public class ExternalAnnotationsSupport {
-  private static final Logger LOG = Logger.getInstance("#" + ExternalAnnotationsSupport.class.getName());
+  private static final Logger LOG = Logger.getInstance(ExternalAnnotationsSupport.class);
 
   // Based on similar code in MagicConstantInspection
   @SuppressWarnings("ALL")

@@ -510,15 +510,20 @@ public class RenderService {
       myProjectCallback.setResourceResolver(resolver);
 
       return ApplicationManager.getApplication().runReadAction(new Computable<RenderSession>() {
+        @Nullable
         @Override
         public RenderSession compute() {
-          while (true) {
-            RenderSession session = myLayoutLib.createSession(params);
-            if (myTimeout > 0 && session.getResult().getStatus() == Result.Status.ERROR_TIMEOUT) {
-              continue;
+          int retries = 0;
+          RenderSession session = null;
+          while (retries < 10) {
+            session = myLayoutLib.createSession(params);
+            if (session.getResult().getStatus() != Result.Status.ERROR_TIMEOUT) {
+              break;
             }
-            return session;
+            retries++;
           }
+
+          return session;
         }
       });
     }
@@ -558,6 +563,10 @@ public class RenderService {
     if (!myLogger.hasProblems() && !r.isSuccess()) {
       if (r.getException() != null || r.getErrorMessage() != null) {
         myLogger.error(null, r.getErrorMessage(), r.getException(), null);
+      } else if (r.getStatus() == Result.Status.ERROR_TIMEOUT) {
+        myLogger.error(null, "Rendering timed out.", null);
+      } else {
+        myLogger.error(null, "Unknown render problem: " + r.getStatus(), null);
       }
     }
   }

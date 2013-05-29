@@ -154,7 +154,7 @@ public final class ProjectCallback extends LegacyCallback {
     return myNamespace;
   }
 
-  @SuppressWarnings("deprecation") // Required by IProjectCallback
+  @SuppressWarnings({"UnnecessaryFullyQualifiedName", "deprecation"}) // Required by IProjectCallback
   @Nullable
   @Override
   public com.android.util.Pair<ResourceType, String> resolveResourceId(int id) {

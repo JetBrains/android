@@ -509,7 +509,7 @@ public class RenderErrorPanel extends JPanel {
       builder.endList();
 
       builder.addTipIcon();
-      builder.addLink("Tip: Use ", "View.isInEditMode()", " in your custom views to skip code when shown in the IDE",
+      builder.addLink("Tip: Use ", "View.isInEditMode()", " in your custom views to skip code or show sample data when shown in the IDE",
                       "http://developer.android.com/reference/android/view/View.html#isInEditMode()");
 
       if (firstThrowable != null) {

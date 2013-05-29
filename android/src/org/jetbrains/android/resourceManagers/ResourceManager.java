@@ -72,8 +72,13 @@ public abstract class ResourceManager {
   @NotNull
   public abstract VirtualFile[] getAllResourceDirs();
 
+  /** @deprecated Use {@link #getResourceDirs} */
+  @Deprecated
   @Nullable
   public abstract VirtualFile getResourceDir();
+
+  @NotNull
+  public abstract List<VirtualFile> getResourceDirs();
 
   public boolean processFileResources(@Nullable String resourceType, @NotNull FileResourceProcessor processor) {
     return processFileResources(resourceType, processor, true);
