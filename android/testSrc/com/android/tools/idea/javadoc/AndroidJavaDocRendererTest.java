@@ -38,12 +38,15 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/strings/strings-ta.xml", "res/values-ta/strings.xml");
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/strings/strings-zh-rTW.xml",
                                 "res/values-zh-rTW/strings.xml");
-    checkJavadoc(fileName, expectedDoc);
+    checkJavadoc(fileName, "src/com/foo/Activity.java", expectedDoc);
   }
 
   private void checkJavadoc(String fileName, @Nullable String expectedDoc) {
-    final VirtualFile f = myFixture.copyFileToProject(getTestDataPath() + fileName,
-                                                      "src/com/foo/Activity.java");
+    checkJavadoc(fileName, "src/com/foo/Activity.java", expectedDoc);
+  }
+
+  private void checkJavadoc(String fileName, String targetName, @Nullable String expectedDoc) {
+    final VirtualFile f = myFixture.copyFileToProject(getTestDataPath() + fileName, targetName);
     myFixture.configureFromExistingVirtualFile(f);
     PsiElement element = myFixture.getFile().findElementAt(myFixture.getEditor().getCaretModel().getOffset());
     assert element != null;
@@ -101,5 +104,12 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "<tr><td %1$s>drawable</td><td %1$s>%2$s%3$s</div>12&#xd7;12 px (12&#xd7;12 dp @ mdpi)<BR/>\n</td></tr>" +
                  "<tr><td %1$s>drawable-hdpi</td><td %1$s>%2$s%4$s</div>12&#xd7;12 px (8&#xd7;8 dp @ hdpi)<BR/>\n</td></tr>" +
                  "</table></body></html>", VERTICAL_ALIGN, divTag, imgTag1, imgTag2));
+  }
+
+  public void testXmlString1() {
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/strings/strings.xml", "res/values/strings.xml");
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/strings/strings-ta.xml", "res/values-ta/strings.xml");
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/strings/strings-zh-rTW.xml", "res/values-zh-rTW/strings.xml");
+    checkJavadoc("/javadoc/strings/layout1.xml", "res/layout/layout1.xml", "<html><body>Application Name</body></html>");
   }
 }
