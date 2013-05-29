@@ -34,7 +34,7 @@ public final class ProjectClassLoader extends ClassLoader {
   private URLClassLoader mJarClassLoader;
   private boolean mInsideJarClassLoader = false;
 
-  public ProjectClassLoader(ClassLoader parentClassLoader, Module module) {
+  public ProjectClassLoader(@Nullable ClassLoader parentClassLoader, Module module) {
     super(parentClassLoader);
     myModule = module;
   }

@@ -19,7 +19,6 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.Capability;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.FrameworkResources;
-import com.android.ide.common.resources.ResourceFile;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.*;
@@ -27,10 +26,7 @@ import com.android.resources.*;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
-import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.ProjectResources;
-import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.rendering.*;
 import com.google.common.base.Objects;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -196,7 +192,7 @@ public class Configuration implements Disposable {
     // TODO: Figure out whether we need this, or if it should be replaced by
     // a call to ConfigurationManager#createSimilar()
     Configuration configuration = base.clone();
-    ProjectResources resources = ProjectResources.get(base.getModule());
+    ProjectResources resources = ProjectResources.get(base.getModule(), true);
     ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, resources, file);
     configuration.getEditedConfig().set(FolderConfiguration.getConfigForFolder(file.getParent().getName()));
     matcher.adaptConfigSelection(true /*needBestMatch*/);
@@ -310,7 +306,7 @@ public class Configuration implements Disposable {
 
     assert destination.ensureValid();
 
-    ProjectResources resources = ProjectResources.get(source.myManager.getModule());
+    ProjectResources resources = ProjectResources.get(source.myManager.getModule(), true);
     ConfigurationMatcher matcher = new ConfigurationMatcher(destination, resources, destination.myFile);
     //if (!matcher.isCurrentFileBestMatchFor(editedConfig)) {
       matcher.adaptConfigSelection(true /*needBestMatch*/);
@@ -1034,12 +1030,12 @@ public class Configuration implements Disposable {
   private FrameworkResources myFrameworkResources;
   private Map<ResourceType, Map<String, ResourceValue>> myConfiguredFrameworkRes;
   private Map<ResourceType, Map<String, ResourceValue>> myConfiguredProjectRes;
-  private int myCachedGeneration;
+  private long myCachedGeneration;
 
   @Nullable
   public ResourceResolver getResourceResolver() {
-    ProjectResources resources = ProjectResources.get(myManager.getModule());
-    if (resources != null && myCachedGeneration < resources.getGeneration()) {
+    ProjectResources resources = ProjectResources.get(myManager.getModule(), true);
+    if (myCachedGeneration < resources.getModificationCount()) {
       myResourceResolver = null;
     }
 
@@ -1140,14 +1136,11 @@ public class Configuration implements Disposable {
 
   @NotNull
   public Map<ResourceType, Map<String, ResourceValue>> getConfiguredProjectResources() {
-    ProjectResources resources = ProjectResources.get(myManager.getModule());
-    if (resources == null) {
-      return Collections.emptyMap();
-    }
-    if (myConfiguredProjectRes == null || myCachedGeneration < resources.getGeneration()) {
+    ProjectResources resources = ProjectResources.get(myManager.getModule(), true);
+    if (myConfiguredProjectRes == null || myCachedGeneration < resources.getModificationCount()) {
       // get the project resource values based on the current config
       myConfiguredProjectRes = resources.getConfiguredResources(getFullConfig());
-      myCachedGeneration = resources.getGeneration();
+      myCachedGeneration = resources.getModificationCount();
     }
 
     return myConfiguredProjectRes;
@@ -1173,7 +1166,7 @@ public class Configuration implements Disposable {
   }
 
   public boolean isBestMatchFor(VirtualFile file, FolderConfiguration config) {
-    ProjectResources resources = ProjectResources.get(getModule());
+    ProjectResources resources = ProjectResources.get(getModule(), true);
     return new ConfigurationMatcher(this, resources, file).isCurrentFileBestMatchFor(config);
   }
 

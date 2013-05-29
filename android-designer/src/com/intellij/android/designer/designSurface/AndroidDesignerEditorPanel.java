@@ -18,11 +18,14 @@ package com.intellij.android.designer.designSurface;
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.sdk.SdkVersionInfo;
+import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationToolBar;
 import com.android.tools.idea.configurations.RenderContext;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
@@ -92,13 +95,14 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import static com.android.tools.idea.configurations.ConfigurationListener.MASK_ALL;
 import static com.android.tools.idea.configurations.ConfigurationListener.MASK_RENDERING;
+import static com.android.tools.idea.gradle.variant.view.BuildVariantView.BuildVariantSelectionChangeListener;
 import static com.android.tools.idea.rendering.RenderErrorPanel.SIZE_ERROR_PANEL_DYNAMICALLY;
 import static com.intellij.designer.designSurface.ZoomType.FIT_INTO;
 
 /**
  * @author Alexander Lobas
  */
-public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implements RenderContext {
+public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implements RenderContext, BuildVariantSelectionChangeListener {
   private static final int DEFAULT_HORIZONTAL_MARGIN = 30;
   private static final int DEFAULT_VERTICAL_MARGIN = 20;
   private static final Integer LAYER_ERRORS = LAYER_INPLACE_EDITING + 150; // Must be an Integer, not an int; see JLayeredPane.addImpl
@@ -110,6 +114,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   private final Alarm mySessionAlarm = new Alarm();
   private final MergingUpdateQueue mySessionQueue;
   private final AndroidDesignerEditorPanel.LayoutConfigurationListener myConfigListener;
+  private final AndroidFacet myFacet;
   private volatile RenderSession mySession;
   private volatile long mySessionId;
   private final Lock myRendererLock = new ReentrantLock();
@@ -118,10 +123,10 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   private boolean myShowingRoot;
   private RenderPreviewTool myPreviewTool;
 
-  @NotNull
-  private Configuration myConfiguration;
+  @Nullable private Configuration myConfiguration;
   private int myConfigurationDirty;
   private boolean myActive;
+  private boolean myVariantChanged;
 
   /** Zoom level (1 = 100%). TODO: Persist this setting across IDE sessions (on a per file basis) */
   private double myZoom = 1;
@@ -138,9 +143,40 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
     AndroidFacet facet = AndroidFacet.getInstance(getModule());
     assert facet != null;
-    myConfiguration = facet.getConfigurationManager().getConfiguration(file);
+    myFacet = facet;
+    // The configuration depends on project state, which may not yet be available: defer
+    boolean initializeConfiguration = true;
+    if (facet.isGradleProject()) {
+      IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
+      if (gradleProject == null) {
+        initializeConfiguration = false;
+        // Still syncing model; typically on IDE restart when the editor is reopened but
+        // project model has not yet been fully initialized
+        facet.addListener(new AndroidFacet.GradleProjectAvailableListener() {
+          @Override
+          public void gradleProjectAvailable(@NotNull IdeaAndroidProject project) {
+            myFacet.removeListener(this);
+            initializeConfiguration();
+            requestRender();
+          }
+        });
+      }
+      BuildVariantView variantView = BuildVariantView.getInstance(facet.getModule().getProject());
+      if (variantView != null) {
+        // Ensure that the project resources have been initialized first, since
+        // we want it to add its own variant listeners before ours (such that
+        // when the variant changes, the project resources get notified and updated
+        // before our own update listener attempts a re-render)
+        facet.getProjectResources(false /*libraries*/, true /*createIfNecessary*/);
+
+        variantView.removeListener(this);
+        variantView.addListener(this);
+      }
+    }
     myConfigListener = new LayoutConfigurationListener();
-    myConfiguration.addListener(myConfigListener);
+    if (initializeConfiguration) {
+      initializeConfiguration();
+    }
 
     mySessionQueue = ViewsMetaManager.getInstance(project).getSessionQueue();
     myXmlFile = (XmlFile)ApplicationManager.getApplication().runReadAction(new Computable<PsiFile>() {
@@ -163,6 +199,11 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     myPsiChangeListener.setInitialize();
     myPsiChangeListener.activate();
     myPsiChangeListener.addRequest();
+  }
+
+  private void initializeConfiguration() {
+    myConfiguration = myFacet.getConfigurationManager().getConfiguration(myFile);
+    myConfiguration.addListener(myConfigListener);
   }
 
   private void addActions() {
@@ -259,6 +300,9 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
   private void parseFile(final Runnable runnable) {
     final ModelParser parser = new ModelParser(getProject(), myXmlFile);
+    if (myConfiguration == null) {
+      return;
+    }
 
     createRenderer(new MyThrowable(), new ThrowableConsumer<RenderResult, Throwable>() {
       @Override
@@ -405,6 +449,9 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   private void createRenderer(final MyThrowable throwable,
                               final ThrowableConsumer<RenderResult, Throwable> runnable) {
     disposeRenderer();
+    if (myConfiguration == null) {
+      return;
+    }
 
     // TODO: Get rid of this when the project resources are read directly from (possibly unsaved) PSI elements
     ApplicationManager.getApplication().saveAll();
@@ -532,7 +579,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   }
 
   public int getDpi() {
-    return myConfiguration.getDensity().getDpiValue();
+    return myConfiguration != null ? myConfiguration.getDensity().getDpiValue() : Density.DEFAULT_DENSITY;
   }
 
   private MyRenderPanelWrapper myErrorPanelWrapper;
@@ -564,6 +611,13 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   }
 
   private void updateRenderer(final boolean updateProperties) {
+    if (myConfiguration == null) {
+      return;
+    }
+    if (myRootComponent == null) {
+      reparseFile();
+      return;
+    }
     createRenderer(new MyThrowable(), new ThrowableConsumer<RenderResult, Throwable>() {
       @Override
       public void consume(RenderResult result) throws Throwable {
@@ -692,7 +746,8 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     myActive = true;
     myPsiChangeListener.activate();
 
-    if (myPsiChangeListener.isUpdateRenderer() || ((myConfigurationDirty & MASK_RENDERING) != 0)) {
+    if (myVariantChanged || myPsiChangeListener.isUpdateRenderer() || ((myConfigurationDirty & MASK_RENDERING) != 0)) {
+      myVariantChanged = false;
       updateRenderer(true);
     } else if (myRootComponent != null && myRootView != null) {
       if (RenderPreviewMode.getCurrent() != RenderPreviewMode.NONE) {
@@ -720,7 +775,9 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   @Override
   public void dispose() {
     myPsiChangeListener.dispose();
-    myConfiguration.removeListener(myConfigListener);
+    if (myConfiguration != null) {
+      myConfiguration.removeListener(myConfigListener);
+    }
     super.dispose();
 
     disposeRenderer();
@@ -805,7 +862,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       return false;
     }
 
-    IAndroidTarget target = myConfiguration.getTarget();
+    IAndroidTarget target = myConfiguration != null ? myConfiguration.getTarget() : null;
     if (target == null) {
       return super.isDeprecated(deprecatedIn);
     }
@@ -838,9 +895,11 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
   @Override
   public ComponentPasteFactory createPasteFactory(String xmlComponents) {
-    IAndroidTarget target = myConfiguration.getTarget();
-    if (target != null) {
-      return new AndroidPasteFactory(getModule(), target, xmlComponents);
+    if (myConfiguration != null) {
+      IAndroidTarget target = myConfiguration.getTarget();
+      if (target != null) {
+        return new AndroidPasteFactory(getModule(), target, xmlComponents);
+      }
     }
 
     return null;
@@ -1245,13 +1304,15 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   }
 
   private void saveState() {
-    myConfiguration.save();
+    if (myConfiguration != null) {
+      myConfiguration.save();
+    }
   }
 
   // ---- Implements RenderContext ----
 
   @Override
-  @NotNull
+  @Nullable
   public Configuration getConfiguration() {
     return myConfiguration;
   }
@@ -1259,7 +1320,9 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   @Override
   public void setConfiguration(@NotNull Configuration configuration) {
     if (configuration != myConfiguration) {
-      myConfiguration.removeListener(myConfigListener);
+      if (myConfiguration != null) {
+        myConfiguration.removeListener(myConfigListener);
+      }
       myConfiguration = configuration;
       myConfiguration.addListener(myConfigListener);
       myConfigListener.changed(MASK_ALL);
@@ -1386,6 +1449,21 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     return myPreviewManager;
   }
 
+
+  // ---- Implements BuildVariantSelectionChangeListener ----
+
+  @Override
+  public void buildVariantSelected(@NotNull AndroidFacet facet) {
+    if (facet == myFacet) {
+      if (myActive) {
+        // The project resources should already have been refreshed by their own variant listener
+        updateRenderer(true);
+      } else {
+        myVariantChanged = true;
+      }
+    }
+  }
+
   private class LayoutConfigurationListener implements ConfigurationListener {
     @Override
     public boolean changed(int flags) {
@@ -1397,7 +1475,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
         updateRenderer(false);
 
         if ((flags & CFG_TARGET) != 0) {
-          IAndroidTarget target = myConfiguration.getTarget();
+          IAndroidTarget target = myConfiguration != null ? myConfiguration.getTarget() : null;
           if (target != null) {
             updatePalette(target);
           }

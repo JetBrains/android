@@ -67,7 +67,6 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
   }
 
   private static void configureFacet(@NotNull AndroidFacet facet, @NotNull IdeaAndroidProject ideaAndroidProject) {
-    facet.setIdeaAndroidProject(ideaAndroidProject);
     JpsAndroidModuleProperties facetState = facet.getConfiguration().getState();
     facetState.ALLOW_USER_CONFIGURATION = false;
 
@@ -88,6 +87,8 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
 
     Set<File> assetsDirs = sourceProvider.getAssetsDirectories();
     facetState.ASSETS_FOLDER_RELATIVE_PATH = getRelativePath(moduleDirPath, assetsDirs);
+
+    facet.setIdeaAndroidProject(ideaAndroidProject);
   }
 
   private static void syncSelectedVariant(@NotNull JpsAndroidModuleProperties facetState, @NotNull IdeaAndroidProject ideaAndroidProject) {

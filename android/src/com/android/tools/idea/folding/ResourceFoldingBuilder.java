@@ -152,7 +152,7 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
     if (module == null) {
       return NONE;
     }
-    ProjectResources projectResources = ProjectResources.get(module, FORCE_PROJECT_RESOURCE_LOADING);
+    ProjectResources projectResources = ProjectResources.get(module, true, FORCE_PROJECT_RESOURCE_LOADING);
     if (projectResources == null) {
       return NONE;
     }
@@ -207,7 +207,7 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
           return NONE;
         }
 
-        ProjectResources projectResources = ProjectResources.get(module, FORCE_PROJECT_RESOURCE_LOADING);
+        ProjectResources projectResources = ProjectResources.get(module, true, FORCE_PROJECT_RESOURCE_LOADING);
         if (projectResources == null) {
           return NONE;
         }

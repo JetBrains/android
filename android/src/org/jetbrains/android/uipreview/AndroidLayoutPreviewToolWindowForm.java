@@ -17,6 +17,9 @@ package org.jetbrains.android.uipreview;
 
 
 import com.android.tools.idea.configurations.*;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.variant.view.BuildVariantView;
+import com.android.tools.idea.rendering.ProjectResources;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.RenderResult;
 import com.intellij.icons.AllIcons;
@@ -44,16 +47,20 @@ import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 
+import static com.android.tools.idea.gradle.variant.view.BuildVariantView.BuildVariantSelectionChangeListener;
+
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidLayoutPreviewToolWindowForm implements Disposable, ConfigurationListener, RenderContext {
+public class AndroidLayoutPreviewToolWindowForm implements Disposable, ConfigurationListener, RenderContext,
+                                                           BuildVariantSelectionChangeListener {
   private JPanel myContentPanel;
   private AndroidLayoutPreviewPanel myPreviewPanel;
   private JBScrollPane myScrollPane;
   private JPanel myComboPanel;
   private PsiFile myFile;
   private Configuration myConfiguration;
+  private BuildVariantView myVariantView;
   private final AndroidLayoutPreviewToolWindowManager myToolWindowManager;
   private final ActionToolbar myActionToolBar;
   private final AndroidLayoutPreviewToolWindowSettings mySettings;
@@ -176,7 +183,7 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
     return myFile;
   }
 
-  public void setFile(@Nullable PsiFile file) {
+  public boolean setFile(@Nullable PsiFile file) {
     final boolean fileChanged = !Comparing.equal(myFile, file);
     myFile = file;
 
@@ -186,20 +193,65 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
         myConfiguration = null;
       }
 
+      if (myVariantView != null) {
+        myVariantView.removeListener(this);
+        myVariantView = null;
+      }
+
       if (file != null) {
-        VirtualFile virtualFile = file.getVirtualFile();
+        final VirtualFile virtualFile = file.getVirtualFile();
         if (virtualFile != null) {
           final AndroidFacet facet = AndroidFacet.getInstance(file);
           if (facet != null) {
-            ConfigurationManager manager = facet.getConfigurationManager();
-            myConfiguration = manager.getConfiguration(virtualFile);
-            myConfiguration.addListener(this);
+            if (facet.isGradleProject() && facet.getIdeaAndroidProject() == null) {
+              facet.addListener(new AndroidFacet.GradleProjectAvailableListener() {
+                @Override
+                public void gradleProjectAvailable(@NotNull IdeaAndroidProject project) {
+                  facet.removeListener(this);
+                  ConfigurationManager manager = facet.getConfigurationManager();
+                  myConfiguration = manager.getConfiguration(virtualFile);
+                  myConfiguration.addListener(AndroidLayoutPreviewToolWindowForm.this);
+                  myToolWindowManager.finishSetFile();
+                  if (facet.isGradleProject()) {
+                    myVariantView = BuildVariantView.getInstance(facet.getModule().getProject());
+                    if (myVariantView != null) {
+                      // Ensure that the project resources have been initialized first, since
+                      // we want it to add its own variant listeners before ours (such that
+                      // when the variant changes, the project resources get notified and updated
+                      // before our own update listener attempts a re-render)
+                      facet.getProjectResources(false /*libraries*/, true /*createIfNecessary*/);
+
+                      myVariantView.removeListener(AndroidLayoutPreviewToolWindowForm.this);
+                      myVariantView.addListener(AndroidLayoutPreviewToolWindowForm.this);
+                    }
+                  }
+                }
+              });
+              // Couldn't initialize: finish later (in project listener will call finishSetFile
+              return false;
+            } else {
+              ConfigurationManager manager = facet.getConfigurationManager();
+              myConfiguration = manager.getConfiguration(virtualFile);
+              myConfiguration.removeListener(this);
+              myConfiguration.addListener(this);
+            }
+
+            if (facet.isGradleProject()) {
+              myVariantView = BuildVariantView.getInstance(facet.getModule().getProject());
+              if (myVariantView != null) {
+                facet.getProjectResources(false /*libraries*/, true /*createIfNecessary*/);
+                myVariantView.removeListener(this);
+                myVariantView.addListener(this);
+              }
+            }
           }
         }
       }
     }
+
+    return true;
   }
-  
+
   private void saveState() {
     if (myConfiguration != null) {
       myConfiguration.save();
@@ -362,6 +414,14 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
     }
 
     return true;
+  }
+
+  // ---- Implements BuildVariantSelectionChangeListener ----
+
+  @Override
+  public void buildVariantSelected(@NotNull AndroidFacet facet) {
+    // The project resources should already have been refreshed by their own variant listener
+    myToolWindowManager.render();
   }
 
   private class ZoomInAction extends AnAction {

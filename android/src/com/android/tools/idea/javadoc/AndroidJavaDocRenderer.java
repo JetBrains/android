@@ -17,14 +17,16 @@
 package com.android.tools.idea.javadoc;
 
 import com.android.SdkConstants;
-import com.android.ide.common.resources.ResourceFile;
-import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.res2.ResourceFile;
+import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.HtmlBuilder;
 import com.android.tools.idea.rendering.ProjectResources;
 import com.android.utils.XmlUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
@@ -44,47 +46,57 @@ public class AndroidJavaDocRenderer {
   public static String render(ProjectResources projectResources, ResourceType type, String name) {
     if (ResourceType.STRING.equals(type) || ResourceType.DIMEN.equals(type)
         || ResourceType.INTEGER.equals(type) || ResourceType.BOOL.equals(type)) {
-      ResourceItem item = projectResources.getResourceItem(type, name);
-      return renderKeyValues(sort(item.getSourceFileList()), type, name, new TextValueRenderer());
+      List<ResourceItem> items = projectResources.getResourceItem(type, name);
+      if (items != null) {
+        return renderKeyValues(sort(items), type, name, new TextValueRenderer(), projectResources);
+      }
     } else if (ResourceType.DRAWABLE.equals(type)) {
-      ResourceItem item = projectResources.getResourceItem(type, name);
-      return renderKeyValues(sort(item.getSourceFileList()), type, name, new DrawableValueRenderer());
-    } else {
-      return null;
+      List<ResourceItem> items = projectResources.getResourceItem(type, name);
+      if (items != null) {
+        return renderKeyValues(sort(items), type, name, new DrawableValueRenderer(), projectResources);
+      }
     }
+    return null;
   }
 
-  private static List<ResourceFile> sort(List<ResourceFile> resourceFiles) {
-    List<ResourceFile> copy = new ArrayList<ResourceFile>(resourceFiles);
-    Collections.sort(copy, new Comparator<ResourceFile>() {
+  private static List<ResourceItem> sort(@NotNull List<ResourceItem> resourceFiles) {
+    List<ResourceItem> copy = new ArrayList<ResourceItem>(resourceFiles);
+    Collections.sort(copy, new Comparator<ResourceItem>() {
       @Override
-      public int compare(ResourceFile f1, ResourceFile f2) {
-        String k1 = f1.getFolder().getFolder().getName();
-        String k2 = f2.getFolder().getFolder().getName();
-        return k1.compareTo(k2);
+      public int compare(ResourceItem item1, ResourceItem item2) {
+        ResourceFile file1 = item1.getSource();
+        ResourceFile file2 = item2.getSource();
+        String parent1 = file1 != null ? file1.getFile().getParentFile().getName() : "";
+        String parent2 = file2 != null ? file2.getFile().getParentFile().getName() : "";
+        return parent1.compareTo(parent2);
       }
     });
     return copy;
   }
 
   @Nullable
-  private static String renderKeyValues(List<ResourceFile> files, ResourceType type, String name,
-                                        ResourceValueRenderer renderer) {
-    if (files.isEmpty()) {
+  private static String renderKeyValues(List<ResourceItem> items, ResourceType type, String name,
+                                        ResourceValueRenderer renderer, ProjectResources resources) {
+    if (items.isEmpty()) {
       return null;
     }
 
     HtmlBuilder builder = new HtmlBuilder();
-    if (files.size() == 1) {
-      String value = renderer.renderToHtml(files.get(0), type, name);
+    if (items.size() == 1) {
+      String value = renderer.renderToHtml(resources, items.get(0));
       builder.addHtml(value);
     } else {
       builder.beginTable("valign=\"top\"");
       builder.addTableRow(true, "Configuration", "Value");
 
-      for (ResourceFile f : files) {
-        String v = renderer.renderToHtml(f, type, name);
-        builder.addTableRow(renderFolderName(f.getFolder().getFolder().getName()), v);
+      for (ResourceItem f : items) {
+        String v = renderer.renderToHtml(resources, f);
+        String folderName = "?";
+        ResourceFile source = f.getSource();
+        if (source != null) {
+          folderName = source.getFile().getParentFile().getName();
+        }
+        builder.addTableRow(renderFolderName(folderName), v);
       }
 
       builder.endTable();
@@ -107,21 +119,48 @@ public class AndroidJavaDocRenderer {
   }
 
   private interface ResourceValueRenderer {
-    String renderToHtml(ResourceFile f, ResourceType type, String name);
+    String renderToHtml(ProjectResources resources, @NotNull ResourceItem item);
   }
 
   private static class TextValueRenderer implements ResourceValueRenderer {
     @Override
-    public String renderToHtml(ResourceFile f, ResourceType type, String name) {
-      String v = f.getValue(type, name).getValue();
-      return XmlUtils.toXmlTextValue(v);
+    public String renderToHtml(ProjectResources resources, @NotNull ResourceItem item) {
+      String value = getStringValue(resources, item);
+      if (value == null) {
+        return "";
+      }
+
+      return value;
     }
+  }
+
+  @Nullable
+  private static String getStringValue(@NotNull ProjectResources resources, @NotNull ResourceItem item) {
+    String v = item.getValueText();
+    if (v == null) {
+      ResourceValue value = resources.getConfiguredValue(item.getType(), item.getName(), item.getConfiguration());
+      if (value != null) {
+        return value.getValue();
+      }
+    }
+    return v;
   }
 
   private static class DrawableValueRenderer implements ResourceValueRenderer {
     @Override
-    public String renderToHtml(ResourceFile f, ResourceType type, String name) {
-      String v = f.getValue(type, name).getValue();
+    public String renderToHtml(ProjectResources resources, @NotNull ResourceItem item) {
+      ResourceFile source = item.getSource();
+      if (source == null) {
+        return "";
+      }
+      String v = source.getFile().getPath();
+      if (!isBitmapDrawable(v)) {
+        v = getStringValue(resources, item);
+        if (v == null) {
+          return "";
+        }
+      }
+
       if (isBitmapDrawable(v)) {
         File bitmap = new File(v);
         if (bitmap.exists()) {
@@ -141,7 +180,7 @@ public class AndroidJavaDocRenderer {
 
             Dimension size = getSize(bitmap);
             if (size != null) {
-              DensityQualifier densityQualifier = f.getConfiguration().getDensityQualifier();
+              DensityQualifier densityQualifier = item.getConfiguration().getDensityQualifier();
               Density density = densityQualifier == null ? Density.MEDIUM : densityQualifier.getValue();
 
               builder.addHtml(String.format(Locale.US, "%1$d&#xd7;%2$d px (%3$d&#xd7;%4$d dp @ %5$s)", size.width, size.height,

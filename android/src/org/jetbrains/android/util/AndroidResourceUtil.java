@@ -735,7 +735,7 @@ public class AndroidResourceUtil {
                                                       @NotNull String dirName) throws Exception {
     final Module module = facet.getModule();
     final Project project = module.getProject();
-    final VirtualFile resDir = facet.getLocalResourceManager().getResourceDir();
+    final VirtualFile resDir = facet.getPrimaryResourceDir();
 
     if (resDir == null) {
       AndroidUtils.reportError(project, AndroidBundle.message("check.resource.dir.error", module.getName()));

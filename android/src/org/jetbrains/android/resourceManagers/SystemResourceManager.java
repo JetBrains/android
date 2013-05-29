@@ -52,15 +52,19 @@ public class SystemResourceManager extends ResourceManager {
     return resDir != null ? new VirtualFile[]{resDir} : VirtualFile.EMPTY_ARRAY;
   }
 
-  @Override
   @Nullable
-  public VirtualFile getResourceDir() {
+  private VirtualFile getResourceDir() {
     String resPath = myPlatform.getTarget().getPath(IAndroidTarget.RESOURCES);
     return LocalFileSystem.getInstance().findFileByPath(resPath);
   }
 
   @Override
-  @Nullable
+  public boolean isResourceDir(@NotNull VirtualFile dir) {
+    return dir.equals(getResourceDir());
+  }
+
+  @Override
+  @NotNull
   public List<VirtualFile> getResourceDirs() {
     String resPath = myPlatform.getTarget().getPath(IAndroidTarget.RESOURCES);
     VirtualFile dir = LocalFileSystem.getInstance().findFileByPath(resPath);

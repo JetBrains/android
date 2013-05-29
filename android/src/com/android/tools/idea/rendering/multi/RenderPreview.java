@@ -18,9 +18,8 @@ package com.android.tools.idea.rendering.multi;
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.Result.Status;
-import com.android.ide.common.resources.ResourceFile;
+import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.io.IAbstractFile;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.resources.ScreenOrientation;
@@ -40,6 +39,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -432,13 +432,11 @@ public class RenderPreview implements Disposable {
     VirtualFile editedFile = myConfiguration.getFile();
     if (editedFile != null) {
       if (!myConfiguration.isBestMatchFor(editedFile, config)) {
-        ProjectResources resources = ProjectResources.get(myConfiguration.getModule());
-        if (resources != null) {
-          ResourceFile best = resources.getMatchingFile(editedFile.getName(), ResourceType.LAYOUT, config);
-          if (best != null) {
-            IAbstractFile file = best.getFile();
-            myAlternateInput = ConfigurationMatcher.getVirtualFile(file);
-          }
+        ProjectResources resources = ProjectResources.get(myConfiguration.getModule(), true);
+        ResourceFile best = resources.getMatchingFile(editedFile.getName(), ResourceType.LAYOUT, config);
+        if (best != null) {
+          File file = best.getFile();
+          myAlternateInput = LocalFileSystem.getInstance().findFileByIoFile(file);
         }
         if (myAlternateInput != null) {
           myAlternateConfiguration = Configuration.create(myConfiguration, myAlternateInput);

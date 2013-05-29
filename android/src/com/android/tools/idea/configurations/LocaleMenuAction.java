@@ -103,10 +103,7 @@ public class LocaleMenuAction extends FlatComboAction {
       return Collections.emptyList();
     }
     Module module = configuration.getConfigurationManager().getModule();
-    ProjectResources projectResources = ProjectResources.get(module);
-    if (projectResources == null) {
-      return locales;
-    }
+    ProjectResources projectResources = ProjectResources.get(module, true);
     SortedSet<String> languages = projectResources.getLanguages();
 
     LanguageQualifier specificLanguage = configuration.getEditedConfig().getLanguageQualifier();
@@ -208,16 +205,7 @@ public class LocaleMenuAction extends FlatComboAction {
    * @return the label
    */
   @NotNull
-  public String getLocaleLabel(@Nullable Locale locale, boolean brief) {
-    if (locale == null) {
-      return "";
-    }
-
-    return getLocaleLabel(ProjectResources.get(myRenderContext.getModule()), locale, brief);
-  }
-
-  @NotNull
-  public static String getLocaleLabel(@Nullable ProjectResources projectRes, @Nullable Locale locale, boolean brief) {
+  public static String getLocaleLabel(@Nullable Locale locale, boolean brief) {
     if (locale == null) {
       return "";
     }
@@ -228,17 +216,7 @@ public class LocaleMenuAction extends FlatComboAction {
         return "";
       }
 
-      boolean hasLocale = false;
-      if (projectRes != null) {
-        hasLocale = !projectRes.getLanguages().isEmpty();
-      }
-
-      if (hasLocale) {
-        return "Default";
-      }
-      else {
-        return "Any";
-      }
+      return "Default";
     }
 
     String languageCode = locale.language.getValue();
@@ -297,9 +275,12 @@ public class LocaleMenuAction extends FlatComboAction {
       if (configuration != null) {
         // Save project-wide configuration; not done by regular listening scheme since the previous configuration was not switched
         setProjectWideLocale();
-        ConfigurationStateManager stateManager = ConfigurationStateManager.get(myRenderContext.getModule().getProject());
-        ConfigurationProjectState projectState = stateManager.getProjectState();
-        projectState.saveState(configuration);
+        Module module = myRenderContext.getModule();
+        if (module != null) {
+          ConfigurationStateManager stateManager = ConfigurationStateManager.get(module.getProject());
+          ConfigurationProjectState projectState = stateManager.getProjectState();
+          projectState.saveState(configuration);
+        }
       }
     }
 
@@ -362,19 +343,20 @@ public class LocaleMenuAction extends FlatComboAction {
     @Override
     public void actionPerformed(AnActionEvent e) {
       Module module = myRenderContext.getModule();
-      ProjectResources projectResources = ProjectResources.get(module);
-      if (projectResources != null) {
-        TranslationDialog dialog = new TranslationDialog(module, projectResources, myLocale);
-        dialog.show();
-        if (dialog.isOK()) {
-          if (dialog.createTranslation()) {
-            // Switch to the newly created translation. Reuse the SetLocaleAction
-            // such that we don't just set the locale on the configuration, but project-wide
-            // as well .
-            new SetLocaleAction(myRenderContext, "", myLocale).actionPerformed(e);
-          }
-          RenderPreviewManager.bumpRevision();
+      if (module == null) {
+        return;
+      }
+      ProjectResources projectResources = ProjectResources.get(module, true);
+      TranslationDialog dialog = new TranslationDialog(module, projectResources, myLocale);
+      dialog.show();
+      if (dialog.isOK()) {
+        if (dialog.createTranslation()) {
+          // Switch to the newly created translation. Reuse the SetLocaleAction
+          // such that we don't just set the locale on the configuration, but project-wide
+          // as well .
+          new SetLocaleAction(myRenderContext, "", myLocale).actionPerformed(e);
         }
+        RenderPreviewManager.bumpRevision();
       }
     }
   }
