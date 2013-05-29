@@ -17,6 +17,8 @@ package org.jetbrains.android.facet;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
+import com.android.build.gradle.model.BuildTypeContainer;
+import com.android.build.gradle.model.ProductFlavorContainer;
 import com.android.build.gradle.model.Variant;
 import com.android.builder.model.SourceProvider;
 import com.android.ddmlib.AndroidDebugBridge;
@@ -61,6 +63,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -125,6 +128,8 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private IdeaAndroidProject myIdeaAndroidProject;
 
   private final List<GradleProjectAvailableListener> myGradleProjectAvailableListeners = Lists.newArrayList();
+  private SourceProvider myMainSourceSet;
+  private IdeaSourceProvider myMainIdeaSourceSet;
 
   public AndroidFacet(@NotNull Module module, String name, @NotNull AndroidFacetConfiguration configuration) {
     super(getFacetType(), module, name, configuration, null);
@@ -154,6 +159,22 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     }
   }
 
+  @NotNull
+  public IdeaSourceProvider getMainIdeaSourceSet() {
+    if (!isGradleProject()) {
+      if (myMainIdeaSourceSet == null) {
+        myMainIdeaSourceSet = IdeaSourceProvider.create(this);
+      }
+    } else {
+      SourceProvider mainSourceSet = getMainSourceSet();
+      if (mainSourceSet != myMainSourceSet) {
+        myMainIdeaSourceSet = IdeaSourceProvider.create(mainSourceSet);
+      }
+    }
+
+    return myMainIdeaSourceSet;
+  }
+
   /**
    * Returns the source provider for the current build type, which will never be null for a Gradle based
    * Android project, and always null for a legacy Android project
@@ -171,10 +192,62 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   /**
+   * Like {@link #getBuildTypeSourceSet()} but typed for internal IntelliJ usage with
+   * {@link VirtualFile} instead of {@link File} references
+   *
+   * @return the build type source set or null
+   */
+  @Nullable
+  public IdeaSourceProvider getIdeaBuildTypeSourceSet() {
+    SourceProvider sourceProvider = getBuildTypeSourceSet();
+    if (sourceProvider != null) {
+      return IdeaSourceProvider.create(sourceProvider);
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Returns all resource directories, in the overlay order
+   *
+   * @return a list of all resource directories
+   */
+  @NotNull
+  public List<VirtualFile> getAllResourceDirectories() {
+    if (isGradleProject()) {
+      List<VirtualFile> resDirectories = new ArrayList<VirtualFile>();
+      resDirectories.addAll(getMainIdeaSourceSet().getResDirectories());
+      List<IdeaSourceProvider> flavorSourceSets = getIdeaFlavorSourceSets();
+      if (flavorSourceSets != null) {
+        for (IdeaSourceProvider provider : flavorSourceSets) {
+          resDirectories.addAll(provider.getResDirectories());
+        }
+      }
+
+      IdeaSourceProvider buildTypeSourceSet = getIdeaBuildTypeSourceSet();
+      if (buildTypeSourceSet != null) {
+        resDirectories.addAll(buildTypeSourceSet.getResDirectories());
+      }
+
+      return resDirectories;
+    } else {
+      return new ArrayList<VirtualFile>(getMainIdeaSourceSet().getResDirectories());
+    }
+  }
+
+  /**
+   * Returns the name of the build type
+   */
+  @Nullable
+  public String getBuildTypeName() {
+    return myIdeaAndroidProject != null ? myIdeaAndroidProject.getSelectedVariant().getName() : null;
+  }
+
+  /**
    * Returns the source providers for the available flavors, which will never be null for a Gradle based
    * Android project, and always null for a legacy Android project
    *
-   * @return the flavor source providers
+   * @return the flavor source providers or null in legacy projects
    */
   @Nullable
   public List<SourceProvider> getFlavorSourceSets() {
@@ -193,6 +266,72 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   /**
+   * Like {@link #getFlavorSourceSets()} but typed for internal IntelliJ usage with
+   * {@link VirtualFile} instead of {@link File} references
+   *
+   * @return the flavor source providers or null in legacy projects
+   */
+  @Nullable
+  public List<IdeaSourceProvider> getIdeaFlavorSourceSets() {
+    List<SourceProvider> sourceProviders = getFlavorSourceSets();
+    if (sourceProviders != null) {
+      List<IdeaSourceProvider> ideaSourceProviders = Lists.newArrayListWithExpectedSize(sourceProviders.size());
+      for (SourceProvider provider : sourceProviders) {
+        ideaSourceProviders.add(IdeaSourceProvider.create(provider));
+      }
+
+      return ideaSourceProviders;
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Like {@link #getFlavorSourceSets()}, but returns the name for each flavor's source provider as well
+   *
+   * @return a list of source provider and name pairs or null in legacy projects
+   */
+  @Nullable
+  public List<Pair<String, SourceProvider>> getFlavorSourceSetsAndNames() {
+    if (myIdeaAndroidProject != null) {
+      Variant selectedVariant = myIdeaAndroidProject.getSelectedVariant();
+      List<String> productFlavors = selectedVariant.getProductFlavors();
+      List<Pair<String, SourceProvider>> providers = Lists.newArrayList();
+      for (String flavor : productFlavors) {
+        providers.add(Pair.create(flavor, myIdeaAndroidProject.getDelegate().getProductFlavors().get(flavor).getSourceProvider()));
+      }
+
+      return providers;
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Like {@link #getFlavorSourceSetsAndNames()} but typed for internal IntelliJ usage with
+   * {@link VirtualFile} instead of {@link File} references
+   *
+   * @return a list of source provider and name pairs or null in legacy projects
+   */
+  @Nullable
+  public List<Pair<String, IdeaSourceProvider>> getIdeaFlavorSourceSetsAndNames() {
+    List<Pair<String, SourceProvider>> pairs = getFlavorSourceSetsAndNames();
+    if (pairs != null) {
+      List<Pair<String, IdeaSourceProvider>> providers = Lists.newArrayListWithExpectedSize(pairs.size());
+      for (Pair<String, SourceProvider> pair : pairs) {
+        String flavor = pair.getFirst();
+        SourceProvider provider = pair.getSecond();
+        providers.add(Pair.create(flavor, IdeaSourceProvider.create(provider)));
+      }
+
+      return providers;
+    } else {
+      return null;
+    }
+  }
+
+
+  /**
    * This returns the primary resource directory; the default location to place
    * newly created resources etc.  This method is marked deprecated since we should
    * be gradually adding in UI to allow users to choose specific resource folders
@@ -203,10 +342,9 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @Deprecated
   @Nullable
   public VirtualFile getPrimaryResourceDir() {
-    SourceProvider sourceSet = getMainSourceSet();
-    Set<File> resDirectories = sourceSet.getResDirectories();
+    Set<VirtualFile> resDirectories = getMainIdeaSourceSet().getResDirectories();
     if (!resDirectories.isEmpty()) {
-      return LocalFileSystem.getInstance().findFileByIoFile(resDirectories.iterator().next());
+      return resDirectories.iterator().next();
     }
 
     return null;
@@ -860,8 +998,11 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    */
   public void setIdeaAndroidProject(@Nullable IdeaAndroidProject project) {
     myIdeaAndroidProject = project;
-    if (project != null) {
-      for (GradleProjectAvailableListener listener : myGradleProjectAvailableListeners) {
+    if (project != null && !myGradleProjectAvailableListeners.isEmpty()) {
+      // Make copy first since listeners may remove themselves as they are notified, and we
+      // don't want a concurrent modification exception
+      List<GradleProjectAvailableListener> listeners = new ArrayList<GradleProjectAvailableListener>(myGradleProjectAvailableListeners);
+      for (GradleProjectAvailableListener listener : listeners) {
         listener.gradleProjectAvailable(project);
       }
     }
