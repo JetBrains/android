@@ -49,6 +49,7 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.DependencyScope;
@@ -625,6 +626,21 @@ public class AndroidUtils {
   public static List<AndroidFacet> getAllAndroidDependencies(@NotNull Module module, boolean androidLibrariesOnly) {
     final List<AndroidFacet> result = new ArrayList<AndroidFacet>();
     collectAllAndroidDependencies(module, androidLibrariesOnly, result, new HashSet<AndroidFacet>());
+
+    // Temporary workaround: In gradle projects, other modules are missed. For now, manually make
+    // sure they are present.
+    AndroidFacet primary = AndroidFacet.getInstance(module);
+    if (primary != null && primary.isGradleProject()) {
+      Module[] modules = ModuleManager.getInstance(module.getProject()).getModules();
+      for (Module m : modules) {
+        if (m != module) {
+          AndroidFacet facet = AndroidFacet.getInstance(m);
+          if (facet != null && !result.contains(facet)) {
+            result.add(facet);
+          }
+        }
+      }
+    }
     return result;
   }
 
