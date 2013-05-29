@@ -44,6 +44,7 @@ import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
@@ -75,14 +76,17 @@ public class LocalResourceManager extends ResourceManager {
 
   @Override
   public boolean isResourceDir(@NotNull VirtualFile dir) {
-    if (dir.equals(getResourceDir())) {
-      return true;
+    for (VirtualFile resDir : getResourceDirs()) {
+      if (dir.equals(resDir)) {
+        return true;
+      }
     }
     for (VirtualFile dir1 : getResourceOverlayDirs()) {
       if (dir.equals(dir1)) {
         return true;
       }
     }
+
     return false;
   }
 
@@ -90,6 +94,12 @@ public class LocalResourceManager extends ResourceManager {
   @Override
   public VirtualFile getResourceDir() {
     return AndroidRootUtil.getResourceDir(getFacet());
+  }
+
+  @Override
+  @Nullable
+  public List<VirtualFile> getResourceDirs() {
+    return myFacet.getAllResourceDirectories();
   }
 
   public List<Pair<Resources, VirtualFile>> getResourceElements() {
