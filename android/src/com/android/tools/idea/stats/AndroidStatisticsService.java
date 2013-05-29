@@ -143,7 +143,7 @@ public class AndroidStatisticsService implements StatisticsService {
     Map<String, KeyValue[]> usages = new LinkedHashMap<String, KeyValue[]>();
     for (Project project : openProjects) {
       final Map<String, KeyValue[]> allUsages = getAllUsages(project, disabledGroups);
-      usages.putAll(usages);
+      usages.putAll(allUsages);
     }
 
     String uuid = UpdateChecker.getInstallationUID(PropertiesComponent.getInstance());
