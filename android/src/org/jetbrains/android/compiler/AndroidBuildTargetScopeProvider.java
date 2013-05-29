@@ -41,7 +41,6 @@ public class AndroidBuildTargetScopeProvider extends BuildTargetScopeProvider {
       if (facet == null) {
         continue;
       }
-      // todo: make AndroidPackagingBuilder fully target-based and change this
       allTargetIds.add(module.getName());
 
       if (fullBuild) {
@@ -57,7 +56,7 @@ public class AndroidBuildTargetScopeProvider extends BuildTargetScopeProvider {
       CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.DEX_BUILD_TARGET_TYPE_ID, appTargetIds, forceBuild),
       CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.RESOURCE_CACHING_BUILD_TARGET_ID, allTargetIds, forceBuild),
       CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.RESOURCE_PACKAGING_BUILD_TARGET_ID, appTargetIds, forceBuild),
-      CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.PACKAGING_BUILD_TARGET_TYPE_ID, allTargetIds, forceBuild),
+      CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.PACKAGING_BUILD_TARGET_TYPE_ID, appTargetIds, forceBuild),
       CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.LIBRARY_PACKAGING_BUILD_TARGET_ID, libTargetIds, forceBuild)
     );
   }
