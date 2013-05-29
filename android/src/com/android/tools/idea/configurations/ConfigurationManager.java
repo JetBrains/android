@@ -24,10 +24,8 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.ManifestInfo;
-import com.android.tools.idea.rendering.ProjectResources;
-import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -119,7 +117,7 @@ public class ConfigurationManager implements Disposable {
       config = new FolderConfiguration();
     }
     Configuration configuration = Configuration.create(this, projectState, file, fileState, config);
-    ProjectResources projectResources = ProjectResources.get(myModule);
+    ProjectResources projectResources = ProjectResources.get(myModule, true);
     ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, projectResources, file);
     if (fileState != null) {
       matcher.adaptConfigSelection(true);
@@ -152,7 +150,7 @@ public class ConfigurationManager implements Disposable {
       config = new FolderConfiguration();
     }
     Configuration configuration = Configuration.create(this, projectState, file, fileState, config);
-    ProjectResources projectResources = ProjectResources.get(myModule);
+    ProjectResources projectResources = ProjectResources.get(myModule, true);
     ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, projectResources, file);
     matcher.adaptConfigSelection(true /*needBestMatch*/);
     myCache.put(file, configuration);
@@ -437,14 +435,12 @@ public class ConfigurationManager implements Disposable {
   public List<Locale> getLocales() {
     if (myLocales == null) {
       List<Locale> locales = new ArrayList<Locale>();
-      ProjectResources projectResources = ProjectResources.get(myModule);
-      if (projectResources != null) {
-        for (String language : projectResources.getLanguages()) {
-          LanguageQualifier languageQualifier = new LanguageQualifier(language);
-          locales.add(Locale.create(languageQualifier));
-          for (String region : projectResources.getRegions(language)) {
-            locales.add(Locale.create(languageQualifier, new RegionQualifier(region)));
-          }
+      ProjectResources projectResources = ProjectResources.get(myModule, true);
+      for (String language : projectResources.getLanguages()) {
+        LanguageQualifier languageQualifier = new LanguageQualifier(language);
+        locales.add(Locale.create(languageQualifier));
+        for (String region : projectResources.getRegions(language)) {
+          locales.add(Locale.create(languageQualifier, new RegionQualifier(region)));
         }
       }
       myLocales = locales;

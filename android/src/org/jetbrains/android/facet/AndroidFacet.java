@@ -125,6 +125,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   private ConfigurationManager myConfigurationManager;
   private ProjectResources myProjectResources;
+  private ProjectResources myProjectResourcesWithLibraries;
   private IdeaAndroidProject myIdeaAndroidProject;
 
   private final List<GradleProjectAvailableListener> myGradleProjectAvailableListeners = Lists.newArrayList();
@@ -977,13 +978,20 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return myConfigurationManager;
   }
 
-  public ProjectResources getProjectResources(boolean createIfNecessary) {
+  @Nullable
+  public ProjectResources getProjectResources(boolean includeLibraries, boolean createIfNecessary) {
     synchronized (this) {
-      if (myProjectResources == null && createIfNecessary) {
-        myProjectResources = ProjectResources.create(this);
+      if (includeLibraries) {
+        if (myProjectResourcesWithLibraries == null && createIfNecessary) {
+          myProjectResourcesWithLibraries = ProjectResources.create(this, true /*libraries*/);
+        }
+        return myProjectResourcesWithLibraries;
+      } else {
+        if (myProjectResources == null && createIfNecessary) {
+          myProjectResources = ProjectResources.create(this, false /*libraries*/);
+        }
+        return myProjectResources;
       }
-
-      return myProjectResources;
     }
   }
 

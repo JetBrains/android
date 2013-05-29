@@ -78,7 +78,7 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
       return null;
     }
 
-    ProjectResources projectResources = ProjectResources.get(module, true);
+    ProjectResources projectResources = ProjectResources.get(module, true, true);
     if (projectResources == null) {
       return null;
     }

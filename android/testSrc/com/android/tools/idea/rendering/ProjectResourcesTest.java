@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.dom.manifest.Application;
 
 import java.util.Collection;
 
@@ -34,34 +31,34 @@ public class ProjectResourcesTest extends AndroidTestCase {
     myFixture.copyFileToProject(TEST_FILE, "res/layout/layout1.xml");
     myFixture.copyFileToProject(TEST_FILE, "res/layout/layout2.xml");
 
-    ProjectResources resources = ProjectResources.get(myModule);
+    ProjectResources resources = ProjectResources.get(myModule, false);
     assertNotNull(resources);
 
-    Collection<ResourceItem> layouts = resources.getResourceItemsOfType(ResourceType.LAYOUT);
+    Collection<String> layouts = resources.getItemsOfType(ResourceType.LAYOUT);
     assertEquals(2, layouts.size());
 
     assertNotNull(resources.getResourceItem(ResourceType.LAYOUT, "layout1"));
     assertNotNull(resources.getResourceItem(ResourceType.LAYOUT, "layout2"));
 
-    int generation = resources.getGeneration();
+    long generation = resources.getModificationCount();
     myFixture.copyFileToProject(TEST_FILE, "res/layout/layout2.xml");
-    assertEquals(generation, resources.getGeneration());
+    assertEquals(generation, resources.getModificationCount());
 
     VirtualFile file3 = myFixture.copyFileToProject(TEST_FILE, "res/layout-xlarge-land/layout3.xml");
     PsiFile psiFile3 = PsiManager.getInstance(getProject()).findFile(file3);
     assertNotNull(psiFile3);
 
-    layouts = resources.getResourceItemsOfType(ResourceType.LAYOUT);
+    layouts = resources.getItemsOfType(ResourceType.LAYOUT);
     assertEquals(3, layouts.size());
 
-    Collection<ResourceItem> drawables = resources.getResourceItemsOfType(ResourceType.DRAWABLE);
+    Collection<String> drawables = resources.getItemsOfType(ResourceType.DRAWABLE);
     assertEquals(drawables.toString(), 0, drawables.size());
     VirtualFile file4 = myFixture.copyFileToProject(TEST_FILE, "res/drawable-mdpi/foo.png");
     final PsiFile psiFile4 = PsiManager.getInstance(getProject()).findFile(file4);
     assertNotNull(psiFile4);
-    drawables = resources.getResourceItemsOfType(ResourceType.DRAWABLE);
+    drawables = resources.getItemsOfType(ResourceType.DRAWABLE);
     assertEquals(1, drawables.size());
-    assertEquals("foo", drawables.iterator().next().getName());
+    assertEquals("foo", drawables.iterator().next());
 
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
@@ -69,7 +66,7 @@ public class ProjectResourcesTest extends AndroidTestCase {
         psiFile4.delete();
       }
     });
-    drawables = resources.getResourceItemsOfType(ResourceType.DRAWABLE);
+    drawables = resources.getItemsOfType(ResourceType.DRAWABLE);
     assertEquals(0, drawables.size());
 
     // Try deleting a whole resource directory and ensure we're notified of the missing files within
@@ -87,16 +84,16 @@ public class ProjectResourcesTest extends AndroidTestCase {
         directory.delete();
       }
     });
-    layouts = resources.getResourceItemsOfType(ResourceType.LAYOUT);
+    layouts = resources.getItemsOfType(ResourceType.LAYOUT);
     assertEquals(2, layouts.size());
     */
 
     /* TODO: The PSI change listener does not appear to fire when run in the unit test; figure out why.
-    layouts = resources.getResourceItemsOfType(ResourceType.LAYOUT);
+    layouts = resources.getItemsOfType(ResourceType.LAYOUT);
     assertEquals(layouts.size(), 3);
 
     myFixture.copyFileToProject(TEST_FILE, "res/layout-en/layout2.xml");
-    assertEquals(generation + 1, resources.getGeneration());
+    assertEquals(generation + 1, resources.getModificationCount());
     */
   }
 }

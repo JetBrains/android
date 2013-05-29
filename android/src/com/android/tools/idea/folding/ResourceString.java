@@ -16,7 +16,6 @@
 package com.android.tools.idea.folding;
 
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LanguageQualifier;
 import com.android.resources.ResourceType;
@@ -81,18 +80,17 @@ class ResourceString implements ModificationTracker {
   public long getModificationCount() {
     // Return the project resource generation count; this ensures that when the project
     // resources are updated, the folding text is refreshed
-    return myProjectResources != null ? myProjectResources.getGeneration() : 0;
+    return myProjectResources != null ? myProjectResources.getModificationCount() : 0;
   }
 
   @Nullable
   public String getResolvedString() {
     if (myProjectResources != null) {
       if (myProjectResources.hasResourceItem(ResourceType.STRING, myKey)) {
-        ResourceItem item = myProjectResources.getResourceItem(ResourceType.STRING, myKey);
         FolderConfiguration referenceConfig = new FolderConfiguration();
         // Nonexistent language qualifier: trick it to fall back to the default locale
         referenceConfig.setLanguageQualifier(new LanguageQualifier("xx"));
-        ResourceValue value = item.getResourceValue(ResourceType.STRING, referenceConfig, false);
+        ResourceValue value = myProjectResources.getConfiguredValue(ResourceType.STRING, myKey, referenceConfig);
         if (value != null) {
           String text = value.getValue();
           if (text != null) {

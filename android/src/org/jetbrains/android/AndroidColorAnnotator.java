@@ -144,8 +144,7 @@ public class AndroidColorAnnotator implements Annotator {
 
     if (layout == null) {
       // Pick among actual files in the project
-      VirtualFile resourceDir = AndroidRootUtil.getResourceDir(facet);
-      if (resourceDir != null) {
+      for (VirtualFile resourceDir : facet.getAllResourceDirectories()) {
         for (VirtualFile folder : resourceDir.getChildren()) {
           if (folder.getName().startsWith(FD_RES_LAYOUT) && folder.isDirectory()) {
             for (VirtualFile file : folder.getChildren()) {
@@ -186,15 +185,12 @@ public class AndroidColorAnnotator implements Annotator {
       return;
     }
 
-    ResourceItem item = findResourceItem(type, name, isFramework, module, configuration);
-    if (item != null) {
-      ResourceValue value = item.getResourceValue(type, configuration.getFullConfig(), false);
-      if (value != null) {
-        // TODO: Use a *shared* fallback resolver for this?
-        ResourceResolver resourceResolver = configuration.getResourceResolver();
-        if (resourceResolver != null) {
-          annotateResourceValue(type, holder, element, value, resourceResolver);
-        }
+    ResourceValue value = findResourceValue(type, name, isFramework, module, configuration);
+    if (value != null) {
+      // TODO: Use a *shared* fallback resolver for this?
+      ResourceResolver resourceResolver = configuration.getResourceResolver();
+      if (resourceResolver != null) {
+        annotateResourceValue(type, holder, element, value, resourceResolver);
       }
     }
   }
@@ -260,12 +256,11 @@ public class AndroidColorAnnotator implements Annotator {
 
   /** Looks up the resource item of the given type and name for the given configuration, if any */
   @Nullable
-  private static ResourceItem findResourceItem(ResourceType type,
-                                               String name,
-                                               boolean isFramework,
-                                               Module module,
-                                               Configuration configuration) {
-    ResourceItem item;
+  private static ResourceValue findResourceValue(ResourceType type,
+                                                 String name,
+                                                 boolean isFramework,
+                                                 Module module,
+                                                 Configuration configuration) {
     if (isFramework) {
       ResourceRepository frameworkResources = configuration.getFrameworkResources();
       if (frameworkResources == null) {
@@ -274,19 +269,18 @@ public class AndroidColorAnnotator implements Annotator {
       if (!frameworkResources.hasResourceItem(type, name)) {
         return null;
       }
-      item = frameworkResources.getResourceItem(type, name);
+      ResourceItem item = frameworkResources.getResourceItem(type, name);
+      return item.getResourceValue(type, configuration.getFullConfig(), false);
     } else {
-      ProjectResources projectResources = ProjectResources.get(module, true);
+      ProjectResources projectResources = ProjectResources.get(module, true, true);
       if (projectResources == null) {
         return null;
       }
       if (!projectResources.hasResourceItem(type, name)) {
         return null;
       }
-      item = projectResources.getResourceItem(type, name);
+      return projectResources.getConfiguredValue(type, name, configuration.getFullConfig());
     }
-
-    return item;
   }
 
   @VisibleForTesting
