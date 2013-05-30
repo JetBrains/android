@@ -78,6 +78,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   private JLabel myDescription;
   private JLabel myError;
   private JLabel myProjectLocationLabel;
+  boolean myInitializedPackageNameText = false;
 
   public ConfigureAndroidModuleStep(TemplateWizard templateWizard, TemplateWizardState state) {
     super(templateWizard, state);
@@ -263,6 +264,16 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
         }
         if (updated) {
           validate();
+        }
+        if (!myInitializedPackageNameText) {
+          myInitializedPackageNameText = true;
+          if (((String)myTemplateState.get(ATTR_PACKAGE_NAME)).startsWith(SAMPLE_PACKAGE_PREFIX)) {
+            int length = SAMPLE_PACKAGE_PREFIX.length();
+            if (SAMPLE_PACKAGE_PREFIX.endsWith(".")) {
+              length--;
+            }
+            myPackageName.select(0, length);
+          }
         }
       }
     });
