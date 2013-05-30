@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.testFramework.IdeaTestCase;
 
 import java.io.File;
@@ -49,8 +49,8 @@ public class CompilerOutputPathModuleCustomizerTest extends IdeaTestCase {
   }
 
   public void testCustomizeModule() {
-    IdeaAndroidProject ideaAndroidProject =
-      new IdeaAndroidProject(myModule.getName(), androidProject.getRootDir().getAbsolutePath(), androidProject, "debug");
+    String rootDirPath = androidProject.getRootDir().getAbsolutePath();
+    IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(myModule.getName(), rootDirPath, rootDirPath, androidProject, "debug");
     customizer.customizeModule(myModule, myProject, ideaAndroidProject);
 
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
@@ -60,7 +60,7 @@ public class CompilerOutputPathModuleCustomizerTest extends IdeaTestCase {
     moduleSettings.commit();
 
     File classesFolder = ideaAndroidProject.getSelectedVariant().getClassesFolder();
-    String expected = VfsUtil.pathToUrl(classesFolder.getAbsolutePath());
+    String expected = VfsUtilCore.pathToUrl(classesFolder.getAbsolutePath());
     assertEquals(expected, compilerOutputPath);
   }
 }

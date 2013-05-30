@@ -47,6 +47,9 @@
            class="org.jetbrains.android.actions.AndroidToolsActionGroup">
       <add-to-group group-id="ToolsMenu" anchor="last"/>
     </group>
+    <action id="Android.ReImportProject" class="com.android.tools.idea.gradle.actions.ReImportProjectAction" icon="AndroidIcons.GradleSync">
+      <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
+    </action>
     <action id="Android.RunDdms" class="org.jetbrains.android.actions.AndroidRunDdmsAction" icon="AndroidIcons.Android">
       <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
     </action>
@@ -118,7 +121,7 @@
     <codeFoldingOptionsProvider instance="com.android.tools.idea.folding.AndroidCodeFoldingOptionsProvider"/>
     <applicationService serviceInterface="com.android.tools.idea.folding.AndroidFoldingSettings"
                         serviceImplementation="com.android.tools.idea.folding.AndroidFoldingSettings"/>
-    <applicationService serviceImplementation="com.android.tools.idea.gradle.NewAndroidProjectImporter"/>
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.GradleProjectImporter"/>
     <exportable serviceInterface="com.android.tools.idea.folding.AndroidFoldingSettings"/>
 
     <errorHandler        implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
@@ -429,6 +432,7 @@
     -->
     <spellchecker.bundledDictionaryProvider implementation="org.jetbrains.android.spellchecker.AndroidBundledDictionaryProvider"/>
     <projectStructureDetector implementation="org.jetbrains.android.newProject.AndroidProjectStructureDetector"/>
+    <postStartupActivity implementation="com.android.tools.idea.gradle.startup.GradleStartupActivity" order="first"/>
   </extensions>
 
   <extensionPoints>
