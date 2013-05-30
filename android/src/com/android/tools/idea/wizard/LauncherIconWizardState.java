@@ -166,7 +166,7 @@ public class LauncherIconWizardState extends TemplateWizardState implements Grap
     put(ATTR_FONT, "Arial Black");
     put(ATTR_SCALING, Scaling.CROP);
     put(ATTR_SHAPE, GraphicGenerator.Shape.NONE);
-    put(ATTR_FONT_SIZE, 72);
+    put(ATTR_FONT_SIZE, 144);
     put(ATTR_SOURCE_TYPE, LauncherIconWizardState.SourceType.IMAGE);
     put(ATTR_IMAGE_PATH,
         new File(TemplateManager.getTemplateRootFolder(), "projects/NewAndroidApplication/root/res/drawable-xhdpi/ic_launcher.png")
@@ -225,7 +225,7 @@ public class LauncherIconWizardState extends TemplateWizardState implements Grap
         case CLIPART: {
           sourceImage = GraphicGenerator.getClipartImage((String)get(ATTR_CLIPART_NAME));
           if (trim) {
-            sourceImage = ImageUtils.cropBlank(sourceImage, null, TYPE_INT_ARGB);
+            sourceImage = crop(sourceImage);
           }
 
           if (type.needsColors()) {
@@ -239,7 +239,7 @@ public class LauncherIconWizardState extends TemplateWizardState implements Grap
           TextRenderUtil.Options options = new TextRenderUtil.Options();
           options.font = Font.decode((String)get(ATTR_FONT) + " " + (Integer)get(ATTR_FONT_SIZE));
           options.foregroundColor = type.needsColors() ? ((Color)get(ATTR_FOREGROUND_COLOR)).getRGB() : 0xFFFFFFFF;
-          sourceImage = TextRenderUtil.renderTextImage((String)get(ATTR_TEXT), 0, options);
+          sourceImage = TextRenderUtil.renderTextImage((String)get(ATTR_TEXT), 1, options);
 
           break;
         }
@@ -251,7 +251,7 @@ public class LauncherIconWizardState extends TemplateWizardState implements Grap
     }
 
     if (trim) {
-      sourceImage = ImageUtils.cropBlank(sourceImage, null, TYPE_INT_ARGB);
+      sourceImage = crop(sourceImage);
     }
 
     if (padding != 0) {
@@ -320,5 +320,11 @@ public class LauncherIconWizardState extends TemplateWizardState implements Grap
     }
 
     return image;
+  }
+
+  @NotNull
+  private static BufferedImage crop(@NotNull BufferedImage sourceImage) {
+    BufferedImage cropped = ImageUtils.cropBlank(sourceImage, null, TYPE_INT_ARGB);
+    return cropped != null ? cropped : sourceImage;
   }
 }
