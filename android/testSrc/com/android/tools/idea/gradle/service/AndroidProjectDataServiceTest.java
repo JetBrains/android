@@ -48,7 +48,7 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
     myAndroidProject.addVariant(DEBUG);
     myAndroidProject.addBuildType(DEBUG);
     String rootDirPath = myAndroidProject.getRootDir().getAbsolutePath();
-    myIdeaAndroidProject = new IdeaAndroidProject(myAndroidProject.getName(), rootDirPath, myAndroidProject, DEBUG);
+    myIdeaAndroidProject = new IdeaAndroidProject(myAndroidProject.getName(), rootDirPath, rootDirPath, myAndroidProject, DEBUG);
     myCustomizer1 = createMock(ModuleCustomizer.class);
     myCustomizer2 = createMock(ModuleCustomizer.class);
     service = new AndroidProjectDataService(myCustomizer1, myCustomizer2);
