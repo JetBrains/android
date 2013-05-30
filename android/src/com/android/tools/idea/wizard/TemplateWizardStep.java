@@ -302,7 +302,6 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     }
     myParamFields.put(paramName, (JComponent)textField);
     textField.addFocusListener(this);
-    textField.addActionListener(this);
     textField.getDocument().addDocumentListener(this);
   }
 
