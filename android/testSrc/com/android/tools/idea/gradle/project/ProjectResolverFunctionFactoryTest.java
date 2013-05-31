@@ -19,6 +19,8 @@ import com.android.tools.idea.gradle.project.AndroidGradleProjectResolver.Projec
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.util.Function;
 import junit.framework.TestCase;
@@ -47,13 +49,15 @@ public class ProjectResolverFunctionFactoryTest extends TestCase {
     GradleExecutionSettings settings = createMock(GradleExecutionSettings.class);
     ProjectConnection connection = createMock(ProjectConnection.class);
 
-    Function<ProjectConnection,DataNode<ProjectData>> function = myFunctionFactory.createFunction(id, projectPath, settings);
+    ExternalSystemTaskNotificationListener listener = new ExternalSystemTaskNotificationListenerAdapter() {
+    };
+    Function<ProjectConnection,DataNode<ProjectData>> function = myFunctionFactory.createFunction(id, projectPath, settings, listener);
     assertNotNull(function);
 
     DataNode<ProjectData> projectInfo = createMock(DataNode.class);
 
     // Verify that function execution delegates to ProjectResolverDelegates.
-    expect(myStrategy.resolveProjectInfo(id, projectPath, settings, connection)).andReturn(projectInfo);
+    expect(myStrategy.resolveProjectInfo(id, projectPath, settings, connection, listener)).andReturn(projectInfo);
     replay(myStrategy);
 
     DataNode<ProjectData> resolved = function.fun(connection);

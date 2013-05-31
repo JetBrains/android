@@ -56,7 +56,7 @@ class BuildVariantUpdater {
   @Nullable
   AndroidFacet updateModule(@NotNull final Project project, @NotNull final String moduleName, @NotNull final String buildVariantName) {
     final Ref<AndroidFacet> facetRef = new Ref<AndroidFacet>();
-    ExternalSystemApiUtil.executeProjectChangeAction(project, GradleConstants.SYSTEM_ID, project, true, new Runnable() {
+    ExternalSystemApiUtil.executeProjectChangeAction(true /*synchronous*/, new Runnable() {
       @Override
       public void run() {
         AndroidFacet updatedFacet = doUpdate(project, moduleName, buildVariantName);

@@ -78,7 +78,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
     }
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     final List<Module> modules = ImmutableList.copyOf(moduleManager.getModules());
-    ExternalSystemApiUtil.executeProjectChangeAction(project, ProjectSystemId.IDE, modules, synchronous, new Runnable() {
+    ExternalSystemApiUtil.executeProjectChangeAction(synchronous, new Runnable() {
       @Override
       public void run() {
         Map<String, IdeaAndroidProject> androidProjectsByModuleName = indexByModuleName(toImport);

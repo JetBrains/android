@@ -29,6 +29,7 @@ import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.*;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.roots.DependencyScope;
@@ -84,16 +85,18 @@ class ProjectResolver {
    * @param projectPath absolute path of the build.gradle file. It includes the file name.
    * @param settings    settings to use for the project resolving; {@code null} as indication that no specific settings are required.
    * @param connection  Gradle Tooling API connection to the project to import.
+   * @param listener    callback to be notified about the execution
    * @return the imported project, or {@link null} if the project to import is not an Android-Gradle project.
    */
   @Nullable
   DataNode<ProjectData> resolveProjectInfo(@NotNull ExternalSystemTaskId id,
                                            @NotNull String projectPath,
                                            @Nullable GradleExecutionSettings settings,
-                                           @NotNull ProjectConnection connection) {
+                                           @NotNull ProjectConnection connection,
+                                           @NotNull ExternalSystemTaskNotificationListener listener) {
     String projectDirPath = PathUtil.getParentPath(projectPath);
 
-    ModelBuilder<IdeaProject> modelBuilder = myHelper.getModelBuilder(IdeaProject.class, id, settings, connection);
+    ModelBuilder<IdeaProject> modelBuilder = myHelper.getModelBuilder(IdeaProject.class, id, settings, connection, listener);
     IdeaProject ideaProject = modelBuilder.get();
     if (ideaProject == null || ideaProject.getModules().isEmpty()) {
       return null;
@@ -114,7 +117,7 @@ class ProjectResolver {
         continue;
       }
       String moduleDirPath = moduleDir.getAbsolutePath();
-      AndroidProject androidProject = getAndroidProject(id, gradleBuildFilePath, settings);
+      AndroidProject androidProject = getAndroidProject(id, gradleBuildFilePath, settings, listener);
       if (androidProject != null) {
         createModuleInfo(androidProject, moduleName, projectInfo, moduleDirPath, gradleProject);
         if (first == null) {
@@ -175,13 +178,14 @@ class ProjectResolver {
   @Nullable
   private AndroidProject getAndroidProject(@NotNull final ExternalSystemTaskId id,
                                            @NotNull String projectPath,
-                                           @Nullable final GradleExecutionSettings settings) {
+                                           @Nullable final GradleExecutionSettings settings,
+                                           @NotNull final ExternalSystemTaskNotificationListener listener) {
     return myHelper.execute(projectPath, settings, new Function<ProjectConnection, AndroidProject>() {
       @Nullable
       @Override
       public AndroidProject fun(ProjectConnection connection) {
         try {
-          ModelBuilder<AndroidProject> modelBuilder = myHelper.getModelBuilder(AndroidProject.class, id, settings, connection);
+          ModelBuilder<AndroidProject> modelBuilder = myHelper.getModelBuilder(AndroidProject.class, id, settings, connection, listener);
           return modelBuilder.get();
         }
         catch (RuntimeException e) {
