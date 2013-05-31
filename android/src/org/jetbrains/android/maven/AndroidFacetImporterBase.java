@@ -146,6 +146,8 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
                                Map<MavenProject, String> mavenProjectToModuleName,
                                List<MavenProjectsProcessorTask> postTasks) {
     configurePaths(facet, mavenProject);
+    facet.getProperties().ENABLE_MANIFEST_MERGING = Boolean.parseBoolean(findConfigValue(mavenProject, "mergeManifests"));
+
     configureAndroidPlatform(facet, mavenProject, modelsProvider);
     final Project project = module.getProject();
     importExternalApklibDependencies(project, rootModel, modelsProvider, mavenTree, mavenProject, mavenProjectToModuleName,

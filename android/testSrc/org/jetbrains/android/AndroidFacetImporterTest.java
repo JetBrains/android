@@ -280,6 +280,7 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
       assertEquals("/assets", properties.ASSETS_FOLDER_RELATIVE_PATH);
       assertEquals("/target/generated-sources/aidl", properties.GEN_FOLDER_RELATIVE_PATH_AIDL);
       assertEquals("/target/generated-sources/r", properties.GEN_FOLDER_RELATIVE_PATH_APT);
+      assertEquals(false, properties.ENABLE_MANIFEST_MERGING);
     }
     finally {
       AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = null;
@@ -291,6 +292,7 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
     try {
       importProject(getPomContent(
         "apklib", "module",
+        "<mergeManifests>true</mergeManifests>" +
         "<androidManifestFile>${project.build.directory}/manifest/AndroidManifest.xml</androidManifestFile>" +
         "<resourceDirectory>${project.build.directory}/resources</resourceDirectory>" +
         "<assetsDirectory>${project.build.directory}/assets</assetsDirectory>" +
@@ -312,6 +314,7 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
       assertEquals("/target/assets", properties.ASSETS_FOLDER_RELATIVE_PATH);
       assertEquals("/target/generated-sources/aidl", properties.GEN_FOLDER_RELATIVE_PATH_AIDL);
       assertEquals("/target/generated-sources/r", properties.GEN_FOLDER_RELATIVE_PATH_APT);
+      assertEquals(true, properties.ENABLE_MANIFEST_MERGING);
     }
     finally {
       AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = null;
