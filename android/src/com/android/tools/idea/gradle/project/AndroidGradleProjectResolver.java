@@ -26,7 +26,6 @@ import com.intellij.execution.configurations.ParametersList;
 import com.intellij.execution.configurations.SimpleJavaParameters;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
-import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
@@ -117,8 +116,9 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
     if (Strings.isNullOrEmpty(androidHome)) {
       for (Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
         AndroidPlatform androidPlatform = AndroidPlatform.parse(sdk);
-        if (androidPlatform != null && sdk.getHomePath() != null) {
-          parameters.addEnv(AndroidSdkUtils.ANDROID_HOME_ENV, sdk.getHomePath());
+        String sdkHomePath = sdk.getHomePath();
+        if (androidPlatform != null && sdkHomePath != null) {
+          parameters.addEnv(AndroidSdkUtils.ANDROID_HOME_ENV, sdkHomePath);
           break;
         }
       }

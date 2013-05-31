@@ -19,11 +19,14 @@ import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GradleProjectStub implements GradleProject {
+  @NotNull private final String myName;
   @NotNull private final String myPath;
 
-  public GradleProjectStub(@NotNull String path) {
+  public GradleProjectStub(@NotNull String name, @NotNull String path) {
+    myName = name;
     myPath = path;
   }
 
@@ -33,8 +36,9 @@ public class GradleProjectStub implements GradleProject {
   }
 
   @Override
+  @Nullable
   public GradleProject getParent() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
@@ -43,6 +47,7 @@ public class GradleProjectStub implements GradleProject {
   }
 
   @Override
+  @NotNull
   public String getPath() {
     return myPath;
   }
@@ -53,8 +58,9 @@ public class GradleProjectStub implements GradleProject {
   }
 
   @Override
+  @NotNull
   public String getName() {
-    throw new UnsupportedOperationException();
+    return myName;
   }
 
   @Override
