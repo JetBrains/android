@@ -19,6 +19,7 @@ import com.android.build.gradle.internal.tasks.BaseTask;
 import com.android.build.gradle.model.AndroidProject;
 import com.android.builder.AndroidBuilder;
 import com.android.builder.model.ProductFlavor;
+import com.android.tools.idea.gradle.GradleImportNotificationListener;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -107,6 +108,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
    */
   @Override
   public void enhanceParameters(@NotNull SimpleJavaParameters parameters) {
+    GradleImportNotificationListener.attachToManager();
     List<String> jarPaths = getJarPathsOf(getClass(), AndroidBuilder.class, AndroidProject.class, BaseTask.class, ProductFlavor.class);
     LOG.info("Added to RMI/Gradle process classpath: " + jarPaths);
     for (String jarPath : jarPaths) {

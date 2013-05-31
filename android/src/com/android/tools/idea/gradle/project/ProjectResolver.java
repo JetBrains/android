@@ -119,7 +119,7 @@ class ProjectResolver {
       String moduleDirPath = moduleDir.getAbsolutePath();
       AndroidProject androidProject = getAndroidProject(id, gradleBuildFilePath, settings, listener);
       if (androidProject != null) {
-        createModuleInfo(module, androidProject, projectInfo, moduleDirPath, gradleProject);
+        createModuleInfo(module, androidProject, projectInfo, moduleDirPath, projectPath, gradleProject);
         if (first == null) {
           first = androidProject;
         }
@@ -138,7 +138,9 @@ class ProjectResolver {
   }
 
   @NotNull
-  private static DataNode<ProjectData> createProjectInfo(@NotNull String projectDirPath, @NotNull String projectPath, @NotNull String name) {
+  private static DataNode<ProjectData> createProjectInfo(@NotNull String projectDirPath,
+                                                         @NotNull String projectPath,
+                                                         @NotNull String name) {
     ProjectData projectData = new ProjectData(GradleConstants.SYSTEM_ID, projectDirPath, projectPath);
     projectData.setName(name);
 
@@ -225,6 +227,7 @@ class ProjectResolver {
                                                        @NotNull AndroidProject androidProject,
                                                        @NotNull DataNode<ProjectData> projectInfo,
                                                        @NotNull String moduleDirPath,
+                                                       @NotNull String rootGradleProjectPath,
                                                        @NotNull IdeaGradleProject gradleProject) {
     String moduleName = module.getName();
     ModuleData moduleData = createModuleData(module, projectInfo, moduleName, moduleDirPath);
@@ -232,7 +235,7 @@ class ProjectResolver {
 
     Variant selectedVariant = getFirstVariant(androidProject);
     IdeaAndroidProject ideaAndroidProject =
-      new IdeaAndroidProject(moduleName, moduleDirPath, androidProject, selectedVariant.getName());
+      new IdeaAndroidProject(moduleName, moduleDirPath, rootGradleProjectPath, androidProject, selectedVariant.getName());
     addContentRoot(ideaAndroidProject, moduleInfo, moduleDirPath);
 
     moduleInfo.createChild(AndroidProjectKeys.IDE_ANDROID_PROJECT, ideaAndroidProject);

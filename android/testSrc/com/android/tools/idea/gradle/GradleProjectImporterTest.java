@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle;
 
-import com.android.tools.idea.gradle.NewAndroidProjectImporter.GradleProjectImporter;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
@@ -34,14 +33,14 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import java.io.File;
 
 /**
- * Tests for {@link NewAndroidProjectImporter}.
+ * Tests for {@link GradleProjectImporter}.
  */
-public class NewAndroidProjectImporterTest extends IdeaTestCase {
+public class GradleProjectImporterTest extends IdeaTestCase {
   private String myProjectName;
   private File myProjectRootDir;
   private DataNode<ProjectData> myProjectInfo;
 
-  private NewAndroidProjectImporter myImporter;
+  private GradleProjectImporter myImporter;
 
   @Override
   public void setUp() throws Exception {
@@ -60,7 +59,7 @@ public class NewAndroidProjectImporterTest extends IdeaTestCase {
                                            externalConfigPath);
     myProjectInfo.createChild(ProjectKeys.MODULE, moduleData);
 
-    GradleProjectImporter delegate = new GradleProjectImporter() {
+    GradleProjectImporter.ImporterDelegate delegate = new GradleProjectImporter.ImporterDelegate() {
       @Override
       void importProject(@NotNull Project newProject, @NotNull String projectFilePath, @NotNull ExternalProjectRefreshCallback callback)
         throws ConfigurationException {
@@ -72,7 +71,7 @@ public class NewAndroidProjectImporterTest extends IdeaTestCase {
       }
     };
 
-    myImporter = new NewAndroidProjectImporter(delegate);
+    myImporter = new GradleProjectImporter(delegate);
   }
 
   public void testImportProject() throws Exception {
@@ -83,7 +82,7 @@ public class NewAndroidProjectImporterTest extends IdeaTestCase {
     myImporter.importProject(myProjectName, myProjectRootDir, sdk, callback);
   }
 
-  private class MyCallback implements NewAndroidProjectImporter.Callback {
+  private class MyCallback implements GradleProjectImporter.Callback {
     @Override
     public void projectImported(@NotNull Project project) {
       disposeOnTearDown(project);

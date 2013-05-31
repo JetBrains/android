@@ -32,23 +32,27 @@ import java.util.List;
 public class IdeaAndroidProject implements Serializable {
   @NotNull private final String myModuleName;
   @NotNull private final String myRootDirPath;
+  @NotNull private final String myRootGradleProjectFilePath;
   @NotNull private final AndroidProject myDelegate;
   @NotNull private String mySelectedVariantName;
 
   /**
    * Creates a new {@link IdeaAndroidProject}.
    *
-   * @param moduleName          the name of the IDEA module, created from {@code delegate}.
-   * @param rootDirPath         absolute path of the root directory of the imported Android-Gradle project.
-   * @param delegate            imported Android-Gradle project.
-   * @param selectedVariantName name of the selected build variant.
+   * @param moduleName                the name of the IDEA module, created from {@code delegate}.
+   * @param rootDirPath               absolute path of the root directory of the imported Android-Gradle project.
+   * @param rootGradleProjectFilePath path of the build.gradle file used to import the project.
+   * @param delegate                  imported Android-Gradle project.
+   * @param selectedVariantName       name of the selected build variant.
    */
   public IdeaAndroidProject(@NotNull String moduleName,
                             @NotNull String rootDirPath,
+                            @NotNull String rootGradleProjectFilePath,
                             @NotNull AndroidProject delegate,
                             @NotNull String selectedVariantName) {
     myModuleName = moduleName;
     myRootDirPath = rootDirPath;
+    myRootGradleProjectFilePath = rootGradleProjectFilePath;
     myDelegate = delegate;
     setSelectedVariantName(selectedVariantName);
   }
@@ -105,5 +109,13 @@ public class IdeaAndroidProject implements Serializable {
   @NotNull
   public Collection<String> getVariantNames() {
     return myDelegate.getVariants().keySet();
+  }
+
+  /**
+   * @return the path of the build.gradle file used to import the project.
+   */
+  @NotNull
+  public String getRootGradleProjectFilePath() {
+    return myRootGradleProjectFilePath;
   }
 }

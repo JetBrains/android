@@ -115,11 +115,6 @@ class BuildVariantUpdater {
   @Nullable
   private static Module findModule(@NotNull Project project, @NotNull String moduleName) {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
-    for (Module module : moduleManager.getModules()) {
-      if (moduleName.equals(module.getName())) {
-        return module;
-      }
-    }
-    return null;
+    return moduleManager.findModuleByName(moduleName);
   }
 }
