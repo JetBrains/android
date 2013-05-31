@@ -775,6 +775,51 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     assertTrue(containsForciblyExcludedRootWarn);
   }
 
+  public void testManifestMerging() throws Exception {
+    final MyExecutor executor = new MyExecutor("com.example.simple");
+    final JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> androidSdk = addJdkAndAndroidSdk();
+    addPathPatterns(executor, androidSdk);
+
+    final JpsModule appModule = addAndroidModule("app", new String[]{"src"}, "app", "app", androidSdk).getFirst();
+    final JpsModule libModule = addAndroidModule("lib", ArrayUtil.EMPTY_STRING_ARRAY, "lib", "lib", androidSdk).getFirst();
+
+    final JpsAndroidModuleExtension libExtension = AndroidJpsUtil.getExtension(libModule);
+    assert libExtension != null;
+    final JpsAndroidModuleProperties libProps = ((JpsAndroidModuleExtensionImpl)libExtension).getProperties();
+    libProps.LIBRARY_PROJECT = true;
+
+    appModule.getDependenciesList().addModuleDependency(libModule);
+
+    final JpsAndroidModuleExtension appExtension = AndroidJpsUtil.getExtension(appModule);
+    assert appExtension != null;
+    final JpsAndroidModuleProperties appProps = ((JpsAndroidModuleExtensionImpl)appExtension).getProperties();
+
+    appProps.ENABLE_MANIFEST_MERGING = true;
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log");
+    checkMakeUpToDate(executor);
+
+    appProps.ENABLE_MANIFEST_MERGING = false;
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_1");
+    checkMakeUpToDate(executor);
+
+    appProps.ENABLE_MANIFEST_MERGING = true;
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_2");
+    checkMakeUpToDate(executor);
+
+    change(getProjectPath("app/AndroidManifest.xml"));
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_3");
+    checkMakeUpToDate(executor);
+
+    change(getProjectPath("lib/AndroidManifest.xml"));
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_4");
+    checkMakeUpToDate(executor);
+  }
+
   public void testMaven() throws Exception {
     final MyExecutor executor = new MyExecutor("com.example.simple");
     final JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> androidSdk = addJdkAndAndroidSdk();

@@ -16,7 +16,8 @@ import java.util.List;
 public class AndroidBuilderService extends BuilderService {
   @Override
   public List<? extends BuildTargetType<?>> getTargetTypes() {
-    return Arrays.<BuildTargetType<?>>asList(
+    return Arrays.asList(
+      AndroidManifestMergingTarget.MyTargetType.INSTANCE,
       AndroidLibraryPackagingTarget.MyTargetType.INSTANCE,
       AndroidDexBuildTarget.MyTargetType.INSTANCE,
       AndroidResourceCachingBuildTarget.MyTargetType.INSTANCE,
@@ -33,7 +34,8 @@ public class AndroidBuilderService extends BuilderService {
   @NotNull
   @Override
   public List<? extends TargetBuilder<?,?>> createBuilders() {
-    return Arrays.asList(new AndroidLibraryPackagingBuilder(),
+    return Arrays.asList(new AndroidManifestMergingBuilder(),
+                         new AndroidLibraryPackagingBuilder(),
                          new AndroidDexBuilder(),
                          new AndroidResourceCachingBuilder(),
                          new AndroidResourcePackagingBuilder(),

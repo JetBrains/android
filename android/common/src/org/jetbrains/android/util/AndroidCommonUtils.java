@@ -103,9 +103,9 @@ public class AndroidCommonUtils {
   @NonNls public static final String PACKAGE_MANIFEST_ATTRIBUTE = "package";
 
   @NonNls public static final String ANDROID_FINAL_PACKAGE_FOR_ARTIFACT_SUFFIX = ".afp";
-  @NonNls public static final String ANDROID_MANIFEST_MERGER_PROPERTY = "manifestmerger.enabled";
   @NonNls public static final String PROGUARD_CFG_OUTPUT_FILE_NAME = "proguard.txt";
 
+  @NonNls public static final String MANIFEST_MERGING_BUILD_TARGET_TYPE_ID = "android-manifest-merging";
   @NonNls public static final String DEX_BUILD_TARGET_TYPE_ID = "android-dex";
   @NonNls public static final String PACKAGING_BUILD_TARGET_TYPE_ID = "android-packaging";
   @NonNls public static final String RESOURCE_CACHING_BUILD_TARGET_ID = "android-resource-caching";

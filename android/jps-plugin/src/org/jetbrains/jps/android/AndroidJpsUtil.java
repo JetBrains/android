@@ -71,6 +71,7 @@ public class AndroidJpsUtil {
   @NonNls public static final String RENDERSCRIPT_GENERATED_SOURCE_ROOT_NAME = "rs";
   @NonNls public static final String BUILD_CONFIG_GENERATED_SOURCE_ROOT_NAME = "build_config";
   @NonNls private static final String GENERATED_SOURCES_FOLDER_NAME = "generated_sources";
+  @NonNls private static final String PREPROCESSED_MANIFEST_FOLDER_NAME = "preprocessed_manifest";
   @NonNls private static final String COPIED_SOURCES_FOLDER_NAME = "copied_sources";
 
   private AndroidJpsUtil() {
@@ -341,9 +342,9 @@ public class AndroidJpsUtil {
   }
 
   @Nullable
-  public static IAndroidTarget getAndroidTarget(@NotNull JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> sdk,
-                                                @Nullable CompileContext context,
-                                                String builderName) {
+  public static Pair<IAndroidTarget, SdkManager> getAndroidTarget(@NotNull JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> sdk,
+                                                                  @Nullable CompileContext context,
+                                                                  String builderName) {
     JpsAndroidSdkProperties sdkProperties = sdk.getSdkProperties().getData();
     final String targetHashString = sdkProperties.getBuildTargetHashString();
     if (targetHashString == null) {
@@ -374,7 +375,7 @@ public class AndroidJpsUtil {
       }
       return null;
     }
-    return target;
+    return Pair.create(target, manager);
   }
 
   @Nullable
@@ -457,15 +458,15 @@ public class AndroidJpsUtil {
       return null;
     }
 
-    final IAndroidTarget target = getAndroidTarget(sdk, context, builderName);
-    if (target == null) {
+    final Pair<IAndroidTarget, SdkManager> pair = getAndroidTarget(sdk, context, builderName);
+    if (pair == null) {
       if (context != null) {
         context.processMessage(new CompilerMessage(builderName, BuildMessage.Kind.ERROR,
                                                    AndroidJpsBundle.message("android.jps.errors.sdk.invalid", module.getName())));
       }
       return null;
     }
-    return new AndroidPlatform(sdk, target);
+    return new AndroidPlatform(sdk, pair.getFirst(), pair.getSecond());
   }
 
   @NotNull
@@ -646,6 +647,21 @@ public class AndroidJpsUtil {
     final File targetDataRoot = dataPaths.getTargetDataRoot(
       new ModuleBuildTarget(module, JavaModuleBuildTargetType.PRODUCTION));
     return getStorageDir(targetDataRoot, GENERATED_SOURCES_FOLDER_NAME);
+  }
+
+  @NotNull
+  public static File getPreprocessedManifestDirectory(@NotNull JpsModule module, @NotNull BuildDataPaths dataPaths) {
+    final File androidStorage = new File(dataPaths.getDataStorageRoot(), ANDROID_STORAGE_DIR);
+    return new File(new File(androidStorage, PREPROCESSED_MANIFEST_FOLDER_NAME), module.getName());
+  }
+
+  @Nullable
+  public static File getPreprocessedManifestFile(@NotNull JpsAndroidModuleExtension extension, @NotNull BuildDataPaths dataPaths) {
+    if (extension.isLibrary() || !extension.isManifestMergingEnabled()) {
+      return getManifestFileForCompilationPath(extension);
+    }
+    final File dir = getPreprocessedManifestDirectory(extension.getModule(), dataPaths);
+    return new File(dir, SdkConstants.FN_ANDROID_MANIFEST_XML);
   }
 
   @NotNull

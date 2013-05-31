@@ -19,9 +19,6 @@ import com.android.SdkConstants;
 import com.intellij.facet.FacetType;
 import com.intellij.framework.detection.FacetBasedFrameworkDetector;
 import com.intellij.framework.detection.FileContentPattern;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.StdFileTypes;
@@ -37,8 +34,6 @@ import com.intellij.util.indexing.FileContent;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.importDependencies.ImportDependenciesUtil;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -76,11 +71,9 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
     }
 
     final Pair<String,VirtualFile> manifestMergerProp =
-      AndroidRootUtil.getProjectPropertyValue(module, AndroidCommonUtils.ANDROID_MANIFEST_MERGER_PROPERTY);
-    if (manifestMergerProp != null && Boolean.parseBoolean(manifestMergerProp.getFirst())) {
-      Notifications.Bus.notify(new Notification("Android", "Error importing module " + module.getName(),
-                                                AndroidBundle.message("android.manifest.merger.not.supported.error"),
-                                                NotificationType.ERROR));
+      AndroidRootUtil.getProjectPropertyValue(module, AndroidUtils.ANDROID_MANIFEST_MERGER_PROPERTY);
+    if (manifestMergerProp != null) {
+      facet.getProperties().ENABLE_MANIFEST_MERGING = Boolean.parseBoolean(manifestMergerProp.getFirst());
     }
     final Pair<String, VirtualFile> androidLibraryProp =
       AndroidRootUtil.getProjectPropertyValue(module, AndroidUtils.ANDROID_LIBRARY_PROPERTY);

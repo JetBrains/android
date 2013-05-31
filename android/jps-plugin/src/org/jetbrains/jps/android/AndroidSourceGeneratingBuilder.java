@@ -1,5 +1,6 @@
 package org.jetbrains.jps.android;
 
+import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
@@ -549,14 +550,6 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
       final MyModuleData moduleData = entry.getValue();
       final JpsAndroidModuleExtension extension = moduleData.getAndroidExtension();
 
-      final Pair<String, File> manifestMergerProp =
-        AndroidJpsUtil.getProjectPropertyValue(extension, AndroidCommonUtils.ANDROID_MANIFEST_MERGER_PROPERTY);
-      if (manifestMergerProp != null && Boolean.parseBoolean(manifestMergerProp.getFirst())) {
-        final String message = "[" + module.getName() + "] Manifest merging is not supported. Please, reconfigure your manifest files";
-        final String propFilePath = manifestMergerProp.getSecond().getPath();
-        context.processMessage(new CompilerMessage(ANDROID_VALIDATOR, BuildMessage.Kind.WARNING, message, propFilePath));
-      }
-
       if (extension.isLibrary()) {
         continue;
       }
@@ -876,7 +869,15 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
           continue;
         }
         final String packageName = moduleData.getPackage();
-        final File manifestFile = moduleData.getManifestFileForCompiler();
+        final File manifestFile;
+
+        if (extension.isLibrary() || !extension.isManifestMergingEnabled()) {
+          manifestFile = moduleData.getManifestFileForCompiler();
+        }
+        else {
+          manifestFile = new File(AndroidJpsUtil.getPreprocessedManifestDirectory(module, context.
+            getProjectDescriptor().dataManager.getDataPaths()), SdkConstants.FN_ANDROID_MANIFEST_XML);
+        }
 
         if (isLibraryWithBadCircularDependency(extension)) {
           if (!clearDirectoryIfNotEmpty(aptOutputDirectory, context, ANDROID_APT_COMPILER)) {
