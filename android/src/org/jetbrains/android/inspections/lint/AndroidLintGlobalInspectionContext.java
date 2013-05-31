@@ -1,6 +1,7 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.annotations.NonNull;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.lint.LintCliXmlParser;
 import com.android.tools.lint.client.api.*;
 import com.android.tools.lint.detector.api.*;
@@ -381,6 +382,11 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       }
 
       return null;
+    }
+
+    @Override
+    public boolean isGradleProject(com.android.tools.lint.detector.api.Project project) {
+      return Projects.isGradleProject(myProject);
     }
   }
 }
