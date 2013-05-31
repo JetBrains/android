@@ -79,7 +79,10 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
       public void dispose() {
       }
     };
-    addProjectPropertiesUpdatingListener();
+    if (!ApplicationManager.getApplication().isUnitTestMode() &&
+        !ApplicationManager.getApplication().isHeadlessEnvironment()) {
+      addProjectPropertiesUpdatingListener();
+    }
   }
 
   @Override
@@ -131,6 +134,15 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
                   }
                 }
               }
+            }
+
+            /* We should expire old notification even if there are no properties to update in current event.
+             For example, user changed "is library" setting to 'true', the notification was shown, but user ignored it.
+             Then he changed the setting to 'false' again. New notification won't be shown, because the value of
+             "android.library" in project.properties is correct. However if the old notification was not expired,
+             user may press on it, and "android.library" property will be changed to 'false'. */
+            if (myNotification != null && !myNotification.isExpired()) {
+              myNotification.expire();
             }
 
             if (changes.size() > 0 || toAskChanges.size() > 0) {
@@ -410,18 +422,12 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
   }
 
   private void askUserIfUpdatePropertyFile(@NotNull Project project,
-                                                  @NotNull Collection<AndroidFacet> facets,
-                                                  @NotNull final Processor<MyResult> callback) {
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
-      return;
-    }
+                                           @NotNull Collection<AndroidFacet> facets,
+                                           @NotNull final Processor<MyResult> callback) {
     final StringBuilder moduleList = new StringBuilder();
 
     for (AndroidFacet facet : facets) {
       moduleList.append(facet.getModule().getName()).append("<br>");
-    }
-    if (myNotification != null && !myNotification.isExpired()) {
-      myNotification.expire();
     }
     myNotification = PROPERTY_FILES_UPDATING_NOTIFICATION.createNotification(
       AndroidBundle.message("android.update.project.properties.dialog.title"),
