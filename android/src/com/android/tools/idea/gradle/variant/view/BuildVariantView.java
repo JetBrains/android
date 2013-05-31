@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
+import com.android.tools.idea.gradle.GradleImportNotificationListener;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.Facets;
@@ -95,6 +96,10 @@ public class BuildVariantView {
     myVariantsTable = new BuildVariantTable();
   }
 
+  public void projectImportStarted() {
+    getVariantsTable().setLoading(true);
+  }
+
   /**
    * Creates the contents of the "Build Variants" tool window.
    *
@@ -120,11 +125,13 @@ public class BuildVariantView {
   }
 
   public void updateContents() {
+    if (GradleImportNotificationListener.isAttachedToManager() && GradleImportNotificationListener.isProjectImportInProgress()) {
+      projectImportStarted();
+      return;
+    }
+
     final List<String[]> rows = Lists.newArrayList();
     final List<BuildVariantItem[]> variantNamesPerRow = Lists.newArrayList();
-    final BuildVariantTable table = (BuildVariantTable)myVariantsTable;
-
-    table.clearBuildVariants();
 
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     for (Module module : moduleManager.getModules()) {
@@ -154,9 +161,14 @@ public class BuildVariantView {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
-        table.setModel(rows, variantNamesPerRow);
+        getVariantsTable().setModel(rows, variantNamesPerRow);
       }
     });
+  }
+
+  @NotNull
+  private BuildVariantTable getVariantsTable() {
+    return (BuildVariantTable)myVariantsTable;
   }
 
   @Nullable
@@ -223,6 +235,7 @@ public class BuildVariantView {
   }
 
   private class BuildVariantTable extends JBTable {
+    private boolean myLoading;
     private final List<TableCellEditor> myCellEditors = Lists.newArrayList();
 
     BuildVariantTable() {
@@ -244,11 +257,27 @@ public class BuildVariantView {
       });
     }
 
-    void clearBuildVariants() {
+    void setLoading(boolean loading) {
+      myLoading = loading;
+      setPaintBusy(myLoading);
+      String text;
+      if (myLoading) {
+        clearContents();
+        text = "Loading...";
+      } else {
+        text = "Nothing to Show";
+      }
+      getEmptyText().setText(text);
+    }
+
+    private void clearContents() {
+      List<String[]> content = ImmutableList.of();
+      setModel(new BuildVariantTableModel(content));
       myCellEditors.clear();
     }
 
     void setModel(@NotNull List<String[]> rows, @NotNull List<BuildVariantItem[]> variantNamesPerRow) {
+      setLoading(false);
       if (rows.isEmpty()) {
         // This is most likely an old-style (pre-Gradle) Android project. Just leave the table empty.
         setModel(new BuildVariantTableModel(rows));
@@ -260,9 +289,6 @@ public class BuildVariantView {
       if (hasVariants) {
         content = rows;
       }
-      // If the table does not have variants yet, it is because we are still loading them. Show a busy cursor.
-      setPaintBusy(!hasVariants);
-      getEmptyText().setText("Loading...");
 
       setModel(new BuildVariantTableModel(content));
       addBuildVariants(variantNamesPerRow);

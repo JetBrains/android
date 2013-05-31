@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.tools.idea.gradle.NewAndroidProjectImporter;
+import com.android.tools.idea.gradle.GradleProjectImporter;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -128,7 +129,8 @@ public class NewProjectWizard extends TemplateWizard {
               .render(moduleRoot, moduleRoot, myWizardState.getActivityTemplateState().myParameters);
           }
           Sdk sdk = getSdk((Integer)myWizardState.get(ATTR_BUILD_API));
-          new NewAndroidProjectImporter().importProject(projectName, projectRoot, sdk, new ImportCompletedCallback());
+          GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
+          projectImporter.importProject(projectName, projectRoot, sdk, new ImportCompletedCallback());
         }
         catch (Exception e) {
           String title;
@@ -144,7 +146,7 @@ public class NewProjectWizard extends TemplateWizard {
     });
   }
 
-  private static class ImportCompletedCallback implements NewAndroidProjectImporter.Callback {
+  private static class ImportCompletedCallback implements GradleProjectImporter.Callback {
     @Override
     public void projectImported(@NotNull final Project project) {
       // The project imported callback from gradle is not guaranteed to be called after IDEA actually

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle;
 
+import com.android.tools.idea.gradle.util.Facets;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
@@ -60,6 +61,7 @@ import com.intellij.openapi.wm.ex.IdeFrameEx;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.messages.MessageBusConnection;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
@@ -71,21 +73,45 @@ import java.io.IOException;
 import java.util.Collection;
 
 /**
- * Imports a new Android project without showing the "Import Project" Wizard UI.
+ * Imports an Android-Gradle project without showing the "Import Project" Wizard UI.
  */
-public class NewAndroidProjectImporter {
-  private static final Logger LOG = Logger.getInstance(NewAndroidProjectImporter.class);
+public class GradleProjectImporter {
+  private static final Logger LOG = Logger.getInstance(GradleProjectImporter.class);
   private static final ProjectSystemId SYSTEM_ID = GradleConstants.SYSTEM_ID;
 
-  private final GradleProjectImporter myImporter;
+  private final ImporterDelegate myDelegate;
 
-  public NewAndroidProjectImporter() {
-    myImporter = new GradleProjectImporter();
+  @NotNull
+  public static GradleProjectImporter getInstance() {
+    return ServiceManager.getService(GradleProjectImporter.class);
+  }
+
+  public GradleProjectImporter() {
+    myDelegate = new ImporterDelegate();
   }
 
   @VisibleForTesting
-  NewAndroidProjectImporter(GradleProjectImporter importer) {
-    myImporter = importer;
+  GradleProjectImporter(ImporterDelegate delegate) {
+    myDelegate = delegate;
+  }
+
+  public void reImportProject(@NotNull Project project) throws ConfigurationException {
+    String gradleProjectFilePath = findGradleProjectFilePath(project);
+    if (gradleProjectFilePath != null) {
+      doImport(project, gradleProjectFilePath, null);
+    }
+  }
+
+  @Nullable
+  private static String findGradleProjectFilePath(@NotNull Project project) {
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      AndroidFacet androidFacet = Facets.getFirstFacet(module, AndroidFacet.ID);
+      if (androidFacet == null || androidFacet.getIdeaAndroidProject() == null) {
+        continue;
+      }
+      return androidFacet.getIdeaAndroidProject().getRootGradleProjectFilePath();
+    }
+    return null;
   }
 
   /**
@@ -102,12 +128,13 @@ public class NewAndroidProjectImporter {
                             @NotNull File projectRootDir,
                             @NotNull Sdk androidSdk,
                             @Nullable final Callback callback) throws IOException, ConfigurationException {
+    GradleImportNotificationListener.attachToManager();
     File projectFile = createTopLevelBuildFile(projectRootDir);
-    final String projectFilePath = projectFile.getAbsolutePath();
+    String projectFilePath = projectFile.getAbsolutePath();
 
     createIdeaProjectDir(projectRootDir);
 
-    final Project newProject = createProject(projectName, projectFilePath);
+    Project newProject = createProject(projectName, projectFilePath);
     setUpProject(newProject, projectFilePath, androidSdk);
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       newProject.save();
@@ -115,58 +142,7 @@ public class NewAndroidProjectImporter {
 
     createLocalPropertiesFile(projectRootDir, androidSdk);
 
-    final Ref<ConfigurationException> error = new Ref<ConfigurationException>();
-
-    myImporter.importProject(newProject, projectFilePath, new ExternalProjectRefreshCallback() {
-      @Override
-      public void onSuccess(final @Nullable DataNode<ProjectData> projectInfo) {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            populateProject(newProject, projectInfo);
-            open(newProject, projectFilePath);
-
-            if (!ApplicationManager.getApplication().isUnitTestMode()) {
-              newProject.save();
-            }
-          }
-        });
-      }
-
-      @Override
-      public void onFailure(@NotNull final String errorMessage, @Nullable String errorDetails) {
-        if (errorDetails != null) {
-          LOG.warn(errorDetails);
-        }
-        String reason = "Failed to import new Gradle project: " + errorMessage;
-        error.set(new ConfigurationException(ExternalSystemBundle.message("error.resolve.with.reason", reason),
-                                             ExternalSystemBundle.message("error.resolve.generic")));
-      }
-    });
-
-    if (error.get() != null) {
-      throw error.get();
-    }
-
-    final String projectRootDirPath = projectRootDir.getAbsolutePath();
-    // Since importing is synchronous we should have modules now. Compile project and notify callback.
-    if (compileAndNotifyCallback(projectRootDirPath, newProject, callback)) {
-      return;
-    }
-
-    // If we got here, there is some bad timing and the module creation got delayed somehow. Compile and notify callback as soon as
-    // the project roots are created.
-    final MessageBusConnection connection = newProject.getMessageBus().connect();
-    connection.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
-      @Override
-      public void rootsChanged(ModuleRootEvent event) {
-        Module[] modules = ModuleManager.getInstance(newProject).getModules();
-        if (modules.length > 0) {
-          connection.disconnect();
-          compileAndNotifyCallback(projectRootDirPath, newProject, callback);
-        }
-      }
-    });
+    doImport(newProject, projectFilePath, callback);
   }
 
   @NotNull
@@ -223,7 +199,9 @@ public class NewAndroidProjectImporter {
             // In practice, it really does not matter where the compiler output folder is. Gradle handles that. This is done just to please
             // IDEA.
             String compileOutputUrl = VfsUtilCore.pathToUrl(newProject.getBasePath() + "/build/classes");
-            CompilerProjectExtension.getInstance(newProject).setCompilerOutputUrl(compileOutputUrl);
+            CompilerProjectExtension compilerProjectExt = CompilerProjectExtension.getInstance(newProject);
+            assert compilerProjectExt != null;
+            compilerProjectExt.setCompilerOutputUrl(compileOutputUrl);
             setUpGradleSettings(newProject, projectFilePath);
           }
         });
@@ -258,6 +236,65 @@ public class NewAndroidProjectImporter {
     };
     String contents = Joiner.on(SystemProperties.getLineSeparator()).join(lines);
     FileUtil.writeToFile(localProperties, contents);
+  }
+
+  private void doImport(@NotNull final Project project,
+                        @NotNull final String projectFilePath,
+                        @Nullable final Callback callback) throws ConfigurationException {
+    final Ref<ConfigurationException> error = new Ref<ConfigurationException>();
+
+    myDelegate.importProject(project, projectFilePath, new ExternalProjectRefreshCallback() {
+      @Override
+      public void onSuccess(final @Nullable DataNode<ProjectData> projectInfo) {
+        assert projectInfo != null;
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            populateProject(project, projectInfo);
+            open(project, projectFilePath);
+
+            if (!ApplicationManager.getApplication().isUnitTestMode()) {
+              project.save();
+            }
+          }
+        });
+      }
+
+      @Override
+      public void onFailure(@NotNull final String errorMessage, @Nullable String errorDetails) {
+        if (errorDetails != null) {
+          LOG.warn(errorDetails);
+        }
+        String reason = "Failed to import Gradle project: " + errorMessage;
+        error.set(new ConfigurationException(ExternalSystemBundle.message("error.resolve.with.reason", reason),
+                                             ExternalSystemBundle.message("error.resolve.generic")));
+      }
+    });
+
+    ConfigurationException errorCause = error.get();
+    if (errorCause != null) {
+      throw errorCause;
+    }
+
+    final String projectRootDirPath = project.getBasePath();
+    // Since importing is synchronous we should have modules now. Compile project and notify callback.
+    if (compileAndNotifyCallback(projectRootDirPath, project, callback)) {
+      return;
+    }
+
+    // If we got here, there is some bad timing and the module creation got delayed somehow. Compile and notify callback as soon as
+    // the project roots are created.
+    final MessageBusConnection connection = project.getMessageBus().connect();
+    connection.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
+      @Override
+      public void rootsChanged(ModuleRootEvent event) {
+        Module[] modules = ModuleManager.getInstance(project).getModules();
+        if (modules.length > 0) {
+          connection.disconnect();
+          compileAndNotifyCallback(projectRootDirPath, project, callback);
+        }
+      }
+    });
   }
 
   private static void populateProject(@NotNull final Project newProject, @NotNull final DataNode<ProjectData> projectInfo) {
@@ -299,7 +336,7 @@ public class NewAndroidProjectImporter {
   }
 
   // Makes it possible to mock invocations to the Gradle Tooling API.
-  static class GradleProjectImporter {
+  static class ImporterDelegate {
     void importProject(@NotNull Project newProject, @NotNull String projectFilePath, @NotNull ExternalProjectRefreshCallback callback)
       throws ConfigurationException {
       try {

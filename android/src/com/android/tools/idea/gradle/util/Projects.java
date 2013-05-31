@@ -16,6 +16,9 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileStatusNotification;
 import com.intellij.openapi.compiler.CompilerManager;
@@ -25,6 +28,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility methods for {@link Project}s.
@@ -66,5 +70,17 @@ public final class Projects {
       }
     }
     return false;
+  }
+
+  /**
+   * Returns the current Gradle project. This method must be called in the event dispatch thread.
+   *
+   * @return the current Gradle project, or {@code null} if the current project is not a Gradle one or if there are no projects open.
+   */
+  @Nullable
+  public static Project getCurrentGradleProject() {
+    Project project = PlatformDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext());
+    boolean isGradleProject = project != null && isGradleProject(project);
+    return isGradleProject ? project : null;
   }
 }
