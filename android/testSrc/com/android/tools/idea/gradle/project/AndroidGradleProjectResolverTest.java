@@ -49,7 +49,8 @@ public class AndroidGradleProjectResolverTest extends TestCase {
 
   @SuppressWarnings("unchecked")
   public void testResolveProjectInfo() throws Exception {
-    ExternalSystemTaskId id = ExternalSystemTaskId.create(ExternalSystemTaskType.RESOLVE_PROJECT);
+    String projectId = "dummy";
+    ExternalSystemTaskId id = ExternalSystemTaskId.create(ExternalSystemTaskType.RESOLVE_PROJECT, projectId);
     String projectPath = "~/basic/build.gradle";
     GradleExecutionSettings settings = createMock(GradleExecutionSettings.class);
 

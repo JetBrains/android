@@ -55,7 +55,9 @@ public class NewAndroidProjectImporterTest extends IdeaTestCase {
     projectData.setName(myProjectName);
     myProjectInfo = new DataNode<ProjectData>(ProjectKeys.PROJECT, projectData, null);
 
-    ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), myProjectName, projectRootDirPath);
+    String externalConfigPath = "dummy";
+    ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), myProjectName, projectRootDirPath,
+                                           externalConfigPath);
     myProjectInfo.createChild(ProjectKeys.MODULE, moduleData);
 
     GradleProjectImporter delegate = new GradleProjectImporter() {
