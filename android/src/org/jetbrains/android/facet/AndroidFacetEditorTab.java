@@ -394,18 +394,20 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     if (!myUpdateProjectPropertiesCombo.getSelectedItem().equals(myConfiguration.getState().UPDATE_PROPERTY_FILES)) {
       return true;
     }
-    final Set<AndroidImportableProperty> newNotImportedProperties = EnumSet.noneOf(AndroidImportableProperty.class);
+    if (AndroidMavenUtil.isMavenizedModule(myContext.getModule())) {
+      final Set<AndroidImportableProperty> newNotImportedProperties = EnumSet.noneOf(AndroidImportableProperty.class);
 
-    for (int i = 0; i < myImportedOptionsList.getItemsCount(); i++) {
-      final AndroidImportableProperty property = (AndroidImportableProperty)myImportedOptionsList.getItemAt(i);
+      for (int i = 0; i < myImportedOptionsList.getItemsCount(); i++) {
+        final AndroidImportableProperty property = (AndroidImportableProperty)myImportedOptionsList.getItemAt(i);
 
-      if (!myImportedOptionsList.isItemSelected(i)) {
-        newNotImportedProperties.add(property);
+        if (!myImportedOptionsList.isItemSelected(i)) {
+          newNotImportedProperties.add(property);
+        }
       }
-    }
 
-    if (!myConfiguration.getState().myNotImportedProperties.equals(newNotImportedProperties)) {
-      return true;
+      if (!myConfiguration.getState().myNotImportedProperties.equals(newNotImportedProperties)) {
+        return true;
+      }
     }
     return false;
   }
@@ -517,14 +519,16 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
 
     myConfiguration.setIncludeAssetsFromLibraries(myIncludeAssetsFromLibraries.isSelected());
 
-    final Set<AndroidImportableProperty> notImportedProperties = myConfiguration.getState().myNotImportedProperties;
-    notImportedProperties.clear();
+    if (AndroidMavenUtil.isMavenizedModule(myContext.getModule())) {
+      final Set<AndroidImportableProperty> notImportedProperties = myConfiguration.getState().myNotImportedProperties;
+      notImportedProperties.clear();
 
-    for (int i = 0; i < myImportedOptionsList.getItemsCount(); i++) {
-      final AndroidImportableProperty property = (AndroidImportableProperty)myImportedOptionsList.getItemAt(i);
+      for (int i = 0; i < myImportedOptionsList.getItemsCount(); i++) {
+        final AndroidImportableProperty property = (AndroidImportableProperty)myImportedOptionsList.getItemAt(i);
 
-      if (!myImportedOptionsList.isItemSelected(i)) {
-        notImportedProperties.add(property);
+        if (!myImportedOptionsList.isItemSelected(i)) {
+          notImportedProperties.add(property);
+        }
       }
     }
 
