@@ -42,8 +42,6 @@ import org.gradle.tooling.BuildException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.UnknownModelException;
-import org.gradle.tooling.internal.gradle.DefaultGradleProject;
-import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
@@ -111,8 +109,7 @@ class ProjectResolver {
     AndroidProject first = null;
 
     for (IdeaModule module : ideaProject.getModules()) {
-      String moduleName = module.getName();
-      IdeaGradleProject gradleProject = new IdeaGradleProject(moduleName, module.getGradleProject().getPath());
+      IdeaGradleProject gradleProject = new IdeaGradleProject(module.getName(), module.getGradleProject().getPath());
       String relativePath = getRelativePath(gradleProject);
       File moduleDir = new File(projectDirPath, relativePath);
       String gradleBuildFilePath = getGradleBuildFilePath(moduleDir);
@@ -122,7 +119,7 @@ class ProjectResolver {
       String moduleDirPath = moduleDir.getAbsolutePath();
       AndroidProject androidProject = getAndroidProject(id, gradleBuildFilePath, settings, listener);
       if (androidProject != null) {
-        createModuleInfo(androidProject, moduleName, projectInfo, moduleDirPath, gradleProject);
+        createModuleInfo(module, androidProject, projectInfo, moduleDirPath, gradleProject);
         if (first == null) {
           first = androidProject;
         }
@@ -224,13 +221,13 @@ class ProjectResolver {
   }
 
   @NotNull
-  private static DataNode<ModuleData> createModuleInfo(@NotNull AndroidProject androidProject,
-                                                       @NotNull String moduleName,
+  private static DataNode<ModuleData> createModuleInfo(@NotNull IdeaModule module,
+                                                       @NotNull AndroidProject androidProject,
                                                        @NotNull DataNode<ProjectData> projectInfo,
                                                        @NotNull String moduleDirPath,
                                                        @NotNull IdeaGradleProject gradleProject) {
-    GradleProject dummy = new DefaultGradleProject();
-    ModuleData moduleData = createModuleData(dummy, projectInfo, moduleName, moduleDirPath);
+    String moduleName = module.getName();
+    ModuleData moduleData = createModuleData(module, projectInfo, moduleName, moduleDirPath);
     DataNode<ModuleData> moduleInfo = projectInfo.createChild(ProjectKeys.MODULE, moduleData);
 
     Variant selectedVariant = getFirstVariant(androidProject);
@@ -247,7 +244,9 @@ class ProjectResolver {
   private static Variant getFirstVariant(@NotNull AndroidProject androidProject) {
     Map<String, Variant> variants = androidProject.getVariants();
     if (variants.size() == 1) {
-      return ContainerUtil.getFirstItem(variants.values());
+      Variant variant = ContainerUtil.getFirstItem(variants.values());
+      assert variant != null;
+      return variant;
     }
     List<String> variantNames = Lists.newArrayList(variants.keySet());
     Collections.sort(variantNames);
@@ -279,7 +278,7 @@ class ProjectResolver {
                                                        @NotNull DataNode<ProjectData> projectInfo,
                                                        @NotNull String moduleDirPath,
                                                        @NotNull IdeaGradleProject gradleProject) {
-    ModuleData moduleData = createModuleData(module.getGradleProject(), projectInfo, module.getName(), moduleDirPath);
+    ModuleData moduleData = createModuleData(module, projectInfo, module.getName(), moduleDirPath);
     DataNode<ModuleData> moduleInfo = projectInfo.createChild(ProjectKeys.MODULE, moduleData);
 
     // Populate content roots.
@@ -297,11 +296,11 @@ class ProjectResolver {
     return moduleInfo;
   }
 
-  private static ModuleData createModuleData(@NotNull GradleProject gradleProject,
+  private static ModuleData createModuleData(@NotNull IdeaModule module,
                                              @NotNull DataNode<ProjectData> projectInfo,
-                                             String name,
-                                             String dirPath) {
-    String moduleConfigPath = GradleUtil.getConfigPath(gradleProject, projectInfo.getData().getLinkedExternalProjectPath());
+                                             @NotNull String name,
+                                             @NotNull String dirPath) {
+    String moduleConfigPath = GradleUtil.getConfigPath(module.getGradleProject(), projectInfo.getData().getLinkedExternalProjectPath());
     return new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), name, dirPath, moduleConfigPath);
   }
 

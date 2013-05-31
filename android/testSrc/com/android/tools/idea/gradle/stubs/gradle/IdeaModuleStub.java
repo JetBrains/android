@@ -44,7 +44,7 @@ public class IdeaModuleStub implements IdeaModule {
     myFileStructure = new FileStructure(parent.getRootDir(), name);
     myFileStructure.createProjectFile("build.gradle");
     myContentRoots.add(new IdeaContentRootStub(getRootDir()));
-    myGradleProject = new GradleProjectStub(":" + name);
+    myGradleProject = new GradleProjectStub(name, ":" + name);
   }
 
   /**
