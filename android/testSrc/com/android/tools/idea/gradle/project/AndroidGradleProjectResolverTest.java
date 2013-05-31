@@ -18,11 +18,11 @@ package com.android.tools.idea.gradle.project;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectResolver.ProjectResolverFunctionFactory;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
+import com.intellij.openapi.externalSystem.model.task.*;
 import com.intellij.util.Function;
 import junit.framework.TestCase;
 import org.gradle.tooling.ProjectConnection;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
@@ -53,13 +53,16 @@ public class AndroidGradleProjectResolverTest extends TestCase {
     String projectPath = "~/basic/build.gradle";
     GradleExecutionSettings settings = createMock(GradleExecutionSettings.class);
 
-    expect(myFunctionFactory.createFunction(id, projectPath, settings)).andReturn(myProjectResolverFunction);
+    ExternalSystemTaskNotificationListener listener = new ExternalSystemTaskNotificationListenerAdapter() {
+    };
+    expect(myFunctionFactory.createFunction(id, projectPath, settings, listener)).andReturn(myProjectResolverFunction);
     DataNode<ProjectData> projectInfo = createMock(DataNode.class);
     expect(myHelper.execute(projectPath, settings, myProjectResolverFunction)).andReturn(projectInfo);
 
     replay(myFunctionFactory, myHelper);
 
-    DataNode<ProjectData> resolved = myProjectResolver.resolveProjectInfo(id, projectPath, true, settings);
+
+    DataNode<ProjectData> resolved = myProjectResolver.resolveProjectInfo(id, projectPath, true, settings, listener);
     assertSame(projectInfo, resolved);
 
     verify(myFunctionFactory, myHelper);

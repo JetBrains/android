@@ -582,7 +582,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
         myHorizontalCaption.update();
         myVerticalCaption.update();
 
-        DesignerToolWindowManager.getInstance(getProject()).refresh(updateProperties);
+        DesignerToolWindowManager.getInstance(AndroidDesignerEditorPanel.this).refresh(updateProperties);
 
         if (RenderPreviewMode.getCurrent() != RenderPreviewMode.NONE) {
           RenderPreviewManager previewManager = getPreviewManager(true);
@@ -865,7 +865,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
         activatePaletteItem(null);
       }
 
-      PaletteToolWindowManager.getInstance(getProject()).refresh();
+      PaletteToolWindowManager.getInstance(this).refresh();
     }
     catch (Throwable e) {
       // Pass

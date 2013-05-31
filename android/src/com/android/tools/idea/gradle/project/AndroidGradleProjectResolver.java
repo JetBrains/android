@@ -26,8 +26,10 @@ import com.intellij.execution.configurations.ParametersList;
 import com.intellij.execution.configurations.SimpleJavaParameters;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.KeyValue;
@@ -80,6 +82,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
    * @param projectPath       absolute path of the build.gradle file. It includes the file name.
    * @param downloadLibraries a hint that specifies if third-party libraries that are not available locally should be resolved (downloaded.)
    * @param settings          settings to use for the project resolving; {@code null} as indication that no specific settings are required.
+   * @param listener          callback to be notified about the execution
    * @return the imported project, or {@code null} if the project to import is not supported.
    */
   @Nullable
@@ -87,8 +90,9 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   public DataNode<ProjectData> resolveProjectInfo(@NotNull ExternalSystemTaskId id,
                                                   @NotNull String projectPath,
                                                   boolean downloadLibraries,
-                                                  @Nullable GradleExecutionSettings settings) {
-    Function<ProjectConnection, DataNode<ProjectData>> function = myFunctionFactory.createFunction(id, projectPath, settings);
+                                                  @Nullable GradleExecutionSettings settings,
+                                                  @NotNull ExternalSystemTaskNotificationListener listener) {
+    Function<ProjectConnection, DataNode<ProjectData>> function = myFunctionFactory.createFunction(id, projectPath, settings, listener);
     return myHelper.execute(projectPath, settings, function);
   }
 
@@ -145,12 +149,13 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
     @NotNull
     Function<ProjectConnection, DataNode<ProjectData>> createFunction(@NotNull final ExternalSystemTaskId id,
                                                                       @NotNull final String projectPath,
-                                                                      @Nullable final GradleExecutionSettings settings) {
+                                                                      @Nullable final GradleExecutionSettings settings,
+                                                                      @NotNull final ExternalSystemTaskNotificationListener listener) {
       return new Function<ProjectConnection, DataNode<ProjectData>>() {
         @Nullable
         @Override
         public DataNode<ProjectData> fun(ProjectConnection connection) {
-          DataNode<ProjectData> projectInfo = myResolver.resolveProjectInfo(id, projectPath, settings, connection);
+          DataNode<ProjectData> projectInfo = myResolver.resolveProjectInfo(id, projectPath, settings, connection, listener);
           if (projectInfo != null) {
             return projectInfo;
           }

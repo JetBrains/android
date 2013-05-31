@@ -8,7 +8,7 @@
   <module value="com.intellij.modules.java"/>
   <module value="com.intellij.modules.all"/>
   <xi:include href="/idea/JavaActions.xml" xpointer="xpointer(/component/*)"/>
-
+  <xi:include href="/META-INF/ExternalSystemExtensions.xml" xpointer="xpointer(/idea-plugin/extensions/*)"/>
   <xi:include href="/componentSets/Debugger.xml" xpointer="xpointer(/components/*)"/>
 
   <application-components>
@@ -220,6 +220,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <lang.syntaxHighlighterFactory key="JAVA" implementationClass="com.intellij.lang.java.JavaSyntaxHighlighterFactory"/>
+    <syntaxHighlighter id="java.class" key="CLASS" factoryClass="com.intellij.lang.java.JavaSyntaxHighlighterFactory"/>
 
     <constantExpressionEvaluator language="JAVA" implementationClass="com.intellij.psi.impl.PsiExpressionEvaluator" />
     <annotationSupport language="JAVA" implementationClass="com.intellij.psi.impl.source.tree.java.JavaAnnotationSupport" />
@@ -634,7 +635,7 @@
                      implementationClass="com.intellij.codeInspection.magicConstant.MagicConstantInspection" />
     <localInspection language="JAVA" shortName="SuperClassHasFrequentlyUsedInheritors"
                      groupBundle="messages.InspectionsBundle"
-                     groupKey="group.names.inheritance.issues" enabledByDefault="true" level="WARNING"
+                     groupKey="group.names.inheritance.issues" enabledByDefault="false" level="WARNING"
                      implementationClass="com.intellij.codeInspection.inheritance.SuperClassHasFrequentlyUsedInheritorsInspection"
                      displayName="Class may extend a commonly used base class instead of implementing interface"/>
 
@@ -1026,8 +1027,6 @@
     <extendWordSelectionHandler implementation="com.intellij.codeInsight.editorActions.wordSelection.StatementGroupSelectioner"/>
     <extendWordSelectionHandler implementation="com.intellij.codeInsight.editorActions.wordSelection.CaseStatementsSelectioner"/>
     <extendWordSelectionHandler implementation="com.intellij.codeInsight.editorActions.wordSelection.AntLikePropertySelectionHandler"/>
-
-    <syntaxHighlighter key="CLASS" implementationClass="com.intellij.ide.highlighter.JavaFileHighlighter"/>
 
     <structureViewBuilder key="CLASS" factoryClass="com.intellij.ide.highlighter.JavaClsStructureViewBuilderProvider"/>
 
@@ -1427,6 +1426,9 @@
     </action>
     <action id="TemplateProjectStructure" class="com.intellij.ide.actions.TemplateProjectStructureAction">
       <add-to-group group-id="FileSettingsGroup" anchor="last"/>
+    </action>
+    <action id="ShowSiblings" class="com.intellij.codeInsight.hint.actions.ShowSiblingsAction">
+      <add-to-group group-id="QuickActions" anchor="after" relative-to-action="QuickImplementations"/>
     </action>
   </actions>
 
