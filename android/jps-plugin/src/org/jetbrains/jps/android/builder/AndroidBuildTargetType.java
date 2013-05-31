@@ -64,7 +64,7 @@ public abstract class AndroidBuildTargetType<T extends AndroidBuildTarget> exten
     for (T target : computeAllTargets(model)) {
       targetMap.put(target.getId(), target);
     }
-    return new BuildTargetLoader<T>() {
+    return new BuildTargetLoader<T>() { {}
       @Nullable
       @Override
       public T createTarget(@NotNull String targetId) {

@@ -207,12 +207,13 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
     final String[] dependencyPaths = toSortedPaths(dependencies);
 
     final List<Object> newState = Arrays.asList(androidTargetHashString, facet.getProperties().
-      LIBRARY_PROJECT, Arrays.asList(dependencyPaths));
+      LIBRARY_PROJECT, Arrays.asList(dependencyPaths), facet.getProperties().ENABLE_MANIFEST_MERGING);
     final List<Object> state = facet.getUserData(ANDROID_PROPERTIES_STATE_KEY);
 
     if (state == null || !Comparing.equal(state, newState)) {
       updateTargetProperty(facet, projectProperties, changes);
       updateLibraryProperty(facet, projectProperties, changes);
+      updateManifestMergerProperty(facet, projectProperties, changes);
       updateDependenciesInPropertyFile(projectProperties, localProperties, dependencies, changes);
 
       facet.putUserData(ANDROID_PROPERTIES_STATE_KEY, newState);
@@ -342,6 +343,33 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
         @Override
         public void run() {
           propertiesFile.addProperty(AndroidUtils.ANDROID_LIBRARY_PROPERTY, Boolean.TRUE.toString());
+        }
+      });
+    }
+  }
+
+  public static void updateManifestMergerProperty(@NotNull AndroidFacet facet,
+                                                  @NotNull final PropertiesFile propertiesFile,
+                                                  @NotNull List<Runnable> changes) {
+    final IProperty property = propertiesFile.findPropertyByKey(AndroidUtils.ANDROID_MANIFEST_MERGER_PROPERTY);
+
+    if (property != null) {
+      final String value = Boolean.toString(facet.getProperties().ENABLE_MANIFEST_MERGING);
+
+      if (!value.equals(property.getValue())) {
+        changes.add(new Runnable() {
+          @Override
+          public void run() {
+            property.setValue(value);
+          }
+        });
+      }
+    }
+    else if (facet.getProperties().ENABLE_MANIFEST_MERGING) {
+      changes.add(new Runnable() {
+        @Override
+        public void run() {
+          propertiesFile.addProperty(AndroidUtils.ANDROID_MANIFEST_MERGER_PROPERTY, Boolean.TRUE.toString());
         }
       });
     }

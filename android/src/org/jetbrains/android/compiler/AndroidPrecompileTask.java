@@ -56,7 +56,7 @@ import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -277,7 +277,7 @@ public class AndroidPrecompileTask implements CompileTask {
       }
 
       final Pair<String, VirtualFile> manifestMergerProp =
-        AndroidRootUtil.getProjectPropertyValue(module, AndroidCommonUtils.ANDROID_MANIFEST_MERGER_PROPERTY);
+        AndroidRootUtil.getProjectPropertyValue(module, AndroidUtils.ANDROID_MANIFEST_MERGER_PROPERTY);
       if (manifestMergerProp != null && Boolean.parseBoolean(manifestMergerProp.getFirst())) {
         context.addMessage(CompilerMessageCategory.WARNING,
                            "[" + module.getName() + "] " + AndroidBundle.message("android.manifest.merger.not.supported.error"),

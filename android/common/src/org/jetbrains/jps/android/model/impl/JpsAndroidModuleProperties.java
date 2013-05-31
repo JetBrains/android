@@ -64,6 +64,8 @@ public class JpsAndroidModuleProperties {
 
   public String UPDATE_PROPERTY_FILES = "";
 
+  public boolean ENABLE_MANIFEST_MERGING = false;
+
   @Tag(AndroidCommonUtils.INCLUDE_SYSTEM_PROGUARD_FILE_ELEMENT_NAME)
   public boolean myIncludeSystemProguardCfgPath = true;
 
