@@ -139,7 +139,7 @@ public class NewModuleWizard extends TemplateWizard implements ExternalProjectRe
 
   @Override
   public void onSuccess(@Nullable final DataNode<ProjectData> externalProject) {
-    ExternalSystemApiUtil.executeProjectChangeAction(myProject, GradleConstants.SYSTEM_ID, myProject, new Runnable() {
+    ExternalSystemApiUtil.executeProjectChangeAction(new Runnable() {
       @Override
       public void run() {
         ProjectRootManagerEx.getInstanceEx(myProject).mergeRootsChangesDuring(new Runnable() {

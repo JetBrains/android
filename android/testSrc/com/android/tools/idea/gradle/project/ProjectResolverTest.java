@@ -28,6 +28,8 @@ import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceTyp
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.util.io.FileUtil;
@@ -83,7 +85,9 @@ public class ProjectResolverTest extends TestCase {
   public void testResolveProjectInfo() {
     // Record mock expectations.
     ModelBuilder<IdeaProject> ideaProjectModelBuilder = createMock(ModelBuilder.class);
-    myHelper.getModelBuilder(IdeaProject.class, myId, mySettings, myConnection);
+    ExternalSystemTaskNotificationListener listener = new ExternalSystemTaskNotificationListenerAdapter() {
+    };
+    myHelper.getModelBuilder(IdeaProject.class, myId, mySettings, myConnection, listener);
     expectLastCall().andReturn(ideaProjectModelBuilder);
 
     // Simulate retrieval of the top-level IdeaProject.
@@ -96,7 +100,7 @@ public class ProjectResolverTest extends TestCase {
 
     // Code under test.
     String projectPath = myIdeaProject.getBuildFile().getAbsolutePath();
-    DataNode<ProjectData> projectInfo = myStrategy.resolveProjectInfo(myId, projectPath, mySettings, myConnection);
+    DataNode<ProjectData> projectInfo = myStrategy.resolveProjectInfo(myId, projectPath, mySettings, myConnection, listener);
 
     // Verify mock expectations.
     verify(myConnection, myHelper, ideaProjectModelBuilder);

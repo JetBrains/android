@@ -56,7 +56,7 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
     }
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     final List<Module> modules = ImmutableList.copyOf(moduleManager.getModules());
-    ExternalSystemApiUtil.executeProjectChangeAction(project, ProjectSystemId.IDE, modules, synchronous, new Runnable() {
+    ExternalSystemApiUtil.executeProjectChangeAction(synchronous, new Runnable() {
       @Override
       public void run() {
         Map<String, IdeaGradleProject> gradleProjectsByName = indexByModuleName(toImport);

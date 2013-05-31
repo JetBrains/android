@@ -265,7 +265,7 @@ public class NewAndroidProjectImporter {
     StartupManager.getInstance(newProject).runWhenProjectIsInitialized(new Runnable() {
       @Override
       public void run() {
-        ExternalSystemApiUtil.executeProjectChangeAction(newProject, SYSTEM_ID, newProject, new Runnable() {
+        ExternalSystemApiUtil.executeProjectChangeAction(new Runnable() {
           @Override
           public void run() {
             ProjectRootManagerEx.getInstanceEx(newProject).mergeRootsChangesDuring(new Runnable() {
@@ -306,7 +306,7 @@ public class NewAndroidProjectImporter {
         ExternalSystemUtil.refreshProject(newProject, SYSTEM_ID, projectFilePath, callback, true, true);
       }
       catch (RuntimeException e) {
-        String externalSystemName = ExternalSystemApiUtil.toReadableName(SYSTEM_ID);
+        String externalSystemName = SYSTEM_ID.getReadableName();
         throw new ConfigurationException(e.getMessage(), ExternalSystemBundle.message("error.cannot.parse.project", externalSystemName));
       }
     }
