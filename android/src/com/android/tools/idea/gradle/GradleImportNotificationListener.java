@@ -44,7 +44,7 @@ public class GradleImportNotificationListener extends ExternalSystemTaskNotifica
    * </ul>
    */
   public static void attachToManager() {
-    if (isAttachedToManager()) {
+    if (ourInstance != null) {
       return;
     }
     ourInstance = new GradleImportNotificationListener();
@@ -55,7 +55,7 @@ public class GradleImportNotificationListener extends ExternalSystemTaskNotifica
   private volatile boolean myProjectImportInProgress;
 
   public static void detachFromManager() {
-    if (!isAttachedToManager()) {
+    if (ourInstance == null) {
       return;
     }
     ExternalSystemProgressNotificationManager progressNotificationManager = getExternalSystemProgressNotificationManager();
@@ -67,10 +67,6 @@ public class GradleImportNotificationListener extends ExternalSystemTaskNotifica
     return ourInstance != null && ourInstance.myProjectImportInProgress;
   }
 
-  public static boolean isAttachedToManager() {
-    return ourInstance != null;
-  }
-
   @NotNull
   private static ExternalSystemProgressNotificationManager getExternalSystemProgressNotificationManager() {
     return ServiceManager.getService(ExternalSystemProgressNotificationManager.class);
@@ -79,10 +75,16 @@ public class GradleImportNotificationListener extends ExternalSystemTaskNotifica
   @Override
   public void onStart(@NotNull ExternalSystemTaskId id) {
     if (resolvingProject(id)) {
+      if (myProjectImportInProgress) {
+        return;
+      }
+      myProjectImportInProgress = true;
       ApplicationManager.getApplication().invokeLater(new Runnable() {
         @Override
         public void run() {
-          myProjectImportInProgress = true;
+          if (!myProjectImportInProgress) {
+            return;
+          }
           Project project = Projects.getCurrentGradleProject();
           if (project != null) {
             BuildVariantView.getInstance(project).projectImportStarted();
@@ -99,10 +101,13 @@ public class GradleImportNotificationListener extends ExternalSystemTaskNotifica
   @Override
   public void onEnd(@NotNull ExternalSystemTaskId id) {
     if (resolvingProject(id)) {
+      if (!myProjectImportInProgress) {
+        return;
+      }
+      myProjectImportInProgress = false;
       ApplicationManager.getApplication().invokeLater(new Runnable() {
         @Override
         public void run() {
-          myProjectImportInProgress = false;
           Project project = Projects.getCurrentGradleProject();
           if (project != null) {
             BuildVariantView.getInstance(project).updateContents();

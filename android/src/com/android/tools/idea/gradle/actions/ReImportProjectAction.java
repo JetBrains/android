@@ -66,8 +66,7 @@ public class ReImportProjectAction extends AnAction {
     Presentation presentation = e.getPresentation();
     presentation.setVisible(isGradleProject);
     if (isGradleProject) {
-      boolean enabled =
-        !GradleImportNotificationListener.isAttachedToManager() || !GradleImportNotificationListener.isProjectImportInProgress();
+      boolean enabled = !GradleImportNotificationListener.isProjectImportInProgress();
       presentation.setEnabled(enabled);
     }
   }
