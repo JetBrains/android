@@ -95,6 +95,12 @@ public class GradleProjectImporter {
     myDelegate = delegate;
   }
 
+  /**
+   * Re-imports an existing Android-Gradle project.
+   *
+   * @param project the given project. This method does nothing if the project is not an Android-Gradle project.
+   * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
+   */
   public void reImportProject(@NotNull Project project) throws ConfigurationException {
     String gradleProjectFilePath = findGradleProjectFilePath(project);
     if (gradleProjectFilePath != null) {
@@ -241,7 +247,7 @@ public class GradleProjectImporter {
   private void doImport(@NotNull final Project project,
                         @NotNull final String projectFilePath,
                         @Nullable final Callback callback) throws ConfigurationException {
-    final Ref<ConfigurationException> error = new Ref<ConfigurationException>();
+    final Ref<ConfigurationException> errorRef = new Ref<ConfigurationException>();
 
     myDelegate.importProject(project, projectFilePath, new ExternalProjectRefreshCallback() {
       @Override
@@ -262,16 +268,12 @@ public class GradleProjectImporter {
 
       @Override
       public void onFailure(@NotNull final String errorMessage, @Nullable String errorDetails) {
-        if (errorDetails != null) {
-          LOG.warn(errorDetails);
-        }
-        String reason = "Failed to import Gradle project: " + errorMessage;
-        error.set(new ConfigurationException(ExternalSystemBundle.message("error.resolve.with.reason", reason),
-                                             ExternalSystemBundle.message("error.resolve.generic")));
+        ConfigurationException error = handleImportFailure(errorMessage, errorDetails);
+        errorRef.set(error);
       }
     });
 
-    ConfigurationException errorCause = error.get();
+    ConfigurationException errorCause = errorRef.get();
     if (errorCause != null) {
       throw errorCause;
     }
@@ -295,6 +297,16 @@ public class GradleProjectImporter {
         }
       }
     });
+  }
+
+  @NotNull
+  private static ConfigurationException handleImportFailure(@NotNull String errorMessage, @Nullable String errorDetails) {
+    if (errorDetails != null) {
+      LOG.warn(errorDetails);
+    }
+    String reason = "Failed to import Gradle project: " + errorMessage;
+    return new ConfigurationException(ExternalSystemBundle.message("error.resolve.with.reason", reason),
+                                      ExternalSystemBundle.message("error.resolve.generic"));
   }
 
   private static void populateProject(@NotNull final Project newProject, @NotNull final DataNode<ProjectData> projectInfo) {
