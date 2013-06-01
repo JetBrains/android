@@ -125,7 +125,7 @@ public class BuildVariantView {
   }
 
   public void updateContents() {
-    if (GradleImportNotificationListener.isAttachedToManager() && GradleImportNotificationListener.isProjectImportInProgress()) {
+    if (GradleImportNotificationListener.isProjectImportInProgress()) {
       projectImportStarted();
       return;
     }
