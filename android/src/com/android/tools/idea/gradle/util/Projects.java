@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.util;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileStatusNotification;
 import com.intellij.openapi.compiler.CompilerManager;
