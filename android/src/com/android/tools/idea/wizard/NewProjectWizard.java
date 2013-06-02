@@ -19,23 +19,13 @@ import com.android.tools.idea.gradle.GradleProjectImporter;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.project.DumbAwareRunnable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import icons.AndroidIcons;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.run.TargetSelectionMode;
-import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -130,7 +120,7 @@ public class NewProjectWizard extends TemplateWizard {
           }
           Sdk sdk = getSdk((Integer)myWizardState.get(ATTR_BUILD_API));
           GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
-          projectImporter.importProject(projectName, projectRoot, sdk, new ImportCompletedCallback());
+          projectImporter.importProject(projectName, projectRoot, sdk, null);
         }
         catch (Exception e) {
           String title;
@@ -144,50 +134,5 @@ public class NewProjectWizard extends TemplateWizard {
         }
       }
     });
-  }
-
-  private static class ImportCompletedCallback implements GradleProjectImporter.Callback {
-    @Override
-    public void projectImported(@NotNull final Project project) {
-      // The project imported callback from gradle is not guaranteed to be called after IDEA actually
-      // knows about all the modules. So wrap all necessary activities in a post startup runnable.
-      StartupManager.getInstance(project).runWhenProjectIsInitialized(new DumbAwareRunnable() {
-        @Override
-        public void run() {
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              // Automatically create a run configuration.
-              // TODO: The IDEA NPW actually had a page where they ask users about the parameters
-              // for the launch configuration, but the Android NPW doesn't, so we just add one that
-              // always pops up the device chooser dialog.
-              final AndroidFacet facet = findAndroidFacet(project);
-              ApplicationManager.getApplication().runWriteAction(new Runnable() {
-                @Override
-                public void run() {
-                  if (facet != null) {
-                    AndroidUtils.addRunConfiguration(facet, null, false, TargetSelectionMode.SHOW_DIALOG, null);
-                  }
-                }
-              });
-            }
-          });
-        }
-      });
-    }
-
-    /** Returns the Android Facet from the first module in the project that has an Android Facet. */
-    @Nullable
-    private static AndroidFacet findAndroidFacet(Project project) {
-      Module[] modules = ModuleManager.getInstance(project).getModules();
-      for (Module m : modules) {
-        AndroidFacet facet = AndroidFacet.getInstance(m);
-        if (facet != null) {
-          return facet;
-        }
-      }
-
-      return null;
-    }
   }
 }
