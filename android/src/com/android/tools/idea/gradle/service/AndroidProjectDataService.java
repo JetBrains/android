@@ -25,7 +25,6 @@ import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
-import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataService;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
@@ -48,8 +47,8 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
   public AndroidProjectDataService() {
     myCustomizers =
       new ModuleCustomizer[]{
-        new AndroidSdkModuleCustomizer(), new AndroidFacetModuleCustomizer(), new ContentRootModuleCustomizer(),
-        new CompilerOutputPathModuleCustomizer()
+        new AndroidSdkModuleCustomizer(), new AndroidFacetModuleCustomizer(), new RunConfigModuleCustomizer(),
+        new ContentRootModuleCustomizer(), new CompilerOutputPathModuleCustomizer()
       };
   }
 
