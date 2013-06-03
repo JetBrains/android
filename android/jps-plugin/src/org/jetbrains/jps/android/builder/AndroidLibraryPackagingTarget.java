@@ -29,10 +29,10 @@ public class AndroidLibraryPackagingTarget extends AndroidBuildTarget {
 
   @NotNull
   @Override
-  public List<BuildRootDescriptor> computeRootDescriptors(JpsModel model,
-                                                          ModuleExcludeIndex index,
-                                                          IgnoredFileIndex ignoredFileIndex,
-                                                          BuildDataPaths dataPaths) {
+  protected List<BuildRootDescriptor> doComputeRootDescriptors(JpsModel model,
+                                                               ModuleExcludeIndex index,
+                                                               IgnoredFileIndex ignoredFileIndex,
+                                                               BuildDataPaths dataPaths) {
     final File moduleOutputDir = ProjectPaths.getModuleOutputDir(myModule, false);
 
     if (moduleOutputDir != null) {
