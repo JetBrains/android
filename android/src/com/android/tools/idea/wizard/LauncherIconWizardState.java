@@ -55,6 +55,11 @@ public class LauncherIconWizardState extends TemplateWizardState implements Grap
   private static final String OUTPUT_DIRECTORY = "src/main/";
   private static Cache<String, BufferedImage> ourImageCache = CacheBuilder.newBuilder().build();
 
+  public static class ImageGeneratorException extends Exception {
+    public ImageGeneratorException(String message) {
+      super(message);
+    }
+  }
 
   /**
    * Types of sources that the asset studio can use to generate icons from
@@ -202,7 +207,7 @@ public class LauncherIconWizardState extends TemplateWizardState implements Grap
    * @return a map of image objects
    */
   @NotNull
-  public Map<String, Map<String, BufferedImage>> generateImages(boolean previewOnly) {
+  public Map<String, Map<String, BufferedImage>> generateImages(boolean previewOnly) throws ImageGeneratorException {
     Map<String, Map<String, BufferedImage>> categoryMap = new LinkedHashMap<String, Map<String, BufferedImage>>();
 
     AssetType type = AssetType.LAUNCHER;
@@ -210,44 +215,52 @@ public class LauncherIconWizardState extends TemplateWizardState implements Grap
     int padding = (Integer)get(ATTR_PADDING);
 
     BufferedImage sourceImage = null;
-    try {
-      switch ((LauncherIconWizardState.SourceType)get(ATTR_SOURCE_TYPE)) {
-        case IMAGE: {
-          String path = (String)get(ATTR_IMAGE_PATH);
-          if (path.length() == 0) {
-            return categoryMap;
-          }
+    switch ((LauncherIconWizardState.SourceType)get(ATTR_SOURCE_TYPE)) {
+      case IMAGE: {
+        String path = (String)get(ATTR_IMAGE_PATH);
+        if (path.length() == 0) {
+          return categoryMap;
+        }
 
+        try {
           sourceImage = getImage(path, false);
-          break;
         }
-
-        case CLIPART: {
-          sourceImage = GraphicGenerator.getClipartImage((String)get(ATTR_CLIPART_NAME));
-          if (trim) {
-            sourceImage = crop(sourceImage);
-          }
-
-          if (type.needsColors()) {
-            Paint paint = (Color)get(ATTR_FOREGROUND_COLOR);
-            sourceImage = Util.filledImage(sourceImage, paint);
-          }
-          break;
+        catch (FileNotFoundException e) {
+          throw new ImageGeneratorException("Image file not found: " + path);
         }
-
-        case TEXT: {
-          TextRenderUtil.Options options = new TextRenderUtil.Options();
-          options.font = Font.decode((String)get(ATTR_FONT) + " " + (Integer)get(ATTR_FONT_SIZE));
-          options.foregroundColor = type.needsColors() ? ((Color)get(ATTR_FOREGROUND_COLOR)).getRGB() : 0xFFFFFFFF;
-          sourceImage = TextRenderUtil.renderTextImage((String)get(ATTR_TEXT), 1, options);
-
-          break;
+        catch (IOException e) {
+          throw new ImageGeneratorException("Unable to load image file: " + path);
         }
+        break;
       }
-    }
-    catch (IOException e) {
-      LOG.error(e);
-      return categoryMap;
+
+      case CLIPART: {
+        String clipartName = (String)get(ATTR_CLIPART_NAME);
+        try {
+          sourceImage = GraphicGenerator.getClipartImage(clipartName);
+        }
+        catch (IOException e) {
+          throw new ImageGeneratorException("Unable to load clip art image: " + clipartName);
+        }
+        if (trim) {
+          sourceImage = crop(sourceImage);
+        }
+
+        if (type.needsColors()) {
+          Paint paint = (Color)get(ATTR_FOREGROUND_COLOR);
+          sourceImage = Util.filledImage(sourceImage, paint);
+        }
+        break;
+      }
+
+      case TEXT: {
+        TextRenderUtil.Options options = new TextRenderUtil.Options();
+        options.font = Font.decode((String)get(ATTR_FONT) + " " + (Integer)get(ATTR_FONT_SIZE));
+        options.foregroundColor = type.needsColors() ? ((Color)get(ATTR_FOREGROUND_COLOR)).getRGB() : 0xFFFFFFFF;
+        sourceImage = TextRenderUtil.renderTextImage((String)get(ATTR_TEXT), 1, options);
+
+        break;
+      }
     }
 
     if (trim) {
@@ -283,25 +296,26 @@ public class LauncherIconWizardState extends TemplateWizardState implements Grap
    * Outputs final-rendered images to disk, rooted at the given directory.
    */
   public void outputImages(@NotNull File contentRoot) {
-    Map<String, Map<String, BufferedImage>> images = generateImages(false);
-    for (String density : images.keySet()) {
-      // TODO: The output directory needs to take flavor and build type into account, which will need to be configurable by the user
-      File directory = new File(contentRoot, OUTPUT_DIRECTORY);
-      Map<String, BufferedImage> filenameMap = images.get(density);
-      for (String filename : filenameMap.keySet()) {
-        File outFile = new File(directory, filename);
-        try {
-          outFile.getParentFile().mkdirs();
-          BufferedImage image = filenameMap.get(filename);
-          ImageIO.write(image, "PNG", new FileOutputStream(outFile));
-        }
-        catch (FileNotFoundException e) {
-          LOG.error(e);
-        }
-        catch (IOException e) {
-          LOG.error(e);
+    try {
+      Map<String, Map<String, BufferedImage>> images = generateImages(false);
+      for (String density : images.keySet()) {
+        // TODO: The output directory needs to take flavor and build type into account, which will need to be configurable by the user
+        File directory = new File(contentRoot, OUTPUT_DIRECTORY);
+        Map<String, BufferedImage> filenameMap = images.get(density);
+        for (String filename : filenameMap.keySet()) {
+          File outFile = new File(directory, filename);
+          try {
+            outFile.getParentFile().mkdirs();
+            BufferedImage image = filenameMap.get(filename);
+            ImageIO.write(image, "PNG", new FileOutputStream(outFile));
+          }
+          catch (IOException e) {
+            LOG.error(e);
+          }
         }
       }
+    } catch (Exception e) {
+      LOG.error(e);
     }
   }
 
