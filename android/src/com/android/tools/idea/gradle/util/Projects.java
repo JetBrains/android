@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.util;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileStatusNotification;
 import com.intellij.openapi.compiler.CompilerManager;
@@ -43,16 +44,35 @@ public final class Projects {
    * @param project          the given project.
    * @param dirToRefreshPath the path of the directory to refresh after compilation is finished.
    */
-  public static void compile(@NotNull Project project, @NotNull final String dirToRefreshPath) {
-    CompilerManager.getInstance(project).make(new CompileStatusNotification() {
-      @Override
-      public void finished(boolean aborted, int errors, int warnings, CompileContext compileContext) {
-        VirtualFile rootDir = LocalFileSystem.getInstance().findFileByPath(dirToRefreshPath);
-        if (rootDir != null && rootDir.isDirectory()) {
-          rootDir.refresh(true, true);
-        }
+  public static void compile(@NotNull Project project, @NotNull String dirToRefreshPath) {
+    CompilerManager.getInstance(project).make(new RefreshProjectAfterCompilation(dirToRefreshPath));
+  }
+
+  /**
+   * Rebuilds the given project and refreshes the directory at the given path after compilation is finished. This method refreshes the
+   * directory asynchronously and recursively. Rebuilding cleans the output directories and then compiles the project.
+   *
+   * @param project          the given project.
+   * @param dirToRefreshPath the path of the directory to refresh after compilation is finished.
+   */
+  public static void rebuild(@NotNull Project project, @NotNull String dirToRefreshPath) {
+    CompilerManager.getInstance(project).rebuild(new RefreshProjectAfterCompilation(dirToRefreshPath));
+  }
+
+  private static class RefreshProjectAfterCompilation implements CompileStatusNotification {
+    @NotNull private final String myDirToRefreshPath;
+
+    RefreshProjectAfterCompilation(@NotNull String dirToRefreshPath) {
+      myDirToRefreshPath = dirToRefreshPath;
+    }
+
+    @Override
+    public void finished(boolean aborted, int errors, int warnings, CompileContext compileContext) {
+      VirtualFile rootDir = LocalFileSystem.getInstance().findFileByPath(myDirToRefreshPath);
+      if (rootDir != null && rootDir.isDirectory()) {
+        rootDir.refresh(true, true);
       }
-    });
+    }
   }
 
   /**
