@@ -418,13 +418,13 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     final File targetDir = new File(targetDirPath);
     if (targetDir.exists()) {
       if (!FileUtil.delete(targetDir)) {
-        LOG.error("Cannot delete old " + targetDirPath);
+        AndroidUtils.reportImportErrorToEventLog("Cannot delete old " + targetDirPath, genModuleName, project);
         return null;
       }
     }
 
     if (!targetDir.mkdirs()) {
-      LOG.error("Cannot create directory " + targetDirPath);
+      AndroidUtils.reportImportErrorToEventLog("Cannot create directory " + targetDirPath, genModuleName, project);
       return null;
     }
     final AndroidExternalApklibDependenciesManager adm = AndroidExternalApklibDependenciesManager.getInstance(project);
