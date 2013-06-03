@@ -88,10 +88,10 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool imp
   }
 
   @Override
-  public void runInspection(AnalysisScope scope,
-                            final InspectionManager manager,
-                            final GlobalInspectionContext globalContext,
-                            final ProblemDescriptionsProcessor problemDescriptionsProcessor) {
+  public void runInspection(@NotNull AnalysisScope scope,
+                            @NotNull final InspectionManager manager,
+                            @NotNull final GlobalInspectionContext globalContext,
+                            @NotNull final ProblemDescriptionsProcessor problemDescriptionsProcessor) {
     final AndroidLintGlobalInspectionContext androidLintContext = globalContext.getExtension(AndroidLintGlobalInspectionContext.ID);
     if (androidLintContext == null) {
       return;
