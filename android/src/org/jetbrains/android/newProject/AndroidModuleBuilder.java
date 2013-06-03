@@ -53,6 +53,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.ExternalChangeAction;
@@ -479,16 +480,22 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
       return;
     }
 
+    final PsiFile manifestFile = manifestTag.getContainingFile();
+    if (manifestFile == null) {
+      return;
+    }
+
+    final VirtualFile vManifestFile = manifestFile.getVirtualFile();
+    if (vManifestFile == null ||
+        !ReadonlyStatusHandler.ensureFilesWritable(manifestFile.getProject(), vManifestFile)) {
+      return;
+    }
     XmlTag usesSdkTag = manifestTag.createChildTag("uses-sdk", "", null, false);
     if (usesSdkTag != null) {
       usesSdkTag = manifestTag.addSubTag(usesSdkTag, true);
       usesSdkTag.setAttribute("minSdkVersion", SdkConstants.NS_RESOURCES, target.getVersion().getApiString());
     }
-
-    final PsiFile manifestFile = manifestTag.getContainingFile();
-    if (manifestFile != null) {
-      CodeStyleManager.getInstance(manifestFile.getProject()).reformat(manifestFile);
-    }
+    CodeStyleManager.getInstance(manifestFile.getProject()).reformat(manifestFile);
   }
 
   private void assignApplicationName(AndroidFacet facet) {
