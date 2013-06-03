@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.customizer;
 
+import com.android.build.gradle.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.util.Facets;
@@ -70,7 +71,10 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
     JpsAndroidModuleProperties facetState = facet.getConfiguration().getState();
     facetState.ALLOW_USER_CONFIGURATION = false;
 
-    SourceProvider sourceProvider = ideaAndroidProject.getDelegate().getDefaultConfig().getSourceProvider();
+    AndroidProject delegate = ideaAndroidProject.getDelegate();
+    facetState.LIBRARY_PROJECT = delegate.isLibrary();
+
+    SourceProvider sourceProvider = delegate.getDefaultConfig().getSourceProvider();
 
     syncSelectedVariant(facetState, ideaAndroidProject);
     facet.syncSelectedVariant();
