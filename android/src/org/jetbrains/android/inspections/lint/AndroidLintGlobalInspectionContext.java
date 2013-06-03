@@ -1,7 +1,6 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.annotations.NonNull;
-import com.android.tools.lint.LintCliXmlParser;
 import com.android.tools.lint.client.api.*;
 import com.android.tools.lint.detector.api.*;
 import com.google.common.collect.Lists;
@@ -14,8 +13,6 @@ import com.intellij.codeInspection.lang.GlobalInspectionContextExtension;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtil;
@@ -37,7 +34,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.search.SearchScope;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
@@ -182,7 +178,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
 
     private MyLintClient(@NotNull Project project,
                          @NotNull Map<Issue, Map<File, List<ProblemData>>> problemMap,
-                         @NotNull AnalysisScope scope, 
+                         @NotNull AnalysisScope scope,
                          @NotNull Collection<Issue> issues) {
       myProject = project;
       myProblemMap = problemMap;
@@ -213,7 +209,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
         if (module != null) {
           final AndroidFacet facet = AndroidFacet.getInstance(module);
           vFile = facet != null ? AndroidRootUtil.getManifestFile(facet) : null;
-          
+
           if (vFile != null) {
             file = new File(vFile.getPath());
           }
@@ -234,13 +230,13 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
           problemList = new ArrayList<ProblemData>();
           file2ProblemList.put(file, problemList);
         }
-        
+
         TextRange textRange = TextRange.EMPTY_RANGE;
 
         if (location != null) {
           final Position start = location.getStart();
           final Position end = location.getEnd();
-          
+
           if (start != null && end != null && start.getOffset() <= end.getOffset()) {
             textRange = new TextRange(start.getOffset(), end.getOffset());
           }
