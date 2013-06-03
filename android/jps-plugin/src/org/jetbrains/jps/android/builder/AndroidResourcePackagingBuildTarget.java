@@ -42,10 +42,10 @@ public class AndroidResourcePackagingBuildTarget extends AndroidBuildTarget {
 
   @NotNull
   @Override
-  public List<BuildRootDescriptor> computeRootDescriptors(JpsModel model,
-                                                          ModuleExcludeIndex index,
-                                                          IgnoredFileIndex ignoredFileIndex,
-                                                          BuildDataPaths dataPaths) {
+  protected List<BuildRootDescriptor> doComputeRootDescriptors(JpsModel model,
+                                                               ModuleExcludeIndex index,
+                                                               IgnoredFileIndex ignoredFileIndex,
+                                                               BuildDataPaths dataPaths) {
     final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(myModule);
     assert extension != null;
 

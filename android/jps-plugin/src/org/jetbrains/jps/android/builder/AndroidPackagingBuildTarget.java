@@ -52,10 +52,10 @@ public class AndroidPackagingBuildTarget extends AndroidBuildTarget {
 
   @NotNull
   @Override
-  public List<BuildRootDescriptor> computeRootDescriptors(JpsModel model,
-                                                          ModuleExcludeIndex index,
-                                                          IgnoredFileIndex ignoredFileIndex,
-                                                          BuildDataPaths dataPaths) {
+  protected List<BuildRootDescriptor> doComputeRootDescriptors(JpsModel model,
+                                                               ModuleExcludeIndex index,
+                                                               IgnoredFileIndex ignoredFileIndex,
+                                                               BuildDataPaths dataPaths) {
     final File resPackage = AndroidResourcePackagingBuildTarget.getOutputFile(dataPaths, myModule);
     final File classesDexFile = AndroidDexBuildTarget.getOutputFile(dataPaths, myModule);
 

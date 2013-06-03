@@ -42,6 +42,8 @@ public interface JpsAndroidModuleExtension extends JpsElement {
   @Nullable
   File getNativeLibsDir();
 
+  boolean isGradleProject();
+
   boolean isLibrary();
 
   boolean useCustomResFolderForCompilation();
