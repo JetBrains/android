@@ -161,7 +161,7 @@ public class GradleProjectImporter {
     return projectFile;
   }
 
-  private static boolean compileAndNotifyCallback(@NotNull String projectRootDirPath,
+  private static boolean rebuildAndNotifyCallback(@NotNull String projectRootDirPath,
                                                   @NotNull Project newProject,
                                                   @Nullable Callback callback) {
     Module[] modules = ModuleManager.getInstance(newProject).getModules();
@@ -169,7 +169,7 @@ public class GradleProjectImporter {
       return false;
     }
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      Projects.compile(newProject, projectRootDirPath);
+      Projects.rebuild(newProject, projectRootDirPath);
     }
     if (callback != null) {
       callback.projectImported(newProject);
@@ -280,7 +280,7 @@ public class GradleProjectImporter {
 
     final String projectRootDirPath = project.getBasePath();
     // Since importing is synchronous we should have modules now. Compile project and notify callback.
-    if (compileAndNotifyCallback(projectRootDirPath, project, callback)) {
+    if (rebuildAndNotifyCallback(projectRootDirPath, project, callback)) {
       return;
     }
 
@@ -293,7 +293,7 @@ public class GradleProjectImporter {
         Module[] modules = ModuleManager.getInstance(project).getModules();
         if (modules.length > 0) {
           connection.disconnect();
-          compileAndNotifyCallback(projectRootDirPath, project, callback);
+          rebuildAndNotifyCallback(projectRootDirPath, project, callback);
         }
       }
     });
