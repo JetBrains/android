@@ -23,6 +23,7 @@ import com.android.tools.idea.jps.model.impl.JpsAndroidGradleModuleProperties;
 import com.android.tools.idea.jps.output.parser.GradleErrorOutputParser;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
@@ -43,6 +44,7 @@ import org.jetbrains.jps.android.model.JpsAndroidSdkProperties;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleExtensionImpl;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import org.jetbrains.jps.builders.DirtyFilesHolder;
+import org.jetbrains.jps.builders.java.JavaBuilderUtil;
 import org.jetbrains.jps.builders.java.JavaSourceRootDescriptor;
 import org.jetbrains.jps.incremental.*;
 import org.jetbrains.jps.incremental.java.JavaBuilder;
@@ -60,6 +62,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -120,13 +123,15 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
       LOG.info(String.format(format, getProjectName(context), AndroidGradleFacet.NAME));
       return ExitCode.NOTHING_DONE;
     }
-    String buildTasks = getBuildTasks(chunk);
-    if (Strings.isNullOrEmpty(buildTasks)) {
+    String[] buildTasks = getBuildTasks(context, chunk);
+    if (buildTasks.length == 0) {
       String format = "No build tasks found for project '%1$s'. Nothing done.";
       LOG.info(String.format(format, getProjectName(context)));
       return ExitCode.NOTHING_DONE;
     }
-    LOG.info("Gradle build using tasks: " + buildTasks);
+    String msg = "Gradle build using tasks: " + Arrays.toString(buildTasks);
+    context.processMessage(new ProgressMessage(msg));
+    LOG.info(msg);
     ensureTempDirExists();
     File projectDir = getProjectDir(context, extension);
     File gradleHomeDir = getGradleHomeDir(context, extension);
@@ -136,27 +141,20 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
     return doBuild(context, buildTasks, projectDir, gradleHomeDir, androidHome);
   }
 
-  @Nullable
-  private static String getBuildTasks(@NotNull ModuleChunk chunk) {
-    StringBuilder tasks = new StringBuilder();
+  @NotNull
+  private static String[] getBuildTasks(@NotNull CompileContext context, @NotNull ModuleChunk chunk) {
+    List<String> tasks = Lists.newArrayList();
+    boolean isRebuild = JavaBuilderUtil.isForcedRecompilationAllJavaModules(context);
     for (JpsModule module : chunk.getModules()) {
-      String buildTask = getBuildTask(module);
-      if (buildTask == null) {
-        continue;
-      }
-      if (tasks.length() > 0) {
-        tasks.append(" ");
-      }
-      tasks.append(buildTask);
+      populateBuildTasks(module, tasks, isRebuild);
     }
-    return tasks.toString();
+    return tasks.toArray(new String[tasks.size()]);
   }
 
-  @Nullable
-  private static String getBuildTask(@NotNull JpsModule module) {
+  private static void populateBuildTasks(@NotNull JpsModule module, @NotNull List<String> tasks, boolean isRebuild) {
     JpsAndroidGradleModuleExtension androidGradleFacet = AndroidGradleJps.getExtension(module);
     if (androidGradleFacet == null) {
-      return null;
+      return;
     }
     String gradleProjectPath = androidGradleFacet.getProperties().GRADLE_PROJECT_PATH;
     String assembleTaskName = null;
@@ -168,11 +166,19 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
     if (Strings.isNullOrEmpty(assembleTaskName)) {
       if (GRADLE_SEPARATOR.equals(gradleProjectPath)) {
         // This module is in reality the root project directory. If there is no task, don't assume there is an "assemble" one.
-        return null;
+        return;
       }
       assembleTaskName = DEFAULT_ASSEMBLE_TASKNAME;
     }
-    return gradleProjectPath + GRADLE_SEPARATOR + assembleTaskName;
+    if (isRebuild) {
+      tasks.add(createBuildTask(gradleProjectPath, "clean"));
+    }
+    tasks.add(createBuildTask(gradleProjectPath, assembleTaskName));
+  }
+
+  @NotNull
+  private static String createBuildTask(@NotNull String gradleProjectPath, @NotNull String taskName) {
+    return gradleProjectPath + GRADLE_SEPARATOR + taskName;
   }
 
   private static void ensureTempDirExists() {
@@ -259,7 +265,7 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
 
   @NotNull
   private static ExitCode doBuild(@NotNull CompileContext context,
-                                  @NotNull String buildTasks,
+                                  @NotNull String[] buildTasks,
                                   @NotNull File projectDir,
                                   @Nullable File gradleHomeDir,
                                   @Nullable String androidHome) throws ProjectBuildException {
