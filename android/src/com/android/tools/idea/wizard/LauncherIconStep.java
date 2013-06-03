@@ -17,7 +17,6 @@
 package com.android.tools.idea.wizard;
 
 import com.android.assetstudiolib.GraphicGenerator;
-import com.android.tools.idea.templates.TemplateMetadata;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -136,12 +135,18 @@ public class LauncherIconStep extends TemplateWizardStep {
            myForegroundColorLabel);
     }
 
-    Map<String, Map<String, BufferedImage>> imageMap = myWizardState.generateImages(true);
-    myMDpiPreview.setIcon(new ImageIcon(getImage(imageMap, "mdpi")));
-    myHDpiPreview.setIcon(new ImageIcon(getImage(imageMap, "hdpi")));
-    myXHDpiPreview.setIcon(new ImageIcon(getImage(imageMap, "xhdpi")));
-    myXXHdpiPreview.setIcon(new ImageIcon(getImage(imageMap, "xxhdpi")));
-    return true;
+    try {
+      Map<String, Map<String, BufferedImage>> imageMap = myWizardState.generateImages(true);
+      myMDpiPreview.setIcon(new ImageIcon(getImage(imageMap, "mdpi")));
+      myHDpiPreview.setIcon(new ImageIcon(getImage(imageMap, "hdpi")));
+      myXHDpiPreview.setIcon(new ImageIcon(getImage(imageMap, "xhdpi")));
+      myXXHdpiPreview.setIcon(new ImageIcon(getImage(imageMap, "xxhdpi")));
+      return true;
+    }
+    catch (ImageGeneratorException e) {
+      setErrorHtml(e.getMessage());
+      return false;
+    }
   }
 
   /**

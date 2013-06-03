@@ -124,10 +124,11 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     label.setPreferredSize(null);
     label.validate();
     Dimension pd = label.getPreferredSize();
+    int currentWidth = label.getSize().width;
     int preferredHeight = 0;
-    if (pd.width != 0 && newSize.width != 0 && pd.height != 0) {
-      preferredHeight = pd.height * (pd.width / newSize.width);
-      if (pd.width % newSize.width != 0) {
+    if (currentWidth != 0 && pd.width != 0 && pd.height != 0) {
+      preferredHeight = pd.height * (int) ((float)pd.width / (float)currentWidth);
+      if (currentWidth % pd.width != 0) {
         preferredHeight += pd.height;
       }
     }
@@ -348,6 +349,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     }
     myParamFields.put(paramName, (JComponent)field);
     field.addFocusListener(this);
+    field.getTextField().getDocument().addDocumentListener(this);
   }
 
   protected void register(@NotNull String paramName, @NotNull ColorPanel colorPanel) {
