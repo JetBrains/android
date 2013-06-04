@@ -110,7 +110,7 @@
   <depends optional="true" config-file="eclipse.xml">org.jetbrains.idea.eclipse</depends>
 
   <extensions defaultExtensionNs="com.intellij">
-    <compileServer.pathProvider implementation="com.android.tools.idea.compiler.AndroidCompileServerPathProvider"/>
+    <buildProcess.parametersProvider implementation="com.android.tools.idea.compiler.AndroidBuildProcessParametersProvider"/>
     <externalProjectDataService implementation="com.android.tools.idea.gradle.service.AndroidProjectDataService" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.service.GradleProjectDataService" />
     <lang.foldingBuilder language="JAVA" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />

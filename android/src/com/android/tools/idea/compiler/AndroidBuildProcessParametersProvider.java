@@ -19,8 +19,7 @@ import com.android.SdkConstants;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.intellij.compiler.server.CompileServerPathProvider;
-import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.compiler.server.BuildProcessParametersProvider;
 import com.intellij.util.PathUtil;
 import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +32,7 @@ import java.util.List;
  * allows us to specify Gradle in the classpath of the Android/Gradle JPS builder. This workaround will no longer be necessary once we have
  * a single 'android' module.
  */
-public class AndroidCompileServerPathProvider implements CompileServerPathProvider {
+public class AndroidBuildProcessParametersProvider extends BuildProcessParametersProvider {
   private List<String> classpath;
 
   @NotNull
