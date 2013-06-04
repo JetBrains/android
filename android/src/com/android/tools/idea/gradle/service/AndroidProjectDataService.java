@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.service;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.*;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -94,6 +95,23 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
             buildVariantView.updateContents();
           }
         });
+        if (!ApplicationManager.getApplication().isUnitTestMode()) {
+          Projects.BuildAction buildAction = Projects.getBuildAction(project);
+          if (buildAction == null) {
+            // This happens when the project is imported and this is the first pass of the 2-pass import. Rebuild on second pass.
+            Projects.setBuildAction(project, Projects.BuildAction.REBUILD);
+          }
+          else {
+            switch (buildAction) {
+              case COMPILE:
+                Projects.compile(project, project.getBasePath());
+                break;
+              case REBUILD:
+                Projects.rebuild(project, project.getBasePath());
+            }
+            Projects.removeBuildAction(project);
+          }
+        }
       }
     });
   }
