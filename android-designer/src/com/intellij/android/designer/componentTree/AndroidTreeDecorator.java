@@ -15,6 +15,7 @@
  */
 package com.intellij.android.designer.componentTree;
 
+import com.intellij.codeInsight.daemon.impl.SeverityUtil;
 import com.intellij.designer.componentTree.AttributeWrapper;
 import com.intellij.designer.componentTree.TreeComponentDecorator;
 import com.intellij.designer.model.IComponentDecorator;
@@ -29,10 +30,7 @@ import com.intellij.android.designer.model.ViewsMetaManager;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.daemon.impl.SeverityRegistrar;
 import com.intellij.designer.ModuleProvider;
-import com.intellij.designer.componentTree.AttributeWrapper;
-import com.intellij.designer.componentTree.TreeComponentDecorator;
 import com.intellij.designer.model.*;
-import com.intellij.designer.palette.DefaultPaletteItem;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlAttribute;
@@ -162,7 +160,7 @@ public final class AndroidTreeDecorator implements TreeComponentDecorator {
       ModuleProvider moduleProvider = component.getRoot().getClientProperty(ModelParser.MODULE_KEY);
       if (moduleProvider != null) {
         Project project = moduleProvider.getProject();
-        SeverityRegistrar severityRegistrar = SeverityRegistrar.getInstance(project);
+        SeverityRegistrar severityRegistrar = SeverityUtil.getSeverityRegistrar(project);
         for (ErrorInfo errorInfo : RadComponent.getError(component)) {
           if (displayLevel == null || severityRegistrar.compare(errorInfo.getLevel().getSeverity(), displayLevel.getSeverity()) > 0) {
             displayLevel = errorInfo.getLevel();
