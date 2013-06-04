@@ -78,7 +78,7 @@ public class AndroidExternalApklibDependenciesManager implements PersistentState
     private Map<String, String> myArtifactFilesMap = new HashMap<String, String>();
     private Map<String, MavenArtifactResolvedInfo> myResolvedInfoMap = new HashMap<String, MavenArtifactResolvedInfo>();
 
-    @Tag("sdk-infos")
+    @Tag("resolved-infos")
     @MapAnnotation(surroundWithTag = false)
     public Map<String, MavenArtifactResolvedInfo> getResolvedInfoMap() {
       return myResolvedInfoMap;
