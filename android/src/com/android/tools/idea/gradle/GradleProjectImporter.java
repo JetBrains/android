@@ -161,22 +161,6 @@ public class GradleProjectImporter {
     return projectFile;
   }
 
-  private static boolean rebuildAndNotifyCallback(@NotNull String projectRootDirPath,
-                                                  @NotNull Project newProject,
-                                                  @Nullable Callback callback) {
-    Module[] modules = ModuleManager.getInstance(newProject).getModules();
-    if (modules.length == 0) {
-      return false;
-    }
-    if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      Projects.rebuild(newProject, projectRootDirPath);
-    }
-    if (callback != null) {
-      callback.projectImported(newProject);
-    }
-    return true;
-  }
-
   private static void createIdeaProjectDir(@NotNull File projectRootDir) throws IOException {
     File ideaDir = new File(projectRootDir, Project.DIRECTORY_STORE_FOLDER);
     FileUtil.ensureExists(ideaDir);
@@ -247,6 +231,8 @@ public class GradleProjectImporter {
   private void doImport(@NotNull final Project project,
                         @NotNull final String projectFilePath,
                         @Nullable final Callback callback) throws ConfigurationException {
+    Projects.setBuildAction(project, Projects.BuildAction.REBUILD);
+
     final Ref<ConfigurationException> errorRef = new Ref<ConfigurationException>();
 
     myDelegate.importProject(project, projectFilePath, new ExternalProjectRefreshCallback() {
@@ -278,14 +264,13 @@ public class GradleProjectImporter {
       throw errorCause;
     }
 
-    final String projectRootDirPath = project.getBasePath();
-    // Since importing is synchronous we should have modules now. Compile project and notify callback.
-    if (rebuildAndNotifyCallback(projectRootDirPath, project, callback)) {
+    // Since importing is synchronous we should have modules now. Notify callback.
+    if (notifyCallback(project, callback)) {
       return;
     }
 
-    // If we got here, there is some bad timing and the module creation got delayed somehow. Compile and notify callback as soon as
-    // the project roots are created.
+    // If we got here, there is some bad timing and the module creation got delayed somehow. Notify callback as soon as the project roots
+    // are created.
     final MessageBusConnection connection = project.getMessageBus().connect();
     connection.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
       @Override
@@ -293,7 +278,8 @@ public class GradleProjectImporter {
         Module[] modules = ModuleManager.getInstance(project).getModules();
         if (modules.length > 0) {
           connection.disconnect();
-          rebuildAndNotifyCallback(projectRootDirPath, project, callback);
+          // TODO: Consider moving callback to AndroidProjectDataService. It can reliably notify when a project has modules.
+          notifyCallback(project, callback);
         }
       }
     });
@@ -345,6 +331,17 @@ public class GradleProjectImporter {
       }
     }
     projectManager.openProject(newProject);
+  }
+
+  private static boolean notifyCallback(@NotNull Project newProject, @Nullable Callback callback) {
+    Module[] modules = ModuleManager.getInstance(newProject).getModules();
+    if (modules.length == 0) {
+      return false;
+    }
+    if (callback != null) {
+      callback.projectImported(newProject);
+    }
+    return true;
   }
 
   // Makes it possible to mock invocations to the Gradle Tooling API.
