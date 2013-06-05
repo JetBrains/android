@@ -18,13 +18,13 @@ package com.android.tools.idea.gradle.util;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileStatusNotification;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -34,6 +34,8 @@ import org.jetbrains.annotations.Nullable;
  * Utility methods for {@link Project}s.
  */
 public final class Projects {
+  private static final Key<BuildAction> PROJECT_BUILD_ACTION_KEY = Key.create("android.gradle.project.build.action");
+
   private Projects() {
   }
 
@@ -101,5 +103,26 @@ public final class Projects {
     Project project = PlatformDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext());
     boolean isGradleProject = project != null && isGradleProject(project);
     return isGradleProject ? project : null;
+  }
+
+  public static void removeBuildAction(@NotNull Project project) {
+    setBuildAction(project, null);
+  }
+
+  public static void setBuildAction(@NotNull Project project, @Nullable BuildAction action) {
+    project.putUserData(PROJECT_BUILD_ACTION_KEY, action);
+  }
+
+  @Nullable
+  public static BuildAction getBuildAction(@NotNull Project project) {
+    return project.getUserData(PROJECT_BUILD_ACTION_KEY);
+  }
+
+  /**
+   * Indicates whether a project should be built or not after a Gradle model refresh. "Building" means either compiling or rebuilding a
+   * project.
+   */
+  public enum BuildAction {
+    COMPILE, REBUILD
   }
 }

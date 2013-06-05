@@ -29,6 +29,7 @@ public class GradleStartupActivity implements StartupActivity, DumbAware {
   public void runActivity(Project project) {
     if (project != null && Projects.isGradleProject(project)) {
       GradleImportNotificationListener.attachToManager();
+      Projects.setBuildAction(project, Projects.BuildAction.COMPILE);
     }
   }
 }
