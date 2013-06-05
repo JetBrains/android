@@ -25,11 +25,11 @@ import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.Nullable;
 
-public class ResourceJavadocTest extends AndroidTestCase {
+public class AndroidJavaDocRendererTest extends AndroidTestCase {
   private static final String VERTICAL_ALIGN = "valign=\"top\"";
 
   @SuppressWarnings("JUnitTestCaseWithNonTrivialConstructors")
-  public ResourceJavadocTest() {
+  public AndroidJavaDocRendererTest() {
     IdeaTestCase.initPlatformPrefix();
   }
 
