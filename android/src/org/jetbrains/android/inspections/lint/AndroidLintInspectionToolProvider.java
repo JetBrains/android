@@ -804,6 +804,17 @@ public class AndroidLintInspectionToolProvider {
       super(AndroidBundle.message("android.lint.inspections.required.size"), RequiredAttributeDetector.ISSUE);
     }
   }
+  public static class AndroidLintResAutoInspection extends AndroidLintInspectionBase {
+    public AndroidLintResAutoInspection() {
+      super(AndroidBundle.message("android.lint.inspections.res.auto"), NamespaceDetector.RES_AUTO);
+    }
+
+    @Override
+    @NotNull
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      return new AndroidLintQuickFix[] { new ConvertNamespaceQuickFix() };
+    }
+  }
   public static class AndroidLintSelectableTextInspection extends AndroidLintInspectionBase {
     public AndroidLintSelectableTextInspection() {
       super(AndroidBundle.message("android.lint.inspections.selectable.text"), TextViewDetector.SELECTABLE);
