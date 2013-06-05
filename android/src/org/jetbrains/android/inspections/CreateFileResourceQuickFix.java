@@ -89,7 +89,7 @@ public class CreateFileResourceQuickFix implements LocalQuickFix, IntentionActio
 
   @Override
   public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
-    final VirtualFile resourceDir = myFacet.getLocalResourceManager().getResourceDir();
+    final VirtualFile resourceDir = myFacet.getPrimaryResourceDir();
     if (resourceDir == null) {
       return;
     }

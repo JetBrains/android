@@ -60,8 +60,9 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
       // get the resources of the file's project.
       if (affectsFileSelection) {
         Module module = myRenderContext.getModule();
+        assert module != null;
         VirtualFile file = myRenderContext.getVirtualFile();
-        ConfigurationMatcher matcher = new ConfigurationMatcher(clone, ProjectResources.get(module), file);
+        ConfigurationMatcher matcher = new ConfigurationMatcher(clone, ProjectResources.get(module, true), file);
         VirtualFile best = matcher.getBestFileMatch();
         if (best != null && !best.equals(file)) {
           // Switch files, and leave this configuration alone

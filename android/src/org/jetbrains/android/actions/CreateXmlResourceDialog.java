@@ -317,7 +317,7 @@ public class CreateXmlResourceDialog extends DialogWrapper {
       final AndroidFacet facet = AndroidFacet.getInstance(module);
 
       if (facet != null) {
-        myResourceDir = AndroidRootUtil.getResourceDir(facet);
+        myResourceDir = facet.getPrimaryResourceDir();
 
         if (myResourceDir != null) {
           valuesDirs = AndroidResourceUtil.getResourceSubdirs(ResourceFolderType.VALUES.getName(), new VirtualFile[]{myResourceDir});
@@ -427,7 +427,7 @@ public class CreateXmlResourceDialog extends DialogWrapper {
     }
 
     final AndroidFacet facet = AndroidFacet.getInstance(selectedModule);
-    final VirtualFile resourceDir = facet != null ? AndroidRootUtil.getResourceDir(facet) : null;
+    final VirtualFile resourceDir = facet != null ? facet.getPrimaryResourceDir() : null;
     if (resourceDir == null) {
       return null;
     }

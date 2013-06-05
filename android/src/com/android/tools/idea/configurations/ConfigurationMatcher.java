@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.ide.common.resources.ResourceFile;
+import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.resources.configuration.*;
 import com.android.io.IAbstractFile;
 import com.android.resources.*;
@@ -129,7 +129,7 @@ public class ConfigurationMatcher {
       ResourceFile match = myResources.getMatchingFile(myFile.getName(), ResourceType.LAYOUT, config);
 
       if (match != null) {
-        return myFile.equals(getVirtualFile(match.getFile()));
+        return myFile.equals(LocalFileSystem.getInstance().findFileByIoFile(match.getFile()));
       }
       else {
         // if we stop here that means the current file is not even a match!
@@ -167,7 +167,7 @@ public class ConfigurationMatcher {
       ResourceFile match = myResources.getMatchingFile(name, ResourceType.LAYOUT, config);
 
       if (match != null) {
-        return getVirtualFile(match.getFile());
+        return LocalFileSystem.getInstance().findFileByIoFile(match.getFile());
       }
     }
 

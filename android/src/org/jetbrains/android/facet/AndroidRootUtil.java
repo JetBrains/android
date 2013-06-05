@@ -85,6 +85,8 @@ public class AndroidRootUtil {
            : getManifestFile(facet);
   }
 
+  /** @deprecated You must use {@link AndroidFacet#getAllResourceDirectories()} instead */
+  @Deprecated
   @Nullable
   public static VirtualFile getResourceDir(@NotNull AndroidFacet facet) {
     return facet.getPrimaryResourceDir();
