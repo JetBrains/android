@@ -1050,11 +1050,13 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   // Compatibility bridge for old (non-Gradle) projects
   private class LegacySourceProvider implements SourceProvider {
-    @NonNull
+    @Nullable // TEMPORARY hack; trying to figure out why we're hitting assertions here
     @Override
     public File getManifestFile() {
       final VirtualFile manifestFile = AndroidRootUtil.getManifestFile(AndroidFacet.this);
-      assert manifestFile != null;
+      if (manifestFile == null) {
+        return null;
+      }
       return VfsUtilCore.virtualToIoFile(manifestFile);
     }
 
