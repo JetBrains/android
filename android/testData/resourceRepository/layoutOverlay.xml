@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+
+    <LinearLayout
+        android:id="@+id/noteArea"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_margin="5dip">
+        <EditText
+            android:id="@android:id/text1"
+            android:layout_height="fill_parent"
+            android:hint="@string/note_hint"
+            android:freezesText="true"
+            android:gravity="top" android:layout_width="wrap_content" android:layout_weight="1">
+        </EditText>
+        <EditText
+            android:id="@+id/text2"
+            android:layout_height="fill_parent"
+            android:freezesText="true"
+            android:gravity="top" android:layout_width="wrap_content" android:layout_weight="1">
+            <requestFocus />
+        </EditText>
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/bottomBar"
+        style="@android:style/ButtonBar"/>
+
+</LinearLayout>
