@@ -300,7 +300,15 @@ class DelegatingProjectResources extends ProjectResources {
   @Nullable
   @Override
   public List<ResourceItem> getResourceItem(@NonNull ResourceType resourceType, @NonNull String resourceName) {
-    return super.getResourceItem(resourceType, resourceName);
+    for (int i = myDelegates.size() - 1; i >= 0; i--) {
+      ProjectResources resources = myDelegates.get(i);
+      List<ResourceItem> item = resources.getResourceItem(resourceType, resourceName);
+      if (item != null) {
+        return item;
+      }
+    }
+
+    return null;
   }
 
   @Override
