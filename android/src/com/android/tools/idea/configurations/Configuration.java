@@ -1136,10 +1136,15 @@ public class Configuration implements Disposable {
 
   @NotNull
   public Map<ResourceType, Map<String, ResourceValue>> getConfiguredProjectResources() {
-    ProjectResources resources = ProjectResources.get(myManager.getModule(), true);
+    final ProjectResources resources = ProjectResources.get(myManager.getModule(), true);
     if (myConfiguredProjectRes == null || myCachedGeneration < resources.getModificationCount()) {
       // get the project resource values based on the current config
-      myConfiguredProjectRes = resources.getConfiguredResources(getFullConfig());
+      ApplicationManager.getApplication().runReadAction(new Runnable() {
+        @Override
+        public void run() {
+          myConfiguredProjectRes = resources.getConfiguredResources(getFullConfig());
+        }
+      });
       myCachedGeneration = resources.getModificationCount();
     }
 
@@ -1147,6 +1152,7 @@ public class Configuration implements Disposable {
   }
 
   // For debugging only
+  @SuppressWarnings("SpellCheckingInspection")
   @Override
   public String toString() {
     return Objects.toStringHelper(this.getClass()).add("display", getDisplayName())      //$NON-NLS-1$

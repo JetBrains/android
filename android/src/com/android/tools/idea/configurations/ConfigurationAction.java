@@ -78,6 +78,7 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
   protected void pickedBetterMatch(@NotNull VirtualFile file) {
     // Switch files, and leave this configuration alone
     Module module = myRenderContext.getModule();
+    assert module != null;
     Project project = module.getProject();
     OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file, -1);
     FileEditorManager.getInstance(project).openEditor(descriptor, true);
