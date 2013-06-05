@@ -41,7 +41,7 @@ import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.util.DefaultPsiElementCellRenderer;
 import com.intellij.ide.wizard.CommitStepException;
-import com.intellij.lexer.JavaLexer;
+import com.intellij.lang.java.JavaParserDefinition;
 import com.intellij.lexer.Lexer;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
@@ -780,7 +780,7 @@ public class AndroidUtils {
 
   public static boolean isIdentifier(@NotNull String candidate) {
     ApplicationManager.getApplication().assertReadAccessAllowed();
-    Lexer lexer = new JavaLexer(LanguageLevel.JDK_1_3);
+    Lexer lexer = JavaParserDefinition.createLexer(LanguageLevel.JDK_1_3);
     lexer.start(candidate);
     if (lexer.getTokenType() != JavaTokenType.IDENTIFIER) return false;
     lexer.advance();
