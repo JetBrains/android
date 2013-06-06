@@ -33,6 +33,22 @@ public class Transition {
     this.destination = destination;
   }
 
+  public String getSource() {
+    return source;
+  }
+
+  public String getView() {
+    return view;
+  }
+
+  public String getGesture() {
+    return gesture;
+  }
+
+  public String getDestination() {
+    return destination;
+  }
+
   @Override
   public String toString() {
     return "Navigation{" +
