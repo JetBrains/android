@@ -18,7 +18,8 @@ import java.util.*;
  * @author Eugene.Kudelevsky
  */
 public class AndroidAptValidityState implements ValidityState {
-  private static final int VERSION = 0;
+  private static final int SIGNATURE = 0xDEADBEEF;
+  private static final byte VERSION = 0;
 
   private final Map<String, ResourceFileData> myResources;
   private final TObjectLongHashMap<String> myValueResourceFilesTimestamps;
@@ -42,7 +43,12 @@ public class AndroidAptValidityState implements ValidityState {
   }
 
   public AndroidAptValidityState(@NotNull DataInput in) throws IOException {
-    final int version = in.readInt();
+    final int signature = in.readInt();
+
+    if (signature != SIGNATURE) {
+      throw new IOException("incorrect signature");
+    }
+    final byte version = in.readByte();
 
     if (version != VERSION) {
       throw new IOException("old version");
@@ -115,7 +121,8 @@ public class AndroidAptValidityState implements ValidityState {
 
   @Override
   public void save(DataOutput out) throws IOException {
-    out.writeInt(VERSION);
+    out.writeInt(SIGNATURE);
+    out.writeByte(VERSION);
     out.writeUTF(myPackageName);
     out.writeInt(myResources.size());
 
