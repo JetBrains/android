@@ -39,14 +39,6 @@ public class AndroidValueResourcesIndex extends FileBasedIndexExtension<Resource
   @NonNls private static final String NAME_ATTRIBUTE_VALUE = "name";
   @NonNls private static final String TYPE_ATTRIBUTE_VALUE = "type";
 
-  private final FileBasedIndex.InputFilter myInputFilter = new FileBasedIndex.InputFilter() {
-    @Override
-    public boolean acceptInput(final VirtualFile file) {
-      return (file.getFileSystem() == LocalFileSystem.getInstance() || file.getFileSystem() instanceof TempFileSystem) &&
-             file.getFileType() == StdFileTypes.XML;
-    }
-  };
-
   private final DataIndexer<ResourceEntry, Set<MyResourceInfo>, FileContent> myIndexer =
     new DataIndexer<ResourceEntry, Set<MyResourceInfo>, FileContent>() {
       @Override
@@ -248,7 +240,12 @@ public class AndroidValueResourcesIndex extends FileBasedIndexExtension<Resource
 
   @Override
   public FileBasedIndex.InputFilter getInputFilter() {
-    return myInputFilter;
+    return new DefaultFileTypeSpecificInputFilter(StdFileTypes.XML) {
+      @Override
+      public boolean acceptInput(final VirtualFile file) {
+        return file.getFileSystem() == LocalFileSystem.getInstance() || file.getFileSystem() instanceof TempFileSystem;
+      }
+    };
   }
 
   @Override
