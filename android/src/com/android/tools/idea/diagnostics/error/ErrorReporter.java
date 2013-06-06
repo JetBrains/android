@@ -87,7 +87,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
                                   final String description) {
     final DataContext dataContext = DataManager.getInstance().getDataContext(parentComponent);
 
-    bean.setDescription(description);
+    bean.setDescription(description != null ? description : event.getThrowableText());
     bean.setMessage(event.getMessage());
 
     Throwable t = event.getThrowable();
