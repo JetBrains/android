@@ -25,6 +25,7 @@ import com.android.sdklib.devices.State;
 import com.android.sdklib.util.SparseIntArray;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.ProjectResources;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
@@ -126,7 +127,7 @@ public class ConfigurationMatcher {
   */
   public boolean isCurrentFileBestMatchFor(@NotNull FolderConfiguration config) {
     if (myResources != null && myFile != null) {
-      ResourceFile match = myResources.getMatchingFile(myFile.getName(), ResourceType.LAYOUT, config);
+      ResourceFile match = myResources.getMatchingFile(ResourceHelper.getResourceName(myFile), ResourceType.LAYOUT, config);
 
       if (match != null) {
         return myFile.equals(LocalFileSystem.getInstance().findFileByIoFile(match.getFile()));
@@ -162,7 +163,7 @@ public class ConfigurationMatcher {
   @Nullable
   public VirtualFile getBestFileMatch() {
     if (myResources != null && myFile != null) {
-      String name = myFile.getName();
+      String name = ResourceHelper.getResourceName(myFile);
       FolderConfiguration config = myConfiguration.getFullConfig();
       ResourceFile match = myResources.getMatchingFile(name, ResourceType.LAYOUT, config);
 
