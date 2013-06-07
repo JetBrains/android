@@ -56,7 +56,7 @@ public final class AndroidApt {
                                                                       @NotNull String aPackage,
                                                                       @NotNull String outDirOsPath,
                                                                       @NotNull String[] resourceDirsOsPaths,
-                                                                      @NotNull String[] libPackages,
+                                                                      @NotNull String[] extraPackages,
                                                                       boolean nonConstantFields,
                                                                       @Nullable String proguardCfgOutputFileOsPath) throws IOException {
     final Map<AndroidCompilerMessageKind, List<String>> messages = new HashMap<AndroidCompilerMessageKind, List<String>>();
@@ -89,28 +89,28 @@ public final class AndroidApt {
       }
     }
 
-    final File[] libRJavaFiles = new File[libPackages.length];
+    final File[] extraRJavaFiles = new File[extraPackages.length];
 
-    for (int i = 0; i < libPackages.length; i++) {
-      final String libPackageFolderOsPath = FileUtil.toSystemDependentName(outDirOsPath + '/' + libPackages[i].replace('.', '/'));
-      libRJavaFiles[i] = new File(libPackageFolderOsPath + File.separatorChar + AndroidCommonUtils.R_JAVA_FILENAME);
+    for (int i = 0; i < extraPackages.length; i++) {
+      final String libPackageFolderOsPath = FileUtil.toSystemDependentName(outDirOsPath + '/' + extraPackages[i].replace('.', '/'));
+      extraRJavaFiles[i] = new File(libPackageFolderOsPath + File.separatorChar + AndroidCommonUtils.R_JAVA_FILENAME);
     }
 
-    for (File libRJavaFile : libRJavaFiles) {
-      if (libRJavaFile.exists()) {
-        if (!FileUtil.delete(libRJavaFile)) {
-          messages.get(AndroidCompilerMessageKind.ERROR).add("Unable to delete " + libRJavaFile.getPath());
+    for (File extraRJavaFile : extraRJavaFiles) {
+      if (extraRJavaFile.exists()) {
+        if (!FileUtil.delete(extraRJavaFile)) {
+          messages.get(AndroidCompilerMessageKind.ERROR).add("Unable to delete " + extraRJavaFile.getPath());
         }
       }
     }
 
     if (platformToolsRevision < 0 || platformToolsRevision > 7) {
       Map<AndroidCompilerMessageKind, List<String>> map =
-        doCompile(target, manifestFileOsPath, outDirOsPath, resourceDirsOsPaths, libPackages, null, nonConstantFields,
+        doCompile(target, manifestFileOsPath, outDirOsPath, resourceDirsOsPaths, extraPackages, null, nonConstantFields,
                   proguardCfgOutputFileOsPath);
 
       if (map.get(AndroidCompilerMessageKind.ERROR).isEmpty()) {
-        makeFieldsNotFinal(libRJavaFiles);
+        makeFieldsNotFinal(extraRJavaFiles);
       }
 
       AndroidExecutionUtil.addMessages(messages, map);
@@ -123,7 +123,7 @@ public final class AndroidApt {
                       proguardCfgOutputFileOsPath);
       AndroidExecutionUtil.addMessages(messages, map);
 
-      for (String libPackage : libPackages) {
+      for (String libPackage : extraPackages) {
         map = doCompile(target, manifestFileOsPath, outDirOsPath, resourceDirsOsPaths, ArrayUtil.EMPTY_STRING_ARRAY, libPackage, false,
                         proguardCfgOutputFileOsPath);
         AndroidExecutionUtil.addMessages(messages, map);
