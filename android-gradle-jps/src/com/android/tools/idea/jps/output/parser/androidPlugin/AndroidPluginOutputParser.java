@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.jps.output.parser.aapt;
+package com.android.tools.idea.jps.output.parser.androidPlugin;
 
 import com.android.tools.idea.jps.output.parser.CompilerOutputParser;
 import com.android.tools.idea.jps.output.parser.OutputLineReader;
@@ -24,29 +24,17 @@ import org.jetbrains.jps.incremental.messages.CompilerMessage;
 import java.util.Collection;
 
 /**
- * Parses aapt's output.
+ * Parses output from the Android Gradle plugin.
  */
-public class AaptOutputParser implements CompilerOutputParser {
-  private static final AbstractAaptOutputParser[] PARSERS = {
-    new SkippingHiddenFileParser(),
-    new Error1Parser(),
-    // this needs to be tested before ERROR_2 since they both start with 'ERROR:'
-    new Error6Parser(),
-    new Error2Parser(),
-    new Error3Parser(),
-    new Error4Parser(),
-    new Warning1Parser(),
-    new Error5Parser(),
-    new Error7Parser(),
-    new Error8Parser(),
-    new SkippingWarning2Parser(),
-    new SkippingWarning1Parser(),
-    new BadXmlBlockParser()
+public class AndroidPluginOutputParser implements CompilerOutputParser {
+  private static final CompilerOutputParser[] PARSERS = {
+    new XmlValidationErrorParser(),
+    new GradleBuildFailureParser()
   };
 
   @Override
   public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull Collection<CompilerMessage> messages) {
-    for (AbstractAaptOutputParser parser : PARSERS) {
+    for (CompilerOutputParser parser : PARSERS) {
       try {
         if (parser.parse(line, reader, messages)) {
           return true;

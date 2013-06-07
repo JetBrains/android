@@ -16,6 +16,7 @@
 package com.android.tools.idea.jps.output.parser;
 
 import com.android.tools.idea.jps.output.parser.aapt.AaptOutputParser;
+import com.android.tools.idea.jps.output.parser.androidPlugin.AndroidPluginOutputParser;
 import com.android.tools.idea.jps.output.parser.javac.JavacOutputParser;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -28,7 +29,7 @@ import java.util.Collection;
  * Parses Gradle's error output and creates error/warning messages when appropriate.
  */
 public class GradleErrorOutputParser {
-  private static final CompilerOutputParser[] PARSERS = {new AaptOutputParser(), new JavacOutputParser()};
+  private static final CompilerOutputParser[] PARSERS = {new AaptOutputParser(), new AndroidPluginOutputParser(), new JavacOutputParser()};
 
   /**
    * Parses the given Gradle output and creates error/warning messages when appropriate. This parser can parse errors from java and aapt.
