@@ -17,8 +17,8 @@
 package com.android.tools.idea.lang.rs;
 
 import com.google.common.collect.Maps;
+import com.intellij.ide.highlighter.JavaHighlightingColors;
 import com.intellij.lexer.Lexer;
-import com.intellij.openapi.editor.SyntaxHighlighterColors;
 import com.intellij.openapi.editor.colors.CodeInsightColors;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase;
@@ -43,13 +43,13 @@ public class RenderscriptSyntaxHighlighter extends SyntaxHighlighterBase {
   private static final TokenSet ourError = TokenSet.create(RenderscriptTokenType.UNKNOWN);
 
   static {
-    fillMap(sAttributes, ourKeywords, SyntaxHighlighterColors.KEYWORD);
-    fillMap(sAttributes, ourBraces, SyntaxHighlighterColors.BRACES);
-    fillMap(sAttributes, ourSeparators, SyntaxHighlighterColors.JAVA_SEMICOLON);
-    fillMap(sAttributes, ourOperators, SyntaxHighlighterColors.OPERATION_SIGN);
-    fillMap(sAttributes, ourComments, SyntaxHighlighterColors.JAVA_BLOCK_COMMENT);
-    fillMap(sAttributes, ourString, SyntaxHighlighterColors.STRING);
-    fillMap(sAttributes, ourCharacter, SyntaxHighlighterColors.NUMBER);
+    fillMap(sAttributes, ourKeywords, JavaHighlightingColors.KEYWORD);
+    fillMap(sAttributes, ourBraces, JavaHighlightingColors.BRACES);
+    fillMap(sAttributes, ourSeparators, JavaHighlightingColors.JAVA_SEMICOLON);
+    fillMap(sAttributes, ourOperators, JavaHighlightingColors.OPERATION_SIGN);
+    fillMap(sAttributes, ourComments, JavaHighlightingColors.JAVA_BLOCK_COMMENT);
+    fillMap(sAttributes, ourString, JavaHighlightingColors.STRING);
+    fillMap(sAttributes, ourCharacter, JavaHighlightingColors.NUMBER);
     fillMap(sAttributes, ourError, CodeInsightColors.ERRORS_ATTRIBUTES);
   }
 
