@@ -15,25 +15,17 @@
  */
 package com.intellij.android.designer.componentTree;
 
-import com.intellij.designer.componentTree.AttributeWrapper;
-import com.intellij.designer.componentTree.TreeComponentDecorator;
-import com.intellij.designer.model.IComponentDecorator;
-import com.intellij.designer.model.MetaModel;
-import com.intellij.designer.model.RadComponent;
-import com.intellij.designer.palette.DefaultPaletteItem;
 import com.android.SdkConstants;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.android.designer.model.ModelParser;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.ViewsMetaManager;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
-import com.intellij.codeInsight.daemon.impl.SeverityRegistrar;
 import com.intellij.designer.ModuleProvider;
 import com.intellij.designer.componentTree.AttributeWrapper;
 import com.intellij.designer.componentTree.TreeComponentDecorator;
 import com.intellij.designer.model.*;
 import com.intellij.designer.palette.DefaultPaletteItem;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.ui.LayeredIcon;
@@ -42,6 +34,7 @@ import com.intellij.ui.SimpleTextAttributes;
 import icons.AndroidIcons;
 
 import javax.swing.*;
+import java.util.List;
 
 import static com.android.SdkConstants.*;
 
@@ -161,10 +154,9 @@ public final class AndroidTreeDecorator implements TreeComponentDecorator {
       HighlightDisplayLevel displayLevel = null;
       ModuleProvider moduleProvider = component.getRoot().getClientProperty(ModelParser.MODULE_KEY);
       if (moduleProvider != null) {
-        Project project = moduleProvider.getProject();
-        SeverityRegistrar severityRegistrar = SeverityRegistrar.getInstance(project);
-        for (ErrorInfo errorInfo : RadComponent.getError(component)) {
-          if (displayLevel == null || severityRegistrar.compare(errorInfo.getLevel().getSeverity(), displayLevel.getSeverity()) > 0) {
+        List<ErrorInfo> error = RadComponent.getError(component);
+        for (ErrorInfo errorInfo : error) {
+          if (displayLevel == null || errorInfo.getLevel().getSeverity().compareTo(displayLevel.getSeverity()) > 0) {
             displayLevel = errorInfo.getLevel();
           }
         }
