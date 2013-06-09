@@ -17,7 +17,6 @@
 package org.jetbrains.android.facet;
 
 import com.android.SdkConstants;
-import com.android.build.gradle.model.AndroidProject;
 import com.android.build.gradle.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.ide.highlighter.ArchiveFileType;
@@ -32,7 +31,10 @@ import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.*;
+import com.intellij.openapi.vfs.JarFileSystem;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.containers.OrderedSet;
@@ -52,13 +54,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 
-
 /**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Aug 16, 2009
- * Time: 3:28:19 PM
- * To change this template use File | Settings | File Templates.
+ * @author Eugene.Kudelevsky
  */
 public class AndroidRootUtil {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.facet.AndroidRootUtil");
@@ -368,7 +365,7 @@ public class AndroidRootUtil {
         result.add(overlayDir);
       }
     }
-    return VfsUtil.toVirtualFileArray(result);
+    return VfsUtilCore.toVirtualFileArray(result);
   }
 
   @Nullable
@@ -494,7 +491,7 @@ public class AndroidRootUtil {
   }
 
   @Nullable
-  public static Pair<String, VirtualFile> getProjectPropertyValue(Module module, String propertyName) {
+  public static Pair<String, VirtualFile> getProjectPropertyValue(@NotNull Module module, @NotNull String propertyName) {
     Pair<String, VirtualFile> result = getPropertyValue(module, SdkConstants.FN_PROJECT_PROPERTIES, propertyName);
     return result != null
            ? result

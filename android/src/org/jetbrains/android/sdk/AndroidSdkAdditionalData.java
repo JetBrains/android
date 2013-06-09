@@ -16,6 +16,7 @@
 package org.jetbrains.android.sdk;
 
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.sdk.Jdks;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -44,7 +45,7 @@ public class AndroidSdkAdditionalData implements ValidatableSdkAdditionalData {
 
   private AndroidPlatform myAndroidPlatform = null;
 
-  public AndroidSdkAdditionalData(@NotNull Sdk androidSdk, Sdk javaSdk) {
+  public AndroidSdkAdditionalData(@NotNull Sdk androidSdk, @Nullable Sdk javaSdk) {
     myJavaSdk = javaSdk;
     myAndroidSdk = androidSdk;
   }
@@ -69,7 +70,9 @@ public class AndroidSdkAdditionalData implements ValidatableSdkAdditionalData {
   @Override
   public Object clone() throws CloneNotSupportedException {
     AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)super.clone();
-    data.setJavaSdk(getJavaSdk());
+    Sdk jdk = getJavaSdk();
+    assert jdk != null;
+    data.setJavaSdk(jdk);
     data.myBuildTarget = myBuildTarget;
     return data;
   }
@@ -84,7 +87,7 @@ public class AndroidSdkAdditionalData implements ValidatableSdkAdditionalData {
       }
       else {
         for (Sdk jdk : jdkTable.getAllJdks()) {
-          if (AndroidSdkUtils.isApplicableJdk(jdk)) {
+          if (Jdks.isApplicableJdk(jdk)) {
             myJavaSdk = jdk;
             break;
           }

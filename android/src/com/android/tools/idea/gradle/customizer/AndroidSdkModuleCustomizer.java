@@ -15,23 +15,24 @@
  */
 package com.android.tools.idea.gradle.customizer;
 
-import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.util.LocalProperties;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkData;
+import com.intellij.openapi.ui.Messages;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.IOException;
 
 /**
  * Sets an Android SDK to a module imported from an {@link com.android.build.gradle.model.AndroidProject}.
  */
 public class AndroidSdkModuleCustomizer implements ModuleCustomizer {
+  private static final Logger LOG = Logger.getInstance(AndroidSdkModuleCustomizer.class);
+
   /**
    * Sets an Android SDK to the given module only if:
    * <ol>
@@ -45,35 +46,40 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer {
    */
   @Override
   public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
-    Sdk androidSdk = getAndroidSdk(ideaAndroidProject);
-    if (androidSdk == null) {
+    if (ideaAndroidProject == null) {
       return;
     }
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
-    ModifiableRootModel model = moduleRootManager.getModifiableModel();
+    String androidSdkPath;
     try {
-      model.setSdk(androidSdk);
-    } finally {
-      model.commit();
+      androidSdkPath = LocalProperties.getAndroidSdkPath(project);
+    }
+    catch (IOException e) {
+      String msg = String.format("Unable to read local.properties file in project '%1$s'", project.getBasePath());
+      LOG.error(msg, e);
+      showErrorDialog(msg);
+      return;
+    }
+    String compileTarget = ideaAndroidProject.getDelegate().getCompileTarget();
+    boolean sdkSet = AndroidSdkUtils.findAndSetSdk(module, compileTarget, androidSdkPath, true);
+    if (!sdkSet) {
+      // This should never, ever happen.
+      // We already either attempted to create an Android SDK (even prompted the user for its path) or downloaded the matching platform.
+      String msg;
+      if (androidSdkPath != null) {
+        String format = "Unable to set the Android SDK at '%1$s', with compile target '%2$s', to module '%3$s'";
+        msg = String.format(format, androidSdkPath, compileTarget, module.getName());
+      }
+      else {
+        String format = "Unable to set an Android SDK, with compile target '%1$s', to module '%2$s'";
+        msg = String.format(format, compileTarget, module.getName());
+      }
+      LOG.error(msg);
+      msg += ".\n\nPlease set the Android SDK manually via the \"Project Settings\" dialog.";
+      showErrorDialog(msg);
     }
   }
 
-  @Nullable
-  private static Sdk getAndroidSdk(@Nullable IdeaAndroidProject ideaAndroidProject) {
-    if (ideaAndroidProject != null) {
-      String compileTarget = ideaAndroidProject.getDelegate().getCompileTarget();
-      for (Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
-        AndroidPlatform androidPlatform = AndroidPlatform.parse(sdk);
-        if (androidPlatform != null) {
-          AndroidSdkData sdkData = androidPlatform.getSdkData();
-          IAndroidTarget target = sdkData.findTargetByHashString(compileTarget);
-          if (target != null) {
-            return sdk;
-          }
-        }
-      }
-    }
-    // TODO: Prompt user for path of an Android SDK.
-    return null;
+  private static void showErrorDialog(@NotNull String msg) {
+    Messages.showErrorDialog(msg, "Android SDK Configuration");
   }
 }
