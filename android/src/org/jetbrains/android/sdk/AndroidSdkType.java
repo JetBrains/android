@@ -17,6 +17,7 @@ package org.jetbrains.android.sdk;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.sdk.Jdks;
 import com.android.utils.NullLogger;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.projectRoots.*;
@@ -98,7 +99,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
     final List<String> javaSdks = new ArrayList<String>();
     final Sdk[] sdks = sdkModel.getSdks();
     for (Sdk jdk : sdks) {
-      if (AndroidSdkUtils.isApplicableJdk(jdk)) {
+      if (Jdks.isApplicableJdk(jdk)) {
         javaSdks.add(jdk.getName());
       }
     }
@@ -151,7 +152,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
     final Sdk jdk = sdkModel.findSdk(name);
     final IAndroidTarget target = targets[dialog.getSelectedTargetIndex()];
     final String sdkName = AndroidSdkUtils.chooseNameForNewLibrary(target);
-    AndroidSdkUtils.setUpSdk(sdk, jdk, sdks, target, true, sdkName);
+    AndroidSdkUtils.setUpSdk(sdk, sdkName, sdks, target, jdk, true);
     return true;
   }
 

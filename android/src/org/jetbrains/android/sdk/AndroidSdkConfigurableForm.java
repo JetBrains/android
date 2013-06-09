@@ -16,6 +16,7 @@
 package org.jetbrains.android.sdk;
 
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.sdk.Jdks;
 import com.android.utils.NullLogger;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModel;
@@ -154,7 +155,7 @@ class AndroidSdkConfigurableForm {
   private void updateJdks() {
     myJdksModel.removeAllElements();
     for (Sdk sdk : mySdkModel.getSdks()) {
-      if (AndroidSdkUtils.isApplicableJdk(sdk)) {
+      if (Jdks.isApplicableJdk(sdk)) {
         myJdksModel.addElement(sdk);
       }
     }
