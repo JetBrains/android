@@ -8,7 +8,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.xml.XmlExtension;
+import com.intellij.xml.XmlNamespaceHelper;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,10 +37,10 @@ class AddMissingPrefixQuickFix implements AndroidLintQuickFix {
 
     if (androidNsPrefix == null) {
       final PsiFile file = tag.getContainingFile();
-      final XmlExtension extension = XmlExtension.getExtension(file);
+      final XmlNamespaceHelper extension = XmlNamespaceHelper.getHelper(file);
 
       if (extension == null) {
-        LOG.debug("Cannot get XmlExtension for file + " + file);
+        LOG.debug("Cannot get XmlNamespaceHelper for file + " + file);
         return;
       }
 
