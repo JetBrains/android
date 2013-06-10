@@ -19,14 +19,12 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.jps.AndroidGradleJps;
 import com.android.tools.idea.jps.model.JpsAndroidGradleModuleExtension;
-import com.android.tools.idea.jps.model.impl.JpsAndroidGradleModuleProperties;
 import com.android.tools.idea.jps.output.parser.GradleErrorOutputParser;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.SystemProperties;
 import org.gradle.tooling.BuildException;
@@ -123,22 +121,33 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
       LOG.info(String.format(format, getProjectName(context), AndroidGradleFacet.NAME));
       return ExitCode.NOTHING_DONE;
     }
+
     String[] buildTasks = getBuildTasks(context, chunk);
     if (buildTasks.length == 0) {
       String format = "No build tasks found for project '%1$s'. Nothing done.";
       LOG.info(String.format(format, getProjectName(context)));
       return ExitCode.NOTHING_DONE;
     }
+
     String msg = "Gradle build using tasks: " + Arrays.toString(buildTasks);
     context.processMessage(new ProgressMessage(msg));
     LOG.info(msg);
+
     ensureTempDirExists();
-    File projectDir = getProjectDir(context, extension);
-    File gradleHomeDir = getGradleHomeDir(context, extension);
+
+    BuilderExecutionSettings executionSettings;
+    try {
+      executionSettings = new BuilderExecutionSettings();
+    } catch (RuntimeException e) {
+      throw new ProjectBuildException(e);
+    }
+
     String androidHome = getAndroidHome(context, chunk);
+
     String format = "About to build project '%1$s' located at %2$s";
-    LOG.info(String.format(format, getProjectName(context), projectDir.getAbsolutePath()));
-    return doBuild(context, buildTasks, projectDir, gradleHomeDir, androidHome);
+    LOG.info(String.format(format, getProjectName(context), executionSettings.getProjectDir().getAbsolutePath()));
+
+    return doBuild(context, buildTasks, executionSettings, androidHome);
   }
 
   @NotNull
@@ -173,6 +182,7 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
     if (isRebuild) {
       tasks.add(createBuildTask(gradleProjectPath, "clean"));
     }
+    assert assembleTaskName != null;
     tasks.add(createBuildTask(gradleProjectPath, assembleTaskName));
   }
 
@@ -196,48 +206,8 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
   }
 
   @NotNull
-  private static File getProjectDir(@NotNull CompileContext context, @NotNull JpsAndroidGradleModuleExtension extension)
-    throws ProjectBuildException {
-    JpsAndroidGradleModuleProperties properties = extension.getProperties();
-    String projectPath = properties.PROJECT_ABSOLUTE_PATH;
-    if (Strings.isNullOrEmpty(projectPath)) {
-      String format = "Unable to obtain path of project '%1$s'. Please re-import the project.";
-      String msg = String.format(format, getProjectName(context));
-      context.processMessage(createCompilerErrorMessage(msg));
-      throw new ProjectBuildException(msg);
-    }
-    File projectDir = new File(projectPath);
-    if (!projectDir.isDirectory()) {
-      String format = "The project path, '%1$s', does not belong to an existing directory";
-      String msg = String.format(format, projectPath);
-      context.processMessage(createCompilerErrorMessage(msg));
-      throw new ProjectBuildException(msg);
-    }
-    return projectDir;
-  }
-
-
-  @NotNull
   private static CompilerMessage createCompilerErrorMessage(@NotNull String msg) {
     return AndroidGradleJps.createCompilerMessage(BuildMessage.Kind.ERROR, msg);
-  }
-
-  @Nullable
-  private static File getGradleHomeDir(@NotNull CompileContext context, @NotNull JpsAndroidGradleModuleExtension extension)
-    throws ProjectBuildException {
-    JpsAndroidGradleModuleProperties properties = extension.getProperties();
-    String gradleHomeDirPath = properties.GRADLE_HOME_DIR_PATH;
-    if (Strings.isNullOrEmpty(gradleHomeDirPath)) {
-      return null;
-    }
-    File gradleHomeDir = new File(gradleHomeDirPath);
-    if (!gradleHomeDir.isDirectory()) {
-      String format = "The gradle home path, '%1$s', does not belong to an existing directory";
-      String msg = String.format(format, gradleHomeDir);
-      context.processMessage(createCompilerErrorMessage(msg));
-      throw new ProjectBuildException(msg);
-    }
-    return gradleHomeDir;
   }
 
   @Nullable
@@ -266,15 +236,15 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
   @NotNull
   private static ExitCode doBuild(@NotNull CompileContext context,
                                   @NotNull String[] buildTasks,
-                                  @NotNull File projectDir,
-                                  @Nullable File gradleHomeDir,
+                                  @NotNull BuilderExecutionSettings executionSettings,
                                   @Nullable String androidHome) throws ProjectBuildException {
     GradleConnector connector = GradleConnector.newConnector();
-    if (connector instanceof DefaultGradleConnector && SystemInfo.isWindows) {
+    if (connector instanceof DefaultGradleConnector && executionSettings.isEmbeddedGradleDaemonEnabled()) {
       LOG.info("Using Gradle embedded mode.");
       ((DefaultGradleConnector)connector).embedded(true);
     }
-    connector.forProjectDirectory(projectDir);
+    connector.forProjectDirectory(executionSettings.getProjectDir());
+    File gradleHomeDir = executionSettings.getGradleHomeDir();
     if (gradleHomeDir != null) {
       connector.useInstallation(gradleHomeDir);
     }
@@ -284,7 +254,7 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
     try {
       BuildLauncher launcher = connection.newBuild();
       launcher.forTasks(buildTasks);
-      if (!Strings.isNullOrEmpty(androidHome)) {
+      if (androidHome != null && !androidHome.isEmpty()) {
         String androidSdkArg = getAndroidHomeJvmArg(androidHome);
         launcher.setJvmArguments(androidSdkArg);
       }
