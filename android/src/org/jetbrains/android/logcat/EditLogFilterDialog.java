@@ -44,10 +44,10 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
-import java.util.Arrays;
-import java.util.Collection;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -198,6 +198,17 @@ class EditLogFilterDialog extends DialogWrapper {
         if (value != null) {
           setText(StringUtil.capitalize(((Log.LogLevel)value).getStringValue().toLowerCase()));
         }
+      }
+    });
+    myLogLevelCombo.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (mySelectedEntry == null) {
+          return;
+        }
+
+        Log.LogLevel selectedItem = (Log.LogLevel)myLogLevelCombo.getSelectedItem();
+        mySelectedEntry.setLogLevel(selectedItem.getStringValue());
       }
     });
 
