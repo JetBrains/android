@@ -163,7 +163,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
   }
 
   @Override
-  public void performPostRunActivities(List<InspectionProfileEntry> inspections, final GlobalInspectionContext context) {
+  public void performPostRunActivities(@NotNull List<InspectionProfileEntry> inspections, final GlobalInspectionContext context) {
   }
 
   @Override
