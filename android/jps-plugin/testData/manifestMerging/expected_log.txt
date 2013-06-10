@@ -3,6 +3,8 @@ $ANDROID_SDK_DIR$/platform-tools/aapt.exe
 package
 -m
 --non-constant-id
+--output-text-symbols
+$DATA_STORAGE_ROOT$/android/intermediate_artifacts/lib/r_txt
 -J
 $AAPT_OUTPUT_TMP$
 -M

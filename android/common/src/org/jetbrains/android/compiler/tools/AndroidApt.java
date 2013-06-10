@@ -15,12 +15,18 @@
  */
 package org.jetbrains.android.compiler.tools;
 
+import com.android.SdkConstants;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.internal.build.SymbolLoader;
+import com.android.sdklib.internal.build.SymbolWriter;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.containers.*;
 import com.intellij.util.containers.HashMap;
+import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
 import org.jetbrains.android.util.AndroidExecutionUtil;
@@ -31,10 +37,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * AndroidApt decorator.
@@ -59,6 +62,26 @@ public final class AndroidApt {
                                                                       @NotNull String[] extraPackages,
                                                                       boolean nonConstantFields,
                                                                       @Nullable String proguardCfgOutputFileOsPath) throws IOException {
+    final List<Pair<String, String>> libRTxtFilesAndPackages = new ArrayList<Pair<String, String>>();
+
+    for (String extraPackage : extraPackages) {
+      libRTxtFilesAndPackages.add(Pair.create((String)null, extraPackage));
+    }
+    return compile(target, platformToolsRevision, manifestFileOsPath, aPackage, outDirOsPath, resourceDirsOsPaths,
+                   libRTxtFilesAndPackages, nonConstantFields, proguardCfgOutputFileOsPath, null, false);
+  }
+
+  public static Map<AndroidCompilerMessageKind, List<String>> compile(@NotNull IAndroidTarget target,
+                                                                      int platformToolsRevision,
+                                                                      @NotNull String manifestFileOsPath,
+                                                                      @NotNull String aPackage,
+                                                                      @NotNull String outDirOsPath,
+                                                                      @NotNull String[] resourceDirsOsPaths,
+                                                                      @NotNull List<Pair<String, String>> libRTxtFilesAndPackages,
+                                                                      boolean nonConstantFields,
+                                                                      @Nullable String proguardCfgOutputFileOsPath,
+                                                                      @Nullable String rTxtOutDirOsPath,
+                                                                      boolean optimizeRFile) throws IOException {
     final Map<AndroidCompilerMessageKind, List<String>> messages = new HashMap<AndroidCompilerMessageKind, List<String>>();
     messages.put(AndroidCompilerMessageKind.ERROR, new ArrayList<String>());
     messages.put(AndroidCompilerMessageKind.INFORMATION, new ArrayList<String>());
@@ -89,10 +112,11 @@ public final class AndroidApt {
       }
     }
 
-    final File[] extraRJavaFiles = new File[extraPackages.length];
+    final File[] extraRJavaFiles = new File[libRTxtFilesAndPackages.size()];
 
-    for (int i = 0; i < extraPackages.length; i++) {
-      final String libPackageFolderOsPath = FileUtil.toSystemDependentName(outDirOsPath + '/' + extraPackages[i].replace('.', '/'));
+    for (int i = 0, n = libRTxtFilesAndPackages.size(); i < n; i++) {
+      final String libPackage = libRTxtFilesAndPackages.get(i).getSecond();
+      final String libPackageFolderOsPath = FileUtil.toSystemDependentName(outDirOsPath + '/' + libPackage.replace('.', '/'));
       extraRJavaFiles[i] = new File(libPackageFolderOsPath + File.separatorChar + AndroidCommonUtils.R_JAVA_FILENAME);
     }
 
@@ -106,8 +130,8 @@ public final class AndroidApt {
 
     if (platformToolsRevision < 0 || platformToolsRevision > 7) {
       Map<AndroidCompilerMessageKind, List<String>> map =
-        doCompile(target, manifestFileOsPath, outDirOsPath, resourceDirsOsPaths, extraPackages, null, nonConstantFields,
-                  proguardCfgOutputFileOsPath);
+        doCompile(target, manifestFileOsPath, outDirOsPath, resourceDirsOsPaths, libRTxtFilesAndPackages,
+                  null, nonConstantFields, proguardCfgOutputFileOsPath, rTxtOutDirOsPath, optimizeRFile);
 
       if (map.get(AndroidCompilerMessageKind.ERROR).isEmpty()) {
         makeFieldsNotFinal(extraRJavaFiles);
@@ -117,17 +141,8 @@ public final class AndroidApt {
       return messages;
     }
     else {
-      Map<AndroidCompilerMessageKind, List<String>> map;
-
-      map = doCompile(target, manifestFileOsPath, outDirOsPath, resourceDirsOsPaths, ArrayUtil.EMPTY_STRING_ARRAY, null, false,
-                      proguardCfgOutputFileOsPath);
-      AndroidExecutionUtil.addMessages(messages, map);
-
-      for (String libPackage : extraPackages) {
-        map = doCompile(target, manifestFileOsPath, outDirOsPath, resourceDirsOsPaths, ArrayUtil.EMPTY_STRING_ARRAY, libPackage, false,
-                        proguardCfgOutputFileOsPath);
-        AndroidExecutionUtil.addMessages(messages, map);
-      }
+      messages.get(AndroidCompilerMessageKind.ERROR).add(
+        "'Platform Tools' package is out of date. Please update it through Android SDK manager");
       return messages;
     }
   }
@@ -145,10 +160,12 @@ public final class AndroidApt {
                                                                          @NotNull String manifestFileOsPath,
                                                                          @NotNull String outDirOsPath,
                                                                          @NotNull String[] resourceDirsOsPaths,
-                                                                         @NotNull String[] extraPackages,
+                                                                         @NotNull List<Pair<String, String>> libRTxtFilesAndPackages,
                                                                          @Nullable String customPackage,
                                                                          boolean nonConstantIds,
-                                                                         @Nullable String proguardCfgOutputFileOsPath)
+                                                                         @Nullable String proguardCfgOutputFileOsPath,
+                                                                         @Nullable String rTxtOutDirOsPath,
+                                                                         boolean optimizeRFile)
     throws IOException {
     final List<String> args = new ArrayList<String>();
 
@@ -168,10 +185,14 @@ public final class AndroidApt {
     if (resourceDirsOsPaths.length > 1) {
       args.add("--auto-add-overlay");
     }
+    final Set<String> extraPackages = new HashSet<String>();
 
-    if (extraPackages.length > 0) {
+    for (Pair<String, String> pair : libRTxtFilesAndPackages) {
+      extraPackages.add(pair.getSecond());
+    }
+    if (extraPackages.size() > 0) {
       args.add("--extra-packages");
-      args.add(toPackagesString(extraPackages));
+      args.add(toPackagesString(ArrayUtil.toStringArray(extraPackages)));
     }
 
     if (customPackage != null) {
@@ -179,6 +200,10 @@ public final class AndroidApt {
       args.add(customPackage);
     }
 
+    if (rTxtOutDirOsPath != null) {
+      args.add("--output-text-symbols");
+      args.add(rTxtOutDirOsPath);
+    }
     args.add("-J");
     args.add(outDirOsPath);
     args.add("-M");
@@ -196,8 +221,45 @@ public final class AndroidApt {
       args.add("-G");
       args.add(proguardCfgOutputFileOsPath);
     }
+    final Map<AndroidCompilerMessageKind, List<String>> messages = AndroidExecutionUtil.doExecute(ArrayUtil.toStringArray(args));
     LOG.info(AndroidCommonUtils.command2string(args));
-    return AndroidExecutionUtil.doExecute(ArrayUtil.toStringArray(args));
+
+    if (messages.get(AndroidCompilerMessageKind.ERROR).size() > 0) {
+      return messages;
+    }
+
+    if (optimizeRFile && !libRTxtFilesAndPackages.isEmpty() && rTxtOutDirOsPath != null) {
+      final File rFile = new File(rTxtOutDirOsPath, SdkConstants.FN_RESOURCE_TEXT);
+      // if the project has no resources the file could not exist.
+      if (rFile.isFile()) {
+        final SymbolLoader fullSymbolValues = new SymbolLoader(rFile);
+        fullSymbolValues.load();
+        final MultiMap<String, SymbolLoader> libMap = new MultiMap<String, SymbolLoader>();
+
+        for (Pair<String, String> pair : libRTxtFilesAndPackages) {
+          final File rTextFile = new File(pair.getFirst());
+          final String libPackage = pair.getSecond();
+
+          if (rTextFile.isFile()) {
+            final SymbolLoader libSymbols = new SymbolLoader(rTextFile);
+            libSymbols.load();
+            libMap.putValue(libPackage, libSymbols);
+          }
+        }
+
+        for (Map.Entry<String, Collection<SymbolLoader>> entry : libMap.entrySet()) {
+          final String libPackage = entry.getKey();
+          final Collection<SymbolLoader> symbols = entry.getValue();
+          final SymbolWriter writer = new SymbolWriter(outDirOsPath, libPackage, fullSymbolValues);
+
+          for (SymbolLoader symbolLoader : symbols) {
+            writer.addSymbolsToWrite(symbolLoader);
+          }
+          writer.write();
+        }
+      }
+    }
+    return messages;
   }
 
   @NotNull
@@ -367,4 +429,6 @@ public final class AndroidApt {
     }
     return ArrayUtil.toStringArray(result);
   }
+
+
 }

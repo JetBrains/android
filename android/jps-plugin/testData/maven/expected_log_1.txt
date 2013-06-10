@@ -3,6 +3,8 @@ $ANDROID_SDK_DIR$/platform-tools/aapt.exe
 package
 -m
 --non-constant-id
+--output-text-symbols
+$DATA_STORAGE_ROOT$/android/intermediate_artifacts/lib2/r_txt
 -J
 $AAPT_OUTPUT_TMP$
 -M
@@ -26,6 +28,8 @@ package
 -m
 --non-constant-id
 --auto-add-overlay
+--output-text-symbols
+$DATA_STORAGE_ROOT$/android/intermediate_artifacts/lib1/r_txt
 -J
 $AAPT_OUTPUT_TMP$
 -M
