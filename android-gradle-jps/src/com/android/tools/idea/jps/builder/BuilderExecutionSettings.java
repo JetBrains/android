@@ -26,14 +26,22 @@ import java.io.File;
  * Settings used to build a Gradle project.
  */
 class BuilderExecutionSettings {
-  @Nullable private final File myGradleHomeDir;
-  @NotNull private final File myProjectDir;
   private final boolean myEmbeddedGradleDaemonEnabled;
+  private final int myGradleDaemonMaxIdleTimeInMs;
+  private final int myGradleDaemonMaxMemoryInMb;
+  @Nullable private final File myGradleHomeDir;
+  @Nullable private final File myGradleServiceDir;
+  @NotNull private final File myProjectDir;
+  private final boolean myVerboseLoggingEnabled;
 
   BuilderExecutionSettings() {
-    myGradleHomeDir = findGradleHomeDir();
-    myProjectDir = findProjectRootDir();
     myEmbeddedGradleDaemonEnabled = SystemProperties.getBooleanProperty(BuildProcessJvmArgs.USE_EMBEDDED_GRADLE_DAEMON, false);
+    myGradleDaemonMaxIdleTimeInMs = SystemProperties.getIntProperty(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_IDLE_TIME_IN_MS, -1);
+    myGradleDaemonMaxMemoryInMb = SystemProperties.getIntProperty(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_MEMORY_IN_MB, 512);
+    myGradleHomeDir = findGradleHomeDir();
+    myGradleServiceDir = findGradleServiceDir();
+    myProjectDir = findProjectRootDir();
+    myVerboseLoggingEnabled = SystemProperties.getBooleanProperty(BuildProcessJvmArgs.USE_GRADLE_VERBOSE_LOGGING, false);
   }
 
   @Nullable
@@ -48,6 +56,20 @@ class BuilderExecutionSettings {
       throw new IllegalArgumentException(msg);
     }
     return gradleHomeDir;
+  }
+
+  @Nullable
+  private static File findGradleServiceDir() {
+    File gradleServiceDir = createFile(BuildProcessJvmArgs.GRADLE_SERVICE_DIR_PATH);
+    if (gradleServiceDir == null) {
+      return null;
+    }
+    if (!gradleServiceDir.isDirectory()) {
+      String path = gradleServiceDir.getAbsolutePath();
+      String msg = String.format("Unable to obtain Gradle service directory: the path '%1$s' is not a directory", path);
+      throw new IllegalArgumentException(msg);
+    }
+    return gradleServiceDir;
   }
 
   @NotNull
@@ -76,17 +98,34 @@ class BuilderExecutionSettings {
     return new File(path);
   }
 
+  boolean isEmbeddedGradleDaemonEnabled() {
+    return myEmbeddedGradleDaemonEnabled;
+  }
+
+  boolean isVerboseLoggingEnabled() {
+    return myVerboseLoggingEnabled;
+  }
+
+  int getGradleDaemonMaxIdleTimeInMs() {
+    return myGradleDaemonMaxIdleTimeInMs;
+  }
+
+  int getGradleDaemonMaxMemoryInMb() {
+    return myGradleDaemonMaxMemoryInMb;
+  }
+
   @Nullable
   File getGradleHomeDir() {
     return myGradleHomeDir;
   }
 
+  @Nullable
+  File getGradleServiceDir() {
+    return myGradleServiceDir;
+  }
+
   @NotNull
   File getProjectDir() {
     return myProjectDir;
-  }
-
-  boolean isEmbeddedGradleDaemonEnabled() {
-    return myEmbeddedGradleDaemonEnabled;
   }
 }

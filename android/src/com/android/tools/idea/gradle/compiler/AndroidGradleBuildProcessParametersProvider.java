@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.compiler;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.util.Projects;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.server.BuildProcessParametersProvider;
@@ -124,14 +125,7 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     GradleExecutionSettings executionSettings =
       settingsManager.getExecutionSettings(myProject, projectSettings.getExternalProjectPath(), SYSTEM_ID);
 
-    List<String> vmArgs = Lists.newArrayList();
-    String gradleHome = executionSettings.getGradleHome();
-    if (gradleHome != null && !gradleHome.isEmpty()) {
-      vmArgs.add(createVmArg(BuildProcessJvmArgs.GRADLE_HOME_DIR_PATH, gradleHome));
-    }
-    vmArgs.add(createVmArg(BuildProcessJvmArgs.PROJECT_DIR_PATH, myProject.getBasePath()));
-
-    return vmArgs;
+    return getGradleExecutionSettingsAsVmArgs(executionSettings);
   }
 
   @Nullable
@@ -142,6 +136,35 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
       }
     }
     return null;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  List<String> getGradleExecutionSettingsAsVmArgs(@NotNull GradleExecutionSettings executionSettings) {
+    List<String> vmArgs = Lists.newArrayList();
+
+    long daemonMaxIdleTimeInMs = executionSettings.getRemoteProcessIdleTtlInMs();
+    vmArgs.add(createVmArg(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_IDLE_TIME_IN_MS, String.valueOf(daemonMaxIdleTimeInMs)));
+
+    int daemonMaxMemory = executionSettings.getDaemonXmx();
+    vmArgs.add(createVmArg(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_MEMORY_IN_MB, String.valueOf(daemonMaxMemory)));
+
+    String gradleHome = executionSettings.getGradleHome();
+    if (gradleHome != null && !gradleHome.isEmpty()) {
+      vmArgs.add(createVmArg(BuildProcessJvmArgs.GRADLE_HOME_DIR_PATH, gradleHome));
+    }
+
+    String serviceDirectory = executionSettings.getServiceDirectory();
+    if (serviceDirectory != null && !serviceDirectory.isEmpty()) {
+      vmArgs.add(createVmArg(BuildProcessJvmArgs.GRADLE_SERVICE_DIR_PATH, serviceDirectory));
+    }
+
+    vmArgs.add(createVmArg(BuildProcessJvmArgs.PROJECT_DIR_PATH, myProject.getBasePath()));
+
+    boolean verboseProcessing = executionSettings.isVerboseProcessing();
+    vmArgs.add(createVmArg(BuildProcessJvmArgs.USE_GRADLE_VERBOSE_LOGGING, String.valueOf(verboseProcessing)));
+
+    return vmArgs;
   }
 
   @NotNull
