@@ -31,8 +31,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public class AndroidGradleFacetConfiguration implements FacetConfiguration {
   @NonNls public String GRADLE_PROJECT_PATH;
-  @NonNls public String PROJECT_ABSOLUTE_PATH;
-  @NonNls public String GRADLE_HOME_DIR_PATH;
 
   @NotNull
   @Override
