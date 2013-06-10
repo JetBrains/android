@@ -81,6 +81,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
   private static final int MIN_SDK_TOOLS_REVISION = 19;
 
   public static final Key<Boolean> IS_ENABLED = Key.create("_android_source_generator_enabled_");
+  @NonNls private static final String R_TXT_OUTPUT_DIR_NAME = "r_txt";
 
   public AndroidSourceGeneratingBuilder() {
     super(BuilderCategory.SOURCE_GENERATOR);
@@ -915,14 +916,21 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
         collectResources(resPaths, resources, valueResFilesTimestamps, oldState);
 
         final List<ResourceEntry> manifestElements = collectManifestElements(manifestFile);
+        final List<Pair<String, String>> libRTextFilesAndPackages = new ArrayList<Pair<String, String>>(packageMap.size());
 
-        final Set<String> depLibPackagesSet = new HashSet<String>(packageMap.values());
-        depLibPackagesSet.remove(packageName);
+        for (Map.Entry<JpsModule, String> entry1 : packageMap.entrySet()) {
+          final String libPackage = entry1.getValue();
+
+          if (!packageName.equals(libPackage)) {
+            final String libRTxtFilePath = new File(new File(AndroidJpsUtil.getDirectoryForIntermediateArtifacts(
+              context, entry1.getKey()), R_TXT_OUTPUT_DIR_NAME), SdkConstants.FN_RESOURCE_TEXT).getPath();
+            libRTextFilesAndPackages.add(Pair.create(libRTxtFilePath, libPackage));
+          }
+        }
+        final File outputDirForArtifacts = AndroidJpsUtil.getDirectoryForIntermediateArtifacts(context, module);
         final String proguardOutputCfgFilePath;
 
         if (AndroidJpsUtil.getProGuardConfigIfShouldRun(context, extension) != null) {
-          final File outputDirForArtifacts = AndroidJpsUtil.getDirectoryForIntermediateArtifacts(context, module);
-
           if (AndroidJpsUtil.createDirIfNotExist(outputDirForArtifacts, context, BUILDER_NAME) == null) {
             success = false;
             continue;
@@ -932,9 +940,20 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
         else {
           proguardOutputCfgFilePath = null;
         }
+        String rTxtOutDirOsPath = null;
+
+        if (extension.isLibrary() || libRTextFilesAndPackages.size() > 0) {
+          final File rTxtOutDir = new File(outputDirForArtifacts, R_TXT_OUTPUT_DIR_NAME);
+
+          if (AndroidJpsUtil.createDirIfNotExist(rTxtOutDir, context, BUILDER_NAME) == null) {
+            success = false;
+            continue;
+          }
+          rTxtOutDirOsPath = rTxtOutDir.getPath();
+        }
         final AndroidAptValidityState newState =
-          new AndroidAptValidityState(resources, valueResFilesTimestamps, manifestElements,
-                                      depLibPackagesSet, packageName, proguardOutputCfgFilePath);
+          new AndroidAptValidityState(resources, valueResFilesTimestamps, manifestElements, libRTextFilesAndPackages,
+                                      packageName, proguardOutputCfgFilePath, rTxtOutDirOsPath, extension.isLibrary());
 
         if (newState.equalsTo(oldState)) {
           // we need to update state, because it also contains myValueResFilesTimestamps not taking into account by equalsTo()
@@ -947,9 +966,9 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
         File tmpOutputDir = null;
         try {
           tmpOutputDir = FileUtil.createTempDirectory("android_apt_output", "tmp");
-          final Map<AndroidCompilerMessageKind, List<String>> messages =
-            AndroidApt.compile(target, -1, manifestFile.getPath(), packageName, tmpOutputDir.getPath(), resPaths,
-                               ArrayUtil.toStringArray(depLibPackagesSet), generateNonFinalFields, proguardOutputCfgFilePath);
+          final Map<AndroidCompilerMessageKind, List<String>> messages = AndroidApt.compile(
+            target, -1, manifestFile.getPath(), packageName, tmpOutputDir.getPath(), resPaths, libRTextFilesAndPackages,
+            generateNonFinalFields, proguardOutputCfgFilePath, rTxtOutDirOsPath, !extension.isLibrary());
 
           AndroidJpsUtil.addMessages(context, messages, ANDROID_APT_COMPILER, module.getName());
 

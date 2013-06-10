@@ -1,5 +1,6 @@
 package org.jetbrains.jps.android;
 
+import com.intellij.openapi.util.Pair;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import gnu.trove.TObjectLongHashMap;
@@ -19,27 +20,33 @@ import java.util.*;
  */
 public class AndroidAptValidityState implements ValidityState {
   private static final int SIGNATURE = 0xDEADBEEF;
-  private static final byte VERSION = 0;
+  private static final byte VERSION = 1;
 
   private final Map<String, ResourceFileData> myResources;
   private final TObjectLongHashMap<String> myValueResourceFilesTimestamps;
   private final List<ResourceEntry> myManifestElements;
   private final String myPackageName;
-  private final Set<String> myLibPackages;
+  private final Set<Pair<String, String>> myLibRTxtFilesAndPackages;
   private final String myProguardOutputCfgFile;
+  private final String myRTxtOutputDir;
+  private final boolean myLibrary;
 
   public AndroidAptValidityState(@NotNull Map<String, ResourceFileData> resources,
                                  @NotNull TObjectLongHashMap<String> valueResourceFilesTimestamps,
                                  @NotNull List<ResourceEntry> manifestElements,
-                                 @NotNull Collection<String> libPackages,
+                                 @NotNull Collection<Pair<String, String>> libRTxtFilesAndPackages,
                                  @NotNull String packageName,
-                                 @Nullable String proguardOutputCfgFile) {
+                                 @Nullable String proguardOutputCfgFile,
+                                 @Nullable String rTxtOutputDir,
+                                 boolean library) {
     myResources = resources;
     myValueResourceFilesTimestamps = valueResourceFilesTimestamps;
     myManifestElements = manifestElements;
-    myLibPackages = new HashSet<String>(libPackages);
+    myLibRTxtFilesAndPackages = new HashSet<Pair<String, String>>(libRTxtFilesAndPackages);
     myPackageName = packageName;
     myProguardOutputCfgFile = proguardOutputCfgFile != null ? proguardOutputCfgFile : "";
+    myRTxtOutputDir = rTxtOutputDir != null ? rTxtOutputDir : "";
+    myLibrary = library;
   }
 
   public AndroidAptValidityState(@NotNull DataInput in) throws IOException {
@@ -85,14 +92,17 @@ public class AndroidAptValidityState implements ValidityState {
     }
 
     final int libPackageCount = in.readInt();
-    myLibPackages = new HashSet<String>(libPackageCount);
+    myLibRTxtFilesAndPackages = new HashSet<Pair<String, String>>(libPackageCount);
 
     for (int i = 0; i < libPackageCount; i++) {
+      final String libRTxtFilePath = in.readUTF();
       final String libPackage = in.readUTF();
-      myLibPackages.add(libPackage);
+      myLibRTxtFilesAndPackages.add(Pair.create(libRTxtFilePath, libPackage));
     }
 
     myProguardOutputCfgFile = in.readUTF();
+    myRTxtOutputDir = in.readUTF();
+    myLibrary = in.readBoolean();
 
     final int valueResourceFilesCount = in.readInt();
     myValueResourceFilesTimestamps = new TObjectLongHashMap<String>(valueResourceFilesCount);
@@ -115,8 +125,10 @@ public class AndroidAptValidityState implements ValidityState {
     return otherAndroidState.myPackageName.equals(myPackageName) &&
            otherAndroidState.myResources.equals(myResources) &&
            otherAndroidState.myManifestElements.equals(myManifestElements) &&
-           otherAndroidState.myLibPackages.equals(myLibPackages) &&
-           otherAndroidState.myProguardOutputCfgFile.equals(myProguardOutputCfgFile);
+           otherAndroidState.myLibRTxtFilesAndPackages.equals(myLibRTxtFilesAndPackages) &&
+           otherAndroidState.myProguardOutputCfgFile.equals(myProguardOutputCfgFile) &&
+           otherAndroidState.myRTxtOutputDir.equals(myRTxtOutputDir) &&
+           otherAndroidState.myLibrary == myLibrary;
   }
 
   @Override
@@ -147,12 +159,15 @@ public class AndroidAptValidityState implements ValidityState {
       out.writeUTF(manifestElement.getName());
       out.writeUTF(manifestElement.getContext());
     }
-    out.writeInt(myLibPackages.size());
+    out.writeInt(myLibRTxtFilesAndPackages.size());
 
-    for (String libPackage : myLibPackages) {
-      out.writeUTF(libPackage);
+    for (Pair<String, String> pair : myLibRTxtFilesAndPackages) {
+      out.writeUTF(pair.getFirst());
+      out.writeUTF(pair.getSecond());
     }
     out.writeUTF(myProguardOutputCfgFile);
+    out.writeUTF(myRTxtOutputDir);
+    out.writeBoolean(myLibrary);
 
     out.writeInt(myValueResourceFilesTimestamps.size());
 
