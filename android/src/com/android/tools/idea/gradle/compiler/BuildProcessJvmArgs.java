@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.jps.model.impl;
+package com.android.tools.idea.gradle.compiler;
 
 import org.jetbrains.annotations.NonNls;
 
 /**
- * Configuration options for the Android-Gradle facet, available to JPS builders.
+ * JVM arguments passed to the build process, when building a Gradle project.
  */
-public class JpsAndroidGradleModuleProperties {
-  @NonNls public String GRADLE_PROJECT_PATH;
+public class BuildProcessJvmArgs {
+  @NonNls public static final String GRADLE_HOME_DIR_PATH = "com.android.studio.gradle.home.path";
+  @NonNls public static final String PROJECT_DIR_PATH = "com.android.studio.gradle.project.path";
+  @NonNls public static final String USE_EMBEDDED_GRADLE_DAEMON = "com.android.studio.gradle.use.embedded.daemon";
 }
