@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.tools.idea.startup;
+package com.android.tools.idea.sdk;
 
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
