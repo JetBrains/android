@@ -107,6 +107,7 @@ public class AndroidCommonUtils {
 
   @NonNls public static final String MANIFEST_MERGING_BUILD_TARGET_TYPE_ID = "android-manifest-merging";
   @NonNls public static final String DEX_BUILD_TARGET_TYPE_ID = "android-dex";
+  @NonNls public static final String PRE_DEX_BUILD_TARGET_TYPE_ID = "android-pre-dex";
   @NonNls public static final String PACKAGING_BUILD_TARGET_TYPE_ID = "android-packaging";
   @NonNls public static final String RESOURCE_CACHING_BUILD_TARGET_ID = "android-resource-caching";
   @NonNls public static final String RESOURCE_PACKAGING_BUILD_TARGET_ID = "android-resource-packaging";
