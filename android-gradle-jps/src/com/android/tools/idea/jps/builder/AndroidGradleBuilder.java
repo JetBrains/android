@@ -63,6 +63,7 @@ import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Builds an IDEA project using Gradle.
@@ -71,8 +72,8 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
   private static final Logger LOG = Logger.getInstance(AndroidGradleBuilder.class);
   private static final GradleErrorOutputParser ERROR_OUTPUT_PARSER = new GradleErrorOutputParser();
 
-  @NonNls private static final String ANDROID_HOME_JVM_ARG_FORMAT_WIN = "\"-Dandroid.home=%1$s\"";
-  @NonNls private static final String ANDROID_HOME_JVM_ARG_FORMAT_UNIX = "-Dandroid.home=%1$s";
+  @NonNls private static final String JVM_ARG_FORMAT = "-D%1$s=%2$s";
+  @NonNls private static final String JVM_ARG_WITH_QUOTED_VALUE_FORMAT = "-D%1$s=\"%2$s\"";
 
   @NonNls private static final String BUILDER_NAME = "Android Gradle Builder";
   @NonNls private static final String DEFAULT_ASSEMBLE_TASKNAME = "assemble";
@@ -105,9 +106,8 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
    * Builds a project using Gradle.
    *
    * @return {@link ExitCode#OK} if compilation with Gradle succeeds without errors.
-   * @throws ProjectBuildException if something goes wrong while invoking Gradle or if there are
-   *                               compilation errors. Compilation errors are displayed in IDEA's
-   *                               "Problems" view.
+   * @throws ProjectBuildException if something goes wrong while invoking Gradle or if there are compilation errors. Compilation errors are
+   *                               displayed in IDEA's "Problems" view.
    */
   @NotNull
   @Override
@@ -238,26 +238,32 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
                                   @NotNull String[] buildTasks,
                                   @NotNull BuilderExecutionSettings executionSettings,
                                   @Nullable String androidHome) throws ProjectBuildException {
-    GradleConnector connector = GradleConnector.newConnector();
-    if (connector instanceof DefaultGradleConnector && executionSettings.isEmbeddedGradleDaemonEnabled()) {
-      LOG.info("Using Gradle embedded mode.");
-      ((DefaultGradleConnector)connector).embedded(true);
-    }
-    connector.forProjectDirectory(executionSettings.getProjectDir());
-    File gradleHomeDir = executionSettings.getGradleHomeDir();
-    if (gradleHomeDir != null) {
-      connector.useInstallation(gradleHomeDir);
-    }
+    GradleConnector connector = getGradleConnector(executionSettings);
+
     ProjectConnection connection = connector.connect();
     ByteArrayOutputStream stdout = new ByteArrayOutputStream();
     ByteArrayOutputStream stderr = new ByteArrayOutputStream();
+
     try {
       BuildLauncher launcher = connection.newBuild();
       launcher.forTasks(buildTasks);
+
+      List<String> jvmArgs = Lists.newArrayList();
+
       if (androidHome != null && !androidHome.isEmpty()) {
         String androidSdkArg = getAndroidHomeJvmArg(androidHome);
-        launcher.setJvmArguments(androidSdkArg);
+        jvmArgs.add(androidSdkArg);
       }
+
+      int xmx = executionSettings.getGradleDaemonMaxMemoryInMb();
+      if (xmx > 0) {
+        jvmArgs.add(String.format("-Xmx%dm", xmx));
+      }
+
+      if (!jvmArgs.isEmpty()) {
+        launcher.setJvmArguments(jvmArgs.toArray(new String[jvmArgs.size()]));
+      }
+
       launcher.setStandardOutput(stdout);
       launcher.setStandardError(stderr);
       launcher.run();
@@ -272,14 +278,51 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
       Closeables.closeQuietly(stderr);
       connection.close();
     }
+
     return ExitCode.OK;
   }
 
   @NotNull
+  private static GradleConnector getGradleConnector(@NotNull BuilderExecutionSettings executionSettings) {
+    GradleConnector connector = GradleConnector.newConnector();
+    if (connector instanceof DefaultGradleConnector) {
+      DefaultGradleConnector defaultConnector = (DefaultGradleConnector)connector;
+
+      if (executionSettings.isEmbeddedGradleDaemonEnabled()) {
+        LOG.info("Using Gradle embedded mode.");
+        defaultConnector.embedded(true);
+      }
+
+      defaultConnector.setVerboseLogging(executionSettings.isVerboseLoggingEnabled());
+
+      int daemonMaxIdleTimeInMs = executionSettings.getGradleDaemonMaxIdleTimeInMs();
+      if (daemonMaxIdleTimeInMs > 0) {
+        defaultConnector.daemonMaxIdleTime(daemonMaxIdleTimeInMs, TimeUnit.MILLISECONDS);
+      }
+    }
+
+    connector.forProjectDirectory(executionSettings.getProjectDir());
+
+    File gradleHomeDir = executionSettings.getGradleHomeDir();
+    if (gradleHomeDir != null) {
+      connector.useInstallation(gradleHomeDir);
+    }
+
+    File gradleServiceDir = executionSettings.getGradleServiceDir();
+    if (gradleServiceDir != null) {
+      connector.useGradleUserHomeDir(gradleServiceDir);
+    }
+
+    return connector;
+  }
+
+  @NotNull
   private static String getAndroidHomeJvmArg(@NotNull String androidHome) {
-    boolean isWin = File.separator.equals("\\");
-    String argName = isWin ? ANDROID_HOME_JVM_ARG_FORMAT_WIN : ANDROID_HOME_JVM_ARG_FORMAT_UNIX;
-    return String.format(argName, androidHome);
+    String format = JVM_ARG_FORMAT;
+    if (androidHome.contains(" ")) {
+      format = JVM_ARG_WITH_QUOTED_VALUE_FORMAT;
+    }
+    return String.format(format, "android.home", androidHome);
   }
 
   /**
