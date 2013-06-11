@@ -253,7 +253,8 @@ public final class AndroidSdkUtils {
         }
       }
     }
-    return promptUserForSdkCreation(null, sdkPath, null);
+    String jdkPath = jdk == null ? null : jdk.getHomePath();
+    return promptUserForSdkCreation(null, sdkPath, jdkPath);
   }
 
   @Nullable
