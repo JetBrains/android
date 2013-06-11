@@ -60,7 +60,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
   }
 
   @Override
-  public void performPreRunActivities(List<Tools> globalTools, List<Tools> localTools, final GlobalInspectionContext context) {
+  public void performPreRunActivities(@NotNull List<Tools> globalTools, @NotNull List<Tools> localTools, @NotNull final GlobalInspectionContext context) {
     final Project project = context.getProject();
 
     if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
