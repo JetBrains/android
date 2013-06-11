@@ -52,7 +52,12 @@ public class AndroidLibraryPackagingTarget extends AndroidBuildTarget {
 
   @NotNull
   public File getOutputFile(CompileContext context) {
-    final File dir = AndroidJpsUtil.getDirectoryForIntermediateArtifacts(context, myModule);
+    return getOutputFile(context.getProjectDescriptor().dataManager.getDataPaths());
+  }
+
+  @NotNull
+  public File getOutputFile(BuildDataPaths dataPaths) {
+    final File dir = AndroidJpsUtil.getDirectoryForIntermediateArtifacts(dataPaths, myModule);
     return new File(dir, AndroidCommonUtils.CLASSES_JAR_FILE_NAME);
   }
 

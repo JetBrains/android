@@ -170,9 +170,14 @@ public class AndroidJpsUtil {
 
   @NotNull
   public static File getDirectoryForIntermediateArtifacts(@NotNull BuildDataPaths dataPaths,
-                                                           @NotNull JpsModule module) {
+                                                          @NotNull JpsModule module) {
+    return new File(getDirectoryForIntermediateArtifacts(dataPaths), module.getName());
+  }
+
+  @NotNull
+  public static File getDirectoryForIntermediateArtifacts(@NotNull BuildDataPaths dataPaths) {
     final File androidStorage = new File(dataPaths.getDataStorageRoot(), ANDROID_STORAGE_DIR);
-    return new File(new File(androidStorage, INTERMEDIATE_ARTIFACTS_STORAGE), module.getName());
+    return new File(androidStorage, INTERMEDIATE_ARTIFACTS_STORAGE);
   }
 
   @Nullable
@@ -299,7 +304,7 @@ public class AndroidJpsUtil {
           if (processor.isToProcess(AndroidDependencyType.ANDROID_LIBRARY_PACKAGE)) {
             final File intArtifactsDir = getDirectoryForIntermediateArtifacts(paths, depModule);
             final File packagedClassesJar = new File(intArtifactsDir, AndroidCommonUtils.CLASSES_JAR_FILE_NAME);
-            processor.processAndroidLibraryPackage(packagedClassesJar);
+            processor.processAndroidLibraryPackage(packagedClassesJar, depModule);
           }
           if (processor.isToProcess(AndroidDependencyType.ANDROID_LIBRARY_OUTPUT_DIRECTORY)) {
             if (depClassDir != null) {
