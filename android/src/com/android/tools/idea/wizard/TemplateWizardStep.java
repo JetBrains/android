@@ -93,8 +93,10 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       s.replaceAll("\n", "<br>");
     }
     JLabel label = getDescription();
-    label.setText(s);
-    growLabelIfNecessary(label);
+    if (label != null) {
+      label.setText(s);
+      growLabelIfNecessary(label);
+    }
   }
 
   /** Override this to return a {@link JTextArea} that displays a validation error message. */
@@ -110,8 +112,10 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       s.replaceAll("\n", "<br>");
     }
     JLabel label = getError();
-    label.setText(s);
-    growLabelIfNecessary(label);
+    if (label != null) {
+      label.setText(s);
+      growLabelIfNecessary(label);
+    }
   }
 
   /**
