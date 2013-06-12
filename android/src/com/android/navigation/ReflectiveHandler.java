@@ -34,6 +34,7 @@ class ReflectiveHandler extends DefaultHandler {
   private final List<String> classImports = new ArrayList<String>(DEFAULT_CLASSES);
   private final ErrorHandler errorHandler;
   private final Stack<Object> stack;
+  private final Map<String, Object> idToValue = new HashMap<String, Object>();
 
   private Locator documentLocator;
   public Object result;
@@ -82,7 +83,8 @@ class ReflectiveHandler extends DefaultHandler {
     throw new ClassNotFoundException("Could not find class for tag: " + tag);
   }
 
-  private static class PropertyAnnotationNotFoundException extends Exception {}
+  private static class PropertyAnnotationNotFoundException extends Exception {
+  }
 
   private static String getName(Annotation[] parameterAnnotation) throws PropertyAnnotationNotFoundException {
     for (Annotation a : parameterAnnotation) {
@@ -133,16 +135,16 @@ class ReflectiveHandler extends DefaultHandler {
   }
 
   private static Object[] getArguments(Constructor constructor, Map<String, String> attributes) throws
-                                                                                         NoSuchMethodException,
-                                                                                         IllegalAccessException,
-                                                                                         InvocationTargetException,
-                                                                                         InstantiationException,
-                                                                                         PropertyAnnotationNotFoundException {
+                                                                                                NoSuchMethodException,
+                                                                                                IllegalAccessException,
+                                                                                                InvocationTargetException,
+                                                                                                InstantiationException,
+                                                                                                PropertyAnnotationNotFoundException {
     Class[] types = constructor.getParameterTypes();
     Annotation[][] annotations = constructor.getParameterAnnotations();
     Object[] result = new Object[annotations.length];
     for (int i = 0; i < annotations.length; i++) {
-        result[i] = valueFor(types[i], attributes.remove(getName(annotations[i]))); // note destructive
+      result[i] = valueFor(types[i], attributes.remove(getName(annotations[i]))); // note destructive
     }
     return result;
   }
@@ -162,7 +164,8 @@ class ReflectiveHandler extends DefaultHandler {
     getSetter(outer.getClass(), propertyName).invoke(outer, instance);
   }
 
-  private static void applyMethod(Object target, String methodName, Object parameter) throws InvocationTargetException, IllegalAccessException {
+  private static void applyMethod(Object target, String methodName, Object parameter)
+    throws InvocationTargetException, IllegalAccessException {
     Class targetType = target.getClass();
     Class parameterType = parameter.getClass();
     for (Method m : targetType.getMethods()) {
@@ -177,11 +180,11 @@ class ReflectiveHandler extends DefaultHandler {
   }
 
   private void handleWarning(Exception e) throws SAXException {
-    errorHandler.warning(new SAXParseException(e.getMessage(), documentLocator , e));
+    errorHandler.warning(new SAXParseException(e.getMessage(), documentLocator, e));
   }
 
   private void handleError(Exception e) throws SAXException {
-    errorHandler.error(new SAXParseException(e.getMessage(), documentLocator , e));
+    errorHandler.error(new SAXParseException(e.getMessage(), documentLocator, e));
   }
 
   private static Method getSetter(Class<?> type, String propertyName) throws NoSuchMethodException {
@@ -195,34 +198,46 @@ class ReflectiveHandler extends DefaultHandler {
   @Override
   public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
     Map<String, String> nameToValue = Utilities.toMap(attributes);
-    String nameSpace = nameToValue.remove("xmlns"); // note destructive
+    String nameSpace = nameToValue.remove(Utilities.NAME_SPACE_TAG); // note destructive
     if (nameSpace != null) {
       processNameSpace(nameSpace);
     }
     try {
-      Class clz = getClassForName(qName);
-      Object instance = createInstance(clz, nameToValue);
+      String idref = nameToValue.remove(Utilities.IDREF_ATTRIBUTE_NAME); // note destructive
+      Object instance;
+      if (idref != null) {
+        instance = idToValue.get(idref);
+      }
+      else {
+        instance = createInstance(getClassForName(qName), nameToValue);
+      }
+      String id = nameToValue.remove(Utilities.ID_ATTRIBUTE_NAME); // note destructive
+      if (id != null) {
+        idToValue.put(id, instance);
+      }
 
       if (stack.size() != 0) {
         installInOuter(stack.getLast(), nameToValue.remove(Utilities.PROPERTY_ATTRIBUTE_NAME), instance); // note destructive
       }
-      for (Map.Entry<String, String> entry : nameToValue.entrySet()) {
-        try {
-          Method setter = getSetter(instance.getClass(), entry.getKey());
-          Class argType = Utilities.wrapperForPrimitiveType(setter.getParameterTypes()[0]);
-          setter.invoke(instance, valueFor(argType, entry.getValue()));
-        }
-        catch (NoSuchMethodException e) {
-          handleWarning(e);
-        }
-        catch (IllegalAccessException e) {
-          handleWarning(e);
-        }
-        catch (InvocationTargetException e) {
-          handleWarning(e);
-        }
-        catch (InstantiationException e) {
-          handleWarning(e);
+      if (idref == null) {
+        for (Map.Entry<String, String> entry : nameToValue.entrySet()) {
+          try {
+            Method setter = getSetter(instance.getClass(), entry.getKey());
+            Class argType = Utilities.wrapperForPrimitiveType(setter.getParameterTypes()[0]);
+            setter.invoke(instance, valueFor(argType, entry.getValue()));
+          }
+          catch (NoSuchMethodException e) {
+            handleWarning(e);
+          }
+          catch (IllegalAccessException e) {
+            handleWarning(e);
+          }
+          catch (InvocationTargetException e) {
+            handleWarning(e);
+          }
+          catch (InstantiationException e) {
+            handleWarning(e);
+          }
         }
       }
       stack.push(instance);
