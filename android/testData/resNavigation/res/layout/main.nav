@@ -1,7 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<NavigationModel xmlns = "http://schemas.android.com?import=com.android.navigation.*">
+<NavigationModel
+ ns = "http://schemas.android.com?import=com.android.navigation.*"
+>
  <Transition
-    destination = "fragment_conversation.xml"
-    gesture = ""
-    source = "activity_account.xml"/>
+  type = ""
+ >
+  <State
+   outer.property = "destination"
+   controllerClassName = "account_activity.xml"
+   xmlResourceName = "account_activity.xml"
+  />
+  <State
+   outer.property = "source"
+   id = "0"
+   controllerClassName = "account_activity.xml"
+   xmlResourceName = "account_activity.xml"
+  />
+ </Transition>
+ <Transition
+  type = ""
+ >
+  <State
+   outer.property = "destination"
+   controllerClassName = "conversation_fragment.xml"
+   xmlResourceName = "conversation_fragment.xml"
+  />
+  <State
+   outer.property = "source"
+   idref = "0"
+  />
+ </Transition>
 </NavigationModel>

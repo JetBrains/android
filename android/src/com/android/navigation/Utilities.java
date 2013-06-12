@@ -22,7 +22,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 class Utilities {
+  public static final String ID_ATTRIBUTE_NAME = "id";
+  public static final String IDREF_ATTRIBUTE_NAME = "idref";
   public static final String PROPERTY_ATTRIBUTE_NAME = "outer.property";
+  public static final String NAME_SPACE_TAG = "ns";
 
   public static Map<String, String> toMap(Attributes attributes) {
     Map<String, String> nameToValue = new LinkedHashMap<String, String>();

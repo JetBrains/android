@@ -41,10 +41,10 @@ public class NavigationModelEditorPanel1 extends JPanel {
 
   private void update() {
     Transition current = getCurrentNavigation();
-    VirtualFile source = myFileSystem.findFileByPath(myPath + "/" + current.source);
-    VirtualFile destination = myFileSystem.findFileByPath(myPath + "/" + current.destination);
+    VirtualFile source = myFileSystem.findFileByPath(myPath + "/" + current.getSource());
+    VirtualFile destination = myFileSystem.findFileByPath(myPath + "/" + current.getDestination());
     mySourcePreviewPanel.render(myProject, source);
-    myGestureComboBox.setSelectedItem(current.gesture);
+    myGestureComboBox.setSelectedItem(current.getType());
     myDestPreviewPanel.render(myProject, destination);
   }
 
@@ -60,7 +60,7 @@ public class NavigationModelEditorPanel1 extends JPanel {
   private int findFirstNavWith(String name, boolean source) {
     for(int i = 0 ; i < myNavigationModel.size(); i++) {
       Transition nav = myNavigationModel.get(i);
-      String field = source ? nav.source : nav.destination;
+      String field = (source ? nav.getSource() : nav.getDestination()).getControllerClassName();
       if (field.equals(name)) {
         return i;
       }
@@ -145,7 +145,7 @@ public class NavigationModelEditorPanel1 extends JPanel {
   }
 
   private void left() {
-    int next = findFirstNavWith(getCurrentNavigation().source, false);
+    int next = findFirstNavWith(getCurrentNavigation().getSource().getControllerClassName(), false);
     if (next != -1) {
       setCursor(next);
     } else {
@@ -154,7 +154,7 @@ public class NavigationModelEditorPanel1 extends JPanel {
   }
 
   private void right() {
-    int next = findFirstNavWith(getCurrentNavigation().destination, true);
+    int next = findFirstNavWith(getCurrentNavigation().getDestination().getControllerClassName(), true);
     if (next != -1) {
       setCursor(next);
     } else {
