@@ -172,8 +172,8 @@
             <properties>
               <background color="-1118482"/>
               <text value=""/>
-              <verticalAlignment value="1"/>
-              <verticalTextPosition value="1"/>
+              <verticalAlignment value="3"/>
+              <verticalTextPosition value="3"/>
             </properties>
           </component>
         </children>
