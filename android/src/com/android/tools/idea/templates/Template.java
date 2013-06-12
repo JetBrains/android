@@ -24,6 +24,8 @@ import com.android.manifmerger.ICallback;
 import com.android.manifmerger.ManifestMerger;
 import com.android.manifmerger.MergerLog;
 import com.android.resources.ResourceFolderType;
+import com.android.sdklib.AndroidTargetHash;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
 import com.android.utils.NullLogger;
@@ -900,10 +902,19 @@ public class Template {
 
     @Override
     public int queryCodenameApiLevel(@NotNull String codename) {
-        IAndroidTarget t = AndroidSdkUtils.tryToChooseAndroidSdk().getTargetFromHashString(IAndroidTarget.PLATFORM_HASH_PREFIX + codename);
-        if (t != null) {
-          return t.getVersion().getApiLevel();
+      try {
+        AndroidVersion version = new AndroidVersion(codename);
+        String hashString = AndroidTargetHash.getPlatformHashString(version);
+        SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
+        if (sdkManager != null) {
+          IAndroidTarget t = sdkManager.getTargetFromHashString(hashString);
+          if (t != null) {
+            return t.getVersion().getApiLevel();
+          }
         }
+      }
+      catch (AndroidVersion.AndroidVersionException ignore) {
+      }
       return ICallback.UNKNOWN_CODENAME;
     }
   }
