@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.navigation;
 
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -30,11 +31,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
-import static java.awt.RenderingHints.*;
-
 public class AndroidRootComponent extends JComponent {
   private static final Object RENDERING_LOCK = new Object();
-  @NotNull
   private RenderResult myRenderResult = null;
   private double myScale;
 
@@ -64,6 +62,7 @@ public class AndroidRootComponent extends JComponent {
     //}
     BufferedImage image = getImage();
     if (image != null) {
+      /*
       if (false) {
         Graphics2D g2 = (Graphics2D)g;
         g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BICUBIC);
@@ -75,9 +74,8 @@ public class AndroidRootComponent extends JComponent {
       if (false) {
         g.drawImage(image, 0, 0, getWidth(), getHeight(), null);
       }
-      if (true) {
-        g.drawImage(ImageUtils.scale(image, myScale, myScale, 0, 0), 0, 0, getWidth(), getHeight(), null);
-      }
+      */
+      g.drawImage(ImageUtils.scale(image, myScale, myScale, 0, 0), 0, 0, getWidth(), getHeight(), null);
     }
   }
 
@@ -89,7 +87,7 @@ public class AndroidRootComponent extends JComponent {
   }
 
   public void render(@NotNull final Project project, @NotNull final VirtualFile file) {
-    Thread thread = new Thread(new Runnable() {
+    ApplicationManager.getApplication().runReadAction(new Runnable() {
       @Override
       public void run() {
         PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
@@ -111,8 +109,5 @@ public class AndroidRootComponent extends JComponent {
         }
       }
     });
-    //thread.setPriority(1);
-    thread.run();
-    //repaint();
   }
 }

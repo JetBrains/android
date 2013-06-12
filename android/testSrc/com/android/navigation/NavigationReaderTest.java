@@ -22,14 +22,17 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 public class NavigationReaderTest extends TestCase {
-  /*
   public void test1() throws FileNotFoundException {
-    Object result = XMLFileReader.read(new FileInputStream("../adt/idea/android/testData/resNavigation/res/layout/main.nav"));
+    FileInputStream stream = new FileInputStream("../adt/idea/android/testData/resNavigation/res/layout/main.nav");
+    XMLReader reader = new XMLReader(stream);
+    Object result = reader.read();
     System.out.println("result = " + result);
-    assertTrue(result != null);
-  }
-  */
 
+    XMLWriter writer = new XMLWriter(System.out);
+    writer.write(result);
+  }
+
+  /*
   public void test2() throws FileNotFoundException {
     FileInputStream stream = new FileInputStream("../adt/idea/android/testData/resNavigation/res/xml/test.xml");
     XMLReader reader = new XMLReader(stream);
@@ -37,4 +40,9 @@ public class NavigationReaderTest extends TestCase {
     System.out.println("result = " + result);
     assertTrue(result != null);
   }
+  */
+
+  //public static void main(String[] args) throws FileNotFoundException {
+  //  new NavigationReaderTest().test1();
+  //}
 }
