@@ -18,43 +18,47 @@ package com.android.navigation;
 import com.android.annotations.Property;
 
 public class Transition {
-  public final String source;
-  public final String view;
-  public final String gesture;
-  public final String destination;
+  private String type;
+  private State source;
+  private State destination;
 
-  public Transition(@Property("source") String source,
-                    @Property("view") String view,
-                    @Property("gesture") String gesture,
-                    @Property("destination") String destination) {
+  public Transition(@Property("gesture")     String type,
+                    @Property("source")      State source,
+                    @Property("destination") State destination) {
+    this.type = type;
     this.source = source;
-    this.view = view;
-    this.gesture = gesture;
     this.destination = destination;
   }
 
-  public String getSource() {
+  public State getSource() {
     return source;
   }
 
-  public String getView() {
-    return view;
+  public void setSource(State source) {
+    this.source = source;
   }
 
-  public String getGesture() {
-    return gesture;
+  public String getType() {
+    return type;
   }
 
-  public String getDestination() {
+  public void setType(String type) {
+    this.type = type;
+  }
+
+  public State getDestination() {
     return destination;
+  }
+
+  public void setDestination(State destination) {
+    this.destination = destination;
   }
 
   @Override
   public String toString() {
     return "Navigation{" +
            "source='" + source + '\'' +
-           ", view='" + view + '\'' +
-           ", gesture='" + gesture + '\'' +
+           ", gesture='" + type + '\'' +
            ", destination='" + destination + '\'' +
            '}';
   }
