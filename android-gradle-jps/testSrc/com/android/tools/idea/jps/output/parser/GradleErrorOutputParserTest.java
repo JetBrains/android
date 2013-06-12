@@ -33,6 +33,8 @@ import java.util.Collection;
  * Tests for {@link GradleErrorOutputParser}.
  */
 public class GradleErrorOutputParserTest extends TestCase {
+  private static final String NEWLINE = SystemProperties.getLineSeparator();
+
   private File sourceFile;
   private String sourceFilePath;
   private GradleErrorOutputParser parser;
@@ -222,10 +224,10 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "  public static void main(String[] args) {",
                 "    int v2 = v4");
     StringBuilder err = new StringBuilder();
-    err.append(sourceFilePath).append(":3: error: ").append("cannot find symbol").append(SystemProperties.getLineSeparator())
-       .append("symbol  : variable v4").append(SystemProperties.getLineSeparator())
-       .append("location: Test").append(SystemProperties.getLineSeparator())
-       .append("    int v2 = v4").append(SystemProperties.getLineSeparator())
+    err.append(sourceFilePath).append(":3: error: ").append("cannot find symbol").append(NEWLINE)
+       .append("symbol  : variable v4").append(NEWLINE)
+       .append("location: Test").append(NEWLINE)
+       .append("    int v2 = v4").append(NEWLINE)
        .append("             ^");
     Collection<CompilerMessage> messages = parser.parseErrorOutput(err.toString());
     assertHasCorrectErrorMessage(messages, "error: cannot find symbol variable v4", 3, 14);
@@ -237,11 +239,47 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "  public static void main(String[] args) {",
                 "    System.out.println();asd");
     StringBuilder err = new StringBuilder();
-    err.append(sourceFilePath).append(":3: error: ").append("not a statement").append(SystemProperties.getLineSeparator())
-       .append("    System.out.println();asd").append(SystemProperties.getLineSeparator())
-       .append("                         ^").append(SystemProperties.getLineSeparator());
+    err.append(sourceFilePath).append(":3: error: ").append("not a statement").append(NEWLINE)
+       .append("    System.out.println();asd").append(NEWLINE)
+       .append("                         ^").append(NEWLINE);
     Collection<CompilerMessage> messages = parser.parseErrorOutput(err.toString());
     assertHasCorrectErrorMessage(messages, "error: not a statement", 3, 26);
+  }
+
+  public void testParseGradleBuildFileOutput() throws IOException {
+    createTempFile(".gradle");
+    writeToFile("buildscript {",
+                "    repositories {",
+                "        mavenCentral()",
+                "    }",
+                "    dependencies {",
+                "        classpath 'com.android.tools.build:gradle:0.4'",
+                "    }",
+                "}",
+                "ERROR plugin: 'android'");
+    StringBuilder err = new StringBuilder();
+    err.append("FAILURE: Build failed with an exception.").append(NEWLINE).append(NEWLINE);
+    err.append("* Where:").append(NEWLINE);
+    err.append("Build file '").append(sourceFilePath).append("' line: 9").append(NEWLINE).append(NEWLINE);
+    err.append("* What went wrong:").append(NEWLINE);
+    err.append("A problem occurred evaluating project ':project'.").append(NEWLINE);
+    err.append("> Could not find method ERROR() for arguments [{plugin=android}] on project ':project'.").append(NEWLINE).append(NEWLINE);
+    err.append("* Try:").append(NEWLINE);
+    err.append("Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.").append(
+      NEWLINE).append(NEWLINE);
+    err.append("BUILD FAILED").append(NEWLINE).append(NEWLINE);
+    err.append("Total time: 18.303 secs\n");
+    Collection<CompilerMessage> messages = parser.parseErrorOutput(err.toString());
+    assertHasCorrectErrorMessage(messages, "A problem occurred evaluating project ':project'." + NEWLINE +
+                                           "> Could not find method ERROR() for arguments [{plugin=android}] on project ':project'.", 9, 0);
+  }
+
+  public void testParseXmlValidationErrorOutput() {
+    StringBuilder err = new StringBuilder();
+    err.append("[Fatal Error] :5:7: The element type \"error\" must be terminated by the matching end-tag \"</error>\".").append(NEWLINE);
+    err.append("FAILURE: Build failed with an exception.").append(NEWLINE);
+    Collection<CompilerMessage> messages = parser.parseErrorOutput(err.toString());
+    assertHasCorrectErrorMessage(messages, "The element type \"error\" must be terminated by the matching end-tag \"</error>\".", 5, 7);
   }
 
   private void createTempFile(String fileExtension) throws IOException {

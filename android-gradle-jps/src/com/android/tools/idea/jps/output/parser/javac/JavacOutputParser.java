@@ -67,7 +67,7 @@ public class JavacOutputParser implements CompilerOutputParser {
         File file = new File(part1);
         if (!file.isFile()) {
           // the part one is not a file path.
-          return true;
+          return false;
         }
         try {
           int lineNumber = Integer.parseInt(line.substring(colonIndex1 + 1, colonIndex2).trim());
