@@ -128,4 +128,17 @@ class BuilderExecutionSettings {
   File getProjectDir() {
     return myProjectDir;
   }
+
+  @Override
+  public String toString() {
+    return "BuilderExecutionSettings[" +
+           "embeddedGradleDaemonEnabled=" + myEmbeddedGradleDaemonEnabled +
+           ", gradleDaemonMaxIdleTimeInMs=" + myGradleDaemonMaxIdleTimeInMs +
+           ", gradleDaemonMaxMemoryInMb=" + myGradleDaemonMaxMemoryInMb +
+           ", gradleHomeDir=" + myGradleHomeDir +
+           ", gradleServiceDir=" + myGradleServiceDir +
+           ", projectDir=" + myProjectDir +
+           ", verboseLoggingEnabled=" + myVerboseLoggingEnabled +
+           ']';
+  }
 }
