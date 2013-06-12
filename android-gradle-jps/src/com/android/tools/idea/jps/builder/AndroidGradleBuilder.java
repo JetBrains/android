@@ -142,6 +142,8 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
       throw new ProjectBuildException(e);
     }
 
+    LOG.info("Using execution settings: " + executionSettings);
+
     String androidHome = getAndroidHome(context, chunk);
 
     String format = "About to build project '%1$s' located at %2$s";
