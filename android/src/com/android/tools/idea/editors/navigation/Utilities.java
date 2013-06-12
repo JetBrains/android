@@ -45,4 +45,66 @@ public class Utilities {
   public static Point centre(Component c) {
     return centre(c.getBounds());
   }
+
+  /**
+   * Translates a Java file name to a XML file name according
+   * to Android naming convention.
+   *
+   * @return XML file name associated with Java file name
+   */
+  public static String getXmlFileNameFromJavaFileName(String javaFileName) {
+
+    if (javaFileName.endsWith(".java")) {
+      // cut off ".java"
+      javaFileName = javaFileName.substring(0, javaFileName.length() - 5);
+    }
+
+    char[] charsJava = javaFileName.toCharArray();
+    StringBuilder stringBuilder = new StringBuilder();
+    for (int i = 0; i < charsJava.length; i++) {
+      char currentChar = charsJava[i];
+      if (Character.isUpperCase(currentChar) && i != 0) {
+        stringBuilder.append('_');
+      }
+      stringBuilder.append(Character.toLowerCase(currentChar));
+    }
+
+    // append ".xml"
+    stringBuilder.append(".xml");
+    return stringBuilder.toString();
+  }
+
+  /**
+   * Translates a XML file name to a Java file name according
+   * to Android naming convention.
+   *
+   * @return Java file name associated with XML file name
+   */
+  public static String getJavaFileNameFromXmlFileName(String xmlFileName) {
+
+    if (xmlFileName.endsWith(".xml")) {
+      // cut off ".xm"
+      xmlFileName = xmlFileName.substring(0, xmlFileName.length() - 4);
+    }
+
+    char[] charsXml = xmlFileName.toCharArray();
+    StringBuilder stringBuilder = new StringBuilder();
+    // make the first char upper case
+    stringBuilder.append(Character.toUpperCase(charsXml[0]));
+    // start looking for '_' at the second char
+    for (int i = 1; i < charsXml.length; i++) {
+      char currentChar = charsXml[i];
+      if (currentChar == '_') {
+        // skip '_' and add the next char as upper case
+        char toAppend = Character.toUpperCase(charsXml[++i]);
+        stringBuilder.append(toAppend);
+      } else {
+        stringBuilder.append(currentChar);
+      }
+    }
+
+    // append ".java"
+    stringBuilder.append(".java");
+    return stringBuilder.toString();
+  }
 }
