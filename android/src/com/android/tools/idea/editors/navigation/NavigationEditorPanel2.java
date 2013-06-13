@@ -44,7 +44,7 @@ import java.awt.geom.AffineTransform;
 import java.util.*;
 import java.util.List;
 
-public class NavigationModelEditorPanel2 extends JComponent {
+public class NavigationEditorPanel2 extends JComponent {
   private static final Dimension GAP = new Dimension(150, 50);
   private static final double SCALE = 0.333333;
   private static final EmptyBorder LABEL_BORDER = new EmptyBorder(0, 5, 0, 5);
@@ -74,7 +74,7 @@ public class NavigationModelEditorPanel2 extends JComponent {
 
     protected abstract void paint(Graphics g);
 
-    private static Selection create(NavigationModelEditorPanel2 editor, Point mouseDownLocation, boolean relation) {
+    private static Selection create(NavigationEditorPanel2 editor, Point mouseDownLocation, boolean relation) {
       Component component = editor.getComponentAt(mouseDownLocation);
       return component != editor ? !relation
                                    ? new ComponentSelection(component, mouseDownLocation)
@@ -129,12 +129,12 @@ public class NavigationModelEditorPanel2 extends JComponent {
   }
 
   private static class RelationSelection extends Selection {
-    private final NavigationModelEditorPanel2 myOverViewPanel;
+    private final NavigationEditorPanel2 myOverViewPanel;
     private final Component myComponent;
     private Point myLocation;
 
-    private RelationSelection(NavigationModelEditorPanel2 myNavigationModelEditorPanel2, Component component, Point mouseDownLocation) {
-      myOverViewPanel = myNavigationModelEditorPanel2;
+    private RelationSelection(NavigationEditorPanel2 myNavigationEditorPanel2, Component component, Point mouseDownLocation) {
+      myOverViewPanel = myNavigationEditorPanel2;
       myComponent = component;
       myLocation = mouseDownLocation;
     }
@@ -162,7 +162,7 @@ public class NavigationModelEditorPanel2 extends JComponent {
 
   }
 
-  public NavigationModelEditorPanel2(Project project, VirtualFile file, NavigationModel navigationModel) {
+  public NavigationEditorPanel2(Project project, VirtualFile file, NavigationModel navigationModel) {
     myProject = project;
     myFileSystem = file.getFileSystem();
     myPath = file.getParent().getParent().getPath();
@@ -373,7 +373,7 @@ public class NavigationModelEditorPanel2 extends JComponent {
     @Override
     public void mousePressed(MouseEvent mouseEvent) {
       Point location = mouseEvent.getPoint();
-      setSelection(Selection.create(NavigationModelEditorPanel2.this, location, mouseEvent.isShiftDown()));
+      setSelection(Selection.create(NavigationEditorPanel2.this, location, mouseEvent.isShiftDown()));
       if (mySelection instanceof RelationSelection) {
         RelationSelection selection = (RelationSelection)mySelection;
         Component component = selection.myComponent;
@@ -446,7 +446,7 @@ public class NavigationModelEditorPanel2 extends JComponent {
       if (attachedObject instanceof TransferableWrapper) {
         TransferableWrapper wrapper = (TransferableWrapper)attachedObject;
         PsiElement[] psiElements = wrapper.getPsiElements();
-        Point dropLocation = aEvent.getPointOn(NavigationModelEditorPanel2.this);
+        Point dropLocation = aEvent.getPointOn(NavigationEditorPanel2.this);
         for (PsiElement element : psiElements) {
           if (element instanceof PsiQualifiedNamedElement) {
             PsiQualifiedNamedElement namedElement = (PsiQualifiedNamedElement)element;
