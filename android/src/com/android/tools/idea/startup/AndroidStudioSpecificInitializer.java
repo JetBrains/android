@@ -18,9 +18,11 @@ package com.android.tools.idea.startup;
 import com.android.tools.idea.actions.AndroidNewModuleAction;
 import com.android.tools.idea.actions.AndroidNewModuleInGroupAction;
 import com.android.tools.idea.actions.AndroidNewProjectAction;
+import com.android.tools.idea.sdk.VersionCheck;
 import com.google.common.io.Closeables;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -35,7 +37,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.List;
 import java.util.Properties;
 
 /** Initialization performed only in the context of the Android IDE. */
@@ -95,19 +96,29 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   }
 
   private static void setupSdks() {
-    Sdk sdk = findFirstAndroidSdk();
+    Sdk sdk = findFirstCompatibleAndroidSdk();
     if (sdk != null) {
       return;
     }
-    String androidSdkPath = getAndroidSdkPath();
-    AndroidSdkUtils.createNewAndroidPlatform(androidSdkPath);
+    // Called in a 'invokeLater' block, otherwise file chooser will hang forever.
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        String androidSdkPath = getAndroidSdkPath();
+        AndroidSdkUtils.createNewAndroidPlatform(androidSdkPath);
+      }
+    });
   }
 
   @Nullable
-  private static Sdk findFirstAndroidSdk() {
-    // TODO check version
-    List<Sdk> allSdks = AndroidSdkUtils.getAllAndroidSdks();
-    return allSdks.isEmpty() ? null : allSdks.get(0);
+  private static Sdk findFirstCompatibleAndroidSdk() {
+    for (Sdk sdk : AndroidSdkUtils.getAllAndroidSdks()) {
+      String sdkPath = sdk.getHomePath();
+      if (VersionCheck.isCompatibleVersion(sdkPath)) {
+        return sdk;
+      }
+    }
+    return null;
   }
 
   @Nullable
@@ -121,7 +132,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       for (String path : ANDROID_SDK_RELATIVE_PATHS) {
         File dir = new File(studioHome, path);
         LOG.info(String.format("Looking for Android SDK at '1$%s'", dir.getAbsolutePath()));
-        if (dir.isDirectory()) {
+        if (VersionCheck.isCompatibleVersion(dir)) {
           LOG.info(String.format("Found Android SDK at '1$%s'", dir.getAbsolutePath()));
           return dir.getAbsolutePath();
         }
@@ -133,15 +144,15 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     String msg = String.format("Value of property '%1$s' is '%2$s'", AndroidSdkUtils.ANDROID_HOME_ENV, androidHomeValue);
     LOG.info(msg);
 
-    if (androidHomeValue != null) {
+    if (VersionCheck.isCompatibleVersion(androidHomeValue)) {
       return androidHomeValue;
     }
 
     String sdkPath = getLastSdkPathUsedByAndroidTools();
-    if (sdkPath == null) {
-      msg = "Unable to locate last SDK used by Android tools";
+    if (VersionCheck.isCompatibleVersion(sdkPath)) {
+      msg = String.format("Last SDK used by Android tools: '%1$s'", sdkPath);
     } else {
-      msg = String.format("Last SDK used by Android tools: '1$%s'", sdkPath);
+      msg = "Unable to locate last SDK used by Android tools";
     }
     LOG.info(msg);
     return sdkPath;
