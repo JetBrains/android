@@ -221,9 +221,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         break;
       case PROJECT:
         for (String theme : getProjectThemes()) {
-          if (theme.startsWith(HOLO_LIGHT_PREFIX)) {
-            themes.add(theme);
-          }
+          themes.add(theme);
         }
         break;
       case CLASSIC:
