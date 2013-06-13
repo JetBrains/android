@@ -68,9 +68,6 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
   @Override
   @NotNull
   public List<String> getClassPath() {
-    if (!Projects.isGradleProject(myProject)) {
-      return Collections.emptyList();
-    }
     if (myClasspath == null) {
       myClasspath = getGradleClassPath();
     }
