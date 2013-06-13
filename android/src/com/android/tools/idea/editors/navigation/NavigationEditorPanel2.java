@@ -54,6 +54,7 @@ public class NavigationEditorPanel2 extends JComponent {
   public static final Color LINE_COLOR = Color.GRAY;
   public static final Color BACKGROUND_COLOR = Color.LIGHT_GRAY;
   public static final Point MULTIPLE_DROP_STRIDE = new Point(50, 50);
+  private static final String ID_PREFIX = "@+id/";
 
   private final NavigationModel myNavigationModel;
   private final Project myProject;
@@ -132,11 +133,29 @@ public class NavigationEditorPanel2 extends JComponent {
     private final NavigationEditorPanel2 myOverViewPanel;
     private final Component myComponent;
     private Point myLocation;
+    private String mvViewId;
 
     private RelationSelection(NavigationEditorPanel2 myNavigationEditorPanel2, Component component, Point mouseDownLocation) {
       myOverViewPanel = myNavigationEditorPanel2;
       myComponent = component;
       myLocation = mouseDownLocation;
+      if (component instanceof AndroidRootComponent) {
+        AndroidRootComponent rootComponent = (AndroidRootComponent)component;
+        int dx0 = mouseDownLocation.x - rootComponent.getX();
+        int dy0 = mouseDownLocation.y - rootComponent.getY();
+        int dx = (int)(dx0 / SCALE * 2 / 1.5);
+        int dy = (int)(dy0 / SCALE * 2 / 1.5);
+        RenderedView leaf = rootComponent.getRenderResult().getHierarchy().findLeafAt(dx, dy);
+        if (leaf != null) {
+          XmlTag tag = leaf.tag;
+          if (tag != null) {
+            String attributeValue = tag.getAttributeValue("android:id");
+            if (attributeValue != null) {
+              mvViewId = attributeValue.startsWith(ID_PREFIX) ? attributeValue.substring(ID_PREFIX.length()) : attributeValue;
+            }
+          }
+        }
+      }
     }
 
     @Override
@@ -155,7 +174,7 @@ public class NavigationEditorPanel2 extends JComponent {
     protected Selection finaliseSelectionLocation(Point location) {
       Component componentAt = myOverViewPanel.getComponentAt(location);
       if (myComponent instanceof AndroidRootComponent && componentAt instanceof AndroidRootComponent) {
-        myOverViewPanel.addRelation((AndroidRootComponent)myComponent, (AndroidRootComponent)componentAt);
+        myOverViewPanel.addRelation((AndroidRootComponent)myComponent, mvViewId, (AndroidRootComponent)componentAt);
       }
       return Selection.NULL;
     }
@@ -273,13 +292,14 @@ public class NavigationEditorPanel2 extends JComponent {
   }
   */
 
-  private void addRelation(@NotNull AndroidRootComponent srcComponent, @NotNull AndroidRootComponent destComp) {
+  private void addRelation(@NotNull AndroidRootComponent srcComponent, String viewIdentifier, @NotNull AndroidRootComponent destComp) {
     if (srcComponent == destComp) {
       return;
     }
     State source = myComponentToState.get(srcComponent);
     State dest = myComponentToState.get(destComp);
     Transition transition = new Transition("", source, dest);
+    transition.setViewIdentifier(viewIdentifier);
     myNavigationModel.add(transition);
     addRelationView(transition);
   }
@@ -360,8 +380,10 @@ public class NavigationEditorPanel2 extends JComponent {
   private AndroidRootComponent createActivityPanel(State state, Point location) {
     AndroidRootComponent result = new AndroidRootComponent();
     result.setScale(SCALE);
-    VirtualFile file = myFileSystem.findFileByPath(myPath + "/layout/" + state.getXmlResourceName());
-    result.render(myProject, file);
+    VirtualFile file = myFileSystem.findFileByPath(myPath + "/layout/" + state.getXmlResourceName() + ".xml");
+    if (file != null) {
+      result.render(myProject, file);
+    }
     result.setLocation(location);
     result.setSize(PREVIEW_SIZE);
     myStateToComponent.put(state, result);
@@ -374,23 +396,6 @@ public class NavigationEditorPanel2 extends JComponent {
     public void mousePressed(MouseEvent mouseEvent) {
       Point location = mouseEvent.getPoint();
       setSelection(Selection.create(NavigationEditorPanel2.this, location, mouseEvent.isShiftDown()));
-      if (mySelection instanceof RelationSelection) {
-        RelationSelection selection = (RelationSelection)mySelection;
-        Component component = selection.myComponent;
-        if (component instanceof AndroidRootComponent) {
-          AndroidRootComponent rootComponent = (AndroidRootComponent)component;
-          int dx0 = location.x - rootComponent.getX();
-          int dy0 = location.y - rootComponent.getY();
-          int dx = (int)(dx0 / SCALE * 2 / 1.5);
-          int dy = (int)(dy0 / SCALE * 2 / 1.5);
-          RenderedView leaf = rootComponent.getRenderResult().getHierarchy().findLeafAt(dx, dy);
-          if (leaf != null) {
-            XmlTag tag = leaf.tag;
-            String attributeValue = tag.getAttributeValue("android:id");
-            System.out.println("attributeValue = " + attributeValue);
-          }
-        }
-      }
     }
 
     /*
