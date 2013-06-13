@@ -416,6 +416,8 @@
     <packaging.artifactPropertiesProvider implementation="org.jetbrains.android.compiler.artifact.AndroidArtifactPropertiesProvider"/>
     <packaging.artifactType implementation="org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactType"/>
 
+    <editorNotificationProvider implementation="com.android.tools.idea.editors.GeneratedFileNotificationProvider"/>
+
     <compileServer.plugin classpath="jps/android-jps-plugin.jar;jps/android-gradle-jps.jar;android-common.jar;android-rt.jar"/>
     <compileServer.plugin classpath="sdklib.jar;guava-13.0.1.jar;common.jar;jarutils.jar;layoutlib-api.jar"/>
 
