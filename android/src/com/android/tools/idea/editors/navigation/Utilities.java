@@ -50,6 +50,8 @@ public class Utilities {
    * Translates a Java file name to a XML file name according
    * to Android naming convention.
    *
+   * Doesn't append .xml extension
+   *
    * @return XML file name associated with Java file name
    */
   public static String getXmlFileNameFromJavaFileName(String javaFileName) {
@@ -68,15 +70,14 @@ public class Utilities {
       }
       stringBuilder.append(Character.toLowerCase(currentChar));
     }
-
-    // append ".xml"
-    stringBuilder.append(".xml");
     return stringBuilder.toString();
   }
 
   /**
    * Translates a XML file name to a Java file name according
    * to Android naming convention.
+   *
+   * Doesn't append .java extension
    *
    * @return Java file name associated with XML file name
    */
@@ -102,9 +103,6 @@ public class Utilities {
         stringBuilder.append(currentChar);
       }
     }
-
-    // append ".java"
-    stringBuilder.append(".java");
     return stringBuilder.toString();
   }
 }
