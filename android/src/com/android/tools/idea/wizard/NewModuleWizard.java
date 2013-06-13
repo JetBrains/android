@@ -39,7 +39,6 @@ public class NewModuleWizard extends TemplateWizard {
   private static final Logger LOG = Logger.getInstance("#" + NewModuleWizard.class.getName());
 
   private NewModuleWizardState myWizardState;
-  private Project myProject;
   private ChooseTemplateStep myChooseModuleStep;
   private ConfigureAndroidModuleStep myConfigureAndroidModuleStep;
   private TemplateParameterStep myTemplateParameterStep;
@@ -50,7 +49,6 @@ public class NewModuleWizard extends TemplateWizard {
 
   public NewModuleWizard(@Nullable Project project) {
     super("New Module", project);
-    myProject = project;
     getWindow().setMinimumSize(new Dimension(800, 640));
     init();
   }

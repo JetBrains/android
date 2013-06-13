@@ -63,10 +63,10 @@ public class TemplateParameterStep extends TemplateWizardStep {
       myTemplateState.put(parameter.id, value);
       switch(parameter.type) {
         case BOOLEAN:
-          JCheckBox checkBox = new JCheckBox();
+          c.setColumn(1);
+          JCheckBox checkBox = new JCheckBox(parameter.name);
           register(parameter.id, checkBox);
           myParamContainer.add(checkBox, c);
-          myParamContainer.add(label, c);
           if (myPreferredFocusComponent == null) {
             myPreferredFocusComponent = checkBox;
           }

@@ -26,16 +26,11 @@
     </component>
   </project-components>
   <actions>
-    <!--<group>
-      <action id="NewActivity" class="org.jetbrains.android.actions.CreateActivityAction"/>
-      <action id="NewService" class="org.jetbrains.android.actions.CreateServiceAction"/>
-      <action id="NewReceiver" class="org.jetbrains.android.actions.CreateReceiverAction"/>
-      <action id="NewRemoteInterface" class="org.jetbrains.android.actions.CreateRemoteInterfaceAction"/>
-      <separator/>
-      <add-to-group group-id="NewGroup" anchor="first"/>
-    </group>-->
-    <action id="NewAndroidComponent" class="org.jetbrains.android.actions.NewAndroidComponentAction">
+    <action id="NewActivity" class="com.android.tools.idea.actions.AndroidNewActivityAction">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewDir"/>
+    </action>
+    <action id="NewAndroidComponent" class="org.jetbrains.android.actions.NewAndroidComponentAction">
+      <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewActivity"/>
     </action>
     <action id="Android.CreateResourcesActionGroup" class="org.jetbrains.android.actions.CreateResourceFileActionGroup">
       <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFile"/>
