@@ -29,7 +29,7 @@ import java.awt.event.*;
 This class is currently unused.
 */
 
-public class NavigationModelEditorPanel1 extends JPanel {
+public class NavigationEditorPanel1 extends JPanel {
   private final NavigationModel myNavigationModel;
   private final AndroidRootComponent mySourcePreviewPanel;
   private final AndroidRootComponent myDestPreviewPanel;
@@ -68,7 +68,7 @@ public class NavigationModelEditorPanel1 extends JPanel {
     return -1;
   }
 
-  public NavigationModelEditorPanel1(Project project, VirtualFile file, NavigationModel navigationModel) {
+  public NavigationEditorPanel1(Project project, VirtualFile file, NavigationModel navigationModel) {
     myProject = project;
     myFileSystem = file.getFileSystem();
     myPath = file.getParent().getPath();

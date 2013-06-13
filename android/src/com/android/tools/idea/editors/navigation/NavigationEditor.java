@@ -38,8 +38,8 @@ import java.beans.PropertyChangeListener;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-public class NavigationModelEditor implements FileEditor {
-  private static final Logger LOG = Logger.getInstance("#" + NavigationModelEditor.class.getName());
+public class NavigationEditor implements FileEditor {
+  private static final Logger LOG = Logger.getInstance("#" + NavigationEditor.class.getName());
   private static final String NAME = "Navigation";
   public static final int INITIAL_FILE_BUFFER_SIZE = 1000;
 
@@ -50,7 +50,7 @@ public class NavigationModelEditor implements FileEditor {
   private final JComponent component;
   private boolean dirty;
 
-  public NavigationModelEditor(Project project, VirtualFile file) {
+  public NavigationEditor(Project project, VirtualFile file) {
     // Listen for 'Save All' events
     FileDocumentManagerListener saveListener = new FileDocumentManagerAdapter() {
       @Override
@@ -68,7 +68,7 @@ public class NavigationModelEditor implements FileEditor {
     myFile = file;
     myNavigationModel = read(file);
     // component = new NavigationModelEditorPanel1(project, file, read(file));
-    component = new JBScrollPane(new NavigationModelEditorPanel2(project, file, myNavigationModel));
+    component = new JBScrollPane(new NavigationEditorPanel2(project, file, myNavigationModel));
     navigationModelListener = new Listener<Void>() {
       @Override
       public void notify(Void unused) {

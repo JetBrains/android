@@ -30,7 +30,7 @@ import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public class NavigationModelEditorProvider implements FileEditorProvider, DumbAware {
+public class NavigationEditorProvider implements FileEditorProvider, DumbAware {
   @NonNls private static final String ID = "navigationeditor";
 
   @Override
@@ -41,7 +41,7 @@ public class NavigationModelEditorProvider implements FileEditorProvider, DumbAw
   @NotNull
   @Override
   public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
-    return new NavigationModelEditor(project, file);
+    return new NavigationEditor(project, file);
   }
 
   @Override
