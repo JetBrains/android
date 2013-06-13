@@ -504,7 +504,7 @@ public class IntellijApiDetector extends ApiDetector {
         // to see whether we know it's an API method whose members should all have been inlined.
         if (expression instanceof PsiMethodCallExpression) {
           PsiExpression qualifier = ((PsiMethodCallExpression)expression).getMethodExpression().getQualifierExpression();
-          if (qualifier != null) {
+          if (qualifier != null && !(qualifier instanceof PsiThisExpression) && !(qualifier instanceof PsiSuperExpression)) {
             PsiType type = qualifier.getType();
             if (type != null && type instanceof PsiClassType) {
               String expressionOwner = IntellijLintUtils.getInternalName((PsiClassType)type);
@@ -520,6 +520,28 @@ public class IntellijApiDetector extends ApiDetector {
                   return;
                 }
               }
+            }
+          } else {
+            // Unqualified call; need to search in our super hierarchy
+            PsiClass cls = PsiTreeUtil.getParentOfType(expression, PsiClass.class);
+            while (cls != null) {
+              String expressionOwner = IntellijLintUtils.getInternalName(cls);
+              if (expressionOwner == null) {
+                break;
+              }
+              int specificApi = mApiDatabase.getCallVersion(expressionOwner, name, desc);
+              if (specificApi == -1) {
+                if (expressionOwner.startsWith("android/")
+                    || expressionOwner.startsWith("java/")
+                    || expressionOwner.startsWith("javax/")) {
+                  return;
+                }
+              } else if (specificApi <= minSdk) {
+                return;
+              } else {
+                break;
+              }
+              cls = cls.getSuperClass();
             }
           }
         }

@@ -42,6 +42,11 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
     doTest(inspection, "Add @SuppressLint(\"NewApi\") annotation");
   }
 
+  public void testListView() throws Exception {
+    AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
+    doTest(inspection, null);
+  }
+
   /**
    * For unknown reasons this test doesn't work; it cannot resolve the symbol android.os.Build. This
    * is probably related to the fact that the unit tests work with an incomplete snapshot of an ancient
