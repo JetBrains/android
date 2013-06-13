@@ -527,7 +527,8 @@ public class RenderErrorPanel extends JPanel {
     if (fidelityWarnings != null && !fidelityWarnings.isEmpty()) {
       builder.add("The graphics preview in the layout editor may not be accurate:").newline();
       builder.beginList();
-      for (RenderProblem warning : fidelityWarnings) {
+      int count = 0;
+      for (final RenderProblem warning : fidelityWarnings) {
         builder.listItem();
         warning.appendHtml(builder.getStringBuilder());
         final Object clientData = warning.getClientData();
@@ -535,25 +536,37 @@ public class RenderErrorPanel extends JPanel {
           builder.addLink(" (Ignore for this session", myLinkManager.createRunnableLink(new Runnable() {
             @Override
             public void run() {
-              assert false : "Need to look up the exact key to use for suppressing from now on!";
-                RenderLogger.ignoreFidelityWarning(clientData);
+              RenderLogger.ignoreFidelityWarning(clientData);
               RenderContext renderContext = renderService.getRenderContext();
               if (renderContext != null) {
                 renderContext.requestRender();
               }
-
             }
           }));
         }
         builder.newline();
+        count++;
+        // Only display the first 3 render fidelity issues
+        if (count == 3) {
+          int remaining = fidelityWarnings.size() - count;
+          if (remaining > 0) {
+            builder.add("(").addHtml(Integer.toString(remaining)).add(" additional render fidelity issues hidden)");
+            break;
+          }
+        }
       }
       builder.endList();
       builder.addLink("Ignore all fidelity warnings for this session", myLinkManager.createRunnableLink(new Runnable() {
         @Override
         public void run() {
           RenderLogger.ignoreAllFidelityWarnings();
+          RenderContext renderContext = renderService.getRenderContext();
+          if (renderContext != null) {
+            renderContext.requestRender();
+          }
         }
       }));
+      builder.newline();
     }
   }
 
@@ -666,7 +679,14 @@ public class RenderErrorPanel extends JPanel {
   private void reportOtherProblems(RenderLogger logger, HtmlBuilder builder) {
     List<RenderProblem> messages = logger.getMessages();
     if (messages != null && !messages.isEmpty()) {
+      Set<String> seenTags = Sets.newHashSet();
       for (RenderProblem message : messages) {
+        String tag = message.getTag();
+        if (tag != null && seenTags.contains(tag)) {
+          continue;
+        }
+        seenTags.add(tag);
+
         HighlightSeverity severity = message.getSeverity();
         if (severity == HighlightSeverity.ERROR) {
           builder.addErrorIcon();
@@ -679,6 +699,13 @@ public class RenderErrorPanel extends JPanel {
         Throwable throwable = message.getThrowable();
         if (throwable != null) {
           reportThrowable(builder, throwable);
+        }
+
+        if (tag != null) {
+          int count = logger.getTagCount(tag);
+          if (count > 1) {
+            builder.add(" (").addHtml(Integer.toString(count)).add(" similar errors not shown)");
+          }
         }
 
         builder.newline();

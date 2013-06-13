@@ -40,7 +40,8 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
   private final int myOrdinal;
   private int myPriority = PRIORITY_UNEXPECTED;
   @Nullable private Throwable myThrowable;
-  private Object myClientData;
+  @Nullable private Object myClientData;
+  @Nullable private String myTag;
 
   private static int ourNextOrdinal;
 
@@ -117,6 +118,17 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
     myPriority = priority;
 
     return this;
+  }
+
+  public RenderProblem tag(@Nullable String tag) {
+    myTag = tag;
+
+    return this;
+  }
+
+  @Nullable
+  public String getTag() {
+    return myTag;
   }
 
   @NotNull
