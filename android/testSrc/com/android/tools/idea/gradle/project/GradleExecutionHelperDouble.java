@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
 import com.intellij.util.Function;
 import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +42,7 @@ class GradleExecutionHelperDouble extends GradleExecutionHelper {
   static GradleExecutionHelperDouble newMock() throws Exception {
     Class<GradleExecutionHelper> target = GradleExecutionHelper.class;
     Method m = target.getDeclaredMethod("getModelBuilder", Class.class, ExternalSystemTaskId.class, GradleExecutionSettings.class,
-                                        ProjectConnection.class);
+                                        ProjectConnection.class, ExternalSystemTaskNotificationListener.class);
     return createMock(GradleExecutionHelperDouble.class, m);
   }
 
