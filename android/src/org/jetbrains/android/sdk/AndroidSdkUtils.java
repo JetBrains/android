@@ -26,6 +26,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
+import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
@@ -248,7 +249,6 @@ public final class AndroidSdkUtils {
       if (target != null) {
         Sdk sdk = createNewAndroidPlatform(target, sdkPath, chooseNameForNewLibrary(target), jdk, true);
         if (sdk != null) {
-          // TODO check version
           return sdk;
         }
       }
@@ -300,7 +300,15 @@ public final class AndroidSdkUtils {
     return createNewAndroidPlatform(target, sdkPath, sdkName, jdk, addRoots);
   }
 
-  private static Sdk createNewAndroidPlatform(IAndroidTarget target, String sdkPath, String sdkName, Sdk javaSdk, boolean addRoots) {
+  @Nullable
+  private static Sdk createNewAndroidPlatform(@NotNull IAndroidTarget target,
+                                              @NotNull String sdkPath,
+                                              @NotNull String sdkName,
+                                              @Nullable Sdk jdk,
+                                              boolean addRoots) {
+    if (!VersionCheck.isCompatibleVersion(sdkPath)) {
+      return null;
+    }
     ProjectJdkTable table = ProjectJdkTable.getInstance();
     String tmpName = SdkConfigurationUtil.createUniqueSdkName(AndroidSdkType.SDK_NAME, Arrays.asList(table.getAllJdks()));
 
@@ -310,7 +318,7 @@ public final class AndroidSdkUtils {
     sdkModificator.setHomePath(sdkPath);
     sdkModificator.commitChanges();
 
-    setUpSdk(sdk, sdkName, table.getAllJdks(), target, javaSdk, addRoots);
+    setUpSdk(sdk, sdkName, table.getAllJdks(), target, jdk, addRoots);
 
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
@@ -444,18 +452,25 @@ public final class AndroidSdkUtils {
       AndroidPlatform androidPlatform = data.getAndroidPlatform();
       if (androidPlatform != null) {
         String baseDir = FileUtil.toSystemIndependentName(androidPlatform.getSdkData().getLocation());
+        boolean compatibleVersion = VersionCheck.isCompatibleVersion(baseDir);
         boolean matchingHashString = targetHashString.equals(androidPlatform.getTarget().hashString());
-        boolean suitable = matchingHashString && checkSdkRoots(sdk, androidPlatform.getTarget(), false);
+        boolean suitable = compatibleVersion && matchingHashString && checkSdkRoots(sdk, androidPlatform.getTarget(), false);
         if (sdkPath != null && FileUtil.pathsEqual(baseDir, sdkPath)) {
           if (suitable) {
              return sdk;
           }
           if (promptUserIfNecessary) {
+            if (!compatibleVersion) {
+              // Old SDK, needs to be replaced.
+              Sdk jdk = Jdks.chooseOrCreateJavaSdk();
+              String jdkPath = jdk == null ? null : jdk.getHomePath();
+              return promptUserForSdkCreation(androidPlatform.getTarget(), null, jdkPath);
+            }
+
             if (!matchingHashString) {
               // This is the specified SDK (usually in local.properties file.) We try our best to fix it.
               // TODO download platform;
             }
-            // TODO: check if it is an old SDK. If so, it needs to be replaced.
           }
         }
         else if (suitable) {
@@ -544,8 +559,16 @@ public final class AndroidSdkUtils {
         }
       }
       else if (promptUserIfNecessary) {
-        // There is not a matching target hashString.
-        // TODO download platform and try again.
+        // We got here because we couldn't get target for given SDK path. Most likely it is an old SDK.
+        String pathToShow = VersionCheck.isCompatibleVersion(sdkPath) ? sdkPath : null;
+        Sdk jdk = Jdks.chooseOrCreateJavaSdk();
+        String jdkPath = jdk == null ? null : jdk.getHomePath();
+        Sdk androidSdk = promptUserForSdkCreation(null, pathToShow, jdkPath);
+        // TODO check platform
+        if (androidSdk != null) {
+          ModuleRootModificationUtil.setModuleSdk(module, androidSdk);
+          return true;
+        }
       }
     }
     return false;
