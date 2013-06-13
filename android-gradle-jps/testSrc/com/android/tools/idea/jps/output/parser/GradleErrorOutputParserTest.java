@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.jps.output.parser;
 
+import com.android.tools.idea.jps.output.parser.aapt.AbstractAaptOutputParser;
 import com.google.common.io.Closeables;
+import com.google.common.io.Files;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.ContainerUtil;
@@ -32,6 +35,7 @@ import java.util.Collection;
 /**
  * Tests for {@link GradleErrorOutputParser}.
  */
+@SuppressWarnings("ResultOfMethodCallIgnored")
 public class GradleErrorOutputParserTest extends TestCase {
   private static final String NEWLINE = SystemProperties.getLineSeparator();
 
@@ -313,5 +317,163 @@ public class GradleErrorOutputParserTest extends TestCase {
     assertEquals("[message text]", expectedText, message.getMessageText());
     assertEquals("[position line]", expectedLine, message.getLine());
     assertEquals("[position column]", expectedColumn, message.getColumn());
+  }
+
+  public void testRedirectValueLinksOutput() throws Exception {
+    String homePath = PathManager.getHomePath();
+    assertNotNull(homePath);
+    // The relative paths in the output file below is relative to the sdk-common directory in tools/base
+    // (it's from one of the unit tests there)
+    AbstractAaptOutputParser.ourRootDir = new File(homePath, ".." + File.separator + "base" + File.separator + "sdk-common");
+
+    // Need file to be named (exactly) values.xml
+    File tempDir = Files.createTempDir();
+    File valueDir = new File(tempDir, "values-en");
+    valueDir.mkdirs();
+    sourceFile = new File(valueDir, "values.xml"); // Keep in sync with MergedResourceWriter.FN_VALUES_XML
+    sourceFilePath = sourceFile.getAbsolutePath();
+
+    writeToFile(
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+      "<resources xmlns:ns1=\"urn:oasis:names:tc:xliff:document:1.2\">\n" +
+      "\n" +
+      "    <!-- From: src/test/resources/testData/resources/baseSet/values/values.xml -->\n" +
+      "    <string-array name=\"string_array\" translatable=\"false\">\n" +
+      "        <item/> <!-- 0 -->\n" +
+      "        <item/> <!-- 1 -->\n" +
+      "        <item>ABC</item> <!-- 2 -->\n" +
+      "        <item>DEF</item> <!-- 3 -->\n" +
+      "        <item>GHI</item> <!-- 4 -->\n" +
+      "        <item>JKL</item> <!-- 5 -->\n" +
+      "        <item>MNO</item> <!-- 6 -->\n" +
+      "        <item>PQRS</item> <!-- 7 -->\n" +
+      "        <item>TUV</item> <!-- 8 -->\n" +
+      "        <item>WXYZ</item> <!-- 9 -->\n" +
+      "    </string-array>\n" +
+      "\n" +
+      "    <attr name=\"dimen_attr\" format=\"dimension\" />\n" +
+      "    <attr name=\"enum_attr\">\n" +
+      "        <enum name=\"normal\" value=\"0\" />\n" +
+      "        <enum name=\"sans\" value=\"1\" />\n" +
+      "        <enum name=\"serif\" value=\"2\" />\n" +
+      "        <enum name=\"monospace\" value=\"3\" />\n" +
+      "    </attr>\n" +
+      "    <attr name=\"flag_attr\">\n" +
+      "        <flag name=\"normal\" value=\"0\" />\n" +
+      "        <flag name=\"bold\" value=\"1\" />\n" +
+      "        <flag name=\"italic\" value=\"2\" />\n" +
+      "    </attr>\n" +
+      "    <attr name=\"string_attr\" format=\"string\" />\n" +
+      "    <!-- From: src/test/resources/testData/resources/baseMerge/overlay/values/values.xml -->\n" +
+      "    <color name=\"color\">#FFFFFFFF</color>\n" +
+      "    <!-- From: src/test/resources/testData/resources/baseSet/values/values.xml -->\n" +
+      "    <declare-styleable name=\"declare_styleable\">\n" +
+      "\n" +
+      "        <!-- ============== -->\n" +
+      "        <!-- Generic styles -->\n" +
+      "        <!-- ============== -->\n" +
+      "        <eat-comment />\n" +
+      "\n" +
+      "        <!-- Default color of foreground imagery. -->\n" +
+      "        <attr name=\"blah\" format=\"color\" />\n" +
+      "        <!-- Default color of foreground imagery on an inverted background. -->\n" +
+      "        <attr name=\"android:colorForegroundInverse\" />\n" +
+      "    </declare-styleable>\n" +
+      "\n" +
+      "    <dimen name=\"dimen\">164dp</dimen>\n" +
+      "\n" +
+      "    <drawable name=\"color_drawable\">#ffffffff</drawable>\n" +
+      "    <drawable name=\"drawable_ref\">@drawable/stat_notify_sync_anim0</drawable>\n" +
+      "\n" +
+      "    <item name=\"item_id\" type=\"id\"/>\n" +
+      "\n" +
+      "    <integer name=\"integer\">75</integer>\n" +
+      "    <!-- From: src/test/resources/testData/resources/baseMerge/overlay/values/values.xml -->\n" +
+      "    <item name=\"file_replaced_by_alias\" type=\"layout\">@layout/ref</item>\n" +
+      "    <!-- From: src/test/resources/testData/resources/baseSet/values/values.xml -->\n" +
+      "    <item name=\"layout_ref\" type=\"layout\">@layout/ref</item>\n" +
+      "    <!-- From: src/test/resources/testData/resources/baseMerge/overlay/values/values.xml -->\n" +
+      "    <string name=\"basic_string\">overlay_string</string>\n" +
+      "    <!-- From: src/test/resources/testData/resources/baseSet/values/values.xml -->\n" +
+      "    <string name=\"styled_string\">Forgot your username or password\\?\\nVisit <b>google.com/accounts/recovery</b>.</string>\n" +
+      "    <string name=\"xliff_string\"><ns1:g id=\"number\" example=\"123\">%1$s</ns1:g><ns1:g id=\"unit\" example=\"KB\">%2$s</ns1:g></string>\n" +
+      "\n" +
+      "    <style name=\"style\" parent=\"@android:style/Holo.Light\">\n" +
+      "        <item name=\"android:singleLine\">true</item>\n" +
+      "        <item name=\"android:textAppearance\">@style/TextAppearance.WindowTitle</item>\n" +
+      "        <item name=\"android:shadowColor\">#BB000000</item>\n" +
+      "        <item name=\"android:shadowRadius\">2.75</item>\n" +
+      "        <item name=\"foo\">foo</item>\n" +
+      "    </style>\n" +
+      "\n" +
+      "</resources>\n");
+
+    String messageText = "String types not allowed (at 'drawable_ref' with value '@drawable/stat_notify_sync_anim0').";
+    String err = sourceFilePath + ":46: error: Error: " + messageText;
+    Collection<CompilerMessage> messages = parser.parseErrorOutput(err);
+    assertEquals(1, messages.size());
+
+    assertEquals("[message count]", 1, messages.size());
+    CompilerMessage message = ContainerUtil.getFirstItem(messages);
+    assertNotNull(message);
+
+    // NOT sourceFilePath; should be translated back from source comment
+    assertEquals("[file path]", "src/test/resources/testData/resources/baseSet/values/values.xml", message.getSourcePath());
+
+    assertEquals("[message severity]", BuildMessage.Kind.ERROR, message.getKind());
+    assertEquals("[message text]", messageText, message.getMessageText());
+    assertEquals("[position line]", 9, message.getLine());
+    assertEquals("[position column]", 35, message.getColumn());
+  }
+
+  public void testRedirectFileLinksOutput() throws Exception {
+    String homePath = PathManager.getHomePath();
+    assertNotNull(homePath);
+    // The relative paths in the output file below is relative to the sdk-common directory in tools/base
+    // (it's from one of the unit tests there)
+    AbstractAaptOutputParser.ourRootDir = new File(homePath, ".." + File.separator + "base" + File.separator + "sdk-common");
+
+    // Need file to be named (exactly) values.xml
+    File tempDir = Files.createTempDir();
+    File layoutDir = new File(tempDir, "layout-land");
+    layoutDir.mkdirs();
+    sourceFile = new File(layoutDir, "main.xml");
+    sourceFilePath = sourceFile.getAbsolutePath();
+
+    writeToFile(
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+      "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+      "    android:orientation=\"vertical\"\n" +
+      "    android:layout_width=\"fill_parent\"\n" +
+      "    android:layout_height=\"fill_parent\"\n" +
+      "    >\n" +
+      "<TextView\n" +
+      "    android:layout_width=\"fill_parent\"\n" +
+      "    android:layout_height=\"wrap_content\"\n" +
+      "    android:text=\"Test App - Basic\"\n" +
+      "    android:id=\"@+id/text\"\n" +
+      "    />\n" +
+      "</LinearLayout>\n" +
+      "\n" +
+      "<!-- From: src/test/resources/testData/resources/incMergeData/filesVsValues/main/layout/main.xml -->");
+
+    String messageText = "Random error message here";
+    String err = sourceFilePath + ":4: error: Error: " + messageText;
+    Collection<CompilerMessage> messages = parser.parseErrorOutput(err);
+    assertEquals(1, messages.size());
+
+    assertEquals("[message count]", 1, messages.size());
+    CompilerMessage message = ContainerUtil.getFirstItem(messages);
+    assertNotNull(message);
+
+    // NOT sourceFilePath; should be translated back from source comment
+    assertEquals("[file path]", "src/test/resources/testData/resources/incMergeData/filesVsValues/main/layout/main.xml", message.getSourcePath());
+
+    assertEquals("[message severity]", BuildMessage.Kind.ERROR, message.getKind());
+    assertEquals("[message text]", messageText, message.getMessageText());
+    assertEquals("[position line]", 4, message.getLine());
+    //assertEquals("[position column]", 35, message.getColumn());
+
+    // TODO: Test encoding issues (e.g. & in path where the XML source comment would be &amp; instead)
   }
 }
