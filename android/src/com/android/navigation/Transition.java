@@ -19,6 +19,7 @@ import com.android.annotations.Property;
 
 public class Transition {
   private String type;
+  private String viewIdentifier;
   private State source;
   private State destination;
 
@@ -52,6 +53,14 @@ public class Transition {
 
   public void setDestination(State destination) {
     this.destination = destination;
+  }
+
+  public String getViewIdentifier() {
+    return viewIdentifier;
+  }
+
+  public void setViewIdentifier(String viewIdentifier) {
+    this.viewIdentifier = viewIdentifier;
   }
 
   @Override

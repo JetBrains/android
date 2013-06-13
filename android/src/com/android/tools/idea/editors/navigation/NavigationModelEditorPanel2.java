@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.editors.navigation;
 
+import com.android.navigation.NavigationModel;
 import com.android.navigation.State;
 import com.android.navigation.Transition;
-import com.android.navigation.NavigationModel;
+import com.android.tools.idea.rendering.RenderedView;
 import com.android.tools.idea.rendering.ShadowPainter;
 import com.intellij.ide.dnd.DnDEvent;
 import com.intellij.ide.dnd.DnDManager;
@@ -27,13 +28,18 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiQualifiedNamedElement;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.HashSet;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.util.*;
 import java.util.List;
@@ -71,8 +77,8 @@ public class NavigationModelEditorPanel2 extends JComponent {
     private static Selection create(NavigationModelEditorPanel2 editor, Point mouseDownLocation, boolean relation) {
       Component component = editor.getComponentAt(mouseDownLocation);
       return component != editor ? !relation
-                                          ? new ComponentSelection(component, mouseDownLocation)
-                                          : new RelationSelection(editor, component, mouseDownLocation) : NULL;
+                                   ? new ComponentSelection(component, mouseDownLocation)
+                                   : new RelationSelection(editor, component, mouseDownLocation) : NULL;
     }
   }
 
@@ -104,8 +110,7 @@ public class NavigationModelEditorPanel2 extends JComponent {
 
     @Override
     protected void moveTo(Point location) {
-      myComponent.setLocation(Utilities
-                                .add(Utilities.diff(location, myMouseDownLocation), myOrigComponentLocation));
+      myComponent.setLocation(Utilities.add(Utilities.diff(location, myMouseDownLocation), myOrigComponentLocation));
     }
 
     @Override
@@ -148,7 +153,10 @@ public class NavigationModelEditorPanel2 extends JComponent {
 
     @Override
     protected Selection finaliseSelectionLocation(Point location) {
-      myOverViewPanel.addRelation(myComponent, myOverViewPanel.getComponentAt(location));
+      Component componentAt = myOverViewPanel.getComponentAt(location);
+      if (myComponent instanceof AndroidRootComponent && componentAt instanceof AndroidRootComponent) {
+        myOverViewPanel.addRelation((AndroidRootComponent)myComponent, (AndroidRootComponent)componentAt);
+      }
       return Selection.NULL;
     }
 
@@ -157,7 +165,7 @@ public class NavigationModelEditorPanel2 extends JComponent {
   public NavigationModelEditorPanel2(Project project, VirtualFile file, NavigationModel navigationModel) {
     myProject = project;
     myFileSystem = file.getFileSystem();
-    myPath = file.getParent().getPath();
+    myPath = file.getParent().getParent().getPath();
     myNavigationModel = navigationModel;
 
     setBackground(BACKGROUND_COLOR);
@@ -265,8 +273,11 @@ public class NavigationModelEditorPanel2 extends JComponent {
   }
   */
 
-  private void addRelation(Component component, Component destComp) {
-    State source = myComponentToState.get(component);
+  private void addRelation(@NotNull AndroidRootComponent srcComponent, @NotNull AndroidRootComponent destComp) {
+    if (srcComponent == destComp) {
+      return;
+    }
+    State source = myComponentToState.get(srcComponent);
     State dest = myComponentToState.get(destComp);
     Transition transition = new Transition("", source, dest);
     myNavigationModel.add(transition);
@@ -275,11 +286,12 @@ public class NavigationModelEditorPanel2 extends JComponent {
 
   private void addRelationView(final Transition transition) {
     String gesture = transition.getType();
-    JComboBox c = new JComboBox(new Object[]{"", "touch", "swipe", "select", "contains"});
+    JComboBox c = new JComboBox(new Object[]{"", "click", "list", "menu", "contains"});
     c.addItemListener(new ItemListener() {
       @Override
       public void itemStateChanged(ItemEvent itemEvent) {
-          transition.setType((String)itemEvent.getItem());
+        transition.setType((String)itemEvent.getItem());
+        myNavigationModel.listeners.notify(null);
       }
     });
     c.setSelectedItem(gesture);
@@ -348,7 +360,7 @@ public class NavigationModelEditorPanel2 extends JComponent {
   private AndroidRootComponent createActivityPanel(State state, Point location) {
     AndroidRootComponent result = new AndroidRootComponent();
     result.setScale(SCALE);
-    VirtualFile file = myFileSystem.findFileByPath(myPath + "/" + state.getXmlResourceName());
+    VirtualFile file = myFileSystem.findFileByPath(myPath + "/layout/" + state.getXmlResourceName());
     result.render(myProject, file);
     result.setLocation(location);
     result.setSize(PREVIEW_SIZE);
@@ -360,7 +372,25 @@ public class NavigationModelEditorPanel2 extends JComponent {
   private class MouseListener extends MouseAdapter {
     @Override
     public void mousePressed(MouseEvent mouseEvent) {
-      setSelection(Selection.create(NavigationModelEditorPanel2.this, mouseEvent.getPoint(), mouseEvent.isShiftDown()));
+      Point location = mouseEvent.getPoint();
+      setSelection(Selection.create(NavigationModelEditorPanel2.this, location, mouseEvent.isShiftDown()));
+      if (mySelection instanceof RelationSelection) {
+        RelationSelection selection = (RelationSelection)mySelection;
+        Component component = selection.myComponent;
+        if (component instanceof AndroidRootComponent) {
+          AndroidRootComponent rootComponent = (AndroidRootComponent)component;
+          int dx0 = location.x - rootComponent.getX();
+          int dy0 = location.y - rootComponent.getY();
+          int dx = (int)(dx0 / SCALE * 2 / 1.5);
+          int dy = (int)(dy0 / SCALE * 2 / 1.5);
+          RenderedView leaf = rootComponent.getRenderResult().getHierarchy().findLeafAt(dx, dy);
+          if (leaf != null) {
+            XmlTag tag = leaf.tag;
+            String attributeValue = tag.getAttributeValue("android:id");
+            System.out.println("attributeValue = " + attributeValue);
+          }
+        }
+      }
     }
 
     /*
@@ -418,21 +448,10 @@ public class NavigationModelEditorPanel2 extends JComponent {
         PsiElement[] psiElements = wrapper.getPsiElements();
         Point dropLocation = aEvent.getPointOn(NavigationModelEditorPanel2.this);
         for (PsiElement element : psiElements) {
-          PsiFile containingFile = element.getContainingFile();
-          if (containingFile != null) {
-            String name = containingFile.getName();
-            State state;
-            if (name.endsWith(".java")) {
-              state = new State(name);
-              //state.setXmlResourceName("xxx"); // todo
-            } else if (name.endsWith(".xml")) {
-              //String className = "xxx"; // todo
-              state = new State(name);
-              state.setXmlResourceName(name);
-            } else {
-              Toolkit.getDefaultToolkit().beep();
-              throw new RuntimeException("Unknown file type"); // todo remove
-            }
+          if (element instanceof PsiQualifiedNamedElement) {
+            PsiQualifiedNamedElement namedElement = (PsiQualifiedNamedElement)element;
+            State state = new State(namedElement.getQualifiedName());
+            state.setXmlResourceName(getXmlFileNameFromJavaFileName(namedElement.getName()));
             add(createActivityPanel(state, dropLocation));
             dropLocation = Utilities.add(dropLocation, MULTIPLE_DROP_STRIDE);
           }
@@ -451,6 +470,14 @@ public class NavigationModelEditorPanel2 extends JComponent {
     public void updateDraggedImage(Image image, Point dropPoint, Point imageOffset) {
       //System.out.println("image = " + image);
     }
+  }
+
+  private static String getXmlFileNameFromJavaFileName(String name) {
+    //if (name.contains("ListFragment")) {
+    //    return "";
+    //}
+
+    return Utilities.getXmlFileNameFromJavaFileName(name);
   }
 
 }

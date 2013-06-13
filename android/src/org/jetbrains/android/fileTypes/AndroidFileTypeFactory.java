@@ -32,6 +32,6 @@ public class AndroidFileTypeFactory extends FileTypeFactory {
       consumer.consume(AndroidRenderscriptFileType.INSTANCE,
                        AndroidRenderscriptFileType.fileNameMatchers());
       consumer.consume(AndroidNinePatchFileType.INSTANCE, AndroidNinePatchFileType.EXTENSION);
-      // consumer.consume(AndroidNavigationFileType.INSTANCE, AndroidNavigationFileType.EXTENSION);
+      consumer.consume(AndroidNavigationFileType.INSTANCE, AndroidNavigationFileType.EXTENSION);
     }
 }
