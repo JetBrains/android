@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public final class AndroidNavigationFileType implements FileType {
-  public static final String EXTENSION = /*SdkConstants.DOT_NAV.substring(1)*/ "nav";
+  public static final String EXTENSION = /*SdkConstants.DOT_NAV.substring(1)*/ "nvg.xml";
   public static final AndroidNavigationFileType INSTANCE = new AndroidNavigationFileType();
 
   @NotNull
