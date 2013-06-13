@@ -54,6 +54,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
   static final Key<AndroidLintGlobalInspectionContext> ID = Key.create("AndroidLintGlobalInspectionContext");
   private Map<Issue, Map<File, List<ProblemData>>> myResults;
 
+  @NotNull
   @Override
   public Key<AndroidLintGlobalInspectionContext> getID() {
     return ID;
@@ -163,7 +164,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
   }
 
   @Override
-  public void performPostRunActivities(@NotNull List<InspectionProfileEntry> inspections, final GlobalInspectionContext context) {
+  public void performPostRunActivities(@NotNull List<InspectionProfileEntry> inspections, @NotNull final GlobalInspectionContext context) {
   }
 
   @Override
