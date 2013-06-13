@@ -20,7 +20,6 @@ import com.android.annotations.Property;
 public class State {
   private final String controllerClassName;
   private String xmlResourceName;
-  private String viewName;
 
   public State(@Property("controllerClassName") String controllerClassName) {
     this.controllerClassName = controllerClassName;
@@ -36,14 +35,6 @@ public class State {
 
   public void setXmlResourceName(String xmlResourceName) {
     this.xmlResourceName = xmlResourceName;
-  }
-
-  public String getViewName() {
-    return viewName;
-  }
-
-  public void setViewName(String viewName) {
-    this.viewName = viewName;
   }
 
   @Override

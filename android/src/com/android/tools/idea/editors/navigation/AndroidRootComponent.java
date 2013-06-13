@@ -40,6 +40,10 @@ public class AndroidRootComponent extends JComponent {
     myScale = 1;
   }
 
+  public RenderResult getRenderResult() {
+    return myRenderResult;
+  }
+
   public double getScale() {
     return myScale;
   }
