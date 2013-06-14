@@ -1,6 +1,5 @@
 package org.jetbrains.android;
 
-import com.android.SdkConstants;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.InspectionManager;
@@ -255,7 +254,7 @@ public class AndroidLintTest extends AndroidTestCase {
 
   private void doGlobalInspectionTest(@NotNull AndroidLintInspectionBase inspection) {
     final GlobalInspectionToolWrapper wrapper = new GlobalInspectionToolWrapper(inspection);
-    myFixture.enableInspections(wrapper);
+    myFixture.enableInspections(inspection);
 
     final AnalysisScope scope = new AnalysisScope(myModule);
     scope.invalidate();
@@ -324,7 +323,7 @@ public class AndroidLintTest extends AndroidTestCase {
 
   private void doTestHighlighting(@NotNull AndroidLintInspectionBase inspection, @NotNull String copyTo, @NotNull String extension)
     throws IOException {
-    myFixture.enableInspections(new GlobalInspectionToolWrapper(inspection));
+    myFixture.enableInspections(inspection);
     final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + "." + extension, copyTo);
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.doHighlighting();
