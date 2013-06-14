@@ -34,6 +34,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiQualifiedNamedElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.HashSet;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -143,14 +144,16 @@ public class NavigationEditorPanel2 extends JComponent {
   }
 
   private static class RelationSelection extends Selection {
-    private final NavigationEditorPanel2 myOverViewPanel;
-    private final Component myComponent;
-    private Point myLocation;
+    @NotNull private final NavigationEditorPanel2 myOverViewPanel;
+    @NotNull private final Component myComponent;
+    @NotNull private Point myLocation;
     private final RenderedView myLeaf;
     private final float myKx;
     private final float myKy;
 
-    private RelationSelection(NavigationEditorPanel2 myNavigationEditorPanel2, AndroidRootComponent component, Point mouseDownLocation) {
+    private RelationSelection(@NotNull NavigationEditorPanel2 myNavigationEditorPanel2,
+                              @NotNull AndroidRootComponent component,
+                              @NotNull Point mouseDownLocation) {
       myOverViewPanel = myNavigationEditorPanel2;
       myComponent = component;
       myLocation = mouseDownLocation;
@@ -180,6 +183,7 @@ public class NavigationEditorPanel2 extends JComponent {
             return attributeValue.substring(ID_PREFIX.length());
           }
         }
+        return getViewId(leaf.getParent());
       }
       return null;
     }
@@ -198,11 +202,13 @@ public class NavigationEditorPanel2 extends JComponent {
 
     @Override
     protected void paintOver(Graphics g) {
-      g.setColor(Color.RED);
-      g.drawRect(myComponent.getX() + ((int)(myLeaf.x / myKx)),
-                 myComponent.getY() + ((int)(myLeaf.y / myKy)),
-                 ((int)(myLeaf.w / myKx)),
-                 ((int)(myLeaf.h / myKy)));
+      if (myLeaf != null) {
+        g.setColor(Color.RED);
+        g.drawRect(myComponent.getX() + ((int)(myLeaf.x / myKx)),
+                   myComponent.getY() + ((int)(myLeaf.y / myKy)),
+                   ((int)(myLeaf.w / myKx)),
+                   ((int)(myLeaf.h / myKy)));
+      }
     }
 
     @Override
@@ -489,8 +495,10 @@ public class NavigationEditorPanel2 extends JComponent {
             PsiQualifiedNamedElement namedElement = (PsiQualifiedNamedElement)element;
             State state = new State(namedElement.getQualifiedName());
             state.setXmlResourceName(getXmlFileNameFromJavaFileName(namedElement.getName()));
-            add(createActivityPanel(state, dropLocation));
-            dropLocation = Utilities.add(dropLocation, MULTIPLE_DROP_STRIDE);
+            if (!myStateToComponent.containsKey(state)) {
+              add(createActivityPanel(state, dropLocation));
+              dropLocation = Utilities.add(dropLocation, MULTIPLE_DROP_STRIDE);
+            }
           }
         }
         revalidate();
