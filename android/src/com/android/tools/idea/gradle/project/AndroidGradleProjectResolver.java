@@ -58,6 +58,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   @NotNull private final ProjectResolverFunctionFactory myFunctionFactory;
 
   // This constructor is called by the IDE. See this module's plugin.xml file, implementation of extension 'projectResolve'.
+  @SuppressWarnings("UnusedDeclaration")
   public AndroidGradleProjectResolver() {
     myHelper = new GradleExecutionHelper();
     myFunctionFactory = new ProjectResolverFunctionFactory(new ProjectResolver(myHelper));

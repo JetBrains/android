@@ -22,7 +22,9 @@ public class AndroidProcessText {
     processHandler.addProcessListener(new ProcessAdapter() {
       @Override
       public void onTextAvailable(ProcessEvent event, Key outputType) {
-        myFragments.add(new MyFragment(event.getText(), outputType));
+        synchronized (myFragments) {
+          myFragments.add(new MyFragment(event.getText(), outputType));
+        }
       }
     });
     processHandler.putUserData(KEY, this);
@@ -38,8 +40,10 @@ public class AndroidProcessText {
   }
 
   public void printTo(@NotNull ProcessHandler processHandler) {
-    for (MyFragment fragment : myFragments) {
-      processHandler.notifyTextAvailable(fragment.getText(), fragment.getOutputType());
+    synchronized (myFragments) {
+      for (MyFragment fragment : myFragments) {
+        processHandler.notifyTextAvailable(fragment.getText(), fragment.getOutputType());
+      }
     }
   }
 

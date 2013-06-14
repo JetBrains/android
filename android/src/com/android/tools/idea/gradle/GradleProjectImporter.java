@@ -219,7 +219,7 @@ public class GradleProjectImporter {
       @Override
       public void onSuccess(final @Nullable DataNode<ProjectData> projectInfo) {
         assert projectInfo != null;
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
+        Runnable runnable = new Runnable() {
           @Override
           public void run() {
             populateProject(project, projectInfo);
@@ -229,7 +229,13 @@ public class GradleProjectImporter {
               project.save();
             }
           }
-        });
+        };
+        if (ApplicationManager.getApplication().isUnitTestMode()) {
+          runnable.run();
+        }
+        else {
+          ApplicationManager.getApplication().invokeLater(runnable);
+        }
       }
 
       @Override

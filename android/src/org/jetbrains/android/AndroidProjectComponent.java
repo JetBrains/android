@@ -38,10 +38,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidResourceFilesListener;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -106,7 +103,10 @@ public class AndroidProjectComponent extends AbstractProjectComponent {
           final Map<AndroidFacet, Collection<AndroidAutogeneratorMode>> facetsToProcess =
             new HashMap<AndroidFacet, Collection<AndroidAutogeneratorMode>>();
 
-          for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+        final Module[] modules = ModuleManager.getInstance(myProject).getModules();
+        final Module[] modulesCopy = Arrays.copyOf(modules, modules.length);
+
+        for (Module module : modulesCopy) {
             final AndroidFacet facet = AndroidFacet.getInstance(module);
 
             if (facet != null && facet.isAutogenerationEnabled()) {

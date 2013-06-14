@@ -11,7 +11,6 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactSigningMode;
-import org.jetbrains.android.sdk.MessageBuildingSdkLog;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
 import org.jetbrains.annotations.NonNls;
@@ -72,6 +71,7 @@ public class AndroidJpsUtil {
   @NonNls public static final String RENDERSCRIPT_GENERATED_SOURCE_ROOT_NAME = "rs";
   @NonNls public static final String BUILD_CONFIG_GENERATED_SOURCE_ROOT_NAME = "build_config";
   @NonNls private static final String GENERATED_SOURCES_FOLDER_NAME = "generated_sources";
+  @NonNls private static final String PREPROCESSED_MANIFEST_FOLDER_NAME = "preprocessed_manifest";
   @NonNls private static final String COPIED_SOURCES_FOLDER_NAME = "copied_sources";
 
   private AndroidJpsUtil() {
@@ -82,7 +82,7 @@ public class AndroidJpsUtil {
    * and compute all jars referred by library modules. Moreover it would be incorrect,
    * because Maven has dependency resolving algorithm based on versioning
    */
-  private static boolean shouldProcessDependenciesRecursively(JpsModule module) {
+  public static boolean shouldProcessDependenciesRecursively(JpsModule module) {
     return JpsJavaDependenciesEnumerationHandler.shouldProcessDependenciesRecursively(
       JpsJavaDependenciesEnumerationHandler.createHandlers(
         Collections.singletonList(module)));
@@ -170,9 +170,14 @@ public class AndroidJpsUtil {
 
   @NotNull
   public static File getDirectoryForIntermediateArtifacts(@NotNull BuildDataPaths dataPaths,
-                                                           @NotNull JpsModule module) {
+                                                          @NotNull JpsModule module) {
+    return new File(getDirectoryForIntermediateArtifacts(dataPaths), module.getName());
+  }
+
+  @NotNull
+  public static File getDirectoryForIntermediateArtifacts(@NotNull BuildDataPaths dataPaths) {
     final File androidStorage = new File(dataPaths.getDataStorageRoot(), ANDROID_STORAGE_DIR);
-    return new File(new File(androidStorage, INTERMEDIATE_ARTIFACTS_STORAGE), module.getName());
+    return new File(androidStorage, INTERMEDIATE_ARTIFACTS_STORAGE);
   }
 
   @Nullable
@@ -299,7 +304,7 @@ public class AndroidJpsUtil {
           if (processor.isToProcess(AndroidDependencyType.ANDROID_LIBRARY_PACKAGE)) {
             final File intArtifactsDir = getDirectoryForIntermediateArtifacts(paths, depModule);
             final File packagedClassesJar = new File(intArtifactsDir, AndroidCommonUtils.CLASSES_JAR_FILE_NAME);
-            processor.processAndroidLibraryPackage(packagedClassesJar);
+            processor.processAndroidLibraryPackage(packagedClassesJar, depModule);
           }
           if (processor.isToProcess(AndroidDependencyType.ANDROID_LIBRARY_OUTPUT_DIRECTORY)) {
             if (depClassDir != null) {
@@ -314,7 +319,9 @@ public class AndroidJpsUtil {
           processor.processJavaModuleOutputDirectory(depClassDir);
         }
         if (recursive) {
-          processClasspath(paths, depModule, processor, visitedModules, !depLibrary || exportedLibrariesOnly, recursive, resolveJars);
+          final boolean newRecursive = shouldProcessDependenciesRecursively(depModule);
+          processClasspath(paths, depModule, processor, visitedModules,
+                           !depLibrary || exportedLibrariesOnly, newRecursive, resolveJars);
         }
       }
     }
@@ -340,9 +347,9 @@ public class AndroidJpsUtil {
   }
 
   @Nullable
-  public static IAndroidTarget parseAndroidTarget(@NotNull JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> sdk,
-                                                  @Nullable CompileContext context,
-                                                  String builderName) {
+  public static Pair<IAndroidTarget, SdkManager> getAndroidTarget(@NotNull JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> sdk,
+                                                                  @Nullable CompileContext context,
+                                                                  String builderName) {
     JpsAndroidSdkProperties sdkProperties = sdk.getSdkProperties().getData();
     final String targetHashString = sdkProperties.getBuildTargetHashString();
     if (targetHashString == null) {
@@ -353,15 +360,13 @@ public class AndroidJpsUtil {
       return null;
     }
 
-    final MessageBuildingSdkLog log = new MessageBuildingSdkLog();
-    final SdkManager manager = AndroidCommonUtils.createSdkManager(sdk.getHomePath(), log);
-
-    if (manager == null) {
-      final String message = log.getErrorMessage();
+    final SdkManager manager;
+    try {
+      manager = AndroidBuildDataCache.getInstance().getSdkManager(sdk.getHomePath());
+    }
+    catch (AndroidBuildDataCache.ComputationException e) {
       if (context != null) {
-        context.processMessage(new CompilerMessage(builderName, BuildMessage.Kind.ERROR,
-                                                   "Android SDK is parsed incorrectly." +
-                                                   (message.length() > 0 ? " Parsing log:\n" + message : "")));
+        context.processMessage(new CompilerMessage(builderName, BuildMessage.Kind.ERROR, e.getMessage()));
       }
       return null;
     }
@@ -375,7 +380,7 @@ public class AndroidJpsUtil {
       }
       return null;
     }
-    return target;
+    return Pair.create(target, manager);
   }
 
   @Nullable
@@ -458,15 +463,15 @@ public class AndroidJpsUtil {
       return null;
     }
 
-    final IAndroidTarget target = parseAndroidTarget(sdk, context, builderName);
-    if (target == null) {
+    final Pair<IAndroidTarget, SdkManager> pair = getAndroidTarget(sdk, context, builderName);
+    if (pair == null) {
       if (context != null) {
         context.processMessage(new CompilerMessage(builderName, BuildMessage.Kind.ERROR,
                                                    AndroidJpsBundle.message("android.jps.errors.sdk.invalid", module.getName())));
       }
       return null;
     }
-    return new AndroidPlatform(sdk, target);
+    return new AndroidPlatform(sdk, pair.getFirst(), pair.getSecond());
   }
 
   @NotNull
@@ -524,37 +529,7 @@ public class AndroidJpsUtil {
 
   @NotNull
   public static List<JpsAndroidModuleExtension> getAllAndroidDependencies(@NotNull JpsModule module, boolean librariesOnly) {
-    final List<JpsAndroidModuleExtension> result = new ArrayList<JpsAndroidModuleExtension>();
-    final boolean recursively = shouldProcessDependenciesRecursively(module);
-    collectDependentAndroidLibraries(module, result, new HashSet<String>(), librariesOnly, recursively);
-    return result;
-  }
-
-  private static void collectDependentAndroidLibraries(@NotNull JpsModule module,
-                                                       @NotNull List<JpsAndroidModuleExtension> result,
-                                                       @NotNull Set<String> visitedSet,
-                                                       boolean librariesOnly,
-                                                       boolean recursively) {
-    final List<JpsDependencyElement> dependencies =
-      new ArrayList<JpsDependencyElement>(JpsJavaExtensionService.getInstance().getDependencies(
-        module, JpsJavaClasspathKind.PRODUCTION_RUNTIME, false));
-
-    for (int i = dependencies.size() - 1; i >= 0; i--) {
-      final JpsDependencyElement item = dependencies.get(i);
-
-      if (item instanceof JpsModuleDependency) {
-        final JpsModule depModule = ((JpsModuleDependency)item).getModule();
-        if (depModule != null) {
-          final JpsAndroidModuleExtension depExtension = getExtension(depModule);
-          if (depExtension != null && (!librariesOnly || depExtension.isLibrary()) && visitedSet.add(depModule.getName())) {
-            if (recursively) {
-              collectDependentAndroidLibraries(depModule, result, visitedSet, librariesOnly, recursively);
-            }
-            result.add(0, depExtension);
-          }
-        }
-      }
-    }
+    return AndroidBuildDataCache.getInstance().getAllAndroidDependencies(module, librariesOnly);
   }
 
   public static boolean isLightBuild(@NotNull CompileContext context) {
@@ -677,6 +652,21 @@ public class AndroidJpsUtil {
     final File targetDataRoot = dataPaths.getTargetDataRoot(
       new ModuleBuildTarget(module, JavaModuleBuildTargetType.PRODUCTION));
     return getStorageDir(targetDataRoot, GENERATED_SOURCES_FOLDER_NAME);
+  }
+
+  @NotNull
+  public static File getPreprocessedManifestDirectory(@NotNull JpsModule module, @NotNull BuildDataPaths dataPaths) {
+    final File androidStorage = new File(dataPaths.getDataStorageRoot(), ANDROID_STORAGE_DIR);
+    return new File(new File(androidStorage, PREPROCESSED_MANIFEST_FOLDER_NAME), module.getName());
+  }
+
+  @Nullable
+  public static File getPreprocessedManifestFile(@NotNull JpsAndroidModuleExtension extension, @NotNull BuildDataPaths dataPaths) {
+    if (extension.isLibrary() || !extension.isManifestMergingEnabled()) {
+      return getManifestFileForCompilationPath(extension);
+    }
+    final File dir = getPreprocessedManifestDirectory(extension.getModule(), dataPaths);
+    return new File(dir, SdkConstants.FN_ANDROID_MANIFEST_XML);
   }
 
   @NotNull

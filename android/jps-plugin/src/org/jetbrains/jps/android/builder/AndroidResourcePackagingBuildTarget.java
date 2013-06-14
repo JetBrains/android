@@ -54,7 +54,7 @@ public class AndroidResourcePackagingBuildTarget extends AndroidBuildTarget {
     final List<String> assertDirs = new ArrayList<String>();
     collectAssetDirs(extension, assertDirs, false);
 
-    final File manifestFile = AndroidJpsUtil.getManifestFileForCompilationPath(extension);
+    final File manifestFile = AndroidJpsUtil.getPreprocessedManifestFile(extension, dataPaths);
     final List<BuildRootDescriptor> result = new ArrayList<BuildRootDescriptor>();
 
     for (String resourceDir : resourceDirs) {

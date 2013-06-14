@@ -18,16 +18,13 @@ package org.jetbrains.android.maven;
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.containers.HashMap;
-import com.intellij.util.xmlb.annotations.AbstractCollection;
 import com.intellij.util.xmlb.annotations.MapAnnotation;
 import com.intellij.util.xmlb.annotations.Tag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.idea.maven.model.MavenArtifact;
 import org.jetbrains.idea.maven.model.MavenId;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -57,7 +54,7 @@ public class AndroidExternalApklibDependenciesManager implements PersistentState
   }
 
   @Nullable
-  public MyResolvedInfo getResolvedInfoForArtifact(@NotNull MavenId mavenId) {
+  public MavenArtifactResolvedInfo getResolvedInfoForArtifact(@NotNull MavenId mavenId) {
     final String key = AndroidMavenUtil.getMavenIdStringForFileName(mavenId);
     return myState.getResolvedInfoMap().get(key);
   }
@@ -67,7 +64,7 @@ public class AndroidExternalApklibDependenciesManager implements PersistentState
     return myState.getArtifactFilesMap().get(mavenIdStr);
   }
 
-  public void setSdkInfoForArtifact(@NotNull MavenId mavenId, @NotNull MyResolvedInfo info) {
+  public void setResolvedInfoForArtifact(@NotNull MavenId mavenId, @NotNull MavenArtifactResolvedInfo info) {
     final String key = AndroidMavenUtil.getMavenIdStringForFileName(mavenId);
     myState.getResolvedInfoMap().put(key, info);
   }
@@ -79,11 +76,11 @@ public class AndroidExternalApklibDependenciesManager implements PersistentState
 
   public static class State {
     private Map<String, String> myArtifactFilesMap = new HashMap<String, String>();
-    private Map<String, MyResolvedInfo> myResolvedInfoMap = new HashMap<String, MyResolvedInfo>();
+    private Map<String, MavenArtifactResolvedInfo> myResolvedInfoMap = new HashMap<String, MavenArtifactResolvedInfo>();
 
-    @Tag("sdk-infos")
+    @Tag("resolved-infos")
     @MapAnnotation(surroundWithTag = false)
-    public Map<String, MyResolvedInfo> getResolvedInfoMap() {
+    public Map<String, MavenArtifactResolvedInfo> getResolvedInfoMap() {
       return myResolvedInfoMap;
     }
 
@@ -97,43 +94,11 @@ public class AndroidExternalApklibDependenciesManager implements PersistentState
       myArtifactFilesMap = artifactFilesMap;
     }
 
-    public void setResolvedInfoMap(Map<String, MyResolvedInfo> artifactId2SdkData) {
+    public void setResolvedInfoMap(Map<String, MavenArtifactResolvedInfo> artifactId2SdkData) {
       myResolvedInfoMap = artifactId2SdkData;
     }
   }
 
-  @Tag("resolved-info")
-  public static class MyResolvedInfo {
-    private String myApiLevel;
-    private List<MavenDependencyInfo> myApklibDependencies = new ArrayList<MavenDependencyInfo>();
-
-    public MyResolvedInfo(String apiLevel, Collection<MavenDependencyInfo> dependencyInfos) {
-      myApiLevel = apiLevel;
-      myApklibDependencies = new ArrayList<MavenDependencyInfo>(dependencyInfos);
-    }
-
-    public MyResolvedInfo() {
-    }
-
-    public String getApiLevel() {
-      return myApiLevel;
-    }
-
-    @Tag("dependencies")
-    @AbstractCollection(surroundWithTag = false)
-    public List<MavenDependencyInfo> getApklibDependencies() {
-      return myApklibDependencies;
-    }
-
-    public void setApklibDependencies(List<MavenDependencyInfo> apklibDependencies) {
-      myApklibDependencies = apklibDependencies;
-    }
-
-    public void setApiLevel(String apiLevel) {
-      myApiLevel = apiLevel;
-    }
-  }
-  
   public static class MavenDependencyInfo {
     private String myGroupId;
     private String myArtifactId;
@@ -146,11 +111,20 @@ public class AndroidExternalApklibDependenciesManager implements PersistentState
     public MavenDependencyInfo() {
     }
 
-    public MavenDependencyInfo(@NotNull MavenId mavenId,
-                               @NotNull String type,
-                               @NotNull String scope,
-                               @NotNull String path,
-                               @NotNull String libName) {
+    @NotNull
+    public static MavenDependencyInfo create(@NotNull MavenArtifact artifact) {
+      final String path = artifact.getPathForExtraArtifact(null, null);
+      final String libName = artifact.getLibraryName();
+
+      return new AndroidExternalApklibDependenciesManager.MavenDependencyInfo(
+        artifact.getMavenId(), artifact.getType(), artifact.getScope(), path, libName);
+    }
+
+    private MavenDependencyInfo(@NotNull MavenId mavenId,
+                                @NotNull String type,
+                                @NotNull String scope,
+                                @NotNull String path,
+                                @NotNull String libName) {
       myGroupId = mavenId.getGroupId();
       myArtifactId = mavenId.getArtifactId();
       myVersion = mavenId.getVersion();

@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
+import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter.NULL_OBJECT;
 import static org.easymock.classextension.EasyMock.*;
 
 /**
@@ -49,21 +50,17 @@ public class AndroidGradleProjectResolverTest extends TestCase {
 
   @SuppressWarnings("unchecked")
   public void testResolveProjectInfo() throws Exception {
-    String projectId = "dummy";
-    ExternalSystemTaskId id = ExternalSystemTaskId.create(ExternalSystemTaskType.RESOLVE_PROJECT, projectId);
+    ExternalSystemTaskId id = ExternalSystemTaskId.create(ExternalSystemTaskType.RESOLVE_PROJECT, "1");
     String projectPath = "~/basic/build.gradle";
     GradleExecutionSettings settings = createMock(GradleExecutionSettings.class);
 
-    ExternalSystemTaskNotificationListener listener = new ExternalSystemTaskNotificationListenerAdapter() {
-    };
-    expect(myFunctionFactory.createFunction(id, projectPath, settings, listener)).andReturn(myProjectResolverFunction);
+    expect(myFunctionFactory.createFunction(id, projectPath, settings, NULL_OBJECT)).andReturn(myProjectResolverFunction);
     DataNode<ProjectData> projectInfo = createMock(DataNode.class);
     expect(myHelper.execute(projectPath, settings, myProjectResolverFunction)).andReturn(projectInfo);
 
     replay(myFunctionFactory, myHelper);
 
-
-    DataNode<ProjectData> resolved = myProjectResolver.resolveProjectInfo(id, projectPath, true, settings, listener);
+    DataNode<ProjectData> resolved = myProjectResolver.resolveProjectInfo(id, projectPath, true, settings, NULL_OBJECT);
     assertSame(projectInfo, resolved);
 
     verify(myFunctionFactory, myHelper);
