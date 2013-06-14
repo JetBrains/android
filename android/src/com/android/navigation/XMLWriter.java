@@ -59,7 +59,7 @@ public class XMLWriter {
     int count = 0;
   }
 
-  class NameValue {
+  static class NameValue {
     public final String name;
     public final Object value;
 
@@ -145,7 +145,12 @@ public class XMLWriter {
         element.writeElement();
       }
 
-      println(!hasBody ? "/>" : "</" + tag + ">");
+      if (!hasBody) {
+        println("/>");
+      }
+      else {
+        println("</" + tag + ">");
+      }
       level--;
     }
 
