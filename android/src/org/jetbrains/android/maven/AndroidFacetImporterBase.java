@@ -161,6 +161,24 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     }
     project.putUserData(DELETE_OBSOLETE_MODULE_TASK_KEY, Boolean.TRUE);
     postTasks.add(new MyDeleteObsoleteApklibModulesTask(project));
+
+    // exclude folders where Maven generates sources if gen source roots were changed by user manually
+    final AndroidFacetConfiguration defaultConfig = new AndroidFacetConfiguration();
+    AndroidMavenProviderImpl.setPathsToDefault(mavenProject, module, defaultConfig);
+
+    if (!defaultConfig.getState().GEN_FOLDER_RELATIVE_PATH_APT.equals(
+      facet.getProperties().GEN_FOLDER_RELATIVE_PATH_APT)) {
+      final String rPath = mavenProject.getGeneratedSourcesDirectory(false) + "/r";
+      rootModel.unregisterAll(rPath, false, true);
+      rootModel.addExcludedFolder(rPath);
+    }
+
+    if (!defaultConfig.getState().GEN_FOLDER_RELATIVE_PATH_AIDL.equals(
+      facet.getProperties().GEN_FOLDER_RELATIVE_PATH_AIDL)) {
+      final String aidlPath = mavenProject.getGeneratedSourcesDirectory(false) + "/aidl";
+      rootModel.unregisterAll(aidlPath, false, true);
+      rootModel.addExcludedFolder(aidlPath);
+    }
   }
 
   private void importNativeDependencies(@NotNull AndroidFacet facet, @NotNull MavenProject mavenProject, @NotNull String moduleDirPath) {
