@@ -120,7 +120,6 @@
     <exportable serviceInterface="com.android.tools.idea.folding.AndroidFoldingSettings"/>
 
     <errorHandler        implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
-    <statisticsService   implementationClass="com.android.tools.idea.stats.AndroidStatisticsService" key="android-studio" />
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.DrawableStateListDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.BitmapOrNinePatchDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.LayerListDomFileDescription"/>
@@ -211,7 +210,6 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintButtonStyle" displayName="Button should be borderless" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true"  level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintButtonStyleInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintCommitPrefEdits" displayName="Missing commit() on SharedPreference editor" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true"  level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintCommitPrefEditsInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintContentDescription" displayName="Image without contentDescription" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true"  level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintContentDescriptionInspection"/>
-    <globalInspection hasStaticDescription="true" shortName="AndroidLintContentDescription" displayName="Missing content description" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true"  level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintContentDescriptionInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintCutPasteId" displayName="Likely cut &amp; paste mistakes" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true"  level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintCutPasteIdInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintDisableBaselineAlignment" displayName="Missing baselineAligned attribute" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true"  level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintDisableBaselineAlignmentInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintDrawAllocation" displayName="Memory allocations within drawing code" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true"  level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintDrawAllocationInspection"/>
@@ -412,7 +410,7 @@
     <editorNotificationProvider implementation="com.android.tools.idea.editors.GeneratedFileNotificationProvider"/>
 
     <compileServer.plugin classpath="jps/android-jps-plugin.jar;jps/android-gradle-jps.jar;android-common.jar;android-rt.jar"/>
-    <compileServer.plugin classpath="sdklib.jar;guava-13.0.1.jar;common.jar;jarutils.jar;layoutlib-api.jar"/>
+    <compileServer.plugin classpath="sdklib.jar;guava-13.0.1.jar;common.jar;jarutils.jar;layoutlib-api.jar;manifest-merger.jar"/>
 
     <inlineActionHandler implementation="org.jetbrains.android.refactoring.AndroidInlineStyleHandler"/>
     <inlineActionHandler implementation="org.jetbrains.android.refactoring.AndroidInlineLayoutHandler" order="first"/>

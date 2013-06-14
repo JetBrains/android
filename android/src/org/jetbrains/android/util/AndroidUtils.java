@@ -41,7 +41,7 @@ import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.util.DefaultPsiElementCellRenderer;
 import com.intellij.ide.wizard.CommitStepException;
-import com.intellij.lexer.JavaLexer;
+import com.intellij.lang.java.JavaParserDefinition;
 import com.intellij.lexer.Lexer;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
@@ -134,6 +134,7 @@ public class AndroidUtils {
 
   // Properties
   @NonNls public static final String ANDROID_LIBRARY_PROPERTY = "android.library";
+  @NonNls public static final String ANDROID_MANIFEST_MERGER_PROPERTY = "manifestmerger.enabled";
   @NonNls public static final String ANDROID_TARGET_PROPERTY = "target";
   @NonNls public static final String ANDROID_LIBRARY_REFERENCE_PROPERTY_PREFIX = "android.library.reference.";
   @NonNls public static final String TAG_LINEAR_LAYOUT = "LinearLayout";
@@ -795,21 +796,17 @@ public class AndroidUtils {
 
   public static boolean isIdentifier(@NotNull String candidate) {
     ApplicationManager.getApplication().assertReadAccessAllowed();
-    Lexer lexer = new JavaLexer(LanguageLevel.JDK_1_3);
+    Lexer lexer = JavaParserDefinition.createLexer(LanguageLevel.JDK_1_3);
     lexer.start(candidate);
     if (lexer.getTokenType() != JavaTokenType.IDENTIFIER) return false;
     lexer.advance();
     return lexer.getTokenType() == null;
   }
 
-  public static void reportImportErrorToEventLog(String message, String modName) {
-    reportImportMessageToEventLog(message, modName, NotificationType.ERROR);
-  }
-
-  private static void reportImportMessageToEventLog(String message, String modName, NotificationType notificationType) {
+  public static void reportImportErrorToEventLog(String message, String modName, Project project) {
     Notifications.Bus.notify(new Notification(AndroidBundle.message("android.facet.importing.notification.group"),
                                               AndroidBundle.message("android.facet.importing.title", modName),
-                                              message, notificationType, null));
+                                              message, NotificationType.ERROR, null), project);
     LOG.debug(message);
   }
 }

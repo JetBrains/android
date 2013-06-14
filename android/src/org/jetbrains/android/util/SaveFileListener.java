@@ -16,13 +16,17 @@
 
 package org.jetbrains.android.util;
 
-import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.FileTypeManager;
+import com.intellij.openapi.fileChooser.FileChooserFactory;
+import com.intellij.openapi.fileChooser.FileSaverDescriptor;
+import com.intellij.openapi.fileChooser.FileSaverDialog;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileWrapper;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileView;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -55,23 +59,21 @@ public abstract class SaveFileListener implements ActionListener {
     if (!file.exists()) {
       path = file.getParent();
     }
-    JFileChooser fileChooser = new JFileChooser(path);
-    FileView fileView = new FileView() {
-      @Override
-      public Icon getIcon(File f) {
-        if (f.isDirectory()) return super.getIcon(f);
-        FileType fileType = FileTypeManager.getInstance().getFileTypeByFileName(f.getName());
-        return fileType.getIcon();
-      }
-    };
-    fileChooser.setFileView(fileView);
-    fileChooser.setMultiSelectionEnabled(false);
-    fileChooser.setAcceptAllFileFilterUsed(false);
-    fileChooser.setDialogTitle(myDialogTitle);
+    FileSaverDescriptor descriptor = new FileSaverDescriptor(myDialogTitle, "Save as *.apk", "apk");
+    FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, myContentPanel);
 
-    if (fileChooser.showSaveDialog(myContentPanel) != JFileChooser.APPROVE_OPTION) return;
-    file = fileChooser.getSelectedFile();
-    if (file == null) return;
-    myTextField.setText(file.getPath());
+    VirtualFile vf = LocalFileSystem.getInstance().findFileByIoFile(file.exists() ? file : new File(path));
+    if (vf == null) {
+      vf = VfsUtil.getUserHomeDir();
+    }
+
+    VirtualFileWrapper result = saveFileDialog.save(vf, null);
+
+
+    if (result == null || result.getFile() == null) {
+      return;
+    }
+
+    myTextField.setText(result.getFile().getPath());
   }
 }

@@ -215,7 +215,7 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
           @Override
           public void run() {
             AndroidFindStyleApplicationsAction.doRefactoringForTag(
-              project, createdStyleTag, createdStyleData, file, null);
+              createdStyleTag, createdStyleData, file, null);
           }
         });
       }

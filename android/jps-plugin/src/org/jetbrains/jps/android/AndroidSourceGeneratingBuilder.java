@@ -1,5 +1,6 @@
 package org.jetbrains.jps.android;
 
+import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
@@ -16,6 +17,7 @@ import com.intellij.util.Processor;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import gnu.trove.THashSet;
+import gnu.trove.TObjectLongHashMap;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactSigningMode;
 import org.jetbrains.android.compiler.tools.AndroidApt;
 import org.jetbrains.android.compiler.tools.AndroidIdl;
@@ -79,6 +81,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
   private static final int MIN_SDK_TOOLS_REVISION = 19;
 
   public static final Key<Boolean> IS_ENABLED = Key.create("_android_source_generator_enabled_");
+  @NonNls private static final String R_TXT_OUTPUT_DIR_NAME = "r_txt";
 
   public AndroidSourceGeneratingBuilder() {
     super(BuilderCategory.SOURCE_GENERATOR);
@@ -87,6 +90,11 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
   @Override
   public void buildStarted(CompileContext context) {
     IS_ENABLED.set(context, true);
+  }
+
+  @Override
+  public void buildFinished(CompileContext context) {
+    AndroidBuildDataCache.clean();
   }
 
   @Override
@@ -543,14 +551,6 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
       final MyModuleData moduleData = entry.getValue();
       final JpsAndroidModuleExtension extension = moduleData.getAndroidExtension();
 
-      final Pair<String, File> manifestMergerProp =
-        AndroidJpsUtil.getProjectPropertyValue(extension, AndroidCommonUtils.ANDROID_MANIFEST_MERGER_PROPERTY);
-      if (manifestMergerProp != null && Boolean.parseBoolean(manifestMergerProp.getFirst())) {
-        final String message = "[" + module.getName() + "] Manifest merging is not supported. Please, reconfigure your manifest files";
-        final String propFilePath = manifestMergerProp.getSecond().getPath();
-        context.processMessage(new CompilerMessage(ANDROID_VALIDATOR, BuildMessage.Kind.WARNING, message, propFilePath));
-      }
-
       if (extension.isLibrary()) {
         continue;
       }
@@ -841,7 +841,8 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
   }
 
   private static MyExitStatus runAaptCompiler(@NotNull final CompileContext context,
-                                              @NotNull Map<JpsModule, MyModuleData> moduleDataMap) throws IOException {
+                                              @NotNull Map<JpsModule, MyModuleData> moduleDataMap)
+    throws IOException {
     boolean success = true;
     boolean didSomething = false;
 
@@ -869,7 +870,15 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
           continue;
         }
         final String packageName = moduleData.getPackage();
-        final File manifestFile = moduleData.getManifestFileForCompiler();
+        final File manifestFile;
+
+        if (extension.isLibrary() || !extension.isManifestMergingEnabled()) {
+          manifestFile = moduleData.getManifestFileForCompiler();
+        }
+        else {
+          manifestFile = new File(AndroidJpsUtil.getPreprocessedManifestDirectory(module, context.
+            getProjectDescriptor().dataManager.getDataPaths()), SdkConstants.FN_ANDROID_MANIFEST_XML);
+        }
 
         if (isLibraryWithBadCircularDependency(extension)) {
           if (!clearDirectoryIfNotEmpty(aptOutputDirectory, context, ANDROID_APT_COMPILER)) {
@@ -893,16 +902,35 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
         }
         final boolean generateNonFinalFields = extension.isLibrary() || circularDepLibWithSamePackage != null;
 
-        final Map<String, ResourceFileData> resources = collectResources(resPaths);
-        final List<ResourceEntry> manifestElements = collectManifestElements(manifestFile);
+        AndroidAptValidityState oldState;
 
-        final Set<String> depLibPackagesSet = new HashSet<String>(packageMap.values());
-        depLibPackagesSet.remove(packageName);
+        try {
+          oldState = storage.getState(module.getName());
+        }
+        catch (IOException e) {
+          LOG.info(e);
+          oldState = null;
+        }
+        final Map<String, ResourceFileData> resources = new HashMap<String, ResourceFileData>();
+        final TObjectLongHashMap<String> valueResFilesTimestamps = new TObjectLongHashMap<String>();
+        collectResources(resPaths, resources, valueResFilesTimestamps, oldState);
+
+        final List<ResourceEntry> manifestElements = collectManifestElements(manifestFile);
+        final List<Pair<String, String>> libRTextFilesAndPackages = new ArrayList<Pair<String, String>>(packageMap.size());
+
+        for (Map.Entry<JpsModule, String> entry1 : packageMap.entrySet()) {
+          final String libPackage = entry1.getValue();
+
+          if (!packageName.equals(libPackage)) {
+            final String libRTxtFilePath = new File(new File(AndroidJpsUtil.getDirectoryForIntermediateArtifacts(
+              context, entry1.getKey()), R_TXT_OUTPUT_DIR_NAME), SdkConstants.FN_RESOURCE_TEXT).getPath();
+            libRTextFilesAndPackages.add(Pair.create(libRTxtFilePath, libPackage));
+          }
+        }
+        final File outputDirForArtifacts = AndroidJpsUtil.getDirectoryForIntermediateArtifacts(context, module);
         final String proguardOutputCfgFilePath;
 
         if (AndroidJpsUtil.getProGuardConfigIfShouldRun(context, extension) != null) {
-          final File outputDirForArtifacts = AndroidJpsUtil.getDirectoryForIntermediateArtifacts(context, module);
-
           if (AndroidJpsUtil.createDirIfNotExist(outputDirForArtifacts, context, BUILDER_NAME) == null) {
             success = false;
             continue;
@@ -912,11 +940,24 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
         else {
           proguardOutputCfgFilePath = null;
         }
-        final AndroidAptValidityState newState =
-          new AndroidAptValidityState(resources, manifestElements, depLibPackagesSet, packageName, proguardOutputCfgFilePath);
+        String rTxtOutDirOsPath = null;
 
-        final AndroidAptValidityState oldState = storage.getState(module.getName());
+        if (extension.isLibrary() || libRTextFilesAndPackages.size() > 0) {
+          final File rTxtOutDir = new File(outputDirForArtifacts, R_TXT_OUTPUT_DIR_NAME);
+
+          if (AndroidJpsUtil.createDirIfNotExist(rTxtOutDir, context, BUILDER_NAME) == null) {
+            success = false;
+            continue;
+          }
+          rTxtOutDirOsPath = rTxtOutDir.getPath();
+        }
+        final AndroidAptValidityState newState =
+          new AndroidAptValidityState(resources, valueResFilesTimestamps, manifestElements, libRTextFilesAndPackages,
+                                      packageName, proguardOutputCfgFilePath, rTxtOutDirOsPath, extension.isLibrary());
+
         if (newState.equalsTo(oldState)) {
+          // we need to update state, because it also contains myValueResFilesTimestamps not taking into account by equalsTo()
+          storage.update(module.getName(), newState);
           continue;
         }
         didSomething = true;
@@ -925,9 +966,9 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
         File tmpOutputDir = null;
         try {
           tmpOutputDir = FileUtil.createTempDirectory("android_apt_output", "tmp");
-          final Map<AndroidCompilerMessageKind, List<String>> messages =
-            AndroidApt.compile(target, -1, manifestFile.getPath(), packageName, tmpOutputDir.getPath(), resPaths,
-                               ArrayUtil.toStringArray(depLibPackagesSet), generateNonFinalFields, proguardOutputCfgFilePath);
+          final Map<AndroidCompilerMessageKind, List<String>> messages = AndroidApt.compile(
+            target, -1, manifestFile.getPath(), packageName, tmpOutputDir.getPath(), resPaths, libRTextFilesAndPackages,
+            generateNonFinalFields, proguardOutputCfgFilePath, rTxtOutDirOsPath, !extension.isLibrary());
 
           AndroidJpsUtil.addMessages(context, messages, ANDROID_APT_COMPILER, module.getName());
 
@@ -1114,8 +1155,11 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
   }
 
   @NotNull
-  private static Map<String, ResourceFileData> collectResources(@NotNull String[] resPaths) throws IOException {
-    final Map<String, ResourceFileData> result = new HashMap<String, ResourceFileData>();
+  private static Map<String, ResourceFileData> collectResources(@NotNull String[] resPaths,
+                                                                @NotNull Map<String, ResourceFileData> resDataMap,
+                                                                @NotNull TObjectLongHashMap<String> valueResFilesTimestamps,
+                                                                @Nullable AndroidAptValidityState oldState)
+    throws IOException {
 
     for (String resDirPath : resPaths) {
       final File[] resSubdirs = new File(resDirPath).listFiles();
@@ -1129,47 +1173,52 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
 
             if (resFiles != null) {
               for (File resFile : resFiles) {
-                if (ResourceFolderType.VALUES.getName().equals(resType) && FileUtilRt.extensionEquals(resFile.getName(), "xml")) {
-                  final ArrayList<ResourceEntry> entries = new ArrayList<ResourceEntry>();
-                  collectValueResources(resFile, entries);
-                  result.put(FileUtil.toSystemIndependentName(resFile.getPath()), new ResourceFileData(entries, 0));
-                }
-                else {
-                  final ResourceType resTypeObj = ResourceType.getEnum(resType);
-                  final boolean idProvidingType =
-                    resTypeObj != null && ArrayUtil.find(AndroidCommonUtils.ID_PROVIDING_RESOURCE_TYPES, resTypeObj) >= 0;
-                  final ResourceFileData data =
-                    new ResourceFileData(Collections.<ResourceEntry>emptyList(), idProvidingType ? resFile.lastModified() : 0);
-                  result.put(FileUtil.toSystemIndependentName(resFile.getPath()), data);
-                }
+                collectResources(resFile, resType, resDataMap, valueResFilesTimestamps, oldState);
               }
             }
           }
         }
       }
     }
-    return result;
+    return resDataMap;
   }
 
-  private static void collectValueResources(@NotNull File valueResXmlFile, @NotNull final List<ResourceEntry> result)
+  private static void collectResources(@NotNull File resFile,
+                                       @NotNull String resType,
+                                       @NotNull Map<String, ResourceFileData> resDataMap,
+                                       @NotNull TObjectLongHashMap<String> valueResFilesTimestamps,
+                                       @Nullable AndroidAptValidityState oldState)
     throws IOException {
-    final InputStream inputStream = new BufferedInputStream(new FileInputStream(valueResXmlFile));
-    try {
+    final String resFilePath = FileUtil.toSystemIndependentName(resFile.getPath());
+    final long resFileTimestamp = resFile.lastModified();
 
-      FormsParsing.parse(inputStream, new ValueResourcesFileParser() {
-        @Override
-        protected void stop() {
-          throw new FormsParsing.ParserStoppedException();
-        }
+    if (ResourceFolderType.VALUES.getName().equals(resType) && FileUtilRt.extensionEquals(resFile.getName(), "xml")) {
+      ResourceFileData dataToReuse = null;
 
-        @Override
-        protected void process(@NotNull ResourceEntry resourceEntry) {
-          result.add(resourceEntry);
+      if (oldState != null) {
+        final long oldTimestamp = oldState.getValueResourceFilesTimestamps().get(resFilePath);
+
+        if (resFileTimestamp == oldTimestamp) {
+          dataToReuse = oldState.getResources().get(resFilePath);
         }
-      });
+      }
+
+      if (dataToReuse != null) {
+        resDataMap.put(resFilePath, dataToReuse);
+      }
+      else {
+        final List<ResourceEntry> entries = AndroidBuildDataCache.getInstance().getParsedValueResourceFile(resFile);
+        resDataMap.put(resFilePath, new ResourceFileData(entries, 0));
+      }
+      valueResFilesTimestamps.put(resFilePath, resFileTimestamp);
     }
-    finally {
-      inputStream.close();
+    else {
+      final ResourceType resTypeObj = ResourceType.getEnum(resType);
+      final boolean idProvidingType =
+        resTypeObj != null && ArrayUtil.find(AndroidCommonUtils.ID_PROVIDING_RESOURCE_TYPES, resTypeObj) >= 0;
+      final ResourceFileData data =
+        new ResourceFileData(Collections.<ResourceEntry>emptyList(), idProvidingType ? resFileTimestamp : 0);
+      resDataMap.put(resFilePath, data);
     }
   }
 

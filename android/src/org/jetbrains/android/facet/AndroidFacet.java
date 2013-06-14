@@ -832,8 +832,11 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @Nullable
   public Manifest getManifest() {
+    File manifestIoFile = getMainSourceSet().getManifestFile();
+    if (manifestIoFile == null) return null;
+
     final VirtualFile manifestFile =
-      LocalFileSystem.getInstance().findFileByIoFile(getMainSourceSet().getManifestFile());
+      LocalFileSystem.getInstance().findFileByIoFile(manifestIoFile);
     if (manifestFile == null) return null;
     return AndroidUtils.loadDomElement(getModule(), manifestFile, Manifest.class);
   }
@@ -1054,10 +1057,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     @Override
     public File getManifestFile() {
       final VirtualFile manifestFile = AndroidRootUtil.getManifestFile(AndroidFacet.this);
-      if (manifestFile == null) {
-        return null;
-      }
-      return VfsUtilCore.virtualToIoFile(manifestFile);
+      return manifestFile == null ? null : VfsUtilCore.virtualToIoFile(manifestFile);
     }
 
     @NonNull

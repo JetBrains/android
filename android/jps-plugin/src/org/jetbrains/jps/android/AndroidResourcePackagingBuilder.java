@@ -86,7 +86,8 @@ public class AndroidResourcePackagingBuilder extends TargetBuilder<BuildRootDesc
 
     context.processMessage(new ProgressMessage(AndroidJpsBundle.message("android.jps.progress.packaging.resources", module.getName())));
 
-    final File manifestFile = AndroidJpsUtil.getManifestFileForCompilationPath(extension);
+    final File manifestFile = AndroidJpsUtil.getPreprocessedManifestFile(extension, context.
+      getProjectDescriptor().dataManager.getDataPaths());
 
     if (manifestFile == null || !manifestFile.exists()) {
       context.processMessage(new CompilerMessage(

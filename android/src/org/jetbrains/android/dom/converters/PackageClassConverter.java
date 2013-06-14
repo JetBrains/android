@@ -209,11 +209,12 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
   }
 
   @NotNull
-  public static Collection<PsiClass> findInheritors(@NotNull final Module module, @NotNull final String className, boolean inModuleOnly) {
-    final Project project = module.getProject();
+  public static Collection<PsiClass> findInheritors(@NotNull Project project, @Nullable final Module module, @NotNull final String className, boolean inModuleOnly) {
     PsiClass base = JavaPsiFacade.getInstance(project).findClass(className, GlobalSearchScope.allScope(project));
     if (base != null) {
-      GlobalSearchScope scope = inModuleOnly ? GlobalSearchScope.moduleWithDependenciesScope(module) : GlobalSearchScope.allScope(project);
+      GlobalSearchScope scope = inModuleOnly && module != null
+                                ? GlobalSearchScope.moduleWithDependenciesScope(module)
+                                : GlobalSearchScope.allScope(project);
       Query<PsiClass> query = ClassInheritorsSearch.search(base, scope, true);
       return query.findAll();
     }
@@ -302,7 +303,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
       if (myExtendsClasses != null) {
         final List<PsiClass> classes = new ArrayList<PsiClass>();
         for (String extendsClass : myExtendsClasses) {
-          classes.addAll(findInheritors(myModule, extendsClass, myCompleteOnlyModuleClasses));
+          classes.addAll(findInheritors(myElement.getProject(), myModule, extendsClass, myCompleteOnlyModuleClasses));
         }
         final List<Object> result = new ArrayList<Object>(classes.size());
 

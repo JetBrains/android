@@ -109,6 +109,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   private ComboBox myUpdateProjectPropertiesCombo;
   private CheckBoxList<AndroidImportableProperty> myImportedOptionsList;
   private JBTabbedPane myTabbedPane;
+  private JBCheckBox myEnableManifestMerging;
 
   private static final String MAVEN_TAB_TITLE = "Maven";
   private final Component myMavenTabComponent;
@@ -217,6 +218,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
       public void actionPerformed(ActionEvent e) {
         boolean lib = myIsLibraryProjectCheckbox.isSelected();
         myAssetsFolderField.setEnabled(!lib);
+        myEnableManifestMerging.setEnabled(!lib);
       }
     });
 
@@ -363,6 +365,9 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     if (!myConfiguration.getState().CUSTOM_DEBUG_KEYSTORE_PATH.equals(getSelectedCustomKeystorePath())) {
       return true;
     }
+    if (myConfiguration.getState().ENABLE_MANIFEST_MERGING != myEnableManifestMerging.isSelected()) {
+      return true;
+    }
     if (myConfiguration.getState().PACK_TEST_CODE != myIncludeTestCodeAndCheckBox.isSelected()) {
       return true;
     }
@@ -389,18 +394,20 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     if (!myUpdateProjectPropertiesCombo.getSelectedItem().equals(myConfiguration.getState().UPDATE_PROPERTY_FILES)) {
       return true;
     }
-    final Set<AndroidImportableProperty> newNotImportedProperties = EnumSet.noneOf(AndroidImportableProperty.class);
+    if (AndroidMavenUtil.isMavenizedModule(myContext.getModule())) {
+      final Set<AndroidImportableProperty> newNotImportedProperties = EnumSet.noneOf(AndroidImportableProperty.class);
 
-    for (int i = 0; i < myImportedOptionsList.getItemsCount(); i++) {
-      final AndroidImportableProperty property = (AndroidImportableProperty)myImportedOptionsList.getItemAt(i);
+      for (int i = 0; i < myImportedOptionsList.getItemsCount(); i++) {
+        final AndroidImportableProperty property = (AndroidImportableProperty)myImportedOptionsList.getItemAt(i);
 
-      if (!myImportedOptionsList.isItemSelected(i)) {
-        newNotImportedProperties.add(property);
+        if (!myImportedOptionsList.isItemSelected(i)) {
+          newNotImportedProperties.add(property);
+        }
       }
-    }
 
-    if (!myConfiguration.getState().myNotImportedProperties.equals(newNotImportedProperties)) {
-      return true;
+      if (!myConfiguration.getState().myNotImportedProperties.equals(newNotImportedProperties)) {
+        return true;
+      }
     }
     return false;
   }
@@ -506,18 +513,22 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
 
     myConfiguration.getState().RUN_PROCESS_RESOURCES_MAVEN_TASK = myRunProcessResourcesRadio.isSelected();
 
+    myConfiguration.getState().ENABLE_MANIFEST_MERGING = myEnableManifestMerging.isSelected();
+
     myConfiguration.getState().PACK_TEST_CODE = myIncludeTestCodeAndCheckBox.isSelected();
 
     myConfiguration.setIncludeAssetsFromLibraries(myIncludeAssetsFromLibraries.isSelected());
 
-    final Set<AndroidImportableProperty> notImportedProperties = myConfiguration.getState().myNotImportedProperties;
-    notImportedProperties.clear();
+    if (AndroidMavenUtil.isMavenizedModule(myContext.getModule())) {
+      final Set<AndroidImportableProperty> notImportedProperties = myConfiguration.getState().myNotImportedProperties;
+      notImportedProperties.clear();
 
-    for (int i = 0; i < myImportedOptionsList.getItemsCount(); i++) {
-      final AndroidImportableProperty property = (AndroidImportableProperty)myImportedOptionsList.getItemAt(i);
+      for (int i = 0; i < myImportedOptionsList.getItemsCount(); i++) {
+        final AndroidImportableProperty property = (AndroidImportableProperty)myImportedOptionsList.getItemAt(i);
 
-      if (!myImportedOptionsList.isItemSelected(i)) {
-        notImportedProperties.add(property);
+        if (!myImportedOptionsList.isItemSelected(i)) {
+          notImportedProperties.add(property);
+        }
       }
     }
 
@@ -652,6 +663,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     myCompileResourcesByIdeRadio.setVisible(mavenizedModule);
     myCompileResourcesByIdeRadio.setSelected(!myConfiguration.getState().RUN_PROCESS_RESOURCES_MAVEN_TASK);
 
+    myEnableManifestMerging.setSelected(myConfiguration.getState().ENABLE_MANIFEST_MERGING);
     myIncludeTestCodeAndCheckBox.setSelected(myConfiguration.getState().PACK_TEST_CODE);
     myIncludeAssetsFromLibraries.setSelected(myConfiguration.isIncludeAssetsFromLibraries());
 

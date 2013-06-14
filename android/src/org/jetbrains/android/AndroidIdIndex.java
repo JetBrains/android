@@ -45,21 +45,13 @@ public class AndroidIdIndex extends FileBasedIndexExtension<String, Set<String>>
   public static final ID<String, Set<String>> INDEX_ID = ID.create("android.id.index");
   public static final String MARKER = "$";
 
-  private static final FileBasedIndex.InputFilter INPUT_FILTER = new FileBasedIndex.InputFilter() {
-    @Override
-    public boolean acceptInput(final VirtualFile file) {
-      return (file.getFileSystem() == LocalFileSystem.getInstance() || file.getFileSystem() instanceof TempFileSystem) &&
-             file.getFileType() == StdFileTypes.XML;
-    }
-  };
-
   private static final DataIndexer<String, Set<String>, FileContent> INDEXER = new DataIndexer<String, Set<String>, FileContent>() {
     @Override
     @NotNull
     public Map<String, Set<String>> map(FileContent inputData) {
       final CharSequence content = inputData.getContentAsText();
 
-      if (content == null || CharArrayUtil.indexOf(content, SdkConstants.NS_RESOURCES, 0) == -1) {
+      if (CharArrayUtil.indexOf(content, SdkConstants.NS_RESOURCES, 0) == -1) {
         return Collections.emptyMap();
       }
       final HashMap<String, Set<String>> map = new HashMap<String, Set<String>>();
@@ -131,7 +123,12 @@ public class AndroidIdIndex extends FileBasedIndexExtension<String, Set<String>>
 
   @Override
   public FileBasedIndex.InputFilter getInputFilter() {
-    return INPUT_FILTER;
+    return new DefaultFileTypeSpecificInputFilter(StdFileTypes.XML) {
+      @Override
+      public boolean acceptInput(final VirtualFile file) {
+        return (file.getFileSystem() == LocalFileSystem.getInstance() || file.getFileSystem() instanceof TempFileSystem);
+      }
+    };
   }
 
   @Override

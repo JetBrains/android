@@ -394,9 +394,7 @@ public class AndroidAutogenerator {
     if (vFile == null || genDir == null) {
       return;
     }
-    DumbService.getInstance(module.getProject()).waitForSmartMode();
-
-    final Collection<VirtualFile> files = ApplicationManager.getApplication().runReadAction(new Computable<Collection<VirtualFile>>() {
+    final Collection<VirtualFile> files = DumbService.getInstance(module.getProject()).runReadActionInSmartMode(new Computable<Collection<VirtualFile>>() {
       @Nullable
       @Override
       public Collection<VirtualFile> compute() {

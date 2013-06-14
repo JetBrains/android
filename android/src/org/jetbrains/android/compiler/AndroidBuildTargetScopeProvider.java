@@ -33,6 +33,7 @@ public class AndroidBuildTargetScopeProvider extends BuildTargetScopeProvider {
     final List<String> appTargetIds = new ArrayList<String>();
     final List<String> libTargetIds = new ArrayList<String>();
     final List<String> allTargetIds = new ArrayList<String>();
+    final List<String> manifestMergingTargetIds = new ArrayList<String>();
     final boolean fullBuild = AndroidCompileUtil.isFullBuild(baseScope);
 
     for (Module module : baseScope.getAffectedModules()) {
@@ -41,7 +42,6 @@ public class AndroidBuildTargetScopeProvider extends BuildTargetScopeProvider {
       if (facet == null) {
         continue;
       }
-      // todo: make AndroidPackagingBuilder fully target-based and change this
       allTargetIds.add(module.getName());
 
       if (fullBuild) {
@@ -49,15 +49,20 @@ public class AndroidBuildTargetScopeProvider extends BuildTargetScopeProvider {
           libTargetIds.add(module.getName());
         }
         else {
+          if (facet.getProperties().ENABLE_MANIFEST_MERGING) {
+            manifestMergingTargetIds.add(module.getName());
+          }
           appTargetIds.add(module.getName());
         }
       }
     }
     return Arrays.asList(
+      CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.MANIFEST_MERGING_BUILD_TARGET_TYPE_ID, manifestMergingTargetIds, forceBuild),
+      CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.PRE_DEX_BUILD_TARGET_TYPE_ID, Collections.singletonList("only"), forceBuild),
       CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.DEX_BUILD_TARGET_TYPE_ID, appTargetIds, forceBuild),
       CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.RESOURCE_CACHING_BUILD_TARGET_ID, allTargetIds, forceBuild),
       CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.RESOURCE_PACKAGING_BUILD_TARGET_ID, appTargetIds, forceBuild),
-      CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.PACKAGING_BUILD_TARGET_TYPE_ID, allTargetIds, forceBuild),
+      CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.PACKAGING_BUILD_TARGET_TYPE_ID, appTargetIds, forceBuild),
       CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.LIBRARY_PACKAGING_BUILD_TARGET_ID, libTargetIds, forceBuild)
     );
   }
