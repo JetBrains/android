@@ -24,6 +24,7 @@ import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestUtil;
 import com.intellij.util.containers.HashSet;
@@ -820,6 +821,64 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
     assertEquals("/assets5", properties.ASSETS_FOLDER_RELATIVE_PATH);
     assertEquals("/libs5", properties.LIBS_FOLDER_RELATIVE_PATH);
     assertEquals("/manifest5/AndroidManifest.xml", properties.MANIFEST_FILE_RELATIVE_PATH);
+  }
+
+  public void testChangeGenRootManually() throws Exception {
+    AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = AndroidTestCase.getDefaultTestSdkPath();
+    try {
+      FileUtil.copyDir(new File(AndroidTestCase.getTestDataPath(), "maven/changeGenRootManually"), new File(myProjectRoot.getPath()));
+      importProject(getPomContent("apk", "module", ""));
+      assertModules("module");
+      final Module module = getModule("module");
+      final ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
+
+      String[] sourceRoots = toRelativePaths(rootManager.getSourceRootUrls());
+      assertEquals(new HashSet<String>(Arrays.asList(
+        "target/generated-sources/r",
+        "target/generated-sources/aidl")
+      ), new HashSet<String>(Arrays.asList(sourceRoots)));
+
+      String[] excludedRootUrls = toRelativePaths(rootManager.getExcludeRootUrls());
+      assertEquals(new HashSet<String>(Arrays.asList(
+        "target/generated-sources/combined-resources",
+        "target/generated-sources/combined-assets",
+        "target/generated-sources/extracted-dependencies")
+      ), new HashSet<String>(Arrays.asList(excludedRootUrls)));
+
+      final AndroidFacet facet = AndroidFacet.getInstance(module);
+      assertNotNull(facet);
+      facet.getProperties().GEN_FOLDER_RELATIVE_PATH_APT = "";
+      facet.getProperties().GEN_FOLDER_RELATIVE_PATH_AIDL = "";
+
+      importProject();
+
+      sourceRoots = toRelativePaths(rootManager.getSourceRootUrls());
+      assertEquals(0, sourceRoots.length);
+
+      excludedRootUrls = toRelativePaths(rootManager.getExcludeRootUrls());
+      assertEquals(new HashSet<String>(Arrays.asList(
+        "target/generated-sources/combined-resources",
+        "target/generated-sources/combined-assets",
+        "target/generated-sources/extracted-dependencies",
+        "target/generated-sources/r",
+        "target/generated-sources/aidl")
+      ), new HashSet<String>(Arrays.asList(excludedRootUrls)));
+    }
+    finally {
+      AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = null;
+    }
+  }
+
+  private String[] toRelativePaths(String[] urls) {
+    final String[] result = new String[urls.length];
+
+    for (int i = 0; i < urls.length; i++) {
+      final String absPath = VfsUtilCore.urlToPath(urls[i]);
+      final String relPath = FileUtil.getRelativePath(new File(myProjectRoot.getPath()), new File(absPath));
+      assertNotNull(relPath);
+      result[i] = FileUtil.toSystemIndependentName(relPath);
+    }
+    return result;
   }
 
   private static void checkApklibModule(Module apklibModule, Library jarLib) {
