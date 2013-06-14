@@ -34,6 +34,15 @@ import java.util.Map;
  * The {@linkplain FlagManager} provides access to flags for regions known
  * to {@link LocaleManager}. It also contains some locale related display
  * functions.
+ * <p>
+ * All the flag images came from the WindowBuilder subversion repository
+ * http://dev.eclipse.org/svnroot/tools/org.eclipse.windowbuilder/trunk (and in
+ * particular, a snapshot of revision 424). However, it appears that the icons
+ * are from http://www.famfamfam.com/lab/icons/flags/ which states that "these
+ * flag icons are available for free use for any purpose with no requirement for
+ * attribution." Adding the URL here such that we can check back occasionally
+ * and see if there are corrections or updates. Also note that the flag names
+ * are in ISO 3166-1 alpha-2 country codes.
  */
 @SuppressWarnings("SpellCheckingInspection")
 public class FlagManager {
@@ -189,7 +198,16 @@ public class FlagManager {
       }
       @SuppressWarnings("UnnecessaryFullyQualifiedName")
       String flagFileName = base.toLowerCase(java.util.Locale.US) + ".png"; //$NON-NLS-1$
-      flagImage = IconLoader.getIcon("/icons/flags/" + flagFileName, AndroidIcons.class);
+      try {
+        flagImage = IconLoader.findIcon("/icons/flags/" + flagFileName, AndroidIcons.class);
+      } catch (Throwable t) {
+        // This shouldn't happen in production, but IconLoader.findIcon can throw exceptions
+        // when IconLoader.STRICT is set to true, which is the case when running unit tests
+        // or with idea.is.internal=true
+      }
+      if (flagImage == null) {
+        flagImage = AndroidIcons.EmptyFlag;
+      }
       myImageMap.put(base, flagImage);
     }
 
