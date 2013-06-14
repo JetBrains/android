@@ -50,13 +50,13 @@ public class GradleProjectImporterTest extends IdeaTestCase {
 
     String projectRootDirPath = myProjectRootDir.getAbsolutePath();
     final File projectFile = new File(myProjectRootDir, "build.gradle");
-    ProjectData projectData = new ProjectData(GradleConstants.SYSTEM_ID, projectRootDirPath, projectFile.getAbsolutePath());
+    final String configPath = projectFile.getAbsolutePath();
+    ProjectData projectData = new ProjectData(GradleConstants.SYSTEM_ID, projectRootDirPath, configPath);
     projectData.setName(myProjectName);
     myProjectInfo = new DataNode<ProjectData>(ProjectKeys.PROJECT, projectData, null);
 
-    String externalConfigPath = "dummy";
-    ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), myProjectName, projectRootDirPath,
-                                           externalConfigPath);
+    ModuleData moduleData
+      = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), myProjectName, projectRootDirPath, configPath);
     myProjectInfo.createChild(ProjectKeys.MODULE, moduleData);
 
     GradleProjectImporter.ImporterDelegate delegate = new GradleProjectImporter.ImporterDelegate() {
@@ -65,13 +65,24 @@ public class GradleProjectImporterTest extends IdeaTestCase {
         throws ConfigurationException {
         assertNotNull(newProject);
         assertEquals(myProjectName, newProject.getName());
-        assertEquals(projectFile.getAbsolutePath(), projectFilePath);
+        assertEquals(configPath, projectFilePath);
 
         callback.onSuccess(myProjectInfo);
       }
     };
 
     myImporter = new GradleProjectImporter(delegate);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    Project[] projects = myProjectManager.getOpenProjects();
+    for (Project project : projects) {
+      if (project != getProject()) {
+        myProjectManager.closeAndDispose(project);
+      }
+    }
+    super.tearDown();
   }
 
   public void testImportProject() throws Exception {

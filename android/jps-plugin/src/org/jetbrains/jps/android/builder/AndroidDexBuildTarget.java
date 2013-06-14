@@ -1,13 +1,11 @@
 package org.jetbrains.jps.android.builder;
 
 import com.intellij.openapi.util.io.FileUtil;
+import gnu.trove.THashMap;
 import gnu.trove.THashSet;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.jps.android.AndroidDependencyProcessor;
-import org.jetbrains.jps.android.AndroidDependencyType;
-import org.jetbrains.jps.android.AndroidJpsUtil;
-import org.jetbrains.jps.android.AndroidPlatform;
+import org.jetbrains.jps.android.*;
 import org.jetbrains.jps.android.model.JpsAndroidDexCompilerConfiguration;
 import org.jetbrains.jps.android.model.JpsAndroidExtensionService;
 import org.jetbrains.jps.android.model.JpsAndroidModuleExtension;
@@ -63,7 +61,7 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
     if (extension.isLibrary()) {
       return Collections.emptyList();
     }
-    final Set<String> libPackages = new THashSet<String>(FileUtil.PATH_HASHING_STRATEGY);
+    final Map<String, String> libPackage2ModuleName = new THashMap<String, String>(FileUtil.PATH_HASHING_STRATEGY);
     final Set<String> appClassesDirs = new THashSet<String>(FileUtil.PATH_HASHING_STRATEGY);
     final Set<String> javaClassesDirs = new THashSet<String>(FileUtil.PATH_HASHING_STRATEGY);
     final Set<String> libClassesDirs = new THashSet<String>(FileUtil.PATH_HASHING_STRATEGY);
@@ -77,8 +75,8 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
 
     AndroidJpsUtil.processClasspath(dataPaths, myModule, new AndroidDependencyProcessor() {
       @Override
-      public void processAndroidLibraryPackage(@NotNull File file) {
-        libPackages.add(file.getPath());
+      public void processAndroidLibraryPackage(@NotNull File file, @NotNull JpsModule depModule) {
+        libPackage2ModuleName.put(file.getPath(), depModule.getName());
       }
 
       @Override
@@ -120,15 +118,30 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
     for (String classesDir : javaClassesDirs) {
       result.add(new MyClassesDirBuildRootDescriptor(this, new File(classesDir), ClassesDirType.JAVA));
     }
+    final File preDexOutputDir = AndroidPreDexBuildTarget.getOutputDir(dataPaths);
 
-    for (String jar : libPackages) {
-      result.add(new MyJarBuildRootDescriptor(this, new File(jar), true));
+    for (Map.Entry<String, String> entry : libPackage2ModuleName.entrySet()) {
+      final String libPackage = entry.getKey();
+      final String moduleName = entry.getValue();
+      final File libPackageJarFile = new File(libPackage);
+      assert AndroidPreDexBuilder.canBePreDexed(libPackageJarFile);
+      result.add(new MyJarBuildRootDescriptor(this, new File(
+        new File(preDexOutputDir, moduleName), libPackageJarFile.getName()), true));
     }
     final AndroidPlatform platform = AndroidJpsUtil.getAndroidPlatform(myModule, null, null);
 
     if (platform != null) {
       for (String jarOrLibDir : AndroidJpsUtil.getExternalLibraries(dataPaths, myModule, platform, false)) {
-        result.add(new MyJarBuildRootDescriptor(this, new File(jarOrLibDir), false));
+        File file = new File(jarOrLibDir);
+
+        if (AndroidPreDexBuilder.canBePreDexed(file)) {
+          final String preDexedFileName = AndroidPreDexBuilder.getOutputFileNameForExternalJar(file);
+
+          if (preDexedFileName != null) {
+            file = new File(preDexOutputDir, preDexedFileName);
+          }
+        }
+        result.add(new MyJarBuildRootDescriptor(this, file, false));
       }
     }
     return result;
@@ -155,10 +168,7 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
   public Collection<BuildTarget<?>> computeDependencies(BuildTargetRegistry registry, TargetOutputIndex outputIndex) {
     final List<BuildTarget<?>> result = new ArrayList<BuildTarget<?>>(
       super.computeDependencies(registry, outputIndex));
-
-    for (JpsAndroidModuleExtension depExtension : AndroidJpsUtil.getAllAndroidDependencies(myModule, true)) {
-      result.add(new AndroidLibraryPackagingTarget(depExtension.getModule()));
-    }
+    result.add(new AndroidPreDexBuildTarget(myModule.getProject()));
     return result;
   }
 

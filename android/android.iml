@@ -72,15 +72,6 @@
     </orderEntry>
     <orderEntry type="module" module-name="external-system-impl" />
     <orderEntry type="library" name="gson" level="project" />
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/gooplp.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
   </component>
 </module>
 

@@ -19,14 +19,13 @@ import com.android.tools.idea.gradle.project.AndroidGradleProjectResolver.Projec
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.util.Function;
 import junit.framework.TestCase;
 import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
+import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter.NULL_OBJECT;
 import static org.easymock.classextension.EasyMock.*;
 
 /**
@@ -44,21 +43,18 @@ public class ProjectResolverFunctionFactoryTest extends TestCase {
   }
 
   public void testCreateFunction() {
-    String projectId = "dummy";
-    ExternalSystemTaskId id = ExternalSystemTaskId.create(ExternalSystemTaskType.RESOLVE_PROJECT, projectId);
+    ExternalSystemTaskId id = ExternalSystemTaskId.create(ExternalSystemTaskType.RESOLVE_PROJECT, "dummy");
     String projectPath = "~/basic/build.gradle";
     GradleExecutionSettings settings = createMock(GradleExecutionSettings.class);
     ProjectConnection connection = createMock(ProjectConnection.class);
 
-    ExternalSystemTaskNotificationListener listener = new ExternalSystemTaskNotificationListenerAdapter() {
-    };
-    Function<ProjectConnection,DataNode<ProjectData>> function = myFunctionFactory.createFunction(id, projectPath, settings, listener);
+    Function<ProjectConnection,DataNode<ProjectData>> function = myFunctionFactory.createFunction(id, projectPath, settings, NULL_OBJECT);
     assertNotNull(function);
 
     DataNode<ProjectData> projectInfo = createMock(DataNode.class);
 
     // Verify that function execution delegates to ProjectResolverDelegates.
-    expect(myStrategy.resolveProjectInfo(id, projectPath, settings, connection, listener)).andReturn(projectInfo);
+    expect(myStrategy.resolveProjectInfo(id, projectPath, settings, connection, NULL_OBJECT)).andReturn(projectInfo);
     replay(myStrategy);
 
     DataNode<ProjectData> resolved = function.fun(connection);

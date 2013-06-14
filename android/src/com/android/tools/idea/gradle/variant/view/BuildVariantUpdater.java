@@ -33,7 +33,6 @@ import com.intellij.openapi.util.Ref;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 /**
  * Updates the contents/settings of a module when a build variant changes.
