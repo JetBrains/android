@@ -17,7 +17,9 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.resources.LocaleManager;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.util.Function;
+import icons.AndroidIcons;
 import junit.framework.TestCase;
 
 import javax.swing.*;
@@ -139,5 +141,26 @@ public class FlagManagerTest extends TestCase {
     Function<Object,String> mapper = FlagManager.getRegionNameMapper();
     assertEquals("US: United States", mapper.fun("US"));
     assertEquals("MX: Mexico", mapper.fun("MX"));
+  }
+
+  public void testMissingFlag() {
+    Icon icon = FlagManager.get().getFlag("AQ");
+    assertNotNull(icon);
+    assertSame(AndroidIcons.EmptyFlag, icon);
+
+    IconLoader.STRICT = true;
+    icon = FlagManager.get().getFlag("AQ");
+    assertNotNull(icon);
+    assertSame(AndroidIcons.EmptyFlag, icon);
+
+    icon = FlagManager.get().getFlag("WO"); // Not used in ISO 3166-1
+    assertNotNull(icon);
+    assertSame(AndroidIcons.EmptyFlag, icon);
+  }
+
+  public void testKnownFlag() {
+    Icon icon = FlagManager.get().getFlag("US");
+    assertNotNull(icon);
+    assertNotSame(AndroidIcons.EmptyFlag, icon);
   }
 }
