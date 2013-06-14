@@ -147,7 +147,8 @@ public class NavigationEditorPanel2 extends JComponent {
     @NotNull private final NavigationEditorPanel2 myOverViewPanel;
     @NotNull private final Component myComponent;
     @NotNull private Point myLocation;
-    private final RenderedView myLeaf;
+    @Nullable private final RenderedView myLeaf;
+    @Nullable private final RenderedView myNamedLeaf;
     private final float myKx;
     private final float myKy;
 
@@ -172,8 +173,17 @@ public class NavigationEditorPanel2 extends JComponent {
       int dx = mouseDownLocation.x - component.getX();
       int dy = mouseDownLocation.y - component.getY();
       myLeaf = hierarchy.findLeafAt((int)(dx * myKx), (int)(dy * myKy));
+      myNamedLeaf = getNamedParent(myLeaf);
     }
 
+    private static RenderedView getNamedParent(@Nullable RenderedView view) {
+      while (view != null && getViewId(view) == null) {
+        view = view.getParent();
+      }
+      return view;
+    }
+
+    @Nullable
     private static String getViewId(@Nullable RenderedView leaf) {
       if (leaf != null) {
         XmlTag tag = leaf.tag;
@@ -183,7 +193,6 @@ public class NavigationEditorPanel2 extends JComponent {
             return attributeValue.substring(ID_PREFIX.length());
           }
         }
-        return getViewId(leaf.getParent());
       }
       return null;
     }
@@ -200,15 +209,18 @@ public class NavigationEditorPanel2 extends JComponent {
       drawArrow(g, start.x, start.y, myLocation.x, myLocation.y);
     }
 
+    private void paintLeaf(Graphics g, @Nullable RenderedView leaf, Color color) {
+      if (leaf != null) {
+        g.setColor(color);
+        g.drawRect(myComponent.getX() + ((int)(leaf.x / myKx)), myComponent.getY() + ((int)(leaf.y / myKy)), ((int)(leaf.w / myKx)),
+                   ((int)(leaf.h / myKy)));
+      }
+    }
+
     @Override
     protected void paintOver(Graphics g) {
-      if (myLeaf != null) {
-        g.setColor(Color.RED);
-        g.drawRect(myComponent.getX() + ((int)(myLeaf.x / myKx)),
-                   myComponent.getY() + ((int)(myLeaf.y / myKy)),
-                   ((int)(myLeaf.w / myKx)),
-                   ((int)(myLeaf.h / myKy)));
-      }
+      paintLeaf(g, myLeaf, Color.RED);
+      paintLeaf(g, myNamedLeaf, Color.BLUE);
     }
 
     @Override
@@ -217,7 +229,7 @@ public class NavigationEditorPanel2 extends JComponent {
       if (myComponent instanceof AndroidRootComponent && componentAt instanceof AndroidRootComponent) {
         if (myComponent != componentAt) {
           Map<AndroidRootComponent, State> m = myOverViewPanel.myComponentToState;
-          myOverViewPanel.addRelation(m.get(myComponent), getViewId(myLeaf), m.get(componentAt));
+          myOverViewPanel.addRelation(m.get(myComponent), getViewId(myNamedLeaf), m.get(componentAt));
         }
       }
       return Selection.NULL;
@@ -335,7 +347,7 @@ public class NavigationEditorPanel2 extends JComponent {
     mySelection.paintOver(graphics);
   }
 
-  private void addRelation(State source, String viewIdentifier, State dest) {
+  private void addRelation(State source, @Nullable String viewIdentifier, State dest) {
     Transition transition = new Transition("", source, dest);
     transition.setViewIdentifier(viewIdentifier);
     myNavigationModel.add(transition);
