@@ -326,13 +326,15 @@ public class NavigationEditorPanel2 extends JComponent {
     for (Transition transition : myNavigationModel) {
       AndroidRootComponent sourceComponent = myStateToComponent.get(transition.getSource());
       AndroidRootComponent destinationComponent = myStateToComponent.get(transition.getDestination());
-      Rectangle scb = sourceComponent.getBounds();
-      Rectangle dcb = destinationComponent.getBounds();
-      Point sc = Utilities.centre(scb);
-      Point dc = Utilities.centre(dcb);
-      Point scp = Utilities.project(scb, dc);
-      Point dcp = Utilities.project(dcb, sc);
-      drawArrow(g, scp.x, scp.y, dcp.x, dcp.y);
+      if (sourceComponent != null && destinationComponent != null) {
+        Rectangle scb = sourceComponent.getBounds();
+        Rectangle dcb = destinationComponent.getBounds();
+        Point sc = Utilities.centre(scb);
+        Point dc = Utilities.centre(dcb);
+        Point scp = Utilities.project(scb, dc);
+        Point dcp = Utilities.project(dcb, sc);
+        drawArrow(g, scp.x, scp.y, dcp.x, dcp.y);
+      }
     }
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, oldRenderingHint);
     for (Component c : myStateToComponent.values()) {
@@ -385,15 +387,17 @@ public class NavigationEditorPanel2 extends JComponent {
     for (Transition transition : myNavigationModel) {
       AndroidRootComponent sourceComponent = myStateToComponent.get(transition.getSource());
       AndroidRootComponent destinationComponent = myStateToComponent.get(transition.getDestination());
-      Point sl = Utilities.centre(sourceComponent);
-      Point dl = Utilities.centre(destinationComponent);
-      String gesture = transition.getType();
-      if (gesture != null) {
-        Component c = myNavigationToComponent.get(transition);
-        c.setSize(c.getPreferredSize());
-        int sx = (sl.x + dl.x - c.getWidth()) / 2;
-        int sy = (sl.y + dl.y - c.getHeight()) / 2;
-        c.setLocation(sx, sy);
+      if (sourceComponent != null && destinationComponent != null) {
+        Point sl = Utilities.centre(sourceComponent);
+        Point dl = Utilities.centre(destinationComponent);
+        String gesture = transition.getType();
+        if (gesture != null) {
+          Component c = myNavigationToComponent.get(transition);
+          c.setSize(c.getPreferredSize());
+          int sx = (sl.x + dl.x - c.getWidth()) / 2;
+          int sy = (sl.y + dl.y - c.getHeight()) / 2;
+          c.setLocation(sx, sy);
+        }
       }
     }
   }
