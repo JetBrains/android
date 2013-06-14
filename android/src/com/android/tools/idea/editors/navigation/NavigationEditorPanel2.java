@@ -362,7 +362,7 @@ public class NavigationEditorPanel2 extends JComponent {
       @Override
       public void itemStateChanged(ItemEvent itemEvent) {
         transition.setType((String)itemEvent.getItem());
-        myNavigationModel.listeners.notify(null);
+        myNavigationModel.getListeners().notify(null);
       }
     });
     c.setSelectedItem(gesture);
