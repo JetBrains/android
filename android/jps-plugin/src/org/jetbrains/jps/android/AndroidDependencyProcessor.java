@@ -1,6 +1,7 @@
 package org.jetbrains.jps.android;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.jps.model.module.JpsModule;
 
 import java.io.File;
 
@@ -11,7 +12,7 @@ public abstract class AndroidDependencyProcessor {
   public void processExternalLibrary(@NotNull File file) {
   }
 
-  public void processAndroidLibraryPackage(@NotNull File file) {
+  public void processAndroidLibraryPackage(@NotNull File file, @NotNull JpsModule depModule) {
   }
 
   public void processAndroidLibraryOutputDirectory(@NotNull File dir) {

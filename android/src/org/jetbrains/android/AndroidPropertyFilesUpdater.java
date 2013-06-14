@@ -79,7 +79,10 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
       public void dispose() {
       }
     };
-    addProjectPropertiesUpdatingListener();
+    if (!ApplicationManager.getApplication().isUnitTestMode() &&
+        !ApplicationManager.getApplication().isHeadlessEnvironment()) {
+      addProjectPropertiesUpdatingListener();
+    }
   }
 
   @Override
@@ -131,6 +134,15 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
                   }
                 }
               }
+            }
+
+            /* We should expire old notification even if there are no properties to update in current event.
+             For example, user changed "is library" setting to 'true', the notification was shown, but user ignored it.
+             Then he changed the setting to 'false' again. New notification won't be shown, because the value of
+             "android.library" in project.properties is correct. However if the old notification was not expired,
+             user may press on it, and "android.library" property will be changed to 'false'. */
+            if (myNotification != null && !myNotification.isExpired()) {
+              myNotification.expire();
             }
 
             if (changes.size() > 0 || toAskChanges.size() > 0) {
@@ -207,12 +219,13 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
     final String[] dependencyPaths = toSortedPaths(dependencies);
 
     final List<Object> newState = Arrays.asList(androidTargetHashString, facet.getProperties().
-      LIBRARY_PROJECT, Arrays.asList(dependencyPaths));
+      LIBRARY_PROJECT, Arrays.asList(dependencyPaths), facet.getProperties().ENABLE_MANIFEST_MERGING);
     final List<Object> state = facet.getUserData(ANDROID_PROPERTIES_STATE_KEY);
 
     if (state == null || !Comparing.equal(state, newState)) {
       updateTargetProperty(facet, projectProperties, changes);
       updateLibraryProperty(facet, projectProperties, changes);
+      updateManifestMergerProperty(facet, projectProperties, changes);
       updateDependenciesInPropertyFile(projectProperties, localProperties, dependencies, changes);
 
       facet.putUserData(ANDROID_PROPERTIES_STATE_KEY, newState);
@@ -347,6 +360,33 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
     }
   }
 
+  public static void updateManifestMergerProperty(@NotNull AndroidFacet facet,
+                                                  @NotNull final PropertiesFile propertiesFile,
+                                                  @NotNull List<Runnable> changes) {
+    final IProperty property = propertiesFile.findPropertyByKey(AndroidUtils.ANDROID_MANIFEST_MERGER_PROPERTY);
+
+    if (property != null) {
+      final String value = Boolean.toString(facet.getProperties().ENABLE_MANIFEST_MERGING);
+
+      if (!value.equals(property.getValue())) {
+        changes.add(new Runnable() {
+          @Override
+          public void run() {
+            property.setValue(value);
+          }
+        });
+      }
+    }
+    else if (facet.getProperties().ENABLE_MANIFEST_MERGING) {
+      changes.add(new Runnable() {
+        @Override
+        public void run() {
+          propertiesFile.addProperty(AndroidUtils.ANDROID_MANIFEST_MERGER_PROPERTY, Boolean.TRUE.toString());
+        }
+      });
+    }
+  }
+
   @Nullable
   private static VirtualFile getBaseAndroidContentRoot(@NotNull Module module) {
     final AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -382,15 +422,12 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
   }
 
   private void askUserIfUpdatePropertyFile(@NotNull Project project,
-                                                  @NotNull Collection<AndroidFacet> facets,
-                                                  @NotNull final Processor<MyResult> callback) {
+                                           @NotNull Collection<AndroidFacet> facets,
+                                           @NotNull final Processor<MyResult> callback) {
     final StringBuilder moduleList = new StringBuilder();
 
     for (AndroidFacet facet : facets) {
       moduleList.append(facet.getModule().getName()).append("<br>");
-    }
-    if (myNotification != null && !myNotification.isExpired()) {
-      myNotification.expire();
     }
     myNotification = PROPERTY_FILES_UPDATING_NOTIFICATION.createNotification(
       AndroidBundle.message("android.update.project.properties.dialog.title"),

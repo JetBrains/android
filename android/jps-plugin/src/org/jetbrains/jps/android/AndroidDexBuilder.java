@@ -45,6 +45,7 @@ import org.jetbrains.jps.incremental.*;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 import org.jetbrains.jps.incremental.messages.ProgressMessage;
+import org.jetbrains.jps.model.JpsProject;
 import org.jetbrains.jps.model.JpsSimpleElement;
 import org.jetbrains.jps.model.java.JpsJavaSdkType;
 import org.jetbrains.jps.model.library.JpsLibrary;
@@ -221,11 +222,23 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
   }
 
   private static boolean runDex(@NotNull AndroidPlatform platform,
-                                @NotNull String outputDir,
-                                @NotNull String[] compileTargets,
-                                @NotNull CompileContext context,
-                                @NotNull JpsModule module,
-                                @NotNull BuildOutputConsumer outputConsumer) throws IOException {
+                               @NotNull String outputDir,
+                               @NotNull String[] compileTargets,
+                               @NotNull CompileContext context,
+                               @NotNull JpsModule module,
+                               @NotNull BuildOutputConsumer outputConsumer) throws IOException {
+    final String outFilePath = outputDir + File.separatorChar + AndroidCommonUtils.CLASSES_FILE_NAME;
+    return runDex(platform, outFilePath, compileTargets, context, module.getProject(), outputConsumer,
+                  DEX_BUILDER_NAME, module.getName());
+  }
+
+  public static boolean runDex(@NotNull AndroidPlatform platform,
+                               @NotNull String outFilePath,
+                               @NotNull String[] compileTargets,
+                               @NotNull CompileContext context,
+                               @NotNull JpsProject project, @NotNull BuildOutputConsumer outputConsumer,
+                               @NotNull String builderName,
+                               @NotNull String srcTargetName) throws IOException {
     BuildToolInfo buildToolInfo = platform.getTarget().getBuildToolInfo();
     if (buildToolInfo == null) {
       return false;
@@ -237,17 +250,16 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
     final File dxJar = new File(dxJarPath);
     if (testingManager == null && !dxJar.isFile()) {
       context.processMessage(
-        new CompilerMessage(DEX_BUILDER_NAME, BuildMessage.Kind.ERROR, AndroidJpsBundle.message("android.jps.cannot.find.file", dxJarPath)));
+        new CompilerMessage(builderName, BuildMessage.Kind.ERROR, AndroidJpsBundle.message("android.jps.cannot.find.file", dxJarPath)));
       return false;
     }
-    final String outFilePath = outputDir + File.separatorChar + AndroidCommonUtils.CLASSES_FILE_NAME;
 
     final List<String> programParamList = new ArrayList<String>();
     programParamList.add(dxJarPath);
     programParamList.add(outFilePath);
 
     final JpsAndroidDexCompilerConfiguration configuration =
-      JpsAndroidExtensionService.getInstance().getDexCompilerConfiguration(module.getProject());
+      JpsAndroidExtensionService.getInstance().getDexCompilerConfiguration(project);
     final List<String> vmOptions;
 
     if (configuration != null) {
@@ -271,7 +283,7 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
 
     final File outFile = new File(outFilePath);
     if (outFile.exists() && !outFile.delete()) {
-      context.processMessage(new CompilerMessage(DEX_BUILDER_NAME, BuildMessage.Kind.WARNING,
+      context.processMessage(new CompilerMessage(builderName, BuildMessage.Kind.WARNING,
                                                  AndroidJpsBundle.message("android.jps.cannot.delete.file", outFilePath)));
     }
 
@@ -279,7 +291,7 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
     final String jdkName = sdk.getSdkProperties().getData().getJdkName();
     final JpsLibrary javaSdk = context.getProjectDescriptor().getModel().getGlobal().getLibraryCollection().findLibrary(jdkName);
     if (javaSdk == null || !javaSdk.getType().equals(JpsJavaSdkType.INSTANCE)) {
-      context.processMessage(new CompilerMessage(DEX_BUILDER_NAME, BuildMessage.Kind.ERROR,
+      context.processMessage(new CompilerMessage(builderName, BuildMessage.Kind.ERROR,
                                                  AndroidJpsBundle.message("android.jps.errors.java.sdk.not.specified", jdkName)));
       return false;
     }
@@ -307,7 +319,7 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
 
     AndroidCommonUtils.handleDexCompilationResult(process, outFilePath, messages);
 
-    AndroidJpsUtil.addMessages(context, messages, DEX_BUILDER_NAME, module.getName());
+    AndroidJpsUtil.addMessages(context, messages, builderName, srcTargetName);
     final boolean success = messages.get(AndroidCompilerMessageKind.ERROR).size() == 0;
 
     if (success) {

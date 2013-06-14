@@ -42,6 +42,7 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
 import java.util.List;
 
+import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter.NULL_OBJECT;
 import static org.easymock.classextension.EasyMock.*;
 
 /**
@@ -66,8 +67,7 @@ public class ProjectResolverTest extends TestCase {
     myAndroidProject = TestProjects.createBasicProject(myIdeaProject.getRootDir());
     myIdeaProject.addModule(myAndroidProject.getName());
     myUtilModule = myIdeaProject.addModule("util");
-    String projectId = "dummy";
-    myId = ExternalSystemTaskId.create(ExternalSystemTaskType.RESOLVE_PROJECT, projectId);
+    myId = ExternalSystemTaskId.create(ExternalSystemTaskType.RESOLVE_PROJECT, "dummy");
     myConnection = createMock(ProjectConnection.class);
     myHelper = GradleExecutionHelperDouble.newMock();
     mySettings = createMock(GradleExecutionSettings.class);
@@ -86,9 +86,7 @@ public class ProjectResolverTest extends TestCase {
   public void testResolveProjectInfo() {
     // Record mock expectations.
     ModelBuilder<IdeaProject> ideaProjectModelBuilder = createMock(ModelBuilder.class);
-    ExternalSystemTaskNotificationListener listener = new ExternalSystemTaskNotificationListenerAdapter() {
-    };
-    myHelper.getModelBuilder(IdeaProject.class, myId, mySettings, myConnection, listener);
+    myHelper.getModelBuilder(IdeaProject.class, myId, mySettings, myConnection, NULL_OBJECT);
     expectLastCall().andReturn(ideaProjectModelBuilder);
 
     // Simulate retrieval of the top-level IdeaProject.
@@ -101,7 +99,7 @@ public class ProjectResolverTest extends TestCase {
 
     // Code under test.
     String projectPath = myIdeaProject.getBuildFile().getAbsolutePath();
-    DataNode<ProjectData> projectInfo = myStrategy.resolveProjectInfo(myId, projectPath, mySettings, myConnection, listener);
+    DataNode<ProjectData> projectInfo = myStrategy.resolveProjectInfo(myId, projectPath, mySettings, myConnection, NULL_OBJECT);
 
     // Verify mock expectations.
     verify(myConnection, myHelper, ideaProjectModelBuilder);

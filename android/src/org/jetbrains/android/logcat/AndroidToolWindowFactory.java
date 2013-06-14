@@ -116,7 +116,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory {
           }
         }
       }
-    });
+    }, project.getDisposed());
   }
 
   private static Content createDeviceContent(RunnerLayoutUi layoutUi,

@@ -25,6 +25,7 @@ import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.util.List;
@@ -42,7 +43,7 @@ public class IdeaModuleStub implements IdeaModule {
     myName = name;
     myParent = parent;
     myFileStructure = new FileStructure(parent.getRootDir(), name);
-    myFileStructure.createProjectFile("build.gradle");
+    myFileStructure.createProjectFile(GradleConstants.DEFAULT_SCRIPT_NAME);
     myContentRoots.add(new IdeaContentRootStub(getRootDir()));
     myGradleProject = new GradleProjectStub(name, ":" + name);
   }

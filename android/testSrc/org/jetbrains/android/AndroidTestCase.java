@@ -151,6 +151,9 @@ public abstract class AndroidTestCase extends UsefulTestCase {
   public void setUp() throws Exception {
     super.setUp();
 
+    // this will throw an exception if we don't have a full Android SDK, so we need to do this first thing before any other setup
+    String sdkPath = getTestSdkPath();
+
     final TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
       IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
     myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
@@ -169,7 +172,7 @@ public abstract class AndroidTestCase extends UsefulTestCase {
     // the manifest on their own.
     createManifest();
 
-    myFacet = addAndroidFacet(myModule, getTestSdkPath(), getPlatformDir());
+    myFacet = addAndroidFacet(myModule, sdkPath, getPlatformDir());
     myFixture.copyDirectoryToProject(getResDir(), "res");
 
     myAdditionalModules = new ArrayList<Module>();
@@ -177,7 +180,7 @@ public abstract class AndroidTestCase extends UsefulTestCase {
     for (MyAdditionalModuleData data : modules) {
       final Module additionalModule = data.myModuleFixtureBuilder.getFixture().getModule();
       myAdditionalModules.add(additionalModule);
-      final AndroidFacet facet = addAndroidFacet(additionalModule, getTestSdkPath(), getPlatformDir());
+      final AndroidFacet facet = addAndroidFacet(additionalModule, sdkPath, getPlatformDir());
       facet.getConfiguration().getState().LIBRARY_PROJECT = data.myLibrary;
       final String rootPath = getContentRootPath(data.myDirName);
       myFixture.copyDirectoryToProject("res", rootPath + "/res");

@@ -597,6 +597,19 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     checkBuildLog(executor, "expected_log_3");
     assertTrue(executor.getCheckedJars().isEmpty());
     checkMakeUpToDate(executor);
+
+    final JpsLibrary appLib = appModule.addModuleLibrary("appLib", JpsJavaLibraryType.INSTANCE);
+    appLib.addRoot(getProjectPath("lib/external_jar.jar"), JpsOrderRootType.COMPILED);
+    appModule.getDependenciesList().addLibraryDependency(appLib);
+
+    final JpsLibrary libLib = libModule.addModuleLibrary("libLib", JpsJavaLibraryType.INSTANCE);
+    libLib.addRoot(new File(getProjectPath("lib/external_jar.jar")), JpsOrderRootType.COMPILED);
+    libModule.getDependenciesList().addLibraryDependency(libLib);
+
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_4");
+    assertTrue(executor.getCheckedJars().isEmpty());
+    checkMakeUpToDate(executor);
   }
 
   public void test8() throws Exception {
@@ -616,6 +629,58 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     checkMakeUpToDate(executor);
 
     myBuildParams.remove(AndroidCommonUtils.RELEASE_BUILD_OPTION);
+    checkMakeUpToDate(executor);
+  }
+
+  public void test9() throws Exception {
+    final MyExecutor executor = new MyExecutor("com.example.simple");
+    final JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> androidSdk = addJdkAndAndroidSdk();
+    addPathPatterns(executor, androidSdk);
+
+    final JpsModule appModule1 = addAndroidModule("app1", new String[]{"src"}, "app1", "app1", androidSdk).getFirst();
+    final JpsModule appModule2 = addAndroidModule("app2", new String[]{"src"}, "app2", "app2", androidSdk).getFirst();
+    final JpsModule libModule = addAndroidModule("lib", new String[]{"src"}, "lib", "lib", androidSdk).getFirst();
+
+    final JpsAndroidModuleExtension libExtension = AndroidJpsUtil.getExtension(libModule);
+    assert libExtension != null;
+    final JpsAndroidModuleProperties libProps = ((JpsAndroidModuleExtensionImpl)libExtension).getProperties();
+    libProps.LIBRARY_PROJECT = true;
+
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log");
+    assertEquals(1, executor.getCheckedJars().size());
+    checkMakeUpToDate(executor);
+
+    appModule1.getDependenciesList().addModuleDependency(libModule);
+
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_1");
+    assertTrue(executor.getCheckedJars().isEmpty());
+    checkMakeUpToDate(executor);
+
+    appModule2.getDependenciesList().addModuleDependency(libModule);
+
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_2");
+    assertTrue(executor.getCheckedJars().isEmpty());
+    checkMakeUpToDate(executor);
+
+    final JpsLibrary appLib = appModule1.addModuleLibrary("appLib1", JpsJavaLibraryType.INSTANCE);
+    appLib.addRoot(getProjectPath("lib/external_jar.jar"), JpsOrderRootType.COMPILED);
+    appModule1.getDependenciesList().addLibraryDependency(appLib);
+
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_3");
+    assertTrue(executor.getCheckedJars().isEmpty());
+    checkMakeUpToDate(executor);
+
+    final JpsLibrary libLib = appModule2.addModuleLibrary("appLib2", JpsJavaLibraryType.INSTANCE);
+    libLib.addRoot(new File(getProjectPath("lib/external_jar.jar")), JpsOrderRootType.COMPILED);
+    appModule2.getDependenciesList().addLibraryDependency(libLib);
+
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_4");
+    assertTrue(executor.getCheckedJars().isEmpty());
     checkMakeUpToDate(executor);
   }
 
@@ -775,6 +840,51 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     assertTrue(containsForciblyExcludedRootWarn);
   }
 
+  public void testManifestMerging() throws Exception {
+    final MyExecutor executor = new MyExecutor("com.example.simple");
+    final JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> androidSdk = addJdkAndAndroidSdk();
+    addPathPatterns(executor, androidSdk);
+
+    final JpsModule appModule = addAndroidModule("app", new String[]{"src"}, "app", "app", androidSdk).getFirst();
+    final JpsModule libModule = addAndroidModule("lib", ArrayUtil.EMPTY_STRING_ARRAY, "lib", "lib", androidSdk).getFirst();
+
+    final JpsAndroidModuleExtension libExtension = AndroidJpsUtil.getExtension(libModule);
+    assert libExtension != null;
+    final JpsAndroidModuleProperties libProps = ((JpsAndroidModuleExtensionImpl)libExtension).getProperties();
+    libProps.LIBRARY_PROJECT = true;
+
+    appModule.getDependenciesList().addModuleDependency(libModule);
+
+    final JpsAndroidModuleExtension appExtension = AndroidJpsUtil.getExtension(appModule);
+    assert appExtension != null;
+    final JpsAndroidModuleProperties appProps = ((JpsAndroidModuleExtensionImpl)appExtension).getProperties();
+
+    appProps.ENABLE_MANIFEST_MERGING = true;
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log");
+    checkMakeUpToDate(executor);
+
+    appProps.ENABLE_MANIFEST_MERGING = false;
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_1");
+    checkMakeUpToDate(executor);
+
+    appProps.ENABLE_MANIFEST_MERGING = true;
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_2");
+    checkMakeUpToDate(executor);
+
+    change(getProjectPath("app/AndroidManifest.xml"));
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_3");
+    checkMakeUpToDate(executor);
+
+    change(getProjectPath("lib/AndroidManifest.xml"));
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_4");
+    checkMakeUpToDate(executor);
+  }
+
   public void testMaven() throws Exception {
     final MyExecutor executor = new MyExecutor("com.example.simple");
     final JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> androidSdk = addJdkAndAndroidSdk();
@@ -815,6 +925,21 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
       .file("res_apk_entry", "res_apk_entry_content")
       .file("classes.dex", "classes_dex_content"));
     checkMakeUpToDate(executor);
+
+    JpsMavenExtensionService.getInstance().getOrCreateExtension(libModule);
+    final JpsModule nonMavenAppModule = addAndroidModule("non_maven_app", new String[]{"src"},
+                                                         "app", "non_maven_app", androidSdk).getFirst();
+    nonMavenAppModule.getDependenciesList().addModuleDependency(libModule);
+
+    final JpsModule libModule2 = addAndroidModule("lib2", new String[]{"src"}, "lib1", "lib2", androidSdk).getFirst();
+    final JpsAndroidModuleExtension libExtension2 = AndroidJpsUtil.getExtension(libModule2);
+    assert libExtension2 != null;
+    final JpsAndroidModuleProperties libProps2 = ((JpsAndroidModuleExtensionImpl)libExtension2).getProperties();
+    libProps2.LIBRARY_PROJECT = true;
+    libModule1.getDependenciesList().addModuleDependency(libModule2);
+
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_1");
   }
 
   private void checkMakeUpToDate(MyExecutor executor) {

@@ -2,6 +2,7 @@ package org.jetbrains.jps.android;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.SdkConstants;
+import com.android.sdklib.SdkManager;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.model.JpsAndroidSdkProperties;
@@ -13,13 +14,17 @@ public class AndroidPlatform {
   private final IAndroidTarget myTarget;
   private final int myPlatformToolsRevision;
   private final int mySdkToolsRevision;
+  private final SdkManager mySdkManager;
 
-  public AndroidPlatform(@NotNull JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> sdk, @NotNull IAndroidTarget target) {
+  public AndroidPlatform(@NotNull JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> sdk,
+                         @NotNull IAndroidTarget target,
+                         @NotNull SdkManager sdkManager) {
     mySdk = sdk;
     myTarget = target;
     final String homePath = sdk.getHomePath();
     myPlatformToolsRevision = AndroidCommonUtils.parsePackageRevision(homePath, SdkConstants.FD_PLATFORM_TOOLS);
     mySdkToolsRevision = AndroidCommonUtils.parsePackageRevision(homePath, SdkConstants.FD_TOOLS);
+    mySdkManager = sdkManager;
   }
 
   @NotNull
@@ -42,5 +47,10 @@ public class AndroidPlatform {
 
   public boolean needToAddAnnotationsJarToClasspath() {
     return myTarget.getVersion().getApiLevel() <= 15;
+  }
+
+  @NotNull
+  public SdkManager getSdkManager() {
+    return mySdkManager;
   }
 }

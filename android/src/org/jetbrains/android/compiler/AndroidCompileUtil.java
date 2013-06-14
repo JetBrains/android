@@ -955,31 +955,8 @@ public class AndroidCompileUtil {
            : null;
   }
 
-  public static void createGenModulesAndSourceRoots(@NotNull Project project, @NotNull Collection<AndroidFacet> facets) {
+  public static void createGenModulesAndSourceRoots(@NotNull Project project, @NotNull final Collection<AndroidFacet> facets) {
     if (project.isDisposed()) {
-      return;
-    }
-    final List<ModifiableRootModel> modelsToCommit = new ArrayList<ModifiableRootModel>();
-
-    for (final AndroidFacet facet : facets) {
-      if (facet.isGradleProject()) {
-        continue;
-      }
-      final Module module = facet.getModule();
-
-      if (module.isDisposed()) {
-        continue;
-      }
-      final ModifiableRootModel model = ModuleRootManager.getInstance(module).getModifiableModel();
-
-      if (createGenModulesAndSourceRoots(facet, model)) {
-        modelsToCommit.add(model);
-      }
-      else {
-        model.dispose();
-      }
-    }
-    if (modelsToCommit.size() == 0) {
       return;
     }
     final ModifiableModuleModel moduleModel = ModuleManager.getInstance(project).getModifiableModel();
@@ -987,6 +964,30 @@ public class AndroidCompileUtil {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
+        final List<ModifiableRootModel> modelsToCommit = new ArrayList<ModifiableRootModel>();
+
+        for (final AndroidFacet facet : facets) {
+          if (facet.isGradleProject()) {
+            continue;
+          }
+          final Module module = facet.getModule();
+
+          if (module.isDisposed()) {
+            continue;
+          }
+          final ModifiableRootModel model = ModuleRootManager.getInstance(module).getModifiableModel();
+
+          if (createGenModulesAndSourceRoots(facet, model)) {
+            modelsToCommit.add(model);
+          }
+          else {
+            model.dispose();
+          }
+        }
+        if (modelsToCommit.size() == 0) {
+          return;
+        }
+
         ModifiableModelCommitter.multiCommit(modelsToCommit.toArray(new ModifiableRootModel[modelsToCommit.size()]), moduleModel);
       }
     });
