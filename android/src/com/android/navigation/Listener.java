@@ -15,6 +15,8 @@
  */
 package com.android.navigation;
 
+import com.android.annotations.Nullable;
+
 public interface Listener<E> {
-  void notify(E event);
+  void notify(@Nullable E event);
 }

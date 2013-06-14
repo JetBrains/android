@@ -15,11 +15,13 @@
  */
 package com.android.navigation;
 
+import com.android.annotations.Nullable;
+
 import java.util.ArrayList;
 
 public class EventDispatcher<E> extends ArrayList<Listener<E>> implements Listener<E> {
   @Override
-  public void notify(E event) {
+  public void notify(@Nullable E event) {
     for (Listener<E> listener : this) {
       listener.notify(event);
     }
