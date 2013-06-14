@@ -75,7 +75,7 @@ public class NavigationEditor implements FileEditor {
         dirty = true;
       }
     };
-    myNavigationModel.listeners.add(navigationModelListener);
+    myNavigationModel.getListeners().add(navigationModelListener);
   }
 
   private static NavigationModel read(VirtualFile file) {
@@ -177,7 +177,7 @@ public class NavigationEditor implements FileEditor {
       LOG.error("Unexpected exception while saving navigation file", e);
     }
 
-    myNavigationModel.listeners.remove(navigationModelListener);
+    myNavigationModel.getListeners().remove(navigationModelListener);
   }
 
   @Nullable

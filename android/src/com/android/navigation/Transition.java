@@ -16,7 +16,7 @@
 package com.android.navigation;
 
 import com.android.annotations.Property;
-import org.jetbrains.annotations.Nullable;
+import com.android.annotations.Nullable;
 
 public class Transition {
   private String type;
