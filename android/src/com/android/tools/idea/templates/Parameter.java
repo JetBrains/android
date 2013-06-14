@@ -15,13 +15,24 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.SdkConstants;
 import com.google.common.base.Splitter;
+import com.intellij.lang.java.lexer.JavaLexer;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.pom.java.LanguageLevel;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.search.FilenameIndex;
+import com.intellij.psi.search.GlobalSearchScope;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
@@ -217,10 +228,102 @@ public class Parameter {
   }
 
   public List<Element> getOptions() {
-    if (element != null) {
-      return TemplateUtils.getChildren(element);
-    } else {
-      return Collections.emptyList();
+    return TemplateUtils.getChildren(element);
+  }
+
+  @Nullable
+  public String validate(@Nullable Project project, @Nullable String packageName, @Nullable Object value) {
+    switch (type) {
+      case STRING:
+        return validateStringType(project, packageName, value.toString());
+      case BOOLEAN:
+      case ENUM:
+      case SEPARATOR:
+      default:
+        return null;
     }
+  }
+
+  @Nullable
+  protected String validateStringType(@Nullable Project project, @Nullable String packageName, @Nullable String value) {
+    if (value == null || value.isEmpty()) {
+      if (constraints.contains(Constraint.NONEMPTY)) {
+        return "Please specify " + name;
+      } else {
+        return null;
+      }
+    }
+    boolean exists = false;
+    String resourceNameError = AndroidUtils.isValidResourceName(value, true);
+    String fqName = (packageName != null && value.indexOf('.') == -1 ? packageName + "." : "") + value;
+
+    if (constraints.contains(Constraint.ACTIVITY)) {
+      if (!isValidFullyQualifiedJavaIdentifier(fqName)) {
+        return name + " is not a valid activity name";
+      }
+      if (project != null) {
+        PsiClass aClass = JavaPsiFacade.getInstance(project).findClass(fqName, GlobalSearchScope.projectScope(project));
+        PsiClass activityClass = JavaPsiFacade.getInstance(project).findClass(SdkConstants.CLASS_ACTIVITY,
+                                                                              GlobalSearchScope.allScope(project));
+        exists = aClass != null && activityClass != null && aClass.isInheritor(activityClass, true);
+      }
+    } else if (constraints.contains(Constraint.APILEVEL)) {
+      // TODO: validity check
+    } else if (constraints.contains(Constraint.CLASS)) {
+      if (!isValidFullyQualifiedJavaIdentifier(fqName)) {
+        return name + " is not a valid class name";
+      }
+      if (project != null) {
+        exists = JavaPsiFacade.getInstance(project).findClass(fqName, GlobalSearchScope.projectScope(project)) != null;
+      }
+    } else if (constraints.contains(Constraint.PACKAGE)) {
+      if (!isValidFullyQualifiedJavaIdentifier(value)) {
+        return name + " is not a valid package name";
+      }
+      if (project != null) {
+        exists = JavaPsiFacade.getInstance(project).findPackage(value) != null;
+      }
+    } else if (constraints.contains(Constraint.LAYOUT)) {
+      if (resourceNameError != null) {
+        return name + " is not a valid resource name. " + resourceNameError;
+      }
+      exists = existsResourceFile(project, SdkConstants.FD_RES_LAYOUT, value + SdkConstants.DOT_XML);
+    } else if (constraints.contains(Constraint.DRAWABLE)) {
+      if (resourceNameError != null) {
+        return name + " is not a valid resource name. " + resourceNameError;
+      }
+      exists = existsResourceFile(project, "drawable", value + ".xml");
+    } else if (constraints.contains(Constraint.ID)) {
+      // TODO: validity and existence check
+    } else if (constraints.contains(Constraint.STRING)) {
+      if (resourceNameError != null) {
+        return name + " is not a valid resource name. " + resourceNameError;
+      }
+      // TODO: Existence check
+    }
+
+    if (constraints.contains(Constraint.UNIQUE) && exists) {
+      return name + " must be unique";
+    } else if (constraints.contains(Constraint.EXISTS) && !exists) {
+      return name + " must already exist";
+    }
+    return null;
+  }
+
+  private static boolean isValidFullyQualifiedJavaIdentifier(String value) {
+    return AndroidUtils.isValidPackageName(value) && value.indexOf('.') != -1;
+  }
+
+  private static boolean existsResourceFile(@Nullable Project project, @NotNull String resourceType, @Nullable String name) {
+    if (name == null || name.isEmpty() || project == null) {
+      return false;
+    }
+    for (PsiFile file : FilenameIndex.getFilesByName(project, name, GlobalSearchScope.projectScope(project))) {
+      PsiDirectory containingDirectory = file.getContainingDirectory();
+      if (containingDirectory != null && containingDirectory.getName().startsWith(resourceType)) {
+        return true;
+      }
+    }
+    return false;
   }
 }
