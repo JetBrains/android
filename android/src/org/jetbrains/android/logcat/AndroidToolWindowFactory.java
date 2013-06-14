@@ -30,6 +30,7 @@ import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootAdapter;
 import com.intellij.openapi.roots.ModuleRootEvent;
@@ -60,7 +61,7 @@ import java.util.List;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidToolWindowFactory implements ToolWindowFactory {
+public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
   public static final String TOOL_WINDOW_ID = AndroidBundle.message("android.logcat.title");
 
   @NonNls private static final String DEVICE_PANEL_CONTENT = "DevicePanelContent";
