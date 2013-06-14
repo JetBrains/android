@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.editors.navigation;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.awt.*;
 
 public class Utilities {
@@ -38,11 +40,11 @@ public class Utilities {
     return add(centre, scale(diff, Math.abs(scale)));
   }
 
-  public static Point centre(Rectangle r) {
+  public static Point centre(@NotNull Rectangle r) {
     return new Point(r.x + r.width / 2, r.y + r.height / 2);
   }
 
-  public static Point centre(Component c) {
+  public static Point centre(@NotNull Component c) {
     return centre(c.getBounds());
   }
 
