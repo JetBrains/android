@@ -40,6 +40,7 @@ public class AndroidRootComponent extends JComponent {
     myScale = 1;
   }
 
+  @Nullable
   public RenderResult getRenderResult() {
     return myRenderResult;
   }

@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.editors.navigation;
 
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.navigation.NavigationModel;
 import com.android.navigation.State;
 import com.android.navigation.Transition;
+import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderedView;
+import com.android.tools.idea.rendering.RenderedViewHierarchy;
 import com.android.tools.idea.rendering.ShadowPainter;
 import com.intellij.ide.dnd.DnDEvent;
 import com.intellij.ide.dnd.DnDManager;
@@ -31,7 +34,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiQualifiedNamedElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.HashSet;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -75,11 +78,13 @@ public class NavigationEditorPanel2 extends JComponent {
 
     protected abstract void paint(Graphics g);
 
+    protected abstract void paintOver(Graphics g);
+
     private static Selection create(NavigationEditorPanel2 editor, Point mouseDownLocation, boolean relation) {
       Component component = editor.getComponentAt(mouseDownLocation);
-      return component != editor ? !relation
+      return component != editor ? !(relation && component instanceof AndroidRootComponent)
                                    ? new ComponentSelection(component, mouseDownLocation)
-                                   : new RelationSelection(editor, component, mouseDownLocation) : NULL;
+                                   : new RelationSelection(editor, (AndroidRootComponent)component, mouseDownLocation) : NULL;
     }
   }
 
@@ -90,6 +95,10 @@ public class NavigationEditorPanel2 extends JComponent {
 
     @Override
     protected void paint(Graphics g) {
+    }
+
+    @Override
+    protected void paintOver(Graphics g) {
     }
 
     @Override
@@ -124,6 +133,10 @@ public class NavigationEditorPanel2 extends JComponent {
     }
 
     @Override
+    protected void paintOver(Graphics g) {
+    }
+
+    @Override
     protected Selection finaliseSelectionLocation(Point location) {
       return this;
     }
@@ -133,29 +146,42 @@ public class NavigationEditorPanel2 extends JComponent {
     private final NavigationEditorPanel2 myOverViewPanel;
     private final Component myComponent;
     private Point myLocation;
-    private String mvViewId;
+    private final RenderedView myLeaf;
+    private final float myKx;
+    private final float myKy;
 
-    private RelationSelection(NavigationEditorPanel2 myNavigationEditorPanel2, Component component, Point mouseDownLocation) {
+    private RelationSelection(NavigationEditorPanel2 myNavigationEditorPanel2, AndroidRootComponent component, Point mouseDownLocation) {
       myOverViewPanel = myNavigationEditorPanel2;
       myComponent = component;
       myLocation = mouseDownLocation;
-      if (component instanceof AndroidRootComponent) {
-        AndroidRootComponent rootComponent = (AndroidRootComponent)component;
-        int dx0 = mouseDownLocation.x - rootComponent.getX();
-        int dy0 = mouseDownLocation.y - rootComponent.getY();
-        int dx = (int)(dx0 / SCALE * 2 / 1.5);
-        int dy = (int)(dy0 / SCALE * 2 / 1.5);
-        RenderedView leaf = rootComponent.getRenderResult().getHierarchy().findLeafAt(dx, dy);
-        if (leaf != null) {
-          XmlTag tag = leaf.tag;
-          if (tag != null) {
-            String attributeValue = tag.getAttributeValue("android:id");
-            if (attributeValue != null) {
-              mvViewId = attributeValue.startsWith(ID_PREFIX) ? attributeValue.substring(ID_PREFIX.length()) : attributeValue;
-            }
+      RenderResult renderResult = component.getRenderResult();
+      RenderedViewHierarchy hierarchy = renderResult.getHierarchy();
+      ViewInfo root = renderResult.getRootViews().get(0);
+      int b = root.getBottom() + 100; // todo this accounts for the button bar at the bottom of the rendered view; remove
+      int r = root.getRight();
+
+      int cW = component.getWidth();
+      int cH = component.getHeight();
+
+      myKx = (float)r / cW;
+      myKy = (float)b / cH;
+
+      int dx = mouseDownLocation.x - component.getX();
+      int dy = mouseDownLocation.y - component.getY();
+      myLeaf = hierarchy.findLeafAt((int)(dx * myKx), (int)(dy * myKy));
+    }
+
+    private static String getViewId(@Nullable RenderedView leaf) {
+      if (leaf != null) {
+        XmlTag tag = leaf.tag;
+        if (tag != null) {
+          String attributeValue = tag.getAttributeValue("android:id");
+          if (attributeValue != null && attributeValue.startsWith(ID_PREFIX)) {
+            return attributeValue.substring(ID_PREFIX.length());
           }
         }
       }
+      return null;
     }
 
     @Override
@@ -171,10 +197,22 @@ public class NavigationEditorPanel2 extends JComponent {
     }
 
     @Override
+    protected void paintOver(Graphics g) {
+      g.setColor(Color.RED);
+      g.drawRect(myComponent.getX() + ((int)(myLeaf.x / myKx)),
+                 myComponent.getY() + ((int)(myLeaf.y / myKy)),
+                 ((int)(myLeaf.w / myKx)),
+                 ((int)(myLeaf.h / myKy)));
+    }
+
+    @Override
     protected Selection finaliseSelectionLocation(Point location) {
       Component componentAt = myOverViewPanel.getComponentAt(location);
       if (myComponent instanceof AndroidRootComponent && componentAt instanceof AndroidRootComponent) {
-        myOverViewPanel.addRelation((AndroidRootComponent)myComponent, mvViewId, (AndroidRootComponent)componentAt);
+        if (myComponent != componentAt) {
+          Map<AndroidRootComponent, State> m = myOverViewPanel.myComponentToState;
+          myOverViewPanel.addRelation(m.get(myComponent), getViewId(myLeaf), m.get(componentAt));
+        }
       }
       return Selection.NULL;
     }
@@ -285,19 +323,13 @@ public class NavigationEditorPanel2 extends JComponent {
     mySelection.paint(g);
   }
 
-  /*
   @Override
   protected void paintChildren(Graphics graphics) {
-    //super.paintChildren(graphics);
+    super.paintChildren(graphics);
+    mySelection.paintOver(graphics);
   }
-  */
 
-  private void addRelation(@NotNull AndroidRootComponent srcComponent, String viewIdentifier, @NotNull AndroidRootComponent destComp) {
-    if (srcComponent == destComp) {
-      return;
-    }
-    State source = myComponentToState.get(srcComponent);
-    State dest = myComponentToState.get(destComp);
+  private void addRelation(State source, String viewIdentifier, State dest) {
     Transition transition = new Transition("", source, dest);
     transition.setViewIdentifier(viewIdentifier);
     myNavigationModel.add(transition);
