@@ -36,10 +36,6 @@ public class AndroidCodeStyleSettingsModifier {
 
     // set margin to 100 columns
     settings.RIGHT_MARGIN = 100;
-
-    // prefixes for fields
-    settings.FIELD_NAME_PREFIX = "m";
-    settings.STATIC_FIELD_NAME_PREFIX = "s";
   }
 
   private static PackageEntryTable getAndroidImportOrder() {
