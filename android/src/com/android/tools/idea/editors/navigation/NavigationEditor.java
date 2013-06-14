@@ -45,10 +45,10 @@ public class NavigationEditor implements FileEditor {
 
   private final UserDataHolderBase myUserDataHolder = new UserDataHolderBase();
   private final NavigationModel myNavigationModel;
-  private final Listener<Void> navigationModelListener;
+  private final Listener<Void> myNavigationModelListener;
   private VirtualFile myFile;
-  private final JComponent component;
-  private boolean dirty;
+  private final JComponent myComponent;
+  private boolean myDirty;
 
   public NavigationEditor(Project project, VirtualFile file) {
     // Listen for 'Save All' events
@@ -68,14 +68,14 @@ public class NavigationEditor implements FileEditor {
     myFile = file;
     myNavigationModel = read(file);
     // component = new NavigationModelEditorPanel1(project, file, read(file));
-    component = new JBScrollPane(new NavigationEditorPanel2(project, file, myNavigationModel));
-    navigationModelListener = new Listener<Void>() {
+    myComponent = new JBScrollPane(new NavigationEditorPanel2(project, file, myNavigationModel));
+    myNavigationModelListener = new Listener<Void>() {
       @Override
       public void notify(Void unused) {
-        dirty = true;
+        myDirty = true;
       }
     };
-    myNavigationModel.getListeners().add(navigationModelListener);
+    myNavigationModel.getListeners().add(myNavigationModelListener);
   }
 
   private static NavigationModel read(VirtualFile file) {
@@ -90,7 +90,7 @@ public class NavigationEditor implements FileEditor {
   @NotNull
   @Override
   public JComponent getComponent() {
-    return component;
+    return myComponent;
   }
 
   @Nullable
@@ -117,7 +117,7 @@ public class NavigationEditor implements FileEditor {
 
   @Override
   public boolean isModified() {
-    return dirty;
+    return myDirty;
   }
 
   @Override
@@ -160,11 +160,11 @@ public class NavigationEditor implements FileEditor {
   }
 
   private void saveFile() throws IOException {
-    if (dirty) {
+    if (myDirty) {
       ByteArrayOutputStream stream = new ByteArrayOutputStream(INITIAL_FILE_BUFFER_SIZE);
       new XMLWriter(stream).write(myNavigationModel);
       myFile.setBinaryContent(stream.toByteArray());
-      dirty = false;
+      myDirty = false;
     }
   }
 
@@ -177,7 +177,7 @@ public class NavigationEditor implements FileEditor {
       LOG.error("Unexpected exception while saving navigation file", e);
     }
 
-    myNavigationModel.getListeners().remove(navigationModelListener);
+    myNavigationModel.getListeners().remove(myNavigationModelListener);
   }
 
   @Nullable

@@ -67,7 +67,7 @@ public class NavigationEditorPanel2 extends JComponent {
   private final Map<State, AndroidRootComponent> myStateToComponent = new HashMap<State, AndroidRootComponent>();
   private final Map<AndroidRootComponent, State> myComponentToState = new HashMap<AndroidRootComponent, State>();
   private Selection mySelection = Selection.NULL;
-  private Map<Transition, Component> navigationToComponent = new IdentityHashMap<Transition, Component>();
+  private Map<Transition, Component> myNavigationToComponent = new IdentityHashMap<Transition, Component>();
 
   private abstract static class Selection {
 
@@ -371,7 +371,7 @@ public class NavigationEditorPanel2 extends JComponent {
     //c.setOpaque(true);
     c.setBackground(BACKGROUND_COLOR);
     add(c);
-    navigationToComponent.put(transition, c);
+    myNavigationToComponent.put(transition, c);
   }
 
   private void addAllRelations() {
@@ -389,7 +389,7 @@ public class NavigationEditorPanel2 extends JComponent {
       Point dl = Utilities.centre(destinationComponent);
       String gesture = transition.getType();
       if (gesture != null) {
-        Component c = navigationToComponent.get(transition);
+        Component c = myNavigationToComponent.get(transition);
         c.setSize(c.getPreferredSize());
         int sx = (sl.x + dl.x - c.getWidth()) / 2;
         int sy = (sl.y + dl.y - c.getHeight()) / 2;
