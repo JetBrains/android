@@ -15,6 +15,8 @@
  */
 package com.android.navigation;
 
+import com.android.annotations.Nullable;
+
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
@@ -164,7 +166,7 @@ public class XMLWriter {
     abstract Object getValue(T o) throws PropertyAccessException;
   }
 
-  static class FieldProperty extends Property {
+  static class FieldProperty<T> extends Property<T> {
     private final Field field;
 
     FieldProperty(Field field) {
@@ -182,7 +184,7 @@ public class XMLWriter {
     }
 
     @Override
-    Object getValue(Object o) throws PropertyAccessException {
+    Object getValue(T o) throws PropertyAccessException {
       try {
         return field.get(o);
       }
@@ -192,7 +194,7 @@ public class XMLWriter {
     }
   }
 
-  static class MethodProperty extends Property {
+  static class MethodProperty<T> extends Property<T> {
     private final Method method;
 
     MethodProperty(Method method) {
@@ -210,7 +212,7 @@ public class XMLWriter {
     }
 
     @Override
-    Object getValue(Object o) throws PropertyAccessException {
+    Object getValue(T o) throws PropertyAccessException {
       try {
         return method.invoke(o);
       }
@@ -292,7 +294,7 @@ public class XMLWriter {
     level--;
   }
 
-  private NameValueList traverse(Object o, String propertyName, boolean isTopLevel) {
+  private NameValueList traverse(Object o, @Nullable String propertyName, boolean isTopLevel) {
     NameValueList result = new NameValueList(o);
     Class aClass = o.getClass();
 
