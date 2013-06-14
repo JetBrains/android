@@ -16,6 +16,7 @@
 package com.android.navigation;
 
 import com.android.annotations.Property;
+import org.jetbrains.annotations.Nullable;
 
 public class Transition {
   private String type;
@@ -59,7 +60,7 @@ public class Transition {
     return viewIdentifier;
   }
 
-  public void setViewIdentifier(String viewIdentifier) {
+  public void setViewIdentifier(@Nullable String viewIdentifier) {
     this.viewIdentifier = viewIdentifier;
   }
 
