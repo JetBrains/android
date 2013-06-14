@@ -176,6 +176,7 @@ public class NavigationEditorPanel2 extends JComponent {
       myNamedLeaf = getNamedParent(myLeaf);
     }
 
+    @Nullable
     private static RenderedView getNamedParent(@Nullable RenderedView view) {
       while (view != null && getViewId(view) == null) {
         view = view.getParent();
@@ -252,7 +253,7 @@ public class NavigationEditorPanel2 extends JComponent {
     addAllRelations();
 
     {
-      MouseAdapter mouseListener = new MouseListener();
+      MouseAdapter mouseListener = new MyMouseListener();
       addMouseListener(mouseListener);
       addMouseMotionListener(mouseListener);
     }
@@ -441,7 +442,7 @@ public class NavigationEditorPanel2 extends JComponent {
     return result;
   }
 
-  private class MouseListener extends MouseAdapter {
+  private class MyMouseListener extends MouseAdapter {
     @Override
     public void mousePressed(MouseEvent mouseEvent) {
       Point location = mouseEvent.getPoint();
@@ -502,14 +503,23 @@ public class NavigationEditorPanel2 extends JComponent {
         TransferableWrapper wrapper = (TransferableWrapper)attachedObject;
         PsiElement[] psiElements = wrapper.getPsiElements();
         Point dropLocation = aEvent.getPointOn(NavigationEditorPanel2.this);
-        for (PsiElement element : psiElements) {
-          if (element instanceof PsiQualifiedNamedElement) {
-            PsiQualifiedNamedElement namedElement = (PsiQualifiedNamedElement)element;
-            State state = new State(namedElement.getQualifiedName());
-            state.setXmlResourceName(getXmlFileNameFromJavaFileName(namedElement.getName()));
-            if (!myStateToComponent.containsKey(state)) {
-              add(createActivityPanel(state, dropLocation));
-              dropLocation = Utilities.add(dropLocation, MULTIPLE_DROP_STRIDE);
+
+        if (psiElements != null) {
+          for (PsiElement element : psiElements) {
+            if (element instanceof PsiQualifiedNamedElement) {
+              PsiQualifiedNamedElement namedElement = (PsiQualifiedNamedElement)element;
+              String qualifiedName = namedElement.getQualifiedName();
+              if (qualifiedName != null) {
+                State state = new State(qualifiedName);
+                String name = namedElement.getName();
+                if (name != null) {
+                  state.setXmlResourceName(getXmlFileNameFromJavaFileName(name));
+                }
+                if (!myStateToComponent.containsKey(state)) {
+                  add(createActivityPanel(state, dropLocation));
+                  dropLocation = Utilities.add(dropLocation, MULTIPLE_DROP_STRIDE);
+                }
+              }
             }
           }
         }
