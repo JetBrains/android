@@ -15,9 +15,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.model.*;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleExtensionImpl;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
+import org.jetbrains.jps.api.BuildParametersKeys;
 import org.jetbrains.jps.builders.BuildResult;
 import org.jetbrains.jps.builders.JpsBuildTestCase;
-import org.jetbrains.jps.cmdline.BuildMain;
 import org.jetbrains.jps.incremental.java.JavaBuilder;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.maven.model.JpsMavenExtensionService;
@@ -57,7 +57,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
   public void setUp() throws Exception {
     super.setUp();
     JpsJavaExtensionService.getInstance().getOrCreateCompilerConfiguration(myProject).addResourcePattern("*.txt");
-    myBuildParams.put(BuildMain.FORCE_MODEL_LOADING_PARAMETER.toString(), Boolean.TRUE.toString());
+    myBuildParams.put(BuildParametersKeys.FORCE_MODEL_LOADING, Boolean.TRUE.toString());
   }
 
   public void test1() throws Exception {
