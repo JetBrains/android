@@ -21,12 +21,18 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.DumbAware;
-import com.intellij.openapi.roots.ui.configuration.actions.NewModuleAction;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
 
 public class AndroidNewModuleAction extends AnAction implements DumbAware {
 
   public AndroidNewModuleAction() {
-    super("New Module...");
+    super("New Module...", "Adds a new module to the project", null);
+  }
+
+  public AndroidNewModuleAction(@Nullable String text, @Nullable String description, @Nullable Icon icon) {
+    super(text, description, icon);
   }
 
   @Override

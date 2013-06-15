@@ -16,6 +16,7 @@
 package com.android.tools.idea.startup;
 
 import com.android.tools.idea.actions.AndroidNewModuleAction;
+import com.android.tools.idea.actions.AndroidNewModuleInGroupAction;
 import com.android.tools.idea.actions.AndroidNewProjectAction;
 import com.google.common.io.Closeables;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -82,6 +83,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     replaceAction("NewProject", new AndroidNewProjectAction());
     replaceAction("WelcomeScreen.CreateNewProject", new AndroidNewProjectAction());
     replaceAction("NewModule", new AndroidNewModuleAction());
+    replaceAction("NewModuleInGroup", new AndroidNewModuleInGroupAction());
   }
 
   private static void replaceAction(String actionId, AnAction newAction) {
