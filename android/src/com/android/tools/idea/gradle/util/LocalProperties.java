@@ -36,7 +36,7 @@ import java.util.Properties;
  * Utility methods related to a Gradle project's local.properties file.
  */
 public final class LocalProperties {
-  private static final String SDK_DIR_PROPERTY = "sdk.dir";
+  public static final String SDK_DIR_PROPERTY = "sdk.dir";
 
   private LocalProperties() {
   }
