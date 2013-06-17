@@ -54,7 +54,9 @@ public abstract class SaveFileListener implements ActionListener {
     String path = myTextField.getText().trim();
     if (path.length() == 0) {
       String defaultLocation = getDefaultLocation();
-      path = defaultLocation != null ? defaultLocation : SystemProperties.getUserHome();
+      path = defaultLocation != null && defaultLocation.length() > 0
+             ? defaultLocation
+             : SystemProperties.getUserHome();
     }
     File file = new File(path);
     if (!file.exists()) {
