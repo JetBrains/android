@@ -17,6 +17,7 @@ package com.android.tools.idea.jps.builder;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.jps.AndroidGradleJps;
 import com.android.tools.idea.jps.model.JpsAndroidGradleModuleExtension;
 import com.android.tools.idea.jps.output.parser.GradleErrorOutputParser;
@@ -32,6 +33,7 @@ import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -56,13 +58,11 @@ import org.jetbrains.jps.model.JpsSimpleElement;
 import org.jetbrains.jps.model.library.sdk.JpsSdk;
 import org.jetbrains.jps.model.module.JpsModule;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -76,7 +76,7 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
   @NonNls private static final String JVM_ARG_WITH_QUOTED_VALUE_FORMAT = "-D%1$s=\"%2$s\"";
 
   @NonNls private static final String BUILDER_NAME = "Android Gradle Builder";
-  @NonNls private static final String DEFAULT_ASSEMBLE_TASKNAME = "assemble";
+  @NonNls private static final String DEFAULT_ASSEMBLE_TASK_NAME = "assemble";
   @NonNls private static final String GRADLE_SEPARATOR = ":";
 
   protected AndroidGradleBuilder() {
@@ -144,7 +144,10 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
 
     LOG.info("Using execution settings: " + executionSettings);
 
-    String androidHome = getAndroidHome(context, chunk);
+    String androidHome = null;
+    if (!isAndroidHomeKnown(executionSettings)) {
+      androidHome = getAndroidHomeFromModuleSdk(context, chunk);
+    }
 
     String format = "About to build project '%1$s' located at %2$s";
     LOG.info(String.format(format, getProjectName(context), executionSettings.getProjectDir().getAbsolutePath()));
@@ -168,6 +171,12 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
       return;
     }
     String gradleProjectPath = androidGradleFacet.getProperties().GRADLE_PROJECT_PATH;
+    if (gradleProjectPath == null) {
+      // Gradle project path is never, ever null. If the path is empty, it shows as ":". We had reports of this happening. It is likely that
+      // users manually added the Android-Gradle facet to a project. After all it is likely not to be a Gradle module. Better quit and not
+      // build the module.
+      return;
+    }
     String assembleTaskName = null;
     JpsAndroidModuleExtensionImpl androidFacet = (JpsAndroidModuleExtensionImpl)AndroidJpsUtil.getExtension(module);
     if (androidFacet != null) {
@@ -179,7 +188,7 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
         // This module is in reality the root project directory. If there is no task, don't assume there is an "assemble" one.
         return;
       }
-      assembleTaskName = DEFAULT_ASSEMBLE_TASKNAME;
+      assembleTaskName = DEFAULT_ASSEMBLE_TASK_NAME;
     }
     if (isRebuild) {
       tasks.add(createBuildTask(gradleProjectPath, "clean"));
@@ -212,20 +221,69 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
     return AndroidGradleJps.createCompilerMessage(BuildMessage.Kind.ERROR, msg);
   }
 
+  /**
+   * Indicates whether the path of the Android SDK home directory is specified in a local.properties file or in the ANDROID_HOME environment
+   * variable.
+   *
+   * @param settings build execution settings.
+   * @return {@code true} if the Android SDK home directory is specified in the project's local.properties file or in the ANDROID_HOME
+   *         environment variable; {@code false} otherwise.
+   */
+  private static boolean isAndroidHomeKnown(@NotNull BuilderExecutionSettings settings) {
+    String androidHome = getAndroidHomeFromLocalPropertiesFile(settings.getProjectDir());
+    if (!Strings.isNullOrEmpty(androidHome)) {
+      String msg = String.format("Found Android SDK home at '%1$s' (from local.properties file)", androidHome);
+      LOG.info(msg);
+      return true;
+    }
+    androidHome = System.getenv(AndroidSdkUtils.ANDROID_HOME_ENV);
+    if (!Strings.isNullOrEmpty(androidHome)) {
+      String msg = String.format("Found Android SDK home at '%1$s' (from ANDROID_HOME environment variable)", androidHome);
+      LOG.info(msg);
+      return true;
+    }
+    return false;
+  }
+
   @Nullable
-  private static String getAndroidHome(@NotNull CompileContext context, @NotNull ModuleChunk chunk) throws ProjectBuildException {
+  private static String getAndroidHomeFromLocalPropertiesFile(@NotNull File projectDir) {
+    File filePath = new File(projectDir, SdkConstants.FN_LOCAL_PROPERTIES);
+    if (!filePath.isFile()) {
+      return null;
+    }
+    Properties properties = new Properties();
+    FileInputStream fileInputStream = null;
+    try {
+      //noinspection IOResourceOpenedButNotSafelyClosed
+      fileInputStream = new FileInputStream(filePath);
+      properties.load(fileInputStream);
+    } catch (FileNotFoundException e) {
+      return null;
+    } catch (IOException e) {
+      String msg = String.format("Failed to read file '%1$s'", filePath.getPath());
+      LOG.error(msg, e);
+      return null;
+    } finally {
+      Closeables.closeQuietly(fileInputStream);
+    }
+    return properties.getProperty(LocalProperties.SDK_DIR_PROPERTY);
+  }
+
+
+  @Nullable
+  private static String getAndroidHomeFromModuleSdk(@NotNull CompileContext context, @NotNull ModuleChunk chunk) {
     JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> androidSdk = AndroidGradleJps.getFirstAndroidSdk(chunk);
     if (androidSdk == null) {
       // TODO: Figure out what changes in IDEA made androidSdk null. It used to work.
-      String format = "There is no Android SDK specified for project '%1$s'";
-      String msg = String.format(format, getProjectName(context));
-      LOG.warn(msg);
+      String msg = String.format("There is no Android SDK specified for project '%1$s'", getProjectName(context));
+      LOG.error(msg);
       return null;
     }
     String androidHome = androidSdk.getHomePath();
     if (Strings.isNullOrEmpty(androidHome)) {
       String msg = "Selected Android SDK does not have a home directory path";
-      LOG.warn(msg);
+      LOG.error(msg);
+      return null;
     }
     return androidHome;
   }
@@ -263,6 +321,7 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
       }
 
       if (!jvmArgs.isEmpty()) {
+        LOG.info("Passing JVM args to Gradle Tooling API: " + jvmArgs);
         launcher.setJvmArguments(jvmArgs.toArray(new String[jvmArgs.size()]));
       }
 
@@ -332,7 +391,6 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
    * to show, in the "Problems" view, compilation errors by parsing the error output. If no errors are found, we show the stack trace in the
    * "Problems" view. The idea is that we need to somehow inform the user that something went wrong.
    */
-  @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
   private static void handleBuildException(BuildException e, CompileContext context, String stdErr) throws ProjectBuildException {
     Collection<CompilerMessage> compilerMessages = ERROR_OUTPUT_PARSER.parseErrorOutput(stdErr);
     if (!compilerMessages.isEmpty()) {
@@ -350,6 +408,7 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
       // Since we have nothing else to show, just print the stack trace of the caught exception.
       ByteArrayOutputStream out = new ByteArrayOutputStream();
       try {
+        //noinspection IOResourceOpenedButNotSafelyClosed
         e.printStackTrace(new PrintStream(out));
         String message = "Internal error:" + SystemProperties.getLineSeparator() + out.toString();
         context.processMessage(createCompilerErrorMessage(message));
