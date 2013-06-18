@@ -24,12 +24,10 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.ColorPanel;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
-import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -53,6 +51,7 @@ import static com.android.SdkConstants.ATTR_ID;
 import static com.android.tools.idea.templates.Template.ATTR_DEFAULT;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME;
 
 /**
  * TemplateWizardStep is the base class for step pages in Freemarker template-based wizards.
@@ -217,6 +216,14 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       if (newValue != null && !newValue.equals(oldValue)) {
         myTemplateState.put(paramName, newValue);
         myTemplateState.myModified.add(paramName);
+      }
+
+      if (param != null) {
+        String error = param.validate(myTemplateWizard.myProject, (String)myTemplateState.get(ATTR_PACKAGE_NAME), newValue);
+        if (error != null) {
+          setErrorHtml(error);
+          return false;
+        }
       }
     }
     for (Map.Entry<JRadioButton, Pair<String, Object>> entry : myRadioButtonValues.entrySet()) {

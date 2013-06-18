@@ -22,7 +22,6 @@ import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.lexer.JavaLexer;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
@@ -31,7 +30,6 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
-import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -56,7 +54,6 @@ import static com.android.tools.idea.wizard.NewProjectWizardState.*;
 public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   private static final Logger LOG = Logger.getInstance("#" + ConfigureAndroidModuleStep.class.getName());
   private static final String SAMPLE_PACKAGE_PREFIX = "com.example.";
-  private static final Pattern JAVA_NAME_PATTERN = Pattern.compile("[A-Za-z$_][A-Za-z0-9$_]*");
   private static final String INVALID_FILENAME_CHARS = "[/\\\\?%*:|\"<>]";
   private static final Set<String> INVALID_MSFT_FILENAMES = ImmutableSet
     .of("con", "prn", "aux", "clock$", "nul", "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9", "lpt1", "lpt2",
@@ -295,9 +292,6 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     if (packageName == null || packageName.isEmpty()) {
       setErrorHtml("Please specify a package name.");
       return false;
-    } else if (!isValidPackageName(packageName)) {
-      setErrorHtml("Invalid package name.");
-      return false;
     } else if (packageName.startsWith(SAMPLE_PACKAGE_PREFIX)) {
       setErrorHtml(String.format("The prefix '%1$s' is meant as a placeholder and should " +
                                     "not be used", SAMPLE_PACKAGE_PREFIX));
@@ -388,18 +382,6 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     }
   }
 
-  private boolean isValidPackageName(@NotNull String packageName) {
-    for (String s : Splitter.on('.').split(packageName)) {
-      if (!JAVA_NAME_PATTERN.matcher(s).matches()) {
-        return false;
-      }
-      if (JavaLexer.isKeyword(s, LanguageLevel.HIGHEST)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   @NotNull
   private String computeModuleName() {
     String name = (String)myTemplateState.get(ATTR_APP_TITLE);
@@ -410,7 +392,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     return name;
   }
 
-  private boolean isValidModuleName(@NotNull String moduleName) {
+  private static boolean isValidModuleName(@NotNull String moduleName) {
     if (!moduleName.replaceAll(INVALID_FILENAME_CHARS, "").equals(moduleName)) {
       return false;
     }

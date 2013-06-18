@@ -70,6 +70,7 @@ public class NewTemplateObjectWizard extends TemplateWizard {
     myWizardState.put(NewProjectWizardState.ATTR_MODULE_NAME, myModule.getName());
 
     myWizardState.myHidden.add(TemplateMetadata.ATTR_PACKAGE_NAME);
+    myWizardState.put(TemplateMetadata.ATTR_PACKAGE_NAME, ManifestInfo.get(myModule).getPackage());
 
     super.init();
   }
@@ -79,7 +80,6 @@ public class NewTemplateObjectWizard extends TemplateWizard {
       @Override
       public void run() {
         try {
-          myWizardState.put(TemplateMetadata.ATTR_PACKAGE_NAME, ManifestInfo.get(myModule).getPackage());
           populateDirectoryParameters(myWizardState);
           File projectRoot = new File(myProject.getBasePath());
 
