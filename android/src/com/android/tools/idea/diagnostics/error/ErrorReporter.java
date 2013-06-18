@@ -145,7 +145,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
     AnonymousFeedbackTask task =
       new AnonymousFeedbackTask(project, "Submitting error report", true, pair2map(kv),
                                 bean.getMessage(), bean.getDescription(),
-                                ApplicationInfo.getInstance().getBuild().asString(),
+                                ApplicationInfo.getInstance().getFullVersion(),
                                 successCallback, errorCallback);
     if (project == null) {
       task.run(new EmptyProgressIndicator());
