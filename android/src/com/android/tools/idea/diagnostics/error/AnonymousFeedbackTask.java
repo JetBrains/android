@@ -36,7 +36,7 @@ public class AnonymousFeedbackTask extends Task.Backgroundable {
   private final Map<String, String> myParams;
   private final String myErrorMessage;
   private final String myErrorDescription;
-  private final String myAppName;
+  private final String myAppVersion;
 
   public AnonymousFeedbackTask(@Nullable Project project,
                                @NotNull String title,
@@ -44,7 +44,7 @@ public class AnonymousFeedbackTask extends Task.Backgroundable {
                                Map<String, String> params,
                                String errorMessage,
                                String errorDescription,
-                               String appName,
+                               String appVersion,
                                final Consumer<String> callback,
                                final Consumer<Exception> errorCallback) {
     super(project, title, canBeCancelled);
@@ -52,7 +52,7 @@ public class AnonymousFeedbackTask extends Task.Backgroundable {
     myParams = params;
     myErrorMessage = errorMessage;
     myErrorDescription = errorDescription;
-    myAppName = appName;
+    myAppVersion = appVersion;
     myCallback = callback;
     myErrorCallback = errorCallback;
   }
@@ -62,7 +62,7 @@ public class AnonymousFeedbackTask extends Task.Backgroundable {
     indicator.setIndeterminate(true);
     try {
       String token = sendFeedback(new ProxyHttpConnectionFactory(), myParams,
-                                  myErrorMessage, myErrorDescription, myAppName);
+                                  myErrorMessage, myErrorDescription, myAppVersion);
       myCallback.consume(token);
     }
     catch (Exception e) {
