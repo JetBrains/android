@@ -14,7 +14,6 @@
   ~ limitations under the License.
   -->
 <component>
-  <!-- Note: Whenever the major or minor versions are changed, make sure you change the version in the support and feedback URLs below. -->
   <version codename="I/O Preview" major="0" minor="1.6" eap="true"/>
   <company name="Google Inc." url="http://developer.android.com"/>
   <build number="__BUILD_NUMBER__" date="__BUILD_DATE__"/>
@@ -36,9 +35,8 @@
 
   <help file="ideahelp.jar" root="idea"/>
   <documentation url="http://dl-sdk.appspot.com/as/documentation"/>
-  <support url="https://dl-sdk.appspot.com/as/issues/entry?template=Android%20Studio%20bug&amp;comment=Build:%200.1.6,%20__BUILD_NUMBER__,%20__BUILD_DATE__&amp;status=New"/>
-  <feedback eap-url="https://dl-sdk.appspot.com/as/issues/entry?template=Android%20Studio%20bug&amp;comment=Build:%200.1.6,%20__BUILD_NUMBER__,%20__BUILD_DATE__&amp;status=New"
-            release-url="https://dl-sdk.appspot.com/as/issues/entry?template=Android%20Studio%20bug&amp;comment=Build:%200.1.6,%20__BUILD_NUMBER__,%20__BUILD_DATE__&amp;status=New"/>
+  <feedback eap-url="https://dl-sdk.appspot.com/as/issues/entry?template=Android%20Studio%20bug&amp;comment=Build:%20$VERSION,%20__BUILD_NUMBER__,%20__BUILD_DATE__&amp;status=New"
+            release-url="https://dl-sdk.appspot.com/as/issues/entry?template=Android%20Studio%20bug&amp;comment=Build:%20$VERSION,%20__BUILD_NUMBER__,%20__BUILD_DATE__&amp;status=New"/>
   <plugins url="http://plugins.intellij.net"/>
   <whatsnew url="http://tools.android.com/recent"/>
   <keymap win="http://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard.pdf"
