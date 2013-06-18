@@ -248,7 +248,7 @@ public class NavigationEditorPanel2 extends JComponent {
     setForeground(LINE_COLOR);
 
     if (navigationModel.size() > 0) {
-      addChildren(myNavigationModel.get(0).getSource());
+      addChildren(getStates(navigationModel));
     }
     addAllRelations();
 
@@ -262,6 +262,22 @@ public class NavigationEditorPanel2 extends JComponent {
       final DnDManager dndManager = DnDManager.getInstance();
       dndManager.registerTarget(new MyDnDTarget(), this);
     }
+  }
+
+  private static void addIfAbsent(Collection<State> result, Set<State> added, State source) {
+    if (!added.contains(source)) {
+      result.add(source);
+    }
+  }
+
+  private static Collection<State> getStates(NavigationModel model) {
+    Collection<State> result = new ArrayList<State>(); // use set and list to preserve order (for no particular reason)
+    Set<State> added = new HashSet<State>();
+    for (Transition t : model) {
+      addIfAbsent(result, added, t.getSource());
+      addIfAbsent(result, added, t.getDestination());
+    }
+    return result;
   }
 
   private void setSelection(Selection selection) {
@@ -402,7 +418,7 @@ public class NavigationEditorPanel2 extends JComponent {
     }
   }
 
-  private void addChildren(State root) {
+  private void addChildren(Collection<State> states) {
     final Set<State> visited = new HashSet<State>();
     final Point location = new Point(GAP.width, GAP.height);
     final Point maxLocation = new Point(0, 0);
@@ -410,25 +426,30 @@ public class NavigationEditorPanel2 extends JComponent {
     final int gridHeight = PREVIEW_SIZE.height + GAP.height;
     myStateToComponent.clear();
     myComponentToState.clear();
-    new Object() {
-      public void addChildrenFor(State source) {
-        visited.add(source);
-        add(createActivityPanel(source, location));
-        List<State> children = findDestinationsFor(source, visited);
-        location.x += gridWidth;
-        maxLocation.x = Math.max(maxLocation.x, location.x);
-        if (children.isEmpty()) {
-          location.y += gridHeight;
-          maxLocation.y = Math.max(maxLocation.y, location.y);
-        }
-        else {
-          for (State child : children) {
-            addChildrenFor(child);
-          }
-        }
-        location.x -= gridWidth;
+    for (State state : states) {
+      if (visited.contains(state)) {
+        continue;
       }
-    }.addChildrenFor(root);
+      new Object() {
+        public void addChildrenFor(State source) {
+          visited.add(source);
+          add(createActivityPanel(source, location));
+          List<State> children = findDestinationsFor(source, visited);
+          location.x += gridWidth;
+          maxLocation.x = Math.max(maxLocation.x, location.x);
+          if (children.isEmpty()) {
+            location.y += gridHeight;
+            maxLocation.y = Math.max(maxLocation.y, location.y);
+          }
+          else {
+            for (State child : children) {
+              addChildrenFor(child);
+            }
+          }
+          location.x -= gridWidth;
+        }
+      }.addChildrenFor(state);
+    }
     setPreferredSize(new Dimension(maxLocation.x, maxLocation.y));
   }
 
