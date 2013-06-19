@@ -17,6 +17,7 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
+import com.android.sdklib.IAndroidTarget;
 import com.android.utils.NullLogger;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
@@ -308,7 +309,22 @@ public abstract class AndroidTestCase extends UsefulTestCase {
 
     AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(sdk);
     AndroidSdkData sdkData = AndroidSdkData.parse(sdkPath, NullLogger.getLogger());
-    data.setBuildTarget(sdkData.findTargetByName("Android 4.2"));
+    assertNotNull(sdkData);
+    IAndroidTarget target = sdkData.findTargetByName("Android 4.2"); // TODO: Get rid of this hardcoded version number
+    if (target == null) {
+      IAndroidTarget[] targets = sdkData.getTargets();
+      for (IAndroidTarget t : targets) {
+        if (t.getLocation().contains(platformDir)) {
+          target = t;
+          break;
+        }
+      }
+      if (target == null && targets.length > 0) {
+        target = targets[targets.length - 1];
+      }
+    }
+    assertNotNull(target);
+    data.setBuildTarget(target);
     sdkModificator.setSdkAdditionalData(data);
     sdkModificator.commitChanges();
     return sdk;
