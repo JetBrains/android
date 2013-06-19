@@ -88,7 +88,14 @@ public class ErrorReporter extends ErrorReportSubmitter {
     final DataContext dataContext = DataManager.getInstance().getDataContext(parentComponent);
 
     bean.setDescription(description != null ? description : event.getThrowableText());
-    bean.setMessage(event.getMessage());
+    String message = event.getMessage();
+    if (message == null && event.getThrowable() != null) {
+      message = event.getThrowable().toString();
+    }
+    if (message == null) {
+      message = "Unclassified error";
+    }
+    bean.setMessage(message);
 
     Throwable t = event.getThrowable();
     if (t != null) {
