@@ -53,6 +53,7 @@ public class ContentRootModuleCustomizer implements ModuleCustomizer {
 
     final ContentEntry contentEntry = findMatchingContentEntry(model, ideaAndroidProject);
     if (contentEntry == null) {
+      model.dispose();
       return;
     }
     try {
