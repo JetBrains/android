@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.diagnostics.error;
 
+import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.diagnostic.DiagnosticBundle;
 import com.intellij.diagnostic.errordialog.Attachment;
 import com.intellij.errorreport.bean.ErrorBean;
@@ -26,6 +27,8 @@ import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ex.ApplicationInfoEx;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
@@ -161,6 +164,11 @@ public class IdeaITNProxy {
     for (Attachment attachment : error.getAttachments()) {
       params.add(Pair.create("attachment.name", attachment.getName()));
       params.add(Pair.create("attachment.value", attachment.getEncodedBytes()));
+    }
+
+    Project[] projects = ProjectManager.getInstance().getOpenProjects();
+    for (int i = 0; i < projects.length; i++) {
+      params.add(Pair.create("is.gradle.project." + i, Boolean.toString(Projects.isGradleProject(projects[i]))));
     }
 
     return params;
