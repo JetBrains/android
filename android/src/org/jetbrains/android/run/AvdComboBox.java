@@ -90,11 +90,11 @@ public abstract class AvdComboBox extends ComboboxWithBrowseButton {
 
   private void doUpdateAvds() {
     final Module module = getModule();
-
-    if (module.isDisposed()) {
+    if (module == null || module.isDisposed()) {
       return;
     }
-    final AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
+
+    final AndroidFacet facet = AndroidFacet.getInstance(module);
     final String[] newAvds;
 
     if (facet != null) {
