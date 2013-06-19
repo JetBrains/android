@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:app2="http://schemas.android.com/apk/res/com.example.app2"
+              xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res/com.example.app1"
+              android:orientation="vertical"
+              android:alpha=""
+              android:layout_height="fill_parent"
+              aba="true"
+              app:aba="true"
+              android:layout_width="fill_parent"
+              style="@android:style/Animation"
+              android:id="@+id/myId">
+
+  <TextView
+      android:layout_height="wrap_content"
+      android:text="Hello World, MyActivity"
+      android:layout_width="fill_parent" />
+</LinearLayout>
