@@ -27,6 +27,7 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunManagerEx;
 import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -303,6 +304,15 @@ public class AndroidUtils {
       }
       receiver.invalidate();
     }
+  }
+
+  @Nullable
+  public static Module getAndroidModule(ConfigurationContext context) {
+    Module module = context.getModule();
+    if (module == null || AndroidFacet.getInstance(module) == null) {
+      return null;
+    }
+    return module;
   }
 
   public static VirtualFile createChildDirectoryIfNotExist(Project project, VirtualFile parent, String name) throws IOException {
