@@ -76,7 +76,7 @@ public class LauncherIconWizardState extends TemplateWizardState implements Grap
   /**
    * The type of asset to create: launcher icon, menu icon, etc.
    */
-  public static enum AssetType {
+  public enum AssetType {
     /**
      * Launcher icon to be shown in the application list
      */
@@ -201,9 +201,7 @@ public class LauncherIconWizardState extends TemplateWizardState implements Grap
   /**
    * Generate images using the given wizard state
    *
-   * @param mValues     the state to use
    * @param previewOnly whether we are only generating previews
-   * @param page        if non null, a wizard page to write error messages to
    * @return a map of image objects
    */
   @NotNull
@@ -218,8 +216,8 @@ public class LauncherIconWizardState extends TemplateWizardState implements Grap
     switch ((LauncherIconWizardState.SourceType)get(ATTR_SOURCE_TYPE)) {
       case IMAGE: {
         String path = (String)get(ATTR_IMAGE_PATH);
-        if (path.length() == 0) {
-          return categoryMap;
+        if (path == null || path.isEmpty()) {
+          throw new ImageGeneratorException("Path to image is empty.");
         }
 
         try {
@@ -241,9 +239,6 @@ public class LauncherIconWizardState extends TemplateWizardState implements Grap
         }
         catch (IOException e) {
           throw new ImageGeneratorException("Unable to load clip art image: " + clipartName);
-        }
-        if (trim) {
-          sourceImage = crop(sourceImage);
         }
 
         if (type.needsColors()) {
@@ -273,8 +268,7 @@ public class LauncherIconWizardState extends TemplateWizardState implements Grap
 
     if (type != AssetType.LAUNCHER) {
       // TODO: Refactor this code and handle other types: MENU, ACTIONBAR, NOTIFICATION, TAB
-      LOG.error("Unsupported asset type: %1$s", type.toString());
-      return categoryMap;
+      throw new ImageGeneratorException("Only launcher icons can be customized");
     }
 
     GraphicGenerator generator = new LauncherIconGenerator();
