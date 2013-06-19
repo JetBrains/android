@@ -348,9 +348,6 @@ class DomPsiConverter {
     @Nullable
     @Override
     public Node getFirstChild() {
-      if (myChildren == null) {
-        return null;
-      }
       NodeList childNodes = getChildNodes();
       if (childNodes.getLength() > 0) {
         return childNodes.item(0);
@@ -361,9 +358,6 @@ class DomPsiConverter {
     @Nullable
     @Override
     public Node getLastChild() {
-      if (myChildren == null) {
-        return null;
-      }
       NodeList childNodes = getChildNodes();
       if (childNodes.getLength() > 0) {
         return childNodes.item(0);
@@ -648,6 +642,22 @@ class DomPsiConverter {
 
     @NotNull
     @Override
+    public NodeList getElementsByTagName(String s) {
+      Element root = getDocumentElement();
+      if (root != null) {
+        return root.getElementsByTagName(s);
+      }
+      return EMPTY;
+    }
+
+    @NotNull
+    @Override
+    public NodeList getElementsByTagNameNS(String s, String s2) {
+      throw new UnsupportedOperationException(); // Not supported
+    }
+
+    @NotNull
+    @Override
     public Element createElement(String s) throws DOMException {
       throw new UnsupportedOperationException(); // Read-only bridge
     }
@@ -696,12 +706,6 @@ class DomPsiConverter {
 
     @NotNull
     @Override
-    public NodeList getElementsByTagName(String s) {
-      throw new UnsupportedOperationException(); // Read-only bridge
-    }
-
-    @NotNull
-    @Override
     public Node importNode(Node node, boolean b) throws DOMException {
       throw new UnsupportedOperationException(); // Read-only bridge
     }
@@ -715,12 +719,6 @@ class DomPsiConverter {
     @NotNull
     @Override
     public Attr createAttributeNS(String s, String s2) throws DOMException {
-      throw new UnsupportedOperationException(); // Read-only bridge
-    }
-
-    @NotNull
-    @Override
-    public NodeList getElementsByTagNameNS(String s, String s2) {
       throw new UnsupportedOperationException(); // Read-only bridge
     }
 
