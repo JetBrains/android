@@ -1,16 +1,20 @@
 package org.jetbrains.android;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
+import com.intellij.psi.codeStyle.arrangement.engine.ArrangementEngine;
 import com.intellij.psi.formatter.xml.XmlCodeStyleSettings;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
 import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * @author Eugene.Kudelevsky
@@ -189,6 +193,25 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
     final AndroidXmlCodeStyleSettings androidSettings = mySettings.getCustomSettings(AndroidXmlCodeStyleSettings.class);
     androidSettings.OTHER_SETTINGS.WRAP_ATTRIBUTES = CommonCodeStyleSettings.DO_NOT_WRAP;
     doTest("preferences1.xml", "res/xml/preferences.xml");
+  }
+
+  public void testAttributesArrangement1() throws Exception {
+    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
+    doTestArrangement("res/layout/layout1.xml");
+  }
+
+  public void testAttributesArrangement2() throws Exception {
+    deleteManifest();
+    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
+    doTestArrangement("AndroidManifest.xml");
+  }
+
+  private void doTestArrangement(String dst) {
+    final VirtualFile f = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + ".xml", dst);
+    myFixture.configureFromExistingVirtualFile(f);
+    final ArrangementEngine engine = ServiceManager.getService(getProject(), ArrangementEngine.class);
+    engine.arrange(myFixture.getEditor(), myFixture.getFile(), Arrays.asList(new TextRange(0, myFixture.getFile().getTextLength())));
+    myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after.xml");
   }
 
   private void doTestLayout(String fileName) throws IOException {
