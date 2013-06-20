@@ -411,8 +411,12 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
         service.getResourceResolver();
 
         result = ApplicationManager.getApplication().runReadAction(new Computable<RenderResult>() {
+          @Nullable
           @Override
           public RenderResult compute() {
+            if (psiFile instanceof XmlFile) {
+              service.useDesignMode(((XmlFile)psiFile).getRootTag());
+            }
             return service.render();
           }
         });

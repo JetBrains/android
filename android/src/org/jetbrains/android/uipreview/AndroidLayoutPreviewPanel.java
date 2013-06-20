@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.uipreview;
 
+import com.android.ide.common.rendering.api.SessionParams;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
@@ -341,7 +342,8 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     myRenderResult = renderResult;
     ScalableImage image = myRenderResult.getImage();
     if (image != null) {
-      image.setDeviceFrameEnabled(myShowDeviceFrames);
+      image.setDeviceFrameEnabled(myShowDeviceFrames && myRenderResult.getRenderService() != null &&
+                                  myRenderResult.getRenderService().getRenderingMode() == SessionParams.RenderingMode.NORMAL);
       if (myPreviewManager != null && RenderPreviewMode.getCurrent() != RenderPreviewMode.NONE) {
         Dimension fixedRenderSize = myPreviewManager.getFixedRenderSize();
         if (fixedRenderSize != null) {

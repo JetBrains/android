@@ -515,6 +515,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
                   @Nullable
                   @Override
                   public RenderResult compute() {
+                    service.useDesignMode(myXmlFile.getRootTag());
                     return service.render();
                   }
                 });
