@@ -55,6 +55,11 @@ public class LauncherIconWizardState extends TemplateWizardState implements Grap
   private static final String OUTPUT_DIRECTORY = "src/main/";
   private static Cache<String, BufferedImage> ourImageCache = CacheBuilder.newBuilder().build();
 
+  public static class ImageGeneratorException extends Exception {
+    public ImageGeneratorException(String message) {
+      super(message);
+    }
+  }
 
   /**
    * Types of sources that the asset studio can use to generate icons from
@@ -71,7 +76,7 @@ public class LauncherIconWizardState extends TemplateWizardState implements Grap
   /**
    * The type of asset to create: launcher icon, menu icon, etc.
    */
-  public static enum AssetType {
+  public enum AssetType {
     /**
      * Launcher icon to be shown in the application list
      */
@@ -166,7 +171,7 @@ public class LauncherIconWizardState extends TemplateWizardState implements Grap
     put(ATTR_FONT, "Arial Black");
     put(ATTR_SCALING, Scaling.CROP);
     put(ATTR_SHAPE, GraphicGenerator.Shape.NONE);
-    put(ATTR_FONT_SIZE, 72);
+    put(ATTR_FONT_SIZE, 144);
     put(ATTR_SOURCE_TYPE, LauncherIconWizardState.SourceType.IMAGE);
     put(ATTR_IMAGE_PATH,
         new File(TemplateManager.getTemplateRootFolder(), "projects/NewAndroidApplication/root/res/drawable-xhdpi/ic_launcher.png")
@@ -196,13 +201,11 @@ public class LauncherIconWizardState extends TemplateWizardState implements Grap
   /**
    * Generate images using the given wizard state
    *
-   * @param mValues     the state to use
    * @param previewOnly whether we are only generating previews
-   * @param page        if non null, a wizard page to write error messages to
    * @return a map of image objects
    */
   @NotNull
-  public Map<String, Map<String, BufferedImage>> generateImages(boolean previewOnly) {
+  public Map<String, Map<String, BufferedImage>> generateImages(boolean previewOnly) throws ImageGeneratorException {
     Map<String, Map<String, BufferedImage>> categoryMap = new LinkedHashMap<String, Map<String, BufferedImage>>();
 
     AssetType type = AssetType.LAUNCHER;
@@ -210,48 +213,53 @@ public class LauncherIconWizardState extends TemplateWizardState implements Grap
     int padding = (Integer)get(ATTR_PADDING);
 
     BufferedImage sourceImage = null;
-    try {
-      switch ((LauncherIconWizardState.SourceType)get(ATTR_SOURCE_TYPE)) {
-        case IMAGE: {
-          String path = (String)get(ATTR_IMAGE_PATH);
-          if (path.length() == 0) {
-            return categoryMap;
-          }
+    switch ((LauncherIconWizardState.SourceType)get(ATTR_SOURCE_TYPE)) {
+      case IMAGE: {
+        String path = (String)get(ATTR_IMAGE_PATH);
+        if (path == null || path.isEmpty()) {
+          throw new ImageGeneratorException("Path to image is empty.");
+        }
 
+        try {
           sourceImage = getImage(path, false);
-          break;
         }
-
-        case CLIPART: {
-          sourceImage = GraphicGenerator.getClipartImage((String)get(ATTR_CLIPART_NAME));
-          if (trim) {
-            sourceImage = ImageUtils.cropBlank(sourceImage, null, TYPE_INT_ARGB);
-          }
-
-          if (type.needsColors()) {
-            Paint paint = (Color)get(ATTR_FOREGROUND_COLOR);
-            sourceImage = Util.filledImage(sourceImage, paint);
-          }
-          break;
+        catch (FileNotFoundException e) {
+          throw new ImageGeneratorException("Image file not found: " + path);
         }
-
-        case TEXT: {
-          TextRenderUtil.Options options = new TextRenderUtil.Options();
-          options.font = Font.decode((String)get(ATTR_FONT) + " " + (Integer)get(ATTR_FONT_SIZE));
-          options.foregroundColor = type.needsColors() ? ((Color)get(ATTR_FOREGROUND_COLOR)).getRGB() : 0xFFFFFFFF;
-          sourceImage = TextRenderUtil.renderTextImage((String)get(ATTR_TEXT), 0, options);
-
-          break;
+        catch (IOException e) {
+          throw new ImageGeneratorException("Unable to load image file: " + path);
         }
+        break;
       }
-    }
-    catch (IOException e) {
-      LOG.error(e);
-      return categoryMap;
+
+      case CLIPART: {
+        String clipartName = (String)get(ATTR_CLIPART_NAME);
+        try {
+          sourceImage = GraphicGenerator.getClipartImage(clipartName);
+        }
+        catch (IOException e) {
+          throw new ImageGeneratorException("Unable to load clip art image: " + clipartName);
+        }
+
+        if (type.needsColors()) {
+          Paint paint = (Color)get(ATTR_FOREGROUND_COLOR);
+          sourceImage = Util.filledImage(sourceImage, paint);
+        }
+        break;
+      }
+
+      case TEXT: {
+        TextRenderUtil.Options options = new TextRenderUtil.Options();
+        options.font = Font.decode((String)get(ATTR_FONT) + " " + (Integer)get(ATTR_FONT_SIZE));
+        options.foregroundColor = type.needsColors() ? ((Color)get(ATTR_FOREGROUND_COLOR)).getRGB() : 0xFFFFFFFF;
+        sourceImage = TextRenderUtil.renderTextImage((String)get(ATTR_TEXT), 1, options);
+
+        break;
+      }
     }
 
     if (trim) {
-      sourceImage = ImageUtils.cropBlank(sourceImage, null, TYPE_INT_ARGB);
+      sourceImage = crop(sourceImage);
     }
 
     if (padding != 0) {
@@ -260,8 +268,7 @@ public class LauncherIconWizardState extends TemplateWizardState implements Grap
 
     if (type != AssetType.LAUNCHER) {
       // TODO: Refactor this code and handle other types: MENU, ACTIONBAR, NOTIFICATION, TAB
-      LOG.error("Unsupported asset type: %1$s", type.toString());
-      return categoryMap;
+      throw new ImageGeneratorException("Only launcher icons can be customized");
     }
 
     GraphicGenerator generator = new LauncherIconGenerator();
@@ -283,25 +290,26 @@ public class LauncherIconWizardState extends TemplateWizardState implements Grap
    * Outputs final-rendered images to disk, rooted at the given directory.
    */
   public void outputImages(@NotNull File contentRoot) {
-    Map<String, Map<String, BufferedImage>> images = generateImages(false);
-    for (String density : images.keySet()) {
-      // TODO: The output directory needs to take flavor and build type into account, which will need to be configurable by the user
-      File directory = new File(contentRoot, OUTPUT_DIRECTORY);
-      Map<String, BufferedImage> filenameMap = images.get(density);
-      for (String filename : filenameMap.keySet()) {
-        File outFile = new File(directory, filename);
-        try {
-          outFile.getParentFile().mkdirs();
-          BufferedImage image = filenameMap.get(filename);
-          ImageIO.write(image, "PNG", new FileOutputStream(outFile));
-        }
-        catch (FileNotFoundException e) {
-          LOG.error(e);
-        }
-        catch (IOException e) {
-          LOG.error(e);
+    try {
+      Map<String, Map<String, BufferedImage>> images = generateImages(false);
+      for (String density : images.keySet()) {
+        // TODO: The output directory needs to take flavor and build type into account, which will need to be configurable by the user
+        File directory = new File(contentRoot, OUTPUT_DIRECTORY);
+        Map<String, BufferedImage> filenameMap = images.get(density);
+        for (String filename : filenameMap.keySet()) {
+          File outFile = new File(directory, filename);
+          try {
+            outFile.getParentFile().mkdirs();
+            BufferedImage image = filenameMap.get(filename);
+            ImageIO.write(image, "PNG", new FileOutputStream(outFile));
+          }
+          catch (IOException e) {
+            LOG.error(e);
+          }
         }
       }
+    } catch (Exception e) {
+      LOG.error(e);
     }
   }
 
@@ -320,5 +328,11 @@ public class LauncherIconWizardState extends TemplateWizardState implements Grap
     }
 
     return image;
+  }
+
+  @NotNull
+  private static BufferedImage crop(@NotNull BufferedImage sourceImage) {
+    BufferedImage cropped = ImageUtils.cropBlank(sourceImage, null, TYPE_INT_ARGB);
+    return cropped != null ? cropped : sourceImage;
   }
 }

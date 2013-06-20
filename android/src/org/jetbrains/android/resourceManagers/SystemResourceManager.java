@@ -25,6 +25,9 @@ import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * @author coyote
  */
@@ -49,11 +52,23 @@ public class SystemResourceManager extends ResourceManager {
     return resDir != null ? new VirtualFile[]{resDir} : VirtualFile.EMPTY_ARRAY;
   }
 
-  @Override
   @Nullable
-  public VirtualFile getResourceDir() {
+  private VirtualFile getResourceDir() {
     String resPath = myPlatform.getTarget().getPath(IAndroidTarget.RESOURCES);
     return LocalFileSystem.getInstance().findFileByPath(resPath);
+  }
+
+  @Override
+  public boolean isResourceDir(@NotNull VirtualFile dir) {
+    return dir.equals(getResourceDir());
+  }
+
+  @Override
+  @NotNull
+  public List<VirtualFile> getResourceDirs() {
+    String resPath = myPlatform.getTarget().getPath(IAndroidTarget.RESOURCES);
+    VirtualFile dir = LocalFileSystem.getInstance().findFileByPath(resPath);
+    return dir != null ? Collections.singletonList(dir) : Collections.<VirtualFile>emptyList();
   }
 
   @Nullable

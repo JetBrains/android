@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.stubs.gradle;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
 import org.gradle.tooling.model.DomainObjectSet;
-import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.idea.IdeaCompilerOutput;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
@@ -46,7 +45,7 @@ public class IdeaModuleStub implements IdeaModule {
     myFileStructure = new FileStructure(parent.getRootDir(), name);
     myFileStructure.createProjectFile(GradleConstants.DEFAULT_SCRIPT_NAME);
     myContentRoots.add(new IdeaContentRootStub(getRootDir()));
-    myGradleProject = new GradleProjectStub(myName);
+    myGradleProject = new GradleProjectStub(name, ":" + name);
   }
 
   /**
@@ -64,7 +63,7 @@ public class IdeaModuleStub implements IdeaModule {
   }
 
   @Override
-  public GradleProject getGradleProject() {
+  public GradleProjectStub getGradleProject() {
     return myGradleProject;
   }
 

@@ -21,11 +21,16 @@ import org.jetbrains.jps.android.AndroidJpsUtil;
 import org.jetbrains.jps.android.model.JpsAndroidModuleExtension;
 import org.jetbrains.jps.builders.*;
 import org.jetbrains.jps.builders.java.JavaModuleBuildTargetType;
+import org.jetbrains.jps.builders.storage.BuildDataPaths;
 import org.jetbrains.jps.incremental.ModuleBuildTarget;
+import org.jetbrains.jps.indices.IgnoredFileIndex;
+import org.jetbrains.jps.indices.ModuleExcludeIndex;
+import org.jetbrains.jps.model.JpsModel;
 import org.jetbrains.jps.model.module.JpsModule;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -50,6 +55,27 @@ public abstract class AndroidBuildTarget extends BuildTarget<BuildRootDescriptor
   public String getId() {
     return myModule.getName();
   }
+
+  @NotNull
+  @Override
+  public final List<BuildRootDescriptor> computeRootDescriptors(JpsModel model,
+                                                                ModuleExcludeIndex index,
+                                                                IgnoredFileIndex ignoredFileIndex,
+                                                                BuildDataPaths dataPaths) {
+    JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(myModule);
+    assert extension != null;
+    if (extension.isGradleProject()) {
+      List<BuildRootDescriptor> noDescriptors = Collections.emptyList();
+      return noDescriptors;
+    }
+    return doComputeRootDescriptors(model, index, ignoredFileIndex, dataPaths);
+  }
+
+  @NotNull
+  protected abstract List<BuildRootDescriptor> doComputeRootDescriptors(JpsModel model,
+                                                                        ModuleExcludeIndex index,
+                                                                        IgnoredFileIndex ignoredFileIndex,
+                                                                        BuildDataPaths dataPaths);
 
   @Override
   public Collection<BuildTarget<?>> computeDependencies(final BuildTargetRegistry registry, TargetOutputIndex outputIndex) {

@@ -221,9 +221,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         break;
       case PROJECT:
         for (String theme : getProjectThemes()) {
-          if (theme.startsWith(HOLO_LIGHT_PREFIX)) {
-            themes.add(theme);
-          }
+          themes.add(theme);
         }
         break;
       case CLASSIC:
@@ -352,7 +350,9 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
 
   private List<String> getProjectThemes() {
     if (myProjectThemes == null) {
-      myProjectThemes = getThemes(ProjectResources.get(myConfiguration.getModule()), false);
+      ProjectResources repository = ProjectResources.get(myConfiguration.getModule(), true);
+      Map<ResourceType, Map<String, ResourceValue>> resources = repository.getConfiguredResources(myConfiguration.getFullConfig());
+      myProjectThemes = getThemes(resources, false /*isFramework*/);
     }
 
     return myProjectThemes;
@@ -505,7 +505,10 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     }
 
     Map<ResourceType, Map<String, ResourceValue>> resources = repository.getConfiguredResources(myConfiguration.getFullConfig());
+    return getThemes(resources, isFramework);
+  }
 
+  private static List<String> getThemes(Map<ResourceType, Map<String, ResourceValue>> resources, boolean isFramework) {
     String prefix = isFramework ? ANDROID_STYLE_RESOURCE_PREFIX : STYLE_RESOURCE_PREFIX;
     // get the styles.
     Map<String, ResourceValue> styles = resources.get(ResourceType.STYLE);
@@ -521,7 +524,6 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     }
 
     Collections.sort(themes);
-
     return themes;
   }
 

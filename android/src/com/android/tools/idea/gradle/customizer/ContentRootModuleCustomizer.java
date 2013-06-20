@@ -26,7 +26,7 @@ import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -99,11 +99,8 @@ public class ContentRootModuleCustomizer implements ModuleCustomizer {
           return;
         }
         boolean isTestSource = sourceType.equals(ExternalSystemSourceType.TEST);
-        contentEntry.addSourceFolder(toVfsUrl(dir), isTestSource);
-      }
-
-      private String toVfsUrl(@NotNull File f) {
-        return LocalFileSystem.PROTOCOL_PREFIX + f.getAbsolutePath();
+        String url = VfsUtil.pathToUrl(dir.getAbsolutePath());
+        contentEntry.addSourceFolder(url, isTestSource);
       }
     };
     AndroidContentRoot.storePaths(ideaAndroidProject, storage);

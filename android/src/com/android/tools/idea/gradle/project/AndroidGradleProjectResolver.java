@@ -19,9 +19,9 @@ import com.android.build.gradle.internal.tasks.BaseTask;
 import com.android.build.gradle.model.AndroidProject;
 import com.android.builder.AndroidBuilder;
 import com.android.builder.model.ProductFlavor;
+import com.android.tools.idea.gradle.GradleImportNotificationListener;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.execution.configurations.ParametersList;
 import com.intellij.execution.configurations.SimpleJavaParameters;
@@ -61,8 +61,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   @SuppressWarnings("UnusedDeclaration")
   public AndroidGradleProjectResolver() {
     myHelper = new GradleExecutionHelper();
-    myFunctionFactory =
-      new ProjectResolverFunctionFactory(new ProjectResolverStrategy(myHelper), new MultiProjectResolverStrategy(myHelper));
+    myFunctionFactory = new ProjectResolverFunctionFactory(new ProjectResolver(myHelper));
   }
 
   @VisibleForTesting
@@ -84,6 +83,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
    * @param projectPath       absolute path of the build.gradle file. It includes the file name.
    * @param downloadLibraries a hint that specifies if third-party libraries that are not available locally should be resolved (downloaded.)
    * @param settings          settings to use for the project resolving; {@code null} as indication that no specific settings are required.
+   * @param listener          callback to be notified about the execution
    * @return the imported project, or {@code null} if the project to import is not supported.
    */
   @Nullable
@@ -109,6 +109,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
    */
   @Override
   public void enhanceParameters(@NotNull SimpleJavaParameters parameters) {
+    GradleImportNotificationListener.attachToManager();
     List<String> jarPaths = getJarPathsOf(getClass(), AndroidBuilder.class, AndroidProject.class, BaseTask.class, ProductFlavor.class);
     LOG.info("Added to RMI/Gradle process classpath: " + jarPaths);
     for (String jarPath : jarPaths) {
@@ -118,8 +119,9 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
     if (Strings.isNullOrEmpty(androidHome)) {
       for (Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
         AndroidPlatform androidPlatform = AndroidPlatform.parse(sdk);
-        if (androidPlatform != null && sdk.getHomePath() != null) {
-          parameters.addEnv(AndroidSdkUtils.ANDROID_HOME_ENV, sdk.getHomePath());
+        String sdkHomePath = sdk.getHomePath();
+        if (androidPlatform != null && sdkHomePath != null) {
+          parameters.addEnv(AndroidSdkUtils.ANDROID_HOME_ENV, sdkHomePath);
           break;
         }
       }
@@ -141,10 +143,10 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   }
 
   static class ProjectResolverFunctionFactory {
-    @NotNull private final List<ProjectResolverStrategy> myStrategies;
+    @NotNull private final ProjectResolver myResolver;
 
-    ProjectResolverFunctionFactory(@NotNull ProjectResolverStrategy... strategies) {
-      myStrategies = ImmutableList.copyOf(strategies);
+    ProjectResolverFunctionFactory(@NotNull ProjectResolver resolver) {
+      myResolver = resolver;
     }
 
     @NotNull
@@ -156,11 +158,9 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
         @Nullable
         @Override
         public DataNode<ProjectData> fun(ProjectConnection connection) {
-          for (ProjectResolverStrategy strategy : myStrategies) {
-            DataNode<ProjectData> projectInfo = strategy.resolveProjectInfo(id, projectPath, settings, connection, listener);
-            if (projectInfo != null) {
-              return projectInfo;
-            }
+          DataNode<ProjectData> projectInfo = myResolver.resolveProjectInfo(id, projectPath, settings, connection, listener);
+          if (projectInfo != null) {
+            return projectInfo;
           }
           return null;
         }

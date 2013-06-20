@@ -17,7 +17,12 @@ package com.intellij.android.designer.model;
 
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.model.RadComponentVisitor;
+import com.intellij.lang.LanguageNamesValidation;
+import com.intellij.lang.StdLanguages;
+import com.intellij.lang.java.JavaLanguage;
+import com.intellij.lang.refactoring.NamesValidator;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlAttribute;
@@ -74,9 +79,14 @@ public class IdManager {
     String nextIdValue = idValue;
     int index = 0;
 
-    while (myIdList.contains(nextIdValue)) {
+    // Ensure that we don't create something like "switch" as an id, which won't compile when used
+    // in the R class
+    Project project = component.getTag().getProject();
+    NamesValidator validator = LanguageNamesValidation.INSTANCE.forLanguage(JavaLanguage.INSTANCE);
+
+    while (myIdList.contains(nextIdValue) || validator != null && validator.isKeyword(nextIdValue, project)) {
       ++index;
-      if (index == 1) {
+      if (index == 1 && (validator == null || !validator.isKeyword(nextIdValue, project))) {
         nextIdValue = idValue;
       } else {
         nextIdValue = idValue + Integer.toString(index);

@@ -24,10 +24,8 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.ManifestInfo;
-import com.android.tools.idea.rendering.ProjectResources;
-import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -43,6 +41,7 @@ import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.sdk.*;
 import org.jetbrains.android.uipreview.UserDeviceManager;
 import org.jetbrains.android.util.AndroidUtils;
@@ -118,7 +117,7 @@ public class ConfigurationManager implements Disposable {
       config = new FolderConfiguration();
     }
     Configuration configuration = Configuration.create(this, projectState, file, fileState, config);
-    ProjectResources projectResources = ProjectResources.get(myModule);
+    ProjectResources projectResources = ProjectResources.get(myModule, true);
     ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, projectResources, file);
     if (fileState != null) {
       matcher.adaptConfigSelection(true);
@@ -151,7 +150,7 @@ public class ConfigurationManager implements Disposable {
       config = new FolderConfiguration();
     }
     Configuration configuration = Configuration.create(this, projectState, file, fileState, config);
-    ProjectResources projectResources = ProjectResources.get(myModule);
+    ProjectResources projectResources = ProjectResources.get(myModule, true);
     ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, projectResources, file);
     matcher.adaptConfigSelection(true /*needBestMatch*/);
     myCache.put(file, configuration);
@@ -178,7 +177,10 @@ public class ConfigurationManager implements Disposable {
   @Nullable
   private AndroidPlatform getPlatform() {
     // TODO: How do we refresh this if the user remaps chosen target?
-    final Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
+    Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
+    if (sdk == null) {
+      sdk = AndroidFacetConfiguration.findAndSetAndroidSdk(myModule);
+    }
     if (sdk != null && sdk.getSdkType() instanceof AndroidSdkType) {
       final AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
       if (additionalData != null) {
@@ -433,14 +435,12 @@ public class ConfigurationManager implements Disposable {
   public List<Locale> getLocales() {
     if (myLocales == null) {
       List<Locale> locales = new ArrayList<Locale>();
-      ProjectResources projectResources = ProjectResources.get(myModule);
-      if (projectResources != null) {
-        for (String language : projectResources.getLanguages()) {
-          LanguageQualifier languageQualifier = new LanguageQualifier(language);
-          locales.add(Locale.create(languageQualifier));
-          for (String region : projectResources.getRegions(language)) {
-            locales.add(Locale.create(languageQualifier, new RegionQualifier(region)));
-          }
+      ProjectResources projectResources = ProjectResources.get(myModule, true);
+      for (String language : projectResources.getLanguages()) {
+        LanguageQualifier languageQualifier = new LanguageQualifier(language);
+        locales.add(Locale.create(languageQualifier));
+        for (String region : projectResources.getRegions(language)) {
+          locales.add(Locale.create(languageQualifier, new RegionQualifier(region)));
         }
       }
       myLocales = locales;

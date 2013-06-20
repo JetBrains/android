@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering.multi;
 
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.Capability;
+import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.*;
 import com.android.resources.Density;
 import com.android.resources.ScreenSize;
@@ -26,7 +27,6 @@ import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.LocaleManager;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;

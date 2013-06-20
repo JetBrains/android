@@ -26,6 +26,7 @@ public class AndroidIcons {
   public static final Icon ZoomFit = load("/icons/zoomFit.png"); // 16x16
   public static final Icon ZoomIn = load("/icons/zoomIn.png"); // 16x16
   public static final Icon ZoomOut = load("/icons/zoomOut.png"); // 16x16
+  public static final Icon ZoomReal = load("/icons/zoomReal.png"); // 16x16
   public static final Icon Renderscript = load("/icons/renderscript.png"); // 16x16
   public static final Icon ErrorBadge = load("/icons/error-badge.png"); // 16x16
   public static final Icon WarningBadge = load("/icons/warning-badge.png"); // 16x16
@@ -47,6 +48,8 @@ public class AndroidIcons {
   public static final Icon Themes = load("/icons/themes.png"); // 16x16
 
   public static final Icon EmptyFlag = load("/icons/flags/flag_empty.png"); // 16x16
+
+  public static final Icon GradleSync = load("/icons/gradlesync.png"); // 16x16
 
   public static class Configs {
     public static final Icon Dock = load("/icons/dockmode.png");
@@ -87,7 +90,8 @@ public class AndroidIcons {
     public static final Icon Threads = load("/icons/ddms/threads.png"); // 16x16
   }
 
-  public static class Npw {
-    public static final Icon NewModuleSidePanel = load("/icons/npw/newprojectwizard7c-module.png"); // 143x627
+  public static class Wizards {
+    public static final Icon NewModuleSidePanel = load("/icons/wizards/newModule.png"); // 143x627
+    public static final Icon NewProjectSidePanel = load("/icons/wizards/newProject.png"); // 143x627
   }
 }

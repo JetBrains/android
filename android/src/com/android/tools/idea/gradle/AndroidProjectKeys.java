@@ -29,7 +29,7 @@ public class AndroidProjectKeys {
                                                                                         ProjectKeys.PROJECT.getProcessingWeight() + 5);
   @NotNull public static final Key<IdeaModule>         IDEA_MODULE         = Key.create(IdeaModule.class,
                                                                                         ProjectKeys.MODULE.getProcessingWeight() + 5);
-  @NotNull public static final Key<GradleProject>      GRADLE_PROJECT_KEY  = Key.create(GradleProject.class,
+  @NotNull public static final Key<IdeaGradleProject>  GRADLE_PROJECT      = Key.create(IdeaGradleProject.class,
                                                                                         IDE_ANDROID_PROJECT.getProcessingWeight() + 10);
 
   private AndroidProjectKeys() {

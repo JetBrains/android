@@ -20,18 +20,29 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.fileChooser.FileChooserFactory;
+import com.intellij.openapi.fileChooser.FileSaverDescriptor;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileWrapper;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.regex.Pattern;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.NewProjectWizardState.*;
@@ -43,6 +54,11 @@ import static com.android.tools.idea.wizard.NewProjectWizardState.*;
 public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   private static final Logger LOG = Logger.getInstance("#" + ConfigureAndroidModuleStep.class.getName());
   private static final String SAMPLE_PACKAGE_PREFIX = "com.example.";
+  private static final String INVALID_FILENAME_CHARS = "[/\\\\?%*:|\"<>]";
+  private static final Set<String> INVALID_MSFT_FILENAMES = ImmutableSet
+    .of("con", "prn", "aux", "clock$", "nul", "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9", "lpt1", "lpt2",
+        "lpt3", "lpt4", "lpt5", "lpt6", "lpt7", "lpt8", "lpt9", "$mft", "$mftmirr", "$logfile", "$volume", "$attrdef", "$bitmap", "$boot",
+        "$badclus", "$secure", "$upcase", "$extend", "$quota", "$objid", "$reparse");
 
   private TextFieldWithBrowseButton myProjectLocation;
   private JTextField myAppName;
@@ -59,6 +75,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   private JLabel myDescription;
   private JLabel myError;
   private JLabel myProjectLocationLabel;
+  boolean myInitializedPackageNameText = false;
 
   public ConfigureAndroidModuleStep(TemplateWizard templateWizard, TemplateWizardState state) {
     super(templateWizard, state);
@@ -100,8 +117,26 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     register(ATTR_CREATE_ICONS, myCreateCustomLauncherIconCheckBox);
     register(ATTR_LIBRARY, myLibraryCheckBox);
 
-    myProjectLocation.addBrowseFolderListener("Please choose a project location", null, null,
-                                              FileChooserDescriptorFactory.createSingleFolderDescriptor());
+    myProjectLocation.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        FileSaverDescriptor fileSaverDescriptor = new FileSaverDescriptor("Project location", "Please choose a location for your project");
+        File currentPath = new File(myProjectLocation.getText());
+        File parentPath = currentPath.getParentFile();
+        if (parentPath == null) {
+          parentPath = new File("/");
+        }
+        VirtualFile parent = LocalFileSystem.getInstance().findFileByIoFile(parentPath);
+        String filename = currentPath.getName();
+        VirtualFileWrapper fileWrapper =
+            FileChooserFactory.getInstance().createSaveFileDialog(fileSaverDescriptor, (Project)null).save(parent, filename);
+        if (fileWrapper != null && fileWrapper.getFile() != null) {
+          myProjectLocation.setText(fileWrapper.getFile().getAbsolutePath());
+        }
+      }
+    });
+    myProjectLocation.getTextField().addFocusListener(this);
+    myProjectLocation.getTextField().getDocument().addDocumentListener(this);
     if (myTemplateState.myHidden.contains(ATTR_PROJECT_LOCATION)) {
       myProjectLocation.setVisible(false);
       myProjectLocationLabel.setVisible(false);
@@ -115,6 +150,11 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   @NotNull
   public JComponent getComponent() {
     return myPanel;
+  }
+
+  @Override
+  public JComponent getPreferredFocusedComponent() {
+    return myAppName;
   }
 
   @NotNull
@@ -187,35 +227,53 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
     ((NewModuleWizardState)myTemplateState).updateParameters();
 
-    SwingUtilities.invokeLater(new Runnable() { @Override public void run() {
-      updateDerivedValue(ATTR_APP_TITLE, myAppName, new Callable<String>() {
-        @Override
-        public String call() {
-          return computeAppName();
+    SwingUtilities.invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        boolean updated = false;
+        if (myTemplateState.myModified.contains(ATTR_MODULE_NAME)) {
+          updated |= updateDerivedValue(ATTR_APP_TITLE, myAppName, new Callable<String>() {
+            @Override
+            public String call() {
+              return computeAppName();
+            }
+          });
         }
-      });
-      updateDerivedValue(ATTR_MODULE_NAME, myModuleName, new Callable<String>() {
-        @Override
-        public String call() {
-          return computeModuleName();
-        }
-      });
-      updateDerivedValue(ATTR_PACKAGE_NAME, myPackageName, new Callable<String>() {
-        @Override
-        public String call() {
-          return computePackageName();
-        }
-      });
-      if (!myTemplateState.myHidden.contains(ATTR_PROJECT_LOCATION)) {
-        updateDerivedValue(ATTR_PROJECT_LOCATION, myProjectLocation.getTextField(), new Callable<String>() {
+        updated |= updateDerivedValue(ATTR_MODULE_NAME, myModuleName, new Callable<String>() {
           @Override
           public String call() {
-            return computeProjectLocation();
+            return computeModuleName();
           }
         });
+        updated |= updateDerivedValue(ATTR_PACKAGE_NAME, myPackageName, new Callable<String>() {
+          @Override
+          public String call() {
+            return computePackageName();
+          }
+        });
+        if (!myTemplateState.myHidden.contains(ATTR_PROJECT_LOCATION)) {
+          updated |= updateDerivedValue(ATTR_PROJECT_LOCATION, myProjectLocation.getTextField(), new Callable<String>() {
+            @Override
+            public String call() {
+              return computeProjectLocation();
+            }
+          });
+        }
+        if (updated) {
+          validate();
+        }
+        if (!myInitializedPackageNameText) {
+          myInitializedPackageNameText = true;
+          if (((String)myTemplateState.get(ATTR_PACKAGE_NAME)).startsWith(SAMPLE_PACKAGE_PREFIX)) {
+            int length = SAMPLE_PACKAGE_PREFIX.length();
+            if (SAMPLE_PACKAGE_PREFIX.endsWith(".")) {
+              length--;
+            }
+            myPackageName.select(0, length);
+          }
+        }
       }
-    }});
-
+    });
     AndroidTargetComboBoxItem item = (AndroidTargetComboBoxItem)myMinSdk.getSelectedItem();
     if (item != null) {
       myTemplateState.put(ATTR_MIN_API_LEVEL, item.apiLevel);
@@ -233,6 +291,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     String packageName = (String)myTemplateState.get(ATTR_PACKAGE_NAME);
     if (packageName == null || packageName.isEmpty()) {
       setErrorHtml("Please specify a package name.");
+      return false;
     } else if (packageName.startsWith(SAMPLE_PACKAGE_PREFIX)) {
       setErrorHtml(String.format("The prefix '%1$s' is meant as a placeholder and should " +
                                     "not be used", SAMPLE_PACKAGE_PREFIX));
@@ -241,6 +300,10 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     String moduleName = (String)myTemplateState.get(ATTR_MODULE_NAME);
     if (moduleName == null || moduleName.isEmpty()) {
       setErrorHtml("Please specify a module name.");
+      return false;
+    } else if (!isValidModuleName(moduleName)) {
+      setErrorHtml("Invalid module name.");
+      return false;
     }
 
     Integer minSdk = (Integer)myTemplateState.get(ATTR_MIN_API);
@@ -269,7 +332,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       }
       File file = new File(projectLocation);
       if (file.exists()) {
-        setErrorHtml("There must not already be a project at this location");
+        setErrorHtml("There must not already be a file or directory at the project location");
         return false;
       }
       if (file.getParent() == null) {
@@ -285,7 +348,8 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     return true;
   }
 
-  private void updateDerivedValue(@NotNull String attrName, @NotNull JTextField textField, @NotNull Callable<String> valueDeriver) {
+  private boolean updateDerivedValue(@NotNull String attrName, @NotNull JTextField textField, @NotNull Callable<String> valueDeriver) {
+    boolean updated = false;
     try {
       myIgnoreUpdates = true;
       if (!myTemplateState.myModified.contains(attrName)) {
@@ -294,6 +358,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
           myTemplateState.put(attrName, s);
           textField.setText(s);
           myTemplateState.myModified.remove(attrName);
+          updated = true;
         }
       }
     }
@@ -302,6 +367,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     finally {
       myIgnoreUpdates = false;
     }
+    return updated;
   }
 
   @NotNull
@@ -326,6 +392,18 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     return name;
   }
 
+  private static boolean isValidModuleName(@NotNull String moduleName) {
+    if (!moduleName.replaceAll(INVALID_FILENAME_CHARS, "").equals(moduleName)) {
+      return false;
+    }
+    for (String s : Splitter.on('.').split(moduleName)) {
+      if (INVALID_MSFT_FILENAMES.contains(s.toLowerCase())) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   @NotNull
   private String computeAppName() {
     return (String)myTemplateState.get(ATTR_MODULE_NAME);
@@ -333,7 +411,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   @NotNull
   private String computeProjectLocation() {
-    return new File(NewProjectWizardState.getProjectFileDirectory(), (String)myTemplateState.get(ATTR_MODULE_NAME))
+    return new File(NewProjectWizardState.getProjectFileDirectory(), (String)myTemplateState.get(ATTR_MODULE_NAME) + "Project")
       .getAbsolutePath();
   }
 

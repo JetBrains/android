@@ -14,13 +14,13 @@
   ~ limitations under the License.
   -->
 <component>
-  <version codename="I/O Preview" major="0" minor="1" eap="true"/>
+  <version codename="I/O Preview" major="0" minor="1.6" eap="true"/>
   <company name="Google Inc." url="http://developer.android.com"/>
   <build number="__BUILD_NUMBER__" date="__BUILD_DATE__"/>
-  <install-over minbuild="0.1" maxbuild="0.9999" version="0"/>
-  <logo url="/artwork/diamond-splash7d.png" textcolor="cccccc" progressColor="ffaa16" progressY="238" progressTailIcon="/community_progress_tail.png"/>
-  <about url="/artwork/diamond-splash7d-about.png" foreground="cccccc"/>
-  <icon size32="/icon_CE.png" size16="/icon_CEsmall.png" size32opaque="/icon_CEwhite.png" size12="/toolwindows/toolWindowProject.png"/>
+  <install-over minbuild="0.1" maxbuild="999.999999" version="0"/>
+  <logo url="/artwork/studio_splash.png" textcolor="cccccc" progressColor="ffaa16" progressY="238" progressTailIcon="/community_progress_tail.png"/>
+  <about url="/artwork/studio_about.png" foreground="cccccc"/>
+  <icon size32="/artwork/icon_AS.png" size16="/artwork/icon_AS_small.png" size32opaque="/artwork/icon_AS_white.png" size12="/artwork/toolWindowProject_AS.png"/>
   <package code="__PACKAGE_CODE__"/>
   <names product="Android Studio" fullname="Android Studio" script="studio"/> <!-- fullname is used by NPW to show default folder for projects as -->
 
@@ -30,14 +30,13 @@
 
   <editor background-url="/artwork/studio_logo_background.png"/>
 
-  <update-urls check="http://dl-sdk.appspot.com/diamond/updates.xml"
-               patches="http://dl-sdk.appspot.com/diamond/patches/"/>
+  <update-urls check="http://dl-sdk.appspot.com/as/updates.xml"
+               patches="http://dl-sdk.appspot.com/as/patches/"/>
 
   <help file="ideahelp.jar" root="idea"/>
-  <documentation url="http://www.jetbrains.com/idea/documentation"/>
-  <support url="https://code.google.com/p/android/issues/entry?template=Android%20Studio%20bug&amp;comment=Build:%20__BUILD_NUMBER__,%20__BUILD_DATE__"/>
-  <feedback eap-url="https://code.google.com/p/android/issues/entry?template=Android%20Studio%20bug&amp;comment=Build:%20__BUILD_NUMBER__,%20__BUILD_DATE__"
-            release-url="https://code.google.com/p/android/issues/entry?template=Android%20Studio%20bug&amp;comment=Build:%20__BUILD_NUMBER__,%20__BUILD_DATE__"/>
+  <documentation url="http://dl-sdk.appspot.com/as/documentation"/>
+  <feedback eap-url="https://dl-sdk.appspot.com/as/issues/entry?template=Android%20Studio%20bug&amp;comment=Build:%20$VERSION,%20__BUILD_NUMBER__,%20__BUILD_DATE__&amp;status=New"
+            release-url="https://dl-sdk.appspot.com/as/issues/entry?template=Android%20Studio%20bug&amp;comment=Build:%20$VERSION,%20__BUILD_NUMBER__,%20__BUILD_DATE__&amp;status=New"/>
   <plugins url="http://plugins.intellij.net"/>
   <whatsnew url="http://tools.android.com/recent"/>
   <keymap win="http://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard.pdf"

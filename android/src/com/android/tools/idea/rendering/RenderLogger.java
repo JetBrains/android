@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -45,6 +46,7 @@ public class RenderLogger extends LayoutLog {
    * render error panel does massage and collate the exceptions etc quite a bit, this flag is here
    * in case we need to ask bug submitters to generate full, raw exceptions.
    */
+  @SuppressWarnings("UseOfArchaicSystemPropertyAccessors")
   private static final boolean LOG_ALL = Boolean.getBoolean("adt.renderLog");
 
   public static final String TAG_MISSING_DIMENSION = "missing.dimension";
@@ -57,7 +59,7 @@ public class RenderLogger extends LayoutLog {
   private final String myName;
   private Set<String> myFidelityWarningStrings;
   private boolean myHaveExceptions;
-  private List<String> myTags;
+  private Map<String,Integer> myTags;
   private List<Throwable> myTraces;
   private List<RenderProblem> myMessages;
   private List<RenderProblem> myFidelityWarnings;
@@ -141,7 +143,7 @@ public class RenderLogger extends LayoutLog {
       tag = LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
     }
     addTag(tag);
-    addMessage(RenderProblem.createPlain(ERROR, description));
+    addMessage(RenderProblem.createPlain(ERROR, description).tag(tag));
   }
 
   @Override
@@ -171,7 +173,7 @@ public class RenderLogger extends LayoutLog {
     }
 
     addTag(tag);
-    addMessage(RenderProblem.createPlain(ERROR, description).throwable(throwable));
+    addMessage(RenderProblem.createPlain(ERROR, description).tag(tag).throwable(throwable));
   }
 
   /**
@@ -211,6 +213,7 @@ public class RenderLogger extends LayoutLog {
         if (matcher.matches()) {
           addTag(tag);
           RenderProblem.Html problem = RenderProblem.create(WARNING);
+          problem.tag(tag);
           String url = getLinkManager().createEditAttributeUrl(matcher.group(2), matcher.group(1));
           problem.getHtmlBuilder().add(description).add(" (").addLink("Edit", url).add(")");
           addMessage(problem);
@@ -223,6 +226,7 @@ public class RenderLogger extends LayoutLog {
         if (matcher.matches()) {
           addTag(tag);
           RenderProblem.Html problem = RenderProblem.create(WARNING);
+          problem.tag(tag);
           String url = getLinkManager().createEditAttributeUrl(matcher.group(2), matcher.group(1));
           problem.getHtmlBuilder().add(description).add(" (").addLink("Edit", url).add(")");
           addMessage(problem);
@@ -241,7 +245,7 @@ public class RenderLogger extends LayoutLog {
     }
 
     addTag(tag);
-    addMessage(RenderProblem.createPlain(WARNING, description));
+    addMessage(RenderProblem.createPlain(WARNING, description).tag(tag));
   }
 
   @Override
@@ -312,9 +316,14 @@ public class RenderLogger extends LayoutLog {
   private void addTag(@Nullable String tag) {
     if (tag != null) {
       if (myTags == null) {
-        myTags = new ArrayList<String>();
+        myTags = Maps.newHashMap();
       }
-      myTags.add(tag);
+      Integer count = myTags.get(tag);
+      if (count == null) {
+        myTags.put(tag, 1);
+      } else {
+        myTags.put(tag, count + 1);
+      }
     }
   }
 
@@ -326,7 +335,7 @@ public class RenderLogger extends LayoutLog {
    */
   public boolean seenTagPrefix(@NotNull String prefix) {
     if (myTags != null) {
-      for (String tag : myTags) {
+      for (String tag : myTags.keySet()) {
         if (tag.startsWith(prefix)) {
           return true;
         }
@@ -337,18 +346,14 @@ public class RenderLogger extends LayoutLog {
   }
 
   /**
-   * Returns true if the given tag has been seen
+   * Returns the number of occurrences of the given tag
    *
-   * @param tag the tag to look for
-   * @return true iff the tag was seen during the render
+   * @param tag the tag to look up
+   * @return the number of occurrences of the given tag
    */
-  public boolean seenTag(@NotNull String tag) {
-    if (myTags != null) {
-      return myTags.contains(tag);
-    }
-    else {
-      return false;
-    }
+  public int getTagCount(@NotNull String tag) {
+    Integer count = myTags != null ? myTags.get(tag) : null;
+    return count != null ? count.intValue() : 0;
   }
 
   public HtmlLinkManager getLinkManager() {

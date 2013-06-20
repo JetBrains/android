@@ -429,7 +429,8 @@ public class ViewLoader {
       final Map<IntArrayWrapper, String> styleableId2res = new HashMap<IntArrayWrapper, String>();
 
       if (parseClass(aClass, id2res, styleableId2res, res2id)) {
-        myProjectResources.setCompiledResources(id2res, styleableId2res, res2id);
+        ProjectResources mainProjectResources = ProjectResources.get(myModule, false);
+        mainProjectResources.setCompiledResources(id2res, styleableId2res, res2id);
       }
     }
   }

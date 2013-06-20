@@ -19,7 +19,6 @@ package com.android.tools.idea.wizard;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +30,7 @@ import java.util.Set;
 
 /**
  * Value object which holds the current state of the wizard pages for
- * {@link NewTemplateWizard}-derived wizards.
+ * {@link NewTemplateObjectWizard}-derived wizards.
  */
 public class TemplateWizardState {
   /** Suffix added by default to activity names */
@@ -106,7 +105,16 @@ public class TemplateWizardState {
   protected void setParameterDefaults() {
     for (Parameter param : myTemplate.getMetadata().getParameters()) {
       if (!myParameters.containsKey(param.id) && param.initial != null) {
-        put(param.id, param.initial);
+        switch(param.type) {
+          case BOOLEAN:
+            put(param.id, Boolean.valueOf(param.initial));
+            break;
+          case ENUM:
+          case SEPARATOR:
+          case STRING:
+            put(param.id, param.initial);
+            break;
+        }
       }
     }
   }

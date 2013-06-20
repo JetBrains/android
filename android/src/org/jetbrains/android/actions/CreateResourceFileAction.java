@@ -147,7 +147,7 @@ public class CreateResourceFileAction extends CreateElementActionBase {
     final AndroidFacet selectedFacet = AndroidFacet.getInstance(selectedModule);
     LOG.assertTrue(selectedFacet != null);
 
-    final VirtualFile resourceDir = selectedFacet.getLocalResourceManager().getResourceDir();
+    final VirtualFile resourceDir = selectedFacet.getPrimaryResourceDir();
     final Project project = facet.getModule().getProject();
     final PsiDirectory psiResDir = resourceDir != null ? PsiManager.getInstance(project).findDirectory(resourceDir) : null;
 

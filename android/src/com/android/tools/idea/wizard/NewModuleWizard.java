@@ -15,27 +15,18 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.tools.idea.gradle.GradleProjectImporter;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.model.DataNode;
-import com.intellij.openapi.externalSystem.model.ProjectKeys;
-import com.intellij.openapi.externalSystem.model.project.ModuleData;
-import com.intellij.openapi.externalSystem.model.project.ProjectData;
-import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
-import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
-import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
+import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
+import com.intellij.openapi.ui.Messages;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.awt.*;
 import java.io.File;
-import java.util.Collection;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
 import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
@@ -44,11 +35,10 @@ import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
  * {@linkplain NewModuleWizard} guides the user through adding a new module to an existing project. It has a template-based flow and as the
  * first step of the wizard allows the user to choose a template which will guide the rest of the wizard flow.
  */
-public class NewModuleWizard extends TemplateWizard implements ExternalProjectRefreshCallback {
+public class NewModuleWizard extends TemplateWizard {
   private static final Logger LOG = Logger.getInstance("#" + NewModuleWizard.class.getName());
 
   private NewModuleWizardState myWizardState;
-  private Project myProject;
   private ChooseTemplateStep myChooseModuleStep;
   private ConfigureAndroidModuleStep myConfigureAndroidModuleStep;
   private TemplateParameterStep myTemplateParameterStep;
@@ -59,8 +49,7 @@ public class NewModuleWizard extends TemplateWizard implements ExternalProjectRe
 
   public NewModuleWizard(@Nullable Project project) {
     super("New Module", project);
-    myProject = project;
-    getWindow().setMinimumSize(new Dimension(800,640));
+    getWindow().setMinimumSize(new Dimension(800, 640));
     init();
   }
 
@@ -88,7 +77,7 @@ public class NewModuleWizard extends TemplateWizard implements ExternalProjectRe
     mySteps.add(myChooseActivityStep);
     mySteps.add(myActivityTemplateParameterStep);
 
-    myWizardState.put(NewProjectWizardState.ATTR_PROJECT_LOCATION, myProject.getBasePath());
+    myWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, myProject.getBasePath());
 
     myInitializationComplete = true;
     super.init();
@@ -127,35 +116,18 @@ public class NewModuleWizard extends TemplateWizard implements ExternalProjectRe
             myWizardState.getActivityTemplateState().getTemplate()
               .render(moduleRoot, moduleRoot, myWizardState.getActivityTemplateState().myParameters);
           }
-          File moduleBuildFile = new File(projectRoot, "build.gradle");
-          ExternalSystemUtil
-            .refreshProject(myProject, GradleConstants.SYSTEM_ID, moduleBuildFile.getPath(), NewModuleWizard.this, true, true);
+          GradleProjectImporter.getInstance().reImportProject(myProject);
         } catch (Exception e) {
+          String title;
+          if (e instanceof ConfigurationException) {
+            title = ((ConfigurationException)e).getTitle();
+          } else {
+            title = "New Module Wizard";
+          }
+          Messages.showErrorDialog(e.getMessage(), title);
           LOG.error(e);
         }
       }
     });
-  }
-
-  @Override
-  public void onSuccess(@Nullable final DataNode<ProjectData> externalProject) {
-    ExternalSystemApiUtil.executeProjectChangeAction(new Runnable() {
-      @Override
-      public void run() {
-        ProjectRootManagerEx.getInstanceEx(myProject).mergeRootsChangesDuring(new Runnable() {
-          @Override
-          public void run() {
-            Collection<DataNode<ModuleData>> modules = ExternalSystemApiUtil.findAll(externalProject, ProjectKeys.MODULE);
-            ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
-            dataManager.importData(ProjectKeys.MODULE, modules, myProject, true);
-          }
-        });
-      }
-    });
-  }
-
-  @Override
-  public void onFailure(@NotNull String errorMessage, @Nullable String errorDetails) {
-    throw new IllegalStateException(errorDetails == null ? "unknown error" : "");
   }
 }

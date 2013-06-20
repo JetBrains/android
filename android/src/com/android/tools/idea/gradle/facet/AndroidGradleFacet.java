@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.facet;
 
-import com.google.common.base.Strings;
 import com.intellij.ProjectTopics;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetTypeId;
@@ -24,18 +23,13 @@ import com.intellij.facet.impl.FacetUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootAdapter;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.psi.PsiDocumentManager;
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
-import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 /**
  * Android-Gradle facet.
@@ -85,36 +79,11 @@ public class AndroidGradleFacet extends Facet<AndroidGradleFacetConfiguration> {
 
   private void updateConfiguration() {
     AndroidGradleFacetConfiguration config = getConfiguration();
-    // Store the project path. JPS Builder needs this information to invoke Gradle.
-    config.PROJECT_ABSOLUTE_PATH = getModule().getProject().getBasePath();
-    config.GRADLE_HOME_DIR_PATH = getGradleHomeDirPath();
     try {
       FacetUtil.saveFacetConfiguration(config);
     }
     catch (WriteExternalException e) {
       LOG.error("Unable to save contents of 'Android-Gradle' facet", e);
     }
-  }
-
-  @Nullable
-  private String getGradleHomeDirPath() {
-    Project project = getModule().getProject();
-    GradleSettings settings = GradleSettings.getInstance(project);
-    GradleProjectSettings projectSettings = ContainerUtil.getFirstItem(settings.getLinkedProjectsSettings());
-    if (projectSettings == null) {
-      // New projects that use the Gradle wrapper do not have Gradle settings. The Gradle tooling API is able to build the project without
-      // problems.
-      return null;
-    }
-    if (projectSettings.isPreferLocalInstallationToWrapper()) {
-      String gradleHome = projectSettings.getGradleHome();
-      if (Strings.isNullOrEmpty(gradleHome)) {
-        String msg = String.format("Unable to find Gradle home directory for project '%1$s'", project.getName());
-        throw new IllegalStateException(msg);
-      }
-      return gradleHome;
-    }
-    // If we got here, the project is using Gradle wrapper.
-    return null;
   }
 }

@@ -87,8 +87,15 @@ public class ErrorReporter extends ErrorReportSubmitter {
                                   final String description) {
     final DataContext dataContext = DataManager.getInstance().getDataContext(parentComponent);
 
-    bean.setDescription(description);
-    bean.setMessage(event.getMessage());
+    bean.setDescription(description != null ? description : event.getThrowableText());
+    String message = event.getMessage();
+    if (message == null && event.getThrowable() != null) {
+      message = event.getThrowable().toString();
+    }
+    if (message == null) {
+      message = "Unclassified error";
+    }
+    bean.setMessage(message);
 
     Throwable t = event.getThrowable();
     if (t != null) {
@@ -145,7 +152,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
     AnonymousFeedbackTask task =
       new AnonymousFeedbackTask(project, "Submitting error report", true, pair2map(kv),
                                 bean.getMessage(), bean.getDescription(),
-                                ApplicationInfo.getInstance().getBuild().asString(),
+                                ApplicationInfo.getInstance().getFullVersion(),
                                 successCallback, errorCallback);
     if (project == null) {
       task.run(new EmptyProgressIndicator());

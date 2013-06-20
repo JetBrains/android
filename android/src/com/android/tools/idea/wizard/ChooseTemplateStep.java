@@ -75,6 +75,11 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
   }
 
   @Override
+  public JComponent getPreferredFocusedComponent() {
+    return myTemplateList;
+  }
+
+  @Override
   public void valueChanged(ListSelectionEvent listSelectionEvent) {
     update();
   }

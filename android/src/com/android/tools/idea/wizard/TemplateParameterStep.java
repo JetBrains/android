@@ -33,6 +33,7 @@ public class TemplateParameterStep extends TemplateWizardStep {
   private JPanel myContainer;
   private JLabel myDescription;
   private JLabel myError;
+  private JComponent myPreferredFocusComponent;
 
   public TemplateParameterStep(TemplateWizard templateWizard, TemplateWizardState state) {
     super(templateWizard, state);
@@ -41,6 +42,7 @@ public class TemplateParameterStep extends TemplateWizardStep {
   @Override
   public void _init() {
     myParamContainer.removeAll();
+    myPreferredFocusComponent = null;
     int row = 0;
     Collection<Parameter> parameters = myTemplateState.getTemplateMetadata().getParameters();
     myParamContainer.setLayout(new GridLayoutManager(parameters.size() + 1, 3));
@@ -61,10 +63,13 @@ public class TemplateParameterStep extends TemplateWizardStep {
       myTemplateState.put(parameter.id, value);
       switch(parameter.type) {
         case BOOLEAN:
-          JCheckBox checkBox = new JCheckBox();
+          c.setColumn(1);
+          JCheckBox checkBox = new JCheckBox(parameter.name);
           register(parameter.id, checkBox);
           myParamContainer.add(checkBox, c);
-          myParamContainer.add(label, c);
+          if (myPreferredFocusComponent == null) {
+            myPreferredFocusComponent = checkBox;
+          }
           break;
         case ENUM:
           myParamContainer.add(label, c);
@@ -73,6 +78,9 @@ public class TemplateParameterStep extends TemplateWizardStep {
           populateComboBox(comboBox, parameter);
           register(parameter.id, comboBox);
           myParamContainer.add(comboBox, c);
+          if (myPreferredFocusComponent == null) {
+            myPreferredFocusComponent = comboBox;
+          }
           break;
         case SEPARATOR:
           myParamContainer.add(new JSeparator());
@@ -85,6 +93,9 @@ public class TemplateParameterStep extends TemplateWizardStep {
           c.setColSpan(2);
           register(parameter.id, textField);
           myParamContainer.add(textField, c);
+          if (myPreferredFocusComponent == null) {
+            myPreferredFocusComponent = textField;
+          }
           break;
       }
     }
@@ -99,6 +110,11 @@ public class TemplateParameterStep extends TemplateWizardStep {
   @Override
   public JComponent getComponent() {
     return myContainer;
+  }
+
+  @Override
+  public JComponent getPreferredFocusedComponent() {
+    return myPreferredFocusComponent;
   }
 
   @Override

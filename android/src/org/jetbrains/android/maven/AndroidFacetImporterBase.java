@@ -807,7 +807,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
   @Nullable
   private static Sdk createNewAndroidSdkForMaven(String sdkPath, IAndroidTarget target) {
     final String sdkName = "Maven " + AndroidSdkUtils.chooseNameForNewLibrary(target);
-    final Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(target, sdkPath, false, sdkName);
+    final Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(target, sdkPath, sdkName, false);
 
     if (sdk == null) {
       return null;

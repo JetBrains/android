@@ -171,6 +171,11 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
   }
 
   @Override
+  public boolean isGradleProject() {
+    return !myProperties.ALLOW_USER_CONFIGURATION;
+  }
+
+  @Override
   public boolean isLibrary() {
     return myProperties.LIBRARY_PROJECT;
   }

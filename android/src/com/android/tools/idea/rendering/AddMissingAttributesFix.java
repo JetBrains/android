@@ -170,16 +170,18 @@ public class AddMissingAttributesFix extends WriteCommandAction<Void> {
       if (GRID_LAYOUT.equals(parentName) || FQCN_GRID_LAYOUT_V7.equals(parentName)) {
         return false;
       }
-
-      if (parentName.equals(REQUEST_FOCUS) || parentName.equals(VIEW_FRAGMENT) || parentName.equals(VIEW_MERGE)) {
-        return false;
-      }
-      // TODO: What are the other exceptions?
-
-      if (parentName.equals(VIEW_INCLUDE)) {
-        return false;
-      }
     }
+
+    String tagName = tag.getName();
+    if (tagName.equals(REQUEST_FOCUS) || tagName.equals(VIEW_FRAGMENT) || tagName.equals(VIEW_MERGE)) {
+      return false;
+    }
+    // TODO: What are the other exceptions?
+
+    if (tagName.equals(VIEW_INCLUDE)) {
+      return false;
+    }
+
 
     return true;
   }

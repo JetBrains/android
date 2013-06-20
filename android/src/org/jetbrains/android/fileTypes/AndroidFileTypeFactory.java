@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.fileTypes;
 
+import com.android.tools.idea.fileTypes.AndroidNavigationFileType;
 import com.android.tools.idea.fileTypes.AndroidNinePatchFileType;
 import com.android.tools.idea.fileTypes.AndroidRenderscriptFileType;
 import com.intellij.openapi.fileTypes.FileTypeConsumer;
@@ -31,5 +32,6 @@ public class AndroidFileTypeFactory extends FileTypeFactory {
       consumer.consume(AndroidRenderscriptFileType.INSTANCE,
                        AndroidRenderscriptFileType.fileNameMatchers());
       consumer.consume(AndroidNinePatchFileType.INSTANCE, AndroidNinePatchFileType.EXTENSION);
+      consumer.consume(AndroidNavigationFileType.INSTANCE, AndroidNavigationFileType.EXTENSION);
     }
 }

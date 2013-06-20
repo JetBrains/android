@@ -23,6 +23,7 @@
   <actions>
     <group id="Android.MainToolBarActionGroup">
       <separator/>
+      <reference id="Android.ReImportProject" />
       <reference id="Android.RunAndroidAvdManager" />
       <reference id="Android.RunAndroidSdkManager" />
       <reference id="Android.RunDdms" />

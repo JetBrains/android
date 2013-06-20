@@ -319,7 +319,9 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
         final boolean toRender = myToolWindowForm.getFile() != psiFile;
         if (toRender) {
           ApplicationManager.getApplication().saveAll();
-          myToolWindowForm.setFile(psiFile);
+          if (!myToolWindowForm.setFile(psiFile)) {
+            return;
+          }
         }
 
         myToolWindow.setAvailable(true, null);
@@ -333,6 +335,16 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
         }
       }
     });
+  }
+
+  void finishSetFile() {
+    myToolWindow.setAvailable(true, null);
+    final boolean visible = AndroidLayoutPreviewToolWindowSettings.getInstance(myProject).getGlobalState().isVisible();
+    if (visible) {
+      myToolWindow.show(null);
+    }
+
+    render();
   }
 
   public void render() {

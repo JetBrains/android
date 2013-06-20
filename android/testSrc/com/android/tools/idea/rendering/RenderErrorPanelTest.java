@@ -47,6 +47,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     RenderService service = RenderService.create(facet, myModule, psiFile, configuration, logger, null);
     assertNotNull(service);
     RenderResult render = service.render();
+    assertNotNull(render);
     assertTrue(logger.hasProblems());
     RenderErrorPanel panel = new RenderErrorPanel();
     String html = panel.showErrors(render);
