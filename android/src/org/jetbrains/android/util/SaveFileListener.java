@@ -24,6 +24,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
+import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -53,11 +54,13 @@ public abstract class SaveFileListener implements ActionListener {
     String path = myTextField.getText().trim();
     if (path.length() == 0) {
       String defaultLocation = getDefaultLocation();
-      path = defaultLocation != null ? defaultLocation : "";
+      path = defaultLocation != null && defaultLocation.length() > 0
+             ? defaultLocation
+             : SystemProperties.getUserHome();
     }
     File file = new File(path);
     if (!file.exists()) {
-      path = file.getParent();
+      path = SystemProperties.getUserHome();
     }
     FileSaverDescriptor descriptor = new FileSaverDescriptor(myDialogTitle, "Save as *.apk", "apk");
     FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, myContentPanel);
