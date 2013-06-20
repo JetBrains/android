@@ -19,6 +19,7 @@ import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.PkgProps;
+import com.android.sdklib.util.SparseArray;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -36,6 +37,7 @@ import java.io.File;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 
 /** Utility methods for ADT */
@@ -188,24 +190,43 @@ public class TemplateUtils {
   */
   public static String[] getKnownVersions() {
     int max = SdkVersionInfo.HIGHEST_KNOWN_API;
-      for (IAndroidTarget target : AndroidSdkUtils.tryToChooseAndroidSdk().getTargets()) {
-        if (target.isPlatform()) {
-          AndroidVersion version = target.getVersion();
-          if (!version.isPreview()) {
-            max = Math.max(max, version.getApiLevel());
+    IAndroidTarget[] targets = AndroidSdkUtils.tryToChooseAndroidSdk().getTargets();
+    SparseArray<IAndroidTarget> apiTargets = null;
+    for (IAndroidTarget target : targets) {
+      if (target.isPlatform()) {
+        AndroidVersion version = target.getVersion();
+        if (!version.isPreview()) {
+          int apiLevel = version.getApiLevel();
+          max = Math.max(max, apiLevel);
+          if (apiLevel > SdkVersionInfo.HIGHEST_KNOWN_API) {
+            if (apiTargets == null) {
+              apiTargets = new SparseArray<IAndroidTarget>();
+            }
+            apiTargets.put(apiLevel, target);
           }
         }
       }
+    }
 
     String[] versions = new String[max];
     for (int api = 1; api <= max; api++) {
-      versions[api-1] = SdkVersionInfo.getAndroidName(api);
+      String name = SdkVersionInfo.getAndroidName(api);
+      if (name == null) {
+        if (apiTargets != null) {
+          IAndroidTarget target = apiTargets.get(api);
+          if (target != null) {
+            name = getTargetLabel(target);
+          }
+        }
+        if (name == null) {
+          name = String.format("API %1$d", api);
+        }
+      }
+      versions[api-1] = name;
     }
 
     return versions;
   }
-
-
 
   /**
   * Lists the files of the given directory and returns them as an array which

@@ -621,6 +621,9 @@ public class AndroidCompileUtil {
   }
 
   public static boolean createGenModulesAndSourceRoots(@NotNull AndroidFacet facet, @NotNull ModifiableRootModel model) {
+    if (facet.isGradleProject()) {
+      return false;
+    }
     final Module module = facet.getModule();
     final GlobalSearchScope moduleScope = facet.getModule().getModuleScope();
     final Ref<Boolean> modelChangedFlag = Ref.create(false);
@@ -964,6 +967,9 @@ public class AndroidCompileUtil {
         final List<ModifiableRootModel> modelsToCommit = new ArrayList<ModifiableRootModel>();
 
         for (final AndroidFacet facet : facets) {
+          if (facet.isGradleProject()) {
+            continue;
+          }
           final Module module = facet.getModule();
 
           if (module.isDisposed()) {

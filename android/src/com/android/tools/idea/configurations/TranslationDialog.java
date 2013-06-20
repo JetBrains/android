@@ -17,7 +17,6 @@ package com.android.tools.idea.configurations;
 
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ValueXmlHelper;
-import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -51,7 +50,6 @@ import javax.swing.table.AbstractTableModel;
 import java.awt.*;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Map;
 
 public class TranslationDialog extends DialogWrapper {
@@ -66,7 +64,7 @@ public class TranslationDialog extends DialogWrapper {
     myProjectResources = resources;
     myLocale = locale;
 
-    String localeLabel = LocaleMenuAction.getLocaleLabel(resources, myLocale, false);
+    String localeLabel = LocaleMenuAction.getLocaleLabel(myLocale, false);
     setTitle(String.format("Add Translation for %1$s", localeLabel));
     init();
   }
@@ -99,14 +97,15 @@ public class TranslationDialog extends DialogWrapper {
 
   private class TranslationModel extends AbstractTableModel implements EditableModel {
     private Map<String, String> myTranslations;
-    private ResourceItem[] myItems;
+    private Map<String, ResourceValue> myValues;
+    private String[] myKeys;
     private final FolderConfiguration myFolderConfig = new FolderConfiguration();
 
     public TranslationModel(@NotNull ProjectResources resources) {
-      Collection<ResourceItem> items = resources.getResourceItemsOfType(ResourceType.STRING);
+      myValues = resources.getConfiguredResources(ResourceType.STRING, myFolderConfig);
 
-      myItems = items.toArray(new ResourceItem[items.size()]);
-      Arrays.sort(myItems);
+      myKeys = myValues.keySet().toArray(new String[myValues.size()]);
+      Arrays.sort(myKeys);
 
       // TODO: Read in the actual XML files providing the default keys here
       // (they can be obtained via ResourceItem.getSourceFileList())
@@ -117,7 +116,7 @@ public class TranslationDialog extends DialogWrapper {
       // local conventions such as "product=tablet", or "msgid="123123123",
       // etc.)
 
-      myTranslations = Maps.newHashMapWithExpectedSize(items.size());
+      myTranslations = Maps.newHashMapWithExpectedSize(myKeys.length);
     }
 
     @Override
@@ -127,26 +126,27 @@ public class TranslationDialog extends DialogWrapper {
 
     @Override
     public int getRowCount() {
-      return myItems.length;
+      return myKeys.length;
     }
 
     @Override
     public Object getValueAt(int row, int col) {
-      ResourceItem item = myItems[row];
+      String key = myKeys[row];
       switch (col) {
         case KEY_COLUMN :
-          return item.getName();
+          return key;
 
-        case DEFAULT_TRANSLATION_COLUMN :
-          ResourceValue value = item.getResourceValue(ResourceType.STRING, myFolderConfig, false);
+        case DEFAULT_TRANSLATION_COLUMN : {
+          ResourceValue value = myValues.get(key);
           if (value != null) {
             return value.getValue();
           }
 
           return "";
+        }
         case NEW_TRANSLATION_COLUMN :
         default:
-          String translation = myTranslations.get(item.getName());
+          String translation = myTranslations.get(key);
           if (translation != null) {
             return translation;
           }
@@ -163,7 +163,7 @@ public class TranslationDialog extends DialogWrapper {
         case DEFAULT_TRANSLATION_COLUMN :
           return "Default";
         case NEW_TRANSLATION_COLUMN : {
-          return LocaleMenuAction.getLocaleLabel(myProjectResources, myLocale, false);
+          return LocaleMenuAction.getLocaleLabel(myLocale, false);
         }
         default:
           assert false : column;
@@ -183,8 +183,7 @@ public class TranslationDialog extends DialogWrapper {
 
     @Override
     public void setValueAt(Object aValue, int row, int col) {
-      ResourceItem item = myItems[row];
-      myTranslations.put(item.getName(), aValue.toString());
+      myTranslations.put(myKeys[row], aValue.toString());
     }
 
     @Override
@@ -204,9 +203,9 @@ public class TranslationDialog extends DialogWrapper {
 
     @Override
     public void exchangeRows(int oldIndex, int newIndex) {
-      ResourceItem temp = myItems[oldIndex];
-      myItems[oldIndex] = myItems[newIndex];
-      myItems[newIndex] = temp;
+      String temp = myKeys[oldIndex];
+      myKeys[oldIndex] = myKeys[newIndex];
+      myKeys[newIndex] = temp;
     }
 
     /** Actually create the new translation file and write it to disk */
@@ -227,7 +226,7 @@ public class TranslationDialog extends DialogWrapper {
             if (facet == null) {
               return Pair.of("Not an Android project", null);
             }
-            VirtualFile res = AndroidRootUtil.getResourceDir(facet);
+            VirtualFile res = facet.getPrimaryResourceDir();
             assert res != null;
             VirtualFile newParentFolder = res.findChild(folderName);
             if (newParentFolder == null) {
@@ -270,10 +269,9 @@ public class TranslationDialog extends DialogWrapper {
     }
 
     private String createTranslationXml() {
-      StringBuilder sb = new StringBuilder(myItems.length * 120);
+      StringBuilder sb = new StringBuilder(myKeys.length * 120);
       sb.append("<resources>\n\n");
-      for (ResourceItem item : myItems) {
-        String key = item.getName();
+      for (String key : myKeys) {
         String value = myTranslations.get(key);
         if (value == null || value.trim().isEmpty()) {
           continue;

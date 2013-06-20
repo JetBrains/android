@@ -268,20 +268,18 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
 
   private static void collectResDir(Module module, XmlAttributeValue styleNameAttrValue, String styleName, List<VirtualFile> resDirs) {
     final AndroidFacet f = AndroidFacet.getInstance(module);
-    final VirtualFile resDir = f != null
-                               ? f.getLocalResourceManager().getResourceDir()
-                               : null;
-    if (resDir != null) {
-      final List<ValueResourceInfoImpl> resolvedStyles = f.getLocalResourceManager().findValueResourceInfos(
-        ResourceType.STYLE.getName(), styleName, true, false);
+    if (f == null) {
+      return;
+    }
+    final List<ValueResourceInfoImpl> resolvedStyles = f.getLocalResourceManager().findValueResourceInfos(
+      ResourceType.STYLE.getName(), styleName, true, false);
 
-      if (resolvedStyles.size() == 1) {
-        final XmlAttributeValue resolvedStyleNameElement = resolvedStyles.get(0).computeXmlElement();
+    if (resolvedStyles.size() == 1) {
+      final XmlAttributeValue resolvedStyleNameElement = resolvedStyles.get(0).computeXmlElement();
 
-        if (resolvedStyleNameElement != null &&
-            resolvedStyleNameElement.equals(styleNameAttrValue)) {
-          resDirs.add(resDir);
-        }
+      if (resolvedStyleNameElement != null &&
+          resolvedStyleNameElement.equals(styleNameAttrValue)) {
+        resDirs.addAll(f.getAllResourceDirectories());
       }
     }
   }

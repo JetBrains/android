@@ -45,11 +45,15 @@ public class AaptOutputParser implements CompilerOutputParser {
   };
 
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull Collection<CompilerMessage> messages)
-    throws ParsingFailedException {
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull Collection<CompilerMessage> messages) {
     for (AbstractAaptOutputParser parser : PARSERS) {
-      if (parser.parse(line, reader, messages)) {
-        return true;
+      try {
+        if (parser.parse(line, reader, messages)) {
+          return true;
+        }
+      }
+      catch (ParsingFailedException e) {
+        // If there's an exception, it means a parser didn't like the input, so just ignore and let other parsers have a crack at it.
       }
     }
     return false;

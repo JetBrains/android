@@ -18,30 +18,48 @@ package com.android.tools.idea.gradle;
 import com.android.build.gradle.model.AndroidProject;
 import com.android.build.gradle.model.Variant;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
 public class IdeaAndroidProject implements Serializable {
-  @NotNull private final AndroidProject myDelegate;
+  @NotNull private final String myModuleName;
   @NotNull private final String myRootDirPath;
+  @NotNull private final String myRootGradleProjectFilePath;
+  @NotNull private final AndroidProject myDelegate;
   @NotNull private String mySelectedVariantName;
 
   /**
    * Creates a new {@link IdeaAndroidProject}.
    *
-   * @param rootDirPath         absolute path of the root directory of the imported Android-Gradle project.
-   * @param delegate            imported Android-Gradle project.
-   * @param selectedVariantName name of the selected build variant.
+   * @param moduleName                the name of the IDEA module, created from {@code delegate}.
+   * @param rootDirPath               absolute path of the root directory of the imported Android-Gradle project.
+   * @param rootGradleProjectFilePath path of the build.gradle file used to import the project.
+   * @param delegate                  imported Android-Gradle project.
+   * @param selectedVariantName       name of the selected build variant.
    */
-  public IdeaAndroidProject(@NotNull String rootDirPath, @NotNull AndroidProject delegate, @NotNull String selectedVariantName) {
+  public IdeaAndroidProject(@NotNull String moduleName,
+                            @NotNull String rootDirPath,
+                            @NotNull String rootGradleProjectFilePath,
+                            @NotNull AndroidProject delegate,
+                            @NotNull String selectedVariantName) {
+    myModuleName = moduleName;
     myRootDirPath = rootDirPath;
+    myRootGradleProjectFilePath = rootGradleProjectFilePath;
     myDelegate = delegate;
     setSelectedVariantName(selectedVariantName);
+  }
+
+  @NotNull
+  public String getModuleName() {
+    return myModuleName;
   }
 
   /**
@@ -70,16 +88,34 @@ public class IdeaAndroidProject implements Serializable {
   }
 
   /**
-   * Updates the name of the selected build variant.
+   * Updates the name of the selected build variant. If the given name does not belong to an existing variant, this method will pick up
+   * the first variant, in alphabetical order.
    *
    * @param name the new name.
    */
   public void setSelectedVariantName(@NotNull String name) {
-    mySelectedVariantName = name;
+    Collection<String> variantNames = getVariantNames();
+    String newVariantName;
+    if (variantNames.contains(name)) {
+      newVariantName = name;
+    } else {
+      List<String> sorted = Lists.newArrayList(variantNames);
+      Collections.sort(sorted);
+      newVariantName = sorted.get(0);
+    }
+    mySelectedVariantName = newVariantName;
   }
 
   @NotNull
   public Collection<String> getVariantNames() {
     return myDelegate.getVariants().keySet();
+  }
+
+  /**
+   * @return the path of the build.gradle file used to import the project.
+   */
+  @NotNull
+  public String getRootGradleProjectFilePath() {
+    return myRootGradleProjectFilePath;
   }
 }

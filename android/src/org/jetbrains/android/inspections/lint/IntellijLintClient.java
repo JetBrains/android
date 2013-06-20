@@ -24,6 +24,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -217,5 +218,11 @@ class IntellijLintClient extends LintClient implements Disposable {
     }
 
     return null;
+  }
+
+  @Override
+  public boolean isGradleProject(com.android.tools.lint.detector.api.Project project) {
+    AndroidFacet facet = AndroidFacet.getInstance(myState.getModule());
+    return facet != null && facet.isGradleProject();
   }
 }

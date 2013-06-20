@@ -46,12 +46,32 @@ public class AndroidInitialConfigurator {
   public AndroidInitialConfigurator(MessageBus bus,
                                     final PropertiesComponent propertiesComponent,
                                     final FileTypeManager fileTypeManager) {
+    setupSystemProperties();
     customizeSettings(propertiesComponent);
 
     // change default key maps to add a activate Android ToolWindow shortcut
     setActivateAndroidToolWindowShortcut();
 
     activateAndroidStudioInitializerExtensions();
+  }
+
+  /**
+   * Setup some Java system properties based on environment variables.
+   * This makes it easier to do local testing.
+   */
+  private static void setupSystemProperties() {
+    // If defined, AS_UPDATE_URL should point to the *root* of the updates.xml file to use
+    // and patches are expected to be in the same folder.
+    String updateUrl = System.getenv("AS_UPDATE_URL");
+    if (updateUrl != null) {
+      if (!updateUrl.endsWith("/")) {
+        updateUrl += "/";
+      }
+      // Set the Java system properties expected by UpdateChecker.
+      System.setProperty("idea.updates.url", updateUrl + "updates.xml");
+      System.setProperty("idea.patches.url", updateUrl);
+    }
+
   }
 
   private static void customizeSettings(PropertiesComponent propertiesComponent) {

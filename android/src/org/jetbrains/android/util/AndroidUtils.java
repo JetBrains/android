@@ -27,6 +27,7 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunManagerEx;
 import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -49,6 +50,7 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.DependencyScope;
@@ -302,6 +304,15 @@ public class AndroidUtils {
       }
       receiver.invalidate();
     }
+  }
+
+  @Nullable
+  public static Module getAndroidModule(ConfigurationContext context) {
+    Module module = context.getModule();
+    if (module == null || AndroidFacet.getInstance(module) == null) {
+      return null;
+    }
+    return module;
   }
 
   public static VirtualFile createChildDirectoryIfNotExist(Project project, VirtualFile parent, String name) throws IOException {
@@ -626,6 +637,21 @@ public class AndroidUtils {
   public static List<AndroidFacet> getAllAndroidDependencies(@NotNull Module module, boolean androidLibrariesOnly) {
     final List<AndroidFacet> result = new ArrayList<AndroidFacet>();
     collectAllAndroidDependencies(module, androidLibrariesOnly, result, new HashSet<AndroidFacet>());
+
+    // Temporary workaround: In gradle projects, other modules are missed. For now, manually make
+    // sure they are present.
+    AndroidFacet primary = AndroidFacet.getInstance(module);
+    if (primary != null && primary.isGradleProject()) {
+      Module[] modules = ModuleManager.getInstance(module.getProject()).getModules();
+      for (Module m : modules) {
+        if (m != module) {
+          AndroidFacet facet = AndroidFacet.getInstance(m);
+          if (facet != null && !result.contains(facet)) {
+            result.add(facet);
+          }
+        }
+      }
+    }
     return result;
   }
 
@@ -785,6 +811,42 @@ public class AndroidUtils {
     if (lexer.getTokenType() != JavaTokenType.IDENTIFIER) return false;
     lexer.advance();
     return lexer.getTokenType() == null;
+  }
+
+  @Nullable
+  public static String isValidResourceName(@NotNull String name, boolean isFileType) {
+    // Resource names must be valid Java identifiers, since they will
+    // be represented as Java identifiers in the R file:
+    if (!Character.isJavaIdentifierStart(name.charAt(0))) {
+      return "The resource name must begin with a character";
+    }
+    for (int i = 1, n = name.length(); i < n; i++) {
+      char c = name.charAt(i);
+      if (!Character.isJavaIdentifierPart(c)) {
+        return String.format("'%1$c' is not a valid resource name character", c);
+      }
+    }
+
+    if (isFileType) {
+      char first = name.charAt(0);
+      if (!(first >= 'a' && first <= 'z')) {
+        return String.format(
+          "File-based resource names must start with a lowercase letter.");
+      }
+
+      // AAPT only allows lowercase+digits+_:
+      // "%s: Invalid file name: must contain only [a-z0-9_.]","
+      for (int i = 0, n = name.length(); i < n; i++) {
+        char c = name.charAt(i);
+        if (!((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_')) {
+          return String.format(
+            "File-based resource names must contain only lowercase a-z, 0-9, or _.");
+
+
+        }
+      }
+    }
+    return null;
   }
 
   public static void reportImportErrorToEventLog(String message, String modName, Project project) {

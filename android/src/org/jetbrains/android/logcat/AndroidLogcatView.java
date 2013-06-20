@@ -359,13 +359,14 @@ public abstract class AndroidLogcatView implements Disposable {
     }
   }
 
-  private void selectFilter(@NotNull String filterName) {
+  private void selectFilter(@NotNull final String filterName) {
     final ConfiguredFilter filter = compileConfiguredFilter(filterName);
     ProgressManager.getInstance().run(
       new Task.Backgroundable(myProject, LogConsoleBase.APPLYING_FILTER_TITLE) {
         @Override
         public void run(@NotNull ProgressIndicator indicator) {
           myLogFilterModel.updateConfiguredFilter(filter);
+          myCurrentFilterName = filterName;
         }
       });
   }

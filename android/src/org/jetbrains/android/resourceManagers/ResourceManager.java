@@ -69,11 +69,16 @@ public abstract class ResourceManager {
     return myFacet;
   }
 
+  /** Returns all the resource directories for this module <b>and all of its module dependencies</b> */
   @NotNull
   public abstract VirtualFile[] getAllResourceDirs();
 
-  @Nullable
-  public abstract VirtualFile getResourceDir();
+  /** Returns all the resource directories for this module only */
+  @NotNull
+  public abstract List<VirtualFile> getResourceDirs();
+
+  /** Returns true if the given directory is a resource directory in this module */
+  public abstract boolean isResourceDir(@NotNull VirtualFile dir);
 
   public boolean processFileResources(@Nullable String resourceType, @NotNull FileResourceProcessor processor) {
     return processFileResources(resourceType, processor, true);
@@ -86,7 +91,13 @@ public abstract class ResourceManager {
 
   public boolean processFileResources(@Nullable String resourceType, @NotNull FileResourceProcessor processor,
                                       boolean withDependencies, boolean publicOnly) {
-    final VirtualFile[] resDirs = withDependencies ? getAllResourceDirs() : new VirtualFile[]{getResourceDir()};
+    final VirtualFile[] resDirs;
+    if (withDependencies) {
+      resDirs = getAllResourceDirs();
+    } else {
+      List<VirtualFile> resourceDirs = getResourceDirs();
+      resDirs = resourceDirs.toArray(new VirtualFile[resourceDirs.size()]);
+    }
 
     for (VirtualFile resSubdir : AndroidResourceUtil.getResourceSubdirs(resourceType, resDirs)) {
       final String resType = AndroidCommonUtils.getResourceTypeByDirName(resSubdir.getName());
@@ -105,10 +116,6 @@ public abstract class ResourceManager {
       }
     }
     return true;
-  }
-
-  public boolean isResourceDir(@NotNull VirtualFile dir) {
-    return dir.equals(getResourceDir());
   }
 
   @NotNull

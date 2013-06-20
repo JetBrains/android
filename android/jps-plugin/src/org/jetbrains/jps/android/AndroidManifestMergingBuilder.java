@@ -5,6 +5,8 @@ import com.android.annotations.NonNull;
 import com.android.manifmerger.ICallback;
 import com.android.manifmerger.IMergerLog;
 import com.android.manifmerger.ManifestMerger;
+import com.android.sdklib.AndroidTargetHash;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -187,11 +189,17 @@ public class AndroidManifestMergingBuilder
     }, new ICallback() {
       @Override
       public int queryCodenameApiLevel(@NonNull String codename) {
-        final IAndroidTarget target = sdkManager.getTargetFromHashString(
-          IAndroidTarget.PLATFORM_HASH_PREFIX + codename);
-        return target != null
-               ? target.getVersion().getApiLevel()
-               : ICallback.UNKNOWN_CODENAME;
+        try {
+          AndroidVersion version = new AndroidVersion(codename);
+          String hashString = AndroidTargetHash.getPlatformHashString(version);
+          IAndroidTarget t = sdkManager.getTargetFromHashString(hashString);
+          if (t != null) {
+            return t.getVersion().getApiLevel();
+          }
+        }
+        catch (AndroidVersion.AndroidVersionException ignore) {
+        }
+        return ICallback.UNKNOWN_CODENAME;
       }
     });
     return manifestMerger.process(outputFile, manifestFile, libManifests.toArray(new File[libManifests.size()]), null, null);

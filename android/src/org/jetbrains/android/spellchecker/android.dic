@@ -1,4 +1,14 @@
+actionbar
+anim
+attrs
+dimen
+drawables
+focusable
+holo
+inflater
 parcelable
 parcelables
+proguard
 styleable
 styleables
+viewpager

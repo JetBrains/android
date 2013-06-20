@@ -65,14 +65,21 @@ public final class AndroidDependencies {
                                            @NotNull Dependencies dependencies,
                                            @NotNull DependencyFactory dependencyFactory) {
     for (File jar : dependencies.getJars()) {
-      dependencyFactory.addDependency(scope, FileUtil.getNameWithoutExtension(jar), jar);
+      addDependency(scope, dependencyFactory, jar);
     }
     for (AndroidLibrary lib : dependencies.getLibraries()) {
       File jar = lib.getJarFile();
       File parentFile = jar.getParentFile();
       String name = parentFile != null ? parentFile.getName() : FileUtil.getNameWithoutExtension(jar);
       dependencyFactory.addDependency(scope, name, jar);
+      for (File localJar : lib.getLocalJars()) {
+        addDependency(scope, dependencyFactory, localJar);
+      }
     }
+  }
+
+  private static void addDependency(@NotNull DependencyScope scope, @NotNull DependencyFactory dependencyFactory, @NotNull File jar) {
+    dependencyFactory.addDependency(scope, FileUtil.getNameWithoutExtension(jar), jar);
   }
 
   /**

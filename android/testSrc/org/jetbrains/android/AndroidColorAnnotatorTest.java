@@ -21,8 +21,16 @@ import junit.framework.TestCase;
 import java.awt.*;
 
 public class AndroidColorAnnotatorTest extends TestCase {
-  public void test() {
+  public void testColorAnnotator() {
     // TODO: Add test. Unfortunately, it looks like none of the existing Annotator classes
     // in IntelliJ have unit tests, so there doesn't appear to be fixture support for this.
+  }
+
+  public void testColorToString() {
+    Color color = new Color(0x11, 0x22, 0x33, 0xf0);
+    assertEquals("#f0112233", AndroidColorAnnotator.colorToString(color));
+
+    color = new Color(0xff, 0xff, 0xff, 0x00);
+    assertEquals("#ffffff", AndroidColorAnnotator.colorToString(color));
   }
 }

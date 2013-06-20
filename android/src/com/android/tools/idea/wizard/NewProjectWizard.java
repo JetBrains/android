@@ -15,26 +15,19 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.tools.idea.gradle.NewAndroidProjectImporter;
+import com.android.tools.idea.gradle.GradleProjectImporter;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.project.DumbAwareRunnable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.run.TargetSelectionMode;
-import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import icons.AndroidIcons;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 
@@ -65,13 +58,10 @@ public class NewProjectWizard extends TemplateWizard {
 
   @Override
   protected void init() {
-    // Do a sanity check to see if we have templates that look compatible, otherwise we get really strange problems. The existence
-    // of a gradle wrapper in the templates directory is a good sign.
-    boolean exists = false;
-    try { exists = new File(TemplateManager.getTemplateRootFolder(), "gradle/wrapper/gradlew").exists(); } catch (Exception e) {}
-    if (!exists) {
+    if (!TemplateManager.templatesAreValid()) {
       String title = "SDK problem";
-      String msg = "Your Android SDK is out of date or is missing templates. Please ensure you are using SDK version 22 or later.";
+      String msg = "<html>Your Android SDK is out of date or is missing templates. Please ensure you are using SDK version 22 or later.<br>"
+        + "You can configure your SDK via <b>Configure | Project Defaults | Project Structure | SDKs</b></html>";
       Messages.showErrorDialog(msg, title);
       throw new IllegalStateException(msg);
     }
@@ -102,6 +92,11 @@ public class NewProjectWizard extends TemplateWizard {
     super.update();
   }
 
+  @Override
+  public Icon getSidePanelIcon() {
+    return AndroidIcons.Wizards.NewProjectSidePanel;
+  }
+
   public void createProject() {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
@@ -124,7 +119,8 @@ public class NewProjectWizard extends TemplateWizard {
               .render(moduleRoot, moduleRoot, myWizardState.getActivityTemplateState().myParameters);
           }
           Sdk sdk = getSdk((Integer)myWizardState.get(ATTR_BUILD_API));
-          new NewAndroidProjectImporter().importProject(projectName, projectRoot, sdk, new ImportCompletedCallback());
+          GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
+          projectImporter.importProject(projectName, projectRoot, sdk, null);
         }
         catch (Exception e) {
           String title;
@@ -138,50 +134,5 @@ public class NewProjectWizard extends TemplateWizard {
         }
       }
     });
-  }
-
-  private static class ImportCompletedCallback implements NewAndroidProjectImporter.Callback {
-    @Override
-    public void projectImported(@NotNull final Project project) {
-      // The project imported callback from gradle is not guaranteed to be called after IDEA actually
-      // knows about all the modules. So wrap all necessary activities in a post startup runnable.
-      StartupManager.getInstance(project).runWhenProjectIsInitialized(new DumbAwareRunnable() {
-        @Override
-        public void run() {
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              // Automatically create a run configuration.
-              // TODO: The IDEA NPW actually had a page where they ask users about the parameters
-              // for the launch configuration, but the Android NPW doesn't, so we just add one that
-              // always pops up the device chooser dialog.
-              final AndroidFacet facet = findAndroidFacet(project);
-              ApplicationManager.getApplication().runWriteAction(new Runnable() {
-                @Override
-                public void run() {
-                  if (facet != null) {
-                    AndroidUtils.addRunConfiguration(facet, null, false, TargetSelectionMode.SHOW_DIALOG, null);
-                  }
-                }
-              });
-            }
-          });
-        }
-      });
-    }
-
-    /** Returns the Android Facet from the first module in the project that has an Android Facet. */
-    @Nullable
-    private static AndroidFacet findAndroidFacet(Project project) {
-      Module[] modules = ModuleManager.getInstance(project).getModules();
-      for (Module m : modules) {
-        AndroidFacet facet = AndroidFacet.getInstance(m);
-        if (facet != null) {
-          return facet;
-        }
-      }
-
-      return null;
-    }
   }
 }

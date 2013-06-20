@@ -169,6 +169,13 @@ public class VariantStub implements Variant {
     return myGeneratedTestResourceFolders;
   }
 
+  @NotNull
+  @Override
+  public File getClassesFolder() {
+    String path = "build/classes/" + getBuildType();
+    return new File(myFileStructure.getRootDir(), path);
+  }
+
   public void addProductFlavors(@NotNull String... flavorNames) {
     myProductFlavors.addAll(Arrays.asList(flavorNames));
   }

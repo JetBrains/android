@@ -58,6 +58,12 @@ public class AndroidProjectStub implements AndroidProject {
 
   @NotNull
   @Override
+  public String getModelVersion() {
+    return "0.4-SNAPSHOT";
+  }
+
+  @NotNull
+  @Override
   public String getName() {
     return myName;
   }

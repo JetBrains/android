@@ -15,13 +15,6 @@
  */
 package com.intellij.android.designer.componentTree;
 
-import com.intellij.codeInsight.daemon.impl.SeverityUtil;
-import com.intellij.designer.componentTree.AttributeWrapper;
-import com.intellij.designer.componentTree.TreeComponentDecorator;
-import com.intellij.designer.model.IComponentDecorator;
-import com.intellij.designer.model.MetaModel;
-import com.intellij.designer.model.RadComponent;
-import com.intellij.designer.palette.DefaultPaletteItem;
 import com.android.SdkConstants;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.android.designer.model.ModelParser;
@@ -29,8 +22,12 @@ import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.ViewsMetaManager;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.daemon.impl.SeverityRegistrar;
+import com.intellij.codeInsight.daemon.impl.SeverityUtil;
 import com.intellij.designer.ModuleProvider;
+import com.intellij.designer.componentTree.AttributeWrapper;
+import com.intellij.designer.componentTree.TreeComponentDecorator;
 import com.intellij.designer.model.*;
+import com.intellij.designer.palette.DefaultPaletteItem;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlAttribute;

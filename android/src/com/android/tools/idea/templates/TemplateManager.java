@@ -218,4 +218,14 @@ public class TemplateManager {
 
     return null;
   }
+
+  /**
+   * Do a sanity check to see if we have templates that look compatible, otherwise we get really strange problems. The existence
+   * of a gradle wrapper in the templates directory is a good sign.
+   * @return whether the templates pass the check or not
+   */
+  public static boolean templatesAreValid() {
+    try { return  new File(getTemplateRootFolder(), "gradle/wrapper/gradlew").exists(); } catch (Exception e) {}
+    return false;
+  }
 }

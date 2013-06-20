@@ -22,10 +22,12 @@ import com.intellij.ide.wizard.AbstractWizard;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
+import icons.AndroidIcons;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 
@@ -39,8 +41,11 @@ public class TemplateWizard extends AbstractWizard<ModuleWizardStep> {
   public static final String GRADLE_WRAPPER_PATH = "gradle/wrapper";
   protected static final String MAVEN_URL_PROPERTY = "android.mavenRepoUrl";
 
+  protected Project myProject;
+
   public TemplateWizard(String title, Project project) {
     super(title, project);
+    myProject = project;
   }
 
   /**
@@ -49,6 +54,16 @@ public class TemplateWizard extends AbstractWizard<ModuleWizardStep> {
    */
   void update() {
     updateButtons();
+  }
+
+  @Override
+  protected void init() {
+    super.init();
+    TemplateWizardStep step = (TemplateWizardStep)mySteps.get(getCurrentStep());
+    step.getPreferredFocusedComponent();
+    if (step != null) {
+      step.update();
+    }
   }
 
   @Override
@@ -80,6 +95,10 @@ public class TemplateWizard extends AbstractWizard<ModuleWizardStep> {
       }
     }
     return step;
+  }
+
+  public Icon getSidePanelIcon() {
+    return AndroidIcons.Wizards.NewModuleSidePanel;
   }
 
   /**

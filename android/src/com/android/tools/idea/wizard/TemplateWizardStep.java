@@ -24,12 +24,10 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.ColorPanel;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
-import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -53,6 +51,7 @@ import static com.android.SdkConstants.ATTR_ID;
 import static com.android.tools.idea.templates.Template.ATTR_DEFAULT;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME;
 
 /**
  * TemplateWizardStep is the base class for step pages in Freemarker template-based wizards.
@@ -93,8 +92,10 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       s.replaceAll("\n", "<br>");
     }
     JLabel label = getDescription();
-    label.setText(s);
-    growLabelIfNecessary(label);
+    if (label != null) {
+      label.setText(s);
+      growLabelIfNecessary(label);
+    }
   }
 
   /** Override this to return a {@link JTextArea} that displays a validation error message. */
@@ -110,8 +111,10 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       s.replaceAll("\n", "<br>");
     }
     JLabel label = getError();
-    label.setText(s);
-    growLabelIfNecessary(label);
+    if (label != null) {
+      label.setText(s);
+      growLabelIfNecessary(label);
+    }
   }
 
   /**
@@ -124,10 +127,11 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     label.setPreferredSize(null);
     label.validate();
     Dimension pd = label.getPreferredSize();
+    int currentWidth = label.getSize().width;
     int preferredHeight = 0;
-    if (pd.width != 0 && newSize.width != 0 && pd.height != 0) {
-      preferredHeight = pd.height * (pd.width / newSize.width);
-      if (pd.width % newSize.width != 0) {
+    if (currentWidth != 0 && pd.width != 0 && pd.height != 0) {
+      preferredHeight = pd.height * (int) ((float)pd.width / (float)currentWidth);
+      if (currentWidth % pd.width != 0) {
         preferredHeight += pd.height;
       }
     }
@@ -212,6 +216,14 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       if (newValue != null && !newValue.equals(oldValue)) {
         myTemplateState.put(paramName, newValue);
         myTemplateState.myModified.add(paramName);
+      }
+
+      if (param != null) {
+        String error = param.validate(myTemplateWizard.myProject, (String)myTemplateState.get(ATTR_PACKAGE_NAME), newValue);
+        if (error != null) {
+          setErrorHtml(error);
+          return false;
+        }
       }
     }
     for (Map.Entry<JRadioButton, Pair<String, Object>> entry : myRadioButtonValues.entrySet()) {
@@ -302,7 +314,6 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     }
     myParamFields.put(paramName, (JComponent)textField);
     textField.addFocusListener(this);
-    textField.addActionListener(this);
     textField.getDocument().addDocumentListener(this);
   }
 
@@ -349,9 +360,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     }
     myParamFields.put(paramName, (JComponent)field);
     field.addFocusListener(this);
-    field.addActionListener(this);
-    // For the time being, assume that this is a file chooser and put up the OS file picker dialog when the button is pressed.
-    field.addBrowseFolderListener(null, null, null, FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor());
+    field.getTextField().getDocument().addDocumentListener(this);
   }
 
   protected void register(@NotNull String paramName, @NotNull ColorPanel colorPanel) {
@@ -383,7 +392,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
 
   @Override
   public Icon getIcon() {
-    return AndroidIcons.Npw.NewModuleSidePanel;
+    return myTemplateWizard.getSidePanelIcon();
   }
 
   @Override

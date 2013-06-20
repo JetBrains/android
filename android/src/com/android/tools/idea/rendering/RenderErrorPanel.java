@@ -246,6 +246,15 @@ public class RenderErrorPanel extends JPanel {
   private void reportMissingClasses(@NotNull RenderLogger logger, @NotNull HtmlBuilder builder, @NotNull RenderService renderService) {
     Set<String> missingClasses = logger.getMissingClasses();
     if (missingClasses != null && !missingClasses.isEmpty()) {
+      if (missingClasses.contains("CalendarView")) {
+        builder.add("The ").addBold("CalendarView").add(" widget does not work correctly with this render target. " +
+            "As a workaround, try using the API 5 (Android 4.0.3) render target library by selecting it from the " +
+            "toolbar menu above.");
+        if (missingClasses.size() == 1) {
+          return;
+        }
+      }
+
       boolean missingResourceClass = logger.isMissingResourceClass() && logger.getResourceClass() != null && logger.hasLoadedClasses();
 
       builder.add("The following classes could not be found:");
@@ -316,27 +325,45 @@ public class RenderErrorPanel extends JPanel {
 
     // Look for typos and try to match with custom views and android views
     String actualBase = actual.substring(actual.lastIndexOf('.') + 1);
+    String match = compareWithPackage ? actual : actualBase;
     int maxDistance = actualBase.length() >= 4 ? 2 : 1;
 
     if (views.size() > 0) {
       for (String suggested : views) {
         String suggestedBase = suggested.substring(suggested.lastIndexOf('.') + 1);
-
         String matchWith = compareWithPackage ? suggested : suggestedBase;
-        if (Math.abs(actualBase.length() - matchWith.length()) > maxDistance) {
+        if (Math.abs(actualBase.length() - suggestedBase.length()) > maxDistance) {
           // The string lengths differ more than the allowed edit distance;
           // no point in even attempting to compute the edit distance (requires
           // O(n*m) storage and O(n*m) speed, where n and m are the string lengths)
           continue;
         }
 
-        if (actualBase.equals(matchWith)) {
+        boolean sameBase = actualBase.equals(suggestedBase);
+        if (!compareWithPackage && sameBase) {
           // This view is an exact match for one of the known views.
           // That probably means it's a valid class, but the project needs to be built.
-          return;
+          continue;
         }
 
-        if (editDistance(actualBase, matchWith) <= maxDistance) {
+        if (compareWithPackage) {
+          if (!sameBase) {
+            // If they differ in the base name, handled by separate call with !compareWithPackage
+            continue;
+          } else if (actualBase.equals(actual) && !actualBase.equals(suggested) && viewNeedsPackage(suggested)) {
+            // Custom view needs to be specified with a fully qualified path
+            builder.addLink(String.format("Change to %1$s", suggested),
+                            myLinkManager.createReplaceTagsUrl(actual, suggested));
+            builder.add(", ");
+            continue;
+          }
+        }
+
+        if (compareWithPackage && Math.abs(match.length() - matchWith.length()) > maxDistance) {
+          continue;
+        }
+
+        if (editDistance(match, matchWith) <= maxDistance) {
           // Suggest this class as a typo for the given class
           String labelClass = (suggestedBase.equals(actual) || actual.indexOf('.') != -1) ? suggested : suggestedBase;
           builder.addLink(String.format("Change to %1$s", labelClass),
@@ -482,7 +509,7 @@ public class RenderErrorPanel extends JPanel {
       builder.endList();
 
       builder.addTipIcon();
-      builder.addLink("Tip: Use ", "View.isInEditMode()", " in your custom views to skip code when shown in the IDE",
+      builder.addLink("Tip: Use ", "View.isInEditMode()", " in your custom views to skip code or show sample data when shown in the IDE",
                       "http://developer.android.com/reference/android/view/View.html#isInEditMode()");
 
       if (firstThrowable != null) {
@@ -500,7 +527,8 @@ public class RenderErrorPanel extends JPanel {
     if (fidelityWarnings != null && !fidelityWarnings.isEmpty()) {
       builder.add("The graphics preview in the layout editor may not be accurate:").newline();
       builder.beginList();
-      for (RenderProblem warning : fidelityWarnings) {
+      int count = 0;
+      for (final RenderProblem warning : fidelityWarnings) {
         builder.listItem();
         warning.appendHtml(builder.getStringBuilder());
         final Object clientData = warning.getClientData();
@@ -508,25 +536,37 @@ public class RenderErrorPanel extends JPanel {
           builder.addLink(" (Ignore for this session", myLinkManager.createRunnableLink(new Runnable() {
             @Override
             public void run() {
-              assert false : "Need to look up the exact key to use for suppressing from now on!";
-                RenderLogger.ignoreFidelityWarning(clientData);
+              RenderLogger.ignoreFidelityWarning(clientData);
               RenderContext renderContext = renderService.getRenderContext();
               if (renderContext != null) {
                 renderContext.requestRender();
               }
-
             }
           }));
         }
         builder.newline();
+        count++;
+        // Only display the first 3 render fidelity issues
+        if (count == 3) {
+          int remaining = fidelityWarnings.size() - count;
+          if (remaining > 0) {
+            builder.add("(").addHtml(Integer.toString(remaining)).add(" additional render fidelity issues hidden)");
+            break;
+          }
+        }
       }
       builder.endList();
       builder.addLink("Ignore all fidelity warnings for this session", myLinkManager.createRunnableLink(new Runnable() {
         @Override
         public void run() {
           RenderLogger.ignoreAllFidelityWarnings();
+          RenderContext renderContext = renderService.getRenderContext();
+          if (renderContext != null) {
+            renderContext.requestRender();
+          }
         }
       }));
+      builder.newline();
     }
   }
 
@@ -639,7 +679,14 @@ public class RenderErrorPanel extends JPanel {
   private void reportOtherProblems(RenderLogger logger, HtmlBuilder builder) {
     List<RenderProblem> messages = logger.getMessages();
     if (messages != null && !messages.isEmpty()) {
+      Set<String> seenTags = Sets.newHashSet();
       for (RenderProblem message : messages) {
+        String tag = message.getTag();
+        if (tag != null && seenTags.contains(tag)) {
+          continue;
+        }
+        seenTags.add(tag);
+
         HighlightSeverity severity = message.getSeverity();
         if (severity == HighlightSeverity.ERROR) {
           builder.addErrorIcon();
@@ -652,6 +699,13 @@ public class RenderErrorPanel extends JPanel {
         Throwable throwable = message.getThrowable();
         if (throwable != null) {
           reportThrowable(builder, throwable);
+        }
+
+        if (tag != null) {
+          int count = logger.getTagCount(tag);
+          if (count > 1) {
+            builder.add(" (").addHtml(Integer.toString(count)).add(" similar errors not shown)");
+          }
         }
 
         builder.newline();

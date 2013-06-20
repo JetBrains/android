@@ -28,10 +28,10 @@ public class AndroidResourceCachingBuildTarget extends AndroidBuildTarget {
 
   @NotNull
   @Override
-  public List<BuildRootDescriptor> computeRootDescriptors(JpsModel model,
-                                                          ModuleExcludeIndex index,
-                                                          IgnoredFileIndex ignoredFileIndex,
-                                                          BuildDataPaths dataPaths) {
+  protected List<BuildRootDescriptor> doComputeRootDescriptors(JpsModel model,
+                                                               ModuleExcludeIndex index,
+                                                               IgnoredFileIndex ignoredFileIndex,
+                                                               BuildDataPaths dataPaths) {
     final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(myModule);
 
     if (extension != null) {

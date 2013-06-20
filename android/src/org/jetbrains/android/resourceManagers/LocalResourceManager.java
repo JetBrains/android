@@ -16,15 +16,11 @@
 
 package org.jetbrains.android.resourceManagers;
 
-import com.android.SdkConstants;
 import com.android.resources.ResourceType;
-import com.intellij.CommonBundle;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
@@ -34,7 +30,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.indexing.FileBasedIndex;
-import org.jetbrains.android.AndroidFileTemplateProvider;
 import org.jetbrains.android.AndroidValueResourcesIndex;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl;
@@ -44,21 +39,18 @@ import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.android.util.ResourceEntry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky
  */
 public class LocalResourceManager extends ResourceManager {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.resourceManagers.ResourceManager");
   private AttributeDefinitions myAttrDefs;
 
   public LocalResourceManager(@NotNull AndroidFacet facet) {
@@ -70,26 +62,29 @@ public class LocalResourceManager extends ResourceManager {
   public VirtualFile[] getAllResourceDirs() {
     Set<VirtualFile> result = new HashSet<VirtualFile>();
     collectResourceDirs(getFacet(), result, new HashSet<Module>());
-    return VfsUtil.toVirtualFileArray(result);
+    return VfsUtilCore.toVirtualFileArray(result);
   }
 
   @Override
   public boolean isResourceDir(@NotNull VirtualFile dir) {
-    if (dir.equals(getResourceDir())) {
-      return true;
+    for (VirtualFile resDir : getResourceDirs()) {
+      if (dir.equals(resDir)) {
+        return true;
+      }
     }
     for (VirtualFile dir1 : getResourceOverlayDirs()) {
       if (dir.equals(dir1)) {
         return true;
       }
     }
+
     return false;
   }
 
-  @Nullable
   @Override
-  public VirtualFile getResourceDir() {
-    return AndroidRootUtil.getResourceDir(getFacet());
+  @NotNull
+  public List<VirtualFile> getResourceDirs() {
+    return myFacet.getAllResourceDirectories();
   }
 
   public List<Pair<Resources, VirtualFile>> getResourceElements() {
@@ -112,9 +107,14 @@ public class LocalResourceManager extends ResourceManager {
       return;
     }
 
-    VirtualFile resDir = AndroidRootUtil.getResourceDir(facet);
-    if (resDir != null && !result.add(resDir)) {
-      return;
+    for (VirtualFile resDir : facet.getAllResourceDirectories()) {
+      if (!result.add(resDir)) {
+        // We've already encountered this resource directory: that means that we are probably
+        // processing a library facet as part of a dependency, when that dependency was present
+        // and processed from an earlier module as well. No need to continue with this module at all;
+        // already handled.
+        return;
+      }
     }
     for (AndroidFacet depFacet : AndroidUtils.getAllAndroidDependencies(facet.getModule(), false)) {
       collectResourceDirs(depFacet, result, visited);
@@ -226,48 +226,6 @@ public class LocalResourceManager extends ResourceManager {
       }
     }
     return list;
-  }
-
-  @Nullable
-  private VirtualFile findOrCreateResourceFile(@NotNull final String fileName) {
-    VirtualFile dir = getResourceDir();
-    if (dir == null) {
-      Messages.showErrorDialog(myModule.getProject(), AndroidBundle.message("check.resource.dir.error", myModule.getName()),
-                               CommonBundle.getErrorTitle());
-      return null;
-    }
-    final VirtualFile valuesDir = findOrCreateChildDir(dir, SdkConstants.FD_RES_VALUES);
-    if (valuesDir == null) {
-      String errorMessage = AndroidBundle.message("android.directory.cannot.be.found.error", SdkConstants.FD_RES_VALUES);
-      Messages.showErrorDialog(myModule.getProject(), errorMessage, CommonBundle.getErrorTitle());
-      return null;
-    }
-    VirtualFile child = valuesDir.findChild(fileName);
-    if (child != null) return child;
-    try {
-      AndroidFileTemplateProvider
-        .createFromTemplate(myModule.getProject(), valuesDir, AndroidFileTemplateProvider.VALUE_RESOURCE_FILE_TEMPLATE, fileName);
-    }
-    catch (Exception e) {
-      LOG.error(e);
-      return null;
-    }
-    VirtualFile result = valuesDir.findChild(fileName);
-    if (result == null) {
-      LOG.error("Can't create resource file");
-    }
-    return result;
-  }
-
-  @Nullable
-  private VirtualFile findOrCreateChildDir(@NotNull final VirtualFile dir, @NotNull final String name) {
-    try {
-      return AndroidUtils.createChildDirectoryIfNotExist(myModule.getProject(), dir, name);
-    }
-    catch (IOException e) {
-      LOG.error(e);
-      return null;
-    }
   }
 
   @NotNull

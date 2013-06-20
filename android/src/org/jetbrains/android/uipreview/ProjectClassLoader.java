@@ -1,12 +1,16 @@
 package org.jetbrains.android.uipreview;
 
+import com.android.build.gradle.model.Variant;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.HashSet;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidTargetData;
@@ -30,7 +34,7 @@ public final class ProjectClassLoader extends ClassLoader {
   private URLClassLoader mJarClassLoader;
   private boolean mInsideJarClassLoader = false;
 
-  public ProjectClassLoader(ClassLoader parentClassLoader, Module module) {
+  public ProjectClassLoader(@Nullable ClassLoader parentClassLoader, Module module) {
     super(parentClassLoader);
     myModule = module;
   }
@@ -93,11 +97,48 @@ public final class ProjectClassLoader extends ClassLoader {
       return null;
     }
 
-    final VirtualFile vOutFolder = extension.getCompilerOutputPath();
+    VirtualFile vOutFolder = extension.getCompilerOutputPath();
     if (vOutFolder == null) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null && facet.isGradleProject()) {
+        // Try a bit harder; we don't have a compiler module extension or mechanism
+        // to query this yet, so just hardcode it (ugh!)
+        IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
+        if (gradleProject != null) {
+          Variant variant = gradleProject.getSelectedVariant();
+          String variantName = variant.getName();
+          File classesFolder = variant.getClassesFolder();
+
+          // Older models may not supply it; in that case, we rely on looking relative
+          // to the .APK file location:
+          //noinspection ConstantConditions
+          if (classesFolder == null) {
+            File file = variant.getOutputFile();
+            File buildFolder = file.getParentFile().getParentFile();
+            classesFolder = new File(buildFolder, "classes"); // See AndroidContentRoot
+          }
+
+          File outFolder = new File(classesFolder,
+                                    // Change variant name variant-release into variant/release directories
+                                    variantName.replace('-', File.separatorChar));
+          if (outFolder.exists()) {
+            vOutFolder = LocalFileSystem.getInstance().findFileByIoFile(outFolder);
+            if (vOutFolder != null) {
+              Class<?> localClass = loadClassFromOutputFolder(name, vOutFolder);
+              if (localClass != null) {
+                return localClass;
+              }
+            }
+          }
+        }
+      }
       return null;
     }
 
+    return loadClassFromOutputFolder(name, vOutFolder);
+  }
+
+  private Class<?> loadClassFromOutputFolder(String name, VirtualFile vOutFolder) {
     final String[] segments = name.split("\\.");
 
     final File classFile = findClassFile(new File(vOutFolder.getPath()), segments, 0);

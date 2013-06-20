@@ -17,11 +17,12 @@
 package com.android.tools.idea.wizard;
 
 import com.android.assetstudiolib.GraphicGenerator;
-import com.android.tools.idea.templates.TemplateMetadata;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.ColorPanel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -29,6 +30,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -95,6 +97,7 @@ public class LauncherIconStep extends TemplateWizardStep {
     register(ATTR_FOREGROUND_COLOR, myForegroundColor);
     register(ATTR_BACKGROUND_COLOR, myBackgroundColor);
 
+    myImageFile.addBrowseFolderListener(null, null, null, FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor());
     myForegroundColor.setSelectedColor(Color.BLUE);
     myBackgroundColor.setSelectedColor(Color.WHITE);
 
@@ -134,12 +137,28 @@ public class LauncherIconStep extends TemplateWizardStep {
            myForegroundColorLabel);
     }
 
-    Map<String, Map<String, BufferedImage>> imageMap = myWizardState.generateImages(true);
-    myMDpiPreview.setIcon(new ImageIcon(getImage(imageMap, "mdpi")));
-    myHDpiPreview.setIcon(new ImageIcon(getImage(imageMap, "hdpi")));
-    myXHDpiPreview.setIcon(new ImageIcon(getImage(imageMap, "xhdpi")));
-    myXXHdpiPreview.setIcon(new ImageIcon(getImage(imageMap, "xxhdpi")));
-    return true;
+    try {
+      Map<String, Map<String, BufferedImage>> imageMap = myWizardState.generateImages(true);
+      final BufferedImage mdpi = getImage(imageMap, "mdpi");
+      final BufferedImage hdpi = getImage(imageMap, "hdpi");
+      final BufferedImage xhdpi = getImage(imageMap, "xhdpi");
+      final BufferedImage xxhdpi = getImage(imageMap, "xxhdpi");
+
+      if (mdpi == null || hdpi == null || xhdpi == null || xxhdpi == null) {
+        throw new ImageGeneratorException("Unable to generate launcher icon");
+      }
+
+      myMDpiPreview.setIcon(new ImageIcon(mdpi));
+      myHDpiPreview.setIcon(new ImageIcon(hdpi));
+      myXHDpiPreview.setIcon(new ImageIcon(xhdpi));
+      myXXHdpiPreview.setIcon(new ImageIcon(xxhdpi));
+
+      return true;
+    }
+    catch (ImageGeneratorException e) {
+      setErrorHtml(e.getMessage());
+      return false;
+    }
   }
 
   /**
@@ -182,14 +201,25 @@ public class LauncherIconStep extends TemplateWizardStep {
     dialog.setVisible(true);
   }
 
-  @NotNull
-  private BufferedImage getImage(@NotNull Map<String, Map<String, BufferedImage>> map, @NotNull String name) {
-    return map.get(name).values().iterator().next();
+  @Nullable
+  private static BufferedImage getImage(@NotNull Map<String, Map<String, BufferedImage>> map, @NotNull String name) {
+    final Map<String, BufferedImage> images = map.get(name);
+    if (images == null) {
+      return null;
+    }
+
+    final Collection<BufferedImage> values = images.values();
+    return values.isEmpty() ? null : values.iterator().next();
   }
 
   @Override
   public JComponent getComponent() {
     return myPanel;
+  }
+
+  @Override
+  public JComponent getPreferredFocusedComponent() {
+    return myImageRadioButton;
   }
 
   @NotNull
