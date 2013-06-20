@@ -326,9 +326,15 @@ public class RenderService {
    * @param renderingMode the rendering mode to be used
    * @return this (such that chains of setters can be stringed together)
    */
-  public RenderService setRenderingMode(RenderingMode renderingMode) {
+  public RenderService setRenderingMode(@NotNull RenderingMode renderingMode) {
     myRenderingMode = renderingMode;
     return this;
+  }
+
+  /** Returns the {@link RenderingMode} to be used */
+  @NotNull
+  public RenderingMode getRenderingMode() {
+    return myRenderingMode;
   }
 
   public RenderService setTimeout(long timeout) {
@@ -652,5 +658,29 @@ public class RenderService {
       }
     }
     return false;
+  }
+
+  /**
+   * Notifies the render service that it is being used in design mode for this layout.
+   * For example, that means that when rendering a ScrollView, it should measure the necessary
+   * vertical space, and size the layout according to the needs rather than the available
+   * device size.
+   * <p>
+   * We don't want to do this when for example offering thumbnail previews of the various
+   * layouts.
+   *
+   * @param rootTag the tag, if any
+   */
+  public void useDesignMode(@Nullable XmlTag rootTag) {
+    if (rootTag != null) {
+      String tagName = rootTag.getName();
+      if (SCROLL_VIEW.equals(tagName)) {
+        setRenderingMode(RenderingMode.V_SCROLL);
+        setDecorations(false);
+      } else if (HORIZONTAL_SCROLL_VIEW.equals(tagName)) {
+        setRenderingMode(RenderingMode.H_SCROLL);
+        setDecorations(false);
+      }
+    }
   }
 }
