@@ -33,6 +33,7 @@ import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiQualifiedNamedElement;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.ui.Gray;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,18 +46,23 @@ import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
 
 public class NavigationEditorPanel2 extends JComponent {
   private static final Dimension GAP = new Dimension(150, 50);
+  public static final Color BACKGROUND_COLOR = Color.LIGHT_GRAY; // new Color(192, 192, 192)
+  public static final Color SNAP_GRID_LINE_COLOR_MINOR = Gray.get(180);
+  public static final Color SNAP_GRID_LINE_COLOR_MIDDLE = Gray.get(170);
+  public static final Color SNAP_GRID_LINE_COLOR_MAJOR = Gray.get(150);
+  private static final Dimension SNAP_GRID = new Dimension(4, 4);
   private static final double SCALE = 0.333333;
   private static final EmptyBorder LABEL_BORDER = new EmptyBorder(0, 5, 0, 5);
   private static final Dimension ORIGINAL_SIZE = new Dimension(480, 800);
   private static final Dimension PREVIEW_SIZE = new Dimension((int)(ORIGINAL_SIZE.width * SCALE), (int)(ORIGINAL_SIZE.height * SCALE));
   private static final Dimension ARROW_HEAD_SIZE = new Dimension(10, 5);
   public static final Color LINE_COLOR = Color.GRAY;
-  public static final Color BACKGROUND_COLOR = Color.LIGHT_GRAY;
   public static final Point MULTIPLE_DROP_STRIDE = new Point(50, 50);
   private static final String ID_PREFIX = "@+id/";
 
@@ -68,6 +74,7 @@ public class NavigationEditorPanel2 extends JComponent {
   private final Map<AndroidRootComponent, State> myComponentToState = new HashMap<AndroidRootComponent, State>();
   private Selection mySelection = Selection.NULL;
   private Map<Transition, Component> myNavigationToComponent = new IdentityHashMap<Transition, Component>();
+  private Image myBackgroundImage;
 
   private abstract static class Selection {
 
@@ -144,7 +151,7 @@ public class NavigationEditorPanel2 extends JComponent {
   }
 
   private static class RelationSelection extends Selection {
-    @NotNull private final NavigationEditorPanel2 myOverViewPanel;
+    @NotNull private final NavigationEditorPanel2 myNavigationEditorPanel;
     @NotNull private final Component myComponent;
     @NotNull private Point myLocation;
     @Nullable private final RenderedView myLeaf;
@@ -155,7 +162,7 @@ public class NavigationEditorPanel2 extends JComponent {
     private RelationSelection(@NotNull NavigationEditorPanel2 myNavigationEditorPanel2,
                               @NotNull AndroidRootComponent component,
                               @NotNull Point mouseDownLocation) {
-      myOverViewPanel = myNavigationEditorPanel2;
+      myNavigationEditorPanel = myNavigationEditorPanel2;
       myComponent = component;
       myLocation = mouseDownLocation;
       RenderResult renderResult = component.getRenderResult();
@@ -226,11 +233,11 @@ public class NavigationEditorPanel2 extends JComponent {
 
     @Override
     protected Selection finaliseSelectionLocation(Point location) {
-      Component componentAt = myOverViewPanel.getComponentAt(location);
+      Component componentAt = myNavigationEditorPanel.getComponentAt(location);
       if (myComponent instanceof AndroidRootComponent && componentAt instanceof AndroidRootComponent) {
         if (myComponent != componentAt) {
-          Map<AndroidRootComponent, State> m = myOverViewPanel.myComponentToState;
-          myOverViewPanel.addRelation(m.get(myComponent), getViewId(myNamedLeaf), m.get(componentAt));
+          Map<AndroidRootComponent, State> m = myNavigationEditorPanel.myComponentToState;
+          myNavigationEditorPanel.addRelation(m.get(myComponent), getViewId(myNamedLeaf), m.get(componentAt));
         }
       }
       return Selection.NULL;
@@ -312,13 +319,42 @@ public class NavigationEditorPanel2 extends JComponent {
     g.fillPolygon(new int[]{len, basePosition, basePosition, len}, new int[]{0, -height, height, 0}, 4);
   }
 
+  private void drawGrid(Graphics g, Color c, int gridWidth, int gridHeight) {
+    g.setColor(c);
+    for (int x = 0; x < getWidth(); x += gridWidth) {
+      g.drawLine(x, 0, x, getHeight());
+    }
+    for (int y = 0; y < getHeight(); y += gridHeight) {
+      g.drawLine(0, y, getWidth(), y);
+    }
+  }
+
+  private void drawBackground(Graphics g, int width, int height) {
+    g.setColor(BACKGROUND_COLOR);
+    g.fillRect(0, 0, width, height);
+
+    // draw grid - todo cache this in an off-screen image
+    drawGrid(g, SNAP_GRID_LINE_COLOR_MINOR, SNAP_GRID.width, SNAP_GRID.height);
+    drawGrid(g, SNAP_GRID_LINE_COLOR_MIDDLE, SNAP_GRID.width * 5, SNAP_GRID.height * 5);
+    drawGrid(g, SNAP_GRID_LINE_COLOR_MAJOR, SNAP_GRID.width * 10, SNAP_GRID.height * 10);
+  }
+
+  private Image getBackGroundImage() {
+    if (myBackgroundImage == null || myBackgroundImage.getWidth(null) != getWidth() || myBackgroundImage.getHeight(null) != getHeight()) {
+      myBackgroundImage = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
+      drawBackground(myBackgroundImage.getGraphics(), getWidth(), getHeight());
+    }
+    return myBackgroundImage;
+  }
+
   @Override
   protected void paintComponent(Graphics g) {
     super.paintComponent(g);
 
-    g.setColor(BACKGROUND_COLOR);
-    g.fillRect(0, 0, getWidth(), getHeight());
+    // draw background
+    g.drawImage(getBackGroundImage(), 0, 0, null);
 
+    // draw arrows
     Graphics2D g2d = (Graphics2D)g;
     Object oldRenderingHint = g2d.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -336,11 +372,15 @@ public class NavigationEditorPanel2 extends JComponent {
         drawArrow(g, scp.x, scp.y, dcp.x, dcp.y);
       }
     }
+
+    // draw component shadows
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, oldRenderingHint);
     for (Component c : myStateToComponent.values()) {
       Rectangle r = c.getBounds();
       ShadowPainter.drawRectangleShadow(g, r.x, r.y, r.width, r.height);
     }
+
+    // draw selection
     mySelection.paint(g);
   }
 
