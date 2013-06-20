@@ -113,6 +113,12 @@ public class AndroidDesignerIcons {
   public static final Icon CenterVertically = load("/icons/centerVertically.png"); // 16x16
   public static final Icon CenterHorizontally = load("/icons/centerHorizontally.png"); // 16x16
 
+  // LinearLayout layout actions
   public static final Icon SwitchHorizontalLinear = load("/icons/hlinear.png"); // 16x16
   public static final Icon SwitchVerticalLinear = load("/icons/vlinear.png"); // 16x16
+
+  // ScrollView/HorizontalScrollView layout actions
+  public static final Icon NormalRender = load("/icons/normalrender.png"); // 16x16
+  public static final Icon ViewportRender = load("/icons/viewportrender.png"); // 16x16
+
 }
