@@ -23,6 +23,7 @@ import com.android.tools.idea.rendering.ProjectResources;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.folding.FoldingDescriptor;
 import com.intellij.openapi.util.ModificationTracker;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiExpression;
@@ -189,7 +190,12 @@ class ResourceString implements ModificationTracker {
     if (myDescriptor != null && myElement != null) {
       ASTNode node = myElement.getNode();
       Set<Object> dependencies = myDescriptor.getDependencies();
-      myDescriptor = new FoldingDescriptor(node, node.getTextRange(), null, dependencies);
+      TextRange textRange = node.getTextRange();
+      if (!textRange.isEmpty()) {
+        myDescriptor = new FoldingDescriptor(node, textRange, null, dependencies);
+      } else {
+        myDescriptor = null;
+      }
     }
   }
 }
