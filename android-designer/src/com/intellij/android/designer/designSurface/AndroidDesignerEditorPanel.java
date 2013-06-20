@@ -33,6 +33,7 @@ import com.google.common.primitives.Ints;
 import com.intellij.android.designer.componentTree.AndroidTreeDecorator;
 import com.intellij.android.designer.inspection.ErrorAnalyzer;
 import com.intellij.android.designer.model.*;
+import com.intellij.android.designer.model.layout.actions.ToggleRenderModeAction;
 import com.intellij.designer.DesignerEditor;
 import com.intellij.designer.DesignerToolWindowManager;
 import com.intellij.designer.actions.DesignerActionPanel;
@@ -515,7 +516,9 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
                   @Nullable
                   @Override
                   public RenderResult compute() {
-                    service.useDesignMode(myXmlFile.getRootTag());
+                    if (!ToggleRenderModeAction.isRenderViewPort()) {
+                      service.useDesignMode(myXmlFile.getRootTag());
+                    }
                     return service.render();
                   }
                 });

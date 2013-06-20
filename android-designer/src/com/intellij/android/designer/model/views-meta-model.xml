@@ -919,7 +919,7 @@
   </meta>
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
-        layout="com.intellij.android.designer.model.RadSingleChildrenViewLayout"
+        layout="com.intellij.android.designer.model.RadScrollViewLayout"
         class="android.widget.ScrollView"
         tag="ScrollView">
 
@@ -942,7 +942,7 @@
   </meta>
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
-        layout="com.intellij.android.designer.model.RadSingleChildrenViewLayout"
+        layout="com.intellij.android.designer.model.RadScrollViewLayout"
         class="android.widget.HorizontalScrollView"
         tag="HorizontalScrollView">
 
