@@ -211,13 +211,11 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool imp
 
       final InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getInspectionProfile();
 
-      for (InspectionProfileEntry e : profile.getInspectionTools(null)) {
+      for (InspectionToolWrapper e : (InspectionToolWrapper[])profile.getInspectionTools(null)) {
         final String shortName = e.getShortName();
 
         if (shortName.startsWith("AndroidLint")) {
-          final InspectionProfileEntry entry = e instanceof InspectionToolWrapper
-                                               ? ((InspectionToolWrapper)e).getTool()
-                                               : e;
+          final InspectionProfileEntry entry = e.getTool();
           if (entry instanceof AndroidLintInspectionBase) {
             final Issue s = ((AndroidLintInspectionBase)entry).getIssue();
             ourIssue2InspectionShortName.put(s, shortName);

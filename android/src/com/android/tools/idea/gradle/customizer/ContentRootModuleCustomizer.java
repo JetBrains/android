@@ -37,6 +37,33 @@ import java.io.File;
  * Sets the content roots of an IDEA module imported from an {@link com.android.build.gradle.model.AndroidProject}.
  */
 public class ContentRootModuleCustomizer implements ModuleCustomizer {
+  /**
+   * Sets the content roots of the given IDEA module based on the settings of the given Android-Gradle project.
+   * @param module             module to customize.
+   * @param project            project that owns the module to customize.
+   * @param ideaAndroidProject the imported Android-Gradle project.
+   */
+  @Override
+  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
+    if (ideaAndroidProject == null) {
+      return;
+    }
+    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
+    ModifiableRootModel model = moduleRootManager.getModifiableModel();
+
+    final ContentEntry contentEntry = findMatchingContentEntry(model, ideaAndroidProject);
+    if (contentEntry == null) {
+      model.dispose();
+      return;
+    }
+    try {
+      contentEntry.clearSourceFolders();
+      storePaths(contentEntry, ideaAndroidProject);
+    } finally {
+      model.commit();
+    }
+  }
+
   @Nullable
   private static ContentEntry findMatchingContentEntry(@NotNull ModifiableRootModel model, @NotNull IdeaAndroidProject ideaAndroidProject) {
     ContentEntry[] contentEntries = model.getContentEntries();
@@ -77,33 +104,5 @@ public class ContentRootModuleCustomizer implements ModuleCustomizer {
       }
     };
     AndroidContentRoot.storePaths(ideaAndroidProject, storage);
-  }
-
-  /**
-   * Sets the content roots of the given IDEA module based on the settings of the given Android-Gradle project.
-   *
-   * @param module             module to customize.
-   * @param project            project that owns the module to customize.
-   * @param ideaAndroidProject the imported Android-Gradle project.
-   */
-  @Override
-  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
-    if (ideaAndroidProject == null) {
-      return;
-    }
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
-    ModifiableRootModel model = moduleRootManager.getModifiableModel();
-
-    final ContentEntry contentEntry = findMatchingContentEntry(model, ideaAndroidProject);
-    if (contentEntry == null) {
-      return;
-    }
-    try {
-      contentEntry.clearSourceFolders();
-      storePaths(contentEntry, ideaAndroidProject);
-    }
-    finally {
-      model.commit();
-    }
   }
 }
