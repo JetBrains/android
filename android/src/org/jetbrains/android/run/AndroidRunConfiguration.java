@@ -213,7 +213,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     if (activityToLaunch != null) {
       final String finalActivityToLaunch = activityToLaunch;
 
-      return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+      final String activityRuntimeQName = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
         @Override
         public String compute() {
           final GlobalSearchScope scope = facet.getModule().getModuleWithDependenciesAndLibrariesScope(false);
@@ -225,6 +225,9 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
           return null;
         }
       });
+      if (activityRuntimeQName != null) {
+        return activityRuntimeQName;
+      }
     }
     return activityToLaunch;
   }
