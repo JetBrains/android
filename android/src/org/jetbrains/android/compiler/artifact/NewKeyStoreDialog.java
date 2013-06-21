@@ -39,7 +39,7 @@ public class NewKeyStoreDialog extends DialogWrapper {
     myNewKeyPanel.add(myNewKeyForm.getContentPanel(), BorderLayout.CENTER);
 
     myKeyStorePathField.addActionListener(new SaveFileListener(myPanel, myKeyStorePathField, AndroidBundle.message(
-      "android.extract.package.choose.keystore.title")) {
+      "android.extract.package.choose.keystore.title"), "jks") {
       @Override
       protected String getDefaultLocation() {
         return getKeyStorePath();
