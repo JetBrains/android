@@ -78,6 +78,11 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   }
 
   @Override
+  protected Pair<Boolean, String> supportsRunningLibraryProjects(AndroidFacet facet) {
+    return new Pair<Boolean, String>(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
+  }
+
+  @Override
   protected void checkConfiguration(@NotNull AndroidFacet facet) throws RuntimeConfigurationException {
     final boolean packageContainMavenProperty = doesPackageContainMavenProperty(facet);
     final JavaRunConfigurationModule configurationModule = getConfigurationModule();
