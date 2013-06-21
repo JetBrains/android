@@ -17,8 +17,6 @@ package org.jetbrains.android.facet;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
-import com.android.build.gradle.model.BuildTypeContainer;
-import com.android.build.gradle.model.ProductFlavorContainer;
 import com.android.build.gradle.model.Variant;
 import com.android.builder.model.SourceProvider;
 import com.android.ddmlib.AndroidDebugBridge;
@@ -1047,6 +1045,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       Variant variant = myIdeaAndroidProject.getSelectedVariant();
       JpsAndroidModuleProperties state = getConfiguration().getState();
       state.ASSEMBLE_TASK_NAME = variant.getAssembleTaskName();
+      state.ASSEMBLE_TEST_TASK_NAME = variant.getAssembleTestTaskName();
       state.SELECTED_BUILD_VARIANT = variant.getName();
     }
   }
