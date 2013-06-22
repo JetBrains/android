@@ -26,6 +26,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
@@ -81,9 +82,17 @@ public class AddMissingAttributesFix extends WriteCommandAction<Void> {
   }
 
   public static boolean definesHeight(@NotNull XmlTag tag, @Nullable ResourceResolver resourceResolver) {
-    boolean definesHeight = tag.getAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI) != null;
+    XmlAttribute height = tag.getAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI);
+    boolean definesHeight = height != null;
 
-    if (!definesHeight && resourceResolver != null) {
+    if (definesHeight) {
+      String value = height.getValue();
+      if (value != null && !Character.isDigit(value.charAt(0))) {
+        return value.equals(VALUE_WRAP_CONTENT) || value.equals(VALUE_FILL_PARENT) || value.equals(VALUE_MATCH_PARENT);
+      }
+
+      return false;
+    } else if (resourceResolver != null) {
       String style = tag.getAttributeValue(ATTR_STYLE);
       if (style != null) {
         ResourceValue st = resourceResolver.findResValue(style, false);
@@ -98,9 +107,17 @@ public class AddMissingAttributesFix extends WriteCommandAction<Void> {
   }
 
   public static boolean definesWidth(@NotNull XmlTag tag, @Nullable ResourceResolver resourceResolver) {
-    boolean definesWidth = tag.getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI) != null;
+    XmlAttribute width = tag.getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI);
+    boolean definesWidth = width != null;
 
-    if (!definesWidth && resourceResolver != null) {
+    if (definesWidth) {
+      String value = width.getValue();
+      if (value != null && !Character.isDigit(value.charAt(0))) {
+        return value.equals(VALUE_WRAP_CONTENT) || value.equals(VALUE_FILL_PARENT) || value.equals(VALUE_MATCH_PARENT);
+      }
+
+      return false;
+    } else if (resourceResolver != null) {
       String style = tag.getAttributeValue(ATTR_STYLE);
       if (style != null) {
         ResourceValue st = resourceResolver.findResValue(style, false);
