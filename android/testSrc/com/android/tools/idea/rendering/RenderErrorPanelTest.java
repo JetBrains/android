@@ -52,7 +52,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     RenderErrorPanel panel = new RenderErrorPanel();
     String html = panel.showErrors(render);
     assertEquals(
-      "<HTML><BODY><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
+      "<HTML><BODY><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
       "<B>NOTE: One or more layouts are missing the layout_width or layout_height attributes. These are required in most layouts.</B><BR/>\n" +
       "&lt;LinearLayout> does not set the required layout_width attribute: <BR/>\n" +
       "&nbsp;&nbsp;&nbsp;&nbsp;<A HREF=\"command:0\">Set to wrap_content</A>, <A HREF=\"command:1\">Set to match_parent</A><BR/>\n" +
