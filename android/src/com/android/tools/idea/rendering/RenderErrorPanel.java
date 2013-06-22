@@ -16,8 +16,10 @@
 
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.Density;
+import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.RenderContext;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -55,9 +57,13 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
+import org.jetbrains.android.dom.attrs.AttributeDefinitions;
+import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
+import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.compiler.JpsJavaCompilerOptions;
@@ -722,6 +728,10 @@ public class RenderErrorPanel extends JPanel {
         }
 
         if (tag != null) {
+          if (LayoutLog.TAG_RESOURCES_FORMAT.equals(tag)) {
+            appendFlagValueSuggestions(builder, message);
+          }
+
           int count = logger.getTagCount(tag);
           if (count > 1) {
             builder.add(" (").addHtml(Integer.toString(count)).add(" similar errors not shown)");
@@ -729,6 +739,59 @@ public class RenderErrorPanel extends JPanel {
         }
 
         builder.newline();
+      }
+    }
+  }
+
+  private void appendFlagValueSuggestions(HtmlBuilder builder, RenderProblem message) {
+    Object clientData = message.getClientData();
+    if (!(clientData instanceof String[])) {
+      return;
+    }
+    String[] strings = (String[])clientData;
+    if (strings.length != 2) {
+      return;
+    }
+
+    RenderService renderService = myResult.getRenderService();
+    if (renderService == null) {
+      return;
+    }
+    IAndroidTarget target = renderService.getConfiguration().getTarget();
+    if (target == null) {
+      return;
+    }
+    AndroidPlatform platform = renderService.getPlatform();
+    if (platform == null) {
+      return;
+    }
+    AndroidTargetData targetData = platform.getSdkData().getTargetData(target);
+    AttributeDefinitions definitionLookup = targetData.getAttrDefs(myResult.getFile().getProject());
+    final String attributeName = strings[0];
+    final String currentValue = strings[1];
+    if (definitionLookup == null) {
+      return;
+    }
+    AttributeDefinition definition = definitionLookup.getAttrDefByName(attributeName);
+    if (definition == null) {
+      return;
+    }
+    Set<AttributeFormat> formats = definition.getFormats();
+    if (formats.contains(AttributeFormat.Flag) || formats.contains(AttributeFormat.Enum)) {
+      String[] values = definition.getValues();
+      if (values.length > 0) {
+        builder.newline();
+        builder.addNbsps(4);
+        builder.add("Change ").add(currentValue).add(" to: ");
+        boolean first = true;
+        for (String value : values) {
+          if (first) {
+            first = false;
+          } else {
+            builder.add(", ");
+          }
+          builder.addLink(value, myLinkManager.createReplaceAttributeValueUrl(attributeName, currentValue, value));
+        }
       }
     }
   }
@@ -878,9 +941,8 @@ public class RenderErrorPanel extends JPanel {
   // Code copied from the old RenderUtil
 
   private static void askAndRebuild(Project project) {
-    final int r = Messages.showYesNoDialog(project,
-                   "You have to rebuild project to see the fixed preview. Would you like to do it?", "Rebuild Project",
-                   Messages.getQuestionIcon());
+    final int r = Messages.showYesNoDialog(project, "You have to rebuild project to see the fixed preview. Would you like to do it?",
+                                           "Rebuild Project", Messages.getQuestionIcon());
     if (r == Messages.YES) {
       CompilerManager.getInstance(project).rebuild(null);
     }

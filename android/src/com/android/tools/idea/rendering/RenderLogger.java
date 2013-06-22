@@ -19,8 +19,13 @@ import com.android.ide.common.rendering.api.LayoutLog;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Pair;
+import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.xml.XmlAttribute;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -214,7 +219,10 @@ public class RenderLogger extends LayoutLog {
           addTag(tag);
           RenderProblem.Html problem = RenderProblem.create(WARNING);
           problem.tag(tag);
-          String url = getLinkManager().createEditAttributeUrl(matcher.group(2), matcher.group(1));
+          String attribute = matcher.group(2);
+          String value = matcher.group(1);
+          problem.setClientData(new String[]{attribute, value});
+          String url = getLinkManager().createEditAttributeUrl(attribute, value);
           problem.getHtmlBuilder().add(description).add(" (").addLink("Edit", url).add(")");
           addMessage(problem);
           return;
@@ -227,8 +235,12 @@ public class RenderLogger extends LayoutLog {
           addTag(tag);
           RenderProblem.Html problem = RenderProblem.create(WARNING);
           problem.tag(tag);
-          String url = getLinkManager().createEditAttributeUrl(matcher.group(2), matcher.group(1));
+          String attribute = matcher.group(2);
+          String value = matcher.group(1);
+          problem.setClientData(new String[]{attribute, value});
+          String url = getLinkManager().createEditAttributeUrl(attribute, value);
           problem.getHtmlBuilder().add(description).add(" (").addLink("Edit", url).add(")");
+          problem.setClientData(url);
           addMessage(problem);
           return;
         }
