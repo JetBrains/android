@@ -73,6 +73,7 @@ public class HtmlLinkManager {
   private static final String URL_ASSIGN_FRAGMENT_URL = "assignFragmentUrl:";
   private static final String URL_ASSIGN_LAYOUT_URL = "assignLayoutUrl:";
   private static final String URL_EDIT_ATTRIBUTE = "editAttribute:";
+  static final String URL_ACTION_CLOSE = "action:close";
 
   private SparseArray<Runnable> myLinkRunnables;
   private SparseArray<WriteCommandAction> myLinkCommands;

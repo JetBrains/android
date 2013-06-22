@@ -83,6 +83,7 @@ import static com.android.SdkConstants.*;
 import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_PREFIX;
 import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
 import static com.android.tools.idea.configurations.RenderContext.UsageType.LAYOUT_EDITOR;
+import static com.android.tools.idea.rendering.HtmlLinkManager.URL_ACTION_CLOSE;
 import static com.android.tools.idea.rendering.ResourceHelper.viewNeedsPackage;
 import static com.android.tools.lint.detector.api.LintUtils.editDistance;
 import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
@@ -161,13 +162,17 @@ public class RenderErrorPanel extends JPanel {
             return;
           }
 
-          String ref = e.getDescription();
+          String url = e.getDescription();
+          if (url.equals(URL_ACTION_CLOSE)) {
+            close();
+            return;
+          }
           Module module = myResult.getModule();
           PsiFile file = myResult.getFile();
           DataContext dataContext = DataManager.getInstance().getDataContext(RenderErrorPanel.this);
           assert dataContext != null;
 
-          myLinkManager.handleUrl(ref, module, file, dataContext, myResult);
+          myLinkManager.handleUrl(url, module, file, dataContext, myResult);
         }
       }
     };
@@ -178,6 +183,10 @@ public class RenderErrorPanel extends JPanel {
     setupStyle();
 
     add(myScrollPane, BorderLayout.CENTER);
+  }
+
+  private void close() {
+    this.setVisible(false);
   }
 
   private void setupStyle() {
@@ -223,6 +232,15 @@ public class RenderErrorPanel extends JPanel {
     assert logger.hasProblems();
 
     HtmlBuilder builder = new HtmlBuilder(new StringBuilder(300));
+    builder.addHtml("<HTML><BODY>");
+
+    // Construct close button. Sadly <img align="right"> doesn't work in JEditorPanes; would
+    // have looked a lot nicer with the image flushed to the right!
+    builder.addHtml("<A HREF=\"");
+    builder.addHtml(URL_ACTION_CLOSE);
+    builder.addHtml("\">");
+    builder.addCloseIcon();
+    builder.addHtml("</A>");
     builder.addHeading("Rendering Problems").newline();
 
     reportMissingStyles(logger, builder);
@@ -240,7 +258,9 @@ public class RenderErrorPanel extends JPanel {
       reportRenderingFidelityProblems(logger, builder, renderService);
     }
 
-    return "<HTML><BODY>" + builder.getHtml() + "</BODY></HTML>";
+    builder.addHtml("</BODY></HTML>");
+
+    return builder.getHtml();
   }
 
   private void reportMissingClasses(@NotNull RenderLogger logger, @NotNull HtmlBuilder builder, @NotNull RenderService renderService) {
