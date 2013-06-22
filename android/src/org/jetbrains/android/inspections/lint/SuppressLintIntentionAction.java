@@ -67,9 +67,10 @@ public class SuppressLintIntentionAction implements IntentionAction, Iconable {
       return "";
     } else if (file instanceof XmlFile) {
       return AndroidBundle.message("android.lint.fix.suppress.lint.api.attr", id);
-    } else {
-      assert file instanceof PsiJavaFile : file;
+    } else if (file instanceof PsiJavaFile) {
       return AndroidBundle.message("android.lint.fix.suppress.lint.api.annotation", id);
+    } else {
+      return "";
     }
   }
 
