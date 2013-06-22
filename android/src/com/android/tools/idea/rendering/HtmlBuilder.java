@@ -240,13 +240,18 @@ public class HtmlBuilder {
         String src = resource.toURI().toURL().toExternalForm();
         myStringBuilder.append("<img src='");
         myStringBuilder.append(src);
-        myStringBuilder.append("' width=16 height=16></img>");
+        myStringBuilder.append("' width=16 height=16 border=0 />");
       }
     } catch (Throwable t) {
       // pass
     }
   }
 
+  public HtmlBuilder addCloseIcon() {
+    addIcon("/actions/closeNew.png");
+
+    return this;
+  }
   public HtmlBuilder addTipIcon() {
     addIcon("/actions/createFromUsage.png");
 
