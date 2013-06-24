@@ -16,9 +16,11 @@
 package com.android.tools.idea.gradle.util;
 
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Properties;
 
 import static org.easymock.EasyMock.*;
@@ -36,14 +38,7 @@ public class LocalPropertiesTest extends IdeaTestCase {
   }
 
   public void testCreateAndReadFile() throws Exception {
-    String androidSdkPath = "/home/sdk";
-
-    expect(androidSdk.getHomePath()).andReturn(androidSdkPath);
-    replay(androidSdk);
-
-    LocalProperties.createFile(getProject(), androidSdk);
-
-    verify(androidSdk);
+    String androidSdkPath = createLocalPropertiesFile();
 
     File localPropertiesFile = new File(myProject.getBasePath(), "local.properties");
     assertTrue(localPropertiesFile.isFile());
@@ -52,6 +47,27 @@ public class LocalPropertiesTest extends IdeaTestCase {
     assertNotNull(properties);
 
     assertEquals(androidSdkPath, properties.getProperty("sdk.dir"));
-    assertEquals(androidSdkPath, LocalProperties.getAndroidSdkPath(myProject));
+    assertEquals(androidSdkPath, new LocalProperties(myProject).getAndroidSdkPath());
+  }
+
+  public void testSetAndroidSdkPath() throws Exception {
+    createLocalPropertiesFile();
+    LocalProperties properties = new LocalProperties(myProject);
+
+    String androidSdkPath = "/home/sdk2";
+    properties.setAndroidSdkPath(androidSdkPath);
+    assertEquals(androidSdkPath, properties.getAndroidSdkPath());
+  }
+
+  private String createLocalPropertiesFile() throws IOException {
+    String androidSdkPath = "/home/sdk";
+
+    expect(androidSdk.getHomePath()).andReturn(androidSdkPath);
+    replay(androidSdk);
+
+    LocalProperties.createFile(getProject(), androidSdk);
+
+    verify(androidSdk);
+    return androidSdkPath;
   }
 }

@@ -43,6 +43,7 @@ public class SelectSdkDialog extends DialogWrapper {
 
   /**
    * Displays SDK selection dialog.
+   *
    * @param jdkPath path to JDK if known, null otherwise
    * @param sdkPath path to Android SDK if known, null otherwise
    */
@@ -55,11 +56,13 @@ public class SelectSdkDialog extends DialogWrapper {
 
     if (jdkPath == null && sdkPath == null) {
       myDescriptionLabel.setText(AndroidBundle.message("android.startup.missing.both"));
-    } else if (jdkPath == null) {
+    }
+    else if (jdkPath == null) {
       myDescriptionLabel.setText(AndroidBundle.message("android.startup.missing.jdk"));
       mySdkTextFieldWithButton.setVisible(false);
       mySelectSdkLabel.setVisible(false);
-    } else {
+    }
+    else {
       myDescriptionLabel.setText(AndroidBundle.message("android.startup.missing.sdk"));
       myJdkTextFieldWithButton.setVisible(false);
       mySelectJdkLabel.setVisible(false);
@@ -77,13 +80,12 @@ public class SelectSdkDialog extends DialogWrapper {
     }
 
     BrowseFolderListener listener =
-      new BrowseFolderListener("Select JDK Home", myJdkTextFieldWithButton,
-                               JavaSdk.getInstance().getHomeChooserDescriptor(), jdkPath);
+      new BrowseFolderListener("Select JDK Home", myJdkTextFieldWithButton, JavaSdk.getInstance().getHomeChooserDescriptor(), jdkPath);
     myJdkTextFieldWithButton.addBrowseFolderListener(null, listener);
 
-    listener = new BrowseFolderListener("Select Android SDK Home", mySdkTextFieldWithButton,
-                                        AndroidSdkType.getInstance().getHomeChooserDescriptor(),
-                                        sdkPath);
+    listener =
+      new BrowseFolderListener("Select Android SDK Home", mySdkTextFieldWithButton, AndroidSdkType.getInstance().getHomeChooserDescriptor(),
+                               sdkPath);
     mySdkTextFieldWithButton.addBrowseFolderListener(null, listener);
   }
 
@@ -98,14 +100,18 @@ public class SelectSdkDialog extends DialogWrapper {
   protected ValidationInfo doValidate() {
     String jdkHome = myJdkTextFieldWithButton.getText().trim();
     if (jdkHome.isEmpty() || !JavaSdk.getInstance().isValidSdkHome(jdkHome)) {
-      return new ValidationInfo("Invalid JDK", myJdkTextFieldWithButton.getTextField());
+      return new ValidationInfo("Invalid JDK path.", myJdkTextFieldWithButton.getTextField());
     }
 
     String androidHome = mySdkTextFieldWithButton.getText().trim();
     if (androidHome.isEmpty() || !AndroidSdkType.getInstance().isValidSdkHome(androidHome)) {
-      return new ValidationInfo("Invalid Android SDK", mySdkTextFieldWithButton.getTextField());
+      return new ValidationInfo("Invalid Android SDK path.", mySdkTextFieldWithButton.getTextField());
     }
-
+    VersionCheck.VersionCheckResult result = VersionCheck.checkVersion(androidHome);
+    if (!result.isCompatibleVersion()) {
+      String msg = AndroidBundle.message("android.version.check.too.old", VersionCheck.MIN_TOOLS_REV, result.getRevision());
+      return new ValidationInfo(msg, mySdkTextFieldWithButton.getTextField());
+    }
     return null;
   }
 
@@ -145,9 +151,9 @@ public class SelectSdkDialog extends DialogWrapper {
         return super.getInitialFile();
       }
 
-      return myDefaultPath == null ?
-             LocalFileSystem.getInstance().findFileByPath(PathManager.getHomePath()) :
-             LocalFileSystem.getInstance().findFileByPath(myDefaultPath);
+      return myDefaultPath == null
+             ? LocalFileSystem.getInstance().findFileByPath(PathManager.getHomePath())
+             : LocalFileSystem.getInstance().findFileByPath(myDefaultPath);
     }
   }
 }
