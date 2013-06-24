@@ -829,7 +829,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     profile.setGeneratedSourcesDirectoryName("gen", false);
     final BuildResult result = makeAll();
     result.assertFailed();
-    final List<BuildMessage> warnMessages = result.getWarnMessages();
+    final List<BuildMessage> warnMessages = result.getMessages(BuildMessage.Kind.WARNING);
     boolean containsForciblyExcludedRootWarn = false;
 
     for (BuildMessage message : warnMessages) {
