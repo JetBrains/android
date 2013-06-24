@@ -115,7 +115,24 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
       return ExitCode.NOTHING_DONE;
     }
 
-    String[] buildTasks = getBuildTasks(context, chunk);
+    boolean isRebuild = JavaBuilderUtil.isForcedRecompilationAllJavaModules(context);
+
+    if (!isRebuild) {
+      try {
+        boolean hasChanges = dirtyFilesHolder.hasDirtyFiles() || dirtyFilesHolder.hasRemovedFiles();
+        if (!hasChanges) {
+          String msg = String.format("No changes found while building '%1$s'. Not calling Gradle.", chunk.getName());
+          LOG.info(msg);
+          return ExitCode.NOTHING_DONE;
+        }
+      }
+      catch (IOException e) {
+        String msg = String.format("Failed to determine changes in '%1$s'. Building anyway.", chunk.getName());
+        LOG.error(msg, e);
+      }
+    }
+
+    String[] buildTasks = getBuildTasks(chunk, isRebuild);
     if (buildTasks.length == 0) {
       String format = "No build tasks found for project '%1$s'. Nothing done.";
       LOG.info(String.format(format, getProjectName(context)));
@@ -144,9 +161,8 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
   }
 
   @NotNull
-  private static String[] getBuildTasks(@NotNull CompileContext context, @NotNull ModuleChunk chunk) {
+  private static String[] getBuildTasks(@NotNull ModuleChunk chunk, boolean isRebuild) {
     List<String> tasks = Lists.newArrayList();
-    boolean isRebuild = JavaBuilderUtil.isForcedRecompilationAllJavaModules(context);
     for (JpsModule module : chunk.getModules()) {
       populateBuildTasks(module, tasks, isRebuild);
     }
