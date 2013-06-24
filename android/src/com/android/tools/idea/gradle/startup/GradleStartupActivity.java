@@ -17,19 +17,39 @@ package com.android.tools.idea.gradle.startup;
 
 import com.android.tools.idea.gradle.GradleImportNotificationListener;
 import com.android.tools.idea.gradle.util.Projects;
+import com.intellij.compiler.CompilerWorkspaceConfiguration;
+import com.intellij.compiler.options.ExternalBuildOptionListener;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
+import com.intellij.util.messages.MessageBus;
 
 /**
  * Sets up any Gradle-related state when the IDE starts.
  */
 public class GradleStartupActivity implements StartupActivity, DumbAware {
+  private static final Logger LOG = Logger.getInstance(GradleStartupActivity.class);
+
   @Override
   public void runActivity(Project project) {
-    if (project != null && Projects.isGradleProject(project)) {
-      GradleImportNotificationListener.attachToManager();
-      Projects.setBuildAction(project, Projects.BuildAction.COMPILE);
+    if (project != null) {
+      if (Projects.isGradleProject(project)) {
+        GradleImportNotificationListener.attachToManager();
+        Projects.setBuildAction(project, Projects.BuildAction.COMPILE);
+      }
+      else {
+        CompilerWorkspaceConfiguration workspaceConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
+        boolean wasUsingExternalMake = workspaceConfiguration.USE_COMPILE_SERVER;
+        if (wasUsingExternalMake) {
+          String format = "Disabled 'External Build' for non-Gradle Android project '%1$s' until issue '%2$s' is fixed.";
+          String msg = String.format(format, project.getName(), "https://code.google.com/p/android/issues/detail?id=56843");
+          LOG.info(msg);
+          workspaceConfiguration.USE_COMPILE_SERVER = false;
+          MessageBus messageBus = project.getMessageBus();
+          messageBus.syncPublisher(ExternalBuildOptionListener.TOPIC).externalBuildOptionChanged(workspaceConfiguration.USE_COMPILE_SERVER);
+        }
+      }
     }
   }
 }
