@@ -175,8 +175,9 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
       assembleTaskName = properties.ASSEMBLE_TASK_NAME;
     }
     if (Strings.isNullOrEmpty(assembleTaskName)) {
-      if (GRADLE_SEPARATOR.equals(gradleProjectPath)) {
-        // This module is in reality the root project directory. If there is no task, don't assume there is an "assemble" one.
+      if (GRADLE_SEPARATOR.equals(gradleProjectPath) && androidFacet == null) {
+        // If there is no task and no Android facet, this module is in reality a root project directory that does not map to a Gradle
+        // project. Do not build it with Gradle.
         return;
       }
       assembleTaskName = DEFAULT_ASSEMBLE_TASK_NAME;
