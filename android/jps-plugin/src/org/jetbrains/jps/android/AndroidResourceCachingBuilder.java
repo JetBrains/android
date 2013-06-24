@@ -1,6 +1,7 @@
 package org.jetbrains.jps.android;
 
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.jps.AndroidTargetBuilder;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.Processor;
 import org.jetbrains.android.compiler.tools.AndroidApt;
@@ -15,7 +16,6 @@ import org.jetbrains.jps.builders.DirtyFilesHolder;
 import org.jetbrains.jps.incremental.CompileContext;
 import org.jetbrains.jps.incremental.ProjectBuildException;
 import org.jetbrains.jps.incremental.StopBuildException;
-import org.jetbrains.jps.incremental.TargetBuilder;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 import org.jetbrains.jps.model.module.JpsModule;
@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidResourceCachingBuilder extends TargetBuilder<BuildRootDescriptor, AndroidResourceCachingBuildTarget> {
+public class AndroidResourceCachingBuilder extends AndroidTargetBuilder<BuildRootDescriptor, AndroidResourceCachingBuildTarget> {
   @NonNls private static final String BUILDER_NAME = "Android Resource Caching";
 
   protected AndroidResourceCachingBuilder() {
@@ -38,13 +38,11 @@ public class AndroidResourceCachingBuilder extends TargetBuilder<BuildRootDescri
   }
 
   @Override
-  public void build(@NotNull AndroidResourceCachingBuildTarget target,
-                    @NotNull DirtyFilesHolder<BuildRootDescriptor, AndroidResourceCachingBuildTarget> holder,
-                    @NotNull BuildOutputConsumer outputConsumer,
-                    @NotNull CompileContext context) throws ProjectBuildException, IOException {
-    if (!AndroidSourceGeneratingBuilder.IS_ENABLED.get(context, true) ||
-        AndroidJpsUtil.isLightBuild(context) ||
-        (!holder.hasDirtyFiles() && !holder.hasRemovedFiles())) {
+  protected void buildTarget(@NotNull AndroidResourceCachingBuildTarget target,
+                             @NotNull DirtyFilesHolder<BuildRootDescriptor, AndroidResourceCachingBuildTarget> holder,
+                             @NotNull BuildOutputConsumer outputConsumer,
+                             @NotNull CompileContext context) throws ProjectBuildException, IOException {
+    if (AndroidJpsUtil.isLightBuild(context) || (!holder.hasDirtyFiles() && !holder.hasRemovedFiles())) {
       return;
     }
 

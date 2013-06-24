@@ -9,6 +9,7 @@ import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
+import com.android.tools.idea.jps.AndroidTargetBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.util.AndroidBuildTestingManager;
@@ -34,7 +35,7 @@ import java.util.List;
  * @author Eugene.Kudelevsky
  */
 public class AndroidManifestMergingBuilder
-  extends TargetBuilder<AndroidManifestMergingTarget.MyRootDescriptor, AndroidManifestMergingTarget> {
+  extends AndroidTargetBuilder<AndroidManifestMergingTarget.MyRootDescriptor, AndroidManifestMergingTarget> {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.jps.android.AndroidManifestMergingBuilder");
 
   private static final String BUILDER_NAME = "Android Manifest Merger";
@@ -44,12 +45,11 @@ public class AndroidManifestMergingBuilder
   }
 
   @Override
-  public void build(@NotNull AndroidManifestMergingTarget target,
-                    @NotNull DirtyFilesHolder<AndroidManifestMergingTarget.MyRootDescriptor, AndroidManifestMergingTarget> holder,
-                    @NotNull BuildOutputConsumer outputConsumer,
-                    @NotNull CompileContext context) throws ProjectBuildException, IOException {
-    if (!AndroidSourceGeneratingBuilder.IS_ENABLED.get(context, true) ||
-        !holder.hasDirtyFiles() && !holder.hasRemovedFiles()) {
+  protected void buildTarget(@NotNull AndroidManifestMergingTarget target,
+                             @NotNull DirtyFilesHolder<AndroidManifestMergingTarget.MyRootDescriptor, AndroidManifestMergingTarget> holder,
+                             @NotNull BuildOutputConsumer outputConsumer,
+                             @NotNull CompileContext context) throws ProjectBuildException, IOException {
+    if (!holder.hasDirtyFiles() && !holder.hasRemovedFiles()) {
       return;
     }
 
