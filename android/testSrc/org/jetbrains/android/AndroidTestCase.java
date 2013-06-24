@@ -52,7 +52,8 @@ import java.util.List;
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 public abstract class AndroidTestCase extends UsefulTestCase {
   /** Environment variable or system property containing the full path to an SDK install */
-  private static final String SDK_PATH_PROPERTY = "ADT_TEST_SDK_PATH";
+  public static final String SDK_PATH_PROPERTY = "ADT_TEST_SDK_PATH";
+
   /** Environment variable or system property pointing to the directory name of the platform inside $sdk/platforms, e.g. "android-17" */
   private static final String PLATFORM_DIR_PROPERTY = "ADT_TEST_PLATFORM";
 
