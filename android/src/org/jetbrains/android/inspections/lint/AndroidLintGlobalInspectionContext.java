@@ -8,7 +8,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInspection.GlobalInspectionContext;
-import com.intellij.codeInspection.InspectionProfileEntry;
+import com.intellij.codeInspection.ex.InspectionToolWrapper;
 import com.intellij.codeInspection.ex.Tools;
 import com.intellij.codeInspection.lang.GlobalInspectionContextExtension;
 import com.intellij.facet.ProjectFacetManager;
@@ -165,7 +165,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
   }
 
   @Override
-  public void performPostRunActivities(@NotNull List<InspectionProfileEntry> inspections, @NotNull final GlobalInspectionContext context) {
+  public void performPostRunActivities(@NotNull List<InspectionToolWrapper> inspections, @NotNull final GlobalInspectionContext context) {
   }
 
   @Override
