@@ -1,5 +1,6 @@
 package org.jetbrains.jps.android;
 
+import com.android.tools.idea.jps.AndroidTargetBuilder;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.util.AndroidBuildTestingManager;
@@ -28,7 +29,7 @@ import java.util.Set;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidLibraryPackagingBuilder extends TargetBuilder<BuildRootDescriptor, AndroidLibraryPackagingTarget> {
+public class AndroidLibraryPackagingBuilder extends AndroidTargetBuilder<BuildRootDescriptor, AndroidLibraryPackagingTarget> {
   @NonNls private static final String BUILDER_NAME = "Android Library Packaging";
 
   protected AndroidLibraryPackagingBuilder() {
@@ -36,13 +37,10 @@ public class AndroidLibraryPackagingBuilder extends TargetBuilder<BuildRootDescr
   }
 
   @Override
-  public void build(@NotNull AndroidLibraryPackagingTarget target,
-                    @NotNull DirtyFilesHolder<BuildRootDescriptor, AndroidLibraryPackagingTarget> holder,
-                    @NotNull BuildOutputConsumer outputConsumer,
-                    @NotNull CompileContext context) throws ProjectBuildException, IOException {
-    if (!AndroidSourceGeneratingBuilder.IS_ENABLED.get(context, true)) {
-      return;
-    }
+  protected void buildTarget(@NotNull AndroidLibraryPackagingTarget target,
+                             @NotNull DirtyFilesHolder<BuildRootDescriptor, AndroidLibraryPackagingTarget> holder,
+                             @NotNull BuildOutputConsumer outputConsumer,
+                             @NotNull CompileContext context) throws ProjectBuildException, IOException {
     if (!holder.hasDirtyFiles() && !holder.hasRemovedFiles()) {
       return;
     }

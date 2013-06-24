@@ -16,6 +16,7 @@
 package org.jetbrains.jps.android;
 
 import com.android.sdklib.BuildToolInfo;
+import com.android.tools.idea.jps.AndroidTargetBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
@@ -59,7 +60,7 @@ import java.util.*;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, AndroidDexBuildTarget> {
+public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor, AndroidDexBuildTarget> {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.jps.android.AndroidDexBuilder");
   @NonNls private static final String DEX_BUILDER_NAME = "Android Dex";
   @NonNls private static final String PRO_GUARD_BUILDER_NAME = "ProGuard";
@@ -69,13 +70,10 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
   }
 
   @Override
-  public void build(@NotNull final AndroidDexBuildTarget buildTarget,
-                    @NotNull DirtyFilesHolder<BuildRootDescriptor, AndroidDexBuildTarget> holder,
-                    @NotNull BuildOutputConsumer outputConsumer,
-                    @NotNull CompileContext context) throws ProjectBuildException, IOException {
-    if (!AndroidSourceGeneratingBuilder.IS_ENABLED.get(context, true)) {
-      return;
-    }
+  protected void buildTarget(@NotNull final AndroidDexBuildTarget buildTarget,
+                             @NotNull DirtyFilesHolder<BuildRootDescriptor, AndroidDexBuildTarget> holder,
+                             @NotNull BuildOutputConsumer outputConsumer,
+                             @NotNull CompileContext context) throws ProjectBuildException, IOException {
     assert !AndroidJpsUtil.isLightBuild(context);
 
     try {
@@ -348,6 +346,7 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
     return success;
   }
 
+  @Nullable
   private static Pair<Boolean, AndroidProGuardStateStorage.MyState>
   runProguardIfNecessary(@NotNull JpsAndroidModuleExtension extension,
                          @NotNull AndroidDexBuildTarget target,
