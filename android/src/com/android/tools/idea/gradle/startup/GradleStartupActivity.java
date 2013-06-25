@@ -24,7 +24,6 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.util.messages.MessageBus;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Sets up any Gradle-related state when the IDE starts.
@@ -37,16 +36,8 @@ public class GradleStartupActivity implements StartupActivity, DumbAware {
     if (project != null) {
       if (Projects.isGradleProject(project)) {
         GradleImportNotificationListener.attachToManager();
-        Projects.setBuildAction(project, Projects.BuildAction.COMPILE);
-        CompilerWorkspaceConfiguration workspaceConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
-        boolean wasUsingExternalMake = workspaceConfiguration.USE_COMPILE_SERVER;
-        if (!wasUsingExternalMake) {
-          String format = "Enabled 'External Build' for Android project '%1$s'. Otherwise, the project will not be built with Gradle";
-          String msg = String.format(format, project.getName());
-          LOG.info(msg);
-          workspaceConfiguration.USE_COMPILE_SERVER = true;
-          notifyBuildOptionChanged(project, workspaceConfiguration);
-        }
+        Projects.setProjectBuildAction(project, Projects.BuildAction.COMPILE);
+        Projects.ensureExternalBuildIsEnabledForGradleProject(project);
       }
       else {
         CompilerWorkspaceConfiguration workspaceConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
@@ -56,14 +47,10 @@ public class GradleStartupActivity implements StartupActivity, DumbAware {
           String msg = String.format(format, project.getName(), "https://code.google.com/p/android/issues/detail?id=56843");
           LOG.info(msg);
           workspaceConfiguration.USE_COMPILE_SERVER = false;
-          notifyBuildOptionChanged(project, workspaceConfiguration);
+          MessageBus messageBus = project.getMessageBus();
+          messageBus.syncPublisher(ExternalBuildOptionListener.TOPIC).externalBuildOptionChanged(workspaceConfiguration.USE_COMPILE_SERVER);
         }
       }
     }
-  }
-
-  private static void notifyBuildOptionChanged(@NotNull Project project, @NotNull CompilerWorkspaceConfiguration workspaceConfiguration) {
-    MessageBus messageBus = project.getMessageBus();
-    messageBus.syncPublisher(ExternalBuildOptionListener.TOPIC).externalBuildOptionChanged(workspaceConfiguration.USE_COMPILE_SERVER);
   }
 }
