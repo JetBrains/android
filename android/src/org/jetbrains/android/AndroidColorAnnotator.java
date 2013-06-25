@@ -16,6 +16,7 @@
 
 package org.jetbrains.android;
 
+import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
@@ -46,6 +47,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.psi.xml.XmlTagValue;
 import com.intellij.ui.ColorChooser;
 import com.intellij.util.ui.ColorIcon;
 import com.intellij.util.ui.EmptyIcon;
@@ -53,7 +55,6 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -73,17 +74,23 @@ public class AndroidColorAnnotator implements Annotator {
   private static final int ICON_SIZE = 8;
   private static final String COLOR_PREFIX = "@color/";
   private static final String ANDROID_COLOR_PREFIX = "@android:color/";
+  private static final String DRAWABLE_PREFIX = "@drawable/";
 
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
     if (element instanceof XmlTag) {
       XmlTag tag = (XmlTag)element;
-      if ((ResourceType.COLOR.getName().equals(tag.getName()) || ResourceType.DRAWABLE.getName().equals(tag.getName()))) {
+      String tagName = tag.getName();
+      if ((ResourceType.COLOR.getName().equals(tagName) || ResourceType.DRAWABLE.getName().equals(tagName))) {
         DomElement domElement = DomManager.getDomManager(element.getProject()).getDomElement(tag);
         if (domElement instanceof ResourceElement) {
           String value = tag.getValue().getText().trim();
           annotateXml(element, holder, value);
         }
+      } else if (SdkConstants.TAG_ITEM.equals(tagName)) {
+        XmlTagValue value = tag.getValue();
+        String text = value.getText();
+        annotateXml(element, holder, text);
       }
     } else if (element instanceof XmlAttributeValue) {
       XmlAttributeValue v = (XmlAttributeValue)element;
@@ -121,6 +128,10 @@ public class AndroidColorAnnotator implements Annotator {
       annotateResourceReference(ResourceType.COLOR, holder, element, value.substring(COLOR_PREFIX.length()), false);
     } else if (value.startsWith(ANDROID_COLOR_PREFIX)) {
       annotateResourceReference(ResourceType.COLOR, holder, element, value.substring(ANDROID_COLOR_PREFIX.length()), true);
+    } else if (value.startsWith(DRAWABLE_PREFIX)) {
+      annotateResourceReference(ResourceType.DRAWABLE, holder, element, value.substring(DRAWABLE_PREFIX.length()), false);
+    } else if (value.startsWith(ANDROID_DRAWABLE_PREFIX)) {
+      annotateResourceReference(ResourceType.DRAWABLE, holder, element, value.substring(ANDROID_DRAWABLE_PREFIX.length()), false);
     }
   }
 
