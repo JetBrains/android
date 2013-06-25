@@ -21,6 +21,7 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.execution.*;
 import com.intellij.execution.configurations.*;
@@ -38,6 +39,7 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Pair;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
@@ -80,6 +82,25 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
 
   public AndroidTestRunConfiguration(final String name, final Project project, final ConfigurationFactory factory) {
     super(name, project, factory);
+  }
+
+  @Override
+  protected Pair<Boolean, String> supportsRunningLibraryProjects(AndroidFacet facet) {
+    if (!facet.isGradleProject()) {
+      // Non Gradle projects always require an application
+      return new Pair<Boolean, String>(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
+    }
+
+    final IdeaAndroidProject project = facet.getIdeaAndroidProject();
+    if (project == null) {
+      return new Pair<Boolean, String>(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
+    }
+
+    // Gradle only supports testing against a single build type (which could be anything, but is "debug" build type by default)
+    // Currently, the only information the model exports that we can use to detect whether the current build type
+    // is testable is by looking at the test task name and checking whether it is null.
+    String testTask = project.getSelectedVariant().getAssembleTestTaskName();
+    return new Pair<Boolean, String>(testTask != null, AndroidBundle.message("android.cannot.run.library.project.in.this.buildtype"));
   }
 
   @Override
@@ -176,8 +197,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
 
     final AndroidFacet facet = state.getFacet();
     final AndroidFacetConfiguration configuration = facet.getConfiguration();
-    
-    if (!configuration.getState().PACK_TEST_CODE) {
+
+    if (!facet.isGradleProject() && !configuration.getState().PACK_TEST_CODE) {
       final Module module = facet.getModule();
       final int count = getTestSourceRootCount(module);
       
@@ -305,7 +326,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
     public LaunchResult launch(@NotNull AndroidRunningState state, @NotNull IDevice device)
       throws IOException, AdbCommandRejectedException, TimeoutException {
       state.getProcessHandler().notifyTextAvailable("Running tests\n", ProcessOutputTypes.STDOUT);
-      RemoteAndroidTestRunner runner = new RemoteAndroidTestRunner(state.getPackageName(), myInstrumentationTestRunner, device);
+      RemoteAndroidTestRunner runner = new RemoteAndroidTestRunner(state.getTestPackageName(), myInstrumentationTestRunner, device);
       switch (TESTING_TYPE) {
         case TEST_ALL_IN_PACKAGE:
           runner.setTestPackageName(PACKAGE_NAME);
