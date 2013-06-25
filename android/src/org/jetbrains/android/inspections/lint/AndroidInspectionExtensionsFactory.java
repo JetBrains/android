@@ -8,6 +8,7 @@ import com.intellij.codeInspection.lang.RefManagerExtension;
 import com.intellij.codeInspection.reference.RefManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -42,7 +43,7 @@ public class AndroidInspectionExtensionsFactory extends InspectionExtensionsFact
   }
 
   @Override
-  public boolean isProjectConfiguredToRunInspections(Project project, boolean online) {
+  public boolean isProjectConfiguredToRunInspections(@NotNull Project project, boolean online) {
     return true;
   }
 }
