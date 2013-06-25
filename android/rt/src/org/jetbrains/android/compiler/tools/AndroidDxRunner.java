@@ -125,7 +125,7 @@ public class AndroidDxRunner {
       Object args = myConstructor.newInstance();
       myOutNameField.set(args, outFilePath);
       myFileNamesField.set(args, fileNames);
-      myJarOutputField.set(args, FileUtilRt.extensionEquals(new File(outFilePath).getName(), ".jar"));
+      myJarOutputField.set(args, FileUtilRt.extensionEquals(new File(outFilePath).getName(), "jar"));
       myVerboseField.set(args, false);
       myStrictNameCheckField.set(args, false);
 
