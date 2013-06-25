@@ -61,6 +61,12 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
         Map<String, IdeaGradleProject> gradleProjectsByName = indexByModuleName(toImport);
         for (Module module : modules) {
           IdeaGradleProject gradleProject = gradleProjectsByName.get(module.getName());
+          if (gradleProject == null) {
+            // This happens when there is an orphan IDEA module that does not map to a Gradle project. One way for this to happen is when
+            // opening a project created in another machine, and Gradle import assigns a different name to a module. Then, user decides not
+            // to delete the orphan module when Studio prompts to do so.
+            continue;
+          }
           customizeModule(module, gradleProject);
         }
       }
@@ -69,12 +75,12 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
 
   @NotNull
   private static Map<String, IdeaGradleProject> indexByModuleName(@NotNull Collection<DataNode<IdeaGradleProject>> dataNodes) {
-    Map<String, IdeaGradleProject> index = Maps.newHashMap();
+    Map<String, IdeaGradleProject> gradleProjectsByModuleName = Maps.newHashMap();
     for (DataNode<IdeaGradleProject> d : dataNodes) {
       IdeaGradleProject gradleProject = d.getData();
-      index.put(gradleProject.getModuleName(), gradleProject);
+      gradleProjectsByModuleName.put(gradleProject.getModuleName(), gradleProject);
     }
-    return index;
+    return gradleProjectsByModuleName;
   }
 
   private static void customizeModule(@NotNull Module module, @NotNull IdeaGradleProject gradleProject) {
