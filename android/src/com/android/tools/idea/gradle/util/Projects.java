@@ -16,17 +16,21 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.intellij.compiler.CompilerWorkspaceConfiguration;
+import com.intellij.compiler.options.ExternalBuildOptionListener;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileStatusNotification;
 import com.intellij.openapi.compiler.CompilerManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.messages.MessageBus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,6 +39,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class Projects {
   private static final Key<BuildAction> PROJECT_BUILD_ACTION_KEY = Key.create("android.gradle.project.build.action");
+  private static final Logger LOG = Logger.getInstance(Projects.class);
 
   private Projects() {
   }
@@ -105,16 +110,37 @@ public final class Projects {
     return isGradleProject ? project : null;
   }
 
-  public static void removeBuildAction(@NotNull Project project) {
-    setBuildAction(project, null);
+  /**
+   * Ensures that "External Build" is enabled for the given Gradle-based project. External build is the type of build that delegates project
+   * building to Gradle.
+   *
+   * @param project the given project. This method does not do anything if the given project is not a Gradle-based project.
+   */
+  public static void ensureExternalBuildIsEnabledForGradleProject(@NotNull Project project) {
+    if (isGradleProject(project)) {
+      CompilerWorkspaceConfiguration workspaceConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
+      boolean wasUsingExternalMake = workspaceConfiguration.USE_COMPILE_SERVER;
+      if (!wasUsingExternalMake) {
+        String format = "Enabled 'External Build' for Android project '%1$s'. Otherwise, the project will not be built with Gradle";
+        String msg = String.format(format, project.getName());
+        LOG.info(msg);
+        workspaceConfiguration.USE_COMPILE_SERVER = true;
+        MessageBus messageBus = project.getMessageBus();
+        messageBus.syncPublisher(ExternalBuildOptionListener.TOPIC).externalBuildOptionChanged(workspaceConfiguration.USE_COMPILE_SERVER);
+      }
+    }
   }
 
-  public static void setBuildAction(@NotNull Project project, @Nullable BuildAction action) {
+  public static void removeBuildActionFrom(@NotNull Project project) {
+    setProjectBuildAction(project, null);
+  }
+
+  public static void setProjectBuildAction(@NotNull Project project, @Nullable BuildAction action) {
     project.putUserData(PROJECT_BUILD_ACTION_KEY, action);
   }
 
   @Nullable
-  public static BuildAction getBuildAction(@NotNull Project project) {
+  public static BuildAction getBuildActionFrom(@NotNull Project project) {
     return project.getUserData(PROJECT_BUILD_ACTION_KEY);
   }
 

@@ -211,7 +211,7 @@ public class GradleProjectImporter {
   private void doImport(@NotNull final Project project,
                         @NotNull final String projectFilePath,
                         @Nullable final Callback callback) throws ConfigurationException {
-    Projects.setBuildAction(project, Projects.BuildAction.REBUILD);
+    Projects.setProjectBuildAction(project, Projects.BuildAction.REBUILD);
 
     final Ref<ConfigurationException> errorRef = new Ref<ConfigurationException>();
 
