@@ -26,6 +26,7 @@ import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.SystemProperties;
 import org.gradle.tooling.BuildException;
 import org.gradle.tooling.BuildLauncher;
@@ -116,6 +117,7 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
     }
 
     boolean isRebuild = JavaBuilderUtil.isForcedRecompilationAllJavaModules(context);
+    boolean buildTests = AndroidJpsUtil.isInstrumentationTestContext(context);
 
     if (!isRebuild) {
       try {
@@ -132,7 +134,7 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
       }
     }
 
-    String[] buildTasks = getBuildTasks(chunk, isRebuild);
+    String[] buildTasks = getBuildTasks(chunk, isRebuild, buildTests);
     if (buildTasks.length == 0) {
       String format = "No build tasks found for project '%1$s'. Nothing done.";
       LOG.info(String.format(format, getProjectName(context)));
@@ -161,15 +163,15 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
   }
 
   @NotNull
-  private static String[] getBuildTasks(@NotNull ModuleChunk chunk, boolean isRebuild) {
+  private static String[] getBuildTasks(@NotNull ModuleChunk chunk, boolean isRebuild, boolean buildTests) {
     List<String> tasks = Lists.newArrayList();
     for (JpsModule module : chunk.getModules()) {
-      populateBuildTasks(module, tasks, isRebuild);
+      populateBuildTasks(module, tasks, isRebuild, buildTests);
     }
     return tasks.toArray(new String[tasks.size()]);
   }
 
-  private static void populateBuildTasks(@NotNull JpsModule module, @NotNull List<String> tasks, boolean isRebuild) {
+  private static void populateBuildTasks(@NotNull JpsModule module, @NotNull List<String> tasks, boolean isRebuild, boolean buildTests) {
     JpsAndroidGradleModuleExtension androidGradleFacet = AndroidGradleJps.getExtension(module);
     if (androidGradleFacet == null) {
       return;
@@ -203,6 +205,13 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
     }
     assert assembleTaskName != null;
     tasks.add(createBuildTask(gradleProjectPath, assembleTaskName));
+
+    if (buildTests && androidFacet != null) {
+      JpsAndroidModuleProperties properties = androidFacet.getProperties();
+      if (StringUtil.isNotEmpty(properties.ASSEMBLE_TEST_TASK_NAME)) {
+        tasks.add(createBuildTask(gradleProjectPath, properties.ASSEMBLE_TEST_TASK_NAME));
+      }
+    }
   }
 
   @NotNull

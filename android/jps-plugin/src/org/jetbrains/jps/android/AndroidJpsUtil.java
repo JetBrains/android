@@ -537,6 +537,11 @@ public class AndroidJpsUtil {
     return typeId != null && AndroidCommonUtils.isTestConfiguration(typeId);
   }
 
+  public static boolean isInstrumentationTestContext(@NotNull CompileContext context) {
+    final String typeId = getRunConfigurationTypeId(context);
+    return typeId != null && AndroidCommonUtils.isInstrumentationTestConfiguration(typeId);
+  }
+
   @Nullable
   public static String getRunConfigurationTypeId(@NotNull CompileContext context) {
     return context.getBuilderParameter("RUN_CONFIGURATION_TYPE_ID");

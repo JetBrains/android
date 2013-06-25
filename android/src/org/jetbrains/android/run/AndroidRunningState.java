@@ -18,7 +18,6 @@ package org.jetbrains.android.run;
 import com.android.SdkConstants;
 import com.android.build.gradle.model.AndroidProject;
 import com.android.build.gradle.model.BuildTypeContainer;
-import com.android.build.gradle.model.ProductFlavorContainer;
 import com.android.build.gradle.model.Variant;
 import com.android.builder.model.ProductFlavor;
 import com.android.ddmlib.*;
@@ -27,7 +26,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.google.common.base.Strings;
 import com.intellij.CommonBundle;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
@@ -78,9 +76,10 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.AvdsNotSupportedException;
-import org.jetbrains.android.logcat.AndroidToolWindowFactory;
 import org.jetbrains.android.logcat.AndroidLogcatUtil;
 import org.jetbrains.android.logcat.AndroidLogcatView;
+import org.jetbrains.android.logcat.AndroidToolWindowFactory;
+import org.jetbrains.android.run.testing.AndroidTestRunConfiguration;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.sdk.AvdManagerLog;
 import org.jetbrains.android.util.AndroidBundle;
@@ -117,7 +116,17 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   static final int NO_ERROR = -2;
   private static final int UNTYPED_ERROR = -1;
 
+  /** Default suffix for test packages (as added by Android Gradle plugin) */
+  private static final String DEFAULT_TEST_PACKAGE_SUFFIX = ".test";
+
   private String myPackageName;
+
+  // In non gradle projects, test packages belong to a separate module, so their name is equal to
+  // the package name of the module. i.e. myPackageName = myTestPackageName.
+  // In gradle projects, tests are part of the same module, and their package name is either specified
+  // in build.gradle or generated automatically by Android Gradle plugin
+  private String myTestPackageName;
+
   private String myTargetPackageName;
   private final AndroidFacet myFacet;
   private final String myCommandLine;
@@ -347,6 +356,10 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     return myPackageName;
   }
 
+  public String getTestPackageName() {
+    return myTestPackageName;
+  }
+
   public Module getModule() {
     return myFacet.getModule();
   }
@@ -441,7 +454,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   }
 
   @Nullable
-  private IDevice[] chooseDevicesAutomaticaly() {
+  private IDevice[] chooseDevicesAutomatically() {
     final List<IDevice> compatibleDevices = getAllCompatibleDevices();
 
     if (compatibleDevices.size() == 0) {
@@ -540,12 +553,16 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
   void start(boolean chooseTargetDevice) {
     LocalFileSystem.getInstance().refresh(false);
-    myPackageName = computePackageName(myFacet);
 
+    myPackageName = computePackageName(myFacet);
     if (myPackageName == null) {
       getProcessHandler().destroyProcess();
       return;
     }
+
+    myPackageName = getPackageNameFromGradle(myPackageName, myFacet);
+    myTestPackageName = computeTestPackageName(myFacet, myPackageName);
+
     myTargetPackageName = myPackageName;
     final HashMap<AndroidFacet, String> depFacet2PackageName = new HashMap<AndroidFacet, String>();
 
@@ -592,7 +609,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   }
 
   private boolean chooseOrLaunchDevice() {
-    IDevice[] targetDevices = chooseDevicesAutomaticaly();
+    IDevice[] targetDevices = chooseDevicesAutomatically();
     if (targetDevices == null) {
       message("Canceled", STDERR);
       return false;
@@ -782,13 +799,31 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       clearLogcatAndConsole(getModule().getProject(), device);
     }
 
-    myPackageName = getCorrectPackageName(myPackageName, myFacet);
     message("Target device: " + getDevicePresentableName(device), STDOUT);
     try {
       if (myDeploy) {
         if (!checkPackageNames()) return false;
-        if (!uploadAndInstall(device, myPackageName, myFacet)) return false;
-        if (!uploadAndInstallDependentModules(device)) return false;
+        IdeaAndroidProject ideaAndroidProject = myFacet.getIdeaAndroidProject();
+        if (ideaAndroidProject == null) {
+          if (!uploadAndInstall(device, myPackageName, myFacet)) return false;
+          if (!uploadAndInstallDependentModules(device)) return false;
+        } else {
+          Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
+
+          // install apk (note that variant.getOutputFile() will point to a .aar in the case of a library)
+          if (!ideaAndroidProject.getDelegate().isLibrary()) {
+            final File apk = selectedVariant.getOutputFile();
+            if (!uploadAndInstallApk(device, myPackageName, apk.getAbsolutePath())) return false;
+          }
+
+          // install test apk
+          if (getConfiguration() instanceof AndroidTestRunConfiguration) {
+            File testApk = selectedVariant.getOutputTestFile();
+            if (testApk != null) {
+              if (!uploadAndInstallApk(device, myTestPackageName, testApk.getAbsolutePath())) return false;
+            }
+          }
+        }
         myApplicationDeployed = true;
       }
       final AndroidApplicationLauncher.LaunchResult launchResult =
@@ -938,7 +973,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     throws IOException, AdbCommandRejectedException, TimeoutException {
     for (AndroidFacet depFacet : myAdditionalFacet2PackageName.keySet()) {
       String packageName = myAdditionalFacet2PackageName.get(depFacet);
-      packageName = getCorrectPackageName(packageName, depFacet);
+      packageName = getPackageNameFromGradle(packageName, depFacet);
       if (!uploadAndInstall(device, packageName, depFacet)) {
         return false;
       }
@@ -946,36 +981,60 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     return true;
   }
 
-  @NotNull
-  private static String getCorrectPackageName(@NotNull String packageName, @NotNull AndroidFacet facet) {
+  private static String computeTestPackageName(AndroidFacet facet, String packageName) {
     IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
-    if (ideaAndroidProject != null) {
-      Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
-      ProductFlavor flavor = selectedVariant.getMergedFlavor();
-      String correctPackageName = flavor.getPackageName();
-      if (correctPackageName == null) {
-        correctPackageName = packageName;
-      }
-      String buildTypeName = selectedVariant.getBuildType();
-      AndroidProject delegate = ideaAndroidProject.getDelegate();
-      BuildTypeContainer buildTypeContainer = delegate.getBuildTypes().get(buildTypeName);
-      String packageNameSuffix = buildTypeContainer.getBuildType().getPackageNameSuffix();
-      if (packageNameSuffix != null) {
-        correctPackageName = correctPackageName + packageNameSuffix;
-      }
-      return correctPackageName;
+    if (ideaAndroidProject == null) {
+      return packageName;
+    }
+
+    // In the case of Gradle projects, either the merged flavor provides a test package name,
+    // or we just append ".test" to the source package name
+    Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
+    String testPackageName = selectedVariant.getMergedFlavor().getTestPackageName();
+    return (testPackageName != null) ? testPackageName : packageName + DEFAULT_TEST_PACKAGE_SUFFIX;
+  }
+
+  @NotNull
+  private static String getPackageNameFromGradle(@NotNull String packageNameInManifest, @NotNull AndroidFacet facet) {
+    IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
+    if (ideaAndroidProject == null) {
+      return packageNameInManifest;
+    }
+
+    Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
+    ProductFlavor flavor = selectedVariant.getMergedFlavor();
+
+    // if the current variant specifies a package name, use that
+    String packageName = flavor.getPackageName();
+    if (packageName == null) {
+      // otherwise default to whatever was in the manifest
+      packageName = packageNameInManifest;
+    }
+
+    String buildTypeName = selectedVariant.getBuildType();
+    AndroidProject delegate = ideaAndroidProject.getDelegate();
+    BuildTypeContainer buildTypeContainer = delegate.getBuildTypes().get(buildTypeName);
+    String packageNameSuffix = buildTypeContainer.getBuildType().getPackageNameSuffix();
+    // append the build type suffix to package name if necessary
+    if (packageNameSuffix != null) {
+      packageName += packageNameSuffix;
     }
     return packageName;
   }
 
   private boolean uploadAndInstall(@NotNull IDevice device, @NotNull String packageName, AndroidFacet facet)
     throws IOException, AdbCommandRejectedException, TimeoutException {
-    String remotePath = "/data/local/tmp/" + packageName;
     String localPath = AndroidRootUtil.getApkPath(facet);
     if (localPath == null) {
       message("ERROR: APK path is not specified for module \"" + facet.getModule().getName() + '"', STDERR);
       return false;
     }
+    return uploadAndInstallApk(device, packageName, localPath);
+  }
+
+  private boolean uploadAndInstallApk(@NotNull IDevice device, @NotNull String packageName, @NotNull String localPath)
+    throws IOException, AdbCommandRejectedException, TimeoutException {
+    String remotePath = "/data/local/tmp/" + packageName;
     if (!uploadApp(device, remotePath, localPath)) return false;
     if (!installApp(device, remotePath, packageName)) return false;
     return true;
