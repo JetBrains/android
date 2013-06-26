@@ -33,6 +33,7 @@ import static com.android.tools.idea.diagnostics.error.AnonymousFeedback.sendFee
 public class AnonymousFeedbackTask extends Task.Backgroundable {
   private final Consumer<String> myCallback;
   private final Consumer<Exception> myErrorCallback;
+  private final Throwable myThrowable;
   private final Map<String, String> myParams;
   private final String myErrorMessage;
   private final String myErrorDescription;
@@ -41,6 +42,7 @@ public class AnonymousFeedbackTask extends Task.Backgroundable {
   public AnonymousFeedbackTask(@Nullable Project project,
                                @NotNull String title,
                                boolean canBeCancelled,
+                               @Nullable Throwable throwable,
                                Map<String, String> params,
                                String errorMessage,
                                String errorDescription,
@@ -49,6 +51,7 @@ public class AnonymousFeedbackTask extends Task.Backgroundable {
                                final Consumer<Exception> errorCallback) {
     super(project, title, canBeCancelled);
 
+    myThrowable = throwable;
     myParams = params;
     myErrorMessage = errorMessage;
     myErrorDescription = errorDescription;
@@ -61,7 +64,7 @@ public class AnonymousFeedbackTask extends Task.Backgroundable {
   public void run(@NotNull ProgressIndicator indicator) {
     indicator.setIndeterminate(true);
     try {
-      String token = sendFeedback(new ProxyHttpConnectionFactory(), myParams,
+      String token = sendFeedback(new ProxyHttpConnectionFactory(), myThrowable, myParams,
                                   myErrorMessage, myErrorDescription, myAppVersion);
       myCallback.consume(token);
     }
