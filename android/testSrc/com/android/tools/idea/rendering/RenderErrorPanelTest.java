@@ -62,10 +62,6 @@ public class RenderErrorPanelTest extends AndroidTestCase {
       "Or: <A HREF=\"command:4\">Automatically add all missing attributes</A><BR/>\n" +
       "<BR/>\n" +
       "<BR/>\n" +
-      "The following classes could not be found:<DL>\n" +
-      "<DD>-&NBSP;LinerLayout (<A HREF=\"action:classpath\">Fix Build Path</A>)\n" +
-      "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project<BR/>\n" +
-      "<BR/>\n" +
       "</BODY></HTML>",
      html);
   }

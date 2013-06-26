@@ -127,10 +127,9 @@ public class ConfigurationMatcher {
   */
   public boolean isCurrentFileBestMatchFor(@NotNull FolderConfiguration config) {
     if (myResources != null && myFile != null) {
-      ResourceFile match = myResources.getMatchingFile(ResourceHelper.getResourceName(myFile), ResourceType.LAYOUT, config);
-
+      VirtualFile match = myResources.getMatchingFile(myFile, ResourceType.LAYOUT, config);
       if (match != null) {
-        return myFile.equals(LocalFileSystem.getInstance().findFileByIoFile(match.getFile()));
+        return myFile.equals(match);
       }
       else {
         // if we stop here that means the current file is not even a match!
@@ -149,7 +148,7 @@ public class ConfigurationMatcher {
       BufferingFileWrapper wrapper = (BufferingFileWrapper)file;
       File ioFile = wrapper.getFile();
       return LocalFileSystem.getInstance().findFileByIoFile(ioFile);
-    } else if (file != null) {
+    } else {
       LOG.warn("Unexpected type of match file: " + file.getClass().getName());
     }
     return null;
@@ -163,13 +162,8 @@ public class ConfigurationMatcher {
   @Nullable
   public VirtualFile getBestFileMatch() {
     if (myResources != null && myFile != null) {
-      String name = ResourceHelper.getResourceName(myFile);
       FolderConfiguration config = myConfiguration.getFullConfig();
-      ResourceFile match = myResources.getMatchingFile(name, ResourceType.LAYOUT, config);
-
-      if (match != null) {
-        return LocalFileSystem.getInstance().findFileByIoFile(match.getFile());
-      }
+      return myResources.getMatchingFile(myFile, ResourceType.LAYOUT, config);
     }
 
     return null;
