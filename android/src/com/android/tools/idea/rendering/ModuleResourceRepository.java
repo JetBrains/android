@@ -26,6 +26,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -69,7 +70,9 @@ final class ModuleResourceRepository extends MultiResourceRepository {
     if (!gradleProject) {
       // Always just a single resource folder: simple
       VirtualFile primaryResourceDir = facet.getPrimaryResourceDir();
-      assert primaryResourceDir != null;
+      if (primaryResourceDir == null) {
+        return new EmptyRepository();
+      }
       return ResourceFolderRepository.create(facet, primaryResourceDir);
     }
 
@@ -173,5 +176,16 @@ final class ModuleResourceRepository extends MultiResourceRepository {
     }
 
     return new ModuleResourceRepository(facet, resources);
+  }
+
+  private static class EmptyRepository extends MultiResourceRepository {
+    public EmptyRepository() {
+      super(Collections.<ProjectResources>emptyList());
+    }
+
+    @Override
+    protected void setChildren(@NotNull List<? extends ProjectResources> children) {
+      myChildren = children;
+    }
   }
 }
