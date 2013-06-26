@@ -33,7 +33,7 @@ import java.util.List;
  */
 class ReadOnlyDocument {
   @NotNull private final CharSequence myContents;
-  @NotNull private final List<Long> myOffsets;
+  @NotNull private final List<Integer> myOffsets;
 
   /**
    * Creates a new {@link ReadOnlyDocument} for the given file.
@@ -47,9 +47,9 @@ class ReadOnlyDocument {
     RandomAccessFile raf = null;
     try {
       raf = new RandomAccessFile(file, "r");
-      myOffsets.add(raf.getFilePointer());
+      myOffsets.add((int)raf.getFilePointer());
       while (raf.readLine() != null) {
-        myOffsets.add(raf.getFilePointer());
+        myOffsets.add((int)raf.getFilePointer());
       }
       FileChannel channel = raf.getChannel();
       long channelSize = channel.size();
@@ -68,10 +68,10 @@ class ReadOnlyDocument {
    * @return the offset of the given line. -1 is returned if the document is empty, or if the given line number is negative or greater than
    *         the number of lines in the document.
    */
-  long lineOffset(long lineNumber) {
-    int index = (int)lineNumber - 1;
+  int lineOffset(int lineNumber) {
+    int index = lineNumber - 1;
     if (index <= 0 || index >= myOffsets.size()) {
-      return -1L;
+      return -1;
     }
     return myOffsets.get(index);
   }
@@ -83,14 +83,14 @@ class ReadOnlyDocument {
    * @return the line number of the given offset. -1 is returned if the document is empty or if the offset is greater than the position of
    *         the last character in the document.
    */
-  long lineNumber(long offset) {
+  int lineNumber(int offset) {
     for (int i = 0; i < myOffsets.size(); i++) {
-      long savedOffset = myOffsets.get(i);
+      int savedOffset = myOffsets.get(i);
       if (offset <= savedOffset) {
         return i;
       }
     }
-    return -1L;
+    return -1;
   }
 
   /**
@@ -100,9 +100,9 @@ class ReadOnlyDocument {
    * @param offset the starting point of the search.
    * @return the offset of the found result, or -1 if no match was found.
    */
-  long findText(String text, long offset) {
+  int findText(String text, int offset) {
     StringSearcher searcher = new StringSearcher(text, true, true);
-    return searcher.scan(myContents, (int)offset, myContents.length());
+    return searcher.scan(myContents, offset, myContents.length());
   }
 
   /**
@@ -112,14 +112,14 @@ class ReadOnlyDocument {
    * @return the character at the given offset.
    * @throws IndexOutOfBoundsException if the {@code offset} argument is negative or not less than the document's size.
    */
-  char charAt(long offset) {
-    return myContents.charAt((int)offset);
+  char charAt(int offset) {
+    return myContents.charAt(offset);
   }
 
   /**
    * @return the size (or length) of the document.
    */
-  long length() {
+  int length() {
     return myContents.length();
   }
 }
