@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.util.Facets;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
@@ -143,12 +144,18 @@ public class BuildVariantView {
         rows.add(row);
       }
     }
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+    Runnable setModelTask = new Runnable() {
       @Override
       public void run() {
         getVariantsTable().setModel(rows, variantNamesPerRow);
       }
-    });
+    };
+    Application application = ApplicationManager.getApplication();
+    if (application.isDispatchThread()) {
+      setModelTask.run();
+    } else {
+      application.invokeLater(setModelTask);
+    }
   }
 
   @NotNull
@@ -245,13 +252,8 @@ public class BuildVariantView {
     void setLoading(boolean loading) {
       myLoading = loading;
       setPaintBusy(myLoading);
-      String text;
-      if (myLoading) {
-        clearContents();
-        text = "Loading...";
-      } else {
-        text = "Nothing to Show";
-      }
+      clearContents();
+      String text = myLoading ? "Loading..." : "Nothing to Show";
       getEmptyText().setText(text);
     }
 
