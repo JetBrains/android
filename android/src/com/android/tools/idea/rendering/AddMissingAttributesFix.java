@@ -91,7 +91,7 @@ public class AddMissingAttributesFix extends WriteCommandAction<Void> {
         return value.equals(VALUE_WRAP_CONTENT) || value.equals(VALUE_FILL_PARENT) || value.equals(VALUE_MATCH_PARENT);
       }
 
-      return false;
+      return value != null;
     } else if (resourceResolver != null) {
       String style = tag.getAttributeValue(ATTR_STYLE);
       if (style != null) {
@@ -116,7 +116,7 @@ public class AddMissingAttributesFix extends WriteCommandAction<Void> {
         return value.equals(VALUE_WRAP_CONTENT) || value.equals(VALUE_FILL_PARENT) || value.equals(VALUE_MATCH_PARENT);
       }
 
-      return false;
+      return value != null;
     } else if (resourceResolver != null) {
       String style = tag.getAttributeValue(ATTR_STYLE);
       if (style != null) {
