@@ -125,22 +125,24 @@ public class Class extends Activity {
     public static class ApiCallTest6 {
         public void test(Throwable throwable) {
             // IOException(Throwable) requires API 9
-            IOException ioException = new IOException(throwable);
+            IOException ioException = <error descr="Call requires API level 9 (current min is 1): java.io.IOException#IOException">new IOException(throwable)</error>;
         }
     }
 
     @SuppressWarnings("serial")
     public static class ApiCallTest7 extends IOException {
         public ApiCallTest7(String message, Throwable cause) {
-            super(message, cause); // API 9
+            <error descr="Call requires API level 9 (current min is 1): java.io.IOException#IOException">super(message, cause)</error>; // API 9
         }
 
         public void fun() throws IOException {
-            super.toString(); throw new IOException((Throwable) null); // API 9
+            super.toString(); throw <error descr="Call requires API level 9 (current min is 1): java.io.IOException#IOException">new IOException((Throwable) null)</error>; // API 9
         }
     }
 
+  /* Temporarily hidden: We need to have a more recent build target for our unit test platform
     public void closeTest(android.database.sqlite.SQLiteDatabase db) throws Exception {
         db.close();
     }
+   */
 }

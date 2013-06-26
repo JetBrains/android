@@ -138,7 +138,7 @@ public class AndroidJavaDocRenderer {
   private static String getStringValue(@NotNull ProjectResources resources, @NotNull ResourceItem item) {
     String v = item.getValueText();
     if (v == null) {
-      ResourceValue value = resources.getConfiguredValue(item.getType(), item.getName(), item.getConfiguration());
+      ResourceValue value = item.getResourceValue(resources.isFramework());
       if (value != null) {
         return value.getValue();
       }
