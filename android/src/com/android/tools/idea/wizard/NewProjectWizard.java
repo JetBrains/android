@@ -18,6 +18,7 @@ package com.android.tools.idea.wizard;
 import com.android.tools.idea.gradle.GradleProjectImporter;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.google.common.io.Closeables;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.options.ConfigurationException;
@@ -30,6 +31,10 @@ import icons.AndroidIcons;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Properties;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
@@ -42,6 +47,7 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
  */
 public class NewProjectWizard extends TemplateWizard {
   private static final Logger LOG = Logger.getInstance("#" + NewProjectWizard.class.getName());
+  private static final String ATTR_GRADLE_DISTRIBUTION_URL = "distributionUrl";
 
   private NewProjectWizardState myWizardState;
   private ConfigureAndroidModuleStep myConfigureAndroidModuleStep;
@@ -66,6 +72,9 @@ public class NewProjectWizard extends TemplateWizard {
       throw new IllegalStateException(msg);
     }
     myWizardState = new NewProjectWizardState();
+    myWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, TemplateMetadata.GRADLE_VERSION);
+    myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, TemplateMetadata.GRADLE_PLUGIN_VERSION);
+    myWizardState.put(TemplateMetadata.ATTR_V4_SUPPORT_LIBRARY_VERSION, TemplateMetadata.V4_SUPPORT_LIBRARY_VERSION);
 
     myConfigureAndroidModuleStep = new ConfigureAndroidModuleStep(this, myWizardState);
     myLauncherIconStep = new LauncherIconStep(this, myWizardState.getLauncherIconState());
@@ -106,9 +115,8 @@ public class NewProjectWizard extends TemplateWizard {
           String projectName = (String)myWizardState.get(NewProjectWizardState.ATTR_MODULE_NAME);
           File projectRoot = new File((String)myWizardState.get(NewProjectWizardState.ATTR_PROJECT_LOCATION));
           File moduleRoot = new File(projectRoot, projectName);
-          File gradleWrapperSrc = new File(TemplateManager.getTemplateRootFolder(), GRADLE_WRAPPER_PATH);
           projectRoot.mkdirs();
-          FileUtil.copyDirContent(gradleWrapperSrc, projectRoot);
+          createGradleWrapper(projectRoot);
           if ((Boolean)myWizardState.get(TemplateMetadata.ATTR_CREATE_ICONS)) {
             myWizardState.getLauncherIconState().outputImages(moduleRoot);
           }
@@ -134,5 +142,21 @@ public class NewProjectWizard extends TemplateWizard {
         }
       }
     });
+  }
+
+  private void createGradleWrapper(File projectRoot) throws IOException {
+    FileOutputStream os = null;
+    try {
+      File gradleWrapperSrc = new File(TemplateManager.getTemplateRootFolder(), GRADLE_WRAPPER_PATH);
+      FileUtil.copyDirContent(gradleWrapperSrc, projectRoot);
+      File gradleWrapperProperties = new File(projectRoot, GRADLE_WRAPPER_PROPERTIES_PATH);
+      Properties wrapperProperties = new Properties();
+      wrapperProperties.load(new FileInputStream(gradleWrapperProperties));
+      wrapperProperties.put(ATTR_GRADLE_DISTRIBUTION_URL, TemplateMetadata.GRADLE_DISTRIBUTION_URL);
+      os = new FileOutputStream(gradleWrapperProperties);
+      wrapperProperties.store(os, "");
+    } finally {
+      Closeables.closeQuietly(os);
+    }
   }
 }
