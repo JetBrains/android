@@ -24,6 +24,10 @@
       <skipForDefaultProject/>
       <headless-implementation-class></headless-implementation-class>
     </component>
+    <component>
+      <implementation-class>com.android.tools.idea.gradle.project.AndroidGradleProjectComponent</implementation-class>
+      <skipForDefaultProject/>
+    </component>
   </project-components>
   <actions>
     <action id="NewActivity" class="com.android.tools.idea.actions.AndroidNewActivityAction">
@@ -431,7 +435,6 @@
     -->
     <spellchecker.bundledDictionaryProvider implementation="org.jetbrains.android.spellchecker.AndroidBundledDictionaryProvider"/>
     <projectStructureDetector implementation="org.jetbrains.android.newProject.AndroidProjectStructureDetector"/>
-    <postStartupActivity implementation="com.android.tools.idea.gradle.startup.GradleStartupActivity" order="first"/>
   </extensions>
 
   <extensionPoints>

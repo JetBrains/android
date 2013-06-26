@@ -22,18 +22,15 @@ import com.android.tools.idea.gradle.util.Facets;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.intellij.ProjectTopics;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.project.ModuleAdapter;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.table.JBTable;
-import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -110,18 +107,6 @@ public class BuildVariantView {
     Content content = contentFactory.createContent(myToolWindowPanel, "", false);
     toolWindow.getContentManager().addContent(content);
     updateContents();
-    MessageBusConnection connection = myProject.getMessageBus().connect();
-    connection.subscribe(ProjectTopics.MODULES, new ModuleAdapter() {
-      @Override
-      public void moduleAdded(Project project, Module module) {
-        updateContents();
-      }
-
-      @Override
-      public void moduleRemoved(Project project, Module module) {
-        updateContents();
-      }
-    });
   }
 
   public void updateContents() {
