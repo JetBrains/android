@@ -119,20 +119,21 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
     boolean isRebuild = JavaBuilderUtil.isForcedRecompilationAllJavaModules(context);
     boolean buildTests = AndroidJpsUtil.isInstrumentationTestContext(context);
 
-    if (!isRebuild) {
-      try {
-        boolean hasChanges = dirtyFilesHolder.hasDirtyFiles() || dirtyFilesHolder.hasRemovedFiles();
-        if (!hasChanges) {
-          String msg = String.format("No changes found while building '%1$s'. Not calling Gradle.", chunk.getName());
-          LOG.info(msg);
-          return ExitCode.NOTHING_DONE;
-        }
-      }
-      catch (IOException e) {
-        String msg = String.format("Failed to determine changes in '%1$s'. Building anyway.", chunk.getName());
-        LOG.error(msg, e);
-      }
-    }
+    //TODO: The following simple mechanism doesn't work in case the list of tasks changes (e.g. build test, or variant changes)
+    //if (!isRebuild) {
+    //  try {
+    //    boolean hasChanges = dirtyFilesHolder.hasDirtyFiles() || dirtyFilesHolder.hasRemovedFiles();
+    //    if (!hasChanges) {
+    //      String msg = String.format("No changes found while building '%1$s'. Not calling Gradle.", chunk.getName());
+    //      LOG.info(msg);
+    //      return ExitCode.NOTHING_DONE;
+    //    }
+    //  }
+    //  catch (IOException e) {
+    //    String msg = String.format("Failed to determine changes in '%1$s'. Building anyway.", chunk.getName());
+    //    LOG.error(msg, e);
+    //  }
+    //}
 
     String[] buildTasks = getBuildTasks(chunk, isRebuild, buildTests);
     if (buildTasks.length == 0) {
