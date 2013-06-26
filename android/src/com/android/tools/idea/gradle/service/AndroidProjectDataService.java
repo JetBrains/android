@@ -88,13 +88,6 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
           IdeaAndroidProject androidProject = androidProjectsByModuleName.get(module.getName());
           customizeModule(module, project, androidProject);
         }
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            BuildVariantView buildVariantView = BuildVariantView.getInstance(project);
-            buildVariantView.updateContents();
-          }
-        });
       }
     });
   }

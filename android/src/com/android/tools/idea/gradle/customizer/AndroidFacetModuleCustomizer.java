@@ -19,9 +19,12 @@ import com.android.build.gradle.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.util.Facets;
+import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.google.common.base.Strings;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtilRt;
@@ -45,7 +48,7 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
   private static final String SEPARATOR = "/";
 
   @Override
-  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
+  public void customizeModule(@NotNull Module module, @NotNull final Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
     if (ideaAndroidProject != null) {
       AndroidFacet facet = Facets.getFirstFacet(module, AndroidFacet.ID);
       if (facet != null) {
@@ -64,6 +67,19 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
         }
       }
     }
+    Runnable updateBuildVariantViewTask = new Runnable() {
+      @Override
+      public void run() {
+        BuildVariantView buildVariantView = BuildVariantView.getInstance(project);
+        buildVariantView.updateContents();
+      }
+    };
+    Application application = ApplicationManager.getApplication();
+    if (application.isDispatchThread()) {
+      updateBuildVariantViewTask.run();
+    } else {
+      application.invokeLater(updateBuildVariantViewTask);
+    }
   }
 
   private static void configureFacet(@NotNull AndroidFacet facet, @NotNull IdeaAndroidProject ideaAndroidProject) {
@@ -76,7 +92,6 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
     SourceProvider sourceProvider = delegate.getDefaultConfig().getSourceProvider();
 
     syncSelectedVariant(facetState, ideaAndroidProject);
-    facet.syncSelectedVariant();
 
     String moduleDirPath = ideaAndroidProject.getRootDirPath();
     File manifestFile = sourceProvider.getManifestFile();
@@ -89,11 +104,13 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
     facetState.ASSETS_FOLDER_RELATIVE_PATH = getRelativePath(moduleDirPath, assetsDirs);
 
     facet.setIdeaAndroidProject(ideaAndroidProject);
+    facet.syncSelectedVariant();
   }
 
   private static void syncSelectedVariant(@NotNull JpsAndroidModuleProperties facetState, @NotNull IdeaAndroidProject ideaAndroidProject) {
-    if (!Strings.isNullOrEmpty(facetState.SELECTED_BUILD_VARIANT)) {
-      ideaAndroidProject.setSelectedVariantName(facetState.SELECTED_BUILD_VARIANT);
+    String variantStoredInFacet = facetState.SELECTED_BUILD_VARIANT;
+    if (!Strings.isNullOrEmpty(variantStoredInFacet) && ideaAndroidProject.getVariantNames().contains(variantStoredInFacet)) {
+      ideaAndroidProject.setSelectedVariantName(variantStoredInFacet);
     }
   }
 
