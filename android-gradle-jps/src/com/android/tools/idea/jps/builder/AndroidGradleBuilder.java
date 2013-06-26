@@ -17,6 +17,7 @@ package com.android.tools.idea.jps.builder;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.jps.AndroidGradleJps;
 import com.android.tools.idea.jps.model.JpsAndroidGradleModuleExtension;
 import com.android.tools.idea.jps.output.parser.GradleErrorOutputParser;
@@ -26,18 +27,20 @@ import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.SystemProperties;
 import org.gradle.tooling.BuildException;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.ModuleChunk;
 import org.jetbrains.jps.android.AndroidJpsUtil;
 import org.jetbrains.jps.android.AndroidSourceGeneratingBuilder;
+import org.jetbrains.jps.android.model.JpsAndroidSdkProperties;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleExtensionImpl;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import org.jetbrains.jps.builders.DirtyFilesHolder;
@@ -51,15 +54,15 @@ import org.jetbrains.jps.incremental.messages.ProgressMessage;
 import org.jetbrains.jps.incremental.resources.ResourcesBuilder;
 import org.jetbrains.jps.incremental.resources.StandardResourceBuilderEnabler;
 import org.jetbrains.jps.model.JpsProject;
+import org.jetbrains.jps.model.JpsSimpleElement;
+import org.jetbrains.jps.model.library.sdk.JpsSdk;
 import org.jetbrains.jps.model.module.JpsModule;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -68,6 +71,9 @@ import java.util.concurrent.TimeUnit;
 public class AndroidGradleBuilder extends ModuleLevelBuilder {
   private static final Logger LOG = Logger.getInstance(AndroidGradleBuilder.class);
   private static final GradleErrorOutputParser ERROR_OUTPUT_PARSER = new GradleErrorOutputParser();
+
+  @NonNls private static final String JVM_ARG_FORMAT = "-D%1$s=%2$s";
+  @NonNls private static final String JVM_ARG_WITH_QUOTED_VALUE_FORMAT = "-D%1$s=\"%2$s\"";
 
   @NonNls private static final String BUILDER_NAME = "Android Gradle Builder";
   @NonNls private static final String DEFAULT_ASSEMBLE_TASK_NAME = "assemble";
@@ -117,7 +123,6 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
     }
 
     boolean isRebuild = JavaBuilderUtil.isForcedRecompilationAllJavaModules(context);
-    boolean buildTests = AndroidJpsUtil.isInstrumentationTestContext(context);
 
     //TODO: The following simple mechanism doesn't work in case the list of tasks changes (e.g. build test, or variant changes)
     //if (!isRebuild) {
@@ -135,6 +140,7 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
     //  }
     //}
 
+    boolean buildTests = AndroidJpsUtil.isInstrumentationTestContext(context);
     String[] buildTasks = getBuildTasks(chunk, isRebuild, buildTests);
     if (buildTasks.length == 0) {
       String format = "No build tasks found for project '%1$s'. Nothing done.";
@@ -157,10 +163,15 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
 
     LOG.info("Using execution settings: " + executionSettings);
 
+    String androidHome = null;
+    if (!isAndroidHomeKnown(executionSettings)) {
+      androidHome = getAndroidHomeFromModuleSdk(context, chunk);
+    }
+
     String format = "About to build project '%1$s' located at %2$s";
     LOG.info(String.format(format, getProjectName(context), executionSettings.getProjectDir().getAbsolutePath()));
 
-    return doBuild(context, buildTasks, executionSettings);
+    return doBuild(context, buildTasks, executionSettings, androidHome);
   }
 
   @NotNull
@@ -209,7 +220,7 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
 
     if (buildTests && androidFacet != null) {
       JpsAndroidModuleProperties properties = androidFacet.getProperties();
-      if (StringUtil.isNotEmpty(properties.ASSEMBLE_TEST_TASK_NAME)) {
+      if (!Strings.isNullOrEmpty(properties.ASSEMBLE_TEST_TASK_NAME)) {
         tasks.add(createBuildTask(gradleProjectPath, properties.ASSEMBLE_TEST_TASK_NAME));
       }
     }
@@ -239,6 +250,73 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
     return AndroidGradleJps.createCompilerMessage(BuildMessage.Kind.ERROR, msg);
   }
 
+  /**
+   * Indicates whether the path of the Android SDK home directory is specified in a local.properties file or in the ANDROID_HOME environment
+   * variable.
+   *
+   * @param settings build execution settings.
+   * @return {@code true} if the Android SDK home directory is specified in the project's local.properties file or in the ANDROID_HOME
+   *         environment variable; {@code false} otherwise.
+   */
+  private static boolean isAndroidHomeKnown(@NotNull BuilderExecutionSettings settings) {
+    String androidHome = getAndroidHomeFromLocalPropertiesFile(settings.getProjectDir());
+    if (!Strings.isNullOrEmpty(androidHome)) {
+      String msg = String.format("Found Android SDK home at '%1$s' (from local.properties file)", androidHome);
+      LOG.info(msg);
+      return true;
+    }
+    androidHome = System.getenv(AndroidSdkUtils.ANDROID_HOME_ENV);
+    if (!Strings.isNullOrEmpty(androidHome)) {
+      String msg = String.format("Found Android SDK home at '%1$s' (from ANDROID_HOME environment variable)", androidHome);
+      LOG.info(msg);
+      return true;
+    }
+    return false;
+  }
+
+  @Nullable
+  private static String getAndroidHomeFromLocalPropertiesFile(@NotNull File projectDir) {
+    File filePath = new File(projectDir, SdkConstants.FN_LOCAL_PROPERTIES);
+    if (!filePath.isFile()) {
+      return null;
+    }
+    Properties properties = new Properties();
+    FileInputStream fileInputStream = null;
+    try {
+      //noinspection IOResourceOpenedButNotSafelyClosed
+      fileInputStream = new FileInputStream(filePath);
+      properties.load(fileInputStream);
+    } catch (FileNotFoundException e) {
+      return null;
+    } catch (IOException e) {
+      String msg = String.format("Failed to read file '%1$s'", filePath.getPath());
+      LOG.error(msg, e);
+      return null;
+    } finally {
+      Closeables.closeQuietly(fileInputStream);
+    }
+    return properties.getProperty(LocalProperties.SDK_DIR_PROPERTY);
+  }
+
+
+  @Nullable
+  private static String getAndroidHomeFromModuleSdk(@NotNull CompileContext context, @NotNull ModuleChunk chunk) {
+    JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> androidSdk = AndroidGradleJps.getFirstAndroidSdk(chunk);
+    if (androidSdk == null) {
+      // TODO: Figure out what changes in IDEA made androidSdk null. It used to work.
+      String msg = String.format("There is no Android SDK specified for project '%1$s'", getProjectName(context));
+      LOG.error(msg);
+      return null;
+    }
+    String androidHome = androidSdk.getHomePath();
+    if (Strings.isNullOrEmpty(androidHome)) {
+      String msg = "Selected Android SDK does not have a home directory path";
+      LOG.error(msg);
+      return null;
+    }
+    return androidHome;
+  }
+
   @NotNull
   private static String getProjectName(@NotNull CompileContext context) {
     return context.getProjectDescriptor().getProject().getName();
@@ -247,7 +325,8 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
   @NotNull
   private static ExitCode doBuild(@NotNull CompileContext context,
                                   @NotNull String[] buildTasks,
-                                  @NotNull BuilderExecutionSettings executionSettings) throws ProjectBuildException {
+                                  @NotNull BuilderExecutionSettings executionSettings,
+                                  @Nullable String androidHome) throws ProjectBuildException {
     GradleConnector connector = getGradleConnector(executionSettings);
 
     ProjectConnection connection = connector.connect();
@@ -259,6 +338,11 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
       launcher.forTasks(buildTasks);
 
       List<String> jvmArgs = Lists.newArrayList();
+
+      if (androidHome != null && !androidHome.isEmpty()) {
+        String androidSdkArg = getAndroidHomeJvmArg(androidHome);
+        jvmArgs.add(androidSdkArg);
+      }
 
       int xmx = executionSettings.getGradleDaemonMaxMemoryInMb();
       if (xmx > 0) {
@@ -320,6 +404,15 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
     }
 
     return connector;
+  }
+
+  @NotNull
+  private static String getAndroidHomeJvmArg(@NotNull String androidHome) {
+    String format = JVM_ARG_FORMAT;
+    if (androidHome.contains(" ")) {
+      format = JVM_ARG_WITH_QUOTED_VALUE_FORMAT;
+    }
+    return String.format(format, "android.home", androidHome);
   }
 
   /**
