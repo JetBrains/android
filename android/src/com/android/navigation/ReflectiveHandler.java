@@ -100,6 +100,9 @@ class ReflectiveHandler extends DefaultHandler {
     if (type == String.class) {
       return stringValue;
     }
+    if (type.isPrimitive()) {
+      type = Utilities.wrapperForPrimitiveType(type);
+    }
     return type.getConstructor(String.class).newInstance(stringValue);
   }
 
@@ -144,7 +147,7 @@ class ReflectiveHandler extends DefaultHandler {
     Annotation[][] annotations = constructor.getParameterAnnotations();
     Object[] result = new Object[annotations.length];
     for (int i = 0; i < annotations.length; i++) {
-      result[i] = valueFor(types[i], attributes.remove(getName(annotations[i]))); // note destructive
+      result[i] = valueFor(types[i], attributes.remove(getName(annotations[i]))); // // todo - destructive
     }
     return result;
   }

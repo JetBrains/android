@@ -28,6 +28,10 @@ public class Utilities {
     return new Point(p1.x - p2.x, p1.y - p2.y);
   }
 
+  public static Point max(Point p1, Point p2) {
+    return new Point(Math.max(p1.x, p2.x), Math.max(p1.y, p2.y));
+  }
+
   public static Point scale(Point p, float k) {
     return new Point((int)(k * p.x), (int)(k * p.y));
   }
@@ -106,5 +110,13 @@ public class Utilities {
       }
     }
     return stringBuilder.toString();
+  }
+
+  public static Point toAWTPoint(com.android.navigation.Point loc) {
+    return new Point(loc.x, loc.y);
+  }
+
+  public static com.android.navigation.Point toNavPoint(Point loc) {
+    return new com.android.navigation.Point(loc.x, loc.y);
   }
 }
