@@ -208,6 +208,10 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   /**
    * Returns all resource directories, in the overlay order
+   * <p>
+   * TODO: This should be changed to be a {@code List<List<VirtualFile>>} in order to be
+   * able to distinguish overlays (e.g. flavor directories) versus resource folders at
+   * the same level where duplicates are NOT allowed: [[flavor1], [flavor2], [main1,main2]]
    *
    * @return a list of all resource directories
    */
