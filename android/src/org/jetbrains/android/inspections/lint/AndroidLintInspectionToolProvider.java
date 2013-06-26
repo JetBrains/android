@@ -370,6 +370,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintDeviceAdminInspection extends AndroidLintInspectionBase {
+    public AndroidLintDeviceAdminInspection() {
+      super(AndroidBundle.message("android.lint.inspections.device.admin"), ManifestOrderDetector.DEVICE_ADMIN);
+    }
+  }
+
   public static class AndroidLintDisableBaselineAlignmentInspection extends AndroidLintInspectionBase {
     public AndroidLintDisableBaselineAlignmentInspection() {
       super(AndroidBundle.message("android.lint.inspections.disable.baseline.alignment"), InefficientWeightDetector.BASELINE_WEIGHTS);
