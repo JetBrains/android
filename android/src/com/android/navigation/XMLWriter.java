@@ -22,6 +22,7 @@ import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.*;
 
 public class XMLWriter {
@@ -250,7 +251,9 @@ public class XMLWriter {
   private static Property[] computeProperties(Class c) {
     List<Property> result = new ArrayList<Property>();
     for (Field f : c.getFields()) {
-      result.add(new FieldProperty(f));
+      if (!Modifier.isStatic(f.getModifiers())) {
+        result.add(new FieldProperty(f));
+      }
     }
     for (Method m : findGetters(c)) {
       result.add(new MethodProperty(m));

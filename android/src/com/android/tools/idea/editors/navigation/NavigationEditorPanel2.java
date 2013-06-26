@@ -73,7 +73,7 @@ public class NavigationEditorPanel2 extends JComponent {
   private final Map<State, AndroidRootComponent> myStateToComponent = new HashMap<State, AndroidRootComponent>();
   private final Map<AndroidRootComponent, State> myComponentToState = new HashMap<AndroidRootComponent, State>();
   private Selection mySelection = Selection.NULL;
-  private Map<Transition, Component> myNavigationToComponent = new IdentityHashMap<Transition, Component>();
+  private Map<Transition, Component> myTransitionToComponent = new IdentityHashMap<Transition, Component>();
   private Image myBackgroundImage;
 
   private abstract static class Selection {
@@ -88,11 +88,24 @@ public class NavigationEditorPanel2 extends JComponent {
 
     protected abstract void paintOver(Graphics g);
 
-    private static Selection create(NavigationEditorPanel2 editor, Point mouseDownLocation, boolean relation) {
-      Component component = editor.getComponentAt(mouseDownLocation);
-      return component != editor ? !(relation && component instanceof AndroidRootComponent)
-                                   ? new ComponentSelection(component, mouseDownLocation)
-                                   : new RelationSelection(editor, (AndroidRootComponent)component, mouseDownLocation) : NULL;
+  }
+
+  private Selection create(Point mouseDownLocation, boolean shiftDown) {
+    Component component = getComponentAt(mouseDownLocation);
+    if (component == this) {
+      return Selection.NULL;
+    }
+    if (component instanceof AndroidRootComponent) {
+      AndroidRootComponent androidRootComponent = (AndroidRootComponent)component;
+      if (!shiftDown) {
+        return new AndroidRootComponentSelection(androidRootComponent, mouseDownLocation);
+      }
+      else {
+        return new RelationSelection(androidRootComponent, mouseDownLocation);
+      }
+    }
+    else {
+      return new ComponentSelection<Component>(component, mouseDownLocation);
     }
   }
 
@@ -115,12 +128,12 @@ public class NavigationEditorPanel2 extends JComponent {
     }
   }
 
-  private static class ComponentSelection extends Selection {
-    private final Point myMouseDownLocation;
-    private final Point myOrigComponentLocation;
-    private final Component myComponent;
+  class ComponentSelection<T extends Component> extends Selection {
+    protected final Point myMouseDownLocation;
+    protected final Point myOrigComponentLocation;
+    protected final T myComponent;
 
-    private ComponentSelection(Component component, Point mouseDownLocation) {
+    private ComponentSelection(T component, Point mouseDownLocation) {
       myComponent = component;
       myMouseDownLocation = mouseDownLocation;
       myOrigComponentLocation = myComponent.getLocation();
@@ -128,7 +141,6 @@ public class NavigationEditorPanel2 extends JComponent {
 
     @Override
     protected void moveTo(Point location) {
-      myComponent.setLocation(Utilities.add(Utilities.diff(location, myMouseDownLocation), myOrigComponentLocation));
     }
 
     @Override
@@ -150,19 +162,32 @@ public class NavigationEditorPanel2 extends JComponent {
     }
   }
 
-  private static class RelationSelection extends Selection {
-    @NotNull private final NavigationEditorPanel2 myNavigationEditorPanel;
-    @NotNull private final Component myComponent;
+  private class AndroidRootComponentSelection extends ComponentSelection<AndroidRootComponent> {
+    private State myState;
+
+    private AndroidRootComponentSelection(AndroidRootComponent component, Point mouseDownLocation) {
+      super(component, mouseDownLocation);
+      myState = myComponentToState.get(component);
+    }
+
+    @Override
+    protected void moveTo(Point location) {
+      Point newLocation = Utilities.add(Utilities.diff(location, myMouseDownLocation), myOrigComponentLocation);
+      myComponent.setLocation(newLocation);
+      myState.setLocation(Utilities.toNavPoint(newLocation));
+      myNavigationModel.getListeners().notify(null);
+    }
+  }
+
+  private class RelationSelection extends Selection {
+    @NotNull private final AndroidRootComponent myComponent;
     @NotNull private Point myLocation;
     @Nullable private final RenderedView myLeaf;
     @Nullable private final RenderedView myNamedLeaf;
     private final float myKx;
     private final float myKy;
 
-    private RelationSelection(@NotNull NavigationEditorPanel2 myNavigationEditorPanel2,
-                              @NotNull AndroidRootComponent component,
-                              @NotNull Point mouseDownLocation) {
-      myNavigationEditorPanel = myNavigationEditorPanel2;
+    private RelationSelection(@NotNull AndroidRootComponent component, @NotNull Point mouseDownLocation) {
       myComponent = component;
       myLocation = mouseDownLocation;
       RenderResult renderResult = component.getRenderResult();
@@ -184,7 +209,7 @@ public class NavigationEditorPanel2 extends JComponent {
     }
 
     @Nullable
-    private static RenderedView getNamedParent(@Nullable RenderedView view) {
+    private RenderedView getNamedParent(@Nullable RenderedView view) {
       while (view != null && getViewId(view) == null) {
         view = view.getParent();
       }
@@ -192,7 +217,7 @@ public class NavigationEditorPanel2 extends JComponent {
     }
 
     @Nullable
-    private static String getViewId(@Nullable RenderedView leaf) {
+    private String getViewId(@Nullable RenderedView leaf) {
       if (leaf != null) {
         XmlTag tag = leaf.tag;
         if (tag != null) {
@@ -233,11 +258,11 @@ public class NavigationEditorPanel2 extends JComponent {
 
     @Override
     protected Selection finaliseSelectionLocation(Point location) {
-      Component componentAt = myNavigationEditorPanel.getComponentAt(location);
-      if (myComponent instanceof AndroidRootComponent && componentAt instanceof AndroidRootComponent) {
+      Component componentAt = getComponentAt(location);
+      if (componentAt instanceof AndroidRootComponent) {
         if (myComponent != componentAt) {
-          Map<AndroidRootComponent, State> m = myNavigationEditorPanel.myComponentToState;
-          myNavigationEditorPanel.addRelation(m.get(myComponent), getViewId(myNamedLeaf), m.get(componentAt));
+          Map<AndroidRootComponent, State> m = myComponentToState;
+          addRelation(m.get(myComponent), getViewId(myNamedLeaf), m.get(componentAt));
         }
       }
       return Selection.NULL;
@@ -254,9 +279,7 @@ public class NavigationEditorPanel2 extends JComponent {
     setBackground(BACKGROUND_COLOR);
     setForeground(LINE_COLOR);
 
-    if (navigationModel.size() > 0) {
-      addChildren(getStates(navigationModel));
-    }
+    addChildren(getStates(navigationModel));
     addAllRelations();
 
     {
@@ -271,9 +294,10 @@ public class NavigationEditorPanel2 extends JComponent {
     }
   }
 
-  private static void addIfAbsent(Collection<State> result, Set<State> added, State source) {
-    if (!added.contains(source)) {
-      result.add(source);
+  private static void addIfAbsent(Collection<State> result, Set<State> added, State state) {
+    if (!added.contains(state)) {
+      added.add(state);
+      result.add(state);
     }
   }
 
@@ -349,7 +373,6 @@ public class NavigationEditorPanel2 extends JComponent {
     g.setColor(BACKGROUND_COLOR);
     g.fillRect(0, 0, width, height);
 
-    // draw grid - todo cache this in an off-screen image
     drawGrid(g, SNAP_GRID_LINE_COLOR_MINOR, SNAP_GRID.width, SNAP_GRID.height);
     drawGrid(g, SNAP_GRID_LINE_COLOR_MIDDLE, SNAP_GRID.width * 5, SNAP_GRID.height * 5);
     drawGrid(g, SNAP_GRID_LINE_COLOR_MAJOR, SNAP_GRID.width * 10, SNAP_GRID.height * 10);
@@ -370,27 +393,7 @@ public class NavigationEditorPanel2 extends JComponent {
     // draw background
     g.drawImage(getBackGroundImage(), 0, 0, null);
 
-    // draw arrows
-    Graphics2D g2d = (Graphics2D)g;
-    Object oldRenderingHint = g2d.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
-    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    g.setColor(getForeground());
-    for (Transition transition : myNavigationModel) {
-      AndroidRootComponent sourceComponent = myStateToComponent.get(transition.getSource());
-      AndroidRootComponent destinationComponent = myStateToComponent.get(transition.getDestination());
-      if (sourceComponent != null && destinationComponent != null) {
-        Rectangle scb = sourceComponent.getBounds();
-        Rectangle dcb = destinationComponent.getBounds();
-        Point sc = Utilities.centre(scb);
-        Point dc = Utilities.centre(dcb);
-        Point scp = Utilities.project(scb, dc);
-        Point dcp = Utilities.project(dcb, sc);
-        drawArrow(g, scp.x, scp.y, dcp.x, dcp.y);
-      }
-    }
-
     // draw component shadows
-    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, oldRenderingHint);
     for (Component c : myStateToComponent.values()) {
       Rectangle r = c.getBounds();
       ShadowPainter.drawRectangleShadow(g, r.x, r.y, r.width, r.height);
@@ -400,10 +403,31 @@ public class NavigationEditorPanel2 extends JComponent {
     mySelection.paint(g);
   }
 
+  private void drawArrows(Graphics g) {
+    Graphics2D g2d = (Graphics2D)g;
+    Object oldRenderingHint = g2d.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
+    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    //g.setColor(getForeground());
+    g.setColor(Color.BLUE);
+    for (Transition transition : myNavigationModel) {
+      AndroidRootComponent sourceComponent = myStateToComponent.get(transition.getSource());
+      AndroidRootComponent destinationComponent = myStateToComponent.get(transition.getDestination());
+      Rectangle scb = sourceComponent.getBounds();
+      Rectangle dcb = destinationComponent.getBounds();
+      Point sc = Utilities.centre(scb);
+      Point dc = Utilities.centre(dcb);
+      Point scp = Utilities.project(scb, dc);
+      Point dcp = Utilities.project(dcb, sc);
+      drawArrow(g, scp.x, scp.y, dcp.x, dcp.y);
+    }
+    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, oldRenderingHint);
+  }
+
   @Override
-  protected void paintChildren(Graphics graphics) {
-    super.paintChildren(graphics);
-    mySelection.paintOver(graphics);
+  protected void paintChildren(Graphics g) {
+    super.paintChildren(g);
+    drawArrows(g);
+    mySelection.paintOver(g);
   }
 
   private void addRelation(State source, @Nullable String viewIdentifier, State dest) {
@@ -429,7 +453,7 @@ public class NavigationEditorPanel2 extends JComponent {
     //c.setOpaque(true);
     c.setBackground(BACKGROUND_COLOR);
     add(c);
-    myNavigationToComponent.put(transition, c);
+    myTransitionToComponent.put(transition, c);
   }
 
   private void addAllRelations() {
@@ -443,22 +467,20 @@ public class NavigationEditorPanel2 extends JComponent {
     for (Transition transition : myNavigationModel) {
       AndroidRootComponent sourceComponent = myStateToComponent.get(transition.getSource());
       AndroidRootComponent destinationComponent = myStateToComponent.get(transition.getDestination());
-      if (sourceComponent != null && destinationComponent != null) {
-        Point sl = Utilities.centre(sourceComponent);
-        Point dl = Utilities.centre(destinationComponent);
-        String gesture = transition.getType();
-        if (gesture != null) {
-          Component c = myNavigationToComponent.get(transition);
-          c.setSize(c.getPreferredSize());
-          int sx = (sl.x + dl.x - c.getWidth()) / 2;
-          int sy = (sl.y + dl.y - c.getHeight()) / 2;
-          c.setLocation(sx, sy);
-        }
+      Point sl = Utilities.centre(sourceComponent);
+      Point dl = Utilities.centre(destinationComponent);
+      String gesture = transition.getType();
+      if (gesture != null) {
+        Component c = myTransitionToComponent.get(transition);
+        c.setSize(c.getPreferredSize());
+        int sx = (sl.x + dl.x - c.getWidth()) / 2;
+        int sy = (sl.y + dl.y - c.getHeight()) / 2;
+        c.setLocation(sx, sy);
       }
     }
   }
 
-  private void addChildren(Collection<State> states) {
+  private void addChildrenOld(Collection<State> states) {
     final Set<State> visited = new HashSet<State>();
     final Point location = new Point(GAP.width, GAP.height);
     final Point maxLocation = new Point(0, 0);
@@ -473,7 +495,7 @@ public class NavigationEditorPanel2 extends JComponent {
       new Object() {
         public void addChildrenFor(State source) {
           visited.add(source);
-          add(createActivityPanel(source, location));
+          add(createAndroidRootComponent(source, location));
           List<State> children = findDestinationsFor(source, visited);
           location.x += gridWidth;
           maxLocation.x = Math.max(maxLocation.x, location.x);
@@ -493,14 +515,27 @@ public class NavigationEditorPanel2 extends JComponent {
     setPreferredSize(new Dimension(maxLocation.x, maxLocation.y));
   }
 
-  private AndroidRootComponent createActivityPanel(State state, Point location) {
+  private void addChildren(Collection<State> states) {
+    Point maxLocation = new Point(0, 0);
+    Dimension gridSize = new Dimension(PREVIEW_SIZE.width + GAP.width, PREVIEW_SIZE.height + GAP.height);
+    myStateToComponent.clear();
+    myComponentToState.clear();
+    for (State state : states) {
+      Point location = Utilities.toAWTPoint(state.getLocation());
+      add(createAndroidRootComponent(state, location));
+      maxLocation = Utilities.max(maxLocation, location);
+    }
+    setPreferredSize(new Dimension(maxLocation.x + gridSize.width, maxLocation.y + gridSize.height));
+  }
+
+  private AndroidRootComponent createAndroidRootComponent(State state, Point point) {
     AndroidRootComponent result = new AndroidRootComponent();
     result.setScale(SCALE);
     VirtualFile file = myFileSystem.findFileByPath(myPath + "/layout/" + state.getXmlResourceName() + ".xml");
     if (file != null) {
       result.render(myProject, file);
     }
-    result.setLocation(location);
+    result.setLocation(point);
     result.setSize(PREVIEW_SIZE);
     myStateToComponent.put(state, result);
     myComponentToState.put(result, state);
@@ -511,7 +546,7 @@ public class NavigationEditorPanel2 extends JComponent {
     @Override
     public void mousePressed(MouseEvent mouseEvent) {
       Point location = mouseEvent.getPoint();
-      setSelection(Selection.create(NavigationEditorPanel2.this, location, mouseEvent.isShiftDown()));
+      setSelection(create(location, mouseEvent.isShiftDown()));
     }
 
     /*
@@ -581,7 +616,7 @@ public class NavigationEditorPanel2 extends JComponent {
                   state.setXmlResourceName(getXmlFileNameFromJavaFileName(name));
                 }
                 if (!myStateToComponent.containsKey(state)) {
-                  add(createActivityPanel(state, dropLocation));
+                  add(createAndroidRootComponent(state, dropLocation));
                   dropLocation = Utilities.add(dropLocation, MULTIPLE_DROP_STRIDE);
                 }
               }
