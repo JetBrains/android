@@ -111,7 +111,7 @@ abstract class AbstractAaptOutputParser implements CompilerOutputParser {
         throw new ParsingFailedException();
       }
     }
-    long lineNumber = -1L;
+    int lineNumber = -1;
     if (lineNumberAsText != null) {
       try {
         lineNumber = Integer.parseInt(lineNumberAsText);
@@ -120,7 +120,7 @@ abstract class AbstractAaptOutputParser implements CompilerOutputParser {
         throw new ParsingFailedException();
       }
     }
-    long column = -1L;
+    int column = -1;
     // Attempt to determine the exact range of characters affected by this error.
     // This will look up the actual text of the file, go to the particular error line and findText for the specific string mentioned in the
     // error.
@@ -135,7 +135,7 @@ abstract class AbstractAaptOutputParser implements CompilerOutputParser {
   }
 
   @Nullable
-  private Position findMessagePositionInFile(@NotNull File file, @NotNull String msgText, long locationLine) {
+  private Position findMessagePositionInFile(@NotNull File file, @NotNull String msgText, int locationLine) {
     Matcher matcher = PROPERTY_NAME_AND_VALUE.matcher(msgText);
     if (matcher.find()) {
       String name = matcher.group(1);
@@ -188,16 +188,16 @@ abstract class AbstractAaptOutputParser implements CompilerOutputParser {
   }
 
   @Nullable
-  private Position findText(@NotNull File file, @NotNull String first, @Nullable String second, long locationLine) {
+  private Position findText(@NotNull File file, @NotNull String first, @Nullable String second, int locationLine) {
     ReadOnlyDocument document = getDocument(file);
     if (document == null) {
       return null;
     }
-    long offset = document.lineOffset(locationLine);
+    int offset = document.lineOffset(locationLine);
     if (offset == -1L) {
       return null;
     }
-    long resultOffset = document.findText(first, offset);
+    int resultOffset = document.findText(first, offset);
     if (resultOffset == -1L) {
       return null;
     }
@@ -207,27 +207,27 @@ abstract class AbstractAaptOutputParser implements CompilerOutputParser {
         return null;
       }
     }
-    long lineNumber = document.lineNumber(resultOffset);
-    long lineOffset = document.lineOffset(lineNumber);
+    int lineNumber = document.lineNumber(resultOffset);
+    int lineOffset = document.lineOffset(lineNumber);
     return new Position(lineNumber, resultOffset - lineOffset + 1, resultOffset);
   }
 
   @Nullable
-  private Position findLineStart(@NotNull File file, long locationLine) {
+  private Position findLineStart(@NotNull File file, int locationLine) {
     ReadOnlyDocument document = getDocument(file);
     if (document == null) {
       return null;
     }
-    long lineOffset = document.lineOffset(locationLine);
+    int lineOffset = document.lineOffset(locationLine);
     if (lineOffset == -1L) {
       return null;
     }
-    long nextLineOffset = document.lineOffset(locationLine + 1);
+    int nextLineOffset = document.lineOffset(locationLine + 1);
     if (nextLineOffset == -1) {
       nextLineOffset = document.length();
     }
-    long resultOffset = -1;
-    for (long i = lineOffset; i < nextLineOffset; i++) {
+    int resultOffset = -1;
+    for (int i = lineOffset; i < nextLineOffset; i++) {
       char c = document.charAt(i);
       if (!Character.isWhitespace(c)) {
         resultOffset = i;
@@ -259,11 +259,11 @@ abstract class AbstractAaptOutputParser implements CompilerOutputParser {
   }
 
   private static class Position {
-    final long myLineNumber;
-    final long myColumn;
-    final long myOffset;
+    final int myLineNumber;
+    final int myColumn;
+    final int myOffset;
 
-    Position(long lineNumber, long column, long offset) {
+    Position(int lineNumber, int column, int offset) {
       myLineNumber = lineNumber;
       myColumn = column;
       myOffset = offset;
