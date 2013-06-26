@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.rendering.legacy.LegacyCallback;
@@ -110,6 +111,12 @@ public final class ProjectCallback extends LegacyCallback {
   @SuppressWarnings("unchecked")
   public Object loadView(@NotNull String className, @NotNull Class[] constructorSignature, @NotNull Object[] constructorParameters)
       throws Exception {
+    if (className.indexOf('.') == -1 && !VIEW_FRAGMENT.equals(className) && !VIEW_INCLUDE.equals(className)) {
+      // When something is *really* wrong we get asked to load core Android classes.
+      // Ignore these; custom views should always have fully qualified names.
+      throw new ClassNotFoundException(className);
+    }
+
     myUsed = true;
 
     return myClassLoader.loadView(className, constructorSignature, constructorParameters);
