@@ -190,15 +190,9 @@ public class AddMissingAttributesFix extends WriteCommandAction<Void> {
     }
 
     String tagName = tag.getName();
-    if (tagName.equals(REQUEST_FOCUS) || tagName.equals(VIEW_FRAGMENT) || tagName.equals(VIEW_MERGE)) {
+    if (tagName.equals(REQUEST_FOCUS) || tagName.equals(VIEW_MERGE) || tagName.equals(VIEW_INCLUDE)) {
       return false;
     }
-    // TODO: What are the other exceptions?
-
-    if (tagName.equals(VIEW_INCLUDE)) {
-      return false;
-    }
-
 
     return true;
   }
