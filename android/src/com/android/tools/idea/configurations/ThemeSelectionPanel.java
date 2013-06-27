@@ -16,7 +16,9 @@
 package com.android.tools.idea.configurations;
 
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceRepository;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.ManifestInfo;
 import com.android.tools.idea.rendering.ProjectResources;
@@ -45,6 +47,8 @@ import java.util.*;
 
 import static com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX;
 import static com.android.SdkConstants.STYLE_RESOURCE_PREFIX;
+import static com.android.ide.common.resources.ResourceResolver.THEME_NAME;
+import static com.android.ide.common.resources.ResourceResolver.THEME_NAME_DOT;
 
 /**
  * Theme selection dialog.
@@ -64,8 +68,6 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
   private static final String PROJECT_THEME_PREFIX = STYLE_RESOURCE_PREFIX + "Theme.";
   private static final String DIALOG_SUFFIX = ".Dialog";
   private static final String DIALOG_PART = ".Dialog.";
-  private static final String THEME = "Theme";
-  private static final String THEME_DOT = "Theme.";
   private static final SimpleTextAttributes SEARCH_HIGHLIGHT_ATTRIBUTES =
     new SimpleTextAttributes(null, JBColor.MAGENTA, null, SimpleTextAttributes.STYLE_BOLD);
 
@@ -107,8 +109,11 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         else if (style.startsWith(PROJECT_THEME_PREFIX)) {
           style = style.substring(PROJECT_THEME_PREFIX.length());
         }
+        else if (style.startsWith(STYLE_RESOURCE_PREFIX)) {
+          style = style.substring(STYLE_RESOURCE_PREFIX.length());
+        }
         else if (style.equals(ANDROID_THEME) || style.equals(PROJECT_THEME)) {
-          style = THEME;
+          style = THEME_NAME;
         }
 
         if (!filter.isEmpty()) {
@@ -352,7 +357,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     if (myProjectThemes == null) {
       ProjectResources repository = ProjectResources.get(myConfiguration.getModule(), true);
       Map<ResourceType, Map<String, ResourceValue>> resources = repository.getConfiguredResources(myConfiguration.getFullConfig());
-      myProjectThemes = getThemes(resources, false /*isFramework*/);
+      myProjectThemes = getThemes(myConfiguration, resources, false /*isFramework*/);
     }
 
     return myProjectThemes;
@@ -505,10 +510,10 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     }
 
     Map<ResourceType, Map<String, ResourceValue>> resources = repository.getConfiguredResources(myConfiguration.getFullConfig());
-    return getThemes(resources, isFramework);
+    return getThemes(myConfiguration, resources, isFramework);
   }
 
-  private static List<String> getThemes(Map<ResourceType, Map<String, ResourceValue>> resources, boolean isFramework) {
+  private static List<String> getThemes(Configuration configuration, Map<ResourceType, Map<String, ResourceValue>> resources, boolean isFramework) {
     String prefix = isFramework ? ANDROID_STYLE_RESOURCE_PREFIX : STYLE_RESOURCE_PREFIX;
     // get the styles.
     Map<String, ResourceValue> styles = resources.get(ResourceType.STYLE);
@@ -516,13 +521,35 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     // Collect the themes out of all the styles.
     Collection<ResourceValue> values = styles.values();
     List<String> themes = new ArrayList<String>(values.size());
-    for (ResourceValue value : values) {
-      String name = value.getName();
-      if (name.startsWith(THEME_DOT) || name.equals(THEME)) {
-        themes.add(prefix + name);
+
+    if (!isFramework) {
+      // Try a little harder to see if the user has themes that don't have the normal naming convention
+      ResourceResolver resolver = configuration.getResourceResolver();
+      if (resolver != null) {
+        Map<ResourceValue, Boolean> cache = Maps.newHashMapWithExpectedSize(values.size());
+        for (ResourceValue value : values) {
+          if (value instanceof StyleResourceValue) {
+            StyleResourceValue styleValue = (StyleResourceValue)value;
+            boolean isTheme = resolver.isTheme(styleValue, cache);
+            if (isTheme) {
+              String name = value.getName();
+              themes.add(prefix + name);
+            }
+          }
+        }
+
+        Collections.sort(themes);
+        return themes;
       }
     }
 
+    // For the framework (and projects if resolver can't be computed) the computation is easier
+    for (ResourceValue value : values) {
+      String name = value.getName();
+      if (name.startsWith(THEME_NAME_DOT) || name.equals(THEME_NAME)) {
+        themes.add(prefix + name);
+      }
+    }
     Collections.sort(themes);
     return themes;
   }

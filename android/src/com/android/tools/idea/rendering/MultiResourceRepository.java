@@ -158,7 +158,8 @@ abstract class MultiResourceRepository extends ProjectResources {
     if (myItems == null) {
       if (myChildren.size() == 1) {
         myItems = myChildren.get(0).getItems();
-      } else {
+      }
+      else {
         Map<ResourceType, ListMultimap<String, ResourceItem>> map = Maps.newEnumMap(ResourceType.class);
         for (ResourceType type : ResourceType.values()) {
           map.put(type, getMap(type, false)); // should pass create is true, but as described below we interpret this differently
@@ -215,7 +216,8 @@ abstract class MultiResourceRepository extends ProjectResources {
           if (!contains) {
             map.put(name, item);
           }
-        } else {
+        }
+        else {
           map.put(name, item);
         }
       }
@@ -246,7 +248,7 @@ abstract class MultiResourceRepository extends ProjectResources {
   }
 
   /**
-   *  Notifies this delegating repository that the given dependent repository has invalidated
+   * Notifies this delegating repository that the given dependent repository has invalidated
    * resources of the given types (empty means all)
    */
   public void invalidateCache(@NotNull ProjectResources repository, @Nullable ResourceType... types) {
@@ -254,7 +256,8 @@ abstract class MultiResourceRepository extends ProjectResources {
 
     if (types == null || types.length == 0) {
       myCachedTypeMaps.clear();
-    } else {
+    }
+    else {
       for (ResourceType type : types) {
         myCachedTypeMaps.remove(type);
       }
