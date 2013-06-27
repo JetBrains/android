@@ -454,9 +454,6 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       return;
     }
 
-    // TODO: Get rid of this when the project resources are read directly from (possibly unsaved) PSI elements
-    ApplicationManager.getApplication().saveAll();
-
     mySessionAlarm.addRequest(new Runnable() {
       @Override
       public void run() {

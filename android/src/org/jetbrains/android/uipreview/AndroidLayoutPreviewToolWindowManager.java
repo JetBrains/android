@@ -84,7 +84,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
   private final Object myRenderingQueueLock = new Object();
   private MergingUpdateQueue myRenderingQueue;
 
-  private final MergingUpdateQueue mySaveAndRenderQueue;
+  private final MergingUpdateQueue myRenderQueue;
 
   private final Project myProject;
   private final FileEditorManager myFileEditorManager;
@@ -102,7 +102,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
     myFileEditorManager = fileEditorManager;
 
     myToolWindowUpdateQueue = new MergingUpdateQueue("android.layout.preview", 300, true, null, project);
-    mySaveAndRenderQueue = new MergingUpdateQueue("android.layout.preview.save.and.render", 1000, true, null, project, null, true);
+    myRenderQueue = new MergingUpdateQueue("android.layout.preview.save.and.render", 1000, true, null, project, null, true);
 
     final MessageBusConnection connection = project.getMessageBus().connect(project);
     connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new MyFileEditorManagerListener());
@@ -193,13 +193,12 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
       if (vFile != null) {
         final VirtualFile finalVFile = vFile;
 
-        mySaveAndRenderQueue.queue(new Update("saveAndRender") {
+        myRenderQueue.queue(new Update("saveAndRender") {
           @Override
           public void run() {
             final VirtualFile[] resDirs = facet.getLocalResourceManager().getAllResourceDirs();
 
             if (ArrayUtil.find(resDirs, finalVFile) >= 0) {
-              ApplicationManager.getApplication().saveAll();
               render();
             }
           }
@@ -318,7 +317,6 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
 
         final boolean toRender = myToolWindowForm.getFile() != psiFile;
         if (toRender) {
-          ApplicationManager.getApplication().saveAll();
           if (!myToolWindowForm.setFile(psiFile)) {
             return;
           }
