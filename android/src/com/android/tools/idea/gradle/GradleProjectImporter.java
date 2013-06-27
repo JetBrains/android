@@ -28,6 +28,7 @@ import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
@@ -36,7 +37,6 @@ import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefres
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
-import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -217,7 +217,7 @@ public class GradleProjectImporter {
 
     myDelegate.importProject(project, projectFilePath, new ExternalProjectRefreshCallback() {
       @Override
-      public void onSuccess(final @Nullable DataNode<ProjectData> projectInfo) {
+      public void onSuccess(@Nullable final DataNode<ProjectData> projectInfo) {
         assert projectInfo != null;
         Runnable runnable = new Runnable() {
           @Override
@@ -282,7 +282,7 @@ public class GradleProjectImporter {
   }
 
   private static void populateProject(@NotNull final Project newProject, @NotNull final DataNode<ProjectData> projectInfo) {
-    System.setProperty(ExternalSystemConstants.NEWLY_IMPORTED_PROJECT, Boolean.TRUE.toString());
+    newProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
     StartupManager.getInstance(newProject).runWhenProjectIsInitialized(new Runnable() {
       @Override
       public void run() {
