@@ -213,7 +213,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
     if (issue == NamespaceDetector.TYPO ||             // IDEA has its own spelling check
         issue == NamespaceDetector.UNUSED ||           // IDEA already does full validation
         issue == ManifestTypoDetector.ISSUE ||         // IDEA already does full validation
-        issue == ManifestOrderDetector.WRONG_PARENT || // IDEA already does full validation
+        issue == ManifestDetector.WRONG_PARENT ||      // IDEA already does full validation
         issue == DeprecationDetector.ISSUE ||
         issue == LocaleDetector.STRING_LOCALE) {       // IDEA checks for this in Java code
       return false;
