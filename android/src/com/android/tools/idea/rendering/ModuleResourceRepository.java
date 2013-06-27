@@ -84,6 +84,8 @@ final class ModuleResourceRepository extends MultiResourceRepository {
     }
 
     boolean refresh = facet.getIdeaAndroidProject() == null;
+    // We create a ModuleResourceRepository even if resources.isEmpty(), because we may
+    // dynamically add children to it later (in updateRoots)
     final ModuleResourceRepository repository = new ModuleResourceRepository(facet, resources);
 
     // If the model is not yet ready, we may get an incomplete set of resource
