@@ -58,10 +58,11 @@ public class NavigationEditorPanel2 extends JComponent {
   private static final EmptyBorder LABEL_BORDER = new EmptyBorder(0, 5, 0, 5);
   private static final Dimension ORIGINAL_SIZE = new Dimension(480, 800);
   private static final Dimension PREVIEW_SIZE = new Dimension((int)(ORIGINAL_SIZE.width * SCALE), (int)(ORIGINAL_SIZE.height * SCALE));
-  private static final Dimension ARROW_HEAD_SIZE = new Dimension(10, 5);
-  public static final Color LINE_COLOR = Color.GRAY;
+  private static final int LINE_WIDTH = 3;
+  private static final Dimension ARROW_HEAD_SIZE = new Dimension(6 * LINE_WIDTH, 3 * LINE_WIDTH);
   public static final Point MULTIPLE_DROP_STRIDE = new Point(50, 50);
   private static final String ID_PREFIX = "@+id/";
+  public static final Color TRANSITION_LINE_COLOR = new Color(80, 80, 255);
 
   private final NavigationModel myNavigationModel;
   private final Project myProject;
@@ -77,10 +78,9 @@ public class NavigationEditorPanel2 extends JComponent {
   static class Location {
     @NotNull
     public final State state;
-    @NotNull
     public final String viewIdentifier;
 
-    Location(@NotNull State state, @NotNull String viewIdentifier) {
+    Location(@NotNull State state, String viewIdentifier) {
       this.state = state;
       this.viewIdentifier = viewIdentifier;
     }
@@ -93,7 +93,7 @@ public class NavigationEditorPanel2 extends JComponent {
       Location location = (Location)o;
 
       if (!state.equals(location.state)) return false;
-      if (!viewIdentifier.equals(location.viewIdentifier)) return false;
+      if (viewIdentifier != null ? !viewIdentifier.equals(location.viewIdentifier) : location.viewIdentifier != null) return false;
 
       return true;
     }
@@ -101,7 +101,7 @@ public class NavigationEditorPanel2 extends JComponent {
     @Override
     public int hashCode() {
       int result = state.hashCode();
-      result = 31 * result + viewIdentifier.hashCode();
+      result = 31 * result + (viewIdentifier != null ? viewIdentifier.hashCode() : 0);
       return result;
     }
   }
@@ -152,9 +152,11 @@ public class NavigationEditorPanel2 extends JComponent {
 
   private static void paintLeaf(Graphics g, @Nullable RenderedView leaf, Color color, AndroidRootComponent component) {
     if (leaf != null) {
+      Color oldColor = g.getColor();
       g.setColor(color);
       Rectangle r = component.getBounds(leaf);
       g.drawRect(r.x, r.y, r.width, r.height);
+      g.setColor(oldColor);
     }
   }
 
@@ -290,15 +292,15 @@ public class NavigationEditorPanel2 extends JComponent {
 
     @Override
     protected void paint(Graphics g) {
-      g.setColor(LINE_COLOR);
-      Point start = Utilities.centre(myComponent);
-      drawArrow(g, start.x, start.y, myLocation.x, myLocation.y);
     }
 
     @Override
     protected void paintOver(Graphics g) {
-      paintLeaf(g, myLeaf, Color.RED, myComponent);
-      paintLeaf(g, myNamedLeaf, Color.BLUE, myComponent);
+      Graphics2D transitionGraphics = createTransitionGraphics(g);
+      paintLeaf(transitionGraphics, myLeaf, Color.RED, myComponent);
+      paintLeaf(transitionGraphics, myNamedLeaf, Color.BLUE, myComponent);
+      Point start = Utilities.centre(myComponent.getBounds(myNamedLeaf));
+      drawArrow(transitionGraphics, start.x, start.y, myLocation.x, myLocation.y);
     }
 
     @Override
@@ -322,7 +324,6 @@ public class NavigationEditorPanel2 extends JComponent {
     myNavigationModel = navigationModel;
 
     setBackground(BACKGROUND_COLOR);
-    setForeground(LINE_COLOR);
 
     addChildren(getStates(navigationModel));
     addAllRelations();
@@ -448,19 +449,21 @@ public class NavigationEditorPanel2 extends JComponent {
     mySelection.paint(g);
   }
 
-  private void paintTransitions(Graphics g) {
-    Graphics2D g2d = (Graphics2D)g;
-    Object oldRenderingHint = g2d.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
-    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    //g.setColor(getForeground());
-    g.setColor(Color.BLUE);
+  private static Graphics2D createTransitionGraphics(Graphics g) {
+    Graphics2D result = (Graphics2D)g.create();
+    result.setColor(TRANSITION_LINE_COLOR);
+    result.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    result.setStroke(new BasicStroke(LINE_WIDTH));
+    return result;
+  }
+
+  private void paintTransitions(Graphics2D g) {
     for (Transition transition : myNavigationModel) {
       State source = transition.getSource();
       AndroidRootComponent sourceComponent = myStateToComponent.get(source);
       AndroidRootComponent destinationComponent = myStateToComponent.get(transition.getDestination());
-      RenderedView sourceView = getRenderedView(transition);
-      g.setColor(Color.BLUE);
-      Rectangle r1 = sourceComponent.getBounds(sourceView);
+
+      Rectangle r1 = sourceComponent.getBounds(getRenderedView(transition));
       Rectangle r2 = myTransitionToTransitionInfo.get(transition).myComponent.getBounds();
       Rectangle r3 = destinationComponent.getBounds();
 
@@ -483,20 +486,16 @@ public class NavigationEditorPanel2 extends JComponent {
       g.drawLine(p3.x, p3.y, B.x, B.y);
       drawArrow(g, B.x, B.y, p4.x, p4.y);
     }
-    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, oldRenderingHint);
   }
 
-  @NotNull
-  private RenderedView getRenderedView(Transition transition) {
-    State source = transition.getSource();
-    RenderedView result = getLocationToRenderedView().get(new Location(source, transition.getViewIdentifier()));
-    return result == null ? myStateToComponent.get(source).getRenderResult().getHierarchy().getRoots().get(0) : result;
+  private RenderedView getRenderedView(Transition t) {
+    return getLocationToRenderedView().get(new Location(t.getSource(), t.getViewIdentifier()));
   }
 
   @Override
   protected void paintChildren(Graphics g) {
     super.paintChildren(g);
-    paintTransitions(g);
+    paintTransitions(createTransitionGraphics(g));
     mySelection.paintOver(g);
   }
 
@@ -537,7 +536,7 @@ public class NavigationEditorPanel2 extends JComponent {
     for (Transition transition : myNavigationModel) {
       AndroidRootComponent sourceComponent = myStateToComponent.get(transition.getSource());
       AndroidRootComponent destinationComponent = myStateToComponent.get(transition.getDestination());
-      Point sl = Utilities.centre(sourceComponent);
+      Point sl = Utilities.centre(sourceComponent.getBounds(getRenderedView(transition)));
       Point dl = Utilities.centre(destinationComponent);
       String gesture = transition.getType();
       if (gesture != null) {

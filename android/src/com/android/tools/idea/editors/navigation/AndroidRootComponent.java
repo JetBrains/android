@@ -152,7 +152,10 @@ public class AndroidRootComponent extends JComponent {
     return new Point((int)(dx * dim.myKx), (int)(dy * dim.myKy));
   }
 
-  public Rectangle getBounds(RenderedView leaf) {
+  public Rectangle getBounds(@Nullable RenderedView leaf) {
+    if (leaf == null) {
+      leaf = getRenderResult().getHierarchy().getRoots().get(0);
+    }
     Dim dim = getDim();
     float kx = dim.myKx;
     float ky = dim.myKy;
