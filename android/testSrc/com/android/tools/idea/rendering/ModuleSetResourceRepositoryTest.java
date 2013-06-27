@@ -15,10 +15,102 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
+import com.android.ide.common.res2.ResourceItem;
+import com.android.resources.ResourceType;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import org.jetbrains.android.AndroidTestCase;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
+
+import static com.android.tools.idea.rendering.ModuleResourceRepositoryTest.getFirstItem;
+
 public class ModuleSetResourceRepositoryTest extends AndroidTestCase {
-  public void test() {
-    // TODO
+  private static final String LAYOUT = "resourceRepository/layout.xml";
+  private static final String VALUES = "resourceRepository/values.xml";
+  private static final String VALUES_OVERLAY1 = "resourceRepository/valuesOverlay1.xml";
+  private static final String VALUES_OVERLAY2 = "resourceRepository/valuesOverlay2.xml";
+  private static final String VALUES_OVERLAY2_NO = "resourceRepository/valuesOverlay2No.xml";
+
+  // Ensure that we invalidate the id cache when the file is rescanned but ids don't change
+  // (this was broken)
+  public void testInvalidateIds() {
+    // Like testOverlayUpdates1, but rather than testing changes to layout resources (file-based resource)
+    // perform document edits in value-documents
+
+    VirtualFile layoutFile = myFixture.copyFileToProject(LAYOUT, "res/layout/layout1.xml");
+
+    VirtualFile res1 = myFixture.copyFileToProject(VALUES, "res/values/values.xml").getParent().getParent();
+    VirtualFile res2 = myFixture.copyFileToProject(VALUES_OVERLAY1, "res2/values/values.xml").getParent().getParent();
+    VirtualFile res3 = myFixture.copyFileToProject(VALUES_OVERLAY2, "res3/values/nameDoesNotMatter.xml").getParent().getParent();
+    myFixture.copyFileToProject(VALUES_OVERLAY2_NO, "res3/values-no/values.xml");
+
+    assertNotSame(res1, res2);
+    assertNotSame(res1, res3);
+    assertNotSame(res2, res3);
+
+    // Just need an empty repository to make it a real module -set-; otherwise with a single
+    // module we just get a module repository, not a module set repository
+    ProjectResources other = new ProjectResources() {
+      @NonNull
+      @Override
+      protected Map<ResourceType, ListMultimap<String, ResourceItem>> getMap() {
+        return Collections.emptyMap();
+      }
+
+      @Nullable
+      @Override
+      protected ListMultimap<String, ResourceItem> getMap(ResourceType type, boolean create) {
+        return ArrayListMultimap.create();
+      }
+    };
+
+    ModuleResourceRepository module = ModuleResourceRepository.createForTest(myFacet, Arrays.asList(res1, res2, res3));
+    final ProjectResources r = ModuleSetResourceRepository.create(Arrays.asList(module, other));
+    assertTrue(r instanceof ModuleSetResourceRepository);
+    final ModuleSetResourceRepository resources = (ModuleSetResourceRepository)r;
+
+    PsiFile layoutPsiFile = PsiManager.getInstance(getProject()).findFile(layoutFile);
+    assertNotNull(layoutPsiFile);
+    assertTrue(resources.hasResourceItem(ResourceType.ID, "btn_title_refresh"));
+    final PsiResourceItem item = getFirstItem(resources, ResourceType.ID, "btn_title_refresh");
+
+    final long generation = resources.getModificationCount();
+    final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
+    final Document document = documentManager.getDocument(layoutPsiFile);
+    assertNotNull(document);
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        String string = "<ImageView style=\"@style/TitleBarSeparator\" />";
+        int offset = document.getText().indexOf(string);
+        document.deleteString(offset, offset + string.length());
+        documentManager.commitDocument(document);
+      }
+    });
+
+    assertTrue(resources.isScanPending(layoutPsiFile));
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        assertTrue(generation < resources.getModificationCount());
+        // Should still be defined:
+        assertTrue(resources.hasResourceItem(ResourceType.ID, "btn_title_refresh"));
+        PsiResourceItem newItem = getFirstItem(resources, ResourceType.ID, "btn_title_refresh");
+        assertNotNull(newItem.getSource());
+        // However, should be a different item
+        assertNotSame(item, newItem);
+      }
+    });
   }
 }

@@ -378,6 +378,7 @@ final class ResourceFolderRepository extends ProjectResources {
     return isResourceFolder(psiFile.getParent());
   }
 
+  @Override
   boolean isScanPending(@NonNull PsiFile psiFile) {
     synchronized (SCAN_LOCK) {
       return myPendingScans != null && myPendingScans.contains(psiFile);
@@ -1015,6 +1016,41 @@ final class ResourceFolderRepository extends ProjectResources {
                           invalidateItemCaches(ResourceType.ID);
                           return;
                         }
+                      }
+                    }
+                  }
+
+                  rescan(psiFile, folderType);
+                }
+              } else if (parent instanceof XmlAttributeValue) {
+                assert parent.getParent() instanceof XmlAttribute : parent;
+                XmlAttribute attribute = (XmlAttribute)parent.getParent();
+                if (ATTR_ID.equals(attribute.getLocalName()) &&
+                    ANDROID_URI.equals(attribute.getNamespace())) {
+                  // for each id attribute!
+                  PsiResourceFile resourceFile = myResourceFiles.get(psiFile);
+                  if (resourceFile != null) {
+                    XmlTag xmlTag = attribute.getParent();
+                    PsiElement oldChild = event.getOldChild();
+                    PsiElement newChild = event.getNewChild();
+                    String oldName = stripIdPrefix(oldChild.getText());
+                    String newName = stripIdPrefix(newChild.getText());
+                    if (oldName.equals(newName)) {
+                      // Can happen when there are error nodes (e.g. attribute value not yet closed during typing etc)
+                      return;
+                    }
+                    ResourceItem item = findResourceItem(ResourceType.ID, psiFile, oldName);
+                    if (item != null) {
+                      ListMultimap<String, ResourceItem> map = myItems.get(item.getType());
+                      if (map != null) {
+                        // Found the relevant item: delete it and create a new one in a new location
+                        map.remove(oldName, item);
+                        ResourceItem newItem = new PsiResourceItem(newName, ResourceType.ID, xmlTag, psiFile);
+                        map.put(newName, newItem);
+                        resourceFile.replace(item, newItem);
+                        myGeneration++;
+                        invalidateItemCaches(ResourceType.ID);
+                        return;
                       }
                     }
                   }
