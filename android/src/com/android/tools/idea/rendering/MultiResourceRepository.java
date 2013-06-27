@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
@@ -23,6 +24,8 @@ import com.android.util.Pair;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.psi.PsiFile;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TObjectIntHashMap;
 import org.jetbrains.annotations.NotNull;
@@ -264,5 +267,18 @@ abstract class MultiResourceRepository extends ProjectResources {
     if (myParent != null) {
       myParent.invalidateCache(this, types);
     }
+  }
+
+  @Override
+  boolean isScanPending(@NonNull PsiFile psiFile) {
+    assert ApplicationManager.getApplication().isUnitTestMode();
+    for (int i = myChildren.size() - 1; i >= 0; i--) {
+      ProjectResources resources = myChildren.get(i);
+      if (resources.isScanPending(psiFile)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }

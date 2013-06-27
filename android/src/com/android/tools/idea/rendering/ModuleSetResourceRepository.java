@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
@@ -24,7 +25,7 @@ import java.util.List;
 
 /** Resource repository for a module along with all its library dependencies */
 final class ModuleSetResourceRepository extends MultiResourceRepository {
-  private ModuleSetResourceRepository(@NotNull List<ProjectResources> delegates) {
+  private ModuleSetResourceRepository(@NotNull List<? extends ProjectResources> delegates) {
     super(delegates);
     assert delegates.size() >= 2; // factory should delegate to a plain ModuleResourceRepository if not
   }
@@ -50,5 +51,11 @@ final class ModuleSetResourceRepository extends MultiResourceRepository {
     // See ModuleResourceRepository#updateRoots for similar logic we should apply here (but for dependencies, not resource dirs obviously)
 
     return new ModuleSetResourceRepository(resources);
+  }
+
+  @VisibleForTesting
+  @NotNull
+  static ProjectResources create(List<ProjectResources> modules) {
+    return new ModuleSetResourceRepository(modules);
   }
 }

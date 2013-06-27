@@ -31,11 +31,17 @@ public class VersionCheckTest extends TestCase {
   protected void setUp() throws Exception {
     super.setUp();
     mySdkPath = System.getProperty(AndroidTestCase.SDK_PATH_PROPERTY);
+    if (mySdkPath == null) {
+      mySdkPath = System.getenv(AndroidTestCase.SDK_PATH_PROPERTY);
+    }
     String format = "Please specify the path of an Android SDK (v22.0.0) in the system property '%1$s'";
     String msg = String.format(format, AndroidTestCase.SDK_PATH_PROPERTY);
     assertNotNull(msg, mySdkPath);
 
     myPreV22SdkPath = System.getProperty(PRE_V22_SDK_PATH);
+    if (myPreV22SdkPath == null) {
+      myPreV22SdkPath = System.getenv(PRE_V22_SDK_PATH);
+    }
     msg = String.format("Please specify the path of an old Android SDK (pre-22.0.0) with the system property '%1$s'", PRE_V22_SDK_PATH);
     assertNotNull(msg, myPreV22SdkPath);
   }
