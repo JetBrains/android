@@ -22,6 +22,7 @@ import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.google.common.base.Predicate;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.execution.*;
 import com.intellij.execution.configurations.*;
@@ -85,7 +86,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
   }
 
   @Override
-  protected Pair<Boolean, String> supportsRunningLibraryProjects(AndroidFacet facet) {
+  protected Pair<Boolean, String> supportsRunningLibraryProjects(@NotNull AndroidFacet facet) {
     if (!facet.isGradleProject()) {
       // Non Gradle projects always require an application
       return new Pair<Boolean, String>(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
@@ -268,7 +269,12 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
     Project project = getProject();
     AndroidRunConfigurationEditor<AndroidTestRunConfiguration> editor =
-      new AndroidRunConfigurationEditor<AndroidTestRunConfiguration>(project);
+      new AndroidRunConfigurationEditor<AndroidTestRunConfiguration>(project, new Predicate<AndroidFacet>() {
+        @Override
+        public boolean apply(@Nullable AndroidFacet facet) {
+          return facet != null && supportsRunningLibraryProjects(facet).getFirst();
+        }
+      });
     editor.setConfigurationSpecificEditor(new TestRunParameters(project, editor.getModuleSelector()));
     return editor;
   }

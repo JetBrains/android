@@ -17,6 +17,7 @@ package org.jetbrains.android.run;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.google.common.base.Predicate;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ModalityState;
@@ -78,7 +79,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     setAnchor(myConfigurationSpecificEditor.getAnchor());
   }
 
-  public AndroidRunConfigurationEditor(final Project project) {
+  public AndroidRunConfigurationEditor(final Project project, final Predicate<AndroidFacet> libraryProjectValidator) {
     myCommandLineField.setDialogCaption("Emulator Additional Command Line Options");
 
     myModuleSelector = new ConfigurationModuleSelector(project, myModulesComboBox) {
@@ -87,8 +88,13 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
         if (module == null || !super.isModuleAccepted(module)) {
           return false;
         }
+
         final AndroidFacet facet = AndroidFacet.getInstance(module);
-        return facet != null && !facet.getProperties().LIBRARY_PROJECT;
+        if (facet == null) {
+          return false;
+        }
+
+        return !facet.getProperties().LIBRARY_PROJECT || libraryProjectValidator.apply(facet);
       }
     };
 

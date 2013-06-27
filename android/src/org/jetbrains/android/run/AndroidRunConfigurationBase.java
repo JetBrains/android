@@ -121,7 +121,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   /** Returns whether the configuration supports running library projects, and if it doesn't, then an explanation as to why it doesn't. */
-  protected abstract Pair<Boolean,String> supportsRunningLibraryProjects(AndroidFacet facet);
+  protected abstract Pair<Boolean,String> supportsRunningLibraryProjects(@NotNull AndroidFacet facet);
   protected abstract void checkConfiguration(@NotNull AndroidFacet facet) throws RuntimeConfigurationException;
 
   @Override
