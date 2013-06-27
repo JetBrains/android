@@ -17,6 +17,7 @@ package org.jetbrains.android.run;
 
 import com.android.SdkConstants;
 import com.android.ddmlib.*;
+import com.google.common.base.Predicates;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.JavaExecutionUtil;
@@ -78,7 +79,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   }
 
   @Override
-  protected Pair<Boolean, String> supportsRunningLibraryProjects(AndroidFacet facet) {
+  protected Pair<Boolean, String> supportsRunningLibraryProjects(@NotNull AndroidFacet facet) {
     return new Pair<Boolean, String>(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
   }
 
@@ -144,7 +145,8 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   @Override
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
     Project project = getProject();
-    AndroidRunConfigurationEditor<AndroidRunConfiguration> editor = new AndroidRunConfigurationEditor<AndroidRunConfiguration>(project);
+    AndroidRunConfigurationEditor<AndroidRunConfiguration> editor =
+      new AndroidRunConfigurationEditor<AndroidRunConfiguration>(project, Predicates.<AndroidFacet>alwaysFalse());
     editor.setConfigurationSpecificEditor(new ApplicationRunParameters(project, editor.getModuleSelector()));
     return editor;
   }
