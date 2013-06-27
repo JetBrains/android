@@ -372,7 +372,7 @@ public class AndroidLintInspectionToolProvider {
 
   public static class AndroidLintDeviceAdminInspection extends AndroidLintInspectionBase {
     public AndroidLintDeviceAdminInspection() {
-      super(AndroidBundle.message("android.lint.inspections.device.admin"), ManifestOrderDetector.DEVICE_ADMIN);
+      super(AndroidBundle.message("android.lint.inspections.device.admin"), ManifestDetector.DEVICE_ADMIN);
     }
   }
 
@@ -393,19 +393,19 @@ public class AndroidLintInspectionToolProvider {
 
   public static class AndroidLintManifestOrderInspection extends AndroidLintInspectionBase {
     public AndroidLintManifestOrderInspection() {
-      super(AndroidBundle.message("android.lint.inspections.manifest.order"), ManifestOrderDetector.ORDER);
+      super(AndroidBundle.message("android.lint.inspections.manifest.order"), ManifestDetector.ORDER);
     }
   }
 
   public static class AndroidLintMultipleUsesSdkInspection extends AndroidLintInspectionBase {
     public AndroidLintMultipleUsesSdkInspection() {
-      super(AndroidBundle.message("android.lint.inspections.multiple.uses.sdk"), ManifestOrderDetector.MULTIPLE_USES_SDK);
+      super(AndroidBundle.message("android.lint.inspections.multiple.uses.sdk"), ManifestDetector.MULTIPLE_USES_SDK);
     }
   }
 
   public static class AndroidLintUsesMinSdkAttributesInspection extends AndroidLintInspectionBase {
     public AndroidLintUsesMinSdkAttributesInspection() {
-      super(AndroidBundle.message("android.lint.inspections.uses.min.sdk.attributes"), ManifestOrderDetector.USES_SDK);
+      super(AndroidBundle.message("android.lint.inspections.uses.min.sdk.attributes"), ManifestDetector.USES_SDK);
     }
   }
 
@@ -638,12 +638,12 @@ public class AndroidLintInspectionToolProvider {
 
   public static class AndroidLintDuplicateUsesFeatureInspection extends AndroidLintInspectionBase {
     public AndroidLintDuplicateUsesFeatureInspection() {
-      super(AndroidBundle.message("android.lint.inspections.duplicate.uses.feature"), ManifestOrderDetector.DUPLICATE_USES_FEATURE);
+      super(AndroidBundle.message("android.lint.inspections.duplicate.uses.feature"), ManifestDetector.DUPLICATE_USES_FEATURE);
     }
   }
   public static class AndroidLintMissingApplicationIconInspection extends AndroidLintInspectionBase {
     public AndroidLintMissingApplicationIconInspection() {
-      super(AndroidBundle.message("android.lint.inspections.missing.application.icon"), ManifestOrderDetector.APPLICATION_ICON);
+      super(AndroidBundle.message("android.lint.inspections.missing.application.icon"), ManifestDetector.APPLICATION_ICON);
     }
   }
   public static class AndroidLintRtlCompatInspection extends AndroidLintInspectionBase {
@@ -671,7 +671,7 @@ public class AndroidLintInspectionToolProvider {
 
   public static class AndroidLintAllowBackupInspection extends AndroidLintInspectionBase {
     public AndroidLintAllowBackupInspection() {
-      super(AndroidBundle.message("android.lint.inspections.allow.backup"), ManifestOrderDetector.ALLOW_BACKUP);
+      super(AndroidBundle.message("android.lint.inspections.allow.backup"), ManifestDetector.ALLOW_BACKUP);
     }
   }
   public static class AndroidLintButtonStyleInspection extends AndroidLintInspectionBase {
@@ -691,7 +691,7 @@ public class AndroidLintInspectionToolProvider {
   }
   public static class AndroidLintDuplicateActivityInspection extends AndroidLintInspectionBase {
     public AndroidLintDuplicateActivityInspection() {
-      super(AndroidBundle.message("android.lint.inspections.duplicate.activity"), ManifestOrderDetector.DUPLICATE_ACTIVITY);
+      super(AndroidBundle.message("android.lint.inspections.duplicate.activity"), ManifestDetector.DUPLICATE_ACTIVITY);
     }
   }
   public static class AndroidLintDuplicateDefinitionInspection extends AndroidLintInspectionBase {
@@ -736,7 +736,7 @@ public class AndroidLintInspectionToolProvider {
   }
   public static class AndroidLintIllegalResourceRefInspection extends AndroidLintInspectionBase {
     public AndroidLintIllegalResourceRefInspection() {
-      super(AndroidBundle.message("android.lint.inspections.illegal.resource.ref"), ManifestOrderDetector.ILLEGAL_REFERENCE);
+      super(AndroidBundle.message("android.lint.inspections.illegal.resource.ref"), ManifestDetector.ILLEGAL_REFERENCE);
     }
   }
   public static class AndroidLintInOrMmUsageInspection extends AndroidLintInspectionBase {
@@ -782,12 +782,12 @@ public class AndroidLintInspectionToolProvider {
   }
   public static class AndroidLintMissingVersionInspection extends AndroidLintInspectionBase {
     public AndroidLintMissingVersionInspection() {
-      super(AndroidBundle.message("android.lint.inspections.missing.version"), ManifestOrderDetector.SET_VERSION);
+      super(AndroidBundle.message("android.lint.inspections.missing.version"), ManifestDetector.SET_VERSION);
     }
   }
   public static class AndroidLintOldTargetApiInspection extends AndroidLintInspectionBase {
     public AndroidLintOldTargetApiInspection() {
-      super(AndroidBundle.message("android.lint.inspections.old.target.api"), ManifestOrderDetector.TARGET_NEWER);
+      super(AndroidBundle.message("android.lint.inspections.old.target.api"), ManifestDetector.TARGET_NEWER);
     }
   }
   public static class AndroidLintOrientationInspection extends AndroidLintInspectionBase {
@@ -874,7 +874,7 @@ public class AndroidLintInspectionToolProvider {
   }
   public static class AndroidLintUniquePermissionInspection extends AndroidLintInspectionBase {
     public AndroidLintUniquePermissionInspection() {
-      super(AndroidBundle.message("android.lint.inspections.unique.permission"), ManifestOrderDetector.UNIQUE_PERMISSION);
+      super(AndroidBundle.message("android.lint.inspections.unique.permission"), ManifestDetector.UNIQUE_PERMISSION);
     }
   }
   public static class AndroidLintUnlocalizedSmsInspection extends AndroidLintInspectionBase {
