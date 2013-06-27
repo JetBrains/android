@@ -516,8 +516,9 @@ final class ResourceFolderRepository extends ProjectResources {
 
           if (!idsBefore.equals(idsAfter)) {
             myGeneration++;
-            invalidateItemCaches(ResourceType.ID);
           }
+          // Identities may have changed even if the ids are the same, so update maps
+          invalidateItemCaches(ResourceType.ID);
         }
       } else {
         // For unit test tracking purposes only
