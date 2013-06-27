@@ -17,12 +17,15 @@ package com.android.tools.idea.rendering;
 
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.tree.IElementType;
@@ -31,6 +34,8 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlText;
 import com.intellij.psi.xml.XmlTokenType;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collections;
 
 import static com.android.SdkConstants.*;
 
@@ -46,7 +51,46 @@ class PsiResourceItem extends ResourceItem {
 
   @Override
   public FolderConfiguration getConfiguration() {
-    return ((PsiResourceFile)getSource()).getFolderConfiguration();
+    PsiResourceFile source = (PsiResourceFile)super.getSource();
+
+    // Temporary safety workaround
+    if (source == null) {
+      if (myFile != null) {
+        PsiDirectory parent = myFile.getParent();
+        if (parent != null) {
+          String name = parent.getName();
+          FolderConfiguration configuration = FolderConfiguration.getConfigForFolder(name);
+          if (configuration != null) {
+            return configuration;
+          }
+        }
+      }
+      return new FolderConfiguration();
+    }
+    return source.getFolderConfiguration();
+  }
+
+  @Nullable
+  @Override
+  public ResourceFile getSource() {
+    ResourceFile source = super.getSource();
+
+    // Temporary safety workaround
+    if (source == null && myFile != null && myFile.getParent() != null) {
+      PsiDirectory parent = myFile.getParent();
+      if (parent != null) {
+        String name = parent.getName();
+        ResourceFolderType folderType = ResourceFolderType.getFolderType(name);
+        FolderConfiguration configuration = FolderConfiguration.getConfigForFolder(name);
+        int index = name.indexOf('-');
+        String qualifiers = index == -1 ? "" : name.substring(index + 1);
+        source = new PsiResourceFile(myFile, Collections.<ResourceItem>singletonList(this), qualifiers, folderType,
+                                     configuration);
+        setSource(source);
+      }
+    }
+
+    return source;
   }
 
   @Nullable
