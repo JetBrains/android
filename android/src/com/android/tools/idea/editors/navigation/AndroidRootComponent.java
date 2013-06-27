@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.navigation;
 
-import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
 import com.intellij.openapi.application.ApplicationManager;
@@ -128,11 +127,15 @@ public class AndroidRootComponent extends JComponent {
     });
   }
 
+  public RenderedView getRootView() {
+    return getRenderResult().getHierarchy().getRoots().get(0);
+  }
+
   private Dim getDim() {
     if (myDim == null) {
-      ViewInfo root = getRenderResult().getRootViews().get(0);
-      int b = root.getBottom() + 100; // todo this accounts for the button bar at the bottom of the rendered view; remove
-      int r = root.getRight();
+      RenderedView root = getRootView();
+      int b = root.y2() + 100; // todo this accounts for the button bar at the bottom of the rendered view; remove
+      int r = root.x2();
 
       int cW = getWidth();
       int cH = getHeight();
@@ -154,12 +157,11 @@ public class AndroidRootComponent extends JComponent {
 
   public Rectangle getBounds(@Nullable RenderedView leaf) {
     if (leaf == null) {
-      leaf = getRenderResult().getHierarchy().getRoots().get(0);
+      leaf = getRootView();
     }
     Dim dim = getDim();
     float kx = dim.myKx;
     float ky = dim.myKy;
-    return new Rectangle(getX() + ((int)(leaf.x / kx)), getY() + ((int)(leaf.y / ky)), ((int)(leaf.w / kx)),
-                         ((int)(leaf.h / ky)));
+    return new Rectangle(getX() + ((int)(leaf.x / kx)), getY() + ((int)(leaf.y / ky)), ((int)(leaf.w / kx)), ((int)(leaf.h / ky)));
   }
 }

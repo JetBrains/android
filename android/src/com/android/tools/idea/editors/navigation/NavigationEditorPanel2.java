@@ -132,8 +132,6 @@ public class NavigationEditorPanel2 extends JComponent {
     if (myLocationToRenderedView == null) {
       myLocationToRenderedView = new HashMap<Location, RenderedView>();
       for (final State state : getStates(myNavigationModel)) {
-        AndroidRootComponent androidRootComponent = myStateToComponent.get(state);
-        RenderedView root = androidRootComponent.getRenderResult().getHierarchy().getRoots().get(0);
         new Object() {
           void walk(RenderedView parent) {
             for (RenderedView child : parent.getChildren()) {
@@ -144,7 +142,7 @@ public class NavigationEditorPanel2 extends JComponent {
               walk(child);
             }
           }
-        }.walk(root);
+        }.walk(myStateToComponent.get(state).getRootView());
       }
     }
     return myLocationToRenderedView;
