@@ -39,6 +39,10 @@ public class RenderedViewHierarchy {
     return new RenderedViewHierarchy(file, convert(null, roots, 0, 0));
   }
 
+  public List<RenderedView> getRoots() {
+    return myRoots;
+  }
+
   @NotNull
   private static List<RenderedView> convert(@Nullable RenderedView parent, @NotNull List<ViewInfo> roots, int parentX, int parentY) {
     List<RenderedView> views = new ArrayList<RenderedView>(roots.size());
