@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.navigation;
 
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
 import com.intellij.openapi.application.ApplicationManager;
@@ -35,6 +36,17 @@ public class AndroidRootComponent extends JComponent {
   private static final Object RENDERING_LOCK = new Object();
   private RenderResult myRenderResult = null;
   private double myScale;
+  private Dim myDim;
+
+  private static class Dim {
+    float myKx;
+    float myKy;
+
+    Dim(float kx, float ky) {
+      myKx = kx;
+      myKy = ky;
+    }
+  }
 
   public AndroidRootComponent() {
     myScale = 1;
@@ -114,5 +126,37 @@ public class AndroidRootComponent extends JComponent {
         }
       }
     });
+  }
+
+  private Dim getDim() {
+    if (myDim == null) {
+      ViewInfo root = getRenderResult().getRootViews().get(0);
+      int b = root.getBottom() + 100; // todo this accounts for the button bar at the bottom of the rendered view; remove
+      int r = root.getRight();
+
+      int cW = getWidth();
+      int cH = getHeight();
+
+      float myKx = (float)r / cW;
+      float myKy = (float)b / cH;
+
+      myDim = new Dim(myKx, myKy);
+    }
+    return myDim;
+  }
+
+  public Point convertPointFromViewToModel(Point p) {
+    int dx = p.x - getX();
+    int dy = p.y - getY();
+    Dim dim = getDim();
+    return new Point((int)(dx * dim.myKx), (int)(dy * dim.myKy));
+  }
+
+  public Rectangle getBounds(RenderedView leaf) {
+    Dim dim = getDim();
+    float kx = dim.myKx;
+    float ky = dim.myKy;
+    return new Rectangle(getX() + ((int)(leaf.x / kx)), getY() + ((int)(leaf.y / ky)), ((int)(leaf.w / kx)),
+                         ((int)(leaf.h / ky)));
   }
 }
