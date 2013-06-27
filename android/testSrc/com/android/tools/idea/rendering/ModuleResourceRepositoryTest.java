@@ -320,7 +320,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
 
   // Unit test support methods
 
-  private static void assertItemIsInDir(VirtualFile dir, PsiResourceItem item) {
+  static void assertItemIsInDir(VirtualFile dir, PsiResourceItem item) {
     PsiFile psiFile = item.getPsiFile();
     assertNotNull(psiFile);
     VirtualFile parent = psiFile.getVirtualFile();
@@ -328,7 +328,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertSame(dir, parent.getParent().getParent());
   }
 
-  private static void assertStringIs(ProjectResources repository, String key, String expected) {
+  static void assertStringIs(ProjectResources repository, String key, String expected) {
     assertStringIs(repository, key, expected, true);
   }
 
@@ -344,7 +344,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
   }
 
   @NotNull
-  private static PsiResourceItem getFirstItem(ProjectResources repository, ResourceType type, String key) {
+  static PsiResourceItem getFirstItem(ProjectResources repository, ResourceType type, String key) {
     List<ResourceItem> list = repository.getResourceItem(type, key);
     assertNotNull(list);
     ResourceItem item = list.get(0);
@@ -353,7 +353,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     return (PsiResourceItem)item;
   }
 
-  private static void assertStringIs(ProjectResources repository, String key, String expected, boolean mustBeUnique) {
+  static void assertStringIs(ProjectResources repository, String key, String expected, boolean mustBeUnique) {
     assertTrue(repository.hasResourceItem(ResourceType.STRING, key));
     List<ResourceItem> list = repository.getResourceItem(ResourceType.STRING, key);
     assertNotNull(list);

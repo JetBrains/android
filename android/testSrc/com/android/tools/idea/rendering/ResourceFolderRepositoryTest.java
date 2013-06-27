@@ -840,6 +840,48 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
+  public void testEditIdAttributeValue2() throws Exception {
+    // Edit the id attribute value: rather than by making a full value replacement,
+    // perform a tiny edit on the character content; this takes a different code
+    // path in the incremental updater
+
+    resetScanCounter();
+    // Edit the id attribute value of a layout item to change the set of available ids
+    VirtualFile file1 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
+    PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
+    assertNotNull(psiFile1);
+
+    ResourceFolderRepository resources = createRepository();
+    assertNotNull(resources);
+    Collection<String> layouts = resources.getItemsOfType(ResourceType.LAYOUT);
+    assertEquals(1, layouts.size());
+    assertNotNull(resources.getResourceItem(ResourceType.LAYOUT, "layout1"));
+
+    assertTrue(resources.hasResourceItem(ResourceType.ID, "noteArea"));
+    assertFalse(resources.hasResourceItem(ResourceType.ID, "note2Area"));
+
+    final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
+    final Document document = documentManager.getDocument(psiFile1);
+    assertNotNull(document);
+
+    // Edit value should cause update
+    long generation = resources.getModificationCount();
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        final int offset = document.getText().indexOf("noteArea");
+        document.insertString(offset + 4, "2");
+        documentManager.commitDocument(document);
+      }
+    });
+    assertTrue(resources.hasResourceItem(ResourceType.ID, "note2Area"));
+    assertFalse(resources.hasResourceItem(ResourceType.ID, "noteArea"));
+    assertTrue(resources.getModificationCount() > generation);
+
+    // Shouldn't have done any full file rescans during the above edits
+    ensureIncremental();
+  }
+
   public void testEditValueText() throws Exception {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");

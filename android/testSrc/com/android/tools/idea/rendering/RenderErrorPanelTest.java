@@ -23,6 +23,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 
 public class RenderErrorPanelTest extends AndroidTestCase {
   public static final String BASE_PATH = "render/";
@@ -51,6 +52,9 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     assertTrue(logger.hasProblems());
     RenderErrorPanel panel = new RenderErrorPanel();
     String html = panel.showErrors(render);
+
+    html = stripImages(html);
+
     assertEquals(
       "<HTML><BODY><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
       "<B>NOTE: One or more layouts are missing the layout_width or layout_height attributes. These are required in most layouts.</B><BR/>\n" +
@@ -64,5 +68,19 @@ public class RenderErrorPanelTest extends AndroidTestCase {
       "<BR/>\n" +
       "</BODY></HTML>",
      html);
+  }
+
+  // Image paths will include full resource urls which depends on the test environment
+  private static String stripImages(@NotNull String html) {
+    while (true) {
+      int index = html.indexOf("<img");
+      if (index == -1) {
+        return html;
+      }
+      int end = html.indexOf('>', index);
+      if (end == -1) {
+        html = html.substring(0, index) + html.substring(end + 1);
+      }
+    }
   }
 }
