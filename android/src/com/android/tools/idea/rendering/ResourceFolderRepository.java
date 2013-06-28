@@ -306,7 +306,7 @@ final class ResourceFolderRepository extends ProjectResources {
 
                   for (XmlTag child : attrs) {
                     String attrName = child.getAttributeValue(ATTR_NAME);
-                    if (attrName != null) {
+                    if (attrName != null && !attrName.startsWith(ANDROID_NS_NAME_PREFIX)) {
                       ResourceItem attrItem = new PsiResourceItem(attrName, ResourceType.ATTR, child, file);
                       items.add(attrItem);
                       map.put(attrName, attrItem);
