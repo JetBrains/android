@@ -81,6 +81,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
   private static final int MIN_SDK_TOOLS_REVISION = 19;
 
   public static final Key<Boolean> IS_ENABLED = Key.create("_android_source_generator_enabled_");
+
   @NonNls private static final String R_TXT_OUTPUT_DIR_NAME = "r_txt";
 
   public AndroidSourceGeneratingBuilder() {
@@ -102,7 +103,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
                                            ModuleChunk chunk,
                                            DirtyFilesHolder<JavaSourceRootDescriptor, ModuleBuildTarget> dirtyFilesHolder,
                                            OutputConsumer outputConsumer) throws ProjectBuildException {
-    if (!IS_ENABLED.get(context, Boolean.TRUE) || chunk.containsTests() || !AndroidJpsUtil.containsAndroidFacet(chunk)) {
+    if (!IS_ENABLED.get(context, Boolean.TRUE) || chunk.containsTests() || !AndroidJpsUtil.isAndroidProjectWithoutGradleFacet(chunk)) {
       return ExitCode.NOTHING_DONE;
     }
 
