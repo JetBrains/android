@@ -65,8 +65,7 @@ public abstract class AndroidBuildTarget extends BuildTarget<BuildRootDescriptor
     JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(myModule);
     assert extension != null;
     if (extension.isGradleProject()) {
-      List<BuildRootDescriptor> noDescriptors = Collections.emptyList();
-      return noDescriptors;
+      return Collections.emptyList();
     }
     return doComputeRootDescriptors(model, index, ignoredFileIndex, dataPaths);
   }

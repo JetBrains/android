@@ -34,7 +34,7 @@ public abstract class AndroidBuildTargetType<T extends AndroidBuildTarget> exten
   @NotNull
   @Override
   public List<T> computeAllTargets(@NotNull JpsModel model) {
-    if (!AndroidJpsUtil.containsAndroidFacet(model.getProject())) {
+    if (!AndroidJpsUtil.isAndroidProjectWithoutGradleFacet(model.getProject())) {
       return Collections.emptyList();
     }
     final List<T> targets = new ArrayList<T>();
