@@ -19,17 +19,23 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.TestProjects;
+import com.android.tools.idea.gradle.model.AndroidDependencies;
+import com.android.tools.idea.gradle.stubs.android.AndroidLibraryStub;
+import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
+import com.android.tools.idea.gradle.stubs.android.ProductFlavorContainerStub;
+import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.AndroidTestCase;
@@ -37,6 +43,9 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
+import static org.easymock.EasyMock.*;
+
+import java.io.File;
 import java.util.*;
 
 import static com.android.tools.idea.rendering.ModuleResourceRepositoryTest.getFirstItem;
@@ -126,9 +135,14 @@ public class ModuleSetResourceRepositoryTest extends AndroidTestCase {
     List<AndroidFacet> libraries = AndroidUtils.getAllAndroidDependencies(myModule, true);
     assertEquals(2, libraries.size());
     ModuleRootModificationUtil.addDependency(libraries.get(0).getModule(), libraries.get(1).getModule());
+
+
+    addArchiveLibraries();
+
     ProjectResources r = ModuleSetResourceRepository.create(myFacet);
     assertTrue(r instanceof ModuleSetResourceRepository);
     ModuleSetResourceRepository repository = (ModuleSetResourceRepository)r;
+    assertEquals(3, repository.getChildCount());
     Collection<String> items = repository.getItemsOfType(ResourceType.STRING);
     assertTrue(items.isEmpty());
 
@@ -140,6 +154,27 @@ public class ModuleSetResourceRepositoryTest extends AndroidTestCase {
     }
     myFacet.getProjectResources(false, true);
     myFacet.getProjectResources(true, true);
+  }
+
+  private void addArchiveLibraries() {
+    // Add in some Android projects too
+    myFacet.getConfiguration().getState().ALLOW_USER_CONFIGURATION = false; // make it a Gradle project
+    AndroidProjectStub androidProject = TestProjects.createFlavorsProject();
+    VariantStub variant = androidProject.getFirstVariant();
+    assertNotNull(variant);
+    String rootDirPath = androidProject.getRootDir().getAbsolutePath();
+    IdeaAndroidProject ideaAndroidProject =
+      new IdeaAndroidProject(androidProject.getName(), rootDirPath, rootDirPath, androidProject, variant.getName());
+    myFacet.setIdeaAndroidProject(ideaAndroidProject);
+
+    ProductFlavorContainerStub defaultConfig = androidProject.getDefaultConfig();
+
+    File libJar = new File(rootDirPath, "library.aar/library.jar");
+    AndroidLibraryStub library = new AndroidLibraryStub(libJar);
+    defaultConfig.getDependencies().addLibrary(library);
+
+    AndroidDependencies.DependencyFactory myDependencyFactory = createMock(AndroidDependencies.DependencyFactory.class);
+    myDependencyFactory.addDependency(DependencyScope.COMPILE, "library.aar", libJar);
   }
 
   @Override
