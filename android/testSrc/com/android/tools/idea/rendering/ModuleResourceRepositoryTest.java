@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
+import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -30,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @SuppressWarnings("SpellCheckingInspection")
@@ -369,5 +371,13 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     ResourceValue resourceValue = item.getResourceValue(false);
     assertNotNull(resourceValue);
     assertEquals(expected, resourceValue.getValue());
+  }
+
+  public void testAllowEmpty() {
+    assertTrue(LintUtils.assertionsEnabled()); // this test should be run with assertions enabled!
+    ProjectResources repository = ModuleResourceRepository.createForTest(myFacet, Collections.<VirtualFile>emptyList());
+    assertNotNull(repository);
+    repository.getModificationCount();
+    assertEmpty(repository.getItemsOfType(ResourceType.ID));
   }
 }

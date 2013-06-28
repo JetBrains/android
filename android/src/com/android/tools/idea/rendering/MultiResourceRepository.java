@@ -16,7 +16,6 @@
 package com.android.tools.idea.rendering;
 
 import com.android.annotations.NonNull;
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
@@ -47,7 +46,6 @@ abstract class MultiResourceRepository extends ProjectResources {
   }
 
   protected void setChildren(@NotNull List<? extends ProjectResources> children) {
-    assert !children.isEmpty();
     if (myChildren != null) {
       for (int i = myChildren.size() - 1; i >= 0; i--) {
         ProjectResources resources = myChildren.get(i);
