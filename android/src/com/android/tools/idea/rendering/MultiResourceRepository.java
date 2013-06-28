@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
@@ -279,5 +280,10 @@ abstract class MultiResourceRepository extends ProjectResources {
     }
 
     return false;
+  }
+
+  @VisibleForTesting
+  int getChildCount() {
+    return myChildren.size();
   }
 }
