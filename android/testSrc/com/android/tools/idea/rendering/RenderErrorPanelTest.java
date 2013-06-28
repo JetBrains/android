@@ -79,6 +79,8 @@ public class RenderErrorPanelTest extends AndroidTestCase {
       }
       int end = html.indexOf('>', index);
       if (end == -1) {
+        return html;
+      } else {
         html = html.substring(0, index) + html.substring(end + 1);
       }
     }
