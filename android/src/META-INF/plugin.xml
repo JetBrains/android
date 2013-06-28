@@ -427,6 +427,7 @@
     <predefinedCodeStyle implementation="org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle"/>
     <editorNotificationProvider implementation="org.jetbrains.android.formatter.AndroidCodeStyleNotificationProvider"/>
     <compiler.buildTargetScopeProvider implementation="org.jetbrains.android.compiler.AndroidBuildTargetScopeProvider"/>
+    <compiler.buildTargetScopeProvider implementation="com.android.tools.idea.gradle.compiler.AndroidGradleBuildTargetScopeProvider"/>
 
     <!-- Temporarily disabled: need to display counts for files in multiple folders, and investigate bug
          where cloned layout files do not appear etc.
