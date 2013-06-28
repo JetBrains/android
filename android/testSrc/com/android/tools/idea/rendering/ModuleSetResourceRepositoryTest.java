@@ -23,15 +23,21 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
+import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 
 import static com.android.tools.idea.rendering.ModuleResourceRepositoryTest.getFirstItem;
 
@@ -112,5 +118,37 @@ public class ModuleSetResourceRepositoryTest extends AndroidTestCase {
         assertNotSame(item, newItem);
       }
     });
+  }
+
+  // Regression test for https://code.google.com/p/android/issues/detail?id=57090
+  public void testParents() {
+    myFixture.copyFileToProject(LAYOUT, "res/layout/layout1.xml");
+    List<AndroidFacet> libraries = AndroidUtils.getAllAndroidDependencies(myModule, true);
+    assertEquals(2, libraries.size());
+    ModuleRootModificationUtil.addDependency(libraries.get(0).getModule(), libraries.get(1).getModule());
+    ProjectResources r = ModuleSetResourceRepository.create(myFacet);
+    assertTrue(r instanceof ModuleSetResourceRepository);
+    ModuleSetResourceRepository repository = (ModuleSetResourceRepository)r;
+    Collection<String> items = repository.getItemsOfType(ResourceType.STRING);
+    assertTrue(items.isEmpty());
+
+    for (AndroidFacet facet : libraries) {
+      ProjectResources moduleRepository = facet.getProjectResources(false, true);
+      assertNotNull(moduleRepository);
+      ProjectResources moduleSetRepository = facet.getProjectResources(true, true);
+      assertNotNull(moduleSetRepository);
+    }
+    myFacet.getProjectResources(false, true);
+    myFacet.getProjectResources(true, true);
+  }
+
+  @Override
+  protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
+                                            @NotNull List<MyAdditionalModuleData> modules) {
+    final String testName = getTestName(true);
+    if (testName.equals("parents")) { // for unit test testParents
+      addModuleWithAndroidFacet(projectBuilder, modules, "lib1", true);
+      addModuleWithAndroidFacet(projectBuilder, modules, "lib2", true);
+    }
   }
 }

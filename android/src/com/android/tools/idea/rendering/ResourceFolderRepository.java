@@ -219,12 +219,6 @@ final class ResourceFolderRepository extends ProjectResources {
     myResourceFiles.clear();
   }
 
-  private void invalidateItemCaches(@NonNull ResourceType... types) {
-    if (myParent != null) {
-      myParent.invalidateCache(this, types);
-    }
-  }
-
   private void addIds(List<ResourceItem> items, PsiFile file) {
     addIds(items, file, file);
   }
