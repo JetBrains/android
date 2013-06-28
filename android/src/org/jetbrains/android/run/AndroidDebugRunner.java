@@ -58,6 +58,7 @@ import com.intellij.xdebugger.XDebuggerBundle;
 import icons.AndroidIcons;
 import org.jetbrains.android.dom.manifest.Instrumentation;
 import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.logcat.AndroidToolWindowFactory;
 import org.jetbrains.android.logcat.AndroidLogcatView;
 import org.jetbrains.android.run.testing.AndroidTestRunConfiguration;
@@ -151,12 +152,16 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
 
     final RunProfile runProfile = environment.getRunProfile();
     if (runProfile instanceof AndroidTestRunConfiguration) {
-      String targetPackage = getTargetPackage((AndroidTestRunConfiguration)runProfile, state);
-      if (targetPackage == null) {
-        throw new ExecutionException(AndroidBundle.message("target.package.not.specified.error"));
+      // attempt to set the target package only in case on non Gradle projects
+      if (!state.getFacet().isGradleProject()) {
+        String targetPackage = getTargetPackage((AndroidTestRunConfiguration)runProfile, state);
+        if (targetPackage == null) {
+          throw new ExecutionException(AndroidBundle.message("target.package.not.specified.error"));
+        }
+        state.setTargetPackageName(targetPackage);
       }
-      state.setTargetPackageName(targetPackage);
     }
+
     state.setDebugMode(true);
     RunContentDescriptor runDescriptor;
     synchronized (myDebugLock) {
