@@ -163,7 +163,7 @@ public class AndroidPreDexBuildTarget extends BuildTarget<AndroidPreDexBuildTarg
     @NotNull
     @Override
     public List<AndroidPreDexBuildTarget> computeAllTargets(@NotNull JpsModel model) {
-      if (!AndroidJpsUtil.containsAndroidFacet(model.getProject())) {
+      if (!AndroidJpsUtil.isAndroidProjectWithoutGradleFacet(model.getProject())) {
         return Collections.emptyList();
       }
       return Collections.singletonList(new AndroidPreDexBuildTarget(model.getProject()));
@@ -178,9 +178,7 @@ public class AndroidPreDexBuildTarget extends BuildTarget<AndroidPreDexBuildTarg
         @Nullable
         @Override
         public AndroidPreDexBuildTarget createTarget(@NotNull String targetId) {
-          return ID.equals(targetId) && AndroidJpsUtil.containsAndroidFacet(model.getProject())
-                 ? new AndroidPreDexBuildTarget(project)
-                 : null;
+          return ID.equals(targetId) && AndroidJpsUtil.isAndroidProjectWithoutGradleFacet(project) ? new AndroidPreDexBuildTarget(project) : null;
         }
       };
     }
