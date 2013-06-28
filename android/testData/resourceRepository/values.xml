@@ -46,11 +46,12 @@
             <enum name="type_stopwatch" value="1"/>
             <enum name="type_countdown" value="0"/>
         </attr>
-      <attr name="flagType" format="enum">
-        <flag name="flag1" value="0x10"/>
-        <flag name="flag2" value="0x20"/>
-      </attr>
-       <attr name="crash" format="boolean" />
+        <attr name="flagType" format="enum">
+            <flag name="flag1" value="0x10"/>
+            <flag name="flag2" value="0x20"/>
+        </attr>
+        <attr name="crash" format="boolean" />
+        <attr name="android:minWidth" />
     </declare-styleable>
 
     <plurals name="my_plural" tools:quantity="two">
