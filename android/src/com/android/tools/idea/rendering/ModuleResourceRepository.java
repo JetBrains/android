@@ -147,7 +147,7 @@ final class ModuleResourceRepository extends MultiResourceRepository {
     }
 
     for (ResourceFolderRepository removed : map.values()) {
-      removed.setParent(null);
+      removed.removeParent(this);
     }
 
     // Dispose unused repositories; this will cause them to unregister from PSI events.
