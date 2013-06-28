@@ -49,14 +49,14 @@ abstract class MultiResourceRepository extends ProjectResources {
     if (myChildren != null) {
       for (int i = myChildren.size() - 1; i >= 0; i--) {
         ProjectResources resources = myChildren.get(i);
-        resources.setParent(null);
+        resources.removeParent(this);
       }
     }
     myChildren = children;
     myModificationCounts = new long[children.size()];
     for (int i = myChildren.size() - 1; i >= 0; i--) {
       ProjectResources resources = myChildren.get(i);
-      resources.setParent(this);
+      resources.addParent(this);
       myModificationCounts[i] = resources.getModificationCount();
     }
     myGeneration++;
@@ -240,7 +240,7 @@ abstract class MultiResourceRepository extends ProjectResources {
   public void dispose() {
     for (int i = myChildren.size() - 1; i >= 0; i--) {
       ProjectResources resources = myChildren.get(i);
-      resources.setParent(null);
+      resources.removeParent(this);
       resources.dispose();
     }
   }
@@ -262,9 +262,7 @@ abstract class MultiResourceRepository extends ProjectResources {
     myItems = null;
     myGeneration++;
 
-    if (myParent != null) {
-      myParent.invalidateCache(this, types);
-    }
+    invalidateItemCaches(types);
   }
 
   @Override

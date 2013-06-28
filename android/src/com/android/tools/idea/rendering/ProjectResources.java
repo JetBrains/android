@@ -25,6 +25,7 @@ import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.util.Pair;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -37,6 +38,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Map;
 
 
@@ -125,7 +127,7 @@ import java.util.Map;
 public abstract class ProjectResources extends AbstractResourceRepository implements Disposable, ModificationTracker {
   protected static final Logger LOG = Logger.getInstance(ProjectResources.class);
 
-  @Nullable protected MultiResourceRepository myParent;
+  @Nullable private List<MultiResourceRepository> myParents;
 
   // Project resource ints are defined as 0x7FXX#### where XX is the resource type (layout, drawable,
   // etc...). Using FF as the type allows for 255 resource types before we get a collision
@@ -186,9 +188,25 @@ public abstract class ProjectResources extends AbstractResourceRepository implem
     return false;
   }
 
-  public void setParent(@Nullable MultiResourceRepository parent) {
-    assert parent == null || myParent == null; // Can only be attached to one item
-    myParent = parent;
+  public void addParent(@NonNull MultiResourceRepository parent) {
+    if (myParents == null) {
+      myParents = Lists.newArrayListWithExpectedSize(2); // Don't expect many parents
+    }
+    myParents.add(parent);
+  }
+
+  public void removeParent(@NonNull MultiResourceRepository parent) {
+    if (myParents != null) {
+      myParents.remove(parent);
+    }
+  }
+
+  protected void invalidateItemCaches(@Nullable ResourceType... types) {
+    if (myParents != null) {
+      for (MultiResourceRepository parent : myParents) {
+        parent.invalidateCache(this, types);
+      }
+    }
   }
 
   // For ProjectCallback
