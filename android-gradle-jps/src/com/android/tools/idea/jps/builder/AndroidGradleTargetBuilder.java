@@ -65,6 +65,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
   private static final Logger LOG = Logger.getInstance(AndroidGradleTargetBuilder.class);
   private static final GradleErrorOutputParser ERROR_OUTPUT_PARSER = new GradleErrorOutputParser();
 
+  @NonNls private static final String CLEAN_TASK_NAME = "clean";
   @NonNls private static final String DEFAULT_ASSEMBLE_TASK_NAME = "assemble";
   @NonNls private static final String GRADLE_SEPARATOR = ":";
 
@@ -87,9 +88,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
                     @NotNull CompileContext context) throws ProjectBuildException, IOException {
     JpsProject project = target.getProject();
 
-    boolean isRebuild = JavaBuilderUtil.isForcedRecompilationAllJavaModules(context);
-    boolean buildTests = AndroidJpsUtil.isInstrumentationTestContext(context);
-    String[] buildTasks = getBuildTasks(project, isRebuild, buildTests);
+    String[] buildTasks = getBuildTasks(project, context);
     if (buildTasks.length == 0) {
       String format = "No build tasks found for project '%1$s'. Nothing done.";
       LOG.info(String.format(format, project.getName()));
@@ -123,15 +122,22 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
   }
 
   @NotNull
-  private static String[] getBuildTasks(@NotNull JpsProject project, boolean isRebuild, boolean buildTests) {
+  private static String[] getBuildTasks(@NotNull JpsProject project, @NotNull CompileContext context) {
+    boolean buildTests = AndroidJpsUtil.isInstrumentationTestContext(context);
     List<String> tasks = Lists.newArrayList();
     for (JpsModule module : project.getModules()) {
-      populateBuildTasks(module, tasks, isRebuild, buildTests);
+      populateBuildTasks(module, tasks, buildTests);
+    }
+    if (!tasks.isEmpty()) {
+      boolean rebuild = JavaBuilderUtil.isForcedRecompilationAllJavaModules(context);
+      if (rebuild) {
+        tasks.add(0, CLEAN_TASK_NAME);
+      }
     }
     return tasks.toArray(new String[tasks.size()]);
   }
 
-  private static void populateBuildTasks(@NotNull JpsModule module, @NotNull List<String> tasks, boolean isRebuild, boolean buildTests) {
+  private static void populateBuildTasks(@NotNull JpsModule module, @NotNull List<String> tasks, boolean buildTests) {
     JpsAndroidGradleModuleExtension androidGradleFacet = AndroidGradleJps.getExtension(module);
     if (androidGradleFacet == null) {
       return;
@@ -159,9 +165,6 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
         return;
       }
       assembleTaskName = DEFAULT_ASSEMBLE_TASK_NAME;
-    }
-    if (isRebuild) {
-      tasks.add(createBuildTask(gradleProjectPath, "clean"));
     }
     assert assembleTaskName != null;
     tasks.add(createBuildTask(gradleProjectPath, assembleTaskName));
