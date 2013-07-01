@@ -94,7 +94,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
           return false;
         }
 
-        return !facet.getProperties().LIBRARY_PROJECT || libraryProjectValidator.apply(facet);
+        return !facet.isLibraryProject() || libraryProjectValidator.apply(facet);
       }
     };
 

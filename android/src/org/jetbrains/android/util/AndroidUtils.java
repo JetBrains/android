@@ -602,7 +602,7 @@ public class AndroidUtils {
     final List<AndroidFacet> result = new ArrayList<AndroidFacet>();
 
     for (AndroidFacet facet : ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)) {
-      if (!facet.getProperties().LIBRARY_PROJECT) {
+      if (!facet.isLibraryProject()) {
         result.add(facet);
       }
     }
@@ -623,7 +623,7 @@ public class AndroidUtils {
           if (depModule != null) {
             final AndroidFacet depFacet = AndroidFacet.getInstance(depModule);
 
-            if (depFacet != null && depFacet.getProperties().LIBRARY_PROJECT) {
+            if (depFacet != null && depFacet.isLibraryProject()) {
               depFacets.add(depFacet);
             }
           }
@@ -675,7 +675,7 @@ public class AndroidUtils {
             final AndroidFacet depFacet = AndroidFacet.getInstance(depModule);
 
             if (depFacet != null &&
-                (!androidLibrariesOnly || depFacet.getProperties().LIBRARY_PROJECT) &&
+                (!androidLibrariesOnly || depFacet.isLibraryProject()) &&
                 visited.add(depFacet)) {
               collectAllAndroidDependencies(depModule, androidLibrariesOnly, result, visited);
               result.add(0, depFacet);
