@@ -50,7 +50,7 @@ public class CompilerOutputPathModuleCustomizerTest extends IdeaTestCase {
 
   public void testCustomizeModule() {
     String rootDirPath = androidProject.getRootDir().getAbsolutePath();
-    IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(myModule.getName(), rootDirPath, rootDirPath, androidProject, "debug");
+    IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(myModule.getName(), rootDirPath, androidProject, "debug");
     customizer.customizeModule(myModule, myProject, ideaAndroidProject);
 
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
