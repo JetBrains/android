@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
-import com.android.build.gradle.model.ProductFlavorContainer;
+import com.android.builder.model.ProductFlavorContainer;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -24,8 +24,6 @@ public class ProductFlavorContainerStub implements ProductFlavorContainer {
   @NotNull private final ProductFlavorStub myFlavor;
   @NotNull private final SourceProviderStub mySourceProvider;
   @NotNull private final SourceProviderStub myTestSourceProvider;
-  @NotNull private final DependenciesStub myDependencies;
-  @NotNull private final DependenciesStub myTestDependencies;
 
   /**
    * Creates a new {@clink ProductFlavorContainerStub}.
@@ -38,8 +36,6 @@ public class ProductFlavorContainerStub implements ProductFlavorContainer {
     myFlavor = new ProductFlavorStub(flavorName);
     mySourceProvider = new SourceProviderStub(fileStructure);
     myTestSourceProvider = new SourceProviderStub(fileStructure);
-    myDependencies = new DependenciesStub();
-    myTestDependencies = new DependenciesStub();
     setUpPaths(flavorName);
   }
 
@@ -78,19 +74,7 @@ public class ProductFlavorContainerStub implements ProductFlavorContainer {
 
   @NotNull
   @Override
-  public DependenciesStub getDependencies() {
-    return myDependencies;
-  }
-
-  @NotNull
-  @Override
   public SourceProviderStub getTestSourceProvider() {
     return myTestSourceProvider;
-  }
-
-  @NotNull
-  @Override
-  public DependenciesStub getTestDependencies() {
-    return myTestDependencies;
   }
 }

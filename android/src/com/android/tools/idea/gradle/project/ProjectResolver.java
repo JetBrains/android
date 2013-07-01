@@ -16,17 +16,19 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
-import com.android.build.gradle.model.AndroidProject;
-import com.android.build.gradle.model.Variant;
+import com.android.builder.model.AndroidProject;
+import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.model.AndroidContentRoot;
 import com.android.tools.idea.gradle.model.AndroidDependencies;
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.intellij.externalSystem.JavaProjectData;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.*;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -36,12 +38,13 @@ import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.util.ExceptionUtil;
 import com.intellij.util.Function;
-import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.gradle.tooling.BuildException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.UnknownModelException;
+import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.GradleTask;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
@@ -79,7 +82,7 @@ class ProjectResolver {
    * creation of multiple {@link ProjectConnection}s.
    *
    * @param id          id of the current 'resolve project info' task.
-   * @param projectPath absolute path of the build.gradle file. It includes the file name.
+   * @param projectPath absolute path of the parent folder of the build.gradle file.
    * @param settings    settings to use for the project resolving; {@code null} as indication that no specific settings are required.
    * @param connection  Gradle Tooling API connection to the project to import.
    * @param listener    callback to be notified about the execution
@@ -98,7 +101,7 @@ class ProjectResolver {
     }
 
     String name = new File(projectPath).getName();
-    DataNode<ProjectData> projectInfo = createProjectInfo(projectPath, projectPath, name);
+    DataNode<ProjectData> projectInfo = createProjectInfo(projectPath, name);
 
     AndroidProject first = null;
 
@@ -117,13 +120,20 @@ class ProjectResolver {
         continue;
       }
       String moduleDirPath = moduleDir.getPath();
-      AndroidProject androidProject = getAndroidProject(id, moduleDirPath, settings, listener);
+      AndroidProject androidProject = getAndroidProject(id, moduleDirPath, listener, settings);
       if (androidProject != null) {
+        if (!GradleModelVersionCheck.isSupportedVersion(androidProject)) {
+          throw new IllegalStateException(GradleModelConstants.UNSUPPORTED_MODEL_VERSION_ERROR);
+        }
         createModuleInfo(module, androidProject, projectInfo, moduleDirPath, gradleProject);
         if (first == null) {
           first = androidProject;
         }
         continue;
+      }
+      if (hasAndroidTasks(module.getGradleProject())) {
+        // AndroidProject is null for pre-0.5.0 projects.
+        throw new IllegalStateException(GradleModelConstants.UNSUPPORTED_MODEL_VERSION_ERROR);
       }
       File gradleSettingsFile = new File(moduleDir, SdkConstants.FN_SETTINGS_GRADLE);
       if (gradleSettingsFile.isFile()) {
@@ -144,10 +154,8 @@ class ProjectResolver {
   }
 
   @NotNull
-  private static DataNode<ProjectData> createProjectInfo(@NotNull String projectDirPath,
-                                                         @NotNull String projectPath,
-                                                         @NotNull String name) {
-    ProjectData projectData = new ProjectData(GradleConstants.SYSTEM_ID, projectDirPath, projectPath);
+  private static DataNode<ProjectData> createProjectInfo(@NotNull String projectDirPath, @NotNull String name) {
+    ProjectData projectData = new ProjectData(GradleConstants.SYSTEM_ID, projectDirPath, projectDirPath);
     projectData.setName(name);
 
     DataNode<ProjectData> projectInfo = new DataNode<ProjectData>(ProjectKeys.PROJECT, projectData, null);
@@ -175,9 +183,9 @@ class ProjectResolver {
   @Nullable
   private AndroidProject getAndroidProject(@NotNull final ExternalSystemTaskId id,
                                            @NotNull String projectPath,
-                                           @Nullable final GradleExecutionSettings settings,
-                                           @NotNull final ExternalSystemTaskNotificationListener listener) {
-    return myHelper.execute(projectPath, settings, new Function<ProjectConnection, AndroidProject>() {
+                                           @NotNull final ExternalSystemTaskNotificationListener listener,
+                                           @Nullable final GradleExecutionSettings settings) {
+    AndroidProject androidProject = myHelper.execute(projectPath, settings, new Function<ProjectConnection, AndroidProject>() {
       @Nullable
       @Override
       public AndroidProject fun(ProjectConnection connection) {
@@ -191,6 +199,7 @@ class ProjectResolver {
         return null;
       }
     });
+    return androidProject;
   }
 
   private static void handleProjectImportError(@NotNull RuntimeException e) {
@@ -204,17 +213,13 @@ class ProjectResolver {
     LOG.error(root);
   }
 
-  @Nullable
-  static IdeaAndroidProject getIdeaAndroidProject(@NotNull DataNode<ModuleData> moduleInfo) {
-    Collection<DataNode<IdeaAndroidProject>> projects =
-      ExternalSystemApiUtil.getChildren(moduleInfo, AndroidProjectKeys.IDE_ANDROID_PROJECT);
-    return getFirstNodeData(projects);
-  }
-
-  @Nullable
-  static <T> T getFirstNodeData(Collection<DataNode<T>> nodes) {
-    DataNode<T> node = ContainerUtil.getFirstItem(nodes);
-    return node != null ? node.getData() : null;
+  private static boolean hasAndroidTasks(@NotNull GradleProject gradleProject) {
+    for (GradleTask task : gradleProject.getTasks()) {
+      if (task.getName() != null && task.getName().startsWith("android")) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @NotNull
@@ -232,7 +237,7 @@ class ProjectResolver {
     addContentRoot(ideaAndroidProject, moduleInfo, moduleDirPath);
 
     moduleInfo.createChild(AndroidProjectKeys.IDE_ANDROID_PROJECT, ideaAndroidProject);
-    moduleInfo.createChild(AndroidProjectKeys.GRADLE_PROJECT, gradleProject);
+    moduleInfo.createChild(AndroidProjectKeys.IDE_GRADLE_PROJECT, gradleProject);
     return moduleInfo;
   }
 
@@ -289,7 +294,7 @@ class ProjectResolver {
 
     moduleInfo.createChild(AndroidProjectKeys.IDEA_MODULE, module);
     if (gradleProject != null) {
-      moduleInfo.createChild(AndroidProjectKeys.GRADLE_PROJECT, gradleProject);
+      moduleInfo.createChild(AndroidProjectKeys.IDE_GRADLE_PROJECT, gradleProject);
     }
     return moduleInfo;
   }
@@ -317,19 +322,51 @@ class ProjectResolver {
     }
   }
 
+  @Nullable
+  static IdeaAndroidProject getIdeaAndroidProject(@NotNull DataNode<ModuleData> moduleInfo) {
+    return getFirstNodeData(moduleInfo, AndroidProjectKeys.IDE_ANDROID_PROJECT);
+  }
+
   private static void populateDependencies(@NotNull final DataNode<ProjectData> projectInfo,
                                            @NotNull final DataNode<ModuleData> moduleInfo,
                                            @NotNull IdeaAndroidProject ideaAndroidProject) {
+    final Collection<DataNode<ModuleData>> modules = ExternalSystemApiUtil.getChildren(projectInfo, ProjectKeys.MODULE);
     AndroidDependencies.DependencyFactory dependencyFactory = new AndroidDependencies.DependencyFactory() {
       @Override
-      public void addDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull File binaryPath) {
+      public void addLibraryDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull File binaryPath) {
         LibraryDependency dependency = new LibraryDependency(name);
         dependency.setScope(scope);
         dependency.addPath(LibraryPathType.BINARY, binaryPath);
         dependency.addTo(moduleInfo, projectInfo);
       }
+
+      @Override
+      public void addModuleDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull String modulePath) {
+        String dependencyName = name;
+        for (DataNode<ModuleData> module : modules) {
+          String moduleName = module.getData().getName();
+          if (moduleName.equals(moduleInfo.getData().getName())) {
+            // this is the same module as the one we are configuring.
+            continue;
+          }
+          IdeaGradleProject gradleProject = getFirstNodeData(module, AndroidProjectKeys.IDE_GRADLE_PROJECT);
+          if (gradleProject != null && Objects.equal(modulePath, gradleProject.getGradleProjectPath())) {
+            dependencyName = moduleName;
+            break;
+          }
+        }
+        ModuleDependency dependency = new ModuleDependency(dependencyName);
+        dependency.setScope(scope);
+        dependency.addTo(moduleInfo, projectInfo);
+      }
     };
     AndroidDependencies.populate(ideaAndroidProject, dependencyFactory);
+  }
+
+  @Nullable
+  private static <T> T getFirstNodeData(@NotNull DataNode<ModuleData> moduleInfo, @NotNull Key<T> key) {
+    Collection<DataNode<T>> children = ExternalSystemApiUtil.getChildren(moduleInfo, key);
+    return getFirstNodeData(children);
   }
 
   @Nullable
@@ -338,5 +375,11 @@ class ProjectResolver {
     // it is safe to remove this node. We only needed it to resolve dependencies.
     moduleInfo.getChildren().removeAll(modules);
     return getFirstNodeData(modules);
+  }
+
+  @Nullable
+  static <T> T getFirstNodeData(Collection<DataNode<T>> nodes) {
+    DataNode<T> node = ContainerUtil.getFirstItem(nodes);
+    return node != null ? node.getData() : null;
   }
 }

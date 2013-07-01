@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.gradle.GradleImportNotificationListener;
-import com.android.tools.idea.gradle.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.intellij.ProjectTopics;
@@ -26,8 +25,10 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.ModuleAdapter;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.MessageBusConnection;
@@ -84,7 +85,13 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       }
     }
 
-    GradleProjectImporter.getInstance().reImportProject(myProject);
+    try {
+      GradleProjectImporter.getInstance().reImportProject(myProject);
+    }
+    catch (ConfigurationException e) {
+      Messages.showErrorDialog(e.getMessage(), e.getTitle());
+      LOG.info(e);
+    }
   }
 
   @Override

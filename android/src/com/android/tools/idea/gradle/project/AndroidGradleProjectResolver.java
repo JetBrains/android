@@ -16,9 +16,10 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.build.gradle.internal.tasks.BaseTask;
-import com.android.build.gradle.model.AndroidProject;
 import com.android.builder.AndroidBuilder;
+import com.android.builder.model.AndroidProject;
 import com.android.builder.model.ProductFlavor;
+import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.GradleImportNotificationListener;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
@@ -80,7 +81,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
    * </ol>
    *
    * @param id                id of the current 'resolve project info' task.
-   * @param projectPath       absolute path of the build.gradle file. It includes the file name.
+   * @param projectPath       absolute path of the parent folder of the build.gradle file.
    * @param downloadLibraries a hint that specifies if third-party libraries that are not available locally should be resolved (downloaded.)
    * @param settings          settings to use for the project resolving; {@code null} as indication that no specific settings are required.
    * @param listener          callback to be notified about the execution
@@ -110,7 +111,8 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   @Override
   public void enhanceParameters(@NotNull SimpleJavaParameters parameters) {
     GradleImportNotificationListener.attachToManager();
-    List<String> jarPaths = getJarPathsOf(getClass(), AndroidBuilder.class, AndroidProject.class, BaseTask.class, ProductFlavor.class);
+    List<String> jarPaths = getJarPathsOf(getClass(), AndroidBuilder.class, AndroidProject.class, BaseTask.class, ProductFlavor.class,
+                                          FullRevision.class);
     LOG.info("Added to RMI/Gradle process classpath: " + jarPaths);
     for (String jarPath : jarPaths) {
       parameters.getClassPath().add(jarPath);
@@ -158,11 +160,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
         @Nullable
         @Override
         public DataNode<ProjectData> fun(ProjectConnection connection) {
-          DataNode<ProjectData> projectInfo = myResolver.resolveProjectInfo(id, projectPath, settings, connection, listener);
-          if (projectInfo != null) {
-            return projectInfo;
-          }
-          return null;
+          return myResolver.resolveProjectInfo(id, projectPath, settings, connection, listener);
         }
       };
     }

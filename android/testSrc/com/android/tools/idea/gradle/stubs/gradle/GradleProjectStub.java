@@ -18,8 +18,12 @@ package com.android.tools.idea.gradle.stubs.gradle;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
+import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collections;
+import java.util.List;
 
 public class GradleProjectStub implements GradleProject {
   @NotNull private final String myName;
@@ -32,7 +36,8 @@ public class GradleProjectStub implements GradleProject {
 
   @Override
   public DomainObjectSet<? extends GradleTask> getTasks() {
-    throw new UnsupportedOperationException();
+    List<? extends GradleTask> elements = Collections.emptyList();
+    return ImmutableDomainObjectSet.of(elements);
   }
 
   @Override

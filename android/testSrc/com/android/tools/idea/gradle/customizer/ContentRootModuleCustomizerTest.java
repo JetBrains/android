@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.customizer;
 
-import com.android.build.gradle.model.Variant;
+import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.ContentRootSourcePaths;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.TestProjects;
