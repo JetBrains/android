@@ -314,20 +314,20 @@ public class AndroidAptCompiler implements SourceGeneratingCompiler {
 
           if (!AndroidCommonUtils.contains2Identifiers(packageName)) {
             final String message = "[" + module.getName() + "] Package name must contain at least 2 segments";
-            myContext.addMessage(facet.getProperties().LIBRARY_PROJECT ? CompilerMessageCategory.WARNING : CompilerMessageCategory.ERROR,
+            myContext.addMessage(facet.isLibraryProject() ? CompilerMessageCategory.WARNING : CompilerMessageCategory.ERROR,
                                  message, manifestFile.getUrl(), -1, -1);
             continue;
           }
           final String[] libPackages = AndroidCompileUtil.getLibPackages(module, packageName);
 
           final Module circularDepLibWithSamePackage = AndroidCompileUtil.findCircularDependencyOnLibraryWithSamePackage(facet);
-          if (circularDepLibWithSamePackage != null && !facet.getProperties().LIBRARY_PROJECT) {
+          if (circularDepLibWithSamePackage != null && !facet.isLibraryProject()) {
             myContext.addMessage(CompilerMessageCategory.WARNING,
                                  AndroidBundle.message("android.compilation.warning.circular.app.dependency",
                                                        packageName, module.getName(),
                                                        circularDepLibWithSamePackage.getName()), null, -1, -1);
           }
-          final boolean generateNonFinalFields = facet.getProperties().LIBRARY_PROJECT || circularDepLibWithSamePackage != null;
+          final boolean generateNonFinalFields = facet.isLibraryProject() || circularDepLibWithSamePackage != null;
 
           final VirtualFile outputDirForDex = AndroidDexCompiler.getOutputDirectoryForDex(module);
           final String proguardCfgOutputFileOsPath =

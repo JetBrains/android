@@ -143,6 +143,14 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return !getConfiguration().getState().ALLOW_USER_CONFIGURATION;
   }
 
+  public boolean isLibraryProject() {
+    return getConfiguration().getState().LIBRARY_PROJECT;
+  }
+
+  public void setLibraryProject(boolean library) {
+    getConfiguration().getState().LIBRARY_PROJECT = library;
+  }
+
   /**
    * Returns the main source set of the project. For non-Gradle projects it returns a {@link SourceProvider} wrapper
    * which provides information about the old project.

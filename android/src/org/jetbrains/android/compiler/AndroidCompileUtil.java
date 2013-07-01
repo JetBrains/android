@@ -628,7 +628,7 @@ public class AndroidCompileUtil {
     final GlobalSearchScope moduleScope = facet.getModule().getModuleScope();
     final Ref<Boolean> modelChangedFlag = Ref.create(false);
 
-    if (facet.getProperties().LIBRARY_PROJECT) {
+    if (facet.isLibraryProject()) {
       removeGenModule(model, modelChangedFlag);
     }
     initializeGenSourceRoot(model, AndroidRootUtil.getBuildconfigGenSourceRootPath(facet), true, true, modelChangedFlag);
@@ -775,7 +775,7 @@ public class AndroidCompileUtil {
     }
 
     final AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null || !facet.getProperties().LIBRARY_PROJECT) {
+    if (facet == null || !facet.isLibraryProject()) {
       return true;
     }
 
@@ -870,7 +870,7 @@ public class AndroidCompileUtil {
   // support for lib<->lib and app<->lib circular dependencies
   // see IDEA-79737 for details
   public static boolean isLibraryWithBadCircularDependency(@NotNull AndroidFacet facet) {
-    if (!facet.getProperties().LIBRARY_PROJECT) {
+    if (!facet.isLibraryProject()) {
       return false;
     }
 
@@ -892,7 +892,7 @@ public class AndroidCompileUtil {
       if (depDependencies.contains(facet) &&
           dependencies.contains(depFacet) &&
           (depFacet.getModule().getName().compareTo(facet.getModule().getName()) < 0 ||
-           !depFacet.getProperties().LIBRARY_PROJECT)) {
+           !depFacet.isLibraryProject())) {
         return true;
       }
     }
