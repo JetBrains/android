@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.customizer;
 
-import com.android.build.gradle.model.AndroidProject;
+import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.util.Facets;

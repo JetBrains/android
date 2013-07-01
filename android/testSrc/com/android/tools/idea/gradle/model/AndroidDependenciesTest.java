@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.model.AndroidDependencies.DependencyFactory;
 import com.android.tools.idea.gradle.stubs.android.AndroidLibraryStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
-import com.android.tools.idea.gradle.stubs.android.ProductFlavorContainerStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.intellij.openapi.roots.DependencyScope;
 import junit.framework.TestCase;
@@ -62,11 +61,9 @@ public class AndroidDependenciesTest extends TestCase {
   public void testAddToWithJarDependency() {
     // Set up a jar dependency in one of the flavors of the selected variant.
     File jarFile = new File("~/repo/guava/guava-11.0.2.jar");
-    String flavorName = myVariant.getProductFlavors().get(0);
-    ProductFlavorContainerStub productFlavor = (ProductFlavorContainerStub)myAndroidProject.getProductFlavors().get(flavorName);
-    productFlavor.getDependencies().addJar(jarFile);
+    myVariant.getMainArtifactInfo().getDependencies().addJar(jarFile);
 
-    myDependencyFactory.addDependency(DependencyScope.COMPILE, "guava-11.0.2", jarFile);
+    myDependencyFactory.addLibraryDependency(DependencyScope.COMPILE, "guava-11.0.2", jarFile);
     expectLastCall();
 
     replay(myDependencyFactory);
@@ -78,14 +75,12 @@ public class AndroidDependenciesTest extends TestCase {
 
   public void testAddToWithLibraryDependency() {
     // Set up a library dependency to the default configuration.
-    ProductFlavorContainerStub defaultConfig = myAndroidProject.getDefaultConfig();
-
     String rootDirPath = myAndroidProject.getRootDir().getAbsolutePath();
     File libJar = new File(rootDirPath, "library.aar/library.jar");
     AndroidLibraryStub library = new AndroidLibraryStub(libJar);
-    defaultConfig.getDependencies().addLibrary(library);
+    myVariant.getMainArtifactInfo().getDependencies().addLibrary(library);
 
-    myDependencyFactory.addDependency(DependencyScope.COMPILE, "library.aar", libJar);
+    myDependencyFactory.addLibraryDependency(DependencyScope.COMPILE, "library.aar", libJar);
     expectLastCall();
 
     replay(myDependencyFactory);

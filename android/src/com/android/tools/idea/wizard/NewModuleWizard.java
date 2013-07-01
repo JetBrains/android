@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.tools.idea.gradle.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import org.jetbrains.annotations.NotNull;

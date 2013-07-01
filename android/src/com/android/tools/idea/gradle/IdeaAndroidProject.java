@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle;
 
-import com.android.build.gradle.model.AndroidProject;
-import com.android.build.gradle.model.Variant;
+import com.android.builder.model.AndroidProject;
+import com.android.builder.model.Variant;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;

@@ -21,7 +21,6 @@ import com.intellij.openapi.externalSystem.model.project.LibraryPathType;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.roots.DependencyScope;
-import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.idea.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,33 +35,31 @@ final class GradleDependencies {
   }
 
   static void populate(@NotNull DataNode<ModuleData> moduleInfo, @NotNull DataNode<ProjectData> projectInfo, @NotNull IdeaModule module) {
-    for (IdeaDependency dep : module.getDependencies()) {
-      DependencyScope scope = parseScope(dep.getScope());
+    for (IdeaDependency dependency : module.getDependencies()) {
+      DependencyScope scope = parseScope(dependency.getScope());
 
-      if (dep instanceof IdeaModuleDependency) {
-        IdeaModule dependencyModule = ((IdeaModuleDependency)dep).getDependencyModule();
-        Preconditions.checkNotNull(dependencyModule);
-        String dependencyName = Preconditions.checkNotNull(dependencyModule.getName());
+      if (dependency instanceof IdeaModuleDependency) {
+        IdeaModule ideaModule = ((IdeaModuleDependency)dependency).getDependencyModule();
+        Preconditions.checkNotNull(ideaModule);
+        String dependencyName = Preconditions.checkNotNull(ideaModule.getName());
 
-        ModuleDependency dependency = new ModuleDependency(dependencyName);
-        dependency.setScope(scope);
-        dependency.addTo(moduleInfo, projectInfo);
-        continue;
+        ModuleDependency moduleDependency = new ModuleDependency(dependencyName);
+        moduleDependency.setScope(scope);
+        moduleDependency.addTo(moduleInfo, projectInfo);
       }
-
-      if (dep instanceof IdeaSingleEntryLibraryDependency) {
-        IdeaSingleEntryLibraryDependency gradleDependency = (IdeaSingleEntryLibraryDependency)dep;
-        File binaryPath = gradleDependency.getFile();
+      else if (dependency instanceof IdeaSingleEntryLibraryDependency) {
+        IdeaSingleEntryLibraryDependency ideaLibrary = (IdeaSingleEntryLibraryDependency)dependency;
+        File binaryPath = ideaLibrary.getFile();
         Preconditions.checkNotNull(binaryPath);
 
-        LibraryDependency dependency = new LibraryDependency(binaryPath);
+        LibraryDependency libraryDependency = new LibraryDependency(binaryPath);
 
-        dependency.setScope(scope);
-        dependency.addPath(LibraryPathType.BINARY, binaryPath);
-        dependency.addPath(LibraryPathType.SOURCE, gradleDependency.getSource());
-        dependency.addPath(LibraryPathType.DOC, gradleDependency.getJavadoc());
+        libraryDependency.setScope(scope);
+        libraryDependency.addPath(LibraryPathType.BINARY, binaryPath);
+        libraryDependency.addPath(LibraryPathType.SOURCE, ideaLibrary.getSource());
+        libraryDependency.addPath(LibraryPathType.DOC, ideaLibrary.getJavadoc());
 
-        dependency.addTo(moduleInfo, projectInfo);
+        libraryDependency.addTo(moduleInfo, projectInfo);
       }
     }
   }

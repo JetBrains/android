@@ -16,7 +16,7 @@
 package com.android.tools.idea.wizard;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;

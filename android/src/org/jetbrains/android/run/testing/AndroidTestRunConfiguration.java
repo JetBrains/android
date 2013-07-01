@@ -16,6 +16,7 @@
 
 package org.jetbrains.android.run.testing;
 
+import com.android.builder.model.ArtifactInfo;
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
@@ -60,11 +61,9 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 
 /**
- * Created by IntelliJ IDEA.
  * User: Eugene.Kudelevsky
  * Date: Aug 27, 2009
  * Time: 2:23:56 PM
- * To change this template use File | Settings | File Templates.
  */
 public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.testing.AndroidTestRunConfiguration");
@@ -100,7 +99,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
     // Gradle only supports testing against a single build type (which could be anything, but is "debug" build type by default)
     // Currently, the only information the model exports that we can use to detect whether the current build type
     // is testable is by looking at the test task name and checking whether it is null.
-    String testTask = project.getSelectedVariant().getAssembleTestTaskName();
+    ArtifactInfo testArtifactInfo = project.getSelectedVariant().getTestArtifactInfo();
+    String testTask = testArtifactInfo != null ? testArtifactInfo.getAssembleTaskName() : null;
     return new Pair<Boolean, String>(testTask != null, AndroidBundle.message("android.cannot.run.library.project.in.this.buildtype"));
   }
 
