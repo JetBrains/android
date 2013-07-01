@@ -94,7 +94,7 @@ public class AndroidContentRootTest extends TestCase {
 
     String rootDirPath = myAndroidProject.getRootDir().getAbsolutePath();
     IdeaAndroidProject project =
-      new IdeaAndroidProject(myAndroidProject.getName(), rootDirPath, rootDirPath, myAndroidProject, selectedVariant.getName());
+      new IdeaAndroidProject(myAndroidProject.getName(), rootDirPath, myAndroidProject, selectedVariant.getName());
     AndroidContentRoot.storePaths(project, myStorage);
 
     myExpectedSourcePaths.storeExpectedSourcePaths(myAndroidProject);
