@@ -128,7 +128,7 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
       List<ProcessingItem> items = new ArrayList<ProcessingItem>();
       for (Module module : modules) {
         AndroidFacet facet = FacetManager.getInstance(module).getFacetByType(AndroidFacet.ID);
-        if (facet != null && !facet.getProperties().LIBRARY_PROJECT) {
+        if (facet != null && !facet.isLibraryProject()) {
           
           final VirtualFile dexOutputDir = getOutputDirectoryForDex(module);
           

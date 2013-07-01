@@ -124,7 +124,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     AndroidMavenProviderImpl.configureAaptCompilation(mavenProject, facet.getModule(), facet.getConfiguration(), hasApkSources);
 
     if (AndroidMavenUtil.APKLIB_DEPENDENCY_AND_PACKAGING_TYPE.equals(mavenProject.getPackaging())) {
-      facet.getProperties().LIBRARY_PROJECT = true;
+      facet.setLibraryProject(true);
     }
     facet.getConfiguration().setIncludeAssetsFromLibraries(true);
 

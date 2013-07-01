@@ -38,7 +38,7 @@ public class RunConfigModuleCustomizer implements ModuleCustomizer {
   public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
     if (ideaAndroidProject != null) {
       AndroidFacet facet = Facets.getFirstFacet(module, AndroidFacet.ID);
-      if (facet != null && !facet.getConfiguration().getState().LIBRARY_PROJECT) {
+      if (facet != null && !facet.isLibraryProject()) {
         RunManagerEx runManager = RunManagerEx.getInstanceEx(project);
         ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
         RunConfiguration[] configs = runManager.getConfigurations(configurationFactory.getType());

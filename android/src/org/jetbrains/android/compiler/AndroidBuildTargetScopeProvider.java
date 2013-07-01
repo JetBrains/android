@@ -45,7 +45,7 @@ public class AndroidBuildTargetScopeProvider extends BuildTargetScopeProvider {
       allTargetIds.add(module.getName());
 
       if (fullBuild) {
-        if (facet.getProperties().LIBRARY_PROJECT) {
+        if (facet.isLibraryProject()) {
           libTargetIds.add(module.getName());
         }
         else {

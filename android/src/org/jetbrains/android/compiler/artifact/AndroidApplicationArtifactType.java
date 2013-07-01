@@ -66,7 +66,7 @@ public class AndroidApplicationArtifactType extends ArtifactType {
       final FacetModel facetModel = context.getModulesProvider().getFacetModel(module);
       final AndroidFacet facet = facetModel.getFacetByType(AndroidFacet.ID);
 
-      if (facet != null && !facet.getProperties().LIBRARY_PROJECT) {
+      if (facet != null && !facet.isLibraryProject()) {
         facets.add(facet);
       }
     }

@@ -311,7 +311,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
           AndroidFacet depFacet = AndroidFacet.getInstance(depModule);
           if (depFacet != null &&
               !module2PackageName.containsKey(depFacet) &&
-              !depFacet.getProperties().LIBRARY_PROJECT) {
+              !depFacet.isLibraryProject()) {
             String packageName = computePackageName(depFacet);
             if (packageName == null) {
               return false;

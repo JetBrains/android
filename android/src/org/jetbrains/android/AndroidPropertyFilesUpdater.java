@@ -218,8 +218,8 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
     final VirtualFile[] dependencies = collectDependencies(module);
     final String[] dependencyPaths = toSortedPaths(dependencies);
 
-    final List<Object> newState = Arrays.asList(androidTargetHashString, facet.getProperties().
-      LIBRARY_PROJECT, Arrays.asList(dependencyPaths), facet.getProperties().ENABLE_MANIFEST_MERGING);
+    final List<Object> newState = Arrays.asList(androidTargetHashString, facet.isLibraryProject(),
+                                                Arrays.asList(dependencyPaths), facet.getProperties().ENABLE_MANIFEST_MERGING);
     final List<Object> state = facet.getUserData(ANDROID_PROPERTIES_STATE_KEY);
 
     if (state == null || !Comparing.equal(state, newState)) {
@@ -339,7 +339,7 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
     final IProperty property = propertiesFile.findPropertyByKey(AndroidUtils.ANDROID_LIBRARY_PROPERTY);
 
     if (property != null) {
-      final String value = Boolean.toString(facet.getProperties().LIBRARY_PROJECT);
+      final String value = Boolean.toString(facet.isLibraryProject());
 
       if (!value.equals(property.getValue())) {
         changes.add(new Runnable() {
@@ -350,7 +350,7 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
         });
       }
     }
-    else if (facet.getProperties().LIBRARY_PROJECT) {
+    else if (facet.isLibraryProject()) {
       changes.add(new Runnable() {
         @Override
         public void run() {

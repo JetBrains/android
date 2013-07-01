@@ -274,7 +274,7 @@ public class AndroidRootUtil {
               continue;
             }
             final AndroidFacet facet = AndroidFacet.getInstance(depModule);
-            final boolean libraryProject = facet != null && facet.getProperties().LIBRARY_PROJECT;
+            final boolean libraryProject = facet != null && facet.isLibraryProject();
 
             CompilerModuleExtension extension = CompilerModuleExtension.getInstance(depModule);
             if (extension != null) {
