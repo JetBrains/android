@@ -52,6 +52,7 @@
         </attr>
         <attr name="crash" format="boolean" />
         <attr name="android:minWidth" />
+        <attr name="ignore_no_format" />
     </declare-styleable>
 
     <plurals name="my_plural" tools:quantity="two">
