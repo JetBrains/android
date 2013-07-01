@@ -209,6 +209,9 @@ class ReflectiveHandler extends DefaultHandler {
       String idref = nameToValue.remove(Utilities.IDREF_ATTRIBUTE_NAME); // note destructive
       Object instance;
       if (idref != null) {
+        if (!idToValue.containsKey(idref)) {
+          throw new SAXException("IDREF attribute, \"" + idref + "\" , was used before corresponding ID was defined.");
+        }
         instance = idToValue.get(idref);
       }
       else {

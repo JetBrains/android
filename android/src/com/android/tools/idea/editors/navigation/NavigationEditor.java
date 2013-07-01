@@ -34,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -44,10 +45,10 @@ public class NavigationEditor implements FileEditor {
   public static final int INITIAL_FILE_BUFFER_SIZE = 1000;
 
   private final UserDataHolderBase myUserDataHolder = new UserDataHolderBase();
-  private final NavigationModel myNavigationModel;
+  private NavigationModel myNavigationModel;
   private final Listener<Void> myNavigationModelListener;
   private VirtualFile myFile;
-  private final JComponent myComponent;
+  private JComponent myComponent;
   private boolean myDirty;
 
   public NavigationEditor(Project project, VirtualFile file) {
@@ -66,9 +67,23 @@ public class NavigationEditor implements FileEditor {
     project.getMessageBus().connect(this).subscribe(AppTopics.FILE_DOCUMENT_SYNC, saveListener);
 
     myFile = file;
-    myNavigationModel = read(file);
-    // component = new NavigationModelEditorPanel1(project, file, read(file));
-    myComponent = new JBScrollPane(new NavigationEditorPanel2(project, file, myNavigationModel));
+    try {
+      myNavigationModel = read(file);
+      // component = new NavigationModelEditorPanel1(project, file, read(file));
+      myComponent = new JBScrollPane(new NavigationEditorPanel2(project, file, myNavigationModel));
+    }
+    catch (Exception e) {
+      myNavigationModel = new NavigationModel();
+      {
+        JPanel panel = new JPanel(new BorderLayout());
+        JLabel message = new JLabel("Invalid Navigation File");
+        Font font = message.getFont();
+        message.setFont(font.deriveFont(30f));
+        panel.add(message, BorderLayout.NORTH);
+        panel.add(new JLabel(e.getMessage()), BorderLayout.CENTER);
+        myComponent = new JBScrollPane(panel);
+      }
+    }
     myNavigationModelListener = new Listener<Void>() {
       @Override
       public void notify(Void unused) {
