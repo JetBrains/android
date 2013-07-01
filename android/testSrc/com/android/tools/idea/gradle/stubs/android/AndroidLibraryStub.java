@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidLibrary;
 import com.google.common.collect.Lists;
@@ -34,7 +35,7 @@ public class AndroidLibraryStub implements AndroidLibrary {
   @NonNull
   @Override
   public File getFolder() {
-    throw new UnsupportedOperationException();
+    return myJarFile.getParentFile();
   }
 
   @NonNull
@@ -62,7 +63,7 @@ public class AndroidLibraryStub implements AndroidLibrary {
   @NonNull
   @Override
   public File getResFolder() {
-    throw new UnsupportedOperationException();
+    return new File(getFolder(), SdkConstants.FD_RES);
   }
 
   @NonNull
