@@ -28,7 +28,12 @@ import com.intellij.xml.util.documentation.XmlDocumentationProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.android.SdkConstants.*;
 
 /**
  * @author yole
@@ -53,13 +58,13 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
     final XmlDocument document = file.getDocument();
     if (document == null) return;
     final XmlTag rootTag = document.getRootTag();
-    if (rootTag == null || !"resources".equals(rootTag.getName())) return;
+    if (rootTag == null || !TAG_RESOURCES.equals(rootTag.getName())) return;
     for (XmlTag tag : rootTag.getSubTags()) {
       String tagName = tag.getName();
-      if (tagName.equals("attr")) {
+      if (tagName.equals(TAG_ATTR)) {
         parseAttrTag(tag);
       }
-      else if (tagName.equals("declare-styleable")) {
+      else if (tagName.equals(TAG_DECLARE_STYLEABLE)) {
         parseDeclareStyleableTag(tag, parentMap);
       }
     }
@@ -82,24 +87,24 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
 
   @Nullable
   private AttributeDefinition parseAttrTag(XmlTag tag) {
-    String name = tag.getAttributeValue("name");
+    String name = tag.getAttributeValue(ATTR_NAME);
     if (name == null) {
       LOG.info("Found attr tag with no name: " + tag.getText());
       return null;
     }
     List<AttributeFormat> parsedFormats;
     List<AttributeFormat> formats = new ArrayList<AttributeFormat>();
-    String format = tag.getAttributeValue("format");
+    String format = tag.getAttributeValue(ATTR_FORMAT);
     if (format != null) {
       parsedFormats = parseAttrFormat(format);
       if (parsedFormats != null) formats.addAll(parsedFormats);
     }
-    XmlTag[] values = tag.findSubTags("enum");
+    XmlTag[] values = tag.findSubTags(TAG_ENUM);
     if (values.length > 0) {
       formats.add(AttributeFormat.Enum);
     }
     else {
-      values = tag.findSubTags("flag");
+      values = tag.findSubTags(TAG_FLAG);
       if (values.length > 0) {
         formats.add(AttributeFormat.Flag);
       }
@@ -143,14 +148,14 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
 
   private void parseAndAddValues(AttributeDefinition def, XmlTag[] values) {
     for (XmlTag value : values) {
-      final String valueName = value.getAttributeValue("name");
+      final String valueName = value.getAttributeValue(ATTR_NAME);
       if (valueName == null) {
         LOG.info("Unknown value for tag: " + value.getText());
       }
       else {
         def.addValue(valueName);
 
-        final String strIntValue = value.getAttributeValue("value");
+        final String strIntValue = value.getAttributeValue(ATTR_VALUE);
         if (strIntValue != null) {
           try {
             int intValue = strIntValue.startsWith("0x")
@@ -171,13 +176,13 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
   }
 
   private void parseDeclareStyleableTag(XmlTag tag, Map<StyleableDefinitionImpl, String[]> parentMap) {
-    String name = tag.getAttributeValue("name");
+    String name = tag.getAttributeValue(ATTR_NAME);
     if (name == null) {
       LOG.info("Found declare-styleable tag with no name: " + tag.getText());
       return;
     }
     StyleableDefinitionImpl def = new StyleableDefinitionImpl(name);
-    String parentNameAttributeValue = tag.getAttributeValue("parent");
+    String parentNameAttributeValue = tag.getAttributeValue(ATTR_PARENT);
     if (parentNameAttributeValue != null) {
       String[] parentNames = parentNameAttributeValue.split("\\s+");
       parentMap.put(def, parentNames);
@@ -188,13 +193,13 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
       myStateStyleables.add(def);
     }
 
-    for (XmlTag subTag : tag.findSubTags("attr")) {
+    for (XmlTag subTag : tag.findSubTags(TAG_ATTR)) {
       parseStyleableAttr(def, subTag);
     }
   }
 
   private void parseStyleableAttr(StyleableDefinitionImpl def, XmlTag tag) {
-    String name = tag.getAttributeValue("name");
+    String name = tag.getAttributeValue(ATTR_NAME);
     if (name == null) {
       LOG.info("Found attr tag with no name: " + tag.getText());
       return;
