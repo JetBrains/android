@@ -22,9 +22,11 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.InputValidator;
+import com.intellij.openapi.ui.InputValidatorEx;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
+import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.android.dom.layout.AndroidLayoutUtil;
@@ -34,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
 import java.awt.*;
 import java.util.List;
 
@@ -54,7 +57,7 @@ public class AndroidCreateLayoutFileAction extends CreateTypedResourceFileAction
   protected PsiElement[] invokeDialog(Project project, PsiDirectory directory) {
     final AndroidFacet facet = AndroidFacet.getInstance(directory);
     LOG.assertTrue(facet != null);
-    MyInputValidator validator = new MyInputValidator(project, directory);
+    InputValidator validator = createValidator(project, directory);
     final MyDialog dialog = new MyDialog(facet, validator);
     dialog.show();
     return PsiElement.EMPTY_ARRAY;
@@ -93,6 +96,16 @@ public class AndroidCreateLayoutFileAction extends CreateTypedResourceFileAction
       myRootElementFieldWrapper.add(myRootElementField, BorderLayout.CENTER);
       myRootElementLabel.setLabelFor(myRootElementField);
       init();
+
+      myFileNameField.getDocument().addDocumentListener(new DocumentAdapter() {
+        @Override
+        public void textChanged(DocumentEvent event) {
+          final String text = myFileNameField.getText().trim();
+          if (myValidator instanceof InputValidatorEx) {
+            setErrorText(((InputValidatorEx) myValidator).getErrorText(text));
+          }
+        }
+      });
     }
 
     @Override
