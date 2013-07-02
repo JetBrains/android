@@ -18,8 +18,11 @@ package com.android.tools.idea.editors.navigation;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 
 public class Utilities {
+  private static final Dimension ARROW_HEAD_SIZE = new Dimension(18, 9);
+
   public static Point add(Point p1, Point p2) {
     return new Point(p1.x + p2.x, p1.y + p2.y);
   }
@@ -118,5 +121,22 @@ public class Utilities {
 
   public static com.android.navigation.Point toNavPoint(Point loc) {
     return new com.android.navigation.Point(loc.x, loc.y);
+  }
+
+  static void drawArrow(Graphics g1, int x1, int y1, int x2, int y2) {
+    // x1 and y1 are coordinates of circle or rectangle
+    // x2 and y2 are coordinates of circle or rectangle, to this point is directed the arrow
+    Graphics2D g = (Graphics2D)g1.create();
+    double dx = x2 - x1;
+    double dy = y2 - y1;
+    double angle = Math.atan2(dy, dx);
+    int len = (int)Math.sqrt(dx * dx + dy * dy);
+    AffineTransform t = AffineTransform.getTranslateInstance(x1, y1);
+    t.concatenate(AffineTransform.getRotateInstance(angle));
+    g.transform(t);
+    g.drawLine(0, 0, len, 0);
+    int basePosition = len - ARROW_HEAD_SIZE.width;
+    int height = ARROW_HEAD_SIZE.height;
+    g.fillPolygon(new int[]{len, basePosition, basePosition, len}, new int[]{0, -height, height, 0}, 4);
   }
 }
