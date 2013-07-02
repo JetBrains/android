@@ -162,7 +162,7 @@ public class AndroidTestConfigurationProducer extends JavaRuntimeConfigurationPr
 
   @Nullable
   private RunnerAndConfigurationSettings createMethodConfiguration(PsiElement element, ConfigurationContext context) {
-    PsiMethod elementMethod = PsiTreeUtil.getParentOfType(element, PsiMethod.class);
+    PsiMethod elementMethod = PsiTreeUtil.getParentOfType(element, PsiMethod.class, false);
     while (elementMethod != null) {
       if (isTestMethod(elementMethod)) {
         PsiClass c = elementMethod.getContainingClass();
