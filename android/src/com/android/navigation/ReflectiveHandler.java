@@ -33,7 +33,8 @@ class ReflectiveHandler extends DefaultHandler {
   private final List<String> packagesImports = new ArrayList<String>(DEFAULT_PACKAGES);
   private final List<String> classImports = new ArrayList<String>(DEFAULT_CLASSES);
   private final ErrorHandler errorHandler;
-  private final Stack<Object> stack;
+  private final Stack<Object> stack = new Stack<Object>();
+  private final Stack<String> nameStack = new Stack<String>();
   private final Map<String, Object> idToValue = new HashMap<String, Object>();
 
   private Locator documentLocator;
@@ -41,7 +42,6 @@ class ReflectiveHandler extends DefaultHandler {
 
   public ReflectiveHandler(ErrorHandler errorHandler) {
     this.errorHandler = errorHandler;
-    this.stack = new Stack<Object>();
   }
 
   @Override
@@ -223,7 +223,7 @@ class ReflectiveHandler extends DefaultHandler {
       }
 
       if (stack.size() != 0) {
-        installInOuter(stack.getLast(), nameToValue.remove(Utilities.PROPERTY_ATTRIBUTE_NAME), instance); // note destructive
+        nameStack.add(nameToValue.remove(Utilities.PROPERTY_ATTRIBUTE_NAME)); // note destructive
       }
       if (idref == null) {
         for (Map.Entry<String, String> entry : nameToValue.entrySet()) {
@@ -251,16 +251,7 @@ class ReflectiveHandler extends DefaultHandler {
     catch (ClassNotFoundException e) {
       handleError(e);
     }
-    catch (InvocationTargetException e) {
-      handleError(e);
-    }
-    catch (NoSuchMethodException e) {
-      handleError(e);
-    }
     catch (InstantiationException e) {
-      handleError(e);
-    }
-    catch (IllegalAccessException e) {
       handleError(e);
     }
   }
@@ -272,6 +263,19 @@ class ReflectiveHandler extends DefaultHandler {
   @Override
   public void endElement(String uri, String localName, String qName) throws SAXException {
     result = stack.pop();
+    if (stack.size() != 0) {
+      try {
+        installInOuter(stack.getLast(), nameStack.pop(), result); // note destructive
+      }
+      catch (InvocationTargetException e) {
+        handleError(e);
+      }
+      catch (NoSuchMethodException e) {
+        handleError(e);
+      }
+      catch (IllegalAccessException e) {
+        handleError(e);
+      }
+    }
   }
-
 }
