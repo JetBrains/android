@@ -22,9 +22,39 @@ public class NavigationModel extends ArrayList<Transition> {
 
   private final EventDispatcher<Void> listeners = new EventDispatcher<Void>();
 
+  private final ArrayList<State> states = new ArrayList<State>();
+
+  public void addState(State state) {
+    states.add(state);
+    listeners.notify(NON_EVENT);
+  }
+
+  public void removeState(State state) {
+    states.remove(state);
+    for (Transition t : new ArrayList<Transition>(this)) {
+      if (t.getSource() == state || t.getDestination() == state) {
+        remove(t);
+      }
+    }
+    listeners.notify(NON_EVENT);
+  }
+
+  public ArrayList<State> getStates() {
+    return states;
+  }
+
+  private void updateStates(State state) {
+    if (!states.contains(state)) {
+      states.add(state);
+    }
+  }
+
   @Override
   public boolean add(Transition transition) {
     boolean result = super.add(transition);
+    // todo remove this
+    updateStates(transition.getSource());
+    updateStates(transition.getDestination());
     listeners.notify(NON_EVENT);
     return result;
   }
