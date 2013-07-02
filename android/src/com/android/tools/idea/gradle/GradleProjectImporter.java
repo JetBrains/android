@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle;
 
-import com.android.tools.idea.gradle.util.Facets;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
@@ -38,6 +37,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
@@ -61,7 +61,6 @@ import com.intellij.openapi.wm.ex.IdeFrameEx;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.messages.MessageBusConnection;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
@@ -102,22 +101,10 @@ public class GradleProjectImporter {
    * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
    */
   public void reImportProject(@NotNull Project project) throws ConfigurationException {
-    String gradleProjectFilePath = findGradleProjectFilePath(project);
-    if (gradleProjectFilePath != null) {
-      doImport(project, gradleProjectFilePath, null);
+    if (Projects.isGradleProject(project)) {
+      FileDocumentManager.getInstance().saveAllDocuments();
+      ExternalSystemUtil.refreshProjects(project, GradleConstants.SYSTEM_ID);
     }
-  }
-
-  @Nullable
-  private static String findGradleProjectFilePath(@NotNull Project project) {
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      AndroidFacet androidFacet = Facets.getFirstFacet(module, AndroidFacet.ID);
-      if (androidFacet == null || androidFacet.getIdeaAndroidProject() == null) {
-        continue;
-      }
-      return androidFacet.getIdeaAndroidProject().getRootGradleProjectFilePath();
-    }
-    return null;
   }
 
   /**

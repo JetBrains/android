@@ -46,8 +46,7 @@ public class AndroidDependenciesTest extends TestCase {
     assertNotNull(myVariant);
 
     String rootDirPath = myAndroidProject.getRootDir().getAbsolutePath();
-    myIdeaAndroidProject =
-      new IdeaAndroidProject(myAndroidProject.getName(), rootDirPath, rootDirPath, myAndroidProject, myVariant.getName());
+    myIdeaAndroidProject = new IdeaAndroidProject(myAndroidProject.getName(), rootDirPath, myAndroidProject, myVariant.getName());
 
     myDependencyFactory = createMock(DependencyFactory.class);
   }
