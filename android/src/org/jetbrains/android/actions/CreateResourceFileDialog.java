@@ -19,12 +19,15 @@ package org.jetbrains.android.actions;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.rendering.ResourceNameValidator;
 import com.intellij.CommonBundle;
 import com.intellij.ide.actions.TemplateKindCombo;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.InputValidator;
+import com.intellij.openapi.ui.InputValidatorEx;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.PlatformIcons;
@@ -41,6 +44,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -205,6 +209,37 @@ public class CreateResourceFileDialog extends DialogWrapper {
     init();
 
     setTitle(AndroidBundle.message("new.resource.dialog.title"));
+
+    myFileNameField.getDocument().addDocumentListener(new DocumentAdapter() {
+      @Override
+      public void textChanged(DocumentEvent event) {
+        validateName();
+      }
+    });
+    myResourceTypeCombo.getComboBox().addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent actionEvent) {
+        validateName();
+      }
+    });
+  }
+
+  @Nullable
+  private String getNameError(@NotNull String fileName) {
+    String typeName = myResourceTypeCombo.getSelectedName();
+    if (typeName != null) {
+      ResourceFolderType type = ResourceFolderType.getFolderType(typeName);
+      if (type != null) {
+        ResourceNameValidator validator = ResourceNameValidator.create(true, type);
+        return validator.getErrorText(fileName);
+      }
+    }
+
+    return null;
+  }
+
+  private void validateName() {
+    setErrorText(getNameError(myFileNameField.getText()));
   }
 
   private void updateRootElementTextField() {
@@ -265,7 +300,7 @@ public class CreateResourceFileDialog extends DialogWrapper {
       return;
     }
 
-    final String errorMessage = AndroidResourceUtil.getInvalidResourceFileNameMessage(fileName);
+    final String errorMessage = getNameError(fileName);
     if (errorMessage != null) {
       Messages.showErrorDialog(myPanel, errorMessage, CommonBundle.getErrorTitle());
       return;
