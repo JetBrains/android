@@ -61,8 +61,9 @@ public class TemplateMetadata {
 
   public static final String V4_SUPPORT_LIBRARY_VERSION = "13.0.+";
   public static final String GRADLE_PLUGIN_VERSION = "0.4.+";
+  public static final String GRADLE_VERSION = BasePlugin.GRADLE_MIN_VERSION;
   public static final String GRADLE_DISTRIBUTION_URL = "http://services.gradle.org/distributions/gradle-" +
-                                                       BasePlugin.GRADLE_MIN_VERSION + "-bin.zip";
+                                                       GRADLE_VERSION + "-bin.zip";
 
   private final Document myDocument;
   private final Map<String, Parameter> myParameterMap;
