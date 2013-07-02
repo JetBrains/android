@@ -40,7 +40,7 @@ public class AndroidLogcatFormatter {
   public static String formatMessage(String message, LogMessageHeader header) {
     String ids = String.format(Locale.US, "%d-%s", header.myPid, header.myTid);
     return String.format(Locale.US,
-                         "%1$s %2$12s/%3$-30s %4$c/%5$s: %6$s",
+                         "%1$s %2$12s/%3$s %4$c/%5$s: %6$s",
                          header.myTime,
                          ids,
                          header.myAppPackage.isEmpty() ? "?" : header.myAppPackage,
