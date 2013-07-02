@@ -39,6 +39,7 @@ public class TemplateWizard extends AbstractWizard<ModuleWizardStep> {
   public static final String JAVA_SOURCE_PATH = "java";
   public static final String RESOURCE_SOURCE_PATH = "res";
   public static final String GRADLE_WRAPPER_PATH = "gradle/wrapper";
+  public static final String GRADLE_WRAPPER_PROPERTIES_PATH = "gradle/wrapper/gradle-wrapper.properties";
   protected static final String MAVEN_URL_PROPERTY = "android.mavenRepoUrl";
 
   protected Project myProject;
