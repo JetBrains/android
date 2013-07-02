@@ -16,12 +16,11 @@
 package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
+import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.rendering.ResourceNameValidator;
 import com.google.common.base.Splitter;
-import com.intellij.lang.java.lexer.JavaLexer;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDirectory;
@@ -254,7 +253,6 @@ public class Parameter {
       }
     }
     boolean exists = false;
-    String resourceNameError = AndroidUtils.isValidResourceName(value, true);
     String fqName = (packageName != null && value.indexOf('.') == -1 ? packageName + "." : "") + value;
 
     if (constraints.contains(Constraint.ACTIVITY)) {
@@ -284,11 +282,13 @@ public class Parameter {
         exists = JavaPsiFacade.getInstance(project).findPackage(value) != null;
       }
     } else if (constraints.contains(Constraint.LAYOUT)) {
+      String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.LAYOUT).getErrorText(value);
       if (resourceNameError != null) {
         return name + " is not a valid resource name. " + resourceNameError;
       }
       exists = existsResourceFile(project, SdkConstants.FD_RES_LAYOUT, value + SdkConstants.DOT_XML);
     } else if (constraints.contains(Constraint.DRAWABLE)) {
+      String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.DRAWABLE).getErrorText(value);
       if (resourceNameError != null) {
         return name + " is not a valid resource name. " + resourceNameError;
       }
@@ -296,6 +296,7 @@ public class Parameter {
     } else if (constraints.contains(Constraint.ID)) {
       // TODO: validity and existence check
     } else if (constraints.contains(Constraint.STRING)) {
+      String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.VALUES).getErrorText(value);
       if (resourceNameError != null) {
         return name + " is not a valid resource name. " + resourceNameError;
       }
