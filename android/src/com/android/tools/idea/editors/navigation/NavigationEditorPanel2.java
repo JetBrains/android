@@ -20,6 +20,7 @@ import com.android.navigation.NavigationModel;
 import com.android.navigation.State;
 import com.android.navigation.Transition;
 import com.android.tools.idea.rendering.RenderedView;
+import com.android.tools.idea.rendering.RenderedViewHierarchy;
 import com.android.tools.idea.rendering.ShadowPainter;
 import com.intellij.ide.dnd.DnDEvent;
 import com.intellij.ide.dnd.DnDManager;
@@ -32,19 +33,15 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiQualifiedNamedElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.Gray;
-import com.intellij.util.containers.HashSet;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.*;
-import java.util.List;
 
 public class NavigationEditorPanel2 extends JComponent {
   private static final Dimension GAP = new Dimension(150, 50);
@@ -54,11 +51,10 @@ public class NavigationEditorPanel2 extends JComponent {
   public static final Color SNAP_GRID_LINE_COLOR_MAJOR = Gray.get(150);
   private static final Dimension SNAP_GRID = new Dimension(4, 4);
   private static final double SCALE = 0.333333;
-  private static final EmptyBorder LABEL_BORDER = new EmptyBorder(0, 5, 0, 5);
+  //private static final EmptyBorder LABEL_BORDER = new EmptyBorder(0, 5, 0, 5);
   private static final Dimension ORIGINAL_SIZE = new Dimension(480, 800);
   private static final Dimension PREVIEW_SIZE = new Dimension((int)(ORIGINAL_SIZE.width * SCALE), (int)(ORIGINAL_SIZE.height * SCALE));
   private static final int LINE_WIDTH = 3;
-  private static final Dimension ARROW_HEAD_SIZE = new Dimension(6 * LINE_WIDTH, 3 * LINE_WIDTH);
   public static final Point MULTIPLE_DROP_STRIDE = new Point(50, 50);
   private static final String ID_PREFIX = "@+id/";
   public static final Color TRANSITION_LINE_COLOR = new Color(80, 80, 255);
@@ -319,7 +315,8 @@ public class NavigationEditorPanel2 extends JComponent {
       myComponent = component;
       myLocation = mouseDownLocation;
       Point p = component.convertPointFromViewToModel(mouseDownLocation);
-      myLeaf = component.getRenderResult().getHierarchy().findLeafAt(p.x, p.y);
+      RenderedViewHierarchy hierarchy = component.getRenderResult().getHierarchy();
+      myLeaf = hierarchy != null ? hierarchy.findLeafAt(p.x, p.y) : null;
       myNamedLeaf = getNamedParent(myLeaf);
     }
 
@@ -346,7 +343,7 @@ public class NavigationEditorPanel2 extends JComponent {
       paintLeaf(transitionGraphics, myLeaf, Color.RED, myComponent);
       paintLeaf(transitionGraphics, myNamedLeaf, Color.BLUE, myComponent);
       Point start = Utilities.centre(myComponent.getBounds(myNamedLeaf));
-      drawArrow(transitionGraphics, start.x, start.y, myLocation.x, myLocation.y);
+      Utilities.drawArrow(transitionGraphics, start.x, start.y, myLocation.x, myLocation.y);
     }
 
     @Override
@@ -442,6 +439,7 @@ public class NavigationEditorPanel2 extends JComponent {
     repaint();
   }
 
+  /*
   private List<State> findDestinationsFor(State state, Set<State> exclude) {
     List<State> result = new ArrayList<State>();
     for (Transition transition : myNavigationModel) {
@@ -455,23 +453,7 @@ public class NavigationEditorPanel2 extends JComponent {
     }
     return result;
   }
-
-  private static void drawArrow(Graphics g1, int x1, int y1, int x2, int y2) {
-    // x1 and y1 are coordinates of circle or rectangle
-    // x2 and y2 are coordinates of circle or rectangle, to this point is directed the arrow
-    Graphics2D g = (Graphics2D)g1.create();
-    double dx = x2 - x1;
-    double dy = y2 - y1;
-    double angle = Math.atan2(dy, dx);
-    int len = (int)Math.sqrt(dx * dx + dy * dy);
-    AffineTransform t = AffineTransform.getTranslateInstance(x1, y1);
-    t.concatenate(AffineTransform.getRotateInstance(angle));
-    g.transform(t);
-    g.drawLine(0, 0, len, 0);
-    int basePosition = len - ARROW_HEAD_SIZE.width;
-    int height = ARROW_HEAD_SIZE.height;
-    g.fillPolygon(new int[]{len, basePosition, basePosition, len}, new int[]{0, -height, height, 0}, 4);
-  }
+  */
 
   private void drawGrid(Graphics g, Color c, int gridWidth, int gridHeight) {
     g.setColor(c);
@@ -555,7 +537,7 @@ public class NavigationEditorPanel2 extends JComponent {
       g.drawLine(p1.x, p1.y, A.x, A.y);
       g.drawLine(A.x, A.y, p2.x, p2.y);
       g.drawLine(p3.x, p3.y, B.x, B.y);
-      drawArrow(g, B.x, B.y, p4.x, p4.y);
+      Utilities.drawArrow(g, B.x, B.y, p4.x, p4.y);
     }
   }
 
@@ -591,6 +573,7 @@ public class NavigationEditorPanel2 extends JComponent {
     }
   }
 
+  /*
   private void addChildrenOld(Collection<State> states) {
     final Set<State> visited = new HashSet<State>();
     final Point location = new Point(GAP.width, GAP.height);
@@ -624,6 +607,7 @@ public class NavigationEditorPanel2 extends JComponent {
     }
     setPreferredSize(new Dimension(maxLocation.x, maxLocation.y));
   }
+  */
 
   private <K, V extends Component> void removeLeftovers(Association<K, V> assoc, Collection<K> a) {
     for (Map.Entry<K, V> e : new ArrayList<Map.Entry<K, V>>(assoc.keyToValue.entrySet())) {
