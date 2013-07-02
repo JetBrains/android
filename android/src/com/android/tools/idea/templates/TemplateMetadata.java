@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.build.gradle.BasePlugin;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.*;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -55,6 +55,14 @@ public class TemplateMetadata {
   public static final String ATTR_MANIFEST_OUT = "manifestOut";
   public static final String ATTR_MAVEN_URL = "mavenUrl";
   public static final String ATTR_BUILD_TOOLS_VERSION = "buildToolsVersion";
+  public static final String ATTR_GRADLE_PLUGIN_VERSION = "gradlePluginVersion";
+  public static final String ATTR_V4_SUPPORT_LIBRARY_VERSION = "v4SupportLibraryVersion";
+  public static final String ATTR_GRADLE_VERSION = "gradleVersion";
+
+  public static final String V4_SUPPORT_LIBRARY_VERSION = "13.0.+";
+  public static final String GRADLE_PLUGIN_VERSION = "0.4.+";
+  public static final String GRADLE_DISTRIBUTION_URL = "http://services.gradle.org/distributions/gradle-" +
+                                                       BasePlugin.GRADLE_MIN_VERSION + "-bin.zip";
 
   private final Document myDocument;
   private final Map<String, Parameter> myParameterMap;

@@ -17,6 +17,7 @@ package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.rendering.ManifestInfo;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.xml.AndroidManifest;
 import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
@@ -29,6 +30,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.openapi.vfs.newvfs.NewVirtualFile;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -36,6 +38,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import java.io.File;
 
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API_LEVEL;
 
 /**
  * NewTemplateObjectWizard is a base class for templates that instantiate new Android objects based on templates. These aren't for
@@ -62,12 +65,16 @@ public class NewTemplateObjectWizard extends TemplateWizard {
   protected void init() {
     myWizardState = new TemplateWizardState();
     myWizardState.put(ATTR_BUILD_API, AndroidPlatform.getInstance(myModule).getTarget().getVersion().getApiLevel());
+    myWizardState.put(ATTR_MIN_API_LEVEL, ManifestInfo.get(myModule).getMinSdkVersion());
 
     mySteps.add(new ChooseTemplateStep(this, myWizardState, myTemplateCategory));
     mySteps.add(new TemplateParameterStep(this, myWizardState));
 
     myWizardState.put(NewProjectWizardState.ATTR_PROJECT_LOCATION, myProject.getBasePath());
-    myWizardState.put(NewProjectWizardState.ATTR_MODULE_NAME, myModule.getName());
+    // We're really interested in the directory name on disk, not the module name. These will be different if you give a module the same
+    // name as its containing project.
+    String moduleName = new File(myModule.getModuleFilePath()).getParentFile().getName();
+    myWizardState.put(NewProjectWizardState.ATTR_MODULE_NAME, moduleName);
 
     myWizardState.myHidden.add(TemplateMetadata.ATTR_PACKAGE_NAME);
     myWizardState.put(TemplateMetadata.ATTR_PACKAGE_NAME, ManifestInfo.get(myModule).getPackage());
