@@ -305,7 +305,7 @@ public class XMLWriter {
 
     if (isTopLevel) {
       String packageName = aClass.getPackage().getName(); // todo deal with multiple packages
-      result.writeAttribute(Utilities.NAME_SPACE_TAG, "http://schemas.android.com?import=" + packageName + ".*");
+      result.writeAttribute(Utilities.NAME_SPACE_ATRIBUTE_NAME, "http://schemas.android.com?import=" + packageName + ".*");
     }
 
     if (propertyName != null) {

@@ -21,24 +21,30 @@ import java.util.ArrayList;
 
 public class NavigationModel extends ArrayList<Transition> {
   public static class Event {
-    public enum Operation {INSERT, UPDATE, DELETE, UNSPECIFIED}
-
-    public static final Event UNSPECIFIED = new Event(Operation.UNSPECIFIED, Object.class);
-
-    public static final Event INSERT_STATE = new Event(Operation.INSERT, State.class);
-    public static final Event UPDATE_STATE = new Event(Operation.UPDATE, State.class);
-    public static final Event DELETE_STATE = new Event(Operation.DELETE, State.class);
-
-    public static final Event INSERT_TRANSITION = new Event(Operation.INSERT, Transition.class);
-    public static final Event UPDATE_TRANSITION = new Event(Operation.UPDATE, Transition.class);
-    public static final Event DELETE_TRANSITION = new Event(Operation.DELETE, Transition.class);
+    public enum Operation {INSERT, UPDATE, DELETE}
 
     public final Operation operation;
     public final Class<?> operandType;
 
-    public Event(@NonNull Operation operation, @NonNull Class operandType) {
+    private Event(@NonNull Operation operation, @NonNull Class operandType) {
       this.operation = operation;
       this.operandType = operandType;
+    }
+
+    private static Event of(@NonNull Operation operation, @NonNull Class operandType) {
+      return new Event(operation, operandType);
+    }
+
+    public static Event insert(@NonNull Class operandType) {
+      return of(Operation.INSERT, operandType);
+    }
+
+    public static Event update(@NonNull Class operandType) {
+      return of(Operation.UPDATE, operandType);
+    }
+
+    public static Event delete(@NonNull Class operandType) {
+      return of(Operation.DELETE, operandType);
     }
   }
 
@@ -48,7 +54,7 @@ public class NavigationModel extends ArrayList<Transition> {
 
   public void addState(State state) {
     states.add(state);
-    listeners.notify(Event.INSERT_STATE);
+    listeners.notify(Event.insert(State.class));
   }
 
   public void removeState(State state) {
@@ -58,7 +64,7 @@ public class NavigationModel extends ArrayList<Transition> {
         remove(t);
       }
     }
-    listeners.notify(Event.DELETE_STATE);
+    listeners.notify(Event.delete(State.class));
   }
 
   public ArrayList<State> getStates() {
@@ -77,14 +83,14 @@ public class NavigationModel extends ArrayList<Transition> {
     // todo remove this
     updateStates(transition.getSource());
     updateStates(transition.getDestination());
-    listeners.notify(Event.INSERT_TRANSITION);
+    listeners.notify(Event.insert(Transition.class));
     return result;
   }
 
   @Override
   public boolean remove(Object o) {
     boolean result = super.remove(o);
-    listeners.notify(Event.DELETE_TRANSITION);
+    listeners.notify(Event.delete(Transition.class));
     return result;
   }
 

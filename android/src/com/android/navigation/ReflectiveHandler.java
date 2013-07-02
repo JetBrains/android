@@ -24,6 +24,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.HashMap;
 
 class ReflectiveHandler extends DefaultHandler {
   // public static final List<String> DEFAULT_PACKAGES = Arrays.<String>asList("java.lang", "android.view", "android.widget");
@@ -106,7 +107,21 @@ class ReflectiveHandler extends DefaultHandler {
     return type.getConstructor(String.class).newInstance(stringValue);
   }
 
-  private static Object createInstance(Class clz, Map<String, String> attributes) throws InstantiationException {
+  static class Pair<T1, T2> {
+    T1 o1;
+    T2 o2;
+
+    private Pair(T1 o1, T2 o2) {
+      this.o1 = o1;
+      this.o2 = o2;
+    }
+
+    static <T1, T2> Pair<T1, T2> of(T1 o1, T2 o2) {
+      return new Pair<T1, T2>(o1, o2);
+    }
+  }
+
+  private static Pair<String[], Object> createInstance(Class clz, Map<String, String> attributes) throws InstantiationException {
     Constructor[] constructors = clz.getConstructors();
     Arrays.sort(constructors, new Comparator<Constructor>() {
       @Override
@@ -116,7 +131,9 @@ class ReflectiveHandler extends DefaultHandler {
     });
     for (Constructor constructor : constructors) {
       try {
-        return constructor.newInstance(getArguments(constructor, attributes));
+        String[] parameterNames = getParameterNames(constructor);
+        Object value = constructor.newInstance(getParameterValues(constructor, parameterNames, attributes));
+        return Pair.of(parameterNames, value);
       }
       catch (PropertyAnnotationNotFoundException e) {
         // ok, try next constructor
@@ -137,17 +154,24 @@ class ReflectiveHandler extends DefaultHandler {
     throw new InstantiationException();
   }
 
-  private static Object[] getArguments(Constructor constructor, Map<String, String> attributes) throws
+  private static String[] getParameterNames(Constructor constructor) throws PropertyAnnotationNotFoundException {
+    Annotation[][] annotations = constructor.getParameterAnnotations();
+    String[] result = new String[annotations.length];
+    for (int i = 0; i < annotations.length; i++) {
+      result[i] = getName(annotations[i]);
+    }
+    return result;
+  }
+
+  private static Object[] getParameterValues(Constructor constructor, String[] parameterNames, Map<String, String> attributes) throws
                                                                                                 NoSuchMethodException,
                                                                                                 IllegalAccessException,
                                                                                                 InvocationTargetException,
-                                                                                                InstantiationException,
-                                                                                                PropertyAnnotationNotFoundException {
+                                                                                                InstantiationException {
     Class[] types = constructor.getParameterTypes();
-    Annotation[][] annotations = constructor.getParameterAnnotations();
-    Object[] result = new Object[annotations.length];
-    for (int i = 0; i < annotations.length; i++) {
-      result[i] = valueFor(types[i], attributes.remove(getName(annotations[i]))); // // todo - destructive
+    Object[] result = new Object[parameterNames.length];
+    for (int i = 0; i < parameterNames.length; i++) {
+      result[i] = valueFor(types[i], attributes.get(parameterNames[i]));
     }
     return result;
   }
@@ -201,12 +225,13 @@ class ReflectiveHandler extends DefaultHandler {
   @Override
   public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
     Map<String, String> nameToValue = Utilities.toMap(attributes);
-    String nameSpace = nameToValue.remove(Utilities.NAME_SPACE_TAG); // note destructive
+    String nameSpace = nameToValue.get(Utilities.NAME_SPACE_ATRIBUTE_NAME);
+    Set<String> constructorParameterNames = Collections.emptySet();
     if (nameSpace != null) {
       processNameSpace(nameSpace);
     }
     try {
-      String idref = nameToValue.remove(Utilities.IDREF_ATTRIBUTE_NAME); // note destructive
+      String idref = nameToValue.get(Utilities.IDREF_ATTRIBUTE_NAME);
       Object instance;
       if (idref != null) {
         if (!idToValue.containsKey(idref)) {
@@ -215,20 +240,26 @@ class ReflectiveHandler extends DefaultHandler {
         instance = idToValue.get(idref);
       }
       else {
-        instance = createInstance(getClassForName(qName), nameToValue);
+        Pair<String[], Object> result = createInstance(getClassForName(qName), nameToValue);
+        constructorParameterNames = new HashSet<String>(Arrays.asList(result.o1));
+        instance = result.o2;
       }
-      String id = nameToValue.remove(Utilities.ID_ATTRIBUTE_NAME); // note destructive
+      String id = nameToValue.get(Utilities.ID_ATTRIBUTE_NAME);
       if (id != null) {
         idToValue.put(id, instance);
       }
 
       if (stack.size() != 0) {
-        nameStack.add(nameToValue.remove(Utilities.PROPERTY_ATTRIBUTE_NAME)); // note destructive
+        nameStack.add(nameToValue.get(Utilities.PROPERTY_ATTRIBUTE_NAME));
       }
       if (idref == null) {
         for (Map.Entry<String, String> entry : nameToValue.entrySet()) {
+          String attributeName = entry.getKey();
+          if (Utilities.RESERVED_ATTRIBUTES.contains(attributeName) || constructorParameterNames.contains(attributeName)) {
+            continue;
+          }
           try {
-            Method setter = getSetter(instance.getClass(), entry.getKey());
+            Method setter = getSetter(instance.getClass(), attributeName);
             Class argType = Utilities.wrapperForPrimitiveType(setter.getParameterTypes()[0]);
             setter.invoke(instance, valueFor(argType, entry.getValue()));
           }
