@@ -38,7 +38,7 @@ public class AndroidLogcatReceiverTest extends TestCase {
     myReceiver.processNewLine("Thread[Service Reconnect,5,main]: Connection to service failed 1");
 
     assertEquals(
-      "02-11 16:41:10.621  17945-17995/?                              W/GAV2: Thread[Service Reconnect,5,main]: Connection to service failed 1\n",
+      "02-11 16:41:10.621  17945-17995/? W/GAV2: Thread[Service Reconnect,5,main]: Connection to service failed 1\n",
       myWriter.getBuffer().toString());
   }
 
@@ -52,7 +52,7 @@ public class AndroidLogcatReceiverTest extends TestCase {
     myReceiver.processNewLine(line2);
     myReceiver.processNewLine(line3);
 
-    assertEquals("02-11 18:03:35.037  19796-19796/?                              E/AndroidRuntime: "
+    assertEquals("02-11 18:03:35.037  19796-19796/? E/AndroidRuntime: "
                  + line1 + "\n" +
                  SHIFT + line2 + "\n" +
                  SHIFT + line3 + "\n",
@@ -82,13 +82,13 @@ public class AndroidLogcatReceiverTest extends TestCase {
     }
 
     assertEquals(
-      "08-11 19:11:07.132      495-495/?                              D/dtag: debug message\n" +
-      "08-11 19:11:07.132      495-234/?                              E/etag: error message\n" +
-      "08-11 19:11:07.132      495-495/?                              I/itag: info message\n" +
-      "08-11 19:11:07.132      495-495/?                              V/vtag: verbose message\n" +
-      "08-11 19:11:07.132      495-495/?                              W/wtag: warning message\n" +
-      "08-11 19:11:07.132      495-495/?                              A/wtftag: wtf message\n" +
-      "08-11 21:15:35.7524      540-540/?                              D/dtag: debug message\n",
+      "08-11 19:11:07.132      495-495/? D/dtag: debug message\n" +
+      "08-11 19:11:07.132      495-234/? E/etag: error message\n" +
+      "08-11 19:11:07.132      495-495/? I/itag: info message\n" +
+      "08-11 19:11:07.132      495-495/? V/vtag: verbose message\n" +
+      "08-11 19:11:07.132      495-495/? W/wtag: warning message\n" +
+      "08-11 19:11:07.132      495-495/? A/wtftag: wtf message\n" +
+      "08-11 21:15:35.7524      540-540/? D/dtag: debug message\n",
                        myWriter.getBuffer().toString());
   }
 }
