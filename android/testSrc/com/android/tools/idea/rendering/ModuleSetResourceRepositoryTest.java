@@ -164,7 +164,7 @@ public class ModuleSetResourceRepositoryTest extends AndroidTestCase {
     assertNotNull(variant);
     String rootDirPath = androidProject.getRootDir().getAbsolutePath();
     IdeaAndroidProject ideaAndroidProject =
-      new IdeaAndroidProject(androidProject.getName(), rootDirPath, rootDirPath, androidProject, variant.getName());
+      new IdeaAndroidProject(androidProject.getName(), rootDirPath, androidProject, variant.getName());
     myFacet.setIdeaAndroidProject(ideaAndroidProject);
 
     ProductFlavorContainerStub defaultConfig = androidProject.getDefaultConfig();
