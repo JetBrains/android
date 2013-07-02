@@ -15,17 +15,22 @@
  */
 package com.android.navigation;
 
+import com.intellij.util.containers.HashSet;
 import org.xml.sax.Attributes;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 class Utilities {
+  public static final String NAME_SPACE_ATRIBUTE_NAME = "ns";
   public static final String ID_ATTRIBUTE_NAME = "id";
   public static final String IDREF_ATTRIBUTE_NAME = "idref";
   public static final String PROPERTY_ATTRIBUTE_NAME = "outer.property";
-  public static final String NAME_SPACE_TAG = "ns";
+  public static final Set<String> RESERVED_ATTRIBUTES = new HashSet<String>(
+    Arrays.asList(NAME_SPACE_ATRIBUTE_NAME, ID_ATTRIBUTE_NAME, IDREF_ATTRIBUTE_NAME, PROPERTY_ATTRIBUTE_NAME));
 
   public static Map<String, String> toMap(Attributes attributes) {
     Map<String, String> nameToValue = new LinkedHashMap<String, String>();
