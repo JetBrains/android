@@ -46,7 +46,7 @@ public class NavigationEditor implements FileEditor {
 
   private final UserDataHolderBase myUserDataHolder = new UserDataHolderBase();
   private NavigationModel myNavigationModel;
-  private final Listener<Void> myNavigationModelListener;
+  private final Listener<NavigationModel.Event> myNavigationModelListener;
   private VirtualFile myFile;
   private JComponent myComponent;
   private boolean myDirty;
@@ -84,9 +84,9 @@ public class NavigationEditor implements FileEditor {
         myComponent = new JBScrollPane(panel);
       }
     }
-    myNavigationModelListener = new Listener<Void>() {
+    myNavigationModelListener = new Listener<NavigationModel.Event>() {
       @Override
-      public void notify(Void unused) {
+      public void notify(@NotNull NavigationModel.Event event) {
         myDirty = true;
       }
     };

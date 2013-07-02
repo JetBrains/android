@@ -298,7 +298,7 @@ public class NavigationEditorPanel2 extends JComponent {
       Point newLocation = Utilities.add(Utilities.diff(location, myMouseDownLocation), myOrigComponentLocation);
       myComponent.setLocation(newLocation);
       myState.setLocation(Utilities.toNavPoint(newLocation));
-      myNavigationModel.getListeners().notify(null);
+      myNavigationModel.getListeners().notify(NavigationModel.Event.UPDATE_STATE);
     }
 
     @Override
@@ -408,11 +408,17 @@ public class NavigationEditorPanel2 extends JComponent {
 
     // Model listener
     {
-      myNavigationModel.getListeners().add(new Listener<Void>() {
+      myNavigationModel.getListeners().add(new Listener<NavigationModel.Event>() {
         @Override
-        public void notify(Void event) {
-          myStateCacheIsValid = false;
-          myTransitionEditorCacheIsValid = false;
+        public void notify(@NotNull NavigationModel.Event event) {
+          if (event.operation != NavigationModel.Event.Operation.UPDATE) {
+            if (event.operandType.isAssignableFrom(State.class)) {
+              myStateCacheIsValid = false;
+            }
+            if (event.operandType.isAssignableFrom(Transition.class)) {
+              myTransitionEditorCacheIsValid = false;
+            }
+          }
           repaint();
         }
       });
@@ -638,7 +644,7 @@ public class NavigationEditorPanel2 extends JComponent {
       @Override
       public void itemStateChanged(ItemEvent itemEvent) {
         transition.setType((String)itemEvent.getItem());
-        myNavigationModel.getListeners().notify(null);
+        myNavigationModel.getListeners().notify(NavigationModel.Event.UPDATE_TRANSITION);
       }
     });
     c.setSelectedItem(gesture);
@@ -677,7 +683,7 @@ public class NavigationEditorPanel2 extends JComponent {
   private void setPreferredSize(Set<AndroidRootComponent> roots) {
     Dimension gridSize = new Dimension(PREVIEW_SIZE.width + GAP.width, PREVIEW_SIZE.height + GAP.height);
     Point maxLocation = new Point(0, 0);
-    for(AndroidRootComponent c : roots) {
+    for (AndroidRootComponent c : roots) {
       maxLocation = Utilities.max(maxLocation, c.getLocation());
     }
     setPreferredSize(new Dimension(maxLocation.x + gridSize.width, maxLocation.y + gridSize.height));
