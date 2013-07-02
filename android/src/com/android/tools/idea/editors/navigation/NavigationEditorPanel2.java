@@ -298,7 +298,7 @@ public class NavigationEditorPanel2 extends JComponent {
       Point newLocation = Utilities.add(Utilities.diff(location, myMouseDownLocation), myOrigComponentLocation);
       myComponent.setLocation(newLocation);
       myState.setLocation(Utilities.toNavPoint(newLocation));
-      myNavigationModel.getListeners().notify(NavigationModel.Event.UPDATE_STATE);
+      myNavigationModel.getListeners().notify(NavigationModel.Event.update(State.class));
     }
 
     @Override
@@ -640,18 +640,18 @@ public class NavigationEditorPanel2 extends JComponent {
   private JComboBox createEditorFor(final Transition transition) {
     String gesture = transition.getType();
     JComboBox c = new JComboBox(new Object[]{"", "click", "list", "menu", "contains"});
-    c.addItemListener(new ItemListener() {
-      @Override
-      public void itemStateChanged(ItemEvent itemEvent) {
-        transition.setType((String)itemEvent.getItem());
-        myNavigationModel.getListeners().notify(NavigationModel.Event.UPDATE_TRANSITION);
-      }
-    });
     c.setSelectedItem(gesture);
     c.setForeground(getForeground());
     //c.setBorder(LABEL_BORDER);
     //c.setOpaque(true);
     c.setBackground(BACKGROUND_COLOR);
+    c.addItemListener(new ItemListener() {
+      @Override
+      public void itemStateChanged(ItemEvent itemEvent) {
+        transition.setType((String)itemEvent.getItem());
+        myNavigationModel.getListeners().notify(NavigationModel.Event.update(Transition.class));
+      }
+    });
     return c;
   }
 
