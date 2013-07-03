@@ -15,14 +15,10 @@
  */
 package com.android.navigation;
 
-import com.intellij.util.containers.HashSet;
 import org.xml.sax.Attributes;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 class Utilities {
   public static final String NAME_SPACE_ATRIBUTE_NAME = "ns";
