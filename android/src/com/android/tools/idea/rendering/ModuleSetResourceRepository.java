@@ -18,8 +18,6 @@ package com.android.tools.idea.rendering;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidLibrary;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.util.Facets;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
@@ -38,8 +36,11 @@ import static com.android.SdkConstants.DOT_AAR;
 
 /** Resource repository for a module along with all its library dependencies */
 public final class ModuleSetResourceRepository extends MultiResourceRepository {
-  private ModuleSetResourceRepository(@NotNull List<? extends ProjectResources> delegates) {
-    super(delegates);
+  private final AndroidFacet myFacet;
+
+  private ModuleSetResourceRepository(@NotNull AndroidFacet facet, @NotNull List<? extends ProjectResources> delegates) {
+    super(facet.getModule().getName(), delegates);
+    myFacet = facet;
   }
 
   @NotNull
@@ -47,7 +48,7 @@ public final class ModuleSetResourceRepository extends MultiResourceRepository {
     boolean refresh = facet.getIdeaAndroidProject() == null;
 
     List<ProjectResources> resources = computeRepositories(facet);
-    final ModuleSetResourceRepository repository = new ModuleSetResourceRepository(resources);
+    final ModuleSetResourceRepository repository = new ModuleSetResourceRepository(facet, resources);
 
     // If the model is not yet ready, we may get an incomplete set of resource
     // directories, so in that case update the repository when the model is available.
@@ -56,7 +57,7 @@ public final class ModuleSetResourceRepository extends MultiResourceRepository {
         @Override
         public void gradleProjectAvailable(@NotNull IdeaAndroidProject project) {
           facet.removeListener(this);
-          repository.updateRoots(facet);
+          repository.updateRoots();
         }
       });
     }
@@ -134,8 +135,8 @@ public final class ModuleSetResourceRepository extends MultiResourceRepository {
     }
   }
 
-  void updateRoots(AndroidFacet facet) {
-    List<ProjectResources> repositories = computeRepositories(facet);
+  void updateRoots() {
+    List<ProjectResources> repositories = computeRepositories(myFacet);
     updateRoots(repositories);
   }
 
@@ -187,14 +188,14 @@ public final class ModuleSetResourceRepository extends MultiResourceRepository {
       ProjectResources resources = facet.getProjectResources(true, false);
       if (resources instanceof ModuleSetResourceRepository) {
         ModuleSetResourceRepository moduleSetRepository = (ModuleSetResourceRepository)resources;
-        moduleSetRepository.updateRoots(facet);
+        moduleSetRepository.updateRoots();
       }
     }
   }
 
   @VisibleForTesting
   @NotNull
-  static ProjectResources create(List<ProjectResources> modules) {
-    return new ModuleSetResourceRepository(modules);
+  static ProjectResources create(AndroidFacet facet, List<ProjectResources> modules) {
+    return new ModuleSetResourceRepository(facet, modules);
   }
 }

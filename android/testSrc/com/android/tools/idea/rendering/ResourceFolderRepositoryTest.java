@@ -71,7 +71,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(resourceDirectories);
     assertSize(1, resourceDirectories);
     VirtualFile dir = resourceDirectories.get(0);
-    return ResourceFolderRepository.create(myFacet, dir);
+    return ResourceFolderRegistry.get(myFacet, dir);
   }
 
   public void testComputeResourceStrings() throws Exception {
