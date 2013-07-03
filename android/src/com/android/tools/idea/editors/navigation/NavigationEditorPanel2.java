@@ -347,13 +347,21 @@ public class NavigationEditorPanel2 extends JComponent {
     }
 
     @Override
-    protected Selection finaliseSelectionLocation(Point location) {
-      Component componentAt = getComponentAt(location);
+    protected Selection finaliseSelectionLocation(Point mouseUpLocation) {
+      Component componentAt = getComponentAt(mouseUpLocation);
       if (componentAt instanceof AndroidRootComponent) {
         if (myComponent != componentAt) {
           Map<AndroidRootComponent, State> m = getStateComponentAssociation().valueToKey;
           Transition transition = new Transition("", m.get(myComponent), m.get(componentAt));
           transition.setViewIdentifier(getViewId(myNamedLeaf));
+          {
+            AndroidRootComponent destinationRoot = (AndroidRootComponent)componentAt;
+            Point p = destinationRoot.convertPointFromViewToModel(mouseUpLocation);
+            RenderedViewHierarchy hierarchy = destinationRoot.getRenderResult().getHierarchy();
+            RenderedView endLeaf = hierarchy != null ? hierarchy.findLeafAt(p.x, p.y) : null;
+            RenderedView namedEndLeaf = getNamedParent(endLeaf);
+            transition.setDestinationViewIdentifier(getViewId(namedEndLeaf));
+          }
           myNavigationModel.add(transition);
         }
       }
@@ -516,9 +524,9 @@ public class NavigationEditorPanel2 extends JComponent {
       AndroidRootComponent sourceComponent = stateToAndroidRootComponent.get(source);
       AndroidRootComponent destinationComponent = stateToAndroidRootComponent.get(transition.getDestination());
 
-      Rectangle r1 = sourceComponent.getBounds(getRenderedView(transition));
+      Rectangle r1 = sourceComponent.getBounds(getSourceView(transition));
       Rectangle r2 = transitionToEditor.get(transition).getBounds();
-      Rectangle r3 = destinationComponent.getBounds();
+      Rectangle r3 = destinationComponent.getBounds(getDestinationView(transition));
 
       g.drawRect(r1.x, r1.y, r1.width, r1.height);
       Point m1 = Utilities.centre(r1);
@@ -538,11 +546,20 @@ public class NavigationEditorPanel2 extends JComponent {
       g.drawLine(A.x, A.y, p2.x, p2.y);
       g.drawLine(p3.x, p3.y, B.x, B.y);
       Utilities.drawArrow(g, B.x, B.y, p4.x, p4.y);
+
+      Color oldColor = g.getColor();
+      g.setColor(Color.CYAN);
+      g.drawRect(r3.x, r3.y, r3.width, r3.height);
+      g.setColor(oldColor);
     }
   }
 
-  private RenderedView getRenderedView(Transition t) {
+  private RenderedView getSourceView(Transition t) {
     return getLocationToRenderedView().get(new Location(t.getSource(), t.getViewIdentifier()));
+  }
+
+  private RenderedView getDestinationView(Transition t) {
+    return getLocationToRenderedView().get(new Location(t.getDestination(), t.getDestinationViewIdentifier()));
   }
 
   @Override
@@ -560,8 +577,8 @@ public class NavigationEditorPanel2 extends JComponent {
     for (Transition transition : myNavigationModel) {
       AndroidRootComponent sourceComponent = stateToComponent.get(transition.getSource());
       AndroidRootComponent destinationComponent = stateToComponent.get(transition.getDestination());
-      Point sl = Utilities.centre(sourceComponent.getBounds(getRenderedView(transition)));
-      Point dl = Utilities.centre(destinationComponent);
+      Point sl = Utilities.centre(sourceComponent.getBounds(getSourceView(transition)));
+      Point dl = Utilities.centre(destinationComponent.getBounds(getDestinationView(transition)));
       String gesture = transition.getType();
       if (gesture != null) {
         Component c = transitionToEditor.get(transition);
@@ -623,7 +640,7 @@ public class NavigationEditorPanel2 extends JComponent {
 
   private JComboBox createEditorFor(final Transition transition) {
     String gesture = transition.getType();
-    JComboBox c = new JComboBox(new Object[]{"", "click", "list", "menu", "contains"});
+    JComboBox c = new JComboBox(new Object[]{"", "click", "list", "menu", "contains", "update"});
     c.setSelectedItem(gesture);
     c.setForeground(getForeground());
     //c.setBorder(LABEL_BORDER);
