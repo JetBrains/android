@@ -24,6 +24,7 @@ import com.intellij.openapi.vfs.VirtualFileSystem;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.List;
 
 /*
 This class is currently unused.
@@ -49,18 +50,19 @@ public class NavigationEditorPanel1 extends JPanel {
   }
 
   public void setCursor(int cursor) {
-    myCursor = Math.min(Math.max(0, cursor), myNavigationModel.size() - 1);
+    myCursor = Math.min(Math.max(0, cursor), myNavigationModel.getTransitions().size() - 1);
     update();
   }
 
   private Transition getCurrentNavigation() {
-    return myNavigationModel.get(myCursor);
+    return myNavigationModel.getTransitions().get(myCursor);
   }
 
   private int findFirstNavWith(String name, boolean source) {
-    for(int i = 0 ; i < myNavigationModel.size(); i++) {
-      Transition nav = myNavigationModel.get(i);
-      String field = (source ? nav.getSource() : nav.getDestination()).getControllerClassName();
+    List<Transition> transitions = myNavigationModel.getTransitions();
+    for(int i = 0 ; i < transitions.size(); i++) {
+      Transition nav = transitions.get(i);
+      String field = (source ? nav.getSource() : nav.getDestination()).getState().getControllerClassName();
       if (field.equals(name)) {
         return i;
       }
@@ -145,7 +147,7 @@ public class NavigationEditorPanel1 extends JPanel {
   }
 
   private void left() {
-    int next = findFirstNavWith(getCurrentNavigation().getSource().getControllerClassName(), false);
+    int next = findFirstNavWith(getCurrentNavigation().getSource().getState().getControllerClassName(), false);
     if (next != -1) {
       setCursor(next);
     } else {
@@ -154,7 +156,7 @@ public class NavigationEditorPanel1 extends JPanel {
   }
 
   private void right() {
-    int next = findFirstNavWith(getCurrentNavigation().getDestination().getControllerClassName(), true);
+    int next = findFirstNavWith(getCurrentNavigation().getDestination().getState().getControllerClassName(), true);
     if (next != -1) {
       setCursor(next);
     } else {

@@ -19,7 +19,7 @@ import com.android.annotations.NonNull;
 
 import java.util.ArrayList;
 
-public class NavigationModel extends ArrayList<Transition> {
+public class NavigationModel {
   public static class Event {
     public enum Operation {INSERT, UPDATE, DELETE}
 
@@ -51,6 +51,16 @@ public class NavigationModel extends ArrayList<Transition> {
   private final EventDispatcher<Event> listeners = new EventDispatcher<Event>();
 
   private final ArrayList<State> states = new ArrayList<State>();
+  private final ArrayList<Transition> transitions = new ArrayList<Transition>();
+
+  // todo change return type to List<State>
+  public ArrayList<State> getStates() {
+    return states;
+  }
+
+  public ArrayList<Transition> getTransitions() {
+    return transitions;
+  }
 
   public void addState(State state) {
     states.add(state);
@@ -59,16 +69,12 @@ public class NavigationModel extends ArrayList<Transition> {
 
   public void removeState(State state) {
     states.remove(state);
-    for (Transition t : new ArrayList<Transition>(this)) {
-      if (t.getSource() == state || t.getDestination() == state) {
+    for (Transition t : new ArrayList<Transition>(transitions)) {
+      if (t.getSource().getState() == state || t.getDestination().getState() == state) {
         remove(t);
       }
     }
     listeners.notify(Event.delete(State.class));
-  }
-
-  public ArrayList<State> getStates() {
-    return states;
   }
 
   private void updateStates(State state) {
@@ -77,19 +83,17 @@ public class NavigationModel extends ArrayList<Transition> {
     }
   }
 
-  @Override
   public boolean add(Transition transition) {
-    boolean result = super.add(transition);
+    boolean result = transitions.add(transition);
     // todo remove this
-    updateStates(transition.getSource());
-    updateStates(transition.getDestination());
+    updateStates(transition.getSource().getState());
+    updateStates(transition.getDestination().getState());
     listeners.notify(Event.insert(Transition.class));
     return result;
   }
 
-  @Override
-  public boolean remove(Object o) {
-    boolean result = super.remove(o);
+  public boolean remove(Transition transition) {
+    boolean result = transitions.remove(transition);
     listeners.notify(Event.delete(Transition.class));
     return result;
   }
