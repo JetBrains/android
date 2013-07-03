@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.SdkConstants;
 import com.android.build.gradle.model.AndroidProject;
 import com.android.build.gradle.model.Variant;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
@@ -33,7 +34,6 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.roots.DependencyScope;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.ExceptionUtil;
 import com.intellij.util.Function;
 import com.intellij.util.PathUtil;
@@ -54,7 +54,6 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import org.jetbrains.plugins.gradle.util.GradleUtil;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -66,6 +65,7 @@ import java.util.Map;
 class ProjectResolver {
   private static final Logger LOG = Logger.getInstance(ProjectResolver.class);
 
+  @NonNls private static final String FN_SETTINGS_GRADLE = "settings.gradle";
   @NonNls private static final String GRADLE_PATH_SEPARATOR = ":";
 
   @NotNull final GradleExecutionHelper myHelper;
@@ -112,17 +112,22 @@ class ProjectResolver {
       IdeaGradleProject gradleProject = new IdeaGradleProject(module.getName(), module.getGradleProject().getPath());
       String relativePath = getRelativePath(gradleProject);
       File moduleDir = new File(projectDirPath, relativePath);
-      String gradleBuildFilePath = getGradleBuildFilePath(moduleDir);
-      if (gradleBuildFilePath == null) {
+      File gradleBuildFile = new File(moduleDir, SdkConstants.FN_BUILD_GRADLE);
+      if (!gradleBuildFile.isFile()) {
         continue;
       }
       String moduleDirPath = moduleDir.getAbsolutePath();
-      AndroidProject androidProject = getAndroidProject(id, gradleBuildFilePath, settings, listener);
+      AndroidProject androidProject = getAndroidProject(id, gradleBuildFile.getPath(), settings, listener);
       if (androidProject != null) {
         createModuleInfo(module, androidProject, projectInfo, moduleDirPath, gradleProject);
         if (first == null) {
           first = androidProject;
         }
+        continue;
+      }
+      File gradleSettingsFile = new File(moduleDir, FN_SETTINGS_GRADLE);
+      if (gradleSettingsFile.isFile()) {
+        // This is just a root folder for a group of Gradle projects;
         continue;
       }
       createModuleInfo(module, projectInfo, moduleDirPath, gradleProject);
@@ -161,20 +166,6 @@ class ProjectResolver {
     }
     String gradleProjectPath = gradleProject.getGradleProjectPath();
     return gradleProjectPath.replaceAll(GRADLE_PATH_SEPARATOR, separator);
-  }
-
-  @Nullable
-  private static String getGradleBuildFilePath(@NotNull final File projectDir) {
-    File[] children = projectDir.listFiles(new FilenameFilter() {
-      @Override
-      public boolean accept(File dir, String name) {
-        return "build.gradle".equals(name) && FileUtil.filesEqual(projectDir, dir);
-      }
-    });
-    if (children != null && children.length == 1) {
-      return children[0].getAbsolutePath();
-    }
-    return null;
   }
 
   @Nullable

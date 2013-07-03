@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle;
 
+import com.android.SdkConstants;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
@@ -49,7 +50,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     myProjectRootDir = createTempDir(myProjectName);
 
     String projectRootDirPath = myProjectRootDir.getAbsolutePath();
-    final File projectFile = new File(myProjectRootDir, "build.gradle");
+    final File projectFile = new File(myProjectRootDir, SdkConstants.FN_BUILD_GRADLE);
     final String configPath = projectFile.getAbsolutePath();
     ProjectData projectData = new ProjectData(GradleConstants.SYSTEM_ID, projectRootDirPath, configPath);
     projectData.setName(myProjectName);
