@@ -23,7 +23,7 @@ public class Transition {
   private Locator source;
   private Locator destination;
 
-  private Transition(@Property("gesture")     String type,
+  private Transition(@Property("gesture")    String type,
                     @Property("source")      Locator source,
                     @Property("destination") Locator destination) {
     this.type = type;
@@ -37,14 +37,6 @@ public class Transition {
     this(type, new Locator(source), new Locator(destination));
   }
 
-  public Locator getSource() {
-    return source;
-  }
-
-  public void setSource(Locator source) {
-    this.source = source;
-  }
-
   public String getType() {
     return type;
   }
@@ -53,28 +45,20 @@ public class Transition {
     this.type = type;
   }
 
+  public Locator getSource() {
+    return source;
+  }
+
+  public void setSource(Locator source) {
+    this.source = source;
+  }
+
   public Locator getDestination() {
     return destination;
   }
 
   public void setDestination(Locator destination) {
     this.destination = destination;
-  }
-
-  public String getViewIdentifier() {
-    return source.getViewName();
-  }
-
-  public void setViewIdentifier(@Nullable String viewIdentifier) {
-    source.setViewName(viewIdentifier);
-  }
-
-  public String getDestinationViewIdentifier() {
-    return destination.getViewName();
-  }
-
-  public void setDestinationViewIdentifier(@Nullable String destinationViewIdentifier) {
-    destination.setViewName(destinationViewIdentifier);
   }
 
   @Override
