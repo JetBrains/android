@@ -323,14 +323,14 @@ public class NavigationEditorPanel2 extends JComponent {
         if (myComponent != componentAt) {
           Map<AndroidRootComponent, State> m = getStateComponentAssociation().valueToKey;
           Transition transition = new Transition("", m.get(myComponent), m.get(componentAt));
-          transition.setViewIdentifier(getViewId(myNamedLeaf));
+          transition.getSource().setViewName(getViewId(myNamedLeaf));
           {
             AndroidRootComponent destinationRoot = (AndroidRootComponent)componentAt;
             Point p = destinationRoot.convertPointFromViewToModel(mouseUpLocation);
             RenderedViewHierarchy hierarchy = destinationRoot.getRenderResult().getHierarchy();
             RenderedView endLeaf = hierarchy != null ? hierarchy.findLeafAt(p.x, p.y) : null;
             RenderedView namedEndLeaf = getNamedParent(endLeaf);
-            transition.setDestinationViewIdentifier(getViewId(namedEndLeaf));
+            transition.getDestination().setViewName(getViewId(namedEndLeaf));
           }
           myNavigationModel.add(transition);
         }
