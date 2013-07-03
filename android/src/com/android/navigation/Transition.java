@@ -20,24 +20,28 @@ import com.android.annotations.Nullable;
 
 public class Transition {
   private String type;
-  private String viewIdentifier;
-  private String destinationViewIdentifier;
-  private State source;
-  private State destination;
+  private Locator source;
+  private Locator destination;
 
-  public Transition(@Property("gesture")     String type,
-                    @Property("source")      State source,
-                    @Property("destination") State destination) {
+  private Transition(@Property("gesture")     String type,
+                    @Property("source")      Locator source,
+                    @Property("destination") Locator destination) {
     this.type = type;
     this.source = source;
     this.destination = destination;
   }
 
-  public State getSource() {
+  public Transition(@Property("gesture")     String type,
+                    @Property("source")      State source,
+                    @Property("destination") State destination) {
+    this(type, new Locator(source), new Locator(destination));
+  }
+
+  public Locator getSource() {
     return source;
   }
 
-  public void setSource(State source) {
+  public void setSource(Locator source) {
     this.source = source;
   }
 
@@ -49,28 +53,28 @@ public class Transition {
     this.type = type;
   }
 
-  public State getDestination() {
+  public Locator getDestination() {
     return destination;
   }
 
-  public void setDestination(State destination) {
+  public void setDestination(Locator destination) {
     this.destination = destination;
   }
 
   public String getViewIdentifier() {
-    return viewIdentifier;
+    return source.getViewName();
   }
 
   public void setViewIdentifier(@Nullable String viewIdentifier) {
-    this.viewIdentifier = viewIdentifier;
+    source.setViewName(viewIdentifier);
   }
 
   public String getDestinationViewIdentifier() {
-    return destinationViewIdentifier;
+    return destination.getViewName();
   }
 
   public void setDestinationViewIdentifier(@Nullable String destinationViewIdentifier) {
-    this.destinationViewIdentifier = destinationViewIdentifier;
+    destination.setViewName(destinationViewIdentifier);
   }
 
   @Override
