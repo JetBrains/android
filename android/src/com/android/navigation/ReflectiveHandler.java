@@ -24,18 +24,17 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.HashMap;
 
 class ReflectiveHandler extends DefaultHandler {
   // public static final List<String> DEFAULT_PACKAGES = Arrays.<String>asList("java.lang", "android.view", "android.widget");
   public static final List<String> DEFAULT_PACKAGES = Arrays.asList();
   public static final List<String> DEFAULT_CLASSES = Arrays.asList();
+  public static final String NOP = "<NOP>";
 
   private final List<String> packagesImports = new ArrayList<String>(DEFAULT_PACKAGES);
   private final List<String> classImports = new ArrayList<String>(DEFAULT_CLASSES);
   private final ErrorHandler errorHandler;
-  private final Stack<Object> stack = new Stack<Object>();
-  private final Stack<String> nameStack = new Stack<String>();
+  private final Stack<Info> stack = new Stack<Info>();
   private final Map<String, Object> idToValue = new HashMap<String, Object>();
 
   private Locator documentLocator;
@@ -67,15 +66,16 @@ class ReflectiveHandler extends DefaultHandler {
   }
 
   public Class getClassForName(String tag) throws ClassNotFoundException {
+    String simpleName = Utilities.capitalize(tag);
     ClassLoader classLoader = getClass().getClassLoader();
     for (String clazz : classImports) {
-      if (clazz.endsWith("." + tag)) {
+      if (clazz.endsWith("." + simpleName)) {
         return classLoader.loadClass(clazz);
       }
     }
     for (String pkg : packagesImports) {
       try {
-        return classLoader.loadClass(pkg + "." + tag);
+        return classLoader.loadClass(pkg + "." + simpleName);
       }
       catch (ClassNotFoundException e) {
         // Class was not defined by this import, continue.
@@ -85,6 +85,11 @@ class ReflectiveHandler extends DefaultHandler {
   }
 
   private static class PropertyAnnotationNotFoundException extends Exception {
+  }
+
+  static class Info {
+    String name;
+    Object value;
   }
 
   private static String getName(Annotation[] parameterAnnotation) throws PropertyAnnotationNotFoundException {
@@ -163,11 +168,8 @@ class ReflectiveHandler extends DefaultHandler {
     return result;
   }
 
-  private static Object[] getParameterValues(Constructor constructor, String[] parameterNames, Map<String, String> attributes) throws
-                                                                                                NoSuchMethodException,
-                                                                                                IllegalAccessException,
-                                                                                                InvocationTargetException,
-                                                                                                InstantiationException {
+  private static Object[] getParameterValues(Constructor constructor, String[] parameterNames, Map<String, String> attributes)
+    throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
     Class[] types = constructor.getParameterTypes();
     Object[] result = new Object[parameterNames.length];
     for (int i = 0; i < parameterNames.length; i++) {
@@ -176,13 +178,16 @@ class ReflectiveHandler extends DefaultHandler {
     return result;
   }
 
-  private static void installInOuter(Object outer, String propertyName, Object instance)
+  private static void installInOuter(Object outer, Info property)
     throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-    if (propertyName != null) {
-      applySetter(outer, propertyName, instance);
+    if (property.name == NOP) {
+      return;
+    }
+    if (!(outer instanceof Collection)) {
+      applySetter(outer, property.name, property.value);
     }
     else {
-      applyMethod(outer, "add", instance);
+      applyMethod(outer, "add", property.value);
     }
   }
 
@@ -214,11 +219,14 @@ class ReflectiveHandler extends DefaultHandler {
     errorHandler.error(new SAXParseException(e.getMessage(), documentLocator, e));
   }
 
-  private static Method getSetter(Class<?> type, String propertyName) throws NoSuchMethodException {
+  private static Method getGetter(Class<?> type, String propertyName) throws NoSuchMethodException {
     String getterMethodName = Utilities.getGetterMethodName(propertyName);
+    return type.getMethod(getterMethodName);
+  }
+
+  private static Method getSetter(Class<?> type, String propertyName) throws NoSuchMethodException {
     String setterMethodName = Utilities.getSetterMethodName(propertyName);
-    Method getter = type.getMethod(getterMethodName);
-    Class propertyType = getter.getReturnType();
+    Class propertyType = getGetter(type, propertyName).getReturnType();
     return type.getMethod(setterMethodName, propertyType);
   }
 
@@ -232,26 +240,62 @@ class ReflectiveHandler extends DefaultHandler {
     }
     try {
       String idref = nameToValue.get(Utilities.IDREF_ATTRIBUTE_NAME);
-      Object instance;
+      Info info = new Info();
+      info.name = qName;
       if (idref != null) {
         if (!idToValue.containsKey(idref)) {
           throw new SAXException("IDREF attribute, \"" + idref + "\" , was used before corresponding ID was defined.");
         }
-        instance = idToValue.get(idref);
+        info.value = idToValue.get(idref);
       }
       else {
-        Pair<String[], Object> result = createInstance(getClassForName(qName), nameToValue);
-        constructorParameterNames = new HashSet<String>(Arrays.asList(result.o1));
-        instance = result.o2;
+        String className = nameToValue.get("class");
+        Class clazz;
+        if (className != null) {
+          clazz = getClass().getClassLoader().loadClass(className);
+        }
+        else {
+          try {
+            clazz = getClassForName(qName);
+            //info.name = NOP;
+          }
+          catch (ClassNotFoundException e) {
+            try {
+              Method setter = getSetter(stack.getLast().value.getClass(), qName);
+              clazz = setter.getParameterTypes()[0];
+            }
+            catch (NoSuchMethodException e1) {
+              clazz = null;
+            }
+          }
+        }
+        if (clazz != null) {
+          Pair<String[], Object> result = createInstance(clazz, nameToValue);
+          constructorParameterNames = new HashSet<String>(Arrays.asList(result.o1));
+          info.value = result.o2;
+        } else {
+          try {
+            Object host = stack.getLast().value;
+            Method getter = getGetter(host.getClass(), qName);
+            info.name = NOP;
+            info.value = getter.invoke(host);
+          }
+          catch (NoSuchMethodException e1) {
+            throw new SAXException(e1);
+          }
+          catch (InvocationTargetException e) {
+            throw new SAXException(e);
+          }
+          catch (IllegalAccessException e) {
+            throw new SAXException(e);
+          }
+        }
       }
       String id = nameToValue.get(Utilities.ID_ATTRIBUTE_NAME);
       if (id != null) {
-        idToValue.put(id, instance);
+        idToValue.put(id, info.value);
       }
 
-      if (stack.size() != 0) {
-        nameStack.add(nameToValue.get(Utilities.PROPERTY_ATTRIBUTE_NAME));
-      }
       if (idref == null) {
         for (Map.Entry<String, String> entry : nameToValue.entrySet()) {
           String attributeName = entry.getKey();
@@ -259,9 +303,9 @@ class ReflectiveHandler extends DefaultHandler {
             continue;
           }
           try {
-            Method setter = getSetter(instance.getClass(), attributeName);
+            Method setter = getSetter(info.value.getClass(), attributeName);
             Class argType = Utilities.wrapperForPrimitiveType(setter.getParameterTypes()[0]);
-            setter.invoke(instance, valueFor(argType, entry.getValue()));
+            setter.invoke(info.value, valueFor(argType, entry.getValue()));
           }
           catch (NoSuchMethodException e) {
             handleWarning(e);
@@ -277,7 +321,7 @@ class ReflectiveHandler extends DefaultHandler {
           }
         }
       }
-      stack.push(instance);
+      stack.push(info);
     }
     catch (ClassNotFoundException e) {
       handleError(e);
@@ -293,10 +337,11 @@ class ReflectiveHandler extends DefaultHandler {
 
   @Override
   public void endElement(String uri, String localName, String qName) throws SAXException {
-    result = stack.pop();
+    Info last = stack.pop();
+    result = last.value;
     if (stack.size() != 0) {
       try {
-        installInOuter(stack.getLast(), nameStack.pop(), result); // note destructive
+        installInOuter(stack.getLast().value, last);
       }
       catch (InvocationTargetException e) {
         handleError(e);
