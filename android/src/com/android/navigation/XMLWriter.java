@@ -15,22 +15,40 @@
  */
 package com.android.navigation;
 
+import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.IdentityHashMap;
+import java.util.Map;
 
 public class XMLWriter {
-  public static final int UNDEFINED = -1;
-  private final Map<Class, Property[]> classToProperties = new IdentityHashMap<Class, Property[]>();
+  public static final String UNDEFINED = null;
+  private final Map<Class, Properties.Property[]> classToProperties = new IdentityHashMap<Class, Properties.Property[]>();
   private final PrintStream out;
   private int level;
-  private int idCount = 0;
+  private Map<Class, Integer> idCounts = new IdentityHashMap<Class, Integer>();
+
+  public XMLWriter(OutputStream out) {
+    this.out = new PrintStream(out);
+  }
+
+  private static boolean isPrimitive(Class type) {
+    return type.isPrimitive() || type == String.class;
+  }
+
+  private String nextId(Class c) {
+    Integer prev = idCounts.get(c);
+    if (prev == null) {
+      prev = -1;
+    }
+    int result = prev + 1;
+    idCounts.put(c, result);
+    return Utilities.decapitalize(c.getSimpleName()) + result;
+  }
 
   private Map<Object, Info> objectToInfo = new IdentityHashMap<Object, Info>() {
     @Override
@@ -43,228 +61,122 @@ public class XMLWriter {
     }
   };
 
-  public XMLWriter(OutputStream out) {
-    this.out = new PrintStream(out);
-  }
-
-  private static boolean isPrimitive(Class type) {
-    return type.isPrimitive() || type == String.class;
-  }
-
-  static class PropertyAccessException extends Exception {
-    private PropertyAccessException(Throwable throwable) {
-      super(throwable);
-    }
-  }
-
   static class Info {
-    int id = UNDEFINED;
+    String id = UNDEFINED;
     int count = 0;
   }
 
-  static class NameValue {
+  abstract class NameValue<T> {
     public final String name;
-    public final Object value;
+    public final T value;
 
-    NameValue(String name, Object value) {
+    NameValue(String name, T value) {
       this.name = name;
       this.value = value;
     }
+
+    public abstract void write();
+
+    public abstract void addToParent(Element parent);
   }
 
-  class NameValueList extends ArrayList<NameValue> {
-    private final Object object;
-
-    NameValueList(Object object) {
-      this.object = object;
+  class Attribute<T> extends NameValue<T> {
+    Attribute(String name, T value) {
+      super(name, value);
     }
 
-    private void writeAttribute(String name, Object value) {
-      add(new NameValue(name, value));
+    @Override
+    public void write() {
+      writeAttribute(name, value);
     }
 
-    private Class getElementClass() {
-      for (NameValue p : this) {
-        if (p.name == "class") {
-          return (Class)p.value;
+    @Override
+    public void addToParent(Element parent) {
+      parent.attributes.add(this);
+    }
+  }
+
+
+  class ClassAttribute extends Attribute<Class> {
+    public ClassAttribute(String name, Class value) {
+      super(name, value);
+    }
+
+    /**
+     * This method is called when we are considering whether to add a class attribute to, for example,
+     * the value of the "state" property of a {@link Transition}. If the property is "get/setState()" we needn't record
+     * the fully qualified "State" class as {@link XMLReader} can be infer it from the type of the getter/setter pair.
+     */
+    @Override
+    public void addToParent(Element parent) {
+      if (parent.type != value) {
+        if (parent.tag == null) {
+          parent.tag = Utilities.decapitalize(value.getSimpleName());
+        }
+        else {
+          super.addToParent(parent);
         }
       }
-      throw new RuntimeException("No class defined");
     }
 
-    private Collection<NameValue> attributes() {
-      ArrayList<NameValue> result = new ArrayList<NameValue>();
-      Info info = objectToInfo.get(object);
-      if (info.count > 1) {
-        NameValue nameValue = (info.id == UNDEFINED)
-                              ? new NameValue(Utilities.ID_ATTRIBUTE_NAME, info.id = idCount++)
-                              : new NameValue(Utilities.IDREF_ATTRIBUTE_NAME, info.id);
-        result.add(nameValue);
-      }
-      for (NameValue p : this) {
-        if (!(p.value instanceof NameValueList)) {
-          result.add(p);
-        }
-      }
-      return result;
+    @Override
+    public void write() {
+      writeAttribute(name, value.getName());
+    }
+  }
+
+  class Element extends NameValue {
+    public String tag;
+    public final Class type;
+    public final ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+    public final ArrayList<Element> elements = new ArrayList<Element>();
+
+    Element(Class type, @Nullable String name, Object value) {
+      super(name, value);
+      this.tag = name;
+      this.type = type;
     }
 
-    private Collection<NameValueList> body() {
-      ArrayList<NameValueList> result = new ArrayList<NameValueList>();
-      for (NameValue p : this) {
-        Object value = p.value;
-        if ((value instanceof NameValueList)) {
-          result.add((NameValueList)value);
-        }
-      }
-      return result;
-    }
-
-    public void writeElement() {
+    @Override
+    public void write() {
       level++;
-      Class aClass = getElementClass();
-      String tag = aClass.getSimpleName();
-
-      Collection<NameValue> attributes = attributes();
-      Collection<NameValueList> body = body();
-      boolean hasBody = body.size() != 0;
-
-      if (attributes.size() == 0) {
-        println("<" + tag + ">");
-      }
-      else {
-        println("<" + tag);
-        for (NameValue attribute : attributes) {
-          if (attribute.name != "class") {
-            XMLWriter.this.writeAttribute(attribute.name, attribute.value);
-          }
+      String tag = this.tag == null ? "object" : this.tag;
+      print("<" + tag);
+      Info info = objectToInfo.get(value);
+      if (info.count > 1) {
+        if (info.id == UNDEFINED) {
+          writeAttribute(Utilities.ID_ATTRIBUTE_NAME, info.id = nextId(value.getClass()));
         }
-        if (hasBody) {
-          println(">");
+        else {
+          writeAttribute(Utilities.IDREF_ATTRIBUTE_NAME, info.id);
         }
       }
-
-      for (NameValueList element : body) {
-        element.writeElement();
+      for (Attribute attribute : attributes) {
+        attribute.write();
       }
-
-      if (!hasBody) {
-        println("/>");
-      }
-      else {
+      if (!elements.isEmpty()) {
+        out.println(">");
+        for (Element element : elements) {
+          element.write();
+        }
         println("</" + tag + ">");
+      }
+      else {
+        out.println("/>");
       }
       level--;
     }
 
-  }
-
-  abstract static class Property<T> {
-    abstract String getName();
-
-    abstract Class getType();
-
-    abstract Object getValue(T o) throws PropertyAccessException;
-  }
-
-  static class FieldProperty<T> extends Property<T> {
-    private final Field field;
-
-    FieldProperty(Field field) {
-      this.field = field;
-    }
-
     @Override
-    String getName() {
-      return field.getName();
-    }
-
-    @Override
-    Class getType() {
-      return field.getType();
-    }
-
-    @Override
-    Object getValue(T o) throws PropertyAccessException {
-      try {
-        return field.get(o);
-      }
-      catch (IllegalAccessException e) {
-        throw new PropertyAccessException(e);
-      }
+    public void addToParent(Element parent) {
+      parent.elements.add(this);
     }
   }
 
-  static class MethodProperty<T> extends Property<T> {
-    private final Method method;
-
-    MethodProperty(Method method) {
-      this.method = method;
-    }
-
-    @Override
-    String getName() {
-      return Utilities.getPropertyName(method);
-    }
-
-    @Override
-    Class getType() {
-      return method.getReturnType();
-    }
-
-    @Override
-    Object getValue(T o) throws PropertyAccessException {
-      try {
-        return method.invoke(o);
-      }
-      catch (IllegalAccessException e) {
-        throw new PropertyAccessException(e);
-      }
-      catch (InvocationTargetException e) {
-        throw new PropertyAccessException(e);
-      }
-    }
-  }
-
-  private static Method[] findGetters(Class c) {
-    List<Method> methods = new ArrayList<Method>();
-    for (Method m : c.getMethods()) {
-      if (m.getName().startsWith("get")) { // todo or "is"
-        methods.add(m);
-      }
-    }
-    // Put all the primitives first, and ensure that property order is not subject to unstable method ordering
-    Collections.sort(methods, new Comparator<Method>() {
-      @Override
-      public int compare(Method m1, Method m2) {
-        boolean p1 = isPrimitive(m1.getReturnType());
-        boolean p2 = isPrimitive(m2.getReturnType());
-        if (p1 != p2) {
-          return p1 ? -1 : 1;
-        }
-        return m1.getName().compareTo(m2.getName());
-      }
-    });
-    return methods.toArray(new Method[methods.size()]);
-  }
-
-  private static Property[] computeProperties(Class c) {
-    List<Property> result = new ArrayList<Property>();
-    for (Field f : c.getFields()) {
-      if (!Modifier.isStatic(f.getModifiers())) {
-        result.add(new FieldProperty(f));
-      }
-    }
-    for (Method m : findGetters(c)) {
-      result.add(new MethodProperty(m));
-    }
-    return result.toArray(new Property[result.size()]);
-  }
-
-  public Property[] getProperties(Class c) {
-    Property[] result = classToProperties.get(c);
+  public Properties.Property[] getProperties(Class c) {
+    Properties.Property[] result = classToProperties.get(c);
     if (result == null) {
-      classToProperties.put(c, result = computeProperties(c));
+      classToProperties.put(c, result = Properties.computeProperties(c));
     }
     return result;
   }
@@ -272,11 +184,13 @@ public class XMLWriter {
   public void write(Object o) {
     println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
     level = -1;
-    traverse(o, null, true).writeElement();
+    NameValue traversal = traverse(Object.class, null, o, true);
+    traversal.write();
   }
 
   private void indent() {
     for (int i = 0; i < level; i++) {
+      out.write(' ');
       out.write(' ');
     }
   }
@@ -292,62 +206,53 @@ public class XMLWriter {
   }
 
   private void writeAttribute(String name, Object value) {
+    print("\n");
     level++;
-    println(name + " = \"" + value + "\"");
+    print(name + " = \"" + value + "\"");
     level--;
   }
 
-  private NameValueList traverse(Object o, @Nullable String propertyName, boolean isTopLevel) {
-    NameValueList result = new NameValueList(o);
-    Class aClass = o.getClass();
+  private NameValue traverse(@NonNull Class type, String name, Object value, boolean isTopLevel) {
+    if (isPrimitive(type)) {
+      return new Attribute<Object>(name, value);
+    }
 
-    result.writeAttribute("class", aClass);
+    if (type == Class.class) {
+      return new ClassAttribute(name, (Class)value);
+    }
+
+    Element result = new Element(type, name, value);
+    Class aClass = value.getClass();
 
     if (isTopLevel) {
       String packageName = aClass.getPackage().getName(); // todo deal with multiple packages
-      result.writeAttribute(Utilities.NAME_SPACE_ATRIBUTE_NAME, "http://schemas.android.com?import=" + packageName + ".*");
+      result.attributes.add(new Attribute<Object>(Utilities.NAME_SPACE_ATRIBUTE_NAME, "http://schemas.android.com?import=" + packageName + ".*"));
     }
 
-    if (propertyName != null) {
-      result.writeAttribute(Utilities.PROPERTY_ATTRIBUTE_NAME, propertyName);
-    }
-
-    Info info = objectToInfo.get(o);
+    Info info = objectToInfo.get(value);
     info.count++;
     if (info.count > 1) {
       return result;
     }
 
-    if (o instanceof Collection) {
-      for (Object element : (Collection)o) {
-        result.writeAttribute(null, traverse(element, null, false));
+    // recurse into each property, using reflection
+    for (Properties.Property p : getProperties(aClass)) {
+      try {
+        Object propertyValue = p.getValue(value);
+        if (propertyValue != null) {
+          traverse(p.getType(), p.getName(), propertyValue, false).addToParent(result);
+        }
+      }
+      catch (Properties.PropertyAccessException e) {
+        throw new RuntimeException(e);
       }
     }
-    else {
-      for (Property p : getProperties(aClass)) {
-        if (p.getName().equals("class")) {
-          continue;
-        }
-        String name = p.getName();
-        try {
-          Object value = p.getValue(o);
-          if (value != null) {
-            Class type = p.getType();
-            if (isPrimitive(type)) {
-              result.writeAttribute(name, value);
-            }
-            else {
-              result.writeAttribute(name, traverse(value, name, false));
-            }
-          }
-        }
-        catch (PropertyAccessException e) {
-          throw new RuntimeException(e);
-        }
+    // special-case Collections
+    if (value instanceof Collection) {
+      for (Object element : (Collection)value) {
+        traverse(Object.class, null, element, false).addToParent(result);
       }
     }
     return result;
   }
-
-
 }
