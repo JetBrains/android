@@ -30,9 +30,10 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import junit.framework.TestCase;
+import org.jetbrains.android.AndroidTestCase;
 
 @SuppressWarnings("javadoc")
-public class ResourceNameValidatorTest extends TestCase {
+public class ResourceNameValidatorTest extends AndroidTestCase {
   public void testValidator() throws Exception {
     // Valid
     ResourceNameValidator validator = ResourceNameValidator.create(true, ResourceFolderType.VALUES);
