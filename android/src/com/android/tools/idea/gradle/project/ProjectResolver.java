@@ -127,8 +127,9 @@ class ProjectResolver {
       }
       File gradleSettingsFile = new File(moduleDir, FN_SETTINGS_GRADLE);
       if (gradleSettingsFile.isFile()) {
-        // This is just a root folder for a group of Gradle projects;
-        continue;
+        // This is just a root folder for a group of Gradle projects. Set the Gradle project to null so the JPS builder won't try to
+        // compile it using Gradle. We still need to create the module to display files inside it.
+        gradleProject = null;
       }
       createModuleInfo(module, projectInfo, moduleDirPath, gradleProject);
     }
@@ -269,7 +270,7 @@ class ProjectResolver {
   private static DataNode<ModuleData> createModuleInfo(@NotNull IdeaModule module,
                                                        @NotNull DataNode<ProjectData> projectInfo,
                                                        @NotNull String moduleDirPath,
-                                                       @NotNull IdeaGradleProject gradleProject) {
+                                                       @Nullable IdeaGradleProject gradleProject) {
     ModuleData moduleData = createModuleData(module, projectInfo, module.getName(), moduleDirPath);
     DataNode<ModuleData> moduleInfo = projectInfo.createChild(ProjectKeys.MODULE, moduleData);
 
@@ -284,7 +285,9 @@ class ProjectResolver {
     }
 
     moduleInfo.createChild(AndroidProjectKeys.IDEA_MODULE, module);
-    moduleInfo.createChild(AndroidProjectKeys.GRADLE_PROJECT, gradleProject);
+    if (gradleProject != null) {
+      moduleInfo.createChild(AndroidProjectKeys.GRADLE_PROJECT, gradleProject);
+    }
     return moduleInfo;
   }
 
