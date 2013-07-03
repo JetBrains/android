@@ -20,8 +20,6 @@ import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
-import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.rendering.ResourceNameValidator;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.codeInsight.navigation.NavigationUtil;
@@ -816,11 +814,6 @@ public class AndroidUtils {
     if (lexer.getTokenType() != JavaTokenType.IDENTIFIER) return false;
     lexer.advance();
     return lexer.getTokenType() == null;
-  }
-
-  @Nullable
-  public static String isValidResourceName(@NotNull String name, boolean isFileType) {
-    return ResourceNameValidator.create(false, isFileType ? ResourceFolderType.LAYOUT : ResourceFolderType.VALUES).getErrorText(name);
   }
 
   public static void reportImportErrorToEventLog(String message, String modName, Project project) {
