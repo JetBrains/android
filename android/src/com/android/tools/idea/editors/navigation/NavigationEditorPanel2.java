@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.editors.navigation;
 
-import com.android.navigation.Listener;
-import com.android.navigation.NavigationModel;
-import com.android.navigation.State;
-import com.android.navigation.Transition;
+import com.android.navigation.*;
 import com.android.tools.idea.rendering.RenderedView;
 import com.android.tools.idea.rendering.RenderedViewHierarchy;
 import com.android.tools.idea.rendering.ShadowPainter;
@@ -39,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.Point;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
@@ -68,7 +66,7 @@ public class NavigationEditorPanel2 extends JComponent {
   @NotNull private Selection mySelection = Selection.NULL;
   private final Association<State, AndroidRootComponent> myStateComponentAssociation = new Association<State, AndroidRootComponent>();
   private final Association<Transition, Component> myTransitionEditorAssociation = new Association<Transition, Component>();
-  private Map<Location, RenderedView> myLocationToRenderedView = null;
+  private Map<Locator, RenderedView> myLocationToRenderedView = null;
   private Image myBackgroundImage;
 
   private Association<State, AndroidRootComponent> getStateComponentAssociation() {
@@ -107,37 +105,6 @@ public class NavigationEditorPanel2 extends JComponent {
     }
   }
 
-  static class Location {
-    @NotNull
-    public final State state;
-    public final String viewIdentifier;
-
-    Location(@NotNull State state, String viewIdentifier) {
-      this.state = state;
-      this.viewIdentifier = viewIdentifier;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-
-      Location location = (Location)o;
-
-      if (!state.equals(location.state)) return false;
-      if (viewIdentifier != null ? !viewIdentifier.equals(location.viewIdentifier) : location.viewIdentifier != null) return false;
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      int result = state.hashCode();
-      result = 31 * result + (viewIdentifier != null ? viewIdentifier.hashCode() : 0);
-      return result;
-    }
-  }
-
   @Nullable
   static String getViewId(@Nullable RenderedView leaf) {
     if (leaf != null) {
@@ -152,16 +119,19 @@ public class NavigationEditorPanel2 extends JComponent {
     return null;
   }
 
-  private Map<Location, RenderedView> getLocationToRenderedView() {
+  private Map<Locator, RenderedView> getLocationToRenderedView() {
     if (myLocationToRenderedView == null) {
-      myLocationToRenderedView = new HashMap<Location, RenderedView>();
+      myLocationToRenderedView = new HashMap<Locator, RenderedView>();
       for (final State state : myNavigationModel.getStates()) {
         new Object() {
           void walk(RenderedView parent) {
             for (RenderedView child : parent.getChildren()) {
               String id = getViewId(child);
               if (id != null) {
-                myLocationToRenderedView.put(new Location(state, id), child);
+                Locator locator = new Locator();
+                locator.setState(state);
+                locator.setViewName(id);
+                myLocationToRenderedView.put(locator, child);
               }
               walk(child);
             }
@@ -519,10 +489,11 @@ public class NavigationEditorPanel2 extends JComponent {
     Map<State, AndroidRootComponent> stateToAndroidRootComponent = getStateComponentAssociation().keyToValue;
     Map<Transition, Component> transitionToEditor = getTransitionEditorAssociation().keyToValue;
 
-    for (Transition transition : myNavigationModel) {
-      State source = transition.getSource();
+    for (Transition transition : myNavigationModel.getTransitions()) {
+      State source = transition.getSource().getState();
+      State destination = transition.getDestination().getState();
       AndroidRootComponent sourceComponent = stateToAndroidRootComponent.get(source);
-      AndroidRootComponent destinationComponent = stateToAndroidRootComponent.get(transition.getDestination());
+      AndroidRootComponent destinationComponent = stateToAndroidRootComponent.get(destination);
 
       Rectangle r1 = sourceComponent.getBounds(getSourceView(transition));
       Rectangle r2 = transitionToEditor.get(transition).getBounds();
@@ -555,11 +526,11 @@ public class NavigationEditorPanel2 extends JComponent {
   }
 
   private RenderedView getSourceView(Transition t) {
-    return getLocationToRenderedView().get(new Location(t.getSource(), t.getViewIdentifier()));
+    return getLocationToRenderedView().get(t.getSource());
   }
 
   private RenderedView getDestinationView(Transition t) {
-    return getLocationToRenderedView().get(new Location(t.getDestination(), t.getDestinationViewIdentifier()));
+    return getLocationToRenderedView().get(t.getDestination());
   }
 
   @Override
@@ -574,9 +545,9 @@ public class NavigationEditorPanel2 extends JComponent {
     Map<State, AndroidRootComponent> stateToComponent = getStateComponentAssociation().keyToValue;
     Map<Transition, Component> transitionToEditor = getTransitionEditorAssociation().keyToValue;
 
-    for (Transition transition : myNavigationModel) {
-      AndroidRootComponent sourceComponent = stateToComponent.get(transition.getSource());
-      AndroidRootComponent destinationComponent = stateToComponent.get(transition.getDestination());
+    for (Transition transition : myNavigationModel.getTransitions()) {
+      AndroidRootComponent sourceComponent = stateToComponent.get(transition.getSource().getState());
+      AndroidRootComponent destinationComponent = stateToComponent.get(transition.getDestination().getState());
       Point sl = Utilities.centre(sourceComponent.getBounds(getSourceView(transition)));
       Point dl = Utilities.centre(destinationComponent.getBounds(getDestinationView(transition)));
       String gesture = transition.getType();
@@ -658,7 +629,7 @@ public class NavigationEditorPanel2 extends JComponent {
 
   private void syncTransitionCache(Association<Transition, Component> assoc) {
     // add anything that is in the model but not in our cache
-    for (Transition transition : myNavigationModel) {
+    for (Transition transition : myNavigationModel.getTransitions()) {
       if (!assoc.keyToValue.containsKey(transition)) {
         Component editor = createEditorFor(transition);
         add(editor);
@@ -666,7 +637,7 @@ public class NavigationEditorPanel2 extends JComponent {
       }
     }
     // remove anything that is in our cache but not in the model
-    removeLeftovers(assoc, myNavigationModel);
+    removeLeftovers(assoc, myNavigationModel.getTransitions());
   }
 
   private AndroidRootComponent createRootComponentFor(State state, Point point) {
