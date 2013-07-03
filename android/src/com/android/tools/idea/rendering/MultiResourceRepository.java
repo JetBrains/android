@@ -136,6 +136,10 @@ abstract class MultiResourceRepository extends ProjectResources {
 
   @Override
   public long getModificationCount() {
+    if (myChildren.size() == 1) {
+      return myChildren.get(0).getModificationCount();
+    }
+
     // See if any of the delegates have changed
     boolean changed = false;
     for (int i = myChildren.size() - 1; i >= 0; i--) {
