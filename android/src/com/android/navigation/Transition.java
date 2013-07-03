@@ -21,6 +21,7 @@ import com.android.annotations.Nullable;
 public class Transition {
   private String type;
   private String viewIdentifier;
+  private String destinationViewIdentifier;
   private State source;
   private State destination;
 
@@ -62,6 +63,14 @@ public class Transition {
 
   public void setViewIdentifier(@Nullable String viewIdentifier) {
     this.viewIdentifier = viewIdentifier;
+  }
+
+  public String getDestinationViewIdentifier() {
+    return destinationViewIdentifier;
+  }
+
+  public void setDestinationViewIdentifier(@Nullable String destinationViewIdentifier) {
+    this.destinationViewIdentifier = destinationViewIdentifier;
   }
 
   @Override
