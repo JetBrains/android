@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
@@ -140,7 +141,7 @@ public class GradleProjectImporter {
 
   @NotNull
   private static File createTopLevelBuildFile(@NotNull File projectRootDir) throws IOException {
-    File projectFile = new File(projectRootDir, "build.gradle");
+    File projectFile = new File(projectRootDir, SdkConstants.FN_BUILD_GRADLE);
     FileUtilRt.createIfNotExists(projectFile);
     String contents = "// Top-level build file where you can add configuration options common to all sub-projects/modules." +
                       SystemProperties.getLineSeparator();
