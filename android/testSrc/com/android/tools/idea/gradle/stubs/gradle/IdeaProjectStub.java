@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.stubs.gradle;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
 import org.gradle.tooling.model.DomainObjectSet;
@@ -38,7 +39,7 @@ public class IdeaProjectStub implements IdeaProject {
   public IdeaProjectStub(@NotNull String name) {
     myName = name;
     myFileStructure = new FileStructure(name);
-    myBuildFile = myFileStructure.createProjectFile("build.gradle");
+    myBuildFile = myFileStructure.createProjectFile(SdkConstants.FN_BUILD_GRADLE);
   }
 
   @Override

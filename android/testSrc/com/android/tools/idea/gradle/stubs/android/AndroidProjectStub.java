@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import com.android.SdkConstants;
 import com.android.build.gradle.model.AndroidProject;
 import com.android.build.gradle.model.BuildTypeContainer;
 import com.android.build.gradle.model.ProductFlavorContainer;
@@ -53,7 +54,7 @@ public class AndroidProjectStub implements AndroidProject {
     this.myName = name;
     myFileStructure = fileStructure;
     myDefaultConfig = new ProductFlavorContainerStub("main", myFileStructure);
-    myBuildFile = myFileStructure.createProjectFile("build.gradle");
+    myBuildFile = myFileStructure.createProjectFile(SdkConstants.FN_BUILD_GRADLE);
   }
 
   @NotNull
