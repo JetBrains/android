@@ -810,7 +810,7 @@ public class AndroidUtils {
   }
 
   public static boolean isIdentifier(@NotNull String candidate) {
-    assert ApplicationManager.getApplication() == null || ApplicationManager.getApplication().isReadAccessAllowed();
+    ApplicationManager.getApplication().assertReadAccessAllowed();
     Lexer lexer = JavaParserDefinition.createLexer(LanguageLevel.JDK_1_5);
     lexer.start(candidate);
     if (lexer.getTokenType() != JavaTokenType.IDENTIFIER) return false;
