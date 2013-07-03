@@ -56,7 +56,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     html = stripImages(html);
 
     assertEquals(
-      "<HTML><BODY><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
+      "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
       "<B>NOTE: One or more layouts are missing the layout_width or layout_height attributes. These are required in most layouts.</B><BR/>\n" +
       "&lt;LinearLayout> does not set the required layout_width attribute: <BR/>\n" +
       "&nbsp;&nbsp;&nbsp;&nbsp;<A HREF=\"command:0\">Set to wrap_content</A>, <A HREF=\"command:1\">Set to match_parent</A><BR/>\n" +
@@ -66,7 +66,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
       "Or: <A HREF=\"command:4\">Automatically add all missing attributes</A><BR/>\n" +
       "<BR/>\n" +
       "<BR/>\n" +
-      "</BODY></HTML>",
+      "</body></html>",
      html);
   }
 

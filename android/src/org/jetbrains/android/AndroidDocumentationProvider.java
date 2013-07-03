@@ -78,18 +78,13 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
       return null;
     }
 
-    ProjectResources projectResources = ProjectResources.get(module, true, true);
-    if (projectResources == null) {
-      return null;
-    }
-
     ResourceType type = AndroidPsiUtils.getResourceType(originalElement);
     if (type == null) {
       return null;
     }
 
     String name = originalElement.getText();
-    return AndroidJavaDocRenderer.render(projectResources, type, name);
+    return AndroidJavaDocRenderer.render(module, type, name);
   }
 
   @Override

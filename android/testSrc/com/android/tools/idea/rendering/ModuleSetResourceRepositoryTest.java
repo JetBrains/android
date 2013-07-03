@@ -76,7 +76,7 @@ public class ModuleSetResourceRepositoryTest extends AndroidTestCase {
 
     // Just need an empty repository to make it a real module -set-; otherwise with a single
     // module we just get a module repository, not a module set repository
-    ProjectResources other = new ProjectResources() {
+    ProjectResources other = new ProjectResources("unit test") {
       @NonNull
       @Override
       protected Map<ResourceType, ListMultimap<String, ResourceItem>> getMap() {
@@ -91,7 +91,7 @@ public class ModuleSetResourceRepositoryTest extends AndroidTestCase {
     };
 
     ModuleResourceRepository module = ModuleResourceRepository.createForTest(myFacet, Arrays.asList(res1, res2, res3));
-    final ProjectResources r = ModuleSetResourceRepository.create(Arrays.asList(module, other));
+    final ProjectResources r = ModuleSetResourceRepository.create(myFacet, Arrays.asList(module, other));
     assertTrue(r instanceof ModuleSetResourceRepository);
     final ModuleSetResourceRepository resources = (ModuleSetResourceRepository)r;
 

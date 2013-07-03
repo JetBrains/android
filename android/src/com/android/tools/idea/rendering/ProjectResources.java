@@ -126,6 +126,7 @@ import java.util.Map;
 @SuppressWarnings("deprecation") // Deprecated com.android.util.Pair is required by ProjectCallback interface
 public abstract class ProjectResources extends AbstractResourceRepository implements Disposable, ModificationTracker {
   protected static final Logger LOG = Logger.getInstance(ProjectResources.class);
+  private final String myDisplayName;
 
   @Nullable private List<MultiResourceRepository> myParents;
 
@@ -149,8 +150,14 @@ public abstract class ProjectResources extends AbstractResourceRepository implem
 
   protected long myGeneration;
 
-  protected ProjectResources() {
+  protected ProjectResources(@NotNull String displayName) {
     super(false);
+    myDisplayName = displayName;
+  }
+
+  @NotNull
+  public String getDisplayName() {
+    return myDisplayName;
   }
 
   @NotNull

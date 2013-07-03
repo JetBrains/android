@@ -35,26 +35,13 @@ import static com.android.tools.idea.gradle.variant.view.BuildVariantView.BuildV
 
 /**
  * Resource repository for a single module (which can possibly have multiple resource folders)
- * <p/>
- * TODO:
- * <ul>
- * <li> Handle proper overlay handling here; separate source folders should overlap in the given order.
- * Maybe the right way to handle it is to have each DelegatingProjectResources override a map merging
- * algorithm.
- * </li>
- * <li> Figure out how I can super efficiently keep these up to date; the getMap thing in the other repo
- * is slow</li>
- * <li>Make a registry for the SingleResourceDirectoryRepositories! On the facet perhaps? So I can reuse them quickly etc.</li>
- * <li>Make ResourceRepository delegate the mItems map to the children via a getMap so the delegators can do a smarter
- *     job syncing</li>
- * <li>Handle updates!</li>
- * </ul>
  */
 final class ModuleResourceRepository extends MultiResourceRepository {
   private final AndroidFacet myFacet;
 
-  private ModuleResourceRepository(@NotNull AndroidFacet facet, @NotNull List<ResourceFolderRepository> delegates) {
-    super(delegates);
+  private ModuleResourceRepository(@NotNull AndroidFacet facet,
+                                   @NotNull List<ResourceFolderRepository> delegates) {
+    super(facet.getModule().getName(), delegates);
     myFacet = facet;
   }
 
@@ -73,13 +60,13 @@ final class ModuleResourceRepository extends MultiResourceRepository {
       if (primaryResourceDir == null) {
         return new EmptyRepository();
       }
-      return ResourceFolderRepository.create(facet, primaryResourceDir);
+      return ResourceFolderRegistry.get(facet, primaryResourceDir);
     }
 
     List<VirtualFile> resourceDirectories = facet.getAllResourceDirectories();
     List<ResourceFolderRepository> resources = Lists.newArrayListWithExpectedSize(resourceDirectories.size());
     for (VirtualFile resourceDirectory : resourceDirectories) {
-      ResourceFolderRepository repository = ResourceFolderRepository.create(facet, resourceDirectory);
+      ResourceFolderRepository repository = ResourceFolderRegistry.get(facet, resourceDirectory);
       resources.add(repository);
     }
 
@@ -132,7 +119,7 @@ final class ModuleResourceRepository extends MultiResourceRepository {
     for (VirtualFile dir : resourceDirectories) {
       ResourceFolderRepository repository = map.get(dir);
       if (repository == null) {
-        repository = ResourceFolderRepository.create(myFacet, dir);
+        repository = ResourceFolderRegistry.get(myFacet, dir);
       }
       else {
         map.remove(dir);
@@ -150,16 +137,6 @@ final class ModuleResourceRepository extends MultiResourceRepository {
       removed.removeParent(this);
     }
 
-    // Dispose unused repositories; this will cause them to unregister from PSI events.
-    // This is vital since if we switch back to this resource directory, a new repository
-    // will be created, which will register a listener, and there must only be one repository
-    // per folder (per project). Longer term we should instead keep a single instance around
-    // in the project, and reuse these when possible. That will be necessary when we offer APIs
-    // to iterate through all possible resources, not just those for the current flavor configuration, etc.
-    for (ResourceFolderRepository unused : map.values()) {
-      unused.dispose();
-    }
-
     setChildren(resources);
   }
 
@@ -173,7 +150,7 @@ final class ModuleResourceRepository extends MultiResourceRepository {
     assert ApplicationManager.getApplication().isUnitTestMode();
     List<ResourceFolderRepository> resources = Lists.newArrayListWithExpectedSize(resourceDirectories.size());
     for (VirtualFile resourceDirectory : resourceDirectories) {
-      ResourceFolderRepository repository = ResourceFolderRepository.create(facet, resourceDirectory);
+      ResourceFolderRepository repository = ResourceFolderRegistry.get(facet, resourceDirectory);
       resources.add(repository);
     }
 
@@ -182,7 +159,7 @@ final class ModuleResourceRepository extends MultiResourceRepository {
 
   private static class EmptyRepository extends MultiResourceRepository {
     public EmptyRepository() {
-      super(Collections.<ProjectResources>emptyList());
+      super("", Collections.<ProjectResources>emptyList());
     }
 
     @Override
