@@ -23,7 +23,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.*;
+import org.xml.sax.Locator;
 
 class ReflectiveHandler extends DefaultHandler {
   // public static final List<String> DEFAULT_PACKAGES = Arrays.<String>asList("java.lang", "android.view", "android.widget");
@@ -135,6 +137,9 @@ class ReflectiveHandler extends DefaultHandler {
       }
     });
     for (Constructor constructor : constructors) {
+      if (!Modifier.isPublic(constructor.getModifiers())) {
+        continue;
+      }
       try {
         String[] parameterNames = getParameterNames(constructor);
         Object value = constructor.newInstance(getParameterValues(constructor, parameterNames, attributes));
