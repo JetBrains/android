@@ -31,18 +31,19 @@ import gnu.trove.TObjectIntHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("deprecation") // Deprecated com.android.util.Pair is required by ProjectCallback interface
-abstract class MultiResourceRepository extends ProjectResources {
+public abstract class MultiResourceRepository extends ProjectResources {
   protected List<? extends ProjectResources> myChildren;
   private long[] myModificationCounts;
   private Map<ResourceType, ListMultimap<String, ResourceItem>> myItems = Maps.newEnumMap(ResourceType.class);
   private final Map<ResourceType, ListMultimap<String, ResourceItem>> myCachedTypeMaps = Maps.newEnumMap(ResourceType.class);
 
-  MultiResourceRepository(@NotNull List<? extends ProjectResources> children) {
-    super();
+  MultiResourceRepository(@NotNull String displayName, @NotNull List<? extends ProjectResources> children) {
+    super(displayName);
     setChildren(children);
   }
 
@@ -67,6 +68,10 @@ abstract class MultiResourceRepository extends ProjectResources {
   private void clearCache() {
     myItems = null;
     myCachedTypeMaps.clear();
+  }
+
+  public List<? extends ProjectResources> getChildren() {
+    return myChildren;
   }
 
   @Nullable

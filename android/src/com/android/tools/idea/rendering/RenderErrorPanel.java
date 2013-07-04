@@ -238,7 +238,7 @@ public class RenderErrorPanel extends JPanel {
     assert logger.hasProblems();
 
     HtmlBuilder builder = new HtmlBuilder(new StringBuilder(300));
-    builder.addHtml("<HTML><BODY>");
+    builder.openHtmlBody();
 
     // Construct close button. Sadly <img align="right"> doesn't work in JEditorPanes; would
     // have looked a lot nicer with the image flushed to the right!
@@ -264,7 +264,7 @@ public class RenderErrorPanel extends JPanel {
       reportRenderingFidelityProblems(logger, builder, renderService);
     }
 
-    builder.addHtml("</BODY></HTML>");
+    builder.closeHtmlBody();
 
     return builder.getHtml();
   }

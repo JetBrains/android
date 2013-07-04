@@ -58,7 +58,7 @@ import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
  *   <li>Register the psi project listener as a project service instead</li>
  * </ul>
  */
-final class ResourceFolderRepository extends ProjectResources {
+public final class ResourceFolderRepository extends ProjectResources {
   private static final Logger LOG = Logger.getInstance(ResourceFolderRepository.class);
   private final Module myModule;
   private final AndroidFacet myFacet;
@@ -73,26 +73,22 @@ final class ResourceFolderRepository extends ProjectResources {
   static int ourFullRescans;
 
   private ResourceFolderRepository(@NotNull AndroidFacet facet, @NotNull VirtualFile resourceDir) {
+    super(resourceDir.getName());
     myFacet = facet;
     myModule = facet.getModule();
     myListener = new PsiListener();
     myResourceDir = resourceDir;
     scan();
-    PsiProjectListener.addRoot(myModule.getProject(), resourceDir, this);
   }
 
   VirtualFile getResourceDir() {
     return myResourceDir;
   }
 
-  @Override
-  public void dispose() {
-    PsiProjectListener.removeRoot(myModule.getProject(), myResourceDir, this);
-  }
-
+  /** NOTE: You should normally use {@link ResourceFolderRegistry#get} rather than this method. */
   @NotNull
-  static ResourceFolderRepository create(@NotNull final AndroidFacet facet, @NotNull VirtualFile resourceDir) {
-    return new ResourceFolderRepository(facet, resourceDir);
+  static ResourceFolderRepository create(@NotNull final AndroidFacet facet, @NotNull VirtualFile dir) {
+    return new ResourceFolderRepository(facet, dir);
   }
 
   private void scan() {

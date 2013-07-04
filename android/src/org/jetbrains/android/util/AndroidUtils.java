@@ -836,6 +836,7 @@ public class AndroidUtils {
            endsWithIgnoreCase(path, DOT_9PNG) ||
            endsWithIgnoreCase(path, DOT_GIF) ||
            endsWithIgnoreCase(path, DOT_JPG) ||
+           endsWithIgnoreCase(path, DOT_JPEG) ||
            endsWithIgnoreCase(path, DOT_BMP);
   }
 }

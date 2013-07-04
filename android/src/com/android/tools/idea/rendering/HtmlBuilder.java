@@ -38,6 +38,18 @@ public class HtmlBuilder {
     myStringBuilder = new StringBuilder(100);
   }
 
+  public HtmlBuilder openHtmlBody() {
+    addHtml("<html><body>");
+
+    return this;
+  }
+
+  public HtmlBuilder closeHtmlBody() {
+    addHtml("</body></html>");
+
+    return this;
+  }
+
   public HtmlBuilder addHtml(@NotNull String html) {
     myStringBuilder.append(html);
 
