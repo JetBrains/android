@@ -18,6 +18,7 @@ package com.android.tools.idea.jps.output.parser.aapt;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
+import com.google.common.io.Files;
 import com.intellij.util.text.StringSearcher;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,21 +44,14 @@ class ReadOnlyDocument {
    */
   @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
   ReadOnlyDocument(@NotNull File file) throws IOException {
-    myOffsets = Lists.newArrayList();
-    RandomAccessFile raf = null;
-    try {
-      raf = new RandomAccessFile(file, "r");
-      myOffsets.add((int)raf.getFilePointer());
-      while (raf.readLine() != null) {
-        myOffsets.add((int)raf.getFilePointer());
+    myContents = Files.toString(file, Charsets.UTF_8);
+    myOffsets = Lists.newArrayListWithExpectedSize(myContents.length() / 30);
+    myOffsets.add(0);
+    for (int i = 0; i < myContents.length(); i++) {
+      char c = myContents.charAt(i);
+      if (c == '\n') {
+        myOffsets.add(i + 1);
       }
-      FileChannel channel = raf.getChannel();
-      long channelSize = channel.size();
-      ByteBuffer byteBuffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channelSize);
-      myContents = Charsets.UTF_8.newDecoder().decode(byteBuffer);
-    }
-    finally {
-      Closeables.closeQuietly(raf);
     }
   }
 
@@ -70,7 +64,7 @@ class ReadOnlyDocument {
    */
   int lineOffset(int lineNumber) {
     int index = lineNumber - 1;
-    if (index <= 0 || index >= myOffsets.size()) {
+    if (index < 0 || index >= myOffsets.size()) {
       return -1;
     }
     return myOffsets.get(index);
@@ -105,6 +99,20 @@ class ReadOnlyDocument {
     return searcher.scan(myContents, offset, myContents.length());
   }
 
+  int findTextBackwards(String text, int offset) {
+    StringSearcher searcher = new StringSearcher(text, true, false);
+    return searcher.scan(myContents, offset, myContents.length());
+  }
+
+  String getLine(int lineNumber) {
+    int start = lineOffset(lineNumber);
+    int end = lineOffset(lineNumber + 1);
+    if (end == -1) {
+      end = myContents.length();
+    }
+    return subsequence(start, end).toString();
+  }
+
   /**
    * Returns the character at the given offset.
    *
@@ -114,6 +122,16 @@ class ReadOnlyDocument {
    */
   char charAt(int offset) {
     return myContents.charAt(offset);
+  }
+
+  /**
+   * Returns the sub sequence for the given range
+   * @param start the starting offset
+   * @param end the ending offset, or -1 for the end of the file
+   * @return the sub sequence
+   */
+  CharSequence subsequence(int start, int end) {
+    return myContents.subSequence(start, end == -1 ? myContents.length() : end);
   }
 
   /**
