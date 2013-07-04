@@ -94,7 +94,7 @@ public class ResourceNameValidatorTest extends AndroidTestCase {
     map.put(ResourceType.ID, multimap);
     multimap.put("foo1", new ResourceItem("foo1", ResourceType.ID, null));
     multimap.put("foo3", new ResourceItem("foo3", ResourceType.ID, null));
-    ProjectResources resources = new ProjectResources() {
+    ProjectResources resources = new ProjectResources("unit test") {
       @NonNull
       @Override
       protected Map<ResourceType, ListMultimap<String, ResourceItem>> getMap() {

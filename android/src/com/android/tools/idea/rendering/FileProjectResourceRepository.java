@@ -46,6 +46,7 @@ class FileProjectResourceRepository extends ProjectResources {
     new WeakValueHashMap<File, FileProjectResourceRepository>();
 
   private FileProjectResourceRepository(@NotNull File file) {
+    super(file.getName());
     myFile = file;
   }
 
