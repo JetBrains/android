@@ -942,6 +942,56 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     checkBuildLog(executor, "expected_log_1");
   }
 
+  public void testProGuardWithJar() throws Exception {
+    final MyExecutor executor = new MyExecutor("com.example.simple") {
+      @Override
+      protected void doCheckJar(@NotNull String jarId, @NotNull String jarPath) {
+        if ("proguard_input_jar".equals(jarId)) {
+          File tmpDir = null;
+
+          try {
+            tmpDir = FileUtil.createTempDirectory("proguard_input_jar_checking", "tmp");
+            final File jar = new File(tmpDir, "file.jar");
+            FileUtil.copy(new File(jarPath), jar);
+            assertOutput(tmpDir.getPath(), TestFileSystemItem.fs()
+              .archive("file.jar")
+              .dir("com")
+              .dir("example")
+              .dir("simple")
+              .file("BuildConfig.class")
+              .file("R.class")
+              .file("MyActivity.class"));
+          }
+          catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+          finally {
+            if (tmpDir != null) {
+              FileUtil.delete(tmpDir);
+            }
+          }
+        }
+      }
+    };
+    final JpsModule module = setUpSimpleAndroidStructure(new String[]{"src"}, executor, null).getFirst();
+
+    module.addSourceRoot(JpsPathUtil.pathToUrl(getProjectPath("tests")), JavaSourceRootType.TEST_SOURCE);
+
+    final JpsLibrary lib = module.addModuleLibrary("lib", JpsJavaLibraryType.INSTANCE);
+    lib.addRoot(new File(getProjectPath("libs/external_jar.jar")), JpsOrderRootType.COMPILED);
+    module.getDependenciesList().addLibraryDependency(lib);
+
+    final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(module);
+    assert extension instanceof JpsAndroidModuleExtensionImpl;
+    final JpsAndroidModuleProperties properties = ((JpsAndroidModuleExtensionImpl)extension).getProperties();
+    assert properties != null;
+    properties.RUN_PROGUARD = true;
+    properties.myIncludeSystemProguardCfgPath = true;
+    properties.PROGUARD_CFG_PATH = "/proguard-project.txt";
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log");
+  }
+
   private void checkMakeUpToDate(MyExecutor executor) {
     executor.clear();
     makeAll().assertUpToDate();

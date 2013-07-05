@@ -9,10 +9,7 @@ import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.util.AndroidBuildTestingManager;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.StringWriter;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -110,18 +107,29 @@ abstract class AndroidBuildTestingCommandExecutor implements AndroidBuildTesting
   }
 
   private String progessArg(String arg) {
-    String s = FileUtil.toSystemIndependentName(arg);
+    final String[] subargs = arg.split(File.pathSeparator);
+    final StringBuilder builder = new StringBuilder();
 
-    for (Pair<String, Pattern> pair : myPathPatterns) {
-      final String id = pair.getFirst();
-      final Pattern prefixPattern = pair.getSecond();
-      final Matcher matcher = prefixPattern.matcher(s);
+    for (int i = 0; i < subargs.length; i++) {
+      String subarg = subargs[i];
+      String s = FileUtil.toSystemIndependentName(subarg);
 
-      if (matcher.matches()) {
-        s = "$" + id + "$" + s.substring(matcher.group(1).length());
+      for (Pair<String, Pattern> pair : myPathPatterns) {
+        final String id = pair.getFirst();
+        final Pattern prefixPattern = pair.getSecond();
+        final Matcher matcher = prefixPattern.matcher(s);
+
+        if (matcher.matches()) {
+          s = "$" + id + "$" + s.substring(matcher.group(1).length());
+        }
+      }
+      builder.append(s);
+
+      if (i < subargs.length - 1) {
+        builder.append(File.pathSeparator);
       }
     }
-    return s;
+    return builder.toString();
   }
 
   @NotNull
