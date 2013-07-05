@@ -67,7 +67,6 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
 
   @NonNls private static final String CLEAN_TASK_NAME = "clean";
   @NonNls private static final String DEFAULT_ASSEMBLE_TASK_NAME = "assemble";
-  @NonNls private static final String GRADLE_SEPARATOR = ":";
 
   @NonNls private static final String JVM_ARG_FORMAT = "-D%1$s=%2$s";
   @NonNls private static final String JVM_ARG_WITH_QUOTED_VALUE_FORMAT = "-D%1$s=\"%2$s\"";
@@ -159,11 +158,6 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
       assembleTaskName = properties.ASSEMBLE_TASK_NAME;
     }
     if (Strings.isNullOrEmpty(assembleTaskName)) {
-      if (GRADLE_SEPARATOR.equals(gradleProjectPath) && androidFacet == null) {
-        // If there is no task and no Android facet, this module is in reality a root project directory that does not map to a Gradle
-        // project. Do not build it with Gradle.
-        return;
-      }
       assembleTaskName = DEFAULT_ASSEMBLE_TASK_NAME;
     }
     assert assembleTaskName != null;
@@ -179,7 +173,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
 
   @NotNull
   private static String createBuildTask(@NotNull String gradleProjectPath, @NotNull String taskName) {
-    return gradleProjectPath + GRADLE_SEPARATOR + taskName;
+    return gradleProjectPath + SdkConstants.GRADLE_PATH_SEPARATOR + taskName;
   }
 
   private static void ensureTempDirExists() {
