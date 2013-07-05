@@ -182,7 +182,8 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
               AndroidJpsUtil.addSubdirectories(rootFile, fileSet);
             }
           }
-          else if (root instanceof AndroidDexBuildTarget.MyJarBuildRootDescriptor) {
+          else if (root instanceof AndroidDexBuildTarget.MyJarBuildRootDescriptor &&
+                   ((AndroidDexBuildTarget.MyJarBuildRootDescriptor)root).isPreDexed()) {
             fileSet.add(rootFile.getPath());
           }
         }
@@ -413,7 +414,9 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
         }
       }
       else if (root instanceof AndroidDexBuildTarget.MyJarBuildRootDescriptor) {
-        if (!((AndroidDexBuildTarget.MyJarBuildRootDescriptor)root).isLibPackage()) {
+        final AndroidDexBuildTarget.MyJarBuildRootDescriptor jarRoot =
+          (AndroidDexBuildTarget.MyJarBuildRootDescriptor)root;
+        if (!jarRoot.isLibPackage() && !jarRoot.isPreDexed()) {
           externalJars.add(rootFile.getPath());
         }
       }
