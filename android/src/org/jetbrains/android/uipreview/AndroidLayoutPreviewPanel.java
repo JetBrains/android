@@ -380,6 +380,10 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     }
   }
 
+  RenderResult getRenderResult() {
+    return myRenderResult;
+  }
+
   private void setEditor(@Nullable TextEditor editor) {
     if (editor != myEditor) {
       myEditor = editor;
