@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering.multi;
 
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
+import com.android.tools.idea.rendering.RenderResult;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
@@ -24,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 /**
  * {@linkplain RenderContext} used when rendering a configuration preview.
@@ -145,5 +147,11 @@ class PreviewRenderContext implements RenderContext {
   @Override
   public void setDeviceFramesEnabled(boolean on) {
     myRenderContext.setDeviceFramesEnabled(on);
+  }
+
+  @Nullable
+  @Override
+  public BufferedImage getRenderedImage() {
+    return myRenderContext.getRenderedImage();
   }
 }

@@ -93,7 +93,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   public ScreenshotViewer(@NotNull Project project,
                           @NotNull BufferedImage image,
                           @NotNull File backingFile,
-                          @NotNull IDevice device) {
+                          @Nullable IDevice device) {
     super(project, true);
 
     myProject = project;
@@ -105,6 +105,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     assert myBackingVirtualFile != null;
 
     myRefreshButton.setIcon(AllIcons.Actions.Refresh);
+    myRefreshButton.setEnabled(device != null);
     myRotateButton.setIcon(AllIcons.Actions.AllRight);
 
     myProvider = getImageFileEditorProvider();
@@ -153,6 +154,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   }
 
   private void doRefreshScreenshot() {
+    assert myDevice != null;
     new ScreenshotTask(myProject, myDevice) {
       @Override
       public void onSuccess() {
@@ -334,9 +336,9 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     super.doOKAction();
   }
 
-  private static String getDefaultFileName() {
+  private String getDefaultFileName() {
     Calendar now = Calendar.getInstance();
-    return String.format("device-%tF-%tH%tM%tS.png", now, now, now, now);
+    return String.format("%s-%tF-%tH%tM%tS.png", myDevice != null ? "device" : "layout", now, now, now, now);
   }
 
   public File getScreenshot() {
