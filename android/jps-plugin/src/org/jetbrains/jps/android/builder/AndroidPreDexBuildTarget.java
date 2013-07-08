@@ -16,7 +16,9 @@ import org.jetbrains.jps.indices.IgnoredFileIndex;
 import org.jetbrains.jps.indices.ModuleExcludeIndex;
 import org.jetbrains.jps.model.JpsModel;
 import org.jetbrains.jps.model.JpsProject;
+import org.jetbrains.jps.model.module.JpsDependencyElement;
 import org.jetbrains.jps.model.module.JpsModule;
+import org.jetbrains.jps.model.module.JpsModuleDependency;
 
 import java.io.File;
 import java.util.*;
@@ -55,6 +57,36 @@ public class AndroidPreDexBuildTarget extends BuildTarget<AndroidPreDexBuildTarg
     return result;
   }
 
+  private static void fillDepsRecursively(@NotNull JpsModule root,
+                                          @NotNull Set<JpsModule> libModules,
+                                          @NotNull Set<String> externalJars,
+                                          @NotNull BuildDataPaths dataPaths,
+                                          @NotNull AndroidPlatform platform) {
+    for (String jarOrLibDirPath : AndroidJpsUtil.getExternalLibraries(dataPaths, root, platform, false)) {
+      final String path = FileUtil.toCanonicalPath(jarOrLibDirPath);
+
+      if (path != null) {
+        externalJars.add(path);
+      }
+    }
+
+    for (JpsDependencyElement dependencyElement : root.getDependenciesList().getDependencies()) {
+      if (dependencyElement instanceof JpsModuleDependency) {
+        final JpsModule depModule = ((JpsModuleDependency)dependencyElement).getModule();
+
+        if (depModule != null) {
+          final JpsAndroidModuleExtension depExtension = AndroidJpsUtil.getExtension(depModule);
+
+          if (depExtension != null && depExtension.isLibrary()) {
+            if (libModules.add(depModule)) {
+              fillDepsRecursively(depModule, libModules, externalJars, dataPaths, platform);
+            }
+          }
+        }
+      }
+    }
+  }
+
   @NotNull
   @Override
   public List<AndroidPreDexBuildTarget.MyRootDescriptor> computeRootDescriptors(JpsModel model,
@@ -63,32 +95,24 @@ public class AndroidPreDexBuildTarget extends BuildTarget<AndroidPreDexBuildTarg
                                                           BuildDataPaths dataPaths) {
     final List<AndroidPreDexBuildTarget.MyRootDescriptor> result =
       new ArrayList<AndroidPreDexBuildTarget.MyRootDescriptor>();
+    final Set<JpsModule> libModules = new HashSet<JpsModule>();
     final Set<String> externalJars = new HashSet<String>();
 
     for (JpsModule module : myProject.getModules()) {
       final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(module);
 
-      if (extension == null) {
-        continue;
-      }
-
-      if (extension.isLibrary()) {
-        final File classesJarFile = new AndroidLibraryPackagingTarget(module).getOutputFile(dataPaths);
-        result.add(new MyRootDescriptor(this, classesJarFile, module.getName()));
-      }
-      else {
+      if (extension != null && !extension.isLibrary() && extension.isPreDexingEnabled()) {
         final AndroidPlatform platform = AndroidJpsUtil.getAndroidPlatform(module, null, null);
 
         if (platform != null) {
-          for (String jarOrLibDirPath : AndroidJpsUtil.getExternalLibraries(dataPaths, module, platform, false)) {
-            final String path = FileUtil.toCanonicalPath(jarOrLibDirPath);
-
-            if (path != null) {
-              externalJars.add(path);
-            }
-          }
+          fillDepsRecursively(module, libModules, externalJars, dataPaths, platform);
         }
       }
+    }
+
+    for (JpsModule libModule : libModules) {
+      final File classesJarFile = new AndroidLibraryPackagingTarget(libModule).getOutputFile(dataPaths);
+      result.add(new MyRootDescriptor(this, classesJarFile, libModule.getName()));
     }
 
     for (String externalJarPath : externalJars) {

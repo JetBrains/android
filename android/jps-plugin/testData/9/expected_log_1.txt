@@ -36,7 +36,22 @@ $ANDROID_SDK_DIR$/platforms/android-1.5/android.jar
 -F
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/app1/app1.apk.res
 
-______ENTRY_2:0
+______ENTRY_2:
+$JAVA_PATH$
+-Xmx1024M
+-classpath
+$IDEA_RT_PATH$
+com.intellij.rt.execution.CommandLineWrapper
+$CLASSPATH_TMP$
+org.jetbrains.android.compiler.tools.AndroidDxRunner
+$ANDROID_SDK_DIR$/platform-tools/lib/dx.jar
+$DATA_STORAGE_ROOT$/android/intermediate_artifacts/pre_dexed_libs/lib/classes.jar
+--optimize
+true
+$DATA_STORAGE_ROOT$/android/intermediate_artifacts/lib/classes.jar
+--exclude
+
+______ENTRY_3:0,2
 $JAVA_PATH$
 -Xmx1024M
 -classpath
@@ -52,7 +67,7 @@ $DATA_STORAGE_ROOT$/android/intermediate_artifacts/pre_dexed_libs/lib/classes.ja
 $PROJECT_DIR$/out/production/app1/com
 --exclude
 
-______ENTRY_3:1,2
+______ENTRY_4:1,2,3
 apk_builder
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/app1/app1.apk.res
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/app1/classes.dex

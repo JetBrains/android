@@ -75,6 +75,12 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
     if (manifestMergerProp != null) {
       facet.getProperties().ENABLE_MANIFEST_MERGING = Boolean.parseBoolean(manifestMergerProp.getFirst());
     }
+
+    final Pair<String,VirtualFile> dexDisableMergerProp =
+      AndroidRootUtil.getProjectPropertyValue(module, AndroidUtils.ANDROID_DEX_DISABLE_MERGER);
+    if (dexDisableMergerProp != null) {
+      facet.getProperties().ENABLE_PRE_DEXING = !Boolean.parseBoolean(dexDisableMergerProp.getFirst());
+    }
     final Pair<String, VirtualFile> androidLibraryProp =
       AndroidRootUtil.getProjectPropertyValue(module, AndroidUtils.ANDROID_LIBRARY_PROPERTY);
 
