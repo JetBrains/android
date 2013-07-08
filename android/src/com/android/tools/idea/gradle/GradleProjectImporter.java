@@ -104,7 +104,7 @@ public class GradleProjectImporter {
   public void reImportProject(@NotNull Project project) throws ConfigurationException {
     if (Projects.isGradleProject(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
-      ExternalSystemUtil.refreshProjects(project, GradleConstants.SYSTEM_ID);
+      ExternalSystemUtil.refreshProjects(project, GradleConstants.SYSTEM_ID, true);
     }
   }
 
