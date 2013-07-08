@@ -12,11 +12,13 @@ import com.intellij.util.io.TestFileSystemItem;
 import org.jetbrains.android.util.AndroidBuildTestingManager;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.jps.android.builder.*;
 import org.jetbrains.jps.android.model.*;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleExtensionImpl;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import org.jetbrains.jps.api.BuildParametersKeys;
 import org.jetbrains.jps.builders.BuildResult;
+import org.jetbrains.jps.builders.CompileScopeTestBuilder;
 import org.jetbrains.jps.builders.JpsBuildTestCase;
 import org.jetbrains.jps.incremental.java.JavaBuilder;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
@@ -990,6 +992,72 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     properties.PROGUARD_CFG_PATH = "/proguard-project.txt";
     makeAll().assertSuccessful();
     checkBuildLog(executor, "expected_log");
+
+    checkMakeUpToDate(executor);
+    doBuild(CompileScopeTestBuilder.rebuild().allModules().targetTypes(
+      AndroidManifestMergingTarget.MyTargetType.INSTANCE,
+      AndroidDexBuildTarget.MyTargetType.INSTANCE,
+      AndroidResourceCachingBuildTarget.MyTargetType.INSTANCE,
+      AndroidResourcePackagingBuildTarget.MyTargetType.INSTANCE,
+      AndroidPackagingBuildTarget.MyTargetType.INSTANCE,
+      AndroidLibraryPackagingTarget.MyTargetType.INSTANCE,
+      AndroidPackagingBuildTarget.MyTargetType.INSTANCE)).assertSuccessful();
+    checkBuildLog(executor, "expected_log_1");
+  }
+
+  public void testPreDexing() throws Exception {
+    final MyExecutor executor = new MyExecutor("com.example.simple");
+    final JpsModule module = setUpSimpleAndroidStructure(new String[]{"src"}, executor, null).getFirst();
+
+    module.addSourceRoot(JpsPathUtil.pathToUrl(getProjectPath("tests")), JavaSourceRootType.TEST_SOURCE);
+
+    final JpsLibrary lib = module.addModuleLibrary("lib", JpsJavaLibraryType.INSTANCE);
+    lib.addRoot(new File(getProjectPath("libs/external_jar.jar")), JpsOrderRootType.COMPILED);
+    module.getDependenciesList().addLibraryDependency(lib);
+
+    doBuild(CompileScopeTestBuilder.rebuild().allModules().targetTypes(
+      AndroidManifestMergingTarget.MyTargetType.INSTANCE,
+      AndroidDexBuildTarget.MyTargetType.INSTANCE,
+      AndroidResourceCachingBuildTarget.MyTargetType.INSTANCE,
+      AndroidResourcePackagingBuildTarget.MyTargetType.INSTANCE,
+      AndroidPackagingBuildTarget.MyTargetType.INSTANCE,
+      AndroidLibraryPackagingTarget.MyTargetType.INSTANCE,
+      AndroidPackagingBuildTarget.MyTargetType.INSTANCE)).assertSuccessful();
+    checkBuildLog(executor, "expected_log");
+
+    executor.clear();
+    doBuild(CompileScopeTestBuilder.make().allModules().targetTypes(
+      AndroidManifestMergingTarget.MyTargetType.INSTANCE,
+      AndroidPreDexBuildTarget.MyTargetType.INSTANCE,
+      AndroidDexBuildTarget.MyTargetType.INSTANCE,
+      AndroidResourceCachingBuildTarget.MyTargetType.INSTANCE,
+      AndroidResourcePackagingBuildTarget.MyTargetType.INSTANCE,
+      AndroidPackagingBuildTarget.MyTargetType.INSTANCE,
+      AndroidLibraryPackagingTarget.MyTargetType.INSTANCE,
+      AndroidPackagingBuildTarget.MyTargetType.INSTANCE)).assertSuccessful();
+    checkBuildLog(executor, "expected_log_1");
+
+    executor.clear();
+    doBuild(CompileScopeTestBuilder.make().allModules().targetTypes(
+      AndroidManifestMergingTarget.MyTargetType.INSTANCE,
+      AndroidDexBuildTarget.MyTargetType.INSTANCE,
+      AndroidResourceCachingBuildTarget.MyTargetType.INSTANCE,
+      AndroidResourcePackagingBuildTarget.MyTargetType.INSTANCE,
+      AndroidPackagingBuildTarget.MyTargetType.INSTANCE,
+      AndroidLibraryPackagingTarget.MyTargetType.INSTANCE,
+      AndroidPackagingBuildTarget.MyTargetType.INSTANCE)).assertUpToDate();
+
+    executor.clear();
+    doBuild(CompileScopeTestBuilder.rebuild().allModules().targetTypes(
+      AndroidManifestMergingTarget.MyTargetType.INSTANCE,
+      AndroidPreDexBuildTarget.MyTargetType.INSTANCE,
+      AndroidDexBuildTarget.MyTargetType.INSTANCE,
+      AndroidResourceCachingBuildTarget.MyTargetType.INSTANCE,
+      AndroidResourcePackagingBuildTarget.MyTargetType.INSTANCE,
+      AndroidPackagingBuildTarget.MyTargetType.INSTANCE,
+      AndroidLibraryPackagingTarget.MyTargetType.INSTANCE,
+      AndroidPackagingBuildTarget.MyTargetType.INSTANCE)).assertSuccessful();
+    checkBuildLog(executor, "expected_log_2");
   }
 
   private void checkMakeUpToDate(MyExecutor executor) {
