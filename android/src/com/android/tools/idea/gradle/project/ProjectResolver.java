@@ -91,29 +91,33 @@ class ProjectResolver {
                                            @Nullable GradleExecutionSettings settings,
                                            @NotNull ProjectConnection connection,
                                            @NotNull ExternalSystemTaskNotificationListener listener) {
-    String projectDirPath = PathUtil.getParentPath(projectPath);
-
     ModelBuilder<IdeaProject> modelBuilder = myHelper.getModelBuilder(IdeaProject.class, id, settings, connection, listener);
     IdeaProject ideaProject = modelBuilder.get();
     if (ideaProject == null || ideaProject.getModules().isEmpty()) {
       return null;
     }
 
-    String name = new File(projectDirPath).getName();
-    DataNode<ProjectData> projectInfo = createProjectInfo(projectDirPath, projectPath, name);
+    String name = new File(projectPath).getName();
+    DataNode<ProjectData> projectInfo = createProjectInfo(projectPath, projectPath, name);
 
     AndroidProject first = null;
 
     for (IdeaModule module : ideaProject.getModules()) {
       IdeaGradleProject gradleProject = new IdeaGradleProject(module.getName(), module.getGradleProject().getPath());
       String relativePath = getRelativePath(gradleProject);
-      File moduleDir = new File(projectDirPath, relativePath);
+      File moduleDir;
+      if (relativePath.isEmpty()) {
+        moduleDir = new File(projectPath);
+      }
+      else {
+        moduleDir = new File(projectPath, relativePath);
+      }
       File gradleBuildFile = new File(moduleDir, SdkConstants.FN_BUILD_GRADLE);
       if (!gradleBuildFile.isFile()) {
         continue;
       }
-      String moduleDirPath = moduleDir.getAbsolutePath();
-      AndroidProject androidProject = getAndroidProject(id, gradleBuildFile.getPath(), settings, listener);
+      String moduleDirPath = moduleDir.getPath();
+      AndroidProject androidProject = getAndroidProject(id, moduleDirPath, settings, listener);
       if (androidProject != null) {
         createModuleInfo(module, androidProject, projectInfo, moduleDirPath, gradleProject);
         if (first == null) {
@@ -162,6 +166,9 @@ class ProjectResolver {
       separator = "\\\\";
     }
     String gradleProjectPath = gradleProject.getGradleProjectPath();
+    if (SdkConstants.GRADLE_PATH_SEPARATOR.equals(gradleProjectPath)) {
+      return "";
+    }
     return gradleProjectPath.replaceAll(SdkConstants.GRADLE_PATH_SEPARATOR, separator);
   }
 
