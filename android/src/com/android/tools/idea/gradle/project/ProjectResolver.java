@@ -45,7 +45,6 @@ import org.gradle.tooling.UnknownModelException;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper;
@@ -64,9 +63,6 @@ import java.util.Map;
  */
 class ProjectResolver {
   private static final Logger LOG = Logger.getInstance(ProjectResolver.class);
-
-  @NonNls private static final String FN_SETTINGS_GRADLE = "settings.gradle";
-  @NonNls private static final String GRADLE_PATH_SEPARATOR = ":";
 
   @NotNull final GradleExecutionHelper myHelper;
 
@@ -125,7 +121,7 @@ class ProjectResolver {
         }
         continue;
       }
-      File gradleSettingsFile = new File(moduleDir, FN_SETTINGS_GRADLE);
+      File gradleSettingsFile = new File(moduleDir, SdkConstants.FN_SETTINGS_GRADLE);
       if (gradleSettingsFile.isFile()) {
         // This is just a root folder for a group of Gradle projects. Set the Gradle project to null so the JPS builder won't try to
         // compile it using Gradle. We still need to create the module to display files inside it.
@@ -166,7 +162,7 @@ class ProjectResolver {
       separator = "\\\\";
     }
     String gradleProjectPath = gradleProject.getGradleProjectPath();
-    return gradleProjectPath.replaceAll(GRADLE_PATH_SEPARATOR, separator);
+    return gradleProjectPath.replaceAll(SdkConstants.GRADLE_PATH_SEPARATOR, separator);
   }
 
   @Nullable
