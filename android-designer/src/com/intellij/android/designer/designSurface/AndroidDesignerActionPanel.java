@@ -15,6 +15,7 @@
  */
 package com.intellij.android.designer.designSurface;
 
+import com.android.tools.idea.rendering.SaveScreenshotAction;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.RadViewLayout;
 import com.intellij.designer.actions.DesignerActionPanel;
@@ -42,6 +43,10 @@ import java.util.Map;
 public class AndroidDesignerActionPanel extends DesignerActionPanel {
   public AndroidDesignerActionPanel(DesignerEditorPanel designer, JComponent shortcuts) {
     super(designer, shortcuts);
+
+    DefaultActionGroup popupGroup = getPopupGroup();
+    popupGroup.addSeparator();
+    popupGroup.add(new SaveScreenshotAction((AndroidDesignerEditorPanel)myDesigner));
   }
 
   @Override

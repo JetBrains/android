@@ -20,6 +20,8 @@ import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.rendering.ProjectResources;
+import com.android.tools.idea.rendering.SaveScreenshotAction;
+import com.android.tools.idea.rendering.ScalableImage;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.RenderResult;
 import com.intellij.icons.AllIcons;
@@ -46,6 +48,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.image.BufferedImage;
 
 import static com.android.tools.idea.gradle.variant.view.BuildVariantView.BuildVariantSelectionChangeListener;
 
@@ -79,6 +82,7 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
     actionGroup.add(new ZoomOutAction());
     actionGroup.addSeparator();
     actionGroup.add(new RefreshAction());
+    actionGroup.add(new SaveScreenshotAction(this));
     myActionToolBar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, actionGroup, true);
     myActionToolBar.setReservePlaceAutoPopupIcon(false);
 
@@ -358,6 +362,19 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
   @Override
   public void setDeviceFramesEnabled(boolean on) {
     myPreviewPanel.setDeviceFramesEnabled(on);
+  }
+
+  @Nullable
+  @Override
+  public BufferedImage getRenderedImage() {
+    RenderResult result = myPreviewPanel.getRenderResult();
+    if (result != null) {
+      ScalableImage scalableImage = result.getImage();
+      if (scalableImage != null) {
+        return scalableImage.getOriginalImage();
+      }
+    }
+    return null;
   }
 
   @Override
