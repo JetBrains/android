@@ -124,7 +124,7 @@ public class GradleProjectImporter {
                             @Nullable final Callback callback) throws IOException, ConfigurationException {
     GradleImportNotificationListener.attachToManager();
     File projectFile = createTopLevelBuildFile(projectRootDir);
-    String projectFilePath = projectFile.getAbsolutePath();
+    String projectFilePath = projectFile.getParentFile().getPath();
 
     createIdeaProjectDir(projectRootDir);
 
@@ -197,13 +197,13 @@ public class GradleProjectImporter {
   }
 
   private void doImport(@NotNull final Project project,
-                        @NotNull final String projectFilePath,
+                        @NotNull final String projectPath,
                         @Nullable final Callback callback) throws ConfigurationException {
     Projects.setProjectBuildAction(project, Projects.BuildAction.REBUILD);
 
     final Ref<ConfigurationException> errorRef = new Ref<ConfigurationException>();
 
-    myDelegate.importProject(project, projectFilePath, new ExternalProjectRefreshCallback() {
+    myDelegate.importProject(project, projectPath, new ExternalProjectRefreshCallback() {
       @Override
       public void onSuccess(@Nullable final DataNode<ProjectData> projectInfo) {
         assert projectInfo != null;
@@ -211,7 +211,7 @@ public class GradleProjectImporter {
           @Override
           public void run() {
             populateProject(project, projectInfo);
-            open(project, projectFilePath);
+            open(project, projectPath);
 
             if (!ApplicationManager.getApplication().isUnitTestMode()) {
               project.save();
@@ -320,10 +320,10 @@ public class GradleProjectImporter {
 
   // Makes it possible to mock invocations to the Gradle Tooling API.
   static class ImporterDelegate {
-    void importProject(@NotNull Project newProject, @NotNull String projectFilePath, @NotNull ExternalProjectRefreshCallback callback)
+    void importProject(@NotNull Project newProject, @NotNull String projectPath, @NotNull ExternalProjectRefreshCallback callback)
       throws ConfigurationException {
       try {
-        ExternalSystemUtil.refreshProject(newProject, SYSTEM_ID, projectFilePath, callback, true, true);
+        ExternalSystemUtil.refreshProject(newProject, SYSTEM_ID, projectPath, callback, true, true);
       }
       catch (RuntimeException e) {
         String externalSystemName = SYSTEM_ID.getReadableName();
