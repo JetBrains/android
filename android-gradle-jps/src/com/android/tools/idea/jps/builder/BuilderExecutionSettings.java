@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.compiler.BuildProcessJvmArgs;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jps.api.GlobalOptions;
 
 import java.io.File;
 
@@ -33,6 +34,7 @@ class BuilderExecutionSettings {
   @Nullable private final File myGradleServiceDir;
   @NotNull private final File myProjectDir;
   private final boolean myVerboseLoggingEnabled;
+  private final boolean myParallelBuild;
 
   BuilderExecutionSettings() {
     myEmbeddedGradleDaemonEnabled = SystemProperties.getBooleanProperty(BuildProcessJvmArgs.USE_EMBEDDED_GRADLE_DAEMON, false);
@@ -42,6 +44,7 @@ class BuilderExecutionSettings {
     myGradleServiceDir = findGradleServiceDir();
     myProjectDir = findProjectRootDir();
     myVerboseLoggingEnabled = SystemProperties.getBooleanProperty(BuildProcessJvmArgs.USE_GRADLE_VERBOSE_LOGGING, false);
+    myParallelBuild = SystemProperties.getBooleanProperty(GlobalOptions.COMPILE_PARALLEL_OPTION, false);
   }
 
   @Nullable
@@ -50,11 +53,7 @@ class BuilderExecutionSettings {
     if (gradleHomeDir == null) {
       return null;
     }
-    if (!gradleHomeDir.isDirectory()) {
-      String path = gradleHomeDir.getAbsolutePath();
-      String msg = String.format("Unable to obtain Gradle home directory: the path '%1$s' is not a directory", path);
-      throw new IllegalArgumentException(msg);
-    }
+    ensureDirectoryExists(gradleHomeDir, "Gradle home");
     return gradleHomeDir;
   }
 
@@ -64,11 +63,7 @@ class BuilderExecutionSettings {
     if (gradleServiceDir == null) {
       return null;
     }
-    if (!gradleServiceDir.isDirectory()) {
-      String path = gradleServiceDir.getAbsolutePath();
-      String msg = String.format("Unable to obtain Gradle service directory: the path '%1$s' is not a directory", path);
-      throw new IllegalArgumentException(msg);
-    }
+    ensureDirectoryExists(gradleServiceDir, "Gradle service");
     return gradleServiceDir;
   }
 
@@ -78,12 +73,16 @@ class BuilderExecutionSettings {
     if (projectRootDir == null) {
       throw new NullPointerException("Project directory not specified");
     }
-    if (!projectRootDir.isDirectory()) {
-      String path = projectRootDir.getAbsolutePath();
-      String msg = String.format("Unable to obtain the project directory: the path '%1$s' is not a directory", path);
+    ensureDirectoryExists(projectRootDir, "project");
+    return projectRootDir;
+  }
+
+  private static void ensureDirectoryExists(@NotNull File dir, @NotNull String type) {
+    if (!dir.isDirectory()) {
+      String path = dir.getPath();
+      String msg = String.format("Unable to obtain %1$s directory: the file '%2$s' is not a directory", type, path);
       throw new IllegalArgumentException(msg);
     }
-    return projectRootDir;
   }
 
   @Nullable
@@ -137,8 +136,13 @@ class BuilderExecutionSettings {
            ", gradleDaemonMaxMemoryInMb=" + myGradleDaemonMaxMemoryInMb +
            ", gradleHomeDir=" + myGradleHomeDir +
            ", gradleServiceDir=" + myGradleServiceDir +
+           ", parallelBuild=" + myParallelBuild +
            ", projectDir=" + myProjectDir +
            ", verboseLoggingEnabled=" + myVerboseLoggingEnabled +
            ']';
+  }
+
+  boolean isParallelBuild() {
+    return myParallelBuild;
   }
 }
