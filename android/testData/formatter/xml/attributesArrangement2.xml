@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          android:versionCode="1"
+          package="com.example.untitled178"
+          android:versionName="1.0"
+          aba="true">
+
+  <application android:name="ApiDemosApplication"
+               android:label="@string/activity_sample_code"
+               android:icon="@drawable/app_sample_code"
+               android:hardwareAccelerated="true"
+               android:supportsRtl="true"/>
+</manifest>
