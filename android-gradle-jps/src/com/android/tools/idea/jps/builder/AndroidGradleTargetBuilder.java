@@ -298,6 +298,11 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
         launcher.setJvmArguments(jvmArgs.toArray(new String[jvmArgs.size()]));
       }
 
+      if (executionSettings.isParallelBuild()) {
+        LOG.info("Using 'parallel' build option");
+        launcher.withArguments("--parallel");
+      }
+
       launcher.setStandardOutput(stdout);
       launcher.setStandardError(stderr);
       launcher.run();
