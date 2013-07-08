@@ -287,7 +287,9 @@ class PsiResourceItem extends ResourceItem {
   @NonNull
   private ResourceValue parseValue(@NonNull ResourceValue value) {
     assert myTag != null;
-    value.setValue(ValueXmlHelper.unescapeResourceString(getTextContent(myTag), false, true));
+    String text = getTextContent(myTag);
+    text = ValueXmlHelper.unescapeResourceString(text, true, true);
+    value.setValue(text);
     return value;
   }
 
