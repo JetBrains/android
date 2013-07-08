@@ -169,7 +169,7 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
         }
         final List<BuildRootDescriptor> roots = context.getProjectDescriptor().getBuildRootIndex().getTargetRoots(target, context);
         fileSet = new HashSet<String>();
-        final boolean predexingInScope = isPredexingInScope(context);
+        final boolean predexingEnabled = extension.isPreDexingEnabled() && isPredexingInScope(context);
 
         for (BuildRootDescriptor root : roots) {
           final File rootFile = root.getRootFile();
@@ -190,7 +190,7 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
             }
           }
           else if (root instanceof AndroidDexBuildTarget.MyJarBuildRootDescriptor) {
-            if (((AndroidDexBuildTarget.MyJarBuildRootDescriptor)root).isPreDexed() == predexingInScope) {
+            if (((AndroidDexBuildTarget.MyJarBuildRootDescriptor)root).isPreDexed() == predexingEnabled) {
               fileSet.add(rootFile.getPath());
             }
           }
