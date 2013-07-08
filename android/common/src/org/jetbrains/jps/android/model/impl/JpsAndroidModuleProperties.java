@@ -67,6 +67,8 @@ public class JpsAndroidModuleProperties {
 
   public boolean ENABLE_MANIFEST_MERGING = false;
 
+  public boolean ENABLE_PRE_DEXING = true;
+
   @Tag(AndroidCommonUtils.INCLUDE_SYSTEM_PROGUARD_FILE_ELEMENT_NAME)
   public boolean myIncludeSystemProguardCfgPath = true;
 

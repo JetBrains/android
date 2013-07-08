@@ -218,8 +218,12 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
     final VirtualFile[] dependencies = collectDependencies(module);
     final String[] dependencyPaths = toSortedPaths(dependencies);
 
-    final List<Object> newState = Arrays.asList(androidTargetHashString, facet.isLibraryProject(),
-                                                Arrays.asList(dependencyPaths), facet.getProperties().ENABLE_MANIFEST_MERGING);
+    final List<Object> newState = Arrays.asList(
+      androidTargetHashString,
+      facet.isLibraryProject(),
+      Arrays.asList(dependencyPaths),
+      facet.getProperties().ENABLE_MANIFEST_MERGING,
+      facet.getProperties().ENABLE_PRE_DEXING);
     final List<Object> state = facet.getUserData(ANDROID_PROPERTIES_STATE_KEY);
 
     if (state == null || !Comparing.equal(state, newState)) {
@@ -382,6 +386,14 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
         @Override
         public void run() {
           propertiesFile.addProperty(AndroidUtils.ANDROID_MANIFEST_MERGER_PROPERTY, Boolean.TRUE.toString());
+        }
+      });
+    }
+    else if (!facet.getProperties().ENABLE_PRE_DEXING) {
+      changes.add(new Runnable() {
+        @Override
+        public void run() {
+          propertiesFile.addProperty(AndroidUtils.ANDROID_DEX_DISABLE_MERGER, Boolean.TRUE.toString());
         }
       });
     }

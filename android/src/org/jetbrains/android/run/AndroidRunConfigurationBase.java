@@ -114,7 +114,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         throw new RuntimeConfigurationError(AndroidBundle.message("avd.not.found.error", PREFERRED_AVD));
       }
       if (avdInfo.getStatus() != AvdInfo.AvdStatus.OK) {
-        throw new RuntimeConfigurationError(AndroidBundle.message("avd.not.valid.error", PREFERRED_AVD));
+        String message = avdInfo.getErrorMessage();
+        message = AndroidBundle.message("avd.not.valid.error", PREFERRED_AVD) +
+                  (message != null ? ": " + message: "") + ". Try to repair it through AVD manager";
+        throw new RuntimeConfigurationError(message);
       }
     }
     checkConfiguration(facet);
