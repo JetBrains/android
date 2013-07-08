@@ -39,11 +39,13 @@ public abstract class SaveFileListener implements ActionListener {
   private final JPanel myContentPanel;
   private final TextFieldWithBrowseButton myTextField;
   private final String myDialogTitle;
+  private final String myExtension;
 
-  public SaveFileListener(JPanel contentPanel, TextFieldWithBrowseButton textField, String dialogTitle) {
+  public SaveFileListener(JPanel contentPanel, TextFieldWithBrowseButton textField, String dialogTitle, String extension) {
     myContentPanel = contentPanel;
     myTextField = textField;
     myDialogTitle = dialogTitle;
+    myExtension = extension;
   }
 
   @Nullable
@@ -62,7 +64,7 @@ public abstract class SaveFileListener implements ActionListener {
     if (!file.exists()) {
       path = SystemProperties.getUserHome();
     }
-    FileSaverDescriptor descriptor = new FileSaverDescriptor(myDialogTitle, "Save as *.apk", "apk");
+    FileSaverDescriptor descriptor = new FileSaverDescriptor(myDialogTitle, "Save as *." + myExtension, myExtension);
     FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, myContentPanel);
 
     VirtualFile vf = LocalFileSystem.getInstance().findFileByIoFile(file.exists() ? file : new File(path));

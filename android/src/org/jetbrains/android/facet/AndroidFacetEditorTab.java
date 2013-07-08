@@ -110,6 +110,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   private CheckBoxList<AndroidImportableProperty> myImportedOptionsList;
   private JBTabbedPane myTabbedPane;
   private JBCheckBox myEnableManifestMerging;
+  private JBCheckBox myPreDexEnabledCheckBox;
 
   private static final String MAVEN_TAB_TITLE = "Maven";
   private final Component myMavenTabComponent;
@@ -368,6 +369,9 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     if (myConfiguration.getState().ENABLE_MANIFEST_MERGING != myEnableManifestMerging.isSelected()) {
       return true;
     }
+    if (myConfiguration.getState().ENABLE_PRE_DEXING != myPreDexEnabledCheckBox.isSelected()) {
+      return true;
+    }
     if (myConfiguration.getState().PACK_TEST_CODE != myIncludeTestCodeAndCheckBox.isSelected()) {
       return true;
     }
@@ -514,6 +518,8 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     myConfiguration.getState().RUN_PROCESS_RESOURCES_MAVEN_TASK = myRunProcessResourcesRadio.isSelected();
 
     myConfiguration.getState().ENABLE_MANIFEST_MERGING = myEnableManifestMerging.isSelected();
+
+    myConfiguration.getState().ENABLE_PRE_DEXING = myPreDexEnabledCheckBox.isSelected();
 
     myConfiguration.getState().PACK_TEST_CODE = myIncludeTestCodeAndCheckBox.isSelected();
 
@@ -664,6 +670,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     myCompileResourcesByIdeRadio.setSelected(!myConfiguration.getState().RUN_PROCESS_RESOURCES_MAVEN_TASK);
 
     myEnableManifestMerging.setSelected(myConfiguration.getState().ENABLE_MANIFEST_MERGING);
+    myPreDexEnabledCheckBox.setSelected(myConfiguration.getState().ENABLE_PRE_DEXING);
     myIncludeTestCodeAndCheckBox.setSelected(myConfiguration.getState().PACK_TEST_CODE);
     myIncludeAssetsFromLibraries.setSelected(myConfiguration.isIncludeAssetsFromLibraries());
 

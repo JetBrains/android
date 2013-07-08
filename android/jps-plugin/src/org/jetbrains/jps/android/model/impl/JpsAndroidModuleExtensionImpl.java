@@ -92,6 +92,11 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
   }
 
   @Override
+  public boolean isPreDexingEnabled() {
+    return myProperties.ENABLE_PRE_DEXING;
+  }
+
+  @Override
   public File getResourceDir() {
     File resDir = findFileByRelativeModulePath(myProperties.RES_FOLDER_RELATIVE_PATH, false);
     return resDir != null ? canonizeFilePath(resDir) : null;

@@ -12,11 +12,13 @@ import com.intellij.util.io.TestFileSystemItem;
 import org.jetbrains.android.util.AndroidBuildTestingManager;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.jps.android.builder.*;
 import org.jetbrains.jps.android.model.*;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleExtensionImpl;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import org.jetbrains.jps.api.BuildParametersKeys;
 import org.jetbrains.jps.builders.BuildResult;
+import org.jetbrains.jps.builders.CompileScopeTestBuilder;
 import org.jetbrains.jps.builders.JpsBuildTestCase;
 import org.jetbrains.jps.incremental.java.JavaBuilder;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
@@ -829,7 +831,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     profile.setGeneratedSourcesDirectoryName("gen", false);
     final BuildResult result = makeAll();
     result.assertFailed();
-    final List<BuildMessage> warnMessages = result.getWarnMessages();
+    final List<BuildMessage> warnMessages = result.getMessages(BuildMessage.Kind.WARNING);
     boolean containsForciblyExcludedRootWarn = false;
 
     for (BuildMessage message : warnMessages) {
@@ -940,6 +942,140 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
 
     makeAll().assertSuccessful();
     checkBuildLog(executor, "expected_log_1");
+  }
+
+  public void testProGuardWithJar() throws Exception {
+    final MyExecutor executor = new MyExecutor("com.example.simple") {
+      @Override
+      protected void doCheckJar(@NotNull String jarId, @NotNull String jarPath) {
+        if ("proguard_input_jar".equals(jarId)) {
+          File tmpDir = null;
+
+          try {
+            tmpDir = FileUtil.createTempDirectory("proguard_input_jar_checking", "tmp");
+            final File jar = new File(tmpDir, "file.jar");
+            FileUtil.copy(new File(jarPath), jar);
+            assertOutput(tmpDir.getPath(), TestFileSystemItem.fs()
+              .archive("file.jar")
+              .dir("com")
+              .dir("example")
+              .dir("simple")
+              .file("BuildConfig.class")
+              .file("R.class")
+              .file("MyActivity.class"));
+          }
+          catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+          finally {
+            if (tmpDir != null) {
+              FileUtil.delete(tmpDir);
+            }
+          }
+        }
+      }
+    };
+    final JpsModule module = setUpSimpleAndroidStructure(new String[]{"src"}, executor, null).getFirst();
+
+    module.addSourceRoot(JpsPathUtil.pathToUrl(getProjectPath("tests")), JavaSourceRootType.TEST_SOURCE);
+
+    final JpsLibrary lib = module.addModuleLibrary("lib", JpsJavaLibraryType.INSTANCE);
+    lib.addRoot(new File(getProjectPath("libs/external_jar.jar")), JpsOrderRootType.COMPILED);
+    module.getDependenciesList().addLibraryDependency(lib);
+
+    final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(module);
+    assert extension instanceof JpsAndroidModuleExtensionImpl;
+    final JpsAndroidModuleProperties properties = ((JpsAndroidModuleExtensionImpl)extension).getProperties();
+    assert properties != null;
+    properties.RUN_PROGUARD = true;
+    properties.myIncludeSystemProguardCfgPath = true;
+    properties.PROGUARD_CFG_PATH = "/proguard-project.txt";
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log");
+
+    checkMakeUpToDate(executor);
+    doBuild(CompileScopeTestBuilder.rebuild().allModules().targetTypes(
+      AndroidManifestMergingTarget.MyTargetType.INSTANCE,
+      AndroidDexBuildTarget.MyTargetType.INSTANCE,
+      AndroidResourceCachingBuildTarget.MyTargetType.INSTANCE,
+      AndroidResourcePackagingBuildTarget.MyTargetType.INSTANCE,
+      AndroidPackagingBuildTarget.MyTargetType.INSTANCE,
+      AndroidLibraryPackagingTarget.MyTargetType.INSTANCE,
+      AndroidPackagingBuildTarget.MyTargetType.INSTANCE)).assertSuccessful();
+    checkBuildLog(executor, "expected_log_1");
+  }
+
+  public void testPreDexing() throws Exception {
+    final MyExecutor executor = new MyExecutor("com.example.simple");
+
+    final JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> androidSdk = addJdkAndAndroidSdk();
+    addPathPatterns(executor, androidSdk);
+    final JpsModule appModule = addAndroidModule("app", new String[]{"src"}, "app", "app", androidSdk).getFirst();
+    final JpsModule libModule = addAndroidModule("lib", new String[]{"src"}, "lib", "lib", androidSdk).getFirst();
+    final JpsModule libModule1 = addAndroidModule("lib1", new String[]{"src"}, "lib1", "lib1", androidSdk).getFirst();
+
+    final JpsAndroidModuleExtension libExtension = AndroidJpsUtil.getExtension(libModule);
+    assert libExtension != null;
+    final JpsAndroidModuleProperties libProps = ((JpsAndroidModuleExtensionImpl)libExtension).getProperties();
+    libProps.LIBRARY_PROJECT = true;
+
+    final JpsAndroidModuleExtension libExtension1 = AndroidJpsUtil.getExtension(libModule1);
+    assert libExtension1 != null;
+    final JpsAndroidModuleProperties libProps1 = ((JpsAndroidModuleExtensionImpl)libExtension1).getProperties();
+    libProps1.LIBRARY_PROJECT = true;
+
+    appModule.getDependenciesList().addModuleDependency(libModule);
+    libModule.getDependenciesList().addModuleDependency(libModule1);
+
+    final JpsLibrary lib = appModule.addModuleLibrary("ext_lib", JpsJavaLibraryType.INSTANCE);
+    lib.addRoot(new File(getProjectPath("app/libs/external_jar.jar")), JpsOrderRootType.COMPILED);
+    appModule.getDependenciesList().addLibraryDependency(lib);
+
+    final JpsLibrary lib1 = appModule.addModuleLibrary("ext_lib_1", JpsJavaLibraryType.INSTANCE);
+    lib1.addRoot(new File(getProjectPath("lib/libs/external_jar_1.jar")), JpsOrderRootType.COMPILED);
+    libModule.getDependenciesList().addLibraryDependency(lib1);
+
+    doBuild(CompileScopeTestBuilder.rebuild().allModules().targetTypes(
+      AndroidManifestMergingTarget.MyTargetType.INSTANCE,
+      AndroidDexBuildTarget.MyTargetType.INSTANCE,
+      AndroidResourceCachingBuildTarget.MyTargetType.INSTANCE,
+      AndroidResourcePackagingBuildTarget.MyTargetType.INSTANCE,
+      AndroidPackagingBuildTarget.MyTargetType.INSTANCE,
+      AndroidLibraryPackagingTarget.MyTargetType.INSTANCE,
+      AndroidPackagingBuildTarget.MyTargetType.INSTANCE)).assertSuccessful();
+    checkBuildLog(executor, "expected_log");
+
+    executor.clear();
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_1");
+
+    executor.clear();
+    doBuild(CompileScopeTestBuilder.make().allModules().targetTypes(
+      AndroidManifestMergingTarget.MyTargetType.INSTANCE,
+      AndroidDexBuildTarget.MyTargetType.INSTANCE,
+      AndroidResourceCachingBuildTarget.MyTargetType.INSTANCE,
+      AndroidResourcePackagingBuildTarget.MyTargetType.INSTANCE,
+      AndroidPackagingBuildTarget.MyTargetType.INSTANCE,
+      AndroidLibraryPackagingTarget.MyTargetType.INSTANCE,
+      AndroidPackagingBuildTarget.MyTargetType.INSTANCE)).assertUpToDate();
+
+    executor.clear();
+    rebuildAll();
+    checkBuildLog(executor, "expected_log_2");
+
+    final JpsAndroidModuleExtension appExtension = AndroidJpsUtil.getExtension(appModule);
+    assert appExtension != null;
+    final JpsAndroidModuleProperties appProps = ((JpsAndroidModuleExtensionImpl)appExtension).getProperties();
+
+    checkMakeUpToDate(executor);
+    appProps.ENABLE_PRE_DEXING = false;
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_3");
+
+    checkMakeUpToDate(executor);
+    appProps.ENABLE_PRE_DEXING = true;
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_4");
   }
 
   private void checkMakeUpToDate(MyExecutor executor) {

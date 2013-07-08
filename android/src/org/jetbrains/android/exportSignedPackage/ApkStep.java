@@ -86,7 +86,7 @@ class ApkStep extends ExportSignedPackageWizardStep {
     myProguardConfigFilePathLabel.setLabelFor(myProguardConfigFilePathField);
 
     myApkPathField.getButton().addActionListener(
-      new SaveFileListener(myContentPanel, myApkPathField, AndroidBundle.message("android.extract.package.choose.dest.apk")) {
+      new SaveFileListener(myContentPanel, myApkPathField, AndroidBundle.message("android.extract.package.choose.dest.apk"), "apk") {
         @Override
         protected String getDefaultLocation() {
           Module module = myWizard.getFacet().getModule();
