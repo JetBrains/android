@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.IProjectCallback;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.Nullable;
 import org.kxml2.io.KXmlParser;
 
@@ -138,9 +139,15 @@ public class ContextPullParser extends KXmlParser implements ILayoutPullParser {
       return VALUE_FILL_PARENT;
     }
 
-    // Handle unicode escapes
-    if (value != null && value.indexOf('\\') != -1) {
-      value = XmlTagPullParser.replaceUnicodeEscapes(value);
+    if (value != null) {
+      if (value.indexOf('&') != -1) {
+        value = StringUtil.unescapeXml(value);
+      }
+
+      // Handle unicode escapes
+      if (value.indexOf('\\') != -1) {
+        value = XmlTagPullParser.replaceUnicodeEscapes(value);
+      }
     }
 
     return value;

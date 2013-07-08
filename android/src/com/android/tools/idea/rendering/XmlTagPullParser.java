@@ -19,6 +19,7 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.legacy.ILegacyPullParser;
 import com.android.resources.Density;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
@@ -360,6 +361,11 @@ public class XmlTagPullParser implements ILegacyPullParser {
               (ATTR_LAYOUT_WIDTH.equals(localName) || ATTR_LAYOUT_HEIGHT.equals(localName)) &&
               ANDROID_URI.equals(namespace)) {
             return VALUE_FILL_PARENT;
+          }
+
+          // The PSI XML model doesn't decode the XML escapes
+          if (value.indexOf('&') != -1) {
+            value = StringUtil.unescapeXml(value);
           }
 
           // Handle unicode escapes
