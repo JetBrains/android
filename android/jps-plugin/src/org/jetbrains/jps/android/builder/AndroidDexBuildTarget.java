@@ -125,23 +125,26 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
       final String moduleName = entry.getValue();
       final File libPackageJarFile = new File(libPackage);
       assert AndroidPreDexBuilder.canBePreDexed(libPackageJarFile);
+      result.add(new MyJarBuildRootDescriptor(this, libPackageJarFile, true, false));
       result.add(new MyJarBuildRootDescriptor(this, new File(
-        new File(preDexOutputDir, moduleName), libPackageJarFile.getName()), true));
+        new File(preDexOutputDir, moduleName), libPackageJarFile.getName()), true, true));
     }
     final AndroidPlatform platform = AndroidJpsUtil.getAndroidPlatform(myModule, null, null);
 
     if (platform != null) {
       for (String jarOrLibDir : AndroidJpsUtil.getExternalLibraries(dataPaths, myModule, platform, false)) {
         File file = new File(jarOrLibDir);
+        File preDexedFile = file;
 
         if (AndroidPreDexBuilder.canBePreDexed(file)) {
           final String preDexedFileName = AndroidPreDexBuilder.getOutputFileNameForExternalJar(file);
 
           if (preDexedFileName != null) {
-            file = new File(preDexOutputDir, preDexedFileName);
+            preDexedFile = new File(preDexOutputDir, preDexedFileName);
           }
         }
-        result.add(new MyJarBuildRootDescriptor(this, file, false));
+        result.add(new MyJarBuildRootDescriptor(this, file, false, false));
+        result.add(new MyJarBuildRootDescriptor(this, preDexedFile, false, true));
       }
     }
     return result;
@@ -207,14 +210,20 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
 
   public static class MyJarBuildRootDescriptor extends AndroidFileBasedBuildRootDescriptor {
     private final boolean myLibPackage;
+    private final boolean myPreDexed;
 
-    public MyJarBuildRootDescriptor(@NotNull BuildTarget target, @NotNull File file, boolean libPackage) {
+    public MyJarBuildRootDescriptor(@NotNull BuildTarget target, @NotNull File file, boolean libPackage, boolean preDexed) {
       super(target, file);
       myLibPackage = libPackage;
+      myPreDexed = preDexed;
     }
 
     public boolean isLibPackage() {
       return myLibPackage;
+    }
+
+    public boolean isPreDexed() {
+      return myPreDexed;
     }
   }
 }

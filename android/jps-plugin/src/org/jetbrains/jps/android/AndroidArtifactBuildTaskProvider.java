@@ -34,7 +34,7 @@ public class AndroidArtifactBuildTaskProvider extends ArtifactBuildTaskProvider 
   @Override
   public List<? extends BuildTask> createArtifactBuildTasks(@NotNull JpsArtifact artifact,
                                                             @NotNull ArtifactBuildPhase buildPhase) {
-    if (buildPhase != ArtifactBuildPhase.POST_PROCESSING) {
+    if (buildPhase != ArtifactBuildPhase.FINISHING_BUILD) {
       return Collections.emptyList();
     }
 

@@ -34,6 +34,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.builder.AndroidDexBuildTarget;
+import org.jetbrains.jps.android.builder.AndroidPreDexBuildTarget;
 import org.jetbrains.jps.android.model.JpsAndroidDexCompilerConfiguration;
 import org.jetbrains.jps.android.model.JpsAndroidExtensionService;
 import org.jetbrains.jps.android.model.JpsAndroidModuleExtension;
@@ -87,6 +88,11 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
     catch (Exception e) {
       AndroidJpsUtil.handleException(context, e, DEX_BUILDER_NAME, LOG);
     }
+  }
+
+  private static boolean isPredexingInScope(@NotNull CompileContext context) {
+    final JpsProject project = context.getProjectDescriptor().getProject();
+    return context.getScope().isAffected(new AndroidPreDexBuildTarget(project));
   }
 
   private static boolean doDexBuild(@NotNull AndroidDexBuildTarget target,
@@ -161,6 +167,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
         }
         final List<BuildRootDescriptor> roots = context.getProjectDescriptor().getBuildRootIndex().getTargetRoots(target, context);
         fileSet = new HashSet<String>();
+        final boolean predexingEnabled = extension.isPreDexingEnabled() && isPredexingInScope(context);
 
         for (BuildRootDescriptor root : roots) {
           final File rootFile = root.getRootFile();
@@ -181,7 +188,9 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
             }
           }
           else if (root instanceof AndroidDexBuildTarget.MyJarBuildRootDescriptor) {
-            fileSet.add(rootFile.getPath());
+            if (((AndroidDexBuildTarget.MyJarBuildRootDescriptor)root).isPreDexed() == predexingEnabled) {
+              fileSet.add(rootFile.getPath());
+            }
           }
         }
       }
@@ -412,7 +421,9 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
         }
       }
       else if (root instanceof AndroidDexBuildTarget.MyJarBuildRootDescriptor) {
-        if (!((AndroidDexBuildTarget.MyJarBuildRootDescriptor)root).isLibPackage()) {
+        final AndroidDexBuildTarget.MyJarBuildRootDescriptor jarRoot =
+          (AndroidDexBuildTarget.MyJarBuildRootDescriptor)root;
+        if (!jarRoot.isLibPackage() && !jarRoot.isPreDexed()) {
           externalJars.add(rootFile.getPath());
         }
       }
