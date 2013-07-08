@@ -103,7 +103,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
       assertEquals(myProjectRootDir.getAbsolutePath(), project.getBasePath());
 
       // Verify that '.idea' directory was created.
-      File ideaProjectDir = new File(myProjectRootDir, ".idea");
+      File ideaProjectDir = new File(myProjectRootDir, Project.DIRECTORY_STORE_FOLDER);
       assertTrue(ideaProjectDir.isDirectory());
 
       // Verify that module was created.
