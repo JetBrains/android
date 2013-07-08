@@ -1386,6 +1386,11 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     // TODO
   }
 
+  @Nullable
+  @Override
+  public BufferedImage getRenderedImage() {
+    return myRootView != null ? myRootView.getImage() : null;
+  }
 
   @Override
   @NotNull

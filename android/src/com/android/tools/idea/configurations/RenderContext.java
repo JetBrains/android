@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -23,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 /**
  * A {@link RenderContext} can provide an optional configuration.
@@ -170,6 +172,10 @@ public interface RenderContext {
    * @param on whether device frames should be enabled or not
    */
   void setDeviceFramesEnabled(boolean on);
+
+  /** Returns the most recent rendered image, if any */
+  @Nullable
+  BufferedImage getRenderedImage();
 
   /**
    * Types of uses of the {@link com.android.tools.idea.rendering.RenderService} which can drive some decisions, such as how and whether
