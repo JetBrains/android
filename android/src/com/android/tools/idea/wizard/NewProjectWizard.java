@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.gradle.GradleProjectImporter;
+import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.io.Closeables;
@@ -117,6 +119,8 @@ public class NewProjectWizard extends TemplateWizard {
           File moduleRoot = new File(projectRoot, projectName);
           projectRoot.mkdirs();
           createGradleWrapper(projectRoot);
+          Sdk sdk = getSdk((Integer)myWizardState.get(ATTR_BUILD_API));
+          LocalProperties.createFile(new File(projectRoot, SdkConstants.FN_LOCAL_PROPERTIES), sdk);
           if ((Boolean)myWizardState.get(TemplateMetadata.ATTR_CREATE_ICONS)) {
             myWizardState.getLauncherIconState().outputImages(moduleRoot);
           }
@@ -126,7 +130,6 @@ public class NewProjectWizard extends TemplateWizard {
             myWizardState.getActivityTemplateState().getTemplate()
               .render(moduleRoot, moduleRoot, myWizardState.getActivityTemplateState().myParameters);
           }
-          Sdk sdk = getSdk((Integer)myWizardState.get(ATTR_BUILD_API));
           GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
           projectImporter.importProject(projectName, projectRoot, sdk, null);
         }
