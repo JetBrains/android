@@ -19,6 +19,7 @@ import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -37,6 +38,16 @@ import static com.android.tools.idea.templates.Template.TEMPLATE_XML;
  */
 public class TemplateManager {
   private static final Logger LOG = Logger.getInstance("#" + TemplateManager.class.getName());
+
+  /**
+   * A directory relative to application home folder where we can find an extra template folder. This lets us ship more up-to-date
+   * templates with the application instead of waiting for SDK updates.
+   */
+  private static final String BUNDLED_TEMPLATE_PATH = "templates";
+
+  /** Java system property that overrides {@link #BUNDLED_TEMPLATE_PATH} + application home folder to specify the directory directly */
+  private static final String BUNDLED_TEMPLATE_PATH_PROPERTY = "android.extra_templates.path";
+
   /**
    * Cache for {@link #getTemplate()}
    */
@@ -99,6 +110,24 @@ public class TemplateManager {
       }
     }
 
+    String bundledTemplatePath = System.getProperty(BUNDLED_TEMPLATE_PATH_PROPERTY);
+    if (bundledTemplatePath == null) {
+      String studioHome = PathManager.getHomePath();
+      if (studioHome != null) {
+        try {
+          bundledTemplatePath = new File(studioHome, BUNDLED_TEMPLATE_PATH).getCanonicalPath();
+        }
+        catch (IOException e) {
+          LOG.warn("Unable to find bundled template path", e);
+        }
+      }
+    }
+    if (bundledTemplatePath != null) {
+      File bundledTemplateDir = new File(bundledTemplatePath);
+      if (bundledTemplateDir.isDirectory()) {
+        folders.add(bundledTemplateDir);
+      }
+    }
     return folders;
   }
 
