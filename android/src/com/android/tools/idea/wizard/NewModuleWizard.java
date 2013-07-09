@@ -121,13 +121,7 @@ public class NewModuleWizard extends TemplateWizard {
           }
           GradleProjectImporter.getInstance().reImportProject(myProject);
         } catch (Exception e) {
-          String title;
-          if (e instanceof ConfigurationException) {
-            title = ((ConfigurationException)e).getTitle();
-          } else {
-            title = "New Module Wizard";
-          }
-          Messages.showErrorDialog(e.getMessage(), title);
+          Messages.showErrorDialog(e.getMessage(), "New Module Wizard");
           LOG.error(e);
         }
       }

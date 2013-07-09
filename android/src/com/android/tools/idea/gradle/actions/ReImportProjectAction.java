@@ -22,18 +22,13 @@ import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Re-imports an Android-Gradle project, without showing the "Import Project" wizard.
  */
 public class ReImportProjectAction extends AnAction {
-  private static final Logger LOG = Logger.getInstance(ReImportProjectAction.class);
-
   public ReImportProjectAction() {
     super("Sync Project with Gradle Files");
   }
@@ -41,17 +36,13 @@ public class ReImportProjectAction extends AnAction {
   @Override
   public void actionPerformed(final AnActionEvent e) {
     Project project = e.getProject();
-    if (isGradleProject(project)) {
+    if (project != null && isGradleProject(project)) {
       GradleImportNotificationListener.detachFromManager();
       BuildVariantView.getInstance(project).projectImportStarted();
       Presentation presentation = e.getPresentation();
       presentation.setEnabled(false);
       try {
         GradleProjectImporter.getInstance().reImportProject(project);
-      }
-      catch (ConfigurationException ex) {
-        Messages.showErrorDialog(ex.getMessage(), ex.getTitle());
-        LOG.error(ex);
       }
       finally {
         GradleImportNotificationListener.attachToManager();

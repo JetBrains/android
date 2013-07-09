@@ -99,9 +99,8 @@ public class GradleProjectImporter {
    * Re-imports an existing Android-Gradle project.
    *
    * @param project the given project. This method does nothing if the project is not an Android-Gradle project.
-   * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
    */
-  public void reImportProject(@NotNull Project project) throws ConfigurationException {
+  public void reImportProject(@NotNull Project project) {
     if (Projects.isGradleProject(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
       ExternalSystemUtil.refreshProjects(project, GradleConstants.SYSTEM_ID, true);
