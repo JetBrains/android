@@ -137,6 +137,7 @@ public class AndroidUtils {
   @NonNls public static final String ANDROID_LIBRARY_PROPERTY = "android.library";
   @NonNls public static final String ANDROID_MANIFEST_MERGER_PROPERTY = "manifestmerger.enabled";
   @NonNls public static final String ANDROID_DEX_DISABLE_MERGER = "dex.disable.merger";
+  @NonNls public static final String ANDROID_DEX_FORCE_JUMBO_PROPERTY = "dex.force.jumbo";
   @NonNls public static final String ANDROID_TARGET_PROPERTY = "target";
   @NonNls public static final String ANDROID_LIBRARY_REFERENCE_PROPERTY_PREFIX = "android.library.reference.";
   @NonNls public static final String TAG_LINEAR_LAYOUT = "LinearLayout";

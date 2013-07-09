@@ -19,10 +19,15 @@ import com.android.SdkConstants;
 import com.intellij.facet.FacetType;
 import com.intellij.framework.detection.FacetBasedFrameworkDetector;
 import com.intellij.framework.detection.FileContentPattern;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationListener;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -34,14 +39,20 @@ import com.intellij.util.indexing.FileContent;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.importDependencies.ImportDependenciesUtil;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.event.HyperlinkEvent;
 
 /**
  * @author nik
  */
 public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<AndroidFacet, AndroidFacetConfiguration> {
+  private static final NotificationGroup ANDROID_MODULE_IMPORTING_NOTIFICATION =
+    NotificationGroup.balloonGroup("Android Module Importing");
+
   public AndroidFrameworkDetector() {
     super("android");
   }
@@ -86,13 +97,34 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
 
     if (androidLibraryProp != null && Boolean.parseBoolean(androidLibraryProp.getFirst())) {
       facet.getProperties().LIBRARY_PROJECT = true;
+      return;
     }
-    else {
-      Manifest manifest = facet.getManifest();
-      if (manifest != null) {
-        if (AndroidUtils.getDefaultActivityName(manifest) != null) {
-          AndroidUtils.addRunConfiguration(facet, null, false, null, null);
+    final Pair<String,VirtualFile> dexForceJumboProp =
+      AndroidRootUtil.getProjectPropertyValue(module, AndroidUtils.ANDROID_DEX_FORCE_JUMBO_PROPERTY);
+    if (dexForceJumboProp != null) {
+      final Project project = module.getProject();
+      final Notification notification = ANDROID_MODULE_IMPORTING_NOTIFICATION.createNotification(
+        AndroidBundle.message("android.facet.importing.title", module.getName()),
+        "'" + AndroidUtils.ANDROID_DEX_FORCE_JUMBO_PROPERTY +
+        "' property is detected in " + SdkConstants.FN_PROJECT_PROPERTIES +
+        " file.<br>You may configure jumbo mode in <a href='configure'>Settings | Compiler | Android DX</a>",
+        NotificationType.INFORMATION, new NotificationListener() {
+        @Override
+        public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
+          if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+            notification.expire();
+            ShowSettingsUtil.getInstance().showSettingsDialog(
+              project, AndroidBundle.message("android.dex.compiler.configurable.display.name"));
+          }
         }
+      });
+      notification.notify(project);
+    }
+
+    Manifest manifest = facet.getManifest();
+    if (manifest != null) {
+      if (AndroidUtils.getDefaultActivityName(manifest) != null) {
+        AndroidUtils.addRunConfiguration(facet, null, false, null, null);
       }
     }
   }

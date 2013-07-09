@@ -17,4 +17,8 @@ public interface JpsAndroidDexCompilerConfiguration extends JpsElement {
   boolean isOptimize();
 
   void setOptimize(boolean value);
+
+  boolean isForceJumbo();
+
+  void setForceJumbo(boolean value);
 }
