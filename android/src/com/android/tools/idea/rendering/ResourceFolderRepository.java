@@ -1366,9 +1366,10 @@ public final class ResourceFolderRepository extends ProjectResources {
       if (psiFile != null && isRelevantFile(psiFile)) {
         VirtualFile file = psiFile.getVirtualFile();
         if (file != null) {
-          Throwable throwable = new Throwable();
-          throwable.fillInStackTrace();
-          LOG.debug("Received unexpected childrenChanged event in file " + psiFile, throwable);
+          ResourceFolderType folderType = getFolderType(psiFile);
+          if (folderType != null && isResourceFile(psiFile)) {
+            rescan(psiFile, folderType);
+          }
         }
       } else {
         Throwable throwable = new Throwable();
