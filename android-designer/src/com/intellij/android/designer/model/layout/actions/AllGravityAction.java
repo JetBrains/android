@@ -47,12 +47,15 @@ public class AllGravityAction extends AbstractGravityAction<Gravity> {
   @NotNull
   @Override
   protected DefaultActionGroup createPopupActionGroup(JComponent button) {
-    Iterator<? extends RadViewComponent> I = myComponents.iterator();
-    int flags = Gravity.getFlags(I.next());
-    while (I.hasNext()) {
-      if (flags != Gravity.getFlags(I.next())) {
-        flags = 0;
-        break;
+    Iterator<? extends RadViewComponent> iterator = myComponents.iterator();
+    int flags = 0;
+    if (iterator.hasNext()) {
+      flags = Gravity.getFlags(iterator.next());
+      while (iterator.hasNext()) {
+        if (flags != Gravity.getFlags(iterator.next())) {
+          flags = 0;
+          break;
+        }
       }
     }
     mySelection = Gravity.flagToValues(flags);
