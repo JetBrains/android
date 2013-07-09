@@ -33,6 +33,7 @@ public class AndroidDexCompilerConfiguration implements PersistentStateComponent
   public String VM_OPTIONS = "";
   public int MAX_HEAP_SIZE = 1024;
   public boolean OPTIMIZE = true;
+  public boolean FORCE_JUMBO = false;
 
   @Override
   public AndroidDexCompilerConfiguration getState() {

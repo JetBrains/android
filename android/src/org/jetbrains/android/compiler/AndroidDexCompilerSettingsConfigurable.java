@@ -38,6 +38,7 @@ public class AndroidDexCompilerSettingsConfigurable implements SearchableConfigu
   private JLabel myVmOptionsLabel;
   private RawCommandLineEditor myVmOptionsEditor;
   private JBCheckBox myOptimizeCheckBox;
+  private JBCheckBox myJumboModeCheckBox;
 
   public AndroidDexCompilerSettingsConfigurable(Project project) {
     myConfig = AndroidDexCompilerConfiguration.getInstance(project);
@@ -66,7 +67,8 @@ public class AndroidDexCompilerSettingsConfigurable implements SearchableConfigu
     int maxHeapSize = ((Integer)myHeapSizeSpinner.getValue()).intValue();
     return maxHeapSize != myConfig.MAX_HEAP_SIZE ||
            !myVmOptionsEditor.getText().equals(myConfig.VM_OPTIONS) ||
-           myOptimizeCheckBox.isSelected() != myConfig.OPTIMIZE;
+           myOptimizeCheckBox.isSelected() != myConfig.OPTIMIZE ||
+           myJumboModeCheckBox.isSelected() != myConfig.FORCE_JUMBO;
   }
 
   @Override
@@ -74,6 +76,7 @@ public class AndroidDexCompilerSettingsConfigurable implements SearchableConfigu
     myConfig.MAX_HEAP_SIZE = ((Integer)myHeapSizeSpinner.getValue()).intValue();
     myConfig.VM_OPTIONS = myVmOptionsEditor.getText();
     myConfig.OPTIMIZE = myOptimizeCheckBox.isSelected();
+    myConfig.FORCE_JUMBO = myJumboModeCheckBox.isSelected();
   }
 
   @Override
@@ -81,6 +84,7 @@ public class AndroidDexCompilerSettingsConfigurable implements SearchableConfigu
     myHeapSizeSpinner.setModel(new SpinnerNumberModel(myConfig.MAX_HEAP_SIZE, 1, 10000000, 1));
     myVmOptionsEditor.setText(myConfig.VM_OPTIONS);
     myOptimizeCheckBox.setSelected(myConfig.OPTIMIZE);
+    myJumboModeCheckBox.setSelected(myConfig.FORCE_JUMBO);
   }
 
   @Override
