@@ -78,7 +78,7 @@ class LibraryDependency {
     if (libraryInfo == null) {
       libraryInfo = projectInfo.createChild(ProjectKeys.LIBRARY, myLibraryData);
     }
-    LibraryDependencyData dependencyInfo = new LibraryDependencyData(moduleInfo.getData(), libraryInfo.getData());
+    LibraryDependencyData dependencyInfo = new LibraryDependencyData(moduleInfo.getData(), libraryInfo.getData(), LibraryLevel.PROJECT);
     dependencyInfo.setScope(myScope);
     moduleInfo.createChild(ProjectKeys.LIBRARY_DEPENDENCY, dependencyInfo);
   }
