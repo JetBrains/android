@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.gradle.GradleImportNotificationListener;
+import com.android.tools.idea.gradle.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.intellij.ProjectTopics;
@@ -82,6 +83,8 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
         messageBus.syncPublisher(ExternalBuildOptionListener.TOPIC).externalBuildOptionChanged(workspaceConfiguration.USE_COMPILE_SERVER);
       }
     }
+
+    GradleProjectImporter.getInstance().reImportProject(myProject);
   }
 
   @Override
