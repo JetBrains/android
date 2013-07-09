@@ -62,11 +62,11 @@ public class GradleProjectImporterTest extends IdeaTestCase {
 
     GradleProjectImporter.ImporterDelegate delegate = new GradleProjectImporter.ImporterDelegate() {
       @Override
-      void importProject(@NotNull Project newProject, @NotNull String projectFilePath, @NotNull ExternalProjectRefreshCallback callback)
+      void importProject(@NotNull Project newProject, @NotNull String projectPath, @NotNull ExternalProjectRefreshCallback callback)
         throws ConfigurationException {
         assertNotNull(newProject);
         assertEquals(myProjectName, newProject.getName());
-        assertEquals(configPath, projectFilePath);
+        assertEquals(configPath, projectPath);
 
         callback.onSuccess(myProjectInfo);
       }
