@@ -60,7 +60,7 @@ public class TemplateMetadata {
   public static final String ATTR_GRADLE_VERSION = "gradleVersion";
 
   public static final String V4_SUPPORT_LIBRARY_VERSION = "13.0.+";
-  public static final String GRADLE_PLUGIN_VERSION = "0.4.+";
+  public static final String GRADLE_PLUGIN_VERSION = "0.5.+";
   public static final String GRADLE_VERSION = BasePlugin.GRADLE_MIN_VERSION;
   public static final String GRADLE_DISTRIBUTION_URL = "http://services.gradle.org/distributions/gradle-" +
                                                        GRADLE_VERSION + "-bin.zip";
