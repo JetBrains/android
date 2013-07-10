@@ -38,8 +38,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+import static com.android.SdkConstants.*;
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME;
 
 /**
  * NewProjectWizard runs the wizard for creating entirely new Android projects. It takes the user
@@ -50,6 +52,8 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
 public class NewProjectWizard extends TemplateWizard {
   private static final Logger LOG = Logger.getInstance("#" + NewProjectWizard.class.getName());
   private static final String ATTR_GRADLE_DISTRIBUTION_URL = "distributionUrl";
+  private static final String JAVA_SRC_PATH =
+      FD_SOURCES + File.separator + FD_MAIN + File.separator + FD_JAVA;
 
   private NewProjectWizardState myWizardState;
   private ConfigureAndroidModuleStep myConfigureAndroidModuleStep;
@@ -120,7 +124,7 @@ public class NewProjectWizard extends TemplateWizard {
           projectRoot.mkdirs();
           createGradleWrapper(projectRoot);
           Sdk sdk = getSdk((Integer)myWizardState.get(ATTR_BUILD_API));
-          LocalProperties.createFile(new File(projectRoot, SdkConstants.FN_LOCAL_PROPERTIES), sdk);
+          LocalProperties.createFile(new File(projectRoot, FN_LOCAL_PROPERTIES), sdk);
           if ((Boolean)myWizardState.get(TemplateMetadata.ATTR_CREATE_ICONS)) {
             myWizardState.getLauncherIconState().outputImages(moduleRoot);
           }
@@ -129,6 +133,13 @@ public class NewProjectWizard extends TemplateWizard {
           if ((Boolean)myWizardState.get(NewProjectWizardState.ATTR_CREATE_ACTIVITY)) {
             myWizardState.getActivityTemplateState().getTemplate()
               .render(moduleRoot, moduleRoot, myWizardState.getActivityTemplateState().myParameters);
+          } else {
+            // Ensure that at least the Java source directory exists. We could create other directories but this is the most used.
+            // TODO: We should perhaps instantiate this from the Freemarker template, but trying to use the copy command to copy
+            // empty directories is problematic, and we don't have a primitive command to create a directory.
+            File javaSrcDir = new File(moduleRoot, JAVA_SRC_PATH);
+            File packageDir = new File(javaSrcDir, ((String)myWizardState.get(ATTR_PACKAGE_NAME)).replaceAll("\\.", File.separator));
+            packageDir.mkdirs();
           }
           GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
           projectImporter.importProject(projectName, projectRoot, sdk, null);
