@@ -28,8 +28,6 @@ import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceTyp
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.util.io.FileUtil;
@@ -56,7 +54,7 @@ public class ProjectResolverTest extends TestCase {
   private ProjectConnection myConnection;
   private GradleExecutionHelperDouble myHelper;
   private GradleExecutionSettings mySettings;
-  private ProjectResolver myStrategy;
+  private ProjectResolver myProjectResolver;
   private IdeaModuleStub myUtilModule;
 
   @Override
@@ -71,7 +69,7 @@ public class ProjectResolverTest extends TestCase {
     myConnection = createMock(ProjectConnection.class);
     myHelper = GradleExecutionHelperDouble.newMock();
     mySettings = createMock(GradleExecutionSettings.class);
-    myStrategy = new ProjectResolver(myHelper);
+    myProjectResolver = new ProjectResolver(myHelper);
   }
 
   @Override
@@ -98,8 +96,8 @@ public class ProjectResolverTest extends TestCase {
     replay(myConnection, myHelper, ideaProjectModelBuilder);
 
     // Code under test.
-    String projectPath = myIdeaProject.getBuildFile().getAbsolutePath();
-    DataNode<ProjectData> projectInfo = myStrategy.resolveProjectInfo(myId, projectPath, mySettings, myConnection, NULL_OBJECT);
+    String projectPath = myIdeaProject.getBuildFile().getParentFile().getPath();
+    DataNode<ProjectData> projectInfo = myProjectResolver.resolveProjectInfo(myId, projectPath, mySettings, myConnection, NULL_OBJECT);
 
     // Verify mock expectations.
     verify(myConnection, myHelper, ideaProjectModelBuilder);

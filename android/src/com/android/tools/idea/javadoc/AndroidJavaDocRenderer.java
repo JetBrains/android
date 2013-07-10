@@ -17,11 +17,7 @@
 package com.android.tools.idea.javadoc;
 
 import com.android.SdkConstants;
-import com.android.build.gradle.model.AndroidProject;
-import com.android.build.gradle.model.BuildTypeContainer;
-import com.android.build.gradle.model.ProductFlavorContainer;
-import com.android.build.gradle.model.Variant;
-import com.android.builder.model.SourceProvider;
+import com.android.builder.model.*;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;

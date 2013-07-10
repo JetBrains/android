@@ -17,8 +17,9 @@ package org.jetbrains.android.facet;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
-import com.android.build.gradle.model.Variant;
+import com.android.builder.model.ArtifactInfo;
 import com.android.builder.model.SourceProvider;
+import com.android.builder.model.Variant;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.prefs.AndroidLocation;
@@ -1056,8 +1057,12 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     if (myIdeaAndroidProject != null) {
       Variant variant = myIdeaAndroidProject.getSelectedVariant();
       JpsAndroidModuleProperties state = getConfiguration().getState();
-      state.ASSEMBLE_TASK_NAME = variant.getAssembleTaskName();
-      state.ASSEMBLE_TEST_TASK_NAME = variant.getAssembleTestTaskName();
+
+      state.ASSEMBLE_TASK_NAME = variant.getMainArtifactInfo().getAssembleTaskName();
+
+      ArtifactInfo testArtifactInfo = variant.getTestArtifactInfo();
+      state.ASSEMBLE_TEST_TASK_NAME = testArtifactInfo != null ? testArtifactInfo.getAssembleTaskName() : "";
+
       state.SELECTED_BUILD_VARIANT = variant.getName();
     }
   }

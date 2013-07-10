@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle;
+package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -62,11 +62,10 @@ public class GradleProjectImporterTest extends IdeaTestCase {
 
     GradleProjectImporter.ImporterDelegate delegate = new GradleProjectImporter.ImporterDelegate() {
       @Override
-      void importProject(@NotNull Project newProject, @NotNull String projectPath, @NotNull ExternalProjectRefreshCallback callback)
+      void importProject(@NotNull Project project, @NotNull ExternalProjectRefreshCallback callback, boolean modal)
         throws ConfigurationException {
-        assertNotNull(newProject);
-        assertEquals(myProjectName, newProject.getName());
-        assertEquals(configPath, projectPath);
+        assertNotNull(project);
+        assertEquals(myProjectName, project.getName());
 
         callback.onSuccess(myProjectInfo);
       }

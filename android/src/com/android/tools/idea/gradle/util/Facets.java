@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetTypeId;
-import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;

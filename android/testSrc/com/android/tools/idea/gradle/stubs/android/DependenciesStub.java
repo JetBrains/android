@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
-import com.android.build.gradle.model.Dependencies;
+import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.Dependencies;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,13 +27,14 @@ import java.util.List;
 public class DependenciesStub implements Dependencies {
   @NotNull private final List<AndroidLibrary> myLibraries = Lists.newArrayList();
   @NotNull private final List<File> myJars = Lists.newArrayList();
+  @NotNull private final List<String> myProjects = Lists.newArrayList();
 
   public void addLibrary(@NotNull AndroidLibraryStub library) {
     myLibraries.add(library);
   }
 
-  @NotNull
   @Override
+  @NotNull
   public List<AndroidLibrary> getLibraries() {
     return myLibraries;
   }
@@ -41,15 +43,19 @@ public class DependenciesStub implements Dependencies {
     myJars.add(jar);
   }
 
-  @NotNull
   @Override
+  @NotNull
   public List<File> getJars() {
     return myJars;
   }
 
-  @NotNull
+  public void addProject(@NotNull String project) {
+    myProjects.add(project);
+  }
+
+  @NonNull
   @Override
-  public List<String> getProjectDependenciesPath() {
-    throw new UnsupportedOperationException();
+  public List<String> getProjects() {
+    return myProjects;
   }
 }
