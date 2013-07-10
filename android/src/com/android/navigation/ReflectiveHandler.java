@@ -20,7 +20,6 @@ import com.android.annotations.Property;
 import org.xml.sax.*;
 import org.xml.sax.Locator;
 import org.xml.sax.helpers.DefaultHandler;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -36,22 +35,37 @@ class ReflectiveHandler extends DefaultHandler {
 
   private final List<String> packagesImports = new ArrayList<String>(DEFAULT_PACKAGES);
   private final List<String> classImports = new ArrayList<String>(DEFAULT_CLASSES);
-  private final ErrorHandler errorHandler;
+  private final MyErrorHandler errorHandler;
   private final Stack<ElementInfo> stack = new Stack<ElementInfo>();
   private final Map<String, Object> idToValue = new HashMap<String, Object>();
   private final Map<Class, Constructor> classToConstructor = new IdentityHashMap<Class, Constructor>();
   private final Map<Constructor, String[]> constructorToParameterNames = new IdentityHashMap<Constructor, String[]>();
-
-  private Locator documentLocator;
   public Object result;
 
+  static class MyErrorHandler {
+    final ErrorHandler errorHandler;
+    Locator documentLocator;
+
+    MyErrorHandler(ErrorHandler errorHandler) {
+      this.errorHandler = errorHandler;
+    }
+
+    void handleWarning(Exception e) throws SAXException {
+      errorHandler.warning(new SAXParseException(e.getMessage(), documentLocator, e));
+    }
+
+    void handleError(Exception e) throws SAXException {
+      errorHandler.error(new SAXParseException(e.getMessage(), documentLocator, e));
+    }
+  }
+
   public ReflectiveHandler(ErrorHandler errorHandler) {
-    this.errorHandler = errorHandler;
+    this.errorHandler = new MyErrorHandler(errorHandler);
   }
 
   @Override
   public void setDocumentLocator(Locator documentLocator) {
-    this.documentLocator = documentLocator;
+    errorHandler.documentLocator = documentLocator;
   }
 
   private void processNameSpace(String nameSpace) {
@@ -210,13 +224,6 @@ class ReflectiveHandler extends DefaultHandler {
     void setValue(Object value) {
       this.value = value;
     }
-
-    @Override
-    public String toString() {
-      return "LazyValue{" +
-             "value=" + (value == UNSET ? "<UNSET>" : value) +
-             '}';
-    }
   }
 
   static class ElementInfo {
@@ -226,7 +233,6 @@ class ReflectiveHandler extends DefaultHandler {
     public Map<String, String> attributes;
     public List<ElementInfo> elements = new ArrayList<ElementInfo>();
     private LazyValue lazyValue = new LazyValue();
-
 
     public Object getValue() throws SAXException {
       return lazyValue.getValue();
@@ -239,6 +245,59 @@ class ReflectiveHandler extends DefaultHandler {
     public void setEvaluator(Evaluator evaluator) {
       lazyValue.setEvaluator(evaluator);
     }
+
+    private void installAttributes(MyErrorHandler errorHandler, String[] constructorParameterNames) throws SAXException {
+      for (Map.Entry<String, String> entry : attributes.entrySet()) {
+        String attributeName = entry.getKey();
+        if (Utilities.RESERVED_ATTRIBUTES.contains(attributeName) || Utilities.contains(constructorParameterNames, attributeName)) {
+          continue;
+        }
+        try {
+          Method setter = getSetter(type, attributeName);
+          Class argType = Utilities.wrapperForPrimitiveType(setter.getParameterTypes()[0]);
+          setter.invoke(getValue(), valueFor(argType, entry.getValue()));
+        }
+        catch (NoSuchMethodException e) {
+          errorHandler.handleWarning(e);
+        }
+        catch (IllegalAccessException e) {
+          errorHandler.handleWarning(e);
+        }
+        catch (InvocationTargetException e) {
+          errorHandler.handleWarning(e);
+        }
+        catch (InstantiationException e) {
+          errorHandler.handleWarning(e);
+        }
+      }
+    }
+
+    private void installSubElements(MyErrorHandler errorHandler) throws SAXException {
+      for (ElementInfo element : elements) {
+        if (element.myValueAlreadySetInOuter) {
+          continue;
+        }
+        try {
+          Object outerValue = getValue();
+          if (!(Collection.class.isAssignableFrom(type))) { // todo remove Collection check
+            getSetter(outerValue.getClass(), element.name).invoke(outerValue, element.getValue());
+          }
+          else {
+            applyMethod(outerValue, "add", element.getValue());
+          }
+        }
+        catch (NoSuchMethodException e) {
+          errorHandler.handleError(e);
+        }
+        catch (IllegalAccessException e) {
+          errorHandler.handleError(e);
+        }
+        catch (InvocationTargetException e) {
+          errorHandler.handleError(e);
+        }
+      }
+    }
+
   }
 
   private static void applyMethod(Object target, String methodName, Object parameter)
@@ -254,14 +313,6 @@ class ReflectiveHandler extends DefaultHandler {
         }
       }
     }
-  }
-
-  private void handleWarning(Exception e) throws SAXException {
-    errorHandler.warning(new SAXParseException(e.getMessage(), documentLocator, e));
-  }
-
-  private void handleError(Exception e) throws SAXException {
-    errorHandler.error(new SAXParseException(e.getMessage(), documentLocator, e));
   }
 
   private static Method getGetter(Class<?> type, String propertyName) throws NoSuchMethodException {
@@ -280,33 +331,6 @@ class ReflectiveHandler extends DefaultHandler {
       return EMPTY_STRING_ARRAY;
     }
     return getParameterNames(getConstructor(type));
-  }
-
-  private void setProperties(ElementInfo elementInfo) throws SAXException {
-    String[] constructorParameterNames = getConstructorParameterNames(elementInfo.type);
-    for (Map.Entry<String, String> entry : elementInfo.attributes.entrySet()) {
-      String attributeName = entry.getKey();
-      if (Utilities.RESERVED_ATTRIBUTES.contains(attributeName) || Utilities.contains(constructorParameterNames, attributeName)) {
-        continue;
-      }
-      try {
-        Method setter = getSetter(elementInfo.type, attributeName);
-        Class argType = Utilities.wrapperForPrimitiveType(setter.getParameterTypes()[0]);
-        setter.invoke(elementInfo.getValue(), valueFor(argType, entry.getValue()));
-      }
-      catch (NoSuchMethodException e) {
-        handleWarning(e);
-      }
-      catch (IllegalAccessException e) {
-        handleWarning(e);
-      }
-      catch (InvocationTargetException e) {
-        handleWarning(e);
-      }
-      catch (InstantiationException e) {
-        handleWarning(e);
-      }
-    }
   }
 
   @Override
@@ -383,10 +407,10 @@ class ReflectiveHandler extends DefaultHandler {
       stack.push(elementInfo);
     }
     catch (ClassNotFoundException e) {
-      handleError(e);
+      errorHandler.handleError(e);
     }
     catch (NoSuchMethodException e) {
-      handleError(e);
+      errorHandler.handleError(e);
     }
   }
 
@@ -432,33 +456,11 @@ class ReflectiveHandler extends DefaultHandler {
   @Override
   public void endElement(String uri, String localName, String qName) throws SAXException {
     ElementInfo elementInfo = stack.pop();
-    try {
-      result = elementInfo.getValue();
-      setProperties(elementInfo);
-      for (ElementInfo element : elementInfo.elements) {
-        if (element.myValueAlreadySetInOuter) {
-          continue;
-        }
-        Object outerValue = elementInfo.getValue();
-        if (!(Collection.class.isAssignableFrom(elementInfo.type))) { // todo remove Collection check
-          getSetter(outerValue.getClass(), element.name).invoke(outerValue, element.getValue());
-        }
-        else {
-          applyMethod(outerValue, "add", element.getValue());
-        }
-      }
-      if (stack.size() != 0) {
-        stack.getLast().elements.add(elementInfo);
-      }
-    }
-    catch (NoSuchMethodException e) {
-      handleError(e);
-    }
-    catch (IllegalAccessException e) {
-      handleError(e);
-    }
-    catch (InvocationTargetException e) {
-      handleError(e);
+    result = elementInfo.getValue();
+    elementInfo.installAttributes(errorHandler, getConstructorParameterNames(elementInfo.type));
+    elementInfo.installSubElements(errorHandler);
+    if (stack.size() != 0) {
+      stack.getLast().elements.add(elementInfo);
     }
   }
 }
