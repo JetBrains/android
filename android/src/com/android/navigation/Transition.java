@@ -16,14 +16,13 @@
 package com.android.navigation;
 
 import com.android.annotations.Property;
-import com.android.annotations.Nullable;
 
 public class Transition {
   private String type;
-  private Locator source;
-  private Locator destination;
+  private final Locator source;
+  private final Locator destination;
 
-  private Transition(@Property("gesture")    String type,
+  public Transition(@Property("type")        String type,
                     @Property("source")      Locator source,
                     @Property("destination") Locator destination) {
     this.type = type;
@@ -31,10 +30,8 @@ public class Transition {
     this.destination = destination;
   }
 
-  public Transition(@Property("gesture")     String type,
-                    @Property("source")      State source,
-                    @Property("destination") State destination) {
-    this(type, new Locator(source), new Locator(destination));
+  public static Transition of(String type, State source, State destination) {
+    return new Transition(type, new Locator(source), new Locator(destination));
   }
 
   public String getType() {
@@ -49,24 +46,7 @@ public class Transition {
     return source;
   }
 
-  public void setSource(Locator source) {
-    this.source = source;
-  }
-
   public Locator getDestination() {
     return destination;
-  }
-
-  public void setDestination(Locator destination) {
-    this.destination = destination;
-  }
-
-  @Override
-  public String toString() {
-    return "Navigation{" +
-           "source='" + source + '\'' +
-           ", gesture='" + type + '\'' +
-           ", destination='" + destination + '\'' +
-           '}';
   }
 }
