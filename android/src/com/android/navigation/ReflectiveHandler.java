@@ -15,6 +15,7 @@
  */
 package com.android.navigation;
 
+import com.android.annotations.Nullable;
 import com.android.annotations.Property;
 import org.xml.sax.*;
 import org.xml.sax.Locator;
@@ -88,16 +89,14 @@ class ReflectiveHandler extends DefaultHandler {
     throw new ClassNotFoundException("Could not find class for tag: " + tag);
   }
 
-  private static class PropertyAnnotationNotFoundException extends Exception {
-  }
-
-  private static String getName(Annotation[] parameterAnnotation) throws PropertyAnnotationNotFoundException {
+  @Nullable
+  private static String getName(Annotation[] parameterAnnotation) {
     for (Annotation a : parameterAnnotation) {
       if (a instanceof Property) {
         return ((Property)a).value();
       }
     }
-    throw new PropertyAnnotationNotFoundException();
+    return null;
   }
 
   private static Object valueFor(Class<?> type, String stringValue)
@@ -111,7 +110,7 @@ class ReflectiveHandler extends DefaultHandler {
     return type.getConstructor(String.class).newInstance(stringValue);
   }
 
-  private static String[] findParameterNames(Constructor constructor) throws PropertyAnnotationNotFoundException {
+  private static String[] findParameterNames(@Nullable Constructor constructor) {
     if (constructor == null) {
       return EMPTY_STRING_ARRAY;
     }
@@ -123,6 +122,7 @@ class ReflectiveHandler extends DefaultHandler {
     return result;
   }
 
+  @Nullable
   private static Constructor findConstructor(Class clz) {
     Constructor[] constructors = clz.getConstructors();
     Arrays.sort(constructors, new Comparator<Constructor>() {
@@ -140,6 +140,7 @@ class ReflectiveHandler extends DefaultHandler {
     return null;
   }
 
+  @Nullable
   private Constructor getConstructor(Class clazz) {
     Constructor result = classToConstructor.get(clazz);
     if (result == null) {
@@ -148,15 +149,10 @@ class ReflectiveHandler extends DefaultHandler {
     return result;
   }
 
-  private String[] getParameterNames(Constructor constructor) {
+  private String[] getParameterNames(@Nullable Constructor constructor) {
     String[] result = constructorToParameterNames.get(constructor);
     if (result == null) {
-      try {
-        constructorToParameterNames.put(constructor, result = findParameterNames(constructor));
-      }
-      catch (PropertyAnnotationNotFoundException e) {
-        throw new RuntimeException(e); // todo remove
-      }
+      constructorToParameterNames.put(constructor, result = findParameterNames(constructor));
     }
     return result;
   }
@@ -338,6 +334,9 @@ class ReflectiveHandler extends DefaultHandler {
             Object evaluate() throws SAXException {
               try {
                 Constructor constructor = getConstructor(elementInfo.type);
+                if (constructor == null) {
+                  throw new SAXException("No Constructor found for " + elementInfo.name);
+                }
                 // note info.elements is changing under our feet
                 return constructor.newInstance(getParameterValues(constructor, elementInfo.attributes, elementInfo.elements));
               }
@@ -351,7 +350,7 @@ class ReflectiveHandler extends DefaultHandler {
                 throw new SAXException(e);
               }
               catch (InstantiationException e) {
-                throw new RuntimeException(e);
+                throw new SAXException(e);
               }
             }
           });
@@ -391,6 +390,21 @@ class ReflectiveHandler extends DefaultHandler {
     }
   }
 
+  @Nullable
+  private Class getConstructorParameterType(@Nullable Constructor constructor, String name) {
+    if (constructor != null) {
+      String[] parameterNames = getParameterNames(constructor);
+      Class[] parameterTypes = constructor.getParameterTypes();
+      for (int i = 0; i < parameterNames.length; i++) {
+        if (parameterNames[i].equals(name)) {
+          return parameterTypes[i];
+        }
+      }
+    }
+    return null;
+  }
+
+  @Nullable
   private Class getType(String qName, String className) throws ClassNotFoundException {
     if (className != null) {
       return getClass().getClassLoader().loadClass(className);
@@ -402,22 +416,13 @@ class ReflectiveHandler extends DefaultHandler {
       catch (ClassNotFoundException e) {
         Class outerType = stack.getLast().type;
         try {
-          Method setter = getSetter(outerType, qName);
-          return setter.getParameterTypes()[0];
+          return getSetter(outerType, qName).getParameterTypes()[0];
         }
         catch (NoSuchMethodException e1) {
-          Constructor constructor = getConstructor(outerType);
-          String[] parameterNames = getParameterNames(constructor);
-          Class[] parameterTypes = constructor.getParameterTypes();
-          for (int i = 0; i < parameterNames.length; i++) {
-            if (parameterNames[i].equals(qName)) {
-              return parameterTypes[i];
-            }
-          }
+          return getConstructorParameterType(getConstructor(outerType), qName);
         }
       }
     }
-    return null;
   }
 
   @Override
