@@ -15,20 +15,14 @@
  */
 package com.android.tools.idea.gradle.model;
 
-import com.android.build.gradle.model.AndroidProject;
-import com.android.build.gradle.model.BuildTypeContainer;
-import com.android.build.gradle.model.ProductFlavorContainer;
-import com.android.build.gradle.model.Variant;
-import com.android.builder.model.SourceProvider;
+import com.android.builder.model.*;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -77,10 +71,20 @@ public final class AndroidContentRoot {
   }
 
   private static void storePaths(@NotNull Variant variant, @NotNull ContentRootStorage storage) {
-    storePaths(ExternalSystemSourceType.SOURCE, variant.getGeneratedSourceFolders(), storage);
-    storePaths(ExternalSystemSourceType.SOURCE, variant.getGeneratedResourceFolders(), storage);
-    storePaths(ExternalSystemSourceType.TEST, variant.getGeneratedTestSourceFolders(), storage);
-    storePaths(ExternalSystemSourceType.TEST, variant.getGeneratedTestResourceFolders(), storage);
+    ArtifactInfo mainArtifactInfo = variant.getMainArtifactInfo();
+    storePaths(ExternalSystemSourceType.SOURCE, mainArtifactInfo, storage);
+
+    ArtifactInfo testArtifactInfo = variant.getTestArtifactInfo();
+    if (testArtifactInfo != null) {
+      storePaths(ExternalSystemSourceType.TEST, testArtifactInfo, storage);
+    }
+  }
+
+  private static void storePaths(@NotNull ExternalSystemSourceType sourceType,
+                                 @NotNull ArtifactInfo artifactInfo,
+                                 @NotNull ContentRootStorage storage) {
+    storePaths(sourceType, artifactInfo.getGeneratedSourceFolders(), storage);
+    storePaths(sourceType, artifactInfo.getGeneratedResourceFolders(), storage);
   }
 
   private static void storePaths(@NotNull ProductFlavorContainer flavor, @NotNull ContentRootStorage storage) {
@@ -129,7 +133,6 @@ public final class AndroidContentRoot {
     String name = dir.getName();
     if (name.startsWith(".")) {
       storage.storePath(ExternalSystemSourceType.EXCLUDED, dir);
-      return;
     }
   }
 

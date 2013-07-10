@@ -46,7 +46,7 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
   @NotNull
   @Override
   public Key<IdeaGradleProject> getTargetDataKey() {
-    return AndroidProjectKeys.GRADLE_PROJECT;
+    return AndroidProjectKeys.IDE_GRADLE_PROJECT;
   }
 
   @Override

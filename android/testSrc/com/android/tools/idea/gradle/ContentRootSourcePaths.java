@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle;
 
-import com.android.build.gradle.model.BuildTypeContainer;
-import com.android.build.gradle.model.ProductFlavorContainer;
-import com.android.build.gradle.model.Variant;
+import com.android.builder.model.BuildTypeContainer;
+import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
+import com.android.tools.idea.gradle.stubs.android.ArtifactInfoStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -69,11 +69,17 @@ public class ContentRootSourcePaths {
     }
   }
 
-  private void addSourceDirectoryPaths(@NotNull Variant variant) {
-    addSourceDirectoryPaths(ExternalSystemSourceType.SOURCE, variant.getGeneratedResourceFolders());
-    addSourceDirectoryPaths(ExternalSystemSourceType.SOURCE, variant.getGeneratedSourceFolders());
-    addSourceDirectoryPaths(ExternalSystemSourceType.TEST, variant.getGeneratedTestResourceFolders());
-    addSourceDirectoryPaths(ExternalSystemSourceType.TEST, variant.getGeneratedTestSourceFolders());
+  private void addSourceDirectoryPaths(@NotNull VariantStub variant) {
+    ArtifactInfoStub mainArtifactInfo = variant.getMainArtifactInfo();
+    addSourceDirectoryPaths(ExternalSystemSourceType.SOURCE, mainArtifactInfo);
+
+    ArtifactInfoStub testArtifactInfo = variant.getTestArtifactInfo();
+    addSourceDirectoryPaths(ExternalSystemSourceType.TEST, testArtifactInfo);
+  }
+
+  private void addSourceDirectoryPaths(@NotNull ExternalSystemSourceType sourceType, @NotNull ArtifactInfoStub artifactInfo) {
+    addSourceDirectoryPaths(sourceType, artifactInfo.getGeneratedResourceFolders());
+    addSourceDirectoryPaths(sourceType, artifactInfo.getGeneratedSourceFolders());
   }
 
   private void addSourceDirectoryPaths(@NotNull ProductFlavorContainer productFlavor) {

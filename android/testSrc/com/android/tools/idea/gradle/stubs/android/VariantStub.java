@@ -15,30 +15,23 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
-import com.android.build.gradle.model.Variant;
 import com.android.builder.model.ProductFlavor;
+import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
 public class VariantStub implements Variant {
-  private static final String DEFAULT_ASSEMBLE_TASK_NAME = "assemble";
-  private static final String DEFAULT_ASSEMBLE_TEST_TASK_NAME = "assembleTest";
-
-  @NotNull private final List<File> myGeneratedResourceFolders = Lists.newArrayList();
-  @NotNull private final List<File> myGeneratedSourceFolders = Lists.newArrayList();
-  @NotNull private final List<File> myGeneratedTestResourceFolders = Lists.newArrayList();
-  @NotNull private final List<File> myGeneratedTestSourceFolders = Lists.newArrayList();
-
   @NotNull private final List<String> myProductFlavors = Lists.newArrayList();
 
   @NotNull private final String myName;
   @NotNull private final String myBuildType;
-  @NotNull private final FileStructure myFileStructure;
+  @NotNull private final ArtifactInfoStub myMainArtifactInfo;
+  @NotNull private final ArtifactInfoStub myTestArtifactInfo;
 
   /**
    * Creates a new {@link VariantStub}.
@@ -50,131 +43,56 @@ public class VariantStub implements Variant {
   VariantStub(@NotNull String name, @NotNull String buildType, @NotNull FileStructure fileStructure) {
     myName = name;
     myBuildType = buildType;
-    myFileStructure = fileStructure;
+    myMainArtifactInfo = new ArtifactInfoStub("assemble", buildType, fileStructure);
+    myTestArtifactInfo = new ArtifactInfoStub("assembleTest", buildType, fileStructure);
   }
 
-  @NotNull
   @Override
+  @NotNull
   public String getName() {
     return myName;
   }
 
-  @NotNull
   @Override
-  public File getOutputFile() {
-    throw new UnsupportedOperationException();
+  @NotNull
+  public String getDisplayName() {
+    return myName;
   }
 
   @Override
-  public boolean isSigned() {
-    throw new UnsupportedOperationException();
+  @NotNull
+  public ArtifactInfoStub getMainArtifactInfo() {
+    return myMainArtifactInfo;
   }
 
-  @NotNull
   @Override
-  public File getOutputTestFile() {
-    throw new UnsupportedOperationException();
+  @Nullable
+  public ArtifactInfoStub getTestArtifactInfo() {
+    return myTestArtifactInfo;
   }
 
-  @NotNull
   @Override
-  public String getAssembleTaskName() {
-    return DEFAULT_ASSEMBLE_TASK_NAME;
-  }
-
   @NotNull
-  @Override
-  public String getAssembleTestTaskName() {
-    return DEFAULT_ASSEMBLE_TEST_TASK_NAME;
-  }
-
-  @NotNull
-  @Override
   public String getBuildType() {
     return myBuildType;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public List<String> getProductFlavors() {
     return myProductFlavors;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public ProductFlavor getMergedFlavor() {
     throw new UnsupportedOperationException();
   }
 
-  /**
-   * Adds the given path to the list of generated source directories. It also creates the directory in the file system.
-   *
-   * @param path path of the generated source directory to add, relative to the root directory of the Android project.
-   */
-  public void addGeneratedSourceFolder(@NotNull String path) {
-    File directory = myFileStructure.createProjectDir(path);
-    myGeneratedSourceFolders.add(directory);
-  }
-
-  @NotNull
   @Override
-  public List<File> getGeneratedSourceFolders() {
-    return myGeneratedSourceFolders;
-  }
-
-  /**
-   * Adds the given path to the list of generated resource directories. It also creates the directory in the file system.
-   *
-   * @param path path of the generated resource directory to add, relative to the root directory of the Android project.
-   */
-  public void addGeneratedResourceFolder(@NotNull String path) {
-    File directory = myFileStructure.createProjectDir(path);
-    myGeneratedResourceFolders.add(directory);
-  }
-
   @NotNull
-  @Override
-  public List<File> getGeneratedResourceFolders() {
-    return myGeneratedResourceFolders;
-  }
-
-  /**
-   * Adds the given path to the list of generated test source directories. It also creates the directory in the file system.
-   *
-   * @param path path of the generated test source directory to add, relative to the root directory of the Android project.
-   */
-  public void addGeneratedTestSourceFolder(@NotNull String path) {
-    File directory = myFileStructure.createProjectDir(path);
-    myGeneratedTestSourceFolders.add(directory);
-  }
-
-  @NotNull
-  @Override
-  public List<File> getGeneratedTestSourceFolders() {
-    return myGeneratedTestSourceFolders;
-  }
-
-  /**
-   * Adds the given path to the list of generated test resource directories. It also creates the directory in the file system.
-   *
-   * @param path path of the generated test resource directory to add, relative to the root directory of the Android project.
-   */
-  public void addGeneratedTestResourceFolder(@NotNull String path) {
-    File directory = myFileStructure.createProjectDir(path);
-    myGeneratedTestResourceFolders.add(directory);
-  }
-
-  @NotNull
-  @Override
-  public List<File> getGeneratedTestResourceFolders() {
-    return myGeneratedTestResourceFolders;
-  }
-
-  @NotNull
-  @Override
-  public File getClassesFolder() {
-    String path = "build/classes/" + getBuildType();
-    return new File(myFileStructure.getRootDir(), path);
+  public List<String> getResourceConfigurations() {
+    throw new UnsupportedOperationException();
   }
 
   public void addProductFlavors(@NotNull String... flavorNames) {

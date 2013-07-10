@@ -15,20 +15,18 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
-import com.android.build.gradle.model.BuildTypeContainer;
 import com.android.builder.model.BuildType;
+import com.android.builder.model.BuildTypeContainer;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import org.jetbrains.annotations.NotNull;
 
 public class BuildTypeContainerStub implements BuildTypeContainer {
   @NotNull private final String myName;
   @NotNull private final SourceProviderStub mySourceProvider;
-  @NotNull private final DependenciesStub myDependencies;
 
   BuildTypeContainerStub(@NotNull String name, @NotNull FileStructure fileStructure) {
     myName = name;
     mySourceProvider = new SourceProviderStub(fileStructure);
-    myDependencies = new DependenciesStub();
     setUpPaths();
   }
   
@@ -58,11 +56,5 @@ public class BuildTypeContainerStub implements BuildTypeContainer {
   @NotNull
   public SourceProviderStub getSourceProvider() {
     return mySourceProvider;
-  }
-
-  @Override
-  @NotNull
-  public DependenciesStub getDependency() {
-    return myDependencies;
   }
 }

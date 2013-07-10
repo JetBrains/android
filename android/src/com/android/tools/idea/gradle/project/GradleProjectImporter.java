@@ -13,16 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle;
+package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.gradle.GradleImportNotificationListener;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ProjectTopics;
+import com.intellij.find.FindManager;
+import com.intellij.find.FindModel;
+import com.intellij.find.FindSettings;
+import com.intellij.find.impl.FindInProjectUtil;
 import com.intellij.ide.impl.NewProjectUtil;
 import com.intellij.ide.impl.ProjectUtil;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationListener;
+import com.intellij.notification.NotificationType;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.components.ServiceManager;
@@ -33,6 +42,7 @@ import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.externalSystem.service.notification.ExternalSystemIdeNotificationManager;
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -51,6 +61,7 @@ import com.intellij.openapi.roots.ModuleRootAdapter;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.util.Factory;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
@@ -60,6 +71,10 @@ import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.IdeFrameEx;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
+import com.intellij.usageView.UsageInfo;
+import com.intellij.usages.*;
+import com.intellij.util.AdapterProcessor;
+import com.intellij.util.Processor;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
@@ -68,6 +83,7 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
+import javax.swing.event.HyperlinkEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -100,10 +116,10 @@ public class GradleProjectImporter {
    *
    * @param project the given project. This method does nothing if the project is not an Android-Gradle project.
    */
-  public void reImportProject(@NotNull Project project) {
+  public void reImportProject(@NotNull final Project project) throws ConfigurationException {
     if (Projects.isGradleProject(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
-      ExternalSystemUtil.refreshProjects(project, GradleConstants.SYSTEM_ID, true);
+      doImport(project, false, true);
     }
   }
 
@@ -122,30 +138,50 @@ public class GradleProjectImporter {
                             @NotNull Sdk androidSdk,
                             @Nullable final Callback callback) throws IOException, ConfigurationException {
     GradleImportNotificationListener.attachToManager();
-    File projectFile = createTopLevelBuildFile(projectRootDir);
-    String projectFilePath = projectFile.getParentFile().getPath();
 
+    createTopLevelBuildFile(projectRootDir);
     createIdeaProjectDir(projectRootDir);
 
-    Project newProject = createProject(projectName, projectFilePath);
-    setUpProject(newProject, projectFilePath, androidSdk);
+    final Project newProject = createProject(projectName, projectRootDir.getPath());
+
+    setUpProject(newProject, androidSdk);
+
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       newProject.save();
     }
 
     LocalProperties.createFile(newProject, androidSdk);
+    Projects.setProjectBuildAction(newProject, Projects.BuildAction.REBUILD);
 
-    doImport(newProject, projectFilePath, callback);
+    doImport(newProject, true, true);
+
+    // Since importing is synchronous we should have modules now. Notify callback.
+    if (notifyCallback(newProject, callback)) {
+      return;
+    }
+
+    // If we got here, there is some bad timing and the module creation got delayed somehow. Notify callback as soon as the project roots
+    // are created.
+    final MessageBusConnection connection = newProject.getMessageBus().connect();
+    connection.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
+      @Override
+      public void rootsChanged(ModuleRootEvent event) {
+        Module[] modules = ModuleManager.getInstance(newProject).getModules();
+        if (modules.length > 0) {
+          connection.disconnect();
+          // TODO: Consider moving callback to AndroidProjectDataService. It can reliably notify when a project has modules.
+          notifyCallback(newProject, callback);
+        }
+      }
+    });
   }
 
-  @NotNull
-  private static File createTopLevelBuildFile(@NotNull File projectRootDir) throws IOException {
+  private static void createTopLevelBuildFile(@NotNull File projectRootDir) throws IOException {
     File projectFile = new File(projectRootDir, SdkConstants.FN_BUILD_GRADLE);
     FileUtilRt.createIfNotExists(projectFile);
     String contents = "// Top-level build file where you can add configuration options common to all sub-projects/modules." +
                       SystemProperties.getLineSeparator();
     FileUtil.writeToFile(projectFile, contents);
-    return projectFile;
   }
 
   private static void createIdeaProjectDir(@NotNull File projectRootDir) throws IOException {
@@ -154,18 +190,16 @@ public class GradleProjectImporter {
   }
 
   @NotNull
-  private static Project createProject(@NotNull String projectName, @NotNull String projectFilePath) throws ConfigurationException {
+  private static Project createProject(@NotNull String projectName, @NotNull String projectPath) throws ConfigurationException {
     ProjectManager projectManager = ProjectManager.getInstance();
-    Project newProject = projectManager.createProject(projectName, projectFilePath);
+    Project newProject = projectManager.createProject(projectName, projectPath);
     if (newProject == null) {
       throw new NullPointerException("Failed to create a new IDEA project");
     }
     return newProject;
   }
 
-  private static void setUpProject(@NotNull final Project newProject,
-                                   @NotNull final String projectFilePath,
-                                   @NotNull final Sdk androidSdk) {
+  private static void setUpProject(@NotNull final Project newProject, @NotNull final Sdk androidSdk) {
     CommandProcessor.getInstance().executeCommand(newProject, new Runnable() {
       @Override
       public void run() {
@@ -179,83 +213,73 @@ public class GradleProjectImporter {
             CompilerProjectExtension compilerProjectExt = CompilerProjectExtension.getInstance(newProject);
             assert compilerProjectExt != null;
             compilerProjectExt.setCompilerOutputUrl(compileOutputUrl);
-            setUpGradleSettings(newProject, projectFilePath);
+            setUpGradleSettings(newProject);
           }
         });
       }
     }, null, null);
   }
 
-  private static void setUpGradleSettings(@NotNull Project newProject, @NotNull String projectFilePath) {
-    GradleSettings gradleSettings = GradleSettings.getInstance(newProject);
+  private static void setUpGradleSettings(@NotNull Project newProject) {
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     projectSettings.setPreferLocalInstallationToWrapper(false);
-    projectSettings.setExternalProjectPath(projectFilePath);
+    projectSettings.setExternalProjectPath(newProject.getBasePath());
     projectSettings.setUseAutoImport(true);
+
+    GradleSettings gradleSettings = GradleSettings.getInstance(newProject);
     gradleSettings.setLinkedProjectsSettings(ImmutableList.of(projectSettings));
   }
 
-  private void doImport(@NotNull final Project project,
-                        @NotNull final String projectPath,
-                        @Nullable final Callback callback) throws ConfigurationException {
-    Projects.setProjectBuildAction(project, Projects.BuildAction.REBUILD);
-
+  private void doImport(@NotNull final Project project, final boolean openProject, boolean modal) throws ConfigurationException {
     final Ref<ConfigurationException> errorRef = new Ref<ConfigurationException>();
-
-    myDelegate.importProject(project, projectPath, new ExternalProjectRefreshCallback() {
+    final Ref<Boolean> unsupportedModelVersionFound = new Ref<Boolean>(false);
+    myDelegate.importProject(project, new ExternalProjectRefreshCallback() {
       @Override
       public void onSuccess(@Nullable final DataNode<ProjectData> projectInfo) {
         assert projectInfo != null;
+        final Application application = ApplicationManager.getApplication();
         Runnable runnable = new Runnable() {
           @Override
           public void run() {
             populateProject(project, projectInfo);
-            open(project, projectPath);
+            if (openProject) {
+              open(project);
+            }
 
-            if (!ApplicationManager.getApplication().isUnitTestMode()) {
+            if (!application.isUnitTestMode()) {
               project.save();
             }
           }
         };
-        if (ApplicationManager.getApplication().isUnitTestMode()) {
+        if (application.isUnitTestMode()) {
           runnable.run();
         }
         else {
-          ApplicationManager.getApplication().invokeLater(runnable);
+          application.invokeLater(runnable);
         }
       }
 
       @Override
       public void onFailure(@NotNull final String errorMessage, @Nullable String errorDetails) {
+        if (errorDetails != null &&
+            errorDetails.startsWith(IllegalStateException.class.getName()) &&
+            errorMessage.contains(GradleModelConstants.ANDROID_GRADLE_MODEL_DEPENDENCY_NAME)) {
+          unsupportedModelVersionFound.set(true);
+          return;
+        }
         ConfigurationException error = handleImportFailure(errorMessage, errorDetails);
         errorRef.set(error);
       }
-    });
+    }, modal);
+
+    if (unsupportedModelVersionFound.get()) {
+      showUnsupportedModelErrorMessage(project);
+    }
 
     ConfigurationException errorCause = errorRef.get();
     if (errorCause != null) {
       throw errorCause;
     }
-
-    // Since importing is synchronous we should have modules now. Notify callback.
-    if (notifyCallback(project, callback)) {
-      return;
-    }
-
-    // If we got here, there is some bad timing and the module creation got delayed somehow. Notify callback as soon as the project roots
-    // are created.
-    final MessageBusConnection connection = project.getMessageBus().connect();
-    connection.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
-      @Override
-      public void rootsChanged(ModuleRootEvent event) {
-        Module[] modules = ModuleManager.getInstance(project).getModules();
-        if (modules.length > 0) {
-          connection.disconnect();
-          // TODO: Consider moving callback to AndroidProjectDataService. It can reliably notify when a project has modules.
-          notifyCallback(project, callback);
-        }
-      }
-    });
   }
 
   @NotNull
@@ -290,9 +314,10 @@ public class GradleProjectImporter {
     });
   }
 
-  private static void open(@NotNull final Project newProject, @NotNull String projectFilePath) {
+
+  private static void open(@NotNull final Project newProject) {
     ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
-    ProjectUtil.updateLastProjectLocation(projectFilePath);
+    ProjectUtil.updateLastProjectLocation(newProject.getBasePath());
     if (WindowManager.getInstance().isFullScreenSupportedInCurrentOS()) {
       IdeFocusManager instance = IdeFocusManager.findInstance();
       IdeFrame lastFocusedFrame = instance.getLastFocusedFrame();
@@ -317,12 +342,73 @@ public class GradleProjectImporter {
     return true;
   }
 
+  private static void showUnsupportedModelErrorMessage(@NotNull final Project project) {
+    final ExternalSystemIdeNotificationManager notificationManager = ServiceManager.getService(ExternalSystemIdeNotificationManager.class);
+    if (notificationManager == null) {
+      return;
+    }
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        NotificationListener notificationListener = new NotificationListener() {
+          @Override
+          public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
+            if (event.getEventType() != HyperlinkEvent.EventType.ACTIVATED) {
+              return;
+            }
+            searchGradleModelInBuildFiles(project);
+          }
+        };
+        String title = String.format("Gradle '%1$s' project refresh failed:<br><br>", project.getName());
+        String messageToShow =
+          GradleModelConstants.UNSUPPORTED_MODEL_VERSION_HTML_ERROR + "<br><br><a href=\"search\">Search in build.gradle files</a>";
+        notificationManager.showNotification(title, messageToShow, NotificationType.ERROR, project, SYSTEM_ID, notificationListener);
+      }
+    });
+  }
+
+  private static void searchGradleModelInBuildFiles(@NotNull final Project project) {
+    FindManager findManager = FindManager.getInstance(project);
+    UsageViewManager usageViewManager = UsageViewManager.getInstance(project);
+
+    FindModel findModel = (FindModel) findManager.getFindInProjectModel().clone();
+    findModel.setStringToFind(GradleModelConstants.ANDROID_GRADLE_MODEL_DEPENDENCY_NAME);
+    findModel.setReplaceState(false);
+    findModel.setOpenInNewTabVisible(true);
+    findModel.setOpenInNewTabEnabled(true);
+    findModel.setOpenInNewTab(true);
+    findModel.setFileFilter(SdkConstants.FN_BUILD_GRADLE);
+
+    findManager.getFindInProjectModel().copyFrom(findModel);
+    final FindModel findModelCopy = (FindModel)findModel.clone();
+
+    UsageViewPresentation presentation = FindInProjectUtil.setupViewPresentation(findModel.isOpenInNewTabEnabled(), findModelCopy);
+    boolean showPanelIfOnlyOneUsage = !FindSettings.getInstance().isSkipResultsWithOneUsage();
+    final FindUsagesProcessPresentation processPresentation =
+      FindInProjectUtil.setupProcessPresentation(project, showPanelIfOnlyOneUsage, presentation);
+    UsageTarget usageTarget = new FindInProjectUtil.StringUsageTarget(findModel.getStringToFind());
+    usageViewManager.searchAndShowUsages(new UsageTarget[] { usageTarget }, new Factory<UsageSearcher>() {
+      @Override
+      public UsageSearcher create() {
+        return new UsageSearcher() {
+          @Override
+          public void generate(@NotNull final Processor<Usage> processor) {
+            AdapterProcessor<UsageInfo, Usage> consumer = new AdapterProcessor<UsageInfo, Usage>(processor, UsageInfo2UsageAdapter.CONVERTER);
+            //noinspection ConstantConditions
+            FindInProjectUtil.findUsages(findModelCopy, null, project, true, consumer, processPresentation);
+          }
+        };
+      }
+    }, processPresentation, presentation, null);
+  }
+
   // Makes it possible to mock invocations to the Gradle Tooling API.
   static class ImporterDelegate {
-    void importProject(@NotNull Project newProject, @NotNull String projectPath, @NotNull ExternalProjectRefreshCallback callback)
-      throws ConfigurationException {
+    void importProject(@NotNull Project project,
+                       @NotNull ExternalProjectRefreshCallback callback,
+                       boolean modal) throws ConfigurationException {
       try {
-        ExternalSystemUtil.refreshProject(newProject, SYSTEM_ID, projectPath, callback, true, true);
+        ExternalSystemUtil.refreshProject(project, SYSTEM_ID, project.getBasePath(), callback, true, modal);
       }
       catch (RuntimeException e) {
         String externalSystemName = SYSTEM_ID.getReadableName();

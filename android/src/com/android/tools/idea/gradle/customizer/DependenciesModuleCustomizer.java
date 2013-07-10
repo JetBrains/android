@@ -16,11 +16,15 @@
 package com.android.tools.idea.gradle.customizer;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.model.AndroidDependencies;
 import com.android.tools.idea.gradle.model.AndroidDependencies.DependencyFactory;
+import com.android.tools.idea.gradle.util.Facets;
+import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
@@ -52,7 +56,6 @@ public class DependenciesModuleCustomizer implements ModuleCustomizer {
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
     ModifiableRootModel model = moduleRootManager.getModifiableModel();
     try {
-      // remove existing dependencies.
       removeExistingDependencies(model);
       populateDependencies(model, project, ideaAndroidProject);
     } finally {
@@ -67,12 +70,17 @@ public class DependenciesModuleCustomizer implements ModuleCustomizer {
     try {
       AndroidDependencies.populate(ideaAndroidProject, new DependencyFactory() {
         @Override
-        public void addDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull File binaryPath) {
+        public void addLibraryDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull File binaryPath) {
           Library library = libraryTable.getLibraryByName(name);
           if (library == null) {
             library = model.createLibrary(name);
           }
           libraries.put(binaryPath, library);
+        }
+
+        @Override
+        public void addModuleDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull String modulePath) {
+          // We don't need to do anything here. We are just setting up libraries.
         }
       });
     }
@@ -90,7 +98,7 @@ public class DependenciesModuleCustomizer implements ModuleCustomizer {
         File file = entry.getKey();
         VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file);
         if (virtualFile == null) {
-          String msg = String.format("Unable to find file at path '%1$s', library '%2$s'", file.getAbsolutePath(), library.getName());
+          String msg = String.format("Unable to find file at path '%1$s', library '%2$s'", file.getPath(), library.getName());
           LOG.warn(msg);
           continue;
         }
@@ -100,8 +108,7 @@ public class DependenciesModuleCustomizer implements ModuleCustomizer {
         }
         VirtualFile jarRoot = JarFileSystem.getInstance().getJarRootForLocalFile(virtualFile);
         if (jarRoot == null) {
-          String msg =
-            String.format("Unable to parse contents of jar file '%1$s', library '%2$s'", file.getAbsolutePath(), library.getName());
+          String msg = String.format("Unable to parse contents of jar file '%1$s', library '%2$s'", file.getPath(), library.getName());
           LOG.warn(msg);
           continue;
         }
@@ -133,16 +140,37 @@ public class DependenciesModuleCustomizer implements ModuleCustomizer {
   }
 
   private static void populateDependencies(@NotNull final ModifiableRootModel model,
-                                           @NotNull Project project,
+                                           @NotNull final Project project,
                                            @NotNull IdeaAndroidProject ideaAndroidProject) {
     final LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
     AndroidDependencies.populate(ideaAndroidProject, new DependencyFactory() {
       @Override
-      public void addDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull File binaryPath) {
+      public void addLibraryDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull File binaryPath) {
         Library library = libraryTable.getLibraryByName(name);
         if (library != null) {
           LibraryOrderEntry orderEntry = model.addLibraryEntry(library);
           orderEntry.setScope(scope);
+        }
+      }
+
+      @Override
+      public void addModuleDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull String modulePath) {
+        ModuleManager moduleManager = ModuleManager.getInstance(project);
+        Module moduleDependency = null;
+        for (Module module : moduleManager.getModules()) {
+          AndroidGradleFacet androidGradleFacet = Facets.getFirstFacet(module, AndroidGradleFacet.TYPE_ID);
+          if (androidGradleFacet != null) {
+            String path = androidGradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
+            if (Objects.equal(path, modulePath)) {
+              moduleDependency = module;
+              break;
+            }
+          }
+        }
+        if (moduleDependency == null) {
+          model.addInvalidModuleEntry(name);
+        } else {
+          model.addModuleOrderEntry(moduleDependency);
         }
       }
     });

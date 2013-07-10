@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.model.AndroidDependencies;
 import com.android.tools.idea.gradle.stubs.android.AndroidLibraryStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
-import com.android.tools.idea.gradle.stubs.android.ProductFlavorContainerStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -43,12 +42,11 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
-import static org.easymock.EasyMock.*;
-
 import java.io.File;
 import java.util.*;
 
 import static com.android.tools.idea.rendering.ModuleResourceRepositoryTest.getFirstItem;
+import static org.easymock.EasyMock.createMock;
 
 public class ModuleSetResourceRepositoryTest extends AndroidTestCase {
   private static final String LAYOUT = "resourceRepository/layout.xml";
@@ -167,14 +165,12 @@ public class ModuleSetResourceRepositoryTest extends AndroidTestCase {
       new IdeaAndroidProject(androidProject.getName(), rootDirPath, androidProject, variant.getName());
     myFacet.setIdeaAndroidProject(ideaAndroidProject);
 
-    ProductFlavorContainerStub defaultConfig = androidProject.getDefaultConfig();
-
     File libJar = new File(rootDirPath, "library.aar/library.jar");
     AndroidLibraryStub library = new AndroidLibraryStub(libJar);
-    defaultConfig.getDependencies().addLibrary(library);
+    variant.getMainArtifactInfo().getDependencies().addLibrary(library);
 
     AndroidDependencies.DependencyFactory myDependencyFactory = createMock(AndroidDependencies.DependencyFactory.class);
-    myDependencyFactory.addDependency(DependencyScope.COMPILE, "library.aar", libJar);
+    myDependencyFactory.addLibraryDependency(DependencyScope.COMPILE, "library.aar", libJar);
   }
 
   @Override
