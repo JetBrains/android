@@ -21,30 +21,16 @@ import com.android.annotations.Property;
 
 public class Locator {
   @NonNull
-  private State state;
+  private final State state;
   private String viewName;
 
-  /*
-  public Locator(@NonNull State state, @Nullable String viewName) {
+  public Locator(@Property("state") @NonNull State state) {
     this.state = state;
-    this.viewName = viewName;
-  }
-  */
-
-  Locator(@Property("state") @NonNull State state) {
-    this.state = state;
-  }
-
-  public Locator() {
   }
 
   @NonNull
   public State getState() {
     return state;
-  }
-
-  public void setState(@NonNull State state) {
-    this.state = state;
   }
 
   public String getViewName() {
