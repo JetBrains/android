@@ -89,4 +89,13 @@ class Utilities {
     }
     throw new RuntimeException("Internal error");
   }
+
+  static boolean contains(Object[] a, Object o) {
+    for (Object e : a) {
+      if (o.equals(e)) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
