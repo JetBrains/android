@@ -125,13 +125,13 @@ public class XMLWriter {
     }
   }
 
-  class Element extends NameValue {
+  class Element extends NameValue<Object> {
     public String tag;
     public final Class type;
     public final ArrayList<Attribute> attributes = new ArrayList<Attribute>();
     public final ArrayList<Element> elements = new ArrayList<Element>();
 
-    Element(Class type, @Nullable String name, Object value) {
+    Element(Class type, String name, Object value) {
       super(name, value);
       this.tag = name;
       this.type = type;
