@@ -711,6 +711,11 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     makeAll();
     checkBuildLog(executor, "expected_log_2");
     checkMakeUpToDate(executor);
+
+    c.setForceJumbo(true);
+    makeAll();
+    checkBuildLog(executor, "expected_log_3");
+    checkMakeUpToDate(executor);
   }
 
   public void testFilteredResources() throws Exception {
