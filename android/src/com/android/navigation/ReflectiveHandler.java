@@ -17,6 +17,7 @@ package com.android.navigation;
 
 import com.android.annotations.Property;
 import org.xml.sax.*;
+import org.xml.sax.Locator;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.lang.annotation.Annotation;
@@ -25,19 +26,20 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
-import org.xml.sax.Locator;
 
 class ReflectiveHandler extends DefaultHandler {
   // public static final List<String> DEFAULT_PACKAGES = Arrays.<String>asList("java.lang", "android.view", "android.widget");
   public static final List<String> DEFAULT_PACKAGES = Arrays.asList();
   public static final List<String> DEFAULT_CLASSES = Arrays.asList();
-  public static final String NOP = "<NOP>";
+  public static final String[] EMPTY_STRING_ARRAY = new String[0];
 
   private final List<String> packagesImports = new ArrayList<String>(DEFAULT_PACKAGES);
   private final List<String> classImports = new ArrayList<String>(DEFAULT_CLASSES);
   private final ErrorHandler errorHandler;
-  private final Stack<Info> stack = new Stack<Info>();
+  private final Stack<ElementInfo> stack = new Stack<ElementInfo>();
   private final Map<String, Object> idToValue = new HashMap<String, Object>();
+  private final Map<Class, Constructor> classToConstructor = new IdentityHashMap<Class, Constructor>();
+  private final Map<Constructor, String[]> constructorToParameterNames = new IdentityHashMap<Constructor, String[]>();
 
   private Locator documentLocator;
   public Object result;
@@ -89,11 +91,6 @@ class ReflectiveHandler extends DefaultHandler {
   private static class PropertyAnnotationNotFoundException extends Exception {
   }
 
-  static class Info {
-    String name;
-    Object value;
-  }
-
   private static String getName(Annotation[] parameterAnnotation) throws PropertyAnnotationNotFoundException {
     for (Annotation a : parameterAnnotation) {
       if (a instanceof Property) {
@@ -114,21 +111,19 @@ class ReflectiveHandler extends DefaultHandler {
     return type.getConstructor(String.class).newInstance(stringValue);
   }
 
-  static class Pair<T1, T2> {
-    T1 o1;
-    T2 o2;
-
-    private Pair(T1 o1, T2 o2) {
-      this.o1 = o1;
-      this.o2 = o2;
+  private static String[] findParameterNames(Constructor constructor) throws PropertyAnnotationNotFoundException {
+    if (constructor == null) {
+      return EMPTY_STRING_ARRAY;
     }
-
-    static <T1, T2> Pair<T1, T2> of(T1 o1, T2 o2) {
-      return new Pair<T1, T2>(o1, o2);
+    Annotation[][] annotations = constructor.getParameterAnnotations();
+    String[] result = new String[annotations.length];
+    for (int i = 0; i < annotations.length; i++) {
+      result[i] = getName(annotations[i]);
     }
+    return result;
   }
 
-  private static Pair<String[], Object> createInstance(Class clz, Map<String, String> attributes) throws InstantiationException {
+  private static Constructor findConstructor(Class clz) {
     Constructor[] constructors = clz.getConstructors();
     Arrays.sort(constructors, new Comparator<Constructor>() {
       @Override
@@ -140,65 +135,114 @@ class ReflectiveHandler extends DefaultHandler {
       if (!Modifier.isPublic(constructor.getModifiers())) {
         continue;
       }
-      try {
-        String[] parameterNames = getParameterNames(constructor);
-        Object value = constructor.newInstance(getParameterValues(constructor, parameterNames, attributes));
-        return Pair.of(parameterNames, value);
-      }
-      catch (PropertyAnnotationNotFoundException e) {
-        // ok, try next constructor
-      }
-      catch (IllegalAccessException e) {
-        throw new RuntimeException(e);
-      }
-      catch (InstantiationException e) {
-        throw new RuntimeException(e);
-      }
-      catch (NoSuchMethodException e) {
-        throw new RuntimeException(e);
-      }
-      catch (InvocationTargetException e) {
-        throw new RuntimeException(e);
-      }
+      return constructor;
     }
-    throw new InstantiationException();
+    return null;
   }
 
-  private static String[] getParameterNames(Constructor constructor) throws PropertyAnnotationNotFoundException {
-    Annotation[][] annotations = constructor.getParameterAnnotations();
-    String[] result = new String[annotations.length];
-    for (int i = 0; i < annotations.length; i++) {
-      result[i] = getName(annotations[i]);
+  private Constructor getConstructor(Class clazz) {
+    Constructor result = classToConstructor.get(clazz);
+    if (result == null) {
+      classToConstructor.put(clazz, result = findConstructor(clazz));
     }
     return result;
   }
 
-  private static Object[] getParameterValues(Constructor constructor, String[] parameterNames, Map<String, String> attributes)
-    throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+  private String[] getParameterNames(Constructor constructor) {
+    String[] result = constructorToParameterNames.get(constructor);
+    if (result == null) {
+      try {
+        constructorToParameterNames.put(constructor, result = findParameterNames(constructor));
+      }
+      catch (PropertyAnnotationNotFoundException e) {
+        throw new RuntimeException(e); // todo remove
+      }
+    }
+    return result;
+  }
+
+  Object[] getParameterValues(Constructor constructor, Map<String, String> attributes, List<ElementInfo> elements)
+    throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, SAXException {
+    String[] parameterNames = getParameterNames(constructor);
     Class[] types = constructor.getParameterTypes();
     Object[] result = new Object[parameterNames.length];
     for (int i = 0; i < parameterNames.length; i++) {
-      result[i] = valueFor(types[i], attributes.get(parameterNames[i]));
+      String parameterName = parameterNames[i];
+      String stringValue = attributes.get(parameterName);
+      if (stringValue != null) {
+        result[i] = valueFor(types[i], stringValue);
+      }
+      else {
+        ElementInfo param = getParam(elements, parameterName, constructor);
+        param.myValueAlreadySetInOuter = true;
+        result[i] = param.getValue();
+      }
     }
     return result;
   }
 
-  private static void installInOuter(Object outer, Info property)
-    throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-    if (property.name == NOP) {
-      return;
+  private static ElementInfo getParam(List<ElementInfo> elements, String parameterName, Object constructor) throws SAXException {
+    for (ElementInfo element : elements) {
+      if (parameterName.equals(element.name)) {
+        return element;
+      }
     }
-    if (!(outer instanceof Collection)) {
-      applySetter(outer, property.name, property.value);
+    throw new SAXException("Unspecified parameter, " + parameterName + ", in " + constructor);
+  }
+
+  static abstract class Evaluator {
+    abstract Object evaluate() throws SAXException;
+  }
+
+  static class LazyValue {
+    private static Object UNSET = new Object();
+
+    private Evaluator evaluator;
+    private Object value = UNSET;
+
+    Object getValue() throws SAXException {
+      if (value == UNSET) {
+        value = evaluator.evaluate();
+      }
+      return value;
     }
-    else {
-      applyMethod(outer, "add", property.value);
+
+    void setEvaluator(Evaluator evaluator) {
+      this.evaluator = evaluator;
+    }
+
+    void setValue(Object value) {
+      this.value = value;
+    }
+
+    @Override
+    public String toString() {
+      return "LazyValue{" +
+             "value=" + (value == UNSET ? "<UNSET>" : value) +
+             '}';
     }
   }
 
-  private static void applySetter(Object outer, String propertyName, Object instance)
-    throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-    getSetter(outer.getClass(), propertyName).invoke(outer, instance);
+  static class ElementInfo {
+    public Class type;
+    public String name;
+    public boolean myValueAlreadySetInOuter = false;
+    public Map<String, String> attributes;
+    public List<ElementInfo> elements = new ArrayList<ElementInfo>();
+    private LazyValue lazyValue = new LazyValue();
+
+
+    public Object getValue() throws SAXException {
+      return lazyValue.getValue();
+    }
+
+    public void setValue(Object value) {
+      lazyValue.setValue(value);
+    }
+
+    public void setEvaluator(Evaluator evaluator) {
+      lazyValue.setEvaluator(evaluator);
+    }
   }
 
   private static void applyMethod(Object target, String methodName, Object parameter)
@@ -235,105 +279,145 @@ class ReflectiveHandler extends DefaultHandler {
     return type.getMethod(setterMethodName, propertyType);
   }
 
+  private String[] getConstructorParameterNames(Class type) {
+    if (type == null) {
+      return EMPTY_STRING_ARRAY;
+    }
+    return getParameterNames(getConstructor(type));
+  }
+
+  private void setProperties(ElementInfo elementInfo) throws SAXException {
+    String[] constructorParameterNames = getConstructorParameterNames(elementInfo.type);
+    for (Map.Entry<String, String> entry : elementInfo.attributes.entrySet()) {
+      String attributeName = entry.getKey();
+      if (Utilities.RESERVED_ATTRIBUTES.contains(attributeName) || Utilities.contains(constructorParameterNames, attributeName)) {
+        continue;
+      }
+      try {
+        Method setter = getSetter(elementInfo.type, attributeName);
+        Class argType = Utilities.wrapperForPrimitiveType(setter.getParameterTypes()[0]);
+        setter.invoke(elementInfo.getValue(), valueFor(argType, entry.getValue()));
+      }
+      catch (NoSuchMethodException e) {
+        handleWarning(e);
+      }
+      catch (IllegalAccessException e) {
+        handleWarning(e);
+      }
+      catch (InvocationTargetException e) {
+        handleWarning(e);
+      }
+      catch (InstantiationException e) {
+        handleWarning(e);
+      }
+    }
+  }
+
   @Override
   public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-    Map<String, String> nameToValue = Utilities.toMap(attributes);
-    String nameSpace = nameToValue.get(Utilities.NAME_SPACE_ATRIBUTE_NAME);
-    Set<String> constructorParameterNames = Collections.emptySet();
+    final ElementInfo elementInfo = new ElementInfo();
+    elementInfo.name = qName;
+    elementInfo.attributes = Utilities.toMap(attributes);
+    String nameSpace = elementInfo.attributes.get(Utilities.NAME_SPACE_ATRIBUTE_NAME);
     if (nameSpace != null) {
       processNameSpace(nameSpace);
     }
     try {
-      String idref = nameToValue.get(Utilities.IDREF_ATTRIBUTE_NAME);
-      Info info = new Info();
-      info.name = qName;
+      String idref = elementInfo.attributes.get(Utilities.IDREF_ATTRIBUTE_NAME);
       if (idref != null) {
         if (!idToValue.containsKey(idref)) {
           throw new SAXException("IDREF attribute, \"" + idref + "\" , was used before corresponding ID was defined.");
         }
-        info.value = idToValue.get(idref);
+        elementInfo.setValue(idToValue.get(idref));
       }
       else {
-        String className = nameToValue.get("class");
-        Class clazz;
-        if (className != null) {
-          clazz = getClass().getClassLoader().loadClass(className);
+        elementInfo.type = getType(qName, elementInfo.attributes.get("class"));
+        if (elementInfo.type != null) {
+          elementInfo.setEvaluator(new Evaluator() {
+            @Override
+            Object evaluate() throws SAXException {
+              try {
+                Constructor constructor = getConstructor(elementInfo.type);
+                // note info.elements is changing under our feet
+                return constructor.newInstance(getParameterValues(constructor, elementInfo.attributes, elementInfo.elements));
+              }
+              catch (IllegalAccessException e) {
+                throw new SAXException(e);
+              }
+              catch (NoSuchMethodException e) {
+                throw new SAXException(e);
+              }
+              catch (InvocationTargetException e) {
+                throw new SAXException(e);
+              }
+              catch (InstantiationException e) {
+                throw new RuntimeException(e);
+              }
+            }
+          });
         }
         else {
-          try {
-            clazz = getClassForName(qName);
-            //info.name = NOP;
-          }
-          catch (ClassNotFoundException e) {
-            try {
-              Method setter = getSetter(stack.getLast().value.getClass(), qName);
-              clazz = setter.getParameterTypes()[0];
+          final ElementInfo last = stack.getLast();
+          final Method getter = getGetter(last.type, qName);
+          elementInfo.myValueAlreadySetInOuter = true;
+          elementInfo.type = getter.getReturnType();
+          elementInfo.setEvaluator(new Evaluator() {
+            @Override
+            Object evaluate() throws SAXException {
+              try {
+                return getter.invoke(last.getValue());
+              }
+              catch (IllegalAccessException e) {
+                throw new SAXException(e);
+              }
+              catch (InvocationTargetException e) {
+                throw new SAXException(e);
+              }
             }
-            catch (NoSuchMethodException e1) {
-              clazz = null;
-            }
-          }
-        }
-        if (clazz != null) {
-          Pair<String[], Object> result = createInstance(clazz, nameToValue);
-          constructorParameterNames = new HashSet<String>(Arrays.asList(result.o1));
-          info.value = result.o2;
-        } else {
-          try {
-            Object host = stack.getLast().value;
-            Method getter = getGetter(host.getClass(), qName);
-            info.name = NOP;
-            info.value = getter.invoke(host);
-          }
-          catch (NoSuchMethodException e1) {
-            throw new SAXException(e1);
-          }
-          catch (InvocationTargetException e) {
-            throw new SAXException(e);
-          }
-          catch (IllegalAccessException e) {
-            throw new SAXException(e);
-          }
+          });
         }
       }
-      String id = nameToValue.get(Utilities.ID_ATTRIBUTE_NAME);
+      String id = elementInfo.attributes.get(Utilities.ID_ATTRIBUTE_NAME);
       if (id != null) {
-        idToValue.put(id, info.value);
+        idToValue.put(id, elementInfo.getValue());
       }
-
-      if (idref == null) {
-        for (Map.Entry<String, String> entry : nameToValue.entrySet()) {
-          String attributeName = entry.getKey();
-          if (Utilities.RESERVED_ATTRIBUTES.contains(attributeName) || constructorParameterNames.contains(attributeName)) {
-            continue;
-          }
-          try {
-            Method setter = getSetter(info.value.getClass(), attributeName);
-            Class argType = Utilities.wrapperForPrimitiveType(setter.getParameterTypes()[0]);
-            setter.invoke(info.value, valueFor(argType, entry.getValue()));
-          }
-          catch (NoSuchMethodException e) {
-            handleWarning(e);
-          }
-          catch (IllegalAccessException e) {
-            handleWarning(e);
-          }
-          catch (InvocationTargetException e) {
-            handleWarning(e);
-          }
-          catch (InstantiationException e) {
-            handleWarning(e);
-          }
-        }
-      }
-      stack.push(info);
+      stack.push(elementInfo);
     }
     catch (ClassNotFoundException e) {
       handleError(e);
     }
-    catch (InstantiationException e) {
+    catch (NoSuchMethodException e) {
       handleError(e);
     }
+  }
+
+  private Class getType(String qName, String className) throws ClassNotFoundException {
+    if (className != null) {
+      return getClass().getClassLoader().loadClass(className);
+    }
+    else {
+      try {
+        return getClassForName(qName);
+      }
+      catch (ClassNotFoundException e) {
+        Class outerType = stack.getLast().type;
+        try {
+          Method setter = getSetter(outerType, qName);
+          return setter.getParameterTypes()[0];
+        }
+        catch (NoSuchMethodException e1) {
+          Constructor constructor = getConstructor(outerType);
+          String[] parameterNames = getParameterNames(constructor);
+          Class[] parameterTypes = constructor.getParameterTypes();
+          for (int i = 0; i < parameterNames.length; i++) {
+            if (parameterNames[i].equals(qName)) {
+              return parameterTypes[i];
+            }
+          }
+        }
+      }
+    }
+    return null;
   }
 
   @Override
@@ -342,21 +426,34 @@ class ReflectiveHandler extends DefaultHandler {
 
   @Override
   public void endElement(String uri, String localName, String qName) throws SAXException {
-    Info last = stack.pop();
-    result = last.value;
-    if (stack.size() != 0) {
-      try {
-        installInOuter(stack.getLast().value, last);
+    ElementInfo elementInfo = stack.pop();
+    try {
+      result = elementInfo.getValue();
+      setProperties(elementInfo);
+      for (ElementInfo element : elementInfo.elements) {
+        if (element.myValueAlreadySetInOuter) {
+          continue;
+        }
+        Object outerValue = elementInfo.getValue();
+        if (!(Collection.class.isAssignableFrom(elementInfo.type))) { // todo remove Collection check
+          getSetter(outerValue.getClass(), element.name).invoke(outerValue, element.getValue());
+        }
+        else {
+          applyMethod(outerValue, "add", element.getValue());
+        }
       }
-      catch (InvocationTargetException e) {
-        handleError(e);
+      if (stack.size() != 0) {
+        stack.getLast().elements.add(elementInfo);
       }
-      catch (NoSuchMethodException e) {
-        handleError(e);
-      }
-      catch (IllegalAccessException e) {
-        handleError(e);
-      }
+    }
+    catch (NoSuchMethodException e) {
+      handleError(e);
+    }
+    catch (IllegalAccessException e) {
+      handleError(e);
+    }
+    catch (InvocationTargetException e) {
+      handleError(e);
     }
   }
 }

@@ -128,8 +128,7 @@ public class NavigationEditorPanel2 extends JComponent {
             for (RenderedView child : parent.getChildren()) {
               String id = getViewId(child);
               if (id != null) {
-                Locator locator = new Locator();
-                locator.setState(state);
+                Locator locator = new Locator(state);
                 locator.setViewName(id);
                 myLocationToRenderedView.put(locator, child);
               }
@@ -322,7 +321,7 @@ public class NavigationEditorPanel2 extends JComponent {
       if (componentAt instanceof AndroidRootComponent) {
         if (myComponent != componentAt) {
           Map<AndroidRootComponent, State> m = getStateComponentAssociation().valueToKey;
-          Transition transition = new Transition("", m.get(myComponent), m.get(componentAt));
+          Transition transition = Transition.of("", m.get(myComponent), m.get(componentAt));
           transition.getSource().setViewName(getViewId(myNamedLeaf));
           {
             AndroidRootComponent destinationRoot = (AndroidRootComponent)componentAt;
