@@ -16,7 +16,6 @@
 package com.android.navigation;
 
 import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.annotations.Property;
 
 public class Locator {
@@ -24,7 +23,7 @@ public class Locator {
   private final State state;
   private String viewName;
 
-  public Locator(@Property("state") @NonNull State state) {
+  public Locator(@NonNull @Property("state") State state) {
     this.state = state;
   }
 
