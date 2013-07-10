@@ -112,17 +112,18 @@ public class TemplateManager {
 
     String bundledTemplatePath = System.getProperty(BUNDLED_TEMPLATE_PATH_PROPERTY);
     if (bundledTemplatePath == null) {
-      String studioHome = PathManager.getHomePath();
-      if (studioHome != null) {
-        try {
-          bundledTemplatePath = new File(studioHome, BUNDLED_TEMPLATE_PATH).getCanonicalPath();
-        }
-        catch (IOException e) {
-          LOG.warn("Unable to find bundled template path", e);
+      // In the IDE distribution, this should be in plugins/android/lib/BUNDLED_TEMPLATE_PATH
+      String androidJarPath = PathManager.getJarPathForClass(TemplateManager.class);
+      if (androidJarPath != null) {
+        File androidJar = new File(androidJarPath);
+        if (androidJar.isFile()) {
+          File base = new File(androidJar.getParentFile(), BUNDLED_TEMPLATE_PATH);
+          if (base.isDirectory()) {
+            folders.add(base);
+          }
         }
       }
-    }
-    if (bundledTemplatePath != null) {
+    } else {
       File bundledTemplateDir = new File(bundledTemplatePath);
       if (bundledTemplateDir.isDirectory()) {
         folders.add(bundledTemplateDir);
