@@ -514,7 +514,19 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
   }
 
   public void test6() throws Exception {
-    final MyExecutor executor = new MyExecutor("com.example.simple");
+    final MyExecutor executor = new MyExecutor("com.example.simple") {
+      @NotNull
+      @Override
+      protected Process doCreateProcess(@NotNull String[] args, @NotNull Map<? extends String, ? extends String> environment)
+        throws Exception {
+        if (args[0].endsWith(SdkConstants.FN_AAPT) && "crunch".equals(args[1])) {
+          final String outputDir = args[args.length - 1];
+          createTextFile(outputDir + "/drawable/ic_launcher1.png", "crunch_output_content");
+          return new MyProcess(0, "", "");
+        }
+        return super.doCreateProcess(args, environment);
+      }
+    };
     setUpSimpleAndroidStructure(ArrayUtil.EMPTY_STRING_ARRAY, executor, null).getFirst();
     rebuildAll();
     checkBuildLog(executor, "expected_log");
@@ -1300,11 +1312,6 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
               zos.close();
             }
           }
-        }
-        else if ("crunch".equals(args[1])) {
-          final String outputDir = args[args.length - 1];
-          createTextFile(outputDir + "/drawable/crunch_output1.png", "crunch_output1_content");
-          createTextFile(outputDir + "/drawable/crunch_output2.png", "crunch_output2_content");
         }
       }
       return new MyProcess(0, "", "");
