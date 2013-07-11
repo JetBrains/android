@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.customizer;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -60,7 +61,7 @@ public class CompilerOutputPathModuleCustomizerTest extends IdeaTestCase {
     moduleSettings.commit();
 
     File classesFolder = ideaAndroidProject.getSelectedVariant().getClassesFolder();
-    String expected = VfsUtilCore.pathToUrl(classesFolder.getAbsolutePath());
+    String expected = VfsUtilCore.pathToUrl(ExternalSystemApiUtil.toCanonicalPath(classesFolder.getAbsolutePath()));
     assertEquals(expected, compilerOutputPath);
   }
 }
