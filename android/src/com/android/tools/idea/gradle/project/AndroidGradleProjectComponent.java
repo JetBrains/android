@@ -24,6 +24,7 @@ import com.intellij.compiler.options.ExternalBuildOptionListener;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.ModuleAdapter;
@@ -86,6 +87,9 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     }
 
     try {
+      // Prevent IDEA from refreshing project. We want to do it ourselves.
+      myProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
+
       GradleProjectImporter.getInstance().reImportProject(myProject);
     }
     catch (ConfigurationException e) {

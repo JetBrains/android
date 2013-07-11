@@ -120,28 +120,24 @@ class ProjectResolver {
         continue;
       }
       String moduleDirPath = moduleDir.getPath();
-      AndroidProject androidProject = getAndroidProject(id, moduleDirPath, listener, settings);
-      if (androidProject != null) {
-        if (!GradleModelVersionCheck.isSupportedVersion(androidProject)) {
+      if (hasAndroidTasks(module.getGradleProject())) {
+        AndroidProject androidProject = getAndroidProject(id, moduleDirPath, listener, settings);
+        if (androidProject == null || !GradleModelVersionCheck.isSupportedVersion(androidProject)) {
           throw new IllegalStateException(GradleModelConstants.UNSUPPORTED_MODEL_VERSION_ERROR);
         }
         createModuleInfo(module, androidProject, projectInfo, moduleDirPath, gradleProject);
         if (first == null) {
           first = androidProject;
         }
-        continue;
+      } else {
+        File gradleSettingsFile = new File(moduleDir, SdkConstants.FN_SETTINGS_GRADLE);
+        if (gradleSettingsFile.isFile()) {
+          // This is just a root folder for a group of Gradle projects. Set the Gradle project to null so the JPS builder won't try to
+          // compile it using Gradle. We still need to create the module to display files inside it.
+          gradleProject = null;
+        }
+        createModuleInfo(module, projectInfo, moduleDirPath, gradleProject);
       }
-      if (hasAndroidTasks(module.getGradleProject())) {
-        // AndroidProject is null for pre-0.5.0 projects.
-        throw new IllegalStateException(GradleModelConstants.UNSUPPORTED_MODEL_VERSION_ERROR);
-      }
-      File gradleSettingsFile = new File(moduleDir, SdkConstants.FN_SETTINGS_GRADLE);
-      if (gradleSettingsFile.isFile()) {
-        // This is just a root folder for a group of Gradle projects. Set the Gradle project to null so the JPS builder won't try to
-        // compile it using Gradle. We still need to create the module to display files inside it.
-        gradleProject = null;
-      }
-      createModuleInfo(module, projectInfo, moduleDirPath, gradleProject);
     }
 
     if (first == null) {
@@ -185,7 +181,7 @@ class ProjectResolver {
                                            @NotNull String projectPath,
                                            @NotNull final ExternalSystemTaskNotificationListener listener,
                                            @Nullable final GradleExecutionSettings settings) {
-    AndroidProject androidProject = myHelper.execute(projectPath, settings, new Function<ProjectConnection, AndroidProject>() {
+    return myHelper.execute(projectPath, settings, new Function<ProjectConnection, AndroidProject>() {
       @Nullable
       @Override
       public AndroidProject fun(ProjectConnection connection) {
@@ -199,7 +195,6 @@ class ProjectResolver {
         return null;
       }
     });
-    return androidProject;
   }
 
   private static void handleProjectImportError(@NotNull RuntimeException e) {
