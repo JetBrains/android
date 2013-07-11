@@ -124,7 +124,7 @@ public class TemplateManager {
         }
       }
     } else {
-      File bundledTemplateDir = new File(bundledTemplatePath);
+      File bundledTemplateDir = new File(bundledTemplatePath).getAbsoluteFile();
       if (bundledTemplateDir.isDirectory()) {
         folders.add(bundledTemplateDir);
       }
