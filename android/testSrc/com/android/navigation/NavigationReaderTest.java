@@ -17,13 +17,15 @@
 package com.android.navigation;
 
 import junit.framework.TestCase;
+import org.jetbrains.android.AndroidTestCase;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 public class NavigationReaderTest extends TestCase {
   public void test1() throws FileNotFoundException {
-    FileInputStream stream = new FileInputStream("../adt/idea/android/testData/resNavigation/res/layout/main.nav");
+
+    FileInputStream stream = new FileInputStream(AndroidTestCase.getTestDataPath() + "/resNavigation/res/layout/main.nav");
     XMLReader reader = new XMLReader(stream);
     Object result = reader.read();
     System.out.println("result = " + result);
