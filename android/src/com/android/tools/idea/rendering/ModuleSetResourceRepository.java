@@ -94,21 +94,29 @@ public final class ModuleSetResourceRepository extends MultiResourceRepository {
         moduleNames.add(f.getModule().getName());
       }
       for (AndroidLibrary library : libraries) {
-        File folder = library.getFolder();
-        String name = folder.getName();
         // We should only add .aar dependencies if they aren't already provided as modules.
         // For now, the way we associate them with each other is via the library name;
         // in the future the model will provide this for us
-        if (name.endsWith(DOT_AAR)) {
-          String libraryName = name.substring(0, name.length() - DOT_AAR.length());
-          if (!moduleNames.contains(libraryName)) {
-            File resFolder = library.getResFolder();
-            if (resFolder.exists()) {
-              files.add(resFolder);
 
-              // Don't add it again!
-              moduleNames.add(libraryName);
-            }
+        String libraryName = null;
+        String projectName = library.getProject();
+        if (projectName != null && !projectName.isEmpty()) {
+          libraryName = projectName.substring(projectName.lastIndexOf(':') + 1);
+        } else {
+          // Pre 0.5 support: remove soon
+          File folder = library.getFolder();
+          String name = folder.getName();
+          if (name.endsWith(DOT_AAR)) {
+            libraryName = name.substring(0, name.length() - DOT_AAR.length());
+          }
+        }
+        if (libraryName != null && !moduleNames.contains(libraryName)) {
+          File resFolder = library.getResFolder();
+          if (resFolder.exists()) {
+            files.add(resFolder);
+
+            // Don't add it again!
+            moduleNames.add(libraryName);
           }
         }
       }
