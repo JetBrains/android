@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 
 /**
- * Sets the compiler output folder to a module imported from an {@link com.android.build.gradle.model.AndroidProject}.
+ * Sets the compiler output folder to a module imported from an {@link com.android.builder.model.AndroidProject}.
  */
 public class CompilerOutputPathModuleCustomizer implements ModuleCustomizer {
   @Override

@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Creates run configurations for modules imported from {@link com.android.build.gradle.model.AndroidProject}s.
+ * Creates run configurations for modules imported from {@link com.android.builder.model.AndroidProject}s.
  */
 public class RunConfigModuleCustomizer implements ModuleCustomizer {
   @Override

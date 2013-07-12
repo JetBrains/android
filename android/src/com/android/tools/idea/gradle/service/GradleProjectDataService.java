@@ -66,9 +66,10 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
               // This happens when there is an orphan IDEA module that does not map to a Gradle project. One way for this to happen is when
               // opening a project created in another machine, and Gradle import assigns a different name to a module. Then, user decides not
               // to delete the orphan module when Studio prompts to do so.
-              continue;
+              Facets.removeAllFacets(module, AndroidGradleFacet.TYPE_ID);
+            } else {
+              customizeModule(module, gradleProject);
             }
-            customizeModule(module, gradleProject);
           }
         }
       });

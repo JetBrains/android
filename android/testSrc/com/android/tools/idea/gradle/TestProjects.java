@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 
 /**
- * Factory of {@link com.android.build.gradle.model.AndroidProject}s for testing purposes. The created projects mimic the structure of the
+ * Factory of {@link com.android.builder.model.AndroidProject}s for testing purposes. The created projects mimic the structure of the
  * sample projects distributed with the Android Gradle plug-in.
  */
 public final class TestProjects {
