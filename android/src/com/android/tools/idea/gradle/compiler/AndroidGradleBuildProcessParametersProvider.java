@@ -118,11 +118,16 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
       LOG.info(msg);
       return Collections.emptyList();
     }
+    List<String> jvmArgs = Lists.newArrayList();
 
-    GradleExecutionSettings executionSettings =
-      settingsManager.getExecutionSettings(myProject, projectSettings.getExternalProjectPath(), SYSTEM_ID);
+    String projectPath = projectSettings.getExternalProjectPath();
+    GradleExecutionSettings executionSettings = settingsManager.getExecutionSettings(myProject, projectPath, SYSTEM_ID);
+    populateJvmArgs(executionSettings, jvmArgs);
 
-    return getGradleExecutionSettingsAsVmArgs(executionSettings);
+    GradleCompilerConfiguration compilerConfiguration = GradleCompilerConfiguration.getInstance(myProject);
+    populateJvmArgs(compilerConfiguration, jvmArgs);
+
+    return jvmArgs;
   }
 
   @Nullable
@@ -136,36 +141,39 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
   }
 
   @VisibleForTesting
-  @NotNull
-  List<String> getGradleExecutionSettingsAsVmArgs(@NotNull GradleExecutionSettings executionSettings) {
-    List<String> vmArgs = Lists.newArrayList();
-
+  void populateJvmArgs(@NotNull GradleExecutionSettings executionSettings, @NotNull List<String> jvmArgs) {
     long daemonMaxIdleTimeInMs = executionSettings.getRemoteProcessIdleTtlInMs();
-    vmArgs.add(createVmArg(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_IDLE_TIME_IN_MS, String.valueOf(daemonMaxIdleTimeInMs)));
-
-    int daemonMaxMemory = executionSettings.getDaemonXmx();
-    vmArgs.add(createVmArg(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_MEMORY_IN_MB, String.valueOf(daemonMaxMemory)));
+    jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_IDLE_TIME_IN_MS, String.valueOf(daemonMaxIdleTimeInMs)));
 
     String gradleHome = executionSettings.getGradleHome();
     if (gradleHome != null && !gradleHome.isEmpty()) {
-      vmArgs.add(createVmArg(BuildProcessJvmArgs.GRADLE_HOME_DIR_PATH, gradleHome));
+      jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_HOME_DIR_PATH, gradleHome));
     }
 
     String serviceDirectory = executionSettings.getServiceDirectory();
     if (serviceDirectory != null && !serviceDirectory.isEmpty()) {
-      vmArgs.add(createVmArg(BuildProcessJvmArgs.GRADLE_SERVICE_DIR_PATH, serviceDirectory));
+      jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_SERVICE_DIR_PATH, serviceDirectory));
     }
 
-    vmArgs.add(createVmArg(BuildProcessJvmArgs.PROJECT_DIR_PATH, myProject.getBasePath()));
+    jvmArgs.add(createJvmArg(BuildProcessJvmArgs.PROJECT_DIR_PATH, myProject.getBasePath()));
 
     boolean verboseProcessing = executionSettings.isVerboseProcessing();
-    vmArgs.add(createVmArg(BuildProcessJvmArgs.USE_GRADLE_VERBOSE_LOGGING, String.valueOf(verboseProcessing)));
+    jvmArgs.add(createJvmArg(BuildProcessJvmArgs.USE_GRADLE_VERBOSE_LOGGING, String.valueOf(verboseProcessing)));
+  }
 
-    return vmArgs;
+  @VisibleForTesting
+  void populateJvmArgs(GradleCompilerConfiguration compilerConfiguration, List<String> jvmArgs) {
+    jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_MEMORY_IN_MB, compilerConfiguration.MAX_HEAP_SIZE));
+    jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_PERM_GEN_IN_MB, compilerConfiguration.MAX_PERM_GEN_SIZE));
   }
 
   @NotNull
-  private static String createVmArg(@NotNull String name, @NotNull String value) {
+  private static String createJvmArg(@NotNull String name, int value) {
+    return createJvmArg(name, String.valueOf(value));
+  }
+
+  @NotNull
+  private static String createJvmArg(@NotNull String name, @NotNull String value) {
     String format = JVM_ARG_FORMAT;
     if (value.contains(" ")) {
       format = JVM_ARG_WITH_QUOTED_VALUE_FORMAT;

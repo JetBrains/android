@@ -122,6 +122,10 @@
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.GradleProjectImporter"/>
     <exportable serviceInterface="com.android.tools.idea.folding.AndroidFoldingSettings"/>
 
+    <projectService serviceImplementation="com.android.tools.idea.gradle.compiler.GradleCompilerConfiguration"/>
+    <projectConfigurable instance="com.android.tools.idea.gradle.compiler.GradleCompilerSettingsConfigurable" id="gradle.compiler"
+                         displayName="Gradle" parentId="project.propCompiler"/>
+
     <errorHandler        implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
     <statisticsService   implementationClass="com.android.tools.idea.stats.AndroidStatisticsService" key="android-studio" />
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.DrawableStateListDomFileDescription"/>
