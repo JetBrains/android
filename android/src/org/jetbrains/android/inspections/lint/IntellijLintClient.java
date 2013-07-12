@@ -128,6 +128,16 @@ class IntellijLintClient extends LintClient implements Disposable {
     return result;
   }
 
+  @NonNull
+  @Override
+  public List<File> getResourceFolders(@NonNull com.android.tools.lint.detector.api.Project project) {
+    AndroidFacet facet = AndroidFacet.getInstance(myState.getModule());
+    if (facet != null) {
+      return IntellijLintUtils.getResourceDirectories(facet);
+    }
+    return super.getResourceFolders(project);
+  }
+
   @Override
   @NotNull
   public String readFile(File file) {
