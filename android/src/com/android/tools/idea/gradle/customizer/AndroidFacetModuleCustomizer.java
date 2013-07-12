@@ -39,7 +39,7 @@ import java.util.Collection;
 import java.util.Set;
 
 /**
- * Adds the Android facet to modules imported from {@link com.android.build.gradle.model.AndroidProject}s.
+ * Adds the Android facet to modules imported from {@link com.android.builder.model.AndroidProject}s.
  */
 public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
   private static final String EMPTY_PATH = "";
@@ -49,7 +49,10 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
 
   @Override
   public void customizeModule(@NotNull Module module, @NotNull final Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
-    if (ideaAndroidProject != null) {
+    if (ideaAndroidProject == null) {
+      Facets.removeAllFacets(module, AndroidFacet.ID);
+    }
+    else {
       AndroidFacet facet = Facets.getFirstFacet(module, AndroidFacet.ID);
       if (facet != null) {
         configureFacet(facet, ideaAndroidProject);

@@ -40,7 +40,7 @@ import java.io.File;
 import java.util.Map;
 
 /**
- * Sets the dependencies of a module imported from an {@link com.android.build.gradle.model.AndroidProject}.
+ * Sets the dependencies of a module imported from an {@link com.android.builder.model.AndroidProject}.
  */
 public class DependenciesModuleCustomizer implements ModuleCustomizer {
   private static final Logger LOG = Logger.getInstance(DependenciesModuleCustomizer.class);
