@@ -86,7 +86,7 @@ public class SuppressLintIntentionAction implements IntentionAction, Iconable {
   }
 
   @Override
-  public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
+  public void invoke(@NotNull Project project, @Nullable Editor editor, @NotNull PsiFile file) throws IncorrectOperationException {
     if (file instanceof XmlFile) {
       final XmlTag element = PsiTreeUtil.getParentOfType(myElement, XmlTag.class);
       if (element == null) {

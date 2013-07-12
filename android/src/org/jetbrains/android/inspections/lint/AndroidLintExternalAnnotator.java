@@ -50,6 +50,7 @@ import static com.android.SdkConstants.*;
  * @author Eugene.Kudelevsky
  */
 public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State> {
+  static final boolean INCLUDE_IDEA_SUPPRESS_ACTIONS = false;
 
   @Override
   public State collectionInformation(@NotNull PsiFile file) {
@@ -205,10 +206,15 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
             annotation.registerFix(new MyDisableInspectionFix(key));
             annotation.registerFix(new MyEditInspectionToolsSettingsAction(key, inspection));
 
-            final SuppressQuickFix[] suppressActions = inspection.getBatchSuppressActions(startElement);
-            for (SuppressQuickFix action : suppressActions) {
-              ProblemHighlightType type = annotation.getHighlightType();
-              annotation.registerFix(action, null, key, InspectionManager.getInstance(project).createProblemDescriptor(startElement, endElement, message, type, true, LocalQuickFix.EMPTY_ARRAY));
+            if (INCLUDE_IDEA_SUPPRESS_ACTIONS) {
+              final SuppressQuickFix[] suppressActions = inspection.getBatchSuppressActions(startElement);
+              for (SuppressQuickFix action : suppressActions) {
+                if (action.isAvailable(project, startElement)) {
+                  ProblemHighlightType type = annotation.getHighlightType();
+                  annotation.registerFix(action, null, key, InspectionManager.getInstance(project).createProblemDescriptor(
+                    startElement, endElement, message, type, true, LocalQuickFix.EMPTY_ARRAY));
+                }
+              }
             }
           }
         }
