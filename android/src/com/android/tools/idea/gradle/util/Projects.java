@@ -91,7 +91,7 @@ public final class Projects {
   public static boolean isGradleProject(@NotNull Project project) {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
-      if (Facets.getFirstFacet(module, AndroidGradleFacet.TYPE_ID) != null) {
+      if (Facets.getFirstFacetOfType(module, AndroidGradleFacet.TYPE_ID) != null) {
         return true;
       }
     }
