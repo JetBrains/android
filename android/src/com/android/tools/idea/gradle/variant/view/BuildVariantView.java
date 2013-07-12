@@ -121,11 +121,11 @@ public class BuildVariantView {
 
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     for (Module module : moduleManager.getModules()) {
-      AndroidFacet androidFacet = Facets.getFirstFacet(module, AndroidFacet.ID);
+      AndroidFacet androidFacet = Facets.getFirstFacetOfType(module, AndroidFacet.ID);
       if (androidFacet == null) {
         continue;
       }
-      if (Facets.getFirstFacet(module, AndroidGradleFacet.TYPE_ID) == null) {
+      if (Facets.getFirstFacetOfType(module, AndroidGradleFacet.TYPE_ID) == null) {
         // If the module does not have an Android-Gradle facet, just skip it.
         continue;
       }
@@ -181,7 +181,7 @@ public class BuildVariantView {
 
   @Nullable
   private static IdeaAndroidProject getAndroidProject(@NotNull Module module) {
-    AndroidFacet androidFacet = Facets.getFirstFacet(module, AndroidFacet.ID);
+    AndroidFacet androidFacet = Facets.getFirstFacetOfType(module, AndroidFacet.ID);
     return androidFacet != null ? androidFacet.getIdeaAndroidProject() : null;
   }
 

@@ -38,7 +38,7 @@ public class FacetsTest extends IdeaTestCase {
 
     assertEquals(1, facetManager.getFacetsByType(AndroidFacet.ID).size());
 
-    Facets.removeAllFacets(myModule, AndroidFacet.ID);
+    Facets.removeAllFacetsOfType(myModule, AndroidFacet.ID);
 
     assertEquals(0, facetManager.getFacetsByType(AndroidFacet.ID).size());
   }
@@ -56,7 +56,7 @@ public class FacetsTest extends IdeaTestCase {
 
     assertEquals(1, facetManager.getFacetsByType(AndroidGradleFacet.TYPE_ID).size());
 
-    Facets.removeAllFacets(myModule, AndroidGradleFacet.TYPE_ID);
+    Facets.removeAllFacetsOfType(myModule, AndroidGradleFacet.TYPE_ID);
 
     assertEquals(0, facetManager.getFacetsByType(AndroidGradleFacet.TYPE_ID).size());
   }

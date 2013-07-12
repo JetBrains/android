@@ -158,7 +158,7 @@ public class DependenciesModuleCustomizer implements ModuleCustomizer {
         ModuleManager moduleManager = ModuleManager.getInstance(project);
         Module moduleDependency = null;
         for (Module module : moduleManager.getModules()) {
-          AndroidGradleFacet androidGradleFacet = Facets.getFirstFacet(module, AndroidGradleFacet.TYPE_ID);
+          AndroidGradleFacet androidGradleFacet = Facets.getFirstFacetOfType(module, AndroidGradleFacet.TYPE_ID);
           if (androidGradleFacet != null) {
             String path = androidGradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
             if (Objects.equal(path, modulePath)) {
