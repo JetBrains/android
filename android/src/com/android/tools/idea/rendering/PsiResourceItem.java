@@ -131,6 +131,10 @@ class PsiResourceItem extends ResourceItem {
   private ResourceValue parseXmlToResourceValue(boolean isFrameworks) {
     assert myTag != null;
 
+    if (!myTag.isValid()) {
+      return null;
+    }
+
     ResourceType type = getType();
     String name = getName();
 
