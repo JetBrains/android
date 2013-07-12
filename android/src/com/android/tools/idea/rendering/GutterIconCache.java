@@ -60,7 +60,7 @@ public class GutterIconCache {
               Graphics g = bg.getGraphics();
               g.setColor(new Color(255, 255, 255, 0));
               g.fillRect(0, 0, bg.getWidth(), bg.getHeight());
-              g.drawImage(image, 0, 0, null);
+              UIUtil.drawImage(g, image, 0, 0, null);
               g.dispose();
               image = bg;
             }
