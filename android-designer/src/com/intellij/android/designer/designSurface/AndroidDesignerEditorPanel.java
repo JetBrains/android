@@ -481,26 +481,31 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       @Override
       public void run() {
         try {
-          final Module module = getModule();
-          AndroidFacet facet = AndroidFacet.getInstance(module);
-          if (facet == null) {
-            throw new RenderingException("No facet available");
-          }
-
-          if (myConfiguration.getTarget() == null) {
-            throw new RenderingException("No target selected");
-          }
-
-          if (myConfiguration.getTheme() == null) {
-            throw new RenderingException("No theme");
-          }
-
           if (sessionId != mySessionId) {
             cancel();
             return;
           }
 
+          final Module module = getModule();
           final RenderLogger logger = new RenderLogger(myFile.getName(), module);
+
+          AndroidFacet facet = AndroidFacet.getInstance(module);
+          if (facet == null) {
+            logger.error(null, "No Android facet available", null);
+          } else if (myConfiguration.getTarget() == null) {
+            logger.error(null, "No render target selected", null);
+          } else if (myConfiguration.getTheme() == null) {
+            logger.error(null, "No theme selected", null);
+          }
+
+          if (logger.hasProblems()) {
+            cancel();
+            RenderResult renderResult = new RenderResult(null, null, myXmlFile, logger);
+            runnable.consume(renderResult);
+            updateErrors(renderResult);
+            return;
+          }
+
           final RenderResult renderResult;
           RenderContext renderContext = AndroidDesignerEditorPanel.this;
           if (myRendererLock.tryLock()) {
