@@ -65,6 +65,7 @@ public class BuilderExecutionSettingsTest extends TestCase {
   public void testConstructorWithValidVmArgs() {
     System.setProperty(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_IDLE_TIME_IN_MS, "55");
     System.setProperty(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_MEMORY_IN_MB, "1024");
+    System.setProperty(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_PERM_GEN_IN_MB, "512");
 
     String gradleHomeDirPath = myGradleHomeDir.getAbsolutePath();
     System.setProperty(BuildProcessJvmArgs.GRADLE_HOME_DIR_PATH, gradleHomeDirPath);
@@ -81,6 +82,7 @@ public class BuilderExecutionSettingsTest extends TestCase {
     BuilderExecutionSettings settings = new BuilderExecutionSettings();
     assertEquals(55, settings.getGradleDaemonMaxIdleTimeInMs());
     assertEquals(1024, settings.getGradleDaemonMaxMemoryInMb());
+    assertEquals(512, settings.getGradleDaemonMaxPermGenInMb());
     assertEquals(gradleHomeDirPath, pathOf(settings.getGradleHomeDir()));
     assertEquals(gradleHomeServicePath, pathOf(settings.getGradleServiceDir()));
     assertEquals(projectDirPath, settings.getProjectDir().getAbsolutePath());
