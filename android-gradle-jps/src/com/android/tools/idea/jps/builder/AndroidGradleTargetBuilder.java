@@ -290,7 +290,12 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
 
       int xmx = executionSettings.getGradleDaemonMaxMemoryInMb();
       if (xmx > 0) {
-        jvmArgs.add(String.format("-Xmx%dm", xmx));
+        jvmArgs.add(String.format((Locale)null, "-Xmx%dm", xmx));
+      }
+
+      int xxMaxPermSize = executionSettings.getGradleDaemonMaxPermGenInMb();
+      if (xxMaxPermSize > 0) {
+        jvmArgs.add(String.format((Locale)null, "-XX:MaxPermSize=%dm", xxMaxPermSize));
       }
 
       if (!jvmArgs.isEmpty()) {

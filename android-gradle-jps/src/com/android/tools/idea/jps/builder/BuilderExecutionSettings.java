@@ -30,6 +30,7 @@ class BuilderExecutionSettings {
   private final boolean myEmbeddedGradleDaemonEnabled;
   private final int myGradleDaemonMaxIdleTimeInMs;
   private final int myGradleDaemonMaxMemoryInMb;
+  private final int myGradleDaemonMaxPermGenInMb;
   @Nullable private final File myGradleHomeDir;
   @Nullable private final File myGradleServiceDir;
   @NotNull private final File myProjectDir;
@@ -40,6 +41,7 @@ class BuilderExecutionSettings {
     myEmbeddedGradleDaemonEnabled = SystemProperties.getBooleanProperty(BuildProcessJvmArgs.USE_EMBEDDED_GRADLE_DAEMON, false);
     myGradleDaemonMaxIdleTimeInMs = SystemProperties.getIntProperty(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_IDLE_TIME_IN_MS, -1);
     myGradleDaemonMaxMemoryInMb = SystemProperties.getIntProperty(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_MEMORY_IN_MB, 512);
+    myGradleDaemonMaxPermGenInMb = SystemProperties.getIntProperty(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_PERM_GEN_IN_MB, 128);
     myGradleHomeDir = findGradleHomeDir();
     myGradleServiceDir = findGradleServiceDir();
     myProjectDir = findProjectRootDir();
@@ -113,6 +115,10 @@ class BuilderExecutionSettings {
     return myGradleDaemonMaxMemoryInMb;
   }
 
+  int getGradleDaemonMaxPermGenInMb() {
+    return myGradleDaemonMaxPermGenInMb;
+  }
+
   @Nullable
   File getGradleHomeDir() {
     return myGradleHomeDir;
@@ -128,21 +134,22 @@ class BuilderExecutionSettings {
     return myProjectDir;
   }
 
+  boolean isParallelBuild() {
+    return myParallelBuild;
+  }
+
   @Override
   public String toString() {
     return "BuilderExecutionSettings[" +
            "embeddedGradleDaemonEnabled=" + myEmbeddedGradleDaemonEnabled +
            ", gradleDaemonMaxIdleTimeInMs=" + myGradleDaemonMaxIdleTimeInMs +
            ", gradleDaemonMaxMemoryInMb=" + myGradleDaemonMaxMemoryInMb +
+           ", gradleDaemonMaxPermGenInMb=" + myGradleDaemonMaxPermGenInMb +
            ", gradleHomeDir=" + myGradleHomeDir +
            ", gradleServiceDir=" + myGradleServiceDir +
            ", parallelBuild=" + myParallelBuild +
            ", projectDir=" + myProjectDir +
            ", verboseLoggingEnabled=" + myVerboseLoggingEnabled +
            ']';
-  }
-
-  boolean isParallelBuild() {
-    return myParallelBuild;
   }
 }
