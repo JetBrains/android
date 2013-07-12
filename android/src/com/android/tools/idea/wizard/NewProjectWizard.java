@@ -138,7 +138,7 @@ public class NewProjectWizard extends TemplateWizard {
             // TODO: We should perhaps instantiate this from the Freemarker template, but trying to use the copy command to copy
             // empty directories is problematic, and we don't have a primitive command to create a directory.
             File javaSrcDir = new File(moduleRoot, JAVA_SRC_PATH);
-            File packageDir = new File(javaSrcDir, ((String)myWizardState.get(ATTR_PACKAGE_NAME)).replaceAll("\\.", File.separator));
+            File packageDir = new File(javaSrcDir, ((String)myWizardState.get(ATTR_PACKAGE_NAME)).replace('.', File.separatorChar));
             packageDir.mkdirs();
           }
           GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
