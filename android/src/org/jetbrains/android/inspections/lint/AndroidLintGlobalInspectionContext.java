@@ -340,6 +340,19 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       return result;
     }
 
+    @NonNull
+    @Override
+    public List<File> getResourceFolders(@NonNull com.android.tools.lint.detector.api.Project project) {
+      final Module module = findModuleForLintProject(myProject, project);
+      if (module != null) {
+        AndroidFacet facet = AndroidFacet.getInstance(module);
+        if (facet != null) {
+          return IntellijLintUtils.getResourceDirectories(facet);
+        }
+      }
+      return super.getResourceFolders(project);
+    }
+
     @Nullable
     @Override
     public File getSdkHome() {
