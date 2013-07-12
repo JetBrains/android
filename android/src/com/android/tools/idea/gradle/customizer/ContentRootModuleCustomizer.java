@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 
 /**
- * Sets the content roots of an IDEA module imported from an {@link com.android.build.gradle.model.AndroidProject}.
+ * Sets the content roots of an IDEA module imported from an {@link com.android.builder.model.AndroidProject}.
  */
 public class ContentRootModuleCustomizer implements ModuleCustomizer {
   /**

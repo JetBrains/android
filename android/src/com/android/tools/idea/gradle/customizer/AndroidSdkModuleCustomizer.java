@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 
 /**
- * Sets an Android SDK to a module imported from an {@link com.android.build.gradle.model.AndroidProject}.
+ * Sets an Android SDK to a module imported from an {@link com.android.builder.model.AndroidProject}.
  */
 public class AndroidSdkModuleCustomizer implements ModuleCustomizer {
   private static final Logger LOG = Logger.getInstance(AndroidSdkModuleCustomizer.class);

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.util;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetTypeId;
+import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
@@ -46,4 +47,21 @@ public final class Facets {
     Collection<T> facets = facetManager.getFacetsByType(typeId);
     return ContainerUtil.getFirstItem(facets);
   }
+
+  public static <T extends Facet> void removeAllFacets(@NotNull Module module, @NotNull FacetTypeId<T> typeId) {
+    FacetManager facetManager = FacetManager.getInstance(module);
+    Collection<T> facets = facetManager.getFacetsByType(typeId);
+    if (!facets.isEmpty()) {
+      ModifiableFacetModel model = facetManager.createModifiableModel();
+      try {
+        for (T facet : facets) {
+          model.removeFacet(facet);
+        }
+      }
+      finally {
+        model.commit();
+      }
+    }
+  }
 }
+
