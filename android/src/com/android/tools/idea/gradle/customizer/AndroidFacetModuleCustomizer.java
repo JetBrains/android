@@ -50,10 +50,10 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
   @Override
   public void customizeModule(@NotNull Module module, @NotNull final Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
     if (ideaAndroidProject == null) {
-      Facets.removeAllFacets(module, AndroidFacet.ID);
+      Facets.removeAllFacetsOfType(module, AndroidFacet.ID);
     }
     else {
-      AndroidFacet facet = Facets.getFirstFacet(module, AndroidFacet.ID);
+      AndroidFacet facet = Facets.getFirstFacetOfType(module, AndroidFacet.ID);
       if (facet != null) {
         configureFacet(facet, ideaAndroidProject);
       }

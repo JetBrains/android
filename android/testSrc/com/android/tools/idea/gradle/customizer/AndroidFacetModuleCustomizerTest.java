@@ -59,7 +59,7 @@ public class AndroidFacetModuleCustomizerTest extends IdeaTestCase {
     myCustomizer.customizeModule(myModule, myProject, project);
 
     // Verify that AndroidFacet was added and configured.
-    AndroidFacet facet = Facets.getFirstFacet(myModule, AndroidFacet.ID);
+    AndroidFacet facet = Facets.getFirstFacetOfType(myModule, AndroidFacet.ID);
     assertNotNull(facet);
     assertSame(project, facet.getIdeaAndroidProject());
 

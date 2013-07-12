@@ -42,13 +42,13 @@ public final class Facets {
    * @return the first found facet in the given module.
    */
   @Nullable
-  public static <T extends Facet> T getFirstFacet(@NotNull Module module, @NotNull FacetTypeId<T> typeId) {
+  public static <T extends Facet> T getFirstFacetOfType(@NotNull Module module, @NotNull FacetTypeId<T> typeId) {
     FacetManager facetManager = FacetManager.getInstance(module);
     Collection<T> facets = facetManager.getFacetsByType(typeId);
     return ContainerUtil.getFirstItem(facets);
   }
 
-  public static <T extends Facet> void removeAllFacets(@NotNull Module module, @NotNull FacetTypeId<T> typeId) {
+  public static <T extends Facet> void removeAllFacetsOfType(@NotNull Module module, @NotNull FacetTypeId<T> typeId) {
     FacetManager facetManager = FacetManager.getInstance(module);
     Collection<T> facets = facetManager.getFacetsByType(typeId);
     if (!facets.isEmpty()) {
