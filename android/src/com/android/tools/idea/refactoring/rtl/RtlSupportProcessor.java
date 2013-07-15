@@ -55,13 +55,10 @@ import java.util.Map;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.refactoring.rtl.RtlRefactoringUsageInfo.RtlRefactoringType.LAYOUT_FILE_ATTRIBUTE;
-import static com.android.xml.AndroidManifest.NODE_APPLICATION;
-import static com.android.xml.AndroidManifest.NODE_USES_SDK;
-import static com.android.xml.AndroidManifest.ATTRIBUTE_SUPPORTS_RTL;
-import static com.android.xml.AndroidManifest.ATTRIBUTE_TARGET_SDK_VERSION;
 
 import static com.android.tools.idea.refactoring.rtl.RtlRefactoringUsageInfo.RtlRefactoringType.MANIFEST_SUPPORTS_RTL;
 import static com.android.tools.idea.refactoring.rtl.RtlRefactoringUsageInfo.RtlRefactoringType.MANIFEST_TARGET_SDK;
+import static com.android.xml.AndroidManifest.*;
 
 public class RtlSupportProcessor extends BaseRefactoringProcessor {
 
@@ -168,7 +165,6 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
                 final VirtualFile manifestFile = AndroidRootUtil.getManifestFile(facet);
 
                 XmlFile myManifestFile = (XmlFile)PsiManager.getInstance(myProject).findFile(manifestFile);
-
                 try {
                     XmlTag root = myManifestFile.getRootTag();
                     if (root == null) {
@@ -278,21 +274,21 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
         return layoutV17Dir;
     }
 
-    private List<UsageInfo> getLayoutRefactoringForOneFile(@NotNull VirtualFile layoutFile, boolean createV17) {
-        final PsiFile psiFile = PsiManager.getInstance(myProject).findFile(layoutFile);
-        assert psiFile != null;
-        return getLayoutRefactoringForFile(psiFile, createV17);
-    }
-
-    private List<UsageInfo> getLayoutRefactoringForOneDir(@NotNull VirtualFile layoutDir, boolean createV17) {
+    private List<UsageInfo> getLayoutRefactoringForOneDir(@NotNull VirtualFile layoutDir, boolean createV17, int minSdk) {
         List<UsageInfo> result = new ArrayList<UsageInfo>();
 
         final VirtualFile[] layoutChildren = layoutDir.getChildren();
         for (final VirtualFile oneLayoutFile : layoutChildren) {
-            result.addAll(getLayoutRefactoringForOneFile(oneLayoutFile, createV17));
+            result.addAll(getLayoutRefactoringForOneFile(oneLayoutFile, createV17, minSdk));
         }
 
         return result;
+    }
+
+    private List<UsageInfo> getLayoutRefactoringForOneFile(@NotNull VirtualFile layoutFile, boolean createV17, int minSdk) {
+        final PsiFile psiFile = PsiManager.getInstance(myProject).findFile(layoutFile);
+        assert psiFile != null;
+        return getLayoutRefactoringForFile(psiFile, createV17, minSdk);
     }
 
     private void addLayoutRefactoring(List<UsageInfo> list) {
@@ -300,6 +296,29 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
         for (Module module : ModuleManager.getInstance(myProject).getModules()) {
             AndroidFacet facet = AndroidFacet.getInstance(module);
             if (facet != null && !facet.getProperties().LIBRARY_PROJECT) {
+                int minSdk = 0;
+                final VirtualFile manifestFile = AndroidRootUtil.getManifestFile(facet);
+                XmlFile myManifestFile = (XmlFile)PsiManager.getInstance(myProject).findFile(manifestFile);
+                try {
+                    XmlTag root = myManifestFile.getRootTag();
+                    if (root == null) {
+                        return;
+                    }
+
+                    // Second, deal with targetSdkVersion / minSdkVersion
+                    XmlTag[] usesSdkNodes = root.findSubTags(NODE_USES_SDK);
+                    if (usesSdkNodes.length > 0) {
+                        assert usesSdkNodes.length == 1;
+
+                        XmlTag usesSdkTag = usesSdkNodes[0];
+                        XmlAttribute minSdkAttribute = usesSdkTag.getAttribute(ATTRIBUTE_MIN_SDK_VERSION, ANDROID_URI);
+                        minSdk = (minSdkAttribute != null) ? Integer.parseInt(minSdkAttribute.getValue()) : 0;
+                    }
+                }
+                catch (Exception e) {
+                    LOG.error("Could not read Manifest data", e);
+                }
+
                 if (myProperties.generateV17resourcesOption) {
                     // First get all the "res" directories
                     final List<VirtualFile> allRes = facet.getAllResourceDirectories();
@@ -326,28 +345,28 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
                         if (layoutV17Dir != null) {
                             // ... so add refactoring for all files in the "v17" directory if needed
                             if (layoutV17Dir.getChildren().length != 0) {
-                                list.addAll(getLayoutRefactoringForOneDir(layoutV17Dir, false /* do not create v17 version */));
+                                list.addAll(getLayoutRefactoringForOneDir(layoutV17Dir, false /* do not create v17 version */, minSdk));
                             } else {
-                                list.addAll(getLayoutRefactoringForOneDir(layoutDir, true /* create v17 version */));
+                                list.addAll(getLayoutRefactoringForOneDir(layoutDir, true /* create v17 version */, minSdk));
                             }
                         } else {
                             // otherwise all refactoring for all the non "v17" file and will create the "v17" file later on (we *cannot*
                             // create them here even with a ApplicationManager.getApplication().runWriteAction(...)
-                            list.addAll(getLayoutRefactoringForOneDir(layoutDir, true /* create the v17 version */));
+                            list.addAll(getLayoutRefactoringForOneDir(layoutDir, true /* create the v17 version */, minSdk));
                         }
                     }
                 } else {
                     final List<PsiFile> files = facet.getLocalResourceManager().findResourceFiles(ResourceFolderType.LAYOUT.getName());
 
                     for (PsiFile psiFile: files) {
-                        list.addAll(getLayoutRefactoringForFile(psiFile, false /* do not create the v17 version */));
+                        list.addAll(getLayoutRefactoringForFile(psiFile, false /* do not create the v17 version */, minSdk));
                     }
                 }
             }
         }
     }
 
-    private List<UsageInfo> getLayoutRefactoringForFile(@NotNull final PsiFile layoutFile, final boolean createV17) {
+    private List<UsageInfo> getLayoutRefactoringForFile(@NotNull final PsiFile layoutFile, final boolean createV17, final int minSdk) {
         final List<UsageInfo> result = new ArrayList<UsageInfo>();
 
         if (layoutFile instanceof XmlFile &&
@@ -357,7 +376,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
                 public void visitXmlTag(XmlTag tag) {
                     super.visitXmlTag(tag);
 
-                    List<UsageInfo> usageInfos = getLayoutRefactoringForTag(tag, createV17);
+                    List<UsageInfo> usageInfos = getLayoutRefactoringForTag(tag, createV17, minSdk);
                     if (usageInfos.isEmpty()) {
                         return;
                     }
@@ -369,7 +388,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
         return result;
     }
 
-    private List<UsageInfo> getLayoutRefactoringForTag(@NotNull XmlTag tag, boolean createV17) {
+    private List<UsageInfo> getLayoutRefactoringForTag(@NotNull XmlTag tag, boolean createV17, int minSdk) {
         final DomElement domElement = DomManager.getDomManager(myProject).getDomElement(tag);
 
         if (!(domElement instanceof LayoutViewElement)) {
@@ -394,6 +413,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
                     RtlRefactoringUsageInfo usageInfoForAttribute = new RtlRefactoringUsageInfo(attributeToMirror, startOffset, endOffset);
                     usageInfoForAttribute.setType(LAYOUT_FILE_ATTRIBUTE);
                     usageInfoForAttribute.setCreateV17(createV17);
+                    usageInfoForAttribute.setAndroiManifestMinSdkVersion(minSdk);
                     result.add(usageInfoForAttribute);
                 }
             } else if (localName.equals(ATTR_GRAVITY) || localName.equals(ATTR_LAYOUT_GRAVITY)) {
@@ -440,14 +460,15 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
         }
     }
 
-    private void performRefactoringForLayoutFile(@NotNull RtlRefactoringUsageInfo usageInfo) {
+    private void performRefactoringForLayoutFile(@NotNull final RtlRefactoringUsageInfo usageInfo) {
         final PsiElement element = usageInfo.getElement();
         assert element != null;
 
         final XmlAttribute attribute = (XmlAttribute) element;
+        final int minSdk = usageInfo.getAndroiManifestMinSdkVersion();
 
         if (!usageInfo.isCreateV17()) {
-            updateAttributeForElement(attribute);
+            updateAttributeForElement(attribute, minSdk);
         } else {
             // We need first to create the v17 layout file, so first get our initial layout file
             final PsiFile psiFile = element.getContainingFile();
@@ -498,7 +519,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
                         if (attribute == null) {
                             return;
                         }
-                        updateAttributeForElement(attribute);
+                        updateAttributeForElement(attribute, minSdk);
                     }
                 });
             }
@@ -507,7 +528,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
         }
     }
 
-    private void updateAttributeForElement(@NotNull XmlAttribute attribute) {
+    private void updateAttributeForElement(@NotNull XmlAttribute attribute, int minSdk) {
         final String attributeLocalName = attribute.getLocalName();
         LOG.info("Updating attribute name: " + attributeLocalName + " value: " + attribute.getValue());
 
@@ -525,13 +546,32 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
                 return;
             }
             final String mirroredAttributeName = attribute.getNamespacePrefix() + ":" + mirroredAttributeLocalName;
+            XmlAttribute attributeForUpdatingValue;
             if(myProperties.replaceLeftRightPropertiesOption) {
                 attribute.setName(mirroredAttributeName);
                 LOG.info("Replacing attribute name from: " + attributeLocalName + " to: " + mirroredAttributeLocalName);
+                attributeForUpdatingValue = attribute;
             } else {
                 XmlTag parent = attribute.getParent();
-                parent.setAttribute(mirroredAttributeName, attribute.getValue());
+                attributeForUpdatingValue = parent.setAttribute(mirroredAttributeName, attribute.getValue());
                 LOG.info("Adding attribute name: " + mirroredAttributeName + " value: " + attribute.getValue());
+            }
+            // Special case for updating attribute value
+            updateAttributeValueIfNeeded(attributeForUpdatingValue, minSdk);
+        }
+    }
+
+    private void updateAttributeValueIfNeeded(@NotNull XmlAttribute attribute, int minSdk) {
+        final String attributeLocalName = attribute.getLocalName();
+        final String value = attribute.getValue();
+        if (attributeLocalName.equals(ATTR_PADDING_LEFT) || attributeLocalName.equals(ATTR_PADDING_RIGHT) ||
+                attributeLocalName.equals(ATTR_PADDING_START) || attributeLocalName.equals(ATTR_PADDING_END)) {
+            if (minSdk >= RTL_TARGET_SDK_START && (value.contains(ATTR_LIST_PREFERRED_ITEM_PADDING_LEFT) ||
+                                                   value.contains(ATTR_LIST_PREFERRED_ITEM_PADDING_RIGHT))) {
+                final String newValue = value.replace(ATTR_LIST_PREFERRED_ITEM_PADDING_LEFT, ATTR_LIST_PREFERRED_ITEM_PADDING_START).
+                        replace(ATTR_LIST_PREFERRED_ITEM_PADDING_RIGHT, ATTR_LIST_PREFERRED_ITEM_PADDING_END);
+                attribute.setValue(newValue);
+                LOG.info("Changing attribute value from: " + value + " to: " + newValue);
             }
         }
     }
