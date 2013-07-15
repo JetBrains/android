@@ -45,7 +45,6 @@ public class AndroidGradleBuildProcessParametersProviderTest extends TestCase {
     expect(myGradleExecutionSettings.getRemoteProcessIdleTtlInMs()).andReturn(55L);
     expect(myGradleExecutionSettings.getGradleHome()).andReturn("~/gradle-1.6");
     expect(myGradleExecutionSettings.isVerboseProcessing()).andReturn(true);
-    expect(myGradleExecutionSettings.getDaemonXmx()).andReturn(256);
     expect(myGradleExecutionSettings.getServiceDirectory()).andReturn("~./gradle");
 
     replay(myProject, myGradleExecutionSettings);

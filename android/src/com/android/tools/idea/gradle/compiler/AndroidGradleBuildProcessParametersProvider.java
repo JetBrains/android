@@ -143,9 +143,6 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     long daemonMaxIdleTimeInMs = executionSettings.getRemoteProcessIdleTtlInMs();
     vmArgs.add(createVmArg(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_IDLE_TIME_IN_MS, String.valueOf(daemonMaxIdleTimeInMs)));
 
-    int daemonMaxMemory = executionSettings.getDaemonXmx();
-    vmArgs.add(createVmArg(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_MEMORY_IN_MB, String.valueOf(daemonMaxMemory)));
-
     String gradleHome = executionSettings.getGradleHome();
     if (gradleHome != null && !gradleHome.isEmpty()) {
       vmArgs.add(createVmArg(BuildProcessJvmArgs.GRADLE_HOME_DIR_PATH, gradleHome));
