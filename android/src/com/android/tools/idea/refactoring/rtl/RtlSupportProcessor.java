@@ -195,7 +195,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
                                 startOffset = nextSibling.getStartOffsetInParent() + nextSibling.getTextLength();
                                 endOffset = startOffset;
                             } else {
-                                // Will position the caret at the begining of the "supportsRtl" attribute
+                                // Will position the caret at the beginning of the "supportsRtl" attribute
                                 startOffset = supportsRtlAttribute.getStartOffsetInParent();
                                 endOffset = startOffset + supportsRtlAttribute.getTextLength();
                             }
@@ -397,12 +397,15 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
                     result.add(usageInfoForAttribute);
                 }
             } else if (localName.equals(ATTR_GRAVITY) || localName.equals(ATTR_LAYOUT_GRAVITY)) {
-                final int startOffset = 0;
-                final int endOffset = attributeToMirror.getTextLength();
-                RtlRefactoringUsageInfo usageInfoForAttribute = new RtlRefactoringUsageInfo(attributeToMirror, startOffset, endOffset);
-                usageInfoForAttribute.setType(LAYOUT_FILE_ATTRIBUTE);
-                usageInfoForAttribute.setCreateV17(createV17);
-                result.add(usageInfoForAttribute);
+                final String value = attributeToMirror.getValue();
+                if (value != null && (value.contains(GRAVITY_VALUE_LEFT) || value.contains(GRAVITY_VALUE_RIGHT))) {
+                    final int startOffset = 0;
+                    final int endOffset = attributeToMirror.getTextLength();
+                    RtlRefactoringUsageInfo usageInfoForAttribute = new RtlRefactoringUsageInfo(attributeToMirror, startOffset, endOffset);
+                    usageInfoForAttribute.setType(LAYOUT_FILE_ATTRIBUTE);
+                    usageInfoForAttribute.setCreateV17(createV17);
+                    result.add(usageInfoForAttribute);
+                }
             }
         }
 
