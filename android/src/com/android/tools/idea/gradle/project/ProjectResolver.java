@@ -21,8 +21,7 @@ import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.IdeaGradleProject;
-import com.android.tools.idea.gradle.model.AndroidContentRoot;
-import com.android.tools.idea.gradle.model.AndroidDependencies;
+import com.android.tools.idea.gradle.ProjectImportEventMessage;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.intellij.externalSystem.JavaProjectData;
@@ -43,6 +42,7 @@ import org.gradle.tooling.BuildException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.UnknownModelException;
+import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
@@ -105,7 +105,8 @@ class ProjectResolver {
 
     AndroidProject first = null;
 
-    for (IdeaModule module : ideaProject.getModules()) {
+    DomainObjectSet<? extends IdeaModule> modules = ideaProject.getModules();
+    for (IdeaModule module : modules) {
       IdeaGradleProject gradleProject = new IdeaGradleProject(module.getName(), module.getGradleProject().getPath());
       String relativePath = getRelativePath(gradleProject);
       File moduleDir;
@@ -361,7 +362,13 @@ class ProjectResolver {
         }
       }
     };
-    AndroidDependencies.populate(ideaAndroidProject, dependencyFactory);
+    ProjectImportEventLogger eventLogger = new ProjectImportEventLogger() {
+      @Override
+      public void log(@NotNull String category, @NotNull String message) {
+        moduleInfo.createChild(AndroidProjectKeys.IMPORT_EVENT_MSG, new ProjectImportEventMessage(category, message));
+      }
+    };
+    AndroidDependencies.populate(ideaAndroidProject, dependencyFactory, eventLogger);
   }
 
   @Nullable

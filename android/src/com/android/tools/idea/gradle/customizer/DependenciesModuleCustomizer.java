@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.customizer;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.model.AndroidDependencies;
-import com.android.tools.idea.gradle.model.AndroidDependencies.DependencyFactory;
+import com.android.tools.idea.gradle.project.AndroidDependencies;
+import com.android.tools.idea.gradle.project.AndroidDependencies.DependencyFactory;
 import com.android.tools.idea.gradle.util.Facets;
 import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
@@ -84,7 +84,7 @@ public class DependenciesModuleCustomizer implements ModuleCustomizer {
           // We don't need to do anything here. We are just setting up libraries.
           return true;
         }
-      });
+      }, null);
     }
     finally {
       model.commit();
@@ -177,6 +177,6 @@ public class DependenciesModuleCustomizer implements ModuleCustomizer {
         }
         return false;
       }
-    });
+    }, null);
   }
 }

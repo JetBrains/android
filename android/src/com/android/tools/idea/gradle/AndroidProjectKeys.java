@@ -29,6 +29,9 @@ public class AndroidProjectKeys {
 
   @NotNull public static final Key<IdeaModule> IDEA_MODULE = Key.create(IdeaModule.class, ProjectKeys.MODULE.getProcessingWeight() + 5);
 
+  @NotNull public static final Key<ProjectImportEventMessage> IMPORT_EVENT_MSG =
+    Key.create(ProjectImportEventMessage.class, IDE_ANDROID_PROJECT.getProcessingWeight() + 5);
+
   @NotNull public static final Key<IdeaGradleProject> IDE_GRADLE_PROJECT =
     Key.create(IdeaGradleProject.class, IDE_ANDROID_PROJECT.getProcessingWeight() + 10);
 
