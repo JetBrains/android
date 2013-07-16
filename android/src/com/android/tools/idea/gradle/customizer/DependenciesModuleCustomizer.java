@@ -70,17 +70,19 @@ public class DependenciesModuleCustomizer implements ModuleCustomizer {
     try {
       AndroidDependencies.populate(ideaAndroidProject, new DependencyFactory() {
         @Override
-        public void addLibraryDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull File binaryPath) {
+        public boolean addLibraryDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull File binaryPath) {
           Library library = libraryTable.getLibraryByName(name);
           if (library == null) {
             library = model.createLibrary(name);
           }
           libraries.put(binaryPath, library);
+          return true;
         }
 
         @Override
-        public void addModuleDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull String modulePath) {
+        public boolean addModuleDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull String modulePath) {
           // We don't need to do anything here. We are just setting up libraries.
+          return true;
         }
       });
     }
@@ -145,16 +147,18 @@ public class DependenciesModuleCustomizer implements ModuleCustomizer {
     final LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
     AndroidDependencies.populate(ideaAndroidProject, new DependencyFactory() {
       @Override
-      public void addLibraryDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull File binaryPath) {
+      public boolean addLibraryDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull File binaryPath) {
         Library library = libraryTable.getLibraryByName(name);
         if (library != null) {
           LibraryOrderEntry orderEntry = model.addLibraryEntry(library);
           orderEntry.setScope(scope);
+          return true;
         }
+        return false;
       }
 
       @Override
-      public void addModuleDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull String modulePath) {
+      public boolean addModuleDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull String modulePath) {
         ModuleManager moduleManager = ModuleManager.getInstance(project);
         Module moduleDependency = null;
         for (Module module : moduleManager.getModules()) {
@@ -167,11 +171,11 @@ public class DependenciesModuleCustomizer implements ModuleCustomizer {
             }
           }
         }
-        if (moduleDependency == null) {
-          model.addInvalidModuleEntry(name);
-        } else {
+        if (moduleDependency != null) {
           model.addModuleOrderEntry(moduleDependency);
+          return true;
         }
+        return false;
       }
     });
   }

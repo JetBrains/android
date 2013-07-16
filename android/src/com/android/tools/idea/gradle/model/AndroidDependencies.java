@@ -21,6 +21,7 @@ import com.android.builder.model.ArtifactInfo;
 import com.android.builder.model.Dependencies;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
@@ -31,6 +32,8 @@ import java.io.File;
  * Configures a module's dependencies from an {@link com.android.builder.model.AndroidProject}.
  */
 public final class AndroidDependencies {
+  private static final Logger LOG = Logger.getInstance(AndroidDependencies.class);
+
   private AndroidDependencies() {
   }
 
@@ -42,19 +45,21 @@ public final class AndroidDependencies {
    */
   public static void populate(@NotNull IdeaAndroidProject androidProject, @NotNull DependencyFactory dependencyFactory) {
     Variant selectedVariant = androidProject.getSelectedVariant();
+    String moduleName = androidProject.getModuleName();
 
     // Process "test" scope first. The "test" dependencies returned by Gradle include also the "compile" dependencies. If we process
     // "compile" scope first, dependencies will end up with "test" scope because IDEA overwrites the scope.
     ArtifactInfo testArtifactInfo = selectedVariant.getTestArtifactInfo();
     if (testArtifactInfo != null) {
-      populateDependencies(DependencyScope.TEST, testArtifactInfo.getDependencies(), dependencyFactory);
+      populateDependencies(moduleName, DependencyScope.TEST, testArtifactInfo.getDependencies(), dependencyFactory);
     }
 
     ArtifactInfo mainArtifactInfo = selectedVariant.getMainArtifactInfo();
-    populateDependencies(DependencyScope.COMPILE, mainArtifactInfo.getDependencies(), dependencyFactory);
+    populateDependencies(moduleName, DependencyScope.COMPILE, mainArtifactInfo.getDependencies(), dependencyFactory);
   }
 
-  private static void populateDependencies(@NotNull DependencyScope scope,
+  private static void populateDependencies(@NotNull String moduleName,
+                                           @NotNull DependencyScope scope,
                                            @NotNull Dependencies dependencies,
                                            @NotNull DependencyFactory dependencyFactory) {
     for (File jar : dependencies.getJars()) {
@@ -63,8 +68,14 @@ public final class AndroidDependencies {
     for (AndroidLibrary lib : dependencies.getLibraries()) {
       String project = lib.getProject();
       if (project != null && !project.isEmpty()) {
-        addModuleDependency(scope, dependencyFactory, project);
-        continue;
+        if (addModuleDependency(scope, dependencyFactory, project)) {
+          continue;
+        }
+        else {
+          String format = "Error while populating dependencies of module '%1$s'. Unable fo find module '%2$s'. Falling back to .aar file";
+          String msg = String.format(format, moduleName, project);
+          LOG.warn(msg);
+        }
       }
       File jar = lib.getJarFile();
       File parentFile = jar.getParentFile();
@@ -76,7 +87,11 @@ public final class AndroidDependencies {
     }
     for (String project : dependencies.getProjects()) {
       if (project != null && !project.isEmpty()) {
-        addModuleDependency(scope, dependencyFactory, project);
+        if (!addModuleDependency(scope, dependencyFactory, project)) {
+          String format = "Error while populating dependencies of module '%1$s'. Unable fo find module '%2$s'. Nothing else to do.";
+          String msg = String.format(format, moduleName, project);
+          LOG.warn(msg);
+        }
       }
     }
   }
@@ -87,12 +102,12 @@ public final class AndroidDependencies {
     dependencyFactory.addLibraryDependency(scope, FileUtil.getNameWithoutExtension(jar), jar);
   }
 
-  private static void addModuleDependency(@NotNull DependencyScope scope,
-                                          @NotNull DependencyFactory dependencyFactory,
-                                          @NotNull String modulePath) {
+  private static boolean addModuleDependency(@NotNull DependencyScope scope,
+                                             @NotNull DependencyFactory dependencyFactory,
+                                             @NotNull String modulePath) {
     String[] pathSegments = modulePath.split(SdkConstants.GRADLE_PATH_SEPARATOR);
     String moduleName = pathSegments[pathSegments.length - 1];
-    dependencyFactory.addModuleDependency(scope, moduleName, modulePath);
+    return dependencyFactory.addModuleDependency(scope, moduleName, modulePath);
   }
 
   /**
@@ -105,8 +120,9 @@ public final class AndroidDependencies {
      * @param scope      scope of the dependency.
      * @param name       name of the dependency.
      * @param binaryPath absolute path of the dependency's jar file.
+     * @return {@code true} if the dependency was successfully added; {@code false} otherwise.
      */
-    void addLibraryDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull File binaryPath);
+    boolean addLibraryDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull File binaryPath);
 
     /**
      * Adds a dependency on another module in the same project.
@@ -114,7 +130,8 @@ public final class AndroidDependencies {
      * @param scope       scope of the dependency.
      * @param name        the name of the module.
      * @param modulePath  the Gradle path of the module.
+     * @return {@code true} if the dependency was successfully added; {@code false} otherwise.
      */
-    void addModuleDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull String modulePath);
+    boolean addModuleDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull String modulePath);
   }
 }
