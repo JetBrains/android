@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.model;
+package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.TestProjects;
-import com.android.tools.idea.gradle.model.AndroidDependencies.DependencyFactory;
+import com.android.tools.idea.gradle.project.AndroidDependencies;
+import com.android.tools.idea.gradle.project.AndroidDependencies.DependencyFactory;
 import com.android.tools.idea.gradle.stubs.android.AndroidLibraryStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
@@ -68,7 +69,7 @@ public class AndroidDependenciesTest extends TestCase {
 
     replay(myDependencyFactory);
 
-    AndroidDependencies.populate(myIdeaAndroidProject, myDependencyFactory);
+    AndroidDependencies.populate(myIdeaAndroidProject, myDependencyFactory, null);
 
     verify(myDependencyFactory);
   }
@@ -85,7 +86,7 @@ public class AndroidDependenciesTest extends TestCase {
 
     replay(myDependencyFactory);
 
-    AndroidDependencies.populate(myIdeaAndroidProject, myDependencyFactory);
+    AndroidDependencies.populate(myIdeaAndroidProject, myDependencyFactory, null);
 
     verify(myDependencyFactory);
   }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.model;
+package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
 import com.android.builder.model.AndroidLibrary;
@@ -21,10 +21,10 @@ import com.android.builder.model.ArtifactInfo;
 import com.android.builder.model.Dependencies;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
@@ -32,8 +32,6 @@ import java.io.File;
  * Configures a module's dependencies from an {@link com.android.builder.model.AndroidProject}.
  */
 public final class AndroidDependencies {
-  private static final Logger LOG = Logger.getInstance(AndroidDependencies.class);
-
   private AndroidDependencies() {
   }
 
@@ -42,8 +40,11 @@ public final class AndroidDependencies {
    *
    * @param androidProject    structure of the Android-Gradle project.
    * @param dependencyFactory creates and adds dependencies to a module.
+   * @param eventLogger       logs any caught failures. These failures will be later on presented to the user.
    */
-  public static void populate(@NotNull IdeaAndroidProject androidProject, @NotNull DependencyFactory dependencyFactory) {
+  public static void populate(@NotNull IdeaAndroidProject androidProject,
+                              @NotNull DependencyFactory dependencyFactory,
+                              @Nullable ProjectImportEventLogger eventLogger) {
     Variant selectedVariant = androidProject.getSelectedVariant();
     String moduleName = androidProject.getModuleName();
 
@@ -51,34 +52,37 @@ public final class AndroidDependencies {
     // "compile" scope first, dependencies will end up with "test" scope because IDEA overwrites the scope.
     ArtifactInfo testArtifactInfo = selectedVariant.getTestArtifactInfo();
     if (testArtifactInfo != null) {
-      populateDependencies(moduleName, DependencyScope.TEST, testArtifactInfo.getDependencies(), dependencyFactory);
+      populateDependencies(moduleName, DependencyScope.TEST, testArtifactInfo.getDependencies(), dependencyFactory, eventLogger);
     }
 
     ArtifactInfo mainArtifactInfo = selectedVariant.getMainArtifactInfo();
-    populateDependencies(moduleName, DependencyScope.COMPILE, mainArtifactInfo.getDependencies(), dependencyFactory);
+    populateDependencies(moduleName, DependencyScope.COMPILE, mainArtifactInfo.getDependencies(), dependencyFactory, eventLogger);
   }
 
   private static void populateDependencies(@NotNull String moduleName,
                                            @NotNull DependencyScope scope,
                                            @NotNull Dependencies dependencies,
-                                           @NotNull DependencyFactory dependencyFactory) {
+                                           @NotNull DependencyFactory dependencyFactory,
+                                           @Nullable ProjectImportEventLogger eventLogger) {
     for (File jar : dependencies.getJars()) {
       addLibraryDependency(scope, dependencyFactory, jar);
     }
     for (AndroidLibrary lib : dependencies.getLibraries()) {
+      boolean fallingBackToAar = false;
       String project = lib.getProject();
       if (project != null && !project.isEmpty()) {
         if (addModuleDependency(scope, dependencyFactory, project)) {
           continue;
         }
         else {
-          String format = "Error while populating dependencies of module '%1$s'. Unable fo find module '%2$s'. Falling back to .aar file";
-          String msg = String.format(format, moduleName, project);
-          LOG.warn(msg);
+          fallingBackToAar = true;
         }
       }
       File jar = lib.getJarFile();
       File parentFile = jar.getParentFile();
+      if (fallingBackToAar) {
+        logModuleDependencyNotFound(moduleName, project, parentFile, eventLogger);
+      }
       String name = parentFile != null ? parentFile.getName() : FileUtil.getNameWithoutExtension(jar);
       dependencyFactory.addLibraryDependency(scope, name, jar);
       for (File localJar : lib.getLocalJars()) {
@@ -88,11 +92,31 @@ public final class AndroidDependencies {
     for (String project : dependencies.getProjects()) {
       if (project != null && !project.isEmpty()) {
         if (!addModuleDependency(scope, dependencyFactory, project)) {
-          String format = "Error while populating dependencies of module '%1$s'. Unable fo find module '%2$s'. Nothing else to do.";
-          String msg = String.format(format, moduleName, project);
-          LOG.warn(msg);
+          logModuleDependencyNotFound(moduleName, project, eventLogger);
         }
       }
+    }
+  }
+
+  private static void logModuleDependencyNotFound(@NotNull String moduleName,
+                                                  @NotNull String dependency,
+                                                  @NotNull File aarFile,
+                                                  @Nullable ProjectImportEventLogger eventLogger) {
+    if (eventLogger != null) {
+      String category = String.format("Warning(s) found while populating dependencies of module '%1$s'. " +
+                                      "A common cause is references to modules outside of the project.", moduleName);
+      String msg = String.format("Unable fo find module '%1$s'. Linking to file '%2$s' instead.", dependency, aarFile.getName());
+      eventLogger.log(category, msg);
+    }
+  }
+
+  private static void logModuleDependencyNotFound(@NotNull String moduleName,
+                                                  @NotNull String dependency,
+                                                  @Nullable ProjectImportEventLogger eventLogger) {
+    if (eventLogger != null) {
+      String category = String.format("Error(s) found while populating dependencies of module '%1$s'.", moduleName);
+      String msg = String.format("Unable fo find module '%1$s'.", dependency);
+      eventLogger.log(category, msg);
     }
   }
 

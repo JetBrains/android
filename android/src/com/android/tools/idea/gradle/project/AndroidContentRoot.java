@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.model;
+package com.android.tools.idea.gradle.project;
 
 import com.android.builder.model.*;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
