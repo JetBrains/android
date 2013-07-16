@@ -328,15 +328,16 @@ class ProjectResolver {
     final Collection<DataNode<ModuleData>> modules = ExternalSystemApiUtil.getChildren(projectInfo, ProjectKeys.MODULE);
     AndroidDependencies.DependencyFactory dependencyFactory = new AndroidDependencies.DependencyFactory() {
       @Override
-      public void addLibraryDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull File binaryPath) {
+      public boolean addLibraryDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull File binaryPath) {
         LibraryDependency dependency = new LibraryDependency(name);
         dependency.setScope(scope);
         dependency.addPath(LibraryPathType.BINARY, binaryPath);
         dependency.addTo(moduleInfo, projectInfo);
+        return true;
       }
 
       @Override
-      public void addModuleDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull String modulePath) {
+      public boolean addModuleDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull String modulePath) {
         String dependencyName = name;
         for (DataNode<ModuleData> module : modules) {
           String moduleName = module.getData().getName();
@@ -352,7 +353,12 @@ class ProjectResolver {
         }
         ModuleDependency dependency = new ModuleDependency(dependencyName);
         dependency.setScope(scope);
-        dependency.addTo(moduleInfo, projectInfo);
+        try {
+          dependency.addTo(moduleInfo, projectInfo);
+          return true;
+        } catch (IllegalStateException e) {
+          return false;
+        }
       }
     };
     AndroidDependencies.populate(ideaAndroidProject, dependencyFactory);
