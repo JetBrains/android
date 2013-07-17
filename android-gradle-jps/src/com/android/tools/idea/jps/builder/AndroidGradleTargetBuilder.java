@@ -300,6 +300,11 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
         launcher.withArguments("--parallel");
       }
 
+      File javaHomeDir = executionSettings.getJavaHomeDir();
+      if (javaHomeDir != null) {
+        launcher.setJavaHome(javaHomeDir);
+      }
+
       launcher.setStandardOutput(stdout);
       launcher.setStandardError(stderr);
       launcher.run();
