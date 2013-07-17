@@ -36,6 +36,7 @@ class BuilderExecutionSettings {
   @NotNull private final List<String> myGradleDaemonVmOptions;
   @Nullable private final File myGradleHomeDir;
   @Nullable private final File myGradleServiceDir;
+  @Nullable private final File myJavaHomeDir;
   @NotNull private final File myProjectDir;
   private final boolean myVerboseLoggingEnabled;
   private final boolean myParallelBuild;
@@ -44,8 +45,9 @@ class BuilderExecutionSettings {
     myEmbeddedGradleDaemonEnabled = SystemProperties.getBooleanProperty(BuildProcessJvmArgs.USE_EMBEDDED_GRADLE_DAEMON, false);
     myGradleDaemonMaxIdleTimeInMs = SystemProperties.getIntProperty(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_IDLE_TIME_IN_MS, -1);
     myGradleDaemonVmOptions = getJvmOptions();
-    myGradleHomeDir = findGradleHomeDir();
-    myGradleServiceDir = findGradleServiceDir();
+    myGradleHomeDir = findDir(BuildProcessJvmArgs.GRADLE_HOME_DIR_PATH, "Gradle home");
+    myGradleServiceDir = findDir(BuildProcessJvmArgs.GRADLE_SERVICE_DIR_PATH, "Gradle service");
+    myJavaHomeDir = findDir(BuildProcessJvmArgs.GRADLE_JAVA_HOME_DIR_PATH, "Java home");
     myProjectDir = findProjectRootDir();
     myVerboseLoggingEnabled = SystemProperties.getBooleanProperty(BuildProcessJvmArgs.USE_GRADLE_VERBOSE_LOGGING, false);
     myParallelBuild = SystemProperties.getBooleanProperty(GlobalOptions.COMPILE_PARALLEL_OPTION, false);
@@ -68,22 +70,12 @@ class BuilderExecutionSettings {
   }
 
   @Nullable
-  private static File findGradleHomeDir() {
-    File gradleHomeDir = createFile(BuildProcessJvmArgs.GRADLE_HOME_DIR_PATH);
-    if (gradleHomeDir == null) {
-      return null;
-    }
-    ensureDirectoryExists(gradleHomeDir, "Gradle home");
-    return gradleHomeDir;
-  }
-
-  @Nullable
-  private static File findGradleServiceDir() {
-    File gradleServiceDir = createFile(BuildProcessJvmArgs.GRADLE_SERVICE_DIR_PATH);
+  private static File findDir(@NotNull String jvmArgName, @NotNull String dirType) {
+    File gradleServiceDir = createFile(jvmArgName);
     if (gradleServiceDir == null) {
       return null;
     }
-    ensureDirectoryExists(gradleServiceDir, "Gradle service");
+    ensureDirectoryExists(gradleServiceDir, dirType);
     return gradleServiceDir;
   }
 
@@ -144,6 +136,11 @@ class BuilderExecutionSettings {
     return myGradleServiceDir;
   }
 
+  @Nullable
+  File getJavaHomeDir() {
+    return myJavaHomeDir;
+  }
+
   @NotNull
   File getProjectDir() {
     return myProjectDir;
@@ -161,6 +158,7 @@ class BuilderExecutionSettings {
            ", gradleDaemonVmOptions=" + myGradleDaemonVmOptions +
            ", gradleHomeDir=" + myGradleHomeDir +
            ", gradleServiceDir=" + myGradleServiceDir +
+           ", javaHomeDir=" + myJavaHomeDir +
            ", parallelBuild=" + myParallelBuild +
            ", projectDir=" + myProjectDir +
            ", verboseLoggingEnabled=" + myVerboseLoggingEnabled +
