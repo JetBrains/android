@@ -154,6 +154,11 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
       jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_SERVICE_DIR_PATH, serviceDirectory));
     }
 
+    String javaHome = executionSettings.getJavaHome();
+    if (javaHome != null && !javaHome.isEmpty()) {
+      jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_JAVA_HOME_DIR_PATH, javaHome));
+    }
+
     jvmArgs.add(createJvmArg(BuildProcessJvmArgs.PROJECT_DIR_PATH, myProject.getBasePath()));
 
     boolean verboseProcessing = executionSettings.isVerboseProcessing();
