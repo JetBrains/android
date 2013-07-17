@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.model;
+package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.gradle.ContentRootSourcePaths;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.TestProjects;
-import com.android.tools.idea.gradle.model.AndroidContentRoot.ContentRootStorage;
+import com.android.tools.idea.gradle.project.AndroidContentRoot;
+import com.android.tools.idea.gradle.project.AndroidContentRoot.ContentRootStorage;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.google.common.collect.Maps;
@@ -33,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Tests for {@link com.android.tools.idea.gradle.model.AndroidContentRoot}.
+ * Tests for {@link com.android.tools.idea.gradle.project.AndroidContentRoot}.
  */
 public class AndroidContentRootTest extends TestCase {
   private ContentRootSourcePaths myExpectedSourcePaths;
