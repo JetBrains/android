@@ -18,6 +18,7 @@ package com.android.tools.idea.refactoring.rtl;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.rendering.ManifestInfo;
 import com.android.xml.AndroidManifest;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
@@ -296,28 +297,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
         for (Module module : ModuleManager.getInstance(myProject).getModules()) {
             AndroidFacet facet = AndroidFacet.getInstance(module);
             if (facet != null && !facet.getProperties().LIBRARY_PROJECT) {
-                int minSdk = 0;
-                final VirtualFile manifestFile = AndroidRootUtil.getManifestFile(facet);
-                XmlFile myManifestFile = (XmlFile)PsiManager.getInstance(myProject).findFile(manifestFile);
-                try {
-                    XmlTag root = myManifestFile.getRootTag();
-                    if (root == null) {
-                        return;
-                    }
-
-                    // Second, deal with targetSdkVersion / minSdkVersion
-                    XmlTag[] usesSdkNodes = root.findSubTags(NODE_USES_SDK);
-                    if (usesSdkNodes.length > 0) {
-                        assert usesSdkNodes.length == 1;
-
-                        XmlTag usesSdkTag = usesSdkNodes[0];
-                        XmlAttribute minSdkAttribute = usesSdkTag.getAttribute(ATTRIBUTE_MIN_SDK_VERSION, ANDROID_URI);
-                        minSdk = (minSdkAttribute != null) ? Integer.parseInt(minSdkAttribute.getValue()) : 0;
-                    }
-                }
-                catch (Exception e) {
-                    LOG.error("Could not read Manifest data", e);
-                }
+                final int minSdk = ManifestInfo.get(module).getMinSdkVersion();
 
                 if (myProperties.generateV17resourcesOption) {
                     // First get all the "res" directories
@@ -413,7 +393,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
                     RtlRefactoringUsageInfo usageInfoForAttribute = new RtlRefactoringUsageInfo(attributeToMirror, startOffset, endOffset);
                     usageInfoForAttribute.setType(LAYOUT_FILE_ATTRIBUTE);
                     usageInfoForAttribute.setCreateV17(createV17);
-                    usageInfoForAttribute.setAndroiManifestMinSdkVersion(minSdk);
+                    usageInfoForAttribute.setAndroidManifestMinSdkVersion(minSdk);
                     result.add(usageInfoForAttribute);
                 }
             } else if (localName.equals(ATTR_GRAVITY) || localName.equals(ATTR_LAYOUT_GRAVITY)) {
@@ -465,7 +445,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
         assert element != null;
 
         final XmlAttribute attribute = (XmlAttribute) element;
-        final int minSdk = usageInfo.getAndroiManifestMinSdkVersion();
+        final int minSdk = usageInfo.getAndroidManifestMinSdkVersion();
 
         if (!usageInfo.isCreateV17()) {
             updateAttributeForElement(attribute, minSdk);
