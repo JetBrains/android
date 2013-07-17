@@ -23,6 +23,7 @@ class RtlRefactoringUsageInfo extends UsageInfo {
 
     private RtlRefactoringType myType = RtlRefactoringType.UNDEFINED;
     private boolean myCreateV17;
+    private int myAndroiManifestMinSdkVersion;
 
     public enum RtlRefactoringType {
         UNDEFINED,
@@ -49,6 +50,14 @@ class RtlRefactoringUsageInfo extends UsageInfo {
     }
 
     void setCreateV17(boolean createV17) {
-        this.myCreateV17 = createV17;
+        myCreateV17 = createV17;
+    }
+
+    int getAndroiManifestMinSdkVersion() {
+        return myAndroiManifestMinSdkVersion;
+    }
+
+    void setAndroiManifestMinSdkVersion(int version) {
+        myAndroiManifestMinSdkVersion = version;
     }
 }
