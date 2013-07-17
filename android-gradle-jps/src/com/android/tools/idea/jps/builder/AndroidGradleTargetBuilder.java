@@ -288,15 +288,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
         jvmArgs.add(androidSdkArg);
       }
 
-      int xmx = executionSettings.getGradleDaemonMaxMemoryInMb();
-      if (xmx > 0) {
-        jvmArgs.add(String.format((Locale)null, "-Xmx%dm", xmx));
-      }
-
-      int xxMaxPermSize = executionSettings.getGradleDaemonMaxPermGenInMb();
-      if (xxMaxPermSize > 0) {
-        jvmArgs.add(String.format((Locale)null, "-XX:MaxPermSize=%dm", xxMaxPermSize));
-      }
+      jvmArgs.addAll(executionSettings.getGradleDaemonVmOptions());
 
       if (!jvmArgs.isEmpty()) {
         LOG.info("Passing JVM args to Gradle Tooling API: " + jvmArgs);
