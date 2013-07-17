@@ -16,12 +16,16 @@
 package com.android.tools.idea.jps.builder;
 
 import com.android.tools.idea.gradle.compiler.BuildProcessJvmArgs;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.api.GlobalOptions;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Settings used to build a Gradle project.
@@ -29,8 +33,7 @@ import java.io.File;
 class BuilderExecutionSettings {
   private final boolean myEmbeddedGradleDaemonEnabled;
   private final int myGradleDaemonMaxIdleTimeInMs;
-  private final int myGradleDaemonMaxMemoryInMb;
-  private final int myGradleDaemonMaxPermGenInMb;
+  @NotNull private final List<String> myGradleDaemonVmOptions;
   @Nullable private final File myGradleHomeDir;
   @Nullable private final File myGradleServiceDir;
   @NotNull private final File myProjectDir;
@@ -40,13 +43,28 @@ class BuilderExecutionSettings {
   BuilderExecutionSettings() {
     myEmbeddedGradleDaemonEnabled = SystemProperties.getBooleanProperty(BuildProcessJvmArgs.USE_EMBEDDED_GRADLE_DAEMON, false);
     myGradleDaemonMaxIdleTimeInMs = SystemProperties.getIntProperty(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_IDLE_TIME_IN_MS, -1);
-    myGradleDaemonMaxMemoryInMb = SystemProperties.getIntProperty(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_MEMORY_IN_MB, 512);
-    myGradleDaemonMaxPermGenInMb = SystemProperties.getIntProperty(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_PERM_GEN_IN_MB, 128);
+    myGradleDaemonVmOptions = getJvmOptions();
     myGradleHomeDir = findGradleHomeDir();
     myGradleServiceDir = findGradleServiceDir();
     myProjectDir = findProjectRootDir();
     myVerboseLoggingEnabled = SystemProperties.getBooleanProperty(BuildProcessJvmArgs.USE_GRADLE_VERBOSE_LOGGING, false);
     myParallelBuild = SystemProperties.getBooleanProperty(GlobalOptions.COMPILE_PARALLEL_OPTION, false);
+  }
+
+  @NotNull
+  private static List<String> getJvmOptions() {
+    int vmOptionCount = SystemProperties.getIntProperty(BuildProcessJvmArgs.GRADLE_DAEMON_VM_OPTION_COUNT, 0);
+    if (vmOptionCount <= 0) {
+      return Collections.emptyList();
+    }
+    List<String> vmOptions = Lists.newArrayList();
+    for (int i = 0; i < vmOptionCount; i++) {
+      String vmOption = System.getProperty(BuildProcessJvmArgs.GRADLE_DAEMON_VM_OPTION_DOT + i);
+      if (!Strings.isNullOrEmpty(vmOption)) {
+        vmOptions.add(vmOption);
+      }
+    }
+    return vmOptions;
   }
 
   @Nullable
@@ -111,12 +129,9 @@ class BuilderExecutionSettings {
     return myGradleDaemonMaxIdleTimeInMs;
   }
 
-  int getGradleDaemonMaxMemoryInMb() {
-    return myGradleDaemonMaxMemoryInMb;
-  }
-
-  int getGradleDaemonMaxPermGenInMb() {
-    return myGradleDaemonMaxPermGenInMb;
+  @NotNull
+  List<String> getGradleDaemonVmOptions() {
+    return myGradleDaemonVmOptions;
   }
 
   @Nullable
@@ -143,8 +158,7 @@ class BuilderExecutionSettings {
     return "BuilderExecutionSettings[" +
            "embeddedGradleDaemonEnabled=" + myEmbeddedGradleDaemonEnabled +
            ", gradleDaemonMaxIdleTimeInMs=" + myGradleDaemonMaxIdleTimeInMs +
-           ", gradleDaemonMaxMemoryInMb=" + myGradleDaemonMaxMemoryInMb +
-           ", gradleDaemonMaxPermGenInMb=" + myGradleDaemonMaxPermGenInMb +
+           ", gradleDaemonVmOptions=" + myGradleDaemonVmOptions +
            ", gradleHomeDir=" + myGradleHomeDir +
            ", gradleServiceDir=" + myGradleServiceDir +
            ", parallelBuild=" + myParallelBuild +

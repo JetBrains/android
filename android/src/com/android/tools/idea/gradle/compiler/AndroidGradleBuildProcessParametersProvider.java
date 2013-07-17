@@ -21,6 +21,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.server.BuildProcessParametersProvider;
+import com.intellij.execution.configurations.CommandLineTokenizer;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
@@ -122,10 +123,8 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
 
     String projectPath = projectSettings.getExternalProjectPath();
     GradleExecutionSettings executionSettings = settingsManager.getExecutionSettings(myProject, projectPath, SYSTEM_ID);
+    //noinspection TestOnlyProblems
     populateJvmArgs(executionSettings, jvmArgs);
-
-    GradleCompilerConfiguration compilerConfiguration = GradleCompilerConfiguration.getInstance(myProject);
-    populateJvmArgs(compilerConfiguration, jvmArgs);
 
     return jvmArgs;
   }
@@ -159,17 +158,18 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
 
     boolean verboseProcessing = executionSettings.isVerboseProcessing();
     jvmArgs.add(createJvmArg(BuildProcessJvmArgs.USE_GRADLE_VERBOSE_LOGGING, String.valueOf(verboseProcessing)));
-  }
 
-  @VisibleForTesting
-  void populateJvmArgs(GradleCompilerConfiguration compilerConfiguration, List<String> jvmArgs) {
-    jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_MEMORY_IN_MB, compilerConfiguration.MAX_HEAP_SIZE));
-    jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_PERM_GEN_IN_MB, compilerConfiguration.MAX_PERM_GEN_SIZE));
-  }
-
-  @NotNull
-  private static String createJvmArg(@NotNull String name, int value) {
-    return createJvmArg(name, String.valueOf(value));
+    String vmOptions = executionSettings.getDaemonVmOptions();
+    int vmOptionCount = 0;
+    if (vmOptions != null && !vmOptions.isEmpty()) {
+      CommandLineTokenizer tokenizer = new CommandLineTokenizer(vmOptions);
+      while(tokenizer.hasMoreTokens()) {
+        String vmOption = tokenizer.nextToken();
+        jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_DAEMON_VM_OPTION_DOT + vmOptionCount, vmOption));
+        vmOptionCount++;
+      }
+    }
+    jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_DAEMON_VM_OPTION_COUNT, String.valueOf(vmOptionCount)));
   }
 
   @NotNull

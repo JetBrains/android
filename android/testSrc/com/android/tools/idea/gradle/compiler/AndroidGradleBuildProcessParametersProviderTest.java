@@ -46,16 +46,20 @@ public class AndroidGradleBuildProcessParametersProviderTest extends TestCase {
     expect(settings.getGradleHome()).andReturn("~/gradle-1.6");
     expect(settings.isVerboseProcessing()).andReturn(true);
     expect(settings.getServiceDirectory()).andReturn("~./gradle");
+    expect(settings.getDaemonVmOptions()).andReturn("-Xmx2048m -XX:MaxPermSize=512m");
 
     replay(myProject, settings);
 
     List<String> jvmArgs = Lists.newArrayList();
     myParametersProvider.populateJvmArgs(settings, jvmArgs);
-    assertEquals(6, jvmArgs.size());
+    assertEquals(8, jvmArgs.size());
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.project.path=~/projects/project1"));
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.daemon.max.idle.time=55"));
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.home.path=~/gradle-1.6"));
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.use.verbose.logging=true"));
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.service.dir.path=~./gradle"));
+    assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.option.count=2"));
+    assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.option.0=-Xmx2048m"));
+    assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.option.1=-XX:MaxPermSize=512m"));
   }
 }
