@@ -15,41 +15,37 @@
  */
 package com.android.tools.idea.gradle.compiler;
 
+import com.google.common.base.Objects;
+import com.google.common.base.Strings;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
-import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.HyperlinkLabel;
+import com.intellij.ui.RawCommandLineEditor;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 
 /**
  * Configuration page for Gradle compiler settings.
  */
 public class GradleCompilerSettingsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
-  @NotNull private final Project myProject;
-
   private final CompilerWorkspaceConfiguration myCompilerConfiguration;
-  private final GradleCompilerConfiguration myGradleConfiguration;
+  private final GradleSettings myGradleSettings;
 
-  private HyperlinkLabel myGradleSettingsHyperlinkLabel;
   private JCheckBox myParallelBuildCheckBox;
   private HyperlinkLabel myParallelBuildDocHyperlinkLabel;
-  private JSpinner myHeapSizeSpinner;
+  private RawCommandLineEditor myVmOptionsEditor;
   private JPanel myContentPanel;
-  private JSpinner myPermGenSizeSpinner;
 
   public GradleCompilerSettingsConfigurable(@NotNull Project project) {
-    myProject = project;
     myCompilerConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
-    myGradleConfiguration = GradleCompilerConfiguration.getInstance(project);
+    myGradleSettings = GradleSettings.getInstance(project);
   }
 
   @Override
@@ -85,39 +81,29 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   @Override
   public boolean isModified() {
     return myCompilerConfiguration.PARALLEL_COMPILATION != isParallelBuildsEnabled() ||
-           myGradleConfiguration.MAX_HEAP_SIZE != getMaxHeapSize() ||
-           myGradleConfiguration.MAX_PERM_GEN_SIZE != getMaxPermGenSize();
+           !Objects.equal(getVmOptions(), myGradleSettings.getGradleVmOptions());
   }
 
   @Override
   public void apply() throws ConfigurationException {
     myCompilerConfiguration.PARALLEL_COMPILATION = isParallelBuildsEnabled();
-    myGradleConfiguration.MAX_HEAP_SIZE = getMaxHeapSize();
-    myGradleConfiguration.MAX_PERM_GEN_SIZE = getMaxPermGenSize();
+    myGradleSettings.setGradleVmOptions(getVmOptions());
   }
 
   private boolean isParallelBuildsEnabled() {
     return myParallelBuildCheckBox.isSelected();
   }
 
-  private int getMaxHeapSize() {
-    return (Integer)myHeapSizeSpinner.getValue();
-  }
-
-  private int getMaxPermGenSize() {
-    return (Integer)myPermGenSizeSpinner.getValue();
-  }
-
-  @NotNull
-  private static SpinnerModel createNumberModel(int value) {
-    return new SpinnerNumberModel(value, 1, 10000000, 1);
+  @Nullable
+  private String getVmOptions() {
+    return Strings.emptyToNull(myVmOptionsEditor.getText().trim());
   }
 
   @Override
   public void reset() {
     myParallelBuildCheckBox.setSelected(myCompilerConfiguration.PARALLEL_COMPILATION);
-    myHeapSizeSpinner.setModel(createNumberModel(myGradleConfiguration.MAX_HEAP_SIZE));
-    myPermGenSizeSpinner.setModel(createNumberModel(myGradleConfiguration.MAX_PERM_GEN_SIZE));
+    String vmOptions = Strings.nullToEmpty(myGradleSettings.getGradleVmOptions());
+    myVmOptionsEditor.setText(vmOptions);
   }
 
   @Override
@@ -125,19 +111,13 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   }
 
   private void createUIComponents() {
-    myGradleSettingsHyperlinkLabel = new HyperlinkLabel();
-    myGradleSettingsHyperlinkLabel.setHyperlinkText("To change the Gradle settings used to create or import projects, click ", "here", ".");
-    myGradleSettingsHyperlinkLabel.setHyperlinkTarget(null);
-    myGradleSettingsHyperlinkLabel.addHyperlinkListener(new HyperlinkListener() {
-      @Override
-      public void hyperlinkUpdate(HyperlinkEvent e) {
-        ShowSettingsUtil.getInstance().showSettingsDialog(myProject, "Gradle");
-      }
-    });
-
     myParallelBuildDocHyperlinkLabel = new HyperlinkLabel();
     myParallelBuildDocHyperlinkLabel
-      .setHyperlinkText("Please be aware that parallel builds is in \"incubation\" (see ", "Gradle's documentation", ".)");
-    myParallelBuildDocHyperlinkLabel.setHyperlinkTarget("http://www.gradle.org/docs/current/userguide/gradle_command_line.html");
+      .setHyperlinkText("This option is in \"incubation\" and should only be used with ", "decoupled projects", ".");
+    myParallelBuildDocHyperlinkLabel
+      .setHyperlinkTarget("http://www.gradle.org/docs/current/userguide/multi_project_builds.html#sec:decoupled_projects");
+
+    myVmOptionsEditor = new RawCommandLineEditor();
+    myVmOptionsEditor.setDialogCaption("Gradle VM Options");
   }
 }
