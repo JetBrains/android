@@ -39,7 +39,7 @@ public class AndroidPsiAugmentProvider extends PsiAugmentProvider {
 
     if (DumbService.isDumb(element.getProject())) {
       if (rClassAugment) {
-        LOG.info("R_CLASS_AUGMENT: empty because of dumb mode");
+        LOG.debug("R_CLASS_AUGMENT: empty because of dumb mode");
       }
       return Collections.emptyList();
     }
@@ -47,7 +47,7 @@ public class AndroidPsiAugmentProvider extends PsiAugmentProvider {
     final AndroidFacet facet = AndroidFacet.getInstance(element);
     if (facet == null) {
       if (rClassAugment) {
-        LOG.info("R_CLASS_AUGMENT: empty because no facet");
+        LOG.debug("R_CLASS_AUGMENT: empty because no facet");
       }
       return Collections.emptyList();
     }
@@ -55,7 +55,7 @@ public class AndroidPsiAugmentProvider extends PsiAugmentProvider {
     final PsiFile containingFile = element.getContainingFile();
     if (containingFile == null) {
       if (rClassAugment) {
-        LOG.info("R_CLASS_AUGMENT: empty because of no containing file");
+        LOG.debug("R_CLASS_AUGMENT: empty because of no containing file");
       }
       return Collections.emptyList();
     }
@@ -74,7 +74,7 @@ public class AndroidPsiAugmentProvider extends PsiAugmentProvider {
           }
         }
         if (rClassAugment) {
-          LOG.info("R_CLASS_AUGMENT: " + result.size() + " classes added");
+          LOG.debug("R_CLASS_AUGMENT: " + result.size() + " classes added");
         }
         return result;
       }
@@ -85,7 +85,7 @@ public class AndroidPsiAugmentProvider extends PsiAugmentProvider {
       }
 
       if (rClassAugment) {
-        LOG.info("R_CLASS_AUGMENT: empty because containing file is not actual R.java file");
+        LOG.debug("R_CLASS_AUGMENT: empty because containing file is not actual R.java file");
       }
     }
     else if (type == PsiField.class && !(aClass instanceof AndroidLightClass)) {
