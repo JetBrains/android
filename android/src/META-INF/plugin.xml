@@ -436,6 +436,8 @@
     <spellchecker.bundledDictionaryProvider implementation="org.jetbrains.android.spellchecker.AndroidBundledDictionaryProvider"/>
     <projectStructureDetector implementation="org.jetbrains.android.newProject.AndroidProjectStructureDetector"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.startup.GradleStartupActivity" order="first"/>
+    <filetype.stubBuilder filetype="JAVA" implementationClass="org.jetbrains.android.AndroidSdkSourcesStubBuilder"/>
+    <sdkResolveScopeProvider implementation="org.jetbrains.android.AndroidSdkResolveScopeProvider"/>
   </extensions>
 
   <extensionPoints>
