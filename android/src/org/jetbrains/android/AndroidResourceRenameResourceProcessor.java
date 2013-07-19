@@ -63,7 +63,7 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidRenameResourceProcessor extends RenamePsiElementProcessor {
+public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProcessor {
   // for tests
   public static volatile boolean ASK = true;
 

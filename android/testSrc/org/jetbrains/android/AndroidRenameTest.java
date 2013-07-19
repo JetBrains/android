@@ -57,7 +57,7 @@ public class AndroidRenameTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    AndroidRenameResourceProcessor.ASK = false;
+    AndroidResourceRenameResourceProcessor.ASK = false;
   }
 
   public void testXmlReferenceToFileResource() throws Throwable {
