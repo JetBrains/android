@@ -19,7 +19,6 @@ import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.openapi.options.Configurable;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.HyperlinkLabel;
@@ -41,6 +40,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   private JCheckBox myParallelBuildCheckBox;
   private HyperlinkLabel myParallelBuildDocHyperlinkLabel;
   private RawCommandLineEditor myVmOptionsEditor;
+  private JCheckBox myAutoMakeCheckBox;
   private JPanel myContentPanel;
 
   public GradleCompilerSettingsConfigurable(@NotNull Project project) {
@@ -81,17 +81,23 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   @Override
   public boolean isModified() {
     return myCompilerConfiguration.PARALLEL_COMPILATION != isParallelBuildsEnabled() ||
-           !Objects.equal(getVmOptions(), myGradleSettings.getGradleVmOptions());
+           !Objects.equal(getVmOptions(), myGradleSettings.getGradleVmOptions()) ||
+           myCompilerConfiguration.MAKE_PROJECT_ON_SAVE != isAutoMakeEnabled();
   }
 
   @Override
-  public void apply() throws ConfigurationException {
+  public void apply() {
     myCompilerConfiguration.PARALLEL_COMPILATION = isParallelBuildsEnabled();
     myGradleSettings.setGradleVmOptions(getVmOptions());
+    myCompilerConfiguration.MAKE_PROJECT_ON_SAVE = isAutoMakeEnabled();
   }
 
   private boolean isParallelBuildsEnabled() {
     return myParallelBuildCheckBox.isSelected();
+  }
+
+  private boolean isAutoMakeEnabled() {
+    return myAutoMakeCheckBox.isSelected();
   }
 
   @Nullable
@@ -104,6 +110,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     myParallelBuildCheckBox.setSelected(myCompilerConfiguration.PARALLEL_COMPILATION);
     String vmOptions = Strings.nullToEmpty(myGradleSettings.getGradleVmOptions());
     myVmOptionsEditor.setText(vmOptions);
+    myAutoMakeCheckBox.setSelected(myCompilerConfiguration.MAKE_PROJECT_ON_SAVE);
   }
 
   @Override
