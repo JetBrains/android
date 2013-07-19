@@ -29,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class HideCompilerOptions implements CompilerOptionsManager {
   @Override
-  public boolean isAvailable(@NotNull Project project, @NotNull Setting setting) {
+  public boolean isAvailable(@NotNull Setting setting, @NotNull Project project) {
     if (!Projects.isGradleProject(project)) {
       return true;
     }
