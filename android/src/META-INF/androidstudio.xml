@@ -30,10 +30,12 @@
       <separator/>
 
       <add-to-group group-id="MainToolBar" anchor="before" relative-to-action="HelpTopics" />
-      <action id="AndroidAddRTLSupport" class="com.android.tools.idea.actions.AndroidAddRtlSupportAction"
-        text="Add right-to-left (RTL) support where possible..." description="Add right-to-left (RTL) support where possible">
-        <add-to-group group-id="RefactoringMenu"/>
-      </action>
     </group>
+
+    <action id="AndroidAddRTLSupport" class="com.android.tools.idea.actions.AndroidAddRtlSupportAction"
+            text="Add right-to-left (RTL) support where possible..." description="Add right-to-left (RTL) support where possible">
+      <add-to-group group-id="RefactoringMenu"/>
+    </action>
+
   </actions>
 </idea-plugin>
