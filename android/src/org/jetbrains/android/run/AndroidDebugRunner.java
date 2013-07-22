@@ -374,11 +374,6 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     }
 
     @Override
-    public ConfigurationPerRunnerSettings getConfigurationSettings() {
-      return myConfigurationSettings;
-    }
-
-    @Override
     public ExecutionResult execute(final Executor executor, @NotNull final ProgramRunner runner) throws ExecutionException {
       RemoteDebugProcessHandler process = new RemoteDebugProcessHandler(myProject);
       myState.setProcessHandler(process);
