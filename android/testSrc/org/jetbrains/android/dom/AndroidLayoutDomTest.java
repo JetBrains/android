@@ -11,7 +11,6 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
-import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.ThrowableRunnable;
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix;
@@ -452,7 +451,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     }).attempts(2).cpuBound().usesAllCPUCores().assertTiming();
   }
 
-  public void testResourceHighlightingPerformance() throws Throwable {
+  /*public void testResourceHighlightingPerformance() throws Throwable {
     doCopyManyStrings();
     final VirtualFile f = copyFileToProject(getTestName(true) + ".xml");
     myFixture.configureFromExistingVirtualFile(f);
@@ -488,7 +487,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
       }
     }).attempts(1).cpuBound().usesAllCPUCores().assertTiming();
     assertEquals(31, navElements.size());
-  }
+  }*/
 
   private void doCopyManyStrings() {
     myFixture.copyFileToProject(testFolder + "/many_strings.xml", "res/values/strings.xml");
