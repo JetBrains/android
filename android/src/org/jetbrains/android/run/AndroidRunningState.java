@@ -18,7 +18,6 @@ package org.jetbrains.android.run;
 import com.android.SdkConstants;
 import com.android.build.gradle.model.AndroidProject;
 import com.android.build.gradle.model.BuildTypeContainer;
-import com.android.build.gradle.model.ProductFlavorContainer;
 import com.android.build.gradle.model.Variant;
 import com.android.builder.model.ProductFlavor;
 import com.android.ddmlib.*;
@@ -27,7 +26,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.google.common.base.Strings;
 import com.intellij.CommonBundle;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
@@ -78,9 +76,9 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.AvdsNotSupportedException;
-import org.jetbrains.android.logcat.AndroidToolWindowFactory;
 import org.jetbrains.android.logcat.AndroidLogcatUtil;
 import org.jetbrains.android.logcat.AndroidLogcatView;
+import org.jetbrains.android.logcat.AndroidToolWindowFactory;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.sdk.AvdManagerLog;
 import org.jetbrains.android.util.AndroidBundle;
@@ -330,7 +328,6 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     return myEnv.getRunnerSettings();
   }
 
-  @Override
   public ConfigurationPerRunnerSettings getConfigurationSettings() {
     return myEnv.getConfigurationSettings();
   }
