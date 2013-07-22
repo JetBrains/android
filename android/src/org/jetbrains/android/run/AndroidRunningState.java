@@ -322,7 +322,6 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     return myConfiguration;
   }
 
-  @Override
   @Nullable
   public RunnerSettings getRunnerSettings() {
     return myEnv.getRunnerSettings();
