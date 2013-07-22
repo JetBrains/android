@@ -15,10 +15,10 @@
  */
 package org.jetbrains.android.dom.converters;
 
-import com.intellij.psi.ElementManipulators;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiReference;
+import com.intellij.openapi.util.TextRange;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.PackageReferenceSet;
+import com.intellij.psi.impl.source.resolve.reference.impl.providers.PsiPackageReference;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.Converter;
 import com.intellij.util.xml.CustomReferenceConverter;
@@ -47,7 +47,25 @@ public class AndroidPackageConverter extends Converter<String> implements Custom
   public PsiReference[] createReferences(GenericDomValue<String> value, PsiElement element, ConvertContext context) {
     final String s = value.getStringValue();
     return s != null
-           ? new PackageReferenceSet(s, element, ElementManipulators.getOffsetInElement(element)).getPsiReferences()
+           ? new MyPackageReferenceSet(s, element).getPsiReferences()
            : PsiReference.EMPTY_ARRAY;
+  }
+
+  private static class MyPackageReferenceSet extends PackageReferenceSet {
+    public MyPackageReferenceSet(String s, PsiElement element) {
+      super(s, element, ElementManipulators.getOffsetInElement(element));
+    }
+
+    @NotNull
+    @Override
+    protected PsiPackageReference createReference(TextRange range, int index) {
+      return new PsiPackageReference(this, range, index) {
+        @NotNull
+        @Override
+        public ResolveResult[] multiResolve(boolean incompleteCode) {
+          return PsiElementResolveResult.createResults(new PsiElement[] {myElement});
+        }
+      };
+    }
   }
 }

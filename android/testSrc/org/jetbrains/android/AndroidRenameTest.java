@@ -350,6 +350,20 @@ public class AndroidRenameTest extends AndroidTestCase {
     doRenameComponentTest("p20");
   }
 
+  public void testRenamePackage2() throws Throwable {
+    doRenameComponentTest("p1.p2");
+  }
+
+  public void testRenamePackage3() throws Throwable {
+    doRenameComponentTest("p1");
+  }
+
+  /*public void testRenamePackage4() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(
+      myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".xml", SdkConstants.FN_ANDROID_MANIFEST_XML));
+    checkAndRename("p1");
+  }*/
+
   public void testMovePackage() throws Throwable {
     doMovePackageTest("p1.p2.p3", "p1", "src/p1/p2/p3/MyActivity.java");
   }
