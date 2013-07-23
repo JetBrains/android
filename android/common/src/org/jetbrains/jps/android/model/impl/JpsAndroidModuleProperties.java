@@ -30,6 +30,9 @@ public class JpsAndroidModuleProperties {
   public String SELECTED_BUILD_VARIANT = "";
   public String ASSEMBLE_TASK_NAME = "";
   public String ASSEMBLE_TEST_TASK_NAME = "";
+  public String SOURCE_GEN_TASK_NAME = "";
+
+  // This value is false when the Android project is Gradle-based.
   public boolean ALLOW_USER_CONFIGURATION = true;
 
   public String GEN_FOLDER_RELATIVE_PATH_APT = "/" + SdkConstants.FD_GEN_SOURCES;

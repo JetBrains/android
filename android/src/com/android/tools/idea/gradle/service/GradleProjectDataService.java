@@ -86,14 +86,7 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
             Projects.setProjectBuildAction(project, Projects.BuildAction.REBUILD);
           }
           else {
-            switch (buildAction) {
-              case COMPILE:
-                Projects.compile(project, project.getBasePath());
-                break;
-              case REBUILD:
-                Projects.rebuild(project, project.getBasePath());
-            }
-            Projects.removeBuildActionFrom(project);
+            Projects.make(project);
           }
         }
       });

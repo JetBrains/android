@@ -40,6 +40,7 @@ class BuilderExecutionSettings {
   @NotNull private final File myProjectDir;
   private final boolean myVerboseLoggingEnabled;
   private final boolean myParallelBuild;
+  private final boolean myGenerateSourceOnly;
 
   BuilderExecutionSettings() {
     myEmbeddedGradleDaemonEnabled = SystemProperties.getBooleanProperty(BuildProcessJvmArgs.USE_EMBEDDED_GRADLE_DAEMON, false);
@@ -51,6 +52,7 @@ class BuilderExecutionSettings {
     myProjectDir = findProjectRootDir();
     myVerboseLoggingEnabled = SystemProperties.getBooleanProperty(BuildProcessJvmArgs.USE_GRADLE_VERBOSE_LOGGING, false);
     myParallelBuild = SystemProperties.getBooleanProperty(GlobalOptions.COMPILE_PARALLEL_OPTION, false);
+    myGenerateSourceOnly = SystemProperties.getBooleanProperty(BuildProcessJvmArgs.GENERATE_SOURCE_ONLY_ON_COMPILE, false);
   }
 
   @NotNull
@@ -146,6 +148,10 @@ class BuilderExecutionSettings {
     return myProjectDir;
   }
 
+  boolean isGenerateSourceOnly() {
+    return myGenerateSourceOnly;
+  }
+
   boolean isParallelBuild() {
     return myParallelBuild;
   }
@@ -154,6 +160,7 @@ class BuilderExecutionSettings {
   public String toString() {
     return "BuilderExecutionSettings[" +
            "embeddedGradleDaemonEnabled=" + myEmbeddedGradleDaemonEnabled +
+           ", generateSourceOnly=" + myGenerateSourceOnly +
            ", gradleDaemonMaxIdleTimeInMs=" + myGradleDaemonMaxIdleTimeInMs +
            ", gradleDaemonVmOptions=" + myGradleDaemonVmOptions +
            ", gradleHomeDir=" + myGradleHomeDir +
