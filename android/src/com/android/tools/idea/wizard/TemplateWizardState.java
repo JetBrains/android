@@ -19,20 +19,51 @@ package com.android.tools.idea.wizard;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
  * Value object which holds the current state of the wizard pages for
  * {@link NewTemplateObjectWizard}-derived wizards.
  */
 public class TemplateWizardState {
+  /*
+   * TODO: The parameter handling code needs to be completely rewritten. It's extremely fragile now. When it's rewritten, it needs to take
+   * the following into account:
+   *
+   * Parameters may or may not have corresponding parameters in the template. If they do, they may or may not have default values.
+   *
+   * Parameters have types, and the conversion between types ought to be fairly transparent, so that you don't have to do all the type
+   * conversion you do now -- see the int vs. string problems with API level parameters (convertApisToInt).
+   *
+   * A parameter can be linked to a UI object. When the UI object is modified by the user, the parameter needs to be updated. Beware of UI
+   * changes that happen programatically
+   *
+   * Some parameters have calculated values that can be overridden by the user.
+   *
+   * Sometimes we want to clear out parameters or reset their values from defaults.
+   *
+   * Sometimes we know at wizard step creation time how we want to populate parameters; sometimes we only find that out later. This
+   * shouldn't affect how we bind parameters to UI objects.
+   *
+   * Look at all the places that validate, update, register, and refresh UI, and rationalize. Right now too many times these methods are
+   * called as ad-hoc fixes for individual bugs.
+   *
+   * ConfigureAndroidModuleStep may or may not know its template at construction time.
+   *
+   * You ought to be able to change a value either by the user changing something in the UI, or programatically updaing something and
+   * propagating changes to the UI, without undue hackery. Right now to do the latter we have to set this global disable-changes bit.
+   */
   /** Suffix added by default to activity names */
   public static final String ACTIVITY_NAME_SUFFIX = "Activity";
   /** Prefix added to default layout names */
@@ -59,17 +90,43 @@ public class TemplateWizardState {
     put(TemplateMetadata.ATTR_IS_GRADLE, "true");
   }
 
+  /**
+   * Sets a number of parameters that get picked up as globals in the Freemarker templates. These are used to specify the directories where
+   * a number of files go. The templates use these globals to allow them to service both old-style Ant builds with the old directory
+   * structure and new-style Gradle builds with the new structure.
+   */
+  protected void populateDirectoryParameters() throws IOException {
+    File projectRoot = new File((String)get(NewModuleWizardState.ATTR_PROJECT_LOCATION));
+    File moduleRoot = new File(projectRoot, (String)get(NewProjectWizardState.ATTR_MODULE_NAME));
+    File mainFlavorSourceRoot = new File(moduleRoot, TemplateWizard.MAIN_FLAVOR_SOURCE_PATH);
+    File javaSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.JAVA_SOURCE_PATH);
+    File javaSourcePackageRoot = new File(javaSourceRoot, ((String)get(TemplateMetadata.ATTR_PACKAGE_NAME)).replace('.', '/'));
+    File resourceSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.RESOURCE_SOURCE_PATH);
+    String mavenUrl = System.getProperty(TemplateWizard.MAVEN_URL_PROPERTY);
+    put(TemplateMetadata.ATTR_TOP_OUT, projectRoot.getPath());
+    put(TemplateMetadata.ATTR_PROJECT_OUT, moduleRoot.getPath());
+    put(TemplateMetadata.ATTR_MANIFEST_OUT, mainFlavorSourceRoot.getPath());
+    put(TemplateMetadata.ATTR_SRC_OUT, javaSourcePackageRoot.getPath());
+    put(TemplateMetadata.ATTR_RES_OUT, resourceSourceRoot.getPath());
+    if (mavenUrl != null) {
+      put(TemplateMetadata.ATTR_MAVEN_URL, mavenUrl);
+    }
+  }
+
   public boolean hasTemplate() {
     return myTemplate != null && myTemplate.getMetadata() != null;
   }
 
-  @NotNull
+  @Nullable
   public Template getTemplate() {
     return myTemplate;
   }
 
-  @NotNull
+  @Nullable
   public TemplateMetadata getTemplateMetadata() {
+    if (myTemplate == null) {
+      return null;
+    }
     return myTemplate.getMetadata();
   }
 
@@ -119,8 +176,16 @@ public class TemplateWizardState {
     }
   }
 
-  protected void convertToInt(String attr) {
-    if (get(attr) != null) {
+  public void convertApisToInt() {
+    convertToInt(ATTR_MIN_API);
+    convertToInt(ATTR_BUILD_API);
+    convertToInt(ATTR_MIN_API_LEVEL);
+    convertToInt(ATTR_TARGET_API);
+  }
+
+  private void convertToInt(String attr) {
+    Object value = get(attr);
+    if (value != null && !(value instanceof Integer)) {
       put(attr, Integer.parseInt(get(attr).toString()));
     }
   }

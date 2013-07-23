@@ -42,7 +42,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.regex.Pattern;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.NewProjectWizardState.*;
@@ -75,10 +74,12 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   private JLabel myDescription;
   private JLabel myError;
   private JLabel myProjectLocationLabel;
+  private JLabel myModuleNameLabel;
   boolean myInitializedPackageNameText = false;
 
-  public ConfigureAndroidModuleStep(TemplateWizard templateWizard, TemplateWizardState state) {
-    super(templateWizard, state);
+  public ConfigureAndroidModuleStep(TemplateWizardState state, @Nullable Project project, @Nullable Icon sidePanelIcon,
+                                    UpdateListener updateListener) {
+    super(state, project, sidePanelIcon, updateListener);
 
     IAndroidTarget[] targets = getCompilationTargets();
     String[] knownVersions = TemplateUtils.getKnownVersions();
@@ -97,25 +98,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       }
     }
 
-    TemplateMetadata metadata = myTemplateState.getTemplateMetadata();
-    if (metadata != null) {
-      Parameter param = metadata.getParameter(ATTR_BASE_THEME);
-      if (param != null && param.element != null) {
-        populateComboBox(myTheme, param);
-        register(ATTR_BASE_THEME, myTheme);
-      }
-    }
-
-    register(ATTR_MODULE_NAME, myModuleName);
-    register(ATTR_PROJECT_LOCATION, myProjectLocation);
-    register(ATTR_APP_TITLE, myAppName);
-    register(ATTR_PACKAGE_NAME, myPackageName);
-    register(ATTR_MIN_API, myMinSdk);
-    register(ATTR_TARGET_API, myTargetSdk);
-    register(ATTR_BUILD_API, myCompileWith);
-    register(ATTR_CREATE_ACTIVITY, myCreateActivityCheckBox);
-    register(ATTR_CREATE_ICONS, myCreateCustomLauncherIconCheckBox);
-    register(ATTR_LIBRARY, myLibraryCheckBox);
+    registerUiElements();
 
     myProjectLocation.addActionListener(new ActionListener() {
       @Override
@@ -144,6 +127,40 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     if (myTemplateState.myHidden.contains(ATTR_IS_LIBRARY_MODULE)) {
       myLibraryCheckBox.setVisible(false);
     }
+    if (myTemplateState.myHidden.contains(ATTR_MODULE_NAME)) {
+      myModuleName.setVisible(false);
+      myModuleNameLabel.setVisible(false);
+    }
+  }
+
+  private void registerUiElements() {
+    TemplateMetadata metadata = myTemplateState.getTemplateMetadata();
+    if (metadata != null) {
+      Parameter param = metadata.getParameter(ATTR_BASE_THEME);
+      if (param != null && param.element != null) {
+        populateComboBox(myTheme, param);
+        register(ATTR_BASE_THEME, myTheme);
+      }
+    }
+
+    register(ATTR_MODULE_NAME, myModuleName);
+    register(ATTR_PROJECT_LOCATION, myProjectLocation);
+    register(ATTR_APP_TITLE, myAppName);
+    register(ATTR_PACKAGE_NAME, myPackageName);
+    register(ATTR_MIN_API, myMinSdk);
+    register(ATTR_TARGET_API, myTargetSdk);
+    register(ATTR_BUILD_API, myCompileWith);
+    register(ATTR_CREATE_ACTIVITY, myCreateActivityCheckBox);
+    register(ATTR_CREATE_ICONS, myCreateCustomLauncherIconCheckBox);
+    register(ATTR_LIBRARY, myLibraryCheckBox);
+  }
+
+  @Override
+  public void refreshUiFromParameters() {
+    // It's easier to just re-register the UI elements instead of trying to set their values manually. Not all of the elements have
+    // parameters in the template, and the super refreshUiFromParameters won't touch those elements.
+    registerUiElements();
+    super.refreshUiFromParameters();
   }
 
   @Override
@@ -155,6 +172,13 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   @Override
   public JComponent getPreferredFocusedComponent() {
     return myAppName;
+  }
+
+  public void setModuleName(String name) {
+    myModuleName.setText(name);
+    myTemplateState.put(ATTR_MODULE_NAME, name);
+    myTemplateState.myModified.add(ATTR_MODULE_NAME);
+    validate();
   }
 
   @NotNull
