@@ -126,6 +126,10 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     //noinspection TestOnlyProblems
     populateJvmArgs(executionSettings, jvmArgs);
 
+    if (Projects.generateSourceOnlyOnCompile(myProject)) {
+      jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GENERATE_SOURCE_ONLY_ON_COMPILE, "true"));
+    }
+
     return jvmArgs;
   }
 
