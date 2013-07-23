@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.templates.TemplateManager;
@@ -28,9 +27,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
-import icons.AndroidIcons;
 
-import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
@@ -42,6 +39,7 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME;
+import static icons.AndroidIcons.Wizards.NewProjectSidePanel;
 
 /**
  * NewProjectWizard runs the wizard for creating entirely new Android projects. It takes the user
@@ -49,7 +47,7 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAM
  * the user to choose an activity to populate it. The wizard is template-driven, using templates
  * that live in the ADK.
  */
-public class NewProjectWizard extends TemplateWizard {
+public class NewProjectWizard extends TemplateWizard implements TemplateParameterStep.UpdateListener {
   private static final Logger LOG = Logger.getInstance("#" + NewProjectWizard.class.getName());
   private static final String ATTR_GRADLE_DISTRIBUTION_URL = "distributionUrl";
   private static final String JAVA_SRC_PATH =
@@ -82,10 +80,11 @@ public class NewProjectWizard extends TemplateWizard {
     myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, TemplateMetadata.GRADLE_PLUGIN_VERSION);
     myWizardState.put(TemplateMetadata.ATTR_V4_SUPPORT_LIBRARY_VERSION, TemplateMetadata.V4_SUPPORT_LIBRARY_VERSION);
 
-    myConfigureAndroidModuleStep = new ConfigureAndroidModuleStep(this, myWizardState);
-    myLauncherIconStep = new LauncherIconStep(this, myWizardState.getLauncherIconState());
-    myChooseActivityStep = new ChooseTemplateStep(this, myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES);
-    myActivityParameterStep = new TemplateParameterStep(this, myWizardState.getActivityTemplateState());
+    myConfigureAndroidModuleStep = new ConfigureAndroidModuleStep(myWizardState, myProject, NewProjectSidePanel, this);
+    myLauncherIconStep = new LauncherIconStep(myWizardState.getLauncherIconState(), myProject, NewProjectSidePanel, this);
+    myChooseActivityStep = new ChooseTemplateStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, myProject,
+                                                  NewProjectSidePanel, this, null);
+    myActivityParameterStep = new TemplateParameterStep(myWizardState.getActivityTemplateState(), myProject, NewProjectSidePanel, this);
 
     mySteps.add(myConfigureAndroidModuleStep);
     mySteps.add(myLauncherIconStep);
@@ -97,7 +96,7 @@ public class NewProjectWizard extends TemplateWizard {
   }
 
   @Override
-  void update() {
+  public void update() {
     if (!myInitializationComplete) {
       return;
     }
@@ -107,17 +106,12 @@ public class NewProjectWizard extends TemplateWizard {
     super.update();
   }
 
-  @Override
-  public Icon getSidePanelIcon() {
-    return AndroidIcons.Wizards.NewProjectSidePanel;
-  }
-
   public void createProject() {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
         try {
-          populateDirectoryParameters(myWizardState);
+          myWizardState.populateDirectoryParameters();
           String projectName = (String)myWizardState.get(NewProjectWizardState.ATTR_MODULE_NAME);
           File projectRoot = new File((String)myWizardState.get(NewProjectWizardState.ATTR_PROJECT_LOCATION));
           File moduleRoot = new File(projectRoot, projectName);

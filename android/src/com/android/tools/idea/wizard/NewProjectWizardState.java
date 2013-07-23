@@ -52,11 +52,6 @@ public class NewProjectWizardState extends NewModuleWizardState {
     updateTemplate();
     setParameterDefaults();
 
-    convertToInt(ATTR_MIN_API);
-    convertToInt(ATTR_BUILD_API);
-    convertToInt(ATTR_MIN_API_LEVEL);
-    convertToInt(ATTR_TARGET_API);
-
     updateParameters();
   }
 
