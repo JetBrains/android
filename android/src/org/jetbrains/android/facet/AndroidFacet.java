@@ -1058,7 +1058,9 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       Variant variant = myIdeaAndroidProject.getSelectedVariant();
       JpsAndroidModuleProperties state = getConfiguration().getState();
 
-      state.ASSEMBLE_TASK_NAME = variant.getMainArtifactInfo().getAssembleTaskName();
+      ArtifactInfo mainArtifactInfo = variant.getMainArtifactInfo();
+      state.ASSEMBLE_TASK_NAME = mainArtifactInfo.getAssembleTaskName();
+      state.SOURCE_GEN_TASK_NAME = mainArtifactInfo.getSourceGenTaskName();
 
       ArtifactInfo testArtifactInfo = variant.getTestArtifactInfo();
       state.ASSEMBLE_TEST_TASK_NAME = testArtifactInfo != null ? testArtifactInfo.getAssembleTaskName() : "";

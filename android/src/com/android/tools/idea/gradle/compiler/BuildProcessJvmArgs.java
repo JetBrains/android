@@ -30,4 +30,5 @@ public class BuildProcessJvmArgs {
   @NonNls public static final String PROJECT_DIR_PATH = "com.android.studio.gradle.project.path";
   @NonNls public static final String USE_EMBEDDED_GRADLE_DAEMON = "com.android.studio.gradle.use.embedded.daemon";
   @NonNls public static final String USE_GRADLE_VERBOSE_LOGGING = "com.android.studio.gradle.use.verbose.logging";
+  @NonNls public static final String GENERATE_SOURCE_ONLY_ON_COMPILE = "com.android.studio.gradle.generate.source.only.on.compile";
 }

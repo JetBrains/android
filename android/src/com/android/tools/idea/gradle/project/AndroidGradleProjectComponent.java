@@ -33,11 +33,15 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.MessageBusConnection;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public class AndroidGradleProjectComponent extends AbstractProjectComponent {
   private static final Logger LOG = Logger.getInstance(AndroidGradleProjectComponent.class);
 
-  private Disposable myDisposable;
+  @Nullable private Disposable myDisposable;
 
   public AndroidGradleProjectComponent(Project project) {
     super(project);
@@ -45,35 +49,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
 
   @Override
   public void projectOpened() {
-    myDisposable = new Disposable() {
-      @Override
-      public void dispose() {
-      }
-    };
-
-    MessageBusConnection connection = myProject.getMessageBus().connect(myDisposable);
-    connection.subscribe(ProjectTopics.MODULES, new ModuleAdapter() {
-      @Override
-      public void moduleAdded(Project project, Module module) {
-        updateBuildVariantView();
-      }
-
-      @Override
-      public void moduleRemoved(Project project, Module module) {
-        updateBuildVariantView();
-      }
-
-      private void updateBuildVariantView() {
-        BuildVariantView.getInstance(myProject).updateContents();
-      }
-    });
-
-    if (Projects.isGradleProject(myProject)) {
-      GradleImportNotificationListener.attachToManager();
-      Projects.setProjectBuildAction(myProject, Projects.BuildAction.COMPILE);
-      Projects.ensureExternalBuildIsEnabledForGradleProject(myProject);
-    }
-    else {
+    if (!Projects.isGradleProject(myProject)) {
       CompilerWorkspaceConfiguration workspaceConfiguration = CompilerWorkspaceConfiguration.getInstance(myProject);
       boolean wasUsingExternalMake = workspaceConfiguration.USE_COMPILE_SERVER;
       if (wasUsingExternalMake) {
@@ -84,7 +60,20 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
         MessageBus messageBus = myProject.getMessageBus();
         messageBus.syncPublisher(ExternalBuildOptionListener.TOPIC).externalBuildOptionChanged(workspaceConfiguration.USE_COMPILE_SERVER);
       }
+      return;
     }
+
+    myDisposable = new Disposable() {
+      @Override
+      public void dispose() {
+      }
+    };
+
+    listenForChangesInModules(myProject, myDisposable);
+
+    GradleImportNotificationListener.attachToManager();
+    Projects.setProjectBuildAction(myProject, Projects.BuildAction.SOURCE_GEN);
+    Projects.ensureExternalBuildIsEnabledForGradleProject(myProject);
 
     try {
       // Prevent IDEA from refreshing project. We want to do it ourselves.
@@ -96,6 +85,30 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       Messages.showErrorDialog(e.getMessage(), e.getTitle());
       LOG.info(e);
     }
+  }
+
+  private static void listenForChangesInModules(@NotNull Project project, @NotNull Disposable disposable) {
+    MessageBusConnection connection = project.getMessageBus().connect(disposable);
+    connection.subscribe(ProjectTopics.MODULES, new ModuleAdapter() {
+      @Override
+      public void moduleAdded(Project project, Module module) {
+        updateBuildVariantView(project);
+      }
+
+      @Override
+      public void modulesRenamed(Project project, List<Module> modules) {
+        updateBuildVariantView(project);
+      }
+
+      @Override
+      public void moduleRemoved(Project project, Module module) {
+        updateBuildVariantView(project);
+      }
+
+      private void updateBuildVariantView(@NotNull Project project) {
+        BuildVariantView.getInstance(project).updateContents();
+      }
+    });
   }
 
   @Override

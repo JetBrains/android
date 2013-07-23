@@ -87,7 +87,17 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
                     @NotNull CompileContext context) throws ProjectBuildException, IOException {
     JpsProject project = target.getProject();
 
-    String[] buildTasks = getBuildTasks(project, context);
+    BuilderExecutionSettings executionSettings;
+    try {
+      executionSettings = new BuilderExecutionSettings();
+    } catch (RuntimeException e) {
+      throw new ProjectBuildException(e);
+    }
+
+    LOG.info("Using execution settings: " + executionSettings);
+
+
+    String[] buildTasks = getBuildTasks(project, context, executionSettings);
     if (buildTasks.length == 0) {
       String format = "No build tasks found for project '%1$s'. Nothing done.";
       LOG.info(String.format(format, project.getName()));
@@ -97,15 +107,6 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
     String msg = "Gradle build using tasks: " + Arrays.toString(buildTasks);
     context.processMessage(new ProgressMessage(msg));
     LOG.info(msg);
-
-    BuilderExecutionSettings executionSettings;
-    try {
-      executionSettings = new BuilderExecutionSettings();
-    } catch (RuntimeException e) {
-      throw new ProjectBuildException(e);
-    }
-
-    LOG.info("Using execution settings: " + executionSettings);
 
     ensureTempDirExists();
 
@@ -121,11 +122,13 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
   }
 
   @NotNull
-  private static String[] getBuildTasks(@NotNull JpsProject project, @NotNull CompileContext context) {
+  private static String[] getBuildTasks(@NotNull JpsProject project,
+                                        @NotNull CompileContext context,
+                                        @NotNull BuilderExecutionSettings executionSettings) {
     boolean buildTests = AndroidJpsUtil.isInstrumentationTestContext(context);
     List<String> tasks = Lists.newArrayList();
     for (JpsModule module : project.getModules()) {
-      populateBuildTasks(module, tasks, buildTests);
+      populateBuildTasks(module, executionSettings, tasks, buildTests);
     }
     if (!tasks.isEmpty()) {
       boolean rebuild = JavaBuilderUtil.isForcedRecompilationAllJavaModules(context);
@@ -136,7 +139,10 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
     return tasks.toArray(new String[tasks.size()]);
   }
 
-  private static void populateBuildTasks(@NotNull JpsModule module, @NotNull List<String> tasks, boolean buildTests) {
+  private static void populateBuildTasks(@NotNull JpsModule module,
+                                         @NotNull BuilderExecutionSettings executionSettings,
+                                         @NotNull List<String> tasks,
+                                         boolean buildTests) {
     JpsAndroidGradleModuleExtension androidGradleFacet = AndroidGradleJps.getExtension(module);
     if (androidGradleFacet == null) {
       return;
@@ -155,7 +161,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
     JpsAndroidModuleExtensionImpl androidFacet = (JpsAndroidModuleExtensionImpl)AndroidJpsUtil.getExtension(module);
     if (androidFacet != null) {
       JpsAndroidModuleProperties properties = androidFacet.getProperties();
-      assembleTaskName = properties.ASSEMBLE_TASK_NAME;
+      assembleTaskName = executionSettings.isGenerateSourceOnly() ? properties.SOURCE_GEN_TASK_NAME : properties.ASSEMBLE_TASK_NAME;
     }
     if (Strings.isNullOrEmpty(assembleTaskName)) {
       assembleTaskName = DEFAULT_ASSEMBLE_TASK_NAME;
@@ -165,8 +171,9 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
 
     if (buildTests && androidFacet != null) {
       JpsAndroidModuleProperties properties = androidFacet.getProperties();
-      if (!Strings.isNullOrEmpty(properties.ASSEMBLE_TEST_TASK_NAME)) {
-        tasks.add(createBuildTask(gradleProjectPath, properties.ASSEMBLE_TEST_TASK_NAME));
+      String assembleTestTaskName = properties.ASSEMBLE_TEST_TASK_NAME;
+      if (!Strings.isNullOrEmpty(assembleTestTaskName)) {
+        tasks.add(createBuildTask(gradleProjectPath, assembleTestTaskName));
       }
     }
   }

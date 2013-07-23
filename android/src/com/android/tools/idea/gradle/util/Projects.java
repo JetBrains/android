@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.google.common.base.Strings;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.compiler.options.ExternalBuildOptionListener;
 import com.intellij.ide.DataManager;
@@ -31,6 +32,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBus;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,9 +41,35 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class Projects {
   private static final Key<BuildAction> PROJECT_BUILD_ACTION_KEY = Key.create("android.gradle.project.build.action");
+  private static final Key<Boolean> GENERATE_SOURCE_ONLY_ON_COMPILE = Key.create("android.gradle.generate.source.only.on.compile");
+
   private static final Logger LOG = Logger.getInstance(Projects.class);
 
   private Projects() {
+  }
+
+  /**
+   * Takes a project and compiles it, rebuilds it or simply generates source code based on the {@link BuildAction} set on the given project.
+   * This method does nothing if the project does not have a {@link BuildAction}.
+   *
+   * @param project the given project.
+   */
+  public static void make(@NotNull Project project) {
+    BuildAction buildAction = getBuildActionFrom(project);
+    if (buildAction != null) {
+      switch (buildAction) {
+        case COMPILE:
+          compile(project, project.getBasePath());
+          break;
+        case REBUILD:
+          rebuild(project, project.getBasePath());
+          break;
+        case SOURCE_GEN:
+          generateSourcesOnly(project, project.getBasePath());
+          break;
+      }
+      removeBuildActionFrom(project);
+    }
   }
 
   /**
@@ -80,6 +108,35 @@ public final class Projects {
         rootDir.refresh(true, true);
       }
     }
+  }
+
+  /**
+   * Generates source code instead of a full compilation. This method does nothing if the Gradle model does not specify the name of the
+   * Gradle task to invoke.
+   *
+   * @param project the given project.
+   * @param dirToRefreshPath the path of the directory to refresh after compilation is finished.
+   */
+  public static void generateSourcesOnly(@NotNull Project project, @NotNull String dirToRefreshPath) {
+    if (hasSourceGenTasks(project)) {
+      project.putUserData(GENERATE_SOURCE_ONLY_ON_COMPILE, true);
+      compile(project, dirToRefreshPath);
+    } else {
+      String msg = String.format("Unable to find tasks for generating source code for project '%1$s'", project.getName());
+      LOG.info(msg);
+    }
+  }
+
+  private static boolean hasSourceGenTasks(@NotNull Project project) {
+    Module[] modules = ModuleManager.getInstance(project).getModules();
+    for (Module module : modules) {
+      AndroidFacet androidFacet = Facets.getFirstFacetOfType(module, AndroidFacet.ID);
+      if (androidFacet != null) {
+        String sourceGenTaskName = androidFacet.getConfiguration().getState().SOURCE_GEN_TASK_NAME;
+        return !sourceGenTaskName.isEmpty() && !"TODO".equalsIgnoreCase(sourceGenTaskName);
+      }
+    }
+    return false;
   }
 
   /**
@@ -145,10 +202,23 @@ public final class Projects {
   }
 
   /**
+   * Indicates whether the given project has the setting 'generate source code only'. Note that the setting is turned off after being
+   * checked making subsequent calls to this method always return {@code false}.
+   *
+   * @param project the given project.
+   * @return {@code true}
+   */
+  public static boolean generateSourceOnlyOnCompile(@NotNull Project project) {
+    Boolean generateSourceCodeOnCompile = project.getUserData(GENERATE_SOURCE_ONLY_ON_COMPILE);
+    project.putUserData(GENERATE_SOURCE_ONLY_ON_COMPILE, null);
+    return generateSourceCodeOnCompile == Boolean.TRUE;
+  }
+
+  /**
    * Indicates whether a project should be built or not after a Gradle model refresh. "Building" means either compiling or rebuilding a
    * project.
    */
   public enum BuildAction {
-    COMPILE, REBUILD
+    COMPILE, REBUILD, SOURCE_GEN
   }
 }
