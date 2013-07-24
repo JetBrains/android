@@ -12,6 +12,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.util.ThrowableRunnable;
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
@@ -229,7 +230,23 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
 
   public void testFlagCompletion() throws Throwable {
     doTestCompletionVariants("av1.xml", "center", "center_horizontal", "center_vertical");
-    doTestCompletionVariants("av2.xml", "fill", "fill_horizontal", "fill_vertical");
+    doTestCompletionVariants("av2.xml", "fill_horizontal", "fill_vertical");
+  }
+
+  public void testFlagCompletion1() throws Throwable {
+    doTestCompletionVariants("flagCompletion1.xml", "center", "center_horizontal", "center_vertical", "center|bottom",
+                             "center|center_horizontal", "center|center_vertical", "center|clip_horizontal", "center|clip_vertical",
+                             "center|fill", "center|fill_horizontal", "center|fill_vertical", "center|left", "center|right", "center|top");
+  }
+
+  public void testFlagCompletion2() throws Throwable {
+    doTestCompletionVariants("flagCompletion2.xml", "center", "center_horizontal", "center_vertical", "center|center_horizontal",
+                             "center|center_vertical", "center|clip_horizontal", "center|clip_vertical", "center|fill",
+                             "center|fill_horizontal", "center|fill_vertical", "center|left", "center|right", "center|top");
+    myFixture.type("|fill");
+    final List<String> lookupElements = myFixture.getLookupElementStrings();
+    assertNotNull(lookupElements);
+    UsefulTestCase.assertSameElements(lookupElements, "center|fill", "center|fill_horizontal", "center|fill_vertical");
   }
 
   public void testResourceCompletion() throws Throwable {
