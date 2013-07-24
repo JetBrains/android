@@ -857,4 +857,8 @@ public class AndroidUtils {
                                               message, NotificationType.ERROR, null), project);
     LOG.debug(message);
   }
+
+  public static boolean isPackagePrefix(@NotNull String prefix, @NotNull String name) {
+    return name.equals(prefix) || name.startsWith(prefix + ".");
+  }
 }
