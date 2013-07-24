@@ -55,7 +55,6 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
   private List<String> myClasspath;
 
   @NonNls private static final String JVM_ARG_FORMAT = "-D%1$s=%2$s";
-  @NonNls private static final String JVM_ARG_WITH_QUOTED_VALUE_FORMAT = "-D%1$s=\"%2$s\"";
 
   public AndroidGradleBuildProcessParametersProvider(@NotNull Project project) {
     myProject = project;
@@ -183,10 +182,6 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
 
   @NotNull
   private static String createJvmArg(@NotNull String name, @NotNull String value) {
-    String format = JVM_ARG_FORMAT;
-    if (value.contains(" ")) {
-      format = JVM_ARG_WITH_QUOTED_VALUE_FORMAT;
-    }
-    return String.format(format, name, value);
+    return String.format(JVM_ARG_FORMAT, name, value);
   }
 }
