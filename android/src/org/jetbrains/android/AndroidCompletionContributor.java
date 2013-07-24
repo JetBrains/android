@@ -22,20 +22,22 @@ import com.intellij.codeInsight.completion.CompletionResultSet;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlChildRole;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
+import com.intellij.psi.xml.*;
+import com.intellij.util.xml.Converter;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
+import com.intellij.util.xml.GenericAttributeValue;
+import com.intellij.util.xml.converters.DelimitedListConverter;
 import org.jetbrains.android.dom.animation.AndroidAnimationUtils;
 import org.jetbrains.android.dom.animation.AnimationDomFileDescription;
 import org.jetbrains.android.dom.animator.AndroidAnimatorUtil;
 import org.jetbrains.android.dom.animator.AnimatorDomFileDescription;
 import org.jetbrains.android.dom.color.ColorDomFileDescription;
+import org.jetbrains.android.dom.converters.FlagConverter;
 import org.jetbrains.android.dom.drawable.AndroidDrawableDomUtil;
 import org.jetbrains.android.dom.drawable.DrawableStateListDomFileDescription;
 import org.jetbrains.android.dom.layout.AndroidLayoutUtil;
@@ -48,8 +50,10 @@ import org.jetbrains.android.dom.xml.XmlResourceDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * @author coyote
@@ -97,12 +101,14 @@ public class AndroidCompletionContributor extends CompletionContributor {
   @Override
   public void fillCompletionVariants(CompletionParameters parameters, CompletionResultSet resultSet) {
     PsiElement position = parameters.getPosition();
+    PsiElement originalPosition = parameters.getOriginalPosition();
     AndroidFacet facet = AndroidFacet.getInstance(position);
 
     if (facet == null) {
       return;
     }
     PsiElement parent = position.getParent();
+    PsiElement originalParent = originalPosition != null ? originalPosition.getParent() : null;
 
     if (parent instanceof XmlTag) {
       XmlTag tag = (XmlTag)parent;
@@ -162,6 +168,49 @@ public class AndroidCompletionContributor extends CompletionContributor {
       }
       final LookupElementBuilder e = LookupElementBuilder.create(prefix + ":").withTypeText("[Namespace Prefix]", true);
       resultSet.addElement(PrioritizedLookupElement.withPriority(e, Double.MAX_VALUE));
+    }
+    else if (originalParent instanceof XmlAttributeValue) {
+      completeTailsInFlagAttribute(parameters, resultSet, (XmlAttributeValue)originalParent);
+    }
+  }
+
+  private static void completeTailsInFlagAttribute(CompletionParameters parameters,
+                                                   CompletionResultSet resultSet,
+                                                   XmlAttributeValue parent) {
+    final String currentValue = parent.getValue();
+
+    if (currentValue == null || currentValue.length() == 0 || currentValue.endsWith("|")) {
+      return;
+    }
+    final PsiElement gp = parent.getParent();
+
+    if (!(gp instanceof XmlAttribute)) {
+      return;
+    }
+    final GenericAttributeValue domValue = DomManager.getDomManager(gp.getProject()).getDomElement((XmlAttribute)gp);
+    final Converter converter = domValue != null ? domValue.getConverter() : null;
+
+    if (!(converter instanceof FlagConverter)) {
+      return;
+    }
+    final TextRange valueRange = parent.getValueTextRange();
+
+    if (valueRange != null && valueRange.getEndOffset() == parameters.getOffset()) {
+      final Set<String> valueSet = ((FlagConverter)converter).getValues();
+
+      if (valueSet.size() > 0) {
+        final String prefix = resultSet.getPrefixMatcher().getPrefix();
+
+        if (valueSet.contains(prefix)) {
+          final ArrayList<String> filteredValues = new ArrayList<String>(valueSet);
+          //noinspection unchecked
+          DelimitedListConverter.filterVariants(filteredValues, domValue);
+
+          for (String variant : filteredValues) {
+            resultSet.addElement(LookupElementBuilder.create(prefix + "|" + variant));
+          }
+        }
+      }
     }
   }
 }

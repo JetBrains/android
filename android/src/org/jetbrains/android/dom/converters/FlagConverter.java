@@ -105,4 +105,9 @@ public class FlagConverter extends DelimitedListConverter<String> {
   protected String getUnresolvedMessage(final String value) {
     return MessageFormat.format(AndroidBundle.message("cannot.resolve.flag.error"), value);
   }
+
+  @NotNull
+  public Set<String> getValues() {
+    return myValues;
+  }
 }

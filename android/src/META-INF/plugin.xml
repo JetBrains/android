@@ -440,6 +440,7 @@
     <postStartupActivity implementation="com.android.tools.idea.gradle.startup.GradleStartupActivity" order="first"/>
     <filetype.stubBuilder filetype="JAVA" implementationClass="org.jetbrains.android.AndroidSdkSourcesStubBuilder"/>
     <sdkResolveScopeProvider implementation="org.jetbrains.android.AndroidSdkResolveScopeProvider"/>
+    <lookup.charFilter implementation="org.jetbrains.android.dom.AndroidXmlCharFilter" order="before xml"/>
   </extensions>
 
   <extensionPoints>
