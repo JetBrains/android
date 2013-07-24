@@ -261,7 +261,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
     // properties.addStackTraceFilter(new ...);
     
     BaseTestsOutputConsoleView consoleView = SMTestRunnerConnectionUtil
-      .createAndAttachConsole("Android", state.getProcessHandler(), properties, state.getRunnerSettings(), state.getConfigurationSettings()
+      .createAndAttachConsole("Android", state.getProcessHandler(), properties, state.getEnvironment()
       );
     Disposer.register(state.getFacet().getModule().getProject(), consoleView);
     return consoleView;
