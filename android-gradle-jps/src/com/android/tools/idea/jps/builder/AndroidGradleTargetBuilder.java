@@ -69,7 +69,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
   @NonNls private static final String DEFAULT_ASSEMBLE_TASK_NAME = "assemble";
 
   @NonNls private static final String JVM_ARG_FORMAT = "-D%1$s=%2$s";
-  @NonNls private static final String JVM_ARG_WITH_QUOTED_VALUE_FORMAT = "-D%1$s=\"%2$s\"";
+  @NonNls private static final String ANDROID_HOME_JVM_ARG = "android.home";
 
   @NonNls private static final String BUILDER_NAME = "Android Gradle Target Builder";
 
@@ -290,8 +290,8 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
 
       List<String> jvmArgs = Lists.newArrayList();
 
-      if (androidHome != null && !androidHome.isEmpty()) {
-        String androidSdkArg = getAndroidHomeJvmArg(androidHome);
+      if (!Strings.isNullOrEmpty(androidHome)) {
+        String androidSdkArg = String.format(JVM_ARG_FORMAT, ANDROID_HOME_JVM_ARG, androidHome);
         jvmArgs.add(androidSdkArg);
       }
 
@@ -360,15 +360,6 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
     }
 
     return connector;
-  }
-
-  @NotNull
-  private static String getAndroidHomeJvmArg(@NotNull String androidHome) {
-    String format = JVM_ARG_FORMAT;
-    if (androidHome.contains(" ")) {
-      format = JVM_ARG_WITH_QUOTED_VALUE_FORMAT;
-    }
-    return String.format(format, "android.home", androidHome);
   }
 
   /**
