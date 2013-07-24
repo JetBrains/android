@@ -62,6 +62,6 @@ public class AndroidGradleBuildProcessParametersProviderTest extends TestCase {
     assertTrue(jvmArgs.contains("-Dcom.android.studio.daemon.gradle.vm.option.count=2"));
     assertTrue(jvmArgs.contains("-Dcom.android.studio.daemon.gradle.vm.option.0=-Xmx2048m"));
     assertTrue(jvmArgs.contains("-Dcom.android.studio.daemon.gradle.vm.option.1=-XX:MaxPermSize=512m"));
-    assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.java.home.path=\"~/Libraries/Java Home\""));
+    assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.java.home.path=~/Libraries/Java Home"));
   }
 }

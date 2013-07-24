@@ -102,13 +102,7 @@ class BuilderExecutionSettings {
   @Nullable
   private static File createFile(@NotNull String jvmArgName) {
     String path = System.getProperty(jvmArgName);
-    if (path == null || path.isEmpty()) {
-      return null;
-    }
-    if (path.startsWith("\"") && path.endsWith("\"")) {
-      path = path.substring(1, path.length() - 1);
-    }
-    return new File(path);
+    return path != null && !path.isEmpty() ? new File(path) : null;
   }
 
   boolean isEmbeddedGradleDaemonEnabled() {
