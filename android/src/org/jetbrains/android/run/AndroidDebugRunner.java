@@ -347,8 +347,6 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
   private static class AndroidDebugState implements RemoteState, AndroidExecutionState {
     private final Project myProject;
     private final RemoteConnection myConnection;
-    private final RunnerSettings myRunnerSettings;
-    private final ConfigurationPerRunnerSettings myConfigurationSettings;
     private final AndroidRunningState myState;
     private final IDevice myDevice;
 
@@ -356,14 +354,10 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
 
     public AndroidDebugState(Project project,
                              RemoteConnection connection,
-                             RunnerSettings runnerSettings,
-                             ConfigurationPerRunnerSettings configurationSettings,
                              AndroidRunningState state,
                              IDevice device) {
       myProject = project;
       myConnection = connection;
-      myRunnerSettings = runnerSettings;
-      myConfigurationSettings = configurationSettings;
       myState = state;
       myDevice = device;
     }
@@ -547,8 +541,8 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
         public void run() {
           final DebuggerPanelsManager manager = DebuggerPanelsManager.getInstance(myProject);
           AndroidDebugState st =
-            new AndroidDebugState(myProject, new RemoteConnection(true, "localhost", debugPort, false), myEnvironment.getRunnerSettings(),
-                                  myEnvironment.getConfigurationSettings(), myRunningState, device);
+            new AndroidDebugState(myProject, new RemoteConnection(true, "localhost", debugPort, false),
+                                  myRunningState, device);
           RunContentDescriptor debugDescriptor = null;
           final ProcessHandler processHandler = myRunningState.getProcessHandler();
           try {
