@@ -239,11 +239,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
   }
 
   @Override
-  protected ModuleBasedConfiguration createInstance() {
-    return new AndroidTestRunConfiguration(getName(), getProject(), AndroidTestRunConfigurationType.getInstance().getFactory());
-  }
-
-  @Override
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
     Project project = getProject();
     AndroidRunConfigurationEditor<AndroidTestRunConfiguration> editor =
