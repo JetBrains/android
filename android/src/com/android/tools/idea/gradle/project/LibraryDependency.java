@@ -80,6 +80,7 @@ class LibraryDependency {
     }
     LibraryDependencyData dependencyInfo = new LibraryDependencyData(moduleInfo.getData(), libraryInfo.getData());
     dependencyInfo.setScope(myScope);
+    dependencyInfo.setExported(true);
     moduleInfo.createChild(ProjectKeys.LIBRARY_DEPENDENCY, dependencyInfo);
   }
 }

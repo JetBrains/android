@@ -152,6 +152,7 @@ public class DependenciesModuleCustomizer implements ModuleCustomizer {
         if (library != null) {
           LibraryOrderEntry orderEntry = model.addLibraryEntry(library);
           orderEntry.setScope(scope);
+          orderEntry.setExported(true);
           return true;
         }
         return false;
@@ -172,7 +173,8 @@ public class DependenciesModuleCustomizer implements ModuleCustomizer {
           }
         }
         if (moduleDependency != null) {
-          model.addModuleOrderEntry(moduleDependency);
+          ModuleOrderEntry orderEntry = model.addModuleOrderEntry(moduleDependency);
+          orderEntry.setExported(true);
           return true;
         }
         return false;
