@@ -132,11 +132,6 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   }
 
   @Override
-  protected ModuleBasedConfiguration createInstance() {
-    return new AndroidRunConfiguration(getName(), getProject(), AndroidRunConfigurationType.getInstance().getFactory());
-  }
-
-  @Override
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
     Project project = getProject();
     AndroidRunConfigurationEditor<AndroidRunConfiguration> editor = new AndroidRunConfigurationEditor<AndroidRunConfiguration>(project);
