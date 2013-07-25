@@ -58,6 +58,7 @@ class ModuleDependency {
       if (name.equals(myModuleName)) {
         ModuleDependencyData dependencyInfo = new ModuleDependencyData(moduleInfo.getData(), m.getData());
         dependencyInfo.setScope(myScope);
+        dependencyInfo.setExported(true);
         moduleInfo.createChild(ProjectKeys.MODULE_DEPENDENCY, dependencyInfo);
         return;
       }
