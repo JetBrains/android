@@ -74,6 +74,11 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool imp
     return IntentionAction.EMPTY_ARRAY;
   }
 
+  @Override
+  public boolean isGraphNeeded() {
+    return false;
+  }
+
   @NotNull
   private LocalQuickFix[] getLocalQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
     final AndroidLintQuickFix[] fixes = getQuickFixes(message);
