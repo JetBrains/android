@@ -15,34 +15,24 @@
  */
 package org.jetbrains.android.dom.manifest;
 
+import com.intellij.util.xml.Attribute;
 import com.intellij.util.xml.Convert;
-import com.intellij.util.xml.DefinesXml;
-import com.intellij.util.xml.GenericAttributeValue;
-import org.jetbrains.android.dom.converters.AndroidPackageConverter;
-
-import java.util.List;
+import org.jetbrains.android.dom.AndroidAttributeValue;
+import org.jetbrains.android.dom.converters.ApiVersionConverter;
 
 /**
  * @author yole
  */
-@DefinesXml
-public interface Manifest extends ManifestElement {
-  Application getApplication();
+public interface UsesSdk extends ManifestElementWithName {
+  @Attribute("minSdkVersion")
+  @Convert(ApiVersionConverter.class)
+  AndroidAttributeValue<String> getMinSdkVersion();
 
-  CompatibleScreens getCompatibleScreens();
+  @Attribute("targetSdkVersion")
+  @Convert(ApiVersionConverter.class)
+  AndroidAttributeValue<String> getTargetSdkVersion();
 
-  @Convert(AndroidPackageConverter.class)
-  GenericAttributeValue<String> getPackage();
-
-  List<Instrumentation> getInstrumentations();
-
-  List<Permission> getPermissions();
-
-  List<PermissionGroup> getPermissionGroups();
-
-  List<PermissionTree> getPermissionTrees();
-
-  List<UsesPermission> getUsesPermissions();
-
-  List<UsesSdk> getUsesSdks();
+  @Attribute("maxSdkVersion")
+  @Convert(ApiVersionConverter.class)
+  AndroidAttributeValue<String> getMaxSdkVersion();
 }

@@ -1,6 +1,10 @@
 package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ModuleRootManager;
 import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection;
 import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection;
 
@@ -228,5 +232,41 @@ public class AndroidManifestDomTest extends AndroidDomTest {
 
   public void testHexInteger() throws Throwable {
     doTestHighlighting();
+  }
+
+  public void testMinSdkVersionAttributeValueCompletion() throws Throwable {
+    doTestSdkVersionAttributeValueCompletion();
+  }
+
+  public void testTargetSdkVersionAttributeValueCompletion() throws Throwable {
+    doTestSdkVersionAttributeValueCompletion();
+  }
+
+  public void testMaxSdkVersionAttributeValueCompletion() throws Throwable {
+    doTestSdkVersionAttributeValueCompletion();
+  }
+
+  private void doTestSdkVersionAttributeValueCompletion() throws Throwable {
+    final ProjectJdkTable projectJdkTable = ProjectJdkTable.getInstance();
+    final Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
+
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        projectJdkTable.addJdk(sdk);
+      }
+    });
+    try {
+      doTestCompletionVariants(getTestName(false) + ".xml", "1", "2", "3", "4", "5", "6", "7",
+                               "8", "9", "10", "11", "12", "13", "14", "15", "16", "17");
+    }
+    finally {
+      ApplicationManager.getApplication().runWriteAction(new Runnable() {
+        @Override
+        public void run() {
+          projectJdkTable.removeJdk(sdk);
+        }
+      });
+    }
   }
 }
