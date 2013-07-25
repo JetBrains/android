@@ -78,8 +78,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
   public String CLASS_NAME = "";
   public String PACKAGE_NAME = "";
 
-  public AndroidTestRunConfiguration(final String name, final Project project, final ConfigurationFactory factory) {
-    super(name, project, factory);
+  public AndroidTestRunConfiguration(final Project project, final ConfigurationFactory factory) {
+    super(project, factory);
   }
 
   @Override
