@@ -18,26 +18,21 @@ package com.android.tools.idea.templates;
 import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.util.SparseArray;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 
 /** Utility methods for ADT */
@@ -189,8 +184,13 @@ public class TemplateUtils {
   *         maximum known versions (with no gaps)
   */
   public static String[] getKnownVersions() {
+    final SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
+
+    if (sdkManager == null) {
+      return ArrayUtil.EMPTY_STRING_ARRAY;
+    }
     int max = SdkVersionInfo.HIGHEST_KNOWN_API;
-    IAndroidTarget[] targets = AndroidSdkUtils.tryToChooseAndroidSdk().getTargets();
+    IAndroidTarget[] targets = sdkManager.getTargets();
     SparseArray<IAndroidTarget> apiTargets = null;
     for (IAndroidTarget target : targets) {
       if (target.isPlatform()) {
