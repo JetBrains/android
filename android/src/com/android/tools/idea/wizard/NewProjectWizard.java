@@ -76,6 +76,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
       throw new IllegalStateException(msg);
     }
     myWizardState = new NewProjectWizardState();
+    myWizardState.convertApisToInt();
     myWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, TemplateMetadata.GRADLE_VERSION);
     myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, TemplateMetadata.GRADLE_PLUGIN_VERSION);
     myWizardState.put(TemplateMetadata.ATTR_V4_SUPPORT_LIBRARY_VERSION, TemplateMetadata.V4_SUPPORT_LIBRARY_VERSION);
