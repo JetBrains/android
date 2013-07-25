@@ -676,7 +676,8 @@ public class Template {
                                          @NotNull final Configuration freemarker,
                                          @NotNull final Map<String, Object> paramMap) throws IOException, TemplateException {
     // TODO: Right now this is implemented as a dumb text merge. It would be much better to read it into PSI using IJ's Groovy support.
-    // If Gradle build files get first-class PSI support in the future, we will pick that up cheaply.
+    // If Gradle build files get first-class PSI support in the future, we will pick that up cheaply. At the moment, Our Gradle-Groovy
+    // support requires a project, which we don't necessarily have when instantiating a template.
 
     StringBuilder contents = new StringBuilder(dest);
 
