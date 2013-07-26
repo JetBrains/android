@@ -30,21 +30,22 @@ import java.util.regex.Pattern;
 /**
  * A parser for Gradle's final error message on failed builds. It is of the form:
  *
+ * <pre>
+ * FAILURE: Build failed with an exception.
  *
-   FAILURE: Build failed with an exception.
-
-   * What went wrong:
-   Execution failed for task 'TASK_PATH'.
-
-   * Where:
-   Build file 'PATHNAME' line: LINE_NUM
-   > ERROR_MESSAGE
-
-   * Try:
-   Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.
-
-   BUILD FAILED
-
+ * * What went wrong:
+ * Execution failed for task 'TASK_PATH'.
+ *
+ * * Where:
+ * Build file 'PATHNAME' line: LINE_NUM
+ * > ERROR_MESSAGE
+ *
+ * * Try:
+ * Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.
+ *
+ * BUILD FAILED
+ * </pre>
+ *
  * The Where section may not appear (it usually only shows up if there's a problem in the build.gradle file itself). We parse this
  * out to get the failure message and module, and the where output if it appears.
  */

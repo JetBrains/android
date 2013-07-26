@@ -20,7 +20,6 @@ import com.android.tools.idea.jps.output.parser.CompilerOutputParser;
 import com.android.tools.idea.jps.output.parser.OutputLineReader;
 import com.android.tools.idea.jps.output.parser.ParsingFailedException;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 
@@ -32,8 +31,10 @@ import java.util.regex.Pattern;
 /**
  * A parser for errors that occur during XML validation of various resource source files. They are of the form:
  *
-   [Fatal Error] :LINE:COL: MESSAGE
-   Failed to parse PATHNAME
+ * <pre>
+ * [Fatal Error] :LINE:COL: MESSAGE
+ * Failed to parse PATHNAME
+ * </pre>
  *
  * The second line with the pathname may not appear (which means we can't tell the user what file the error occurred in. Bummer.)
  */
