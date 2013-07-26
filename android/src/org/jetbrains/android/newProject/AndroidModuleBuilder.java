@@ -370,9 +370,11 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
                   AndroidUtils.printMessageToConsole(project, projectNotGeneratedError, ConsoleViewContentType.ERROR_OUTPUT);
                 }
               });
-              return;
             }
 
+            if (!manifestGenerated) {
+              return;
+            }
             ApplicationManager.getApplication().runWriteAction(new Runnable() {
               @Override
               public void run() {
