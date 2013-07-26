@@ -136,7 +136,7 @@ public class AndroidTestConfigurationProducer extends JavaRuntimeConfigurationPr
       if (settings == null) return null;
       AndroidTestRunConfiguration configuration = (AndroidTestRunConfiguration)settings.getConfiguration();
       configuration.PACKAGE_NAME = packageName;
-      setGeneratedName(configuration);
+      configuration.setGeneratedName();
       return settings;
     }
     return null;
@@ -152,7 +152,7 @@ public class AndroidTestConfigurationProducer extends JavaRuntimeConfigurationPr
         if (settings == null) return null;
         AndroidTestRunConfiguration configuration = (AndroidTestRunConfiguration)settings.getConfiguration();
         configuration.CLASS_NAME = elementClass.getQualifiedName();
-        setGeneratedName(configuration);
+        configuration.setGeneratedName();
         return settings;
       }
       elementClass = PsiTreeUtil.getParentOfType(elementClass, PsiClass.class);
@@ -173,16 +173,12 @@ public class AndroidTestConfigurationProducer extends JavaRuntimeConfigurationPr
         AndroidTestRunConfiguration configuration = (AndroidTestRunConfiguration)settings.getConfiguration();
         configuration.CLASS_NAME = c.getQualifiedName();
         configuration.METHOD_NAME = elementMethod.getName();
-        setGeneratedName(configuration);
+        configuration.setGeneratedName();
         return settings;
       }
       elementMethod = PsiTreeUtil.getParentOfType(elementMethod, PsiMethod.class);
     }
     return null;
-  }
-
-  private static void setGeneratedName(AndroidTestRunConfiguration configuration) {
-    configuration.setName(configuration.getGeneratedName());
   }
 
   @Nullable

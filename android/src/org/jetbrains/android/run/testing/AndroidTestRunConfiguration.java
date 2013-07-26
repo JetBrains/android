@@ -36,7 +36,6 @@ import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -80,45 +79,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
 
   public AndroidTestRunConfiguration(final Project project, final ConfigurationFactory factory) {
     super(project, factory);
-  }
-
-  @Override
-  public boolean isGeneratedName() {
-    final String name = getName();
-
-    if ((TESTING_TYPE == TEST_CLASS || TESTING_TYPE == TEST_METHOD) &&
-        (CLASS_NAME == null || CLASS_NAME.length() == 0)) {
-      return JavaExecutionUtil.isNewName(name);
-    }
-    if (TESTING_TYPE == TEST_METHOD &&
-        (METHOD_NAME == null || METHOD_NAME.length() == 0)) {
-      return JavaExecutionUtil.isNewName(name);
-    }
-    return Comparing.equal(name, getGeneratedName());
-  }
-
-  @Nullable
-  @Override
-  public String getGeneratedName() {
-    final JavaRunConfigurationModule confModule = getConfigurationModule();
-    final String moduleName = confModule.getModuleName();
-
-    if (TESTING_TYPE == TEST_ALL_IN_PACKAGE) {
-      if (PACKAGE_NAME.length() == 0) {
-        return ExecutionBundle.message("default.junit.config.name.all.in.module", moduleName);
-      }
-      if (moduleName.length() > 0) {
-        return ExecutionBundle.message("default.junit.config.name.all.in.package.in.module", PACKAGE_NAME, moduleName);
-      }
-      return PACKAGE_NAME + " in "  + moduleName;
-    }
-    else if (TESTING_TYPE == TEST_CLASS) {
-      return JavaExecutionUtil.getPresentableClassName(CLASS_NAME, confModule);
-    }
-    else if (TESTING_TYPE == TEST_METHOD) {
-      return JavaExecutionUtil.getPresentableClassName(CLASS_NAME, confModule) + "." + METHOD_NAME;
-    }
-    return moduleName;
   }
 
   @Override
