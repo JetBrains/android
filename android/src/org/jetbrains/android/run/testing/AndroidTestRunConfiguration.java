@@ -238,6 +238,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
     }
   }
 
+  @NotNull
   @Override
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
     Project project = getProject();

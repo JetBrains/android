@@ -131,6 +131,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     return state;
   }
 
+  @NotNull
   @Override
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
     Project project = getProject();
