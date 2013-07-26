@@ -17,16 +17,12 @@ package com.android.tools.idea.jps.output.parser.aapt;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
-import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import com.intellij.util.text.StringSearcher;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.List;
 
 /**
@@ -104,15 +100,6 @@ class ReadOnlyDocument {
     return searcher.scan(myContents, offset, myContents.length());
   }
 
-  String getLine(int lineNumber) {
-    int start = lineOffset(lineNumber);
-    int end = lineOffset(lineNumber + 1);
-    if (end == -1) {
-      end = myContents.length();
-    }
-    return subsequence(start, end).toString();
-  }
-
   /**
    * Returns the character at the given offset.
    *
@@ -125,10 +112,10 @@ class ReadOnlyDocument {
   }
 
   /**
-   * Returns the sub sequence for the given range
-   * @param start the starting offset
-   * @param end the ending offset, or -1 for the end of the file
-   * @return the sub sequence
+   * Returns the sub sequence for the given range.
+   * @param start the starting offset.
+   * @param end the ending offset, or -1 for the end of the file.
+   * @return the sub sequence.
    */
   CharSequence subsequence(int start, int end) {
     return myContents.subSequence(start, end == -1 ? myContents.length() : end);
