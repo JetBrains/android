@@ -32,23 +32,27 @@ import static org.easymock.classextension.EasyMock.*;
  * Tests for {@link ProjectResolverFunctionFactory}.
  */
 public class ProjectResolverFunctionFactoryTest extends TestCase {
+  private ProjectImportErrorHandler myErrorHandler;
   private ProjectResolver myStrategy;
   private ProjectResolverFunctionFactory myFunctionFactory;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    myErrorHandler = createMock(ProjectImportErrorHandler.class);
     myStrategy = createMock(ProjectResolver.class);
     myFunctionFactory = new ProjectResolverFunctionFactory(myStrategy);
   }
 
+  @SuppressWarnings("unchecked")
   public void testCreateFunction() {
     ExternalSystemTaskId id = ExternalSystemTaskId.create(ExternalSystemTaskType.RESOLVE_PROJECT, "dummy");
     String projectPath = "~/basic/build.gradle";
     GradleExecutionSettings settings = createMock(GradleExecutionSettings.class);
     ProjectConnection connection = createMock(ProjectConnection.class);
 
-    Function<ProjectConnection,DataNode<ProjectData>> function = myFunctionFactory.createFunction(id, projectPath, settings, NULL_OBJECT);
+    Function<ProjectConnection, DataNode<ProjectData>> function =
+      myFunctionFactory.createFunction(id, projectPath, myErrorHandler, NULL_OBJECT, settings);
     assertNotNull(function);
 
     DataNode<ProjectData> projectInfo = createMock(DataNode.class);
