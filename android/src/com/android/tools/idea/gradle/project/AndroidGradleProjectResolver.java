@@ -57,18 +57,23 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
 
   @NotNull private final GradleExecutionHelper myHelper;
   @NotNull private final ProjectResolverFunctionFactory myFunctionFactory;
+  @NotNull private final ProjectImportErrorHandler myErrorHandler;
 
   // This constructor is called by the IDE. See this module's plugin.xml file, implementation of extension 'projectResolve'.
   @SuppressWarnings("UnusedDeclaration")
   public AndroidGradleProjectResolver() {
     myHelper = new GradleExecutionHelper();
     myFunctionFactory = new ProjectResolverFunctionFactory(new ProjectResolver(myHelper));
+    myErrorHandler = new ProjectImportErrorHandler();
   }
 
   @VisibleForTesting
-  AndroidGradleProjectResolver(@NotNull GradleExecutionHelper helper, @NotNull ProjectResolverFunctionFactory functionFactory) {
+  AndroidGradleProjectResolver(@NotNull GradleExecutionHelper helper,
+                               @NotNull ProjectResolverFunctionFactory functionFactory,
+                               @NotNull ProjectImportErrorHandler errorHandler) {
     myHelper = helper;
     myFunctionFactory = functionFactory;
+    myErrorHandler = errorHandler;
   }
 
   /**
@@ -94,7 +99,8 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
                                                   boolean downloadLibraries,
                                                   @Nullable GradleExecutionSettings settings,
                                                   @NotNull ExternalSystemTaskNotificationListener listener) {
-    Function<ProjectConnection, DataNode<ProjectData>> function = myFunctionFactory.createFunction(id, projectPath, settings, listener);
+    Function<ProjectConnection, DataNode<ProjectData>> function =
+      myFunctionFactory.createFunction(id, projectPath, myErrorHandler, listener, settings);
     return myHelper.execute(projectPath, settings, function);
   }
 
@@ -154,13 +160,19 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
     @NotNull
     Function<ProjectConnection, DataNode<ProjectData>> createFunction(@NotNull final ExternalSystemTaskId id,
                                                                       @NotNull final String projectPath,
-                                                                      @Nullable final GradleExecutionSettings settings,
-                                                                      @NotNull final ExternalSystemTaskNotificationListener listener) {
+                                                                      @NotNull final ProjectImportErrorHandler errorHandler,
+                                                                      @NotNull final ExternalSystemTaskNotificationListener listener,
+                                                                      @Nullable final GradleExecutionSettings settings) {
       return new Function<ProjectConnection, DataNode<ProjectData>>() {
         @Nullable
         @Override
         public DataNode<ProjectData> fun(ProjectConnection connection) {
-          return myResolver.resolveProjectInfo(id, projectPath, settings, connection, listener);
+          try {
+            return myResolver.resolveProjectInfo(id, projectPath, settings, connection, listener);
+          }
+          catch (RuntimeException e) {
+            throw errorHandler.getUserFriendlyError(e);
+          }
         }
       };
     }

@@ -18,11 +18,11 @@ package com.android.tools.idea.gradle.project;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectResolver.ProjectResolverFunctionFactory;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
-import com.intellij.openapi.externalSystem.model.task.*;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.util.Function;
 import junit.framework.TestCase;
 import org.gradle.tooling.ProjectConnection;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
@@ -36,6 +36,7 @@ public class AndroidGradleProjectResolverTest extends TestCase {
   private GradleExecutionHelper myHelper;
   private ProjectResolverFunctionFactory myFunctionFactory;
   private Function<ProjectConnection, DataNode<ProjectData>> myProjectResolverFunction;
+  private ProjectImportErrorHandler myErrorHandler;
   private AndroidGradleProjectResolver myProjectResolver;
 
   @SuppressWarnings("unchecked")
@@ -45,7 +46,8 @@ public class AndroidGradleProjectResolverTest extends TestCase {
     myHelper = createMock(GradleExecutionHelper.class);
     myFunctionFactory = createMock(ProjectResolverFunctionFactory.class);
     myProjectResolverFunction = createMock(Function.class);
-    myProjectResolver = new AndroidGradleProjectResolver(myHelper, myFunctionFactory);
+    myErrorHandler = createMock(ProjectImportErrorHandler.class);
+    myProjectResolver = new AndroidGradleProjectResolver(myHelper, myFunctionFactory, myErrorHandler);
   }
 
   @SuppressWarnings("unchecked")
@@ -54,7 +56,7 @@ public class AndroidGradleProjectResolverTest extends TestCase {
     String projectPath = "~/basic/build.gradle";
     GradleExecutionSettings settings = createMock(GradleExecutionSettings.class);
 
-    expect(myFunctionFactory.createFunction(id, projectPath, settings, NULL_OBJECT)).andReturn(myProjectResolverFunction);
+    expect(myFunctionFactory.createFunction(id, projectPath, myErrorHandler, NULL_OBJECT, settings)).andReturn(myProjectResolverFunction);
     DataNode<ProjectData> projectInfo = createMock(DataNode.class);
     expect(myHelper.execute(projectPath, settings, myProjectResolverFunction)).andReturn(projectInfo);
 
