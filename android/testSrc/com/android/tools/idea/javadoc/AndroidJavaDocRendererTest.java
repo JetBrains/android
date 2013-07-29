@@ -166,4 +166,14 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     checkJavadoc("/javadoc/attrs/layout6.xml", "res/layout/layout.xml",
                  "<html><body>Formats: boolean, integer<br><br> my attr 1 global docs </body></html>");
   }
+
+  public void testManifestAttributes() throws Exception {
+    deleteManifest();
+    checkJavadoc("/javadoc/attrs/manifest.xml", "AndroidManifest.xml",
+                 "<html><body>Formats: string<br><br> Required name of the class implementing the activity, deriving from\n" +
+                 "            {@link android.app.Activity}.  This is a fully\n" +
+                 "            qualified class name (for example, com.mycompany.myapp.MyActivity); as a\n" +
+                 "            short-hand if the first character of the class\n" +
+                 "            is a period then it is appended to your package name. </body></html>");
+  }
 }

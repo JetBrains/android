@@ -155,7 +155,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
         }
         return null;
       }
-    }, facet, false);
+    }, facet, false, true);
 
     final Pair<AttributeDefinition, String> pair = result.get();
 
