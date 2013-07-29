@@ -16,9 +16,9 @@
 package com.android.tools.idea.rendering;
 
 import com.android.resources.ResourceType;
-import com.android.sdklib.util.SparseArray;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.lint.detector.api.LintUtils;
+import com.android.utils.SparseArray;
 import com.intellij.codeInsight.daemon.impl.quickfix.CreateClassKind;
 import com.intellij.codeInsight.intention.impl.CreateClassDialog;
 import com.intellij.compiler.actions.CompileDirtyAction;
