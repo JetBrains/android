@@ -103,8 +103,6 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
                                                     MyAttributeProcessor processor,
                                                     Set<XmlName> skippedAttrSet) {
     for (StyleableDefinition styleable : styleables) {
-      callback.processStyleable(styleable);
-
       for (AttributeDefinition attrDef : styleable.getAttributes()) {
         String attrName = attrDef.getName();
         if (!skippedAttrSet.contains(new XmlName(attrName, namespace))) {
@@ -771,9 +769,6 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     }
 
     void processSubtag(@NotNull XmlName xmlName, @NotNull Type type) {
-    }
-
-    public void processStyleable(@NotNull StyleableDefinition styleable) {
     }
   }
 }
