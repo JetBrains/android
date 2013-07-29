@@ -554,17 +554,20 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
                                                    ManifestElement element,
                                                    MyCallback callback,
                                                    Set<String> registeredSubtags,
-                                                   Set<XmlName> skippedNames) {
+                                                   Set<XmlName> skippedNames,
+                                                   boolean processStaticallyDefinedElements) {
     String styleableName = AndroidManifestUtils.getStyleableNameForElement(element);
 
     if (styleableName == null) {
       styleableName = AndroidManifestUtils.getStyleableNameByTagName(tagName);
     }
     final Set<XmlName> newSkippedNames = new HashSet<XmlName>(skippedNames);
-    for (String attrName : AndroidManifestUtils.getStaticallyDefinedAttrs(element)) {
-      newSkippedNames.add(new XmlName(attrName, SdkConstants.NS_RESOURCES));
-    }
 
+    if (!processStaticallyDefinedElements) {
+      for (String attrName : AndroidManifestUtils.getStaticallyDefinedAttrs(element)) {
+        newSkippedNames.add(new XmlName(attrName, SdkConstants.NS_RESOURCES));
+      }
+    }
     SystemResourceManager manager = facet.getSystemResourceManager();
     if (manager == null) return;
     AttributeDefinitions attrDefs = manager.getAttributeDefinitions();
@@ -582,8 +585,15 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       }
     }, newSkippedNames);
 
-    Set<String> subtagSet = new HashSet<String>();
-    Collections.addAll(subtagSet, AndroidManifestUtils.getStaticallyDefinedSubtags(element));
+    Set<String> subtagSet;
+
+    if (!processStaticallyDefinedElements) {
+      subtagSet = new HashSet<String>();
+      Collections.addAll(subtagSet, AndroidManifestUtils.getStaticallyDefinedSubtags(element));
+    }
+    else {
+      subtagSet = Collections.emptySet();
+    }
     for (StyleableDefinition child : styleable.getChildren()) {
       String childTagName = AndroidManifestUtils.getTagNameByStyleableName(child.getName());
       if (childTagName != null && !subtagSet.contains(childTagName)) {
@@ -615,13 +625,14 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       public void processSubtag(@NotNull XmlName xmlName, @NotNull Type type) {
         registrar.registerCollectionChildrenExtension(xmlName, type);
       }
-    }, facet, true);
+    }, facet, true, false);
   }
 
   public static void processAttrsAndSubtags(@NotNull AndroidDomElement element,
                                             @NotNull MyCallback callback,
                                             @NotNull AndroidFacet facet,
-                                            boolean processAllExistingAttrsFirst) {
+                                            boolean processAllExistingAttrsFirst,
+                                            boolean processStaticallyDefinedElements) {
     try {
       XmlTag tag = element.getXmlTag();
 
@@ -631,7 +642,8 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       String tagName = tag.getName();
       Set<String> registeredSubtags = new HashSet<String>();
       if (element instanceof ManifestElement) {
-        registerExtensionsForManifest(facet, tagName, (ManifestElement)element, callback, registeredSubtags, skippedAttributes);
+        registerExtensionsForManifest(facet, tagName, (ManifestElement)element, callback, registeredSubtags,
+                                      skippedAttributes, processStaticallyDefinedElements);
       }
       else if (element instanceof LayoutElement) {
         registerExtensionsForLayout(facet, tag, (LayoutElement)element, callback, registeredSubtags, skippedAttributes);
@@ -655,7 +667,9 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       else if (element instanceof DrawableDomElement || element instanceof ColorDomElement) {
         registerExtensionsForDrawable(facet, tagName, element, callback, skippedAttributes);
       }
-      Collections.addAll(registeredSubtags, AndroidDomUtil.getStaticallyDefinedSubtags(element));
+      if (!processStaticallyDefinedElements) {
+        Collections.addAll(registeredSubtags, AndroidDomUtil.getStaticallyDefinedSubtags(element));
+      }
     }
     catch (MyStopException ignored) {
     }
