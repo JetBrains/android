@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.sdklib.util.SparseArray;
+import com.android.utils.SparseArray;
 import com.android.utils.XmlUtils;
 import com.intellij.icons.AllIcons;
 import com.intellij.util.ui.UIUtil;

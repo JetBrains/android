@@ -19,7 +19,7 @@ import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.PkgProps;
-import com.android.sdklib.util.SparseArray;
+import com.android.utils.SparseArray;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;

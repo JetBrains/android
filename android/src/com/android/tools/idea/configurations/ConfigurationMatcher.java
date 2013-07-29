@@ -15,17 +15,15 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.resources.configuration.*;
 import com.android.io.IAbstractFile;
 import com.android.resources.*;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
-import com.android.sdklib.util.SparseIntArray;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.ProjectResources;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.utils.SparseIntArray;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
