@@ -621,11 +621,11 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
   public static void processAttrsAndSubtags(@NotNull AndroidDomElement element,
                                             @NotNull MyCallback callback,
                                             @NotNull AndroidFacet facet,
-                                            boolean skipExistingAttributes) {
+                                            boolean processAllExistingAttrsFirst) {
     try {
       XmlTag tag = element.getXmlTag();
 
-      final Set<XmlName> skippedAttributes = skipExistingAttributes
+      final Set<XmlName> skippedAttributes = processAllExistingAttrsFirst
                                              ? registerExistingAttributes(facet, tag, callback, element)
                                              : new HashSet<XmlName>();
       String tagName = tag.getName();
