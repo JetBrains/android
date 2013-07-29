@@ -48,11 +48,13 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
   private void checkJavadoc(String fileName, String targetName, @Nullable String expectedDoc) {
     final VirtualFile f = myFixture.copyFileToProject(getTestDataPath() + fileName, targetName);
     myFixture.configureFromExistingVirtualFile(f);
-    PsiElement element = myFixture.getFile().findElementAt(myFixture.getEditor().getCaretModel().getOffset());
-    assert element != null;
-
-    DocumentationProvider provider = DocumentationManager.getProviderFromElement(element);
-    assertEquals(expectedDoc, provider.generateDoc(element, element));
+    PsiElement originalElement = myFixture.getFile().findElementAt(myFixture.getEditor().getCaretModel().getOffset());
+    assert originalElement != null;
+    final PsiElement docTargetElement = DocumentationManager.getInstance(getProject()).findTargetElement(
+      myFixture.getEditor(), myFixture.getFile(), originalElement);
+    assert docTargetElement != null;
+    DocumentationProvider provider = DocumentationManager.getProviderFromElement(docTargetElement);
+    assertEquals(expectedDoc, provider.generateDoc(docTargetElement, originalElement));
   }
 
   public void testString1() {
@@ -111,5 +113,57 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/strings/strings-ta.xml", "res/values-ta/strings.xml");
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/strings/strings-zh-rTW.xml", "res/values-zh-rTW/strings.xml");
     checkJavadoc("/javadoc/strings/layout1.xml", "res/layout/layout1.xml", "<html><body>Application Name</body></html>");
+  }
+
+  public void testSystemAttributes() {
+    checkJavadoc("/javadoc/attrs/layout1.xml", "res/layout/layout.xml",
+                 "<html><body>Formats: enum<br>Values: horizontal, vertical<br><br> Should the layout be a column or a row?  Use \"horizontal\"\n" +
+                 "             for a row, \"vertical\" for a column.  The default is\n" +
+                 "             horizontal. </body></html>");
+  }
+
+  public void testLocalAttributes1() {
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/attrs.xml", "res/values/attrs.xml");
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView1.java", "src/p1/p2/MyView1.java");
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView2.java", "src/p1/p2/MyView2.java");
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView3.java", "src/p1/p2/MyView3.java");
+    checkJavadoc("/javadoc/attrs/layout2.xml", "res/layout/layout.xml",
+                 "<html><body>Formats: boolean, integer<br><br> my attr 1 docs for MyView1 </body></html>");
+  }
+
+  public void testLocalAttributes2() {
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/attrs.xml", "res/values/attrs.xml");
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView1.java", "src/p1/p2/MyView1.java");
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView2.java", "src/p1/p2/MyView2.java");
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView3.java", "src/p1/p2/MyView3.java");
+    checkJavadoc("/javadoc/attrs/layout3.xml", "res/layout/layout.xml",
+                 "<html><body>Formats: boolean, reference<br><br> my attr 2 docs for MyView1 </body></html>");
+  }
+
+  public void testLocalAttributes3() {
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/attrs.xml", "res/values/attrs.xml");
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView1.java", "src/p1/p2/MyView1.java");
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView2.java", "src/p1/p2/MyView2.java");
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView3.java", "src/p1/p2/MyView3.java");
+    checkJavadoc("/javadoc/attrs/layout4.xml", "res/layout/layout.xml",
+                 "<html><body>Formats: boolean, integer<br><br> my attr 1 docs for MyView2 </body></html>");
+  }
+
+  public void testLocalAttributes4() {
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/attrs.xml", "res/values/attrs.xml");
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView1.java", "src/p1/p2/MyView1.java");
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView2.java", "src/p1/p2/MyView2.java");
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView3.java", "src/p1/p2/MyView3.java");
+    checkJavadoc("/javadoc/attrs/layout5.xml", "res/layout/layout.xml",
+                 "<html><body>Formats: boolean, reference<br><br> my attr 2 docs for MyView2 </body></html>");
+  }
+
+  public void testLocalAttributes5() {
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/attrs.xml", "res/values/attrs.xml");
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView1.java", "src/p1/p2/MyView1.java");
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView2.java", "src/p1/p2/MyView2.java");
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView3.java", "src/p1/p2/MyView3.java");
+    checkJavadoc("/javadoc/attrs/layout6.xml", "res/layout/layout.xml",
+                 "<html><body>Formats: boolean, integer<br><br> my attr 1 global docs </body></html>");
   }
 }
