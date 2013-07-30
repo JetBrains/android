@@ -97,6 +97,11 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
   }
 
   @Override
+  public boolean isCopyCustomGeneratedSources() {
+    return myProperties.COMPILE_CUSTOM_GENERATED_SOURCES;
+  }
+
+  @Override
   public File getResourceDir() {
     File resDir = findFileByRelativeModulePath(myProperties.RES_FOLDER_RELATIVE_PATH, false);
     return resDir != null ? canonizeFilePath(resDir) : null;
