@@ -42,7 +42,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.regex.Pattern;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.NewProjectWizardState.*;
@@ -81,11 +80,15 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     super(templateWizard, state);
 
     IAndroidTarget[] targets = getCompilationTargets();
-    String[] knownVersions = TemplateUtils.getKnownVersions();
-    for (int i = 0; i < knownVersions.length; i++) {
-      AndroidTargetComboBoxItem targetInfo = new AndroidTargetComboBoxItem(knownVersions[i], i + 1);
-      myMinSdk.addItem(targetInfo);
-      myTargetSdk.addItem(targetInfo);
+
+    if (AndroidSdkUtils.isAndroidSdkAvailable()) {
+      String[] knownVersions = TemplateUtils.getKnownVersions();
+
+      for (int i = 0; i < knownVersions.length; i++) {
+        AndroidTargetComboBoxItem targetInfo = new AndroidTargetComboBoxItem(knownVersions[i], i + 1);
+        myMinSdk.addItem(targetInfo);
+        myTargetSdk.addItem(targetInfo);
+      }
     }
     for (IAndroidTarget target : targets) {
       AndroidTargetComboBoxItem targetInfo = new AndroidTargetComboBoxItem(target);

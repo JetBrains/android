@@ -22,7 +22,6 @@ import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.util.SparseArray;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -185,10 +184,7 @@ public class TemplateUtils {
   */
   public static String[] getKnownVersions() {
     final SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
-
-    if (sdkManager == null) {
-      return ArrayUtil.EMPTY_STRING_ARRAY;
-    }
+    assert sdkManager != null;
     int max = SdkVersionInfo.HIGHEST_KNOWN_API;
     IAndroidTarget[] targets = sdkManager.getTargets();
     SparseArray<IAndroidTarget> apiTargets = null;
