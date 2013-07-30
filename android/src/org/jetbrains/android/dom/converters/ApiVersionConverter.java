@@ -7,6 +7,7 @@ import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.ResolvingConverter;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,13 +38,20 @@ public class ApiVersionConverter extends ResolvingConverter<String> {
   public LookupElement createLookupElement(String s) {
     final int apiLevel = Integer.parseInt(s);
     final String version = getApiLevelLabel(apiLevel);
+
+    if (version == null) {
+      return null;
+    }
     return PrioritizedLookupElement.withPriority(LookupElementBuilder.create(s).
       withTypeText(version), apiLevel);
   }
 
-  @NotNull
+  @Nullable
   private static String getApiLevelLabel(int apiLevel) {
     if (ourKnownVersions == null) {
+      if (!AndroidSdkUtils.isAndroidSdkAvailable()) {
+        return null;
+      }
       ourKnownVersions = TemplateUtils.getKnownVersions();
     }
     return ourKnownVersions[apiLevel - 1];
