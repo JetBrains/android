@@ -73,4 +73,6 @@ public interface JpsAndroidModuleExtension extends JpsElement {
   boolean isManifestMergingEnabled();
 
   boolean isPreDexingEnabled();
+
+  boolean isCopyCustomGeneratedSources();
 }
