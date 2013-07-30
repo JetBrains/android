@@ -158,7 +158,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     state.setDebugMode(true);
     RunContentDescriptor runDescriptor;
     synchronized (myDebugLock) {
-      MyDebugLauncher launcher = new MyDebugLauncher(project, environment.getExecutor(), state, environment);
+      MyDebugLauncher launcher = new MyDebugLauncher(project, state, environment);
       state.setDebugLauncher(launcher);
 
       final RunContentDescriptor descriptor = embedToExistingSession(project, environment.getExecutor(), state);
@@ -518,13 +518,12 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     private RunContentDescriptor myRunDescriptor;
 
     public MyDebugLauncher(Project project,
-                           Executor executor,
                            AndroidRunningState state,
                            ExecutionEnvironment environment) {
       myProject = project;
-      myExecutor = executor;
       myRunningState = state;
       myEnvironment = environment;
+      myExecutor = environment.getExecutor();
     }
 
     public void setRunDescriptor(RunContentDescriptor runDescriptor) {
