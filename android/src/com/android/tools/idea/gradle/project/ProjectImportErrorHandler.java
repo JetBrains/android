@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project;
 import com.android.build.gradle.BasePlugin;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.util.ExceptionUtil;
-import org.gradle.api.internal.AbstractMultiCauseException;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
  * Provides better error messages for project import failures.
  */
 class ProjectImportErrorHandler {
+
   @NotNull
   RuntimeException getUserFriendlyError(@NotNull Throwable error) {
     Throwable rootCause = ExceptionUtil.getRootCause(error);
@@ -38,12 +38,32 @@ class ProjectImportErrorHandler {
         return new ExternalSystemException(newMsg);
       }
     }
+
+    if (rootCause instanceof IllegalStateException) {
+      String msg = rootCause.getMessage();
+      if (msg != null && msg.startsWith("failed to find target")) {
+        // The error message does not help at all. Try to get the path of the build.gradle file where the error is.
+        StringBuilder msgBuilder = new StringBuilder();
+        String locationMsg = error.getCause().getMessage();
+        // If there is a location in the build.gradle file, it is in the immediate cause of the Throwable passed to this method.
+        if (locationMsg != null && locationMsg.startsWith("Build file '")) {
+          msgBuilder.append(locationMsg).append("\n\n");
+        }
+        msgBuilder.append("Cause: ").append(msg);
+        return new ExternalSystemException(msgBuilder.toString());
+      }
+    }
+
     if (rootCause instanceof RuntimeException) {
       String msg = rootCause.getMessage();
-      if (msg != null && msg.contains("Could not find any version that matches com.android.support:support")) {
+
+      // With this condition we cover 2 similar messages about the same problem.
+      if (msg != null && msg.contains("Could not find") && msg.contains("com.android.support:support")) {
+        // We keep the original error message and we append a hint about how to fix the missing dependency.
         String newMsg = msg + "\n\nPlease install the Android Support Repository from the Android SDK Manager.";
         return new ExternalSystemException(newMsg);
       }
+
       return (RuntimeException)rootCause;
     }
     return new ExternalSystemException(rootCause);
