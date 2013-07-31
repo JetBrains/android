@@ -44,4 +44,23 @@ public class ProjectImportErrorHandlerTest extends TestCase {
     RuntimeException realCause = myErrorHandler.getUserFriendlyError(error);
     assertTrue(realCause.getMessage().contains("Please install the Android Support Repository"));
   }
+
+  public void testGetUserFriendlyErrorWithMissingAndroidSupportRepository2() {
+    RuntimeException rootCause = new RuntimeException("Could not find com.android.support:support-v4:13.0.0");
+    Throwable error = new Throwable(rootCause);
+    RuntimeException realCause = myErrorHandler.getUserFriendlyError(error);
+    assertTrue(realCause.getMessage().contains("Please install the Android Support Repository"));
+  }
+
+  public void testGetUserFriendlyErrorWithPlatformVersionNotFound() {
+    String causeMsg = "failed to find target current";
+    RuntimeException rootCause = new IllegalStateException(causeMsg);
+    String locationMsg = "Build file '~/project/build.gradle' line: 86";
+    Throwable error = new Throwable(new Throwable(locationMsg, rootCause));
+
+    RuntimeException realCause = myErrorHandler.getUserFriendlyError(error);
+    String actualMsg = realCause.getMessage();
+    assertTrue(actualMsg.contains(locationMsg));
+    assertTrue(actualMsg.contains("Cause: " + causeMsg));
+  }
 }
