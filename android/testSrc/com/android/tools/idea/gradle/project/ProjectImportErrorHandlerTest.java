@@ -31,10 +31,17 @@ public class ProjectImportErrorHandlerTest extends TestCase {
     myErrorHandler = new ProjectImportErrorHandler();
   }
 
-  public void testGetUserFriendlyErrorWithOldGradleVersion() throws Exception {
+  public void testGetUserFriendlyErrorWithOldGradleVersion() {
     ClassNotFoundException rootCause = new ClassNotFoundException(ToolingModelBuilderRegistry.class.getName());
     Throwable error = new Throwable(rootCause);
     RuntimeException realCause = myErrorHandler.getUserFriendlyError(error);
     assertTrue(realCause.getMessage().contains("old, unsupported version of Gradle"));
+  }
+
+  public void testGetUserFriendlyErrorWithMissingAndroidSupportRepository() {
+    RuntimeException rootCause = new RuntimeException("Could not find any version that matches com.android.support:support-v4:13.0.+");
+    Throwable error = new Throwable(rootCause);
+    RuntimeException realCause = myErrorHandler.getUserFriendlyError(error);
+    assertTrue(realCause.getMessage().contains("Please install the Android Support Repository"));
   }
 }
