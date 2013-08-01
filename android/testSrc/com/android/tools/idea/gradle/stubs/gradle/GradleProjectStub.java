@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.stubs.gradle;
 
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.GradleScript;
 import org.gradle.tooling.model.GradleTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,6 +66,11 @@ public class GradleProjectStub implements GradleProject {
 
   @Override
   public String getDescription() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public GradleScript getBuildScript() {
     throw new UnsupportedOperationException();
   }
 }
