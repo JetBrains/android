@@ -56,15 +56,15 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   private static final Logger LOG = Logger.getInstance(AndroidGradleProjectResolver.class);
 
   @NotNull private final GradleExecutionHelper myHelper;
-  @NotNull private final ProjectResolverFunctionFactory myFunctionFactory;
   @NotNull private final ProjectImportErrorHandler myErrorHandler;
+  @NotNull private final ProjectResolverFunctionFactory myFunctionFactory;
 
   // This constructor is called by the IDE. See this module's plugin.xml file, implementation of extension 'projectResolve'.
   @SuppressWarnings("UnusedDeclaration")
   public AndroidGradleProjectResolver() {
     myHelper = new GradleExecutionHelper();
-    myFunctionFactory = new ProjectResolverFunctionFactory(new ProjectResolver(myHelper));
     myErrorHandler = new ProjectImportErrorHandler();
+    myFunctionFactory = new ProjectResolverFunctionFactory(new ProjectResolver(myHelper, myErrorHandler));
   }
 
   @VisibleForTesting
@@ -171,7 +171,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
             return myResolver.resolveProjectInfo(id, projectPath, settings, connection, listener);
           }
           catch (RuntimeException e) {
-            throw errorHandler.getUserFriendlyError(e);
+            throw errorHandler.getUserFriendlyError(e, null);
           }
         }
       };

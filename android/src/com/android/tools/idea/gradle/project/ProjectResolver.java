@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.ProjectImportEventMessage;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.intellij.externalSystem.JavaProjectData;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
@@ -35,10 +34,8 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.roots.DependencyScope;
-import com.intellij.util.ExceptionUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
-import org.gradle.tooling.BuildException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.UnknownModelException;
@@ -65,12 +62,12 @@ import java.util.Map;
  * Imports a Android-Gradle projects into IDEA. The set of projects to import may include regular Java projects as well.
  */
 class ProjectResolver {
-  private static final Logger LOG = Logger.getInstance(ProjectResolver.class);
+  @NotNull private final GradleExecutionHelper myHelper;
+  @NotNull private final ProjectImportErrorHandler myErrorHandler;
 
-  @NotNull final GradleExecutionHelper myHelper;
-
-  ProjectResolver(@NotNull GradleExecutionHelper helper) {
+  ProjectResolver(@NotNull GradleExecutionHelper helper, @NotNull ProjectImportErrorHandler errorHandler) {
     myHelper = helper;
+    myErrorHandler = errorHandler;
   }
 
   /**
@@ -122,7 +119,7 @@ class ProjectResolver {
       }
       String moduleDirPath = moduleDir.getPath();
       if (hasAndroidTasks(module.getGradleProject())) {
-        AndroidProject androidProject = getAndroidProject(id, moduleDirPath, listener, settings);
+        AndroidProject androidProject = getAndroidProject(id, moduleDirPath, gradleBuildFile, listener, settings);
         if (androidProject == null || !GradleModelVersionCheck.isSupportedVersion(androidProject)) {
           throw new IllegalStateException(GradleModelConstants.UNSUPPORTED_MODEL_VERSION_ERROR);
         }
@@ -179,7 +176,8 @@ class ProjectResolver {
 
   @Nullable
   private AndroidProject getAndroidProject(@NotNull final ExternalSystemTaskId id,
-                                           @NotNull String projectPath,
+                                           @NotNull final String projectPath,
+                                           @NotNull final File gradleBuildFile,
                                            @NotNull final ExternalSystemTaskNotificationListener listener,
                                            @Nullable final GradleExecutionSettings settings) {
     return myHelper.execute(projectPath, settings, new Function<ProjectConnection, AndroidProject>() {
@@ -190,23 +188,19 @@ class ProjectResolver {
           ModelBuilder<AndroidProject> modelBuilder = myHelper.getModelBuilder(AndroidProject.class, id, settings, connection, listener);
           return modelBuilder.get();
         }
-        catch (RuntimeException e) {
-          handleProjectImportError(e);
+        catch (UnknownModelException e) {
+          // Safe to ignore. It means that the Gradle project does not have an AndroidProject (e.g. a Java library project.)
+          return null;
         }
-        return null;
+        catch (RuntimeException e) {
+          // This code should go away once we have one-pass project resolution in Gradle 1.8.
+          // Once that version of Gradle is out, we don't need to pass the project path because we won't be iterating through each
+          // sub-project looking for an AndroidProject. The current problem is: in this particular call to Gradle we don't get the location
+          // of the build.gradle file that has a problem.
+          throw myErrorHandler.getUserFriendlyError(e, gradleBuildFile.getPath());
+        }
       }
     });
-  }
-
-  private static void handleProjectImportError(@NotNull RuntimeException e) {
-    if (e instanceof UnknownModelException) {
-      return;
-    }
-    Throwable root = e;
-    if (e instanceof BuildException) {
-      root = ExceptionUtil.getRootCause(e);
-    }
-    LOG.error(root);
   }
 
   private static boolean hasAndroidTasks(@NotNull GradleProject gradleProject) {

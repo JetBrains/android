@@ -63,13 +63,13 @@ public class ProjectResolverTest extends TestCase {
     myExpectedSourcePaths = new ContentRootSourcePaths();
     myIdeaProject = new IdeaProjectStub("multiProject");
     myAndroidProject = TestProjects.createBasicProject(myIdeaProject.getRootDir());
-    myIdeaProject.addModule(myAndroidProject.getName());
+    myIdeaProject.addModule(myAndroidProject.getName(), "androidTask");
     myUtilModule = myIdeaProject.addModule("util");
     myId = ExternalSystemTaskId.create(ExternalSystemTaskType.RESOLVE_PROJECT, "dummy");
     myConnection = createMock(ProjectConnection.class);
     myHelper = GradleExecutionHelperDouble.newMock();
     mySettings = createMock(GradleExecutionSettings.class);
-    myProjectResolver = new ProjectResolver(myHelper);
+    myProjectResolver = new ProjectResolver(myHelper, createMock(ProjectImportErrorHandler.class));
   }
 
   @Override
