@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import junit.framework.TestCase;
+import org.gradle.api.internal.LocationAwareException;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 
 /**
@@ -56,7 +57,15 @@ public class ProjectImportErrorHandlerTest extends TestCase {
     String causeMsg = "failed to find target current";
     RuntimeException rootCause = new IllegalStateException(causeMsg);
     String locationMsg = "Build file '~/project/build.gradle' line: 86";
-    Throwable error = new Throwable(new Throwable(locationMsg, rootCause));
+
+    RuntimeException locationError = new RuntimeException(locationMsg, rootCause) {
+      @Override
+      public String toString() {
+        return LocationAwareException.class.getName() + ": " + super.toString();
+      }
+    };
+
+    Throwable error = new Throwable(locationError);
 
     RuntimeException realCause = myErrorHandler.getUserFriendlyError(error);
     String actualMsg = realCause.getMessage();

@@ -16,41 +16,35 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.build.gradle.BasePlugin;
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
-import com.intellij.util.ExceptionUtil;
+import com.intellij.openapi.util.Pair;
+import org.gradle.api.internal.LocationAwareException;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Provides better error messages for project import failures.
  */
 class ProjectImportErrorHandler {
-
   @NotNull
   RuntimeException getUserFriendlyError(@NotNull Throwable error) {
-    Throwable rootCause = ExceptionUtil.getRootCause(error);
-    if (rootCause instanceof ClassNotFoundException) {
-      String msg = rootCause.getMessage();
-      if (msg != null && msg.contains(ToolingModelBuilderRegistry.class.getName())) {
-        // Using an old version of Gradle.
-        String newMsg = String.format("You are using an old, unsupported version of Gradle. Please use version %1$s or greater.",
-                                      BasePlugin.GRADLE_MIN_VERSION);
-        return new ExternalSystemException(newMsg);
-      }
+    Pair<Throwable, String> rootCauseAndLocation = getRootCauseAndLocation(error);
+    Throwable rootCause = rootCauseAndLocation.getFirst();
+    String location = rootCauseAndLocation.getSecond();
+
+    if (isOldGradleVersion(rootCause)) {
+      String newMsg = String.format("You are using an old, unsupported version of Gradle. Please use version %1$s or greater.",
+                                    BasePlugin.GRADLE_MIN_VERSION);
+      return createUserFriendlyError(newMsg, location);
     }
 
     if (rootCause instanceof IllegalStateException) {
       String msg = rootCause.getMessage();
       if (msg != null && msg.startsWith("failed to find target")) {
-        // The error message does not help at all. Try to get the path of the build.gradle file where the error is.
-        StringBuilder msgBuilder = new StringBuilder();
-        String locationMsg = error.getCause().getMessage();
-        // If there is a location in the build.gradle file, it is in the immediate cause of the Throwable passed to this method.
-        if (locationMsg != null && locationMsg.startsWith("Build file '")) {
-          msgBuilder.append(locationMsg).append("\n\n");
-        }
-        msgBuilder.append("Cause: ").append(msg);
-        return new ExternalSystemException(msgBuilder.toString());
+        return createUserFriendlyError("Cause: " + msg, location);
       }
     }
 
@@ -61,11 +55,70 @@ class ProjectImportErrorHandler {
       if (msg != null && msg.contains("Could not find") && msg.contains("com.android.support:support")) {
         // We keep the original error message and we append a hint about how to fix the missing dependency.
         String newMsg = msg + "\n\nPlease install the Android Support Repository from the Android SDK Manager.";
-        return new ExternalSystemException(newMsg);
+        return createUserFriendlyError(newMsg, location);
       }
 
+      if (location != null) {
+        return createUserFriendlyError(rootCause.getMessage(), location);
+      }
       return (RuntimeException)rootCause;
     }
-    return new ExternalSystemException(rootCause);
+
+    return createUserFriendlyError(rootCause.getMessage(), location);
+  }
+
+  @NotNull
+  private static Pair<Throwable, String> getRootCauseAndLocation(@NotNull Throwable error) {
+    Throwable rootCause = error;
+    String location = null;
+    while (true) {
+      if (location == null) {
+        location = getLocationFrom(rootCause);
+      }
+      if (rootCause.getCause() == null) {
+        break;
+      }
+      rootCause = rootCause.getCause();
+    }
+    //noinspection ConstantConditions
+    return Pair.create(rootCause, location);
+  }
+
+  @Nullable
+  private static String getLocationFrom(@NotNull Throwable error) {
+    String errorToString = error.toString();
+    if (errorToString != null && errorToString.startsWith(LocationAwareException.class.getName())) {
+      // LocationAwareException is never passed, but converted into a PlaceholderException that has the toString value of the original
+      // LocationAwareException.
+      String location = error.getMessage();
+      if (location != null && location.startsWith("Build file '")) {
+        // Only the first line contains the location of the error. Discard the rest.
+        Iterable<String> lines = Splitter.on('\n').split(location);
+        return lines.iterator().next();
+      }
+    }
+    return null;
+  }
+
+  private static boolean isOldGradleVersion(@NotNull Throwable error) {
+    if (error instanceof ClassNotFoundException) {
+      String msg = error.getMessage();
+      if (msg != null && msg.contains(ToolingModelBuilderRegistry.class.getName())) {
+        return true;
+      }
+    }
+    String errorToString = error.toString();
+    return errorToString != null && errorToString.startsWith("org.gradle.api.internal.MissingMethodException");
+  }
+
+  @NotNull
+  private static RuntimeException createUserFriendlyError(@NotNull String msg, @Nullable String location) {
+    String newMsg = msg;
+    if (!Strings.isNullOrEmpty(location)) {
+      StringBuilder msgBuilder = new StringBuilder();
+      msgBuilder.append(newMsg).append("\n\n").append(location);
+      newMsg = msgBuilder.toString();
+    }
+    return new ExternalSystemException(newMsg);
   }
 }
