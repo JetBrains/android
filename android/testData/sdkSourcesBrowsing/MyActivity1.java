@@ -4,9 +4,9 @@ import android.app.Activity;
 import android.os.Bundle;
 
 public class MyActivity extends Activity {
-  <error>@Override</error>
+  @Override
   public void onCreate(Bundle savedInstanceState) {
-    super.onCreate<error>(savedInstanceState)</error>;
+    super.onCreate(savedInstanceState);
     setContentView(0);
   }
 }
