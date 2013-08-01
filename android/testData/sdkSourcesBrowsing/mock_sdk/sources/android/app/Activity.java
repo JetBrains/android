@@ -17,6 +17,10 @@ public class Activity {
     private void f(ActivityThread t) {
     }
 
+    public void func(ObjClass param) {
+      ObjClass c = new ObjClass();
+    }
+
     public class MyActivityThread extends ActivityThread {
         public MyActivityThread() {
         }
