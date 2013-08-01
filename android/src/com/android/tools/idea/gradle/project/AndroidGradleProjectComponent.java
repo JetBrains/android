@@ -109,6 +109,8 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
         BuildVariantView.getInstance(project).updateContents();
       }
     });
+    connection = project.getMessageBus().connect(disposable);
+    connection.subscribe(ProjectTopics.MODULES, new GradleBuildFileUpdater(project));
   }
 
   @Override
