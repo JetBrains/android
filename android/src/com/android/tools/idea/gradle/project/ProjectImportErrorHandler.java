@@ -30,22 +30,20 @@ import org.jetbrains.annotations.Nullable;
  */
 class ProjectImportErrorHandler {
   @NotNull
-  RuntimeException getUserFriendlyError(@NotNull Throwable error) {
+  RuntimeException getUserFriendlyError(@NotNull Throwable error, @Nullable String buildFilePath) {
     Pair<Throwable, String> rootCauseAndLocation = getRootCauseAndLocation(error);
+
     Throwable rootCause = rootCauseAndLocation.getFirst();
+
     String location = rootCauseAndLocation.getSecond();
+    if (location == null && !Strings.isNullOrEmpty(buildFilePath)) {
+      location = String.format("Build file: '%1$s'", buildFilePath);
+    }
 
     if (isOldGradleVersion(rootCause)) {
       String newMsg = String.format("You are using an old, unsupported version of Gradle. Please use version %1$s or greater.",
                                     BasePlugin.GRADLE_MIN_VERSION);
       return createUserFriendlyError(newMsg, location);
-    }
-
-    if (rootCause instanceof IllegalStateException) {
-      String msg = rootCause.getMessage();
-      if (msg != null && msg.startsWith("failed to find target")) {
-        return createUserFriendlyError("Cause: " + msg, location);
-      }
     }
 
     if (rootCause instanceof RuntimeException) {
@@ -114,6 +112,11 @@ class ProjectImportErrorHandler {
   @NotNull
   private static RuntimeException createUserFriendlyError(@NotNull String msg, @Nullable String location) {
     String newMsg = msg;
+    if (!newMsg.isEmpty() && Character.isLowerCase(newMsg.charAt(0))) {
+      // Message starts with lower case letter. Sentences should start with uppercase.
+      newMsg = "Cause: " + newMsg;
+    }
+
     if (!Strings.isNullOrEmpty(location)) {
       StringBuilder msgBuilder = new StringBuilder();
       msgBuilder.append(newMsg).append("\n\n").append(location);

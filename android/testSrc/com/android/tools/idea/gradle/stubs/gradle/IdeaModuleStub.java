@@ -39,13 +39,13 @@ public class IdeaModuleStub implements IdeaModule {
   @NotNull private final FileStructure myFileStructure;
   @NotNull private final GradleProjectStub myGradleProject;
 
-  IdeaModuleStub(@NotNull String name, @NotNull IdeaProjectStub parent) {
+  IdeaModuleStub(@NotNull String name, @NotNull IdeaProjectStub parent, @NotNull String...tasks) {
     myName = name;
     myParent = parent;
     myFileStructure = new FileStructure(parent.getRootDir(), name);
     myFileStructure.createProjectFile(GradleConstants.DEFAULT_SCRIPT_NAME);
     myContentRoots.add(new IdeaContentRootStub(getRootDir()));
-    myGradleProject = new GradleProjectStub(name, ":" + name);
+    myGradleProject = new GradleProjectStub(name, ":" + name, tasks);
   }
 
   /**

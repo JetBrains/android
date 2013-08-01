@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.stubs.gradle;
 
+import com.google.common.collect.Lists;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
@@ -28,16 +29,21 @@ import java.util.List;
 public class GradleProjectStub implements GradleProject {
   @NotNull private final String myName;
   @NotNull private final String myPath;
+  @NotNull private final List<GradleTaskStub> myTasks;
 
-  public GradleProjectStub(@NotNull String name, @NotNull String path) {
+  public GradleProjectStub(@NotNull String name, @NotNull String path, @NotNull String...tasks) {
     myName = name;
     myPath = path;
+    myTasks = Lists.newArrayList();
+    for (String taskName : tasks) {
+      GradleTaskStub task = new GradleTaskStub(taskName, this);
+      myTasks.add(task);
+    }
   }
 
   @Override
   public DomainObjectSet<? extends GradleTask> getTasks() {
-    List<? extends GradleTask> elements = Collections.emptyList();
-    return ImmutableDomainObjectSet.of(elements);
+    return ImmutableDomainObjectSet.of(myTasks);
   }
 
   @Override

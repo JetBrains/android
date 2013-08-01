@@ -79,8 +79,8 @@ public class IdeaProjectStub implements IdeaProject {
   }
 
   @NotNull
-  public IdeaModuleStub addModule(@NotNull String name) {
-    IdeaModuleStub module = new IdeaModuleStub(name, this);
+  public IdeaModuleStub addModule(@NotNull String name, @NotNull String...tasks) {
+    IdeaModuleStub module = new IdeaModuleStub(name, this, tasks);
     modules.add(module);
     return module;
   }
