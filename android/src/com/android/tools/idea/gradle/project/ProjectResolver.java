@@ -45,6 +45,7 @@ import org.gradle.tooling.model.GradleTask;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper;
@@ -62,6 +63,11 @@ import java.util.Map;
  * Imports a Android-Gradle projects into IDEA. The set of projects to import may include regular Java projects as well.
  */
 class ProjectResolver {
+  @NonNls private static final String ANDROID_TASK_NAME_PREFIX = "android";
+  @NonNls private static final String COMPILE_JAVA_TASK_NAME = "compileJava";
+  @NonNls private static final String CLASSES_TASK_NAME = "classes";
+  @NonNls private static final String JAR_TASK_NAME = "jar";
+
   @NotNull private final GradleExecutionHelper myHelper;
   @NotNull private final ProjectImportErrorHandler myErrorHandler;
 
@@ -127,16 +133,14 @@ class ProjectResolver {
         if (first == null) {
           first = androidProject;
         }
+      } else if (isJavaLibrary(module.getGradleProject())) {
+        createModuleInfo(module, projectInfo, moduleDirPath, gradleProject);
       } else {
         File gradleSettingsFile = new File(moduleDir, SdkConstants.FN_SETTINGS_GRADLE);
         if (gradleSettingsFile.isFile()) {
           // This is just a root folder for a group of Gradle projects. Set the Gradle project to null so the JPS builder won't try to
           // compile it using Gradle. We still need to create the module to display files inside it.
           createModuleInfo(module, projectInfo, moduleDirPath, null);
-        } else {
-          if (isJavaLibrary(module.getGradleProject())) {
-            createModuleInfo(module, projectInfo, moduleDirPath, gradleProject);
-          }
         }
       }
     }
@@ -210,7 +214,7 @@ class ProjectResolver {
     // A Gradle project is an Android project is if has at least one task with name starting with 'android'.
     for (GradleTask task : gradleProject.getTasks()) {
       String taskName = task.getName();
-      if (taskName != null && taskName.startsWith("android")) {
+      if (taskName != null && taskName.startsWith(ANDROID_TASK_NAME_PREFIX)) {
         return true;
       }
     }
@@ -219,7 +223,7 @@ class ProjectResolver {
 
   private static boolean isJavaLibrary(@NotNull GradleProject gradleProject) {
     // A Gradle project is a Java library if it has the tasks 'compileJava', 'classes' and 'jar'.
-    List<String> javaTasks = Lists.newArrayList("compileJava", "classes", "jar");
+    List<String> javaTasks = Lists.newArrayList(COMPILE_JAVA_TASK_NAME, CLASSES_TASK_NAME, JAR_TASK_NAME);
     for (GradleTask task : gradleProject.getTasks()) {
       String taskName = task.getName();
       if (taskName != null && javaTasks.remove(taskName) && javaTasks.isEmpty()) {
