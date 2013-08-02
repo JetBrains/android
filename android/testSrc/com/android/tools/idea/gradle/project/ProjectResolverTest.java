@@ -64,7 +64,8 @@ public class ProjectResolverTest extends TestCase {
     myIdeaProject = new IdeaProjectStub("multiProject");
     myAndroidProject = TestProjects.createBasicProject(myIdeaProject.getRootDir());
     myIdeaProject.addModule(myAndroidProject.getName(), "androidTask");
-    myUtilModule = myIdeaProject.addModule("util");
+    myUtilModule = myIdeaProject.addModule("util", "compileJava", "jar", "classes");
+    myIdeaProject.addModule("notReallyAGradleProject");
     myId = ExternalSystemTaskId.create(ExternalSystemTaskType.RESOLVE_PROJECT, "dummy");
     myConnection = createMock(ProjectConnection.class);
     myHelper = GradleExecutionHelperDouble.newMock();

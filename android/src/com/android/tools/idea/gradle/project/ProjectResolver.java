@@ -118,7 +118,7 @@ class ProjectResolver {
         continue;
       }
       String moduleDirPath = moduleDir.getPath();
-      if (hasAndroidTasks(module.getGradleProject())) {
+      if (isAndroidProject(module.getGradleProject())) {
         AndroidProject androidProject = getAndroidProject(id, moduleDirPath, gradleBuildFile, listener, settings);
         if (androidProject == null || !GradleModelVersionCheck.isSupportedVersion(androidProject)) {
           throw new IllegalStateException(GradleModelConstants.UNSUPPORTED_MODEL_VERSION_ERROR);
@@ -132,9 +132,12 @@ class ProjectResolver {
         if (gradleSettingsFile.isFile()) {
           // This is just a root folder for a group of Gradle projects. Set the Gradle project to null so the JPS builder won't try to
           // compile it using Gradle. We still need to create the module to display files inside it.
-          gradleProject = null;
+          createModuleInfo(module, projectInfo, moduleDirPath, null);
+        } else {
+          if (isJavaLibrary(module.getGradleProject())) {
+            createModuleInfo(module, projectInfo, moduleDirPath, gradleProject);
+          }
         }
-        createModuleInfo(module, projectInfo, moduleDirPath, gradleProject);
       }
     }
 
@@ -203,9 +206,23 @@ class ProjectResolver {
     });
   }
 
-  private static boolean hasAndroidTasks(@NotNull GradleProject gradleProject) {
+  private static boolean isAndroidProject(@NotNull GradleProject gradleProject) {
+    // A Gradle project is an Android project is if has at least one task with name starting with 'android'.
     for (GradleTask task : gradleProject.getTasks()) {
-      if (task.getName() != null && task.getName().startsWith("android")) {
+      String taskName = task.getName();
+      if (taskName != null && taskName.startsWith("android")) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static boolean isJavaLibrary(@NotNull GradleProject gradleProject) {
+    // A Gradle project is a Java library if it has the tasks 'compileJava', 'classes' and 'jar'.
+    List<String> javaTasks = Lists.newArrayList("compileJava", "classes", "jar");
+    for (GradleTask task : gradleProject.getTasks()) {
+      String taskName = task.getName();
+      if (taskName != null && javaTasks.remove(taskName) && javaTasks.isEmpty()) {
         return true;
       }
     }
