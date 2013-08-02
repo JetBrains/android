@@ -60,6 +60,7 @@ public class GradleSettingsFile extends GradleGroovyFile {
    */
   public void addModule(@NotNull String modulePath) {
     checkInitialized();
+    commitDocumentChanges();
     for (GrMethodCall includeStatement : getMethodCalls(myGroovyFile, INCLUDE_METHOD)) {
       for (GrLiteral lit : getLiteralArguments(includeStatement)) {
         if (modulePath.equals(lit.getValue())) {
@@ -95,6 +96,7 @@ public class GradleSettingsFile extends GradleGroovyFile {
    */
   public void removeModule(String modulePath) {
     checkInitialized();
+    commitDocumentChanges();
     for (GrMethodCall includeStatement : getMethodCalls(myGroovyFile, INCLUDE_METHOD)) {
       for (GrLiteral lit : getLiteralArguments(includeStatement)) {
         if (modulePath.equals(lit.getValue())) {
@@ -132,8 +134,20 @@ public class GradleSettingsFile extends GradleGroovyFile {
     }));
   }
 
-  private @NotNull String getModulePath(@NotNull Module module) {
+  /**
+   * Returns the path to the module relative to project root, in Gradle (colon-delimited) format.
+   */
+  public @NotNull String getModulePath(@NotNull Module module) {
+    // TODO: In the future, get this from the facet.
     String modulePath = new File(module.getModuleFilePath()).getParent();
+    return convertToGradlePath(modulePath);
+  }
+
+  /**
+   * Given a path to a module directory, converts it to module-relative, Gradle format, by making it relative to the project root and
+   * changing the path delimiters to colons.
+   */
+  public @NotNull String convertToGradlePath(@NotNull String modulePath) {
     String projectPath = myProject.getBasePath();
     if (!modulePath.startsWith(projectPath)) {
       throw new IllegalArgumentException("Module path " + modulePath + " is not in the root project path " + projectPath);

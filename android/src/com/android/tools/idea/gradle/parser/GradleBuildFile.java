@@ -209,6 +209,7 @@ public class GradleBuildFile extends GradleGroovyFile {
    */
   public void setValue(@NotNull BuildSettingKey key, @NotNull Object value) {
     checkInitialized();
+    commitDocumentChanges();
     setValue(myGroovyFile, key, value);
   }
 
@@ -217,6 +218,7 @@ public class GradleBuildFile extends GradleGroovyFile {
    */
   public void setValue(@NotNull GrStatementOwner root, @NotNull BuildSettingKey key, @NotNull Object value) {
     checkInitialized();
+    commitDocumentChanges();
     GrMethodCall method = getMethodCallByPath(root, key.myPath);
     if (method != null) {
       key.setValue(myProject, getArguments(method), value);
