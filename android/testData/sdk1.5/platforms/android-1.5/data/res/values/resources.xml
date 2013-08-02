@@ -3,6 +3,7 @@
   <integer name="config_mediumAnimTime">400</integer>
 
   <style name="MediaButton">
+    <item name="android:textColor">@color/my_white</item>
     <item name="android:background">@null</item>
     <item name="android:layout_width">71dip</item>
     <item name="android:layout_height">52dip</item>
@@ -16,4 +17,6 @@
 
   <style name="Theme.Holo1.Light">
   </style>
+
+  <color name="my_white">#ffffff</color>
 </resources>
