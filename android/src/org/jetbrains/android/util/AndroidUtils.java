@@ -81,6 +81,7 @@ import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.content.impl.ContentImpl;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.PsiNavigateUtil;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.xml.DomElement;
@@ -744,11 +745,7 @@ public class AndroidUtils {
 
   @NotNull
   public static <T> List<T> toList(@NotNull Enumeration<T> enumeration) {
-    final List<T> result = new ArrayList<T>();
-    while (enumeration.hasMoreElements()) {
-      result.add(enumeration.nextElement());
-    }
-    return result;
+    return ContainerUtil.toList(enumeration);
   }
 
   public static void reportError(@NotNull Project project, @NotNull String message) {
