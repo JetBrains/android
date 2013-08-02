@@ -39,10 +39,13 @@ import org.jetbrains.annotations.Nullable;
  */
 public class StyleItemConverter extends WrappingConverter {
   @Nullable
-  private static ResolvingConverter findConverterForAttribute(String nsPrefix, String localName, @NotNull AndroidFacet facet) {
+  private static ResolvingConverter findConverterForAttribute(String nsPrefix,
+                                                              String localName,
+                                                              @NotNull AndroidFacet facet,
+                                                              @NotNull GenericDomValue element) {
     ResourceManager manager = facet.getResourceManager("android".equals(nsPrefix)
                                                        ? AndroidUtils.SYSTEM_RESOURCE_PACKAGE
-                                                       : null);
+                                                       : null, element.getXmlElement());
     if (manager != null) {
       AttributeDefinitions attrDefs = manager.getAttributeDefinitions();
       if (attrDefs != null) {
@@ -66,7 +69,7 @@ public class StyleItemConverter extends WrappingConverter {
         if (facet != null) {
           String namespacePrefix = strs.length == 2 ? strs[0] : null;
           String localName = strs[strs.length - 1];
-          return findConverterForAttribute(namespacePrefix, localName, facet);
+          return findConverterForAttribute(namespacePrefix, localName, facet, element);
         }
       }
     }

@@ -22,13 +22,18 @@ import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.actions.InlineAction;
 import com.intellij.refactoring.util.CommonRefactoringUtil;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
@@ -340,6 +345,60 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
   public void testLocalStyleItemReferenceHighlighting() throws Throwable {
     copyFileToProject("localStyleItemReference_layout.xml", "res/layout/myLayout.xml");
     doTestHighlighting();
+  }
+
+  public void testNavigationInPlatformXml1() throws Exception {
+    final VirtualFile file = LocalFileSystem.getInstance().findFileByPath(
+      getTestSdkPath() + "/platforms/" + getPlatformDir() + "/data/res/values/resources.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(14, 43));
+    PsiElement[] targets =
+      GotoDeclarationAction.findAllTargetElements(myFixture.getProject(), myFixture.getEditor(), myFixture.getCaretOffset());
+    assertNotNull(targets);
+    assertEquals(1, targets.length);
+    final PsiElement targetElement = LazyValueResourceElementWrapper.computeLazyElement(targets[0]);
+    assertInstanceOf(targetElement, XmlAttributeValue.class);
+    final XmlAttributeValue targetAttrValue = (XmlAttributeValue)targetElement;
+    assertEquals("Theme", targetAttrValue.getValue());
+    assertEquals("name", ((XmlAttribute)targetAttrValue.getParent()).getName());
+    assertEquals("style", ((XmlTag)targetAttrValue.getParent().getParent()).getName());
+    assertEquals(file, targetElement.getContainingFile().getVirtualFile());
+  }
+
+  public void testNavigationInPlatformXml2() throws Exception {
+    final VirtualFile file = LocalFileSystem.getInstance().findFileByPath(
+      getTestSdkPath() + "/platforms/" + getPlatformDir() + "/data/res/values/resources.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(17, 17));
+    PsiElement[] targets =
+      GotoDeclarationAction.findAllTargetElements(myFixture.getProject(), myFixture.getEditor(), myFixture.getCaretOffset());
+    assertNotNull(targets);
+    assertEquals(1, targets.length);
+    final PsiElement targetElement = LazyValueResourceElementWrapper.computeLazyElement(targets[0]);
+    assertInstanceOf(targetElement, XmlAttributeValue.class);
+    final XmlAttributeValue targetAttrValue = (XmlAttributeValue)targetElement;
+    assertEquals("Theme", targetAttrValue.getValue());
+    assertEquals("name", ((XmlAttribute)targetAttrValue.getParent()).getName());
+    assertEquals("style", ((XmlTag)targetAttrValue.getParent().getParent()).getName());
+    assertEquals(file, targetElement.getContainingFile().getVirtualFile());
+  }
+
+  public void testNavigationInPlatformXml3() throws Exception {
+    final VirtualFile file = LocalFileSystem.getInstance().findFileByPath(
+      getTestSdkPath() + "/platforms/" + getPlatformDir() + "/data/res/values/resources.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(5, 44));
+    PsiElement[] targets =
+      GotoDeclarationAction.findAllTargetElements(myFixture.getProject(), myFixture.getEditor(), myFixture.getCaretOffset());
+    assertNotNull(targets);
+    assertEquals(1, targets.length);
+    final PsiElement targetElement = LazyValueResourceElementWrapper.computeLazyElement(targets[0]);
+    assertInstanceOf(targetElement, XmlAttributeValue.class);
+    final XmlAttributeValue targetAttrValue = (XmlAttributeValue)targetElement;
+    assertEquals("my_white", targetAttrValue.getValue());
+    assertEquals("name", ((XmlAttribute)targetAttrValue.getParent()).getName());
+    assertEquals("color", ((XmlTag)targetAttrValue.getParent().getParent()).getName());
+    assertEquals(file, targetElement.getContainingFile().getVirtualFile());
   }
 
   private void doCreateValueResourceFromUsage(VirtualFile virtualFile) {
