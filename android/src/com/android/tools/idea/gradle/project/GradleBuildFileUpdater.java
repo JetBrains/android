@@ -27,6 +27,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.newvfs.BulkFileListener;
+import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
+import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -37,14 +40,16 @@ import java.util.List;
  * GradleBuildFileUpdater listens for module-level events and updates the settings.gradle and build.gradle files to reflect any changes it
  * sees.
  */
-public class GradleBuildFileUpdater extends ModuleAdapter {
+public class GradleBuildFileUpdater extends ModuleAdapter implements BulkFileListener {
   private static final Logger LOG = Logger.getInstance(GradleBuildFileUpdater.class);
 
   // Module doesn't implement hashCode(); we can't use a map
   private final Collection<Pair<Module, GradleBuildFile>> myBuildFiles = Lists.newArrayList();
   private final GradleSettingsFile mySettingsFile;
+  private final Project myProject;
 
   public GradleBuildFileUpdater(@NotNull Project project) {
+    myProject = project;
     VirtualFile settingsFile = project.getBaseDir().findFileByRelativePath(SdkConstants.FN_SETTINGS_GRADLE);
     if (settingsFile != null) {
       mySettingsFile = new GradleSettingsFile(settingsFile, project);
@@ -67,7 +72,7 @@ public class GradleBuildFileUpdater extends ModuleAdapter {
   }
 
   @Override
-  public void moduleAdded(@NotNull Project project, @NotNull Module module) {
+  public void moduleAdded(@NotNull final Project project, @NotNull final Module module) {
     // At the time we're called, module.getModuleFile() is null, but getModuleFilePath returns the path where it will be created.
     File moduleFile = new File(module.getModuleFilePath());
     File buildFile = new File(moduleFile.getParentFile(), SdkConstants.FN_BUILD_GRADLE);
@@ -81,14 +86,66 @@ public class GradleBuildFileUpdater extends ModuleAdapter {
   }
 
   @Override
-  public void moduleRemoved(@NotNull Project project, @NotNull Module module) {
+  public void moduleRemoved(@NotNull Project project, @NotNull final Module module) {
     remove(module);
     mySettingsFile.removeModule(module);
   }
 
   @Override
-  public void modulesRenamed(@NotNull Project project, @NotNull List<Module> modules) {
-    // TODO: Deal with renamed modules.
+  public void before(@NotNull List<? extends VFileEvent> events) {
+  }
+
+  @Override
+  /**
+   * This gets called on all filesystem changes, but we're interested in changes to module root directories. When we see them, we'll update
+   * the setitngs.gradle file. Note that users can also refactor modules by renaming them, which just changes their display name and not
+   * the filesystem directory -- when that happens, this class gets a
+   * {@link ModuleAdapter#modulesRenamed(com.intellij.openapi.project.Project, java.util.List)} callback. However, it's not appropriate to
+   * update settings.gradle in that case since Gradle doesn't case about IJ's display name of the module.
+   */
+  public void after(@NotNull List<? extends VFileEvent> events) {
+    for (VFileEvent event : events) {
+      if (!(event instanceof VFilePropertyChangeEvent)) {
+        continue;
+      }
+      VFilePropertyChangeEvent propChangeEvent = (VFilePropertyChangeEvent) event;
+      if (!("name".equals(propChangeEvent.getPropertyName())) || propChangeEvent.getFile() == null) {
+        continue;
+      }
+      // Get the old and new paths. The new path is in the event; derive the old path from the old value + new path.
+      final String newPath = propChangeEvent.getFile().getPath();
+      final String oldPath =
+          newPath.substring(0, newPath.length() - ((String)propChangeEvent.getNewValue()).length()) + propChangeEvent.getOldValue();
+
+      // Dig through our modules and find the one that matches the new path (the module will already have its path updated by now).
+      Module module = null;
+      for (Pair<Module, GradleBuildFile> pair : myBuildFiles) {
+        if (pair.first.getModuleFile() == null || pair.first.getModuleFile().getParent() == null) {
+          continue;
+        }
+        String path = pair.first.getModuleFile().getParent().getPath();
+        if (newPath.equals(path)) {
+          module = pair.first;
+          break;
+        }
+      }
+
+      // If we found the module, then remove the old reference from the build.settings file and from our data structures, and put
+      // in new references.
+      if (module != null) {
+        remove(module);
+        mySettingsFile.removeModule(mySettingsFile.convertToGradlePath(oldPath));
+
+        File modulePath = new File(newPath);
+        File buildFile = new File(modulePath, SdkConstants.FN_BUILD_GRADLE);
+        VirtualFile vBuildFile = LocalFileSystem.getInstance().findFileByIoFile(buildFile);
+        if (vBuildFile != null) {
+          put(module, new GradleBuildFile(vBuildFile, myProject));
+        }
+
+        mySettingsFile.addModule(mySettingsFile.convertToGradlePath(newPath));
+      }
+    }
   }
 
   private void put(@NotNull Module module, @NotNull GradleBuildFile file) {

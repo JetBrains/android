@@ -19,13 +19,11 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiRecursiveElementVisitor;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -85,9 +83,21 @@ class GradleGroovyFile {
    * {@link StartupManager#runWhenProjectIsInitialized(Runnable)} callback. To resolve this, wait until {@link #onPsiFileAvailable()}
    * is called before invoking methods.
    */
-  public void checkInitialized() {
+  protected void checkInitialized() {
     if (myGroovyFile == null) {
       throw new IllegalStateException("PsiFile not parsed for file " + myFile.getPath() +". Wait until onPsiFileAvailable() is called.");
+    }
+  }
+
+  /**
+   * Commits any {@link Document} changes outstanding to the document that underlies the PSI representation. Call this before manipulating
+   * PSI to ensure the PSI model of the document is in sync with what's on disk. Must be run inside a write action.
+   */
+  protected void commitDocumentChanges() {
+    PsiDocumentManager documentManager = PsiDocumentManager.getInstance(myProject);
+    Document document = documentManager.getDocument(myGroovyFile);
+    if (document != null) {
+      documentManager.commitDocument(document);
     }
   }
 

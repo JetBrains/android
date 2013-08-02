@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project;
 import com.android.tools.idea.gradle.GradleImportNotificationListener;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
+import com.google.common.collect.Lists;
 import com.intellij.ProjectTopics;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.compiler.options.ExternalBuildOptionListener;
@@ -31,17 +32,18 @@ import com.intellij.openapi.project.ModuleAdapter;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.List;
 
 public class AndroidGradleProjectComponent extends AbstractProjectComponent {
   private static final Logger LOG = Logger.getInstance(AndroidGradleProjectComponent.class);
 
-  @Nullable private Disposable myDisposable;
+  private Collection<Disposable> myDisposables = Lists.newArrayList();
 
   public AndroidGradleProjectComponent(Project project) {
     super(project);
@@ -63,13 +65,8 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       return;
     }
 
-    myDisposable = new Disposable() {
-      @Override
-      public void dispose() {
-      }
-    };
-
-    listenForChangesInModules(myProject, myDisposable);
+    listenForChangesInModules();
+    listenForChangesToBuildFiles();
 
     GradleImportNotificationListener.attachToManager();
     Projects.setProjectBuildAction(myProject, Projects.BuildAction.SOURCE_GEN);
@@ -87,8 +84,8 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     }
   }
 
-  private static void listenForChangesInModules(@NotNull Project project, @NotNull Disposable disposable) {
-    MessageBusConnection connection = project.getMessageBus().connect(disposable);
+  private void listenForChangesInModules() {
+    MessageBusConnection connection = myProject.getMessageBus().connect(getThrowawayDisposable());
     connection.subscribe(ProjectTopics.MODULES, new ModuleAdapter() {
       @Override
       public void moduleAdded(Project project, Module module) {
@@ -109,14 +106,32 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
         BuildVariantView.getInstance(project).updateContents();
       }
     });
-    connection = project.getMessageBus().connect(disposable);
-    connection.subscribe(ProjectTopics.MODULES, new GradleBuildFileUpdater(project));
+  }
+
+  private void listenForChangesToBuildFiles() {
+    GradleBuildFileUpdater buildFileUpdater = new GradleBuildFileUpdater(myProject);
+
+    MessageBusConnection connection = myProject.getMessageBus().connect(getThrowawayDisposable());
+    connection.subscribe(ProjectTopics.MODULES, buildFileUpdater);
+
+    connection = myProject.getMessageBus().connect(getThrowawayDisposable());
+    connection.subscribe(VirtualFileManager.VFS_CHANGES, buildFileUpdater);
+  }
+
+  private Disposable getThrowawayDisposable() {
+    Disposable disposable = new Disposable() {
+      @Override
+      public void dispose() {
+      }
+    };
+    myDisposables.add(disposable);
+    return disposable;
   }
 
   @Override
   public void projectClosed() {
-    if (myDisposable != null) {
-      Disposer.dispose(myDisposable);
+    for (Disposable disposable : myDisposables) {
+      Disposer.dispose(disposable);
     }
   }
 }
