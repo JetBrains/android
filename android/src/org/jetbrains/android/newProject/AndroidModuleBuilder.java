@@ -731,7 +731,7 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
 
   @Nullable
   @Override
-  public ModuleWizardStep modifySettingsStep(final SettingsStep settingsStep) {
+  public ModuleWizardStep modifySettingsStep(@NotNull final SettingsStep settingsStep) {
     if (myProjectType == null) {
       return super.modifySettingsStep(settingsStep);
     }
@@ -762,7 +762,7 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
   }
 
   @Override
-  public ModuleWizardStep[] createWizardSteps(WizardContext wizardContext, ModulesProvider modulesProvider) {
+  public ModuleWizardStep[] createWizardSteps(@NotNull WizardContext wizardContext, @NotNull ModulesProvider modulesProvider) {
     return new ModuleWizardStep[] { new AndroidModuleWizardStep(this, wizardContext, modulesProvider, myProjectType) };
   }
 
@@ -824,8 +824,8 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
     }
 
     @Override
-    public ModuleWizardStep[] createWizardSteps(WizardContext wizardContext,
-                                                ModulesProvider modulesProvider) {
+    public ModuleWizardStep[] createWizardSteps(@NotNull WizardContext wizardContext,
+                                                @NotNull ModulesProvider modulesProvider) {
       return ModuleWizardStep.EMPTY_ARRAY;
     }
   }
@@ -836,7 +836,7 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
     }
 
     @Override
-    public ModuleWizardStep[] createWizardSteps(WizardContext wizardContext, ModulesProvider modulesProvider) {
+    public ModuleWizardStep[] createWizardSteps(@NotNull WizardContext wizardContext, @NotNull ModulesProvider modulesProvider) {
       return ModuleWizardStep.EMPTY_ARRAY;
     }
 
