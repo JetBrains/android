@@ -4,7 +4,11 @@ import com.android.SdkConstants;
 import com.intellij.codeInsight.TargetElementUtilBase;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
+import com.intellij.codeInsight.documentation.DocumentationManager;
 import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.codeInsight.lookup.LookupElement;
+import com.intellij.codeInsight.lookup.LookupEx;
+import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Pair;
@@ -781,6 +785,62 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
 
   public void testNamespaceCompletion() throws Throwable {
     doTestNamespaceCompletion(true, true);
+  }
+
+  public void testDimenUnitsCompletion1() throws Exception {
+    final VirtualFile file = copyFileToProject(getTestName(true) + ".xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.complete(CompletionType.BASIC);
+
+    final List<String> lookupElementStrings = myFixture.getLookupElementStrings();
+    assertNotNull(lookupElementStrings);
+    UsefulTestCase.assertSameElements(lookupElementStrings, "3dp", "3px", "3sp", "3pt", "3mm", "3in");
+
+    final PsiElement originalElement = myFixture.getFile().findElementAt(
+      myFixture.getEditor().getCaretModel().getOffset());
+    assertNotNull(originalElement);
+
+
+    final LookupEx lookup = myFixture.getLookup();
+    LookupElement dpElement = null;
+    LookupElement pxElement = null;
+
+    for (LookupElement element : lookup.getItems()) {
+      if (element.getLookupString().endsWith("dp")) {
+        dpElement = element;
+      }
+      else if (element.getLookupString().endsWith("px")) {
+        pxElement = element;
+      }
+    }
+    assertNotNull(dpElement);
+    assertNotNull(pxElement);
+    DocumentationProvider provider;
+    PsiElement docTargetElement;
+
+    lookup.setCurrentItem(dpElement);
+    docTargetElement = DocumentationManager.getInstance(getProject()).
+      findTargetElement(myFixture.getEditor(), myFixture.getFile(), originalElement);
+    assertNotNull(docTargetElement);
+    provider = DocumentationManager.getProviderFromElement(docTargetElement);
+    assertEquals("<html><body><b>Density-independent Pixels</b> - an abstract unit that is based on the physical " +
+                 "density of the screen.</body></html>", provider.generateDoc(docTargetElement, originalElement));
+
+    lookup.setCurrentItem(pxElement);
+    docTargetElement = DocumentationManager.getInstance(getProject()).
+      findTargetElement(myFixture.getEditor(), myFixture.getFile(), originalElement);
+    assertNotNull(docTargetElement);
+    provider = DocumentationManager.getProviderFromElement(docTargetElement);
+    assertEquals("<html><body><b>Pixels</b> - corresponds to actual pixels on the screen. Not recommended.</body></html>",
+                 provider.generateDoc(docTargetElement, originalElement));
+  }
+
+  public void testDimenUnitsCompletion2() throws Throwable {
+    doTestCompletionVariants(getTestName(true) + ".xml", "@android:", "@dimen/myDimen");
+  }
+
+  public void testDimenUnitsCompletion3() throws Throwable {
+    doTestCompletionVariants(getTestName(true) + ".xml", "3pt", "3px");
   }
 
   private void doTestAttrReferenceCompletion(String textToType) throws IOException {

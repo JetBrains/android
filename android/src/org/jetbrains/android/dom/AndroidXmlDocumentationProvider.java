@@ -14,17 +14,19 @@ import com.intellij.pom.PomTarget;
 import com.intellij.pom.PomTargetPsiElement;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.impl.FakePsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlToken;
-import com.intellij.util.xml.DomElement;
-import com.intellij.util.xml.DomManager;
-import com.intellij.util.xml.XmlName;
+import com.intellij.util.xml.*;
 import com.intellij.util.xml.reflect.DomAttributeChildDescription;
 import com.intellij.util.xml.reflect.DomExtension;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
+import org.jetbrains.android.dom.converters.AttributeValueDocumentationProvider;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ResourceManager;
@@ -96,6 +98,10 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       if (target instanceof DomAttributeChildDescription) {
         return generateDocForXmlAttribute((DomAttributeChildDescription)target, originalElement);
       }
+    }
+
+    if (element instanceof MyDocElement) {
+      return ((MyDocElement)element).myDocumentation;
     }
     return null;
   }
@@ -259,11 +265,50 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
 
   @Override
   public PsiElement getDocumentationElementForLookupItem(PsiManager psiManager, Object object, PsiElement element) {
+    if (!(element instanceof XmlAttributeValue) || !(object instanceof String)) {
+      return null;
+    }
+    final String value = (String)object;
+    final PsiElement parent = element.getParent();
+
+    if (!(parent instanceof XmlAttribute)) {
+      return null;
+    }
+    final GenericAttributeValue domValue = DomManager.getDomManager(
+      parent.getProject()).getDomElement((XmlAttribute)parent);
+
+    if (domValue == null) {
+      return null;
+    }
+    final Converter converter = domValue.getConverter();
+
+    if (converter instanceof AttributeValueDocumentationProvider) {
+      final String doc = ((AttributeValueDocumentationProvider)converter).getDocumentation(value);
+
+      if (doc != null) {
+        return new MyDocElement(element, doc);
+      }
+    }
     return null;
   }
 
   @Override
   public PsiElement getDocumentationElementForLink(PsiManager psiManager, String link, PsiElement context) {
     return null;
+  }
+
+  private static class MyDocElement extends FakePsiElement {
+    final PsiElement myParent;
+    final String myDocumentation;
+
+    private MyDocElement(@NotNull PsiElement parent, @NotNull String documentation) {
+      myParent = parent;
+      myDocumentation = documentation;
+    }
+
+    @Override
+    public PsiElement getParent() {
+      return myParent;
+    }
   }
 }
