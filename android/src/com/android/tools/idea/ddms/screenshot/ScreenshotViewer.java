@@ -31,9 +31,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileWrapper;
+import com.intellij.openapi.vfs.*;
 import com.intellij.ui.components.JBScrollPane;
 import org.intellij.images.editor.ImageEditor;
 import org.intellij.images.editor.ImageFileEditor;
@@ -56,6 +54,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   @NonNls private static final String SCREENSHOT_VIEWER_DIMENSIONS_KEY = "ScreenshotViewer.Dimensions";
+
+  private static VirtualFile ourLastSavedFolder = null;
 
   private final Project myProject;
   private final IDevice myDevice;
@@ -317,7 +317,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     FileSaverDescriptor descriptor =
       new FileSaverDescriptor(AndroidBundle.message("android.ddms.screenshot.save.title"), "", SdkConstants.EXT_PNG);
     FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, myProject);
-    VirtualFileWrapper fileWrapper = saveFileDialog.save(myProject.getBaseDir(), getDefaultFileName());
+    VirtualFile baseDir = ourLastSavedFolder != null ? ourLastSavedFolder : myProject.getBaseDir();
+    VirtualFileWrapper fileWrapper = saveFileDialog.save(baseDir, getDefaultFileName());
     if (fileWrapper == null) {
       return;
     }
@@ -331,6 +332,12 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
                                AndroidBundle.message("android.ddms.screenshot.save.error", e),
                                AndroidBundle.message("android.ddms.actions.screenshot"));
       return;
+    }
+
+    VirtualFile virtualFile = fileWrapper.getVirtualFile();
+    if (virtualFile != null) {
+      //noinspection AssignmentToStaticFieldFromInstanceMethod
+      ourLastSavedFolder = virtualFile.getParent();
     }
 
     super.doOKAction();
