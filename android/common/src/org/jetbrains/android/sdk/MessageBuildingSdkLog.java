@@ -42,8 +42,13 @@ public class MessageBuildingSdkLog implements ILogger {
   public void verbose(@NonNull String msgFormat, Object... args) {
   }
 
+  @Override
   public void error(Throwable t, String errorFormat, Object... args) {
     if (t != null) {
+      String message = t.getMessage();
+      if (message != null) {
+        builder.append(message).append('\n');
+      }
       LOG.info(t);
     }
     if (errorFormat != null) {
