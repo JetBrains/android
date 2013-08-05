@@ -116,6 +116,8 @@ public class AndroidDomUtil {
         return BOOLEAN_CONVERTER;
       case Integer:
         return IntegerConverter.INSTANCE;
+      case Dimension:
+        return DimensionConverter.INSTANCE;
       default:
         return null;
     }
