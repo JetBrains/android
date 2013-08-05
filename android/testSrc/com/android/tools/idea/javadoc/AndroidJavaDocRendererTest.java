@@ -123,48 +123,36 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
   }
 
   public void testLocalAttributes1() {
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/attrs.xml", "res/values/attrs.xml");
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView1.java", "src/p1/p2/MyView1.java");
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView2.java", "src/p1/p2/MyView2.java");
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView3.java", "src/p1/p2/MyView3.java");
-    checkJavadoc("/javadoc/attrs/layout2.xml", "res/layout/layout.xml",
-                 "<html><body>Formats: boolean, integer<br><br> my attr 1 docs for MyView1 </body></html>");
+    doTestLocalAttributes("/javadoc/attrs/layout2.xml",
+                          "<html><body>Formats: boolean, integer<br><br> my attr 1 docs for MyView1 </body></html>");
   }
 
   public void testLocalAttributes2() {
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/attrs.xml", "res/values/attrs.xml");
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView1.java", "src/p1/p2/MyView1.java");
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView2.java", "src/p1/p2/MyView2.java");
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView3.java", "src/p1/p2/MyView3.java");
-    checkJavadoc("/javadoc/attrs/layout3.xml", "res/layout/layout.xml",
-                 "<html><body>Formats: boolean, reference<br><br> my attr 2 docs for MyView1 </body></html>");
+    doTestLocalAttributes("/javadoc/attrs/layout3.xml",
+                          "<html><body>Formats: boolean, reference<br><br> my attr 2 docs for MyView1 </body></html>");
   }
 
   public void testLocalAttributes3() {
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/attrs.xml", "res/values/attrs.xml");
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView1.java", "src/p1/p2/MyView1.java");
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView2.java", "src/p1/p2/MyView2.java");
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView3.java", "src/p1/p2/MyView3.java");
-    checkJavadoc("/javadoc/attrs/layout4.xml", "res/layout/layout.xml",
-                 "<html><body>Formats: boolean, integer<br><br> my attr 1 docs for MyView2 </body></html>");
+    doTestLocalAttributes("/javadoc/attrs/layout4.xml",
+                          "<html><body>Formats: boolean, integer<br><br> my attr 1 docs for MyView2 </body></html>");
   }
 
   public void testLocalAttributes4() {
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/attrs.xml", "res/values/attrs.xml");
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView1.java", "src/p1/p2/MyView1.java");
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView2.java", "src/p1/p2/MyView2.java");
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView3.java", "src/p1/p2/MyView3.java");
-    checkJavadoc("/javadoc/attrs/layout5.xml", "res/layout/layout.xml",
-                 "<html><body>Formats: boolean, reference<br><br> my attr 2 docs for MyView2 </body></html>");
+    doTestLocalAttributes("/javadoc/attrs/layout5.xml",
+                          "<html><body>Formats: boolean, reference<br><br> my attr 2 docs for MyView2 </body></html>");
   }
 
   public void testLocalAttributes5() {
+    doTestLocalAttributes("/javadoc/attrs/layout6.xml",
+                          "<html><body>Formats: boolean, integer<br><br> my attr 1 global docs </body></html>");
+  }
+
+  private void doTestLocalAttributes(String file, String exp) {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/attrs.xml", "res/values/attrs.xml");
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView1.java", "src/p1/p2/MyView1.java");
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView2.java", "src/p1/p2/MyView2.java");
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView3.java", "src/p1/p2/MyView3.java");
-    checkJavadoc("/javadoc/attrs/layout6.xml", "res/layout/layout.xml",
-                 "<html><body>Formats: boolean, integer<br><br> my attr 1 global docs </body></html>");
+    checkJavadoc(file, "res/layout/layout.xml", exp);
   }
 
   public void testManifestAttributes() throws Exception {
