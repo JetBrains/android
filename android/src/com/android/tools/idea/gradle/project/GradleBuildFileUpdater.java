@@ -16,8 +16,11 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
+import com.android.tools.idea.gradle.util.Facets;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -25,6 +28,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.ModuleAdapter;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
@@ -95,46 +99,61 @@ public class GradleBuildFileUpdater extends ModuleAdapter implements BulkFileLis
   public void before(@NotNull List<? extends VFileEvent> events) {
   }
 
-  @Override
   /**
-   * This gets called on all filesystem changes, but we're interested in changes to module root directories. When we see them, we'll update
-   * the setitngs.gradle file. Note that users can also refactor modules by renaming them, which just changes their display name and not
+   * This gets called on all file system changes, but we're interested in changes to module root directories. When we see them, we'll update
+   * the settings.gradle file. Note that users can also refactor modules by renaming them, which just changes their display name and not
    * the filesystem directory -- when that happens, this class gets a
    * {@link ModuleAdapter#modulesRenamed(com.intellij.openapi.project.Project, java.util.List)} callback. However, it's not appropriate to
    * update settings.gradle in that case since Gradle doesn't case about IJ's display name of the module.
    */
+  @Override
   public void after(@NotNull List<? extends VFileEvent> events) {
     for (VFileEvent event : events) {
       if (!(event instanceof VFilePropertyChangeEvent)) {
         continue;
       }
       VFilePropertyChangeEvent propChangeEvent = (VFilePropertyChangeEvent) event;
-      if (!("name".equals(propChangeEvent.getPropertyName())) || propChangeEvent.getFile() == null) {
+      if (!(VirtualFile.PROP_NAME.equals(propChangeEvent.getPropertyName())) || propChangeEvent.getFile() == null) {
         continue;
       }
-      // Get the old and new paths. The new path is in the event; derive the old path from the old value + new path.
-      final String newPath = propChangeEvent.getFile().getPath();
-      final String oldPath =
-          newPath.substring(0, newPath.length() - ((String)propChangeEvent.getNewValue()).length()) + propChangeEvent.getOldValue();
 
-      // Dig through our modules and find the one that matches the new path (the module will already have its path updated by now).
+      VirtualFile eventFile = propChangeEvent.getFile();
+      if (!eventFile.isDirectory()) {
+        continue;
+      }
+
+      // Dig through our modules and find the one that matches the change event's path (the module will already have its path updated by
+      // now).
       Module module = null;
       for (Pair<Module, GradleBuildFile> pair : myBuildFiles) {
-        if (pair.first.getModuleFile() == null || pair.first.getModuleFile().getParent() == null) {
+        VirtualFile moduleFile = pair.first.getModuleFile();
+        if (moduleFile == null || moduleFile.getParent() == null) {
           continue;
         }
-        String path = pair.first.getModuleFile().getParent().getPath();
-        if (newPath.equals(path)) {
+
+        VirtualFile moduleDir = moduleFile.getParent();
+        if (FileUtil.pathsEqual(eventFile.getPath(), moduleDir.getPath())) {
           module = pair.first;
           break;
         }
       }
 
-      // If we found the module, then remove the old reference from the build.settings file and from our data structures, and put
-      // in new references.
+      // If we found the module, then remove the old reference from the settings.gradle file and from our data structures, and put in new
+      // references.
       if (module != null) {
         remove(module);
-        mySettingsFile.removeModule(mySettingsFile.convertToGradlePath(oldPath));
+        AndroidGradleFacet androidGradleFacet = Facets.getFirstFacetOfType(module, AndroidGradleFacet.TYPE_ID);
+        if (androidGradleFacet == null) {
+          continue;
+        }
+        String oldPath = androidGradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
+        String newPath = updateProjectNameInGradlePath(androidGradleFacet, eventFile);
+
+        if (oldPath.equals(newPath)) {
+          continue;
+        }
+
+        mySettingsFile.removeModule(oldPath);
 
         File modulePath = new File(newPath);
         File buildFile = new File(modulePath, SdkConstants.FN_BUILD_GRADLE);
@@ -143,9 +162,25 @@ public class GradleBuildFileUpdater extends ModuleAdapter implements BulkFileLis
           put(module, new GradleBuildFile(vBuildFile, myProject));
         }
 
-        mySettingsFile.addModule(mySettingsFile.convertToGradlePath(newPath));
+        mySettingsFile.addModule(newPath);
       }
     }
+  }
+
+  @NotNull
+  private static String updateProjectNameInGradlePath(@NotNull AndroidGradleFacet androidGradleFacet, @NotNull VirtualFile moduleDir) {
+    String gradlePath = androidGradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
+    if (gradlePath.equals(SdkConstants.GRADLE_PATH_SEPARATOR)) {
+      // This is root project, renaming folder does not affect it since the path is just ":".
+      return gradlePath;
+    }
+    List<String> pathSegments = Lists.newArrayList(gradlePath.split(SdkConstants.GRADLE_PATH_SEPARATOR));
+    pathSegments.remove(pathSegments.size() - 1);
+    pathSegments.add(moduleDir.getName());
+
+    String newPath = Joiner.on(SdkConstants.GRADLE_PATH_SEPARATOR).join(pathSegments);
+    androidGradleFacet.getConfiguration().GRADLE_PROJECT_PATH = newPath;
+    return newPath;
   }
 
   private void put(@NotNull Module module, @NotNull GradleBuildFile file) {
