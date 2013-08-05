@@ -28,7 +28,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.project.ModuleAdapter;
+import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
@@ -36,14 +36,14 @@ import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.List;
 
 public class AndroidGradleProjectComponent extends AbstractProjectComponent {
   private static final Logger LOG = Logger.getInstance(AndroidGradleProjectComponent.class);
 
-  private Collection<Disposable> myDisposables = Lists.newArrayList();
+  @Nullable private Disposable myDisposable;
 
   public AndroidGradleProjectComponent(Project project) {
     super(project);
@@ -65,8 +65,13 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       return;
     }
 
-    listenForChangesInModules();
-    listenForChangesToBuildFiles();
+    myDisposable = new Disposable() {
+      @Override
+      public void dispose() {
+      }
+    };
+
+    listenForProjectChanges(myProject, myDisposable);
 
     GradleImportNotificationListener.attachToManager();
     Projects.setProjectBuildAction(myProject, Projects.BuildAction.SOURCE_GEN);
@@ -84,54 +89,68 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     }
   }
 
-  private void listenForChangesInModules() {
-    MessageBusConnection connection = myProject.getMessageBus().connect(getThrowawayDisposable());
-    connection.subscribe(ProjectTopics.MODULES, new ModuleAdapter() {
-      @Override
-      public void moduleAdded(Project project, Module module) {
-        updateBuildVariantView(project);
-      }
+  private static void listenForProjectChanges(@NotNull Project project, @NotNull Disposable disposable) {
+    GradleBuildFileUpdater buildFileUpdater = new GradleBuildFileUpdater(project);
 
-      @Override
-      public void modulesRenamed(Project project, List<Module> modules) {
-        updateBuildVariantView(project);
-      }
+    GradleModuleListener moduleListener = new GradleModuleListener();
+    moduleListener.addModuleListener(buildFileUpdater);
 
-      @Override
-      public void moduleRemoved(Project project, Module module) {
-        updateBuildVariantView(project);
-      }
-
-      private void updateBuildVariantView(@NotNull Project project) {
-        BuildVariantView.getInstance(project).updateContents();
-      }
-    });
-  }
-
-  private void listenForChangesToBuildFiles() {
-    GradleBuildFileUpdater buildFileUpdater = new GradleBuildFileUpdater(myProject);
-
-    MessageBusConnection connection = myProject.getMessageBus().connect(getThrowawayDisposable());
-    connection.subscribe(ProjectTopics.MODULES, buildFileUpdater);
-
-    connection = myProject.getMessageBus().connect(getThrowawayDisposable());
+    MessageBusConnection connection = project.getMessageBus().connect(disposable);
+    connection.subscribe(ProjectTopics.MODULES, moduleListener);
     connection.subscribe(VirtualFileManager.VFS_CHANGES, buildFileUpdater);
-  }
-
-  private Disposable getThrowawayDisposable() {
-    Disposable disposable = new Disposable() {
-      @Override
-      public void dispose() {
-      }
-    };
-    myDisposables.add(disposable);
-    return disposable;
   }
 
   @Override
   public void projectClosed() {
-    for (Disposable disposable : myDisposables) {
-      Disposer.dispose(disposable);
+    if (myDisposable != null) {
+      Disposer.dispose(myDisposable);
+    }
+  }
+
+  private static class GradleModuleListener implements ModuleListener {
+    @NotNull private final List<ModuleListener> additionalListeners = Lists.newArrayList();
+
+    @Override
+    public void moduleAdded(Project project, Module module) {
+      updateBuildVariantView(project);
+      if (GradleImportNotificationListener.isProjectImportInProgress()) {
+        // Modules will be added when syncing project with Gradle files (e.g. at startup). This is not a user-triggered action, so no need
+        // to call listeners.
+        for (ModuleListener listener : additionalListeners) {
+          listener.moduleAdded(project, module);
+        }
+      }
+    }
+
+    @Override
+    public void beforeModuleRemoved(Project project, Module module) {
+      for (ModuleListener listener : additionalListeners) {
+        listener.beforeModuleRemoved(project, module);
+      }
+    }
+
+    @Override
+    public void modulesRenamed(Project project, List<Module> modules) {
+      updateBuildVariantView(project);
+      for (ModuleListener listener : additionalListeners) {
+        listener.modulesRenamed(project, modules);
+      }
+    }
+
+    @Override
+    public void moduleRemoved(Project project, Module module) {
+      updateBuildVariantView(project);
+      for (ModuleListener listener : additionalListeners) {
+        listener.moduleRemoved(project, module);
+      }
+    }
+
+    private static void updateBuildVariantView(@NotNull Project project) {
+      BuildVariantView.getInstance(project).updateContents();
+    }
+
+    void addModuleListener(@NotNull ModuleListener listener) {
+      additionalListeners.add(listener);
     }
   }
 }

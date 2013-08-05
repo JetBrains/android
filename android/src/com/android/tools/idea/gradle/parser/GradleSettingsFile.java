@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.parser;
 
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.util.Facets;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.module.Module;
@@ -28,7 +30,6 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgument
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
-import java.io.File;
 import java.util.Arrays;
 
 /**
@@ -51,7 +52,7 @@ public class GradleSettingsFile extends GradleGroovyFile {
    */
   public void addModule(@NotNull Module module) {
     checkInitialized();
-    addModule(getModulePath(module));
+    addModule(getModuleGradlePath(module));
   }
 
   /**
@@ -87,7 +88,7 @@ public class GradleSettingsFile extends GradleGroovyFile {
    */
   public void removeModule(@NotNull Module module) {
     checkInitialized();
-    removeModule(getModulePath(module));
+    removeModule(getModuleGradlePath(module));
   }
 
   /**
@@ -134,29 +135,13 @@ public class GradleSettingsFile extends GradleGroovyFile {
     }));
   }
 
-  /**
-   * Returns the path to the module relative to project root, in Gradle (colon-delimited) format.
-   */
-  public @NotNull String getModulePath(@NotNull Module module) {
-    // TODO: In the future, get this from the facet.
-    String modulePath = new File(module.getModuleFilePath()).getParent();
-    return convertToGradlePath(modulePath);
-  }
-
-  /**
-   * Given a path to a module directory, converts it to module-relative, Gradle format, by making it relative to the project root and
-   * changing the path delimiters to colons.
-   */
-  public @NotNull String convertToGradlePath(@NotNull String modulePath) {
-    String projectPath = myProject.getBasePath();
-    if (!modulePath.startsWith(projectPath)) {
-      throw new IllegalArgumentException("Module path " + modulePath + " is not in the root project path " + projectPath);
+  @NotNull
+  private static String getModuleGradlePath(@NotNull Module module) {
+    AndroidGradleFacet androidGradleFacet = Facets.getFirstFacetOfType(module, AndroidGradleFacet.TYPE_ID);
+    if (androidGradleFacet == null) {
+      String msg = String.format("The module '%s$1' does not have the 'Android-Gradle' facet", module.getName());
+      throw new IllegalStateException(msg);
     }
-    modulePath = modulePath.substring(projectPath.length());
-    modulePath = modulePath.replaceAll(File.separator, ":");
-    if (!modulePath.startsWith(":")) {
-      modulePath = ":" + modulePath;
-    }
-    return modulePath;
+    return androidGradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
   }
 }
