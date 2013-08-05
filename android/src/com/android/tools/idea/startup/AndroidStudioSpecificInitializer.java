@@ -26,10 +26,12 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.codeStyle.CodeStyleScheme;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.util.SystemProperties;
+import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.Nullable;
@@ -131,25 +133,31 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       LOG.info(String.format("Found Studio home directory at: '1$%s'", studioHome));
       for (String path : ANDROID_SDK_RELATIVE_PATHS) {
         File dir = new File(studioHome, path);
-        LOG.info(String.format("Looking for Android SDK at '1$%s'", dir.getAbsolutePath()));
-        if (VersionCheck.isCompatibleVersion(dir)) {
-          LOG.info(String.format("Found Android SDK at '1$%s'", dir.getAbsolutePath()));
-          return dir.getAbsolutePath();
+        String absolutePath = dir.getAbsolutePath();
+        LOG.info(String.format("Looking for Android SDK at '1$%s'", absolutePath));
+        if (AndroidSdkType.getInstance().isValidSdkHome(absolutePath) && VersionCheck.isCompatibleVersion(dir)) {
+          LOG.info(String.format("Found Android SDK at '1$%s'", absolutePath));
+          return absolutePath;
         }
       }
     }
-    LOG.info("Unable to locate SDK within the Android studio installation");
+    LOG.info("Unable to locate SDK within the Android studio installation.");
 
     String androidHomeValue = System.getenv(AndroidSdkUtils.ANDROID_HOME_ENV);
-    String msg = String.format("Value of property '%1$s' is '%2$s'", AndroidSdkUtils.ANDROID_HOME_ENV, androidHomeValue);
+    String msg = String.format("Checking if ANDROID_HOME is set: '%1$s' is '%2$s'", AndroidSdkUtils.ANDROID_HOME_ENV, androidHomeValue);
     LOG.info(msg);
 
-    if (VersionCheck.isCompatibleVersion(androidHomeValue)) {
+    if (!StringUtil.isEmpty(androidHomeValue) &&
+        AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue) &&
+        VersionCheck.isCompatibleVersion(androidHomeValue)) {
+      LOG.info("Using Android SDK specified by the environment variable.");
       return androidHomeValue;
     }
 
     String sdkPath = getLastSdkPathUsedByAndroidTools();
-    if (VersionCheck.isCompatibleVersion(sdkPath)) {
+    if (!StringUtil.isEmpty(sdkPath) &&
+        AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue) &&
+        VersionCheck.isCompatibleVersion(sdkPath)) {
       msg = String.format("Last SDK used by Android tools: '%1$s'", sdkPath);
     } else {
       msg = "Unable to locate last SDK used by Android tools";

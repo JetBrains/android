@@ -18,11 +18,11 @@ package org.jetbrains.android.sdk;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.sdk.Jdks;
-import com.android.utils.NullLogger;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.projectRoots.impl.JavaDependentSdkType;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Pair;
 import icons.AndroidIcons;
 import org.jdom.Element;
 import org.jetbrains.android.util.AndroidBundle;
@@ -79,7 +79,21 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
 
   @Override
   public boolean isValidSdkHome(String path) {
-    return AndroidCommonUtils.createSdkManager(path, NullLogger.getLogger()) != null;
+    return validateAndroidSdk(path).getFirst();
+  }
+
+  public static Pair<Boolean,String> validateAndroidSdk(@Nullable String path) {
+    if (path == null) {
+      return Pair.create(Boolean.FALSE, "");
+    }
+
+    MessageBuildingSdkLog logger = new MessageBuildingSdkLog();
+    if (AndroidCommonUtils.createSdkManager(path, logger) != null) {
+      //noinspection ConstantConditions
+      return Pair.create(Boolean.TRUE, null);
+    } else {
+      return Pair.create(Boolean.FALSE, logger.getErrorMessage());
+    }
   }
 
   @Override
