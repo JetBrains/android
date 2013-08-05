@@ -211,6 +211,27 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     doTestCompletionVariants("can.xml", "text", "textColor", "textSize");
   }
 
+  public void testCustomAttributeNameCompletion1() throws Throwable {
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
+    doTestCompletionVariants("can1.xml", "app:text", "app:textColor", "app:textSize");
+  }
+
+  public void testCustomAttributeNameCompletion2() throws Throwable {
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
+    VirtualFile file = copyFileToProject("can2.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.type("text");
+    List<String> lookupElementStrings = myFixture.getLookupElementStrings();
+    assertNotNull(lookupElementStrings);
+    UsefulTestCase.assertSameElements(lookupElementStrings, "app:text", "app:textColor", "app:textSize");
+  }
+
+  public void testCustomAttributeNameCompletion3() throws Throwable {
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
+    toTestCompletion("can3.xml", "can3_after.xml");
+  }
+
   public void testCustomAttributeValueCompletion() throws Throwable {
     doTestCompletionVariants("cav.xml", "@color/color0", "@color/color1", "@color/color2");
   }
