@@ -1,7 +1,11 @@
 package org.jetbrains.android.dom;
 
 import com.intellij.codeInsight.completion.CompletionType;
+import com.intellij.codeInsight.documentation.DocumentationManager;
+import com.intellij.lang.documentation.DocumentationProvider;
+import com.intellij.lang.documentation.ExternalDocumentationProvider;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.UsefulTestCase;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.inspections.AndroidDomInspection;
@@ -128,6 +132,18 @@ abstract class AndroidDomTest extends AndroidTestCase {
       final String first = strs.get(0);
       assertFalse(first.endsWith(":"));
     }
+  }
+
+  protected void doTestExternalDoc(String expectedPart) {
+    final PsiElement originalElement = myFixture.getFile().findElementAt(
+      myFixture.getEditor().getCaretModel().getOffset());
+    final PsiElement docTargetElement = DocumentationManager.getInstance(getProject()).
+      findTargetElement(myFixture.getEditor(), myFixture.getFile(), originalElement);
+    final DocumentationProvider provider = DocumentationManager.getProviderFromElement(docTargetElement);
+    final List<String> urls = provider.getUrlFor(docTargetElement, originalElement);
+    final String doc = ((ExternalDocumentationProvider)provider).fetchExternalDocumentation(myFixture.getProject(), docTargetElement, urls);
+    assertNotNull(doc);
+    assertTrue(doc, doc.contains(expectedPart));
   }
 }
 

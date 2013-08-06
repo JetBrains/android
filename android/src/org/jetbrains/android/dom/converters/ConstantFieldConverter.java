@@ -15,12 +15,17 @@
  */
 package org.jetbrains.android.dom.converters;
 
+import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.Ref;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.util.xml.ConvertContext;
-import com.intellij.util.xml.DomElement;
-import com.intellij.util.xml.ResolvingConverter;
+import com.intellij.util.ArrayUtil;
+import com.intellij.util.Processor;
+import com.intellij.util.containers.HashSet;
+import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.LookupClass;
 import org.jetbrains.android.dom.LookupPrefix;
 import org.jetbrains.annotations.NonNls;
@@ -28,45 +33,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author yole
  */
-public class ConstantFieldConverter extends ResolvingConverter<String> {
-  @Override
-  @NotNull
-  public Collection<? extends String> getVariants(ConvertContext context) {
-    List<String> result = new ArrayList<String>();
-    DomElement element = context.getInvocationElement();
-    LookupClass lookupClass = element.getAnnotation(LookupClass.class);
-    LookupPrefix lookupPrefix = element.getAnnotation(LookupPrefix.class);
-    if (lookupClass != null && lookupPrefix != null) {
-      final Module module = context.getModule();
-      final GlobalSearchScope scope = module != null ?
-                                      GlobalSearchScope.allScope(module.getProject()) :
-                                      context.getInvocationElement().getResolveScope();
-      PsiClass psiClass = JavaPsiFacade.getInstance(context.getPsiManager().getProject()).findClass(lookupClass.value(), scope);
-      if (psiClass != null) {
-        PsiField[] psiFields = psiClass.getFields();
-        for (PsiField field : psiFields) {
-          if (field.hasModifierProperty(PsiModifier.STATIC) && field.hasModifierProperty(PsiModifier.PUBLIC)) {
-            PsiExpression initializer = field.getInitializer();
-            if (initializer instanceof PsiLiteralExpression) {
-              PsiLiteralExpression literalExpression = (PsiLiteralExpression)initializer;
-              Object o = literalExpression.getValue();
-              if (o instanceof String && o.toString().startsWith(lookupPrefix.value())) {
-                result.add(o.toString());
-              }
-            }
-          }
-        }
-      }
-    }
-    return result;
-  }
-
+public class ConstantFieldConverter extends Converter<String> implements CustomReferenceConverter<String> {
   @Override
   public String fromString(@Nullable @NonNls String s, ConvertContext context) {
     return s;
@@ -75,5 +48,115 @@ public class ConstantFieldConverter extends ResolvingConverter<String> {
   @Override
   public String toString(@Nullable String value, ConvertContext context) {
     return value;
+  }
+
+  @NotNull
+  @Override
+  public PsiReference[] createReferences(GenericDomValue<String> value, PsiElement element, ConvertContext context) {
+    final List<PsiReference> result = new ArrayList<PsiReference>();
+    final DomElement domElement = context.getInvocationElement();
+    final LookupClass lookupClass = domElement.getAnnotation(LookupClass.class);
+    final LookupPrefix lookupPrefix = domElement.getAnnotation(LookupPrefix.class);
+
+    if (lookupClass != null && lookupPrefix != null) {
+      final Module module = context.getModule();
+      final GlobalSearchScope scope = module != null ?
+                                      GlobalSearchScope.allScope(module.getProject()) :
+                                      domElement.getResolveScope();
+      final PsiClass psiClass = JavaPsiFacade.getInstance(context.getPsiManager().
+        getProject()).findClass(lookupClass.value(), scope);
+
+      if (psiClass != null) {
+        result.add(new MyReference(element, psiClass, lookupPrefix.value()));
+      }
+    }
+    return result.toArray(new PsiReference[result.size()]);
+  }
+
+  private static class MyReference extends PsiReferenceBase<PsiElement> {
+
+    private final PsiClass myClass;
+    private final String myLookupPrefix;
+
+    public MyReference(@NotNull PsiElement element, @NotNull PsiClass aClass, @NotNull String lookupPrefix) {
+      super(element, true);
+      myClass = aClass;
+      myLookupPrefix = lookupPrefix;
+    }
+
+    @Nullable
+    @Override
+    public PsiElement resolve() {
+      return ResolveCache.getInstance(myElement.getProject()).resolveWithCaching(this, new ResolveCache.Resolver() {
+        @Nullable
+        @Override
+        public PsiElement resolve(@NotNull PsiReference reference, boolean incompleteCode) {
+          return resolveInner();
+        }
+      }, false, false);
+    }
+
+    @Nullable
+    private PsiElement resolveInner() {
+      final String value = getValue();
+
+      if (value.isEmpty()) {
+        return null;
+      }
+      final Ref<PsiElement> ref = Ref.create();
+
+      processFields(new Processor<Pair<PsiField, String>>() {
+        @Override
+        public boolean process(Pair<PsiField, String> pair) {
+          if (value.equals(pair.getSecond())) {
+            ref.set(pair.getFirst());
+            return false;
+          }
+          return true;
+        }
+      });
+      return ref.get();
+    }
+
+    @NotNull
+    @Override
+    public Object[] getVariants() {
+      final List<Object> result = new ArrayList<Object>();
+      final Set<String> added = new HashSet<String>();
+
+      processFields(new Processor<Pair<PsiField, String>>() {
+        @Override
+        public boolean process(Pair<PsiField, String> pair) {
+          final String s = pair.getSecond();
+
+          if (added.add(s)) {
+            result.add(LookupElementBuilder.create(pair.getFirst(), s));
+          }
+          return true;
+        }
+      });
+      return ArrayUtil.toObjectArray(result);
+    }
+
+    private void processFields(@NotNull Processor<Pair<PsiField, String>> processor) {
+      final PsiField[] psiFields = myClass.getFields();
+
+      for (PsiField field : psiFields) {
+        if (field.hasModifierProperty(PsiModifier.STATIC) && field.hasModifierProperty(PsiModifier.PUBLIC)) {
+          final PsiExpression initializer = field.getInitializer();
+
+          if (initializer instanceof PsiLiteralExpression) {
+            final PsiLiteralExpression literalExpression = (PsiLiteralExpression)initializer;
+            final Object o = literalExpression.getValue();
+
+            if (o instanceof String && o.toString().startsWith(myLookupPrefix)) {
+              if (!processor.process(Pair.create(field, o.toString()))) {
+                return;
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }
