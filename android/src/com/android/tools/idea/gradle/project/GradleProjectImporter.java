@@ -157,6 +157,7 @@ public class GradleProjectImporter {
 
     // Since importing is synchronous we should have modules now. Notify callback.
     if (notifyCallback(newProject, callback)) {
+      configureGradleProject(newProject);
       return;
     }
 
@@ -171,6 +172,7 @@ public class GradleProjectImporter {
           connection.disconnect();
           // TODO: Consider moving callback to AndroidProjectDataService. It can reliably notify when a project has modules.
           notifyCallback(newProject, callback);
+          configureGradleProject(newProject);
         }
       }
     });
@@ -331,15 +333,23 @@ public class GradleProjectImporter {
     projectManager.openProject(newProject);
   }
 
-  private static boolean notifyCallback(@NotNull Project newProject, @Nullable Callback callback) {
-    Module[] modules = ModuleManager.getInstance(newProject).getModules();
+  private static boolean notifyCallback(@NotNull Project project, @Nullable Callback callback) {
+    Module[] modules = ModuleManager.getInstance(project).getModules();
     if (modules.length == 0) {
       return false;
     }
     if (callback != null) {
-      callback.projectImported(newProject);
+      callback.projectImported(project);
     }
     return true;
+  }
+
+  private static void configureGradleProject(@NotNull Project project) {
+    // We need to do this because AndroidGradleProjectComponent#projectOpened is being called when the project is created, instead of when
+    // the project is opened. When 'projectOpened' is called, the project is not fully configured, and it does not looks like it is
+    // Gradle-based, resulting in listeners (e.g. modules added events) not being registered. Here we force the listeners to be registered.
+    AndroidGradleProjectComponent projectComponent = ServiceManager.getService(project, AndroidGradleProjectComponent.class);
+    projectComponent.configureGradleProject();
   }
 
   private static void showUnsupportedModelErrorMessage(@NotNull final Project project) {
