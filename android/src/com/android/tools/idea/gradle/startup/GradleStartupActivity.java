@@ -20,14 +20,15 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Sets up any Gradle-related state when the IDE starts.
  */
 public class GradleStartupActivity implements StartupActivity, DumbAware {
   @Override
-  public void runActivity(Project project) {
-    if (project != null && Projects.isGradleProject(project)) {
+  public void runActivity(@NotNull Project project) {
+    if (Projects.isGradleProject(project)) {
       GradleImportNotificationListener.attachToManager();
       Projects.setBuildAction(project, Projects.BuildAction.COMPILE);
     }
