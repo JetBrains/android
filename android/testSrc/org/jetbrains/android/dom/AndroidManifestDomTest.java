@@ -204,6 +204,10 @@ public class AndroidManifestDomTest extends AndroidDomTest {
     doTestCompletion(false);
   }
 
+  public void testIntentActionsHighlighting() throws Throwable {
+    doTestHighlighting();
+  }
+
   public void testIntentCategoryDoc() throws Throwable {
     myFixture.configureFromExistingVirtualFile(
       copyFileToProject(getTestName(false) + ".xml"));

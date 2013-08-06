@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="p1.p2">
+  <uses-permission android:name="android.permission.UNKNOWN"/>
+
+  <application>
+    <<error>activity</error>>
+      <intent-filter>
+        <action android:name="android.intent.action.UNKNOWN"/>
+        <category android:name="UNKNOWN"/>
+      </intent-filter>
+    </activity>
+
+    <<error>service</error>>
+      <intent-filter>
+        <action android:name="android.intent.action.UNKNOWN"/>
+        <category android:name="UNKNOWN"/>
+      </intent-filter>
+    </service>
+
+    <<error>receiver</error>>
+      <intent-filter>
+        <action android:name="android.intent.action.UNKNOWN"/>
+        <category android:name="UNKNOWN"/>
+      </intent-filter>
+    </receiver>
+  </application>
+</manifest>
