@@ -28,6 +28,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
+import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.JarFileSystem;
@@ -325,6 +326,9 @@ public abstract class AndroidTestCase extends UsefulTestCase {
 
     VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/platforms/" + platformDir + "/data/res");
     sdkModificator.addRoot(resFolder, OrderRootType.CLASSES);
+
+    VirtualFile docsFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/docs/reference");
+    sdkModificator.addRoot(docsFolder, JavadocOrderRootType.getInstance());
 
     AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(sdk);
     AndroidSdkData sdkData = AndroidSdkData.parse(sdkPath, NullLogger.getLogger());

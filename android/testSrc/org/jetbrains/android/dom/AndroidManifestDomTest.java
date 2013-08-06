@@ -1,6 +1,7 @@
 package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
+import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -152,6 +153,48 @@ public class AndroidManifestDomTest extends AndroidDomTest {
     doTestCompletion(false);
   }
 
+  public void testUsesPermissionDoc() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(
+      copyFileToProject(getTestName(false) + ".xml"));
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.type("WI");
+    doTestExternalDoc("Allows applications to access information about Wi-Fi networks");
+  }
+
+  public void testUsesPermissionDoc1() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(
+      copyFileToProject(getTestName(false) + ".xml"));
+    doTestExternalDoc("Allows applications to access information about Wi-Fi networks");
+  }
+
+  public void testIntentActionDoc() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(
+      copyFileToProject(getTestName(false) + ".xml"));
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.type("_BUT");
+    doTestExternalDoc("The user pressed the \"call\" button to go to the dialer");
+  }
+
+  public void testIntentActionDoc1() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(
+      copyFileToProject(getTestName(false) + ".xml"));
+    doTestExternalDoc("The user pressed the \"call\" button to go to the dialer");
+  }
+
+  public void testIntentCategoryDoc() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(
+      copyFileToProject(getTestName(false) + ".xml"));
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.type("BRO");
+    doTestExternalDoc("The activity should be able to browse the Internet.");
+  }
+
+  public void testIntentCategoryDoc1() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(
+      copyFileToProject(getTestName(false) + ".xml"));
+    doTestExternalDoc("The activity should be able to browse the Internet.");
+  }
+
   public void testApplicationNameCompletion() throws Throwable {
     copyFileToProject("MyApplication.java", "src/p1/p2/MyApplication.java");
     doTestCompletion(false);
@@ -269,4 +312,6 @@ public class AndroidManifestDomTest extends AndroidDomTest {
       });
     }
   }
+
+
 }
