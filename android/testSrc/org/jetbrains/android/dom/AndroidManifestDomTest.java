@@ -181,6 +181,29 @@ public class AndroidManifestDomTest extends AndroidDomTest {
     doTestExternalDoc("The user pressed the \"call\" button to go to the dialer");
   }
 
+  public void testIntentActionDoc2() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(
+      copyFileToProject(getTestName(false) + ".xml"));
+    doTestExternalDoc("The user pressed the \"call\" button to go to the dialer");
+  }
+
+  public void testIntentActionCompletion1() throws Throwable {
+    doTestCompletionVariants(getTestName(false) + ".xml", "android.intent.action.CALL", "android.intent.action.CALL_BUTTON");
+  }
+
+  public void testIntentActionCompletion2() throws Throwable {
+    doTestCompletionVariants(getTestName(false) + ".xml","android.intent.action.CAMERA_BUTTON",
+                             "android.intent.action.NEW_OUTGOING_CALL");
+  }
+
+  public void testIntentActionCompletion3() throws Throwable {
+    doTestCompletionVariants(getTestName(false) + ".xml");
+  }
+
+  public void testIntentCategoryCompletion() throws Throwable {
+    doTestCompletion(false);
+  }
+
   public void testIntentCategoryDoc() throws Throwable {
     myFixture.configureFromExistingVirtualFile(
       copyFileToProject(getTestName(false) + ".xml"));
@@ -193,6 +216,12 @@ public class AndroidManifestDomTest extends AndroidDomTest {
     myFixture.configureFromExistingVirtualFile(
       copyFileToProject(getTestName(false) + ".xml"));
     doTestExternalDoc("The activity should be able to browse the Internet.");
+  }
+
+  public void testIntentCategoryDoc2() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(
+      copyFileToProject(getTestName(false) + ".xml"));
+    doTestExternalDoc("To be used as a test");
   }
 
   public void testApplicationNameCompletion() throws Throwable {
