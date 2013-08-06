@@ -24,9 +24,10 @@ import org.jetbrains.android.uipreview.RenderingException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -42,6 +43,8 @@ public class AndroidTargetData {
 
   private final Object myPublicResourceCacheLock = new Object();
   private volatile Map<String, Set<String>> myPublicResourceCache;
+
+  private volatile MyStaticConstantsData myStaticConstantsData;
 
   public AndroidTargetData(@NotNull AndroidSdkData sdkData, @NotNull IAndroidTarget target) {
     mySdkData = sdkData;
@@ -156,6 +159,14 @@ public class AndroidTargetData {
     return xmlFiles;
   }
 
+  @NotNull
+  public synchronized MyStaticConstantsData getStaticConstantsData() {
+    if (myStaticConstantsData == null) {
+      myStaticConstantsData = new MyStaticConstantsData();
+    }
+    return myStaticConstantsData;
+  }
+
   private class PublicAttributeDefinitions extends FilteredAttributeDefinitions {
     protected PublicAttributeDefinitions(@NotNull AttributeDefinitions wrappee) {
       super(wrappee);
@@ -206,6 +217,67 @@ public class AndroidTargetData {
 
     public Map<String, Set<String>> getPublicResourceCache() {
       return myResult;
+    }
+  }
+
+  public class MyStaticConstantsData {
+    private final Set<String> myActivityActions;
+    private final Set<String> myServiceActions;
+    private final Set<String> myReceiverActions;
+    private final Set<String> myCategories;
+
+    private MyStaticConstantsData() {
+      myActivityActions = collectValues(IAndroidTarget.ACTIONS_ACTIVITY);
+      myServiceActions = collectValues(IAndroidTarget.ACTIONS_SERVICE);
+      myReceiverActions = collectValues(IAndroidTarget.ACTIONS_BROADCAST);
+      myCategories = collectValues(IAndroidTarget.CATEGORIES);
+    }
+
+    @Nullable
+    public Set<String> getActivityActions() {
+      return myActivityActions;
+    }
+
+    @Nullable
+    public Set<String> getServiceActions() {
+      return myServiceActions;
+    }
+
+    @Nullable
+    public Set<String> getReceiverActions() {
+      return myReceiverActions;
+    }
+
+    @Nullable
+    public Set<String> getCategories() {
+      return myCategories;
+    }
+
+    @Nullable
+    private Set<String> collectValues(int pathId) {
+      final Set<String> result = new HashSet<String>();
+      try {
+        final BufferedReader reader = new BufferedReader(new FileReader(myTarget.getPath(pathId)));
+
+        try {
+          String line;
+
+          while ((line = reader.readLine()) != null) {
+            line = line.trim();
+
+            if (line.length() > 0 && !line.startsWith("#")) {
+              result.add(line);
+            }
+          }
+        }
+        finally {
+          reader.close();
+        }
+      }
+      catch (IOException e) {
+        return null;
+      }
+      return result;
     }
   }
 }

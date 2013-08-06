@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.dom.converters;
 
+import com.android.sdklib.IAndroidTarget;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Pair;
@@ -28,6 +29,9 @@ import com.intellij.util.containers.HashSet;
 import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.LookupClass;
 import org.jetbrains.android.dom.LookupPrefix;
+import org.jetbrains.android.dom.manifest.*;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -67,21 +71,66 @@ public class ConstantFieldConverter extends Converter<String> implements CustomR
         getProject()).findClass(lookupClass.value(), scope);
 
       if (psiClass != null) {
-        result.add(new MyReference(element, psiClass, lookupPrefix.value()));
+        final Set<String> filteringSet = getFilteringSet(context);
+        result.add(new MyReference(element, psiClass, lookupPrefix.value(), filteringSet));
       }
     }
     return result.toArray(new PsiReference[result.size()]);
+  }
+
+  @Nullable
+  private static Set<String> getFilteringSet(@NotNull ConvertContext context) {
+    final Module module = context.getModule();
+
+    if (module == null) {
+      return null;
+    }
+    final AndroidPlatform platform = AndroidPlatform.getInstance(module);
+
+    if (platform == null) {
+      return null;
+    }
+    final IAndroidTarget target = platform.getTarget();
+    final AndroidTargetData targetData = platform.getSdkData().getTargetData(target);
+    DomElement element = context.getInvocationElement().getParent();
+
+    if (element instanceof Category) {
+      return targetData.getStaticConstantsData().getCategories();
+    }
+    else if (element instanceof Action) {
+      element = element.getParent();
+
+      if (element instanceof IntentFilter) {
+        element = element.getParent();
+
+        if (element instanceof Activity) {
+          return targetData.getStaticConstantsData().getActivityActions();
+        }
+        else if (element instanceof Service) {
+          return targetData.getStaticConstantsData().getServiceActions();
+        }
+        else if (element instanceof Receiver) {
+          return targetData.getStaticConstantsData().getReceiverActions();
+        }
+      }
+    }
+    return null;
   }
 
   private static class MyReference extends PsiReferenceBase<PsiElement> {
 
     private final PsiClass myClass;
     private final String myLookupPrefix;
+    private final Set<String> myFilteringSet;
 
-    public MyReference(@NotNull PsiElement element, @NotNull PsiClass aClass, @NotNull String lookupPrefix) {
+    public MyReference(@NotNull PsiElement element,
+                       @NotNull PsiClass aClass,
+                       @NotNull String lookupPrefix,
+                       @Nullable Set<String> filteringSet) {
       super(element, true);
       myClass = aClass;
       myLookupPrefix = lookupPrefix;
+      myFilteringSet = filteringSet;
     }
 
     @Nullable
@@ -129,6 +178,9 @@ public class ConstantFieldConverter extends Converter<String> implements CustomR
         public boolean process(Pair<PsiField, String> pair) {
           final String s = pair.getSecond();
 
+          if (myFilteringSet != null && !myFilteringSet.contains(s)) {
+            return true;
+          }
           if (added.add(s)) {
             result.add(LookupElementBuilder.create(pair.getFirst(), s));
           }
