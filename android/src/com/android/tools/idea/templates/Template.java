@@ -35,7 +35,6 @@ import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
@@ -136,6 +135,7 @@ public class Template {
   public static final String TAG_THUMBS = "thumbs";
   public static final String TAG_DEPENDENCY = "dependency";
   public static final String TAG_ICONS = "icons";
+  public static final String TAG_MKDIR = "mkdir";
   public static final String ATTR_FORMAT = "format";
   public static final String ATTR_VALUE = "value";
   public static final String ATTR_DEFAULT = "default";
@@ -148,6 +148,7 @@ public class Template {
   public static final String ATTR_FILE = "file";
   public static final String ATTR_TO = "to";
   public static final String ATTR_FROM = "from";
+  public static final String ATTR_AT = "at";
   public static final String ATTR_CONSTRAINTS = "constraints";
 
   public static final String CATEGORY_ACTIVITIES = "activities";
@@ -443,6 +444,13 @@ public class Template {
                 myFilesToOpen.add(relativePath);
               }
             }
+            else if (name.equals(TAG_MKDIR)) {
+              // The relative path here is within the output directory:
+              String relativePath = attributes.getValue(ATTR_AT);
+              if (relativePath != null && !relativePath.isEmpty()) {
+                mkdir(freemarker, paramMap, relativePath);
+              }
+            }
             else if (!name.equals("recipe")) {
               System.err.println("WARNING: Unknown template directive " + name);
             }
@@ -719,6 +727,15 @@ public class Template {
       VfsUtil.createDirectories(targetFile.getParentFile().getAbsolutePath());
       writeFile(contents, targetFile);
     }
+  }
+
+  /** Creates a directory at the given path */
+  private void mkdir(
+    @NotNull final Configuration freemarker,
+    @NotNull final Map<String, Object> paramMap,
+    @NotNull String at) throws IOException, TemplateException {
+    File targetFile = getTargetFile(at);
+    VfsUtil.createDirectories(targetFile.getAbsolutePath());
   }
 
   @NotNull
