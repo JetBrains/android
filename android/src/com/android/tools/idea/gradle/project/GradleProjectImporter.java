@@ -22,15 +22,8 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ProjectTopics;
-import com.intellij.find.FindManager;
-import com.intellij.find.FindModel;
-import com.intellij.find.FindSettings;
-import com.intellij.find.impl.FindInProjectUtil;
 import com.intellij.ide.impl.NewProjectUtil;
 import com.intellij.ide.impl.ProjectUtil;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationListener;
-import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
@@ -42,7 +35,6 @@ import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
-import com.intellij.openapi.externalSystem.service.notification.ExternalSystemIdeNotificationManager;
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -61,7 +53,6 @@ import com.intellij.openapi.roots.ModuleRootAdapter;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.startup.StartupManager;
-import com.intellij.openapi.util.Factory;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
@@ -71,10 +62,6 @@ import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.IdeFrameEx;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
-import com.intellij.usageView.UsageInfo;
-import com.intellij.usages.*;
-import com.intellij.util.AdapterProcessor;
-import com.intellij.util.Processor;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
@@ -83,7 +70,6 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
-import javax.swing.event.HyperlinkEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -119,7 +105,7 @@ public class GradleProjectImporter {
   public void reImportProject(@NotNull final Project project) throws ConfigurationException {
     if (Projects.isGradleProject(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
-      doImport(project, false, true);
+      doImport(project, false, false);
     }
   }
 
@@ -234,7 +220,6 @@ public class GradleProjectImporter {
 
   private void doImport(@NotNull final Project project, final boolean openProject, boolean modal) throws ConfigurationException {
     final Ref<ConfigurationException> errorRef = new Ref<ConfigurationException>();
-    final Ref<Boolean> unsupportedModelVersionFound = new Ref<Boolean>(false);
     myDelegate.importProject(project, new ExternalProjectRefreshCallback() {
       @Override
       public void onSuccess(@Nullable final DataNode<ProjectData> projectInfo) {
@@ -263,20 +248,10 @@ public class GradleProjectImporter {
 
       @Override
       public void onFailure(@NotNull final String errorMessage, @Nullable String errorDetails) {
-        if (errorDetails != null &&
-            errorDetails.startsWith(IllegalStateException.class.getName()) &&
-            errorMessage.contains(GradleModelConstants.ANDROID_GRADLE_MODEL_DEPENDENCY_NAME)) {
-          unsupportedModelVersionFound.set(true);
-          return;
-        }
         ConfigurationException error = handleImportFailure(errorMessage, errorDetails);
         errorRef.set(error);
       }
     }, modal);
-
-    if (unsupportedModelVersionFound.get()) {
-      showUnsupportedModelErrorMessage(project);
-    }
 
     ConfigurationException errorCause = errorRef.get();
     if (errorCause != null) {
@@ -349,67 +324,7 @@ public class GradleProjectImporter {
     // the project is opened. When 'projectOpened' is called, the project is not fully configured, and it does not looks like it is
     // Gradle-based, resulting in listeners (e.g. modules added events) not being registered. Here we force the listeners to be registered.
     AndroidGradleProjectComponent projectComponent = ServiceManager.getService(project, AndroidGradleProjectComponent.class);
-    projectComponent.configureGradleProject();
-  }
-
-  private static void showUnsupportedModelErrorMessage(@NotNull final Project project) {
-    final ExternalSystemIdeNotificationManager notificationManager = ServiceManager.getService(ExternalSystemIdeNotificationManager.class);
-    if (notificationManager == null) {
-      return;
-    }
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        NotificationListener notificationListener = new NotificationListener() {
-          @Override
-          public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
-            if (event.getEventType() != HyperlinkEvent.EventType.ACTIVATED) {
-              return;
-            }
-            searchGradleModelInBuildFiles(project);
-          }
-        };
-        String title = String.format("Gradle '%1$s' project refresh failed:<br><br>", project.getName());
-        String messageToShow =
-          GradleModelConstants.UNSUPPORTED_MODEL_VERSION_HTML_ERROR + "<br><br><a href=\"search\">Search in build.gradle files</a>";
-        notificationManager.showNotification(title, messageToShow, NotificationType.ERROR, project, SYSTEM_ID, notificationListener);
-      }
-    });
-  }
-
-  private static void searchGradleModelInBuildFiles(@NotNull final Project project) {
-    FindManager findManager = FindManager.getInstance(project);
-    UsageViewManager usageViewManager = UsageViewManager.getInstance(project);
-
-    FindModel findModel = (FindModel) findManager.getFindInProjectModel().clone();
-    findModel.setStringToFind(GradleModelConstants.ANDROID_GRADLE_MODEL_DEPENDENCY_NAME);
-    findModel.setReplaceState(false);
-    findModel.setOpenInNewTabVisible(true);
-    findModel.setOpenInNewTabEnabled(true);
-    findModel.setOpenInNewTab(true);
-    findModel.setFileFilter(SdkConstants.FN_BUILD_GRADLE);
-
-    findManager.getFindInProjectModel().copyFrom(findModel);
-    final FindModel findModelCopy = (FindModel)findModel.clone();
-
-    UsageViewPresentation presentation = FindInProjectUtil.setupViewPresentation(findModel.isOpenInNewTabEnabled(), findModelCopy);
-    boolean showPanelIfOnlyOneUsage = !FindSettings.getInstance().isSkipResultsWithOneUsage();
-    final FindUsagesProcessPresentation processPresentation =
-      FindInProjectUtil.setupProcessPresentation(project, showPanelIfOnlyOneUsage, presentation);
-    UsageTarget usageTarget = new FindInProjectUtil.StringUsageTarget(findModel.getStringToFind());
-    usageViewManager.searchAndShowUsages(new UsageTarget[] { usageTarget }, new Factory<UsageSearcher>() {
-      @Override
-      public UsageSearcher create() {
-        return new UsageSearcher() {
-          @Override
-          public void generate(@NotNull final Processor<Usage> processor) {
-            AdapterProcessor<UsageInfo, Usage> consumer = new AdapterProcessor<UsageInfo, Usage>(processor, UsageInfo2UsageAdapter.CONVERTER);
-            //noinspection ConstantConditions
-            FindInProjectUtil.findUsages(findModelCopy, null, project, true, consumer, processPresentation);
-          }
-        };
-      }
-    }, processPresentation, presentation, null);
+    projectComponent.configureGradleProject(false);
   }
 
   // Makes it possible to mock invocations to the Gradle Tooling API.

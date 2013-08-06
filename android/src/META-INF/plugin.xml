@@ -111,6 +111,7 @@
   <depends optional="true" config-file="eclipse.xml">org.jetbrains.idea.eclipse</depends>
 
   <extensions defaultExtensionNs="com.intellij">
+    <externalSystemNotificationExtension implementation="com.android.tools.idea.gradle.service.notification.GradleNotificationExtension"/>
     <buildProcess.parametersProvider implementation="com.android.tools.idea.gradle.compiler.AndroidGradleBuildProcessParametersProvider"/>
     <externalProjectDataService implementation="com.android.tools.idea.gradle.service.AndroidProjectDataService" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.service.GradleProjectDataService" />

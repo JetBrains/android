@@ -68,10 +68,10 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       return;
     }
 
-    configureGradleProject();
+    configureGradleProject(true);
   }
 
-  public void configureGradleProject() {
+  public void configureGradleProject(boolean reImportProject) {
     if (myDisposable != null) {
       return;
     }
@@ -84,18 +84,20 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     listenForProjectChanges(myProject, myDisposable);
 
     GradleImportNotificationListener.attachToManager();
-    Projects.setProjectBuildAction(myProject, Projects.BuildAction.SOURCE_GEN);
     Projects.ensureExternalBuildIsEnabledForGradleProject(myProject);
 
-    try {
-      // Prevent IDEA from refreshing project. We want to do it ourselves.
-      myProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
+    if (reImportProject) {
+      Projects.setProjectBuildAction(myProject, Projects.BuildAction.SOURCE_GEN);
+      try {
+        // Prevent IDEA from refreshing project. We want to do it ourselves.
+        myProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
 
-      GradleProjectImporter.getInstance().reImportProject(myProject);
-    }
-    catch (ConfigurationException e) {
-      Messages.showErrorDialog(e.getMessage(), e.getTitle());
-      LOG.info(e);
+        GradleProjectImporter.getInstance().reImportProject(myProject);
+      }
+      catch (ConfigurationException e) {
+        Messages.showErrorDialog(e.getMessage(), e.getTitle());
+        LOG.info(e);
+      }
     }
   }
 
