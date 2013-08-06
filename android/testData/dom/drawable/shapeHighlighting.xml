@@ -10,12 +10,12 @@
            android:right="7dp"
            android:bottom="7dp"/>
   <corners android:radius="8dp"/>
-  <size android:width="2dp" android:dashWidth=""/>
+  <size android:width="2dp" android:dashWidth=<error>""</error>/>
   <solid/>
-  <stroke android:width="integer"
+  <stroke android:width="4dp"
           android:color="color"
-          android:dashWidth="integer"
-          android:dashGap="integer"
+          android:dashWidth="<error>integer</error>"
+          android:dashGap="<error>4</error>"
           <warning>android:aba</warning>=""/>
   <<warning>aba</warning>/>
 </shape>
