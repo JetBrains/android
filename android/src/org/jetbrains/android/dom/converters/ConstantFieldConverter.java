@@ -35,45 +35,45 @@ import java.util.List;
  * @author yole
  */
 public class ConstantFieldConverter extends ResolvingConverter<String> {
-    @Override
-    @NotNull
-    public Collection<? extends String> getVariants(ConvertContext context) {
-        List<String> result = new ArrayList<String>();
-        DomElement element = context.getInvocationElement();
-        LookupClass lookupClass = element.getAnnotation(LookupClass.class);
-        LookupPrefix lookupPrefix = element.getAnnotation(LookupPrefix.class);
-        if (lookupClass != null && lookupPrefix != null) {
-          final Module module = context.getModule();
-          final GlobalSearchScope scope = module != null ?
-                                          GlobalSearchScope.allScope(module.getProject()) :
-                                          context.getInvocationElement().getResolveScope();
-          PsiClass psiClass = JavaPsiFacade.getInstance(context.getPsiManager().getProject()).findClass(lookupClass.value(), scope);
-            if (psiClass != null) {
-                PsiField[] psiFields = psiClass.getFields();
-                for(PsiField field: psiFields) {
-                    if (field.hasModifierProperty(PsiModifier.STATIC) && field.hasModifierProperty(PsiModifier.PUBLIC)) {
-                        PsiExpression initializer = field.getInitializer();
-                        if (initializer instanceof PsiLiteralExpression) {
-                            PsiLiteralExpression literalExpression = (PsiLiteralExpression) initializer;
-                            Object o = literalExpression.getValue();
-                            if (o instanceof String && o.toString().startsWith(lookupPrefix.value())) {
-                                result.add(o.toString());
-                            }
-                        }
-                    }
-                }
+  @Override
+  @NotNull
+  public Collection<? extends String> getVariants(ConvertContext context) {
+    List<String> result = new ArrayList<String>();
+    DomElement element = context.getInvocationElement();
+    LookupClass lookupClass = element.getAnnotation(LookupClass.class);
+    LookupPrefix lookupPrefix = element.getAnnotation(LookupPrefix.class);
+    if (lookupClass != null && lookupPrefix != null) {
+      final Module module = context.getModule();
+      final GlobalSearchScope scope = module != null ?
+                                      GlobalSearchScope.allScope(module.getProject()) :
+                                      context.getInvocationElement().getResolveScope();
+      PsiClass psiClass = JavaPsiFacade.getInstance(context.getPsiManager().getProject()).findClass(lookupClass.value(), scope);
+      if (psiClass != null) {
+        PsiField[] psiFields = psiClass.getFields();
+        for (PsiField field : psiFields) {
+          if (field.hasModifierProperty(PsiModifier.STATIC) && field.hasModifierProperty(PsiModifier.PUBLIC)) {
+            PsiExpression initializer = field.getInitializer();
+            if (initializer instanceof PsiLiteralExpression) {
+              PsiLiteralExpression literalExpression = (PsiLiteralExpression)initializer;
+              Object o = literalExpression.getValue();
+              if (o instanceof String && o.toString().startsWith(lookupPrefix.value())) {
+                result.add(o.toString());
+              }
             }
+          }
         }
-        return result;
+      }
     }
+    return result;
+  }
 
-    @Override
-    public String fromString(@Nullable @NonNls String s, ConvertContext context) {
-        return s;
-    }
+  @Override
+  public String fromString(@Nullable @NonNls String s, ConvertContext context) {
+    return s;
+  }
 
-    @Override
-    public String toString(@Nullable String  value, ConvertContext context) {
-        return value;
-    }
+  @Override
+  public String toString(@Nullable String value, ConvertContext context) {
+    return value;
+  }
 }
