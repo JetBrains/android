@@ -61,18 +61,7 @@ public class GradleBuildFileUpdater extends ModuleAdapter implements BulkFileLis
       mySettingsFile = null;
       LOG.warn("Unable to find settings.gradle file for project " + project.getName());
     }
-
-    final Module[] modules = ModuleManager.getInstance(project).getModules();
-    for (Module module : modules) {
-      VirtualFile vf;
-      if ((vf = module.getModuleFile()) != null &&
-          (vf = vf.getParent()) != null &&
-          (vf = vf.findChild(SdkConstants.FN_BUILD_GRADLE)) != null) {
-        put(module, new GradleBuildFile(vf, project));
-      } else {
-        LOG.warn("Unable to find build.gradle file for module " + module.getName());
-      }
-    }
+    findAndAddAllBuildFiles();
   }
 
   @Override
@@ -122,6 +111,14 @@ public class GradleBuildFileUpdater extends ModuleAdapter implements BulkFileLis
         continue;
       }
 
+      // If this listener is installed, it is because that the project is a Gradle-based project. If we don't have any build.gradle files
+      // registered, it is because this listener was created before a project was fully created. This is common during creation of new
+      // Gradle-based Android projects. ProjectComponent#projectOpened is called when the project is created, instead of when the project
+      // is actually opened. It may be a bug in IJ.
+      if (myBuildFiles.isEmpty()) {
+        findAndAddAllBuildFiles();
+      }
+
       // Dig through our modules and find the one that matches the change event's path (the module will already have its path updated by
       // now).
       Module module = null;
@@ -163,6 +160,20 @@ public class GradleBuildFileUpdater extends ModuleAdapter implements BulkFileLis
         }
 
         mySettingsFile.addModule(newPath);
+      }
+    }
+  }
+
+  private void findAndAddAllBuildFiles() {
+    Module[] modules = ModuleManager.getInstance(myProject).getModules();
+    for (Module module : modules) {
+      VirtualFile vf;
+      if ((vf = module.getModuleFile()) != null &&
+          (vf = vf.getParent()) != null &&
+          (vf = vf.findChild(SdkConstants.FN_BUILD_GRADLE)) != null) {
+        put(module, new GradleBuildFile(vf, myProject));
+      } else {
+        LOG.warn("Unable to find build.gradle file for module " + module.getName());
       }
     }
   }
