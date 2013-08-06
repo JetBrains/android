@@ -16,6 +16,8 @@
 package com.android.tools.idea.jps.output.parser;
 
 import com.android.tools.idea.jps.output.parser.aapt.AbstractAaptOutputParser;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.PathManager;
@@ -23,6 +25,8 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.ContainerUtil;
 import junit.framework.TestCase;
+import lombok.ast.libs.org.parboiled.google.collect.Lists;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 
@@ -475,5 +479,45 @@ public class GradleErrorOutputParserTest extends TestCase {
     //assertEquals("[position column]", 35, message.getColumn());
 
     // TODO: Test encoding issues (e.g. & in path where the XML source comment would be &amp; instead)
+  }
+
+  public void testGradleAaptErrorParser() throws IOException {
+    createTempXmlFile();
+    writeToFile("<resources xmlns:android='http://schemas.android.com/apk/res/android'>",
+                "    <TextView\n" +
+                "            android:layout_width=\"fill_parent\"\n" +
+                "            android:layout_height=\"wrap_content\"\n" +
+                "            android:text=\"@string/does_not_exist\"\n" +
+                "            android:id=\"@+id/text\"\n" +
+                "            />\n");
+    final String messageText = "No resource found that matches the given name (at 'text' with value '@string/does_not_exist').";
+    String err = "FAILURE: Build failed with an exception.\n" +
+                 "\n" +
+                 "* What went wrong:\n" +
+                 "Execution failed for task ':five:processDebugResources'.\n" +
+                 "> Failed to run command:\n" +
+                 "  \t/Applications/Android Studio.app/sdk/build-tools/android-4.2.2/aapt package -f --no-crunch -I /Applications/Android Studio.app/sdk/platforms/android-17/android.jar -M /Users/sbarta/AndroidStudioProjects/fiveProject/five/build/manifests/debug/AndroidManifest.xml -S /Users/sbarta/AndroidStudioProjects/fiveProject/five/build/res/all/debug -A /Users/sbarta/AndroidStudioProjects/fiveProject/five/build/assets/debug -m -J /Users/sbarta/AndroidStudioProjects/fiveProject/five/build/source/r/debug -F /Users/sbarta/AndroidStudioProjects/fiveProject/five/build/libs/five-debug.ap_ --debug-mode --custom-package com.example.five\n" +
+                 "  Error Code:\n" +
+                 "  \t1\n" +
+                 "  Output:\n" +
+                 "  \t" + sourceFilePath + ":5: error: Error: " + messageText + "\n" +
+                 "\n" +
+                 "\n" +
+                 "* Try:\n" +
+                 "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+                 "\n" +
+                 "BUILD FAILED\n";
+    Collection<CompilerMessage> messages = parser.parseErrorOutput(err);
+    for (CompilerMessage message : messages) {
+      System.out.println(message);
+    }
+    assertEquals(3, messages.size());
+    messages = Lists.newArrayList(Iterables.filter(messages, new Predicate<CompilerMessage>() {
+      @Override
+      public boolean apply(@Nullable CompilerMessage input) {
+        return input.getMessageText().contains(messageText);
+      }
+    }));
+    assertHasCorrectErrorMessage(messages, messageText, 5, 27);
   }
 }

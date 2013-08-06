@@ -19,6 +19,7 @@ import com.android.tools.idea.jps.AndroidGradleJps;
 import com.android.tools.idea.jps.output.parser.CompilerOutputParser;
 import com.android.tools.idea.jps.output.parser.OutputLineReader;
 import com.android.tools.idea.jps.output.parser.ParsingFailedException;
+import com.android.tools.idea.jps.output.parser.aapt.AaptOutputParser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
@@ -63,12 +64,23 @@ public class GradleBuildFailureParser implements CompilerOutputParser {
     Pattern.compile("^Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.")
   };
 
+  // If there's a failure executing a command-line tool, Gradle will output the complete command line of the tool and will embed the
+  // output from that tool. We catch the command line, pull out the tool being invoked, and then take the output and run it through a
+  // subparser to generate parsed error messages.
+  private static final Pattern COMMAND_FAILURE_MESSAGE = Pattern.compile("^> Failed to run command:");
+  private static final Pattern COMMAND_LINE_PARSER = Pattern.compile("^\\s+/([^/ ]+/)+([^/ ]+) (.*)");
+  private static final Pattern COMMAND_LINE_ERROR_OUTPUT = Pattern.compile("^  Output:$");
+
   private enum State {
     BEGINNING,
     WHERE,
     MESSAGE,
+    COMMAND_FAILURE_COMMAND_LINE,
+    COMMAND_FAILURE_OUTPUT,
     ENDING
   }
+
+  private AaptOutputParser myAaptParser = new AaptOutputParser();
 
   State myState;
 
@@ -81,6 +93,7 @@ public class GradleBuildFailureParser implements CompilerOutputParser {
     String file = null;
     int lineNum = 0;
     StringBuilder errorMessage = new StringBuilder();
+    Matcher matcher;
     while (true) {
       switch(myState) {
         case BEGINNING:
@@ -93,7 +106,7 @@ public class GradleBuildFailureParser implements CompilerOutputParser {
           }
           break;
         case WHERE:
-          Matcher matcher = WHERE_LINE_2.matcher(currentLine);
+          matcher = WHERE_LINE_2.matcher(currentLine);
           if (!matcher.matches()) {
             return false;
           }
@@ -105,6 +118,8 @@ public class GradleBuildFailureParser implements CompilerOutputParser {
           if (ENDING_PATTERNS[0].matcher(currentLine).matches()) {
             myState = State.ENDING;
             pos = 1;
+          } else if (COMMAND_FAILURE_MESSAGE.matcher(currentLine).matches()) {
+            myState = State.COMMAND_FAILURE_COMMAND_LINE;
           } else {
             if (errorMessage.length() > 0) {
               errorMessage.append("\n");
@@ -112,14 +127,44 @@ public class GradleBuildFailureParser implements CompilerOutputParser {
             errorMessage.append(currentLine);
           }
           break;
+        case COMMAND_FAILURE_COMMAND_LINE:
+          // Gradle can put an unescaped "Android Studio" in its command-line output. (It doesn't care because this doesn't have to be
+          // a perfectly valid command line; it's just an error message). To keep it from messing up our parsing, let's convert those
+          // to "Android_Studio". If there are other spaces in the command-line path, though, it will mess up our parsing. Oh, well.
+          currentLine = currentLine.replaceAll("Android Studio", "Android_Studio");
+          matcher = COMMAND_LINE_PARSER.matcher(currentLine);
+          if (matcher.matches()) {
+            String message = String.format("Error while executing %s command", matcher.group(2));
+            messages.add(AndroidGradleJps.createCompilerMessage(BuildMessage.Kind.ERROR, message));
+          } else if (COMMAND_LINE_ERROR_OUTPUT.matcher(currentLine).matches()) {
+            myState = State.COMMAND_FAILURE_OUTPUT;
+          } else if (ENDING_PATTERNS[0].matcher(currentLine).matches()) {
+            myState = State.ENDING;
+            pos = 1;
+          }
+          break;
+        case COMMAND_FAILURE_OUTPUT:
+          if (ENDING_PATTERNS[0].matcher(currentLine).matches()) {
+            myState = State.ENDING;
+            pos = 1;
+          } else {
+            currentLine = currentLine.trim();
+            if (!myAaptParser.parse(currentLine, reader, messages)) {
+              // The AAPT parser punted on it. Just create a message with the unparsed error.
+              messages.add(AndroidGradleJps.createCompilerMessage(BuildMessage.Kind.ERROR, currentLine));
+            }
+          }
+          break;
         case ENDING:
           if (!ENDING_PATTERNS[pos].matcher(currentLine).matches()) {
             return false;
           } else if (++pos >= ENDING_PATTERNS.length) {
-            if (file != null) {
-              messages.add(AndroidGradleJps.createCompilerMessage(BuildMessage.Kind.ERROR, errorMessage.toString(), file, lineNum, 0));
-            } else {
-              messages.add(AndroidGradleJps.createCompilerMessage(BuildMessage.Kind.ERROR, errorMessage.toString()));
+            if (errorMessage.length() > 0) {
+              if (file != null) {
+                messages.add(AndroidGradleJps.createCompilerMessage(BuildMessage.Kind.ERROR, errorMessage.toString(), file, lineNum, 0));
+              } else {
+                messages.add(AndroidGradleJps.createCompilerMessage(BuildMessage.Kind.ERROR, errorMessage.toString()));
+              }
             }
             return true;
           }
