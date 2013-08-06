@@ -49,6 +49,9 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     super(project);
   }
 
+  /**
+   * This method is called when a project is created and when it is opened.
+   */
   @Override
   public void projectOpened() {
     if (!Projects.isGradleProject(myProject)) {
@@ -65,6 +68,13 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       return;
     }
 
+    configureGradleProject();
+  }
+
+  public void configureGradleProject() {
+    if (myDisposable != null) {
+      return;
+    }
     myDisposable = new Disposable() {
       @Override
       public void dispose() {
@@ -113,12 +123,8 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     @Override
     public void moduleAdded(Project project, Module module) {
       updateBuildVariantView(project);
-      if (GradleImportNotificationListener.isProjectImportInProgress()) {
-        // Modules will be added when syncing project with Gradle files (e.g. at startup). This is not a user-triggered action, so no need
-        // to call listeners.
-        for (ModuleListener listener : additionalListeners) {
-          listener.moduleAdded(project, module);
-        }
+      for (ModuleListener listener : additionalListeners) {
+        listener.moduleAdded(project, module);
       }
     }
 
