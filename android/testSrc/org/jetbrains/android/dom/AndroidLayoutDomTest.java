@@ -217,7 +217,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
 
   public void testCustomAttributeNameCompletion1() throws Throwable {
     copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
-    doTestCompletionVariants("can1.xml", "app:text", "app:textColor", "app:textSize");
+    doTestCompletionVariants("can1.xml", "text", "textColor", "textSize");
   }
 
   public void testCustomAttributeNameCompletion2() throws Throwable {
@@ -228,7 +228,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     myFixture.type("text");
     List<String> lookupElementStrings = myFixture.getLookupElementStrings();
     assertNotNull(lookupElementStrings);
-    UsefulTestCase.assertSameElements(lookupElementStrings, "app:text", "app:textColor", "app:textSize");
+    UsefulTestCase.assertSameElements(lookupElementStrings, "text", "textColor", "textSize");
   }
 
   public void testCustomAttributeNameCompletion3() throws Throwable {
