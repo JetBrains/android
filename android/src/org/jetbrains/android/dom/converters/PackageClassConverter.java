@@ -31,6 +31,7 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.Query;
 import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -148,7 +149,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
   }
 
   @Nullable
-  private static String getQualifiedName(@NotNull PsiClass aClass) {
+  public static String getQualifiedName(@NotNull PsiClass aClass) {
     PsiElement parent = aClass.getParent();
     if (parent instanceof PsiClass) {
       String parentQName = getQualifiedName((PsiClass)parent);
@@ -179,13 +180,19 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
   }
 
   @Nullable
+  public static String getPackageName(@NotNull PsiClass psiClass) {
+    final PsiFile file = psiClass.getContainingFile();
+    return file instanceof PsiClassOwner ? ((PsiClassOwner)file).getPackageName() : null;
+  }
+
+  @Nullable
   private static String classToString(PsiClass psiClass, String basePackageName, String prefix) {
     if (psiClass == null) return null;
     String qName = getQualifiedName(psiClass);
     if (qName == null) return null;
     PsiFile file = psiClass.getContainingFile();
     if (file instanceof PsiClassOwner) {
-      PsiClassOwner psiFile = (PsiClassOwner)file;
+       PsiClassOwner psiFile = (PsiClassOwner)file;
       if (Comparing.equal(psiFile.getPackageName(), basePackageName)) {
         String name = getName(psiClass);
         if (name != null) {
@@ -198,7 +205,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
           }
         }
       }
-      else if (basePackageName != null && qName.startsWith(basePackageName)) {
+      else if (basePackageName != null && qName.startsWith(basePackageName + ".")) {
         final String name = qName.substring(basePackageName.length());
         if (name.startsWith(prefix)) {
           return name;
@@ -262,8 +269,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
 
     @Nullable
     private PsiElement resolveInner() {
-      final int end = getRangeInElement().getEndOffset();
-      final String value = myElement.getText().substring(myStart, end).replace('$', '.');
+      final String value = getCurrentValue();
       final JavaPsiFacade facade = JavaPsiFacade.getInstance(myElement.getProject());
 
       if (!myStartsWithPoint) {
@@ -278,19 +284,25 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
         }
       }
 
-      final String relativeName = getRelativeName(value);
-      if (relativeName != null) {
+      final String absName = getAbsoluteName(value);
+      if (absName != null) {
         return myIsPackage ?
-               facade.findPackage(relativeName) :
-               facade.findClass(relativeName, myModule != null
-                                              ? myModule.getModuleWithDependenciesAndLibrariesScope(false)
-                                              : myElement.getResolveScope());
+               facade.findPackage(absName) :
+               facade.findClass(absName, myModule != null
+                                         ? myModule.getModuleWithDependenciesAndLibrariesScope(false)
+                                         : myElement.getResolveScope());
       }
       return null;
     }
 
+    @NotNull
+    private String getCurrentValue() {
+      final int end = getRangeInElement().getEndOffset();
+      return myElement.getText().substring(myStart, end).replace('$', '.');
+    }
+
     @Nullable
-    private String getRelativeName(String value) {
+    private String getAbsoluteName(String value) {
       if (myBasePackage == null) {
         return null;
       }
@@ -325,13 +337,34 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     @Override
     public PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException {
       if (element instanceof PsiClass || element instanceof PsiPackage) {
-        final String newName = element instanceof PsiClass ? classToString((PsiClass)element, myBasePackage, "") :
+        if (myIsPackage && myBasePackage != null &&
+            AndroidUtils.isPackagePrefix(getCurrentValue(), myBasePackage)) {
+          // in such case reference updating is performed by AndroidPackageConverter.MyPsiPackageReference#bindToElement()
+          return super.bindToElement(element);
+        }
+        String newName = element instanceof PsiClass ? classToString((PsiClass)element, myBasePackage, "") :
                                packageToString((PsiPackage)element, myBasePackage);
         assert newName != null;
 
         final ElementManipulator<PsiElement> manipulator = ElementManipulators.getManipulator(myElement);
         final TextRange range = new TextRange(myStart, getRangeInElement().getEndOffset());
-        return manipulator != null ? manipulator.handleContentChange(getElement(), range, newName) : element;
+
+        if (manipulator != null) {
+          final PsiElement newElement = manipulator.handleContentChange(myElement, range, newName);
+
+          if (newElement instanceof XmlAttributeValue) {
+            final XmlAttributeValue attrValue = (XmlAttributeValue)newElement;
+            final String newRef = attrValue.getValue();
+
+            if (myBasePackage != null &&
+                myBasePackage.length() > 0 &&
+                newRef.startsWith(myBasePackage + ".")) {
+              return manipulator.handleContentChange(myElement, newRef.substring(myBasePackage.length()));
+            }
+          }
+          return newElement;
+        }
+        return element;
       }
       LOG.error("PackageClassConverter resolved to " + element.getClass());
       return super.bindToElement(element);
@@ -339,7 +372,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
 
     private static String packageToString(PsiPackage psiPackage, String basePackageName) {
       final String qName = psiPackage.getQualifiedName();
-      return basePackageName != null && qName.startsWith(basePackageName) ?
+      return basePackageName != null && AndroidUtils.isPackagePrefix(basePackageName, qName) ?
              qName.substring(basePackageName.length()) :
              qName;
     }

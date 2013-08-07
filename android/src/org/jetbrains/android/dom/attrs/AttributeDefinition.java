@@ -28,7 +28,8 @@ public class AttributeDefinition {
   private final String myName;
   private final Set<AttributeFormat> myFormats = EnumSet.noneOf(AttributeFormat.class);
   private final List<String> myValues = new ArrayList<String>();
-  private String myDocValue;
+  private final Map<String, String> myStyleable2DocValue = new HashMap<String, String>();
+  private String myGlobalDocValue;
 
   public AttributeDefinition(@NotNull String name) {
     myName = name;
@@ -63,12 +64,20 @@ public class AttributeDefinition {
   }
 
   @Nullable
-  public String getDocValue() {
-    return myDocValue;
+  public String getDocValue(@Nullable String parentStyleable) {
+    if (parentStyleable == null || !myStyleable2DocValue.containsKey(parentStyleable)) {
+      return myGlobalDocValue;
+    }
+    return myStyleable2DocValue.get(parentStyleable);
   }
 
-  public void addDocValue(String docValue) {
-    myDocValue = docValue;
+  public void addDocValue(@NotNull String docValue, @Nullable String parentStyleable) {
+    if (parentStyleable == null || myGlobalDocValue == null) {
+      myGlobalDocValue = docValue;
+    }
+    if (parentStyleable != null) {
+      myStyleable2DocValue.put(parentStyleable, docValue);
+    }
   }
 
   @Override

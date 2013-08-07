@@ -33,6 +33,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.util.Function;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
@@ -138,10 +139,10 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     }
 
     @Override
-    public void modulesRenamed(Project project, List<Module> modules) {
+    public void modulesRenamed(Project project, List<Module> modules, Function<Module, String> oldNameProvider) {
       updateBuildVariantView(project);
       for (ModuleListener listener : additionalListeners) {
-        listener.modulesRenamed(project, modules);
+        listener.modulesRenamed(project, modules, oldNameProvider);
       }
     }
 

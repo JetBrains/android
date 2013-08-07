@@ -1,6 +1,11 @@
 package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
+import com.intellij.codeInsight.completion.CompletionType;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ModuleRootManager;
 import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection;
 import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection;
 
@@ -148,6 +153,81 @@ public class AndroidManifestDomTest extends AndroidDomTest {
     doTestCompletion(false);
   }
 
+  public void testUsesPermissionDoc() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(
+      copyFileToProject(getTestName(false) + ".xml"));
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.type("WI");
+    doTestExternalDoc("Allows applications to access information about Wi-Fi networks");
+  }
+
+  public void testUsesPermissionDoc1() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(
+      copyFileToProject(getTestName(false) + ".xml"));
+    doTestExternalDoc("Allows applications to access information about Wi-Fi networks");
+  }
+
+  public void testIntentActionDoc() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(
+      copyFileToProject(getTestName(false) + ".xml"));
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.type("_BUT");
+    doTestExternalDoc("The user pressed the \"call\" button to go to the dialer");
+  }
+
+  public void testIntentActionDoc1() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(
+      copyFileToProject(getTestName(false) + ".xml"));
+    doTestExternalDoc("The user pressed the \"call\" button to go to the dialer");
+  }
+
+  public void testIntentActionDoc2() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(
+      copyFileToProject(getTestName(false) + ".xml"));
+    doTestExternalDoc("The user pressed the \"call\" button to go to the dialer");
+  }
+
+  public void testIntentActionCompletion1() throws Throwable {
+    doTestCompletionVariants(getTestName(false) + ".xml", "android.intent.action.CALL", "android.intent.action.CALL_BUTTON");
+  }
+
+  public void testIntentActionCompletion2() throws Throwable {
+    doTestCompletionVariants(getTestName(false) + ".xml","android.intent.action.CAMERA_BUTTON",
+                             "android.intent.action.NEW_OUTGOING_CALL");
+  }
+
+  public void testIntentActionCompletion3() throws Throwable {
+    doTestCompletionVariants(getTestName(false) + ".xml");
+  }
+
+  public void testIntentCategoryCompletion() throws Throwable {
+    doTestCompletion(false);
+  }
+
+  public void testIntentActionsHighlighting() throws Throwable {
+    doTestHighlighting();
+  }
+
+  public void testIntentCategoryDoc() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(
+      copyFileToProject(getTestName(false) + ".xml"));
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.type("BRO");
+    doTestExternalDoc("The activity should be able to browse the Internet.");
+  }
+
+  public void testIntentCategoryDoc1() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(
+      copyFileToProject(getTestName(false) + ".xml"));
+    doTestExternalDoc("The activity should be able to browse the Internet.");
+  }
+
+  public void testIntentCategoryDoc2() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(
+      copyFileToProject(getTestName(false) + ".xml"));
+    doTestExternalDoc("To be used as a test");
+  }
+
   public void testApplicationNameCompletion() throws Throwable {
     copyFileToProject("MyApplication.java", "src/p1/p2/MyApplication.java");
     doTestCompletion(false);
@@ -229,4 +309,42 @@ public class AndroidManifestDomTest extends AndroidDomTest {
   public void testHexInteger() throws Throwable {
     doTestHighlighting();
   }
+
+  public void testMinSdkVersionAttributeValueCompletion() throws Throwable {
+    doTestSdkVersionAttributeValueCompletion();
+  }
+
+  public void testTargetSdkVersionAttributeValueCompletion() throws Throwable {
+    doTestSdkVersionAttributeValueCompletion();
+  }
+
+  public void testMaxSdkVersionAttributeValueCompletion() throws Throwable {
+    doTestSdkVersionAttributeValueCompletion();
+  }
+
+  private void doTestSdkVersionAttributeValueCompletion() throws Throwable {
+    final ProjectJdkTable projectJdkTable = ProjectJdkTable.getInstance();
+    final Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
+
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        projectJdkTable.addJdk(sdk);
+      }
+    });
+    try {
+      doTestCompletionVariants(getTestName(true) + ".xml", "1", "2", "3", "4", "5", "6", "7",
+                               "8", "9", "10", "11", "12", "13", "14", "15", "16", "17");
+    }
+    finally {
+      ApplicationManager.getApplication().runWriteAction(new Runnable() {
+        @Override
+        public void run() {
+          projectJdkTable.removeJdk(sdk);
+        }
+      });
+    }
+  }
+
+
 }

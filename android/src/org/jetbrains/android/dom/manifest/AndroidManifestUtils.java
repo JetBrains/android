@@ -81,6 +81,11 @@ public class AndroidManifestUtils {
     if (element instanceof Instrumentation) {
       strings.add("targetPackage");
     }
+    else if (element instanceof UsesSdk) {
+      strings.add("minSdkVersion");
+      strings.add("targetSdkVersion");
+      strings.add("maxSdkVersion");
+    }
     return ArrayUtil.toStringArray(strings);
   }
 
@@ -89,7 +94,7 @@ public class AndroidManifestUtils {
     List<String> strings = new ArrayList<String>();
     if (element instanceof Manifest) {
       Collections.addAll(strings, "application", "instrumentation", "permission", "permission-group",
-                         "permission-tree", "uses-permission", "compatible-screens");
+                         "permission-tree", "uses-permission", "compatible-screens", "uses-sdk");
     }
     else if (element instanceof Application) {
       Collections.addAll(strings, "activity", "activity-alias", "service", "provider", "receiver", "uses-library");

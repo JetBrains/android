@@ -277,6 +277,10 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
         vmOptions.add("-Xmx" + configuration.getMaxHeapSize() + "M");
       }
       programParamList.addAll(Arrays.asList("--optimize", Boolean.toString(configuration.isOptimize())));
+
+      if (configuration.isForceJumbo()) {
+        programParamList.addAll(Arrays.asList("--forceJumbo", Boolean.TRUE.toString()));
+      }
     }
     else {
       vmOptions = Collections.singletonList("-Xmx1024M");

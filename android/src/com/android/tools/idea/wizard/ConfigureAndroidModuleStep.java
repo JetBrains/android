@@ -82,11 +82,15 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     super(state, project, sidePanelIcon, updateListener);
 
     IAndroidTarget[] targets = getCompilationTargets();
-    String[] knownVersions = TemplateUtils.getKnownVersions();
-    for (int i = 0; i < knownVersions.length; i++) {
-      AndroidTargetComboBoxItem targetInfo = new AndroidTargetComboBoxItem(knownVersions[i], i + 1);
-      myMinSdk.addItem(targetInfo);
-      myTargetSdk.addItem(targetInfo);
+
+    if (AndroidSdkUtils.isAndroidSdkAvailable()) {
+      String[] knownVersions = TemplateUtils.getKnownVersions();
+
+      for (int i = 0; i < knownVersions.length; i++) {
+        AndroidTargetComboBoxItem targetInfo = new AndroidTargetComboBoxItem(knownVersions[i], i + 1);
+        myMinSdk.addItem(targetInfo);
+        myTargetSdk.addItem(targetInfo);
+      }
     }
     for (IAndroidTarget target : targets) {
       AndroidTargetComboBoxItem targetInfo = new AndroidTargetComboBoxItem(target);

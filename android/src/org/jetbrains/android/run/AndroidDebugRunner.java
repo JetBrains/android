@@ -111,7 +111,6 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
 
   @Override
   protected RunContentDescriptor doExecute(final Project project,
-                                           final Executor executor,
                                            final RunProfileState state,
                                            final RunContentDescriptor contentToReuse,
                                            final ExecutionEnvironment environment) throws ExecutionException {
@@ -126,26 +125,25 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
           @Override
           public void run() {
             if (descriptor[0] != null) {
-              showNotification(project, executor, descriptor[0], "error", false, NotificationType.ERROR);
+              showNotification(project, environment.getExecutor(), descriptor[0], "error", false, NotificationType.ERROR);
             }
           }
         });
       }
     });
-    descriptor[0] = doExec(project, executor, runningState, contentToReuse, environment);
+    descriptor[0] = doExec(project, runningState, contentToReuse, environment);
     return descriptor[0];
   }
 
   private RunContentDescriptor doExec(Project project,
-                                      Executor executor,
                                       AndroidRunningState state,
                                       RunContentDescriptor contentToReuse,
                                       ExecutionEnvironment environment) throws ExecutionException {
-    if (DefaultRunExecutor.EXECUTOR_ID.equals(executor.getId())) {
-      final RunContentDescriptor descriptor = super.doExecute(project, executor, state, contentToReuse, environment);
+    if (DefaultRunExecutor.EXECUTOR_ID.equals(environment.getExecutor().getId())) {
+      final RunContentDescriptor descriptor = super.doExecute(project, state, contentToReuse, environment);
 
       if (descriptor != null) {
-        setActivateToolWindowWhenAddedProperty(project, executor, descriptor, "running");
+        setActivateToolWindowWhenAddedProperty(project, environment.getExecutor(), descriptor, "running");
       }
       return descriptor;
     }
@@ -165,11 +163,11 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     state.setDebugMode(true);
     RunContentDescriptor runDescriptor;
     synchronized (myDebugLock) {
-      MyDebugLauncher launcher = new MyDebugLauncher(project, executor, state, environment);
+      MyDebugLauncher launcher = new MyDebugLauncher(project, state, environment);
       state.setDebugLauncher(launcher);
 
-      final RunContentDescriptor descriptor = embedToExistingSession(project, executor, state);
-      runDescriptor = descriptor != null ? descriptor : super.doExecute(project, executor, state, contentToReuse, environment);
+      final RunContentDescriptor descriptor = embedToExistingSession(project, environment.getExecutor(), state);
+      runDescriptor = descriptor != null ? descriptor : super.doExecute(project, state, contentToReuse, environment);
       launcher.setRunDescriptor(runDescriptor);
       if (descriptor != null) {
         return null;
@@ -178,12 +176,12 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     if (runDescriptor == null) {
       return null;
     }
-    tryToCloseOldSessions(executor, project);
+    tryToCloseOldSessions(environment.getExecutor(), project);
     final ProcessHandler handler = state.getProcessHandler();
     handler.putUserData(ANDROID_SESSION_INFO, new AndroidSessionInfo(
-      runDescriptor, state, executor.getId()));
+      runDescriptor, state, environment.getExecutor().getId()));
     state.setRestarter(runDescriptor.getRestarter());
-    setActivateToolWindowWhenAddedProperty(project, executor, runDescriptor, "running");
+    setActivateToolWindowWhenAddedProperty(project, environment.getExecutor(), runDescriptor, "running");
     return runDescriptor;
   }
 
@@ -352,8 +350,6 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
   private static class AndroidDebugState implements RemoteState, AndroidExecutionState {
     private final Project myProject;
     private final RemoteConnection myConnection;
-    private final RunnerSettings myRunnerSettings;
-    private final ConfigurationPerRunnerSettings myConfigurationSettings;
     private final AndroidRunningState myState;
     private final IDevice myDevice;
 
@@ -361,29 +357,14 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
 
     public AndroidDebugState(Project project,
                              RemoteConnection connection,
-                             RunnerSettings runnerSettings,
-                             ConfigurationPerRunnerSettings configurationSettings,
                              AndroidRunningState state,
                              IDevice device) {
       myProject = project;
       myConnection = connection;
-      myRunnerSettings = runnerSettings;
-      myConfigurationSettings = configurationSettings;
       myState = state;
       myDevice = device;
     }
 
-    @Override
-    public RunnerSettings getRunnerSettings() {
-      return myRunnerSettings;
-    }
-
-    @Override
-    public ConfigurationPerRunnerSettings getConfigurationSettings() {
-      return myConfigurationSettings;
-    }
-
-    @Override
     public ExecutionResult execute(final Executor executor, @NotNull final ProgramRunner runner) throws ExecutionException {
       RemoteDebugProcessHandler process = new RemoteDebugProcessHandler(myProject);
       myState.setProcessHandler(process);
@@ -542,13 +523,12 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     private RunContentDescriptor myRunDescriptor;
 
     public MyDebugLauncher(Project project,
-                           Executor executor,
                            AndroidRunningState state,
                            ExecutionEnvironment environment) {
       myProject = project;
-      myExecutor = executor;
       myRunningState = state;
       myEnvironment = environment;
+      myExecutor = environment.getExecutor();
     }
 
     public void setRunDescriptor(RunContentDescriptor runDescriptor) {
@@ -563,8 +543,8 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
         public void run() {
           final DebuggerPanelsManager manager = DebuggerPanelsManager.getInstance(myProject);
           AndroidDebugState st =
-            new AndroidDebugState(myProject, new RemoteConnection(true, "localhost", debugPort, false), myEnvironment.getRunnerSettings(),
-                                  myEnvironment.getConfigurationSettings(), myRunningState, device);
+            new AndroidDebugState(myProject, new RemoteConnection(true, "localhost", debugPort, false),
+                                  myRunningState, device);
           RunContentDescriptor debugDescriptor = null;
           final ProcessHandler processHandler = myRunningState.getProcessHandler();
           try {

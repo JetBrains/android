@@ -78,8 +78,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   public String NETWORK_LATENCY = "none";
   public boolean CLEAR_LOGCAT = false;
 
-  public AndroidRunConfigurationBase(final String name, final Project project, final ConfigurationFactory factory) {
-    super(name, new JavaRunConfigurationModule(project, false), factory);
+  public AndroidRunConfigurationBase(final Project project, final ConfigurationFactory factory) {
+    super(new JavaRunConfigurationModule(project, false), factory);
   }
 
   @Override

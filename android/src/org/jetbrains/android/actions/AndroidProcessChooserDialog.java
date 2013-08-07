@@ -473,7 +473,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
     final ConfigurationFactory factory = remoteConfigurationType.getFactory();
     final RunnerAndConfigurationSettings runSettings =
-      RunManagerEx.getInstanceEx(project).createConfiguration(getRunConfigurationName(debugPort), factory);
+      RunManager.getInstance(project).createRunConfiguration(getRunConfigurationName(debugPort), factory);
     final RemoteConfiguration configuration = (RemoteConfiguration)runSettings.getConfiguration();
 
     configuration.HOST = "localhost";

@@ -28,6 +28,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
+import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.JarFileSystem;
@@ -160,7 +161,13 @@ public abstract class AndroidTestCase extends UsefulTestCase {
       IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
     myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
     final JavaModuleFixtureBuilder moduleFixtureBuilder = projectBuilder.addModule(JavaModuleFixtureBuilder.class);
-    tuneModule(moduleFixtureBuilder, myFixture.getTempDirPath());
+    final String dirPath = myFixture.getTempDirPath() + getContentRootPath();
+    final File dir = new File(dirPath);
+
+    if (!dir.exists()) {
+      assertTrue(dir.mkdirs());
+    }
+    tuneModule(moduleFixtureBuilder, dirPath);
 
     final ArrayList<MyAdditionalModuleData> modules = new ArrayList<MyAdditionalModuleData>();
     configureAdditionalModules(projectBuilder, modules);
@@ -174,7 +181,7 @@ public abstract class AndroidTestCase extends UsefulTestCase {
     // the manifest on their own.
     createManifest();
 
-    myFacet = addAndroidFacet(myModule, sdkPath, getPlatformDir());
+    myFacet = addAndroidFacet(myModule, sdkPath, getPlatformDir(), isToAddSdk());
     myFixture.copyDirectoryToProject(getResDir(), "res");
 
     myAdditionalModules = new ArrayList<Module>();
@@ -194,6 +201,14 @@ public abstract class AndroidTestCase extends UsefulTestCase {
     if (!myCreateManifest) {
       deleteManifest();
     }
+  }
+
+  protected boolean isToAddSdk() {
+    return true;
+  }
+
+  protected String getContentRootPath() {
+    return "";
   }
 
   protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
@@ -266,11 +281,16 @@ public abstract class AndroidTestCase extends UsefulTestCase {
   }
 
   public static AndroidFacet addAndroidFacet(Module module, String sdkPath, String platformDir) {
+    return addAndroidFacet(module, sdkPath, platformDir, true);
+  }
+
+  public static AndroidFacet addAndroidFacet(Module module, String sdkPath, String platformDir, boolean addSdk) {
     FacetManager facetManager = FacetManager.getInstance(module);
     AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), "Android", null);
 
-    addAndroidSdk(module, sdkPath, platformDir);
-
+    if (addSdk) {
+      addAndroidSdk(module, sdkPath, platformDir);
+    }
     final ModifiableFacetModel facetModel = facetManager.createModifiableModel();
     facetModel.addFacet(facet);
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
@@ -282,7 +302,7 @@ public abstract class AndroidTestCase extends UsefulTestCase {
     return facet;
   }
 
-  private static void addAndroidSdk(Module module, String sdkPath, String platformDir) {
+  protected static void addAndroidSdk(Module module, String sdkPath, String platformDir) {
     Sdk androidSdk = createAndroidSdk(sdkPath, platformDir);
     ModuleRootModificationUtil.setModuleSdk(module, androidSdk);
   }
@@ -307,6 +327,9 @@ public abstract class AndroidTestCase extends UsefulTestCase {
 
     VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/platforms/" + platformDir + "/data/res");
     sdkModificator.addRoot(resFolder, OrderRootType.CLASSES);
+
+    VirtualFile docsFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/docs/reference");
+    sdkModificator.addRoot(docsFolder, JavadocOrderRootType.getInstance());
 
     AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(sdk);
     AndroidSdkData sdkData = AndroidSdkData.parse(sdkPath, NullLogger.getLogger());

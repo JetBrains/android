@@ -80,8 +80,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
   public String CLASS_NAME = "";
   public String PACKAGE_NAME = "";
 
-  public AndroidTestRunConfiguration(final String name, final Project project, final ConfigurationFactory factory) {
-    super(name, project, factory);
+  public AndroidTestRunConfiguration(final Project project, final ConfigurationFactory factory) {
+    super(project, factory);
   }
 
   @Override
@@ -260,11 +260,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
     }
   }
 
-  @Override
-  protected ModuleBasedConfiguration createInstance() {
-    return new AndroidTestRunConfiguration(getName(), getProject(), AndroidTestRunConfigurationType.getInstance().getFactory());
-  }
-
+  @NotNull
   @Override
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
     Project project = getProject();
@@ -288,7 +284,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
     // properties.addStackTraceFilter(new ...);
     
     BaseTestsOutputConsoleView consoleView = SMTestRunnerConnectionUtil
-      .createAndAttachConsole("Android", state.getProcessHandler(), properties, state.getRunnerSettings(), state.getConfigurationSettings()
+      .createAndAttachConsole("Android", state.getProcessHandler(), properties, state.getEnvironment()
       );
     Disposer.register(state.getFacet().getModule().getProject(), consoleView);
     return consoleView;

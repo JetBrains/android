@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res/p1.p2"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent">
+  <p1.p2.MyView3 app:myA<caret>ttr1=""/>
+</LinearLayout>
