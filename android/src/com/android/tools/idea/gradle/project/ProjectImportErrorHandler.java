@@ -43,7 +43,8 @@ class ProjectImportErrorHandler {
     if (isOldGradleVersion(rootCause)) {
       String newMsg = String.format("You are using an old, unsupported version of Gradle. Please use version %1$s or greater.",
                                     BasePlugin.GRADLE_MIN_VERSION);
-      return createUserFriendlyError(newMsg, location);
+      // Location of build.gradle is useless for this error. Omitting it.
+      return createUserFriendlyError(newMsg, null);
     }
 
     if (rootCause instanceof RuntimeException) {
@@ -53,7 +54,14 @@ class ProjectImportErrorHandler {
       if (msg != null && msg.contains("Could not find") && msg.contains("com.android.support:support")) {
         // We keep the original error message and we append a hint about how to fix the missing dependency.
         String newMsg = msg + "\n\nPlease install the Android Support Repository from the Android SDK Manager.";
-        return createUserFriendlyError(newMsg, location);
+        // Location of build.gradle is useless for this error. Omitting it.
+        return createUserFriendlyError(newMsg, null);
+      }
+
+      if (msg != null && msg.contains("failed to parse SDK")) {
+        String newMsg = msg + "\n\nThe Android SDK may be missing the directory 'add-ons'.";
+        // Location of build.gradle is useless for this error. Omitting it.
+        return createUserFriendlyError(newMsg, null);
       }
 
       if (location != null) {
