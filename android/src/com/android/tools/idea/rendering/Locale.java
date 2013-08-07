@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.resources.LocaleManager;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LanguageQualifier;
 import com.android.ide.common.resources.configuration.RegionQualifier;
 import com.google.common.base.Objects;
@@ -99,6 +100,25 @@ public class Locale {
   @NotNull
   public static Locale create(@NotNull LanguageQualifier language) {
     return new Locale(language, ANY_REGION);
+  }
+
+  /**
+   * Constructs a new {@linkplain Locale} for the given folder configuration
+   *
+   * @param folder the folder configuration
+   * @return a locale with the given language and region
+   */
+  public static Locale create(FolderConfiguration folder) {
+    LanguageQualifier language = folder.getLanguageQualifier();
+    RegionQualifier region = folder.getRegionQualifier();
+    if (language == null && region == null) {
+      return ANY;
+    } else if (region == null) {
+      return create(language);
+    } else {
+      assert language != null;
+      return create(language, region);
+    }
   }
 
   /**

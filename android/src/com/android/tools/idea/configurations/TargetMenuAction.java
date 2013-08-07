@@ -18,9 +18,7 @@ package com.android.tools.idea.configurations;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -50,8 +48,7 @@ public class TargetMenuAction extends FlatComboAction {
     Configuration configuration = myRenderContext.getConfiguration();
     boolean visible = configuration != null;
     if (visible) {
-      IAndroidTarget target = configuration.isTargetSpecificLayout()
-                      ? configuration.getTarget() : configuration.getConfigurationManager().getTarget();
+      IAndroidTarget target = configuration.getTarget();
       String brief = getRenderingTargetLabel(target, true);
       presentation.setText(brief);
     }
@@ -69,6 +66,10 @@ public class TargetMenuAction extends FlatComboAction {
     if (configuration == null) {
       return group;
     }
+
+    group.add(new TogglePickBestAction(configuration.getConfigurationManager()));
+    group.addSeparator();
+
     IAndroidTarget current = configuration.getTarget();
     List<IAndroidTarget> targets = configuration.getConfigurationManager().getTargets();
 
@@ -122,6 +123,34 @@ public class TargetMenuAction extends FlatComboAction {
     return String.format("API %1$d: %2$s", version.getApiLevel(), target.getShortClasspathName());
   }
 
+  private static class TogglePickBestAction extends ToggleAction {
+    private final ConfigurationManager myManager;
+
+    TogglePickBestAction(ConfigurationManager manager) {
+      super("Automatically Pick Best");
+
+      myManager = manager;
+
+      if (manager.getStateManager().getProjectState().isPickTarget()) {
+        getTemplatePresentation().setIcon(AllIcons.Actions.Checked);
+      }
+    }
+
+    @Override
+    public boolean isSelected(AnActionEvent e) {
+      return myManager.getStateManager().getProjectState().isPickTarget();
+    }
+
+    @Override
+    public void setSelected(AnActionEvent e, boolean state) {
+      myManager.getStateManager().getProjectState().setPickTarget(state);
+      if (state) {
+        // Make sure we have the best target: force recompute on next getTarget()
+        myManager.setTarget(null);
+      }
+    }
+  }
+
   private static class SetTargetAction extends ConfigurationAction {
     private final IAndroidTarget myTarget;
 
@@ -138,8 +167,9 @@ public class TargetMenuAction extends FlatComboAction {
     protected void updateConfiguration(@NotNull Configuration configuration) {
       if (configuration == myRenderContext.getConfiguration()) {
         setProjectWideTarget();
+      } else {
+        configuration.setTarget(myTarget);
       }
-      configuration.setTarget(myTarget);
     }
 
     @Override
@@ -149,9 +179,6 @@ public class TargetMenuAction extends FlatComboAction {
       if (configuration != null) {
         // Save project-wide configuration; not done by regular listening scheme since the previous configuration was not switched
         setProjectWideTarget();
-        ConfigurationStateManager stateManager = ConfigurationStateManager.get(myRenderContext.getModule().getProject());
-        ConfigurationProjectState projectState = stateManager.getProjectState();
-        projectState.saveState(configuration);
       }
     }
 
@@ -160,6 +187,7 @@ public class TargetMenuAction extends FlatComboAction {
       Configuration configuration = myRenderContext.getConfiguration();
       if (configuration != null) {
         configuration.getConfigurationManager().setTarget(myTarget);
+        myRenderContext.requestRender();
       }
     }
   }

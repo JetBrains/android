@@ -523,7 +523,13 @@ public class RenderService {
           RenderSession session = null;
           while (retries < 10) {
             session = myLayoutLib.createSession(params);
-            if (session.getResult().getStatus() != Result.Status.ERROR_TIMEOUT) {
+            Result result = session.getResult();
+            if (result.getStatus() != Result.Status.ERROR_TIMEOUT) {
+              // Sometimes happens at startup; treat it as a timeout; typically a retry fixes it
+              if (!result.isSuccess() && "The main Looper has already been prepared.".equals(result.getErrorMessage())) {
+                retries++;
+                continue;
+              }
               break;
             }
             retries++;
