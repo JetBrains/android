@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project;
 
 import org.jetbrains.annotations.NonNls;
 
-final class GradleModelConstants {
-  @NonNls static final String ANDROID_GRADLE_MODEL_DEPENDENCY_NAME = "com.android.tools.build:gradle";
+public final class GradleModelConstants {
+  @NonNls public static final String ANDROID_GRADLE_MODEL_DEPENDENCY_NAME = "com.android.tools.build:gradle";
 
   // This error message is shown as a regular dialog.
   @NonNls static final String UNSUPPORTED_MODEL_VERSION_ERROR = String.format(
@@ -27,7 +27,7 @@ final class GradleModelConstants {
     GradleModelVersionCheck.MINIMUM_SUPPORTED_VERSION.toString(), ANDROID_GRADLE_MODEL_DEPENDENCY_NAME);
 
   // This error message is used in the red bubble notification.
-  @NonNls static final String UNSUPPORTED_MODEL_VERSION_HTML_ERROR = String.format(
+  @NonNls public static final String UNSUPPORTED_MODEL_VERSION_HTML_ERROR = String.format(
     "Project is using an old version of the Android Gradle plug-in. The minimum supported version is <b>%1$s</b>.<br><br>" +
     "Please update the version of the dependency '%2$s' in your build.gradle files.",
     GradleModelVersionCheck.MINIMUM_SUPPORTED_VERSION.toString(), ANDROID_GRADLE_MODEL_DEPENDENCY_NAME);
