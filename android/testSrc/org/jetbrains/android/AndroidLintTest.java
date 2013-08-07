@@ -43,6 +43,10 @@ public class AndroidLintTest extends AndroidTestCase {
     doTestHardcodedQuickfix();
   }
 
+  public void testHardcodedString() throws Exception {
+    doTestHighlighting(new AndroidLintInspectionToolProvider.AndroidLintHardcodedTextInspection(), "/res/layout/layout.xml", "xml");
+  }
+
   private void doTestHardcodedQuickfix() throws IOException {
     final IntentionAction action = doTestHighlightingAndGetQuickfix(
       new AndroidLintInspectionToolProvider.AndroidLintHardcodedTextInspection(),
