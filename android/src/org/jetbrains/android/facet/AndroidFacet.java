@@ -53,10 +53,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.openapi.roots.ModuleRootAdapter;
-import com.intellij.openapi.roots.ModuleRootEvent;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.roots.*;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Comparing;
@@ -819,7 +816,43 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @Nullable
   public ResourceManager getResourceManager(@Nullable String resourcePackage) {
-    return SYSTEM_RESOURCE_PACKAGE.equals(resourcePackage) ? getSystemResourceManager() : getLocalResourceManager();
+    return getResourceManager(resourcePackage, null);
+  }
+
+  public ResourceManager getResourceManager(@Nullable String resourcePackage, @Nullable PsiElement contextElement) {
+    if (SYSTEM_RESOURCE_PACKAGE.equals(resourcePackage)) {
+      return getSystemResourceManager();
+    }
+    if (contextElement != null && isInAndroidSdk(contextElement)) {
+      return getSystemResourceManager();
+    }
+    return getLocalResourceManager();
+  }
+
+  private static boolean isInAndroidSdk(@NonNull PsiElement element) {
+    final PsiFile file = element.getContainingFile();
+
+    if (file == null) {
+      return false;
+    }
+    final VirtualFile vFile = file.getVirtualFile();
+
+    if (vFile == null) {
+      return false;
+    }
+    final ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(element.getProject()).getFileIndex();
+    final List<OrderEntry> entries = projectFileIndex.getOrderEntriesForFile(vFile);
+
+    for (OrderEntry entry : entries) {
+      if (entry instanceof JdkOrderEntry) {
+        final Sdk sdk = ((JdkOrderEntry)entry).getJdk();
+
+        if (sdk != null && sdk.getSdkType() instanceof AndroidSdkType) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   @NotNull

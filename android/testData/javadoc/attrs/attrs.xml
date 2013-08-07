@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- my attr 1 global docs -->
+  <attr name="myAttr1" format="boolean|integer"/>
+
+  <declare-styleable name="MyView1">
+    <!-- my attr 1 docs for MyView1 -->
+    <attr name="myAttr1"/>
+
+    <!-- my attr 2 docs for MyView1 -->
+    <attr name="myAttr2" format="reference"/>
+  </declare-styleable>
+
+  <declare-styleable name="MyView2">
+    <!-- my attr 1 docs for MyView2 -->
+    <attr name="myAttr1"/>
+
+    <!-- my attr 2 docs for MyView2 -->
+    <attr name="myAttr2" format="boolean"/>
+  </declare-styleable>
+
+  <declare-styleable name="MyView3">
+    <attr name="myAttr1"/>
+  </declare-styleable>
+</resources>

@@ -74,8 +74,8 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   public String MODE = LAUNCH_DEFAULT_ACTIVITY;
   public boolean DEPLOY = true;
 
-  public AndroidRunConfiguration(String name, Project project, ConfigurationFactory factory) {
-    super(name, project, factory);
+  public AndroidRunConfiguration(Project project, ConfigurationFactory factory) {
+    super(project, factory);
   }
 
   @Override
@@ -137,11 +137,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     return state;
   }
 
-  @Override
-  protected ModuleBasedConfiguration createInstance() {
-    return new AndroidRunConfiguration(getName(), getProject(), AndroidRunConfigurationType.getInstance().getFactory());
-  }
-
+  @NotNull
   @Override
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
     Project project = getProject();

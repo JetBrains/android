@@ -112,7 +112,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
     if (resType == null) {
       return;
     }
-    ResourceManager manager = facet.getResourceManager(resValue.getPackage());
+    ResourceManager manager = facet.getResourceManager(resValue.getPackage(), myElement);
     if (manager != null) {
       String resName = resValue.getResourceName();
       if (resName != null) {

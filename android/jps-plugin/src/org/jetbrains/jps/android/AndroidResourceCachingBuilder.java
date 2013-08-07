@@ -4,6 +4,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.jps.AndroidTargetBuilder;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.Processor;
+import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.compiler.tools.AndroidApt;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
 import org.jetbrains.annotations.NonNls;
@@ -22,7 +23,6 @@ import org.jetbrains.jps.model.module.JpsModule;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -87,44 +87,42 @@ public class AndroidResourceCachingBuilder extends AndroidTargetBuilder<BuildRoo
 
     final List<BuildRootDescriptor> roots = context.getProjectDescriptor().
       getBuildRootIndex().getTargetRoots(target, context);
-    final List<String> inputDirs = new ArrayList<String>(roots.size());
+    assert roots.size() == 0 || roots.size() == 1;
 
-    for (BuildRootDescriptor root : roots) {
-      inputDirs.add(root.getRootFile().getPath());
+    if (roots.size() == 0) {
+      return true;
     }
+    final BuildRootDescriptor root = roots.get(0);
+    final File inputDir = root.getRootFile();
+    final String inputDirPath = inputDir.getPath();
+
     final Map<AndroidCompilerMessageKind, List<String>> messages =
-      AndroidApt.crunch(androidTarget, inputDirs, resCacheDir.getPath());
+      AndroidApt.crunch(androidTarget, Collections.singletonList(inputDirPath),resCacheDir.getPath());
     AndroidJpsUtil.addMessages(context, messages, BUILDER_NAME, module.getName());
     final boolean success = messages.get(AndroidCompilerMessageKind.ERROR).isEmpty();
 
     if (success) {
-      final List<String> srcFiles = new ArrayList<String>();
-
-      for (String dir : inputDirs) {
-        FileUtil.processFilesRecursively(new File(dir), new Processor<File>() {
-          @Override
-          public boolean process(File file) {
-            if (file.isFile()) {
-              srcFiles.add(file.getPath());
-            }
-            return true;
-          }
-        });
-      }
-      final List<File> outputFiles = new ArrayList<File>();
+      final Map<String, File> outputFiles = new HashMap<String, File>();
 
       FileUtil.processFilesRecursively(resCacheDir, new Processor<File>() {
         @Override
         public boolean process(File file) {
           if (file.isFile()) {
-            outputFiles.add(file);
+            final String relativePath = FileUtil.getRelativePath(resCacheDir, file);
+
+            if (relativePath != null) {
+              outputFiles.put(relativePath, file);
+            }
           }
           return true;
         }
       });
 
-      for (File outputFile : outputFiles) {
-        outputConsumer.registerOutputFile(outputFile, srcFiles);
+      for (Map.Entry<String, File> entry : outputFiles.entrySet()) {
+        final String relativePath = entry.getKey();
+        final File outputFile = entry.getValue();
+        final File srcFile = new File(inputDir, relativePath);
+        outputConsumer.registerOutputFile(outputFile, Collections.singletonList(srcFile.getPath()));
       }
     }
     return success;

@@ -28,9 +28,7 @@ import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
-import com.intellij.execution.configurations.ConfigurationPerRunnerSettings;
 import com.intellij.execution.configurations.RunProfileState;
-import com.intellij.execution.configurations.RunnerSettings;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
@@ -330,15 +328,8 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     return myConfiguration;
   }
 
-  @Override
-  @Nullable
-  public RunnerSettings getRunnerSettings() {
-    return myEnv.getRunnerSettings();
-  }
-
-  @Override
-  public ConfigurationPerRunnerSettings getConfigurationSettings() {
-    return myEnv.getConfigurationSettings();
+  public ExecutionEnvironment getEnvironment() {
+    return myEnv;
   }
 
   public boolean isStopped() {

@@ -17,7 +17,7 @@ package org.jetbrains.android.diagnostics.error;
 
 import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.diagnostic.DiagnosticBundle;
-import com.intellij.diagnostic.errordialog.Attachment;
+import com.intellij.openapi.diagnostic.Attachment;
 import com.intellij.errorreport.bean.ErrorBean;
 import com.intellij.errorreport.error.InternalEAPException;
 import com.intellij.errorreport.error.NoSuchEAPUserException;

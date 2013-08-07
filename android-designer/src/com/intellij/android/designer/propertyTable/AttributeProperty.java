@@ -172,7 +172,7 @@ public class AttributeProperty extends Property<RadViewComponent> implements IXm
   @Override
   public String getJavadocText() {
     if (myJavadocText == null) {
-      String javadocText = myDefinition.getDocValue();
+      String javadocText = myDefinition.getDocValue(null);
       if (javadocText != null) {
         myJavadocText = JavadocParser.build(getName(), javadocText);
       }

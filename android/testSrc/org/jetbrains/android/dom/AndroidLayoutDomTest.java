@@ -4,15 +4,19 @@ import com.android.SdkConstants;
 import com.intellij.codeInsight.TargetElementUtilBase;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
+import com.intellij.codeInsight.documentation.DocumentationManager;
 import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.codeInsight.lookup.LookupElement;
+import com.intellij.codeInsight.lookup.LookupEx;
+import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
-import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.util.ThrowableRunnable;
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
@@ -211,6 +215,27 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     doTestCompletionVariants("can.xml", "text", "textColor", "textSize");
   }
 
+  public void testCustomAttributeNameCompletion1() throws Throwable {
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
+    doTestCompletionVariants("can1.xml", "text", "textColor", "textSize");
+  }
+
+  public void testCustomAttributeNameCompletion2() throws Throwable {
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
+    VirtualFile file = copyFileToProject("can2.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.type("text");
+    List<String> lookupElementStrings = myFixture.getLookupElementStrings();
+    assertNotNull(lookupElementStrings);
+    UsefulTestCase.assertSameElements(lookupElementStrings, "text", "textColor", "textSize");
+  }
+
+  public void testCustomAttributeNameCompletion3() throws Throwable {
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
+    toTestCompletion("can3.xml", "can3_after.xml");
+  }
+
   public void testCustomAttributeValueCompletion() throws Throwable {
     doTestCompletionVariants("cav.xml", "@color/color0", "@color/color1", "@color/color2");
   }
@@ -230,7 +255,23 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
 
   public void testFlagCompletion() throws Throwable {
     doTestCompletionVariants("av1.xml", "center", "center_horizontal", "center_vertical");
-    doTestCompletionVariants("av2.xml", "fill", "fill_horizontal", "fill_vertical");
+    doTestCompletionVariants("av2.xml", "fill_horizontal", "fill_vertical");
+  }
+
+  public void testFlagCompletion1() throws Throwable {
+    doTestCompletionVariants("flagCompletion1.xml", "center", "center_horizontal", "center_vertical", "center|bottom",
+                             "center|center_horizontal", "center|center_vertical", "center|clip_horizontal", "center|clip_vertical",
+                             "center|fill", "center|fill_horizontal", "center|fill_vertical", "center|left", "center|right", "center|top");
+  }
+
+  public void testFlagCompletion2() throws Throwable {
+    doTestCompletionVariants("flagCompletion2.xml", "center", "center_horizontal", "center_vertical", "center|center_horizontal",
+                             "center|center_vertical", "center|clip_horizontal", "center|clip_vertical", "center|fill",
+                             "center|fill_horizontal", "center|fill_vertical", "center|left", "center|right", "center|top");
+    myFixture.type("|fill");
+    final List<String> lookupElements = myFixture.getLookupElementStrings();
+    assertNotNull(lookupElements);
+    UsefulTestCase.assertSameElements(lookupElements, "center|fill", "center|fill_horizontal", "center|fill_vertical");
   }
 
   public void testResourceCompletion() throws Throwable {
@@ -452,7 +493,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     }).attempts(2).cpuBound().usesAllCPUCores().assertTiming();
   }
 
-  public void testResourceHighlightingPerformance() throws Throwable {
+  /*public void testResourceHighlightingPerformance() throws Throwable {
     doCopyManyStrings();
     final VirtualFile f = copyFileToProject(getTestName(true) + ".xml");
     myFixture.configureFromExistingVirtualFile(f);
@@ -488,7 +529,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
       }
     }).attempts(1).cpuBound().usesAllCPUCores().assertTiming();
     assertEquals(31, navElements.size());
-  }
+  }*/
 
   private void doCopyManyStrings() {
     myFixture.copyFileToProject(testFolder + "/many_strings.xml", "res/values/strings.xml");
@@ -744,6 +785,62 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
 
   public void testNamespaceCompletion() throws Throwable {
     doTestNamespaceCompletion(true, true);
+  }
+
+  public void testDimenUnitsCompletion1() throws Exception {
+    final VirtualFile file = copyFileToProject(getTestName(true) + ".xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.complete(CompletionType.BASIC);
+
+    final List<String> lookupElementStrings = myFixture.getLookupElementStrings();
+    assertNotNull(lookupElementStrings);
+    UsefulTestCase.assertSameElements(lookupElementStrings, "3dp", "3px", "3sp", "3pt", "3mm", "3in");
+
+    final PsiElement originalElement = myFixture.getFile().findElementAt(
+      myFixture.getEditor().getCaretModel().getOffset());
+    assertNotNull(originalElement);
+
+
+    final LookupEx lookup = myFixture.getLookup();
+    LookupElement dpElement = null;
+    LookupElement pxElement = null;
+
+    for (LookupElement element : lookup.getItems()) {
+      if (element.getLookupString().endsWith("dp")) {
+        dpElement = element;
+      }
+      else if (element.getLookupString().endsWith("px")) {
+        pxElement = element;
+      }
+    }
+    assertNotNull(dpElement);
+    assertNotNull(pxElement);
+    DocumentationProvider provider;
+    PsiElement docTargetElement;
+
+    lookup.setCurrentItem(dpElement);
+    docTargetElement = DocumentationManager.getInstance(getProject()).
+      findTargetElement(myFixture.getEditor(), myFixture.getFile(), originalElement);
+    assertNotNull(docTargetElement);
+    provider = DocumentationManager.getProviderFromElement(docTargetElement);
+    assertEquals("<html><body><b>Density-independent Pixels</b> - an abstract unit that is based on the physical " +
+                 "density of the screen.</body></html>", provider.generateDoc(docTargetElement, originalElement));
+
+    lookup.setCurrentItem(pxElement);
+    docTargetElement = DocumentationManager.getInstance(getProject()).
+      findTargetElement(myFixture.getEditor(), myFixture.getFile(), originalElement);
+    assertNotNull(docTargetElement);
+    provider = DocumentationManager.getProviderFromElement(docTargetElement);
+    assertEquals("<html><body><b>Pixels</b> - corresponds to actual pixels on the screen. Not recommended.</body></html>",
+                 provider.generateDoc(docTargetElement, originalElement));
+  }
+
+  public void testDimenUnitsCompletion2() throws Throwable {
+    doTestCompletionVariants(getTestName(true) + ".xml", "@android:", "@dimen/myDimen");
+  }
+
+  public void testDimenUnitsCompletion3() throws Throwable {
+    doTestCompletionVariants(getTestName(true) + ".xml", "3pt", "3px");
   }
 
   private void doTestAttrReferenceCompletion(String textToType) throws IOException {

@@ -26,13 +26,14 @@ import com.intellij.util.xmlb.XmlSerializerUtil;
   name = "AndroidDexCompilerConfiguration",
   storages = {
     @Storage(file = StoragePathMacros.PROJECT_FILE),
-    @Storage( file = StoragePathMacros.PROJECT_CONFIG_DIR + "/androidDexCompiler.xml", scheme = StorageScheme.DIRECTORY_BASED)
+    @Storage(file = StoragePathMacros.PROJECT_CONFIG_DIR + "/androidDexCompiler.xml", scheme = StorageScheme.DIRECTORY_BASED)
   }
 )
 public class AndroidDexCompilerConfiguration implements PersistentStateComponent<AndroidDexCompilerConfiguration> {
   public String VM_OPTIONS = "";
   public int MAX_HEAP_SIZE = 1024;
   public boolean OPTIMIZE = true;
+  public boolean FORCE_JUMBO = false;
 
   @Override
   public AndroidDexCompilerConfiguration getState() {

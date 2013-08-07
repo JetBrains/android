@@ -62,7 +62,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
     for (XmlTag tag : rootTag.getSubTags()) {
       String tagName = tag.getName();
       if (tagName.equals(TAG_ATTR)) {
-        parseAttrTag(tag);
+        parseAttrTag(tag, null);
       }
       else if (tagName.equals(TAG_DECLARE_STYLEABLE)) {
         parseDeclareStyleableTag(tag, parentMap);
@@ -86,7 +86,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
   }
 
   @Nullable
-  private AttributeDefinition parseAttrTag(XmlTag tag) {
+  private AttributeDefinition parseAttrTag(XmlTag tag, @Nullable String parentStyleable) {
     String name = tag.getAttributeValue(ATTR_NAME);
     if (name == null) {
       LOG.info("Found attr tag with no name: " + tag.getText());
@@ -115,17 +115,17 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
       myAttrs.put(def.getName(), def);
     }
     def.addFormats(formats);
-    parseDocComment(tag, def);
+    parseDocComment(tag, def, parentStyleable);
     parseAndAddValues(def, values);
     return def;
   }
 
-  private static void parseDocComment(XmlTag tag, AttributeDefinition def) {
+  private static void parseDocComment(XmlTag tag, AttributeDefinition def, @Nullable String styleable) {
     PsiElement comment = XmlDocumentationProvider.findPreviousComment(tag);
     if (comment != null) {
       String docValue = XmlUtil.getCommentText((XmlComment)comment);
-      if (!StringUtil.isEmpty(docValue)) {
-        def.addDocValue(docValue);
+      if (docValue != null && !StringUtil.isEmpty(docValue)) {
+        def.addDocValue(docValue, styleable);
       }
     }
   }
@@ -205,7 +205,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
       return;
     }
 
-    final AttributeDefinition attr = parseAttrTag(tag);
+    final AttributeDefinition attr = parseAttrTag(tag, def.getName());
     if (attr != null) {
       def.addAttribute(attr);
     }

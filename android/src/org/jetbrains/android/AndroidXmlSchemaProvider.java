@@ -34,6 +34,7 @@ import com.intellij.psi.util.PsiModificationTracker;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.xml.XmlSchemaProvider;
 import gnu.trove.THashMap;
+import org.jetbrains.android.dom.AndroidDomExtender;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
 import org.jetbrains.android.dom.xml.XmlResourceDomFileDescription;
@@ -147,7 +148,13 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
 
   @Override
   public String getDefaultPrefix(@NotNull @NonNls String namespace, @NotNull XmlFile context) {
-    return "android";
+    if (SdkConstants.NS_RESOURCES.equals(namespace)) {
+      return "android";
+    }
+    else if (namespace.startsWith(AndroidDomExtender.ANDROID_NS_PREFIX)) {
+      return "app";
+    }
+    return null;
   }
 
   @Nullable

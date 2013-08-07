@@ -194,7 +194,9 @@
     <completion.contributor language="XML" implementationClass="org.jetbrains.android.AndroidCompletionContributor"
                             id="compositieAttributeValues" order="first"/>
 
-    <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidRenameResourceProcessor" order="first"/>
+    <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidResourceRenameResourceProcessor" order="first"/>
+    <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidApplicationPackageRenameProcessor" order="first"/>
+
     <intentionAction>
       <className>org.jetbrains.android.intentions.AndroidAddStringResourceAction</className>
       <category>Android</category>
@@ -450,6 +452,9 @@
     -->
     <spellchecker.bundledDictionaryProvider implementation="org.jetbrains.android.spellchecker.AndroidBundledDictionaryProvider"/>
     <projectStructureDetector implementation="org.jetbrains.android.newProject.AndroidProjectStructureDetector"/>
+    <filetype.stubBuilder filetype="JAVA" implementationClass="org.jetbrains.android.AndroidSdkSourcesStubBuilder"/>
+    <sdkResolveScopeProvider implementation="org.jetbrains.android.AndroidSdkResolveScopeProvider"/>
+    <lookup.charFilter implementation="org.jetbrains.android.dom.AndroidXmlCharFilter" order="before xml"/>
   </extensions>
 
   <extensionPoints>

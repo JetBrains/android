@@ -802,6 +802,10 @@ public final class AndroidSdkUtils {
     }
   }
 
+  public static boolean isAndroidSdkAvailable() {
+    return tryToChooseAndroidSdk() != null;
+  }
+
   @Nullable
   public static SdkManager tryToChooseAndroidSdk() {
     if (ourSdkManager == null) {
