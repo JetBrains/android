@@ -48,11 +48,13 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
   private void checkJavadoc(String fileName, String targetName, @Nullable String expectedDoc) {
     final VirtualFile f = myFixture.copyFileToProject(getTestDataPath() + fileName, targetName);
     myFixture.configureFromExistingVirtualFile(f);
-    PsiElement element = myFixture.getFile().findElementAt(myFixture.getEditor().getCaretModel().getOffset());
-    assert element != null;
-
-    DocumentationProvider provider = DocumentationManager.getProviderFromElement(element);
-    assertEquals(expectedDoc, provider.generateDoc(element, element));
+    PsiElement originalElement = myFixture.getFile().findElementAt(myFixture.getEditor().getCaretModel().getOffset());
+    assert originalElement != null;
+    final PsiElement docTargetElement = DocumentationManager.getInstance(getProject()).findTargetElement(
+      myFixture.getEditor(), myFixture.getFile(), originalElement);
+    assert docTargetElement != null;
+    DocumentationProvider provider = DocumentationManager.getProviderFromElement(docTargetElement);
+    assertEquals(expectedDoc, provider.generateDoc(docTargetElement, originalElement));
   }
 
   public void testString1() {
@@ -111,5 +113,55 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/strings/strings-ta.xml", "res/values-ta/strings.xml");
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/strings/strings-zh-rTW.xml", "res/values-zh-rTW/strings.xml");
     checkJavadoc("/javadoc/strings/layout1.xml", "res/layout/layout1.xml", "<html><body>Application Name</body></html>");
+  }
+
+  public void testSystemAttributes() {
+    checkJavadoc("/javadoc/attrs/layout1.xml", "res/layout/layout.xml",
+                 "<html><body>Formats: enum<br>Values: horizontal, vertical<br><br> Should the layout be a column or a row?  Use \"horizontal\"\n" +
+                 "             for a row, \"vertical\" for a column.  The default is\n" +
+                 "             horizontal. </body></html>");
+  }
+
+  public void testLocalAttributes1() {
+    doTestLocalAttributes("/javadoc/attrs/layout2.xml",
+                          "<html><body>Formats: boolean, integer<br><br> my attr 1 docs for MyView1 </body></html>");
+  }
+
+  public void testLocalAttributes2() {
+    doTestLocalAttributes("/javadoc/attrs/layout3.xml",
+                          "<html><body>Formats: boolean, reference<br><br> my attr 2 docs for MyView1 </body></html>");
+  }
+
+  public void testLocalAttributes3() {
+    doTestLocalAttributes("/javadoc/attrs/layout4.xml",
+                          "<html><body>Formats: boolean, integer<br><br> my attr 1 docs for MyView2 </body></html>");
+  }
+
+  public void testLocalAttributes4() {
+    doTestLocalAttributes("/javadoc/attrs/layout5.xml",
+                          "<html><body>Formats: boolean, reference<br><br> my attr 2 docs for MyView2 </body></html>");
+  }
+
+  public void testLocalAttributes5() {
+    doTestLocalAttributes("/javadoc/attrs/layout6.xml",
+                          "<html><body>Formats: boolean, integer<br><br> my attr 1 global docs </body></html>");
+  }
+
+  private void doTestLocalAttributes(String file, String exp) {
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/attrs.xml", "res/values/attrs.xml");
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView1.java", "src/p1/p2/MyView1.java");
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView2.java", "src/p1/p2/MyView2.java");
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView3.java", "src/p1/p2/MyView3.java");
+    checkJavadoc(file, "res/layout/layout.xml", exp);
+  }
+
+  public void testManifestAttributes() throws Exception {
+    deleteManifest();
+    checkJavadoc("/javadoc/attrs/manifest.xml", "AndroidManifest.xml",
+                 "<html><body>Formats: string<br><br> Required name of the class implementing the activity, deriving from\n" +
+                 "            {@link android.app.Activity}.  This is a fully\n" +
+                 "            qualified class name (for example, com.mycompany.myapp.MyActivity); as a\n" +
+                 "            short-hand if the first character of the class\n" +
+                 "            is a period then it is appended to your package name. </body></html>");
   }
 }

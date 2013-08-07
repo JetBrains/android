@@ -50,7 +50,7 @@ public class AndroidTestRunConfigurationType implements ConfigurationType {
   private final ConfigurationFactory myFactory = new ConfigurationFactory(this) {
     @Override
     public RunConfiguration createTemplateConfiguration(Project project) {
-      return new AndroidTestRunConfiguration("", project, this);
+      return new AndroidTestRunConfiguration(project, this);
     }
 
     @Override

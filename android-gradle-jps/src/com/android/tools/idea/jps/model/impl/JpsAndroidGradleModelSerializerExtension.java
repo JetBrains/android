@@ -41,6 +41,7 @@ public class JpsAndroidGradleModelSerializerExtension extends JpsModelSerializer
 
   private static final JpsAndroidSdkPropertiesSerializer SDK_PROPERTY_LOADER = new JpsAndroidSdkPropertiesSerializer();
 
+  @NotNull
   @Override
   public List<? extends JpsFacetConfigurationSerializer<?>> getFacetConfigurationSerializers() {
     return FACET_PROPERTY_LOADERS;

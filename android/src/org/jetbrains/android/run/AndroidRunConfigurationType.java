@@ -33,7 +33,7 @@ public class AndroidRunConfigurationType implements ConfigurationType {
   private final ConfigurationFactory myFactory = new ConfigurationFactory(this) {
     @Override
     public RunConfiguration createTemplateConfiguration(Project project) {
-      return new AndroidRunConfiguration("", project, this);
+      return new AndroidRunConfiguration(project, this);
     }
 
     @Override

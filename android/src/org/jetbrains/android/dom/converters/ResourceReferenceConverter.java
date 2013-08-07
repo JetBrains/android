@@ -48,7 +48,8 @@ import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 /**
  * @author yole
  */
-public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue> implements CustomReferenceConverter<ResourceValue> {
+public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue>
+  implements CustomReferenceConverter<ResourceValue>, AttributeValueDocumentationProvider {
   private final List<String> myResourceTypes;
   private ResolvingConverter<String> myAdditionalConverter;
   private boolean myAdditionalConverterSoft = false;
@@ -92,7 +93,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   }
 
   @Nullable
-  private static String getValue(XmlElement element) {
+  static String getValue(XmlElement element) {
     if (element instanceof XmlAttribute) {
       return ((XmlAttribute)element).getValue();
     }
@@ -248,6 +249,20 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   }
 
   @Override
+  public String getErrorMessage(@Nullable String s, ConvertContext context) {
+    final ResourceValue parsed = ResourceValue.parse(s, true, myWithPrefix);
+
+    if (parsed == null || !parsed.isReference()) {
+      final ResolvingConverter<String> additionalConverter = getAdditionalConverter(context);
+
+      if (additionalConverter != null) {
+        return additionalConverter.getErrorMessage(s, context);
+      }
+    }
+    return super.getErrorMessage(s, context);
+  }
+
+  @Override
   public ResourceValue fromString(@Nullable @NonNls String s, ConvertContext context) {
     if (s == null) return null;
     ResourceValue parsed = ResourceValue.parse(s, true, myWithPrefix);
@@ -385,5 +400,12 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       }
     }
     return PsiReference.EMPTY_ARRAY;
+  }
+
+  @Override
+  public String getDocumentation(@NotNull String value) {
+    return myAdditionalConverter instanceof AttributeValueDocumentationProvider
+           ? ((AttributeValueDocumentationProvider)myAdditionalConverter).getDocumentation(value)
+           : null;
   }
 }

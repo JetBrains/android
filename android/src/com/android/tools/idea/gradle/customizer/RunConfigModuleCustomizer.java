@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.customizer;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.util.Facets;
-import com.intellij.execution.RunManagerEx;
+import com.intellij.execution.RunManager;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.module.Module;
@@ -39,7 +39,7 @@ public class RunConfigModuleCustomizer implements ModuleCustomizer {
     if (ideaAndroidProject != null) {
       AndroidFacet facet = Facets.getFirstFacetOfType(module, AndroidFacet.ID);
       if (facet != null && !facet.isLibraryProject()) {
-        RunManagerEx runManager = RunManagerEx.getInstanceEx(project);
+        RunManager runManager = RunManager.getInstance(project);
         ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
         RunConfiguration[] configs = runManager.getConfigurations(configurationFactory.getType());
         for (RunConfiguration config : configs) {

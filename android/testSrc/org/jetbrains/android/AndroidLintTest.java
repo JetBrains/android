@@ -264,7 +264,7 @@ public class AndroidLintTest extends AndroidTestCase {
       CodeInsightTestFixtureImpl.createGlobalContextForTool(scope, getProject(), inspectionManager, wrapper);
 
     InspectionTestUtil.runTool(wrapper, scope, globalContext, inspectionManager);
-    InspectionTestUtil.compareToolResults(wrapper, false, getTestDataPath() + getGlobalTestDir());
+    InspectionTestUtil.compareToolResults(globalContext, wrapper, false, getTestDataPath() + getGlobalTestDir());
   }
 
   private String getGlobalTestDir() {

@@ -71,8 +71,8 @@ public class AndroidProjectTemplatesFactory extends ProjectTemplatesFactory {
                                    }
 
                                    @Override
-                                   public ModuleWizardStep[] createWizardSteps(WizardContext wizardContext,
-                                                                               ModulesProvider modulesProvider) {
+                                   public ModuleWizardStep[] createWizardSteps(@NotNull WizardContext wizardContext,
+                                                                               @NotNull ModulesProvider modulesProvider) {
                                      return ModuleWizardStep.EMPTY_ARRAY;
                                    }
                                  }),
