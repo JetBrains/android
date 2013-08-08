@@ -157,14 +157,8 @@ public class IntellijApiDetector extends ApiDetector {
     if (dotIndex != -1) {
       text = text.substring(dotIndex + 1);
     }
-    for (int api = 1; api <= SdkVersionInfo.HIGHEST_KNOWN_API; api++) {
-      String code = SdkVersionInfo.getBuildCode(api);
-      if (code != null && code.equalsIgnoreCase(text)) {
-        return api;
-      }
-    }
 
-    return -1;
+    return SdkVersionInfo.getApiByBuildCode(text, true);
   }
 
   private class ApiCheckVisitor extends JavaRecursiveElementVisitor {
@@ -600,7 +594,7 @@ public class IntellijApiDetector extends ApiDetector {
                 if (right instanceof PsiReferenceExpression) {
                   PsiReferenceExpression ref2 = (PsiReferenceExpression)right;
                   String codeName = ref2.getReferenceName();
-                  level = getApiForCodenameField(codeName);
+                  level = SdkVersionInfo.getApiByBuildCode(codeName, true);
                 } else if (right instanceof PsiLiteralExpression) {
                   PsiLiteralExpression lit = (PsiLiteralExpression)right;
                   Object value = lit.getValue();
@@ -644,16 +638,5 @@ public class IntellijApiDetector extends ApiDetector {
     }
 
     return false;
-  }
-
-  private static int getApiForCodenameField(@Nullable String codeName) {
-    for (int level = 1; level < SdkVersionInfo.HIGHEST_KNOWN_API; level++) {
-      String s = SdkVersionInfo.getBuildCode(level);
-      if (s != null && s.equals(codeName)) {
-        return level;
-      }
-    }
-
-    return -1;
   }
 }
