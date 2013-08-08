@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.refactoring.AndroidRefactoringManager;
+import com.android.tools.idea.refactoring.rtl.RtlSupportManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
@@ -32,6 +32,8 @@ public class AndroidAddRtlSupportAction extends AnAction implements DumbAware {
   @Override
   public void actionPerformed(AnActionEvent e) {
     Project project = PlatformDataKeys.PROJECT.getData(e.getDataContext());
-    AndroidRefactoringManager.getInstance(project).getRtlSupportManager().showDialog();
+    if (project != null) {
+      new RtlSupportManager(project).showDialog();
+    }
   }
 }
