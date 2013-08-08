@@ -52,6 +52,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.*;
 import org.xml.sax.Attributes;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
@@ -306,7 +307,12 @@ public class Template {
         xml = processFreemarkerTemplate(freemarker, paramMap, path);
       }
 
-      SAXParserFactory.newInstance().newSAXParser().parse(new ByteArrayInputStream(xml.getBytes()), new DefaultHandler() {
+      // Handle UTF-8 since processed file may contain file paths
+      ByteArrayInputStream inputStream = new ByteArrayInputStream(xml.getBytes(Charsets.UTF_8.toString()));
+      Reader reader = new InputStreamReader(inputStream, Charsets.UTF_8.toString());
+      InputSource inputSource = new InputSource(reader);
+      inputSource.setEncoding(Charsets.UTF_8.toString());
+      SAXParserFactory.newInstance().newSAXParser().parse(inputSource, new DefaultHandler() {
         @Override
         public void startElement(String uri, String localName, String name, Attributes attributes) throws SAXException {
           if (TAG_PARAMETER.equals(name)) {
@@ -433,8 +439,13 @@ public class Template {
       myLoader.setTemplateFile(getTemplateFile(file));
       String xml = processFreemarkerTemplate(freemarker, paramMap, file);
 
-      // Parse and execute the resulting instruction list.
-      SAXParserFactory.newInstance().newSAXParser().parse(new ByteArrayInputStream(xml.getBytes()), new DefaultHandler() {
+      // Parse and execute the resulting instruction list. We handle UTF-8 since the processed file contains paths which may
+      // have UTF-8 characters.
+      ByteArrayInputStream inputStream = new ByteArrayInputStream(xml.getBytes(Charsets.UTF_8.toString()));
+      Reader reader = new InputStreamReader(inputStream, Charsets.UTF_8.toString());
+      InputSource inputSource = new InputSource(reader);
+      inputSource.setEncoding(Charsets.UTF_8.toString());
+      SAXParserFactory.newInstance().newSAXParser().parse(inputSource, new DefaultHandler() {
         @Override
         public void startElement(String uri, String localName, String name, Attributes attributes) throws SAXException {
           try {
@@ -487,7 +498,6 @@ public class Template {
           }
         }
       });
-
     } catch (Exception e) {
       ourMostRecentException = e;
       LOG.warn(e);
