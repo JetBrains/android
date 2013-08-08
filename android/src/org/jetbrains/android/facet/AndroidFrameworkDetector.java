@@ -108,14 +108,12 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
         "'" + AndroidUtils.ANDROID_DEX_FORCE_JUMBO_PROPERTY +
         "' property is detected in " + SdkConstants.FN_PROJECT_PROPERTIES +
         " file.<br>You may configure jumbo mode in <a href='configure'>Settings | Compiler | Android DX</a>",
-        NotificationType.INFORMATION, new NotificationListener() {
+        NotificationType.INFORMATION, new NotificationListener.Adapter() {
         @Override
-        public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
-          if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-            notification.expire();
-            ShowSettingsUtil.getInstance().showSettingsDialog(
-              project, AndroidBundle.message("android.dex.compiler.configurable.display.name"));
-          }
+        protected void hyperlinkActivated(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
+          notification.expire();
+          ShowSettingsUtil.getInstance().showSettingsDialog(
+            project, AndroidBundle.message("android.dex.compiler.configurable.display.name"));
         }
       });
       notification.notify(project);
