@@ -18,12 +18,12 @@ package com.android.tools.idea.refactoring.rtl;
 
 public class RtlSupportProperties {
 
-    public boolean updateAndroidManifest = true;
-    public boolean updateLayouts = false;
-    public boolean replaceLeftRightPropertiesOption = true;
-    public boolean generateV17resourcesOption = false;
+  public boolean updateAndroidManifest = true;
+  public boolean updateLayouts = false;
+  public boolean replaceLeftRightPropertiesOption = true;
+  public boolean generateV17resourcesOption = false;
 
-    public boolean hasSomethingToDo() {
-        return updateAndroidManifest || updateLayouts;
-    }
+  public boolean hasSomethingToDo() {
+    return updateAndroidManifest || updateLayouts;
+  }
 }

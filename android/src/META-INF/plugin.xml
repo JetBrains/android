@@ -400,8 +400,6 @@
                        serviceImplementation="org.jetbrains.android.maven.AndroidExternalApklibDependenciesManager"/>
     <projectService serviceInterface="com.android.tools.idea.configurations.ConfigurationStateManager"
                     serviceImplementation="com.android.tools.idea.configurations.ConfigurationStateManager"/>
-    <projectService serviceInterface="com.android.tools.idea.refactoring.AndroidRefactoringManager"
-                    serviceImplementation="com.android.tools.idea.refactoring.AndroidRefactoringManager"/>
     <xml.xmlExtension implementation="org.jetbrains.android.dom.AndroidXmlExtension" order="first"/>
     <psi.referenceProvider language="XML" providerClass="org.jetbrains.android.dom.AndroidXmlReferenceProvider">
       <pattern type="xml">xmlTag()</pattern>
