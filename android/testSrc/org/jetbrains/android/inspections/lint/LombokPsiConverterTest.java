@@ -438,6 +438,24 @@ public class LombokPsiConverterTest extends AndroidTestCase {
     check(file, testClass);
   }
 
+  public void test57783() {
+    String testClass =
+      "package test.pkg;\n" +
+      "\n" +
+      "public final class R7 {\n" +
+      "    public void foo() {\n" +
+      "        int i = 0;\n" +
+      "        int j = 0;\n" +
+      "        for (i = 0; i < 10; i++)\n" +
+      "            i++;" +
+      "        for (i = 0, j = 0; i < 10; i++)\n" +
+      "            i++;" +
+      "    }\n" +
+      "}";
+    PsiFile file = myFixture.addFileToProject("src/test/pkg/R7.java", testClass);
+    check(file, testClass);
+  }
+
   private void check(VirtualFile file) {
     assertNotNull(file);
     assertTrue(file.exists());
@@ -445,7 +463,7 @@ public class LombokPsiConverterTest extends AndroidTestCase {
     assertNotNull(project);
     PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
     assertNotNull(psiFile);
-    check(psiFile, psiFile.getText());;
+    check(psiFile, psiFile.getText());
   }
 
   private void check(String source, String relativePath) {
