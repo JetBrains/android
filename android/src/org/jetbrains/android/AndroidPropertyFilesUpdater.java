@@ -455,23 +455,20 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
     myNotification = PROPERTY_FILES_UPDATING_NOTIFICATION.createNotification(
       AndroidBundle.message("android.update.project.properties.dialog.title"),
       AndroidBundle.message("android.update.project.properties.dialog.text", moduleList.toString()),
-      NotificationType.INFORMATION, new NotificationListener() {
+      NotificationType.INFORMATION, new NotificationListener.Adapter() {
       @Override
-      public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
-        if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-          final String desc = event.getDescription();
-
-          if ("once".equals(desc)) {
-            callback.process(MyResult.ONCE);
-          }
-          else if ("never".equals(desc)) {
-            callback.process(MyResult.NEVER);
-          }
-          else {
-            callback.process(MyResult.ALWAYS);
-          }
-          notification.expire();
+      protected void hyperlinkActivated(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
+        final String desc = event.getDescription();
+        if ("once".equals(desc)) {
+          callback.process(MyResult.ONCE);
         }
+        else if ("never".equals(desc)) {
+          callback.process(MyResult.NEVER);
+        }
+        else {
+          callback.process(MyResult.ALWAYS);
+        }
+        notification.expire();
       }
     });
     myNotification.notify(project);
