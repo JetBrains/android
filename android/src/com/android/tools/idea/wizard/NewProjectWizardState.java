@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
-import static com.android.tools.idea.templates.TemplateMetadata.*;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE;
 
 /**
  * Value object which holds the current state of the wizard pages for the

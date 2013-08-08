@@ -28,7 +28,7 @@ import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
-import com.android.utils.NullLogger;
+import com.android.sdklib.repository.FullRevision;
 import com.android.utils.SdkUtils;
 import com.android.utils.StdLogger;
 import com.android.utils.XmlUtils;
@@ -37,6 +37,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -70,7 +71,6 @@ import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFo
  */
 public class Template {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.templates.Template");
-  static final String SUPPORT_LIBRARY_NAME = "android-support-v4";
   /** Highest supported format; templates with a higher number will be skipped
    * <p>
    * <ul>
@@ -136,6 +136,7 @@ public class Template {
   public static final String TAG_DEPENDENCY = "dependency";
   public static final String TAG_ICONS = "icons";
   public static final String TAG_MKDIR = "mkdir";
+  public static final String TAG_VERSION = "version";
   public static final String ATTR_FORMAT = "format";
   public static final String ATTR_VALUE = "value";
   public static final String ATTR_DEFAULT = "default";
@@ -152,7 +153,7 @@ public class Template {
   public static final String ATTR_CONSTRAINTS = "constraints";
 
   public static final String CATEGORY_ACTIVITIES = "activities";
-  public static final String CATEGORY_PROJECTS = "projects";
+  public static final String CATEGORY_PROJECTS = "gradle-projects";
 
   /** The vendor ID of the support library. */
   private static final String VENDOR_ID = "android";
@@ -162,6 +163,17 @@ public class Template {
   private static final String COMPATIBILITY_ID = "compatibility";
   private static final String FD_V4 = "v4";
   private static final String ANDROID_SUPPORT_V4_JAR = "android-support-v4.jar";
+
+  /** Support library constants */
+  static final String SUPPORT_LIBRARY_NAME = "android-support";
+  private static final String ANDROID_SUPPORT_URL = "androidSupportLibraryUrl";
+  private static final String SUPPORT_BASE_URL = "com.android.support:support";
+  private static final String SUFFIX_V4 = "-v4";
+  private static final String SUFFIX_V7 = "-v7";
+  private static final String SUFFIX_V13 = "-v13";
+  private static final String MIN_VERSION_VALUE = "0.0.0";
+  private static final String SUPPORT_REPOSITORY_PATH = "/extras/android/m2repository/com/android/support/support";
+  private static final String MAVEN_METADATA_PATH = "/maven-metadata.xml";
 
   /**
    * List of files to open after the wizard has been created (these are
@@ -332,18 +344,9 @@ public class Template {
             if (dependencyName.equals(SUPPORT_LIBRARY_NAME)) {
               // We assume the revision requirement has been satisfied
               // by the wizard
-              File path = getSupportJarFile();
-              if (path != null) {
-                try {
-                  // The dependency library always goes in a libs directory off the module root.
-                  String to = FD_NATIVE_LIBS + File.separator + path.getName();
-                  File targetFile = new File(myModuleRoot, to.replace('/', File.separatorChar));
-                  copy(path, targetFile);
-                } catch (IOException ioe) {
-                  LOG.warn(ioe);
-                }
-              }
-            }
+              int minApiLevel = (Integer)paramMap.get(TemplateMetadata.ATTR_MIN_API_LEVEL);
+              paramMap.put(ANDROID_SUPPORT_URL, getSupportMavenUrl(minApiLevel));
+            } // TODO: Add other libraries here (Cloud SDK, Play Services, AppCompatLib, etc).
           } else if (!name.equals("template") && !name.equals("category") && !name.equals("option") && !name.equals(TAG_THUMBS) &&
                      !name.equals(TAG_THUMB) && !name.equals(TAG_ICONS)) {
             LOG.error("WARNING: Unknown template directive " + name);
@@ -357,47 +360,70 @@ public class Template {
   }
 
   /**
-   * Returns a path to the installed jar file for the support library,
-   * or null if it does not exist
-   *
-   * @return a path to the v4.jar or null
+   * Calculate the correct version of the support library and generate the corresponding maven URL
+   * @param minApiLevel the minimum api level specified by the template (-1 if no minApiLevel specified)
+   * @return a maven url for the android support library
    */
   @Nullable
-  private static File getSupportJarFile() {
-    File supportDir = getSupportPackageDir();
-    if (supportDir != null) {
-      File path = new File(supportDir, FD_V4 + File.separator + ANDROID_SUPPORT_V4_JAR);
-      if (path.exists()) {
-        return path;
-      }
+  private String getSupportMavenUrl(int minApiLevel) {
+    String suffix = SUFFIX_V4;
+    if (minApiLevel >= 13) {
+      suffix = SUFFIX_V13;
     }
-    return null;
+
+
+    // Read the support repository and find the latest version available
+    String sdkLocation = AndroidSdkUtils.tryToChooseAndroidSdk().getLocation();
+    String path = FileUtil.toSystemIndependentName(sdkLocation + SUPPORT_REPOSITORY_PATH + suffix + MAVEN_METADATA_PATH);
+    File supportMetadataFile = new File(path);
+    if (!supportMetadataFile.exists()) {
+      Messages.showErrorDialog("You must install the Android Support Library though the SDK Manager.", "Support Repository Not Found");
+      return null;
+    }
+
+    String version = getLatestVersionFromMavenMetadata(supportMetadataFile);
+
+    return SUPPORT_BASE_URL + suffix + ":" + version;
   }
 
   /**
-   * Returns the directory containing the support libraries (v4, v7, v13,
-   * ...), which may or may not exist
-   *
-   * @return a path to the support library or null
+   * Parses a Maven metadata file and returns a string of the highest found version
+   * @param metadataFile the files to parse
+   * @return the string representing the highest version found in the file or "0.0.0" if no versions exist in the file
    */
-  @Nullable
-  private static File getSupportPackageDir() {
-      String sdkLocation = AndroidSdkUtils.tryToChooseAndroidSdk().getLocation();
-      SdkManager manager = SdkManager.createManager(sdkLocation, NullLogger.getLogger());
-      Map<String, Integer> versions = manager.getExtrasVersions();
-      Integer version = versions.get(VENDOR_ID + '/' + SUPPORT_ID);
-      if (version != null) {
-        return new File(sdkLocation, SdkConstants.FD_EXTRAS + File.separator + VENDOR_ID + File.separator + SUPPORT_ID);
-      }
+  private static String getLatestVersionFromMavenMetadata(File metadataFile) {
+    String xml = readTextFile(metadataFile);
+    final List<FullRevision> versions = new LinkedList<FullRevision>();
+    try {
+      SAXParserFactory.newInstance().newSAXParser().parse(new ByteArrayInputStream(xml.getBytes()), new DefaultHandler() {
+        boolean inVersionTag = false;
 
-      // Check the old compatibility library. When the library is updated in-place
-      // the manager doesn't change its folder name (since that is a source of
-      // endless issues on Windows.)
-      version = versions.get(VENDOR_ID + '/' + COMPATIBILITY_ID);
-      if (version != null) {
-        return new File(sdkLocation, SdkConstants.FD_EXTRAS + File.separator + VENDOR_ID + File.separator + COMPATIBILITY_ID);
-      }
-    return null;
+        @Override
+        public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+          if (qName.equals(TAG_VERSION)) {
+            inVersionTag = true;
+          }
+        }
+
+        @Override
+        public void characters(char[] ch, int start, int length) throws SAXException {
+          // Get the version and compare it to the current known max version
+          if (inVersionTag) {
+            versions.add(FullRevision.parseRevision(new String(ch, start, length)));
+            inVersionTag = false;
+          }
+        }
+      });
+    } catch (Exception e) {
+      ourMostRecentException = e;
+      LOG.warn(e);
+    }
+
+    if (versions.isEmpty()) {
+      return MIN_VERSION_VALUE;
+    } else {
+      return Collections.max(versions).toString();
+    }
   }
 
   /** Executes the given recipe file: copying, merging, instantiating, opening files etc */
