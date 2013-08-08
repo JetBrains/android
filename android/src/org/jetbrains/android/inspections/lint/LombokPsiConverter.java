@@ -1276,10 +1276,21 @@ public class LombokPsiConverter {
           if (initialization instanceof PsiDeclarationStatement) {
             PsiDeclarationStatement pds = (PsiDeclarationStatement)initialization;
             f.astVariableDeclaration(toVariableDefinition(pds));
+          } else if (initialization instanceof PsiExpressionStatement) {
+            PsiExpressionStatement expressionStatement = (PsiExpressionStatement)initialization;
+            f.astExpressionInits().addToEnd(toExpression(expressionStatement.getExpression()));
+          } else if (initialization instanceof PsiExpression) {
+            PsiExpression expression = (PsiExpression)initialization;
+            f.astExpressionInits().addToEnd(toExpression(expression));
+          } else if (initialization instanceof PsiExpressionListStatement) {
+            PsiExpressionList expressionList = ((PsiExpressionListStatement)initialization).getExpressionList();
+            if (expressionList != null) {
+              for (PsiExpression expression : expressionList.getExpressions()) {
+                f.astExpressionInits().addToEnd(toExpression(expression));
+              }
+            }
           } else {
             // Unexpected type of initializer
-            // TODO: Handle initialization; Lombok only allows a variable declaration here,
-            // PSI seems to imply more
             assert false : initialization;
           }
         }
