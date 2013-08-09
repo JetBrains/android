@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.build.gradle.BasePlugin;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,7 +60,7 @@ public class TemplateMetadata {
 
   public static final String V4_SUPPORT_LIBRARY_VERSION = "13.0.+";
   public static final String GRADLE_PLUGIN_VERSION = "0.5.+";
-  public static final String GRADLE_VERSION = BasePlugin.GRADLE_MIN_VERSION;
+  public static final String GRADLE_VERSION = "1.7";
   public static final String GRADLE_DISTRIBUTION_URL = "http://services.gradle.org/distributions/gradle-" +
                                                        GRADLE_VERSION + "-bin.zip";
 
