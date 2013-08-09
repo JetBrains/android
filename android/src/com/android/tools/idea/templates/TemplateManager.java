@@ -46,7 +46,7 @@ public class TemplateManager {
    * A directory relative to application home folder where we can find an extra template folder. This lets us ship more up-to-date
    * templates with the application instead of waiting for SDK updates.
    */
-  private static final String BUNDLED_TEMPLATE_PATH = "/plugins/android/templates";
+  private static final String BUNDLED_TEMPLATE_PATH = "/plugins/android/lib/templates";
   private static final String DEVELOPMENT_TEMPLATE_PATH = "/../../tools/base/templates";
 
   /**
