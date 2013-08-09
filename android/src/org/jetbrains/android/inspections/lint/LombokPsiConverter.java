@@ -869,6 +869,11 @@ public class LombokPsiConverter {
       if (reference != null) {
         return toVariableReference(reference);
       }
+      if (p instanceof PsiSuperExpression) {
+        Super superExpression = new Super();
+        bind(superExpression, p);
+        return superExpression;
+      }
       return toVariableReference(p.getText(), p);
     } else if (expression instanceof PsiReferenceExpression) {
       PsiReferenceExpression refExpression = (PsiReferenceExpression)expression;
@@ -1031,6 +1036,7 @@ public class LombokPsiConverter {
     return null;
   }
 
+  @Nullable
   private static BinaryOperator convertOperation(IElementType operation) {
     BinaryOperator operator = null;
     if (operation == JavaTokenType.EQEQ) {

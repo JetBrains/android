@@ -102,6 +102,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintMissingSuperCallInspection extends AndroidLintInspectionBase {
+    public AndroidLintMissingSuperCallInspection() {
+      super(AndroidBundle.message("android.lint.inspections.missing.super.call"), CallSuperDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintMissingTranslationInspection extends AndroidLintInspectionBase {
     public AndroidLintMissingTranslationInspection() {
       super(AndroidBundle.message("android.lint.inspections.missing.translation"), TranslationDetector.MISSING);

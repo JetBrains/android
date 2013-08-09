@@ -456,6 +456,19 @@ public class LombokPsiConverterTest extends AndroidTestCase {
     check(file, testClass);
   }
 
+  public void testSuper() {
+    String testClass =
+      "package test.pkg;\n" +
+      "\n" +
+      "public final class R8 {\n" +
+      "    public String toString() {\n" +
+      "        return super.toString();\n" +
+      "    }\n" +
+      "}";
+    PsiFile file = myFixture.addFileToProject("src/test/pkg/R8.java", testClass);
+    check(file, testClass);
+  }
+
   private void check(VirtualFile file) {
     assertNotNull(file);
     assertTrue(file.exists());
