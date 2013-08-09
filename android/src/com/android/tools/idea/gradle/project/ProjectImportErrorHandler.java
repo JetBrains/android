@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project;
 
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.util.Pair;
 import org.gradle.api.internal.LocationAwareException;
@@ -29,10 +30,19 @@ import org.jetbrains.annotations.Nullable;
  * Provides better error messages for project import failures.
  */
 class ProjectImportErrorHandler {
+  private static final Logger LOG = Logger.getInstance(ProjectImportErrorHandler.class);
+
   @NonNls private static final String MINIMUM_GRADLE_SUPPORTED_VERSION = "1.6";
 
   @NotNull
-  RuntimeException getUserFriendlyError(@NotNull Throwable error, @Nullable String buildFilePath) {
+  ExternalSystemException getUserFriendlyError(@NotNull Throwable error, @NotNull String projectPath, @Nullable String buildFilePath) {
+    if (error instanceof ExternalSystemException) {
+      // This is already a user-friendly error.
+      return (ExternalSystemException)error;
+    }
+
+    LOG.info(String.format("Failed to import Gradle project at '%1$s'", projectPath), error);
+
     Pair<Throwable, String> rootCauseAndLocation = getRootCauseAndLocation(error);
 
     Throwable rootCause = rootCauseAndLocation.getFirst();
@@ -65,11 +75,6 @@ class ProjectImportErrorHandler {
         // Location of build.gradle is useless for this error. Omitting it.
         return createUserFriendlyError(newMsg, null);
       }
-
-      if (location != null) {
-        return createUserFriendlyError(rootCause.getMessage(), location);
-      }
-      return (RuntimeException)rootCause;
     }
 
     return createUserFriendlyError(rootCause.getMessage(), location);
@@ -83,7 +88,7 @@ class ProjectImportErrorHandler {
       if (location == null) {
         location = getLocationFrom(rootCause);
       }
-      if (rootCause.getCause() == null) {
+      if (rootCause.getCause() == null || rootCause.getCause().getMessage() == null) {
         break;
       }
       rootCause = rootCause.getCause();
@@ -120,7 +125,7 @@ class ProjectImportErrorHandler {
   }
 
   @NotNull
-  private static RuntimeException createUserFriendlyError(@NotNull String msg, @Nullable String location) {
+  private static ExternalSystemException createUserFriendlyError(@NotNull String msg, @Nullable String location) {
     String newMsg = msg;
     if (!newMsg.isEmpty() && Character.isLowerCase(newMsg.charAt(0))) {
       // Message starts with lower case letter. Sentences should start with uppercase.

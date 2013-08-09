@@ -204,7 +204,7 @@ class ProjectResolver {
           // Once that version of Gradle is out, we don't need to pass the project path because we won't be iterating through each
           // sub-project looking for an AndroidProject. The current problem is: in this particular call to Gradle we don't get the location
           // of the build.gradle file that has a problem.
-          throw myErrorHandler.getUserFriendlyError(e, gradleBuildFile.getPath());
+          throw myErrorHandler.getUserFriendlyError(e, projectPath, gradleBuildFile.getPath());
         }
       }
     });
