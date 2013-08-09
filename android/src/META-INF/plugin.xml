@@ -455,6 +455,9 @@
     <filetype.stubBuilder filetype="JAVA" implementationClass="org.jetbrains.android.AndroidSdkSourcesStubBuilder"/>
     <sdkResolveScopeProvider implementation="org.jetbrains.android.AndroidSdkResolveScopeProvider"/>
     <lookup.charFilter implementation="org.jetbrains.android.dom.AndroidXmlCharFilter" order="before xml"/>
+    <gotoRelatedProvider implementation="org.jetbrains.android.AndroidGotoRelatedProvider"/>
+    <codeInsight.lineMarkerProvider language="XML" implementationClass="org.jetbrains.android.AndroidLineMarkerProvider"/>
+    <codeInsight.lineMarkerProvider language="JAVA" implementationClass="org.jetbrains.android.AndroidLineMarkerProvider"/>
   </extensions>
 
   <extensionPoints>
