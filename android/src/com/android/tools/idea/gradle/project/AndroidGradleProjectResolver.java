@@ -27,6 +27,7 @@ import com.intellij.execution.configurations.ParametersList;
 import com.intellij.execution.configurations.SimpleJavaParameters;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
@@ -169,7 +170,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
             return myResolver.resolveProjectInfo(id, projectPath, settings, connection, listener);
           }
           catch (RuntimeException e) {
-            throw errorHandler.getUserFriendlyError(e, null);
+            throw errorHandler.getUserFriendlyError(e, projectPath, null);
           }
         }
       };
