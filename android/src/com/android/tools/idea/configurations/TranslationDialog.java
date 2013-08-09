@@ -67,6 +67,7 @@ public class TranslationDialog extends DialogWrapper {
     String localeLabel = LocaleMenuAction.getLocaleLabel(myLocale, false);
     setTitle(String.format("Add Translation for %1$s", localeLabel));
     init();
+    setOKActionEnabled(false);
   }
 
   @Nullable
@@ -183,7 +184,11 @@ public class TranslationDialog extends DialogWrapper {
 
     @Override
     public void setValueAt(Object aValue, int row, int col) {
-      myTranslations.put(myKeys[row], aValue.toString());
+      String string = aValue.toString();
+      if (!string.isEmpty() && !isOKActionEnabled()) {
+        setOKActionEnabled(true);
+      }
+      myTranslations.put(myKeys[row], string);
     }
 
     @Override
