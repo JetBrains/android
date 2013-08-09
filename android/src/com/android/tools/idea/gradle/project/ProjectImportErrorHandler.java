@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.build.gradle.BasePlugin;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.util.Pair;
 import org.gradle.api.internal.LocationAwareException;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,6 +29,8 @@ import org.jetbrains.annotations.Nullable;
  * Provides better error messages for project import failures.
  */
 class ProjectImportErrorHandler {
+  @NonNls private static final String MINIMUM_GRADLE_SUPPORTED_VERSION = "1.6";
+
   @NotNull
   RuntimeException getUserFriendlyError(@NotNull Throwable error, @Nullable String buildFilePath) {
     Pair<Throwable, String> rootCauseAndLocation = getRootCauseAndLocation(error);
@@ -42,7 +44,7 @@ class ProjectImportErrorHandler {
 
     if (isOldGradleVersion(rootCause)) {
       String newMsg = String.format("You are using an old, unsupported version of Gradle. Please use version %1$s or greater.",
-                                    BasePlugin.GRADLE_MIN_VERSION);
+                                    MINIMUM_GRADLE_SUPPORTED_VERSION);
       // Location of build.gradle is useless for this error. Omitting it.
       return createUserFriendlyError(newMsg, null);
     }
