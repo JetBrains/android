@@ -37,7 +37,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -145,6 +145,7 @@ public class Template {
   public static final String ATTR_ID = "id";
   public static final String ATTR_NAME = "name";
   public static final String ATTR_DESCRIPTION = "description";
+  public static final String ATTR_VERSION = "version";
   public static final String ATTR_TYPE = "type";
   public static final String ATTR_HELP = "help";
   public static final String ATTR_FILE = "file";
@@ -347,11 +348,12 @@ public class Template {
             }
           } else if (TAG_DEPENDENCY.equals(name)) {
             String dependencyName = attributes.getValue(ATTR_NAME);
+            String dependencyVersion = attributes.getValue(ATTR_VERSION);
             if (dependencyName.equals(SUPPORT_LIBRARY_NAME)) {
               // We assume the revision requirement has been satisfied
               // by the wizard
               int minApiLevel = (Integer)paramMap.get(TemplateMetadata.ATTR_MIN_API_LEVEL);
-              paramMap.put(ANDROID_SUPPORT_URL, getSupportMavenUrl(minApiLevel));
+              paramMap.put(ANDROID_SUPPORT_URL, getSupportMavenUrl(minApiLevel, dependencyVersion));
             } // TODO: Add other libraries here (Cloud SDK, Play Services, AppCompatLib, etc).
           } else if (!name.equals("template") && !name.equals("category") && !name.equals("option") && !name.equals(TAG_THUMBS) &&
                      !name.equals(TAG_THUMB) && !name.equals(TAG_ICONS)) {
@@ -368,23 +370,27 @@ public class Template {
   /**
    * Calculate the correct version of the support library and generate the corresponding maven URL
    * @param minApiLevel the minimum api level specified by the template (-1 if no minApiLevel specified)
+   * @param revision the version of the support library (should be v13 or v4)
    * @return a maven url for the android support library
    */
   @Nullable
-  private String getSupportMavenUrl(int minApiLevel) {
-    String suffix = SUFFIX_V4;
-    if (minApiLevel >= 13) {
+  private String getSupportMavenUrl(int minApiLevel, String revision) {
+    // If a version is specified, use that as the version suffix, else calculate based on api level
+    String suffix;
+    if (revision != null) {
+      suffix = "-" + revision;
+    } else if (minApiLevel >= 13) {
       suffix = SUFFIX_V13;
+    } else {
+      suffix = SUFFIX_V4;
     }
-
 
     // Read the support repository and find the latest version available
     String sdkLocation = AndroidSdkUtils.tryToChooseAndroidSdk().getLocation();
     String path = FileUtil.toSystemIndependentName(sdkLocation + SUPPORT_REPOSITORY_PATH + suffix + MAVEN_METADATA_PATH);
     File supportMetadataFile = new File(path);
     if (!supportMetadataFile.exists()) {
-      Messages.showErrorDialog("You must install the Android Support Library though the SDK Manager.", "Support Repository Not Found");
-      return null;
+      throw new ExternalSystemException("You must install the Android Support Repository though the SDK Manager.");
     }
 
     String version = getLatestVersionFromMavenMetadata(supportMetadataFile);
