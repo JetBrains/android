@@ -462,7 +462,7 @@ public class ViewLoader {
 
           for (Field field : resClass.getDeclaredFields()) {
             final int modifiers = field.getModifiers();
-            if (Modifier.isStatic(modifiers) && Modifier.isFinal(modifiers)) {
+            if (Modifier.isStatic(modifiers)) { // May not be final in library projects
               final Class<?> type = field.getType();
               if (type.isArray() && type.getComponentType() == int.class) {
                 styleableId2Res.put(new IntArrayWrapper((int[])field.get(null)), field.getName());
