@@ -25,31 +25,33 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
 public class ProjectImportErrorHandlerTest extends TestCase {
   private ProjectImportErrorHandler myErrorHandler;
+  private String myProjectPath;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     myErrorHandler = new ProjectImportErrorHandler();
+    myProjectPath = "basic";
   }
 
   public void testGetUserFriendlyErrorWithOldGradleVersion() {
     ClassNotFoundException rootCause = new ClassNotFoundException(ToolingModelBuilderRegistry.class.getName());
     Throwable error = new Throwable(rootCause);
-    RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, null);
+    RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
     assertTrue(realCause.getMessage().contains("old, unsupported version of Gradle"));
   }
 
   public void testGetUserFriendlyErrorWithMissingAndroidSupportRepository() {
     RuntimeException rootCause = new RuntimeException("Could not find any version that matches com.android.support:support-v4:13.0.+");
     Throwable error = new Throwable(rootCause);
-    RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, null);
+    RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
     assertTrue(realCause.getMessage().contains("Please install the Android Support Repository"));
   }
 
   public void testGetUserFriendlyErrorWithMissingAndroidSupportRepository2() {
     RuntimeException rootCause = new RuntimeException("Could not find com.android.support:support-v4:13.0.0");
     Throwable error = new Throwable(rootCause);
-    RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, null);
+    RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
     assertTrue(realCause.getMessage().contains("Please install the Android Support Repository"));
   }
 
@@ -67,7 +69,7 @@ public class ProjectImportErrorHandlerTest extends TestCase {
 
     Throwable error = new Throwable(locationError);
 
-    RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, null);
+    RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
     String actualMsg = realCause.getMessage();
     assertTrue(actualMsg.contains(locationMsg));
     assertTrue(actualMsg.contains("Cause: " + causeMsg));
