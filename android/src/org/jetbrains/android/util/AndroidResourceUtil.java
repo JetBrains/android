@@ -765,6 +765,13 @@ public class AndroidResourceUtil {
 
   @Nullable
   public static Pair<String, String> getReferredResourceField(@NotNull AndroidFacet facet, @NotNull PsiReferenceExpression exp) {
+    return getReferredResourceField(facet, exp, null);
+  }
+
+  @Nullable
+  public static Pair<String, String> getReferredResourceField(@NotNull AndroidFacet facet,
+                                                              @NotNull PsiReferenceExpression exp,
+                                                              @Nullable String className) {
     final String resFieldName = exp.getReferenceName();
     if (resFieldName == null || resFieldName.length() == 0) {
       return null;
@@ -777,7 +784,8 @@ public class AndroidResourceUtil {
     final PsiReferenceExpression resClassReference = (PsiReferenceExpression)qExp;
 
     final String resClassName = resClassReference.getReferenceName();
-    if (resClassName == null || resClassName.length() == 0) {
+    if (resClassName == null || resClassName.length() == 0 ||
+        className != null && !className.equals(resClassName)) {
       return null;
     }
 
