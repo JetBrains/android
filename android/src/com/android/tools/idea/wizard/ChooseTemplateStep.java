@@ -68,6 +68,12 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
       if (metadata == null || !metadata.isSupported()) {
         continue;
       }
+      // If we're trying to create a launchable activity, don't include templates that
+      // lack the isLauncher parameter.
+      Boolean isLauncher = (Boolean)state.get(ATTR_IS_LAUNCHER);
+      if (isLauncher != null && isLauncher && metadata.getParameter(TemplateMetadata.ATTR_IS_LAUNCHER) == null) {
+        continue;
+      }
       metadataList.add(new MetadataListItem(template, metadata));
     }
 
