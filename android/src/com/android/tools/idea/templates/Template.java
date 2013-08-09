@@ -161,20 +161,27 @@ public class Template {
   private static final String VENDOR_ID = "android";
   /** The path ID of the support library. */
   private static final String SUPPORT_ID = "support";
+  /** The path ID of the appcompat library. */
+  private static final String APP_COMPAT_ID = "appcompat";
   /** The path ID of the compatibility library (which was its id for releases 1-3). */
   private static final String COMPATIBILITY_ID = "compatibility";
-  private static final String FD_V4 = "v4";
-  private static final String ANDROID_SUPPORT_V4_JAR = "android-support-v4.jar";
 
-  /** Support library constants */
+  /** Names recognized in <dependency> tags */
   static final String SUPPORT_LIBRARY_NAME = "android-support";
+  static final String APP_COMPAT_LIBRARY_NAME = "app-compat";
+
+  /** Variable names used by Freemarker to place values into the inflated template */
   private static final String ANDROID_SUPPORT_URL = "androidSupportLibraryUrl";
+  private static final String APP_COMPAT_URL = "appCompatLibraryUrl";
+
+  /** Internal Maven Repository settings */
   private static final String SUPPORT_BASE_URL = "com.android.support:support";
+  private static final String APP_COMPAT_BASE_URL = "com.android.support:appcompat";
   private static final String SUFFIX_V4 = "-v4";
   private static final String SUFFIX_V7 = "-v7";
   private static final String SUFFIX_V13 = "-v13";
   private static final String MIN_VERSION_VALUE = "0.0.0";
-  private static final String SUPPORT_REPOSITORY_PATH = "/extras/android/m2repository/com/android/support/support";
+  private static final String SUPPORT_REPOSITORY_PATH = "/extras/android/m2repository/com/android/support/";
   private static final String MAVEN_METADATA_PATH = "/maven-metadata.xml";
 
   /**
@@ -349,11 +356,16 @@ public class Template {
           } else if (TAG_DEPENDENCY.equals(name)) {
             String dependencyName = attributes.getValue(ATTR_NAME);
             String dependencyVersion = attributes.getValue(ATTR_VERSION);
+            int minApiLevel = (Integer)paramMap.get(TemplateMetadata.ATTR_MIN_API_LEVEL);
             if (dependencyName.equals(SUPPORT_LIBRARY_NAME)) {
               // We assume the revision requirement has been satisfied
               // by the wizard
-              int minApiLevel = (Integer)paramMap.get(TemplateMetadata.ATTR_MIN_API_LEVEL);
               paramMap.put(ANDROID_SUPPORT_URL, getSupportMavenUrl(minApiLevel, dependencyVersion));
+            } else if (dependencyName.equals(APP_COMPAT_LIBRARY_NAME)) {
+              // API level 11 (Android 3.0) introduces action bar natively
+              if (minApiLevel <= 11) {
+                paramMap.put(APP_COMPAT_URL, getAppCompatMavenUrl(minApiLevel, dependencyVersion));
+              }
             } // TODO: Add other libraries here (Cloud SDK, Play Services, AppCompatLib, etc).
           } else if (!name.equals("template") && !name.equals("category") && !name.equals("option") && !name.equals(TAG_THUMBS) &&
                      !name.equals(TAG_THUMB) && !name.equals(TAG_ICONS)) {
@@ -387,7 +399,8 @@ public class Template {
 
     // Read the support repository and find the latest version available
     String sdkLocation = AndroidSdkUtils.tryToChooseAndroidSdk().getLocation();
-    String path = FileUtil.toSystemIndependentName(sdkLocation + SUPPORT_REPOSITORY_PATH + suffix + MAVEN_METADATA_PATH);
+    String path = FileUtil.toSystemIndependentName(
+      sdkLocation + SUPPORT_REPOSITORY_PATH + SUPPORT_ID + suffix + MAVEN_METADATA_PATH);
     File supportMetadataFile = new File(path);
     if (!supportMetadataFile.exists()) {
       throw new ExternalSystemException("You must install the Android Support Repository though the SDK Manager.");
@@ -396,6 +409,36 @@ public class Template {
     String version = getLatestVersionFromMavenMetadata(supportMetadataFile);
 
     return SUPPORT_BASE_URL + suffix + ":" + version;
+  }
+
+  /**
+   * Calculate the correct version of the app-compat library and generate the corresponding maven URL
+   * @param minApiLevel the minimum api level specified by the template (-1 if no minApiLevel specified)
+   * @param revision the version of the app-compat library (only v7 available right now)
+   * @return a maven url for the android app-compat library
+   */
+  @Nullable
+  private String getAppCompatMavenUrl(int minApiLevel, String revision) {
+    // If a version is specified, use that as the version suffix, else calculate based on api level
+    String suffix;
+    if (revision != null) {
+      suffix = "-" + revision;
+    } else {
+      suffix = SUFFIX_V7;
+    }
+
+    // Read the support repository and find the latest version available
+    String sdkLocation = AndroidSdkUtils.tryToChooseAndroidSdk().getLocation();
+    String path = FileUtil.toSystemIndependentName(
+      sdkLocation + SUPPORT_REPOSITORY_PATH + APP_COMPAT_ID + suffix + MAVEN_METADATA_PATH);
+    File supportMetadataFile = new File(path);
+    if (!supportMetadataFile.exists()) {
+      throw new ExternalSystemException("You must install the Android Support Repository though the SDK Manager.");
+    }
+
+    String version = getLatestVersionFromMavenMetadata(supportMetadataFile);
+
+    return APP_COMPAT_BASE_URL + suffix + ":" + version;
   }
 
   /**
