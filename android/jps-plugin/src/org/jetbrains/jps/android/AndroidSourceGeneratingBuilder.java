@@ -532,11 +532,9 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
 
       final int sdkToolsRevision = platform.getSdkToolsRevision();
       if (sdkToolsRevision >= 0 && sdkToolsRevision < MIN_SDK_TOOLS_REVISION) {
-        final String message = '[' +
-                               module.getName() +
-                               "] Incompatible version of Android SDK Tools package. Min version is " +
-                               MIN_SDK_TOOLS_REVISION +
-                               ". Please, update it though SDK manager";
+        final String message = '[' + module.getName() + "] Incompatible version " +
+                               sdkToolsRevision + " of Android SDK Tools package. Min version is " +
+                               MIN_SDK_TOOLS_REVISION + ". Please, update it though SDK manager";
         context.processMessage(new CompilerMessage(ANDROID_VALIDATOR, BuildMessage.Kind.ERROR, message));
         success = false;
       }
