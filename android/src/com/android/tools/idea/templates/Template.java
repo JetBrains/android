@@ -271,6 +271,11 @@ public class Template {
   }
 
   @NotNull
+  public List<String> getFilesToOpen() {
+    return myFilesToOpen;
+  }
+
+  @NotNull
   private Map<String, Object> createParameterMap(@NotNull Map<String, Object> args) {
     // Create the data model.
     final Map<String, Object> paramMap = new HashMap<String, Object>();
