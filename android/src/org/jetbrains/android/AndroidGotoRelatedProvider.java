@@ -93,7 +93,8 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
     return null;
   }
 
-  static Computable<List<GotoRelatedItem>> getLazyItemsForXmlFile(@NotNull XmlFile file, @NotNull AndroidFacet facet) {
+  @Nullable
+  public static Computable<List<GotoRelatedItem>> getLazyItemsForXmlFile(@NotNull XmlFile file, @NotNull AndroidFacet facet) {
     final String resourceType = facet.getLocalResourceManager().getFileResourceType(file);
 
     if (ResourceType.LAYOUT.getName().equals(resourceType)) {
