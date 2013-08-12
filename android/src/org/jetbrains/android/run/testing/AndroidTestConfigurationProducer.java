@@ -35,6 +35,8 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 /**
  * @author Eugene.Kudelevsky
  */
@@ -53,7 +55,7 @@ public class AndroidTestConfigurationProducer extends JavaRuntimeConfigurationPr
   @Nullable
   @Override
   protected RunnerAndConfigurationSettings findExistingByElement(Location location,
-                                                                 @NotNull RunnerAndConfigurationSettings[] existingConfigurations,
+                                                                 @NotNull List<RunnerAndConfigurationSettings> existingConfigurations,
                                                                  ConfigurationContext context) {
     final Module contextModule = AndroidUtils.getAndroidModule(context);
     if (contextModule == null) return null;
