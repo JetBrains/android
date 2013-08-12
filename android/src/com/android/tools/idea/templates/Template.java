@@ -170,9 +170,6 @@ public class Template {
   static final String SUPPORT_LIBRARY_NAME = "android-support";
   static final String APP_COMPAT_LIBRARY_NAME = "app-compat";
 
-  /** Variable names used by Freemarker to place values into the inflated template */
-  private static final String ANDROID_SUPPORT_URL = "androidSupportLibraryUrl";
-  private static final String APP_COMPAT_URL = "appCompatLibraryUrl";
 
   /** Internal Maven Repository settings */
   private static final String SUPPORT_BASE_URL = "com.android.support:support";
@@ -365,11 +362,11 @@ public class Template {
             if (dependencyName.equals(SUPPORT_LIBRARY_NAME)) {
               // We assume the revision requirement has been satisfied
               // by the wizard
-              paramMap.put(ANDROID_SUPPORT_URL, getSupportMavenUrl(minApiLevel, dependencyVersion));
+              paramMap.put(TemplateMetadata.ATTR_ANDROID_SUPPORT_URL, getSupportMavenUrl(minApiLevel, dependencyVersion));
             } else if (dependencyName.equals(APP_COMPAT_LIBRARY_NAME)) {
               // API level 11 (Android 3.0) introduces action bar natively
               if (minApiLevel <= 11) {
-                paramMap.put(APP_COMPAT_URL, getAppCompatMavenUrl(minApiLevel, dependencyVersion));
+                paramMap.put(TemplateMetadata.ATTR_APP_COMPAT_URL, getAppCompatMavenUrl(minApiLevel, dependencyVersion));
               }
             } // TODO: Add other libraries here (Cloud SDK, Play Services, AppCompatLib, etc).
           } else if (!name.equals("template") && !name.equals("category") && !name.equals("option") && !name.equals(TAG_THUMBS) &&
@@ -391,7 +388,7 @@ public class Template {
    * @return a maven url for the android support library
    */
   @Nullable
-  private String getSupportMavenUrl(int minApiLevel, String revision) {
+  protected static String getSupportMavenUrl(int minApiLevel, String revision) {
     // If a version is specified, use that as the version suffix, else calculate based on api level
     String suffix;
     if (revision != null) {
@@ -423,7 +420,7 @@ public class Template {
    * @return a maven url for the android app-compat library
    */
   @Nullable
-  private String getAppCompatMavenUrl(int minApiLevel, String revision) {
+  protected static String getAppCompatMavenUrl(int minApiLevel, String revision) {
     // If a version is specified, use that as the version suffix, else calculate based on api level
     String suffix;
     if (revision != null) {

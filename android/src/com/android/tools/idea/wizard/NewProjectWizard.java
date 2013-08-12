@@ -126,6 +126,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
             myWizardState.getLauncherIconState().outputImages(moduleRoot);
           }
           myWizardState.updateParameters();
+          myWizardState.updateDependencies();
           myWizardState.myTemplate.render(projectRoot, moduleRoot, myWizardState.myParameters);
           if ((Boolean)myWizardState.get(NewProjectWizardState.ATTR_CREATE_ACTIVITY)) {
             myWizardState.getActivityTemplateState().getTemplate()
