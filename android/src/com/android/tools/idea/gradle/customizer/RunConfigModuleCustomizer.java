@@ -30,6 +30,8 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 /**
  * Creates run configurations for modules imported from {@link com.android.build.gradle.model.AndroidProject}s.
  */
@@ -41,7 +43,7 @@ public class RunConfigModuleCustomizer implements ModuleCustomizer {
       if (facet != null && !facet.getConfiguration().getState().LIBRARY_PROJECT) {
         RunManager runManager = RunManager.getInstance(project);
         ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
-        RunConfiguration[] configs = runManager.getConfigurations(configurationFactory.getType());
+        List<RunConfiguration> configs = runManager.getConfigurationsList(configurationFactory.getType());
         for (RunConfiguration config : configs) {
           if (config instanceof AndroidRunConfiguration) {
             AndroidRunConfiguration androidRunConfig = (AndroidRunConfiguration)config;

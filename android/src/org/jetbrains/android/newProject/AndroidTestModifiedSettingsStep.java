@@ -11,6 +11,8 @@ import org.jetbrains.android.run.AndroidRunConfigurationType;
 import org.jetbrains.android.run.TargetSelectionMode;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+
 /**
 * @author Eugene.Kudelevsky
 */
@@ -37,8 +39,8 @@ class AndroidTestModifiedSettingsStep extends AndroidModifiedSettingsStep {
 
   @NotNull
   private TargetSelectionMode chooseTargetSelectionMode(@NotNull Module testedModule) {
-    final RunConfiguration[] androidConfigurations =
-      RunManager.getInstance(myProject).getConfigurations(AndroidRunConfigurationType.getInstance());
+    final List<RunConfiguration> androidConfigurations =
+      RunManager.getInstance(myProject).getConfigurationsList(AndroidRunConfigurationType.getInstance());
 
     for (RunConfiguration configuration : androidConfigurations) {
       final AndroidRunConfiguration cfg = (AndroidRunConfiguration)configuration;
