@@ -22,6 +22,11 @@ import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.PkgProps;
 import com.android.utils.SparseArray;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -266,5 +271,24 @@ public class TemplateUtils {
     }
 
     return result;
+  }
+
+  /**
+   * Opens the specified file in the editor
+   * @param project The project which contains the given file.
+   * @param path The path to the file on disk.
+   * @return
+   */
+  public static boolean openEditor(@NotNull Project project, @NotNull String path) {
+    File file = new File(path);
+    if (file.exists()) {
+      VirtualFile vFile = VfsUtil.findFileByIoFile(file, true /** refreshIfNeeded */);
+      if (vFile != null) {
+        OpenFileDescriptor descriptor = new OpenFileDescriptor(project, vFile);
+        return !FileEditorManager.getInstance(project).openEditor(descriptor, true).isEmpty();
+      }
+    }
+
+    return false;
   }
 }

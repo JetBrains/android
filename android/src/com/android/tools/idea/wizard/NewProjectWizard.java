@@ -19,18 +19,15 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.io.Closeables;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -135,7 +132,8 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
             myWizardState.getActivityTemplateState().getTemplate()
               .render(moduleRoot, moduleRoot, myWizardState.getActivityTemplateState().myParameters);
             myWizardState.myTemplate.getFilesToOpen().addAll(myWizardState.getActivityTemplateState().getTemplate().getFilesToOpen());
-          } else {
+          }
+          else {
             // Ensure that at least the Java source directory exists. We could create other directories but this is the most used.
             // TODO: We should perhaps instantiate this from the Freemarker template, but trying to use the copy command to copy
             // empty directories is problematic, and we don't have a primitive command to create a directory.
@@ -147,8 +145,8 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
           projectImporter.importProject(projectName, projectRoot, sdk, new GradleProjectImporter.Callback() {
             @Override
             public void projectImported(@NotNull Project project) {
-              for(String path : myWizardState.myTemplate.getFilesToOpen()) {
-                openEditor(project, path);
+              for (String path : myWizardState.myTemplate.getFilesToOpen()) {
+                TemplateUtils.openEditor(project, path);
               }
             }
           });
@@ -181,16 +179,5 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
     } finally {
       Closeables.closeQuietly(os);
     }
-  }
-
-  private static boolean openEditor(@NotNull Project project, @NotNull String path) {
-    File file = new File(path);
-    if (file.exists()) {
-      VirtualFile vFile = VfsUtil.findFileByIoFile(file, true /** refreshIfNeeded */);
-      OpenFileDescriptor descriptor = new OpenFileDescriptor(project, vFile);
-      return !FileEditorManager.getInstance(project).openEditor(descriptor, true).isEmpty();
-    }
-
-    return false;
   }
 }
