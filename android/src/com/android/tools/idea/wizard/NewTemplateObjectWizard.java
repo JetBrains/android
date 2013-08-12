@@ -17,6 +17,7 @@ package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.rendering.ManifestInfo;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.templates.TemplateUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -87,6 +88,10 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
             VirtualFile rootDir = contentRoots[0];
             File moduleRoot = new File(rootDir.getCanonicalPath());
             myWizardState.myTemplate.render(projectRoot, moduleRoot, myWizardState.myParameters);
+            // Open any new files specified by the template
+            for (String path : myWizardState.myTemplate.getFilesToOpen()) {
+              TemplateUtils.openEditor(myProject, path);
+            }
           }
         }
         catch (Exception e) {
