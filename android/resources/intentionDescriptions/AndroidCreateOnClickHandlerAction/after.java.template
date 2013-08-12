@@ -1,0 +1,6 @@
+public class MyActivity extends Activity {
+    /* code */
+
+    public void buttonClicked(View view) {
+    }
+}
