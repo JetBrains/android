@@ -249,8 +249,6 @@ public class ConfigurationMatcher {
       if (matchState != null) {
         myConfiguration.startBulkEditing();
         myConfiguration.setDeviceState(matchState);
-        Locale locale = localeList.get(localeIndex);
-        myConfiguration.setLocale(locale);
         myConfiguration.finishBulkEditing();
       }
       else {
@@ -377,7 +375,6 @@ public class ConfigurationMatcher {
         myConfiguration.startBulkEditing();
         myConfiguration.setDevice(match.device, false);
         myConfiguration.setDeviceState(match.state);
-        myConfiguration.setLocale(localeList.get(match.bundle.localeIndex));
         myConfiguration.setUiMode(UiMode.getByIndex(match.bundle.dockModeIndex));
         myConfiguration.setNightMode(NightMode.getByIndex(match.bundle.nightModeIndex));
         myConfiguration.finishBulkEditing();
@@ -402,7 +399,6 @@ public class ConfigurationMatcher {
       myConfiguration.startBulkEditing();
       myConfiguration.setDevice(match.device, false);
       myConfiguration.setDeviceState(match.state);
-      myConfiguration.setLocale(localeList.get(match.bundle.localeIndex));
       myConfiguration.setUiMode(UiMode.getByIndex(match.bundle.dockModeIndex));
       myConfiguration.setNightMode(NightMode.getByIndex(match.bundle.nightModeIndex));
       myConfiguration.finishBulkEditing();

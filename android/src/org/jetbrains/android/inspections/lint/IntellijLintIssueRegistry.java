@@ -74,6 +74,7 @@ public class IntellijLintIssueRegistry extends BuiltinIssueRegistry {
         }
         result.add(issue);
       }
+      //noinspection AssignmentToStaticFieldFromInstanceMethod
       ourFilteredIssues = result;
     }
 

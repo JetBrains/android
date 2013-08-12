@@ -63,6 +63,9 @@ public interface ConfigurationListener {
   /** Attributes which affect rendering appearance */
   int MASK_RENDERING = MASK_FILE_ATTRS | CFG_THEME;
 
+  /** Attributes which are edited project-wide */
+  int MASK_PROJECT_STATE = CFG_LOCALE|CFG_TARGET;
+
   /**
    * The configuration has changed. If the client returns false, it means that
    * the change was rejected. This typically means that changing the
