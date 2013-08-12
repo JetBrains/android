@@ -110,6 +110,13 @@ public class NewModuleWizardState extends TemplateWizardState {
                    ATTR_CREATE_ICONS, ATTR_IS_GRADLE, ATTR_TOP_OUT, ATTR_PROJECT_OUT, ATTR_SRC_OUT, ATTR_RES_OUT, ATTR_MANIFEST_OUT);
   }
 
+  /**
+   * Call this to copy the dependencies from the child activity template wizard to the project creation wizard.
+   */
+  public void updateDependencies() {
+    myParameters.putAll(myActivityTemplateState.getTemplateMetadata().getDependencies());
+  }
+
   protected void copyParameters(@NotNull Map<String, Object> from, @NotNull Map<String, Object> to, String... keys) {
     for (String key : keys) {
       to.put(key, from.get(key));
