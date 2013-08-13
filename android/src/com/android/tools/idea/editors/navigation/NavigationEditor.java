@@ -42,7 +42,8 @@ import java.io.IOException;
 public class NavigationEditor implements FileEditor {
   private static final Logger LOG = Logger.getInstance("#" + NavigationEditor.class.getName());
   private static final String NAME = "Navigation";
-  public static final int INITIAL_FILE_BUFFER_SIZE = 1000;
+  private static final int INITIAL_FILE_BUFFER_SIZE = 1000;
+  private static final int SCROLL_UNIT_INCREMENT = 20;
 
   private final UserDataHolderBase myUserDataHolder = new UserDataHolderBase();
   private NavigationModel myNavigationModel;
@@ -70,7 +71,9 @@ public class NavigationEditor implements FileEditor {
     try {
       myNavigationModel = read(file);
       // component = new NavigationModelEditorPanel1(project, file, read(file));
-      myComponent = new JBScrollPane(new NavigationEditorPanel2(project, file, myNavigationModel));
+      JBScrollPane scrollPane = new JBScrollPane(new NavigationEditorPanel2(project, file, myNavigationModel));
+      scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT_INCREMENT);
+      myComponent = scrollPane;
     }
     catch (Exception e) {
       myNavigationModel = new NavigationModel();
