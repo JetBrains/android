@@ -18,6 +18,7 @@ import com.intellij.psi.*;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.util.ThrowableRunnable;
+import org.jetbrains.android.dom.converters.OnClickConverter;
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
 
@@ -843,6 +844,54 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     doTestCompletionVariants(getTestName(true) + ".xml", "3pt", "3px");
   }
 
+  public void testOnClickIntention() throws Throwable {
+    myFixture.copyFileToProject(testFolder + "/OnClickActivity.java", "src/p1/p2/Activity1.java");
+    final VirtualFile file = copyFileToProject("onClickIntention.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    final AndroidCreateOnClickHandlerAction action = new AndroidCreateOnClickHandlerAction();
+    assertTrue(action.isAvailable(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile()));
+    action.invoke(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile());
+    myFixture.checkResultByFile(testFolder + "/onClickIntention.xml");
+    myFixture.checkResultByFile("src/p1/p2/Activity1.java", testFolder + "/OnClickActivity_after.java", false);
+  }
+
+  public void testOnClickQuickFix1() throws Throwable {
+    myFixture.copyFileToProject(testFolder + "/OnClickActivity.java", "src/p1/p2/Activity1.java");
+    final VirtualFile file = copyFileToProject("onClickIntention.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    final List<IntentionAction> fixes = highlightAndFindQuickFixes(OnClickConverter.MyQuickFix.class);
+    assertEmpty(fixes);
+  }
+
+  public void testOnClickQuickFix2() throws Throwable {
+    myFixture.copyFileToProject(testFolder + "/OnClickActivity1.java", "src/p1/p2/Activity1.java");
+    final VirtualFile file = copyFileToProject("onClickIntention.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    final List<IntentionAction> actions = highlightAndFindQuickFixes(OnClickConverter.MyQuickFix.class);
+    assertEquals(1, actions.size());
+    actions.get(0).invoke(getProject(), myFixture.getEditor(), myFixture.getFile());
+    myFixture.checkResultByFile(testFolder + "/onClickIntention.xml");
+    myFixture.checkResultByFile("src/p1/p2/Activity1.java", testFolder + "/OnClickActivity1_after.java", false);
+  }
+
+  public void testOnClickQuickFix3() throws Throwable {
+    myFixture.copyFileToProject(testFolder + "/OnClickActivity1.java", "src/p1/p2/Activity1.java");
+    final VirtualFile file = copyFileToProject("onClickIntention.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    final List<IntentionAction> actions = highlightAndFindQuickFixes(OnClickConverter.MyQuickFix.class);
+    assertEquals(1, actions.size());
+    final IntentionAction action = actions.get(0);
+    assertInstanceOf(action, OnClickConverter.MyQuickFix.class);
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        ((OnClickConverter.MyQuickFix)action).doApplyFix(getProject());
+      }
+    });
+    myFixture.checkResultByFile(testFolder + "/onClickIntention.xml");
+    myFixture.checkResultByFile("src/p1/p2/Activity1.java", testFolder + "/OnClickActivity2_after.java", false);
+  }
+
   private void doTestAttrReferenceCompletion(String textToType) throws IOException {
     copyFileToProject("attrReferences_attrs.xml", "res/values/attrReferences_attrs.xml");
     VirtualFile file = copyFileToProject(getTestName(true) + ".xml");
@@ -863,6 +912,18 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
 
   private void doCreateFileResourceFromUsage(VirtualFile virtualFile) {
     myFixture.configureFromExistingVirtualFile(virtualFile);
+    final List<IntentionAction> actions = highlightAndFindQuickFixes(CreateFileResourceQuickFix.class);
+    assertEquals(1, actions.size());
+
+    new WriteCommandAction.Simple(getProject()) {
+      @Override
+      protected void run() throws Throwable {
+        actions.get(0).invoke(getProject(), myFixture.getEditor(), myFixture.getFile());
+      }
+    }.execute();
+  }
+
+  private List<IntentionAction> highlightAndFindQuickFixes(Class<?> aClass) {
     final List<HighlightInfo> infos = myFixture.doHighlighting();
     final List<IntentionAction> actions = new ArrayList<IntentionAction>();
 
@@ -872,20 +933,13 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
       if (ranges != null) {
         for (Pair<HighlightInfo.IntentionActionDescriptor, TextRange> pair : ranges) {
           final IntentionAction action = pair.getFirst().getAction();
-          if (action instanceof CreateFileResourceQuickFix) {
+          if (action.getClass() == aClass) {
             actions.add(action);
           }
         }
       }
     }
-    assertEquals(1, actions.size());
-
-    new WriteCommandAction.Simple(getProject()) {
-      @Override
-      protected void run() throws Throwable {
-        actions.get(0).invoke(getProject(), myFixture.getEditor(), myFixture.getFile());
-      }
-    }.execute();
+    return actions;
   }
 }
 

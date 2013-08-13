@@ -33,6 +33,8 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 /**
  * @author yole
  */
@@ -51,7 +53,7 @@ public class AndroidConfigurationProducer extends JavaRuntimeConfigurationProduc
   @Override
   @Nullable
   protected RunnerAndConfigurationSettings findExistingByElement(final Location location,
-                                                                 @NotNull final RunnerAndConfigurationSettings[] existingConfigurations,
+                                                                 @NotNull final List<RunnerAndConfigurationSettings> existingConfigurations,
                                                                  ConfigurationContext context) {
     PsiClass activity = getActivityClass(location, context);
     if (activity == null) {

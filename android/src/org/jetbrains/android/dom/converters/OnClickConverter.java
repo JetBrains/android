@@ -1,24 +1,37 @@
 package org.jetbrains.android.dom.converters;
 
+import com.intellij.codeInsight.intention.AbstractIntentionAction;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
+import com.intellij.codeInspection.LocalQuickFix;
+import com.intellij.codeInspection.LocalQuickFixProvider;
+import com.intellij.codeInspection.ProblemDescriptor;
+import com.intellij.navigation.GotoRelatedItem;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Iconable;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.search.PsiShortNamesCache;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.Converter;
 import com.intellij.util.xml.CustomReferenceConverter;
 import com.intellij.util.xml.GenericDomValue;
+import org.jetbrains.android.AndroidGotoRelatedProvider;
+import org.jetbrains.android.dom.AndroidCreateOnClickHandlerAction;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +65,7 @@ public class OnClickConverter extends Converter<String> implements CustomReferen
     return s;
   }
 
-  private static class MyReference extends PsiPolyVariantReferenceBase<XmlAttributeValue> {
+  private static class MyReference extends PsiPolyVariantReferenceBase<XmlAttributeValue> implements LocalQuickFixProvider {
 
     public MyReference(XmlAttributeValue value, TextRange range) {
       super(value, range, true);
@@ -102,14 +115,12 @@ public class OnClickConverter extends Converter<String> implements CustomReferen
     @NotNull
     @Override
     public Object[] getVariants() {
-      final Project project = myElement.getProject();
       final Module module = ModuleUtilCore.findModuleForPsiElement(myElement);
 
       if (module == null) {
         return ResolveResult.EMPTY_ARRAY;
       }
-      final PsiClass activityClass = JavaPsiFacade.getInstance(project)
-        .findClass(AndroidUtils.ACTIVITY_BASE_CLASS_NAME, module.getModuleWithDependenciesAndLibrariesScope(false));
+      final PsiClass activityClass = findActivityClass(module);
       if (activityClass == null) {
         return EMPTY_ARRAY;
       }
@@ -130,9 +141,73 @@ public class OnClickConverter extends Converter<String> implements CustomReferen
       });
       return ArrayUtil.toObjectArray(result);
     }
+
+    private static PsiClass findActivityClass(@NotNull Module module) {
+      return JavaPsiFacade.getInstance(module.getProject())
+        .findClass(AndroidUtils.ACTIVITY_BASE_CLASS_NAME, module.getModuleWithDependenciesAndLibrariesScope(false));
+    }
+
+    @Nullable
+    @Override
+    public LocalQuickFix[] getQuickFixes() {
+      final String methodName = getValue();
+
+      if (methodName.isEmpty() || !StringUtil.isJavaIdentifier(methodName)) {
+        return LocalQuickFix.EMPTY_ARRAY;
+      }
+      final PsiClass activity = findRelatedActivity(methodName);
+
+      if (activity == null) {
+        return LocalQuickFix.EMPTY_ARRAY;
+      }
+      return new LocalQuickFix[]{new MyQuickFix(methodName, activity)};
+    }
+
+    @Nullable
+    private PsiClass findRelatedActivity(@NotNull String methodName) {
+      final PsiFile file = myElement.getContainingFile();
+
+      if (!(file instanceof XmlFile)) {
+        return null;
+      }
+      final AndroidFacet facet = AndroidFacet.getInstance(file);
+
+      if (facet == null) {
+        return null;
+      }
+      final Computable<List<GotoRelatedItem>> computable = AndroidGotoRelatedProvider.
+        getLazyItemsForXmlFile((XmlFile)file, facet);
+
+      if (computable == null) {
+        return null;
+      }
+      final List<GotoRelatedItem> items = computable.compute();
+
+      if (items.isEmpty()) {
+        return null;
+      }
+      final PsiClass activityClass = findActivityClass(facet.getModule());
+
+      if (activityClass == null) {
+        return null;
+      }
+      for (GotoRelatedItem item : items) {
+        final PsiElement element = item.getElement();
+
+        if (element instanceof PsiClass) {
+          final PsiClass aClass = (PsiClass)element;
+
+          if (aClass.isInheritor(activityClass, true) &&
+              !findHandlerMethod(aClass, methodName)) {
+            return aClass;
+          }
+        }
+      }
+      return null;
+    }
   }
 
-  public static boolean checkSignature(PsiMethod method) {
+  public static boolean checkSignature(@NotNull PsiMethod method) {
     if (method.getReturnType() != PsiType.VOID) {
       return false;
     }
@@ -162,6 +237,17 @@ public class OnClickConverter extends Converter<String> implements CustomReferen
     return paramClass != null && AndroidUtils.VIEW_CLASS_NAME.equals(paramClass.getQualifiedName());
   }
 
+  public static boolean findHandlerMethod(@NotNull PsiClass psiClass, @NotNull String methodName) {
+    final PsiMethod[] methods = psiClass.findMethodsByName(methodName, false);
+
+    for (PsiMethod method : methods) {
+      if (checkSignature(method)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   private static LookupElement createLookupElement(PsiMethod method) {
     final LookupElementBuilder builder = LookupElementBuilder.create(method, method.getName())
       .withIcon(method.getIcon(Iconable.ICON_FLAG_VISIBILITY))
@@ -170,5 +256,48 @@ public class OnClickConverter extends Converter<String> implements CustomReferen
     return containingClass != null
            ? builder.withTailText(" (" + containingClass.getQualifiedName() + ')')
            : builder;
+  }
+
+  public static class MyQuickFix extends AbstractIntentionAction implements LocalQuickFix {
+    private final String myMethodName;
+    private final PsiClass myClass;
+
+    private MyQuickFix(@NotNull String methodName, @NotNull PsiClass aClass) {
+      myMethodName = methodName;
+      myClass = aClass;
+    }
+
+    @NotNull
+    @Override
+    public String getName() {
+      return "Create '" + myMethodName + "(View)' in '" + myClass.getName() + "'";
+    }
+
+    @NotNull
+    @Override
+    public String getText() {
+      return getName();
+    }
+
+    @NotNull
+    @Override
+    public String getFamilyName() {
+      return getName();
+    }
+
+    @Override
+    public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
+      AndroidCreateOnClickHandlerAction.addHandlerMethodAndNavigate(project, myClass, myMethodName);
+    }
+
+    @Override
+    public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
+      // it is called from inspection view or "fix all problems" action (for example) instead of invoke()
+      doApplyFix(project);
+    }
+
+    public void doApplyFix(@NotNull Project project) {
+      AndroidCreateOnClickHandlerAction.addHandlerMethod(project, myClass, myMethodName);
+    }
   }
 }
