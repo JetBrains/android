@@ -36,6 +36,7 @@ import com.intellij.openapi.util.KeyValue;
 import com.intellij.util.Function;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.lang.UrlClassLoader;
 import com.intellij.util.net.HttpConfigurable;
 import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -46,6 +47,7 @@ import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
+import java.net.URL;
 import java.util.List;
 
 /**
@@ -108,7 +110,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
    * @param parameters parameters to be applied to the slave process which will be used for external system communication.
    */
   @Override
-  public void enhanceParameters(@NotNull SimpleJavaParameters parameters) {
+  public void enhanceRemoteProcessing(@NotNull SimpleJavaParameters parameters) {
     GradleImportNotificationListener.attachToManager();
     List<String> jarPaths = getJarPathsOf(getClass(), AndroidBuilder.class, AndroidProject.class, BaseTask.class, ProductFlavor.class);
     LOG.info("Added to RMI/Gradle process classpath: " + jarPaths);
@@ -131,6 +133,10 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
     for (KeyValue<String, String> proxyProperty : proxyProperties) {
       vmParameters.defineProperty(proxyProperty.getKey(), proxyProperty.getValue());
     }
+  }
+
+  @Override
+  public void enhanceLocalProcessing(@NotNull List<URL> urls) {
   }
 
   @NotNull
