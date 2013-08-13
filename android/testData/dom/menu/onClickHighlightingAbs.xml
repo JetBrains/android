@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+  <item android:title="title1" android:onClick="clickHandler1"/>
+  <item android:title="title2" android:onClick="clickHandler2"/>
+  <item android:title="title3" android:onClick="<warning>clickHandler3</warning>"/>
+</menu>
