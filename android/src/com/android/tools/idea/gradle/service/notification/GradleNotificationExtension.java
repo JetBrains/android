@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.service.notification;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleModelConstants;
+import com.android.tools.idea.gradle.project.ProjectImportErrorHandler;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -25,9 +26,12 @@ import com.intellij.find.FindManager;
 import com.intellij.find.FindModel;
 import com.intellij.find.FindSettings;
 import com.intellij.find.impl.FindInProjectUtil;
+import com.intellij.ide.actions.SendFeedbackAction;
+import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationExtension;
@@ -72,10 +76,16 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
 
   @NonNls private static final String OPEN_FILE_URL = "openFile";
   @NonNls private static final String SEARCH_IN_BUILD_FILES_URL = "searchInBuildFiles";
+  @NonNls private static final String FILE_BUG_URL = "fileBug";
+  @NonNls private static final String SHOW_LOG_FILE_URL = "showLogFile";
 
-  @NonNls private static final String OPEN_FILE_LINK_TEXT = String.format("<a href=\"%1$s\">Open file</a>", OPEN_FILE_URL);
+  @NonNls private static final String OPEN_FILE_LINK_TEXT = createHyperlink(OPEN_FILE_URL, "Open File");
   @NonNls private static final String SEARCH_IN_BUILD_FILES_LINK_TEXT =
-    String.format("<a href=\"%1$s\">Search in build.gradle files</a>", SEARCH_IN_BUILD_FILES_URL);
+    createHyperlink(SEARCH_IN_BUILD_FILES_URL, "Search in build.gradle files");
+  @NonNls private static final String FILE_BUG_LINK_TEXT = createHyperlink(FILE_BUG_URL, "File a bug");
+  @NonNls private static final String SHOW_LOG_FILE_LINK_TEXT = createHyperlink(SHOW_LOG_FILE_URL, "Show log file");
+
+  @NonNls private static final String IDEA_LOG_FILE_NAME = "idea.log";
 
   @NotNull
   @Override
@@ -108,13 +118,17 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
                                                     GradleModelConstants.ANDROID_GRADLE_MODEL_DEPENDENCY_NAME);
       }
 
-      if (msg.contains("failed to parse SDK")) {
+      if (msg.contains(ProjectImportErrorHandler.FAILED_TO_PARSE_SDK_ERROR_MSG)) {
         return createAddonsFolderMissingInSdkNotification(project, msg);
       }
 
       List<String> lines = splitLines(msg);
       String firstLine = lines.get(0);
       String lastLine = lines.get(lines.size() - 1);
+
+      if (lastLine != null && lastLine.contains(ProjectImportErrorHandler.INSTALL_ANDROID_SUPPORT_REPO_ERROR_MSG)) {
+        return createOpenAndroidSdkNotification(project, msg);
+      }
 
       Matcher matcher = MISSING_DEPENDENCY_PATTERN.matcher(firstLine);
       if (matcher.matches() && lines.size() > 1 && lines.get(1).startsWith("Required by:")) {
@@ -132,8 +146,8 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
       }
 
       if (lastLine != null) {
-        if (lastLine.contains("install") && lastLine.contains("from the Android SDK Manager")) {
-          return createOpenAndroidSdkNotification(project, msg);
+        if (lastLine.contains(ProjectImportErrorHandler.UNEXPECTED_ERROR_FILE_BUG_ERROR_MSG)) {
+          return createFileBugNotification(project, msg);
         }
 
         Pair<String, Integer> errorLocation = getErrorLocation(lastLine);
@@ -172,13 +186,14 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
     String pathOfBrokenSdk = findPathOfSdkMissingOrEmptyAddonsFolder(project);
     String msg;
     if (pathOfBrokenSdk != null) {
-      msg = String.format("The directory '%1$s', in the Android SDK at '%2$s', is either missing or empty", SdkConstants.FD_ADDONS,
-                          pathOfBrokenSdk);
+      msg = String
+        .format("The directory '%1$s', in the Android SDK at '%2$s', is either missing or empty", SdkConstants.FD_ADDONS, pathOfBrokenSdk);
       File sdkHomeDir = new File(pathOfBrokenSdk);
       if (!sdkHomeDir.canWrite()) {
         msg += String.format("\n\nCurrent user (%1$s) does not have write access to the SDK directory.", SystemProperties.getUserName());
       }
-    } else {
+    }
+    else {
       msg = splitLines(errorMsg).iterator().next();
     }
     return new CustomizationResult(createNotificationTitle(project, msg), "", DEFAULT_NOTIFICATION_TYPE, null);
@@ -205,6 +220,30 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
     return Lists.newArrayList(Splitter.on('\n').split(s));
   }
 
+
+  @NotNull
+  private static CustomizationResult createFileBugNotification(@NotNull final Project project, @NotNull String errorMsg) {
+    NotificationListener notificationListener = new NotificationListener() {
+      @Override
+      public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
+        if (!wasActivated(event)) {
+          return;
+        }
+        if (FILE_BUG_URL.equals(event.getDescription())) {
+          SendFeedbackAction.launchBrowser();
+        }
+        else {
+          File logFile = new File(PathManager.getLogPath(), IDEA_LOG_FILE_NAME);
+          ShowFilePathAction.openFile(logFile);
+        }
+      }
+    };
+    String title = createNotificationTitle(project, errorMsg);
+    String msg = FILE_BUG_LINK_TEXT + " " + SHOW_LOG_FILE_LINK_TEXT;
+    return new CustomizationResult(title, msg, DEFAULT_NOTIFICATION_TYPE, notificationListener);
+  }
+
+
   @NotNull
   private static CustomizationResult createSearchInBuildFilesNotification(@NotNull final Project project,
                                                                           @NotNull final String errorMsg,
@@ -212,7 +251,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
     NotificationListener notificationListener = new NotificationListener() {
       @Override
       public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
-        if (event.getEventType() != HyperlinkEvent.EventType.ACTIVATED) {
+        if (!wasActivated(event)) {
           return;
         }
         searchInBuildFiles(project, textToSearch);
@@ -233,18 +272,23 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
       notificationListener = new NotificationListener() {
         @Override
         public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
-          if (event.getEventType() != HyperlinkEvent.EventType.ACTIVATED) {
+          if (!wasActivated(event)) {
             return;
           }
           RunAndroidSdkManagerAction action = new RunAndroidSdkManagerAction();
           action.doAction(project);
         }
       };
-      msg = "<a href=\"openSdk\">Open Android SDK</a>";
+      msg = createHyperlink("openSdk", "Open Android SDK");
     }
 
     String title = createNotificationTitle(project, errorMsg);
     return new CustomizationResult(title, msg, DEFAULT_NOTIFICATION_TYPE, notificationListener);
+  }
+
+  @NotNull
+  private static String createHyperlink(@NotNull String url, @NotNull String text) {
+    return String.format("<a href=\"%1$s\">%2$s</a>", url, text);
   }
 
   @NotNull
@@ -255,7 +299,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
     NotificationListener notificationListener = new NotificationListener() {
       @Override
       public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
-        if (event.getEventType() != HyperlinkEvent.EventType.ACTIVATED) {
+        if (!wasActivated(event)) {
           return;
         }
         openFile(project, filePath, line);
@@ -274,12 +318,13 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
     NotificationListener notificationListener = new NotificationListener() {
       @Override
       public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
-        if (event.getEventType() != HyperlinkEvent.EventType.ACTIVATED) {
+        if (!wasActivated(event)) {
           return;
         }
         if (OPEN_FILE_URL.equals(event.getDescription())) {
           openFile(project, filePath, line);
-        } else {
+        }
+        else {
           searchInBuildFiles(project, textToFind);
         }
       }
@@ -287,6 +332,10 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
     String title = createNotificationTitle(project, errorMsg);
     String msg = OPEN_FILE_LINK_TEXT + " " + SEARCH_IN_BUILD_FILES_LINK_TEXT;
     return new CustomizationResult(title, msg, DEFAULT_NOTIFICATION_TYPE, notificationListener);
+  }
+
+  private static boolean wasActivated(@NotNull HyperlinkEvent event) {
+    return event.getEventType() == HyperlinkEvent.EventType.ACTIVATED;
   }
 
   private static void openFile(@NotNull Project project, @NotNull String filePath, int line) {
@@ -308,7 +357,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
     FindManager findManager = FindManager.getInstance(project);
     UsageViewManager usageViewManager = UsageViewManager.getInstance(project);
 
-    FindModel findModel = (FindModel) findManager.getFindInProjectModel().clone();
+    FindModel findModel = (FindModel)findManager.getFindInProjectModel().clone();
     findModel.setStringToFind(textToFind);
     findModel.setReplaceState(false);
     findModel.setOpenInNewTabVisible(true);
@@ -324,13 +373,14 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
     final FindUsagesProcessPresentation processPresentation =
       FindInProjectUtil.setupProcessPresentation(project, showPanelIfOnlyOneUsage, presentation);
     UsageTarget usageTarget = new FindInProjectUtil.StringUsageTarget(findModel.getStringToFind());
-    usageViewManager.searchAndShowUsages(new UsageTarget[] { usageTarget }, new Factory<UsageSearcher>() {
+    usageViewManager.searchAndShowUsages(new UsageTarget[]{usageTarget}, new Factory<UsageSearcher>() {
       @Override
       public UsageSearcher create() {
         return new UsageSearcher() {
           @Override
           public void generate(@NotNull final Processor<Usage> processor) {
-            AdapterProcessor<UsageInfo, Usage> consumer = new AdapterProcessor<UsageInfo, Usage>(processor, UsageInfo2UsageAdapter.CONVERTER);
+            AdapterProcessor<UsageInfo, Usage> consumer =
+              new AdapterProcessor<UsageInfo, Usage>(processor, UsageInfo2UsageAdapter.CONVERTER);
             //noinspection ConstantConditions
             FindInProjectUtil.findUsages(findModelCopy, null, project, true, consumer, processPresentation);
           }

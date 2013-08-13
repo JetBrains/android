@@ -29,10 +29,16 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Provides better error messages for project import failures.
  */
-class ProjectImportErrorHandler {
+public class ProjectImportErrorHandler {
   private static final Logger LOG = Logger.getInstance(ProjectImportErrorHandler.class);
 
   @NonNls private static final String MINIMUM_GRADLE_SUPPORTED_VERSION = "1.6";
+
+  public static final String FAILED_TO_PARSE_SDK_ERROR_MSG = "failed to parse SDK";
+  public static final String INSTALL_ANDROID_SUPPORT_REPO_ERROR_MSG =
+    "Please install the Android Support Repository from the Android SDK Manager.";
+  public static final String UNEXPECTED_ERROR_FILE_BUG_ERROR_MSG =
+    "This is an unexpected error. Please file a bug containing the idea.log file.";
 
   @NotNull
   ExternalSystemException getUserFriendlyError(@NotNull Throwable error, @NotNull String projectPath, @Nullable String buildFilePath) {
@@ -53,10 +59,16 @@ class ProjectImportErrorHandler {
     }
 
     if (isOldGradleVersion(rootCause)) {
-      String newMsg = String.format("You are using an old, unsupported version of Gradle. Please use version %1$s or greater.",
-                                    MINIMUM_GRADLE_SUPPORTED_VERSION);
+      String msg = String.format("You are using an old, unsupported version of Gradle. Please use version %1$s or greater.",
+                                 MINIMUM_GRADLE_SUPPORTED_VERSION);
       // Location of build.gradle is useless for this error. Omitting it.
-      return createUserFriendlyError(newMsg, null);
+      return createUserFriendlyError(msg, null);
+    }
+
+    if (rootCause instanceof ClassNotFoundException) {
+      String msg = String.format("Unable to load class '%1$s'.", rootCause.getMessage()) + "\n\n" + UNEXPECTED_ERROR_FILE_BUG_ERROR_MSG;
+      // Location of build.gradle is useless for this error. Omitting it.
+      return createUserFriendlyError(msg, null);
     }
 
     if (rootCause instanceof RuntimeException) {
@@ -65,12 +77,12 @@ class ProjectImportErrorHandler {
       // With this condition we cover 2 similar messages about the same problem.
       if (msg != null && msg.contains("Could not find") && msg.contains("com.android.support:support")) {
         // We keep the original error message and we append a hint about how to fix the missing dependency.
-        String newMsg = msg + "\n\nPlease install the Android Support Repository from the Android SDK Manager.";
+        String newMsg = msg + "\n\n" + INSTALL_ANDROID_SUPPORT_REPO_ERROR_MSG;
         // Location of build.gradle is useless for this error. Omitting it.
         return createUserFriendlyError(newMsg, null);
       }
 
-      if (msg != null && msg.contains("failed to parse SDK")) {
+      if (msg != null && msg.contains(FAILED_TO_PARSE_SDK_ERROR_MSG)) {
         String newMsg = msg + "\n\nThe Android SDK may be missing the directory 'add-ons'.";
         // Location of build.gradle is useless for this error. Omitting it.
         return createUserFriendlyError(newMsg, null);
