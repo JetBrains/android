@@ -6,7 +6,6 @@ import com.intellij.ide.util.ClassFilter;
 import com.intellij.ide.util.TreeClassChooser;
 import com.intellij.ide.util.TreeClassChooserFactory;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
@@ -156,10 +155,8 @@ public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction {
           return;
         }
         final Editor javaEditor = PsiUtilBase.findEditor(method);
-        final Document document = javaEditor != null
-                                  ? javaEditor.getDocument()
-                                  : PsiDocumentManager.getInstance(project).getDocument(javaFile);
-        if (document == null) {
+
+        if (javaEditor == null) {
           return;
         }
         final PsiCodeBlock body = method.getBody();
@@ -168,14 +165,7 @@ public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction {
           final PsiJavaToken lBrace = body.getLBrace();
 
           if (lBrace != null) {
-            PsiDocumentManager.getInstance(project).doPostponedOperationsAndUnblockDocument(document);
-            final int offset = lBrace.getTextRange().getEndOffset();
-            document.insertString(offset, "\n");
-
-            if (javaEditor != null) {
-              javaEditor.getCaretModel().moveToOffset(offset + 1);
-            }
-            CodeStyleManager.getInstance(project).adjustLineIndent(document, offset + 1);
+            javaEditor.getCaretModel().moveToOffset(lBrace.getTextRange().getEndOffset());
           }
         }
       }
