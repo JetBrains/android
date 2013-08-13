@@ -9,6 +9,7 @@ import com.intellij.openapi.util.Iconable;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.PsiShortNamesCache;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.xml.XmlAttributeValue;
@@ -32,15 +33,60 @@ import java.util.Set;
 /**
  * @author Eugene.Kudelevsky
  */
-public class OnClickConverter extends Converter<String> implements CustomReferenceConverter<String> {
-  public static final OnClickConverter CONVERTER_FOR_LAYOUT = new OnClickConverter(AndroidUtils.VIEW_CLASS_NAME);
-  public static final OnClickConverter CONVERTER_FOR_MENU = new OnClickConverter("android.view.MenuItem");
+public abstract class OnClickConverter extends Converter<String> implements CustomReferenceConverter<String> {
+  private static final String DEFAULT_MENU_ITEM_CLASS = "android.view.MenuItem";
+  private static final String ABS_MENU_ITEM_CLASS = "com.actionbarsherlock.view.MenuItem";
 
-  private final String myMethodParameterType;
+  public static final OnClickConverter CONVERTER_FOR_LAYOUT = new OnClickConverter() {
+    @NotNull
+    @Override
+    public String getDefaultMethodParameterType(@NotNull PsiClass parentClass) {
+      return AndroidUtils.VIEW_CLASS_NAME;
+    }
 
-  public OnClickConverter(@NotNull String methodParameterType) {
-    myMethodParameterType = methodParameterType;
-  }
+    @Override
+    protected boolean isAllowedMethodParameterType(@NotNull String type) {
+      return AndroidUtils.VIEW_CLASS_NAME.equals(type);
+    }
+
+    @NotNull
+    @Override
+    public String getShortParameterName() {
+      return "View";
+    }
+  };
+
+  public static final OnClickConverter CONVERTER_FOR_MENU = new OnClickConverter() {
+    @NotNull
+    @Override
+    public String getDefaultMethodParameterType(@NotNull PsiClass parentClass) {
+      final Project project = parentClass.getProject();
+      final PsiClass watsonClass = JavaPsiFacade.getInstance(project).findClass(
+        "android.support.v4.app.Watson", GlobalSearchScope.projectScope(project));
+      return watsonClass != null && parentClass.isInheritor(watsonClass, true)
+             ? ABS_MENU_ITEM_CLASS
+             : DEFAULT_MENU_ITEM_CLASS;
+    }
+
+    @Override
+    protected boolean isAllowedMethodParameterType(@NotNull String type) {
+      return DEFAULT_MENU_ITEM_CLASS.equals(type) || ABS_MENU_ITEM_CLASS.equals(type);
+    }
+
+    @NotNull
+    @Override
+    public String getShortParameterName() {
+      return "MenuItem";
+    }
+  };
+
+  @NotNull
+  public abstract String getDefaultMethodParameterType(@NotNull PsiClass parentClass);
+
+  protected abstract boolean isAllowedMethodParameterType(@NotNull String type);
+
+  @NotNull
+  public abstract String getShortParameterName();
 
   @NotNull
   @Override
@@ -60,11 +106,6 @@ public class OnClickConverter extends Converter<String> implements CustomReferen
   @Override
   public String toString(@Nullable String s, ConvertContext context) {
     return s;
-  }
-
-  @NotNull
-  public String getMethodParameterType() {
-    return myMethodParameterType;
   }
 
   public class MyReference extends PsiPolyVariantReferenceBase<XmlAttributeValue> {
@@ -117,7 +158,7 @@ public class OnClickConverter extends Converter<String> implements CustomReferen
         final PsiClass parentClass = method.getContainingClass();
 
         if (parentClass != null && parentClass.isInheritor(activityBaseClass, true)) {
-          if (checkSignature(method, myMethodParameterType)) {
+          if (checkSignature(method)) {
             result.add(new MyResolveResult(method, true));
           }
           else {
@@ -150,7 +191,7 @@ public class OnClickConverter extends Converter<String> implements CustomReferen
         @Override
         public boolean process(PsiClass c) {
           for (PsiMethod method : c.getMethods()) {
-            if (checkSignature(method, myMethodParameterType) && methodNames.add(method.getName())) {
+            if (checkSignature(method) && methodNames.add(method.getName())) {
               result.add(createLookupElement(method));
             }
           }
@@ -167,10 +208,6 @@ public class OnClickConverter extends Converter<String> implements CustomReferen
   }
 
   public boolean checkSignature(@NotNull PsiMethod method) {
-    return checkSignature(method, myMethodParameterType);
-  }
-
-  private static boolean checkSignature(@NotNull PsiMethod method, @NotNull String parameterType) {
     if (method.getReturnType() != PsiType.VOID) {
       return false;
     }
@@ -195,9 +232,13 @@ public class OnClickConverter extends Converter<String> implements CustomReferen
     if (!(paramType instanceof PsiClassType)) {
       return false;
     }
-
     final PsiClass paramClass = ((PsiClassType)paramType).resolve();
-    return paramClass != null && parameterType.equals(paramClass.getQualifiedName());
+
+    if (paramClass == null) {
+      return false;
+    }
+    final String paramClassName = paramClass.getQualifiedName();
+    return paramClassName != null && isAllowedMethodParameterType(paramClassName);
   }
 
   public boolean findHandlerMethod(@NotNull PsiClass psiClass, @NotNull String methodName) {

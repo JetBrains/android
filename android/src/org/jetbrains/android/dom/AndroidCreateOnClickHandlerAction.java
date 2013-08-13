@@ -9,6 +9,7 @@ import com.intellij.ide.util.TreeClassChooserFactory;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -21,6 +22,7 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.Processor;
 import com.intellij.util.PsiNavigateUtil;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
@@ -100,7 +102,19 @@ public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction i
     final PsiClass selectedClass;
 
     if (ApplicationManager.getApplication().isUnitTestMode()) {
-      selectedClass = ClassInheritorsSearch.search(activityBaseClass, scope, true, true, false).findFirst();
+      final Ref<PsiClass> selClassRef = Ref.create();
+
+      ClassInheritorsSearch.search(activityBaseClass, scope, true, true, false).forEach(new Processor<PsiClass>() {
+        @Override
+        public boolean process(PsiClass psiClass) {
+          if (!psiClass.isInterface() && !psiClass.hasModifierProperty(PsiModifier.ABSTRACT)) {
+            selClassRef.set(psiClass);
+            return false;
+          }
+          return true;
+        }
+      });
+      selectedClass = selClassRef.get();
     }
     else {
       final TreeClassChooser chooser = TreeClassChooserFactory.getInstance(project).createInheritanceClassChooser(
@@ -115,7 +129,7 @@ public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction i
     }
 
     if (selectedClass != null) {
-      addHandlerMethodAndNavigate(project, selectedClass, methodName, converter.getMethodParameterType());
+      addHandlerMethodAndNavigate(project, selectedClass, methodName, converter.getDefaultMethodParameterType(selectedClass));
     }
   }
 

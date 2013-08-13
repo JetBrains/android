@@ -225,25 +225,25 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
 
       myResult.add(myInspectionManager.createProblemDescriptor(
         reference.getElement(), reference.getRangeInElement(), message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING, myOnTheFly,
-        new MyQuickFix(methodName, reference.getConverter().getMethodParameterType(), activity)));
+        new MyQuickFix(methodName, reference.getConverter(), activity)));
     }
   }
 
   public static class MyQuickFix extends AbstractIntentionAction implements LocalQuickFix {
     private final String myMethodName;
-    private final String myMethodParamType;
+    private final OnClickConverter myConverter;
     private final PsiClass myClass;
 
-    private MyQuickFix(@NotNull String methodName, @NotNull String methodParamType, @NotNull PsiClass aClass) {
+    private MyQuickFix(@NotNull String methodName, @NotNull OnClickConverter converter, @NotNull PsiClass aClass) {
       myMethodName = methodName;
-      myMethodParamType = methodParamType;
+      myConverter = converter;
       myClass = aClass;
     }
 
     @NotNull
     @Override
     public String getName() {
-      return "Create '" + myMethodName + "(" + getShortName(myMethodParamType) + ")' in '" + myClass.getName() + "'";
+      return "Create '" + myMethodName + "(" + myConverter.getShortParameterName() + ")' in '" + myClass.getName() + "'";
     }
 
     @NotNull
@@ -260,7 +260,8 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
 
     @Override
     public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-      AndroidCreateOnClickHandlerAction.addHandlerMethodAndNavigate(project, myClass, myMethodName, myMethodParamType);
+      final String paramType = myConverter.getDefaultMethodParameterType(myClass);
+      AndroidCreateOnClickHandlerAction.addHandlerMethodAndNavigate(project, myClass, myMethodName, paramType);
     }
 
     @Override
@@ -270,7 +271,8 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
     }
 
     public void doApplyFix(@NotNull Project project) {
-      AndroidCreateOnClickHandlerAction.addHandlerMethod(project, myClass, myMethodName, myMethodParamType);
+      final String paramType = myConverter.getDefaultMethodParameterType(myClass);
+      AndroidCreateOnClickHandlerAction.addHandlerMethod(project, myClass, myMethodName, paramType);
     }
 
     @NotNull
