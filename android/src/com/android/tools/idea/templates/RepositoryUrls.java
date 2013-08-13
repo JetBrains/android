@@ -16,6 +16,7 @@
 package com.android.tools.idea.templates;
 
 import com.android.sdklib.repository.FullRevision;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.util.io.FileUtil;
@@ -31,6 +32,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import static com.android.tools.idea.templates.TemplateUtils.readTextFile;
 
@@ -61,6 +63,10 @@ public class RepositoryUrls {
 
   private static final String SUPPORT_REPOSITORY_PATH = "%s/extras/android/m2repository/com/android/support/%s-%s/maven-metadata.xml";
 
+  public static final Set<String> SUPPORT_REPOSITORY_ARTIFACTS = ImmutableSet.of(
+    SUPPORT_ID, APP_COMPAT_ID, GRID_LAYOUT_ID
+  ); // TODO: Add other libraries here (Cloud SDK, Play Services, YouTube, AdMob, etc).
+
   /**
    * Calculate the correct version of the support library and generate the corresponding maven URL
    * @param minApiLevel the minimum api level specified by the template (-1 if no minApiLevel specified)
@@ -69,6 +75,10 @@ public class RepositoryUrls {
    */
   @Nullable
   public static String getLibraryUrl(String libraryId, String revision) {
+    // Check to see if this is a URL we support:
+    if (!SUPPORT_REPOSITORY_ARTIFACTS.contains(libraryId)) {
+      return null;
+    }
     // Read the support repository and find the latest version available
     String sdkLocation = AndroidSdkUtils.tryToChooseAndroidSdk().getLocation();
     String path = String.format(SUPPORT_REPOSITORY_PATH, sdkLocation, libraryId, revision);

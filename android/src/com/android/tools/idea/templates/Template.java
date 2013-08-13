@@ -17,6 +17,7 @@ package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.repository.MavenCoordinate;
 import com.android.ide.common.xml.XmlFormatPreferences;
 import com.android.ide.common.xml.XmlFormatStyle;
 import com.android.ide.common.xml.XmlPrettyPrinter;
@@ -33,7 +34,9 @@ import com.android.utils.StdLogger;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
+import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
@@ -62,8 +65,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
 import static com.android.tools.idea.templates.RepositoryUrls.*;
+import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
 import static com.android.tools.idea.templates.TemplateUtils.readTextFile;
 
 /**
@@ -113,6 +116,9 @@ public class Template {
   /** Finds include ':module_name_1', ':module_name_2',... statements in settings.gradle files */
   private static final Pattern INCLUDE_PATTERN = Pattern.compile("include +(':[^']+', *)*':[^']+'");
 
+  /** Finds compile '<maven coordinates' in build.gradle files */
+  private static final Pattern COMPILE_PATTERN = Pattern.compile("compile\\s*'([^']+)'");
+
   /**
    * Most recent thrown exception during template instantiation. This should
    * basically always be null. Used by unit tests to see if any template
@@ -145,6 +151,7 @@ public class Template {
   public static final String ATTR_NAME = "name";
   public static final String ATTR_DESCRIPTION = "description";
   public static final String ATTR_VERSION = "version";
+  public static final String ATTR_MAVEN = "mavenUrl";
   public static final String ATTR_TYPE = "type";
   public static final String ATTR_HELP = "help";
   public static final String ATTR_FILE = "file";
@@ -155,6 +162,8 @@ public class Template {
 
   public static final String CATEGORY_ACTIVITIES = "activities";
   public static final String CATEGORY_PROJECTS = "gradle-projects";
+
+  public static final String BLOCK_DEPENDENCIES = "dependencies";
 
 
   /**
@@ -227,6 +236,12 @@ public class Template {
     freemarker.setTemplateLoader(myLoader);
 
     processFile(freemarker, TEMPLATE_XML, paramMap);
+
+    // Handle dependencies
+    List<String> dependencyList = (List<String>)paramMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
+    if (dependencyList != null && dependencyList.size() > 0) {
+      mergeDependenciesIntoFile(dependencyList, TemplateUtils.getGradleBuildFile(moduleRootPath));
+    }
   }
 
   @NotNull
@@ -334,16 +349,8 @@ public class Template {
             if (path != null) {
               executeRecipeFile(freemarker, path, paramMap);
             }
-          } else if (TAG_DEPENDENCY.equals(name)) {
-            String dependencyName = attributes.getValue(ATTR_NAME);
-            String dependencyVersion = attributes.getValue(ATTR_VERSION);
-            List<String> dependencyList = (List<String>)paramMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
-
-            if (dependencyName.equals(SUPPORT_ID) || dependencyName.equals(APP_COMPAT_ID) || dependencyName.equals(GRID_LAYOUT_ID)) {
-              dependencyList.add(getLibraryUrl(dependencyName, dependencyVersion));
-            }// TODO: Add other libraries here (Cloud SDK, Play Services, YouTube, AdMob, etc).
           } else if (!name.equals("template") && !name.equals("category") && !name.equals("option") && !name.equals(TAG_THUMBS) &&
-                     !name.equals(TAG_THUMB) && !name.equals(TAG_ICONS)) {
+                     !name.equals(TAG_THUMB) && !name.equals(TAG_ICONS) && !name.equals(TAG_DEPENDENCY)) {
             LOG.error("WARNING: Unknown template directive " + name);
           }
         }
@@ -408,6 +415,20 @@ public class Template {
               String relativePath = attributes.getValue(ATTR_AT);
               if (relativePath != null && !relativePath.isEmpty()) {
                 mkdir(freemarker, paramMap, relativePath);
+              }
+            } else if (name.equals(TAG_DEPENDENCY)) {
+              String dependencyName = attributes.getValue(ATTR_NAME);
+              String dependencyVersion = attributes.getValue(ATTR_VERSION);
+              String url = attributes.getValue(ATTR_MAVEN);
+              List<String> dependencyList = (List<String>)paramMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
+
+              if (dependencyName != null && RepositoryUrls.SUPPORT_REPOSITORY_ARTIFACTS.contains(dependencyName)) {
+                String libraryUrl = getLibraryUrl(dependencyName, dependencyVersion);
+                if (libraryUrl != null) {
+                  dependencyList.add(libraryUrl);
+                }
+              } else if (url != null) {
+                dependencyList.add(url);
               }
             }
             else if (!name.equals("recipe")) {
@@ -661,6 +682,75 @@ public class Template {
       }
     }
     return contents.toString();
+  }
+
+  /**
+   * Merge the given dependency URLs into the given build.gradle file
+   * @param dependencyList the list of URLs to merge
+   * @param gradleBuildFile the build.gradle file which will be written with the merged dependencies
+   */
+  private void mergeDependenciesIntoFile(List<String> dependencyList, File gradleBuildFile) {
+    // First, get the contents of the gradle file.
+    String contents = readTextFile(gradleBuildFile);
+
+    // Now, look for a (top-level) dependency block
+    int braceCount = 0;
+    boolean inDependencyBlock = false;
+    int dependencyBlockStart = 0;
+    int dependencyBlockEnd = 0;
+    for (int i = 0; i < contents.length(); ++i) {
+      if (contents.charAt(i) == '{') {
+        if (inDependencyBlock && braceCount == 0) {
+          dependencyBlockStart = i + 1;
+        }
+        braceCount++;
+      } else if (contents.charAt(i) == '}') {
+        braceCount--;
+        if (inDependencyBlock && braceCount == 0) {
+          dependencyBlockEnd = i;
+          inDependencyBlock = false;
+        }
+      } else if (braceCount == 0 && contents.length() > i + BLOCK_DEPENDENCIES.length() &&
+                 contents.substring(i, i + BLOCK_DEPENDENCIES.length()).equals(BLOCK_DEPENDENCIES)) {
+        inDependencyBlock = true;
+      }
+    }
+
+    String dependencyBlock = contents.substring(dependencyBlockStart, dependencyBlockEnd);
+
+    Multimap<String, MavenCoordinate> dependencies = LinkedListMultimap.create();
+
+    // If we have dependencies already in the file, load those up
+    if (!dependencyBlock.isEmpty()) {
+      // Load up dependency URLs which are already present.
+      Matcher matcher = COMPILE_PATTERN.matcher(dependencyBlock);
+      while (matcher.find()) {
+        MavenCoordinate coord = MavenCoordinate.parseCoordinateString(matcher.group(1));
+        if (coord != null) {
+          dependencies.put(coord.getId(), coord);
+        }
+      }
+    }
+
+    // Now load the new ones in
+    for (String coordinateString : dependencyList) {
+      MavenCoordinate coord = MavenCoordinate.parseCoordinateString(coordinateString);
+      if (coord != null) {
+        dependencies.put(coord.getId(), coord);
+      }
+    }
+
+    // Now write the combined ones to a string
+    StringBuilder sb = new StringBuilder();
+    sb.append(contents.substring(0, dependencyBlockStart));
+    for (String key : dependencies.keySet()) {
+      MavenCoordinate highest = Collections.max(dependencies.get(key));
+      sb.append(String.format("\n\tcompile '%s'", highest.toString()));
+    }
+    sb.append('\n');
+    sb.append(contents.substring(dependencyBlockEnd));
+
+    TemplateUtils.writeTextFile(gradleBuildFile, sb.toString());
   }
 
   /** Instantiates the given template file into the given output file */
