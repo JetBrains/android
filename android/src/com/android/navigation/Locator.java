@@ -16,6 +16,7 @@
 package com.android.navigation;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.annotations.Property;
 
 public class Locator {
@@ -36,7 +37,7 @@ public class Locator {
     return viewName;
   }
 
-  public void setViewName(String viewName) {
+  public void setViewName(@Nullable String viewName) {
     this.viewName = viewName;
   }
 

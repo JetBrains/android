@@ -43,10 +43,10 @@ import java.util.*;
 
 public class NavigationEditorPanel2 extends JComponent {
   private static final Dimension GAP = new Dimension(150, 50);
-  public static final Color BACKGROUND_COLOR = Color.LIGHT_GRAY; // new Color(192, 192, 192)
+  public static final Color BACKGROUND_COLOR = Gray.get(192);
   public static final Color SNAP_GRID_LINE_COLOR_MINOR = Gray.get(180);
   public static final Color SNAP_GRID_LINE_COLOR_MIDDLE = Gray.get(170);
-  public static final Color SNAP_GRID_LINE_COLOR_MAJOR = Gray.get(150);
+  public static final Color SNAP_GRID_LINE_COLOR_MAJOR = Gray.get(160);
   private static final Dimension SNAP_GRID = new Dimension(4, 4);
   private static final double SCALE = 0.333333;
   //private static final EmptyBorder LABEL_BORDER = new EmptyBorder(0, 5, 0, 5);
@@ -163,7 +163,7 @@ public class NavigationEditorPanel2 extends JComponent {
 
     protected abstract void paintOver(Graphics g);
 
-    protected abstract void delete();
+    protected abstract void remove();
   }
 
   private Selection create(Point mouseDownLocation, boolean shiftDown) {
@@ -204,7 +204,7 @@ public class NavigationEditorPanel2 extends JComponent {
     }
 
     @Override
-    protected void delete() {
+    protected void remove() {
     }
   }
 
@@ -240,7 +240,7 @@ public class NavigationEditorPanel2 extends JComponent {
     }
 
     @Override
-    protected void delete() {
+    protected void remove() {
       myNavigationModel.remove(myTransition);
       setSelection(Selection.NULL);
     }
@@ -267,7 +267,7 @@ public class NavigationEditorPanel2 extends JComponent {
     }
 
     @Override
-    protected void delete() {
+    protected void remove() {
       myNavigationModel.removeState(myState);
       setSelection(Selection.NULL);
     }
@@ -338,7 +338,7 @@ public class NavigationEditorPanel2 extends JComponent {
     }
 
     @Override
-    protected void delete() {
+    protected void remove() {
     }
   }
 
@@ -372,12 +372,14 @@ public class NavigationEditorPanel2 extends JComponent {
 
     // Key listeners
     {
-      registerKeyBinding(KeyEvent.VK_DELETE, "delete", new AbstractAction() {
+      Action remove = new AbstractAction() {
         @Override
         public void actionPerformed(ActionEvent e) {
-          mySelection.delete();
+          mySelection.remove();
         }
-      });
+      };
+      registerKeyBinding(KeyEvent.VK_DELETE, "delete", remove);
+      registerKeyBinding(KeyEvent.VK_BACK_SPACE, "backspace", remove);
     }
 
     // Model listener

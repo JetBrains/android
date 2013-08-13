@@ -30,9 +30,13 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.List;
 
 public class AndroidRootComponent extends JComponent {
-  private static final Object RENDERING_LOCK = new Object();
+  //private static final Object RENDERING_LOCK = new Object();
+  private static final RenderedView ABSENT_ROOT_VIEW = new RenderedView(null, null, 0, 0, 200, 200);
+  public static final Dimension ZERO_SIZE = new Dimension(0, 0);
+
   private RenderResult myRenderResult = null;
   private double myScale;
   private Dim myDim;
@@ -54,6 +58,12 @@ public class AndroidRootComponent extends JComponent {
   @Nullable
   public RenderResult getRenderResult() {
     return myRenderResult;
+  }
+
+  private void setRenderResult(@Nullable RenderResult renderResult) {
+    myRenderResult = renderResult;
+    myDim = null;
+    repaint();
   }
 
   public double getScale() {
@@ -99,36 +109,57 @@ public class AndroidRootComponent extends JComponent {
   public Dimension getPreferredSize() {
     //return myRenderResult.getImage().getRequiredSize();
     BufferedImage image = getImage();
-    return image == null ? new Dimension() : new Dimension(image.getWidth(), image.getHeight());
+    return image == null ? ZERO_SIZE : new Dimension(image.getWidth(), image.getHeight());
   }
 
   public void render(@NotNull final Project project, @NotNull final VirtualFile file) {
-    ApplicationManager.getApplication().runReadAction(new Runnable() {
+    // The rendering service takes long enough to initialise that we don't want to do this from the EDT.
+    // Further, IntellJ's helper classes don't not allow read access from outside EDT, so we need nested runnables.
+    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
-        PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-        AndroidFacet facet = AndroidFacet.getInstance(psiFile);
-        synchronized (RENDERING_LOCK) {
-          Module module = facet.getModule();
-          Configuration configuration = facet.getConfigurationManager().getConfiguration(file);
-          configuration.setTheme("@android:style/Theme.Holo");
-          final RenderLogger logger = new RenderLogger(file.getName(), module);
-          RenderService service = RenderService.create(facet, module, psiFile, configuration, logger, null);
-          if (service != null) {
-            myRenderResult = service.render();
-            service.dispose();
+        ApplicationManager.getApplication().runReadAction(new Runnable() {
+          @Override
+          public void run() {
+            if (project.isDisposed()) {
+              return;
+            }
+            PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+            if (psiFile != null) {
+              AndroidFacet facet = AndroidFacet.getInstance(psiFile);
+              if (facet != null) {
+                Module module = facet.getModule();
+                Configuration configuration = facet.getConfigurationManager().getConfiguration(file);
+                RenderLogger logger = new RenderLogger(file.getName(), module);
+                //synchronized (RENDERING_LOCK) {
+                RenderService service = RenderService.create(facet, module, psiFile, configuration, logger, null);
+                if (service != null) {
+                  setRenderResult(service.render());
+                  service.dispose();
+                }
+                //}
+              }
+            }
           }
-          else {
-            myRenderResult = new RenderResult(null, null, psiFile, logger);
-          }
-          repaint();
-        }
+        });
       }
     });
   }
 
   public RenderedView getRootView() {
-    return getRenderResult().getHierarchy().getRoots().get(0);
+    RenderResult renderResult = getRenderResult();
+    if (renderResult == null) {
+      return ABSENT_ROOT_VIEW;
+    }
+    RenderedViewHierarchy hierarchy = renderResult.getHierarchy();
+    if (hierarchy == null) {
+      return ABSENT_ROOT_VIEW;
+    }
+    List<RenderedView> roots = hierarchy.getRoots();
+    if (roots.isEmpty()) {
+      return ABSENT_ROOT_VIEW;
+    }
+    return roots.get(0);
   }
 
   private Dim getDim() {
