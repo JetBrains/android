@@ -79,7 +79,7 @@ public class EventHandlerEditor extends ResourceEditor {
 
     for (PsiClass psiClass : ChooseClassDialog.findInheritors(moduleProvider.getModule(), "android.app.Activity", true)) {
       for (PsiMethod method : psiClass.getMethods()) {
-        if (OnClickConverter.checkSignature(method) && names.add(method.getName())) {
+        if (OnClickConverter.CONVERTER_FOR_LAYOUT.checkSignature(method) && names.add(method.getName())) {
           model.addElement(new PsiMethodWrapper(method));
         }
       }

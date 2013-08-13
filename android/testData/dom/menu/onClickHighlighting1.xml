@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+  <item android:title="title1" android:onClick="<warning descr="Method 'clickHandler1' is missing in 'Activity1' or has incorrect signature">clickHandler1</warning>"/>
+</menu>

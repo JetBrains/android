@@ -29,6 +29,6 @@ import java.util.List;
  */
 @DefinesXml
 public interface Menu extends MenuElement {
-  List<Item> getItems();
+  List<MenuItem> getItems();
   List<Group> getGroups();
 }
