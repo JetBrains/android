@@ -23,6 +23,6 @@ package org.jetbrains.android.dom.menu;
  * Time: 2:55:42 PM
  * To change this template use File | Settings | File Templates.
  */
-public interface Item extends MenuElement {
+public interface MenuItem extends MenuElement {
   Menu getMenu();
 }

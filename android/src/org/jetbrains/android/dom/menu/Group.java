@@ -26,5 +26,5 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 public interface Group extends MenuElement {
-  List<Item> getItems();
+  List<MenuItem> getItems();
 }
