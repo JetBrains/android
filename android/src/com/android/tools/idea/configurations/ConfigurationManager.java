@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LanguageQualifier;
 import com.android.ide.common.resources.configuration.RegionQualifier;
-import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
@@ -37,21 +35,18 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.containers.HashMap;
-import com.intellij.util.containers.HashSet;
 import com.intellij.util.containers.SoftValueHashMap;
-import org.jetbrains.android.dom.resources.ResourceElement;
-import org.jetbrains.android.dom.resources.ResourceValue;
-import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.sdk.*;
 import org.jetbrains.android.uipreview.UserDeviceManager;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static com.android.sdklib.devices.DeviceManager.DEFAULT_DEVICES;
 import static com.android.sdklib.devices.DeviceManager.VENDOR_DEVICES;
@@ -72,7 +67,6 @@ import static com.android.tools.idea.configurations.ConfigurationListener.CFG_TA
 public class ConfigurationManager implements Disposable {
   @NotNull private final Module myModule;
   private List<Device> myDevices;
-  private List<String> myProjectThemes;
   private List<IAndroidTarget> myTargets;
   private final UserDeviceManager myUserDeviceManager;
   private final SoftValueHashMap<VirtualFile, Configuration> myCache = new SoftValueHashMap<VirtualFile, Configuration>();
@@ -292,40 +286,6 @@ public class ConfigurationManager implements Disposable {
   }
 
   @NotNull
-  public List<String> getProjectThemes() {
-    if (myProjectThemes == null) {
-      // TODO: How do we invalidate this if the manifest theme set changes?
-      myProjectThemes = computeProjectThemes();
-    }
-
-    return myProjectThemes;
-  }
-
-  @NotNull
-  private List<String> computeProjectThemes() {
-    final AndroidFacet facet = AndroidFacet.getInstance(myModule);
-    if (facet == null) {
-      return Collections.emptyList();
-    }
-
-    final List<String> themes = new ArrayList<String>();
-    final Map<String, ResourceElement> styleMap = buildStyleMap(facet);
-
-    for (ResourceElement style : styleMap.values()) {
-      if (isTheme(style, styleMap, new HashSet<ResourceElement>())) {
-        final String themeName = style.getName().getValue();
-        if (themeName != null) {
-          final String theme = SdkConstants.STYLE_RESOURCE_PREFIX + themeName;
-          themes.add(theme);
-        }
-      }
-    }
-
-    Collections.sort(themes);
-    return themes;
-  }
-
-  @NotNull
   public Module getModule() {
     return myModule;
   }
@@ -338,66 +298,6 @@ public class ConfigurationManager implements Disposable {
   @Override
   public void dispose() {
     myUserDeviceManager.dispose();
-  }
-
-  private static Map<String, ResourceElement> buildStyleMap(AndroidFacet facet) {
-    final Map<String, ResourceElement> result = new HashMap<String, ResourceElement>();
-    final List<ResourceElement> styles = facet.getLocalResourceManager().getValueResources(ResourceType.STYLE.getName());
-    for (ResourceElement style : styles) {
-      final String styleName = style.getName().getValue();
-      if (styleName != null) {
-        result.put(styleName, style);
-      }
-    }
-    return result;
-  }
-
-  private static boolean isTheme(ResourceElement resElement, Map<String, ResourceElement> styleMap, Set<ResourceElement> visitedElements) {
-    if (!visitedElements.add(resElement)) {
-      return false;
-    }
-
-    if (!(resElement instanceof Style)) {
-      return false;
-    }
-
-    final String styleName = resElement.getName().getValue();
-    if (styleName == null) {
-      return false;
-    }
-
-    final ResourceValue parentStyleRef = ((Style)resElement).getParentStyle().getValue();
-    String parentStyleName = null;
-    boolean frameworkStyle = false;
-
-    if (parentStyleRef != null) {
-      final String s = parentStyleRef.getResourceName();
-      if (s != null) {
-        parentStyleName = s;
-        frameworkStyle = AndroidUtils.SYSTEM_RESOURCE_PACKAGE.equals(parentStyleRef.getPackage());
-      }
-    }
-
-    if (parentStyleRef == null) {
-      final int index = styleName.indexOf('.');
-      if (index >= 0) {
-        parentStyleName = styleName.substring(0, index);
-      }
-    }
-
-    if (parentStyleRef != null) {
-      if (frameworkStyle) {
-        return parentStyleName.equals("Theme") || parentStyleName.startsWith("Theme.");
-      }
-      else {
-        final ResourceElement parentStyle = styleMap.get(parentStyleName);
-        if (parentStyle != null) {
-          return isTheme(parentStyle, styleMap, visitedElements);
-        }
-      }
-    }
-
-    return false;
   }
 
   @Nullable
@@ -571,10 +471,10 @@ public class ConfigurationManager implements Disposable {
     }
   }
 
-  private void doSyncToVariations(int flags, VirtualFile updatedFile, boolean includeSelf,
+  private void doSyncToVariations(@SuppressWarnings("UnusedParameters") int flags,
+                                  VirtualFile updatedFile, boolean includeSelf,
                                   Configuration base) {
     // Synchronize the given changes to other configurations as well
-    Project project = getProject();
     List<VirtualFile> files = ResourceHelper.getResourceVariations(updatedFile, includeSelf);
     for (VirtualFile file : files) {
       Configuration configuration = getConfiguration(file);
