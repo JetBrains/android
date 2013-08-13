@@ -399,7 +399,7 @@ public class IntellijApiDetector extends ApiDetector {
       @NonNull PsiElement node,
       @NonNull String name,
       @NonNull String owner) {
-      if (IntellijApiDetector.this.isBenignConstantUsage(null, name, owner)) {
+      if (ApiDetector.isBenignConstantUsage(null, name, owner)) {
         return true;
       }
 
