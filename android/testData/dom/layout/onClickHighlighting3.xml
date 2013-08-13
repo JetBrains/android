@@ -6,6 +6,6 @@
 <TextView  
     android:layout_width="fill_parent" 
     android:layout_height="wrap_content"
-    android:onClick="<warning descr="Method 'clickHandler1' is missing in 'Activity1' or has incorrect signature">clickHandler1</warning>"/>
+    android:onClick="<warning descr="Method 'clickHandler1' in 'Activity1' has incorrect signature">clickHandler1</warning>"/>
 </LinearLayout>
 

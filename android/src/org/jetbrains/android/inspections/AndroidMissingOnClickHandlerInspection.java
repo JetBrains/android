@@ -118,36 +118,51 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
         }
         final ResolveResult[] results = ((OnClickConverter.MyReference)reference).multiResolve(false);
         final Set<PsiClass> resolvedClasses = new HashSet<PsiClass>();
+        final Set<PsiClass> resolvedClassesWithMistake = new HashSet<PsiClass>();
 
         for (ResolveResult result : results) {
-          final PsiElement element = result.getElement();
+          if (result instanceof OnClickConverter.MyResolveResult) {
+            final PsiElement element = result.getElement();
 
-          if (element != null) {
-            final PsiClass aClass = PsiTreeUtil.getParentOfType(element, PsiClass.class);
+            if (element != null) {
+              final PsiClass aClass = PsiTreeUtil.getParentOfType(element, PsiClass.class);
 
-            if (aClass != null) {
-              resolvedClasses.add(aClass);
+              if (aClass != null) {
+                resolvedClasses.add(aClass);
+
+                if (!((OnClickConverter.MyResolveResult)result).hasCorrectSignature()) {
+                  resolvedClassesWithMistake.add(aClass);
+                }
+              }
             }
           }
         }
         PsiClass activity = null;
-        String activityName = null;
 
         for (PsiClass relatedActivity : myRelatedActivities) {
           if (!resolvedClasses.contains(relatedActivity)) {
-            activityName = relatedActivity.getName();
-
-            if (activityName != null) {
-              activity = relatedActivity;
-              break;
-            }
+            activity = relatedActivity;
+            break;
+          }
+          else if (activity == null && resolvedClassesWithMistake.contains(relatedActivity)) {
+            activity = relatedActivity;
           }
         }
 
-        if (activityName != null) {
+        if (activity != null) {
+          String activityName = activity.getName();
+
+          if (activityName == null) {
+            activityName = "";
+          }
+          final String message =
+            resolvedClassesWithMistake.contains(activity)
+            ? AndroidBundle.message("android.inspections.on.click.missing.incorrect.signature", methodName, activityName)
+            : AndroidBundle.message("android.inspections.on.click.missing.problem", methodName, activityName);
+
           myResult.add(myInspectionManager.createProblemDescriptor(
             value, reference.getRangeInElement(),
-            AndroidBundle.message("android.inspections.on.click.missing.problem", methodName, activityName),
+            message,
             ProblemHighlightType.GENERIC_ERROR_OR_WARNING, myOnTheFly, new MyQuickFix(
             methodName, activity)));
         }
