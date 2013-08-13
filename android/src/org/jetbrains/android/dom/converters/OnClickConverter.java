@@ -1,13 +1,10 @@
 package org.jetbrains.android.dom.converters;
 
-import com.intellij.codeInsight.intention.AbstractIntentionAction;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.LocalQuickFixProvider;
-import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.navigation.GotoRelatedItem;
-import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -22,7 +19,6 @@ import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.xml.ConvertContext;
@@ -30,7 +26,6 @@ import com.intellij.util.xml.Converter;
 import com.intellij.util.xml.CustomReferenceConverter;
 import com.intellij.util.xml.GenericDomValue;
 import org.jetbrains.android.AndroidGotoRelatedProvider;
-import org.jetbrains.android.dom.AndroidCreateOnClickHandlerAction;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
@@ -38,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -65,9 +61,9 @@ public class OnClickConverter extends Converter<String> implements CustomReferen
     return s;
   }
 
-  private static class MyReference extends PsiPolyVariantReferenceBase<XmlAttributeValue> implements LocalQuickFixProvider {
+  public static class MyReference extends PsiPolyVariantReferenceBase<XmlAttributeValue> implements LocalQuickFixProvider {
 
-    public MyReference(XmlAttributeValue value, TextRange range) {
+    private MyReference(XmlAttributeValue value, TextRange range) {
       super(value, range, true);
     }
 
@@ -142,11 +138,6 @@ public class OnClickConverter extends Converter<String> implements CustomReferen
       return ArrayUtil.toObjectArray(result);
     }
 
-    private static PsiClass findActivityClass(@NotNull Module module) {
-      return JavaPsiFacade.getInstance(module.getProject())
-        .findClass(AndroidUtils.ACTIVITY_BASE_CLASS_NAME, module.getModuleWithDependenciesAndLibrariesScope(false));
-    }
-
     @Nullable
     @Override
     public LocalQuickFix[] getQuickFixes() {
@@ -155,16 +146,17 @@ public class OnClickConverter extends Converter<String> implements CustomReferen
       if (methodName.isEmpty() || !StringUtil.isJavaIdentifier(methodName)) {
         return LocalQuickFix.EMPTY_ARRAY;
       }
-      final PsiClass activity = findRelatedActivity(methodName);
+      final PsiClass activity = findRelatedActivityWithMissingHandler(methodName);
 
       if (activity == null) {
         return LocalQuickFix.EMPTY_ARRAY;
       }
-      return new LocalQuickFix[]{new MyQuickFix(methodName, activity)};
+      return LocalQuickFix.EMPTY_ARRAY;
+      //return new LocalQuickFix[]{new MyQuickFix(methodName, activity)};
     }
 
     @Nullable
-    private PsiClass findRelatedActivity(@NotNull String methodName) {
+    private PsiClass findRelatedActivityWithMissingHandler(@NotNull String methodName) {
       final PsiFile file = myElement.getContainingFile();
 
       if (!(file instanceof XmlFile)) {
@@ -175,36 +167,58 @@ public class OnClickConverter extends Converter<String> implements CustomReferen
       if (facet == null) {
         return null;
       }
-      final Computable<List<GotoRelatedItem>> computable = AndroidGotoRelatedProvider.
-        getLazyItemsForXmlFile((XmlFile)file, facet);
+      return OnClickConverter.findRelatedActivityWithMissingHandler(methodName, (XmlFile)file, facet);
+    }
+  }
 
-      if (computable == null) {
-        return null;
+  @Nullable
+  public static PsiClass findRelatedActivityWithMissingHandler(@NotNull String methodName,
+                                                               @NotNull XmlFile file,
+                                                               @NotNull AndroidFacet facet) {
+    for (PsiClass aClass : findRelatedActivities(file, facet)) {
+      if (!findHandlerMethod(aClass, methodName)) {
+        return aClass;
       }
-      final List<GotoRelatedItem> items = computable.compute();
+    }
+    return null;
+  }
 
-      if (items.isEmpty()) {
-        return null;
-      }
-      final PsiClass activityClass = findActivityClass(facet.getModule());
+  @NotNull
+  public static List<PsiClass> findRelatedActivities(@NotNull XmlFile file, @NotNull AndroidFacet facet) {
+    final Computable<List<GotoRelatedItem>> computable = AndroidGotoRelatedProvider.getLazyItemsForXmlFile(file, facet);
 
-      if (activityClass == null) {
-        return null;
-      }
-      for (GotoRelatedItem item : items) {
-        final PsiElement element = item.getElement();
+    if (computable == null) {
+      return Collections.emptyList();
+    }
+    final List<GotoRelatedItem> items = computable.compute();
 
-        if (element instanceof PsiClass) {
-          final PsiClass aClass = (PsiClass)element;
+    if (items.isEmpty()) {
+      return Collections.emptyList();
+    }
+    final PsiClass activityClass = findActivityClass(facet.getModule());
 
-          if (aClass.isInheritor(activityClass, true) &&
-              !findHandlerMethod(aClass, methodName)) {
-            return aClass;
-          }
+    if (activityClass == null) {
+      return Collections.emptyList();
+    }
+    final List<PsiClass> result = new ArrayList<PsiClass>();
+
+    for (GotoRelatedItem item : items) {
+      final PsiElement element = item.getElement();
+
+      if (element instanceof PsiClass) {
+        final PsiClass aClass = (PsiClass)element;
+
+        if (aClass.isInheritor(activityClass, true)) {
+          result.add(aClass);
         }
       }
-      return null;
     }
+    return result;
+  }
+
+  private static PsiClass findActivityClass(@NotNull Module module) {
+    return JavaPsiFacade.getInstance(module.getProject())
+      .findClass(AndroidUtils.ACTIVITY_BASE_CLASS_NAME, module.getModuleWithDependenciesAndLibrariesScope(false));
   }
 
   public static boolean checkSignature(@NotNull PsiMethod method) {
@@ -256,48 +270,5 @@ public class OnClickConverter extends Converter<String> implements CustomReferen
     return containingClass != null
            ? builder.withTailText(" (" + containingClass.getQualifiedName() + ')')
            : builder;
-  }
-
-  public static class MyQuickFix extends AbstractIntentionAction implements LocalQuickFix {
-    private final String myMethodName;
-    private final PsiClass myClass;
-
-    private MyQuickFix(@NotNull String methodName, @NotNull PsiClass aClass) {
-      myMethodName = methodName;
-      myClass = aClass;
-    }
-
-    @NotNull
-    @Override
-    public String getName() {
-      return "Create '" + myMethodName + "(View)' in '" + myClass.getName() + "'";
-    }
-
-    @NotNull
-    @Override
-    public String getText() {
-      return getName();
-    }
-
-    @NotNull
-    @Override
-    public String getFamilyName() {
-      return getName();
-    }
-
-    @Override
-    public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-      AndroidCreateOnClickHandlerAction.addHandlerMethodAndNavigate(project, myClass, myMethodName);
-    }
-
-    @Override
-    public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
-      // it is called from inspection view or "fix all problems" action (for example) instead of invoke()
-      doApplyFix(project);
-    }
-
-    public void doApplyFix(@NotNull Project project) {
-      AndroidCreateOnClickHandlerAction.addHandlerMethod(project, myClass, myMethodName);
-    }
   }
 }

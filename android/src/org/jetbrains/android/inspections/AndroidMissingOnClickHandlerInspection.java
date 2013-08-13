@@ -1,0 +1,162 @@
+package org.jetbrains.android.inspections;
+
+import com.intellij.codeInsight.intention.AbstractIntentionAction;
+import com.intellij.codeInspection.*;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.*;
+import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.containers.HashSet;
+import com.intellij.util.xml.DomFileDescription;
+import com.intellij.util.xml.DomManager;
+import org.jetbrains.android.dom.AndroidCreateOnClickHandlerAction;
+import org.jetbrains.android.dom.converters.OnClickConverter;
+import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * @author Eugene.Kudelevsky
+ */
+public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool {
+  @Override
+  public ProblemDescriptor[] checkFile(@NotNull PsiFile file, @NotNull InspectionManager manager, boolean isOnTheFly) {
+    if (!(file instanceof XmlFile)) {
+      return ProblemDescriptor.EMPTY_ARRAY;
+    }
+    final AndroidFacet facet = AndroidFacet.getInstance(file);
+
+    if (facet == null) {
+      return ProblemDescriptor.EMPTY_ARRAY;
+    }
+    final DomFileDescription<?> description = DomManager.getDomManager(file.getProject()).getDomFileDescription((XmlFile)file);
+
+    if (!(description instanceof LayoutDomFileDescription)) {
+      return ProblemDescriptor.EMPTY_ARRAY;
+    }
+    final List<PsiClass> activities = OnClickConverter.findRelatedActivities((XmlFile)file, facet);
+    final MyVisitor visitor = new MyVisitor(manager, isOnTheFly, activities);
+    file.accept(visitor);
+    return visitor.myResult.toArray(new ProblemDescriptor[visitor.myResult.size()]);
+  }
+
+  private static class MyVisitor extends XmlRecursiveElementVisitor {
+    private final InspectionManager myInspectionManager;
+    private final boolean myOnTheFly;
+    private final List<PsiClass> myRelatedActivities;
+
+    final List<ProblemDescriptor> myResult = new ArrayList<ProblemDescriptor>();
+
+    private MyVisitor(@NotNull InspectionManager inspectionManager, boolean onTheFly, @NotNull List<PsiClass> relatedActivities) {
+      myInspectionManager = inspectionManager;
+      myOnTheFly = onTheFly;
+      myRelatedActivities = relatedActivities;
+    }
+
+    @Override
+    public void visitXmlAttributeValue(XmlAttributeValue value) {
+      for (PsiReference reference : value.getReferences()) {
+        if (!(reference instanceof OnClickConverter.MyReference)) {
+          continue;
+        }
+        final String methodName = ((OnClickConverter.MyReference)reference).getValue();
+
+        if (methodName.isEmpty()) {
+          continue;
+        }
+        final ResolveResult[] results = ((OnClickConverter.MyReference)reference).multiResolve(false);
+        final Set<PsiClass> resolvedClasses = new HashSet<PsiClass>();
+
+        for (ResolveResult result : results) {
+          final PsiElement element = result.getElement();
+
+          if (element != null) {
+            final PsiClass aClass = PsiTreeUtil.getParentOfType(element, PsiClass.class);
+
+            if (aClass != null) {
+              resolvedClasses.add(aClass);
+            }
+          }
+        }
+        PsiClass activity = null;
+        String activityName = null;
+
+        for (PsiClass relatedActivity : myRelatedActivities) {
+          if (!resolvedClasses.contains(relatedActivity)) {
+            activityName = relatedActivity.getName();
+
+            if (activityName != null) {
+              activity = relatedActivity;
+              break;
+            }
+          }
+        }
+
+        if (activityName != null) {
+          myResult.add(myInspectionManager.createProblemDescriptor(
+            value, reference.getRangeInElement(),
+            AndroidBundle.message("android.inspections.on.click.missing.problem", methodName, activityName),
+            ProblemHighlightType.GENERIC_ERROR_OR_WARNING, myOnTheFly, new MyQuickFix(
+            methodName, activity)));
+        }
+        else if (results.length == 0) {
+          myResult.add(myInspectionManager.createProblemDescriptor(
+            value, reference.getRangeInElement(), ProblemsHolder.unresolvedReferenceMessage(reference),
+            ProblemHighlightType.GENERIC_ERROR_OR_WARNING, myOnTheFly));
+        }
+      }
+    }
+  }
+
+  public static class MyQuickFix extends AbstractIntentionAction implements LocalQuickFix {
+    private final String myMethodName;
+    private final PsiClass myClass;
+
+    private MyQuickFix(@NotNull String methodName, @NotNull PsiClass aClass) {
+      myMethodName = methodName;
+      myClass = aClass;
+    }
+
+    @NotNull
+    @Override
+    public String getName() {
+      return "Create '" + myMethodName + "(View)' in '" + myClass.getName() + "'";
+    }
+
+    @NotNull
+    @Override
+    public String getText() {
+      return getName();
+    }
+
+    @NotNull
+    @Override
+    public String getFamilyName() {
+      return getName();
+    }
+
+    @Override
+    public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
+      AndroidCreateOnClickHandlerAction.addHandlerMethodAndNavigate(project, myClass, myMethodName);
+    }
+
+    @Override
+    public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
+      // it is called from inspection view or "fix all problems" action (for example) instead of invoke()
+      doApplyFix(project);
+    }
+
+    public void doApplyFix(@NotNull Project project) {
+      AndroidCreateOnClickHandlerAction.addHandlerMethod(project, myClass, myMethodName);
+    }
+  }
+}
+
