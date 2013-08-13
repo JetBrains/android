@@ -922,21 +922,6 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     myFixture.checkResultByFile("src/p1/p2/Activity1.java", testFolder + "/OnClickActivity1_after.java", false);
   }
 
-  private void doTestOnClickQuickfix(VirtualFile file) {
-    myFixture.configureFromExistingVirtualFile(file);
-    final List<IntentionAction> actions = highlightAndFindQuickFixes(AndroidMissingOnClickHandlerInspection.MyQuickFix.class);
-    assertEquals(1, actions.size());
-    final IntentionAction action = actions.get(0);
-    assertInstanceOf(action, AndroidMissingOnClickHandlerInspection.MyQuickFix.class);
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        ((AndroidMissingOnClickHandlerInspection.MyQuickFix)action).doApplyFix(getProject());
-      }
-    });
-    myFixture.checkResultByFile(testFolder + "/onClickIntention.xml");
-  }
-
   private void doTestAttrReferenceCompletion(String textToType) throws IOException {
     copyFileToProject("attrReferences_attrs.xml", "res/values/attrReferences_attrs.xml");
     VirtualFile file = copyFileToProject(getTestName(true) + ".xml");
@@ -966,25 +951,6 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
         actions.get(0).invoke(getProject(), myFixture.getEditor(), myFixture.getFile());
       }
     }.execute();
-  }
-
-  private List<IntentionAction> highlightAndFindQuickFixes(Class<?> aClass) {
-    final List<HighlightInfo> infos = myFixture.doHighlighting();
-    final List<IntentionAction> actions = new ArrayList<IntentionAction>();
-
-    for (HighlightInfo info : infos) {
-      final List<Pair<HighlightInfo.IntentionActionDescriptor, TextRange>> ranges = info.quickFixActionRanges;
-
-      if (ranges != null) {
-        for (Pair<HighlightInfo.IntentionActionDescriptor, TextRange> pair : ranges) {
-          final IntentionAction action = pair.getFirst().getAction();
-          if (action.getClass() == aClass) {
-            actions.add(action);
-          }
-        }
-      }
-    }
-    return actions;
   }
 }
 

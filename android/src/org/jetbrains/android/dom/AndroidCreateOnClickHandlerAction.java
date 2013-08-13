@@ -2,6 +2,7 @@ package org.jetbrains.android.dom;
 
 import com.intellij.codeInsight.FileModificationService;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
+import com.intellij.codeInsight.intention.HighPriorityAction;
 import com.intellij.ide.util.ClassFilter;
 import com.intellij.ide.util.TreeClassChooser;
 import com.intellij.ide.util.TreeClassChooserFactory;
@@ -24,7 +25,6 @@ import com.intellij.util.PsiNavigateUtil;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
 import org.jetbrains.android.dom.converters.OnClickConverter;
-import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction {
+public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction implements HighPriorityAction {
   @NotNull
   @Override
   public String getText() {
@@ -63,10 +63,7 @@ public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction {
     }
     final GenericAttributeValue domValue = DomManager.getDomManager(project).getDomElement((XmlAttribute)parent);
 
-    if (domValue == null || !(domValue.getParent() instanceof LayoutViewElement)) {
-      return false;
-    }
-    if (!(domValue.getConverter() instanceof OnClickConverter)) {
+    if (domValue == null || !(domValue.getConverter() instanceof OnClickConverter)) {
       return false;
     }
     final String methodName = attrValue.getValue();
@@ -89,6 +86,9 @@ public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction {
     assert attrValue != null;
     final String methodName = attrValue.getValue();
     assert methodName != null;
+    final GenericAttributeValue domValue = DomManager.getDomManager(project).getDomElement((XmlAttribute)attrValue.getParent());
+    assert domValue != null;
+    final OnClickConverter converter = (OnClickConverter)domValue.getConverter();
 
     final PsiClass activityBaseClass = JavaPsiFacade.getInstance(project).findClass(
       AndroidUtils.ACTIVITY_BASE_CLASS_NAME, facet.getModule().getModuleWithDependenciesAndLibrariesScope(false));
@@ -107,7 +107,7 @@ public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction {
         "Choose Activity to Create the Method", scope, activityBaseClass, null, new ClassFilter() {
         @Override
         public boolean isAccepted(PsiClass aClass) {
-          return !OnClickConverter.findHandlerMethod(aClass, methodName);
+          return !converter.findHandlerMethod(aClass, methodName);
         }
       });
       chooser.showDialog();
@@ -115,20 +115,36 @@ public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction {
     }
 
     if (selectedClass != null) {
-      addHandlerMethodAndNavigate(project, selectedClass, methodName);
+      addHandlerMethodAndNavigate(project, selectedClass, methodName, converter.getMethodParameterType());
     }
   }
 
+  @NotNull
+  private static String suggestVarName(@NotNull String type) {
+    for (int i = type.length() - 1; i >= 0; i--) {
+      final char c = type.charAt(i);
+
+      if (Character.isUpperCase(c)) {
+        return type.substring(i).toLowerCase();
+      }
+    }
+    return "o";
+  }
+
   @Nullable
-  public static PsiMethod addHandlerMethod(@NotNull Project project, @NotNull PsiClass psiClass, @NotNull String methodName) {
+  public static PsiMethod addHandlerMethod(@NotNull Project project,
+                                           @NotNull PsiClass psiClass,
+                                           @NotNull String methodName,
+                                           @NotNull String methodParamType) {
     final PsiFile file = psiClass.getContainingFile();
 
     if (file == null || !FileModificationService.getInstance().prepareFileForWrite(file)) {
       return null;
     }
     final PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
+    final String varName = suggestVarName(methodParamType);
     PsiMethod method = (PsiMethod)psiClass.add(factory.createMethodFromText(
-      "public void " + methodName + "(android.view.View view) {}", psiClass));
+      "public void " + methodName + "(" + methodParamType + " " + varName + ") {}", psiClass));
 
     PsiMethod method1 = (PsiMethod)CodeStyleManager.getInstance(project).reformat(method);
     method1 = (PsiMethod)JavaCodeStyleManager.getInstance(project).shortenClassReferences(method1);
@@ -137,11 +153,12 @@ public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction {
 
   public static void addHandlerMethodAndNavigate(@NotNull final Project project,
                                                  @NotNull final PsiClass psiClass,
-                                                 @NotNull final String methodName) {
+                                                 @NotNull final String methodName,
+                                                 @NotNull final String methodParamType) {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        final PsiMethod method = addHandlerMethod(project, psiClass, methodName);
+        final PsiMethod method = addHandlerMethod(project, psiClass, methodName, methodParamType);
 
         if (method == null) {
           return;

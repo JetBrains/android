@@ -1,5 +1,6 @@
 package org.jetbrains.android.inspections;
 
+import com.android.resources.ResourceType;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
 import com.intellij.codeInspection.*;
 import com.intellij.navigation.GotoRelatedItem;
@@ -8,10 +9,13 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.Processor;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.xml.DomFileDescription;
 import com.intellij.util.xml.DomManager;
@@ -19,50 +23,90 @@ import org.jetbrains.android.AndroidGotoRelatedProvider;
 import org.jetbrains.android.dom.AndroidCreateOnClickHandlerAction;
 import org.jetbrains.android.dom.converters.OnClickConverter;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
+import org.jetbrains.android.dom.menu.MenuDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky
  */
 public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool {
   @NotNull
-  public static List<PsiClass> findRelatedActivities(@NotNull XmlFile file, @NotNull AndroidFacet facet) {
-    final Computable<List<GotoRelatedItem>> computable = AndroidGotoRelatedProvider.getLazyItemsForXmlFile(file, facet);
+  private static Collection<PsiClass> findRelatedActivities(@NotNull XmlFile file,
+                                                            @NotNull AndroidFacet facet,
+                                                            @NotNull DomFileDescription<?> description) {
+    if (description instanceof LayoutDomFileDescription) {
+      final Computable<List<GotoRelatedItem>> computable = AndroidGotoRelatedProvider.getLazyItemsForXmlFile(file, facet);
 
-    if (computable == null) {
-      return Collections.emptyList();
-    }
-    final List<GotoRelatedItem> items = computable.compute();
+      if (computable == null) {
+        return Collections.emptyList();
+      }
+      final List<GotoRelatedItem> items = computable.compute();
 
-    if (items.isEmpty()) {
-      return Collections.emptyList();
-    }
-    final PsiClass activityClass = findActivityClass(facet.getModule());
+      if (items.isEmpty()) {
+        return Collections.emptyList();
+      }
+      final PsiClass activityClass = findActivityClass(facet.getModule());
 
-    if (activityClass == null) {
-      return Collections.emptyList();
-    }
-    final List<PsiClass> result = new ArrayList<PsiClass>();
+      if (activityClass == null) {
+        return Collections.emptyList();
+      }
+      final List<PsiClass> result = new ArrayList<PsiClass>();
 
-    for (GotoRelatedItem item : items) {
-      final PsiElement element = item.getElement();
+      for (GotoRelatedItem item : items) {
+        final PsiElement element = item.getElement();
 
-      if (element instanceof PsiClass) {
-        final PsiClass aClass = (PsiClass)element;
+        if (element instanceof PsiClass) {
+          final PsiClass aClass = (PsiClass)element;
 
-        if (aClass.isInheritor(activityClass, true)) {
-          result.add(aClass);
+          if (aClass.isInheritor(activityClass, true)) {
+            result.add(aClass);
+          }
         }
       }
+      return result;
     }
+    else {
+      return findRelatedActivitiesForMenu(file, facet);
+    }
+  }
+
+  @NotNull
+  private static Set<PsiClass> findRelatedActivitiesForMenu(@NotNull XmlFile file, @NotNull AndroidFacet facet) {
+    final String resType = ResourceType.MENU.getName();
+    final String resourceName = AndroidCommonUtils.getResourceName(resType, file.getName());
+    final PsiField[] fields = AndroidResourceUtil.findResourceFields(facet, resType, resourceName, true);
+
+    if (fields.length == 0) {
+      return Collections.emptySet();
+    }
+    final Module module = facet.getModule();
+    final GlobalSearchScope scope = module.getModuleScope(false);
+    final PsiClass activityClass = findActivityClass(module);
+    final Set<PsiClass> result = new HashSet<PsiClass>();
+
+    ReferencesSearch.search(fields[0], scope).forEach(new Processor<PsiReference>() {
+      @Override
+      public boolean process(PsiReference reference) {
+        final PsiElement element = reference.getElement();
+
+        if (element == null) {
+          return true;
+        }
+        final PsiClass aClass = PsiTreeUtil.getParentOfType(element, PsiClass.class);
+
+        if (aClass != null && !result.contains(aClass) && aClass.isInheritor(activityClass, true)) {
+          result.add(aClass);
+        }
+        return true;
+      }
+    });
     return result;
   }
 
@@ -83,10 +127,11 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
     }
     final DomFileDescription<?> description = DomManager.getDomManager(file.getProject()).getDomFileDescription((XmlFile)file);
 
-    if (!(description instanceof LayoutDomFileDescription)) {
+    if (!(description instanceof LayoutDomFileDescription) &&
+        !(description instanceof MenuDomFileDescription)) {
       return ProblemDescriptor.EMPTY_ARRAY;
     }
-    final List<PsiClass> activities = findRelatedActivities((XmlFile)file, facet);
+    final Collection<PsiClass> activities = findRelatedActivities((XmlFile)file, facet, description);
     final MyVisitor visitor = new MyVisitor(manager, isOnTheFly, activities);
     file.accept(visitor);
     return visitor.myResult.toArray(new ProblemDescriptor[visitor.myResult.size()]);
@@ -95,11 +140,11 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
   private static class MyVisitor extends XmlRecursiveElementVisitor {
     private final InspectionManager myInspectionManager;
     private final boolean myOnTheFly;
-    private final List<PsiClass> myRelatedActivities;
+    private final Collection<PsiClass> myRelatedActivities;
 
     final List<ProblemDescriptor> myResult = new ArrayList<ProblemDescriptor>();
 
-    private MyVisitor(@NotNull InspectionManager inspectionManager, boolean onTheFly, @NotNull List<PsiClass> relatedActivities) {
+    private MyVisitor(@NotNull InspectionManager inspectionManager, boolean onTheFly, @NotNull Collection<PsiClass> relatedActivities) {
       myInspectionManager = inspectionManager;
       myOnTheFly = onTheFly;
       myRelatedActivities = relatedActivities;
@@ -111,12 +156,13 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
         if (!(reference instanceof OnClickConverter.MyReference)) {
           continue;
         }
-        final String methodName = ((OnClickConverter.MyReference)reference).getValue();
+        final OnClickConverter.MyReference ref = (OnClickConverter.MyReference)reference;
+        final String methodName = ref.getValue();
 
         if (methodName.isEmpty()) {
           continue;
         }
-        final ResolveResult[] results = ((OnClickConverter.MyReference)reference).multiResolve(false);
+        final ResolveResult[] results = ref.multiResolve(false);
         final Set<PsiClass> resolvedClasses = new HashSet<PsiClass>();
         final Set<PsiClass> resolvedClassesWithMistake = new HashSet<PsiClass>();
 
@@ -150,44 +196,54 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
         }
 
         if (activity != null) {
-          String activityName = activity.getName();
-
-          if (activityName == null) {
-            activityName = "";
-          }
-          final String message =
-            resolvedClassesWithMistake.contains(activity)
-            ? AndroidBundle.message("android.inspections.on.click.missing.incorrect.signature", methodName, activityName)
-            : AndroidBundle.message("android.inspections.on.click.missing.problem", methodName, activityName);
-
-          myResult.add(myInspectionManager.createProblemDescriptor(
-            value, reference.getRangeInElement(),
-            message,
-            ProblemHighlightType.GENERIC_ERROR_OR_WARNING, myOnTheFly, new MyQuickFix(
-            methodName, activity)));
+          reportMissingOnClickProblem(ref, activity, methodName, resolvedClassesWithMistake.contains(activity));
         }
         else if (results.length == 0) {
           myResult.add(myInspectionManager.createProblemDescriptor(
             value, reference.getRangeInElement(), ProblemsHolder.unresolvedReferenceMessage(reference),
             ProblemHighlightType.GENERIC_ERROR_OR_WARNING, myOnTheFly));
         }
+        else if (resolvedClassesWithMistake.size() > 0) {
+          reportMissingOnClickProblem(ref, resolvedClassesWithMistake.iterator().next(), methodName, true);
+        }
       }
+    }
+
+    private void reportMissingOnClickProblem(OnClickConverter.MyReference reference,
+                                             PsiClass activity,
+                                             String methodName,
+                                             boolean incorrectSignature) {
+      String activityName = activity.getName();
+
+      if (activityName == null) {
+        activityName = "";
+      }
+      final String message =
+        incorrectSignature
+        ? AndroidBundle.message("android.inspections.on.click.missing.incorrect.signature", methodName, activityName)
+        : AndroidBundle.message("android.inspections.on.click.missing.problem", methodName, activityName);
+
+      myResult.add(myInspectionManager.createProblemDescriptor(
+        reference.getElement(), reference.getRangeInElement(), message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING, myOnTheFly,
+        new MyQuickFix(methodName, reference.getConverter().getMethodParameterType(), activity)));
     }
   }
 
   public static class MyQuickFix extends AbstractIntentionAction implements LocalQuickFix {
     private final String myMethodName;
+    private final String myMethodParamType;
     private final PsiClass myClass;
 
-    private MyQuickFix(@NotNull String methodName, @NotNull PsiClass aClass) {
+    private MyQuickFix(@NotNull String methodName, @NotNull String methodParamType, @NotNull PsiClass aClass) {
       myMethodName = methodName;
+      myMethodParamType = methodParamType;
       myClass = aClass;
     }
 
     @NotNull
     @Override
     public String getName() {
-      return "Create '" + myMethodName + "(View)' in '" + myClass.getName() + "'";
+      return "Create '" + myMethodName + "(" + getShortName(myMethodParamType) + ")' in '" + myClass.getName() + "'";
     }
 
     @NotNull
@@ -204,7 +260,7 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
 
     @Override
     public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-      AndroidCreateOnClickHandlerAction.addHandlerMethodAndNavigate(project, myClass, myMethodName);
+      AndroidCreateOnClickHandlerAction.addHandlerMethodAndNavigate(project, myClass, myMethodName, myMethodParamType);
     }
 
     @Override
@@ -214,7 +270,13 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
     }
 
     public void doApplyFix(@NotNull Project project) {
-      AndroidCreateOnClickHandlerAction.addHandlerMethod(project, myClass, myMethodName);
+      AndroidCreateOnClickHandlerAction.addHandlerMethod(project, myClass, myMethodName, myMethodParamType);
+    }
+
+    @NotNull
+    private static String getShortName(@NotNull String fullClassName) {
+      final int index = fullClassName.lastIndexOf('.');
+      return index < 0 ? fullClassName : fullClassName.substring(index + 1);
     }
   }
 }

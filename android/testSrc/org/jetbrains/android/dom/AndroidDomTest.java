@@ -1,15 +1,21 @@
 package org.jetbrains.android.dom;
 
 import com.intellij.codeInsight.completion.CompletionType;
+import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.documentation.DocumentationManager;
+import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.lang.documentation.ExternalDocumentationProvider;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.UsefulTestCase;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.inspections.AndroidDomInspection;
 import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection;
+import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
 import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection;
 import org.jetbrains.annotations.Nullable;
 
@@ -144,6 +150,40 @@ abstract class AndroidDomTest extends AndroidTestCase {
     final String doc = ((ExternalDocumentationProvider)provider).fetchExternalDocumentation(myFixture.getProject(), docTargetElement, urls);
     assertNotNull(doc);
     assertTrue(doc, doc.contains(expectedPart));
+  }
+
+  protected List<IntentionAction> highlightAndFindQuickFixes(Class<?> aClass) {
+    final List<HighlightInfo> infos = myFixture.doHighlighting();
+    final List<IntentionAction> actions = new ArrayList<IntentionAction>();
+
+    for (HighlightInfo info : infos) {
+      final List<Pair<HighlightInfo.IntentionActionDescriptor, TextRange>> ranges = info.quickFixActionRanges;
+
+      if (ranges != null) {
+        for (Pair<HighlightInfo.IntentionActionDescriptor, TextRange> pair : ranges) {
+          final IntentionAction action = pair.getFirst().getAction();
+          if (action.getClass() == aClass) {
+            actions.add(action);
+          }
+        }
+      }
+    }
+    return actions;
+  }
+
+  protected void doTestOnClickQuickfix(VirtualFile file) {
+    myFixture.configureFromExistingVirtualFile(file);
+    final List<IntentionAction> actions = highlightAndFindQuickFixes(AndroidMissingOnClickHandlerInspection.MyQuickFix.class);
+    assertEquals(1, actions.size());
+    final IntentionAction action = actions.get(0);
+    assertInstanceOf(action, AndroidMissingOnClickHandlerInspection.MyQuickFix.class);
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        ((AndroidMissingOnClickHandlerInspection.MyQuickFix)action).doApplyFix(getProject());
+      }
+    });
+    myFixture.checkResultByFile(testFolder + "/onClickIntention.xml");
   }
 }
 
