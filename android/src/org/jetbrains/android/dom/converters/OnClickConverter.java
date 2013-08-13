@@ -33,6 +33,15 @@ import java.util.Set;
  * @author Eugene.Kudelevsky
  */
 public class OnClickConverter extends Converter<String> implements CustomReferenceConverter<String> {
+  public static final OnClickConverter CONVERTER_FOR_LAYOUT = new OnClickConverter(AndroidUtils.VIEW_CLASS_NAME);
+  public static final OnClickConverter CONVERTER_FOR_MENU = new OnClickConverter("android.view.MenuItem");
+
+  private final String myMethodParameterType;
+
+  public OnClickConverter(@NotNull String methodParameterType) {
+    myMethodParameterType = methodParameterType;
+  }
+
   @NotNull
   @Override
   public PsiReference[] createReferences(GenericDomValue<String> value, PsiElement element, ConvertContext context) {
@@ -53,7 +62,12 @@ public class OnClickConverter extends Converter<String> implements CustomReferen
     return s;
   }
 
-  public static class MyReference extends PsiPolyVariantReferenceBase<XmlAttributeValue> {
+  @NotNull
+  public String getMethodParameterType() {
+    return myMethodParameterType;
+  }
+
+  public class MyReference extends PsiPolyVariantReferenceBase<XmlAttributeValue> {
 
     private MyReference(XmlAttributeValue value, TextRange range) {
       super(value, range, true);
@@ -103,7 +117,7 @@ public class OnClickConverter extends Converter<String> implements CustomReferen
         final PsiClass parentClass = method.getContainingClass();
 
         if (parentClass != null && parentClass.isInheritor(activityBaseClass, true)) {
-          if (checkSignature(method)) {
+          if (checkSignature(method, myMethodParameterType)) {
             result.add(new MyResolveResult(method, true));
           }
           else {
@@ -136,7 +150,7 @@ public class OnClickConverter extends Converter<String> implements CustomReferen
         @Override
         public boolean process(PsiClass c) {
           for (PsiMethod method : c.getMethods()) {
-            if (checkSignature(method) && methodNames.add(method.getName())) {
+            if (checkSignature(method, myMethodParameterType) && methodNames.add(method.getName())) {
               result.add(createLookupElement(method));
             }
           }
@@ -145,9 +159,18 @@ public class OnClickConverter extends Converter<String> implements CustomReferen
       });
       return ArrayUtil.toObjectArray(result);
     }
+
+    @NotNull
+    public OnClickConverter getConverter() {
+      return OnClickConverter.this;
+    }
   }
 
-  public static boolean checkSignature(@NotNull PsiMethod method) {
+  public boolean checkSignature(@NotNull PsiMethod method) {
+    return checkSignature(method, myMethodParameterType);
+  }
+
+  private static boolean checkSignature(@NotNull PsiMethod method, @NotNull String parameterType) {
     if (method.getReturnType() != PsiType.VOID) {
       return false;
     }
@@ -174,10 +197,10 @@ public class OnClickConverter extends Converter<String> implements CustomReferen
     }
 
     final PsiClass paramClass = ((PsiClassType)paramType).resolve();
-    return paramClass != null && AndroidUtils.VIEW_CLASS_NAME.equals(paramClass.getQualifiedName());
+    return paramClass != null && parameterType.equals(paramClass.getQualifiedName());
   }
 
-  public static boolean findHandlerMethod(@NotNull PsiClass psiClass, @NotNull String methodName) {
+  public boolean findHandlerMethod(@NotNull PsiClass psiClass, @NotNull String methodName) {
     final PsiMethod[] methods = psiClass.findMethodsByName(methodName, false);
 
     for (PsiMethod method : methods) {

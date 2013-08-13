@@ -35,7 +35,7 @@ import org.jetbrains.android.dom.layout.LayoutElement;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.dom.manifest.*;
 import org.jetbrains.android.dom.menu.Group;
-import org.jetbrains.android.dom.menu.Item;
+import org.jetbrains.android.dom.menu.MenuItem;
 import org.jetbrains.android.dom.menu.Menu;
 import org.jetbrains.android.dom.resources.*;
 import org.jetbrains.android.dom.xml.PreferenceElement;
@@ -62,7 +62,7 @@ public class AndroidDomUtil {
   public static final StaticEnumConverter BOOLEAN_CONVERTER = new StaticEnumConverter("true", "false");
   public static final Map<String, String> SPECIAL_RESOURCE_TYPES = new HashMap<String, String>();
   private static final PackageClassConverter ACTIVITY_CONVERTER = new PackageClassConverter(AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
-  private static final OnClickConverter ON_CLICK_CONVERTER = new OnClickConverter();
+
   private static final FragmentClassConverter FRAGMENT_CLASS_CONVERTER = new FragmentClassConverter();
 
   @NonNls public static final String ATTR_ID = "id";
@@ -193,9 +193,11 @@ public class AndroidDomUtil {
         return FRAGMENT_CLASS_CONVERTER;
       }
     }
-    else if (context instanceof LayoutViewElement) {
+    else if (context instanceof LayoutViewElement || context instanceof MenuItem) {
       if ("onClick".equals(localName)) {
-        return ON_CLICK_CONVERTER;
+        return context instanceof LayoutViewElement
+               ? OnClickConverter.CONVERTER_FOR_LAYOUT
+               : OnClickConverter.CONVERTER_FOR_MENU;
       }
     }
 
@@ -304,7 +306,7 @@ public class AndroidDomUtil {
     if (element instanceof Group || element instanceof StringArray || element instanceof IntegerArray || element instanceof Style) {
       return new String[]{"item"};
     }
-    if (element instanceof Item) {
+    if (element instanceof MenuItem) {
       return new String[]{"menu"};
     }
     if (element instanceof Menu) {
