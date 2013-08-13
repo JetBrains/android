@@ -553,11 +553,11 @@ public class AndroidUtils {
                                                                   @NotNull ConfigurationType type,
                                                                   @NonNls ConfigurationType alternativeType) {
     final RunManager runManager = RunManager.getInstance(module.getProject());
-    RunConfiguration[] configurations = runManager.getConfigurations(type);
+    List<RunConfiguration> configurations = runManager.getConfigurationsList(type);
 
     TargetSelectionMode alternative = null;
 
-    if (configurations.length > 0) {
+    if (configurations.size() > 0) {
       for (RunConfiguration configuration : configurations) {
         if (configuration instanceof AndroidRunConfigurationBase) {
           final AndroidRunConfigurationBase runConfig = (AndroidRunConfigurationBase)configuration;
@@ -576,9 +576,9 @@ public class AndroidUtils {
     if (alternative != null) {
       return alternative;
     }
-    configurations = runManager.getConfigurations(alternativeType);
+    configurations = runManager.getConfigurationsList(alternativeType);
 
-    if (configurations.length > 0) {
+    if (configurations.size() > 0) {
       for (RunConfiguration configuration : configurations) {
         if (configuration instanceof AndroidRunConfigurationBase) {
           return ((AndroidRunConfigurationBase)configuration).getTargetSelectionMode();
