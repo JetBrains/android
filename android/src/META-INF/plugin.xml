@@ -207,6 +207,10 @@
     <localInspection language="XML" shortName="AndroidElementNotAllowed" bundle="messages.AndroidBundle"
                      key="android.inspections.element.not.allowed.name" groupKey="android.inspections.group.name" enabledByDefault="true"
                      level="WARNING" implementationClass="org.jetbrains.android.inspections.AndroidElementNotAllowedInspection"/>
+
+    <localInspection language="XML" shortName="AndroidMissingOnClickHandler" bundle="messages.AndroidBundle"
+                     key="android.inspections.on.click.missing.name" groupKey="android.inspections.group.name" enabledByDefault="true"
+                     level="WARNING" implementationClass="org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection"/>
     <localInspection language="JAVA" shortName="AndroidNonConstantResIdsInSwitch" bundle="messages.AndroidBundle"
                      key="android.inspections.non.constant.res.ids.in.switch.name" groupKey="android.inspections.group.name"
                      enabledByDefault="true" level="ERROR"
