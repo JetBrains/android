@@ -151,8 +151,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
           }
           else {
             // Ensure that at least the Java source directory exists. We could create other directories but this is the most used.
-            // TODO: We should perhaps instantiate this from the Freemarker template, but trying to use the copy command to copy
-            // empty directories is problematic, and we don't have a primitive command to create a directory.
+            // TODO: We should perhaps instantiate this from the Freemarker template, using the mkdir command
             File javaSrcDir = new File(moduleRoot, JAVA_SRC_PATH);
             File packageDir = new File(javaSrcDir, myWizardState.getString(ATTR_PACKAGE_NAME).replace('.', File.separatorChar));
             if (!FileUtilRt.createDirectory(packageDir)) {

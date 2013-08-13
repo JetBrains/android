@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.SdkConstants;
 import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
@@ -184,8 +185,7 @@ public class TemplateUtils {
                            release);
     }
 
-    return String.format("%1$s (API %2$s)", target.getFullName(),
-                         target.getVersion().getApiString());
+    return String.format("%1$s (API %2$s)", target.getFullName(), target.getVersion().getApiString());
   }
 
   /**
@@ -365,5 +365,27 @@ public class TemplateUtils {
       LOG.warn(e);
       return null;
     }
+  }
+
+  /**
+   * Write the given text to the given file
+   * @param file The file to write.
+   * @param contents the string contents to write.
+   */
+  public static void writeTextFile(@NotNull File file, @NotNull String contents) {
+    try {
+      Files.write(contents.getBytes(), file);
+    } catch (IOException e) {
+      LOG.warn(e);
+    }
+  }
+
+  /**
+   * Get the build.gradle file for the given module root.
+   * @param moduleRoot The root directory of the module to find the build.gradle file for
+   * @return a file containing the build.gradle file for the given module root
+   */
+  public static File getGradleBuildFile(File moduleRoot) {
+    return new File(moduleRoot, SdkConstants.FN_BUILD_GRADLE);
   }
 }

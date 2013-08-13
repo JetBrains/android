@@ -22,6 +22,7 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
@@ -106,7 +107,9 @@ public class NewModuleWizardState extends TemplateWizardState {
   public void updateDependencies() {
     // Take care of dependencies selected through the wizard
     Set<String> dependencySet = new HashSet<String>();
-
+    if (myParameters.containsKey(ATTR_DEPENDENCIES_LIST)) {
+      dependencySet.addAll((Collection<String>)get(ATTR_DEPENDENCIES_LIST));
+    }
     dependencySet.addAll(myActivityTemplateState.getTemplateMetadata().getDependencies());
 
     // Support Library
