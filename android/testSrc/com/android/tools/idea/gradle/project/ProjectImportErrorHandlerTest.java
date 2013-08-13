@@ -74,4 +74,12 @@ public class ProjectImportErrorHandlerTest extends TestCase {
     assertTrue(actualMsg.contains(locationMsg));
     assertTrue(actualMsg.contains("Cause: " + causeMsg));
   }
+
+  public void testGetUserFriendlyErrorWithClassNotFoundException() {
+    String causeMsg = "com.mypackage.MyImaginaryClass";
+    ClassNotFoundException rootCause = new ClassNotFoundException(causeMsg);
+    Throwable error = new Throwable(rootCause);
+    RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
+    assertTrue(realCause.getMessage().contains("Unable to load class 'com.mypackage.MyImaginaryClass'."));
+  }
 }
