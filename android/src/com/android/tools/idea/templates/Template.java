@@ -28,7 +28,6 @@ import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
-import com.android.sdklib.repository.FullRevision;
 import com.android.utils.SdkUtils;
 import com.android.utils.StdLogger;
 import com.android.utils.XmlUtils;
@@ -37,7 +36,6 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -65,6 +63,8 @@ import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
+import static com.android.tools.idea.templates.RepositoryUrls.*;
+import static com.android.tools.idea.templates.TemplateUtils.readTextFile;
 
 /**
  * Handler which manages instantiating FreeMarker templates, copying resources
@@ -137,7 +137,6 @@ public class Template {
   public static final String TAG_DEPENDENCY = "dependency";
   public static final String TAG_ICONS = "icons";
   public static final String TAG_MKDIR = "mkdir";
-  public static final String TAG_VERSION = "version";
   public static final String ATTR_FORMAT = "format";
   public static final String ATTR_VALUE = "value";
   public static final String ATTR_DEFAULT = "default";
@@ -157,29 +156,6 @@ public class Template {
   public static final String CATEGORY_ACTIVITIES = "activities";
   public static final String CATEGORY_PROJECTS = "gradle-projects";
 
-  /** The vendor ID of the support library. */
-  private static final String VENDOR_ID = "android";
-  /** The path ID of the support library. */
-  private static final String SUPPORT_ID = "support";
-  /** The path ID of the appcompat library. */
-  private static final String APP_COMPAT_ID = "appcompat";
-  /** The path ID of the compatibility library (which was its id for releases 1-3). */
-  private static final String COMPATIBILITY_ID = "compatibility";
-
-  /** Names recognized in <dependency> tags */
-  static final String SUPPORT_LIBRARY_NAME = "android-support";
-  static final String APP_COMPAT_LIBRARY_NAME = "app-compat";
-
-
-  /** Internal Maven Repository settings */
-  private static final String SUPPORT_BASE_URL = "com.android.support:support";
-  private static final String APP_COMPAT_BASE_URL = "com.android.support:appcompat";
-  private static final String SUFFIX_V4 = "-v4";
-  private static final String SUFFIX_V7 = "-v7";
-  private static final String SUFFIX_V13 = "-v13";
-  private static final String MIN_VERSION_VALUE = "0.0.0";
-  private static final String SUPPORT_REPOSITORY_PATH = "/extras/android/m2repository/com/android/support/";
-  private static final String MAVEN_METADATA_PATH = "/maven-metadata.xml";
 
   /**
    * List of files to open after the wizard has been created (these are
@@ -289,6 +265,9 @@ public class Template {
     paramMap.put("escapeXmlString", new FmEscapeXmlStringMethod());
     paramMap.put("extractLetters", new FmExtractLettersMethod());
 
+    // Dependency list
+    paramMap.put(TemplateMetadata.ATTR_DEPENDENCIES_LIST, new LinkedList<String>());
+
     // This should be handled better: perhaps declared "required packages" as part of the
     // inputs? (It would be better if we could conditionally disable template based
     // on availability)
@@ -358,17 +337,11 @@ public class Template {
           } else if (TAG_DEPENDENCY.equals(name)) {
             String dependencyName = attributes.getValue(ATTR_NAME);
             String dependencyVersion = attributes.getValue(ATTR_VERSION);
-            int minApiLevel = (Integer)paramMap.get(TemplateMetadata.ATTR_MIN_API_LEVEL);
-            if (dependencyName.equals(SUPPORT_LIBRARY_NAME)) {
-              // We assume the revision requirement has been satisfied
-              // by the wizard
-              paramMap.put(TemplateMetadata.ATTR_ANDROID_SUPPORT_URL, getSupportMavenUrl(minApiLevel, dependencyVersion));
-            } else if (dependencyName.equals(APP_COMPAT_LIBRARY_NAME)) {
-              // API level 11 (Android 3.0) introduces action bar natively
-              if (minApiLevel <= 11) {
-                paramMap.put(TemplateMetadata.ATTR_APP_COMPAT_URL, getAppCompatMavenUrl(minApiLevel, dependencyVersion));
-              }
-            } // TODO: Add other libraries here (Cloud SDK, Play Services, AppCompatLib, etc).
+            List<String> dependencyList = (List<String>)paramMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
+
+            if (dependencyName.equals(SUPPORT_ID) || dependencyName.equals(APP_COMPAT_ID) || dependencyName.equals(GRID_LAYOUT_ID)) {
+              dependencyList.add(getLibraryUrl(dependencyName, dependencyVersion));
+            }// TODO: Add other libraries here (Cloud SDK, Play Services, YouTube, AdMob, etc).
           } else if (!name.equals("template") && !name.equals("category") && !name.equals("option") && !name.equals(TAG_THUMBS) &&
                      !name.equals(TAG_THUMB) && !name.equals(TAG_ICONS)) {
             LOG.error("WARNING: Unknown template directive " + name);
@@ -378,108 +351,6 @@ public class Template {
     } catch (Exception e) {
       ourMostRecentException = e;
       LOG.warn(e);
-    }
-  }
-
-  /**
-   * Calculate the correct version of the support library and generate the corresponding maven URL
-   * @param minApiLevel the minimum api level specified by the template (-1 if no minApiLevel specified)
-   * @param revision the version of the support library (should be v13 or v4)
-   * @return a maven url for the android support library
-   */
-  @Nullable
-  protected static String getSupportMavenUrl(int minApiLevel, String revision) {
-    // If a version is specified, use that as the version suffix, else calculate based on api level
-    String suffix;
-    if (revision != null) {
-      suffix = "-" + revision;
-    } else if (minApiLevel >= 13) {
-      suffix = SUFFIX_V13;
-    } else {
-      suffix = SUFFIX_V4;
-    }
-
-    // Read the support repository and find the latest version available
-    String sdkLocation = AndroidSdkUtils.tryToChooseAndroidSdk().getLocation();
-    String path = FileUtil.toSystemIndependentName(
-      sdkLocation + SUPPORT_REPOSITORY_PATH + SUPPORT_ID + suffix + MAVEN_METADATA_PATH);
-    File supportMetadataFile = new File(path);
-    if (!supportMetadataFile.exists()) {
-      throw new ExternalSystemException("You must install the Android Support Repository though the SDK Manager.");
-    }
-
-    String version = getLatestVersionFromMavenMetadata(supportMetadataFile);
-
-    return SUPPORT_BASE_URL + suffix + ":" + version;
-  }
-
-  /**
-   * Calculate the correct version of the app-compat library and generate the corresponding maven URL
-   * @param minApiLevel the minimum api level specified by the template (-1 if no minApiLevel specified)
-   * @param revision the version of the app-compat library (only v7 available right now)
-   * @return a maven url for the android app-compat library
-   */
-  @Nullable
-  protected static String getAppCompatMavenUrl(int minApiLevel, String revision) {
-    // If a version is specified, use that as the version suffix, else calculate based on api level
-    String suffix;
-    if (revision != null) {
-      suffix = "-" + revision;
-    } else {
-      suffix = SUFFIX_V7;
-    }
-
-    // Read the support repository and find the latest version available
-    String sdkLocation = AndroidSdkUtils.tryToChooseAndroidSdk().getLocation();
-    String path = FileUtil.toSystemIndependentName(
-      sdkLocation + SUPPORT_REPOSITORY_PATH + APP_COMPAT_ID + suffix + MAVEN_METADATA_PATH);
-    File supportMetadataFile = new File(path);
-    if (!supportMetadataFile.exists()) {
-      throw new ExternalSystemException("You must install the Android Support Repository though the SDK Manager.");
-    }
-
-    String version = getLatestVersionFromMavenMetadata(supportMetadataFile);
-
-    return APP_COMPAT_BASE_URL + suffix + ":" + version;
-  }
-
-  /**
-   * Parses a Maven metadata file and returns a string of the highest found version
-   * @param metadataFile the files to parse
-   * @return the string representing the highest version found in the file or "0.0.0" if no versions exist in the file
-   */
-  private static String getLatestVersionFromMavenMetadata(File metadataFile) {
-    String xml = readTextFile(metadataFile);
-    final List<FullRevision> versions = new LinkedList<FullRevision>();
-    try {
-      SAXParserFactory.newInstance().newSAXParser().parse(new ByteArrayInputStream(xml.getBytes()), new DefaultHandler() {
-        boolean inVersionTag = false;
-
-        @Override
-        public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-          if (qName.equals(TAG_VERSION)) {
-            inVersionTag = true;
-          }
-        }
-
-        @Override
-        public void characters(char[] ch, int start, int length) throws SAXException {
-          // Get the version and compare it to the current known max version
-          if (inVersionTag) {
-            versions.add(FullRevision.parseRevision(new String(ch, start, length)));
-            inVersionTag = false;
-          }
-        }
-      });
-    } catch (Exception e) {
-      ourMostRecentException = e;
-      LOG.warn(e);
-    }
-
-    if (versions.isEmpty()) {
-      return MIN_VERSION_VALUE;
-    } else {
-      return Collections.max(versions).toString();
     }
   }
 
@@ -857,18 +728,6 @@ public class Template {
     inputsTemplate.process(paramMap, out);
     out.flush();
     return out.toString();
-  }
-
-  /** Reads the given file as text. */
-  @Nullable
-  private static String readTextFile(@NotNull File file) {
-    assert file.isAbsolute();
-    try {
-      return Files.toString(file, Charsets.UTF_8);
-    } catch (IOException e) {
-      LOG.warn(e);
-      return null;
-    }
   }
 
   @NotNull
