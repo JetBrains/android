@@ -63,6 +63,22 @@ public class AndroidMenuTest extends AndroidDomTest {
     doTestHighlighting();
   }
 
+  public void testOnClickHighlightingAbs1() throws Throwable {
+    copyAbsFiles();
+    myFixture.allowTreeAccessForAllFiles();
+    myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
+    myFixture.copyFileToProject(testFolder + "/OnClickActivity2Abs.java", "src/p1/p2/Activity1.java");
+    doTestHighlighting("onClickHighlightingAbs.xml");
+  }
+
+  public void testOnClickHighlightingAbs2() throws Throwable {
+    copyAbsFiles();
+    myFixture.allowTreeAccessForAllFiles();
+    myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
+    myFixture.copyFileToProject(testFolder + "/OnClickActivity3Abs.java", "src/p1/p2/Activity1.java");
+    doTestHighlighting("onClickHighlightingAbs.xml");
+  }
+
   public void testOnClickCompletion() throws Throwable {
     copyOnClickClasses();
     doTestCompletionVariants(getTestName(true) + ".xml", "clickHandler1", "clickHandler7");
@@ -77,6 +93,18 @@ public class AndroidMenuTest extends AndroidDomTest {
     action.invoke(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile());
     myFixture.checkResultByFile(testFolder + "/onClickIntention.xml");
     myFixture.checkResultByFile("src/p1/p2/Activity1.java", testFolder + "/OnClickActivity_after.java", false);
+  }
+
+  public void testOnClickIntentionAbs() throws Throwable {
+    copyAbsFiles();
+    myFixture.copyFileToProject(testFolder + "/OnClickActivityAbs.java", "src/p1/p2/Activity1.java");
+    final VirtualFile file = copyFileToProject("onClickIntention.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    final AndroidCreateOnClickHandlerAction action = new AndroidCreateOnClickHandlerAction();
+    assertTrue(action.isAvailable(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile()));
+    action.invoke(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile());
+    myFixture.checkResultByFile(testFolder + "/onClickIntention.xml");
+    myFixture.checkResultByFile("src/p1/p2/Activity1.java", testFolder + "/OnClickActivityAbs_after.java", false);
   }
 
   public void testOnClickQuickFix1() throws Throwable {
@@ -115,5 +143,19 @@ public class AndroidMenuTest extends AndroidDomTest {
     final VirtualFile file = copyFileToProject("onClickIntention.xml");
     doTestOnClickQuickfix(file);
     myFixture.checkResultByFile("src/p1/p2/Activity1.java", testFolder + "/OnClickActivity1_after.java", false);
+  }
+
+  public void testOnClickQuickFixAbs() throws Throwable {
+    copyAbsFiles();
+    myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
+    myFixture.copyFileToProject(testFolder + "/OnClickActivity1Abs.java", "src/p1/p2/Activity1.java");
+    final VirtualFile file = copyFileToProject("onClickIntention.xml");
+    doTestOnClickQuickfix(file);
+    myFixture.checkResultByFile("src/p1/p2/Activity1.java", testFolder + "/OnClickActivity1Abs_after.java", false);
+  }
+
+  private void copyAbsFiles() {
+    myFixture.copyFileToProject(testFolder + "/Watson.java", "src/android/support/v4/app/Watson.java");
+    myFixture.copyFileToProject(testFolder + "/MenuItem.java", "src/com/actionbarsherlock/view/MenuItem.java");
   }
 }
