@@ -597,6 +597,21 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     doTestHighlighting();
   }
 
+  public void testOnClickHighlighting3() throws Throwable {
+    myFixture.allowTreeAccessForAllFiles();
+    myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
+    myFixture.copyFileToProject(testFolder + "/OnClickActivity5.java", "src/p1/p2/Activity1.java");
+    doTestHighlighting();
+  }
+
+  public void testOnClickHighlighting4() throws Throwable {
+    myFixture.allowTreeAccessForAllFiles();
+    myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
+    myFixture.copyFileToProject(testFolder + "/OnClickActivity6.java", "src/p1/p2/Activity1.java");
+    myFixture.copyFileToProject(testFolder + "/OnClickActivity4.java", "src/p1/p2/Activity2.java");
+    doTestHighlighting();
+  }
+
   public void testMinHeightCompletion() throws Throwable {
     doTestCompletionVariants(getTestName(true) + ".xml", "@android:", "@dimen/myDimen");
   }

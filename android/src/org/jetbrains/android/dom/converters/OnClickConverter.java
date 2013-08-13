@@ -97,17 +97,23 @@ public class OnClickConverter extends Converter<String> implements CustomReferen
         return ResolveResult.EMPTY_ARRAY;
       }
       final List<ResolveResult> result = new ArrayList<ResolveResult>();
+      final List<ResolveResult> resultsWithMistake = new ArrayList<ResolveResult>();
 
       for (PsiMethod method : methods) {
-        if (checkSignature(method)) {
-          final PsiClass parentClass = method.getContainingClass();
+        final PsiClass parentClass = method.getContainingClass();
 
-          if (parentClass != null && parentClass.isInheritor(activityBaseClass, true)) {
-            result.add(new PsiElementResolveResult(method));
+        if (parentClass != null && parentClass.isInheritor(activityBaseClass, true)) {
+          if (checkSignature(method)) {
+            result.add(new MyResolveResult(method, true));
+          }
+          else {
+            resultsWithMistake.add(new MyResolveResult(method, false));
           }
         }
       }
-      return result.toArray(new ResolveResult[result.size()]);
+      return result.size() > 0
+             ? result.toArray(new ResolveResult[result.size()])
+             : resultsWithMistake.toArray(new ResolveResult[resultsWithMistake.size()]);
     }
 
     @NotNull
@@ -190,5 +196,18 @@ public class OnClickConverter extends Converter<String> implements CustomReferen
     return containingClass != null
            ? builder.withTailText(" (" + containingClass.getQualifiedName() + ')')
            : builder;
+  }
+
+  public static class MyResolveResult extends PsiElementResolveResult {
+    private final boolean myHasCorrectSignature;
+
+    public MyResolveResult(@NotNull PsiElement element, boolean hasCorrectSignature) {
+      super(element);
+      myHasCorrectSignature = hasCorrectSignature;
+    }
+
+    public boolean hasCorrectSignature() {
+      return myHasCorrectSignature;
+    }
   }
 }

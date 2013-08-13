@@ -5,6 +5,6 @@ public class Activity2 extends android.app.Activity {
     super.onCreate(savedInstanceState);
   }
 
-  public void clickHandler1(View view) {
+  public void clickHandler1(android.view.View view) {
   }
 }
