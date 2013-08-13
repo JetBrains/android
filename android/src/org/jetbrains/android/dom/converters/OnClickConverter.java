@@ -90,11 +90,21 @@ public class OnClickConverter extends Converter<String> implements CustomReferen
       if (methods.length == 0) {
         return ResolveResult.EMPTY_ARRAY;
       }
+      final PsiClass activityBaseClass = JavaPsiFacade.getInstance(project).findClass(
+        AndroidUtils.ACTIVITY_BASE_CLASS_NAME, module.getModuleWithDependenciesAndLibrariesScope(false));
 
+      if (activityBaseClass == null) {
+        return ResolveResult.EMPTY_ARRAY;
+      }
       final List<ResolveResult> result = new ArrayList<ResolveResult>();
+
       for (PsiMethod method : methods) {
         if (checkSignature(method)) {
-          result.add(new PsiElementResolveResult(method));
+          final PsiClass parentClass = method.getContainingClass();
+
+          if (parentClass != null && parentClass.isInheritor(activityBaseClass, true)) {
+            result.add(new PsiElementResolveResult(method));
+          }
         }
       }
       return result.toArray(new ResolveResult[result.size()]);

@@ -610,7 +610,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     assertNotNull(reference);
     assertInstanceOf(reference, PsiPolyVariantReference.class);
     final ResolveResult[] results = ((PsiPolyVariantReference)reference).multiResolve(false);
-    assertEquals(3, results.length);
+    assertEquals(2, results.length);
     for (ResolveResult result : results) {
       assertInstanceOf(result.getElement(), PsiMethod.class);
     }
