@@ -22,10 +22,9 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.server.BuildProcessParametersProvider;
 import com.intellij.execution.configurations.CommandLineTokenizer;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
-import com.intellij.openapi.externalSystem.settings.ExternalSystemSettingsManager;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.PathUtil;
@@ -104,8 +103,7 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     if (!Projects.isGradleProject(myProject)) {
       return Collections.emptyList();
     }
-    ExternalSystemSettingsManager settingsManager = ServiceManager.getService(ExternalSystemSettingsManager.class);
-    GradleSettings settings = (GradleSettings)settingsManager.getSettings(myProject, SYSTEM_ID);
+    GradleSettings settings = (GradleSettings)ExternalSystemApiUtil.getSettings(myProject, SYSTEM_ID);
 
     GradleSettings.MyState state = settings.getState();
     assert state != null;
@@ -120,9 +118,8 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     }
     List<String> jvmArgs = Lists.newArrayList();
 
-    String projectPath = projectSettings.getExternalProjectPath();
-    GradleExecutionSettings executionSettings = settingsManager.getExecutionSettings(myProject, projectPath, SYSTEM_ID);
-    //noinspection TestOnlyProblems
+    GradleExecutionSettings executionSettings =
+      ExternalSystemApiUtil.getExecutionSettings(myProject, projectSettings.getExternalProjectPath(), SYSTEM_ID);
     populateJvmArgs(executionSettings, jvmArgs);
 
     if (Projects.generateSourceOnlyOnCompile(myProject)) {

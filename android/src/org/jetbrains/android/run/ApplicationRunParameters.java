@@ -75,7 +75,7 @@ class ApplicationRunParameters implements ConfigurationSpecificEditor<AndroidRun
         }
         PsiClass initialSelection = facade.findClass(myActivityField.getText(), module.getModuleWithDependenciesScope());
         TreeClassChooser chooser = TreeClassChooserFactory.getInstance(project)
-          .createInheritanceClassChooser("Select activity class", module.getModuleWithDependenciesScope(), activityBaseClass,
+          .createInheritanceClassChooser("Select Activity Class", module.getModuleWithDependenciesScope(), activityBaseClass,
                                          initialSelection, null);
         chooser.showDialog();
         PsiClass selClass = chooser.getSelected();

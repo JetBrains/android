@@ -6,6 +6,7 @@ import com.intellij.ide.actions.GotoRelatedFileAction;
 import com.intellij.navigation.GotoRelatedItem;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.TestActionEvent;
@@ -33,8 +34,16 @@ public class AndroidGotoRelatedTest extends AndroidTestCase {
     final VirtualFile layoutLand = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout-land/layout.xml");
     final VirtualFile activityFile = myFixture.copyFileToProject(BASE_PATH + "Activity1.java", "src/p1/p2/MyActivity.java");
     final List<VirtualFile> expectedTargetFiles = Arrays.asList(layout, layout1, layout2, layoutLand);
-    doTestGotoRelatedFile(activityFile, expectedTargetFiles);
-    doCheckLineMarkers(expectedTargetFiles);
+    doTestGotoRelatedFile(activityFile, expectedTargetFiles, PsiFile.class);
+    doCheckLineMarkers(expectedTargetFiles, PsiFile.class);
+  }
+
+  public void testSimpleClassToLayout() throws Exception {
+    myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml");
+    final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "Class1.java", "src/p1/p2/Class1.java");
+    doTestGotoRelatedFile(file, Collections.<VirtualFile>emptyList(), PsiFile.class);
+    final List<LineMarkerInfo> markerInfos = doGetRelatedLineMarkers();
+    assertEmpty(markerInfos);
   }
 
   public void testFragmentToLayout() throws Exception {
@@ -42,8 +51,8 @@ public class AndroidGotoRelatedTest extends AndroidTestCase {
     final VirtualFile layoutLand = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout-land/layout.xml");
     final VirtualFile fragmentFile = myFixture.copyFileToProject(BASE_PATH + "Fragment1.java", "src/p1/p2/MyFragment.java");
     final List<VirtualFile> expectedTargetFiles = Arrays.asList(layout, layoutLand);
-    doTestGotoRelatedFile(fragmentFile, expectedTargetFiles);
-    doCheckLineMarkers(expectedTargetFiles);
+    doTestGotoRelatedFile(fragmentFile, expectedTargetFiles, PsiFile.class);
+    doCheckLineMarkers(expectedTargetFiles, PsiFile.class);
   }
 
   public void testLayoutToContext() throws Exception {
@@ -52,12 +61,13 @@ public class AndroidGotoRelatedTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout2.xml");
     myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout-land/layout.xml");
     final VirtualFile activityFile = myFixture.copyFileToProject(BASE_PATH + "Activity1.java", "src/p1/p2/MyActivity.java");
+    myFixture.copyFileToProject(BASE_PATH + "Class1.java", "src/p1/p2/Class1.java");
     myFixture.copyFileToProject(BASE_PATH + "Activity2.java", "src/p1/p2/Activity2.java");
     final VirtualFile fragmentFile = myFixture.copyFileToProject(BASE_PATH + "Fragment1.java", "src/p1/p2/MyFragment.java");
     myFixture.copyFileToProject(BASE_PATH + "Fragment2.java", "src/p1/p2/Fragment2.java");
     final List<VirtualFile> expectedTargetFiles = Arrays.asList(activityFile, fragmentFile);
-    doTestGotoRelatedFile(layout, expectedTargetFiles);
-    doCheckLineMarkers(expectedTargetFiles);
+    doTestGotoRelatedFile(layout, expectedTargetFiles, PsiClass.class);
+    doCheckLineMarkers(expectedTargetFiles, PsiClass.class);
   }
 
   public void testNestedActivity() throws Exception {
@@ -66,10 +76,10 @@ public class AndroidGotoRelatedTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout2.xml");
     final VirtualFile layoutLand = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout-land/layout.xml");
     final VirtualFile activityFile = myFixture.copyFileToProject(BASE_PATH + "Activity3.java", "src/p1/p2/MyActivity.java");
-    doTestGotoRelatedFile(activityFile, Arrays.asList(layout, layoutLand));
+    doTestGotoRelatedFile(activityFile, Arrays.asList(layout, layoutLand), PsiFile.class);
   }
 
-  private void doTestGotoRelatedFile(VirtualFile file, List<VirtualFile> expectedTargetFiles) {
+  private void doTestGotoRelatedFile(VirtualFile file, List<VirtualFile> expectedTargetFiles, Class<?> targetElementClass) {
     myFixture.configureFromExistingVirtualFile(file);
 
     final GotoRelatedFileAction action = new GotoRelatedFileAction();
@@ -78,10 +88,18 @@ public class AndroidGotoRelatedTest extends AndroidTestCase {
     final Presentation presentation = e.getPresentation();
     assertTrue(presentation.isEnabled() && presentation.isVisible());
 
-    doCheckItems(expectedTargetFiles, GotoRelatedFileAction.getItems(myFixture.getFile(), myFixture.getEditor(), null));
+    doCheckItems(expectedTargetFiles, GotoRelatedFileAction.getItems(myFixture.getFile(), myFixture.getEditor(), null), targetElementClass);
   }
 
-  private void doCheckLineMarkers(List<VirtualFile> expectedTargetFiles) {
+  private void doCheckLineMarkers(List<VirtualFile> expectedTargetFiles, Class<?> targetElementClass) {
+    final List<LineMarkerInfo> relatedMarkers = doGetRelatedLineMarkers();
+    assertEquals(relatedMarkers.toString(), 1, relatedMarkers.size());
+    final LineMarkerInfo marker = relatedMarkers.get(0);
+    doCheckItems(expectedTargetFiles, ((AndroidLineMarkerProvider.MyNavigationHandler)marker.
+      getNavigationHandler()).doComputeItems(), targetElementClass);
+  }
+
+  private List<LineMarkerInfo> doGetRelatedLineMarkers() {
     myFixture.doHighlighting();
 
     final List<LineMarkerInfo> markers = DaemonCodeAnalyzerImpl.getLineMarkers(
@@ -93,19 +111,16 @@ public class AndroidGotoRelatedTest extends AndroidTestCase {
         relatedMarkers.add(marker);
       }
     }
-    assertEquals(relatedMarkers.toString(), 1, relatedMarkers.size());
-    final LineMarkerInfo marker = relatedMarkers.get(0);
-    doCheckItems(expectedTargetFiles, ((AndroidLineMarkerProvider.MyNavigationHandler)marker.
-      getNavigationHandler()).doComputeItems());
+    return relatedMarkers;
   }
 
-  private static void doCheckItems(List<VirtualFile> expectedTargetFiles, List<GotoRelatedItem> items) {
+  private static void doCheckItems(List<VirtualFile> expectedTargetFiles, List<GotoRelatedItem> items, Class<?> targetElementClass) {
     final Set<VirtualFile> targetFiles = new HashSet<VirtualFile>();
 
     for (GotoRelatedItem item : items) {
       final PsiElement element = item.getElement();
-      assertInstanceOf(element, PsiFile.class);
-      final VirtualFile targetFile = ((PsiFile)element).getVirtualFile();
+      assertInstanceOf(element, targetElementClass);
+      final VirtualFile targetFile = element.getContainingFile().getVirtualFile();
       assertNotNull(targetFile);
       targetFiles.add(targetFile);
     }
