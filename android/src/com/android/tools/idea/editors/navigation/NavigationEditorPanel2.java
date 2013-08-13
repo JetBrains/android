@@ -47,11 +47,20 @@ public class NavigationEditorPanel2 extends JComponent {
   public static final Color SNAP_GRID_LINE_COLOR_MINOR = Gray.get(180);
   public static final Color SNAP_GRID_LINE_COLOR_MIDDLE = Gray.get(170);
   public static final Color SNAP_GRID_LINE_COLOR_MAJOR = Gray.get(160);
-  private static final Dimension SNAP_GRID = new Dimension(4, 4);
+
+  // Snap grid
+  private static final int MINOR_SNAP = 4;
+  private static final int MIDDLE_COUNT = 5;
+  private static final int MAJOR_COUNT = 10;
+  private static final Dimension MINOR_SNAP_GRID = new Dimension(MINOR_SNAP, MINOR_SNAP);
+  private static final Dimension MIDDLE_SNAP_GRID = new Dimension(MINOR_SNAP * MIDDLE_COUNT, MINOR_SNAP * MIDDLE_COUNT);
+  private static final Dimension MAJOR_SNAP_GRID = new Dimension(MINOR_SNAP * MAJOR_COUNT, MINOR_SNAP * MAJOR_COUNT);
+
   private static final double SCALE = 0.333333;
   //private static final EmptyBorder LABEL_BORDER = new EmptyBorder(0, 5, 0, 5);
   private static final Dimension ORIGINAL_SIZE = new Dimension(480, 800);
   private static final Dimension PREVIEW_SIZE = new Dimension((int)(ORIGINAL_SIZE.width * SCALE), (int)(ORIGINAL_SIZE.height * SCALE));
+  private static final Point MIDDLE_OF_PREVIEW = new Point(PREVIEW_SIZE.width / 2, PREVIEW_SIZE.height / 2);
   private static final int LINE_WIDTH = 3;
   public static final Point MULTIPLE_DROP_STRIDE = new Point(50, 50);
   private static final String ID_PREFIX = "@+id/";
@@ -261,7 +270,7 @@ public class NavigationEditorPanel2 extends JComponent {
     @Override
     protected void moveTo(Point location) {
       Point newLocation = Utilities.add(Utilities.diff(location, myMouseDownLocation), myOrigComponentLocation);
-      myComponent.setLocation(newLocation);
+      myComponent.setLocation(snap(newLocation));
       myState.setLocation(Utilities.toNavPoint(newLocation));
       myNavigationModel.getListeners().notify(NavigationModel.Event.update(State.class));
     }
@@ -434,12 +443,12 @@ public class NavigationEditorPanel2 extends JComponent {
   }
   */
 
-  private void drawGrid(Graphics g, Color c, int gridWidth, int gridHeight) {
+  private void drawGrid(Graphics g, Color c, Dimension size) {
     g.setColor(c);
-    for (int x = 0; x < getWidth(); x += gridWidth) {
+    for (int x = 0; x < getWidth(); x += size.width) {
       g.drawLine(x, 0, x, getHeight());
     }
-    for (int y = 0; y < getHeight(); y += gridHeight) {
+    for (int y = 0; y < getHeight(); y += size.height) {
       g.drawLine(0, y, getWidth(), y);
     }
   }
@@ -448,9 +457,9 @@ public class NavigationEditorPanel2 extends JComponent {
     g.setColor(BACKGROUND_COLOR);
     g.fillRect(0, 0, width, height);
 
-    drawGrid(g, SNAP_GRID_LINE_COLOR_MINOR, SNAP_GRID.width, SNAP_GRID.height);
-    drawGrid(g, SNAP_GRID_LINE_COLOR_MIDDLE, SNAP_GRID.width * 5, SNAP_GRID.height * 5);
-    drawGrid(g, SNAP_GRID_LINE_COLOR_MAJOR, SNAP_GRID.width * 10, SNAP_GRID.height * 10);
+    drawGrid(g, SNAP_GRID_LINE_COLOR_MINOR, MINOR_SNAP_GRID);
+    drawGrid(g, SNAP_GRID_LINE_COLOR_MIDDLE, MIDDLE_SNAP_GRID);
+    drawGrid(g, SNAP_GRID_LINE_COLOR_MAJOR, MAJOR_SNAP_GRID);
   }
 
   private Image getBackGroundImage() {
@@ -677,19 +686,21 @@ public class NavigationEditorPanel2 extends JComponent {
     setPreferredSize(assoc.valueToKey.keySet());
   }
 
+  private static int snap(int i, int d) {
+    return ((int)Math.round((double)i / d)) * d;
+  }
+
+  private static Point snap(Point p) {
+    return new Point(snap(p.x, MIDDLE_SNAP_GRID.width), snap(p.y, MIDDLE_SNAP_GRID.height));
+  }
+
   private class MyMouseListener extends MouseAdapter {
     @Override
-    public void mousePressed(MouseEvent mouseEvent) {
-      Point location = mouseEvent.getPoint();
-      setSelection(create(location, mouseEvent.isShiftDown()));
+    public void mousePressed(MouseEvent e) {
+      Point location = e.getPoint();
+      boolean modified = (e.isShiftDown() || e.isControlDown() || e.isMetaDown()) && !e.isPopupTrigger();
+      setSelection(create(location, modified));
     }
-
-    /*
-    @Override
-    public void mouseMoved(MouseEvent mouseEvent) {
-      moveSelection(mouseEvent.getPoint());
-    }
-    */
 
     @Override
     public void mouseDragged(MouseEvent mouseEvent) {
@@ -702,42 +713,19 @@ public class NavigationEditorPanel2 extends JComponent {
     }
   }
 
+  private static abstract class Statement<T> {
+    public abstract void applyTo(T t);
+  }
+
   private class MyDnDTarget implements DnDTarget {
+    private int applicableDropCount = 0;
 
-    @Override
-    public boolean update(DnDEvent aEvent) {
-      /*
-      setHoverIndex(-1);
-      if (aEvent.getAttachedObject() instanceof PaletteItem) {
-        setDropTargetIndex(locationToTargetIndex(aEvent.getPoint()));
-        aEvent.setDropPossible(true);
-      }
-      else {
-        setDropTargetIndex(-1);
-        aEvent.setDropPossible(false);
-      }
-      */
-      aEvent.setDropPossible(true);
-      //System.out.println("aEvent = " + aEvent);
-      return false;
-    }
-
-    @Override
-    public void drop(DnDEvent aEvent) {
-      /*
-      setDropTargetIndex(-1);
-      if (aEvent.getAttachedObject() instanceof PaletteItem) {
-        int index = locationToTargetIndex(aEvent.getPoint());
-        if (index >= 0) {
-          myGroup.handleDrop(myProject, (PaletteItem) aEvent.getAttachedObject(), index);
-        }
-      }
-      */
+    private void dropOrPrepareToDrop(DnDEvent aEvent, Statement<State> action) {
       Object attachedObject = aEvent.getAttachedObject();
       if (attachedObject instanceof TransferableWrapper) {
         TransferableWrapper wrapper = (TransferableWrapper)attachedObject;
         PsiElement[] psiElements = wrapper.getPsiElements();
-        Point dropLocation = aEvent.getPointOn(NavigationEditorPanel2.this);
+        Point dropLocation = Utilities.diff(aEvent.getPointOn(NavigationEditorPanel2.this), MIDDLE_OF_PREVIEW);
 
         if (psiElements != null) {
           for (PsiElement element : psiElements) {
@@ -746,40 +734,62 @@ public class NavigationEditorPanel2 extends JComponent {
               String qualifiedName = namedElement.getQualifiedName();
               if (qualifiedName != null) {
                 State state = new State(qualifiedName);
-                state.setLocation(Utilities.toNavPoint(dropLocation));
+                state.setLocation(Utilities.toNavPoint(snap(dropLocation)));
                 String name = namedElement.getName();
                 if (name != null) {
                   state.setXmlResourceName(getXmlFileNameFromJavaFileName(name));
                 }
                 if (!getStateComponentAssociation().keyToValue.containsKey(state)) {
-                  myNavigationModel.addState(state);
-                  dropLocation = Utilities.add(dropLocation, MULTIPLE_DROP_STRIDE);
+                  action.applyTo(state);
                 }
+                dropLocation = Utilities.add(dropLocation, MULTIPLE_DROP_STRIDE);
               }
             }
           }
         }
-        revalidate();
-        repaint();
       }
+      revalidate();
+      repaint();
     }
 
     @Override
+    public boolean update(DnDEvent aEvent) {
+      dropOrPrepareToDrop(aEvent, new Statement<State>() {
+        {
+          applicableDropCount = 0;
+        }
+
+        @Override
+        public void applyTo(State o) {
+          applicableDropCount++;
+        }
+      });
+      aEvent.setDropPossible(applicableDropCount > 0);
+      return false;
+    }
+
+    @Override
+    public void drop(DnDEvent aEvent) {
+      dropOrPrepareToDrop(aEvent, new Statement<State>() {
+        @Override
+        public void applyTo(State state) {
+          myNavigationModel.addState(state);
+        }
+      });
+    }
+
+
+    @Override
     public void cleanUpOnLeave() {
-      //setDropTargetIndex(-1);
     }
 
     @Override
     public void updateDraggedImage(Image image, Point dropPoint, Point imageOffset) {
-      //System.out.println("image = " + image);
     }
+
   }
 
   private static String getXmlFileNameFromJavaFileName(String name) {
-    //if (name.contains("ListFragment")) {
-    //    return "";
-    //}
-
     return Utilities.getXmlFileNameFromJavaFileName(name);
   }
 

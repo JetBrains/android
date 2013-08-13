@@ -33,6 +33,7 @@ public class Locator {
     return state;
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public String getViewName() {
     return viewName;
   }
