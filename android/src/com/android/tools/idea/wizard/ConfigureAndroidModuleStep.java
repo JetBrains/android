@@ -69,12 +69,16 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   private JCheckBox myCreateCustomLauncherIconCheckBox;
   private JCheckBox myCreateActivityCheckBox;
   private JCheckBox myLibraryCheckBox;
+  private JCheckBox myFragmentCheckBox;
+  private JCheckBox myActionBarCheckBox;
   private JPanel myPanel;
   private JTextField myModuleName;
   private JLabel myDescription;
   private JLabel myError;
   private JLabel myProjectLocationLabel;
   private JLabel myModuleNameLabel;
+  private JCheckBox myGridLayoutCheckBox;
+  private JCheckBox myNavigationDrawerCheckBox;
   boolean myInitializedPackageNameText = false;
 
   public ConfigureAndroidModuleStep(TemplateWizardState state, @Nullable Project project, @Nullable Icon sidePanelIcon,
@@ -157,6 +161,10 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     register(ATTR_CREATE_ACTIVITY, myCreateActivityCheckBox);
     register(ATTR_CREATE_ICONS, myCreateCustomLauncherIconCheckBox);
     register(ATTR_LIBRARY, myLibraryCheckBox);
+    register(ATTR_FRAGMENTS_EXTRA, myFragmentCheckBox);
+    register(ATTR_NAVIGATION_DRAWER_EXTRA, myNavigationDrawerCheckBox);
+    register(ATTR_ACTION_BAR_EXTRA, myActionBarCheckBox);
+    register(ATTR_GRID_LAYOUT_EXTRA, myGridLayoutCheckBox);
   }
 
   @Override
@@ -227,6 +235,14 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
              "or the first version that supports all the APIs you want to directly access without reflection.";
     } else if (param.equals(ATTR_BASE_THEME)) {
       return "Choose the base theme to use for the application";
+    } else if (param.equals(ATTR_FRAGMENTS_EXTRA)) {
+      return "Select this box if you plan to use Fragments and will need the Support Library.";
+    } else if (param.equals(ATTR_ACTION_BAR_EXTRA)) {
+      return "Select this box if you plan to use the Action Bar and will need the AppCompat Library.";
+    } else if (param.equals(ATTR_GRID_LAYOUT_EXTRA)) {
+      return "Select this box if you plan to use the new GridLayout and will need the GridLayout Support Library.";
+    } else if (param.equals(ATTR_NAVIGATION_DRAWER_EXTRA)) {
+      return "Select this box if you plan to use the Navigation Drawer and will need the Support Library.";
     } else {
       return null;
     }
@@ -349,6 +365,11 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       return false;
     }
 
+    toggleVisibleOnApi(myFragmentCheckBox, 10, minLevel);
+    toggleVisibleOnApi(myNavigationDrawerCheckBox, 10, minLevel);
+    toggleVisibleOnApi(myActionBarCheckBox, 10, minLevel);
+    toggleVisibleOnApi(myGridLayoutCheckBox, 13, minLevel);
+
     if (!myTemplateState.myHidden.contains(ATTR_PROJECT_LOCATION)) {
       String projectLocation = (String)myTemplateState.get(ATTR_PROJECT_LOCATION);
       if (projectLocation == null || projectLocation.isEmpty()) {
@@ -393,6 +414,19 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       myIgnoreUpdates = false;
     }
     return updated;
+  }
+
+  /**
+   * Shows or hides a checkbox based on a given API level and the max API level for which it should be shown
+   * @param component The component to hide
+   * @param maxApiLevel the maximum API level for which the given component should be visible
+   * @param apiLevel the selected API level
+   */
+  private void toggleVisibleOnApi(JCheckBox component, int maxApiLevel, int apiLevel) {
+    component.setVisible(apiLevel <= maxApiLevel);
+    if (!component.isVisible()) {
+      component.setSelected(false);
+    }
   }
 
   @NotNull

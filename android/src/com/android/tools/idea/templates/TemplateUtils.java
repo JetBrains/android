@@ -21,6 +21,8 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.PkgProps;
 import com.android.utils.SparseArray;
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 import com.intellij.ide.impl.ProjectPaneSelectInTarget;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -32,7 +34,6 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,6 +42,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -346,6 +348,22 @@ public class TemplateUtils {
     ProjectPaneSelectInTarget selectAction = new ProjectPaneSelectInTarget(project);
     if (selectAction.canSelect(psiFile)) {
       selectAction.select(psiFile, false);
+    }
+  }
+
+  /**
+   * Reads the given file as text.
+   * @param file The file to read. Must be an absolute reference.
+   * @return the contents of the file as text
+   */
+  @Nullable
+  public static String readTextFile(@NotNull File file) {
+    assert file.isAbsolute();
+    try {
+      return Files.toString(file, Charsets.UTF_8);
+    } catch (IOException e) {
+      LOG.warn(e);
+      return null;
     }
   }
 }
