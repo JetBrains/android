@@ -50,12 +50,11 @@ public class AndroidGradleBuildProcessParametersProviderTest extends TestCase {
     replay(myProject, myGradleExecutionSettings);
 
     List<String> vmArgs = myParametersProvider.getGradleExecutionSettingsAsVmArgs(myGradleExecutionSettings);
-    assertEquals(6, vmArgs.size());
+    assertEquals(5, vmArgs.size());
     assertTrue(vmArgs.contains("-Dcom.android.studio.gradle.project.path=~/projects/project1"));
     assertTrue(vmArgs.contains("-Dcom.android.studio.gradle.daemon.max.idle.time=55"));
     assertTrue(vmArgs.contains("-Dcom.android.studio.gradle.home.path=~/gradle-1.6"));
     assertTrue(vmArgs.contains("-Dcom.android.studio.gradle.use.verbose.logging=true"));
-    assertTrue(vmArgs.contains("-Dcom.android.studio.gradle.max.memory=256"));
     assertTrue(vmArgs.contains("-Dcom.android.studio.gradle.service.dir.path=~./gradle"));
   }
 }
