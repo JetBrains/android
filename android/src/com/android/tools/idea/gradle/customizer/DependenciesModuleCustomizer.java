@@ -72,10 +72,11 @@ public class DependenciesModuleCustomizer implements ModuleCustomizer {
         @Override
         public boolean addLibraryDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull File binaryPath) {
           Library library = libraryTable.getLibraryByName(name);
+          // If the library already exists, there is no reason to created it again.
           if (library == null) {
             library = model.createLibrary(name);
+            libraries.put(binaryPath, library);
           }
-          libraries.put(binaryPath, library);
           return true;
         }
 
