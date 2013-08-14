@@ -41,30 +41,33 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
 
+import static com.android.tools.idea.editors.navigation.Utilities.*;
+
 public class NavigationEditorPanel2 extends JComponent {
   private static final Dimension GAP = new Dimension(150, 50);
-  public static final Color BACKGROUND_COLOR = Gray.get(192);
-  public static final Color SNAP_GRID_LINE_COLOR_MINOR = Gray.get(180);
-  public static final Color SNAP_GRID_LINE_COLOR_MIDDLE = Gray.get(170);
-  public static final Color SNAP_GRID_LINE_COLOR_MAJOR = Gray.get(160);
+  private static final Color BACKGROUND_COLOR = Gray.get(192);
+  private static final Color SNAP_GRID_LINE_COLOR_MINOR = Gray.get(180);
+  private static final Color SNAP_GRID_LINE_COLOR_MIDDLE = Gray.get(170);
+  private static final Color SNAP_GRID_LINE_COLOR_MAJOR = Gray.get(160);
+  private static final Color SELECTION_COLOR = Color.BLUE;
 
   // Snap grid
   private static final int MINOR_SNAP = 4;
   private static final int MIDDLE_COUNT = 5;
   private static final int MAJOR_COUNT = 10;
   private static final Dimension MINOR_SNAP_GRID = new Dimension(MINOR_SNAP, MINOR_SNAP);
-  private static final Dimension MIDDLE_SNAP_GRID = new Dimension(MINOR_SNAP * MIDDLE_COUNT, MINOR_SNAP * MIDDLE_COUNT);
-  private static final Dimension MAJOR_SNAP_GRID = new Dimension(MINOR_SNAP * MAJOR_COUNT, MINOR_SNAP * MAJOR_COUNT);
+  private static final Dimension MIDDLE_SNAP_GRID = scale(MINOR_SNAP_GRID, MIDDLE_COUNT);
+  private static final Dimension MAJOR_SNAP_GRID = scale(MINOR_SNAP_GRID, MAJOR_COUNT);
 
-  private static final double SCALE = 0.333333;
-  //private static final EmptyBorder LABEL_BORDER = new EmptyBorder(0, 5, 0, 5);
+  private static final float SCALE = 1 / 3f;
   private static final Dimension ORIGINAL_SIZE = new Dimension(480, 800);
-  private static final Dimension PREVIEW_SIZE = new Dimension((int)(ORIGINAL_SIZE.width * SCALE), (int)(ORIGINAL_SIZE.height * SCALE));
-  private static final Point MIDDLE_OF_PREVIEW = new Point(PREVIEW_SIZE.width / 2, PREVIEW_SIZE.height / 2);
+  private static final Dimension PREVIEW_SIZE = scale(ORIGINAL_SIZE, SCALE);
+  private static final Point MIDDLE_OF_PREVIEW = point(scale(PREVIEW_SIZE, 0.5f));
   private static final int LINE_WIDTH = 3;
-  public static final Point MULTIPLE_DROP_STRIDE = new Point(50, 50);
+  private static final Point MULTIPLE_DROP_STRIDE = point(MAJOR_SNAP_GRID);
   private static final String ID_PREFIX = "@+id/";
-  public static final Color TRANSITION_LINE_COLOR = new Color(80, 80, 255);
+  private static final Color TRANSITION_LINE_COLOR = new Color(80, 80, 255);
+  private static final int SELECTION_RECTANGLE_LINE_WIDTH = 4;
 
   private final NavigationModel myNavigationModel;
   private final Project myProject;
@@ -73,12 +76,14 @@ public class NavigationEditorPanel2 extends JComponent {
   private VirtualFileSystem myFileSystem;
   private String myPath;
   @NotNull private Selection mySelection = Selection.NULL;
-  private final Association<State, AndroidRootComponent> myStateComponentAssociation = new Association<State, AndroidRootComponent>();
-  private final Association<Transition, Component> myTransitionEditorAssociation = new Association<Transition, Component>();
+  private final Assoc<State, AndroidRootComponent> myStateComponentAssociation =
+    new Assoc<State, AndroidRootComponent>();
+  private final Assoc<Transition, Component> myTransitionEditorAssociation =
+    new Assoc<Transition, Component>();
   private Map<Locator, RenderedView> myLocationToRenderedView = null;
   private Image myBackgroundImage;
 
-  private Association<State, AndroidRootComponent> getStateComponentAssociation() {
+  private Assoc<State, AndroidRootComponent> getStateComponentAssociation() {
     if (!myStateCacheIsValid) {
       syncStateCache(myStateComponentAssociation);
       myStateCacheIsValid = true;
@@ -86,7 +91,7 @@ public class NavigationEditorPanel2 extends JComponent {
     return myStateComponentAssociation;
   }
 
-  private Association<Transition, Component> getTransitionEditorAssociation() {
+  private Assoc<Transition, Component> getTransitionEditorAssociation() {
     if (!myTransitionEditorCacheIsValid) {
       syncTransitionCache(myTransitionEditorAssociation);
       myTransitionEditorCacheIsValid = true;
@@ -94,7 +99,7 @@ public class NavigationEditorPanel2 extends JComponent {
     return myTransitionEditorAssociation;
   }
 
-  static class Association<K, V> {
+  static class Assoc<K, V> {
     public final Map<K, V> keyToValue = new HashMap<K, V>();
     public final Map<V, K> valueToKey = new HashMap<V, K>();
 
@@ -150,7 +155,10 @@ public class NavigationEditorPanel2 extends JComponent {
     return myLocationToRenderedView;
   }
 
-  private static void paintLeaf(Graphics g, @Nullable RenderedView leaf, Color color, AndroidRootComponent component) {
+  private static void paintLeaf(Graphics g,
+                                @Nullable RenderedView leaf,
+                                Color color,
+                                AndroidRootComponent component) {
     if (leaf != null) {
       Color oldColor = g.getColor();
       g.setColor(color);
@@ -168,7 +176,7 @@ public class NavigationEditorPanel2 extends JComponent {
 
     protected abstract Selection finaliseSelectionLocation(Point location);
 
-    protected abstract void paint(Graphics g);
+    protected abstract void paint(Graphics g, boolean hasFocus);
 
     protected abstract void paintOver(Graphics g);
 
@@ -200,7 +208,7 @@ public class NavigationEditorPanel2 extends JComponent {
     }
 
     @Override
-    protected void paint(Graphics g) {
+    protected void paint(Graphics g, boolean hasFocus) {
     }
 
     @Override
@@ -231,12 +239,16 @@ public class NavigationEditorPanel2 extends JComponent {
     }
 
     @Override
-    protected void paint(Graphics g) {
-      g.setColor(Color.BLUE);
-      Rectangle selection = myComponent.getBounds();
-      int l = 4;
-      selection.grow(l, l);
-      g.fillRoundRect(selection.x, selection.y, selection.width, selection.height, l, l);
+    protected void paint(Graphics g, boolean hasFocus) {
+      if (hasFocus) {
+        Graphics2D g2D = (Graphics2D)g.create();
+        g2D.setStroke(new BasicStroke(SELECTION_RECTANGLE_LINE_WIDTH));
+        g2D.setColor(SELECTION_COLOR);
+        Rectangle selection = myComponent.getBounds();
+        int l = SELECTION_RECTANGLE_LINE_WIDTH/2;
+        selection.grow(l, l);
+        g2D.drawRect(selection.x, selection.y, selection.width, selection.height);
+      }
     }
 
     @Override
@@ -267,12 +279,20 @@ public class NavigationEditorPanel2 extends JComponent {
       myState = getStateComponentAssociation().valueToKey.get(component);
     }
 
-    @Override
-    protected void moveTo(Point location) {
-      Point newLocation = Utilities.add(Utilities.diff(location, myMouseDownLocation), myOrigComponentLocation);
-      myComponent.setLocation(snap(newLocation));
+    private void moveTo(Point location, boolean snap) {
+      Point newLocation = Utilities.add(diff(location, myMouseDownLocation),
+                                        myOrigComponentLocation);
+      if (snap) {
+        newLocation = snap(newLocation);
+      }
+      myComponent.setLocation(newLocation);
       myState.setLocation(Utilities.toNavPoint(newLocation));
       myNavigationModel.getListeners().notify(NavigationModel.Event.update(State.class));
+    }
+
+    @Override
+    protected void moveTo(Point location) {
+      moveTo(location, false);
     }
 
     @Override
@@ -281,6 +301,11 @@ public class NavigationEditorPanel2 extends JComponent {
       setSelection(Selection.NULL);
     }
 
+    @Override
+    protected Selection finaliseSelectionLocation(Point location) {
+      moveTo(location, true);
+      return this;
+    }
   }
 
   private class RelationSelection extends Selection {
@@ -289,7 +314,8 @@ public class NavigationEditorPanel2 extends JComponent {
     @Nullable private final RenderedView myLeaf;
     @Nullable private final RenderedView myNamedLeaf;
 
-    private RelationSelection(@NotNull AndroidRootComponent component, @NotNull Point mouseDownLocation) {
+    private RelationSelection(@NotNull AndroidRootComponent component,
+                              @NotNull Point mouseDownLocation) {
       myComponent = component;
       myLocation = mouseDownLocation;
       Point p = component.convertPointFromViewToModel(mouseDownLocation);
@@ -312,7 +338,7 @@ public class NavigationEditorPanel2 extends JComponent {
     }
 
     @Override
-    protected void paint(Graphics g) {
+    protected void paint(Graphics g, boolean hasFocus) {
     }
 
     @Override
@@ -357,11 +383,11 @@ public class NavigationEditorPanel2 extends JComponent {
     getActionMap().put(name, action);
   }
 
-  public NavigationEditorPanel2(Project project, VirtualFile file, NavigationModel navigationModel) {
+  public NavigationEditorPanel2(Project project, VirtualFile file, NavigationModel model) {
     myProject = project;
     myFileSystem = file.getFileSystem();
     myPath = file.getParent().getParent().getPath();
-    myNavigationModel = navigationModel;
+    myNavigationModel = model;
 
     setFocusable(true);
     setBackground(BACKGROUND_COLOR);
@@ -371,6 +397,21 @@ public class NavigationEditorPanel2 extends JComponent {
       MouseAdapter mouseListener = new MyMouseListener();
       addMouseListener(mouseListener);
       addMouseMotionListener(mouseListener);
+    }
+
+    // Focus listener
+    {
+      addFocusListener(new FocusListener() {
+        @Override
+        public void focusGained(FocusEvent focusEvent) {
+          repaint();
+        }
+
+        @Override
+        public void focusLost(FocusEvent focusEvent) {
+          repaint();
+        }
+      });
     }
 
     // Drag and Drop listener
@@ -463,7 +504,9 @@ public class NavigationEditorPanel2 extends JComponent {
   }
 
   private Image getBackGroundImage() {
-    if (myBackgroundImage == null || myBackgroundImage.getWidth(null) != getWidth() || myBackgroundImage.getHeight(null) != getHeight()) {
+    if (myBackgroundImage == null ||
+        myBackgroundImage.getWidth(null) != getWidth() ||
+        myBackgroundImage.getHeight(null) != getHeight()) {
       myBackgroundImage = UIUtil.createImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
       drawBackground(myBackgroundImage.getGraphics(), getWidth(), getHeight());
     }
@@ -484,26 +527,26 @@ public class NavigationEditorPanel2 extends JComponent {
     }
 
     // draw selection
-    mySelection.paint(g);
+    mySelection.paint(g, hasFocus());
   }
 
   private static Graphics2D createTransitionGraphics(Graphics g) {
-    Graphics2D result = (Graphics2D)g.create();
-    result.setColor(TRANSITION_LINE_COLOR);
-    result.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    result.setStroke(new BasicStroke(LINE_WIDTH));
-    return result;
+    Graphics2D g2D = (Graphics2D)g.create();
+    g2D.setColor(TRANSITION_LINE_COLOR);
+    g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    g2D.setStroke(new BasicStroke(LINE_WIDTH));
+    return g2D;
   }
 
   private void paintTransitions(Graphics2D g) {
-    Map<State, AndroidRootComponent> stateToAndroidRootComponent = getStateComponentAssociation().keyToValue;
+    Map<State, AndroidRootComponent> stateToComponent = getStateComponentAssociation().keyToValue;
     Map<Transition, Component> transitionToEditor = getTransitionEditorAssociation().keyToValue;
 
     for (Transition transition : myNavigationModel.getTransitions()) {
       State source = transition.getSource().getState();
       State destination = transition.getDestination().getState();
-      AndroidRootComponent sourceComponent = stateToAndroidRootComponent.get(source);
-      AndroidRootComponent destinationComponent = stateToAndroidRootComponent.get(destination);
+      AndroidRootComponent sourceComponent = stateToComponent.get(source);
+      AndroidRootComponent destinationComponent = stateToComponent.get(destination);
 
       Rectangle r1 = sourceComponent.getBounds(getSourceView(transition));
       Rectangle r2 = transitionToEditor.get(transition).getBounds();
@@ -556,10 +599,10 @@ public class NavigationEditorPanel2 extends JComponent {
     Map<Transition, Component> transitionToEditor = getTransitionEditorAssociation().keyToValue;
 
     for (Transition transition : myNavigationModel.getTransitions()) {
-      AndroidRootComponent sourceComponent = stateToComponent.get(transition.getSource().getState());
-      AndroidRootComponent destinationComponent = stateToComponent.get(transition.getDestination().getState());
-      Point sl = Utilities.centre(sourceComponent.getBounds(getSourceView(transition)));
-      Point dl = Utilities.centre(destinationComponent.getBounds(getDestinationView(transition)));
+      AndroidRootComponent source = stateToComponent.get(transition.getSource().getState());
+      AndroidRootComponent dest = stateToComponent.get(transition.getDestination().getState());
+      Point sl = Utilities.centre(source.getBounds(getSourceView(transition)));
+      Point dl = Utilities.centre(dest.getBounds(getDestinationView(transition)));
       String gesture = transition.getType();
       if (gesture != null) {
         Component c = transitionToEditor.get(transition);
@@ -607,7 +650,7 @@ public class NavigationEditorPanel2 extends JComponent {
   }
   */
 
-  private <K, V extends Component> void removeLeftovers(Association<K, V> assoc, Collection<K> a) {
+  private <K, V extends Component> void removeLeftovers(Assoc<K, V> assoc, Collection<K> a) {
     for (Map.Entry<K, V> e : new ArrayList<Map.Entry<K, V>>(assoc.keyToValue.entrySet())) {
       K k = e.getKey();
       V v = e.getValue();
@@ -637,7 +680,7 @@ public class NavigationEditorPanel2 extends JComponent {
     return c;
   }
 
-  private void syncTransitionCache(Association<Transition, Component> assoc) {
+  private void syncTransitionCache(Assoc<Transition, Component> assoc) {
     // add anything that is in the model but not in our cache
     for (Transition transition : myNavigationModel.getTransitions()) {
       if (!assoc.keyToValue.containsKey(transition)) {
@@ -653,7 +696,8 @@ public class NavigationEditorPanel2 extends JComponent {
   private AndroidRootComponent createRootComponentFor(State state, Point point) {
     AndroidRootComponent result = new AndroidRootComponent();
     result.setScale(SCALE);
-    VirtualFile file = myFileSystem.findFileByPath(myPath + "/layout/" + state.getXmlResourceName() + ".xml");
+    VirtualFile file = myFileSystem.findFileByPath(myPath + "/layout/" +
+                                                   state.getXmlResourceName() + ".xml");
     if (file != null) {
       result.render(myProject, file);
     }
@@ -663,19 +707,21 @@ public class NavigationEditorPanel2 extends JComponent {
   }
 
   private void setPreferredSize(Set<AndroidRootComponent> roots) {
-    Dimension gridSize = new Dimension(PREVIEW_SIZE.width + GAP.width, PREVIEW_SIZE.height + GAP.height);
-    Point maxLocation = new Point(0, 0);
+    Dimension size = PREVIEW_SIZE;
+    Dimension gridSize = new Dimension(size.width + GAP.width, size.height + GAP.height);
+    Point maxLoc = new Point(0, 0);
     for (AndroidRootComponent c : roots) {
-      maxLocation = Utilities.max(maxLocation, c.getLocation());
+      maxLoc = Utilities.max(maxLoc, c.getLocation());
     }
-    setPreferredSize(new Dimension(maxLocation.x + gridSize.width, maxLocation.y + gridSize.height));
+    setPreferredSize(new Dimension(maxLoc.x + gridSize.width, maxLoc.y + gridSize.height));
   }
 
-  private void syncStateCache(Association<State, AndroidRootComponent> assoc) {
+  private void syncStateCache(Assoc<State, AndroidRootComponent> assoc) {
     // add anything that is in the model but not in our cache
     for (State state : myNavigationModel.getStates()) {
       if (!assoc.keyToValue.containsKey(state)) {
-        AndroidRootComponent root = createRootComponentFor(state, Utilities.toAWTPoint(state.getLocation()));
+        Point p = Utilities.toAWTPoint(state.getLocation());
+        AndroidRootComponent root = createRootComponentFor(state, p);
         assoc.add(state, root);
         add(root);
       }
@@ -698,8 +744,10 @@ public class NavigationEditorPanel2 extends JComponent {
     @Override
     public void mousePressed(MouseEvent e) {
       Point location = e.getPoint();
-      boolean modified = (e.isShiftDown() || e.isControlDown() || e.isMetaDown()) && !e.isPopupTrigger();
+      boolean modified =
+        (e.isShiftDown() || e.isControlDown() || e.isMetaDown()) && !e.isPopupTrigger();
       setSelection(create(location, modified));
+      requestFocus();
     }
 
     @Override
@@ -713,19 +761,16 @@ public class NavigationEditorPanel2 extends JComponent {
     }
   }
 
-  private static abstract class Statement<T> {
-    public abstract void applyTo(T t);
-  }
-
   private class MyDnDTarget implements DnDTarget {
     private int applicableDropCount = 0;
 
-    private void dropOrPrepareToDrop(DnDEvent aEvent, Statement<State> action) {
-      Object attachedObject = aEvent.getAttachedObject();
+    private void dropOrPrepareToDrop(DnDEvent anEvent, boolean execute) {
+      Object attachedObject = anEvent.getAttachedObject();
       if (attachedObject instanceof TransferableWrapper) {
         TransferableWrapper wrapper = (TransferableWrapper)attachedObject;
         PsiElement[] psiElements = wrapper.getPsiElements();
-        Point dropLocation = Utilities.diff(aEvent.getPointOn(NavigationEditorPanel2.this), MIDDLE_OF_PREVIEW);
+        Point dropLocation =
+          diff(anEvent.getPointOn(NavigationEditorPanel2.this), MIDDLE_OF_PREVIEW);
 
         if (psiElements != null) {
           for (PsiElement element : psiElements) {
@@ -740,7 +785,12 @@ public class NavigationEditorPanel2 extends JComponent {
                   state.setXmlResourceName(getXmlFileNameFromJavaFileName(name));
                 }
                 if (!getStateComponentAssociation().keyToValue.containsKey(state)) {
-                  action.applyTo(state);
+                  if (execute) {
+                    myNavigationModel.addState(state);
+                  }
+                  else {
+                    applicableDropCount++;
+                  }
                 }
                 dropLocation = Utilities.add(dropLocation, MULTIPLE_DROP_STRIDE);
               }
@@ -748,34 +798,23 @@ public class NavigationEditorPanel2 extends JComponent {
           }
         }
       }
-      revalidate();
-      repaint();
+      if (execute) {
+        revalidate();
+        repaint();
+      }
     }
 
     @Override
-    public boolean update(DnDEvent aEvent) {
-      dropOrPrepareToDrop(aEvent, new Statement<State>() {
-        {
-          applicableDropCount = 0;
-        }
-
-        @Override
-        public void applyTo(State o) {
-          applicableDropCount++;
-        }
-      });
-      aEvent.setDropPossible(applicableDropCount > 0);
+    public boolean update(DnDEvent anEvent) {
+      applicableDropCount = 0;
+      dropOrPrepareToDrop(anEvent, false);
+      anEvent.setDropPossible(applicableDropCount > 0);
       return false;
     }
 
     @Override
-    public void drop(DnDEvent aEvent) {
-      dropOrPrepareToDrop(aEvent, new Statement<State>() {
-        @Override
-        public void applyTo(State state) {
-          myNavigationModel.addState(state);
-        }
-      });
+    public void drop(DnDEvent anEvent) {
+      dropOrPrepareToDrop(anEvent, true);
     }
 
 
