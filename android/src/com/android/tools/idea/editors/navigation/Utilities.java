@@ -39,6 +39,14 @@ public class Utilities {
     return new Point((int)(k * p.x), (int)(k * p.y));
   }
 
+  public static Dimension scale(Dimension d, float k) {
+    return new Dimension((int)(k * d.width), (int)(k * d.height));
+  }
+
+  public static Point point(Dimension d) {
+    return new Point(d.width, d.height);
+  }
+
   public static Point project(Rectangle r, Point p) {
     Point centre = centre(r);
     Point diff = diff(p, centre);
@@ -49,10 +57,6 @@ public class Utilities {
 
   public static Point centre(@NotNull Rectangle r) {
     return new Point(r.x + r.width / 2, r.y + r.height / 2);
-  }
-
-  public static Point centre(@NotNull Component c) {
-    return centre(c.getBounds());
   }
 
   /**
@@ -90,6 +94,7 @@ public class Utilities {
    *
    * @return Java file name associated with XML file name
    */
+  @SuppressWarnings("AssignmentToForLoopParameter")
   public static String getJavaFileNameFromXmlFileName(String xmlFileName) {
 
     if (xmlFileName.endsWith(".xml")) {
