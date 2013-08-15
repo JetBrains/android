@@ -88,6 +88,8 @@ public final class AndroidSdkUtils {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.sdk.AndroidSdkUtils");
 
   public static final String DEFAULT_PLATFORM_NAME_PROPERTY = "AndroidPlatformName";
+  public static final String SDK_NAME_PREFIX = "Android ";
+  public static final String DEFAULT_JDK_NAME = "JDK";
 
   private static SdkManager ourSdkManager;
 
@@ -299,7 +301,7 @@ public final class AndroidSdkUtils {
   }
 
   @Nullable
-  private static Sdk createNewAndroidPlatform(@NotNull IAndroidTarget target,
+  public static Sdk createNewAndroidPlatform(@NotNull IAndroidTarget target,
                                               @NotNull String sdkPath,
                                               @NotNull String sdkName,
                                               @Nullable Sdk jdk,
@@ -330,13 +332,13 @@ public final class AndroidSdkUtils {
   @NotNull
   public static String chooseNameForNewLibrary(@NotNull IAndroidTarget target) {
     if (target.isPlatform()) {
-      return target.getName() + " Platform";
+      return SDK_NAME_PREFIX + target.getVersion().toString() + " Platform";
     }
     IAndroidTarget parentTarget = target.getParent();
     if (parentTarget != null) {
-      return "Android " + parentTarget.getVersionName() + ' ' + target.getName();
+      return SDK_NAME_PREFIX + parentTarget.getVersionName() + ' ' + target.getName();
     }
-    return "Android " + target.getName();
+    return SDK_NAME_PREFIX + target.getName();
   }
 
   public static String getTargetPresentableName(@NotNull IAndroidTarget target) {
@@ -382,13 +384,20 @@ public final class AndroidSdkUtils {
   @NotNull
   public static Collection<String> getAndroidSdkPathsFromExistingPlatforms() {
     List<Sdk> androidSdks = getAllAndroidSdks();
-    Set<String> result = new HashSet<String>(androidSdks.size());
+    List<String> result = Lists.newArrayList();
     for (Sdk androidSdk : androidSdks) {
       AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)androidSdk.getSdkAdditionalData();
       if (data != null) {
         AndroidPlatform androidPlatform = data.getAndroidPlatform();
         if (androidPlatform != null) {
-          result.add(FileUtil.toSystemIndependentName(androidPlatform.getSdkData().getLocation()));
+          // Put default platforms in the list before non-default ones so they'll be looked at first.
+          String sdkPath = FileUtil.toSystemIndependentName(androidPlatform.getSdkData().getLocation());
+          if (result.contains(sdkPath)) continue;
+          if (androidSdk.getName().startsWith(SDK_NAME_PREFIX)) {
+            result.add(0, sdkPath);
+          } else {
+            result.add(sdkPath);
+          }
         }
       }
     }
