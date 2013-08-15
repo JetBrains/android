@@ -413,7 +413,8 @@ public class DevicePanel implements Disposable,
             File backingFile = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG, true);
             ImageIO.write(getScreenshot(), SdkConstants.EXT_PNG, backingFile);
 
-            ScreenshotViewer viewer = new ScreenshotViewer(project, getScreenshot(), backingFile, d);
+            ScreenshotViewer viewer = new ScreenshotViewer(project, getScreenshot(), backingFile, d,
+                                                           d.getPropertyCacheOrSync(IDevice.PROP_DEVICE_MODEL));
             if (viewer.showAndGet()) {
               File screenshot = viewer.getScreenshot();
               VirtualFile vf = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(screenshot);

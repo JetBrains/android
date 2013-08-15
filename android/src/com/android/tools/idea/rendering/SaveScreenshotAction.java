@@ -16,6 +16,8 @@
 package com.android.tools.idea.rendering;
 
 import com.android.SdkConstants;
+import com.android.sdklib.devices.Device;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.ddms.screenshot.ScreenshotViewer;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -28,6 +30,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -58,7 +61,7 @@ public class SaveScreenshotAction extends AnAction {
       File backingFile = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG, true);
       ImageIO.write(image, SdkConstants.EXT_PNG, backingFile);
 
-      ScreenshotViewer viewer = new ScreenshotViewer(project, image, backingFile, null);
+      ScreenshotViewer viewer = new ScreenshotViewer(project, image, backingFile, null, getDeviceName());
       if (viewer.showAndGet()) {
         File screenshot = viewer.getScreenshot();
         VirtualFile vf = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(screenshot);
@@ -71,5 +74,20 @@ public class SaveScreenshotAction extends AnAction {
       Messages.showErrorDialog(project, AndroidBundle.message("android.ddms.screenshot.generic.error", e),
                                AndroidBundle.message("android.ddms.actions.screenshot"));
     }
+  }
+
+  @Nullable
+  private String getDeviceName() {
+    Configuration config = myContext.getConfiguration();
+    if (config == null) {
+      return null;
+    }
+
+    Device device = config.getDevice();
+    if (device == null) {
+      return null;
+    }
+
+    return device.getName();
   }
 }
