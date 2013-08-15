@@ -18,6 +18,7 @@ package com.android.tools.idea.configurations;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction;
+import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.ColorUtil;
@@ -168,7 +169,7 @@ public abstract class FlatAction extends AnAction implements CustomComponentActi
     }
 
     private void updateTooltipText(String description) {
-      String tooltip = AnAction.createTooltipText(description, FlatAction.this);
+      String tooltip = KeymapUtil.createTooltipText(description, FlatAction.this);
       setToolTipText(!tooltip.isEmpty() ? tooltip : null);
     }
 
