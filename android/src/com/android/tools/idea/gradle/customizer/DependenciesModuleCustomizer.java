@@ -66,17 +66,19 @@ public class DependenciesModuleCustomizer implements ModuleCustomizer {
   private static void updateProjectLibraries(@NotNull Project project, @NotNull IdeaAndroidProject ideaAndroidProject) {
     final LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
     final LibraryTable.ModifiableModel model = libraryTable.getModifiableModel();
+
+    // Remove all the libraries, even if they are created again, to prevent unnecessary library entries.
+    for (Library library : model.getLibraries()) {
+      model.removeLibrary(library);
+    }
+
     final Map<File, Library> libraries = Maps.newHashMap();
     try {
       AndroidDependencies.populate(ideaAndroidProject, new DependencyFactory() {
         @Override
         public boolean addLibraryDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull File binaryPath) {
-          Library library = libraryTable.getLibraryByName(name);
-          // If the library already exists, there is no reason to created it again.
-          if (library == null) {
-            library = model.createLibrary(name);
-            libraries.put(binaryPath, library);
-          }
+          Library library = model.createLibrary(name);
+          libraries.put(binaryPath, library);
           return true;
         }
 
