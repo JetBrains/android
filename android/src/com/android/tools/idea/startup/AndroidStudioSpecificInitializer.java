@@ -17,9 +17,9 @@ package com.android.tools.idea.startup;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.actions.*;
+import com.android.tools.idea.structure.AndroidHomeConfigurable;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.google.common.io.Closeables;
-import com.intellij.compiler.actions.CompileAction;
 import com.intellij.compiler.actions.GenerateAntBuildAction;
 import com.intellij.compiler.actions.MakeModuleAction;
 import com.intellij.ide.actions.ImportModuleAction;
@@ -29,12 +29,14 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.codeStyle.CodeStyleScheme;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.util.PlatformUtilsCore;
 import com.intellij.util.SystemProperties;
+import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NonNls;
@@ -121,7 +123,33 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       @Override
       public void run() {
         String androidSdkPath = getAndroidSdkPath();
-        AndroidSdkUtils.createNewAndroidPlatform(androidSdkPath);
+        if (androidSdkPath == null) {
+          return;
+        }
+        Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(androidSdkPath);
+        if (sdk != null) {
+          // Rename the SDK to fit our default naming convention.
+          if (sdk.getName().startsWith(AndroidSdkUtils.SDK_NAME_PREFIX)) {
+            SdkModificator sdkModificator = sdk.getSdkModificator();
+            sdkModificator.setName(AndroidSdkUtils.SDK_NAME_PREFIX +
+                                   sdk.getName().substring(AndroidSdkUtils.SDK_NAME_PREFIX.length()));
+            sdkModificator.commitChanges();
+
+            // Rename the JDK that goes along with this SDK.
+            AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+            if (additionalData != null) {
+              Sdk jdk = additionalData.getJavaSdk();
+              if (jdk != null) {
+                sdkModificator = jdk.getSdkModificator();
+                sdkModificator.setName(AndroidSdkUtils.DEFAULT_JDK_NAME);
+                sdkModificator.commitChanges();
+              }
+            }
+
+            // Fill out any missing build APIs for this new SDK.
+            AndroidHomeConfigurable.createSdksForAllTargets(androidSdkPath);
+          }
+        }
       }
     });
   }
