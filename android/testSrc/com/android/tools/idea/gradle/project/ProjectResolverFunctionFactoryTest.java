@@ -25,6 +25,9 @@ import junit.framework.TestCase;
 import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
+import java.util.Collections;
+import java.util.List;
+
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter.NULL_OBJECT;
 import static org.easymock.classextension.EasyMock.*;
 
@@ -58,7 +61,8 @@ public class ProjectResolverFunctionFactoryTest extends TestCase {
     DataNode<ProjectData> projectInfo = createMock(DataNode.class);
 
     // Verify that function execution delegates to ProjectResolverDelegates.
-    expect(myStrategy.resolveProjectInfo(id, projectPath, settings, connection, NULL_OBJECT)).andReturn(projectInfo);
+    List<String> extraJvmArgs = Collections.emptyList();
+    expect(myStrategy.resolveProjectInfo(id, projectPath, connection, NULL_OBJECT, extraJvmArgs, settings)).andReturn(projectInfo);
     replay(myStrategy);
 
     DataNode<ProjectData> resolved = function.fun(connection);

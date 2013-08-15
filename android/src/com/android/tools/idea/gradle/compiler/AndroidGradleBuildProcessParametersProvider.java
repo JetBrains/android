@@ -29,7 +29,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.PathUtil;
 import org.gradle.tooling.ProjectConnection;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
@@ -42,6 +41,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createJvmArg;
+
 /**
  * Adds Gradle jars to the build process' classpath and adds extra Gradle-related configuration options.
  */
@@ -52,8 +53,6 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
   @NotNull private final Project myProject;
 
   private List<String> myClasspath;
-
-  @NonNls private static final String JVM_ARG_FORMAT = "-D%1$s=%2$s";
 
   public AndroidGradleBuildProcessParametersProvider(@NotNull Project project) {
     myProject = project;
@@ -120,6 +119,7 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
 
     GradleExecutionSettings executionSettings =
       ExternalSystemApiUtil.getExecutionSettings(myProject, projectSettings.getExternalProjectPath(), SYSTEM_ID);
+    //noinspection TestOnlyProblems
     populateJvmArgs(executionSettings, jvmArgs);
 
     if (Projects.generateSourceOnlyOnCompile(myProject)) {
@@ -175,10 +175,5 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
       }
     }
     jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_DAEMON_VM_OPTION_COUNT, String.valueOf(vmOptionCount)));
-  }
-
-  @NotNull
-  private static String createJvmArg(@NotNull String name, @NotNull String value) {
-    return String.format(JVM_ARG_FORMAT, name, value);
   }
 }
