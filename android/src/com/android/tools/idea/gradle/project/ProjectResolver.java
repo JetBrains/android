@@ -84,25 +84,23 @@ class ProjectResolver {
    * we get one we create an IDE module from it, otherwise we just use the regular Java module. Unfortunately, this process requires
    * creation of multiple {@link ProjectConnection}s.
    *
-   * @param id          id of the current 'resolve project info' task.
-   * @param projectPath absolute path of the parent folder of the build.gradle file.
-   * @param settings    settings to use for the project resolving; {@code null} as indication that no specific settings are required.
-   * @param connection  Gradle Tooling API connection to the project to import.
-   * @param listener    callback to be notified about the execution
+   *
+   * @param id           id of the current 'resolve project info' task.
+   * @param projectPath  absolute path of the parent folder of the build.gradle file.
+   * @param connection   Gradle Tooling API connection to the project to import.
+   * @param listener     callback to be notified about the execution.
+   * @param extraJvmArgs extra JVM arguments to pass to Gradle tooling API.
+   * @param settings     settings to use for the project resolving; {@code null} as indication that no specific settings are required.
    * @return the imported project, or {@link null} if the project to import is not an Android-Gradle project.
    */
   @Nullable
   DataNode<ProjectData> resolveProjectInfo(@NotNull ExternalSystemTaskId id,
                                            @NotNull String projectPath,
-                                           @Nullable GradleExecutionSettings settings,
                                            @NotNull ProjectConnection connection,
-                                           @NotNull ExternalSystemTaskNotificationListener listener) {
-    ModelBuilder<IdeaProject> modelBuilder = myHelper.getModelBuilder(IdeaProject.class,
-                                                                      id,
-                                                                      settings,
-                                                                      connection,
-                                                                      listener,
-                                                                      Collections.<String>emptyList());
+                                           @NotNull ExternalSystemTaskNotificationListener listener,
+                                           @NotNull List<String> extraJvmArgs,
+                                           @Nullable GradleExecutionSettings settings) {
+    ModelBuilder<IdeaProject> modelBuilder = myHelper.getModelBuilder(IdeaProject.class, id, settings, connection, listener, extraJvmArgs);
     IdeaProject ideaProject = modelBuilder.get();
     if (ideaProject == null || ideaProject.getModules().isEmpty()) {
       return null;
@@ -130,7 +128,7 @@ class ProjectResolver {
       }
       String moduleDirPath = moduleDir.getPath();
       if (isAndroidProject(module.getGradleProject())) {
-        AndroidProject androidProject = getAndroidProject(id, moduleDirPath, gradleBuildFile, listener, settings);
+        AndroidProject androidProject = getAndroidProject(id, moduleDirPath, gradleBuildFile, listener, extraJvmArgs, settings);
         if (androidProject == null || !GradleModelVersionCheck.isSupportedVersion(androidProject)) {
           throw new IllegalStateException(GradleModelConstants.UNSUPPORTED_MODEL_VERSION_ERROR);
         }
@@ -191,18 +189,15 @@ class ProjectResolver {
                                            @NotNull final String projectPath,
                                            @NotNull final File gradleBuildFile,
                                            @NotNull final ExternalSystemTaskNotificationListener listener,
+                                           @NotNull final List<String> extraJvmArgs,
                                            @Nullable final GradleExecutionSettings settings) {
     return myHelper.execute(projectPath, settings, new Function<ProjectConnection, AndroidProject>() {
       @Nullable
       @Override
       public AndroidProject fun(ProjectConnection connection) {
         try {
-          ModelBuilder<AndroidProject> modelBuilder = myHelper.getModelBuilder(AndroidProject.class,
-                                                                               id,
-                                                                               settings,
-                                                                               connection,
-                                                                               listener,
-                                                                               Collections.<String>emptyList());
+          ModelBuilder<AndroidProject> modelBuilder =
+            myHelper.getModelBuilder(AndroidProject.class, id, settings, connection, listener, extraJvmArgs);
           return modelBuilder.get();
         }
         catch (UnknownModelException e) {

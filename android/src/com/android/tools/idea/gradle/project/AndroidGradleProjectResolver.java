@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.SdkConstants;
 import com.android.builder.AndroidBuilder;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.ProductFlavor;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.GradleImportNotificationListener;
+import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -27,28 +29,28 @@ import com.intellij.execution.configurations.ParametersList;
 import com.intellij.execution.configurations.SimpleJavaParameters;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
-import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.KeyValue;
 import com.intellij.util.Function;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.lang.UrlClassLoader;
 import com.intellij.util.net.HttpConfigurable;
 import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
+import java.io.File;
 import java.net.URL;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -124,15 +126,11 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
     for (String jarPath : jarPaths) {
       parameters.getClassPath().add(jarPath);
     }
-    String androidHome = System.getenv(AndroidSdkUtils.ANDROID_HOME_ENV);
+    String androidHome = System.getenv(SdkConstants.ANDROID_HOME_ENV);
     if (Strings.isNullOrEmpty(androidHome)) {
-      for (Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
-        AndroidPlatform androidPlatform = AndroidPlatform.parse(sdk);
-        String sdkHomePath = sdk.getHomePath();
-        if (androidPlatform != null && sdkHomePath != null) {
-          parameters.addEnv(AndroidSdkUtils.ANDROID_HOME_ENV, sdkHomePath);
-          break;
-        }
+      androidHome = getAndroidSdkPathFromIde();
+      if (androidHome != null) {
+        parameters.addEnv(SdkConstants.ANDROID_HOME_ENV, androidHome);
       }
     }
     List<KeyValue<String,String>> proxyProperties = HttpConfigurable.getJvmPropertiesList(false, null);
@@ -155,6 +153,31 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
     return jarPaths;
   }
 
+  @NotNull
+  private static List<String> getExtraJvmArgs(@NotNull String projectPath) {
+    if (ExternalSystemApiUtil.isInProcessMode() && !AndroidGradleSettings.isAndroidHomeKnown(new File(projectPath))) {
+      String androidHome = getAndroidSdkPathFromIde();
+      if (androidHome != null) {
+        String androidHomeJvmArg = AndroidGradleSettings.createAndroidHomeJvmArg(androidHome);
+        return Collections.singletonList(androidHomeJvmArg);
+      }
+    }
+    return Collections.emptyList();
+  }
+
+  @Nullable
+  private static String getAndroidSdkPathFromIde() {
+    for (Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
+      AndroidPlatform androidPlatform = AndroidPlatform.parse(sdk);
+      String sdkHomePath = sdk.getHomePath();
+      if (androidPlatform != null && sdkHomePath != null) {
+        return sdkHomePath;
+      }
+    }
+    return null;
+  }
+
+
   static class ProjectResolverFunctionFactory {
     @NotNull private final ProjectResolver myResolver;
 
@@ -173,7 +196,8 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
         @Override
         public DataNode<ProjectData> fun(ProjectConnection connection) {
           try {
-            return myResolver.resolveProjectInfo(id, projectPath, settings, connection, listener);
+            List<String> extraJvmArgs = getExtraJvmArgs(projectPath);
+            return myResolver.resolveProjectInfo(id, projectPath, connection, listener, extraJvmArgs, settings);
           }
           catch (RuntimeException e) {
             throw errorHandler.getUserFriendlyError(e, projectPath, null);

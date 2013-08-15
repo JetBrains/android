@@ -16,7 +16,7 @@
 package com.android.tools.idea.jps.builder;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.jps.AndroidGradleJps;
 import com.android.tools.idea.jps.model.JpsAndroidGradleModuleExtension;
 import com.android.tools.idea.jps.output.parser.GradleErrorOutputParser;
@@ -31,7 +31,6 @@ import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,8 +53,14 @@ import org.jetbrains.jps.model.JpsSimpleElement;
 import org.jetbrains.jps.model.library.sdk.JpsSdk;
 import org.jetbrains.jps.model.module.JpsModule;
 
-import java.io.*;
-import java.util.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -67,9 +72,6 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
 
   @NonNls private static final String CLEAN_TASK_NAME = "clean";
   @NonNls private static final String DEFAULT_ASSEMBLE_TASK_NAME = "assemble";
-
-  @NonNls private static final String JVM_ARG_FORMAT = "-D%1$s=%2$s";
-  @NonNls private static final String ANDROID_HOME_JVM_ARG = "android.home";
 
   @NonNls private static final String BUILDER_NAME = "Android Gradle Target Builder";
 
@@ -111,7 +113,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
     ensureTempDirExists();
 
     String androidHome = null;
-    if (!isAndroidHomeKnown(executionSettings)) {
+    if (!AndroidGradleSettings.isAndroidHomeKnown(executionSettings.getProjectDir())) {
       androidHome = getAndroidHomeFromModuleSdk(project);
     }
 
@@ -196,54 +198,6 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
       }
     }
   }
-  /**
-   * Indicates whether the path of the Android SDK home directory is specified in a local.properties file or in the ANDROID_HOME environment
-   * variable.
-   *
-   * @param settings build execution settings.
-   * @return {@code true} if the Android SDK home directory is specified in the project's local.properties file or in the ANDROID_HOME
-   *         environment variable; {@code false} otherwise.
-   */
-  private static boolean isAndroidHomeKnown(@NotNull BuilderExecutionSettings settings) {
-    String androidHome = getAndroidHomeFromLocalPropertiesFile(settings.getProjectDir());
-    if (!Strings.isNullOrEmpty(androidHome)) {
-      String msg = String.format("Found Android SDK home at '%1$s' (from local.properties file)", androidHome);
-      LOG.info(msg);
-      return true;
-    }
-    androidHome = System.getenv(AndroidSdkUtils.ANDROID_HOME_ENV);
-    if (!Strings.isNullOrEmpty(androidHome)) {
-      String msg = String.format("Found Android SDK home at '%1$s' (from ANDROID_HOME environment variable)", androidHome);
-      LOG.info(msg);
-      return true;
-    }
-    return false;
-  }
-
-  @Nullable
-  private static String getAndroidHomeFromLocalPropertiesFile(@NotNull File projectDir) {
-    File filePath = new File(projectDir, SdkConstants.FN_LOCAL_PROPERTIES);
-    if (!filePath.isFile()) {
-      return null;
-    }
-    Properties properties = new Properties();
-    FileInputStream fileInputStream = null;
-    try {
-      //noinspection IOResourceOpenedButNotSafelyClosed
-      fileInputStream = new FileInputStream(filePath);
-      properties.load(fileInputStream);
-    } catch (FileNotFoundException e) {
-      return null;
-    } catch (IOException e) {
-      String msg = String.format("Failed to read file '%1$s'", filePath.getPath());
-      LOG.error(msg, e);
-      return null;
-    } finally {
-      Closeables.closeQuietly(fileInputStream);
-    }
-    return properties.getProperty(LocalProperties.SDK_DIR_PROPERTY);
-  }
-
 
   @Nullable
   private static String getAndroidHomeFromModuleSdk(@NotNull JpsProject project) {
@@ -290,8 +244,8 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
 
       List<String> jvmArgs = Lists.newArrayList();
 
-      if (!Strings.isNullOrEmpty(androidHome)) {
-        String androidSdkArg = String.format(JVM_ARG_FORMAT, ANDROID_HOME_JVM_ARG, androidHome);
+      if (androidHome != null && !androidHome.isEmpty()) {
+        String androidSdkArg = AndroidGradleSettings.createAndroidHomeJvmArg(androidHome);
         jvmArgs.add(androidSdkArg);
       }
 

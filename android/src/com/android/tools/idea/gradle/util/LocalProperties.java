@@ -34,7 +34,6 @@ import java.util.Properties;
  * Utility methods related to a Gradle project's local.properties file.
  */
 public final class LocalProperties {
-  public static final String SDK_DIR_PROPERTY = "sdk.dir";
   private static final String HEADER_COMMENT = getHeaderComment();
 
   @NotNull private final Project myProject;
@@ -103,7 +102,7 @@ public final class LocalProperties {
    */
   @Nullable
   public String getAndroidSdkPath() {
-    return myProperties == null ? null : myProperties.getProperty(SDK_DIR_PROPERTY);
+    return myProperties == null ? null : myProperties.getProperty(SdkConstants.SDK_DIR_PROPERTY);
   }
 
   /**
@@ -127,7 +126,7 @@ public final class LocalProperties {
   public static void createFile(File filePath, Sdk androidSdk) throws IOException {
     FileUtilRt.createIfNotExists(filePath);
     // TODO: create this file using a template and just populate the path of Android SDK.
-    String[] lines = {HEADER_COMMENT, SDK_DIR_PROPERTY + "=" + androidSdk.getHomePath()};
+    String[] lines = {HEADER_COMMENT, SdkConstants.SDK_DIR_PROPERTY + "=" + androidSdk.getHomePath()};
     String contents = Joiner.on(SystemProperties.getLineSeparator()).join(lines);
     FileUtil.writeToFile(filePath, contents);
   }
@@ -142,7 +141,14 @@ public final class LocalProperties {
       String msg = String.format("The project '%1$s' does not have a '%2$s' file", myProject.getName(), SdkConstants.FN_LOCAL_PROPERTIES);
       throw new IllegalStateException(msg);
     }
-    myProperties.setProperty(SDK_DIR_PROPERTY, androidSdkPath);
-    myProperties.store(new FileOutputStream(localPropertiesFilePath(myProject)), HEADER_COMMENT);
+    myProperties.setProperty(SdkConstants.SDK_DIR_PROPERTY, androidSdkPath);
+    FileOutputStream out = null;
+    try {
+      //noinspection IOResourceOpenedButNotSafelyClosed
+      out = new FileOutputStream(localPropertiesFilePath(myProject));
+      myProperties.store(out, HEADER_COMMENT);
+    } finally {
+      Closeables.closeQuietly(out);
+    }
   }
 }

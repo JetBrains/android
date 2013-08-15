@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.startup;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.actions.AndroidNewModuleAction;
 import com.android.tools.idea.actions.AndroidNewModuleInGroupAction;
 import com.android.tools.idea.actions.AndroidNewProjectAction;
@@ -143,8 +144,8 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     }
     LOG.info("Unable to locate SDK within the Android studio installation.");
 
-    String androidHomeValue = System.getenv(AndroidSdkUtils.ANDROID_HOME_ENV);
-    String msg = String.format("Checking if ANDROID_HOME is set: '%1$s' is '%2$s'", AndroidSdkUtils.ANDROID_HOME_ENV, androidHomeValue);
+    String androidHomeValue = System.getenv(SdkConstants.ANDROID_HOME_ENV);
+    String msg = String.format("Checking if ANDROID_HOME is set: '%1$s' is '%2$s'", SdkConstants.ANDROID_HOME_ENV, androidHomeValue);
     LOG.info(msg);
 
     if (!StringUtil.isEmpty(androidHomeValue) &&
