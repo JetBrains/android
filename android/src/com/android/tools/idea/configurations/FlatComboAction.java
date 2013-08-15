@@ -18,6 +18,7 @@ package com.android.tools.idea.configurations;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction;
+import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.ListPopup;
@@ -311,7 +312,7 @@ public abstract class FlatComboAction extends AnAction implements CustomComponen
     }
 
     private void updateTooltipText(String description) {
-      String tooltip = AnAction.createTooltipText(description, FlatComboAction.this);
+      String tooltip = KeymapUtil.createTooltipText(description, FlatComboAction.this);
       setToolTipText(!tooltip.isEmpty() ? tooltip : null);
     }
 

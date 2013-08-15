@@ -303,10 +303,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     return myPanel;
   }
 
-  @Override
-  protected void disposeEditor() {
-  }
-
   public ConfigurationModuleSelector getModuleSelector() {
     return myModuleSelector;
   }

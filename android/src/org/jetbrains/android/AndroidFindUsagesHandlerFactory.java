@@ -16,6 +16,7 @@
 
 package org.jetbrains.android;
 
+import com.android.resources.ResourceFolderType;
 import com.intellij.find.findUsages.FindUsagesHandler;
 import com.intellij.find.findUsages.FindUsagesHandlerFactory;
 import com.intellij.psi.PsiElement;
@@ -61,11 +62,21 @@ public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
     if (element1 instanceof PsiField) {
       return AndroidResourceUtil.isResourceField((PsiField)element1);
     }
-    else if (element1 instanceof PsiFile) {
-      return AndroidResourceUtil.findResourceFieldsForFileResource((PsiFile)element1, true).length > 0;
-    }
-    else if (element1 instanceof XmlTag) {
-      return AndroidResourceUtil.findResourceFieldsForValueResource((XmlTag)element1, true).length > 0;
+    else if (element1 instanceof PsiFile || element1 instanceof XmlTag) {
+      final AndroidFacet facet = AndroidFacet.getInstance(element1);
+
+      if (facet != null) {
+        if (element1 instanceof PsiFile) {
+          return facet.getLocalResourceManager().getFileResourceType((PsiFile)element1) != null;
+        }
+        else {
+          final String fileResType = facet.getLocalResourceManager().getFileResourceType(element1.getContainingFile());
+
+          if (ResourceFolderType.VALUES.getName().equals(fileResType)) {
+            return AndroidResourceUtil.getResourceTypeByValueResourceTag((XmlTag)element1) != null;
+          }
+        }
+      }
     }
     return false;
   }
