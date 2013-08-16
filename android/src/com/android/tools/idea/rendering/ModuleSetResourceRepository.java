@@ -76,8 +76,7 @@ public final class ModuleSetResourceRepository extends MultiResourceRepository {
       addAndroidLibraries(libraries, f);
     }
 
-    boolean includeLibraries = false;
-    ProjectResources main = get(facet.getModule(), includeLibraries);
+    ProjectResources main = get(facet.getModule(), false /*includeLibraries */);
 
     if (facets.isEmpty() && libraries.isEmpty()) {
       return Collections.singletonList(main);
@@ -102,8 +101,11 @@ public final class ModuleSetResourceRepository extends MultiResourceRepository {
         String projectName = library.getProject();
         if (projectName != null && !projectName.isEmpty()) {
           libraryName = projectName.substring(projectName.lastIndexOf(':') + 1);
+          // Since this library has project!=null, it exists in module form; don't
+          // add it here.
+          moduleNames.add(libraryName);
+          continue;
         } else {
-          // Pre 0.5 support: remove soon
           File folder = library.getFolder();
           String name = folder.getName();
           if (name.endsWith(DOT_AAR)) {
@@ -127,7 +129,7 @@ public final class ModuleSetResourceRepository extends MultiResourceRepository {
     }
 
     for (AndroidFacet f : facets) {
-      ProjectResources r = get(f.getModule(), includeLibraries);
+      ProjectResources r = get(f.getModule(), false /*includeLibraries */);
       resources.add(r);
     }
 

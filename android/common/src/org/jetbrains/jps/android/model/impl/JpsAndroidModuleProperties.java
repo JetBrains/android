@@ -41,6 +41,7 @@ public class JpsAndroidModuleProperties {
   public String MANIFEST_FILE_RELATIVE_PATH = "/" + SdkConstants.FN_ANDROID_MANIFEST_XML;
 
   public String RES_FOLDER_RELATIVE_PATH = "/" + SdkConstants.FD_RES;
+  public String RES_FOLDERS_RELATIVE_PATH;
   public String ASSETS_FOLDER_RELATIVE_PATH = "/" + SdkConstants.FD_ASSETS;
   public String LIBS_FOLDER_RELATIVE_PATH = "/" + SdkConstants.FD_NATIVE_LIBS;
 
