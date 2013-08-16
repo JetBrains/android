@@ -99,7 +99,9 @@ public class ProjectResolverTest extends TestCase {
 
     // Code under test.
     String projectPath = myIdeaProject.getBuildFile().getParentFile().getPath();
-    DataNode<ProjectData> projectInfo = myProjectResolver.resolveProjectInfo(myId, projectPath, mySettings, myConnection, NULL_OBJECT);
+    List<String> extraJvmArgs = Collections.emptyList();
+    DataNode<ProjectData> projectInfo =
+      myProjectResolver.resolveProjectInfo(myId, projectPath, myConnection, NULL_OBJECT, extraJvmArgs, mySettings);
 
     // Verify mock expectations.
     verify(myConnection, myHelper, ideaProjectModelBuilder);

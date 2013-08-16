@@ -76,7 +76,6 @@ import org.jetbrains.android.logcat.AndroidToolWindowFactory;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -89,7 +88,6 @@ public final class AndroidSdkUtils {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.sdk.AndroidSdkUtils");
 
   public static final String DEFAULT_PLATFORM_NAME_PROPERTY = "AndroidPlatformName";
-  @NonNls public static final String ANDROID_HOME_ENV = "ANDROID_HOME";
 
   private static SdkManager ourSdkManager;
 
@@ -511,23 +509,27 @@ public final class AndroidSdkUtils {
       sdkPath = FileUtil.toSystemIndependentName(sdkPath);
     }
 
+    //noinspection TestOnlyProblems
     Sdk sdk = findSuitableAndroidSdk(targetHashString, sdkPath, promptUserIfNecessary);
     if (sdk != null) {
       ModuleRootModificationUtil.setModuleSdk(module, sdk);
       return true;
     }
 
+    //noinspection TestOnlyProblems
     if (sdkPath != null && tryToCreateAndSetAndroidSdk(module, sdkPath, targetHashString, promptUserIfNecessary)) {
       return true;
     }
 
-    String androidHomeValue = System.getenv(ANDROID_HOME_ENV);
+    String androidHomeValue = System.getenv(SdkConstants.ANDROID_HOME_ENV);
+    //noinspection TestOnlyProblems
     if (androidHomeValue != null &&
         tryToCreateAndSetAndroidSdk(module, FileUtil.toSystemIndependentName(androidHomeValue), targetHashString, false)) {
       return true;
     }
 
     for (String dir : getAndroidSdkPathsFromExistingPlatforms()) {
+      //noinspection TestOnlyProblems
       if (tryToCreateAndSetAndroidSdk(module, dir, targetHashString, false)) {
         return true;
       }
