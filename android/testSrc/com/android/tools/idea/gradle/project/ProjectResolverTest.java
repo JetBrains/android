@@ -38,6 +38,7 @@ import org.gradle.tooling.model.idea.IdeaProject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter.NULL_OBJECT;
@@ -85,7 +86,7 @@ public class ProjectResolverTest extends TestCase {
   public void testResolveProjectInfo() {
     // Record mock expectations.
     ModelBuilder<IdeaProject> ideaProjectModelBuilder = createMock(ModelBuilder.class);
-    myHelper.getModelBuilder(IdeaProject.class, myId, mySettings, myConnection, NULL_OBJECT);
+    myHelper.getModelBuilder(IdeaProject.class, myId, mySettings, myConnection, NULL_OBJECT, Collections.<String>emptyList());
     expectLastCall().andReturn(ideaProjectModelBuilder);
 
     // Simulate retrieval of the top-level IdeaProject.

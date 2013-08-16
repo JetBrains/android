@@ -97,7 +97,12 @@ class ProjectResolver {
                                            @Nullable GradleExecutionSettings settings,
                                            @NotNull ProjectConnection connection,
                                            @NotNull ExternalSystemTaskNotificationListener listener) {
-    ModelBuilder<IdeaProject> modelBuilder = myHelper.getModelBuilder(IdeaProject.class, id, settings, connection, listener);
+    ModelBuilder<IdeaProject> modelBuilder = myHelper.getModelBuilder(IdeaProject.class,
+                                                                      id,
+                                                                      settings,
+                                                                      connection,
+                                                                      listener,
+                                                                      Collections.<String>emptyList());
     IdeaProject ideaProject = modelBuilder.get();
     if (ideaProject == null || ideaProject.getModules().isEmpty()) {
       return null;
@@ -192,7 +197,12 @@ class ProjectResolver {
       @Override
       public AndroidProject fun(ProjectConnection connection) {
         try {
-          ModelBuilder<AndroidProject> modelBuilder = myHelper.getModelBuilder(AndroidProject.class, id, settings, connection, listener);
+          ModelBuilder<AndroidProject> modelBuilder = myHelper.getModelBuilder(AndroidProject.class,
+                                                                               id,
+                                                                               settings,
+                                                                               connection,
+                                                                               listener,
+                                                                               Collections.<String>emptyList());
           return modelBuilder.get();
         }
         catch (UnknownModelException e) {
