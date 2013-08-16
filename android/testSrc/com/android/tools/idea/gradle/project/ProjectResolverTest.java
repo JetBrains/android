@@ -28,8 +28,6 @@ import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceTyp
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.util.io.FileUtil;
@@ -40,6 +38,7 @@ import org.gradle.tooling.model.idea.IdeaProject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter.NULL_OBJECT;
@@ -86,7 +85,7 @@ public class ProjectResolverTest extends TestCase {
   public void testResolveProjectInfo() {
     // Record mock expectations.
     ModelBuilder<IdeaProject> ideaProjectModelBuilder = createMock(ModelBuilder.class);
-    myHelper.getModelBuilder(IdeaProject.class, myId, mySettings, myConnection, NULL_OBJECT);
+    myHelper.getModelBuilder(IdeaProject.class, myId, mySettings, myConnection, NULL_OBJECT, Collections.<String>emptyList());
     expectLastCall().andReturn(ideaProjectModelBuilder);
 
     // Simulate retrieval of the top-level IdeaProject.
