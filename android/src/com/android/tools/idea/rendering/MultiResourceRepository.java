@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
@@ -31,7 +32,6 @@ import gnu.trove.TObjectIntHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -63,6 +63,7 @@ public abstract class MultiResourceRepository extends ProjectResources {
     }
     myGeneration++;
     clearCache();
+    invalidateItemCaches();
   }
 
   private void clearCache() {
@@ -213,12 +214,14 @@ public abstract class MultiResourceRepository extends ProjectResources {
         if (map.containsKey(name)) {
           // The item already exists in this map; only add if there isn't an item with the
           // same qualifiers
-          String qualifiers = item.getSource().getQualifiers();
+          ResourceFile itemSource = item.getSource();
+          String qualifiers = itemSource != null ? itemSource.getQualifiers() : "";
           boolean contains = false;
           List<ResourceItem> list = map.get(name);
           assert list != null;
           for (ResourceItem existing : list) {
-            if (qualifiers.equals(existing.getSource().getQualifiers())) {
+            ResourceFile source = existing.getSource();
+            if (source != null && qualifiers.equals(source.getQualifiers())) {
               contains = true;
               break;
             }
@@ -279,6 +282,7 @@ public abstract class MultiResourceRepository extends ProjectResources {
   }
 
   @Override
+  @VisibleForTesting
   boolean isScanPending(@NonNull PsiFile psiFile) {
     assert ApplicationManager.getApplication().isUnitTestMode();
     for (int i = myChildren.size() - 1; i >= 0; i--) {
