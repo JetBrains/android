@@ -111,7 +111,7 @@ public class AndroidApkBuilder {
 
   public static Map<AndroidCompilerMessageKind, List<String>> execute(@NotNull String resPackagePath,
                                                                       @NotNull String dexPath,
-                                                                      @NotNull String[] sourceRoots,
+                                                                      @NotNull String[] resourceRoots,
                                                                       @NotNull String[] externalJars,
                                                                       @NotNull String[] nativeLibsFolders,
                                                                       @NotNull Collection<AndroidNativeLibData> additionalNativeLibs,
@@ -127,7 +127,7 @@ public class AndroidApkBuilder {
         "apk_builder",
         resPackagePath,
         dexPath,
-        AndroidBuildTestingManager.arrayToString(sourceRoots),
+        AndroidBuildTestingManager.arrayToString(resourceRoots),
         AndroidBuildTestingManager.arrayToString(externalJars),
         AndroidBuildTestingManager.arrayToString(nativeLibsFolders),
         additionalNativeLibs.toString(),
@@ -158,7 +158,7 @@ public class AndroidApkBuilder {
 
       if (unsigned) {
         return filterUsingKeystoreMessages(
-          finalPackage(dexPath, sourceRoots, externalJars, nativeLibsFolders, finalApk, resPackagePath, customKeystorePath, false,
+          finalPackage(dexPath, resourceRoots, externalJars, nativeLibsFolders, finalApk, resPackagePath, customKeystorePath, false,
                        resourceFilter));
       }
       final String zipAlignPath = sdkPath + File.separator + AndroidCommonUtils.toolPath(SdkConstants.FN_ZIPALIGN);
@@ -166,7 +166,7 @@ public class AndroidApkBuilder {
       String unalignedApk = AndroidCommonUtils.addSuffixToFileName(finalApk, UNALIGNED_SUFFIX);
 
       Map<AndroidCompilerMessageKind, List<String>> map2 = filterUsingKeystoreMessages(
-        finalPackage(dexPath, sourceRoots, externalJars, nativeLibsFolders, withAlignment ? unalignedApk : finalApk, resPackagePath,
+        finalPackage(dexPath, resourceRoots, externalJars, nativeLibsFolders, withAlignment ? unalignedApk : finalApk, resPackagePath,
                      customKeystorePath, true, resourceFilter));
       map.putAll(map2);
 
@@ -211,7 +211,7 @@ public class AndroidApkBuilder {
   }
 
   private static Map<AndroidCompilerMessageKind, List<String>> finalPackage(@NotNull String dexPath,
-                                                                            @NotNull String[] sourceRoots,
+                                                                            @NotNull String[] javaResourceRoots,
                                                                             @NotNull String[] externalJars,
                                                                             @NotNull String[] nativeLibsFolders,
                                                                             @NotNull String outputApk,
@@ -295,11 +295,11 @@ public class AndroidApkBuilder {
       builder.writeFile(dexEntryFile, AndroidCommonUtils.CLASSES_FILE_NAME);
 
       final HashSet<String> added = new HashSet<String>();
-      for (String sourceRootPath : sourceRoots) {
-        final HashSet<File> sourceFolderResources = new HashSet<File>();
-        final File sourceRoot = new File(sourceRootPath);
-        collectStandardSourceFolderResources(sourceRoot, sourceFolderResources, resourceFilter);
-        writeStandardSourceFolderResources(sourceFolderResources, sourceRoot, builder, added);
+      for (String resourceRootPath : javaResourceRoots) {
+        final HashSet<File> javaResources = new HashSet<File>();
+        final File resourceRoot = new File(resourceRootPath);
+        collectStandardJavaResources(resourceRoot, javaResources, resourceFilter);
+        writeStandardJavaResources(javaResources, resourceRoot, builder, added);
       }
 
       Set<String> duplicates = new HashSet<String>();
@@ -455,17 +455,17 @@ public class AndroidApkBuilder {
     }
   }
 
-  public static void collectStandardSourceFolderResources(@NotNull File sourceFolder,
-                                                          @NotNull Collection<File> result,
-                                                          @NotNull Condition<File> filter) {
-    final File[] children = sourceFolder.listFiles();
+  public static void collectStandardJavaResources(@NotNull File folder,
+                                                  @NotNull Collection<File> result,
+                                                  @NotNull Condition<File> filter) {
+    final File[] children = folder.listFiles();
 
     if (children != null) {
       for (File child : children) {
         if (child.exists()) {
           if (child.isDirectory()) {
             if (JavaResourceFilter.checkFolderForPackaging(child.getName()) && filter.value(child)) {
-              collectStandardSourceFolderResources(child, result, filter);
+              collectStandardJavaResources(child, result, filter);
             }
           }
           else if (checkFileForPackaging(child) && filter.value(child)) {
@@ -476,10 +476,10 @@ public class AndroidApkBuilder {
     }
   }
 
-  private static void writeStandardSourceFolderResources(Collection<File> resources,
-                                                         File sourceRoot,
-                                                         SignedJarBuilder jarBuilder,
-                                                         Set<String> added) throws IOException {
+  private static void writeStandardJavaResources(Collection<File> resources,
+                                                 File sourceRoot,
+                                                 SignedJarBuilder jarBuilder,
+                                                 Set<String> added) throws IOException {
     for (File child : resources) {
       final String relativePath = FileUtil.getRelativePath(sourceRoot, child);
       if (relativePath != null && !added.contains(relativePath)) {
@@ -489,10 +489,15 @@ public class AndroidApkBuilder {
     }
   }
 
-  private static boolean checkFileForPackaging(File file) {
+  public static boolean checkFileForPackaging(@NotNull File file) {
     String fileName = FileUtil.getNameWithoutExtension(file);
     if (fileName.length() > 0) {
-      return JavaResourceFilter.checkFileForPackaging(fileName, FileUtilRt.getExtension(file.getName()));
+      final String extension = FileUtilRt.getExtension(file.getName());
+
+      if (SdkConstants.EXT_ANDROID_PACKAGE.equals(extension)) {
+        return false;
+      }
+      return JavaResourceFilter.checkFileForPackaging(fileName, extension);
     }
     return false;
   }

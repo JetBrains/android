@@ -124,9 +124,9 @@ apk_builder
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/app/app.apk.res
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/app/classes.dex
 [
-$PROJECT_DIR$/root/app/src
-$PROJECT_DIR$/root/lib1/src
-$PROJECT_DIR$/root/lib/src
+$PROJECT_DIR$/out/production/app
+$PROJECT_DIR$/out/production/lib
+$PROJECT_DIR$/out/production/lib1
 ]
 [
 $PROJECT_DIR$/root/app/libs/external_jar.jar

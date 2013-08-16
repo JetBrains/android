@@ -624,6 +624,48 @@ public class AndroidJpsUtil {
     return result.toArray(new File[result.size()]);
   }
 
+  private static void fillJavaOutputRoots(@NotNull JpsModule module,
+                                          @NotNull Set<JpsModule> visited,
+                                          @NotNull Set<File> result,
+                                          boolean recursively) {
+    visited.add(module);
+    final JpsAndroidModuleExtension extension = getExtension(module);
+    final File outputDir = JpsJavaExtensionService.getInstance().getOutputDirectory(module, false);
+
+    if (outputDir != null) {
+      result.add(outputDir);
+    }
+    if (extension != null && extension.isPackTestCode()) {
+      final File testOutputDir = JpsJavaExtensionService.getInstance().getOutputDirectory(module, true);
+
+      if (testOutputDir != null) {
+        result.add(testOutputDir);
+      }
+    }
+    if (!recursively) {
+      return;
+    }
+    final boolean newRecursively = shouldProcessDependenciesRecursively(module);
+
+    for (JpsDependencyElement classpathItem : JpsJavaExtensionService.getInstance()
+      .getDependencies(module, JpsJavaClasspathKind.PRODUCTION_RUNTIME, false)) {
+      if (classpathItem instanceof JpsModuleDependency) {
+        final JpsModule depModule = ((JpsModuleDependency)classpathItem).getModule();
+
+        if (depModule != null && !visited.contains(depModule)) {
+          fillJavaOutputRoots(depModule, visited, result, newRecursively);
+        }
+      }
+    }
+  }
+
+  @NotNull
+  public static File[] getJavaOutputRootsForModuleAndDependencies(@NotNull JpsModule module) {
+    Set<File> result = new HashSet<File>();
+    fillJavaOutputRoots(module, new HashSet<JpsModule>(), result, true);
+    return result.toArray(new File[result.size()]);
+  }
+
   @Nullable
   public static String getApkPath(@NotNull JpsAndroidModuleExtension extension, @NotNull File outputDirForPackagedArtifacts) {
     final String apkRelativePath = extension.getApkRelativePath();
