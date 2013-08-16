@@ -41,7 +41,9 @@ ______ENTRY_3:0,1,2
 apk_builder
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/module/module.apk.res
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/module/classes.dex
-[]
+[
+$PROJECT_DIR$/out/production/module
+]
 []
 []
 []
