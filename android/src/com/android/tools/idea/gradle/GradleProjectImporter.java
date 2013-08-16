@@ -335,7 +335,7 @@ public class GradleProjectImporter {
     void importProject(@NotNull Project newProject, @NotNull String projectFilePath, @NotNull ExternalProjectRefreshCallback callback)
       throws ConfigurationException {
       try {
-        ExternalSystemUtil.refreshProject(newProject, SYSTEM_ID, projectFilePath, callback, true, true, false);
+        ExternalSystemUtil.refreshProject(newProject, SYSTEM_ID, projectFilePath, callback, true, true);
       }
       catch (RuntimeException e) {
         String externalSystemName = SYSTEM_ID.getReadableName();
