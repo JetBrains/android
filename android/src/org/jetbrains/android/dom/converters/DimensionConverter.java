@@ -112,7 +112,7 @@ public class DimensionConverter extends ResolvingConverter<String> implements At
     for (int i = 0; i < s.length(); i++) {
       final char c = s.charAt(i);
 
-      if (!Character.isDigit(c)) {
+      if (!Character.isDigit(c) && (i > 0 || c != '-')) {
         break;
       }
       intPrefixBuilder.append(c);
