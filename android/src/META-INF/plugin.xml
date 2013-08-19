@@ -453,6 +453,7 @@
     <gotoRelatedProvider implementation="org.jetbrains.android.AndroidGotoRelatedProvider"/>
     <codeInsight.lineMarkerProvider language="XML" implementationClass="org.jetbrains.android.AndroidLineMarkerProvider"/>
     <codeInsight.lineMarkerProvider language="JAVA" implementationClass="org.jetbrains.android.AndroidLineMarkerProvider"/>
+    <implicitUsageProvider implementation="org.jetbrains.android.AndroidImplicitUsagesProvider"/>
   </extensions>
 
   <extensionPoints>
