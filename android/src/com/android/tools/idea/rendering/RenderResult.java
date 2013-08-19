@@ -17,8 +17,6 @@ package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.sdklib.devices.Device;
-import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiFile;

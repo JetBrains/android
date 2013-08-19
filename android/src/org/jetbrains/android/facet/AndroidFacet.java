@@ -17,9 +17,7 @@ package org.jetbrains.android.facet;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
-import com.android.builder.model.ArtifactInfo;
-import com.android.builder.model.SourceProvider;
-import com.android.builder.model.Variant;
+import com.android.builder.model.*;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.prefs.AndroidLocation;
@@ -61,10 +59,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.JarFileSystem;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.*;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
@@ -123,6 +118,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private ProjectResources myProjectResources;
   private ProjectResources myProjectResourcesWithLibraries;
   private IdeaAndroidProject myIdeaAndroidProject;
+  private final ResourceFolderManager myFolderManager = new ResourceFolderManager(this);
 
   private final List<GradleProjectAvailableListener> myGradleProjectAvailableListeners = Lists.newArrayList();
   private SourceProvider myMainSourceSet;
@@ -212,36 +208,18 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     }
   }
 
+  public ResourceFolderManager getResourceFolderManager() {
+    return myFolderManager;
+  }
+
   /**
    * Returns all resource directories, in the overlay order
-   * <p>
-   * TODO: This should be changed to be a {@code List<List<VirtualFile>>} in order to be
-   * able to distinguish overlays (e.g. flavor directories) versus resource folders at
-   * the same level where duplicates are NOT allowed: [[flavor1], [flavor2], [main1,main2]]
    *
    * @return a list of all resource directories
    */
   @NotNull
   public List<VirtualFile> getAllResourceDirectories() {
-    if (isGradleProject()) {
-      List<VirtualFile> resDirectories = new ArrayList<VirtualFile>();
-      resDirectories.addAll(getMainIdeaSourceSet().getResDirectories());
-      List<IdeaSourceProvider> flavorSourceSets = getIdeaFlavorSourceSets();
-      if (flavorSourceSets != null) {
-        for (IdeaSourceProvider provider : flavorSourceSets) {
-          resDirectories.addAll(provider.getResDirectories());
-        }
-      }
-
-      IdeaSourceProvider buildTypeSourceSet = getIdeaBuildTypeSourceSet();
-      if (buildTypeSourceSet != null) {
-        resDirectories.addAll(buildTypeSourceSet.getResDirectories());
-      }
-
-      return resDirectories;
-    } else {
-      return new ArrayList<VirtualFile>(getMainIdeaSourceSet().getResDirectories());
-    }
+    return myFolderManager.getFolders();
   }
 
   /**

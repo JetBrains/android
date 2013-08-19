@@ -16,22 +16,16 @@
 package com.android.tools.idea.rendering;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static com.android.tools.idea.gradle.variant.view.BuildVariantView.BuildVariantSelectionChangeListener;
+import java.util.*;
 
 /**
  * Resource repository for a single module (which can possibly have multiple resource folders)
@@ -63,34 +57,25 @@ final class ModuleResourceRepository extends MultiResourceRepository {
       return ResourceFolderRegistry.get(facet, primaryResourceDir);
     }
 
-    List<VirtualFile> resourceDirectories = facet.getAllResourceDirectories();
+    ResourceFolderManager folderManager = facet.getResourceFolderManager();
+    List<VirtualFile> resourceDirectories = folderManager.getFolders();
     List<ResourceFolderRepository> resources = Lists.newArrayListWithExpectedSize(resourceDirectories.size());
     for (VirtualFile resourceDirectory : resourceDirectories) {
       ResourceFolderRepository repository = ResourceFolderRegistry.get(facet, resourceDirectory);
       resources.add(repository);
     }
 
-    boolean refresh = facet.getIdeaAndroidProject() == null;
     // We create a ModuleResourceRepository even if resources.isEmpty(), because we may
     // dynamically add children to it later (in updateRoots)
     final ModuleResourceRepository repository = new ModuleResourceRepository(facet, resources);
 
     // If the model is not yet ready, we may get an incomplete set of resource
     // directories, so in that case update the repository when the model is available.
-    if (refresh) {
-      facet.addListener(new AndroidFacet.GradleProjectAvailableListener() {
-        @Override
-        public void gradleProjectAvailable(@NotNull IdeaAndroidProject project) {
-          facet.removeListener(this);
-          repository.updateRoots();
-        }
-      });
-    }
 
-    // Also refresh the project resources whenever the variant changes
-    BuildVariantView.getInstance(facet.getModule().getProject()).addListener(new BuildVariantSelectionChangeListener() {
+    folderManager.addListener(new ResourceFolderManager.ResourceFolderListener() {
       @Override
-      public void buildVariantSelected(@NotNull AndroidFacet facet) {
+      public void resourceFoldersChanged(@NotNull AndroidFacet facet, @NotNull List<VirtualFile> folders,
+                                         @NotNull Collection<VirtualFile> added, @NotNull Collection<VirtualFile> removed) {
         repository.updateRoots();
       }
     });
@@ -99,7 +84,7 @@ final class ModuleResourceRepository extends MultiResourceRepository {
   }
 
   private void updateRoots() {
-    updateRoots(myFacet.getAllResourceDirectories());
+    updateRoots(myFacet.getResourceFolderManager().getFolders());
   }
 
   @VisibleForTesting
