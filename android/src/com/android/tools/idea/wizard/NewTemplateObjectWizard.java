@@ -89,9 +89,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
             File moduleRoot = new File(rootDir.getCanonicalPath());
             myWizardState.myTemplate.render(projectRoot, moduleRoot, myWizardState.myParameters);
             // Open any new files specified by the template
-            for (String path : myWizardState.myTemplate.getFilesToOpen()) {
-              TemplateUtils.openEditor(myProject, path);
-            }
+            TemplateUtils.openEditors(myProject, myWizardState.myTemplate.getFilesToOpen(), true);
           }
         }
         catch (Exception e) {
