@@ -55,6 +55,7 @@ public class NewModuleWizardState extends TemplateWizardState {
     myHidden.add(ATTR_PROJECT_LOCATION);
     myHidden.add(ATTR_IS_LIBRARY_MODULE);
 
+    put(ATTR_IS_LAUNCHER, false);
     put(ATTR_CREATE_ICONS, true);
     put(ATTR_IS_NEW_PROJECT, true);
     put(ATTR_CREATE_ACTIVITY, true);
