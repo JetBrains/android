@@ -145,9 +145,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
           projectImporter.importProject(projectName, projectRoot, sdk, new GradleProjectImporter.Callback() {
             @Override
             public void projectImported(@NotNull Project project) {
-              for (String path : myWizardState.myTemplate.getFilesToOpen()) {
-                TemplateUtils.openEditor(project, path);
-              }
+              TemplateUtils.openEditors(project, myWizardState.myTemplate.getFilesToOpen(), true);
             }
           });
         }
