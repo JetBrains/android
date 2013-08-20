@@ -461,6 +461,10 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
 
     @Override
     public void actionPerformed(AnActionEvent e) {
+      Configuration configuration = getConfiguration();
+      if (configuration != null) {
+        configuration.updated(ConfigurationListener.MASK_RENDERING);
+      }
       myToolWindowManager.render();
     }
   }
