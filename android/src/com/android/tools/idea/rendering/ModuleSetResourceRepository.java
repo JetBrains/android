@@ -39,7 +39,7 @@ public final class ModuleSetResourceRepository extends MultiResourceRepository {
   private final AndroidFacet myFacet;
 
   private ModuleSetResourceRepository(@NotNull AndroidFacet facet, @NotNull List<? extends ProjectResources> delegates) {
-    super(facet.getModule().getName(), delegates);
+    super(facet.getModule().getName() + " with libraries", delegates);
     myFacet = facet;
   }
 

@@ -923,14 +923,26 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   }
 
   @Override
-  protected boolean execute(ThrowableRunnable<Exception> operation, boolean updateProperties) {
+  protected boolean execute(ThrowableRunnable<Exception> operation, final boolean updateProperties) {
     if (!ReadonlyStatusHandler.ensureFilesWritable(getProject(), myFile)) {
       return false;
     }
     try {
       myPsiChangeListener.stop();
       operation.run();
-      updateRenderer(updateProperties);
+      ApplicationManager.getApplication().invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          boolean active = myPsiChangeListener.isActive();
+          if (active) {
+            myPsiChangeListener.stop();
+          }
+          updateRenderer(updateProperties);
+          if (active) {
+            myPsiChangeListener.start();
+          }
+        }
+      });
       return true;
     }
     catch (Throwable e) {
