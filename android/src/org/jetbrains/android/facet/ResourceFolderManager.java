@@ -19,13 +19,20 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.ModificationTracker;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.util.containers.hash.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -208,6 +215,45 @@ public class ResourceFolderManager implements ModificationTracker {
 
   public synchronized void removeListener(@NotNull ResourceFolderListener listener) {
     myListeners.remove(listener);
+  }
+
+  /** Adds in any AAR library resource directories found in the library definitions for the given facet */
+  public static void addAarsFromModuleLibraries(@NotNull AndroidFacet facet, @NotNull Set<File> dirs) {
+    Module module = facet.getModule();
+    OrderEntry[] orderEntries = ModuleRootManager.getInstance(module).getOrderEntries();
+    for (OrderEntry orderEntry : orderEntries) {
+      if (orderEntry instanceof LibraryOrSdkOrderEntry) {
+        if (orderEntry.isValid() && orderEntry.getPresentableName().endsWith(DOT_AAR)) {
+          final LibraryOrSdkOrderEntry entry = (LibraryOrSdkOrderEntry)orderEntry;
+          final VirtualFile[] libClasses = entry.getRootFiles(OrderRootType.CLASSES);
+          File res = null;
+          for (VirtualFile root : libClasses) {
+            if (root.getName().equals(FD_RES)) {
+              res = VfsUtilCore.virtualToIoFile(root);
+              break;
+            }
+          }
+
+          if (res == null) {
+            for (VirtualFile root : libClasses) {
+              // Switch to file IO: The root may be inside a jar file system, where
+              // getParent() returns null (and to get the real parent is ugly;
+              // e.g. ((PersistentFSImpl.JarRoot)root).getParentLocalFile()).
+              // Besides, we need the java.io.File at the end of this anyway.
+              File file = new File(VfsUtilCore.virtualToIoFile(root).getParentFile(), FD_RES);
+              if (file.exists()) {
+                res = file;
+                break;
+              }
+            }
+          }
+
+          if (res != null) {
+            dirs.add(res);
+          }
+        }
+      }
+    }
   }
 
   /** Listeners for resource folder changes */

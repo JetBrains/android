@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -23,21 +24,29 @@ import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.resources.FolderTypeRelationship;
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.util.Pair;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.ModificationTracker;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TObjectIntHashMap;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -312,9 +321,12 @@ public abstract class ProjectResources extends AbstractResourceRepository implem
     @SuppressWarnings("deprecation")
     ResourceFile best = super.getMatchingFile(ResourceHelper.getResourceName(file), type, config);
     if (best != null) {
-      assert best instanceof PsiResourceFile;
-      PsiResourceFile prf = (PsiResourceFile)best;
-      return prf.getPsiFile().getVirtualFile();
+      if (best instanceof PsiResourceFile) {
+        PsiResourceFile prf = (PsiResourceFile)best;
+        return prf.getPsiFile().getVirtualFile();
+      }
+
+      return LocalFileSystem.getInstance().findFileByIoFile(best.getFile());
     }
 
     return null;
@@ -332,5 +344,64 @@ public abstract class ProjectResources extends AbstractResourceRepository implem
   @VisibleForTesting
   boolean isScanPending(@NonNull PsiFile psiFile) {
     return false;
+  }
+
+  /** Returns the {@link PsiFile} corresponding to the source of the given resource item, if possible */
+  @Nullable
+  public static PsiFile getItemPsiFile(@NonNull AndroidFacet facet, @NonNull ResourceItem item) {
+    if (item instanceof PsiResourceItem) {
+      PsiResourceItem psiResourceItem = (PsiResourceItem)item;
+      return psiResourceItem.getPsiFile();
+    }
+
+    ResourceFile source = item.getSource();
+    assert source != null : item.getName();
+
+    if (source instanceof PsiResourceFile) {
+      PsiResourceFile prf = (PsiResourceFile)source;
+      return prf.getPsiFile();
+    }
+
+    File file = source.getFile();
+    VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(file);
+    if (virtualFile != null) {
+      PsiManager psiManager = PsiManager.getInstance(facet.getModule().getProject());
+      return psiManager.findFile(virtualFile);
+    }
+
+    return null;
+  }
+
+  /**
+   * Returns the {@link XmlTag} corresponding to the given resource item. This is only
+   * defined for resource items in value files.
+   */
+  @Nullable
+  public static XmlTag getItemTag(@NonNull AndroidFacet facet, @NonNull ResourceItem item) {
+    if (item instanceof PsiResourceItem) {
+      PsiResourceItem psiResourceItem = (PsiResourceItem)item;
+      return psiResourceItem.getTag();
+    }
+
+    PsiFile psiFile = getItemPsiFile(facet, item);
+    if (psiFile instanceof XmlFile) {
+      String resourceName = item.getName();
+      XmlFile xmlFile = (XmlFile)psiFile;
+      ApplicationManager.getApplication().assertReadAccessAllowed();
+      XmlTag rootTag = xmlFile.getRootTag();
+      if (rootTag != null) {
+        XmlTag[] subTags = rootTag.getSubTags();
+        for (XmlTag tag : subTags) {
+          if (resourceName.equals(tag.getAttributeValue(SdkConstants.ATTR_NAME))) {
+            return tag;
+          }
+        }
+      }
+
+      // This method should only be called on value resource types
+      assert FolderTypeRelationship.getRelatedFolders(item.getType()).contains(ResourceFolderType.VALUES) : item.getType();
+    }
+
+    return null;
   }
 }
