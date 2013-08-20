@@ -30,6 +30,9 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.SdkConstants.DOT_AAR;
+import static com.android.SdkConstants.FD_RES;
+
 /**
  * An IDEA module's dependency on an artifact (e.g. a jar file or another IDEA module.)
  */
@@ -121,6 +124,15 @@ public abstract class Dependency {
         LibraryDependency dependency = new LibraryDependency(name, scope);
         dependency.addPath(LibraryDependency.PathType.BINARY, jar);
         dependencies.add(dependency);
+
+        // The model does not yet provide pointers to resources in AAR files, so
+        // manually look for them where they are known to be and add them manually
+        if (aar != null && aar.getName().endsWith(DOT_AAR)) {
+          File res = new File(aar, FD_RES);
+          if (res.exists()) {
+            dependency.addPath(LibraryDependency.PathType.BINARY, res);
+          }
+        }
       }
       else {
         // add the aar as dependency in case there is a module dependency that cannot be satisfied (e.g. the module is outside of the

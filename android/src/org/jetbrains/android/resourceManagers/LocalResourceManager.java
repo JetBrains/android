@@ -17,9 +17,12 @@
 package org.jetbrains.android.resourceManagers;
 
 import com.android.resources.ResourceType;
+import com.android.tools.idea.rendering.ModuleSetResourceRepository;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -39,12 +42,14 @@ import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.android.util.ResourceEntry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.*;
 
 /**
@@ -122,6 +127,21 @@ public class LocalResourceManager extends ResourceManager {
         return;
       }
     }
+
+    // Add in local AAR dependencies, if any
+    if (facet.isGradleProject()) {
+      Set<File> dirs = Sets.newHashSet();
+      ResourceFolderManager.addAarsFromModuleLibraries(facet, dirs);
+      if (!dirs.isEmpty()) {
+        for (File dir : dirs) {
+          VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(dir);
+          if (virtualFile != null) {
+            result.add(virtualFile);
+          }
+        }
+      }
+    }
+
     for (AndroidFacet depFacet : AndroidUtils.getAllAndroidDependencies(facet.getModule(), false)) {
       collectResourceDirs(depFacet, result, visited);
     }

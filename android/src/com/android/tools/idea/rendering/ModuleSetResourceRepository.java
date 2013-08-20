@@ -23,16 +23,19 @@ import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import static com.android.SdkConstants.DOT_AAR;
+import static org.jetbrains.android.facet.ResourceFolderManager.addAarsFromModuleLibraries;
 
 /** Resource repository for a module along with all its library dependencies */
 public final class ModuleSetResourceRepository extends MultiResourceRepository {
@@ -66,69 +69,22 @@ public final class ModuleSetResourceRepository extends MultiResourceRepository {
   }
 
   private static List<ProjectResources> computeRepositories(@NotNull final AndroidFacet facet) {
-    // List of module facets the given module depends on
-    List<AndroidFacet> facets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
-
-    // Android libraries (.aar libraries) the module, or any of the modules it depends on
-    List<AndroidLibrary> libraries = Lists.newArrayList();
-    addAndroidLibraries(libraries, facet);
-    for (AndroidFacet f : facets) {
-      addAndroidLibraries(libraries, f);
-    }
-
     ProjectResources main = get(facet.getModule(), false /*includeLibraries */);
 
-    if (facets.isEmpty() && libraries.isEmpty()) {
+    // List of module facets the given module depends on
+    List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
+    List<File> aarDirs = findAarLibraries(facet, dependentFacets);
+    if (dependentFacets.isEmpty() && aarDirs.isEmpty()) {
       return Collections.singletonList(main);
     }
 
-    List<ProjectResources> resources = Lists.newArrayListWithExpectedSize(facets.size());
+    List<ProjectResources> resources = Lists.newArrayListWithExpectedSize(dependentFacets.size() + aarDirs.size());
 
-    if (libraries != null) {
-      // Pull out the unique directories, in case multiple modules point to the same .aar folder
-      Set<File> files = Sets.newHashSetWithExpectedSize(facets.size());
-
-      Set<String> moduleNames = Sets.newHashSet();
-      for (AndroidFacet f : facets) {
-        moduleNames.add(f.getModule().getName());
-      }
-      for (AndroidLibrary library : libraries) {
-        // We should only add .aar dependencies if they aren't already provided as modules.
-        // For now, the way we associate them with each other is via the library name;
-        // in the future the model will provide this for us
-
-        String libraryName = null;
-        String projectName = library.getProject();
-        if (projectName != null && !projectName.isEmpty()) {
-          libraryName = projectName.substring(projectName.lastIndexOf(':') + 1);
-          // Since this library has project!=null, it exists in module form; don't
-          // add it here.
-          moduleNames.add(libraryName);
-          continue;
-        } else {
-          File folder = library.getFolder();
-          String name = folder.getName();
-          if (name.endsWith(DOT_AAR)) {
-            libraryName = name.substring(0, name.length() - DOT_AAR.length());
-          }
-        }
-        if (libraryName != null && !moduleNames.contains(libraryName)) {
-          File resFolder = library.getResFolder();
-          if (resFolder.exists()) {
-            files.add(resFolder);
-
-            // Don't add it again!
-            moduleNames.add(libraryName);
-          }
-        }
-      }
-
-      for (File resFolder : files) {
-        resources.add(FileProjectResourceRepository.get(resFolder));
-      }
+    for (File root : aarDirs) {
+      resources.add(FileProjectResourceRepository.get(root));
     }
 
-    for (AndroidFacet f : facets) {
+    for (AndroidFacet f : dependentFacets) {
       ProjectResources r = get(f.getModule(), false /*includeLibraries */);
       resources.add(r);
     }
@@ -138,7 +94,101 @@ public final class ModuleSetResourceRepository extends MultiResourceRepository {
     return resources;
   }
 
-  private static void addAndroidLibraries(List<AndroidLibrary> list, AndroidFacet facet) {
+  @NotNull
+  private static List<File> findAarLibraries(AndroidFacet facet, List<AndroidFacet> dependentFacets) {
+    if (facet.isGradleProject()) {
+      // Use the gradle model if available, but if not, fall back to using plain IntelliJ library dependencies
+      // which have been persisted since the most recent sync
+      if (facet.getIdeaAndroidProject() != null) {
+        List<AndroidLibrary> libraries = Lists.newArrayList();
+        addGradleLibraries(libraries, facet);
+        for (AndroidFacet f : dependentFacets) {
+          addGradleLibraries(libraries, f);
+        }
+        return findAarLibrariesFromGradle(dependentFacets, libraries);
+      } else {
+        return findAarLibrariesFromIntelliJ(facet, dependentFacets);
+      }
+    }
+
+    return Collections.emptyList();
+  }
+
+  /**
+   *  Reads IntelliJ library definitions ({@link LibraryOrSdkOrderEntry}) and if possible, finds a corresponding
+   * {@code .aar} resource library to include. This works before the Gradle project has been initialized.
+   */
+  private static List<File> findAarLibrariesFromIntelliJ(AndroidFacet facet, List<AndroidFacet> dependentFacets) {
+    // Find .aar libraries from old IntelliJ library definitions
+    Set<File> dirs = Sets.newHashSet();
+    addAarsFromModuleLibraries(facet, dirs);
+    for (AndroidFacet f : dependentFacets) {
+      addAarsFromModuleLibraries(f, dirs);
+    }
+    List<File> sorted = new ArrayList<File>(dirs);
+    // Sort to ensure consistent results between pre-model sync order of resources and
+    // the post-sync order. (Also see sort comment in the method below.)
+    Collections.sort(sorted);
+    return sorted;
+  }
+
+  /**
+   * Looks up the library dependencies from the Gradle tools model and returns the corresponding {@code .aar}
+   * resource directories.
+   */
+  @NotNull
+  private static List<File> findAarLibrariesFromGradle(List<AndroidFacet> dependentFacets, List<AndroidLibrary> libraries) {
+    // Pull out the unique directories, in case multiple modules point to the same .aar folder
+    Set<File> files = Sets.newHashSetWithExpectedSize(dependentFacets.size());
+
+    Set<String> moduleNames = Sets.newHashSet();
+    for (AndroidFacet f : dependentFacets) {
+      moduleNames.add(f.getModule().getName());
+    }
+    for (AndroidLibrary library : libraries) {
+      // We should only add .aar dependencies if they aren't already provided as modules.
+      // For now, the way we associate them with each other is via the library name;
+      // in the future the model will provide this for us
+      String libraryName = null;
+      String projectName = library.getProject();
+      if (projectName != null && !projectName.isEmpty()) {
+        libraryName = projectName.substring(projectName.lastIndexOf(':') + 1);
+        // Since this library has project!=null, it exists in module form; don't
+        // add it here.
+        moduleNames.add(libraryName);
+        continue;
+      } else {
+        File folder = library.getFolder();
+        String name = folder.getName();
+        if (name.endsWith(DOT_AAR)) {
+          libraryName = name.substring(0, name.length() - DOT_AAR.length());
+        }
+      }
+      if (libraryName != null && !moduleNames.contains(libraryName)) {
+        File resFolder = library.getResFolder();
+        if (resFolder.exists()) {
+          files.add(resFolder);
+
+          // Don't add it again!
+          moduleNames.add(libraryName);
+        }
+      }
+    }
+
+    List<File> dirs = Lists.newArrayList();
+    for (File resFolder : files) {
+      dirs.add(resFolder);
+    }
+
+    // Sort alphabetically to ensure that we keep a consistent order of these libraries;
+    // otherwise when we jump from libraries initialized from IntelliJ library binary paths
+    // to gradle project state, the order difference will cause the merged project resource
+    // maps to have to be recomputed
+    Collections.sort(dirs);
+    return dirs;
+  }
+
+  private static void addGradleLibraries(List<AndroidLibrary> list, AndroidFacet facet) {
     IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
     if (gradleProject != null) {
       list.addAll(gradleProject.getSelectedVariant().getMainArtifactInfo().getDependencies().getLibraries());
