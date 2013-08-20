@@ -21,12 +21,18 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.PkgProps;
 import com.android.utils.SparseArray;
+import com.intellij.ide.impl.ProjectPaneSelectInTarget;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -180,7 +186,6 @@ public class TemplateUtils {
                          target.getVersion().getApiString());
   }
 
-
   /**
   * Returns a list of known API names
   *
@@ -274,21 +279,73 @@ public class TemplateUtils {
   }
 
   /**
-   * Opens the specified file in the editor
+   * Opens the specified files in the editor
+   *
    * @param project The project which contains the given file.
-   * @param path The path to the file on disk.
-   * @return
+   * @param paths   The paths to the files on disk.
+   * @param select  If true, select the last (topmost) file in the project view
+   * @return true if all files were opened
    */
-  public static boolean openEditor(@NotNull Project project, @NotNull String path) {
-    File file = new File(path);
-    if (file.exists()) {
-      VirtualFile vFile = VfsUtil.findFileByIoFile(file, true /** refreshIfNeeded */);
-      if (vFile != null) {
-        OpenFileDescriptor descriptor = new OpenFileDescriptor(project, vFile);
-        return !FileEditorManager.getInstance(project).openEditor(descriptor, true).isEmpty();
+  public static boolean openEditors(@NotNull Project project, @NotNull List<String> paths, boolean select) {
+    if (paths.size() > 0) {
+      boolean result = true;
+      VirtualFile last = null;
+      for (String path : paths) {
+        File file = new File(path);
+        if (file.exists()) {
+          VirtualFile vFile = VfsUtil.findFileByIoFile(file, true /** refreshIfNeeded */);
+          if (vFile != null) {
+            result &= openEditor(project, vFile);
+            last = vFile;
+          }
+          else {
+            result = false;
+          }
+        }
       }
+
+      if (select && last != null) {
+        selectEditor(project, last);
+      }
+
+      return result;
     }
 
     return false;
+  }
+
+  /**
+   * Opens the specified file in the editor
+   *
+   * @param project The project which contains the given file.
+   * @param vFile   The file to open
+   * @return
+   */
+  public static boolean openEditor(@NotNull Project project, @NotNull VirtualFile vFile) {
+    OpenFileDescriptor descriptor;
+    if (vFile.getFileType() == StdFileTypes.XML) {
+      // For XML files, ensure that we open the text editor rather than the default
+      // editor for now, until the layout editor is fully done
+      descriptor = new OpenFileDescriptor(project, vFile, 0);
+    } else {
+      descriptor = new OpenFileDescriptor(project, vFile);
+    }
+    return !FileEditorManager.getInstance(project).openEditor(descriptor, true).isEmpty();
+  }
+
+  /**
+   * Selects the specified file in the project view.
+   * <b>Note:</b> Must be called with read access.
+   *
+   * @param project the project
+   * @param file    the file to select
+   */
+  public static void selectEditor(Project project, VirtualFile file) {
+    ApplicationManager.getApplication().assertReadAccessAllowed();
+    PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+    ProjectPaneSelectInTarget selectAction = new ProjectPaneSelectInTarget(project);
+    if (selectAction.canSelect(psiFile)) {
+      selectAction.select(psiFile, false);
+    }
   }
 }
