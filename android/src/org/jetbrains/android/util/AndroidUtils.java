@@ -150,15 +150,17 @@ public class AndroidUtils {
   public static <T extends DomElement> T loadDomElement(@NotNull final Module module,
                                                         @NotNull final VirtualFile file,
                                                         @NotNull final Class<T> aClass) {
+    return loadDomElement(module.getProject(), file, aClass);
+  }
+
+  @Nullable
+  public static <T extends DomElement> T loadDomElement(@NotNull final Project project,
+                                                        @NotNull final VirtualFile file,
+                                                        @NotNull final Class<T> aClass) {
     return ApplicationManager.getApplication().runReadAction(new Computable<T>() {
       @Override
       @Nullable
       public T compute() {
-        if (module.isDisposed()) {
-          return null;
-        }
-
-        Project project = module.getProject();
         if (project.isDisposed()) return null;
         PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
         if (psiFile == null || !(psiFile instanceof XmlFile)) {

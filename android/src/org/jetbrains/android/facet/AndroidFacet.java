@@ -855,7 +855,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     if (mySystemResourceManager == null) {
       AndroidPlatform platform = getConfiguration().getAndroidPlatform();
       if (platform != null) {
-        mySystemResourceManager = new SystemResourceManager(this, platform);
+        mySystemResourceManager = new SystemResourceManager(this.getModule().getProject(), platform, true);
       }
     }
     return mySystemResourceManager;

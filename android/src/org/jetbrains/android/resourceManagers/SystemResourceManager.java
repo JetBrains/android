@@ -16,6 +16,7 @@
 package org.jetbrains.android.resourceManagers;
 
 import com.android.sdklib.IAndroidTarget;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xml.ConvertContext;
@@ -33,15 +34,17 @@ import java.util.List;
  */
 public class SystemResourceManager extends ResourceManager {
   private final AndroidPlatform myPlatform;
+  private final boolean myPublicOnly;
 
-  public SystemResourceManager(@NotNull AndroidFacet facet, @NotNull AndroidPlatform androidPlatform) {
-    super(facet);
+  public SystemResourceManager(@NotNull Project project, @NotNull AndroidPlatform androidPlatform, boolean publicOnly) {
+    super(project);
     myPlatform = androidPlatform;
+    myPublicOnly = publicOnly;
   }
 
   @Override
   protected boolean isResourcePublic(@NotNull String type, @NotNull String name) {
-    return myPlatform.getSdkData().getTargetData(myPlatform.getTarget()).
+    return !myPublicOnly || myPlatform.getSdkData().getTargetData(myPlatform.getTarget()).
       isResourcePublic(type, name);
   }
 
@@ -80,7 +83,6 @@ public class SystemResourceManager extends ResourceManager {
   @Override
   @Nullable
   public synchronized AttributeDefinitions getAttributeDefinitions() {
-    return myPlatform.getSdkData().getTargetData(myPlatform.getTarget()).
-      getAttrDefs(myModule.getProject());
+    return myPlatform.getSdkData().getTargetData(myPlatform.getTarget()).getAttrDefs(myProject);
   }
 }

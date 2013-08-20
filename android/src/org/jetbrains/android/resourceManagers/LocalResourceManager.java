@@ -52,9 +52,15 @@ import java.util.*;
  */
 public class LocalResourceManager extends ResourceManager {
   private AttributeDefinitions myAttrDefs;
+  protected final AndroidFacet myFacet;
 
   public LocalResourceManager(@NotNull AndroidFacet facet) {
-    super(facet);
+    super(facet.getModule().getProject());
+    myFacet = facet;
+  }
+
+  public AndroidFacet getFacet() {
+    return myFacet;
   }
 
   @NotNull
@@ -137,7 +143,7 @@ public class LocalResourceManager extends ResourceManager {
   public Set<String> getValueResourceTypes() {
     final Map<VirtualFile, Set<String>> file2Types = new HashMap<VirtualFile, Set<String>>();
     final FileBasedIndex index = FileBasedIndex.getInstance();
-    final GlobalSearchScope scope = GlobalSearchScope.projectScope(myModule.getProject());
+    final GlobalSearchScope scope = GlobalSearchScope.projectScope(myProject);
 
     for (ResourceType resourceType : AndroidResourceUtil.ALL_VALUE_RESOURCE_TYPES) {
       final ResourceEntry typeMarkerEntry = AndroidValueResourcesIndex.createTypeMarkerKey(resourceType.getName());
