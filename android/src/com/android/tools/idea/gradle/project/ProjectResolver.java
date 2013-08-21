@@ -68,6 +68,11 @@ class ProjectResolver {
   @NonNls private static final String CLASSES_TASK_NAME = "classes";
   @NonNls private static final String JAR_TASK_NAME = "jar";
 
+  @NonNls private static final String UNSUPPORTED_MODEL_VERSION_ERROR = String.format(
+    "Project is using an old version of the Android Gradle plug-in. The minimum supported version is %1$s.\n\n" +
+    "Please update the version of the dependency 'com.android.tools.build:gradle' in your build.gradle files.",
+    GradleModelVersionCheck.MINIMUM_SUPPORTED_VERSION.toString());
+
   @NotNull private final GradleExecutionHelper myHelper;
   @NotNull private final ProjectImportErrorHandler myErrorHandler;
 
@@ -130,7 +135,7 @@ class ProjectResolver {
       if (isAndroidProject(module.getGradleProject())) {
         AndroidProject androidProject = getAndroidProject(id, moduleDirPath, gradleBuildFile, listener, extraJvmArgs, settings);
         if (androidProject == null || !GradleModelVersionCheck.isSupportedVersion(androidProject)) {
-          throw new IllegalStateException(GradleModelConstants.UNSUPPORTED_MODEL_VERSION_ERROR);
+          throw new IllegalStateException(UNSUPPORTED_MODEL_VERSION_ERROR);
         }
         createModuleInfo(module, androidProject, projectInfo, moduleDirPath, gradleProject);
         if (first == null) {
