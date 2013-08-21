@@ -20,12 +20,19 @@ import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.PackageEntry;
 import com.intellij.psi.codeStyle.PackageEntryTable;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
+import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
 
 public class AndroidCodeStyleSettingsModifier {
   public static void modify(CodeStyleSettings settings) {
     // Use Android XML formatter by default
     AndroidXmlCodeStyleSettings.getInstance(settings).USE_CUSTOM_SETTINGS = true;
 
+    // XML:
+    // Copy Android code style
+    AndroidXmlPredefinedCodeStyle xmlStyle = new AndroidXmlPredefinedCodeStyle();
+    xmlStyle.apply(settings);
+
+    // Java:
     // Set Import order
     settings.IMPORT_LAYOUT_TABLE.copyFrom(getAndroidImportOrder());
 
