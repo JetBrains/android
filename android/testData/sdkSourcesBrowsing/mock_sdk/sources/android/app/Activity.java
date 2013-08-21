@@ -12,6 +12,10 @@ public class Activity {
 
     public void onDestroy() {
         f(new MyActivityThread());
+
+      int[] a = com.android.internal.R.styleable.Fragment;
+      int n1 = com.android.internal.R.color.my_white;
+      int n2 = com.android.internal.R.color.<error>unknown_resource</error>;
     }
 
     private void f(ActivityThread t) {
