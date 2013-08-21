@@ -26,6 +26,8 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.net.UnknownHostException;
+
 /**
  * Provides better error messages for project import failures.
  */
@@ -39,6 +41,7 @@ public class ProjectImportErrorHandler {
     "Please install the Android Support Repository from the Android SDK Manager.";
   public static final String UNEXPECTED_ERROR_FILE_BUG_ERROR_MSG =
     "This is an unexpected error. Please file a bug containing the idea.log file.";
+  public static final String SET_UP_PROXY_SETTINGS_ERROR_MSG = "Please ensure the host name or proxy settings (if applicable) are correct.";
 
   @NotNull
   ExternalSystemException getUserFriendlyError(@NotNull Throwable error, @NotNull String projectPath, @Nullable String buildFilePath) {
@@ -67,6 +70,12 @@ public class ProjectImportErrorHandler {
 
     if (rootCause instanceof ClassNotFoundException) {
       String msg = String.format("Unable to load class '%1$s'.", rootCause.getMessage()) + "\n\n" + UNEXPECTED_ERROR_FILE_BUG_ERROR_MSG;
+      // Location of build.gradle is useless for this error. Omitting it.
+      return createUserFriendlyError(msg, null);
+    }
+
+    if (rootCause instanceof UnknownHostException) {
+      String msg = String.format("Unknown host '%1$s'.", rootCause.getMessage()) + "\n\n" + SET_UP_PROXY_SETTINGS_ERROR_MSG;
       // Location of build.gradle is useless for this error. Omitting it.
       return createUserFriendlyError(msg, null);
     }
