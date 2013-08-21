@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.navigation;
 
 import com.android.navigation.*;
 import com.android.tools.idea.rendering.RenderedView;
-import com.android.tools.idea.rendering.RenderedViewHierarchy;
 import com.android.tools.idea.rendering.ShadowPainter;
 import com.intellij.ide.dnd.DnDEvent;
 import com.intellij.ide.dnd.DnDManager;
@@ -49,7 +48,6 @@ public class NavigationEditorPanel2 extends JComponent {
   private static final Color SNAP_GRID_LINE_COLOR_MINOR = Gray.get(180);
   private static final Color SNAP_GRID_LINE_COLOR_MIDDLE = Gray.get(170);
   private static final Color SNAP_GRID_LINE_COLOR_MAJOR = Gray.get(160);
-  private static final Color SELECTION_COLOR = Color.BLUE;
 
   // Snap grid
   private static final int MINOR_SNAP = 4;
@@ -67,7 +65,6 @@ public class NavigationEditorPanel2 extends JComponent {
   private static final Point MULTIPLE_DROP_STRIDE = point(MAJOR_SNAP_GRID);
   private static final String ID_PREFIX = "@+id/";
   private static final Color TRANSITION_LINE_COLOR = new Color(80, 80, 255);
-  private static final int SELECTION_RECTANGLE_LINE_WIDTH = 4;
 
   private final NavigationModel myNavigationModel;
   private final Project myProject;
@@ -75,7 +72,7 @@ public class NavigationEditorPanel2 extends JComponent {
   private boolean myTransitionEditorCacheIsValid;
   private VirtualFileSystem myFileSystem;
   private String myPath;
-  @NotNull private Selection mySelection = Selection.NULL;
+  @NotNull private Selections.Selection mySelection = Selections.NULL;
   private final Assoc<State, AndroidRootComponent> myStateComponentAssociation =
     new Assoc<State, AndroidRootComponent>();
   private final Assoc<Transition, Component> myTransitionEditorAssociation =
@@ -155,7 +152,7 @@ public class NavigationEditorPanel2 extends JComponent {
     return myLocationToRenderedView;
   }
 
-  private static void paintLeaf(Graphics g,
+  public static void paintLeaf(Graphics g,
                                 @Nullable RenderedView leaf,
                                 Color color,
                                 AndroidRootComponent component) {
@@ -165,215 +162,6 @@ public class NavigationEditorPanel2 extends JComponent {
       Rectangle r = component.getBounds(leaf);
       g.drawRect(r.x, r.y, r.width, r.height);
       g.setColor(oldColor);
-    }
-  }
-
-  private abstract static class Selection {
-
-    private static Selection NULL = new EmptySelection();
-
-    protected abstract void moveTo(Point location);
-
-    protected abstract Selection finaliseSelectionLocation(Point location);
-
-    protected abstract void paint(Graphics g, boolean hasFocus);
-
-    protected abstract void paintOver(Graphics g);
-
-    protected abstract void remove();
-  }
-
-  private Selection create(Point mouseDownLocation, boolean shiftDown) {
-    Component component = getComponentAt(mouseDownLocation);
-    if (component == this) {
-      return Selection.NULL;
-    }
-    if (component instanceof AndroidRootComponent) {
-      AndroidRootComponent androidRootComponent = (AndroidRootComponent)component;
-      if (!shiftDown) {
-        return new AndroidRootComponentSelection(androidRootComponent, mouseDownLocation);
-      }
-      else {
-        return new RelationSelection(androidRootComponent, mouseDownLocation);
-      }
-    }
-    else {
-      return new ComponentSelection<Component>(component);
-    }
-  }
-
-  private static class EmptySelection extends Selection {
-    @Override
-    protected void moveTo(Point location) {
-    }
-
-    @Override
-    protected void paint(Graphics g, boolean hasFocus) {
-    }
-
-    @Override
-    protected void paintOver(Graphics g) {
-    }
-
-    @Override
-    protected Selection finaliseSelectionLocation(Point location) {
-      return this;
-    }
-
-    @Override
-    protected void remove() {
-    }
-  }
-
-  class ComponentSelection<T extends Component> extends Selection {
-    protected final T myComponent;
-    protected final Transition myTransition;
-
-    private ComponentSelection(T component) {
-      myComponent = component;
-      myTransition = getTransitionEditorAssociation().valueToKey.get(myComponent);
-    }
-
-    @Override
-    protected void moveTo(Point location) {
-    }
-
-    @Override
-    protected void paint(Graphics g, boolean hasFocus) {
-      if (hasFocus) {
-        Graphics2D g2D = (Graphics2D)g.create();
-        g2D.setStroke(new BasicStroke(SELECTION_RECTANGLE_LINE_WIDTH));
-        g2D.setColor(SELECTION_COLOR);
-        Rectangle selection = myComponent.getBounds();
-        int l = SELECTION_RECTANGLE_LINE_WIDTH/2;
-        selection.grow(l, l);
-        g2D.drawRect(selection.x, selection.y, selection.width, selection.height);
-      }
-    }
-
-    @Override
-    protected void paintOver(Graphics g) {
-    }
-
-    @Override
-    protected Selection finaliseSelectionLocation(Point location) {
-      return this;
-    }
-
-    @Override
-    protected void remove() {
-      myNavigationModel.remove(myTransition);
-      setSelection(Selection.NULL);
-    }
-  }
-
-  private class AndroidRootComponentSelection extends ComponentSelection<AndroidRootComponent> {
-    protected final Point myMouseDownLocation;
-    protected final Point myOrigComponentLocation;
-    private State myState;
-
-    private AndroidRootComponentSelection(AndroidRootComponent component, Point mouseDownLocation) {
-      super(component);
-      myMouseDownLocation = mouseDownLocation;
-      myOrigComponentLocation = myComponent.getLocation();
-      myState = getStateComponentAssociation().valueToKey.get(component);
-    }
-
-    private void moveTo(Point location, boolean snap) {
-      Point newLocation = Utilities.add(diff(location, myMouseDownLocation),
-                                        myOrigComponentLocation);
-      if (snap) {
-        newLocation = snap(newLocation);
-      }
-      myComponent.setLocation(newLocation);
-      myState.setLocation(Utilities.toNavPoint(newLocation));
-      myNavigationModel.getListeners().notify(NavigationModel.Event.update(State.class));
-    }
-
-    @Override
-    protected void moveTo(Point location) {
-      moveTo(location, false);
-    }
-
-    @Override
-    protected void remove() {
-      myNavigationModel.removeState(myState);
-      setSelection(Selection.NULL);
-    }
-
-    @Override
-    protected Selection finaliseSelectionLocation(Point location) {
-      moveTo(location, true);
-      return this;
-    }
-  }
-
-  private class RelationSelection extends Selection {
-    @NotNull private final AndroidRootComponent myComponent;
-    @NotNull private Point myLocation;
-    @Nullable private final RenderedView myLeaf;
-    @Nullable private final RenderedView myNamedLeaf;
-
-    private RelationSelection(@NotNull AndroidRootComponent component,
-                              @NotNull Point mouseDownLocation) {
-      myComponent = component;
-      myLocation = mouseDownLocation;
-      Point p = component.convertPointFromViewToModel(mouseDownLocation);
-      RenderedViewHierarchy hierarchy = component.getRenderResult().getHierarchy();
-      myLeaf = hierarchy != null ? hierarchy.findLeafAt(p.x, p.y) : null;
-      myNamedLeaf = getNamedParent(myLeaf);
-    }
-
-    @Nullable
-    private RenderedView getNamedParent(@Nullable RenderedView view) {
-      while (view != null && getViewId(view) == null) {
-        view = view.getParent();
-      }
-      return view;
-    }
-
-    @Override
-    protected void moveTo(Point location) {
-      myLocation = location;
-    }
-
-    @Override
-    protected void paint(Graphics g, boolean hasFocus) {
-    }
-
-    @Override
-    protected void paintOver(Graphics g) {
-      Graphics2D transitionGraphics = createTransitionGraphics(g);
-      paintLeaf(transitionGraphics, myLeaf, Color.RED, myComponent);
-      paintLeaf(transitionGraphics, myNamedLeaf, Color.BLUE, myComponent);
-      Point start = Utilities.centre(myComponent.getBounds(myNamedLeaf));
-      Utilities.drawArrow(transitionGraphics, start.x, start.y, myLocation.x, myLocation.y);
-    }
-
-    @Override
-    protected Selection finaliseSelectionLocation(Point mouseUpLocation) {
-      Component componentAt = getComponentAt(mouseUpLocation);
-      if (componentAt instanceof AndroidRootComponent) {
-        if (myComponent != componentAt) {
-          Map<AndroidRootComponent, State> m = getStateComponentAssociation().valueToKey;
-          Transition transition = Transition.of("", m.get(myComponent), m.get(componentAt));
-          transition.getSource().setViewName(getViewId(myNamedLeaf));
-          {
-            AndroidRootComponent destinationRoot = (AndroidRootComponent)componentAt;
-            Point p = destinationRoot.convertPointFromViewToModel(mouseUpLocation);
-            RenderedViewHierarchy hierarchy = destinationRoot.getRenderResult().getHierarchy();
-            RenderedView endLeaf = hierarchy != null ? hierarchy.findLeafAt(p.x, p.y) : null;
-            RenderedView namedEndLeaf = getNamedParent(endLeaf);
-            transition.getDestination().setViewName(getViewId(namedEndLeaf));
-          }
-          myNavigationModel.add(transition);
-        }
-      }
-      return Selection.NULL;
-    }
-
-    @Override
-    protected void remove() {
     }
   }
 
@@ -426,6 +214,7 @@ public class NavigationEditorPanel2 extends JComponent {
         @Override
         public void actionPerformed(ActionEvent e) {
           mySelection.remove();
+          setSelection(Selections.NULL);
         }
       };
       registerKeyBinding(KeyEvent.VK_DELETE, "delete", remove);
@@ -451,7 +240,7 @@ public class NavigationEditorPanel2 extends JComponent {
     }
   }
 
-  private void setSelection(@NotNull Selection selection) {
+  private void setSelection(@NotNull Selections.Selection selection) {
     mySelection = selection;
     repaint();
   }
@@ -463,7 +252,7 @@ public class NavigationEditorPanel2 extends JComponent {
   }
 
   private void finaliseSelectionLocation(Point location) {
-    mySelection = mySelection.finaliseSelectionLocation(location);
+    mySelection = mySelection.finaliseSelectionLocation(location, getComponentAt(location), getStateComponentAssociation().valueToKey);
     revalidate();
     repaint();
   }
@@ -530,7 +319,7 @@ public class NavigationEditorPanel2 extends JComponent {
     mySelection.paint(g, hasFocus());
   }
 
-  private static Graphics2D createTransitionGraphics(Graphics g) {
+  public static Graphics2D createTransitionGraphics(Graphics g) {
     Graphics2D g2D = (Graphics2D)g.create();
     g2D.setColor(TRANSITION_LINE_COLOR);
     g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -736,7 +525,7 @@ public class NavigationEditorPanel2 extends JComponent {
     return ((int)Math.round((double)i / d)) * d;
   }
 
-  private static Point snap(Point p) {
+  public static Point snap(Point p) {
     return new Point(snap(p.x, MIDDLE_SNAP_GRID.width), snap(p.y, MIDDLE_SNAP_GRID.height));
   }
 
@@ -746,7 +535,9 @@ public class NavigationEditorPanel2 extends JComponent {
       Point location = e.getPoint();
       boolean modified =
         (e.isShiftDown() || e.isControlDown() || e.isMetaDown()) && !e.isPopupTrigger();
-      setSelection(create(location, modified));
+      setSelection(Selections.create(location, modified, myNavigationModel, getComponentAt(location),
+                                     getTransitionEditorAssociation().valueToKey.get(getComponentAt(location)),
+                                     getStateComponentAssociation().valueToKey));
       requestFocus();
     }
 
