@@ -279,7 +279,7 @@ public class RenderService {
         }
         candidate = AndroidUtils.getIntAttrValue(usesSdkTag, ATTR_TARGET_SDK_VERSION);
         if (candidate >= 0) {
-          minSdkVersion = candidate;
+          targetSdkVersion = candidate;
         }
       }
     }
