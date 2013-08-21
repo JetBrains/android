@@ -122,8 +122,8 @@ public class AndroidPackagingBuilder extends AndroidTargetBuilder<BuildRootDescr
       return true;
     }
 
-    final String[] sourceRoots = AndroidJpsUtil.toPaths(AndroidJpsUtil.getSourceRootsForModuleAndDependencies(module));
-    Arrays.sort(sourceRoots);
+    final String[] resourceRoots = AndroidJpsUtil.toPaths(AndroidJpsUtil.getJavaOutputRootsForModuleAndDependencies(module));
+    Arrays.sort(resourceRoots);
 
     final File moduleOutputDir = ProjectPaths.getModuleOutputDir(module, false);
     if (moduleOutputDir == null) {
@@ -182,7 +182,7 @@ public class AndroidPackagingBuilder extends AndroidTargetBuilder<BuildRootDescr
       AndroidJpsBundle.message("android.jps.progress.packaging", AndroidJpsUtil.getApkName(module))));
 
     final Map<AndroidCompilerMessageKind, List<String>> messages = AndroidApkBuilder
-      .execute(resPackagePath, classesDexFilePath, sourceRoots, externalJars,
+      .execute(resPackagePath, classesDexFilePath, resourceRoots, externalJars,
                nativeLibDirs, additionalNativeLibs, outputPath, release, sdkPath, customKeyStorePath,
                new MyExcludedSourcesFilter(context.getProjectDescriptor().getProject()));
 
@@ -191,11 +191,11 @@ public class AndroidPackagingBuilder extends AndroidTargetBuilder<BuildRootDescr
       srcFiles.add(resPackagePath);
       srcFiles.add(classesDexFilePath);
 
-      for (String sourceRoot : sourceRoots) {
-        FileUtil.processFilesRecursively(new File(sourceRoot), new Processor<File>() {
+      for (String resourceRoot : resourceRoots) {
+        FileUtil.processFilesRecursively(new File(resourceRoot), new Processor<File>() {
           @Override
           public boolean process(File file) {
-            if (file.isFile()) {
+            if (file.isFile() && AndroidApkBuilder.checkFileForPackaging(file)) {
               srcFiles.add(file.getPath());
             }
             return true;

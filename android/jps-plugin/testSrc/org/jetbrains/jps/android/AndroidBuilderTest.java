@@ -23,6 +23,7 @@ import org.jetbrains.jps.builders.JpsBuildTestCase;
 import org.jetbrains.jps.incremental.java.JavaBuilder;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.maven.model.JpsMavenExtensionService;
+import org.jetbrains.jps.maven.model.impl.*;
 import org.jetbrains.jps.model.JpsElement;
 import org.jetbrains.jps.model.JpsSimpleElement;
 import org.jetbrains.jps.model.impl.JpsSimpleElementImpl;
@@ -793,14 +794,9 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     assertCompiled(JavaBuilder.BUILDER_NAME,
                    "targets/java-production/module/android/copied_sources/com/example/simple/MyGeneratedClass.java");
     checkMakeUpToDate(executor);
-
     change(getProjectPath("gen/com/example/simple/R.java"));
 
-    makeAll().assertSuccessful();
-    checkBuildLog(executor, "expected_log_2");
-    assertCompiled(JavaBuilder.BUILDER_NAME);
     checkMakeUpToDate(executor);
-
     change(getProjectPath("gen/com/example/simple/MyGeneratedClass.java"));
 
     makeAll().assertSuccessful();
@@ -914,6 +910,11 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     final JpsModule libModule1 = addAndroidModule("lib1", new String[]{"src"}, "lib1", "lib1", androidSdk).getFirst();
 
     JpsMavenExtensionService.getInstance().getOrCreateExtension(appModule);
+    final MavenProjectConfiguration mavenConf = ((JpsMavenExtensionServiceImpl)JpsMavenExtensionService.
+      getInstance()).getMavenProjectConfiguration(myDataStorageRoot);
+    addMavenResourcesConf(mavenConf, "app");
+    addMavenResourcesConf(mavenConf, "lib");
+    addMavenResourcesConf(mavenConf, "lib1");
 
     final JpsAndroidModuleExtension libExtension = AndroidJpsUtil.getExtension(libModule);
     assert libExtension != null;
@@ -946,6 +947,10 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     checkMakeUpToDate(executor);
 
     JpsMavenExtensionService.getInstance().getOrCreateExtension(libModule);
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_1");
+    checkMakeUpToDate(executor);
+
     final JpsModule nonMavenAppModule = addAndroidModule("non_maven_app", new String[]{"src"},
                                                          "app", "non_maven_app", androidSdk).getFirst();
     nonMavenAppModule.getDependenciesList().addModuleDependency(libModule);
@@ -958,7 +963,18 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     libModule1.getDependenciesList().addModuleDependency(libModule2);
 
     makeAll().assertSuccessful();
-    checkBuildLog(executor, "expected_log_1");
+    checkBuildLog(executor, "expected_log_2");
+  }
+
+  private void addMavenResourcesConf(MavenProjectConfiguration mavenConf, String appNames) {
+    final MavenModuleResourceConfiguration appMavenConf = new MavenModuleResourceConfiguration();
+    appMavenConf.id = new MavenIdBean("com.text", appNames, "1");
+    appMavenConf.directory = appNames;
+    appMavenConf.delimitersPattern = "";
+    final ResourceRootConfiguration appResConf = new ResourceRootConfiguration();
+    appResConf.directory = getProjectPath(appNames + "/src");
+    appMavenConf.resources.add(appResConf);
+    mavenConf.moduleConfigurations.put(appNames, appMavenConf);
   }
 
   public void testProGuardWithJar() throws Exception {
@@ -1257,7 +1273,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
   }
 
   @SuppressWarnings("SSBasedInspection")
-  private static class MyExecutor extends AndroidBuildTestingCommandExecutor {
+  public static class MyExecutor extends AndroidBuildTestingCommandExecutor {
 
     private String myRClassContent = "";
 

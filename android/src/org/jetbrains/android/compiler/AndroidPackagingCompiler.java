@@ -468,8 +468,8 @@ public class AndroidPackagingCompiler implements PackagingCompiler {
 
       final HashSet<File> resourcesFromSourceRoot = new HashSet<File>();
       for (VirtualFile sourceRoot : sourceRoots) {
-        AndroidApkBuilder.collectStandardSourceFolderResources(new File(sourceRoot.getPath()), resourcesFromSourceRoot,
-                                                               new ExcludedSourcesFilter(project));
+        AndroidApkBuilder.collectStandardJavaResources(new File(sourceRoot.getPath()), resourcesFromSourceRoot,
+                                                       new ExcludedSourcesFilter(project));
       }
       for (File resource : resourcesFromSourceRoot) {
         myResourceTimestamps.put(FileUtil.toSystemIndependentName(resource.getPath()), resource.lastModified());
