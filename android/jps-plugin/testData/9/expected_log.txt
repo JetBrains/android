@@ -81,7 +81,7 @@ apk_builder
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/app2/app2.apk.res
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/app2/classes.dex
 [
-$PROJECT_DIR$/root/app2/src
+$PROJECT_DIR$/out/production/app2
 ]
 []
 []
@@ -149,7 +149,7 @@ apk_builder
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/app1/app1.apk.res
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/app1/classes.dex
 [
-$PROJECT_DIR$/root/app1/src
+$PROJECT_DIR$/out/production/app1
 ]
 []
 []

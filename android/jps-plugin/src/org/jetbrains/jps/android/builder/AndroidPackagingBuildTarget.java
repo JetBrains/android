@@ -1,6 +1,7 @@
 package org.jetbrains.jps.android.builder;
 
 import com.intellij.util.ArrayUtil;
+import org.jetbrains.android.compiler.tools.AndroidApkBuilder;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.ProjectPaths;
@@ -18,6 +19,7 @@ import org.jetbrains.jps.model.JpsModel;
 import org.jetbrains.jps.model.module.JpsModule;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -72,8 +74,8 @@ public class AndroidPackagingBuildTarget extends AndroidBuildTarget {
       }
     }
 
-    for (File sourceRoot : AndroidJpsUtil.getSourceRootsForModuleAndDependencies(myModule)) {
-      roots.add(new BuildRootDescriptorImpl(this, sourceRoot));
+    for (File resourceRoot : AndroidJpsUtil.getJavaOutputRootsForModuleAndDependencies(myModule)) {
+      roots.add(new MyResourceRootDescriptor(this, resourceRoot));
     }
     final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(myModule);
     assert extension != null;
@@ -122,6 +124,23 @@ public class AndroidPackagingBuildTarget extends AndroidBuildTarget {
     @Override
     public AndroidPackagingBuildTarget createBuildTarget(@NotNull JpsAndroidModuleExtension extension) {
       return new AndroidPackagingBuildTarget(extension.getModule());
+    }
+  }
+
+  private static class MyResourceRootDescriptor extends BuildRootDescriptorImpl {
+    private MyResourceRootDescriptor(BuildTarget target, File root) {
+      super(target, root);
+    }
+
+    @NotNull
+    @Override
+    public FileFilter createFileFilter() {
+      return new FileFilter() {
+        @Override
+        public boolean accept(File file) {
+          return AndroidApkBuilder.checkFileForPackaging(file);
+        }
+      };
     }
   }
 }
