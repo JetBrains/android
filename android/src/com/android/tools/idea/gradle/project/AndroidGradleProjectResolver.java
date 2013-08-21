@@ -47,6 +47,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.net.URL;
@@ -155,7 +156,8 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
 
   @NotNull
   private static List<String> getExtraJvmArgs(@NotNull String projectPath) {
-    if (ExternalSystemApiUtil.isInProcessMode() && !AndroidGradleSettings.isAndroidHomeKnown(new File(projectPath))) {
+    if (ExternalSystemApiUtil.isInProcessMode(GradleConstants.SYSTEM_ID)
+        && !AndroidGradleSettings.isAndroidHomeKnown(new File(projectPath))) {
       String androidHome = getAndroidSdkPathFromIde();
       if (androidHome != null) {
         String androidHomeJvmArg = AndroidGradleSettings.createAndroidHomeJvmArg(androidHome);

@@ -8,6 +8,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ReferencesSearch;
@@ -223,9 +224,14 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
         ? AndroidBundle.message("android.inspections.on.click.missing.incorrect.signature", methodName, activityName)
         : AndroidBundle.message("android.inspections.on.click.missing.problem", methodName, activityName);
 
+      final LocalQuickFix[] fixes =
+        StringUtil.isJavaIdentifier(methodName)
+        ? new LocalQuickFix[]{new MyQuickFix(methodName, reference.getConverter(), activity)}
+        : LocalQuickFix.EMPTY_ARRAY;
+
       myResult.add(myInspectionManager.createProblemDescriptor(
-        reference.getElement(), reference.getRangeInElement(), message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING, myOnTheFly,
-        new MyQuickFix(methodName, reference.getConverter(), activity)));
+        reference.getElement(), reference.getRangeInElement(), message,
+        ProblemHighlightType.GENERIC_ERROR_OR_WARNING, myOnTheFly, fixes));
     }
   }
 

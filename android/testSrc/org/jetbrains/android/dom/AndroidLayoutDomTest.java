@@ -884,6 +884,14 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     myFixture.checkResultByFile("src/p1/p2/Activity1.java", testFolder + "/OnClickActivity_after.java", false);
   }
 
+  public void testOnClickIntentionIncorrectName() throws Throwable {
+    myFixture.copyFileToProject(testFolder + "/OnClickActivityIncorrectName.java", "src/p1/p2/Activity1.java");
+    final VirtualFile file = copyFileToProject("onClickIntentionIncorrectName.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    final AndroidCreateOnClickHandlerAction action = new AndroidCreateOnClickHandlerAction();
+    assertFalse(action.isAvailable(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile()));
+  }
+
   public void testOnClickQuickFix1() throws Throwable {
     myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
     myFixture.copyFileToProject(testFolder + "/OnClickActivity.java", "src/p1/p2/Activity1.java");
@@ -920,6 +928,15 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     final VirtualFile file = copyFileToProject("onClickIntention.xml");
     doTestOnClickQuickfix(file);
     myFixture.checkResultByFile("src/p1/p2/Activity1.java", testFolder + "/OnClickActivity1_after.java", false);
+  }
+
+  public void testOnClickQuickFixIncorrectName() throws Throwable {
+    myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
+    myFixture.copyFileToProject(testFolder + "/OnClickActivityIncorrectName.java", "src/p1/p2/Activity1.java");
+    final VirtualFile file = copyFileToProject("onClickIntentionIncorrectName.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    final List<IntentionAction> fixes = highlightAndFindQuickFixes(AndroidMissingOnClickHandlerInspection.MyQuickFix.class);
+    assertEmpty(fixes);
   }
 
   private void doTestAttrReferenceCompletion(String textToType) throws IOException {
