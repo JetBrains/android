@@ -15,19 +15,11 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.SdkConstants;
-import com.android.builder.AndroidBuilder;
 import com.android.builder.model.AndroidProject;
-import com.android.builder.model.ProductFlavor;
-import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.GradleImportNotificationListener;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.intellij.execution.configurations.ParametersList;
 import com.intellij.execution.configurations.SimpleJavaParameters;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -35,11 +27,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.util.KeyValue;
 import com.intellij.util.Function;
-import com.intellij.util.PathUtil;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.net.HttpConfigurable;
 import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
@@ -58,8 +46,6 @@ import java.util.List;
  * Imports Android-Gradle projects into IDEA.
  */
 public class AndroidGradleProjectResolver implements GradleProjectResolverExtension {
-  private static final Logger LOG = Logger.getInstance(AndroidGradleProjectResolver.class);
-
   @NotNull private final GradleExecutionHelper myHelper;
   @NotNull private final ProjectImportErrorHandler myErrorHandler;
   @NotNull private final ProjectResolverFunctionFactory myFunctionFactory;
@@ -109,49 +95,13 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
     return myHelper.execute(projectPath, settings, function);
   }
 
-  /**
-   * <ol>
-   * <li>Adds the paths of the 'android' module and jar files of the Android-Gradle project to the classpath of the slave process that
-   * performs the Gradle project import.</li>
-   * <li>Sets the value of the environment variable "ANDROID_HOME" with the path of the first found Android SDK, if the environment
-   * variable has not been set.</li>
-   * </ol>
-   *
-   * @param parameters parameters to be applied to the slave process which will be used for external system communication.
-   */
   @Override
   public void enhanceRemoteProcessing(@NotNull SimpleJavaParameters parameters) {
-    GradleImportNotificationListener.attachToManager();
-    List<String> jarPaths = getJarPathsOf(getClass(), AndroidBuilder.class, AndroidProject.class, ProductFlavor.class, FullRevision.class);
-    LOG.info("Added to RMI/Gradle process classpath: " + jarPaths);
-    for (String jarPath : jarPaths) {
-      parameters.getClassPath().add(jarPath);
-    }
-    String androidHome = System.getenv(SdkConstants.ANDROID_HOME_ENV);
-    if (Strings.isNullOrEmpty(androidHome)) {
-      androidHome = getAndroidSdkPathFromIde();
-      if (androidHome != null) {
-        parameters.addEnv(SdkConstants.ANDROID_HOME_ENV, androidHome);
-      }
-    }
-    List<KeyValue<String,String>> proxyProperties = HttpConfigurable.getJvmPropertiesList(false, null);
-    ParametersList vmParameters = parameters.getVMParametersList();
-    for (KeyValue<String, String> proxyProperty : proxyProperties) {
-      vmParameters.defineProperty(proxyProperty.getKey(), proxyProperty.getValue());
-    }
   }
 
   @Override
   public void enhanceLocalProcessing(@NotNull List<URL> urls) {
-  }
-
-  @NotNull
-  private static List<String> getJarPathsOf(@NotNull Class<?>... types) {
-    List<String> jarPaths = Lists.newArrayList();
-    for (Class<?> type : types) {
-      ContainerUtil.addIfNotNull(PathUtil.getJarPathForClass(type), jarPaths);
-    }
-    return jarPaths;
+    GradleImportNotificationListener.attachToManager();
   }
 
   @NotNull

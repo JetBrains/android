@@ -41,7 +41,7 @@ public class ProjectImportErrorHandler {
     "Please install the Android Support Repository from the Android SDK Manager.";
   public static final String UNEXPECTED_ERROR_FILE_BUG_ERROR_MSG =
     "This is an unexpected error. Please file a bug containing the idea.log file.";
-  public static final String SET_UP_PROXY_SETTINGS_ERROR_MSG = "Please ensure the host name or proxy settings (if applicable) are correct.";
+  public static final String SET_UP_GRADLE_HTTP_PROXY = "If you are behind an HTTP proxy, please configure Gradle's proxy settings.";
 
   @NotNull
   ExternalSystemException getUserFriendlyError(@NotNull Throwable error, @NotNull String projectPath, @Nullable String buildFilePath) {
@@ -75,7 +75,10 @@ public class ProjectImportErrorHandler {
     }
 
     if (rootCause instanceof UnknownHostException) {
-      String msg = String.format("Unknown host '%1$s'.", rootCause.getMessage()) + "\n\n" + SET_UP_PROXY_SETTINGS_ERROR_MSG;
+      String msg = String.format("Unknown host '%1$s'.", rootCause.getMessage()) +
+                   "\n\n" +
+                   "Please ensure the host name is correct. " +
+                   SET_UP_GRADLE_HTTP_PROXY;
       // Location of build.gradle is useless for this error. Omitting it.
       return createUserFriendlyError(msg, null);
     }

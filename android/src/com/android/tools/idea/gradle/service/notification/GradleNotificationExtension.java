@@ -123,9 +123,11 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
         return createNotification(project, msg);
       }
 
-      if (lastLine != null && lastLine.contains(SET_UP_PROXY_SETTINGS_ERROR_MSG)) {
+      if (lastLine != null && lastLine.contains(SET_UP_GRADLE_HTTP_PROXY)) {
         //noinspection TestOnlyProblems
-        return createNotification(project, msg, new OpenHttpSettingsHyperlink(project));
+        return createNotification(project, msg, new OpenUrlHyperlink(
+          "http://www.gradle.org/docs/current/userguide/userguide_single.html#sec:accessing_the_web_via_a_proxy",
+          "Open Gradle documentation"));
       }
 
       Matcher matcher = MISSING_DEPENDENCY_PATTERN.matcher(firstLine);

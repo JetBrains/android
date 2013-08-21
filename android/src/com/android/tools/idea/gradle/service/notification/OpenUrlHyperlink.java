@@ -15,22 +15,23 @@
  */
 package com.android.tools.idea.gradle.service.notification;
 
+import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.net.HTTPProxySettingsPanel;
 import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.annotations.NotNull;
 
-class OpenHttpSettingsHyperlink extends NotificationHyperlink {
-  @NotNull private final Project myProject;
+class OpenUrlHyperlink extends NotificationHyperlink {
+  @NotNull private final String myUrl;
 
-  OpenHttpSettingsHyperlink(@NotNull final Project project) {
-    super("openHttpSettings", "HTTP proxy settings");
-    myProject = project;
+  OpenUrlHyperlink(@NotNull String url, @NotNull String text) {
+    super(url, text);
+    myUrl = url;
   }
 
   @Override
   void execute() {
-    ShowSettingsUtil.getInstance().editConfigurable(myProject, new HTTPProxySettingsPanel(HttpConfigurable.getInstance()));
+    BrowserUtil.launchBrowser(myUrl);
   }
 }
