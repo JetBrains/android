@@ -77,10 +77,8 @@ public class NavigationEditorPanel2 extends JComponent {
   private VirtualFileSystem myFileSystem;
   private String myPath;
   @NotNull private Selections.Selection mySelection = Selections.NULL;
-  private final Assoc<State, AndroidRootComponent> myStateComponentAssociation =
-    new Assoc<State, AndroidRootComponent>();
-  private final Assoc<Transition, Component> myTransitionEditorAssociation =
-    new Assoc<Transition, Component>();
+  private final Assoc<State, AndroidRootComponent> myStateComponentAssociation = new Assoc<State, AndroidRootComponent>();
+  private final Assoc<Transition, Component> myTransitionEditorAssociation = new Assoc<Transition, Component>();
   private Map<Locator, RenderedView> myLocationToRenderedView = null;
   private Image myBackgroundImage;
 
@@ -156,10 +154,7 @@ public class NavigationEditorPanel2 extends JComponent {
     return myLocationToRenderedView;
   }
 
-  public static void paintLeaf(Graphics g,
-                                @Nullable RenderedView leaf,
-                                Color color,
-                                AndroidRootComponent component) {
+  public static void paintLeaf(Graphics g, @Nullable RenderedView leaf, Color color, AndroidRootComponent component) {
     if (leaf != null) {
       Color oldColor = g.getColor();
       g.setColor(color);
@@ -332,6 +327,19 @@ public class NavigationEditorPanel2 extends JComponent {
     return g2D;
   }
 
+  private static Rectangle getCorner(int cornerDiameter, Point a) {
+    int cornerRadius = cornerDiameter / 2;
+    return new Rectangle(a.x - cornerRadius, a.y - cornerRadius, cornerDiameter, cornerDiameter);
+  }
+
+  private static void drawLine(Graphics g, Point a, Point b) {
+    g.drawLine(a.x, a.y, b.x, b.y);
+  }
+
+  private static void drawArrow(Graphics g, Point a, Point b) {
+    Utilities.drawArrow(g, a.x, a.y, b.x, b.y);
+  }
+
   private void paintTransitions(Graphics2D g) {
     for (Transition transition : myNavigationModel.getTransitions()) {
       Rectangle src = getBounds(transition.getSource());
@@ -341,23 +349,36 @@ public class NavigationEditorPanel2 extends JComponent {
 
       g.drawRect(src.x, src.y, src.width, src.height);
 
-      // draw 'Manhattan route' from source to destination
+      // draw curved 'Manhattan route' from source to destination
 
       Point midSrc = Utilities.centre(src);
       Point midDst = Utilities.centre(dst);
       Point midMid = midpoint(midSrc, midDst);
 
-      boolean horizontal = Math.abs(midSrc.x - midDst.x) >= Math.abs(midSrc.y - midDst.y);
+      int dx = Math.abs(midSrc.x - midDst.x);
+      int dy = Math.abs(midSrc.y - midDst.y);
+      boolean horizontal = dx >= dy;
+
+      int cornerDiameter = Math.min(Math.min(dx, dy), Math.min(MAJOR_SNAP_GRID.width, MAJOR_SNAP_GRID.height));
+      int cornerRadius = cornerDiameter / 2;
 
       Point A = horizontal ? new Point(midMid.x, midSrc.y) : new Point(midSrc.x, midMid.y);
+      Rectangle cornerA = getCorner(cornerDiameter, A);
       Point B = horizontal ? new Point(midMid.x, midDst.y) : new Point(midDst.x, midMid.y);
+      Rectangle cornerB = getCorner(cornerDiameter, B);
 
-      Point p1 = Utilities.project(src, A);
-      Point p4 = Utilities.project(dst, B);
+      Point pj0 = Utilities.project(A, src);
+      Point pj1 = Utilities.project(midSrc, cornerA);
+      Point pj2 = Utilities.project(B, cornerA);
+      Point pj3 = Utilities.project(A, cornerB);
+      Point pj4 = Utilities.project(midDst, cornerB);
+      Point pj5 = Utilities.project(B, dst);
 
-      g.drawLine(p1.x, p1.y, A.x, A.y);
-      g.drawLine(A.x, A.y, B.x, B.y);
-      Utilities.drawArrow(g, B.x, B.y, p4.x, p4.y);
+      drawLine(g, pj0, pj1);
+      drawCorner(g, cornerDiameter, cornerRadius, pj1, pj2,  horizontal);
+      drawLine(g, pj2, pj3);
+      drawCorner(g, cornerDiameter, cornerRadius, pj3, pj4, !horizontal);
+      drawArrow(g, pj4, pj5);
 
       // draw destination rect
 
@@ -368,13 +389,32 @@ public class NavigationEditorPanel2 extends JComponent {
     }
   }
 
+  private static int angle(Point p) {
+    //if ((p.x == 0) == (p.y == 0)) {
+    //  throw new IllegalArgumentException();
+    //}
+     return p.x > 0 ? 0 :
+            p.y < 0 ? 90 :
+            p.x < 0 ? 180 :
+            270;
+  }
+
+  private static void drawCorner(Graphics2D g, int cornerDiameter, int cornerRadius, Point a, Point b, boolean horizontal) {
+    Point centre = horizontal ? new Point(a.x, b.y) : new Point(b.x, a.y);
+    int startAngle = angle(diff(a, centre));
+    int endAngle = angle(diff(b, centre));
+    int dangle = endAngle - startAngle;
+    int angle = dangle - (Math.abs(dangle) <= 180 ? 0 : 360 * sign(dangle));
+    g.drawArc(centre.x - cornerRadius, centre.y - cornerRadius, cornerDiameter, cornerDiameter, startAngle, angle);
+  }
+
   private RenderedView getRenderedView(Locator locator) {
     return getLocationToRenderedView().get(locator);
   }
 
   private void paintChildren(Graphics g, Condition<Component> condition) {
     Rectangle bounds = new Rectangle();
-    for(int i = getComponentCount() -1; i >= 0; i--) {
+    for (int i = getComponentCount() - 1; i >= 0; i--) {
       Component child = getComponent(i);
       if (condition.value(child)) {
         child.getBounds(bounds);
@@ -538,12 +578,11 @@ public class NavigationEditorPanel2 extends JComponent {
     @Override
     public void mousePressed(MouseEvent e) {
       Point location = e.getPoint();
-      boolean modified =
-        (e.isShiftDown() || e.isControlDown() || e.isMetaDown()) && !e.isPopupTrigger();
+      boolean modified = (e.isShiftDown() || e.isControlDown() || e.isMetaDown()) && !e.isPopupTrigger();
       Component component = getComponentAt(location);
-      setSelection(Selections.create(location, modified, myNavigationModel, component,
-                                     getTransitionEditorAssociation().valueToKey.get(component),
-                                     getStateComponentAssociation().valueToKey));
+      setSelection(Selections
+                     .create(location, modified, myNavigationModel, component, getTransitionEditorAssociation().valueToKey.get(component),
+                             getStateComponentAssociation().valueToKey));
       requestFocus();
     }
 
@@ -566,8 +605,7 @@ public class NavigationEditorPanel2 extends JComponent {
       if (attachedObject instanceof TransferableWrapper) {
         TransferableWrapper wrapper = (TransferableWrapper)attachedObject;
         PsiElement[] psiElements = wrapper.getPsiElements();
-        Point dropLocation =
-          diff(anEvent.getPointOn(NavigationEditorPanel2.this), MIDDLE_OF_PREVIEW);
+        Point dropLocation = diff(anEvent.getPointOn(NavigationEditorPanel2.this), MIDDLE_OF_PREVIEW);
 
         if (psiElements != null) {
           for (PsiElement element : psiElements) {

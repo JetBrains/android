@@ -60,7 +60,7 @@ public class Utilities {
     return new Point(d.width, d.height);
   }
 
-  public static Point project(Rectangle r, Point p) {
+  public static Point project(Point p, Rectangle r) {
     Point centre = centre(r);
     Point diff = diff(p, centre);
     boolean horizontal = Math.abs((float)diff.y / diff.x) < Math.abs((float)r.height / r.width);
@@ -174,5 +174,9 @@ public class Utilities {
         return type.isAssignableFrom(o.getClass());
       }
     };
+  }
+
+  static int sign(int x) {
+    return x > 0 ? 1 : x < 0 ? -1 : 0;
   }
 }
