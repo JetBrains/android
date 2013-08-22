@@ -42,14 +42,12 @@ public final class AndroidGradleSettings {
   }
 
   /**
-   * Indicates whether the path of the Android SDK home directory is specified in a local.properties file or in the ANDROID_HOME environment
-   * variable.
+   * Indicates whether the path of the Android SDK home directory is specified in a local.properties file.
    *
    * @param projectDir the project directory.
-   * @return {@code true} if the Android SDK home directory is specified in the project's local.properties file or in the ANDROID_HOME
-   *         environment variable; {@code false} otherwise.
+   * @return {@code true} if the Android SDK home directory is specified in the project's local.properties.
    */
-  public static boolean isAndroidHomeKnown(@NotNull File projectDir) {
+  public static boolean isAndroidSdkDirInLocalPropertiesFile(@NotNull File projectDir) {
     String androidHome = getAndroidHomeFromLocalPropertiesFile(projectDir);
     if (!Strings.isNullOrEmpty(androidHome)) {
       String msg = String.format("Found Android SDK home at '%1$s' (from local.properties file)", androidHome);
