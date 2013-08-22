@@ -27,34 +27,48 @@ public class AndroidSdkResolveScopeProvider extends SdkResolveScopeProvider {
     if (sdk.getRootProvider().getFiles(OrderRootType.SOURCES).length == 0) {
       return null;
     }
-    return new JdkScope(project, entry) {
-      @Nullable
-      @Override
-      protected VirtualFile getFileRoot(VirtualFile file) {
-        final VirtualFile resultFromSuper = super.getFileRoot(file);
+    return new MyJdkScope(project, entry);
+  }
 
-        if (resultFromSuper != null) {
-          return resultFromSuper;
-        }
-        return myIndex.isInLibrarySource(file)
-               ? myIndex.getSourceRootForFile(file)
-               : null;
+  public static class MyJdkScope extends JdkScope {
+    private final JdkOrderEntry myJdkOrderEntry;
+
+    private MyJdkScope(Project project, @NotNull JdkOrderEntry jdkOrderEntry) {
+      super(project, jdkOrderEntry);
+      myJdkOrderEntry = jdkOrderEntry;
+    }
+
+    @Nullable
+    @Override
+    protected VirtualFile getFileRoot(VirtualFile file) {
+      final VirtualFile resultFromSuper = super.getFileRoot(file);
+
+      if (resultFromSuper != null) {
+        return resultFromSuper;
       }
+      return myIndex.isInLibrarySource(file)
+             ? myIndex.getSourceRootForFile(file)
+             : null;
+    }
 
-      @Override
-      public boolean isForceSearchingInLibrarySources() {
-        return true;
+    @Override
+    public boolean isForceSearchingInLibrarySources() {
+      return true;
+    }
+
+    @Override
+    public int compare(VirtualFile file1, VirtualFile file2) {
+      final boolean inSources1 = myIndex.isInLibrarySource(file1);
+
+      if (inSources1 != myIndex.isInLibrarySource(file2)) {
+        return inSources1 ? 1 : -1;
       }
+      return super.compare(file1, file2);
+    }
 
-      @Override
-      public int compare(VirtualFile file1, VirtualFile file2) {
-        final boolean inSources1 = myIndex.isInLibrarySource(file1);
-
-        if (inSources1 != myIndex.isInLibrarySource(file2)) {
-          return inSources1 ? 1 : -1;
-        }
-        return super.compare(file1, file2);
-      }
-    };
+    @NotNull
+    public JdkOrderEntry getJdkOrderEntry() {
+      return myJdkOrderEntry;
+    }
   }
 }

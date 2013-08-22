@@ -18,7 +18,6 @@ package org.jetbrains.android.resourceManagers;
 import com.android.resources.ResourceType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
@@ -37,7 +36,6 @@ import org.jetbrains.android.AndroidValueResourcesIndex;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
@@ -53,20 +51,10 @@ import static java.util.Collections.addAll;
  * @author coyote
  */
 public abstract class ResourceManager {
-  protected final Module myModule;
-  protected final AndroidFacet myFacet;
+  protected final Project myProject;
 
-  protected ResourceManager(@NotNull AndroidFacet facet) {
-    myFacet = facet;
-    myModule = facet.getModule();
-  }
-
-  public Module getModule() {
-    return myModule;
-  }
-
-  public AndroidFacet getFacet() {
-    return myFacet;
+  protected ResourceManager(@NotNull Project project) {
+    myProject = project;
   }
 
   /** Returns all the resource directories for this module <b>and all of its module dependencies</b> */
@@ -161,7 +149,7 @@ public abstract class ResourceManager {
             @Override
             @Nullable
             public PsiFile compute() {
-              return PsiManager.getInstance(myModule.getProject()).findFile(resFile);
+              return PsiManager.getInstance(myProject).findFile(resFile);
             }
           });
           if (file != null) {
@@ -192,7 +180,7 @@ public abstract class ResourceManager {
     final List<Pair<T, VirtualFile>> result = new ArrayList<Pair<T, VirtualFile>>();
     for (VirtualFile file : getAllValueResourceFiles()) {
       if ((files == null || files.contains(file)) && file.isValid()) {
-        final T element = AndroidUtils.loadDomElement(myModule, file, elementType);
+        final T element = AndroidUtils.loadDomElement(myProject, file, elementType);
         if (element != null) {
           result.add(new Pair<T, VirtualFile>(element, file));
         }
@@ -223,7 +211,7 @@ public abstract class ResourceManager {
       ApplicationManager.getApplication().runReadAction(new Runnable() {
         @Override
         public void run() {
-          if (!resources.isValid() || myModule.isDisposed() || myModule.getProject().isDisposed()) {
+          if (!resources.isValid() || myProject.isDisposed()) {
             return;
           }
           final List<ResourceElement> valueResources = AndroidResourceUtil.getValueResourcesFromElement(resourceType, resources);
@@ -306,7 +294,7 @@ public abstract class ResourceManager {
     }
     final FileBasedIndex index = FileBasedIndex.getInstance();
     final ResourceEntry typeMarkerEntry = AndroidValueResourcesIndex.createTypeMarkerKey(resourceType);
-    final GlobalSearchScope scope = GlobalSearchScope.allScope(myModule.getProject());
+    final GlobalSearchScope scope = GlobalSearchScope.allScope(myProject);
 
     final Map<VirtualFile, Set<ResourceEntry>> file2resourceSet = new HashMap<VirtualFile, Set<ResourceEntry>>();
 
@@ -365,9 +353,9 @@ public abstract class ResourceManager {
 
     final List<PsiElement> declarations = new ArrayList<PsiElement>();
     final Collection<VirtualFile> files =
-      FileBasedIndex.getInstance().getContainingFiles(AndroidIdIndex.INDEX_ID, id, GlobalSearchScope.allScope(myModule.getProject()));
+      FileBasedIndex.getInstance().getContainingFiles(AndroidIdIndex.INDEX_ID, id, GlobalSearchScope.allScope(myProject));
     final Set<VirtualFile> fileSet = new HashSet<VirtualFile>(files);
-    final PsiManager psiManager = PsiManager.getInstance(myModule.getProject());
+    final PsiManager psiManager = PsiManager.getInstance(myProject);
 
     for (VirtualFile subdir : getResourceSubdirsToSearchIds()) {
       for (VirtualFile file : subdir.getChildren()) {
@@ -396,12 +384,11 @@ public abstract class ResourceManager {
 
   @NotNull
   public Collection<String> getIds() {
-    final Project project = myModule.getProject();
 
-    if (myModule.isDisposed() || project.isDisposed()) {
+    if (myProject.isDisposed()) {
       return Collections.emptyList();
     }
-    final GlobalSearchScope scope = GlobalSearchScope.allScope(myModule.getProject());
+    final GlobalSearchScope scope = GlobalSearchScope.allScope(myProject);
 
     final FileBasedIndex index = FileBasedIndex.getInstance();
     final Map<VirtualFile, Set<String>> file2ids = new HashMap<VirtualFile, Set<String>>();
@@ -474,7 +461,7 @@ public abstract class ResourceManager {
         (type != ResourceType.ATTR || !searchAttrs)) {
       return Collections.emptyList();
     }
-    final GlobalSearchScope scope = GlobalSearchScope.allScope(myModule.getProject());
+    final GlobalSearchScope scope = GlobalSearchScope.allScope(myProject);
     final List<ValueResourceInfoImpl> result = new ArrayList<ValueResourceInfoImpl>();
     final Set<VirtualFile> valueResourceFiles = getAllValueResourceFiles();
 
@@ -488,7 +475,7 @@ public abstract class ResourceManager {
 
           if (AndroidUtils.equal(resourceName, name, distinguishDelimetersInName)) {
             if (valueResourceFiles.contains(file)) {
-              result.add(new ValueResourceInfoImpl(info.getResourceEntry().getName(), type, file, myModule, info.getOffset()));
+              result.add(new ValueResourceInfoImpl(info.getResourceEntry().getName(), type, file, myProject, info.getOffset()));
             }
           }
         }

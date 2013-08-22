@@ -53,7 +53,12 @@ public class AndroidPlatform {
   @Nullable
   public static AndroidPlatform getInstance(@NotNull Module module) {
     final Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-    if (sdk == null || !(sdk.getSdkType() instanceof AndroidSdkType)) {
+    return sdk != null ? getInstance(sdk) : null;
+  }
+
+  @Nullable
+  public static AndroidPlatform getInstance(@NotNull Sdk sdk) {
+    if (!(sdk.getSdkType() instanceof AndroidSdkType)) {
       return null;
     }
 
