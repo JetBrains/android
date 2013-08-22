@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.navigation;
 
 import com.android.navigation.*;
 import com.android.tools.idea.rendering.RenderedView;
+import com.android.tools.idea.rendering.RenderedViewHierarchy;
 import com.android.tools.idea.rendering.ShadowPainter;
 import com.intellij.ide.dnd.DnDEvent;
 import com.intellij.ide.dnd.DnDManager;
@@ -81,6 +82,11 @@ public class NavigationEditorPanel2 extends JComponent {
   private final Assoc<Transition, Component> myTransitionEditorAssociation = new Assoc<Transition, Component>();
   private Map<Locator, RenderedView> myLocationToRenderedView = null;
   private Image myBackgroundImage;
+  private Point myMouseLocation;
+
+  // Configuration
+
+  private boolean showRollover = true;
 
   private Assoc<State, AndroidRootComponent> getStateComponentAssociation() {
     if (!myStateCacheIsValid) {
@@ -130,6 +136,21 @@ public class NavigationEditorPanel2 extends JComponent {
       }
     }
     return null;
+  }
+
+  @Nullable
+  static RenderedView getRenderedView(AndroidRootComponent component, Point mouseDownLocation) {
+    Point p = component.convertPointFromViewToModel(mouseDownLocation);
+    RenderedViewHierarchy hierarchy = component.getRenderResult().getHierarchy();
+    return hierarchy != null ? hierarchy.findLeafAt(p.x, p.y) : null;
+  }
+
+  @Nullable
+  static RenderedView getNamedParent(@Nullable RenderedView view) {
+    while (view != null && getViewId(view) == null) {
+      view = view.getParent();
+    }
+    return view;
   }
 
   private Map<Locator, RenderedView> getLocationToRenderedView() {
@@ -249,6 +270,13 @@ public class NavigationEditorPanel2 extends JComponent {
     mySelection.moveTo(location);
     revalidate();
     repaint();
+  }
+
+  private void setMouseLocation(Point mouseLocation) {
+    myMouseLocation = mouseLocation;
+    if (showRollover) {
+      repaint();
+    }
   }
 
   private void finaliseSelectionLocation(Point location) {
@@ -375,7 +403,7 @@ public class NavigationEditorPanel2 extends JComponent {
       Point pj5 = Utilities.project(B, dst);
 
       drawLine(g, pj0, pj1);
-      drawCorner(g, cornerDiameter, cornerRadius, pj1, pj2,  horizontal);
+      drawCorner(g, cornerDiameter, cornerRadius, pj1, pj2, horizontal);
       drawLine(g, pj2, pj3);
       drawCorner(g, cornerDiameter, cornerRadius, pj3, pj4, !horizontal);
       drawArrow(g, pj4, pj5);
@@ -393,10 +421,7 @@ public class NavigationEditorPanel2 extends JComponent {
     //if ((p.x == 0) == (p.y == 0)) {
     //  throw new IllegalArgumentException();
     //}
-     return p.x > 0 ? 0 :
-            p.y < 0 ? 90 :
-            p.x < 0 ? 180 :
-            270;
+    return p.x > 0 ? 0 : p.y < 0 ? 90 : p.x < 0 ? 180 : 270;
   }
 
   private static void drawCorner(Graphics2D g, int cornerDiameter, int cornerRadius, Point a, Point b, boolean horizontal) {
@@ -410,6 +435,24 @@ public class NavigationEditorPanel2 extends JComponent {
 
   private RenderedView getRenderedView(Locator locator) {
     return getLocationToRenderedView().get(locator);
+  }
+
+  private void paintLeaf(Graphics2D lineGraphics) {
+    if (myMouseLocation == null || !showRollover) {
+      return;
+    }
+    Component component = getComponentAt(myMouseLocation);
+    if (component instanceof AndroidRootComponent) {
+      AndroidRootComponent androidRootComponent = (AndroidRootComponent)component;
+      RenderedView leaf = getRenderedView(androidRootComponent, myMouseLocation);
+      RenderedView namedLeaf = getNamedParent(leaf);
+      paintLeaf(lineGraphics, leaf, Color.RED, androidRootComponent);
+      paintLeaf(lineGraphics, namedLeaf, Color.BLUE, androidRootComponent);
+    }
+  }
+
+  private void paintSelection(Graphics g) {
+    mySelection.paintOver(g);
   }
 
   private void paintChildren(Graphics g, Condition<Component> condition) {
@@ -427,8 +470,10 @@ public class NavigationEditorPanel2 extends JComponent {
   @Override
   protected void paintChildren(Graphics g) {
     paintChildren(g, SCREENS);
-    paintTransitions(createLineGraphics(g));
-    mySelection.paintOver(g);
+    Graphics2D lineGraphics = createLineGraphics(g);
+    paintTransitions(lineGraphics);
+    paintLeaf(lineGraphics);
+    paintSelection(g);
     paintChildren(g, EDITORS);
   }
 
@@ -574,16 +619,40 @@ public class NavigationEditorPanel2 extends JComponent {
     setPreferredSize(assoc.valueToKey.keySet());
   }
 
+  Selections.Selection createSelection(Point mouseDownLocation, boolean shiftDown) {
+    Component component = getComponentAt(mouseDownLocation);
+    if (component instanceof NavigationEditorPanel2) {
+      return Selections.NULL;
+    }
+    Transition transition = getTransitionEditorAssociation().valueToKey.get(component);
+    if (component instanceof AndroidRootComponent) {
+      AndroidRootComponent androidRootComponent = (AndroidRootComponent)component;
+      if (!shiftDown) {
+        return new Selections.AndroidRootComponentSelection(myNavigationModel, androidRootComponent, mouseDownLocation, transition,
+                                                            getStateComponentAssociation().valueToKey.get(androidRootComponent));
+      }
+      else {
+        RenderedView leaf = getRenderedView(androidRootComponent, mouseDownLocation);
+        return new Selections.RelationSelection(myNavigationModel, androidRootComponent, mouseDownLocation, leaf, getNamedParent(leaf));
+      }
+    }
+    else {
+      return new Selections.ComponentSelection<Component>(myNavigationModel, component, transition);
+    }
+  }
+
   private class MyMouseListener extends MouseAdapter {
     @Override
     public void mousePressed(MouseEvent e) {
       Point location = e.getPoint();
       boolean modified = (e.isShiftDown() || e.isControlDown() || e.isMetaDown()) && !e.isPopupTrigger();
-      Component component = getComponentAt(location);
-      setSelection(Selections
-                     .create(location, modified, myNavigationModel, component, getTransitionEditorAssociation().valueToKey.get(component),
-                             getStateComponentAssociation().valueToKey));
+      setSelection(createSelection(location, modified));
       requestFocus();
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent e) {
+      setMouseLocation(e.getPoint());
     }
 
     @Override
