@@ -33,6 +33,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.psi.PsiClass;
 import com.intellij.reference.SoftReference;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
@@ -67,6 +68,8 @@ public class AndroidSdkData {
 
   private final int myPlatformToolsRevision;
   private final int mySdkToolsRevision;
+
+  private PsiClass myInternalRClass;
 
   public AndroidSdkData(@NotNull SdkManager sdkManager, @NotNull String sdkDirOsPath) {
     mySdkManager = sdkManager;
@@ -358,6 +361,14 @@ public class AndroidSdkData {
       myTargetDatas.put(target, new SoftReference<AndroidTargetData>(targetData));
     }
     return targetData;
+  }
+
+  public PsiClass getInternalRClass() {
+    return myInternalRClass;
+  }
+
+  public void setInternalRClass(PsiClass internalRClass) {
+    myInternalRClass = internalRClass;
   }
 
   private static class MyInitializeDdmlibTask extends Task.Modal {

@@ -99,7 +99,7 @@ public class AndroidPsiAugmentProvider extends PsiAugmentProvider {
 
         if (resClassName != null && ResourceType.getEnum(resClassName) != null) {
           final Set<String> existingFields = getOwnFields(aClass);
-          final PsiField[] newFields = ResourceTypeClass.buildResourceFields(facet, resClassName, aClass);
+          final PsiField[] newFields = ResourceTypeClass.buildLocalResourceFields(facet, resClassName, aClass);
           final List<Psi> result = new ArrayList<Psi>();
 
           for (PsiField field : newFields) {

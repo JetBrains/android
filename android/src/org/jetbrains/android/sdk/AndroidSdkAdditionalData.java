@@ -101,6 +101,11 @@ public class AndroidSdkAdditionalData implements ValidatableSdkAdditionalData {
     myJavaSdk = javaSdk;
   }
 
+  public void setBuildTargetHashString(String targetHashString) {
+    myBuildTarget = targetHashString;
+    myAndroidPlatform = null;
+  }
+
   public void setBuildTarget(IAndroidTarget target) {
     myBuildTarget = target != null ? target.hashString() : null;
     myAndroidPlatform = null;
