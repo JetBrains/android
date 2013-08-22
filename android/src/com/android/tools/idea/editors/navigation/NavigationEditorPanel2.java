@@ -633,7 +633,7 @@ public class NavigationEditorPanel2 extends JComponent {
       }
       else {
         RenderedView leaf = getRenderedView(androidRootComponent, mouseDownLocation);
-        return new Selections.RelationSelection(myNavigationModel, androidRootComponent, mouseDownLocation, leaf, getNamedParent(leaf));
+        return new Selections.RelationSelection(myNavigationModel, androidRootComponent, mouseDownLocation, getNamedParent(leaf));
       }
     }
     else {
