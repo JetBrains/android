@@ -56,12 +56,6 @@ public final class AndroidGradleSettings {
       LOG.info(msg);
       return true;
     }
-    androidHome = System.getenv(SdkConstants.ANDROID_HOME_ENV);
-    if (!Strings.isNullOrEmpty(androidHome)) {
-      String msg = String.format("Found Android SDK home at '%1$s' (from ANDROID_HOME environment variable)", androidHome);
-      LOG.info(msg);
-      return true;
-    }
     return false;
   }
 
