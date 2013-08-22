@@ -25,6 +25,7 @@ public class JpsAndroidDexCompilerConfigurationImpl extends JpsElementBase<JpsAn
     myState.OPTIMIZE = state.OPTIMIZE;
     myState.VM_OPTIONS = state.VM_OPTIONS;
     myState.FORCE_JUMBO = state.FORCE_JUMBO;
+    myState.CORE_LIBRARY = state.CORE_LIBRARY;
   }
 
   @Override
@@ -79,6 +80,19 @@ public class JpsAndroidDexCompilerConfigurationImpl extends JpsElementBase<JpsAn
     }
   }
 
+  @Override
+  public boolean isCoreLibrary() {
+    return myState.CORE_LIBRARY;
+  }
+
+  @Override
+  public void setCoreLibrary(boolean value) {
+    if (myState.CORE_LIBRARY != value) {
+      myState.CORE_LIBRARY = value;
+      fireElementChanged();
+    }
+  }
+
   @NotNull
   @Override
   public JpsAndroidDexCompilerConfigurationImpl createCopy() {
@@ -91,6 +105,7 @@ public class JpsAndroidDexCompilerConfigurationImpl extends JpsElementBase<JpsAn
     setMaxHeapSize(modified.getMaxHeapSize());
     setOptimize(modified.isOptimize());
     setForceJumbo(modified.isForceJumbo());
+    setCoreLibrary(modified.isCoreLibrary());
   }
 
   @NotNull
@@ -103,5 +118,6 @@ public class JpsAndroidDexCompilerConfigurationImpl extends JpsElementBase<JpsAn
     public int MAX_HEAP_SIZE = 1024;
     public boolean OPTIMIZE = true;
     public boolean FORCE_JUMBO = false;
+    public boolean CORE_LIBRARY = false;
   }
 }

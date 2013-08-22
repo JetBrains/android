@@ -50,6 +50,7 @@ public class AndroidDxRunner {
   private static Field myOutNameField;
   private static Field myVerboseField;
   private static Field myForceJumboField;
+  private static Field myCoreLibraryField;
   private static Field myJarOutputField;
   private static Field myFileNamesField;
   private static Field myStrictNameCheckField;
@@ -84,6 +85,7 @@ public class AndroidDxRunner {
       myVerboseField = argClass.getField("verbose");
       myStrictNameCheckField = argClass.getField("strictNameCheck");
       myForceJumboField = argClass.getField("forceJumbo");
+      myCoreLibraryField = argClass.getField("coreLibrary");
 
       myOptimizeField = getFieldIfPossible(argClass);
 
@@ -117,7 +119,12 @@ public class AndroidDxRunner {
     }
   }
 
-  private static int runDex(String dxPath, String outFilePath, String[] fileNames, boolean optimize, boolean forceJumbo) {
+  private static int runDex(String dxPath,
+                            String outFilePath,
+                            String[] fileNames,
+                            boolean optimize,
+                            boolean forceJumbo,
+                            boolean coreLibrary) {
     loadDex(dxPath);
 
     try {
@@ -143,6 +150,13 @@ public class AndroidDxRunner {
       }
       else {
         reportWarning("Cannot find 'forceJumbo' field. The option won't be passed to DEX");
+      }
+
+      if (myCoreLibraryField != null) {
+        myCoreLibraryField.set(args, coreLibrary);
+      }
+      else {
+        reportWarning("Cannot find 'coreLibrary' field. The option won't be passed to DEX");
       }
       Object res = myMethod.invoke(null, args);
 
@@ -233,6 +247,7 @@ public class AndroidDxRunner {
     HashSet<String> qNames = new HashSet<String>();
     boolean optimize = true;
     boolean forceJumbo = false;
+    boolean coreLibrary = false;
 
     int i = 2;
 
@@ -248,6 +263,9 @@ public class AndroidDxRunner {
         if (i < args.length) {
           forceJumbo = Boolean.parseBoolean(args[i]);
         }
+      }
+      else if ("--coreLibrary".equals(args[i])) {
+        coreLibrary = true;
       }
       i++;
     }
@@ -273,7 +291,7 @@ public class AndroidDxRunner {
     files.removeAll(Arrays.asList(excludedFiles));
     String[] filesArray = files.toArray(new String[files.size()]);
     //System.out.println("file names: " + concat(filesArray));
-    runDex(dxPath, outFilePath, filesArray, optimize, forceJumbo);
+    runDex(dxPath, outFilePath, filesArray, optimize, forceJumbo, coreLibrary);
   }
 
   private static String concat(String[] ar) {

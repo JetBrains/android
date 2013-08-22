@@ -21,4 +21,8 @@ public interface JpsAndroidDexCompilerConfiguration extends JpsElement {
   boolean isForceJumbo();
 
   void setForceJumbo(boolean value);
+
+  boolean isCoreLibrary();
+
+  void setCoreLibrary(boolean value);
 }
