@@ -1,7 +1,6 @@
 package org.jetbrains.android.resourceManagers;
 
 import com.android.resources.ResourceType;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -22,12 +21,12 @@ import org.jetbrains.annotations.Nullable;
  * @author Eugene.Kudelevsky
  */
 public class ValueResourceInfoImpl extends ValueResourceInfoBase {
-  private final Module myModule;
+  private final Project myProject;
   private final int myOffset;
 
-  ValueResourceInfoImpl(@NotNull String name, @NotNull ResourceType type, @NotNull VirtualFile file, @NotNull Module module, int offset) {
+  ValueResourceInfoImpl(@NotNull String name, @NotNull ResourceType type, @NotNull VirtualFile file, @NotNull Project project, int offset) {
     super(name, type, file);
-    myModule = module;
+    myProject = project;
     myOffset = offset;
   }
 
@@ -39,8 +38,7 @@ public class ValueResourceInfoImpl extends ValueResourceInfoBase {
 
   @Nullable
   public ResourceElement computeDomElement() {
-    final Project project = myModule.getProject();
-    final PsiFile file = PsiManager.getInstance(project).findFile(myFile);
+    final PsiFile file = PsiManager.getInstance(myProject).findFile(myFile);
 
     if (!(file instanceof XmlFile)) {
       return null;
@@ -50,7 +48,7 @@ public class ValueResourceInfoImpl extends ValueResourceInfoBase {
     if (tag == null) {
       return null;
     }
-    final DomElement domElement = DomManager.getDomManager(project).getDomElement(tag);
+    final DomElement domElement = DomManager.getDomManager(myProject).getDomElement(tag);
     if (!(domElement instanceof ResourceElement)) {
       return null;
     }
