@@ -19,7 +19,6 @@ import com.android.navigation.NavigationModel;
 import com.android.navigation.State;
 import com.android.navigation.Transition;
 import com.android.tools.idea.rendering.RenderedView;
-import com.android.tools.idea.rendering.RenderedViewHierarchy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,30 +32,6 @@ class Selections {
   private static final int SELECTION_RECTANGLE_LINE_WIDTH = 4;
 
   public static Selection NULL = new EmptySelection();
-
-  public static Selection create(Point mouseDownLocation,
-                                  boolean shiftDown,
-                                  NavigationModel navigationModel,
-                                  Component component,
-                                  Transition transition,
-                                  Map<AndroidRootComponent, State> rootToState) {
-    if (component instanceof NavigationEditorPanel2) {
-      return NULL;
-    }
-    if (component instanceof AndroidRootComponent) {
-      AndroidRootComponent androidRootComponent = (AndroidRootComponent)component;
-      if (!shiftDown) {
-        return new AndroidRootComponentSelection(navigationModel, androidRootComponent, mouseDownLocation, transition,
-                                                           rootToState.get(androidRootComponent));
-      }
-      else {
-        return new RelationSelection(navigationModel, androidRootComponent, mouseDownLocation);
-      }
-    }
-    else {
-      return new ComponentSelection<Component>(navigationModel, component, transition);
-    }
-  }
 
   abstract static class Selection {
 
@@ -98,12 +73,12 @@ class Selections {
     }
   }
 
-  private static class ComponentSelection<T extends Component> extends Selection {
+  static class ComponentSelection<T extends Component> extends Selection {
     protected final T myComponent;
     protected final Transition myTransition;
     protected final NavigationModel myNavigationModel;
 
-    private ComponentSelection(NavigationModel navigationModel, T component, Transition transition) {
+    ComponentSelection(NavigationModel navigationModel, T component, Transition transition) {
       myNavigationModel = navigationModel;
       myComponent = component;
       myTransition = transition;
@@ -143,12 +118,12 @@ class Selections {
     }
   }
 
-  private static class AndroidRootComponentSelection extends ComponentSelection<AndroidRootComponent> {
+  static class AndroidRootComponentSelection extends ComponentSelection<AndroidRootComponent> {
     protected final Point myMouseDownLocation;
     protected final Point myOrigComponentLocation;
     private final State myState;
 
-    private AndroidRootComponentSelection(NavigationModel navigationModel, AndroidRootComponent component,
+    AndroidRootComponentSelection(NavigationModel navigationModel, AndroidRootComponent component,
                                           Point mouseDownLocation, Transition transition, State state) {
       super(navigationModel, component, transition);
       myMouseDownLocation = mouseDownLocation;
@@ -186,29 +161,22 @@ class Selections {
     }
   }
 
-  private static class RelationSelection extends Selection {
+  static class RelationSelection extends Selection {
     @NotNull private final AndroidRootComponent myComponent;
     @NotNull private Point myLocation;
     @Nullable private final RenderedView myLeaf;
     @Nullable private final RenderedView myNamedLeaf;
     private NavigationModel myNavigationModel;
 
-    private RelationSelection(NavigationModel navigationModel, @NotNull AndroidRootComponent component, @NotNull Point mouseDownLocation) {
+    RelationSelection(NavigationModel navigationModel,
+                      @NotNull AndroidRootComponent component,
+                      @NotNull Point mouseDownLocation,
+                      @Nullable RenderedView leaf, @Nullable RenderedView namedLeaf) {
       myNavigationModel = navigationModel;
       myComponent = component;
       myLocation = mouseDownLocation;
-      Point p = component.convertPointFromViewToModel(mouseDownLocation);
-      RenderedViewHierarchy hierarchy = component.getRenderResult().getHierarchy();
-      myLeaf = hierarchy != null ? hierarchy.findLeafAt(p.x, p.y) : null;
-      myNamedLeaf = getNamedParent(myLeaf);
-    }
-
-    @Nullable
-    private static RenderedView getNamedParent(@Nullable RenderedView view) {
-      while (view != null && NavigationEditorPanel2.getViewId(view) == null) {
-        view = view.getParent();
-      }
-      return view;
+      myLeaf = leaf;
+      myNamedLeaf = namedLeaf;
     }
 
     @Override
@@ -222,11 +190,9 @@ class Selections {
 
     @Override
     protected void paintOver(Graphics g) {
-      Graphics2D transitionGraphics = NavigationEditorPanel2.createLineGraphics(g);
-      NavigationEditorPanel2.paintLeaf(transitionGraphics, myLeaf, Color.RED, myComponent);
-      NavigationEditorPanel2.paintLeaf(transitionGraphics, myNamedLeaf, Color.BLUE, myComponent);
+      Graphics2D lineGraphics = NavigationEditorPanel2.createLineGraphics(g);
       Point start = Utilities.centre(myComponent.getBounds(myNamedLeaf));
-      Utilities.drawArrow(transitionGraphics, start.x, start.y, myLocation.x, myLocation.y);
+      Utilities.drawArrow(lineGraphics, start.x, start.y, myLocation.x, myLocation.y);
     }
 
     @Override
@@ -239,10 +205,8 @@ class Selections {
           transition.getSource().setViewName(NavigationEditorPanel2.getViewId(myNamedLeaf));
           {
             AndroidRootComponent destinationRoot = (AndroidRootComponent)destComponent;
-            Point p = destinationRoot.convertPointFromViewToModel(mouseUpLocation);
-            RenderedViewHierarchy hierarchy = destinationRoot.getRenderResult().getHierarchy();
-            RenderedView endLeaf = hierarchy != null ? hierarchy.findLeafAt(p.x, p.y) : null;
-            RenderedView namedEndLeaf = getNamedParent(endLeaf);
+            RenderedView endLeaf = NavigationEditorPanel2.getRenderedView(destinationRoot, mouseUpLocation);
+            RenderedView namedEndLeaf = NavigationEditorPanel2.getNamedParent(endLeaf);
             transition.getDestination().setViewName(NavigationEditorPanel2.getViewId(namedEndLeaf));
           }
           myNavigationModel.add(transition);
