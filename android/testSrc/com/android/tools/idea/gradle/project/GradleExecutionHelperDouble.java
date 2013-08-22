@@ -25,6 +25,7 @@ import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
 import java.lang.reflect.Method;
+import java.util.List;
 
 import static org.easymock.classextension.EasyMock.createMock;
 
@@ -42,7 +43,7 @@ class GradleExecutionHelperDouble extends GradleExecutionHelper {
   static GradleExecutionHelperDouble newMock() throws Exception {
     Class<GradleExecutionHelper> target = GradleExecutionHelper.class;
     Method m = target.getDeclaredMethod("getModelBuilder", Class.class, ExternalSystemTaskId.class, GradleExecutionSettings.class,
-                                        ProjectConnection.class, ExternalSystemTaskNotificationListener.class);
+                                        ProjectConnection.class, ExternalSystemTaskNotificationListener.class, List.class);
     return createMock(GradleExecutionHelperDouble.class, m);
   }
 
