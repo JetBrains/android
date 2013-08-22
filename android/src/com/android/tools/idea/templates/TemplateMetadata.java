@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
+import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,6 +58,8 @@ public class TemplateMetadata {
   public static final String ATTR_GRADLE_PLUGIN_VERSION = "gradlePluginVersion";
   public static final String ATTR_V4_SUPPORT_LIBRARY_VERSION = "v4SupportLibraryVersion";
   public static final String ATTR_GRADLE_VERSION = "gradleVersion";
+  public static final String ATTR_ANDROID_SUPPORT_URL = "androidSupportLibraryUrl";
+  public static final String ATTR_APP_COMPAT_URL = "appCompatLibraryUrl";
 
   public static final String V4_SUPPORT_LIBRARY_VERSION = "13.0.+";
   public static final String GRADLE_PLUGIN_VERSION = "0.5.+";
@@ -161,6 +164,31 @@ public class TemplateMetadata {
     }
 
     return null;
+  }
+
+  /**
+   * Get any dependency declarations from the template.xml file.
+   * @return a map of dependency variable names to maven dependency URLs.
+   */
+  @NotNull
+  public Map<String, String> getDependencies() {
+    final Map<String, String> params = Maps.newLinkedHashMap();
+
+    NodeList dependencies = myDocument.getElementsByTagName(TAG_DEPENDENCY);
+    for (int index = 0, max = dependencies.getLength(); index < max; index++) {
+      Element element = (Element) dependencies.item(index);
+      String dependencyName = element.getAttribute(ATTR_NAME);
+      String dependencyVersion = element.getAttribute(ATTR_VERSION);
+      if (dependencyName.equals(SUPPORT_LIBRARY_NAME)) {
+        // We assume the revision requirement has been satisfied
+        // by the wizard
+        params.put(ATTR_ANDROID_SUPPORT_URL, Template.getSupportMavenUrl(0, dependencyVersion));
+      } else if (dependencyName.equals(APP_COMPAT_LIBRARY_NAME)) {
+        params.put(ATTR_APP_COMPAT_URL, Template.getAppCompatMavenUrl(0, dependencyVersion));
+      } // TODO: Add other libraries here (Cloud SDK, Play Services, AppCompatLib, etc).
+    }
+
+    return params;
   }
 
   public boolean isSupported() {
