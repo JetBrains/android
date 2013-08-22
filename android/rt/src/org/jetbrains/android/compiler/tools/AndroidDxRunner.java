@@ -84,10 +84,10 @@ public class AndroidDxRunner {
       myFileNamesField = argClass.getField("fileNames");
       myVerboseField = argClass.getField("verbose");
       myStrictNameCheckField = argClass.getField("strictNameCheck");
-      myForceJumboField = argClass.getField("forceJumbo");
-      myCoreLibraryField = argClass.getField("coreLibrary");
 
-      myOptimizeField = getFieldIfPossible(argClass);
+      myForceJumboField = getFieldIfPossible(argClass, "forceJumbo");
+      myCoreLibraryField = getFieldIfPossible(argClass, "coreLibrary");
+      myOptimizeField = getFieldIfPossible(argClass, "optimize");
 
       myConsoleOut = consoleClass.getField("out");
       myConsoleErr = consoleClass.getField("err");
@@ -110,9 +110,9 @@ public class AndroidDxRunner {
   }
 
   @Nullable
-  private static Field getFieldIfPossible(Class<?> argClass) {
+  private static Field getFieldIfPossible(Class<?> argClass, String name) {
     try {
-      return argClass.getField("optimize");
+      return argClass.getField(name);
     }
     catch (NoSuchFieldException e) {
       return null;
