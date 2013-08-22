@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.navigation;
 
+import com.intellij.openapi.util.Condition;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -41,6 +42,18 @@ public class Utilities {
 
   public static Dimension scale(Dimension d, float k) {
     return new Dimension((int)(k * d.width), (int)(k * d.height));
+  }
+
+  private static int snap(int i, int d) {
+    return ((int)Math.round((double)i / d)) * d;
+  }
+
+  public static Point snap(Point p, Dimension gridSize) {
+    return new Point(snap(p.x, gridSize.width), snap(p.y, gridSize.height));
+  }
+
+  public static Point midpoint(Point p1, Point p2) {
+    return scale(add(p1, p2), 0.5f);
   }
 
   public static Point point(Dimension d) {
@@ -143,5 +156,23 @@ public class Utilities {
     int basePosition = len - ARROW_HEAD_SIZE.width;
     int height = ARROW_HEAD_SIZE.height;
     g.fillPolygon(new int[]{len, basePosition, basePosition, len}, new int[]{0, -height, height, 0}, 4);
+  }
+
+  static <T> Condition<T> not(final Condition<T> condition) {
+    return new Condition<T>() {
+      @Override
+      public boolean value(T t) {
+        return !condition.value(t);
+      }
+    };
+  }
+
+  static <T> Condition<T> instanceOf(final Class<?> type) {
+    return new Condition<T>() {
+      @Override
+      public boolean value(Object o) {
+        return type.isAssignableFrom(o.getClass());
+      }
+    };
   }
 }

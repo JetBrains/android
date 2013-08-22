@@ -23,6 +23,7 @@ import com.intellij.ide.dnd.DnDManager;
 import com.intellij.ide.dnd.DnDTarget;
 import com.intellij.ide.dnd.TransferableWrapper;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.psi.PsiElement;
@@ -53,9 +54,10 @@ public class NavigationEditorPanel2 extends JComponent {
   private static final int MINOR_SNAP = 4;
   private static final int MIDDLE_COUNT = 5;
   private static final int MAJOR_COUNT = 10;
-  private static final Dimension MINOR_SNAP_GRID = new Dimension(MINOR_SNAP, MINOR_SNAP);
-  private static final Dimension MIDDLE_SNAP_GRID = scale(MINOR_SNAP_GRID, MIDDLE_COUNT);
-  private static final Dimension MAJOR_SNAP_GRID = scale(MINOR_SNAP_GRID, MAJOR_COUNT);
+
+  public static final Dimension MINOR_SNAP_GRID = new Dimension(MINOR_SNAP, MINOR_SNAP);
+  public static final Dimension MIDDLE_SNAP_GRID = scale(MINOR_SNAP_GRID, MIDDLE_COUNT);
+  public static final Dimension MAJOR_SNAP_GRID = scale(MINOR_SNAP_GRID, MAJOR_COUNT);
 
   private static final float SCALE = 1 / 3f;
   private static final Dimension ORIGINAL_SIZE = new Dimension(480, 800);
@@ -65,6 +67,8 @@ public class NavigationEditorPanel2 extends JComponent {
   private static final Point MULTIPLE_DROP_STRIDE = point(MAJOR_SNAP_GRID);
   private static final String ID_PREFIX = "@+id/";
   private static final Color TRANSITION_LINE_COLOR = new Color(80, 80, 255);
+  private static final Condition<Component> SCREENS = instanceOf(AndroidRootComponent.class);
+  private static final Condition<Component> EDITORS = not(SCREENS);
 
   private final NavigationModel myNavigationModel;
   private final Project myProject;
@@ -179,6 +183,7 @@ public class NavigationEditorPanel2 extends JComponent {
 
     setFocusable(true);
     setBackground(BACKGROUND_COLOR);
+    setLayout(null);
 
     // Mouse listener
     {
@@ -319,7 +324,7 @@ public class NavigationEditorPanel2 extends JComponent {
     mySelection.paint(g, hasFocus());
   }
 
-  public static Graphics2D createTransitionGraphics(Graphics g) {
+  public static Graphics2D createLineGraphics(Graphics g) {
     Graphics2D g2D = (Graphics2D)g.create();
     g2D.setColor(TRANSITION_LINE_COLOR);
     g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -328,70 +333,78 @@ public class NavigationEditorPanel2 extends JComponent {
   }
 
   private void paintTransitions(Graphics2D g) {
-    Map<State, AndroidRootComponent> stateToComponent = getStateComponentAssociation().keyToValue;
-    Map<Transition, Component> transitionToEditor = getTransitionEditorAssociation().keyToValue;
-
     for (Transition transition : myNavigationModel.getTransitions()) {
-      State source = transition.getSource().getState();
-      State destination = transition.getDestination().getState();
-      AndroidRootComponent sourceComponent = stateToComponent.get(source);
-      AndroidRootComponent destinationComponent = stateToComponent.get(destination);
+      Rectangle src = getBounds(transition.getSource());
+      Rectangle dst = getBounds(transition.getDestination());
 
-      Rectangle r1 = sourceComponent.getBounds(getSourceView(transition));
-      Rectangle r2 = transitionToEditor.get(transition).getBounds();
-      Rectangle r3 = destinationComponent.getBounds(getDestinationView(transition));
+      // draw source rect
 
-      g.drawRect(r1.x, r1.y, r1.width, r1.height);
-      Point m1 = Utilities.centre(r1);
-      Point m2 = Utilities.centre(r2);
-      Point m3 = Utilities.centre(r3);
+      g.drawRect(src.x, src.y, src.width, src.height);
 
-      Point A = new Point(m2.x, m1.y);
-      Point B = new Point(m2.x, m3.y);
+      // draw 'Manhattan route' from source to destination
 
-      Point p1 = Utilities.project(r1, A);
-      Point p2 = Utilities.project(r2, A);
+      Point midSrc = Utilities.centre(src);
+      Point midDst = Utilities.centre(dst);
+      Point midMid = midpoint(midSrc, midDst);
 
-      Point p3 = Utilities.project(r2, B);
-      Point p4 = Utilities.project(r3, B);
+      boolean horizontal = Math.abs(midSrc.x - midDst.x) >= Math.abs(midSrc.y - midDst.y);
+
+      Point A = horizontal ? new Point(midMid.x, midSrc.y) : new Point(midSrc.x, midMid.y);
+      Point B = horizontal ? new Point(midMid.x, midDst.y) : new Point(midDst.x, midMid.y);
+
+      Point p1 = Utilities.project(src, A);
+      Point p4 = Utilities.project(dst, B);
 
       g.drawLine(p1.x, p1.y, A.x, A.y);
-      g.drawLine(A.x, A.y, p2.x, p2.y);
-      g.drawLine(p3.x, p3.y, B.x, B.y);
+      g.drawLine(A.x, A.y, B.x, B.y);
       Utilities.drawArrow(g, B.x, B.y, p4.x, p4.y);
+
+      // draw destination rect
 
       Color oldColor = g.getColor();
       g.setColor(Color.CYAN);
-      g.drawRect(r3.x, r3.y, r3.width, r3.height);
+      g.drawRect(dst.x, dst.y, dst.width, dst.height);
       g.setColor(oldColor);
     }
   }
 
-  private RenderedView getSourceView(Transition t) {
-    return getLocationToRenderedView().get(t.getSource());
+  private RenderedView getRenderedView(Locator locator) {
+    return getLocationToRenderedView().get(locator);
   }
 
-  private RenderedView getDestinationView(Transition t) {
-    return getLocationToRenderedView().get(t.getDestination());
+  private void paintChildren(Graphics g, Condition<Component> condition) {
+    Rectangle bounds = new Rectangle();
+    for(int i = getComponentCount() -1; i >= 0; i--) {
+      Component child = getComponent(i);
+      if (condition.value(child)) {
+        child.getBounds(bounds);
+        Graphics cg = g.create(bounds.x, bounds.y, bounds.width, bounds.height);
+        child.paint(cg);
+      }
+    }
   }
 
   @Override
   protected void paintChildren(Graphics g) {
-    super.paintChildren(g);
-    paintTransitions(createTransitionGraphics(g));
+    paintChildren(g, SCREENS);
+    paintTransitions(createLineGraphics(g));
     mySelection.paintOver(g);
+    paintChildren(g, EDITORS);
+  }
+
+  private Rectangle getBounds(Locator source) {
+    Map<State, AndroidRootComponent> stateToComponent = getStateComponentAssociation().keyToValue;
+    AndroidRootComponent component = stateToComponent.get(source.getState());
+    return component.getBounds(getRenderedView(source));
   }
 
   @Override
   public void doLayout() {
-    Map<State, AndroidRootComponent> stateToComponent = getStateComponentAssociation().keyToValue;
     Map<Transition, Component> transitionToEditor = getTransitionEditorAssociation().keyToValue;
 
     for (Transition transition : myNavigationModel.getTransitions()) {
-      AndroidRootComponent source = stateToComponent.get(transition.getSource().getState());
-      AndroidRootComponent dest = stateToComponent.get(transition.getDestination().getState());
-      Point sl = Utilities.centre(source.getBounds(getSourceView(transition)));
-      Point dl = Utilities.centre(dest.getBounds(getDestinationView(transition)));
+      Point sl = Utilities.centre(getBounds(transition.getSource()));
+      Point dl = Utilities.centre(getBounds(transition.getDestination()));
       String gesture = transition.getType();
       if (gesture != null) {
         Component c = transitionToEditor.get(transition);
@@ -521,22 +534,15 @@ public class NavigationEditorPanel2 extends JComponent {
     setPreferredSize(assoc.valueToKey.keySet());
   }
 
-  private static int snap(int i, int d) {
-    return ((int)Math.round((double)i / d)) * d;
-  }
-
-  public static Point snap(Point p) {
-    return new Point(snap(p.x, MIDDLE_SNAP_GRID.width), snap(p.y, MIDDLE_SNAP_GRID.height));
-  }
-
   private class MyMouseListener extends MouseAdapter {
     @Override
     public void mousePressed(MouseEvent e) {
       Point location = e.getPoint();
       boolean modified =
         (e.isShiftDown() || e.isControlDown() || e.isMetaDown()) && !e.isPopupTrigger();
-      setSelection(Selections.create(location, modified, myNavigationModel, getComponentAt(location),
-                                     getTransitionEditorAssociation().valueToKey.get(getComponentAt(location)),
+      Component component = getComponentAt(location);
+      setSelection(Selections.create(location, modified, myNavigationModel, component,
+                                     getTransitionEditorAssociation().valueToKey.get(component),
                                      getStateComponentAssociation().valueToKey));
       requestFocus();
     }
@@ -570,7 +576,7 @@ public class NavigationEditorPanel2 extends JComponent {
               String qualifiedName = namedElement.getQualifiedName();
               if (qualifiedName != null) {
                 State state = new State(qualifiedName);
-                state.setLocation(Utilities.toNavPoint(snap(dropLocation)));
+                state.setLocation(Utilities.toNavPoint(snap(dropLocation, MIDDLE_SNAP_GRID)));
                 String name = namedElement.getName();
                 if (name != null) {
                   state.setXmlResourceName(getXmlFileNameFromJavaFileName(name));
