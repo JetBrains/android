@@ -107,7 +107,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   @NotNull
   private static List<String> getExtraJvmArgs(@NotNull String projectPath) {
     if (ExternalSystemApiUtil.isInProcessMode(GradleConstants.SYSTEM_ID)
-        && !AndroidGradleSettings.isAndroidHomeKnown(new File(projectPath))) {
+        && !AndroidGradleSettings.isAndroidSdkDirInLocalPropertiesFile(new File(projectPath))) {
       String androidHome = getAndroidSdkPathFromIde();
       if (androidHome != null) {
         String androidHomeJvmArg = AndroidGradleSettings.createAndroidHomeJvmArg(androidHome);
