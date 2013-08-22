@@ -160,7 +160,7 @@ class Selections {
       Point newLocation = Utilities.add(diff(location, myMouseDownLocation),
                                         myOrigComponentLocation);
       if (snap) {
-        newLocation = NavigationEditorPanel2.snap(newLocation);
+        newLocation = Utilities.snap(newLocation, NavigationEditorPanel2.MIDDLE_SNAP_GRID);
       }
       myComponent.setLocation(newLocation);
       myState.setLocation(Utilities.toNavPoint(newLocation));
@@ -222,7 +222,7 @@ class Selections {
 
     @Override
     protected void paintOver(Graphics g) {
-      Graphics2D transitionGraphics = NavigationEditorPanel2.createTransitionGraphics(g);
+      Graphics2D transitionGraphics = NavigationEditorPanel2.createLineGraphics(g);
       NavigationEditorPanel2.paintLeaf(transitionGraphics, myLeaf, Color.RED, myComponent);
       NavigationEditorPanel2.paintLeaf(transitionGraphics, myNamedLeaf, Color.BLUE, myComponent);
       Point start = Utilities.centre(myComponent.getBounds(myNamedLeaf));
