@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.utils.SparseArray;
 import com.android.utils.XmlUtils;
-import com.intellij.icons.AllIcons;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,8 +23,6 @@ import java.net.URL;
 
 public class HtmlBuilder {
   @NotNull private final StringBuilder myStringBuilder;
-  private SparseArray<Runnable> myLinkRunnables;
-  private int myNextLinkId = 0;
   private String myTableDataExtra;
 
   public HtmlBuilder(@NotNull StringBuilder stringBuilder) {
@@ -173,11 +168,8 @@ public class HtmlBuilder {
     return this;
   }
 
-  public HtmlBuilder addHeading(String text) {
-    // See om.intellij.codeInspection.HtmlComposer.addHeading
-    // (which operates on StringBuffers)
-    myStringBuilder.append("<font style=\"font-weight:bold; color:")
-      .append(UIUtil.isUnderDarcula() ? "#A5C25C" : "#005555").append(";\">");
+  public HtmlBuilder addHeading(@NotNull String text, @NotNull String fontColor) {
+    myStringBuilder.append("<font style=\"font-weight:bold; color:").append(fontColor).append(";\">");
     add(text);
     myStringBuilder.append("</font>");
 
@@ -243,41 +235,12 @@ public class HtmlBuilder {
     return this;
   }
 
-  private void addIcon(String relative) {
-    try {
-      // TODO: Find a way to do this more efficiently; not referencing assets but the corresponding
-      // AllIcons constants, and loading them into HTML class loader contexts?
-      URL resource = AllIcons.class.getClassLoader().getResource(relative);
-      if (resource != null) {
-        String src = resource.toURI().toURL().toExternalForm();
-        myStringBuilder.append("<img src='");
-        myStringBuilder.append(src);
-        myStringBuilder.append("' width=16 height=16 border=0 />");
-      }
-    } catch (Throwable t) {
-      // pass
+  public HtmlBuilder addIcon(@Nullable String src) {
+    if (src != null) {
+      myStringBuilder.append("<img src='");
+      myStringBuilder.append(src);
+      myStringBuilder.append("' width=16 height=16 border=0 />");
     }
-  }
-
-  public HtmlBuilder addCloseIcon() {
-    addIcon("/actions/closeNew.png");
-
-    return this;
-  }
-  public HtmlBuilder addTipIcon() {
-    addIcon("/actions/createFromUsage.png");
-
-    return this;
-  }
-
-  public HtmlBuilder addWarningIcon() {
-    addIcon("/actions/warning.png");
-
-    return this;
-  }
-
-  public HtmlBuilder addErrorIcon() {
-    addIcon("/actions/error.png");
 
     return this;
   }
