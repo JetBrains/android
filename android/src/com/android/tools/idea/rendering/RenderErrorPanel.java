@@ -21,6 +21,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.RenderContext;
+import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.compiler.impl.javaCompiler.javac.JavacConfiguration;
