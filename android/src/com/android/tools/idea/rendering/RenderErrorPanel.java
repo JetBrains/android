@@ -24,6 +24,7 @@ import com.android.tools.idea.configurations.RenderContext;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.compiler.impl.javaCompiler.javac.JavacConfiguration;
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -80,6 +81,9 @@ import javax.swing.text.html.HTMLFrameHyperlinkEvent;
 import java.awt.*;
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -245,9 +249,9 @@ public class RenderErrorPanel extends JPanel {
     builder.addHtml("<A HREF=\"");
     builder.addHtml(URL_ACTION_CLOSE);
     builder.addHtml("\">");
-    builder.addCloseIcon();
+    builder.addIcon(HtmlBuilderHelper.getCloseIconPath());
     builder.addHtml("</A>");
-    builder.addHeading("Rendering Problems").newline();
+    builder.addHeading("Rendering Problems", HtmlBuilderHelper.getHeaderFontColor()).newline();
 
     reportMissingStyles(logger, builder);
     if (renderService != null) {
@@ -335,7 +339,7 @@ public class RenderErrorPanel extends JPanel {
       }
       builder.endList();
 
-      builder.addTipIcon();
+      builder.addIcon(HtmlBuilderHelper.getTipIconPath());
       builder.addLink("Tip: Try to ", "build", " the project", myLinkManager.createCompileModuleUrl());
       builder.newline().newline();
     }
@@ -534,13 +538,13 @@ public class RenderErrorPanel extends JPanel {
       }
       builder.endList();
 
-      builder.addTipIcon();
+      builder.addIcon(HtmlBuilderHelper.getTipIconPath());
       builder.addLink("Tip: Use ", "View.isInEditMode()", " in your custom views to skip code or show sample data when shown in the IDE",
                       "http://developer.android.com/reference/android/view/View.html#isInEditMode()");
 
       if (firstThrowable != null) {
         builder.newline().newline();
-        builder.addHeading("Exception Details").newline();
+        builder.addHeading("Exception Details", HtmlBuilderHelper.getHeaderFontColor()).newline();
         reportThrowable(builder, firstThrowable);
       }
       builder.newline().newline();
@@ -599,7 +603,7 @@ public class RenderErrorPanel extends JPanel {
   private static void reportMissingStyles(RenderLogger logger, HtmlBuilder builder) {
     if (logger.seenTagPrefix(TAG_RESOURCES_RESOLVE_THEME_ATTR)) {
       builder.addBold("Missing styles. Is the correct theme chosen for this layout?").newline();
-      builder.addTipIcon();
+      builder.addIcon(HtmlBuilderHelper.getTipIconPath());
       builder.add("Use the Theme combo box above the layout to choose a different layout, or fix the theme style references.");
       builder.newline().newline();
     }
@@ -715,9 +719,9 @@ public class RenderErrorPanel extends JPanel {
 
         HighlightSeverity severity = message.getSeverity();
         if (severity == HighlightSeverity.ERROR) {
-          builder.addErrorIcon();
+          builder.addIcon(HtmlBuilderHelper.getErrorIconPath());
         } else if (severity == HighlightSeverity.WARNING) {
-          builder.addWarningIcon();
+          builder.addIcon(HtmlBuilderHelper.getWarningIconPath());
         }
 
         message.appendHtml(builder.getStringBuilder());
@@ -1053,6 +1057,50 @@ public class RenderErrorPanel extends JPanel {
       if (ModulesConfigurator.showDialog(myProject, moduleToSelect, ClasspathEditor.NAME)) {
         askAndRebuild(myProject);
       }
+    }
+  }
+
+  private static class HtmlBuilderHelper {
+    @Nullable
+    private static String getIconPath(String relative) {
+      // TODO: Find a way to do this more efficiently; not referencing assets but the corresponding
+      // AllIcons constants, and loading them into HTML class loader contexts?
+      URL resource = AllIcons.class.getClassLoader().getResource(relative);
+      try {
+        return (resource != null) ? resource.toURI().toURL().toExternalForm() : null;
+      }
+      catch (MalformedURLException e) {
+        return null;
+      }
+      catch (URISyntaxException e) {
+        return null;
+      }
+    }
+
+    @Nullable
+    public static String getCloseIconPath() {
+      return getIconPath("/actions/closeNew.png");
+    }
+
+    @Nullable
+    public static String getTipIconPath() {
+      return getIconPath("/actions/createFromUsage.png");
+    }
+
+    @Nullable
+    public static String getWarningIconPath() {
+      return getIconPath("/actions/warning.png");
+    }
+
+    @Nullable
+    public static String getErrorIconPath() {
+      return getIconPath("/actions/error.png");
+    }
+
+    public static String getHeaderFontColor() {
+      // See om.intellij.codeInspection.HtmlComposer.appendHeading
+      // (which operates on StringBuffers)
+      return UIUtil.isUnderDarcula() ? "#A5C25C" : "#005555";
     }
   }
 }
