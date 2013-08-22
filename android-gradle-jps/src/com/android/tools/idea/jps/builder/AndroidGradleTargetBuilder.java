@@ -113,7 +113,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
     ensureTempDirExists();
 
     String androidHome = null;
-    if (!AndroidGradleSettings.isAndroidHomeKnown(executionSettings.getProjectDir())) {
+    if (!AndroidGradleSettings.isAndroidSdkDirInLocalPropertiesFile(executionSettings.getProjectDir())) {
       androidHome = getAndroidHomeFromModuleSdk(project);
     }
 
