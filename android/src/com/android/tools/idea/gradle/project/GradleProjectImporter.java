@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ProjectTopics;
-import com.intellij.ide.impl.NewProjectUtil;
 import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -121,22 +120,24 @@ public class GradleProjectImporter {
    */
   public void importProject(@NotNull String projectName,
                             @NotNull File projectRootDir,
-                            @NotNull Sdk androidSdk,
+                            @Nullable Sdk androidSdk,
                             @Nullable final Callback callback) throws IOException, ConfigurationException {
     GradleImportNotificationListener.attachToManager();
 
-    createTopLevelBuildFile(projectRootDir);
+    createTopLevelBuildFileIfNotExisting(projectRootDir);
     createIdeaProjectDir(projectRootDir);
 
     final Project newProject = createProject(projectName, projectRootDir.getPath());
-
-    setUpProject(newProject, androidSdk);
+    setUpProject(newProject);
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       newProject.save();
     }
 
-    LocalProperties.createFile(newProject, androidSdk);
+    if (androidSdk != null) {
+      LocalProperties.createFile(newProject, androidSdk);
+    }
+
     Projects.setProjectBuildAction(newProject, Projects.BuildAction.REBUILD);
 
     doImport(newProject, true, true);
@@ -164,8 +165,11 @@ public class GradleProjectImporter {
     });
   }
 
-  private static void createTopLevelBuildFile(@NotNull File projectRootDir) throws IOException {
+  private static void createTopLevelBuildFileIfNotExisting(@NotNull File projectRootDir) throws IOException {
     File projectFile = new File(projectRootDir, SdkConstants.FN_BUILD_GRADLE);
+    if (projectFile.isFile()) {
+      return;
+    }
     FileUtilRt.createIfNotExists(projectFile);
     String contents = "// Top-level build file where you can add configuration options common to all sub-projects/modules." +
                       SystemProperties.getLineSeparator();
@@ -187,14 +191,13 @@ public class GradleProjectImporter {
     return newProject;
   }
 
-  private static void setUpProject(@NotNull final Project newProject, @NotNull final Sdk androidSdk) {
+  private static void setUpProject(@NotNull final Project newProject) {
     CommandProcessor.getInstance().executeCommand(newProject, new Runnable() {
       @Override
       public void run() {
         ApplicationManager.getApplication().runWriteAction(new Runnable() {
           @Override
           public void run() {
-            NewProjectUtil.applyJdkToProject(newProject, androidSdk);
             // In practice, it really does not matter where the compiler output folder is. Gradle handles that. This is done just to please
             // IDEA.
             String compileOutputUrl = VfsUtilCore.pathToUrl(newProject.getBasePath() + "/build/classes");
