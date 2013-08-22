@@ -164,18 +164,15 @@ class Selections {
   static class RelationSelection extends Selection {
     @NotNull private final AndroidRootComponent myComponent;
     @NotNull private Point myLocation;
-    @Nullable private final RenderedView myLeaf;
     @Nullable private final RenderedView myNamedLeaf;
     private NavigationModel myNavigationModel;
 
     RelationSelection(NavigationModel navigationModel,
                       @NotNull AndroidRootComponent component,
-                      @NotNull Point mouseDownLocation,
-                      @Nullable RenderedView leaf, @Nullable RenderedView namedLeaf) {
+                      @NotNull Point mouseDownLocation, @Nullable RenderedView namedLeaf) {
       myNavigationModel = navigationModel;
       myComponent = component;
       myLocation = mouseDownLocation;
-      myLeaf = leaf;
       myNamedLeaf = namedLeaf;
     }
 
