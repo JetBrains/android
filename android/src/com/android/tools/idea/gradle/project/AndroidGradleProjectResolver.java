@@ -129,7 +129,6 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
     return null;
   }
 
-
   static class ProjectResolverFunctionFactory {
     @NotNull private final ProjectResolver myResolver;
 
