@@ -117,8 +117,10 @@ public class AndroidGradleBuilder extends ModuleLevelBuilder {
                         OutputConsumer outputConsumer) throws ProjectBuildException {
     JpsAndroidGradleModuleExtension extension = AndroidGradleJps.getFirstExtension(chunk);
     if (extension == null) {
-      String format = "Project '%1$s' does not have the '%2$s' facet. Nothing done.";
-      LOG.info(String.format(format, getProjectName(context), AndroidGradleFacet.NAME));
+      if (LOG.isDebugEnabled()) {
+        String format = "Project '%1$s' does not have the '%2$s' facet. Nothing done.";
+        LOG.info(String.format(format, getProjectName(context), AndroidGradleFacet.NAME));
+      }
       return ExitCode.NOTHING_DONE;
     }
 
