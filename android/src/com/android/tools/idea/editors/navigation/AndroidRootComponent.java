@@ -115,7 +115,7 @@ public class AndroidRootComponent extends JComponent {
       g.setColor(Color.WHITE);
       g.fillRect(0, 0, getWidth(), getHeight());
       g.setColor(Color.GRAY);
-      String message = "Rendering...";
+      String message = "Initialising...";
       Font font = g.getFont();
       int messageWidth = getFontMetrics(font).stringWidth(message);
       g.drawString(message, (getWidth() - messageWidth) / 2, getHeight() / 2);
