@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package com.android.tools.idea.editors;
+package com.android.tools.idea.editors.vmtrace;
 
-import com.android.SdkConstants;
 import com.android.utils.SdkUtils;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
@@ -30,18 +29,19 @@ import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public class NinePatchEditorProvider implements FileEditorProvider, DumbAware {
-  @NonNls private static final String ID = "ninepatcheditor";
+public class VmTraceEditorProvider implements FileEditorProvider, DumbAware {
+  @NonNls private static final String ID = "vmtrace-editor";
+  @NonNls private static final String DOT_TRACE = ".trace";
 
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
-    return SdkUtils.endsWithIgnoreCase(file.getPath(), SdkConstants.DOT_9PNG);
+    return SdkUtils.endsWithIgnoreCase(file.getPath(), DOT_TRACE);
   }
 
   @NotNull
   @Override
   public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
-    return new NinePatchEditor(project, file);
+    return new VmTraceEditor(project, file);
   }
 
   @Override
@@ -51,14 +51,12 @@ public class NinePatchEditorProvider implements FileEditorProvider, DumbAware {
 
   @NotNull
   @Override
-  public FileEditorState readState(@NotNull Element sourceElement, @NotNull Project project,
-                                   @NotNull VirtualFile file) {
+  public FileEditorState readState(@NotNull Element sourceElement, @NotNull Project project, @NotNull VirtualFile file) {
     return FileEditorState.INSTANCE;
   }
 
   @Override
-  public void writeState(@NotNull FileEditorState state, @NotNull Project project,
-                         @NotNull Element targetElement) {
+  public void writeState(@NotNull FileEditorState state, @NotNull Project project, @NotNull Element targetElement) {
   }
 
   @NotNull
@@ -70,6 +68,6 @@ public class NinePatchEditorProvider implements FileEditorProvider, DumbAware {
   @NotNull
   @Override
   public FileEditorPolicy getPolicy() {
-    return FileEditorPolicy.PLACE_BEFORE_DEFAULT_EDITOR;
+    return FileEditorPolicy.HIDE_DEFAULT_EDITOR;
   }
 }
