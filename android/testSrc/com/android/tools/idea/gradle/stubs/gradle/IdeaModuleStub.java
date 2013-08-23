@@ -62,6 +62,7 @@ public class IdeaModuleStub implements IdeaModule {
     return ImmutableDomainObjectSet.of(myContentRoots);
   }
 
+  @NotNull
   @Override
   public GradleProjectStub getGradleProject() {
     return myGradleProject;
