@@ -16,8 +16,7 @@
 package com.android.tools.idea.editors.navigation;
 
 import com.android.navigation.*;
-import com.android.navigation.State;
-import com.android.sdklib.devices.*;
+import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderedView;
@@ -85,14 +84,14 @@ public class NavigationEditorPanel2 extends JComponent {
   private boolean myStateCacheIsValid;
   private boolean myTransitionEditorCacheIsValid;
   @NotNull private Selections.Selection mySelection = Selections.NULL;
-  private Map<Locator, RenderedView> myLocationToRenderedView = null;
+  private Map<State, Map<String, RenderedView>> myLocationToRenderedView = new IdentityHashMap<State, Map<String, RenderedView>>();
   private Image myBackgroundImage;
   private Point myMouseLocation;
   private float myScale = 1 / 4f;
 
   // Configuration
 
-  private boolean showRollover = true;
+  private boolean showRollover = false;
 
   @Nullable
   private static RenderingParameters getRenderingParams(Project project, VirtualFile file) {
@@ -253,37 +252,40 @@ public class NavigationEditorPanel2 extends JComponent {
     return roots.get(0);
   }
 
-  private Map<Locator, RenderedView> getLocationToRenderedView() {
-    if (myLocationToRenderedView == null) {
-      myLocationToRenderedView = new HashMap<Locator, RenderedView>();
-      for (final State state : myNavigationModel.getStates()) {
-        new Object() {
-          void walk(@Nullable RenderedView parent) {
-            if (parent == null) {
-              return;
-            }
-            for (RenderedView child : parent.getChildren()) {
-              String id = getViewId(child);
-              if (id != null) {
-                Locator locator = new Locator(state);
-                locator.setViewName(id);
-                myLocationToRenderedView.put(locator, child);
-              }
-              walk(child);
-            }
-          }
-        }.walk(getRootView(getStateComponentAssociation().keyToValue.get(state)));
+  private Map<String, RenderedView> getNameToRenderedView(State state) {
+    Map<String, RenderedView> result = myLocationToRenderedView.get(state);
+    if (result == null) {
+      RenderedView root = getRootView(getStateComponentAssociation().keyToValue.get(state));
+      if (root != null) {
+        myLocationToRenderedView.put(state, result = createViewNameToRenderedView(root));
+      } else {
+        return Collections.emptyMap(); // rendering library hasn't loaded, temporarily return an empty map
       }
     }
-    return myLocationToRenderedView;
+    return result;
+  }
+
+  private static Map<String, RenderedView> createViewNameToRenderedView(@NotNull RenderedView root) {
+    final Map<String, RenderedView> result = new HashMap<String, RenderedView>();
+    new Object() {
+      void walk(RenderedView parent) {
+        for (RenderedView child : parent.getChildren()) {
+          String id = getViewId(child);
+          if (id != null) {
+            result.put(id, child);
+          }
+          walk(child);
+        }
+      }
+    }.walk(root);
+    return result;
   }
 
   static void paintLeaf(Graphics g, @Nullable RenderedView leaf, Color color, AndroidRootComponent component) {
     if (leaf != null) {
       Color oldColor = g.getColor();
       g.setColor(color);
-      Rectangle r = component.getBounds(leaf);
-      g.drawRect(r.x, r.y, r.width, r.height);
+      drawRectangle(g, component.getBounds(leaf));
       g.setColor(oldColor);
     }
   }
@@ -432,8 +434,7 @@ public class NavigationEditorPanel2 extends JComponent {
 
       Dimension pathSize = dimension(diff(pj5, pj0));
 
-      int cornerDiameter = Math.min(Math.min(pathSize.width, pathSize.height),
-                                    Math.min(MAJOR_SNAP_GRID.width, MAJOR_SNAP_GRID.height));
+      int cornerDiameter = Math.min(Math.min(pathSize.width, pathSize.height), Math.min(MAJOR_SNAP_GRID.width, MAJOR_SNAP_GRID.height));
       int cornerRadius = cornerDiameter / 2;
 
       Rectangle cornerA = getCorner(cornerDiameter, A);
@@ -478,20 +479,23 @@ public class NavigationEditorPanel2 extends JComponent {
   }
 
   private RenderedView getRenderedView(Locator locator) {
-    return getLocationToRenderedView().get(locator);
+    return getNameToRenderedView(locator.getState()).get(locator.getViewName());
   }
 
-  private void paintLeaf(Graphics2D lineGraphics) {
+  private void paintRollover(Graphics2D lineGraphics) {
     if (myMouseLocation == null || !showRollover) {
       return;
     }
     Component component = getComponentAt(myMouseLocation);
     if (component instanceof AndroidRootComponent) {
+      Stroke oldStroke = lineGraphics.getStroke();
+      lineGraphics.setStroke(new BasicStroke(1));
       AndroidRootComponent androidRootComponent = (AndroidRootComponent)component;
       RenderedView leaf = getRenderedView(androidRootComponent, myMouseLocation);
       RenderedView namedLeaf = getNamedParent(leaf);
       paintLeaf(lineGraphics, leaf, Color.RED, androidRootComponent);
       paintLeaf(lineGraphics, namedLeaf, Color.BLUE, androidRootComponent);
+      lineGraphics.setStroke(oldStroke);
     }
   }
 
@@ -516,7 +520,7 @@ public class NavigationEditorPanel2 extends JComponent {
     paintChildren(g, SCREENS);
     Graphics2D lineGraphics = createLineGraphics(g);
     paintTransitions(lineGraphics);
-    paintLeaf(lineGraphics);
+    paintRollover(lineGraphics);
     paintSelection(g);
     paintChildren(g, EDITORS);
   }
@@ -661,7 +665,7 @@ public class NavigationEditorPanel2 extends JComponent {
   }
 
   private Dimension getPreviewSize() {
-      return scale(getDeviceScreenSize(), myScale);
+    return scale(getDeviceScreenSize(), myScale);
   }
 
   private void setPreferredSize(Set<AndroidRootComponent> roots) {
