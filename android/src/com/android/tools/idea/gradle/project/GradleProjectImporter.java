@@ -19,9 +19,11 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.GradleImportNotificationListener;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.sdk.Jdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ProjectTopics;
+import com.intellij.ide.impl.NewProjectUtil;
 import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -198,6 +200,10 @@ public class GradleProjectImporter {
         ApplicationManager.getApplication().runWriteAction(new Runnable() {
           @Override
           public void run() {
+            Sdk sdk = Jdks.chooseOrCreateJavaSdk();
+            if (sdk != null) {
+              NewProjectUtil.applyJdkToProject(newProject, sdk);
+            }
             // In practice, it really does not matter where the compiler output folder is. Gradle handles that. This is done just to please
             // IDEA.
             String compileOutputUrl = VfsUtilCore.pathToUrl(newProject.getBasePath() + "/build/classes");
