@@ -546,7 +546,7 @@ public class RenderErrorPanel extends JPanel {
       if (firstThrowable != null) {
         builder.newline().newline();
         builder.addHeading("Exception Details", HtmlBuilderHelper.getHeaderFontColor()).newline();
-        reportThrowable(builder, firstThrowable);
+        reportThrowable(builder, firstThrowable, false);
       }
       builder.newline().newline();
     }
@@ -729,7 +729,7 @@ public class RenderErrorPanel extends JPanel {
 
         Throwable throwable = message.getThrowable();
         if (throwable != null) {
-          reportThrowable(builder, throwable);
+          reportThrowable(builder, throwable, true);
         }
 
         if (tag != null) {
@@ -802,7 +802,7 @@ public class RenderErrorPanel extends JPanel {
   }
 
   /** Display the problem list encountered during a render */
-  private void reportThrowable(@NotNull HtmlBuilder builder, @NotNull Throwable throwable) {
+  private void reportThrowable(@NotNull HtmlBuilder builder, @NotNull Throwable throwable, boolean hideIfIrrelevant) {
     StackTraceElement[] frames = throwable.getStackTrace();
     int end = -1;
     boolean haveInterestingFrame = false;
@@ -820,7 +820,18 @@ public class RenderErrorPanel extends JPanel {
 
     if (end == -1 || !haveInterestingFrame) {
       // Not a recognized stack trace range: just skip it
-      return;
+      if (hideIfIrrelevant) {
+        return;
+      } else {
+        // List just the top frames
+        for (int i = 0; i < frames.length; i++) {
+          StackTraceElement frame = frames[i];
+          if (!isVisible(frame)) {
+            end = i;
+            break;
+          }
+        }
+      }
     }
 
     builder.add(throwable.toString()).newline();
@@ -870,6 +881,14 @@ public class RenderErrorPanel extends JPanel {
     return !(className.startsWith("android.")          //$NON-NLS-1$
              || className.startsWith("org.jetbrains.") //$NON-NLS-1$
              || className.startsWith("com.android.")   //$NON-NLS-1$
+             || className.startsWith("java.")          //$NON-NLS-1$
+             || className.startsWith("javax.")         //$NON-NLS-1$
+             || className.startsWith("sun."));         //$NON-NLS-1$
+  }
+
+  private static boolean isVisible(StackTraceElement frame) {
+    String className = frame.getClassName();
+    return !(className.startsWith("android.")          //$NON-NLS-1$
              || className.startsWith("java.")          //$NON-NLS-1$
              || className.startsWith("javax.")         //$NON-NLS-1$
              || className.startsWith("sun."));         //$NON-NLS-1$
