@@ -281,6 +281,10 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
       if (configuration.isForceJumbo()) {
         programParamList.addAll(Arrays.asList("--forceJumbo", Boolean.TRUE.toString()));
       }
+
+      if (configuration.isCoreLibrary()) {
+        programParamList.add("--coreLibrary");
+      }
     }
     else {
       vmOptions = Collections.singletonList("-Xmx1024M");

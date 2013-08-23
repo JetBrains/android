@@ -20,6 +20,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.utils.NullLogger;
 import com.intellij.facet.FacetType;
 import com.intellij.ide.highlighter.ModuleFileType;
+import com.intellij.notification.Notification;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.ModifiableModuleModel;
@@ -46,10 +47,8 @@ import com.intellij.util.Processor;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.io.ZipUtil;
 import org.jdom.Element;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidFacetConfiguration;
-import org.jetbrains.android.facet.AndroidFacetType;
-import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.android.compiler.AndroidDexCompilerConfiguration;
+import org.jetbrains.android.facet.*;
 import org.jetbrains.android.sdk.*;
 import org.jetbrains.android.util.AndroidNativeLibData;
 import org.jetbrains.android.util.AndroidUtils;
@@ -79,6 +78,8 @@ import java.util.*;
  * @author Eugene.Kudelevsky
  */
 public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFacet, AndroidFacetConfiguration, AndroidFacetType> {
+  private static final String DEX_CORE_LIBRARY_PROPERTY = "dexCoreLibrary";
+
   public static volatile String ANDROID_SDK_PATH_TEST = null;
 
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.maven.AndroidFacetImporterBase");
@@ -87,6 +88,8 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
   @NonNls private static final String DEFAULT_NATIVE_ARCHITECTURE = "armeabi";
 
   private static final Key<Boolean> DELETE_OBSOLETE_MODULE_TASK_KEY = Key.create("DELETE_OBSOLETE_MODULE_TASK");
+
+  private Notification myDexCorLibOptionNotification;
 
   public AndroidFacetImporterBase(@NotNull String pluginId) {
     super("com.jayway.maven.plugins.android.generation2", pluginId, FacetType.findInstance(AndroidFacetType.class));
@@ -150,6 +153,13 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     facet.getProperties().ENABLE_MANIFEST_MERGING = Boolean.parseBoolean(findConfigValue(mavenProject, "mergeManifests"));
     facet.getProperties().COMPILE_CUSTOM_GENERATED_SOURCES = false;
 
+    if (Boolean.parseBoolean(findConfigValue(mavenProject, DEX_CORE_LIBRARY_PROPERTY)) &&
+        !AndroidDexCompilerConfiguration.getInstance(module.getProject()).CORE_LIBRARY) {
+      if (myDexCorLibOptionNotification != null && !myDexCorLibOptionNotification.isExpired()) {
+        myDexCorLibOptionNotification.expire();
+      }
+      myDexCorLibOptionNotification = AndroidFrameworkDetector.showDexOptionNotification(module, DEX_CORE_LIBRARY_PROPERTY);
+    }
     configureAndroidPlatform(facet, mavenProject, modelsProvider);
     final Project project = module.getProject();
     importExternalApklibDependencies(project, rootModel, modelsProvider, mavenTree, mavenProject, mavenProjectToModuleName,
