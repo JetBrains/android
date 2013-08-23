@@ -17,9 +17,13 @@ package com.android.tools.idea.editors.navigation;
 
 import com.android.navigation.Transition;
 import com.android.navigation.NavigationModel;
+import com.android.tools.idea.configurations.Configuration;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import org.jetbrains.android.facet.AndroidFacet;
 
 import javax.swing.*;
 import java.awt.*;
@@ -44,9 +48,19 @@ public class NavigationEditorPanel1 extends JPanel {
     Transition current = getCurrentNavigation();
     VirtualFile source = myFileSystem.findFileByPath(myPath + "/" + current.getSource());
     VirtualFile destination = myFileSystem.findFileByPath(myPath + "/" + current.getDestination());
-    mySourcePreviewPanel.render(myProject, source);
-    myGestureComboBox.setSelectedItem(current.getType());
-    myDestPreviewPanel.render(myProject, destination);
+    if (source != null) {
+      PsiManager psiManager = PsiManager.getInstance(myProject);
+      PsiFile psiFile = psiManager.findFile(source);
+      if (psiFile != null) {
+        AndroidFacet facet = AndroidFacet.getInstance(psiFile);
+        if (facet != null) {
+          Configuration configuration = facet.getConfigurationManager().getConfiguration(source);
+          //mySourcePreviewPanel.render(myProject, source, configuration, facet, psiManager.findFile(source));
+          myGestureComboBox.setSelectedItem(current.getType());
+          //myDestPreviewPanel.render(myProject, destination, configuration, facet, psiManager.findFile(destination));
+        }
+      }
+    }
   }
 
   public void setCursor(int cursor) {
@@ -77,7 +91,9 @@ public class NavigationEditorPanel1 extends JPanel {
     myCursor = 0;
     myNavigationModel = navigationModel;
 
-    mySourcePreviewPanel = new AndroidRootComponent();
+    RenderingParameters params = new RenderingParameters(myProject, null, null);
+
+    mySourcePreviewPanel = new AndroidRootComponent(params, null); // todo remove null
     mySourcePreviewPanel.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent mouseEvent) {
@@ -85,7 +101,7 @@ public class NavigationEditorPanel1 extends JPanel {
       }
     });
     myGestureComboBox = new JComboBox(new Object[]{"", "touch", "swipe"});
-    myDestPreviewPanel = new AndroidRootComponent();
+    myDestPreviewPanel = new AndroidRootComponent(params, null);
     myDestPreviewPanel.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent mouseEvent) {
