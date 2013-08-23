@@ -14,9 +14,6 @@ import java.io.IOException;
  * @author Eugene.Kudelevsky
  */
 public class AndroidResourcesLineMarkerTest extends AndroidTestCase {
-  public void test1() {
-  }
-
   private static final String BASE_PATH = "/resNavigation/";
 
   public AndroidResourcesLineMarkerTest() {
@@ -79,8 +76,24 @@ public class AndroidResourcesLineMarkerTest extends AndroidTestCase {
     doJavaFileNavigationTest(1, true, XmlAttributeValue.class);
   }
 
-  public void testJavaFileNavigationToSystemResource() throws Exception {
+  public void testJavaFileNavigation13() throws Exception {
     doJavaFileNavigationTest(1, true, XmlAttributeValue.class);
+  }
+
+  public void testJavaFileNavigation14() throws Exception {
+    doJavaFileNavigationTest(1, true, XmlAttributeValue.class);
+  }
+
+  public void testJavaFileNavigation15() throws Exception {
+    doJavaFileNavigationTest(1, true, XmlAttributeValue.class);
+  }
+
+  public void testJavaFileNavigationToSystemResource1() throws Exception {
+    doJavaFileNavigationTest(1, true, XmlAttributeValue.class);
+  }
+
+  public void testJavaFileNavigationToSystemResource2() throws Exception {
+    doJavaFileNavigationTest(2, true, XmlAttributeValue.class);
   }
 
   private void doJavaFileNavigationTest(int expectedTargets,
