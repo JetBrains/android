@@ -64,6 +64,7 @@ import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -202,7 +203,7 @@ public class GradleProjectImporter {
   private static void setUpGradleSettings(@NotNull Project newProject, @NotNull String projectFilePath) {
     GradleSettings gradleSettings = GradleSettings.getInstance(newProject);
     GradleProjectSettings projectSettings = new GradleProjectSettings();
-    projectSettings.setPreferLocalInstallationToWrapper(false);
+    projectSettings.setDistributionType(DistributionType.WRAPPED);
     projectSettings.setExternalProjectPath(projectFilePath);
     projectSettings.setUseAutoImport(true);
     gradleSettings.setLinkedProjectsSettings(ImmutableList.of(projectSettings));
