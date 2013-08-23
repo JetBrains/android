@@ -20,6 +20,7 @@ import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -42,8 +43,12 @@ public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
     if (!(sourceElement instanceof PsiIdentifier)) {
       return null;
     }
+    final PsiFile file = sourceElement.getContainingFile();
 
-    AndroidFacet facet = AndroidFacet.getInstance(sourceElement);
+    if (file == null) {
+      return null;
+    }
+    AndroidFacet facet = AndroidFacet.getInstance(file);
     if (facet == null) {
       return null;
     }
@@ -69,7 +74,9 @@ public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
     if (info == null) {
       return null;
     }
-    final ResourceManager manager = info.isSystem() ? facet.getSystemResourceManager() : facet.getLocalResourceManager();
+    final ResourceManager manager = info.isSystem()
+                                    ? facet.getSystemResourceManager(false)
+                                    : facet.getLocalResourceManager();
     if (manager == null) {
       return null;
     }

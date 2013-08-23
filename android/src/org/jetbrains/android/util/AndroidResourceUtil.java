@@ -46,6 +46,7 @@ import com.intellij.util.Processor;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.AndroidFileTemplateProvider;
+import org.jetbrains.android.augment.AndroidPsiElementFinder;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.resources.Item;
 import org.jetbrains.android.dom.resources.ResourceElement;
@@ -805,8 +806,12 @@ public class AndroidResourceUtil {
     if (!AndroidUtils.R_CLASS_NAME.equals(aClass.getName())) {
       return null;
     }
-    if (!localOnly && SdkConstants.CLASS_R.equals(aClass.getQualifiedName())) {
-      return new MyReferredResourceFieldInfo(resClassName, resFieldName, true);
+    if (!localOnly) {
+      final String qName = aClass.getQualifiedName();
+
+      if (SdkConstants.CLASS_R.equals(qName) || AndroidPsiElementFinder.INTERNAL_R_CLASS_QNAME.equals(qName)) {
+        return new MyReferredResourceFieldInfo(resClassName, resFieldName, true);
+      }
     }
     final PsiFile containingFile = resolvedElement.getContainingFile();
     if (containingFile == null || !isRJavaFile(facet, containingFile)) {
