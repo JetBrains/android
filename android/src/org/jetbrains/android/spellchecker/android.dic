@@ -1,6 +1,7 @@
 actionbar
 anim
 antialias
+appcompat
 appwidget
 attrs
 bluetooth
@@ -18,6 +19,8 @@ focusable
 framebuffer
 fullscreen
 geolocation
+gradle
+gridlayout
 haptic
 holo
 iconified
