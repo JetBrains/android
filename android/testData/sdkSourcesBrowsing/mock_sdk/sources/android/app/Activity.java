@@ -16,6 +16,19 @@ public class Activity {
       int[] a = com.android.internal.R.styleable.Fragment;
       int n1 = com.android.internal.R.color.my_white;
       int n2 = com.android.internal.R.color.<error>unknown_resource</error>;
+
+      int m1 = android.R.string.cancel;
+      int m2 = android.R.id.checkbox;
+      int m3 = android.R.string.private_str;
+      int m4 = android.R.id.privatte;
+
+      m1 = com.android.internal.R.string.cancel;
+      m2 = com.android.internal.R.id.checkbox;
+      m3 = com.android.internal.R.string.private_str;
+      m4 = com.android.internal.R.id.privatte;
+
+      m1 = android.R.drawable.menuitem_background;
+      m1 = com.android.internal.R.drawable.menuitem_background;
     }
 
     private void f(ActivityThread t) {

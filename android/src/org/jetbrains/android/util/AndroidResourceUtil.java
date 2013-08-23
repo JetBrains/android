@@ -32,7 +32,6 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModulePackageIndex;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.ReadonlyStatusHandler;
@@ -47,6 +46,7 @@ import com.intellij.util.Processor;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.AndroidFileTemplateProvider;
+import org.jetbrains.android.augment.AndroidPsiElementFinder;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.resources.Item;
 import org.jetbrains.android.dom.resources.ResourceElement;
@@ -764,14 +764,17 @@ public class AndroidResourceUtil {
   }
 
   @Nullable
-  public static Pair<String, String> getReferredResourceField(@NotNull AndroidFacet facet, @NotNull PsiReferenceExpression exp) {
-    return getReferredResourceField(facet, exp, null);
+  public static MyReferredResourceFieldInfo getReferredResourceField(@NotNull AndroidFacet facet,
+                                                              @NotNull PsiReferenceExpression exp,
+                                                              boolean localOnly) {
+    return getReferredResourceField(facet, exp, null, localOnly);
   }
 
   @Nullable
-  public static Pair<String, String> getReferredResourceField(@NotNull AndroidFacet facet,
-                                                              @NotNull PsiReferenceExpression exp,
-                                                              @Nullable String className) {
+  public static MyReferredResourceFieldInfo getReferredResourceField(@NotNull AndroidFacet facet,
+                                                                     @NotNull PsiReferenceExpression exp,
+                                                                     @Nullable String className,
+                                                                     boolean localOnly) {
     final String resFieldName = exp.getReferenceName();
     if (resFieldName == null || resFieldName.length() == 0) {
       return null;
@@ -795,16 +798,52 @@ public class AndroidResourceUtil {
     }
 
     final PsiElement resolvedElement = ((PsiReferenceExpression)qExp).resolve();
-    if (!(resolvedElement instanceof PsiClass) ||
-        !AndroidUtils.R_CLASS_NAME.equals(((PsiClass)resolvedElement).getName())) {
+    if (!(resolvedElement instanceof PsiClass)) {
       return null;
     }
+    final PsiClass aClass = (PsiClass)resolvedElement;
 
+    if (!AndroidUtils.R_CLASS_NAME.equals(aClass.getName())) {
+      return null;
+    }
+    if (!localOnly) {
+      final String qName = aClass.getQualifiedName();
+
+      if (SdkConstants.CLASS_R.equals(qName) || AndroidPsiElementFinder.INTERNAL_R_CLASS_QNAME.equals(qName)) {
+        return new MyReferredResourceFieldInfo(resClassName, resFieldName, true);
+      }
+    }
     final PsiFile containingFile = resolvedElement.getContainingFile();
     if (containingFile == null || !isRJavaFile(facet, containingFile)) {
       return null;
     }
-    return new Pair<String, String>(resClassName, resFieldName);
+    return new MyReferredResourceFieldInfo(resClassName, resFieldName, false);
+  }
+
+  public static class MyReferredResourceFieldInfo {
+    private final String myClassName;
+    private final String myFieldName;
+    private final boolean mySystem;
+
+    public MyReferredResourceFieldInfo(@NotNull String className, @NotNull String fieldName, boolean system) {
+      myClassName = className;
+      myFieldName = fieldName;
+      mySystem = system;
+    }
+
+    @NotNull
+    public String getClassName() {
+      return myClassName;
+    }
+
+    @NotNull
+    public String getFieldName() {
+      return myFieldName;
+    }
+
+    public boolean isSystem() {
+      return mySystem;
+    }
   }
 
   @NotNull

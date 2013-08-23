@@ -316,7 +316,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
                 final RunContentManager contentManager = ExecutionManager.getInstance(project).getContentManager();
 
                 for (RunContentDescriptor d : contentManager.getAllDescriptors()) {
-                  if (d.equals(descriptor)) {
+                  if (sessionName.equals(d.getDisplayName())) {
                     final Content content = d.getAttachedContent();
                     content.getManager().setSelectedContent(content);
                     toolWindow.activate(null, true, true);

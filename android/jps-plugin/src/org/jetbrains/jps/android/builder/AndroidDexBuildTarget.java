@@ -47,6 +47,7 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
       out.println(c.getMaxHeapSize());
       out.println(c.isOptimize());
       out.println(c.isForceJumbo());
+      out.println(c.isCoreLibrary());
     }
   }
 

@@ -9,7 +9,6 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.FileIndexFacade;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -223,12 +222,13 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
         super.visitReferenceExpression(expression);
 
         final String resClassName = ResourceType.LAYOUT.getName();
-        final Pair<String, String> pair = AndroidResourceUtil.getReferredResourceField(facet, expression, resClassName);
+        final AndroidResourceUtil.MyReferredResourceFieldInfo
+          info = AndroidResourceUtil.getReferredResourceField(facet, expression, resClassName, true);
 
-        if (pair == null) {
+        if (info == null) {
           return;
         }
-        final String resFieldName = pair.getSecond();
+        final String resFieldName = info.getFieldName();
         final List<PsiElement> resources = facet.getLocalResourceManager().findResourcesByFieldName(resClassName, resFieldName);
 
         for (PsiElement resource : resources) {

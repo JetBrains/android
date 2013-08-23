@@ -19,4 +19,7 @@
   </style>
 
   <color name="my_white">#ffffff</color>
+
+  <string name="cancel">cancel</string>
+  <string name="private_str">private</string>
 </resources>

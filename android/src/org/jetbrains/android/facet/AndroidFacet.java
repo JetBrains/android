@@ -101,7 +101,8 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private AvdManager myAvdManager = null;
   private SdkManager mySdkManager;
 
-  private SystemResourceManager mySystemResourceManager;
+  private SystemResourceManager myPublicSystemResourceManager;
+  private SystemResourceManager myFullSystemResourceManager;
   private LocalResourceManager myLocalResourceManager;
 
   private final Map<String, Map<String, SmartPsiElementPointer<PsiClass>>> myClassMaps =
@@ -390,7 +391,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public void androidPlatformChanged() {
     myAvdManager = null;
     myLocalResourceManager = null;
-    mySystemResourceManager = null;
+    myPublicSystemResourceManager = null;
     myClassMaps.clear();
   }
 
@@ -843,13 +844,27 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @Nullable
   public SystemResourceManager getSystemResourceManager() {
-    if (mySystemResourceManager == null) {
+    return getSystemResourceManager(true);
+  }
+
+  @Nullable
+  public SystemResourceManager getSystemResourceManager(boolean publicOnly) {
+    if (publicOnly) {
+      if (myPublicSystemResourceManager == null) {
+        AndroidPlatform platform = getConfiguration().getAndroidPlatform();
+        if (platform != null) {
+          myPublicSystemResourceManager = new SystemResourceManager(this.getModule().getProject(), platform, true);
+        }
+      }
+      return myPublicSystemResourceManager;
+    }
+    if (myFullSystemResourceManager == null) {
       AndroidPlatform platform = getConfiguration().getAndroidPlatform();
       if (platform != null) {
-        mySystemResourceManager = new SystemResourceManager(this.getModule().getProject(), platform, true);
+        myFullSystemResourceManager = new SystemResourceManager(this.getModule().getProject(), platform, false);
       }
     }
-    return mySystemResourceManager;
+    return myFullSystemResourceManager;
   }
 
   @Nullable

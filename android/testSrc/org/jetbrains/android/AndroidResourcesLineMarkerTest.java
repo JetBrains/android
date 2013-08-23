@@ -5,6 +5,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlAttributeValue;
+import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -13,9 +14,6 @@ import java.io.IOException;
  * @author Eugene.Kudelevsky
  */
 public class AndroidResourcesLineMarkerTest extends AndroidTestCase {
-  public void test1() {
-  }
-
   private static final String BASE_PATH = "/resNavigation/";
 
   public AndroidResourcesLineMarkerTest() {
@@ -78,6 +76,26 @@ public class AndroidResourcesLineMarkerTest extends AndroidTestCase {
     doJavaFileNavigationTest(1, true, XmlAttributeValue.class);
   }
 
+  public void testJavaFileNavigation13() throws Exception {
+    doJavaFileNavigationTest(1, true, XmlAttributeValue.class);
+  }
+
+  public void testJavaFileNavigation14() throws Exception {
+    doJavaFileNavigationTest(1, true, XmlAttributeValue.class);
+  }
+
+  public void testJavaFileNavigation15() throws Exception {
+    doJavaFileNavigationTest(1, true, XmlAttributeValue.class);
+  }
+
+  public void testJavaFileNavigationToSystemResource1() throws Exception {
+    doJavaFileNavigationTest(1, true, XmlAttributeValue.class);
+  }
+
+  public void testJavaFileNavigationToSystemResource2() throws Exception {
+    doJavaFileNavigationTest(2, true, XmlAttributeValue.class);
+  }
+
   private void doJavaFileNavigationTest(int expectedTargets,
                                         boolean expectedEnabled,
                                         @Nullable Class<? extends PsiElement> targetElementClass)
@@ -99,7 +117,7 @@ public class AndroidResourcesLineMarkerTest extends AndroidTestCase {
       assertEquals(expectedTargets, targets.length);
 
       for (PsiElement target : targets) {
-        assertInstanceOf(target, targetElementClass);
+        assertInstanceOf(LazyValueResourceElementWrapper.computeLazyElement(target), targetElementClass);
       }
     }
   }

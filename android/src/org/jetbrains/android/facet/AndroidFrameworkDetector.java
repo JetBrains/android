@@ -102,21 +102,7 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
     final Pair<String,VirtualFile> dexForceJumboProp =
       AndroidRootUtil.getProjectPropertyValue(module, AndroidUtils.ANDROID_DEX_FORCE_JUMBO_PROPERTY);
     if (dexForceJumboProp != null) {
-      final Project project = module.getProject();
-      final Notification notification = ANDROID_MODULE_IMPORTING_NOTIFICATION.createNotification(
-        AndroidBundle.message("android.facet.importing.title", module.getName()),
-        "'" + AndroidUtils.ANDROID_DEX_FORCE_JUMBO_PROPERTY +
-        "' property is detected in " + SdkConstants.FN_PROJECT_PROPERTIES +
-        " file.<br>You may configure jumbo mode in <a href='configure'>Settings | Compiler | Android DX</a>",
-        NotificationType.INFORMATION, new NotificationListener.Adapter() {
-        @Override
-        protected void hyperlinkActivated(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
-          notification.expire();
-          ShowSettingsUtil.getInstance().showSettingsDialog(
-            project, AndroidBundle.message("android.dex.compiler.configurable.display.name"));
-        }
-      });
-      notification.notify(project);
+      showDexOptionNotification(module, AndroidUtils.ANDROID_DEX_FORCE_JUMBO_PROPERTY);
     }
 
     Manifest manifest = facet.getManifest();
@@ -125,6 +111,26 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
         AndroidUtils.addRunConfiguration(facet, null, false, null, null);
       }
     }
+  }
+
+  @NotNull
+  public static Notification showDexOptionNotification(@NotNull Module module, @NotNull String propertyName) {
+    final Project project = module.getProject();
+    final Notification notification = ANDROID_MODULE_IMPORTING_NOTIFICATION.createNotification(
+      AndroidBundle.message("android.facet.importing.title", module.getName()),
+      "'" + propertyName +
+      "' property is detected in " + SdkConstants.FN_PROJECT_PROPERTIES +
+      " file.<br>You may enable related option in <a href='configure'>Settings | Compiler | Android DX</a>",
+      NotificationType.INFORMATION, new NotificationListener.Adapter() {
+      @Override
+      protected void hyperlinkActivated(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
+        notification.expire();
+        ShowSettingsUtil.getInstance().showSettingsDialog(
+          project, AndroidBundle.message("android.dex.compiler.configurable.display.name"));
+      }
+    });
+    notification.notify(project);
+    return notification;
   }
 
   @Override
