@@ -84,9 +84,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
   @Override
   public String suggestedName() {
     if (TESTING_TYPE == TEST_ALL_IN_PACKAGE) {
-      return isGeneratedName()
-             ? ExecutionBundle.message("test.in.scope.presentable.text", PACKAGE_NAME)
-             : "'" + getName() + "'";
+      return ExecutionBundle.message("test.in.scope.presentable.text", PACKAGE_NAME);
     }
     else if (TESTING_TYPE == TEST_CLASS) {
       return ProgramRunnerUtil.shortenName(JavaExecutionUtil.getShortClassName(CLASS_NAME), 0);
