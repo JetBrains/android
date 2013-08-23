@@ -32,11 +32,12 @@ import java.awt.image.BufferedImage;
 public class AndroidRootComponent extends JComponent {
   //private static final Object RENDERING_LOCK = new Object();
 
-  final RenderingParameters myRenderingParameters;
-  final PsiFile myPsiFile;
+  private final RenderingParameters myRenderingParameters;
+  private final PsiFile myPsiFile;
 
   private float myScale = 1;
 
+  private Image myScaledImage;
   private RenderResult myRenderResult = null;
 
   public AndroidRootComponent(@NotNull final RenderingParameters renderingParameters, @Nullable final PsiFile psiFile) {
@@ -58,8 +59,14 @@ public class AndroidRootComponent extends JComponent {
     return myScale;
   }
 
+  private void invalidate2() {
+    myRenderResult = null;
+    myScaledImage = null;
+  }
+
   public void setScale(float scale) {
     myScale = scale;
+    invalidate2();
   }
 
   @Nullable
@@ -68,14 +75,10 @@ public class AndroidRootComponent extends JComponent {
     return image == null ? null : image.getOriginalImage();
   }
 
-  @Override
-  public void paintComponent(Graphics g) {
-    //ScalableImage image = myRenderResult.getImage();
-    //if (image != null) {
-    //  image.paint(g);
-    //}
-    BufferedImage image = getImage();
-    if (image != null) {
+  //ScalableImage image = myRenderResult.getImage();
+  //if (image != null) {
+  //  image.paint(g);
+  //}
       /*
       if (false) {
         Graphics2D g2 = (Graphics2D)g;
@@ -89,15 +92,33 @@ public class AndroidRootComponent extends JComponent {
         g.drawImage(image, 0, 0, getWidth(), getHeight(), null);
       }
       */
-      g.drawImage(ImageUtils.scale(image, myScale, myScale, 0, 0), 0, 0, getWidth(), getHeight(), null);
-    } else {
+
+  private Image getScaledImage() {
+    if (myScaledImage == null ||
+        myScaledImage.getWidth(null) != getWidth() ||
+        myScaledImage.getHeight(null) != getHeight()) {
+      BufferedImage image = getImage();
+      if (image != null) {
+        myScaledImage = ImageUtils.scale(image, myScale, myScale, 0, 0);
+      }
+    }
+    return myScaledImage;
+  }
+
+  @Override
+  public void paintComponent(Graphics g) {
+    Image scaledImage = getScaledImage();
+    if (scaledImage != null) {
+      g.drawImage(scaledImage, 0, 0, null);
+    }
+    else {
       g.setColor(Color.WHITE);
       g.fillRect(0, 0, getWidth(), getHeight());
       g.setColor(Color.GRAY);
       String message = "Rendering...";
       Font font = g.getFont();
       int messageWidth = getFontMetrics(font).stringWidth(message);
-      g.drawString(message, (getWidth() - messageWidth)/2, getHeight()/2);
+      g.drawString(message, (getWidth() - messageWidth) / 2, getHeight() / 2);
       render();
     }
   }
@@ -112,11 +133,13 @@ public class AndroidRootComponent extends JComponent {
       @Override
       public void run() {
         ApplicationManager.getApplication().runReadAction(new Runnable() {
-          Project project = myRenderingParameters.myProject;
-          AndroidFacet facet = myRenderingParameters.myFacet;
-          Configuration configuration = myRenderingParameters.myConfiguration;
+
           @Override
           public void run() {
+            Project project = myRenderingParameters.myProject;
+            AndroidFacet facet = myRenderingParameters.myFacet;
+            Configuration configuration = myRenderingParameters.myConfiguration;
+
             if (project.isDisposed()) {
               return;
             }
