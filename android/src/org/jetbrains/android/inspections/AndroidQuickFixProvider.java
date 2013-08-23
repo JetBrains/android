@@ -5,7 +5,6 @@ import com.intellij.codeInsight.daemon.QuickFixActionRegistrar;
 import com.intellij.codeInsight.quickfix.UnresolvedReferenceQuickFixProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
-import com.intellij.openapi.util.Pair;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReferenceExpression;
@@ -45,18 +44,18 @@ public class AndroidQuickFixProvider extends UnresolvedReferenceQuickFixProvider
       return;
     }
 
-    Pair<String, String> pair = AndroidResourceUtil.getReferredResourceField(facet, exp);
-    if (pair == null) {
+    AndroidResourceUtil.MyReferredResourceFieldInfo info = AndroidResourceUtil.getReferredResourceField(facet, exp, true);
+    if (info == null) {
       final PsiElement parent = exp.getParent();
       if (parent instanceof PsiReferenceExpression) {
-        pair = AndroidResourceUtil.getReferredResourceField(facet, (PsiReferenceExpression)parent);
+        info = AndroidResourceUtil.getReferredResourceField(facet, (PsiReferenceExpression)parent, true);
       }
     }
-    if (pair == null) {
+    if (info == null) {
       return;
     }
-    final String resClassName = pair.getFirst();
-    final String resFieldName = pair.getSecond();
+    final String resClassName = info.getClassName();
+    final String resFieldName = info.getFieldName();
 
     ResourceType resourceType = ResourceType.getEnum(resClassName);
 

@@ -5,6 +5,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlAttributeValue;
+import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -78,6 +79,10 @@ public class AndroidResourcesLineMarkerTest extends AndroidTestCase {
     doJavaFileNavigationTest(1, true, XmlAttributeValue.class);
   }
 
+  public void testJavaFileNavigationToSystemResource() throws Exception {
+    doJavaFileNavigationTest(1, true, XmlAttributeValue.class);
+  }
+
   private void doJavaFileNavigationTest(int expectedTargets,
                                         boolean expectedEnabled,
                                         @Nullable Class<? extends PsiElement> targetElementClass)
@@ -99,7 +104,7 @@ public class AndroidResourcesLineMarkerTest extends AndroidTestCase {
       assertEquals(expectedTargets, targets.length);
 
       for (PsiElement target : targets) {
-        assertInstanceOf(target, targetElementClass);
+        assertInstanceOf(LazyValueResourceElementWrapper.computeLazyElement(target), targetElementClass);
       }
     }
   }
