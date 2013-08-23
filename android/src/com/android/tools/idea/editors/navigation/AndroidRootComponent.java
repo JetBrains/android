@@ -20,9 +20,7 @@ import com.android.tools.idea.rendering.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,29 +28,20 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.List;
 
 public class AndroidRootComponent extends JComponent {
   //private static final Object RENDERING_LOCK = new Object();
-  private static final RenderedView ABSENT_ROOT_VIEW = new RenderedView(null, null, 0, 0, 200, 200);
-  public static final Dimension ZERO_SIZE = new Dimension(0, 0);
+
+  final RenderingParameters myRenderingParameters;
+  final PsiFile myPsiFile;
+
+  private float myScale = 1;
 
   private RenderResult myRenderResult = null;
-  private double myScale;
-  private Dim myDim;
 
-  private static class Dim {
-    float myKx;
-    float myKy;
-
-    Dim(float kx, float ky) {
-      myKx = kx;
-      myKy = ky;
-    }
-  }
-
-  public AndroidRootComponent() {
-    myScale = 1;
+  public AndroidRootComponent(@NotNull final RenderingParameters renderingParameters, @Nullable final PsiFile psiFile) {
+    this.myRenderingParameters = renderingParameters;
+    this.myPsiFile = psiFile;
   }
 
   @Nullable
@@ -62,15 +51,14 @@ public class AndroidRootComponent extends JComponent {
 
   private void setRenderResult(@Nullable RenderResult renderResult) {
     myRenderResult = renderResult;
-    myDim = null;
     repaint();
   }
 
-  public double getScale() {
+  public float getScale() {
     return myScale;
   }
 
-  public void setScale(double scale) {
+  public void setScale(float scale) {
     myScale = scale;
   }
 
@@ -102,97 +90,67 @@ public class AndroidRootComponent extends JComponent {
       }
       */
       g.drawImage(ImageUtils.scale(image, myScale, myScale, 0, 0), 0, 0, getWidth(), getHeight(), null);
+    } else {
+      g.setColor(Color.WHITE);
+      g.fillRect(0, 0, getWidth(), getHeight());
+      g.setColor(Color.GRAY);
+      String message = "Rendering...";
+      Font font = g.getFont();
+      int messageWidth = getFontMetrics(font).stringWidth(message);
+      g.drawString(message, (getWidth() - messageWidth)/2, getHeight()/2);
+      render();
     }
   }
 
-  @Override
-  public Dimension getPreferredSize() {
-    //return myRenderResult.getImage().getRequiredSize();
-    BufferedImage image = getImage();
-    return image == null ? ZERO_SIZE : new Dimension(image.getWidth(), image.getHeight());
-  }
-
-  public void render(@NotNull final Project project, @NotNull final VirtualFile file) {
+  private void render() {
+    if (myPsiFile == null) {
+      return;
+    }
     // The rendering service takes long enough to initialise that we don't want to do this from the EDT.
     // Further, IntellJ's helper classes don't not allow read access from outside EDT, so we need nested runnables.
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
         ApplicationManager.getApplication().runReadAction(new Runnable() {
+          Project project = myRenderingParameters.myProject;
+          AndroidFacet facet = myRenderingParameters.myFacet;
+          Configuration configuration = myRenderingParameters.myConfiguration;
           @Override
           public void run() {
             if (project.isDisposed()) {
               return;
             }
-            PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-            if (psiFile != null) {
-              AndroidFacet facet = AndroidFacet.getInstance(psiFile);
-              if (facet != null) {
-                Module module = facet.getModule();
-                Configuration configuration = facet.getConfigurationManager().getConfiguration(file);
-                RenderLogger logger = new RenderLogger(file.getName(), module);
-                //synchronized (RENDERING_LOCK) {
-                RenderService service = RenderService.create(facet, module, psiFile, configuration, logger, null);
-                if (service != null) {
-                  setRenderResult(service.render());
-                  service.dispose();
-                }
-                //}
-              }
+            Module module = facet.getModule();
+            RenderLogger logger = new RenderLogger(myPsiFile.getName(), module);
+            //synchronized (RENDERING_LOCK) {
+            RenderService service = RenderService.create(facet, module, myPsiFile, configuration, logger, null);
+            if (service != null) {
+              setRenderResult(service.render());
+              service.dispose();
             }
+            //}
           }
         });
       }
     });
   }
 
-  public RenderedView getRootView() {
-    RenderResult renderResult = getRenderResult();
-    if (renderResult == null) {
-      return ABSENT_ROOT_VIEW;
-    }
-    RenderedViewHierarchy hierarchy = renderResult.getHierarchy();
-    if (hierarchy == null) {
-      return ABSENT_ROOT_VIEW;
-    }
-    List<RenderedView> roots = hierarchy.getRoots();
-    if (roots.isEmpty()) {
-      return ABSENT_ROOT_VIEW;
-    }
-    return roots.get(0);
+  private int scale(int d) {
+    return ((int)(d * myScale));
   }
 
-  private Dim getDim() {
-    if (myDim == null) {
-      RenderedView root = getRootView();
-      int b = root.y2() + 100; // todo this accounts for the button bar at the bottom of the rendered view; remove
-      int r = root.x2();
-
-      int cW = getWidth();
-      int cH = getHeight();
-
-      float myKx = (float)r / cW;
-      float myKy = (float)b / cH;
-
-      myDim = new Dim(myKx, myKy);
-    }
-    return myDim;
+  private int unScale(int d) {
+    return (int)(d / myScale);
   }
 
   public Point convertPointFromViewToModel(Point p) {
-    int dx = p.x - getX();
-    int dy = p.y - getY();
-    Dim dim = getDim();
-    return new Point((int)(dx * dim.myKx), (int)(dy * dim.myKy));
+    return new Point(unScale(p.x), unScale(p.y));
   }
 
   public Rectangle getBounds(@Nullable RenderedView leaf) {
     if (leaf == null) {
-      leaf = getRootView();
+      return getBounds();
     }
-    Dim dim = getDim();
-    float kx = dim.myKx;
-    float ky = dim.myKy;
-    return new Rectangle(getX() + ((int)(leaf.x / kx)), getY() + ((int)(leaf.y / ky)), ((int)(leaf.w / kx)), ((int)(leaf.h / ky)));
+    return new Rectangle(getX() + scale(leaf.x), getY() + scale(leaf.y), scale(leaf.w), scale(leaf.h));
   }
 }

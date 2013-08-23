@@ -16,6 +16,10 @@
 package com.android.tools.idea.editors.navigation;
 
 import com.android.navigation.*;
+import com.android.navigation.State;
+import com.android.sdklib.devices.*;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderedView;
 import com.android.tools.idea.rendering.RenderedViewHierarchy;
 import com.android.tools.idea.rendering.ShadowPainter;
@@ -28,10 +32,13 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiQualifiedNamedElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.Gray;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,6 +48,7 @@ import java.awt.Point;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
+import java.util.List;
 
 import static com.android.tools.idea.editors.navigation.Utilities.*;
 
@@ -60,10 +68,6 @@ public class NavigationEditorPanel2 extends JComponent {
   public static final Dimension MIDDLE_SNAP_GRID = scale(MINOR_SNAP_GRID, MIDDLE_COUNT);
   public static final Dimension MAJOR_SNAP_GRID = scale(MINOR_SNAP_GRID, MAJOR_COUNT);
 
-  private static final float SCALE = 1 / 3f;
-  private static final Dimension ORIGINAL_SIZE = new Dimension(480, 800);
-  private static final Dimension PREVIEW_SIZE = scale(ORIGINAL_SIZE, SCALE);
-  private static final Point MIDDLE_OF_PREVIEW = point(scale(PREVIEW_SIZE, 0.5f));
   private static final int LINE_WIDTH = 3;
   private static final Point MULTIPLE_DROP_STRIDE = point(MAJOR_SNAP_GRID);
   private static final String ID_PREFIX = "@+id/";
@@ -71,130 +75,43 @@ public class NavigationEditorPanel2 extends JComponent {
   private static final Condition<Component> SCREENS = instanceOf(AndroidRootComponent.class);
   private static final Condition<Component> EDITORS = not(SCREENS);
 
+  private final RenderingParameters myMyRenderingParams;
+  private final VirtualFile myFile;
   private final NavigationModel myNavigationModel;
-  private final Project myProject;
-  private boolean myStateCacheIsValid;
-  private boolean myTransitionEditorCacheIsValid;
-  private VirtualFileSystem myFileSystem;
-  private String myPath;
-  @NotNull private Selections.Selection mySelection = Selections.NULL;
+
   private final Assoc<State, AndroidRootComponent> myStateComponentAssociation = new Assoc<State, AndroidRootComponent>();
   private final Assoc<Transition, Component> myTransitionEditorAssociation = new Assoc<Transition, Component>();
+
+  private boolean myStateCacheIsValid;
+  private boolean myTransitionEditorCacheIsValid;
+  @NotNull private Selections.Selection mySelection = Selections.NULL;
   private Map<Locator, RenderedView> myLocationToRenderedView = null;
   private Image myBackgroundImage;
   private Point myMouseLocation;
+  private float myScale = 1 / 4f;
 
   // Configuration
 
   private boolean showRollover = true;
 
-  private Assoc<State, AndroidRootComponent> getStateComponentAssociation() {
-    if (!myStateCacheIsValid) {
-      syncStateCache(myStateComponentAssociation);
-      myStateCacheIsValid = true;
-    }
-    return myStateComponentAssociation;
-  }
-
-  private Assoc<Transition, Component> getTransitionEditorAssociation() {
-    if (!myTransitionEditorCacheIsValid) {
-      syncTransitionCache(myTransitionEditorAssociation);
-      myTransitionEditorCacheIsValid = true;
-    }
-    return myTransitionEditorAssociation;
-  }
-
-  static class Assoc<K, V> {
-    public final Map<K, V> keyToValue = new HashMap<K, V>();
-    public final Map<V, K> valueToKey = new HashMap<V, K>();
-
-    public void add(K key, V value) {
-      keyToValue.put(key, value);
-      valueToKey.put(value, key);
-    }
-
-    public void remove(K key, V value) {
-      keyToValue.remove(key);
-      valueToKey.remove(value);
-    }
-
-    public void clear() {
-      keyToValue.clear();
-      valueToKey.clear();
-    }
-  }
-
   @Nullable
-  static String getViewId(@Nullable RenderedView leaf) {
-    if (leaf != null) {
-      XmlTag tag = leaf.tag;
-      if (tag != null) {
-        String attributeValue = tag.getAttributeValue("android:id");
-        if (attributeValue != null && attributeValue.startsWith(ID_PREFIX)) {
-          return attributeValue.substring(ID_PREFIX.length());
+  private static RenderingParameters getRenderingParams(Project project, VirtualFile file) {
+    if (file != null) {
+      PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+      if (psiFile != null) {
+        AndroidFacet facet = AndroidFacet.getInstance(psiFile);
+        if (facet != null) {
+          Configuration configuration = facet.getConfigurationManager().getConfiguration(file);
+          return new RenderingParameters(project, configuration, facet);
         }
       }
     }
     return null;
   }
 
-  @Nullable
-  static RenderedView getRenderedView(AndroidRootComponent component, Point mouseDownLocation) {
-    Point p = component.convertPointFromViewToModel(mouseDownLocation);
-    RenderedViewHierarchy hierarchy = component.getRenderResult().getHierarchy();
-    return hierarchy != null ? hierarchy.findLeafAt(p.x, p.y) : null;
-  }
-
-  @Nullable
-  static RenderedView getNamedParent(@Nullable RenderedView view) {
-    while (view != null && getViewId(view) == null) {
-      view = view.getParent();
-    }
-    return view;
-  }
-
-  private Map<Locator, RenderedView> getLocationToRenderedView() {
-    if (myLocationToRenderedView == null) {
-      myLocationToRenderedView = new HashMap<Locator, RenderedView>();
-      for (final State state : myNavigationModel.getStates()) {
-        new Object() {
-          void walk(RenderedView parent) {
-            for (RenderedView child : parent.getChildren()) {
-              String id = getViewId(child);
-              if (id != null) {
-                Locator locator = new Locator(state);
-                locator.setViewName(id);
-                myLocationToRenderedView.put(locator, child);
-              }
-              walk(child);
-            }
-          }
-        }.walk(getStateComponentAssociation().keyToValue.get(state).getRootView());
-      }
-    }
-    return myLocationToRenderedView;
-  }
-
-  public static void paintLeaf(Graphics g, @Nullable RenderedView leaf, Color color, AndroidRootComponent component) {
-    if (leaf != null) {
-      Color oldColor = g.getColor();
-      g.setColor(color);
-      Rectangle r = component.getBounds(leaf);
-      g.drawRect(r.x, r.y, r.width, r.height);
-      g.setColor(oldColor);
-    }
-  }
-
-  private void registerKeyBinding(int keyCode, String name, Action action) {
-    InputMap inputMap = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-    inputMap.put(KeyStroke.getKeyStroke(keyCode, 0), name);
-    getActionMap().put(name, action);
-  }
-
   public NavigationEditorPanel2(Project project, VirtualFile file, NavigationModel model) {
-    myProject = project;
-    myFileSystem = file.getFileSystem();
-    myPath = file.getParent().getParent().getPath();
+    myMyRenderingParams = getRenderingParams(project, file);
+    myFile = file;
     myNavigationModel = model;
 
     setFocusable(true);
@@ -261,6 +178,122 @@ public class NavigationEditorPanel2 extends JComponent {
     }
   }
 
+  public float getScale() {
+    return myScale;
+  }
+
+  public void setScale(float scale) {
+    myScale = scale;
+    repaint();
+  }
+
+  private Assoc<State, AndroidRootComponent> getStateComponentAssociation() {
+    if (!myStateCacheIsValid) {
+      syncStateCache(myStateComponentAssociation);
+      myStateCacheIsValid = true;
+    }
+    return myStateComponentAssociation;
+  }
+
+  private Assoc<Transition, Component> getTransitionEditorAssociation() {
+    if (!myTransitionEditorCacheIsValid) {
+      syncTransitionCache(myTransitionEditorAssociation);
+      myTransitionEditorCacheIsValid = true;
+    }
+    return myTransitionEditorAssociation;
+  }
+
+  @Nullable
+  static String getViewId(@Nullable RenderedView leaf) {
+    if (leaf != null) {
+      XmlTag tag = leaf.tag;
+      if (tag != null) {
+        String attributeValue = tag.getAttributeValue("android:id");
+        if (attributeValue != null && attributeValue.startsWith(ID_PREFIX)) {
+          return attributeValue.substring(ID_PREFIX.length());
+        }
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  static RenderedView getRenderedView(AndroidRootComponent component, Point mouseDownLocation) {
+    Point p = component.convertPointFromViewToModel(diff(mouseDownLocation, component.getLocation()));
+    RenderResult renderResult = component.getRenderResult();
+    if (renderResult == null) {
+      return null;
+    }
+    RenderedViewHierarchy hierarchy = renderResult.getHierarchy();
+    return hierarchy != null ? hierarchy.findLeafAt(p.x, p.y) : null;
+  }
+
+  @Nullable
+  static RenderedView getNamedParent(@Nullable RenderedView view) {
+    while (view != null && getViewId(view) == null) {
+      view = view.getParent();
+    }
+    return view;
+  }
+
+  @Nullable
+  private static RenderedView getRootView(AndroidRootComponent androidRootComponent) {
+    RenderResult renderResult = androidRootComponent.getRenderResult();
+    if (renderResult == null) {
+      return null;
+    }
+    RenderedViewHierarchy hierarchy = renderResult.getHierarchy();
+    if (hierarchy == null) {
+      return null;
+    }
+    List<RenderedView> roots = hierarchy.getRoots();
+    if (roots.isEmpty()) {
+      return null;
+    }
+    return roots.get(0);
+  }
+
+  private Map<Locator, RenderedView> getLocationToRenderedView() {
+    if (myLocationToRenderedView == null) {
+      myLocationToRenderedView = new HashMap<Locator, RenderedView>();
+      for (final State state : myNavigationModel.getStates()) {
+        new Object() {
+          void walk(@Nullable RenderedView parent) {
+            if (parent == null) {
+              return;
+            }
+            for (RenderedView child : parent.getChildren()) {
+              String id = getViewId(child);
+              if (id != null) {
+                Locator locator = new Locator(state);
+                locator.setViewName(id);
+                myLocationToRenderedView.put(locator, child);
+              }
+              walk(child);
+            }
+          }
+        }.walk(getRootView(getStateComponentAssociation().keyToValue.get(state)));
+      }
+    }
+    return myLocationToRenderedView;
+  }
+
+  static void paintLeaf(Graphics g, @Nullable RenderedView leaf, Color color, AndroidRootComponent component) {
+    if (leaf != null) {
+      Color oldColor = g.getColor();
+      g.setColor(color);
+      Rectangle r = component.getBounds(leaf);
+      g.drawRect(r.x, r.y, r.width, r.height);
+      g.setColor(oldColor);
+    }
+  }
+
+  private void registerKeyBinding(int keyCode, String name, Action action) {
+    InputMap inputMap = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+    inputMap.put(KeyStroke.getKeyStroke(keyCode, 0), name);
+    getActionMap().put(name, action);
+  }
+
   private void setSelection(@NotNull Selections.Selection selection) {
     mySelection = selection;
     repaint();
@@ -301,12 +334,12 @@ public class NavigationEditorPanel2 extends JComponent {
   }
   */
 
-  private void drawGrid(Graphics g, Color c, Dimension size) {
+  private void drawGrid(Graphics g, Color c, Dimension size, int width, int height) {
     g.setColor(c);
-    for (int x = 0; x < getWidth(); x += size.width) {
+    for (int x = 0; x < width; x += size.width) {
       g.drawLine(x, 0, x, getHeight());
     }
-    for (int y = 0; y < getHeight(); y += size.height) {
+    for (int y = 0; y < height; y += size.height) {
       g.drawLine(0, y, getWidth(), y);
     }
   }
@@ -315,9 +348,9 @@ public class NavigationEditorPanel2 extends JComponent {
     g.setColor(BACKGROUND_COLOR);
     g.fillRect(0, 0, width, height);
 
-    drawGrid(g, SNAP_GRID_LINE_COLOR_MINOR, MINOR_SNAP_GRID);
-    drawGrid(g, SNAP_GRID_LINE_COLOR_MIDDLE, MIDDLE_SNAP_GRID);
-    drawGrid(g, SNAP_GRID_LINE_COLOR_MAJOR, MAJOR_SNAP_GRID);
+    drawGrid(g, SNAP_GRID_LINE_COLOR_MINOR, MINOR_SNAP_GRID, width, height);
+    drawGrid(g, SNAP_GRID_LINE_COLOR_MIDDLE, MIDDLE_SNAP_GRID, width, height);
+    drawGrid(g, SNAP_GRID_LINE_COLOR_MAJOR, MAJOR_SNAP_GRID, width, height);
   }
 
   private Image getBackGroundImage() {
@@ -580,21 +613,48 @@ public class NavigationEditorPanel2 extends JComponent {
     removeLeftovers(assoc, myNavigationModel.getTransitions());
   }
 
-  private AndroidRootComponent createRootComponentFor(State state, Point point) {
-    AndroidRootComponent result = new AndroidRootComponent();
-    result.setScale(SCALE);
-    VirtualFile file = myFileSystem.findFileByPath(myPath + "/layout/" +
-                                                   state.getXmlResourceName() + ".xml");
-    if (file != null) {
-      result.render(myProject, file);
-    }
-    result.setLocation(point);
-    result.setSize(PREVIEW_SIZE);
+  @Nullable
+  private static VirtualFile getFile(State state, VirtualFileSystem fileSystem, String path, String dir) {
+    return fileSystem.findFileByPath(path + dir + state.getXmlResourceName() + ".xml");
+  }
+
+  private AndroidRootComponent createRootComponentFor(State state, Point location) {
+    VirtualFileSystem fileSystem = myFile.getFileSystem();
+    String path = myFile.getParent().getParent().getPath();
+    String directoryName = myFile.getParent().getName();
+    int index = directoryName.indexOf('-');
+    String qualifier = index == -1 ? "" : directoryName.substring(index + 1);
+    VirtualFile qualifiedFile = getFile(state, fileSystem, path, "/layout" + qualifier + "/");
+    VirtualFile file = qualifiedFile != null ? qualifiedFile : getFile(state, fileSystem, path, "/layout/");
+    PsiFile psiFile = file == null ? null : PsiManager.getInstance(myMyRenderingParams.myProject).findFile(file);
+    AndroidRootComponent result = new AndroidRootComponent(myMyRenderingParams, psiFile);
+    result.setScale(myScale);
+    result.setLocation(location);
+    Dimension size = getPreviewSize();
+    result.setPreferredSize(size);
+    result.setSize(size);
     return result;
   }
 
+  private Dimension getDeviceScreenSize() {
+    Configuration configuration = myMyRenderingParams.myConfiguration;
+    Device device = configuration.getDevice();
+    if (device == null) {
+      return ZERO_SIZE;
+    }
+    com.android.sdklib.devices.State deviceState = configuration.getDeviceState();
+    if (deviceState == null) {
+      deviceState = device.getDefaultState();
+    }
+    return notNull(device.getScreenSize(deviceState.getOrientation()));
+  }
+
+  private Dimension getPreviewSize() {
+      return scale(getDeviceScreenSize(), myScale);
+  }
+
   private void setPreferredSize(Set<AndroidRootComponent> roots) {
-    Dimension size = PREVIEW_SIZE;
+    Dimension size = getPreviewSize();
     Dimension gridSize = new Dimension(size.width + GAP.width, size.height + GAP.height);
     Point maxLoc = new Point(0, 0);
     for (AndroidRootComponent c : roots) {
@@ -619,7 +679,7 @@ public class NavigationEditorPanel2 extends JComponent {
     setPreferredSize(assoc.valueToKey.keySet());
   }
 
-  Selections.Selection createSelection(Point mouseDownLocation, boolean shiftDown) {
+  private Selections.Selection createSelection(Point mouseDownLocation, boolean shiftDown) {
     Component component = getComponentAt(mouseDownLocation);
     if (component instanceof NavigationEditorPanel2) {
       return Selections.NULL;
@@ -674,7 +734,7 @@ public class NavigationEditorPanel2 extends JComponent {
       if (attachedObject instanceof TransferableWrapper) {
         TransferableWrapper wrapper = (TransferableWrapper)attachedObject;
         PsiElement[] psiElements = wrapper.getPsiElements();
-        Point dropLocation = diff(anEvent.getPointOn(NavigationEditorPanel2.this), MIDDLE_OF_PREVIEW);
+        Point dropLocation = diff(anEvent.getPointOn(NavigationEditorPanel2.this), point(scale(getPreviewSize(), 0.5f)));
 
         if (psiElements != null) {
           for (PsiElement element : psiElements) {
