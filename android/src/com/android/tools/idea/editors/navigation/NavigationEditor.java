@@ -75,7 +75,7 @@ public class NavigationEditor implements FileEditor {
       scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT_INCREMENT);
       myComponent = scrollPane;
     }
-    catch (Exception e) {
+    catch (FileReadException e) {
       myNavigationModel = new NavigationModel();
       {
         JPanel panel = new JPanel(new BorderLayout());
@@ -96,12 +96,18 @@ public class NavigationEditor implements FileEditor {
     myNavigationModel.getListeners().add(myNavigationModelListener);
   }
 
-  private static NavigationModel read(VirtualFile file) {
+  private static class FileReadException extends Exception {
+    private FileReadException(Throwable throwable) {
+      super(throwable);
+    }
+  }
+
+  private static NavigationModel read(VirtualFile file) throws FileReadException {
     try {
       return (NavigationModel)new XMLReader(file.getInputStream()).read();
     }
-    catch (IOException e) {
-      throw new RuntimeException(e);
+    catch (Exception e) {
+      throw new FileReadException(e);
     }
   }
 
