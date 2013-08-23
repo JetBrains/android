@@ -17,11 +17,13 @@ package com.android.tools.idea.editors.navigation;
 
 import com.intellij.openapi.util.Condition;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 
 public class Utilities {
+  public static final Dimension ZERO_SIZE = new Dimension(0, 0);
   private static final Dimension ARROW_HEAD_SIZE = new Dimension(18, 9);
 
   public static Point add(Point p1, Point p2) {
@@ -178,5 +180,9 @@ public class Utilities {
 
   static int sign(int x) {
     return x > 0 ? 1 : x < 0 ? -1 : 0;
+  }
+
+  static Dimension notNull(@Nullable Dimension d) {
+    return d== null ? ZERO_SIZE : d;
   }
 }
