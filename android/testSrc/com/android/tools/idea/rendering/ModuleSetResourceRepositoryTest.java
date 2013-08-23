@@ -21,7 +21,6 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.TestProjects;
-import com.android.tools.idea.gradle.project.AndroidDependencies;
 import com.android.tools.idea.gradle.stubs.android.AndroidLibraryStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
@@ -29,7 +28,6 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
@@ -46,7 +44,6 @@ import java.io.File;
 import java.util.*;
 
 import static com.android.tools.idea.rendering.ModuleResourceRepositoryTest.getFirstItem;
-import static org.easymock.EasyMock.createMock;
 
 public class ModuleSetResourceRepositoryTest extends AndroidTestCase {
   private static final String LAYOUT = "resourceRepository/layout.xml";
@@ -168,9 +165,6 @@ public class ModuleSetResourceRepositoryTest extends AndroidTestCase {
     File libJar = new File(rootDirPath, "library.aar/library.jar");
     AndroidLibraryStub library = new AndroidLibraryStub(libJar);
     variant.getMainArtifactInfo().getDependencies().addLibrary(library);
-
-    AndroidDependencies.DependencyFactory myDependencyFactory = createMock(AndroidDependencies.DependencyFactory.class);
-    myDependencyFactory.addLibraryDependency(DependencyScope.COMPILE, "library.aar", libJar);
   }
 
   @Override

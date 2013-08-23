@@ -21,19 +21,20 @@ import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.IdeaGradleProject;
-import com.android.tools.idea.gradle.ProjectImportEventMessage;
-import com.google.common.base.Objects;
+import com.android.tools.idea.gradle.dependency.Dependency;
 import com.google.common.collect.Lists;
 import com.intellij.externalSystem.JavaProjectData;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
-import com.intellij.openapi.externalSystem.model.project.*;
+import com.intellij.openapi.externalSystem.model.project.ContentRootData;
+import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
+import com.intellij.openapi.externalSystem.model.project.ModuleData;
+import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.StdModuleTypes;
-import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
 import org.gradle.tooling.ModelBuilder;
@@ -330,15 +331,21 @@ class ProjectResolver {
 
   private static void populateDependencies(@NotNull DataNode<ProjectData> projectInfo) {
     Collection<DataNode<ModuleData>> modules = ExternalSystemApiUtil.getChildren(projectInfo, ProjectKeys.MODULE);
+    ImportedDependencyUpdater importer = new ImportedDependencyUpdater(projectInfo);
     for (DataNode<ModuleData> moduleInfo : modules) {
       IdeaAndroidProject androidProject = getIdeaAndroidProject(moduleInfo);
+      Collection<Dependency> dependencies = Collections.emptyList();
       if (androidProject != null) {
-        populateDependencies(projectInfo, moduleInfo, androidProject);
-        continue;
+        dependencies = Dependency.extractFrom(androidProject);
       }
-      IdeaModule module = extractIdeaModule(moduleInfo);
-      if (module != null) {
-        GradleDependencies.populate(moduleInfo, projectInfo, module);
+      else {
+        IdeaModule module = extractIdeaModule(moduleInfo);
+        if (module != null) {
+          dependencies = Dependency.extractFrom(module);
+        }
+      }
+      if (!dependencies.isEmpty()) {
+        importer.updateDependencies(moduleInfo, dependencies);
       }
     }
   }
@@ -346,54 +353,6 @@ class ProjectResolver {
   @Nullable
   static IdeaAndroidProject getIdeaAndroidProject(@NotNull DataNode<ModuleData> moduleInfo) {
     return getFirstNodeData(moduleInfo, AndroidProjectKeys.IDE_ANDROID_PROJECT);
-  }
-
-  private static void populateDependencies(@NotNull final DataNode<ProjectData> projectInfo,
-                                           @NotNull final DataNode<ModuleData> moduleInfo,
-                                           @NotNull IdeaAndroidProject ideaAndroidProject) {
-    final Collection<DataNode<ModuleData>> modules = ExternalSystemApiUtil.getChildren(projectInfo, ProjectKeys.MODULE);
-    AndroidDependencies.DependencyFactory dependencyFactory = new AndroidDependencies.DependencyFactory() {
-      @Override
-      public boolean addLibraryDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull File binaryPath) {
-        LibraryDependency dependency = new LibraryDependency(name);
-        dependency.setScope(scope);
-        dependency.addPath(LibraryPathType.BINARY, binaryPath);
-        dependency.addTo(moduleInfo, projectInfo);
-        return true;
-      }
-
-      @Override
-      public boolean addModuleDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull String modulePath) {
-        String dependencyName = name;
-        for (DataNode<ModuleData> module : modules) {
-          String moduleName = module.getData().getName();
-          if (moduleName.equals(moduleInfo.getData().getName())) {
-            // this is the same module as the one we are configuring.
-            continue;
-          }
-          IdeaGradleProject gradleProject = getFirstNodeData(module, AndroidProjectKeys.IDE_GRADLE_PROJECT);
-          if (gradleProject != null && Objects.equal(modulePath, gradleProject.getGradleProjectPath())) {
-            dependencyName = moduleName;
-            break;
-          }
-        }
-        ModuleDependency dependency = new ModuleDependency(dependencyName);
-        dependency.setScope(scope);
-        try {
-          dependency.addTo(moduleInfo, projectInfo);
-          return true;
-        } catch (IllegalStateException e) {
-          return false;
-        }
-      }
-    };
-    ProjectImportEventLogger eventLogger = new ProjectImportEventLogger() {
-      @Override
-      public void log(@NotNull String category, @NotNull String message) {
-        moduleInfo.createChild(AndroidProjectKeys.IMPORT_EVENT_MSG, new ProjectImportEventMessage(category, message));
-      }
-    };
-    AndroidDependencies.populate(ideaAndroidProject, dependencyFactory, eventLogger);
   }
 
   @Nullable

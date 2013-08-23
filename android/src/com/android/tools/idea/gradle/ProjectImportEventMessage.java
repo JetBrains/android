@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle;
 
-import com.intellij.notification.NotificationType;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
