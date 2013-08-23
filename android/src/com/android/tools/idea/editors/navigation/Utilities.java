@@ -34,6 +34,10 @@ public class Utilities {
     return new Point(p1.x - p2.x, p1.y - p2.y);
   }
 
+  public static double length(Point p) {
+    return Math.sqrt(p.x * p.x + p.y * p.y);
+  }
+
   public static Point max(Point p1, Point p2) {
     return new Point(Math.max(p1.x, p2.x), Math.max(p1.y, p2.y));
   }
@@ -62,6 +66,10 @@ public class Utilities {
     return new Point(d.width, d.height);
   }
 
+  public static Dimension dimension(Point p) {
+    return new Dimension(Math.abs(p.x), Math.abs(p.y));
+  }
+
   public static Point project(Point p, Rectangle r) {
     Point centre = centre(r);
     Point diff = diff(p, centre);
@@ -77,7 +85,7 @@ public class Utilities {
   /**
    * Translates a Java file name to a XML file name according
    * to Android naming convention.
-   *
+   * <p/>
    * Doesn't append .xml extension
    *
    * @return XML file name associated with Java file name
@@ -104,7 +112,7 @@ public class Utilities {
   /**
    * Translates a XML file name to a Java file name according
    * to Android naming convention.
-   *
+   * <p/>
    * Doesn't append .java extension
    *
    * @return Java file name associated with XML file name
@@ -128,7 +136,8 @@ public class Utilities {
         // skip '_' and add the next char as upper case
         char toAppend = Character.toUpperCase(charsXml[++i]);
         stringBuilder.append(toAppend);
-      } else {
+      }
+      else {
         stringBuilder.append(currentChar);
       }
     }
@@ -183,6 +192,6 @@ public class Utilities {
   }
 
   static Dimension notNull(@Nullable Dimension d) {
-    return d== null ? ZERO_SIZE : d;
+    return d == null ? ZERO_SIZE : d;
   }
 }

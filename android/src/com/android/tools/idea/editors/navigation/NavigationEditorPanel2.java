@@ -401,14 +401,18 @@ public class NavigationEditorPanel2 extends JComponent {
     Utilities.drawArrow(g, a.x, a.y, b.x, b.y);
   }
 
-  private void paintTransitions(Graphics2D g) {
+  private static void drawRectangle(Graphics g, Rectangle r) {
+    g.drawRect(r.x, r.y, r.width, r.height);
+  }
+
+  private void paintTransitions(Graphics g) {
     for (Transition transition : myNavigationModel.getTransitions()) {
       Rectangle src = getBounds(transition.getSource());
       Rectangle dst = getBounds(transition.getDestination());
 
       // draw source rect
 
-      g.drawRect(src.x, src.y, src.width, src.height);
+      drawRectangle(g, src);
 
       // draw curved 'Manhattan route' from source to destination
 
@@ -420,32 +424,39 @@ public class NavigationEditorPanel2 extends JComponent {
       int dy = Math.abs(midSrc.y - midDst.y);
       boolean horizontal = dx >= dy;
 
-      int cornerDiameter = Math.min(Math.min(dx, dy), Math.min(MAJOR_SNAP_GRID.width, MAJOR_SNAP_GRID.height));
-      int cornerRadius = cornerDiameter / 2;
-
       Point A = horizontal ? new Point(midMid.x, midSrc.y) : new Point(midSrc.x, midMid.y);
-      Rectangle cornerA = getCorner(cornerDiameter, A);
       Point B = horizontal ? new Point(midMid.x, midDst.y) : new Point(midDst.x, midMid.y);
-      Rectangle cornerB = getCorner(cornerDiameter, B);
 
       Point pj0 = Utilities.project(A, src);
-      Point pj1 = Utilities.project(midSrc, cornerA);
+      Point pj5 = Utilities.project(B, dst);
+
+      Dimension pathSize = dimension(diff(pj5, pj0));
+
+      int cornerDiameter = Math.min(Math.min(pathSize.width, pathSize.height),
+                                    Math.min(MAJOR_SNAP_GRID.width, MAJOR_SNAP_GRID.height));
+      int cornerRadius = cornerDiameter / 2;
+
+      Rectangle cornerA = getCorner(cornerDiameter, A);
+      Rectangle cornerB = getCorner(cornerDiameter, B);
+
+      Point pj1 = Utilities.project(pj0, cornerA);
       Point pj2 = Utilities.project(B, cornerA);
       Point pj3 = Utilities.project(A, cornerB);
-      Point pj4 = Utilities.project(midDst, cornerB);
-      Point pj5 = Utilities.project(B, dst);
+      Point pj4 = Utilities.project(pj5, cornerB);
 
       drawLine(g, pj0, pj1);
       drawCorner(g, cornerDiameter, cornerRadius, pj1, pj2, horizontal);
       drawLine(g, pj2, pj3);
       drawCorner(g, cornerDiameter, cornerRadius, pj3, pj4, !horizontal);
-      drawArrow(g, pj4, pj5);
+      if (length(diff(pj4, pj5)) > 1) { //
+        drawArrow(g, pj4, pj5);
+      }
 
       // draw destination rect
 
       Color oldColor = g.getColor();
       g.setColor(Color.CYAN);
-      g.drawRect(dst.x, dst.y, dst.width, dst.height);
+      drawRectangle(g, dst);
       g.setColor(oldColor);
     }
   }
@@ -457,7 +468,7 @@ public class NavigationEditorPanel2 extends JComponent {
     return p.x > 0 ? 0 : p.y < 0 ? 90 : p.x < 0 ? 180 : 270;
   }
 
-  private static void drawCorner(Graphics2D g, int cornerDiameter, int cornerRadius, Point a, Point b, boolean horizontal) {
+  private static void drawCorner(Graphics g, int cornerDiameter, int cornerRadius, Point a, Point b, boolean horizontal) {
     Point centre = horizontal ? new Point(a.x, b.y) : new Point(b.x, a.y);
     int startAngle = angle(diff(a, centre));
     int endAngle = angle(diff(b, centre));
