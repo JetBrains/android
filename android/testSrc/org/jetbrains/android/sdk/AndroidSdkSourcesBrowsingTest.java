@@ -1,6 +1,7 @@
 package org.jetbrains.android.sdk;
 
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
+import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
@@ -13,7 +14,10 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.xml.XmlAttributeValue;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.dom.wrappers.FileResourceElementWrapper;
+import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.annotations.NonNls;
 
 /**
@@ -90,6 +94,65 @@ public class AndroidSdkSourcesBrowsingTest extends AndroidTestCase {
     myFixture.checkHighlighting(false, false, false);
   }
 
+  public void testNavigationToResources1() throws Exception {
+    doTestNavigationToResource(new LogicalPosition(19, 35), 1, XmlAttributeValue.class);
+  }
+
+  public void testNavigationToResources2() throws Exception {
+    doTestNavigationToResource(new LogicalPosition(20, 35), 2, XmlAttributeValue.class);
+  }
+
+  public void testNavigationToResources3() throws Exception {
+    doTestNavigationToResource(new LogicalPosition(21, 35), 1, XmlAttributeValue.class);
+  }
+
+  public void testNavigationToResources4() throws Exception {
+    doTestNavigationToResource(new LogicalPosition(22, 35), 1, XmlAttributeValue.class);
+  }
+
+  public void testNavigationToResources5() throws Exception {
+    doTestNavigationToResource(new LogicalPosition(24, 43), 1, XmlAttributeValue.class);
+  }
+
+  public void testNavigationToResources6() throws Exception {
+    doTestNavigationToResource(new LogicalPosition(25, 43), 2, XmlAttributeValue.class);
+  }
+
+  public void testNavigationToResources7() throws Exception {
+    doTestNavigationToResource(new LogicalPosition(26, 43), 1, XmlAttributeValue.class);
+  }
+
+  public void testNavigationToResources8() throws Exception {
+    doTestNavigationToResource(new LogicalPosition(27, 43), 1, XmlAttributeValue.class);
+  }
+
+  public void testNavigationToResources9() throws Exception {
+    doTestNavigationToResource(new LogicalPosition(29, 46), 1, FileResourceElementWrapper.class);
+  }
+
+  public void testNavigationToResources10() throws Exception {
+    doTestNavigationToResource(new LogicalPosition(30, 46), 1, FileResourceElementWrapper.class);
+  }
+
+  private void doTestNavigationToResource(LogicalPosition position, int expectedCount, Class<?> aClass) {
+    myFixture.allowTreeAccessForAllFiles();
+    final String sdkSourcesPath = configureMockSdk();
+
+    final VirtualFile file = LocalFileSystem.getInstance().findFileByPath(sdkSourcesPath + "/android/app/Activity.java");
+    myFixture.configureFromExistingVirtualFile(file);
+
+    myFixture.getEditor().getCaretModel().moveToLogicalPosition(position);
+
+    PsiElement[] elements = GotoDeclarationAction.findAllTargetElements(
+      myFixture.getProject(), myFixture.getEditor(),
+      myFixture.getEditor().getCaretModel().getOffset());
+    assertEquals(expectedCount, elements.length);
+
+    for (PsiElement element : elements) {
+      assertInstanceOf(LazyValueResourceElementWrapper.computeLazyElement(element), aClass);
+    }
+  }
+
   private String configureMockSdk() {
     final String mockSdkPath = BASE_PATH + "mock_sdk";
     final VirtualFile mockSdkSourcesDir = myFixture.copyDirectoryToProject(mockSdkPath + "/sources", SDK_SOURCES_TARGET_PATH);
@@ -107,7 +170,7 @@ public class AndroidSdkSourcesBrowsingTest extends AndroidTestCase {
     modificator.addRoot(classesJarFile, OrderRootType.CLASSES);
     modificator.addRoot(mockSdkSourcesDir, OrderRootType.SOURCES);
     final VirtualFile resDir = LocalFileSystem.getInstance().findFileByPath(testSdkPath + "/platforms/android-1.5/data/res");
-    modificator.addRoot(resDir, OrderRootType.SOURCES);
+    modificator.addRoot(resDir, OrderRootType.CLASSES);
     modificator.commitChanges();
     ModuleRootModificationUtil.setModuleSdk(myModule, sdk);
     return mockSdkSourcesDir.getPath();

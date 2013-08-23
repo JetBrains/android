@@ -15,23 +15,23 @@
  */
 package org.jetbrains.android;
 
+import com.android.resources.ResourceType;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler;
-import com.intellij.navigation.NavigationItem;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.util.Pair;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.PsiReferenceExpression;
-import com.intellij.psi.meta.PsiMetaOwner;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.XmlAttributeValue;
-import org.jetbrains.android.dom.wrappers.FileResourceElementWrapper;
-import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
+import org.jetbrains.android.dom.resources.Attr;
+import org.jetbrains.android.dom.resources.DeclareStyleable;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.LocalResourceManager;
+import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -43,8 +43,12 @@ public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
     if (!(sourceElement instanceof PsiIdentifier)) {
       return null;
     }
+    final PsiFile file = sourceElement.getContainingFile();
 
-    AndroidFacet facet = AndroidFacet.getInstance(sourceElement);
+    if (file == null) {
+      return null;
+    }
+    AndroidFacet facet = AndroidFacet.getInstance(file);
     if (facet == null) {
       return null;
     }
@@ -54,45 +58,49 @@ public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
       return null;
     }
 
-    Pair<String, String> pair = AndroidResourceUtil.getReferredResourceField(facet, refExp);
-    if (pair == null) {
+    AndroidResourceUtil.MyReferredResourceFieldInfo info = AndroidResourceUtil.getReferredResourceField(facet, refExp, false);
+    if (info == null) {
       PsiElement parent = refExp.getParent();
       if (parent instanceof PsiReferenceExpression) {
-        pair = AndroidResourceUtil.getReferredResourceField(facet, (PsiReferenceExpression)parent);
+        info = AndroidResourceUtil.getReferredResourceField(facet, (PsiReferenceExpression)parent, false);
       }
-      if (pair == null) {
+      if (info == null) {
         parent = parent.getParent();
         if (parent instanceof PsiReferenceExpression) {
-          pair = AndroidResourceUtil.getReferredResourceField(facet, (PsiReferenceExpression)parent);
+          info = AndroidResourceUtil.getReferredResourceField(facet, (PsiReferenceExpression)parent, false);
         }
       }
     }
-    if (pair == null) {
+    if (info == null) {
       return null;
     }
-    final String resClassName = pair.getFirst();
-    final String resFieldName = pair.getSecond();
+    final ResourceManager manager = info.isSystem()
+                                    ? facet.getSystemResourceManager(false)
+                                    : facet.getLocalResourceManager();
+    if (manager == null) {
+      return null;
+    }
+    final String resClassName = info.getClassName();
+    final String resFieldName = info.getFieldName();
 
-    final List<PsiElement> resourceList = facet.getLocalResourceManager().findResourcesByFieldName(resClassName, resFieldName);
-    final PsiElement[] resources = resourceList.toArray(new PsiElement[resourceList.size()]);
-    final PsiElement[] wrappedResources = new PsiElement[resources.length];
+    final List<PsiElement> resourceList = new ArrayList<PsiElement>();
+    manager.collectLazyResourceElements(resClassName, resFieldName, false, refExp, resourceList);
 
-    for (int i = 0; i < resources.length; i++) {
-      final PsiElement resource = resources[i];
+    if (manager instanceof LocalResourceManager) {
+      final LocalResourceManager lrm = (LocalResourceManager)manager;
 
-      if (resource instanceof XmlAttributeValue &&
-          resource instanceof PsiMetaOwner &&
-          resource instanceof NavigationItem) {
-        wrappedResources[i] = new ValueResourceElementWrapper((XmlAttributeValue)resource);
+      if (resClassName.equals(ResourceType.ATTR.getName())) {
+        for (Attr attr : lrm.findAttrs(resFieldName)) {
+          resourceList.add(attr.getName().getXmlAttributeValue());
+        }
       }
-      else if (resource instanceof PsiFile) {
-        wrappedResources[i] = new FileResourceElementWrapper((PsiFile)resource);
-      }
-      else {
-        wrappedResources[i] = resource;
+      else if (resClassName.equals(ResourceType.STYLEABLE.getName())) {
+        for (DeclareStyleable styleable : lrm.findStyleables(resFieldName)) {
+          resourceList.add(styleable.getName().getXmlAttributeValue());
+        }
       }
     }
-    return wrappedResources.length > 0 ? wrappedResources : null;
+    return resourceList.toArray(new PsiElement[resourceList.size()]);
   }
 
   @Override

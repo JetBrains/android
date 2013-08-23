@@ -10,13 +10,11 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.xml.DomUtil;
 import com.intellij.util.xml.GenericDomValue;
 import org.jetbrains.android.dom.resources.ResourceValue;
-import org.jetbrains.android.dom.wrappers.FileResourceElementWrapper;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.dom.wrappers.ResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.resourceManagers.ValueResourceInfo;
-import org.jetbrains.android.resourceManagers.ValueResourceInfoImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -89,17 +87,8 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
   @NotNull
   private ResolveResult[] resolveInner() {
     final List<PsiElement> elements = new ArrayList<PsiElement>();
-    final List<PsiFile> files = new ArrayList<PsiFile>();
-    collectTargets(myFacet, myResourceValue, elements, files);
-
+    collectTargets(myFacet, myResourceValue, elements);
     final List<ResolveResult> result = new ArrayList<ResolveResult>();
-
-    for (PsiFile target : files) {
-      if (target != null) {
-        final PsiFile e = new FileResourceElementWrapper(target);
-        result.add(new PsiElementResolveResult(e));
-      }
-    }
 
     for (PsiElement target : elements) {
       result.add(new PsiElementResolveResult(target));
@@ -107,7 +96,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
     return result.toArray(new ResolveResult[result.size()]);
   }
 
-  private void collectTargets(AndroidFacet facet, ResourceValue resValue, List<PsiElement> elements, List<PsiFile> files) {
+  private void collectTargets(AndroidFacet facet, ResourceValue resValue, List<PsiElement> elements) {
     String resType = resValue.getResourceType();
     if (resType == null) {
       return;
@@ -117,17 +106,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
       String resName = resValue.getResourceName();
       if (resName != null) {
         final boolean attrReference = resValue.getPrefix() == '?';
-        List<ValueResourceInfoImpl> valueResources = manager.findValueResourceInfos(resType, resName, false, attrReference);
-
-        for (final ValueResourceInfo resource : valueResources) {
-          elements.add(new LazyValueResourceElementWrapper(resource, myElement));
-        }
-        if (resType.equals("id")) {
-          elements.addAll(manager.findIdDeclarations(resName));
-        }
-        if (elements.size() == 0) {
-          files.addAll(manager.findResourceFiles(resType, resName, false));
-        }
+        manager.collectLazyResourceElements(resType, resName, attrReference, myElement, elements);
       }
     }
   }

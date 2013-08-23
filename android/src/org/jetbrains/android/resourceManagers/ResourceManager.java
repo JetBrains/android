@@ -36,6 +36,8 @@ import org.jetbrains.android.AndroidValueResourcesIndex;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
+import org.jetbrains.android.dom.wrappers.FileResourceElementWrapper;
+import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
@@ -448,6 +450,26 @@ public abstract class ResourceManager {
       }
     }
     return result;
+  }
+
+  public void collectLazyResourceElements(@NotNull String resType,
+                                          @NotNull String resName,
+                                          boolean withAttrs,
+                                          @NotNull PsiElement context,
+                                          @NotNull Collection<PsiElement> elements) {
+    List<ValueResourceInfoImpl> valueResources = findValueResourceInfos(resType, resName, false, withAttrs);
+
+    for (final ValueResourceInfo resource : valueResources) {
+      elements.add(new LazyValueResourceElementWrapper(resource, context));
+    }
+    if (resType.equals("id")) {
+      elements.addAll(findIdDeclarations(resName));
+    }
+    if (elements.size() == 0) {
+      for (PsiFile file : findResourceFiles(resType, resName, false)) {
+        elements.add(new FileResourceElementWrapper(file));
+      }
+    }
   }
 
   @NotNull
