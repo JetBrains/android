@@ -177,6 +177,37 @@ public class NavigationEditorPanel2 extends JComponent {
     }
   }
 
+  @Nullable
+  Transition getTransition(AndroidRootComponent sourceComponent, @Nullable RenderedView namedSourceLeaf, Point mouseUpLocation) {
+    Component destComponent = getComponentAt(mouseUpLocation);
+    if (sourceComponent != destComponent) {
+      if (destComponent instanceof AndroidRootComponent) {
+        AndroidRootComponent destinationRoot = (AndroidRootComponent)destComponent;
+        RenderedView endLeaf = getRenderedView(destinationRoot, mouseUpLocation);
+        RenderedView namedEndLeaf = getNamedParent(endLeaf);
+
+        Map<AndroidRootComponent, State> rootComponentToState = getStateComponentAssociation().valueToKey;
+        Locator sourceLocator = Locator.of(rootComponentToState.get(sourceComponent), getViewId(namedSourceLeaf));
+        Locator destinationLocator = Locator.of(rootComponentToState.get(destComponent), getViewId(namedEndLeaf));
+        return new Transition("", sourceLocator, destinationLocator);
+      }
+    }
+    return null;
+  }
+
+  public Rectangle getNamedLeafBoundsAt(Component sourceComponent, Point location) {
+    Component destComponent = getComponentAt(location);
+    if (sourceComponent != destComponent) {
+      if (destComponent instanceof AndroidRootComponent) {
+        AndroidRootComponent destinationRoot = (AndroidRootComponent)destComponent;
+        RenderedView endLeaf = getRenderedView(destinationRoot, location);
+        RenderedView namedEndLeaf = getNamedParent(endLeaf);
+        return destinationRoot.getBounds(namedEndLeaf);
+      }
+    }
+    return new Rectangle(location);
+  }
+
   public float getScale() {
     return myScale;
   }
@@ -258,7 +289,8 @@ public class NavigationEditorPanel2 extends JComponent {
       RenderedView root = getRootView(getStateComponentAssociation().keyToValue.get(state));
       if (root != null) {
         myLocationToRenderedView.put(state, result = createViewNameToRenderedView(root));
-      } else {
+      }
+      else {
         return Collections.emptyMap(); // rendering library hasn't loaded, temporarily return an empty map
       }
     }
@@ -298,6 +330,9 @@ public class NavigationEditorPanel2 extends JComponent {
 
   private void setSelection(@NotNull Selections.Selection selection) {
     mySelection = selection;
+    // the re-validate() call shouldn't be necessary but removing it causes orphaned
+    // combo-boxes to remain visible (and click-able) a 'remove' operation
+    revalidate();
     repaint();
   }
 
@@ -315,7 +350,7 @@ public class NavigationEditorPanel2 extends JComponent {
   }
 
   private void finaliseSelectionLocation(Point location) {
-    mySelection = mySelection.finaliseSelectionLocation(location, getComponentAt(location), getStateComponentAssociation().valueToKey);
+    mySelection = mySelection.finaliseSelectionLocation(location);
     revalidate();
     repaint();
   }
@@ -407,58 +442,57 @@ public class NavigationEditorPanel2 extends JComponent {
     g.drawRect(r.x, r.y, r.width, r.height);
   }
 
-  private void paintTransitions(Graphics g) {
+  public void drawTransition(Graphics g, Rectangle src, Rectangle dst) {
+    // draw source rect
+    drawRectangle(g, src);
+
+    // draw curved 'Manhattan route' from source to destination
+
+    Point midSrc = Utilities.centre(src);
+    Point midDst = Utilities.centre(dst);
+    Point midMid = midpoint(midSrc, midDst);
+
+    int dx = Math.abs(midSrc.x - midDst.x);
+    int dy = Math.abs(midSrc.y - midDst.y);
+    boolean horizontal = dx >= dy;
+
+    Point A = horizontal ? new Point(midMid.x, midSrc.y) : new Point(midSrc.x, midMid.y);
+    Point B = horizontal ? new Point(midMid.x, midDst.y) : new Point(midDst.x, midMid.y);
+
+    Point pj0 = Utilities.project(A, src);
+    Point pj5 = Utilities.project(B, dst);
+
+    Dimension pathSize = dimension(diff(pj5, pj0));
+
+    int cornerDiameter = Math.min(Math.min(pathSize.width, pathSize.height), Math.min(MAJOR_SNAP_GRID.width, MAJOR_SNAP_GRID.height));
+    int cornerRadius = cornerDiameter / 2;
+
+    Rectangle cornerA = getCorner(cornerDiameter, A);
+    Rectangle cornerB = getCorner(cornerDiameter, B);
+
+    Point pj1 = Utilities.project(pj0, cornerA);
+    Point pj2 = Utilities.project(B, cornerA);
+    Point pj3 = Utilities.project(A, cornerB);
+    Point pj4 = Utilities.project(pj5, cornerB);
+
+    drawLine(g, pj0, pj1);
+    drawCorner(g, cornerDiameter, cornerRadius, pj1, pj2, horizontal);
+    drawLine(g, pj2, pj3);
+    drawCorner(g, cornerDiameter, cornerRadius, pj3, pj4, !horizontal);
+    if (length(diff(pj4, pj5)) > 1) { //
+      drawArrow(g, pj4, pj5);
+    }
+
+    // draw destination rect
+    Color oldColor = g.getColor();
+    g.setColor(Color.CYAN);
+    drawRectangle(g, dst);
+    g.setColor(oldColor);
+  }
+
+  public void paintTransitions(Graphics g) {
     for (Transition transition : myNavigationModel.getTransitions()) {
-      Rectangle src = getBounds(transition.getSource());
-      Rectangle dst = getBounds(transition.getDestination());
-
-      // draw source rect
-
-      drawRectangle(g, src);
-
-      // draw curved 'Manhattan route' from source to destination
-
-      Point midSrc = Utilities.centre(src);
-      Point midDst = Utilities.centre(dst);
-      Point midMid = midpoint(midSrc, midDst);
-
-      int dx = Math.abs(midSrc.x - midDst.x);
-      int dy = Math.abs(midSrc.y - midDst.y);
-      boolean horizontal = dx >= dy;
-
-      Point A = horizontal ? new Point(midMid.x, midSrc.y) : new Point(midSrc.x, midMid.y);
-      Point B = horizontal ? new Point(midMid.x, midDst.y) : new Point(midDst.x, midMid.y);
-
-      Point pj0 = Utilities.project(A, src);
-      Point pj5 = Utilities.project(B, dst);
-
-      Dimension pathSize = dimension(diff(pj5, pj0));
-
-      int cornerDiameter = Math.min(Math.min(pathSize.width, pathSize.height), Math.min(MAJOR_SNAP_GRID.width, MAJOR_SNAP_GRID.height));
-      int cornerRadius = cornerDiameter / 2;
-
-      Rectangle cornerA = getCorner(cornerDiameter, A);
-      Rectangle cornerB = getCorner(cornerDiameter, B);
-
-      Point pj1 = Utilities.project(pj0, cornerA);
-      Point pj2 = Utilities.project(B, cornerA);
-      Point pj3 = Utilities.project(A, cornerB);
-      Point pj4 = Utilities.project(pj5, cornerB);
-
-      drawLine(g, pj0, pj1);
-      drawCorner(g, cornerDiameter, cornerRadius, pj1, pj2, horizontal);
-      drawLine(g, pj2, pj3);
-      drawCorner(g, cornerDiameter, cornerRadius, pj3, pj4, !horizontal);
-      if (length(diff(pj4, pj5)) > 1) { //
-        drawArrow(g, pj4, pj5);
-      }
-
-      // draw destination rect
-
-      Color oldColor = g.getColor();
-      g.setColor(Color.CYAN);
-      drawRectangle(g, dst);
-      g.setColor(oldColor);
+      drawTransition(g, getBounds(transition.getSource()), getBounds(transition.getDestination()));
     }
   }
 
@@ -708,7 +742,7 @@ public class NavigationEditorPanel2 extends JComponent {
       }
       else {
         RenderedView leaf = getRenderedView(androidRootComponent, mouseDownLocation);
-        return new Selections.RelationSelection(myNavigationModel, androidRootComponent, mouseDownLocation, getNamedParent(leaf));
+        return new Selections.RelationSelection(myNavigationModel, androidRootComponent, mouseDownLocation, getNamedParent(leaf), this);
       }
     }
     else {

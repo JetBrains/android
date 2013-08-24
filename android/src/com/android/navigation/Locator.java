@@ -28,6 +28,15 @@ public class Locator {
     this.state = state;
   }
 
+  private Locator(@NonNull State state, @Nullable String viewName) {
+    this.state = state;
+    this.viewName = viewName;
+  }
+
+  public static Locator of(@NonNull State state, @Nullable String viewName) {
+    return new Locator(state, viewName);
+  }
+
   @NonNull
   public State getState() {
     return state;
