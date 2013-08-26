@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.List;
 
 public class AndroidRootComponent extends JComponent {
   //private static final Object RENDERING_LOCK = new Object();
@@ -46,7 +47,7 @@ public class AndroidRootComponent extends JComponent {
   }
 
   @Nullable
-  public RenderResult getRenderResult() {
+  private RenderResult getRenderResult() {
     return myRenderResult;
   }
 
@@ -167,8 +168,34 @@ public class AndroidRootComponent extends JComponent {
     return (int)(d / myScale);
   }
 
-  public Point convertPointFromViewToModel(Point p) {
-    return new Point(unScale(p.x), unScale(p.y));
+  @Nullable
+  public RenderedView getRootView() {
+    RenderResult renderResult = getRenderResult();
+    if (renderResult == null) {
+      return null;
+    }
+    RenderedViewHierarchy hierarchy = renderResult.getHierarchy();
+    if (hierarchy == null) {
+      return null;
+    }
+    List<RenderedView> roots = hierarchy.getRoots();
+    if (roots.isEmpty()) {
+      return null;
+    }
+    return roots.get(0);
+  }
+
+  @Nullable
+  public RenderedView getRenderedView(Point p) {
+    RenderResult renderResult = getRenderResult();
+    if (renderResult == null) {
+      return null;
+    }
+    RenderedViewHierarchy hierarchy = renderResult.getHierarchy();
+    if (hierarchy == null) {
+      return null;
+    }
+    return hierarchy.findLeafAt(unScale(p.x), unScale(p.y));
   }
 
   public Rectangle getBounds(@Nullable RenderedView leaf) {

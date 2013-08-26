@@ -18,9 +18,7 @@ package com.android.tools.idea.editors.navigation;
 import com.android.navigation.*;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderedView;
-import com.android.tools.idea.rendering.RenderedViewHierarchy;
 import com.android.tools.idea.rendering.ShadowPainter;
 import com.intellij.ide.dnd.DnDEvent;
 import com.intellij.ide.dnd.DnDManager;
@@ -47,7 +45,6 @@ import java.awt.Point;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
-import java.util.List;
 
 import static com.android.tools.idea.editors.navigation.Utilities.*;
 
@@ -178,6 +175,11 @@ public class NavigationEditorPanel2 extends JComponent {
   }
 
   @Nullable
+  private static RenderedView getRenderedView(AndroidRootComponent c, Point location) {
+    return c.getRenderedView(diff(location, c.getLocation()));
+  }
+
+  @Nullable
   Transition getTransition(AndroidRootComponent sourceComponent, @Nullable RenderedView namedSourceLeaf, Point mouseUpLocation) {
     Component destComponent = getComponentAt(mouseUpLocation);
     if (sourceComponent != destComponent) {
@@ -248,17 +250,6 @@ public class NavigationEditorPanel2 extends JComponent {
   }
 
   @Nullable
-  static RenderedView getRenderedView(AndroidRootComponent component, Point mouseDownLocation) {
-    Point p = component.convertPointFromViewToModel(diff(mouseDownLocation, component.getLocation()));
-    RenderResult renderResult = component.getRenderResult();
-    if (renderResult == null) {
-      return null;
-    }
-    RenderedViewHierarchy hierarchy = renderResult.getHierarchy();
-    return hierarchy != null ? hierarchy.findLeafAt(p.x, p.y) : null;
-  }
-
-  @Nullable
   static RenderedView getNamedParent(@Nullable RenderedView view) {
     while (view != null && getViewId(view) == null) {
       view = view.getParent();
@@ -266,27 +257,10 @@ public class NavigationEditorPanel2 extends JComponent {
     return view;
   }
 
-  @Nullable
-  private static RenderedView getRootView(AndroidRootComponent androidRootComponent) {
-    RenderResult renderResult = androidRootComponent.getRenderResult();
-    if (renderResult == null) {
-      return null;
-    }
-    RenderedViewHierarchy hierarchy = renderResult.getHierarchy();
-    if (hierarchy == null) {
-      return null;
-    }
-    List<RenderedView> roots = hierarchy.getRoots();
-    if (roots.isEmpty()) {
-      return null;
-    }
-    return roots.get(0);
-  }
-
   private Map<String, RenderedView> getNameToRenderedView(State state) {
     Map<String, RenderedView> result = myLocationToRenderedView.get(state);
     if (result == null) {
-      RenderedView root = getRootView(getStateComponentAssociation().keyToValue.get(state));
+      RenderedView root = getStateComponentAssociation().keyToValue.get(state).getRootView();
       if (root != null) {
         myLocationToRenderedView.put(state, result = createViewNameToRenderedView(root));
       }
@@ -412,9 +386,6 @@ public class NavigationEditorPanel2 extends JComponent {
       Rectangle r = c.getBounds();
       ShadowPainter.drawRectangleShadow(g, r.x, r.y, r.width, r.height);
     }
-
-    // draw selection
-    mySelection.paint(g, hasFocus());
   }
 
   public static Graphics2D createLineGraphics(Graphics g) {
@@ -578,6 +549,7 @@ public class NavigationEditorPanel2 extends JComponent {
   }
 
   private void paintSelection(Graphics g) {
+    mySelection.paint(g, hasFocus());
     mySelection.paintOver(g);
   }
 
