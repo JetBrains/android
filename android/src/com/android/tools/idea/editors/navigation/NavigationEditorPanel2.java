@@ -459,8 +459,8 @@ public class NavigationEditorPanel2 extends JComponent {
   }
 
   private static Point[] getControlPoints(Rectangle src, Rectangle dst) {
-    Point midSrc = Utilities.centre(src);
-    Point midDst = Utilities.centre(dst);
+    Point midSrc = centre(src);
+    Point midDst = centre(dst);
 
     int dx = Math.abs(midSrc.x - midDst.x);
     int dy = Math.abs(midSrc.y - midDst.y);
@@ -477,24 +477,38 @@ public class NavigationEditorPanel2 extends JComponent {
     Point a = horizontal ? new Point(middle, midSrc.y) : new Point(midSrc.x, middle);
     Point b = horizontal ? new Point(middle, midDst.y) : new Point(midDst.x, middle);
 
-    return new Point[]{Utilities.project(a, src), a, b, Utilities.project(b, dst)};
+    return new Point[]{project(a, src), a, b, project(b, dst)};
+  }
+
+  private static int getTurnLength(Point[] points) {
+    int N = points.length;
+    int cornerDiameter = Math.min(MAJOR_SNAP_GRID.width, MAJOR_SNAP_GRID.height);
+
+    for (int i = 0; i < N - 1; i++) {
+      Point a = points[i];
+      Point b = points[i + 1];
+
+      int length = (int)length(diff(b, a));
+      if (i != 0 && i != N - 2) {
+        length /= 2;
+      }
+      cornerDiameter = Math.min(cornerDiameter, length);
+    }
+    return cornerDiameter;
   }
 
   private static void drawCurve(Graphics g, Point[] points) {
-    int N = points.length;
+    final int N = points.length;
+    final int cornerDiameter = getTurnLength(points);
+
     boolean horizontal = points[0].x != points[1].x;
-    Dimension pathSize = dimension(diff(points[N - 1], points[0]));
-
-    int cornerDiameter = Math.min(Math.min(pathSize.width, pathSize.height) / 2, Math.min(MAJOR_SNAP_GRID.width, MAJOR_SNAP_GRID.height));
-    int cornerRadius = cornerDiameter / 2;
-
     Point previous = points[0];
-    for (int i = 1; i < points.length - 1; i++) {
+    for (int i = 1; i < N - 1; i++) {
       Rectangle turn = getCorner(points[i], cornerDiameter);
-      Point startTurn = Utilities.project(previous, turn);
+      Point startTurn = project(previous, turn);
       drawLine(g, previous, startTurn);
-      Point endTurn = Utilities.project(points[i + 1], turn);
-      drawCorner(g, cornerDiameter, cornerRadius, startTurn, endTurn, horizontal);
+      Point endTurn = project(points[i + 1], turn);
+      drawCorner(g, cornerDiameter, startTurn, endTurn, horizontal);
       previous = endTurn;
       horizontal = !horizontal;
     }
@@ -532,7 +546,8 @@ public class NavigationEditorPanel2 extends JComponent {
     return p.x > 0 ? 0 : p.y < 0 ? 90 : p.x < 0 ? 180 : 270;
   }
 
-  private static void drawCorner(Graphics g, int cornerDiameter, int cornerRadius, Point a, Point b, boolean horizontal) {
+  private static void drawCorner(Graphics g, int cornerDiameter, Point a, Point b, boolean horizontal) {
+    int cornerRadius = cornerDiameter / 2;
     Point centre = horizontal ? new Point(a.x, b.y) : new Point(b.x, a.y);
     int startAngle = angle(diff(a, centre));
     int endAngle = angle(diff(b, centre));
@@ -599,12 +614,10 @@ public class NavigationEditorPanel2 extends JComponent {
     Map<Transition, Component> transitionToEditor = getTransitionEditorAssociation().keyToValue;
 
     for (Transition transition : myNavigationModel.getTransitions()) {
-      Rectangle sBounds = getBounds(transition.getSource());
-      //Point sl = Utilities.centre(sBounds);
-      Rectangle dBounds = getBounds(transition.getDestination());
-      //Point dl = Utilities.centre(dBounds);
       String gesture = transition.getType();
       if (gesture != null) {
+        Rectangle sBounds = getBounds(transition.getSource());
+        Rectangle dBounds = getBounds(transition.getDestination());
         Component c = transitionToEditor.get(transition);
         c.setSize(c.getPreferredSize());
         Point[] points = getControlPoints(sBounds, dBounds);
