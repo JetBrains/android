@@ -52,6 +52,7 @@ public class AndroidRootComponent extends JComponent {
 
   private void setRenderResult(@Nullable RenderResult renderResult) {
     myRenderResult = renderResult;
+    revalidate(); // once we have finished rendering we will know where our internal views are, need to relayout otherwise
     repaint();
   }
 
