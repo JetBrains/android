@@ -66,7 +66,7 @@ public class AndroidPreDexBuilder extends TargetBuilder<AndroidPreDexBuildTarget
   private static boolean doBuild(@NotNull AndroidPreDexBuildTarget target,
                                  @NotNull DirtyFilesHolder<AndroidPreDexBuildTarget.MyRootDescriptor, AndroidPreDexBuildTarget> holder,
                                  @NotNull BuildOutputConsumer outputConsumer,
-                                 @NotNull CompileContext context) throws IOException, StopBuildException {
+                                 @NotNull CompileContext context) throws IOException, ProjectBuildException {
     final List<Pair<File, String>> filesToPreDex = new ArrayList<Pair<File, String>>();
 
     holder.processDirtyFiles(new FileProcessor<AndroidPreDexBuildTarget.MyRootDescriptor, AndroidPreDexBuildTarget>() {
@@ -95,6 +95,8 @@ public class AndroidPreDexBuilder extends TargetBuilder<AndroidPreDexBuildTarget
       final File outputDir = target.getOutputFile(context);
 
       for (Pair<File, String> pair : filesToPreDex) {
+        context.checkCanceled();
+
         final File srcFile = pair.getFirst();
         final String moduleName = pair.getSecond();
         final String srcFilePath = srcFile.getAbsolutePath();
