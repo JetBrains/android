@@ -147,6 +147,7 @@ $DATA_STORAGE_ROOT$/android/intermediate_artifacts/non_maven_app/classes.dex
 [
 $PROJECT_DIR$/out/production/lib
 $PROJECT_DIR$/out/production/lib1
+$PROJECT_DIR$/out/production/lib2
 $PROJECT_DIR$/out/production/non_maven_app
 ]
 []
