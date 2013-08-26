@@ -331,7 +331,7 @@ public class NavigationEditorPanel2 extends JComponent {
   private void setSelection(@NotNull Selections.Selection selection) {
     mySelection = selection;
     // the re-validate() call shouldn't be necessary but removing it causes orphaned
-    // combo-boxes to remain visible (and click-able) a 'remove' operation
+    // combo-boxes to remain visible (and click-able) after a 'remove' operation
     revalidate();
     repaint();
   }
@@ -425,7 +425,7 @@ public class NavigationEditorPanel2 extends JComponent {
     return g2D;
   }
 
-  private static Rectangle getCorner(int cornerDiameter, Point a) {
+  private static Rectangle getCorner(Point a, int cornerDiameter) {
     int cornerRadius = cornerDiameter / 2;
     return new Rectangle(a.x - cornerRadius, a.y - cornerRadius, cornerDiameter, cornerDiameter);
   }
@@ -442,46 +442,75 @@ public class NavigationEditorPanel2 extends JComponent {
     g.drawRect(r.x, r.y, r.width, r.height);
   }
 
-  public void drawTransition(Graphics g, Rectangle src, Rectangle dst) {
-    // draw source rect
-    drawRectangle(g, src);
+  private static int x1(Rectangle src) {
+    return src.x;
+  }
 
-    // draw curved 'Manhattan route' from source to destination
+  private static int x2(Rectangle dst) {
+    return dst.x + dst.width;
+  }
 
+  private static int y1(Rectangle src) {
+    return src.y;
+  }
+
+  private static int y2(Rectangle dst) {
+    return dst.y + dst.height;
+  }
+
+  private static Point[] getControlPoints(Rectangle src, Rectangle dst) {
     Point midSrc = Utilities.centre(src);
     Point midDst = Utilities.centre(dst);
-    Point midMid = midpoint(midSrc, midDst);
 
     int dx = Math.abs(midSrc.x - midDst.x);
     int dy = Math.abs(midSrc.y - midDst.y);
     boolean horizontal = dx >= dy;
 
-    Point A = horizontal ? new Point(midMid.x, midSrc.y) : new Point(midSrc.x, midMid.y);
-    Point B = horizontal ? new Point(midMid.x, midDst.y) : new Point(midDst.x, midMid.y);
+    int middle;
+    if (horizontal) {
+      middle = x1(src) - x2(dst) > 0 ? (x2(dst) + x1(src)) / 2 : (x2(src) + x1(dst)) / 2;
+    }
+    else {
+      middle = y1(src) - y2(dst) > 0 ? (y2(dst) + y1(src)) / 2 : (y2(src) + y1(dst)) / 2;
+    }
 
-    Point pj0 = Utilities.project(A, src);
-    Point pj5 = Utilities.project(B, dst);
+    Point a = horizontal ? new Point(middle, midSrc.y) : new Point(midSrc.x, middle);
+    Point b = horizontal ? new Point(middle, midDst.y) : new Point(midDst.x, middle);
 
-    Dimension pathSize = dimension(diff(pj5, pj0));
+    return new Point[]{Utilities.project(a, src), a, b, Utilities.project(b, dst)};
+  }
 
-    int cornerDiameter = Math.min(Math.min(pathSize.width, pathSize.height), Math.min(MAJOR_SNAP_GRID.width, MAJOR_SNAP_GRID.height));
+  private static void drawCurve(Graphics g, Point[] points) {
+    int N = points.length;
+    boolean horizontal = points[0].x != points[1].x;
+    Dimension pathSize = dimension(diff(points[N - 1], points[0]));
+
+    int cornerDiameter = Math.min(Math.min(pathSize.width, pathSize.height) / 2, Math.min(MAJOR_SNAP_GRID.width, MAJOR_SNAP_GRID.height));
     int cornerRadius = cornerDiameter / 2;
 
-    Rectangle cornerA = getCorner(cornerDiameter, A);
-    Rectangle cornerB = getCorner(cornerDiameter, B);
-
-    Point pj1 = Utilities.project(pj0, cornerA);
-    Point pj2 = Utilities.project(B, cornerA);
-    Point pj3 = Utilities.project(A, cornerB);
-    Point pj4 = Utilities.project(pj5, cornerB);
-
-    drawLine(g, pj0, pj1);
-    drawCorner(g, cornerDiameter, cornerRadius, pj1, pj2, horizontal);
-    drawLine(g, pj2, pj3);
-    drawCorner(g, cornerDiameter, cornerRadius, pj3, pj4, !horizontal);
-    if (length(diff(pj4, pj5)) > 1) { //
-      drawArrow(g, pj4, pj5);
+    Point previous = points[0];
+    for (int i = 1; i < points.length - 1; i++) {
+      Rectangle turn = getCorner(points[i], cornerDiameter);
+      Point startTurn = Utilities.project(previous, turn);
+      drawLine(g, previous, startTurn);
+      Point endTurn = Utilities.project(points[i + 1], turn);
+      drawCorner(g, cornerDiameter, cornerRadius, startTurn, endTurn, horizontal);
+      previous = endTurn;
+      horizontal = !horizontal;
     }
+
+    Point endPoint = points[N - 1];
+    if (length(diff(previous, endPoint)) > 1) { //
+      drawArrow(g, previous, endPoint);
+    }
+  }
+
+  public void drawTransition(Graphics g, Rectangle src, Rectangle dst) {
+    // draw source rect
+    drawRectangle(g, src);
+
+    // draw curved 'Manhattan route' from source to destination
+    drawCurve(g, getControlPoints(src, dst));
 
     // draw destination rect
     Color oldColor = g.getColor();
@@ -570,15 +599,18 @@ public class NavigationEditorPanel2 extends JComponent {
     Map<Transition, Component> transitionToEditor = getTransitionEditorAssociation().keyToValue;
 
     for (Transition transition : myNavigationModel.getTransitions()) {
-      Point sl = Utilities.centre(getBounds(transition.getSource()));
-      Point dl = Utilities.centre(getBounds(transition.getDestination()));
+      Rectangle sBounds = getBounds(transition.getSource());
+      //Point sl = Utilities.centre(sBounds);
+      Rectangle dBounds = getBounds(transition.getDestination());
+      //Point dl = Utilities.centre(dBounds);
       String gesture = transition.getType();
       if (gesture != null) {
         Component c = transitionToEditor.get(transition);
         c.setSize(c.getPreferredSize());
-        int sx = (sl.x + dl.x - c.getWidth()) / 2;
-        int sy = (sl.y + dl.y - c.getHeight()) / 2;
-        c.setLocation(sx, sy);
+        Point[] points = getControlPoints(sBounds, dBounds);
+        Point midpoint = midpoint(points[1], points[2]);
+        Point loc = diff(midpoint, point(scale(c.getSize(), 0.5f)));
+        c.setLocation(loc);
       }
     }
   }
