@@ -198,10 +198,7 @@ public class AndroidRootComponent extends JComponent {
     return hierarchy.findLeafAt(unScale(p.x), unScale(p.y));
   }
 
-  public Rectangle getBounds(@Nullable RenderedView leaf) {
-    if (leaf == null) {
-      return getBounds();
-    }
-    return new Rectangle(getX() + scale(leaf.x), getY() + scale(leaf.y), scale(leaf.w), scale(leaf.h));
+  public Rectangle getBounds(RenderedView v) {
+    return new Rectangle(scale(v.x), scale(v.y), scale(v.w), scale(v.h));
   }
 }
