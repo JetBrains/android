@@ -197,14 +197,22 @@ public class NavigationEditorPanel2 extends JComponent {
     return null;
   }
 
-  public Rectangle getNamedLeafBoundsAt(Component sourceComponent, Point location) {
+  static Rectangle getBounds(AndroidRootComponent c, @Nullable RenderedView leaf) {
+    if (leaf == null) {
+      return c.getBounds();
+    }
+    Rectangle r = c.getBounds(leaf);
+    return new Rectangle(c.getX() + r.x, c.getY() + r.y, r.width, r.height);
+  }
+
+  Rectangle getNamedLeafBoundsAt(Component sourceComponent, Point location) {
     Component destComponent = getComponentAt(location);
     if (sourceComponent != destComponent) {
       if (destComponent instanceof AndroidRootComponent) {
         AndroidRootComponent destinationRoot = (AndroidRootComponent)destComponent;
         RenderedView endLeaf = getRenderedView(destinationRoot, location);
         RenderedView namedEndLeaf = getNamedParent(endLeaf);
-        return destinationRoot.getBounds(namedEndLeaf);
+        return getBounds(destinationRoot, namedEndLeaf);
       }
     }
     return new Rectangle(location);
@@ -291,7 +299,7 @@ public class NavigationEditorPanel2 extends JComponent {
     if (leaf != null) {
       Color oldColor = g.getColor();
       g.setColor(color);
-      drawRectangle(g, component.getBounds(leaf));
+      drawRectangle(g, getBounds(component, leaf));
       g.setColor(oldColor);
     }
   }
@@ -578,7 +586,7 @@ public class NavigationEditorPanel2 extends JComponent {
   private Rectangle getBounds(Locator source) {
     Map<State, AndroidRootComponent> stateToComponent = getStateComponentAssociation().keyToValue;
     AndroidRootComponent component = stateToComponent.get(source.getState());
-    return component.getBounds(getRenderedView(source));
+    return getBounds(component, getRenderedView(source));
   }
 
   @Override
