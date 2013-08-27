@@ -180,6 +180,7 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
 
     if (myImageEditorPanel != null) {
       myImageEditorPanel.getViewer().removePatchUpdateListener(this);
+      myImageEditorPanel.dispose();
       myImageEditorPanel = null;
     }
   }
