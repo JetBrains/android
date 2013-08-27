@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.tools.idea.rendering.FileProjectResourceRepositoryTest;
 import com.android.tools.idea.rendering.Locale;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
@@ -22,6 +23,8 @@ import org.jetbrains.android.facet.AndroidFacet;
 
 import java.util.Arrays;
 import java.util.List;
+
+import static com.android.tools.idea.rendering.FileProjectResourceRepositoryTest.runOutOfMemory;
 
 public class ConfigurationManagerTest extends AndroidTestCase {
   public void testGetLocales() {
@@ -40,6 +43,7 @@ public class ConfigurationManagerTest extends AndroidTestCase {
     assertEquals(Arrays.asList(Locale.create("no"), Locale.create("no-rNO"), Locale.create("se")), locales);
   }
 
+  @SuppressWarnings("UnusedAssignment") // need to null out local vars before GC
   public void testCaching() {
     VirtualFile file1 = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout/layout1.xml");
     VirtualFile file2 = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout-no-rNO/layout1.xml");
@@ -58,5 +62,22 @@ public class ConfigurationManagerTest extends AndroidTestCase {
     assertSame(configuration2, manager.getConfiguration(file2));
     assertSame(file1, configuration1.getFile());
     assertSame(file2, configuration2.getFile());
+
+    // GC test: Ensure that we keep a cache through the first GC, but not if
+    // we nearly run out of memory:
+
+    assertTrue(manager.hasCachedConfiguration(file1));
+    assertTrue(manager.hasCachedConfiguration(file2));
+
+    configuration1 = null;
+    configuration2 = null;
+    System.gc();
+    assertTrue(manager.hasCachedConfiguration(file1));
+    assertTrue(manager.hasCachedConfiguration(file2));
+
+    runOutOfMemory();
+    System.gc();
+    assertFalse(manager.hasCachedConfiguration(file1));
+    assertFalse(manager.hasCachedConfiguration(file2));
   }
 }

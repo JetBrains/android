@@ -22,7 +22,7 @@ import com.android.tools.idea.jps.output.parser.OutputLineReader;
 import com.android.tools.idea.jps.output.parser.ParsingFailedException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
-import com.intellij.util.containers.WeakValueHashMap;
+import com.intellij.util.containers.SoftValueHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
@@ -81,8 +81,8 @@ public abstract class AbstractAaptOutputParser implements CompilerOutputParser {
   private static final String START_MARKER = "<!-- From: "; // Keep in sync with MergedResourceWriter#FILENAME_PREFIX
   private static final String END_MARKER = " -->";
 
-  @NotNull private static final WeakValueHashMap<String, ReadOnlyDocument> ourDocumentsByPathCache =
-    new WeakValueHashMap<String, ReadOnlyDocument>();
+  @NotNull private static final SoftValueHashMap<String, ReadOnlyDocument> ourDocumentsByPathCache =
+    new SoftValueHashMap<String, ReadOnlyDocument>();
 
   @Nullable
   final Matcher getNextLineMatcher(@NotNull OutputLineReader reader, @NotNull Pattern pattern) {
