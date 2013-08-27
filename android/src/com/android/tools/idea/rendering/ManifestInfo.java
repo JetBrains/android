@@ -31,6 +31,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -251,7 +252,7 @@ public class ManifestInfo {
   public Map<String, String> getActivityThemes() {
     sync();
     if (myActivityThemes == null) {
-      sync();
+      return Collections.emptyMap();
     }
     return myActivityThemes;
   }
