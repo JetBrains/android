@@ -57,14 +57,14 @@ public class NavigationEditorPanel extends JComponent {
   private static final float ZOOM_FACTOR = 1.1f;
 
   // Snap grid
-  private static final int MINOR_SNAP = 16;
+  private static final int MINOR_SNAP = 32;
   private static final int MIDDLE_COUNT = 5;
   private static final int MAJOR_COUNT = 10;
 
   public static final Dimension MINOR_SNAP_GRID = new Dimension(MINOR_SNAP, MINOR_SNAP);
   public static final Dimension MIDDLE_SNAP_GRID = scale(MINOR_SNAP_GRID, MIDDLE_COUNT);
   public static final Dimension MAJOR_SNAP_GRID = scale(MINOR_SNAP_GRID, MAJOR_COUNT);
-  public static final int MIN_GRID_LINE_SEPARATION = 10;
+  public static final int MIN_GRID_LINE_SEPARATION = 8;
 
   public static final int LINE_WIDTH = 12;
   private static final Point MULTIPLE_DROP_STRIDE = point(MAJOR_SNAP_GRID);
