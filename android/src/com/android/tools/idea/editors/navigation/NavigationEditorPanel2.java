@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.navigation;
 
 import com.android.navigation.*;
-import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderedView;
 import com.android.tools.idea.rendering.ShadowPainter;
@@ -55,16 +54,19 @@ public class NavigationEditorPanel2 extends JComponent {
   private static final Color SNAP_GRID_LINE_COLOR_MIDDLE = Gray.get(170);
   private static final Color SNAP_GRID_LINE_COLOR_MAJOR = Gray.get(160);
 
+  private static final float ZOOM_FACTOR = 1.1f;
+
   // Snap grid
-  private static final int MINOR_SNAP = 4;
+  private static final int MINOR_SNAP = 16;
   private static final int MIDDLE_COUNT = 5;
   private static final int MAJOR_COUNT = 10;
 
   public static final Dimension MINOR_SNAP_GRID = new Dimension(MINOR_SNAP, MINOR_SNAP);
   public static final Dimension MIDDLE_SNAP_GRID = scale(MINOR_SNAP_GRID, MIDDLE_COUNT);
   public static final Dimension MAJOR_SNAP_GRID = scale(MINOR_SNAP_GRID, MAJOR_COUNT);
+  public static final int MIN_GRID_LINE_SEPARATION = 10;
 
-  private static final int LINE_WIDTH = 3;
+  public static final int LINE_WIDTH = 12;
   private static final Point MULTIPLE_DROP_STRIDE = point(MAJOR_SNAP_GRID);
   private static final String ID_PREFIX = "@+id/";
   private static final Color TRANSITION_LINE_COLOR = new Color(80, 80, 255);
@@ -84,7 +86,7 @@ public class NavigationEditorPanel2 extends JComponent {
   private Map<State, Map<String, RenderedView>> myLocationToRenderedView = new IdentityHashMap<State, Map<String, RenderedView>>();
   private Image myBackgroundImage;
   private Point myMouseLocation;
-  private float myScale = 1 / 4f;
+  private Transform myTransform = new Transform(1 / 4f);
 
   // Configuration
 
@@ -201,7 +203,7 @@ public class NavigationEditorPanel2 extends JComponent {
     if (leaf == null) {
       return c.getBounds();
     }
-    Rectangle r = c.getBounds(leaf);
+    Rectangle r = c.myTransform.getBounds(leaf);
     return new Rectangle(c.getX() + r.x, c.getY() + r.y, r.width, r.height);
   }
 
@@ -219,12 +221,35 @@ public class NavigationEditorPanel2 extends JComponent {
   }
 
   public float getScale() {
-    return myScale;
+    return myTransform.myScale;
   }
 
   public void setScale(float scale) {
-    myScale = scale;
+    myTransform = new Transform(scale);
+    myBackgroundImage = null;
+    for (AndroidRootComponent root : getStateComponentAssociation().keyToValue.values()) {
+      root.setScale(scale);
+    }
+    setPreferredSize();
+
+    revalidate();
     repaint();
+  }
+
+  public void zoom(@NotNull ZoomType type) {
+    switch (type) {
+      case IN:
+        setScale(myTransform.myScale * ZOOM_FACTOR);
+        break;
+      case OUT:
+        setScale(myTransform.myScale / ZOOM_FACTOR);
+        break;
+      case ACTUAL:
+        setScale(1);
+        break;
+      default:
+        break;
+    }
   }
 
   private Assoc<State, AndroidRootComponent> getStateComponentAssociation() {
@@ -353,13 +378,19 @@ public class NavigationEditorPanel2 extends JComponent {
   }
   */
 
-  private void drawGrid(Graphics g, Color c, Dimension size, int width, int height) {
+  private void drawGrid(Graphics g, Color c, Dimension modelSize, int width, int height) {
     g.setColor(c);
-    for (int x = 0; x < width; x += size.width) {
-      g.drawLine(x, 0, x, getHeight());
+    Dimension viewSize = myTransform.modelToView(modelSize);
+    if (viewSize.width < MIN_GRID_LINE_SEPARATION || viewSize.height < MIN_GRID_LINE_SEPARATION) {
+      return;
     }
-    for (int y = 0; y < height; y += size.height) {
-      g.drawLine(0, y, getWidth(), y);
+    for (int x = 0; x < myTransform.viewToModel(width); x += modelSize.width) {
+      int vx = myTransform.modelToView(x);
+      g.drawLine(vx, 0, vx, getHeight());
+    }
+    for (int y = 0; y < myTransform.viewToModel(height); y += modelSize.height) {
+      int vy = myTransform.modelToView(y);
+      g.drawLine(0, vy, getWidth(), vy);
     }
   }
 
@@ -367,9 +398,9 @@ public class NavigationEditorPanel2 extends JComponent {
     g.setColor(BACKGROUND_COLOR);
     g.fillRect(0, 0, width, height);
 
-    drawGrid(g, SNAP_GRID_LINE_COLOR_MINOR, MINOR_SNAP_GRID, width, height);
+    drawGrid(g, SNAP_GRID_LINE_COLOR_MINOR,   MINOR_SNAP_GRID, width, height);
     drawGrid(g, SNAP_GRID_LINE_COLOR_MIDDLE, MIDDLE_SNAP_GRID, width, height);
-    drawGrid(g, SNAP_GRID_LINE_COLOR_MAJOR, MAJOR_SNAP_GRID, width, height);
+    drawGrid(g, SNAP_GRID_LINE_COLOR_MAJOR,   MAJOR_SNAP_GRID, width, height);
   }
 
   private Image getBackGroundImage() {
@@ -396,11 +427,11 @@ public class NavigationEditorPanel2 extends JComponent {
     }
   }
 
-  public static Graphics2D createLineGraphics(Graphics g) {
+  public static Graphics2D createLineGraphics(Graphics g, int lineWidth) {
     Graphics2D g2D = (Graphics2D)g.create();
     g2D.setColor(TRANSITION_LINE_COLOR);
     g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    g2D.setStroke(new BasicStroke(LINE_WIDTH));
+    g2D.setStroke(new BasicStroke(lineWidth));
     return g2D;
   }
 
@@ -413,8 +444,8 @@ public class NavigationEditorPanel2 extends JComponent {
     g.drawLine(a.x, a.y, b.x, b.y);
   }
 
-  private static void drawArrow(Graphics g, Point a, Point b) {
-    Utilities.drawArrow(g, a.x, a.y, b.x, b.y);
+  private static void drawArrow(Graphics g, Point a, Point b, int lineWidth) {
+    Utilities.drawArrow(g, a.x, a.y, b.x, b.y, lineWidth);
   }
 
   private static void drawRectangle(Graphics g, Rectangle r) {
@@ -476,7 +507,7 @@ public class NavigationEditorPanel2 extends JComponent {
     return cornerDiameter;
   }
 
-  private static void drawCurve(Graphics g, Point[] points) {
+  private static void drawCurve(Graphics g, Point[] points, int lineWidth) {
     final int N = points.length;
     final int cornerDiameter = getTurnLength(points);
 
@@ -494,7 +525,7 @@ public class NavigationEditorPanel2 extends JComponent {
 
     Point endPoint = points[N - 1];
     if (length(diff(previous, endPoint)) > 1) { //
-      drawArrow(g, previous, endPoint);
+      drawArrow(g, previous, endPoint, lineWidth);
     }
   }
 
@@ -503,7 +534,7 @@ public class NavigationEditorPanel2 extends JComponent {
     drawRectangle(g, src);
 
     // draw curved 'Manhattan route' from source to destination
-    drawCurve(g, getControlPoints(src, dst));
+    drawCurve(g, getControlPoints(src, dst), myTransform.modelToView(LINE_WIDTH));
 
     // draw destination rect
     Color oldColor = g.getColor();
@@ -576,7 +607,7 @@ public class NavigationEditorPanel2 extends JComponent {
   @Override
   protected void paintChildren(Graphics g) {
     paintChildren(g, SCREENS);
-    Graphics2D lineGraphics = createLineGraphics(g);
+    Graphics2D lineGraphics = createLineGraphics(g, myTransform.modelToView(LINE_WIDTH));
     paintTransitions(lineGraphics);
     paintRollover(lineGraphics);
     paintSelection(g);
@@ -592,6 +623,13 @@ public class NavigationEditorPanel2 extends JComponent {
   @Override
   public void doLayout() {
     Map<Transition, Component> transitionToEditor = getTransitionEditorAssociation().keyToValue;
+
+    Map<State, AndroidRootComponent> stateToComponent = getStateComponentAssociation().keyToValue;
+    for (State state : stateToComponent.keySet()) {
+      AndroidRootComponent root = stateToComponent.get(state);
+      root.setLocation(scale(toAWTPoint(state.getLocation()), myTransform.myScale));
+      root.setSize(root.getPreferredSize());
+    }
 
     for (Transition transition : myNavigationModel.getTransitions()) {
       String gesture = transition.getType();
@@ -692,7 +730,7 @@ public class NavigationEditorPanel2 extends JComponent {
     return fileSystem.findFileByPath(path + dir + state.getXmlResourceName() + ".xml");
   }
 
-  private AndroidRootComponent createRootComponentFor(State state, Point location) {
+  private AndroidRootComponent createRootComponentFor(State state) {
     VirtualFileSystem fileSystem = myFile.getFileSystem();
     String path = myFile.getParent().getParent().getPath();
     String directoryName = myFile.getParent().getName();
@@ -702,47 +740,15 @@ public class NavigationEditorPanel2 extends JComponent {
     VirtualFile file = qualifiedFile != null ? qualifiedFile : getFile(state, fileSystem, path, "/layout/");
     PsiFile psiFile = file == null ? null : PsiManager.getInstance(myMyRenderingParams.myProject).findFile(file);
     AndroidRootComponent result = new AndroidRootComponent(myMyRenderingParams, psiFile);
-    result.setScale(myScale);
-    result.setLocation(location);
-    Dimension size = getPreviewSize();
-    result.setPreferredSize(size);
-    result.setSize(size);
+    result.setScale(myTransform.myScale);
     return result;
-  }
-
-  private Dimension getDeviceScreenSize() {
-    Configuration configuration = myMyRenderingParams.myConfiguration;
-    Device device = configuration.getDevice();
-    if (device == null) {
-      return ZERO_SIZE;
-    }
-    com.android.sdklib.devices.State deviceState = configuration.getDeviceState();
-    if (deviceState == null) {
-      deviceState = device.getDefaultState();
-    }
-    return notNull(device.getScreenSize(deviceState.getOrientation()));
-  }
-
-  private Dimension getPreviewSize() {
-    return scale(getDeviceScreenSize(), myScale);
-  }
-
-  private void setPreferredSize(Set<AndroidRootComponent> roots) {
-    Dimension size = getPreviewSize();
-    Dimension gridSize = new Dimension(size.width + GAP.width, size.height + GAP.height);
-    Point maxLoc = new Point(0, 0);
-    for (AndroidRootComponent c : roots) {
-      maxLoc = Utilities.max(maxLoc, c.getLocation());
-    }
-    setPreferredSize(new Dimension(maxLoc.x + gridSize.width, maxLoc.y + gridSize.height));
   }
 
   private void syncStateCache(Assoc<State, AndroidRootComponent> assoc) {
     // add anything that is in the model but not in our cache
     for (State state : myNavigationModel.getStates()) {
       if (!assoc.keyToValue.containsKey(state)) {
-        Point p = Utilities.toAWTPoint(state.getLocation());
-        AndroidRootComponent root = createRootComponentFor(state, p);
+        AndroidRootComponent root = createRootComponentFor(state);
         assoc.add(state, root);
         add(root);
       }
@@ -750,7 +756,26 @@ public class NavigationEditorPanel2 extends JComponent {
     // remove anything that is in our cache but not in the model
     removeLeftovers(assoc, myNavigationModel.getStates());
 
-    setPreferredSize(assoc.valueToKey.keySet());
+    setPreferredSize();
+  }
+
+  private static com.android.navigation.Point getMaxLoc(ArrayList<State> states) {
+    int maxX = 0;
+    int maxY = 0;
+    for (State state : states) {
+      com.android.navigation.Point loc = state.getLocation();
+      maxX = Math.max(maxX, loc.x);
+      maxY = Math.max(maxY, loc.y);
+    }
+    return new com.android.navigation.Point(maxX, maxY);
+  }
+
+  private void setPreferredSize() {
+    Dimension size = myMyRenderingParams.getDeviceScreenSize();
+    Dimension gridSize = new Dimension(size.width + GAP.width, size.height + GAP.height);
+    com.android.navigation.Point maxLoc = getMaxLoc(myNavigationModel.getStates());
+    Point max = myTransform.modelToView(new com.android.navigation.Point(maxLoc.x + gridSize.width, maxLoc.y + gridSize.height));
+    setPreferredSize(new Dimension(max.x, max.y));
   }
 
   private Selections.Selection createSelection(Point mouseDownLocation, boolean shiftDown) {
@@ -808,7 +833,8 @@ public class NavigationEditorPanel2 extends JComponent {
       if (attachedObject instanceof TransferableWrapper) {
         TransferableWrapper wrapper = (TransferableWrapper)attachedObject;
         PsiElement[] psiElements = wrapper.getPsiElements();
-        Point dropLocation = diff(anEvent.getPointOn(NavigationEditorPanel2.this), point(scale(getPreviewSize(), 0.5f)));
+        Point dropLocation = diff(anEvent.getPointOn(NavigationEditorPanel2.this),
+                                  point(scale(myMyRenderingParams.getDeviceScreenSizeFor(myTransform), 0.5f)));
 
         if (psiElements != null) {
           for (PsiElement element : psiElements) {

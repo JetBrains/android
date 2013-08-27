@@ -15,10 +15,17 @@
  */
 package com.android.tools.idea.editors.navigation;
 
+import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+
+import java.awt.*;
+
+import static com.android.tools.idea.editors.navigation.Utilities.ZERO_SIZE;
+import static com.android.tools.idea.editors.navigation.Utilities.notNull;
 
 class RenderingParameters {
   @NotNull final Project myProject;
@@ -29,5 +36,22 @@ class RenderingParameters {
     this.myProject = project;
     this.myConfiguration = configuration;
     this.myFacet = facet;
+  }
+
+  Dimension getDeviceScreenSize() {
+    Configuration configuration = myConfiguration;
+    Device device = configuration.getDevice();
+    if (device == null) {
+      return ZERO_SIZE;
+    }
+    State deviceState = configuration.getDeviceState();
+    if (deviceState == null) {
+      deviceState = device.getDefaultState();
+    }
+    return notNull(device.getScreenSize(deviceState.getOrientation()));
+  }
+
+  Dimension getDeviceScreenSizeFor(Transform transform) {
+    return transform.modelToView(getDeviceScreenSize());
   }
 }
