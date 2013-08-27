@@ -47,12 +47,14 @@ public class AndroidFindStyleApplicationsDialog extends DialogWrapper {
       myFileScopeRadio.setVisible(false);
     }
     final String scopeValue = PropertiesComponent.getInstance().getValue(FIND_STYLE_APPLICATIONS_SCOPE_PROPERTY);
-    AndroidFindStyleApplicationsProcessor.MyScope scope;
-    try {
-      scope = Enum.valueOf(AndroidFindStyleApplicationsProcessor.MyScope.class, scopeValue);
-    }
-    catch (IllegalArgumentException e) {
-      scope = null;
+    AndroidFindStyleApplicationsProcessor.MyScope scope = null;
+    if (scopeValue != null) {
+      try {
+        scope = Enum.valueOf(AndroidFindStyleApplicationsProcessor.MyScope.class, scopeValue);
+      }
+      catch (IllegalArgumentException e) {
+        scope = null;
+      }
     }
 
     if (scope == null) {
