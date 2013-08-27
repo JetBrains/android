@@ -130,10 +130,10 @@ class Selections {
     private void moveTo(Point location, boolean snap) {
       Point newLocation = Utilities.add(diff(location, myMouseDownLocation), myOrigComponentLocation);
       if (snap) {
-        newLocation = Utilities.snap(newLocation, NavigationEditorPanel2.MIDDLE_SNAP_GRID);
+        newLocation = Utilities.snap(newLocation, myComponent.myTransform.modelToView(NavigationEditorPanel2.MIDDLE_SNAP_GRID));
       }
       myComponent.setLocation(newLocation);
-      myState.setLocation(Utilities.toNavPoint(newLocation));
+      myState.setLocation(myComponent.myTransform.viewToModel(newLocation));
       myNavigationModel.getListeners().notify(NavigationModel.Event.update(State.class));
     }
 
@@ -184,7 +184,8 @@ class Selections {
 
     @Override
     protected void paintOver(Graphics g) {
-      Graphics2D lineGraphics = NavigationEditorPanel2.createLineGraphics(g);
+      int lineWidth = mySourceComponent.myTransform.modelToView(NavigationEditorPanel2.LINE_WIDTH);
+      Graphics2D lineGraphics = NavigationEditorPanel2.createLineGraphics(g, lineWidth);
       Rectangle sourceBounds = NavigationEditorPanel2.getBounds(mySourceComponent, myNamedLeaf);
       Rectangle destBounds = myNavigationEditor.getNamedLeafBoundsAt(mySourceComponent, myMouseLocation);
       myNavigationEditor.drawTransition(lineGraphics, sourceBounds, destBounds);
