@@ -16,6 +16,7 @@
 package com.android.tools.idea.configurations;
 
 import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LanguageQualifier;
 import com.android.ide.common.resources.configuration.RegionQualifier;
@@ -24,8 +25,10 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.rendering.ManifestInfo;
+import com.android.tools.idea.rendering.ProjectResources;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -36,7 +39,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
-import com.intellij.util.containers.WeakValueHashMap;
+import com.intellij.util.containers.SoftValueHashMap;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.dom.resources.Style;
@@ -72,7 +75,7 @@ public class ConfigurationManager implements Disposable {
   private List<String> myProjectThemes;
   private List<IAndroidTarget> myTargets;
   private final UserDeviceManager myUserDeviceManager;
-  private final WeakValueHashMap<VirtualFile, Configuration> myCache = new WeakValueHashMap<VirtualFile, Configuration>();
+  private final SoftValueHashMap<VirtualFile, Configuration> myCache = new SoftValueHashMap<VirtualFile, Configuration>();
   private List<Locale> myLocales;
   private Device myDefaultDevice;
   private Locale myLocale;
@@ -106,6 +109,11 @@ public class ConfigurationManager implements Disposable {
     }
 
     return configuration;
+  }
+
+  @VisibleForTesting
+  boolean hasCachedConfiguration(@NotNull VirtualFile file) {
+    return myCache.get(file) != null;
   }
 
   /**
