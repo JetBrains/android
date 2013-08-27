@@ -27,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
@@ -36,8 +37,8 @@ public class AndroidRootComponent extends JComponent {
   private final RenderingParameters myRenderingParameters;
   private final PsiFile myPsiFile;
 
-  private float myScale = 1;
-
+  @NotNull
+  Transform myTransform = new Transform(1);
   private Image myScaledImage;
   private RenderResult myRenderResult = null;
 
@@ -58,16 +59,15 @@ public class AndroidRootComponent extends JComponent {
   }
 
   public float getScale() {
-    return myScale;
+    return myTransform.myScale;
   }
 
   private void invalidate2() {
-    myRenderResult = null;
     myScaledImage = null;
   }
 
   public void setScale(float scale) {
-    myScale = scale;
+    myTransform = new Transform(scale);
     invalidate2();
   }
 
@@ -75,6 +75,11 @@ public class AndroidRootComponent extends JComponent {
   private BufferedImage getImage() {
     ScalableImage image = myRenderResult == null ? null : myRenderResult.getImage();
     return image == null ? null : image.getOriginalImage();
+  }
+
+  @Override
+  public Dimension getPreferredSize() {
+    return myRenderingParameters.getDeviceScreenSizeFor(myTransform);
   }
 
   //ScalableImage image = myRenderResult.getImage();
@@ -101,7 +106,7 @@ public class AndroidRootComponent extends JComponent {
         myScaledImage.getHeight(null) != getHeight()) {
       BufferedImage image = getImage();
       if (image != null) {
-        myScaledImage = ImageUtils.scale(image, myScale, myScale, 0, 0);
+        myScaledImage = ImageUtils.scale(image, myTransform.myScale, myTransform.myScale, 0, 0);
       }
     }
     return myScaledImage;
@@ -129,26 +134,25 @@ public class AndroidRootComponent extends JComponent {
     if (myPsiFile == null) {
       return;
     }
+    Project project = myRenderingParameters.myProject;
+    AndroidFacet facet = myRenderingParameters.myFacet;
+    Configuration configuration = myRenderingParameters.myConfiguration;
+
+    if (project.isDisposed()) {
+      return;
+    }
+    Module module = facet.getModule();
+    RenderLogger logger = new RenderLogger(myPsiFile.getName(), module);
+    //synchronized (RENDERING_LOCK) {
+    final RenderService service = RenderService.create(facet, module, myPsiFile, configuration, logger, null);
     // The rendering service takes long enough to initialise that we don't want to do this from the EDT.
     // Further, IntellJ's helper classes don't not allow read access from outside EDT, so we need nested runnables.
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
         ApplicationManager.getApplication().runReadAction(new Runnable() {
-
           @Override
           public void run() {
-            Project project = myRenderingParameters.myProject;
-            AndroidFacet facet = myRenderingParameters.myFacet;
-            Configuration configuration = myRenderingParameters.myConfiguration;
-
-            if (project.isDisposed()) {
-              return;
-            }
-            Module module = facet.getModule();
-            RenderLogger logger = new RenderLogger(myPsiFile.getName(), module);
-            //synchronized (RENDERING_LOCK) {
-            RenderService service = RenderService.create(facet, module, myPsiFile, configuration, logger, null);
             if (service != null) {
               setRenderResult(service.render());
               service.dispose();
@@ -158,14 +162,6 @@ public class AndroidRootComponent extends JComponent {
         });
       }
     });
-  }
-
-  private int scale(int d) {
-    return ((int)(d * myScale));
-  }
-
-  private int unScale(int d) {
-    return (int)(d / myScale);
   }
 
   @Nullable
@@ -195,10 +191,6 @@ public class AndroidRootComponent extends JComponent {
     if (hierarchy == null) {
       return null;
     }
-    return hierarchy.findLeafAt(unScale(p.x), unScale(p.y));
-  }
-
-  public Rectangle getBounds(RenderedView v) {
-    return new Rectangle(scale(v.x), scale(v.y), scale(v.w), scale(v.h));
+    return hierarchy.findLeafAt(myTransform.viewToModel(p.x), myTransform.viewToModel(p.y));
   }
 }
