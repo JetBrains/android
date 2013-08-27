@@ -398,9 +398,9 @@ public class NavigationEditorPanel2 extends JComponent {
     g.setColor(BACKGROUND_COLOR);
     g.fillRect(0, 0, width, height);
 
-    drawGrid(g, SNAP_GRID_LINE_COLOR_MINOR,   MINOR_SNAP_GRID, width, height);
+    drawGrid(g, SNAP_GRID_LINE_COLOR_MINOR, MINOR_SNAP_GRID, width, height);
     drawGrid(g, SNAP_GRID_LINE_COLOR_MIDDLE, MIDDLE_SNAP_GRID, width, height);
-    drawGrid(g, SNAP_GRID_LINE_COLOR_MAJOR,   MAJOR_SNAP_GRID, width, height);
+    drawGrid(g, SNAP_GRID_LINE_COLOR_MAJOR, MAJOR_SNAP_GRID, width, height);
   }
 
   private Image getBackGroundImage() {
@@ -490,9 +490,9 @@ public class NavigationEditorPanel2 extends JComponent {
     return new Point[]{project(a, src), a, b, project(b, dst)};
   }
 
-  private static int getTurnLength(Point[] points) {
+  private static int getTurnLength(Point[] points, float scale) {
     int N = points.length;
-    int cornerDiameter = Math.min(MAJOR_SNAP_GRID.width, MAJOR_SNAP_GRID.height);
+    int cornerDiameter = (int)(Math.min(MAJOR_SNAP_GRID.width, MAJOR_SNAP_GRID.height) * scale);
 
     for (int i = 0; i < N - 1; i++) {
       Point a = points[i];
@@ -507,9 +507,9 @@ public class NavigationEditorPanel2 extends JComponent {
     return cornerDiameter;
   }
 
-  private static void drawCurve(Graphics g, Point[] points, int lineWidth) {
+  private static void drawCurve(Graphics g, Point[] points, float scale) {
     final int N = points.length;
-    final int cornerDiameter = getTurnLength(points);
+    final int cornerDiameter = getTurnLength(points, scale);
 
     boolean horizontal = points[0].x != points[1].x;
     Point previous = points[0];
@@ -518,14 +518,14 @@ public class NavigationEditorPanel2 extends JComponent {
       Point startTurn = project(previous, turn);
       drawLine(g, previous, startTurn);
       Point endTurn = project(points[i + 1], turn);
-      drawCorner(g, cornerDiameter, startTurn, endTurn, horizontal);
+      drawCorner(g, startTurn, endTurn, horizontal);
       previous = endTurn;
       horizontal = !horizontal;
     }
 
     Point endPoint = points[N - 1];
     if (length(diff(previous, endPoint)) > 1) { //
-      drawArrow(g, previous, endPoint, lineWidth);
+      drawArrow(g, previous, endPoint, (int)(LINE_WIDTH * scale));
     }
   }
 
@@ -534,7 +534,7 @@ public class NavigationEditorPanel2 extends JComponent {
     drawRectangle(g, src);
 
     // draw curved 'Manhattan route' from source to destination
-    drawCurve(g, getControlPoints(src, dst), myTransform.modelToView(LINE_WIDTH));
+    drawCurve(g, getControlPoints(src, dst), myTransform.myScale);
 
     // draw destination rect
     Color oldColor = g.getColor();
@@ -556,14 +556,15 @@ public class NavigationEditorPanel2 extends JComponent {
     return p.x > 0 ? 0 : p.y < 0 ? 90 : p.x < 0 ? 180 : 270;
   }
 
-  private static void drawCorner(Graphics g, int cornerDiameter, Point a, Point b, boolean horizontal) {
-    int cornerRadius = cornerDiameter / 2;
+  private static void drawCorner(Graphics g, Point a, Point b, boolean horizontal) {
+    int radiusX = Math.abs(a.x - b.x);
+    int radiusY = Math.abs(a.y - b.y);
     Point centre = horizontal ? new Point(a.x, b.y) : new Point(b.x, a.y);
     int startAngle = angle(diff(a, centre));
     int endAngle = angle(diff(b, centre));
     int dangle = endAngle - startAngle;
     int angle = dangle - (Math.abs(dangle) <= 180 ? 0 : 360 * sign(dangle));
-    g.drawArc(centre.x - cornerRadius, centre.y - cornerRadius, cornerDiameter, cornerDiameter, startAngle, angle);
+    g.drawArc(centre.x - radiusX, centre.y - radiusY, radiusX * 2, radiusY * 2, startAngle, angle);
   }
 
   private RenderedView getRenderedView(Locator locator) {
