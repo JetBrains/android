@@ -155,8 +155,8 @@
     <fileEditorProvider implementation="com.android.tools.idea.editors.NinePatchEditorProvider" />
     <fileEditorProvider implementation="com.android.tools.idea.editors.navigation.NavigationEditorProvider" />
 
-    <configurationProducer implementation="org.jetbrains.android.run.AndroidConfigurationProducer"/>
-    <configurationProducer implementation="org.jetbrains.android.run.testing.AndroidTestConfigurationProducer" order="first"/>
+    <runConfigurationProducer implementation="org.jetbrains.android.run.AndroidConfigurationProducer"/>
+    <runConfigurationProducer implementation="org.jetbrains.android.run.testing.AndroidTestConfigurationProducer" order="first"/>
     <configurationType implementation="org.jetbrains.android.run.AndroidRunConfigurationType"/>
     <configurationType implementation="org.jetbrains.android.run.testing.AndroidTestRunConfigurationType"/>
     <programRunner implementation="org.jetbrains.android.run.AndroidDebugRunner" order="first"/>
