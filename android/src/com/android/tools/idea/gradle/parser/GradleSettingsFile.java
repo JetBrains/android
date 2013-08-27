@@ -52,7 +52,10 @@ public class GradleSettingsFile extends GradleGroovyFile {
    */
   public void addModule(@NotNull Module module) {
     checkInitialized();
-    addModule(getModuleGradlePath(module));
+    String moduleGradlePath = getModuleGradlePath(module);
+    if (moduleGradlePath != null) {
+      addModule(moduleGradlePath);
+    }
   }
 
   /**
@@ -135,12 +138,11 @@ public class GradleSettingsFile extends GradleGroovyFile {
     }));
   }
 
-  @NotNull
+  @Nullable
   private static String getModuleGradlePath(@NotNull Module module) {
     AndroidGradleFacet androidGradleFacet = Facets.getFirstFacetOfType(module, AndroidGradleFacet.TYPE_ID);
     if (androidGradleFacet == null) {
-      String msg = String.format("The module '%s$1' does not have the 'Android-Gradle' facet", module.getName());
-      throw new IllegalStateException(msg);
+      return null;
     }
     return androidGradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
   }
