@@ -181,6 +181,8 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     else if (StringUtil.startsWithChar(value, '?')) {
       addResourceReferenceValues(facet, '?', ResourceType.ATTR.getName(), null, result, false);
       addResourceReferenceValues(facet, '?', ResourceType.ATTR.getName(), SYSTEM_RESOURCE_PACKAGE, result, false);
+      result.add(ResourceValue.literal("?attr/"));
+      result.add(ResourceValue.literal("?android:attr/"));
     }
   }
 

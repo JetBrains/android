@@ -813,6 +813,14 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     doTestAttrReferenceCompletion("android:textAppear\n");
   }
 
+  public void testAttrReferences8() throws Throwable {
+    doTestAttrReferenceCompletion("attr\n");
+  }
+
+  public void testAttrReferences9() throws Throwable {
+    doTestAttrReferenceCompletion("android:attr\n");
+  }
+
   public void testNamespaceCompletion() throws Throwable {
     doTestNamespaceCompletion(true, true);
   }
