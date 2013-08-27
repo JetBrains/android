@@ -57,8 +57,12 @@ public class Utilities {
     return new Point(snap(p.x, gridSize.width), snap(p.y, gridSize.height));
   }
 
-  public static Point midpoint(Point p1, Point p2) {
+  public static Point midPoint(Point p1, Point p2) {
     return scale(add(p1, p2), 0.5f);
+  }
+
+  public static Point midPoint(Dimension size) {
+    return point(scale(size, 0.5f));
   }
 
   public static Point point(Dimension d) {
@@ -141,14 +145,6 @@ public class Utilities {
       }
     }
     return stringBuilder.toString();
-  }
-
-  public static Point toAWTPoint(com.android.navigation.Point loc) {
-    return new Point(loc.x, loc.y);
-  }
-
-  public static com.android.navigation.Point toNavPoint(Point loc) {
-    return new com.android.navigation.Point(loc.x, loc.y);
   }
 
   static void drawArrow(Graphics g1, int x1, int y1, int x2, int y2, int lineWidth) {

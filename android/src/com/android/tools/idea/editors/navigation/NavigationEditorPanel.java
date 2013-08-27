@@ -47,7 +47,7 @@ import java.util.*;
 
 import static com.android.tools.idea.editors.navigation.Utilities.*;
 
-public class NavigationEditorPanel2 extends JComponent {
+public class NavigationEditorPanel extends JComponent {
   private static final Dimension GAP = new Dimension(150, 50);
   private static final Color BACKGROUND_COLOR = Gray.get(192);
   private static final Color SNAP_GRID_LINE_COLOR_MINOR = Gray.get(180);
@@ -107,7 +107,7 @@ public class NavigationEditorPanel2 extends JComponent {
     return null;
   }
 
-  public NavigationEditorPanel2(Project project, VirtualFile file, NavigationModel model) {
+  public NavigationEditorPanel(Project project, VirtualFile file, NavigationModel model) {
     myMyRenderingParams = getRenderingParams(project, file);
     myFile = file;
     myNavigationModel = model;
@@ -203,7 +203,7 @@ public class NavigationEditorPanel2 extends JComponent {
     if (leaf == null) {
       return c.getBounds();
     }
-    Rectangle r = c.myTransform.getBounds(leaf);
+    Rectangle r = c.transform.getBounds(leaf);
     return new Rectangle(c.getX() + r.x, c.getY() + r.y, r.width, r.height);
   }
 
@@ -236,20 +236,8 @@ public class NavigationEditorPanel2 extends JComponent {
     repaint();
   }
 
-  public void zoom(@NotNull ZoomType type) {
-    switch (type) {
-      case IN:
-        setScale(myTransform.myScale * ZOOM_FACTOR);
-        break;
-      case OUT:
-        setScale(myTransform.myScale / ZOOM_FACTOR);
-        break;
-      case ACTUAL:
-        setScale(1);
-        break;
-      default:
-        break;
-    }
+  public void zoom(boolean in) {
+    setScale(myTransform.myScale * (in ? ZOOM_FACTOR : 1 / ZOOM_FACTOR));
   }
 
   private Assoc<State, AndroidRootComponent> getStateComponentAssociation() {
@@ -468,7 +456,22 @@ public class NavigationEditorPanel2 extends JComponent {
     return dst.y + dst.height;
   }
 
-  private static Point[] getControlPoints(Rectangle src, Rectangle dst) {
+  static class Line {
+    public final Point a;
+    public final Point b;
+
+    Line(Point a, Point b) {
+      this.a = a;
+      this.b = b;
+    }
+
+    Point project(Point p) {
+      boolean horizontal = a.x == b.x;
+      return horizontal ? new Point(a.x, p.y) : new Point(p.x, a.y);
+    }
+  }
+
+  static Line getMidLine(Rectangle src, Rectangle dst) {
     Point midSrc = centre(src);
     Point midDst = centre(dst);
 
@@ -487,7 +490,24 @@ public class NavigationEditorPanel2 extends JComponent {
     Point a = horizontal ? new Point(middle, midSrc.y) : new Point(midSrc.x, middle);
     Point b = horizontal ? new Point(middle, midDst.y) : new Point(midDst.x, middle);
 
+    return new Line(a, b);
+  }
+
+  private Line getMidLine(Transition t) {
+    Map<State, AndroidRootComponent> m = getStateComponentAssociation().keyToValue;
+    State src = t.getSource().getState();
+    State dst = t.getDestination().getState();
+    return getMidLine(m.get(src).getBounds(), m.get(dst).getBounds());
+  }
+
+  static Point[] getControlPoints(Rectangle src, Rectangle dst, Line midLine) {
+    Point a = midLine.project(centre(src));
+    Point b = midLine.project(centre(dst));
     return new Point[]{project(a, src), a, b, project(b, dst)};
+  }
+
+  private Point[] getControlPoints(Transition t) {
+    return getControlPoints(getBounds(t.getSource()), getBounds(t.getDestination()), getMidLine(t));
   }
 
   private static int getTurnLength(Point[] points, float scale) {
@@ -529,12 +549,12 @@ public class NavigationEditorPanel2 extends JComponent {
     }
   }
 
-  public void drawTransition(Graphics g, Rectangle src, Rectangle dst) {
+  public void drawTransition(Graphics g, Rectangle src, Rectangle dst, Point[] controlPoints) {
     // draw source rect
     drawRectangle(g, src);
 
     // draw curved 'Manhattan route' from source to destination
-    drawCurve(g, getControlPoints(src, dst), myTransform.myScale);
+    drawCurve(g, controlPoints, myTransform.myScale);
 
     // draw destination rect
     Color oldColor = g.getColor();
@@ -543,9 +563,13 @@ public class NavigationEditorPanel2 extends JComponent {
     g.setColor(oldColor);
   }
 
+  private void drawTransition(Graphics g, Transition t) {
+    drawTransition(g, getBounds(t.getSource()), getBounds(t.getDestination()), getControlPoints(t));
+  }
+
   public void paintTransitions(Graphics g) {
     for (Transition transition : myNavigationModel.getTransitions()) {
-      drawTransition(g, getBounds(transition.getSource()), getBounds(transition.getDestination()));
+      drawTransition(g, transition);
     }
   }
 
@@ -628,21 +652,19 @@ public class NavigationEditorPanel2 extends JComponent {
     Map<State, AndroidRootComponent> stateToComponent = getStateComponentAssociation().keyToValue;
     for (State state : stateToComponent.keySet()) {
       AndroidRootComponent root = stateToComponent.get(state);
-      root.setLocation(scale(toAWTPoint(state.getLocation()), myTransform.myScale));
+      root.setLocation(myTransform.modelToView(state.getLocation()));
       root.setSize(root.getPreferredSize());
     }
 
     for (Transition transition : myNavigationModel.getTransitions()) {
       String gesture = transition.getType();
       if (gesture != null) {
-        Rectangle sBounds = getBounds(transition.getSource());
-        Rectangle dBounds = getBounds(transition.getDestination());
-        Component c = transitionToEditor.get(transition);
-        c.setSize(c.getPreferredSize());
-        Point[] points = getControlPoints(sBounds, dBounds);
-        Point midpoint = midpoint(points[1], points[2]);
-        Point loc = diff(midpoint, point(scale(c.getSize(), 0.5f)));
-        c.setLocation(loc);
+        Component editor = transitionToEditor.get(transition);
+        Dimension preferredSize = editor.getPreferredSize();
+        Point[] points = getControlPoints(transition);
+        Point location = diff(midPoint(points[1], points[2]), midPoint(preferredSize));
+        editor.setLocation(location);
+        editor.setSize(preferredSize);
       }
     }
   }
@@ -781,7 +803,7 @@ public class NavigationEditorPanel2 extends JComponent {
 
   private Selections.Selection createSelection(Point mouseDownLocation, boolean shiftDown) {
     Component component = getComponentAt(mouseDownLocation);
-    if (component instanceof NavigationEditorPanel2) {
+    if (component instanceof NavigationEditorPanel) {
       return Selections.NULL;
     }
     Transition transition = getTransitionEditorAssociation().valueToKey.get(component);
@@ -834,8 +856,8 @@ public class NavigationEditorPanel2 extends JComponent {
       if (attachedObject instanceof TransferableWrapper) {
         TransferableWrapper wrapper = (TransferableWrapper)attachedObject;
         PsiElement[] psiElements = wrapper.getPsiElements();
-        Point dropLocation = diff(anEvent.getPointOn(NavigationEditorPanel2.this),
-                                  point(scale(myMyRenderingParams.getDeviceScreenSizeFor(myTransform), 0.5f)));
+        Point dropLocation = diff(anEvent.getPointOn(NavigationEditorPanel.this),
+                                  midPoint(myMyRenderingParams.getDeviceScreenSizeFor(myTransform)));
 
         if (psiElements != null) {
           for (PsiElement element : psiElements) {
@@ -844,7 +866,7 @@ public class NavigationEditorPanel2 extends JComponent {
               String qualifiedName = namedElement.getQualifiedName();
               if (qualifiedName != null) {
                 State state = new State(qualifiedName);
-                state.setLocation(Utilities.toNavPoint(snap(dropLocation, MIDDLE_SNAP_GRID)));
+                state.setLocation(myTransform.viewToModel(snap(dropLocation, MIDDLE_SNAP_GRID)));
                 String name = namedElement.getName();
                 if (name != null) {
                   state.setXmlResourceName(getXmlFileNameFromJavaFileName(name));

@@ -76,7 +76,7 @@ public class NavigationEditor implements FileEditor {
     try {
       myNavigationModel = read(file);
       // component = new NavigationModelEditorPanel1(project, file, read(file));
-      NavigationEditorPanel2 editor = new NavigationEditorPanel2(project, file, myNavigationModel);
+      NavigationEditorPanel editor = new NavigationEditorPanel(project, file, myNavigationModel);
       JBScrollPane scrollPane = new JBScrollPane(editor);
       scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT_INCREMENT);
       JPanel p = new JPanel(new BorderLayout());
@@ -108,7 +108,7 @@ public class NavigationEditor implements FileEditor {
   }
 
   // See  AndroidDesignerActionPanel
-  protected JComponent createToolbar(NavigationEditorPanel2 myDesigner) {
+  protected JComponent createToolbar(NavigationEditorPanel myDesigner) {
     JPanel panel = new JPanel(new BorderLayout());
     panel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
 
@@ -129,25 +129,25 @@ public class NavigationEditor implements FileEditor {
   }
 
   // See AndroidDesignerActionPanel
-  private static ActionGroup getActions(final NavigationEditorPanel2 myDesigner) {
+  private static ActionGroup getActions(final NavigationEditorPanel myDesigner) {
     DefaultActionGroup group = new DefaultActionGroup();
 
     group.add(new AnAction(null, "Zoom Out (-)", AndroidIcons.ZoomOut) {
       @Override
       public void actionPerformed(AnActionEvent e) {
-        myDesigner.zoom(ZoomType.OUT);
+        myDesigner.zoom(false);
       }
     });
     group.add(new AnAction(null, "Reset Zoom to 100% (1)", AndroidIcons.ZoomActual) {
       @Override
       public void actionPerformed(AnActionEvent e) {
-        myDesigner.zoom(ZoomType.ACTUAL);
+        myDesigner.setScale(1);
       }
     });
     group.add(new AnAction(null, "Zoom In (+)", AndroidIcons.ZoomIn) {
       @Override
       public void actionPerformed(AnActionEvent e) {
-        myDesigner.zoom(ZoomType.IN);
+        myDesigner.zoom(true);
       }
     });
 

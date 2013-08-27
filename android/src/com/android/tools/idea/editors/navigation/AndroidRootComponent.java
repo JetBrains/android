@@ -38,7 +38,7 @@ public class AndroidRootComponent extends JComponent {
   private final PsiFile myPsiFile;
 
   @NotNull
-  Transform myTransform = new Transform(1);
+  Transform transform = new Transform(1);
   private Image myScaledImage;
   private RenderResult myRenderResult = null;
 
@@ -59,7 +59,7 @@ public class AndroidRootComponent extends JComponent {
   }
 
   public float getScale() {
-    return myTransform.myScale;
+    return transform.myScale;
   }
 
   private void invalidate2() {
@@ -67,7 +67,7 @@ public class AndroidRootComponent extends JComponent {
   }
 
   public void setScale(float scale) {
-    myTransform = new Transform(scale);
+    transform = new Transform(scale);
     invalidate2();
   }
 
@@ -79,7 +79,7 @@ public class AndroidRootComponent extends JComponent {
 
   @Override
   public Dimension getPreferredSize() {
-    return myRenderingParameters.getDeviceScreenSizeFor(myTransform);
+    return myRenderingParameters.getDeviceScreenSizeFor(transform);
   }
 
   //ScalableImage image = myRenderResult.getImage();
@@ -106,7 +106,7 @@ public class AndroidRootComponent extends JComponent {
         myScaledImage.getHeight(null) != getHeight()) {
       BufferedImage image = getImage();
       if (image != null) {
-        myScaledImage = ImageUtils.scale(image, myTransform.myScale, myTransform.myScale, 0, 0);
+        myScaledImage = ImageUtils.scale(image, transform.myScale, transform.myScale, 0, 0);
       }
     }
     return myScaledImage;
@@ -191,6 +191,6 @@ public class AndroidRootComponent extends JComponent {
     if (hierarchy == null) {
       return null;
     }
-    return hierarchy.findLeafAt(myTransform.viewToModel(p.x), myTransform.viewToModel(p.y));
+    return hierarchy.findLeafAt(transform.viewToModel(p.x), transform.viewToModel(p.y));
   }
 }
