@@ -17,12 +17,11 @@ package org.jetbrains.android.run;
 
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.Location;
-import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.actions.ConfigurationContext;
-import com.intellij.execution.junit.JavaRuntimeConfigurationProducerBase;
+import com.intellij.execution.junit.JavaRunConfigurationProducerBase;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
+import com.intellij.openapi.util.Ref;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
@@ -30,68 +29,15 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.android.run.testing.AndroidTestRunConfigurationType;
 import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * @author yole
  */
-public class AndroidConfigurationProducer extends JavaRuntimeConfigurationProducerBase implements Cloneable {
-  private PsiElement mySourceElement;
+public class AndroidConfigurationProducer extends JavaRunConfigurationProducerBase<AndroidRunConfiguration> implements Cloneable {
 
   public AndroidConfigurationProducer() {
     super(AndroidRunConfigurationType.getInstance());
-  }
-
-  @Override
-  public PsiElement getSourceElement() {
-    return mySourceElement;
-  }
-
-  @Override
-  @Nullable
-  protected RunnerAndConfigurationSettings findExistingByElement(final Location location,
-                                                                 @NotNull final List<RunnerAndConfigurationSettings> existingConfigurations,
-                                                                 ConfigurationContext context) {
-    PsiClass activity = getActivityClass(location, context);
-    if (activity == null) {
-      return null;
-    }
-    String fqcn = activity.getQualifiedName();
-    if (fqcn == null) {
-      return null;
-    }
-
-    Module contextModule = AndroidUtils.getAndroidModule(context);
-
-    for (RunnerAndConfigurationSettings settings : existingConfigurations) {
-      if (settings.getConfiguration() instanceof AndroidRunConfiguration) {
-        AndroidRunConfiguration config = (AndroidRunConfiguration)settings.getConfiguration();
-
-        if (!Comparing.equal(contextModule, config.getConfigurationModule().getModule())) {
-          continue;
-        }
-
-        if (fqcn.equals(config.ACTIVITY_CLASS)) {
-          return settings;
-        }
-      }
-    }
-    return null;
-  }
-
-  @Override
-  @Nullable
-  protected RunnerAndConfigurationSettings createConfigurationByElement(Location location, ConfigurationContext context) {
-    PsiClass activity = getActivityClass(location, context);
-    if (activity == null) {
-      return null;
-    }
-
-    mySourceElement = activity;
-    return createRunActivityConfiguration(activity.getProject(), activity.getQualifiedName(), context);
   }
 
   @Nullable
@@ -115,17 +61,28 @@ public class AndroidConfigurationProducer extends JavaRuntimeConfigurationProduc
     return null;
   }
 
-  @Nullable
-  private RunnerAndConfigurationSettings createRunActivityConfiguration(Project project, @Nullable String fqcn,
-                                                                        ConfigurationContext context) {
-    if (fqcn == null) {
-      return null;
+  @Override
+  protected boolean setupConfigurationFromContext(AndroidRunConfiguration configuration,
+                                                  ConfigurationContext context,
+                                                  Ref<PsiElement> sourceElement) {
+    final Location location = context.getLocation();
+
+    if (location == null) {
+      return false;
     }
+    final PsiClass activity = getActivityClass(location, context);
 
-    RunnerAndConfigurationSettings settings = cloneTemplateConfiguration(project, context);
-    final AndroidRunConfiguration configuration = (AndroidRunConfiguration)settings.getConfiguration();
+    if (activity == null) {
+      return false;
+    }
+    final String activityName = activity.getQualifiedName();
 
-    configuration.ACTIVITY_CLASS = fqcn;
+    if (activityName == null) {
+      return false;
+    }
+    sourceElement.set(activity);
+
+    configuration.ACTIVITY_CLASS = activityName;
     configuration.MODE = AndroidRunConfiguration.LAUNCH_SPECIFIC_ACTIVITY;
     configuration.setName(JavaExecutionUtil.getPresentableClassName(configuration.ACTIVITY_CLASS, configuration.getConfigurationModule()));
     setupConfigurationModule(context, configuration);
@@ -133,16 +90,31 @@ public class AndroidConfigurationProducer extends JavaRuntimeConfigurationProduc
     final TargetSelectionMode targetSelectionMode = AndroidUtils
       .getDefaultTargetSelectionMode(context.getModule(), AndroidRunConfigurationType.getInstance(),
                                      AndroidTestRunConfigurationType.getInstance());
-
     if (targetSelectionMode != null) {
       configuration.setTargetSelectionMode(targetSelectionMode);
     }
-    
-    return settings;
+    return true;
   }
 
   @Override
-  public int compareTo(Object o) {
-    return PREFERED;
+  public boolean isConfigurationFromContext(AndroidRunConfiguration configuration, ConfigurationContext context) {
+    final Location location = context.getLocation();
+
+    if (location == null) {
+      return false;
+    }
+    final PsiClass activity = getActivityClass(location, context);
+
+    if (activity == null) {
+      return false;
+    }
+    final String activityName = activity.getQualifiedName();
+
+    if (activityName == null) {
+      return false;
+    }
+    final Module contextModule = AndroidUtils.getAndroidModule(context);
+    final Module confModule = configuration.getConfigurationModule().getModule();
+    return Comparing.equal(contextModule, confModule) && activityName.equals(configuration.ACTIVITY_CLASS);
   }
 }
