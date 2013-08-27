@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.res2.*;
 import com.android.resources.ResourceType;
 import com.android.utils.ILogger;
@@ -23,7 +24,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.containers.WeakValueHashMap;
+import com.intellij.util.containers.SoftValueHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,8 +43,8 @@ class FileProjectResourceRepository extends ProjectResources {
   protected final Map<ResourceType, ListMultimap<String, ResourceItem>> mItems = Maps.newEnumMap(ResourceType.class);
   private final File myFile;
 
-  private final static WeakValueHashMap<File, FileProjectResourceRepository> ourCache =
-    new WeakValueHashMap<File, FileProjectResourceRepository>();
+  private final static SoftValueHashMap<File, FileProjectResourceRepository> ourCache =
+    new SoftValueHashMap<File, FileProjectResourceRepository>();
 
   private FileProjectResourceRepository(@NotNull File file) {
     super(file.getName());
@@ -59,6 +60,12 @@ class FileProjectResourceRepository extends ProjectResources {
     }
 
     return repository;
+  }
+
+  @Nullable
+  @VisibleForTesting
+  static FileProjectResourceRepository getCached(@NotNull final File file) {
+    return ourCache.get(file);
   }
 
   @NotNull
