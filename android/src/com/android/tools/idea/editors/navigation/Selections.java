@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
+import static com.android.tools.idea.editors.navigation.NavigationEditorPanel.Line;
 import static com.android.tools.idea.editors.navigation.Utilities.diff;
 
 class Selections {
@@ -130,10 +131,10 @@ class Selections {
     private void moveTo(Point location, boolean snap) {
       Point newLocation = Utilities.add(diff(location, myMouseDownLocation), myOrigComponentLocation);
       if (snap) {
-        newLocation = Utilities.snap(newLocation, myComponent.myTransform.modelToView(NavigationEditorPanel2.MIDDLE_SNAP_GRID));
+        newLocation = Utilities.snap(newLocation, myComponent.transform.modelToView(NavigationEditorPanel.MIDDLE_SNAP_GRID));
       }
       myComponent.setLocation(newLocation);
-      myState.setLocation(myComponent.myTransform.viewToModel(newLocation));
+      myState.setLocation(myComponent.transform.viewToModel(newLocation));
       myNavigationModel.getListeners().notify(NavigationModel.Event.update(State.class));
     }
 
@@ -156,7 +157,7 @@ class Selections {
 
   static class RelationSelection extends Selection {
     private final AndroidRootComponent mySourceComponent;
-    private final NavigationEditorPanel2 myNavigationEditor;
+    private final NavigationEditorPanel myNavigationEditor;
     private final NavigationModel myNavigationModel;
     private final RenderedView myNamedLeaf;
     @NotNull private Point myMouseLocation;
@@ -165,7 +166,7 @@ class Selections {
                       @NotNull AndroidRootComponent sourceComponent,
                       @NotNull Point mouseDownLocation,
                       @Nullable RenderedView namedLeaf,
-                      @NotNull NavigationEditorPanel2 navigationEditor) {
+                      @NotNull NavigationEditorPanel navigationEditor) {
       myNavigationModel = navigationModel;
       mySourceComponent = sourceComponent;
       myMouseLocation = mouseDownLocation;
@@ -184,11 +185,13 @@ class Selections {
 
     @Override
     protected void paintOver(Graphics g) {
-      int lineWidth = mySourceComponent.myTransform.modelToView(NavigationEditorPanel2.LINE_WIDTH);
-      Graphics2D lineGraphics = NavigationEditorPanel2.createLineGraphics(g, lineWidth);
-      Rectangle sourceBounds = NavigationEditorPanel2.getBounds(mySourceComponent, myNamedLeaf);
+      int lineWidth = mySourceComponent.transform.modelToView(NavigationEditorPanel.LINE_WIDTH);
+      Graphics2D lineGraphics = NavigationEditorPanel.createLineGraphics(g, lineWidth);
+      Rectangle sourceBounds = NavigationEditorPanel.getBounds(mySourceComponent, myNamedLeaf);
       Rectangle destBounds = myNavigationEditor.getNamedLeafBoundsAt(mySourceComponent, myMouseLocation);
-      myNavigationEditor.drawTransition(lineGraphics, sourceBounds, destBounds);
+      Line midLine = NavigationEditorPanel.getMidLine(mySourceComponent.getBounds(), new Rectangle(myMouseLocation));
+      Point[] controlPoints = NavigationEditorPanel.getControlPoints(sourceBounds, destBounds, midLine);
+      myNavigationEditor.drawTransition(lineGraphics, sourceBounds, destBounds, controlPoints);
     }
 
     @Override
