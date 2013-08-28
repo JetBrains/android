@@ -19,7 +19,6 @@ package com.android.tools.idea.wizard;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -79,6 +78,11 @@ public class TemplateWizardState {
    * has information for these parameters) */
   protected final Set<String> myHidden = new HashSet<String>();
 
+  /**
+   * Ids for parameters whose values should not change.
+   */
+  protected final Set<String> myFinal = new HashSet<String>();
+
   /** Ids for parameters which have been modified directly by the user. */
   protected final Set<String> myModified = new HashSet<String>();
 
@@ -99,8 +103,14 @@ public class TemplateWizardState {
     File projectRoot = new File((String)get(NewModuleWizardState.ATTR_PROJECT_LOCATION));
     File moduleRoot = new File(projectRoot, (String)get(NewProjectWizardState.ATTR_MODULE_NAME));
     File mainFlavorSourceRoot = new File(moduleRoot, TemplateWizard.MAIN_FLAVOR_SOURCE_PATH);
-    File javaSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.JAVA_SOURCE_PATH);
-    File javaSourcePackageRoot = new File(javaSourceRoot, ((String)get(TemplateMetadata.ATTR_PACKAGE_NAME)).replace('.', '/'));
+
+    File javaSourcePackageRoot;
+    if (myParameters.containsKey(TemplateMetadata.ATTR_PACKAGE_ROOT)) {
+      javaSourcePackageRoot = new File((String)get(TemplateMetadata.ATTR_PACKAGE_ROOT));
+    } else {
+      File javaSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.JAVA_SOURCE_PATH);
+      javaSourcePackageRoot = new File(javaSourceRoot, ((String)get(TemplateMetadata.ATTR_PACKAGE_NAME)).replace('.', '/'));
+    }
     File resourceSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.RESOURCE_SOURCE_PATH);
     String mavenUrl = System.getProperty(TemplateWizard.MAVEN_URL_PROPERTY);
     put(TemplateMetadata.ATTR_TOP_OUT, projectRoot.getPath());
@@ -151,7 +161,9 @@ public class TemplateWizardState {
       // Clear out any parameters from the old template and bring in the defaults for the new template.
       if (myTemplate != null && myTemplate.getMetadata() != null) {
         for (Parameter param : myTemplate.getMetadata().getParameters()) {
-          myParameters.remove(param.id);
+          if (!myFinal.contains(param.id)) {
+            myParameters.remove(param.id);
+          }
         }
       }
       myTemplate = Template.createFromPath(file);
@@ -161,7 +173,7 @@ public class TemplateWizardState {
 
   protected void setParameterDefaults() {
     for (Parameter param : myTemplate.getMetadata().getParameters()) {
-      if (!myParameters.containsKey(param.id) && param.initial != null) {
+      if (!myFinal.contains(param.id) && !myParameters.containsKey(param.id) && param.initial != null) {
         switch(param.type) {
           case BOOLEAN:
             put(param.id, Boolean.valueOf(param.initial));

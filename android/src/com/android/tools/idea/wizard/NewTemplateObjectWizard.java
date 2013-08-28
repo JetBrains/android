@@ -44,12 +44,19 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
   private Project myProject;
   private Module myModule;
   private String myTemplateCategory;
+  private VirtualFile myTargetFolder;
 
-  public NewTemplateObjectWizard(@Nullable Project project, Module module, String templateCategory) {
+  public NewTemplateObjectWizard(@Nullable Project project, Module module, VirtualFile invocationTarget, String templateCategory) {
     super("New " + templateCategory, project);
     myProject = project;
     myModule = module;
     myTemplateCategory = templateCategory;
+    if (invocationTarget.isDirectory()) {
+      myTargetFolder = invocationTarget;
+    } else {
+      myTargetFolder = invocationTarget.getParent();
+    }
+
     init();
   }
 
@@ -69,7 +76,9 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     myWizardState.put(NewProjectWizardState.ATTR_MODULE_NAME, moduleName);
 
     myWizardState.myHidden.add(TemplateMetadata.ATTR_PACKAGE_NAME);
-    myWizardState.put(TemplateMetadata.ATTR_PACKAGE_NAME, ManifestInfo.get(myModule).getPackage());
+    myWizardState.put(TemplateMetadata.ATTR_PACKAGE_ROOT, myTargetFolder.getPath());
+
+    myWizardState.myFinal.add(TemplateMetadata.ATTR_PACKAGE_ROOT);
 
     super.init();
   }
