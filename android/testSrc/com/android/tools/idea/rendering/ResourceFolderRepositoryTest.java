@@ -91,7 +91,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceItem label = labelList.get(0);
     ResourceValue resourceValue = label.getResourceValue(false);
     assertNotNull(resourceValue);
-    assertEquals("Step %1$d: Lorem\n        Ipsum", resourceValue.getValue()); // In the file, there's whitespace unlike example above
+    assertEquals("Step %1$d: Lorem Ipsum", resourceValue.getValue()); // In the file, there's whitespace unlike example above
 
     // Test unicode escape handling: <string name="ellipsis">Here it is: \u2026!</string>
     labelList = resources.getResourceItem(ResourceType.STRING, "ellipsis");
@@ -954,7 +954,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceItem label = labelList.get(0);
     ResourceValue resourceValue = label.getResourceValue(false);
     assertNotNull(resourceValue);
-    assertEquals("Step %1$d: Lorem\n        Ipsum", resourceValue.getValue());
+    assertEquals("Step %1$d: Lorem Ipsum", resourceValue.getValue());
 
     long generation = resources.getModificationCount();
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
@@ -973,7 +973,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(generation < resources.getModificationCount());
     resourceValue = label.getResourceValue(false);
     assertNotNull(resourceValue);
-    assertEquals("Step %1$d: Llorem\n        Ipsum", resourceValue.getValue());
+    assertEquals("Step %1$d: Llorem Ipsum", resourceValue.getValue());
 
     // Shouldn't have done any full file rescans during the above edits
     ensureIncremental();
