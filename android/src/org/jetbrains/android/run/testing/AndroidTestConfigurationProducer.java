@@ -37,7 +37,7 @@ import org.jetbrains.android.util.AndroidUtils;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidTestConfigurationProducer extends JavaRunConfigurationProducerBase<AndroidTestRunConfiguration> implements Cloneable {
+public class AndroidTestConfigurationProducer extends JavaRunConfigurationProducerBase<AndroidTestRunConfiguration> {
 
   public AndroidTestConfigurationProducer() {
     super(AndroidTestRunConfigurationType.getInstance());

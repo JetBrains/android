@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author yole
  */
-public class AndroidConfigurationProducer extends JavaRunConfigurationProducerBase<AndroidRunConfiguration> implements Cloneable {
+public class AndroidConfigurationProducer extends JavaRunConfigurationProducerBase<AndroidRunConfiguration> {
 
   public AndroidConfigurationProducer() {
     super(AndroidRunConfigurationType.getInstance());
