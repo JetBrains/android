@@ -454,6 +454,7 @@
     <codeInsight.lineMarkerProvider language="XML" implementationClass="org.jetbrains.android.AndroidLineMarkerProvider"/>
     <codeInsight.lineMarkerProvider language="JAVA" implementationClass="org.jetbrains.android.AndroidLineMarkerProvider"/>
     <implicitUsageProvider implementation="org.jetbrains.android.AndroidImplicitUsagesProvider"/>
+    <xml.completionExtension implementation="org.jetbrains.android.dom.AndroidXmlCompletionExtension"/>
   </extensions>
 
   <extensionPoints>

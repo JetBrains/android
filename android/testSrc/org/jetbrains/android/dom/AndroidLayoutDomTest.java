@@ -65,6 +65,24 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     toTestCompletion("an5.xml", "an5_after.xml");
   }
 
+  public void testAttributeNameCompletion6() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(copyFileToProject("an6.xml"));
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.type("\n");
+    myFixture.checkResultByFile(testFolder + "/an6_after.xml");
+  }
+
+  public void testAttributeNameCompletion7() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(copyFileToProject("an7.xml"));
+    myFixture.complete(CompletionType.BASIC);
+    List<String> lookupElementStrings = myFixture.getLookupElementStrings();
+    assertNotNull(lookupElementStrings);
+    lookupElementStrings = lookupElementStrings.subList(0, 5);
+    UsefulTestCase.assertSameElements(
+      lookupElementStrings, "android:layout_above", "android:layout_alignBaseline",
+      "android:layout_alignBottom", "android:layout_alignLeft", "android:layout_alignParentBottom");
+  }
+
   public void testCommonPrefixIdea63531() throws Throwable {
     VirtualFile file = copyFileToProject("commonPrefixIdea63531.xml");
     myFixture.configureFromExistingVirtualFile(file);
