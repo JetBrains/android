@@ -74,6 +74,11 @@ public class AndroidDrawableResourcesDomTest extends AndroidDomTest {
     doTestCompletion();
   }
 
+  public void testStateListCompletion7() throws Throwable {
+    copyFileToProject("colors.xml", "res/values/colors.xml");
+    doTestCompletion();
+  }
+
   public void testBitmapHighlighting1() throws Throwable {
     doTestHighlighting();
   }

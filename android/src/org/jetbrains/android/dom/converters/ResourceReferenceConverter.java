@@ -229,6 +229,9 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     if (types.size() == 0) {
       types.addAll(AndroidResourceUtil.getNames(AndroidResourceUtil.VALUE_RESOURCE_TYPES));
     }
+    else if (types.contains(ResourceType.DRAWABLE.getName())) {
+      types.add(ResourceType.COLOR.getName());
+    }
     return types;
   }
 
