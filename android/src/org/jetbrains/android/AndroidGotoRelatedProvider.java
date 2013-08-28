@@ -223,9 +223,9 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
 
         final String resClassName = ResourceType.LAYOUT.getName();
         final AndroidResourceUtil.MyReferredResourceFieldInfo
-          info = AndroidResourceUtil.getReferredResourceField(facet, expression, resClassName, true);
+          info = AndroidResourceUtil.getReferredResourceOrManifestField(facet, expression, resClassName, true);
 
-        if (info == null) {
+        if (info == null || info.isFromManifest()) {
           return;
         }
         final String resFieldName = info.getFieldName();
