@@ -55,21 +55,9 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
    */
   @Override
   public void projectOpened() {
-    if (!Projects.isGradleProject(myProject)) {
-      CompilerWorkspaceConfiguration workspaceConfiguration = CompilerWorkspaceConfiguration.getInstance(myProject);
-      boolean wasUsingExternalMake = workspaceConfiguration.USE_COMPILE_SERVER;
-      if (wasUsingExternalMake) {
-        String format = "Disabled 'External Build' for non-Gradle Android project '%1$s' until issue '%2$s' is fixed.";
-        String msg = String.format(format, myProject.getName(), "https://code.google.com/p/android/issues/detail?id=56843");
-        LOG.info(msg);
-        workspaceConfiguration.USE_COMPILE_SERVER = false;
-        MessageBus messageBus = myProject.getMessageBus();
-        messageBus.syncPublisher(ExternalBuildOptionListener.TOPIC).externalBuildOptionChanged(workspaceConfiguration.USE_COMPILE_SERVER);
-      }
-      return;
+    if (Projects.isGradleProject(myProject)) {
+      configureGradleProject(true);
     }
-
-    configureGradleProject(true);
   }
 
   public void configureGradleProject(boolean reImportProject) {
