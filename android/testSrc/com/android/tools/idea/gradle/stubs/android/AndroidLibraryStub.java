@@ -26,16 +26,22 @@ import java.util.List;
 
 public class AndroidLibraryStub implements AndroidLibrary {
   @NotNull private final File myJarFile;
+  @NotNull private final String myProject;
   @NotNull private final List<File> myLocalJars = Lists.newArrayList();
 
   public AndroidLibraryStub(@NotNull File jarFile) {
+    this(jarFile, null);
+  }
+
+  public AndroidLibraryStub(@NotNull File jarFile, @Nullable String project) {
     myJarFile = jarFile;
+    myProject = project;
   }
 
   @Nullable
   @Override
   public String getProject() {
-    return null;
+    return myProject;
   }
 
   @Override
