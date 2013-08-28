@@ -84,7 +84,7 @@ public class AndroidConfigurationProducer extends JavaRunConfigurationProducerBa
 
     configuration.ACTIVITY_CLASS = activityName;
     configuration.MODE = AndroidRunConfiguration.LAUNCH_SPECIFIC_ACTIVITY;
-    configuration.setName(JavaExecutionUtil.getPresentableClassName(configuration.ACTIVITY_CLASS, configuration.getConfigurationModule()));
+    configuration.setName(JavaExecutionUtil.getPresentableClassName(configuration.ACTIVITY_CLASS));
     setupConfigurationModule(context, configuration);
 
     final TargetSelectionMode targetSelectionMode = AndroidUtils
