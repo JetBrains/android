@@ -17,6 +17,12 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.GradleImportNotificationListener;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.customizer.CompilerOutputPathModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.ContentRootModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.DependenciesModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
+import com.android.tools.idea.gradle.util.Facets;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.sdk.Jdks;
@@ -65,6 +71,7 @@ import com.intellij.openapi.wm.ex.IdeFrameEx;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.messages.MessageBusConnection;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
@@ -82,6 +89,10 @@ import java.util.Collection;
 public class GradleProjectImporter {
   private static final Logger LOG = Logger.getInstance(GradleProjectImporter.class);
   private static final ProjectSystemId SYSTEM_ID = GradleConstants.SYSTEM_ID;
+
+  private final ModuleCustomizer[] myModuleCustomizers = {
+    new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputPathModuleCustomizer()
+  };
 
   private final ImporterDelegate myDelegate;
 
@@ -107,7 +118,7 @@ public class GradleProjectImporter {
   public void reImportProject(@NotNull final Project project) throws ConfigurationException {
     if (Projects.isGradleProject(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
-      doImport(project, false, false);
+      doImport(project, false /* do not open project (already open) */, false /* async import */);
     }
   }
 
@@ -143,7 +154,7 @@ public class GradleProjectImporter {
 
     Projects.setProjectBuildAction(newProject, Projects.BuildAction.REBUILD);
 
-    doImport(newProject, true, true);
+    doImport(newProject, true /* open project */, true /* sync import */);
 
     // Since importing is synchronous we should have modules now. Notify callback.
     if (notifyCallback(newProject, callback)) {
@@ -241,6 +252,10 @@ public class GradleProjectImporter {
             populateProject(project, projectInfo);
             if (openProject) {
               open(project);
+            } else {
+              // if we don't open the project means the project is already open (it is not a new project.) We need to sync project structure
+              // to reflect selected variant.
+              updateStructureAccordingToBuildVariants(project);
             }
 
             if (!application.isUnitTestMode()) {
@@ -269,16 +284,6 @@ public class GradleProjectImporter {
     }
   }
 
-  @NotNull
-  private static ConfigurationException handleImportFailure(@NotNull String errorMessage, @Nullable String errorDetails) {
-    if (errorDetails != null) {
-      LOG.warn(errorDetails);
-    }
-    String reason = "Failed to import Gradle project: " + errorMessage;
-    return new ConfigurationException(ExternalSystemBundle.message("error.resolve.with.reason", reason),
-                                      ExternalSystemBundle.message("error.resolve.generic"));
-  }
-
   private static void populateProject(@NotNull final Project newProject, @NotNull final DataNode<ProjectData> projectInfo) {
     newProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
     StartupManager.getInstance(newProject).runWhenProjectIsInitialized(new Runnable() {
@@ -301,7 +306,6 @@ public class GradleProjectImporter {
     });
   }
 
-
   private static void open(@NotNull final Project newProject) {
     ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
     ProjectUtil.updateLastProjectLocation(newProject.getBasePath());
@@ -316,6 +320,36 @@ public class GradleProjectImporter {
       }
     }
     projectManager.openProject(newProject);
+  }
+
+  private void updateStructureAccordingToBuildVariants(final Project project) {
+    // Update module dependencies, content roots and output paths. This needs to be done in case the selected variant is not
+    // the same one as the default (an by "default" we mean the first in the drop-down.)
+    ExternalSystemApiUtil.executeProjectChangeAction(true, new Runnable() {
+      @Override
+      public void run() {
+        ModuleManager moduleManager = ModuleManager.getInstance(project);
+        for (Module module : moduleManager.getModules()) {
+          AndroidFacet facet = Facets.getFirstFacetOfType(module, AndroidFacet.ID);
+          if (facet != null) {
+            IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
+            for (ModuleCustomizer customizer : myModuleCustomizers) {
+              customizer.customizeModule(module, project, ideaAndroidProject);
+            }
+          }
+        }
+      }
+    });
+  }
+
+  @NotNull
+  private static ConfigurationException handleImportFailure(@NotNull String errorMessage, @Nullable String errorDetails) {
+    if (errorDetails != null) {
+      LOG.warn(errorDetails);
+    }
+    String reason = "Failed to import Gradle project: " + errorMessage;
+    return new ConfigurationException(ExternalSystemBundle.message("error.resolve.with.reason", reason),
+                                      ExternalSystemBundle.message("error.resolve.generic"));
   }
 
   private static boolean notifyCallback(@NotNull Project project, @Nullable Callback callback) {
