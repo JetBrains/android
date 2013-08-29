@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
-import com.google.common.collect.Maps;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,8 +23,10 @@ import org.w3c.dom.*;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
+import static com.android.tools.idea.templates.RepositoryUrls.*;
 import static com.android.tools.idea.templates.Template.*;
 
 /** An ADT template along with metadata */
@@ -59,8 +61,12 @@ public class TemplateMetadata {
   public static final String ATTR_GRADLE_PLUGIN_VERSION = "gradlePluginVersion";
   public static final String ATTR_V4_SUPPORT_LIBRARY_VERSION = "v4SupportLibraryVersion";
   public static final String ATTR_GRADLE_VERSION = "gradleVersion";
-  public static final String ATTR_ANDROID_SUPPORT_URL = "androidSupportLibraryUrl";
-  public static final String ATTR_APP_COMPAT_URL = "appCompatLibraryUrl";
+
+  public static final String ATTR_DEPENDENCIES_LIST = "dependencyList";
+  public static final String ATTR_FRAGMENTS_EXTRA = "usesFragments";
+  public static final String ATTR_ACTION_BAR_EXTRA = "usesActionBar";
+  public static final String ATTR_GRID_LAYOUT_EXTRA = "usesGridLayout";
+  public static final String ATTR_NAVIGATION_DRAWER_EXTRA = "usesNavigationDrawer";
 
   public static final String V4_SUPPORT_LIBRARY_VERSION = "13.0.+";
   public static final String GRADLE_PLUGIN_VERSION = "0.5.+";
@@ -169,27 +175,23 @@ public class TemplateMetadata {
 
   /**
    * Get any dependency declarations from the template.xml file.
-   * @return a map of dependency variable names to maven dependency URLs.
+   * @return a list of maven dependency URLs
    */
   @NotNull
-  public Map<String, String> getDependencies() {
-    final Map<String, String> params = Maps.newLinkedHashMap();
+  public List<String> getDependencies() {
+    final List<String> dependencyList = Lists.newLinkedList();
 
     NodeList dependencies = myDocument.getElementsByTagName(TAG_DEPENDENCY);
     for (int index = 0, max = dependencies.getLength(); index < max; index++) {
       Element element = (Element) dependencies.item(index);
       String dependencyName = element.getAttribute(ATTR_NAME);
       String dependencyVersion = element.getAttribute(ATTR_VERSION);
-      if (dependencyName.equals(SUPPORT_LIBRARY_NAME)) {
-        // We assume the revision requirement has been satisfied
-        // by the wizard
-        params.put(ATTR_ANDROID_SUPPORT_URL, Template.getSupportMavenUrl(0, dependencyVersion));
-      } else if (dependencyName.equals(APP_COMPAT_LIBRARY_NAME)) {
-        params.put(ATTR_APP_COMPAT_URL, Template.getAppCompatMavenUrl(0, dependencyVersion));
-      } // TODO: Add other libraries here (Cloud SDK, Play Services, AppCompatLib, etc).
+      if (dependencyName.equals(SUPPORT_ID) || dependencyName.equals(APP_COMPAT_ID) || dependencyName.equals(GRID_LAYOUT_ID)) {
+        dependencyList.add(getLibraryUrl(dependencyName, dependencyVersion));
+      }// TODO: Add other libraries here (Cloud SDK, Play Services, YouTube, AdMob, etc).
     }
 
-    return params;
+    return dependencyList;
   }
 
   public boolean isSupported() {
