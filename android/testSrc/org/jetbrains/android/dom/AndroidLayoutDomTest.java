@@ -415,6 +415,14 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     doTestCompletionVariants("idcompl2.xml", "@android:id/text1", "@android:id/text2", "@android:id/inputExtractEditText", "@android:id/startSelectingText", "@android:id/stopSelectingText");
   }
 
+  public void testNewIdCompletion1() throws Throwable {
+    toTestCompletion("newIdCompl1.xml", "newIdCompl1_after.xml");
+  }
+
+  public void testNewIdCompletion2() throws Throwable {
+    toTestCompletion("newIdCompl2.xml", "newIdCompl2_after.xml");
+  }
+
   public void testIdHighlighting() throws Throwable {
     doTestHighlighting("idh.xml");
   }
