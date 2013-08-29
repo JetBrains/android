@@ -563,92 +563,58 @@ public class AndroidJpsUtil {
     return new File(new File(androidStorage, RESOURCE_CACHE_STORAGE), module.getName());
   }
 
-  private static void fillSourceRoots(@NotNull JpsModule module,
-                                      @NotNull Set<JpsModule> visited,
-                                      @NotNull Set<File> result,
-                                      boolean recursively) {
-    visited.add(module);
-    final JpsAndroidModuleExtension extension = getExtension(module);
-    File resDir = null;
-    File resDirForCompilation = null;
+  @NotNull
+  public static File[] getSourceRootsForModuleAndDependencies(@NotNull JpsModule rootModule) {
+    final Set<File> result = new HashSet<File>();
 
-    if (extension != null) {
-      resDir = extension.getResourceDir();
-      resDirForCompilation = extension.getResourceDirForCompilation();
-    }
+    for (JpsModule module : getRuntimeModuleDeps(rootModule)) {
+      final JpsAndroidModuleExtension extension = getExtension(module);
+      File resDir = null;
+      File resDirForCompilation = null;
 
-    for (JpsModuleSourceRoot root : module.getSourceRoots()) {
-      final File rootDir = JpsPathUtil.urlToFile(root.getUrl());
-
-      if ((JavaSourceRootType.SOURCE.equals(root.getRootType())
-           || JavaSourceRootType.TEST_SOURCE.equals(root.getRootType()) && extension != null && extension.isPackTestCode())
-          && !FileUtil.filesEqual(rootDir, resDir) && !rootDir.equals(resDirForCompilation)) {
-        result.add(rootDir);
+      if (extension != null) {
+        resDir = extension.getResourceDir();
+        resDirForCompilation = extension.getResourceDirForCompilation();
       }
-    }
-    if (!recursively) {
-      return;
-    }
-    final boolean newRecursively = shouldProcessDependenciesRecursively(module);
 
-    for (JpsDependencyElement classpathItem : JpsJavaExtensionService.getInstance().getDependencies(module, JpsJavaClasspathKind.PRODUCTION_RUNTIME, false)) {
-      if (classpathItem instanceof JpsModuleDependency) {
-        final JpsModule depModule = ((JpsModuleDependency)classpathItem).getModule();
+      for (JpsModuleSourceRoot root : module.getSourceRoots()) {
+        final File rootDir = JpsPathUtil.urlToFile(root.getUrl());
 
-        if (depModule != null && !visited.contains(depModule)) {
-          fillSourceRoots(depModule, visited, result, newRecursively);
+        if ((JavaSourceRootType.SOURCE.equals(root.getRootType())
+             || JavaSourceRootType.TEST_SOURCE.equals(root.getRootType()) && extension != null && extension.isPackTestCode())
+            && !FileUtil.filesEqual(rootDir, resDir) && !rootDir.equals(resDirForCompilation)) {
+          result.add(rootDir);
         }
       }
     }
-  }
-
-  @NotNull
-  public static File[] getSourceRootsForModuleAndDependencies(@NotNull JpsModule module) {
-    Set<File> result = new HashSet<File>();
-    fillSourceRoots(module, new HashSet<JpsModule>(), result, true);
     return result.toArray(new File[result.size()]);
   }
 
-  private static void fillJavaOutputRoots(@NotNull JpsModule module,
-                                          @NotNull Set<JpsModule> visited,
-                                          @NotNull Set<File> result,
-                                          boolean recursively) {
-    visited.add(module);
-    final JpsAndroidModuleExtension extension = getExtension(module);
-    final File outputDir = JpsJavaExtensionService.getInstance().getOutputDirectory(module, false);
+  @NotNull
+  public static File[] getJavaOutputRootsForModuleAndDependencies(@NotNull JpsModule rootModule) {
+    final Set<File> result = new HashSet<File>();
 
-    if (outputDir != null) {
-      result.add(outputDir);
-    }
-    if (extension != null && extension.isPackTestCode()) {
-      final File testOutputDir = JpsJavaExtensionService.getInstance().getOutputDirectory(module, true);
+    for (JpsModule module : getRuntimeModuleDeps(rootModule)) {
+      final JpsAndroidModuleExtension extension = getExtension(module);
+      final File outputDir = JpsJavaExtensionService.getInstance().getOutputDirectory(module, false);
 
-      if (testOutputDir != null) {
-        result.add(testOutputDir);
+      if (outputDir != null) {
+        result.add(outputDir);
       }
-    }
-    if (!recursively) {
-      return;
-    }
-    final boolean newRecursively = shouldProcessDependenciesRecursively(module);
+      if (extension != null && extension.isPackTestCode()) {
+        final File testOutputDir = JpsJavaExtensionService.getInstance().getOutputDirectory(module, true);
 
-    for (JpsDependencyElement classpathItem : JpsJavaExtensionService.getInstance()
-      .getDependencies(module, JpsJavaClasspathKind.PRODUCTION_RUNTIME, false)) {
-      if (classpathItem instanceof JpsModuleDependency) {
-        final JpsModule depModule = ((JpsModuleDependency)classpathItem).getModule();
-
-        if (depModule != null && !visited.contains(depModule)) {
-          fillJavaOutputRoots(depModule, visited, result, newRecursively);
+        if (testOutputDir != null) {
+          result.add(testOutputDir);
         }
       }
     }
+    return result.toArray(new File[result.size()]);
   }
 
-  @NotNull
-  public static File[] getJavaOutputRootsForModuleAndDependencies(@NotNull JpsModule module) {
-    Set<File> result = new HashSet<File>();
-    fillJavaOutputRoots(module, new HashSet<JpsModule>(), result, true);
-    return result.toArray(new File[result.size()]);
+  private static Set<JpsModule> getRuntimeModuleDeps(JpsModule rootModule) {
+    return JpsJavaExtensionService.getInstance().enumerateDependencies(
+      Collections.singletonList(rootModule)).recursively().runtimeOnly().getModules();
   }
 
   @Nullable

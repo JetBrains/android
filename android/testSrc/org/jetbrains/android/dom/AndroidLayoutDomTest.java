@@ -65,6 +65,24 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     toTestCompletion("an5.xml", "an5_after.xml");
   }
 
+  public void testAttributeNameCompletion6() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(copyFileToProject("an6.xml"));
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.type("\n");
+    myFixture.checkResultByFile(testFolder + "/an6_after.xml");
+  }
+
+  public void testAttributeNameCompletion7() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(copyFileToProject("an7.xml"));
+    myFixture.complete(CompletionType.BASIC);
+    List<String> lookupElementStrings = myFixture.getLookupElementStrings();
+    assertNotNull(lookupElementStrings);
+    lookupElementStrings = lookupElementStrings.subList(0, 5);
+    UsefulTestCase.assertSameElements(
+      lookupElementStrings, "android:layout_above", "android:layout_alignBaseline",
+      "android:layout_alignBottom", "android:layout_alignLeft", "android:layout_alignParentBottom");
+  }
+
   public void testCommonPrefixIdea63531() throws Throwable {
     VirtualFile file = copyFileToProject("commonPrefixIdea63531.xml");
     myFixture.configureFromExistingVirtualFile(file);
@@ -237,11 +255,22 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     toTestCompletion("can3.xml", "can3_after.xml");
   }
 
+  public void testCustomAttributeNameCompletion4() throws Throwable {
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
+    toTestCompletion("can4.xml", "can4_after.xml");
+  }
+
+  public void testCustomAttributeNameCompletion5() throws Throwable {
+    myFacet.getProperties().LIBRARY_PROJECT = true;
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
+    toTestCompletion("can5.xml", "can5_after.xml");
+  }
+
   public void testCustomAttributeValueCompletion() throws Throwable {
     doTestCompletionVariants("cav.xml", "@color/color0", "@color/color1", "@color/color2");
   }
 
-  public void testIdea64993() throws Throwable {
+  public void testIdea64993() throws  Throwable {
     copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
     doTestHighlighting();
   }
@@ -384,6 +413,14 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
 
   public void testIdCompletion2() throws Throwable {
     doTestCompletionVariants("idcompl2.xml", "@android:id/text1", "@android:id/text2", "@android:id/inputExtractEditText", "@android:id/startSelectingText", "@android:id/stopSelectingText");
+  }
+
+  public void testNewIdCompletion1() throws Throwable {
+    toTestCompletion("newIdCompl1.xml", "newIdCompl1_after.xml");
+  }
+
+  public void testNewIdCompletion2() throws Throwable {
+    toTestCompletion("newIdCompl2.xml", "newIdCompl2_after.xml");
   }
 
   public void testIdHighlighting() throws Throwable {
@@ -811,6 +848,14 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
 
   public void testAttrReferences7() throws Throwable {
     doTestAttrReferenceCompletion("android:textAppear\n");
+  }
+
+  public void testAttrReferences8() throws Throwable {
+    doTestAttrReferenceCompletion("attr\n");
+  }
+
+  public void testAttrReferences9() throws Throwable {
+    doTestAttrReferenceCompletion("android:attr\n");
   }
 
   public void testNamespaceCompletion() throws Throwable {

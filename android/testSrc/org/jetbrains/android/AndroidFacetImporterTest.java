@@ -28,6 +28,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestUtil;
 import com.intellij.util.containers.HashSet;
+import org.jetbrains.android.compiler.AndroidDexCompilerConfiguration;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetType;
 import org.jetbrains.android.maven.AndroidFacetImporter2;
@@ -282,6 +283,7 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
       assertEquals("/target/generated-sources/aidl", properties.GEN_FOLDER_RELATIVE_PATH_AIDL);
       assertEquals("/target/generated-sources/r", properties.GEN_FOLDER_RELATIVE_PATH_APT);
       assertEquals(false, properties.ENABLE_MANIFEST_MERGING);
+      assertFalse(AndroidDexCompilerConfiguration.getInstance(myProject).CORE_LIBRARY);
     }
     finally {
       AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = null;
@@ -297,7 +299,8 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
         "<androidManifestFile>${project.build.directory}/manifest/AndroidManifest.xml</androidManifestFile>" +
         "<resourceDirectory>${project.build.directory}/resources</resourceDirectory>" +
         "<assetsDirectory>${project.build.directory}/assets</assetsDirectory>" +
-        "<nativeLibrariesDirectory>${project.build.directory}/nativeLibs</nativeLibrariesDirectory>"));
+        "<nativeLibrariesDirectory>${project.build.directory}/nativeLibs</nativeLibrariesDirectory>" +
+        "<dexCoreLibrary>true</dexCoreLibrary>"));
 
       assertModules("module");
       final Module module = getModule("module");
@@ -316,6 +319,7 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
       assertEquals("/target/generated-sources/aidl", properties.GEN_FOLDER_RELATIVE_PATH_AIDL);
       assertEquals("/target/generated-sources/r", properties.GEN_FOLDER_RELATIVE_PATH_APT);
       assertEquals(true, properties.ENABLE_MANIFEST_MERGING);
+      assertTrue(AndroidDexCompilerConfiguration.getInstance(myProject).CORE_LIBRARY);
     }
     finally {
       AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = null;

@@ -13,7 +13,7 @@ import java.io.IOException;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidResourcesLineMarkerTest extends AndroidTestCase {
+public class  AndroidResourcesLineMarkerTest extends AndroidTestCase {
   private static final String BASE_PATH = "/resNavigation/";
 
   public AndroidResourcesLineMarkerTest() {
@@ -88,6 +88,18 @@ public class AndroidResourcesLineMarkerTest extends AndroidTestCase {
     doJavaFileNavigationTest(1, true, XmlAttributeValue.class);
   }
 
+  public void testJavaFileNavigationManifest1() throws Exception {
+    doJavaFileNavigationTest(1, true, XmlAttributeValue.class);
+  }
+
+  public void testJavaFileNavigationManifest2() throws Exception {
+    doJavaFileNavigationTest(2, true, XmlAttributeValue.class);
+  }
+
+  public void testJavaFileNavigationManifest3() throws Exception {
+    doJavaFileNavigationTest(1, true, XmlAttributeValue.class);
+  }
+
   public void testJavaFileNavigationToSystemResource1() throws Exception {
     doJavaFileNavigationTest(1, true, XmlAttributeValue.class);
   }
@@ -100,7 +112,7 @@ public class AndroidResourcesLineMarkerTest extends AndroidTestCase {
                                         boolean expectedEnabled,
                                         @Nullable Class<? extends PsiElement> targetElementClass)
     throws IOException {
-    copyRJava();
+    copyRJavaAndManifestJava();
     String path = "src/p1/p2/" + getTestName(false) + ".java";
     doJavaFileNavigationTest(path, path, expectedTargets, expectedEnabled, true, targetElementClass);
   }
@@ -122,7 +134,8 @@ public class AndroidResourcesLineMarkerTest extends AndroidTestCase {
     }
   }
 
-  private void copyRJava() throws IOException {
+  private void copyRJavaAndManifestJava() throws IOException {
     myFixture.copyFileToProject("R.java", "src/p1/p2/R.java");
+    myFixture.copyFileToProject("Manifest.java", "src/p1/p2/Manifest.java");
   }
 }

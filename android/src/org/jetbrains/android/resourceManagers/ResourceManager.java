@@ -338,7 +338,7 @@ public abstract class ResourceManager {
     result.addAll(getValueResourceNames(type));
     result.addAll(getFileResourcesNames(type));
     if (type.equals(ResourceType.ID.getName())) {
-      result.addAll(getIds());
+      result.addAll(getIds(true));
     }
     return result;
   }
@@ -355,7 +355,7 @@ public abstract class ResourceManager {
 
     final List<PsiElement> declarations = new ArrayList<PsiElement>();
     final Collection<VirtualFile> files =
-      FileBasedIndex.getInstance().getContainingFiles(AndroidIdIndex.INDEX_ID, id, GlobalSearchScope.allScope(myProject));
+      FileBasedIndex.getInstance().getContainingFiles(AndroidIdIndex.INDEX_ID, "+" + id, GlobalSearchScope.allScope(myProject));
     final Set<VirtualFile> fileSet = new HashSet<VirtualFile>(files);
     final PsiManager psiManager = PsiManager.getInstance(myProject);
 
@@ -385,7 +385,7 @@ public abstract class ResourceManager {
   }
 
   @NotNull
-  public Collection<String> getIds() {
+  public Collection<String> getIds(boolean declarationsOnly) {
 
     if (myProject.isDisposed()) {
       return Collections.emptyList();
@@ -393,12 +393,12 @@ public abstract class ResourceManager {
     final GlobalSearchScope scope = GlobalSearchScope.allScope(myProject);
 
     final FileBasedIndex index = FileBasedIndex.getInstance();
-    final Map<VirtualFile, Set<String>> file2ids = new HashMap<VirtualFile, Set<String>>();
+    final Map<VirtualFile, Set<String>> file2idEntries = new HashMap<VirtualFile, Set<String>>();
 
     index.processValues(AndroidIdIndex.INDEX_ID, AndroidIdIndex.MARKER, null, new FileBasedIndex.ValueProcessor<Set<String>>() {
       @Override
       public boolean process(VirtualFile file, Set<String> value) {
-        file2ids.put(file, value);
+        file2idEntries.put(file, value);
         return true;
       }
     }, scope);
@@ -407,12 +407,18 @@ public abstract class ResourceManager {
 
     for (VirtualFile resSubdir : getResourceSubdirsToSearchIds()) {
       for (VirtualFile resFile : resSubdir.getChildren()) {
-        final Set<String> ids = file2ids.get(resFile);
+        final Set<String> idEntries = file2idEntries.get(resFile);
 
-        if (ids != null) {
-          for (String id : ids) {
-            if (isResourcePublic(ResourceType.ID.getName(), id)) {
-              result.add(id);
+        if (idEntries != null) {
+          for (String idEntry : idEntries) {
+            if (idEntry.startsWith("+")) {
+              idEntry = idEntry.substring(1);
+            }
+            else if (declarationsOnly) {
+              continue;
+            }
+            if (isResourcePublic(ResourceType.ID.getName(), idEntry)) {
+              result.add(idEntry);
             }
           }
         }

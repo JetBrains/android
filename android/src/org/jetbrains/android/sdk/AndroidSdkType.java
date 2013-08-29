@@ -50,14 +50,14 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
 
   @Nullable
   @Override
-  public String getBinPath(Sdk sdk) {
+  public String getBinPath(@NotNull Sdk sdk) {
     final Sdk internalJavaSdk = getInternalJavaSdk(sdk);
     return internalJavaSdk == null ? null : JavaSdk.getInstance().getBinPath(internalJavaSdk);
   }
 
   @Override
   @Nullable
-  public String getToolsPath(Sdk sdk) {
+  public String getToolsPath(@NotNull Sdk sdk) {
     final Sdk jdk = getInternalJavaSdk(sdk);
     if (jdk != null && jdk.getVersionString() != null) {
       return JavaSdk.getInstance().getToolsPath(jdk);
@@ -67,7 +67,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
 
   @Override
   @Nullable
-  public String getVMExecutablePath(Sdk sdk) {
+  public String getVMExecutablePath(@NotNull Sdk sdk) {
     final Sdk internalJavaSdk = getInternalJavaSdk(sdk);
     return internalJavaSdk == null ? null : JavaSdk.getInstance().getVMExecutablePath(internalJavaSdk);
   }
@@ -97,7 +97,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
   }
 
   @Override
-  public String getVersionString(Sdk sdk) {
+  public String getVersionString(@NotNull Sdk sdk) {
     final Sdk internalJavaSdk = getInternalJavaSdk(sdk);
     return internalJavaSdk != null ? internalJavaSdk.getVersionString() : null;
   }
@@ -176,14 +176,14 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
   }
 
   @Override
-  public void saveAdditionalData(SdkAdditionalData data, Element e) {
+  public void saveAdditionalData(@NotNull SdkAdditionalData data, @NotNull Element e) {
     if (data instanceof AndroidSdkAdditionalData) {
       ((AndroidSdkAdditionalData)data).save(e);
     }
   }
 
   @Override
-  public SdkAdditionalData loadAdditionalData(Sdk currentSdk, Element additional) {
+  public SdkAdditionalData loadAdditionalData(@NotNull Sdk currentSdk, Element additional) {
     return new AndroidSdkAdditionalData(currentSdk, additional);
   }
 

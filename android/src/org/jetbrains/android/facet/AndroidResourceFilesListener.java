@@ -204,11 +204,11 @@ public class AndroidResourceFilesListener extends BulkFileListener.Adapter imple
 
       if (Comparing.equal(gp, resourceDir) &&
           ResourceFolderType.VALUES.getName().equals(AndroidCommonUtils.getResourceTypeByDirName(parent.getName()))) {
-        facet.getLocalResourceManager().invalidateAttributeDefinitions();
+        invalidateAttributeDefinitions(facet);
       }
+      final Module module = facet.getModule();
       final VirtualFile manifestFile = AndroidRootUtil.getManifestFile(facet);
       final List<AndroidAutogeneratorMode> modes = new ArrayList<AndroidAutogeneratorMode>();
-      final Module module = facet.getModule();
 
       if (Comparing.equal(manifestFile, file)) {
         if (AndroidAptCompiler.isToCompileModule(module, facet.getConfiguration())) {
@@ -238,6 +238,18 @@ public class AndroidResourceFilesListener extends BulkFileListener.Adapter imple
         }
       }
       return modes;
+    }
+
+    private void invalidateAttributeDefinitions(AndroidFacet facet) {
+      facet.getLocalResourceManager().invalidateAttributeDefinitions();
+
+      for (Module depModule : AndroidUtils.getBackwardDependencies(facet.getModule())) {
+        final AndroidFacet depFacet = AndroidFacet.getInstance(depModule);
+
+        if (depFacet != null) {
+          depFacet.getLocalResourceManager().invalidateAttributeDefinitions();
+        }
+      }
     }
 
     @Override

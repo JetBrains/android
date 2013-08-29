@@ -135,6 +135,10 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       }
       final char prefix = myWithPrefix ? '@' : 0;
 
+      if (value.startsWith(AndroidResourceUtil.NEW_ID_PREFIX)) {
+        addVariantsForIdDeclaration(result, facet, prefix, value);
+      }
+
       if (recommendedTypes.size() == 1) {
         String type = recommendedTypes.iterator().next();
         boolean explicitResourceType = value.startsWith(getTypePrefix(resourcePackage, type)) || myWithExplicitResourceType;
@@ -171,6 +175,16 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     return result;
   }
 
+  private void addVariantsForIdDeclaration(Set<ResourceValue> result, AndroidFacet facet, char prefix, String value) {
+    for (String name : facet.getLocalResourceManager().getIds(false)) {
+      final ResourceValue ref = referenceTo(prefix, "+id", null, name, true);
+
+      if (!value.startsWith(doToString(ref))) {
+        result.add(ref);
+      }
+    }
+  }
+
   private static void completeAttributeReferences(String value, AndroidFacet facet, Set<ResourceValue> result) {
     if (StringUtil.startsWith(value, "?attr/")) {
       addResourceReferenceValues(facet, '?', ResourceType.ATTR.getName(), null, result, true);
@@ -181,6 +195,8 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     else if (StringUtil.startsWithChar(value, '?')) {
       addResourceReferenceValues(facet, '?', ResourceType.ATTR.getName(), null, result, false);
       addResourceReferenceValues(facet, '?', ResourceType.ATTR.getName(), SYSTEM_RESOURCE_PACKAGE, result, false);
+      result.add(ResourceValue.literal("?attr/"));
+      result.add(ResourceValue.literal("?android:attr/"));
     }
   }
 
@@ -200,7 +216,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     });
 
     result.addAll(manager.getValueResourceTypes());
-    if (manager.getIds().size() > 0) {
+    if (manager.getIds(true).size() > 0) {
       result.add(ResourceType.ID.getName());
     }
     return result;
@@ -226,6 +242,9 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     }
     if (types.size() == 0) {
       types.addAll(AndroidResourceUtil.getNames(AndroidResourceUtil.VALUE_RESOURCE_TYPES));
+    }
+    else if (types.contains(ResourceType.DRAWABLE.getName())) {
+      types.add(ResourceType.COLOR.getName());
     }
     return types;
   }
@@ -326,6 +345,10 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
   @Override
   public String toString(@Nullable ResourceValue element, ConvertContext context) {
+    return doToString(element);
+  }
+
+  private String doToString(ResourceValue element) {
     if (element == null) {
       return null;
     }

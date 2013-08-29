@@ -18,12 +18,13 @@ package org.jetbrains.android.run.testing;
 
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.Location;
-import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.junit.JUnitUtil;
+import com.intellij.execution.junit.JavaRunConfigurationProducerBase;
 import com.intellij.execution.junit.JavaRuntimeConfigurationProducerBase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Comparing;
+import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
@@ -32,175 +33,94 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.android.run.AndroidRunConfigurationType;
 import org.jetbrains.android.run.TargetSelectionMode;
 import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidTestConfigurationProducer extends JavaRuntimeConfigurationProducerBase implements Cloneable {
-  private PsiElement mySourceElement;
+public class AndroidTestConfigurationProducer extends JavaRunConfigurationProducerBase<AndroidTestRunConfiguration> {
 
   public AndroidTestConfigurationProducer() {
     super(AndroidTestRunConfigurationType.getInstance());
   }
 
-  @Override
-  public PsiElement getSourceElement() {
-    return mySourceElement;
-  }
-
-  @Nullable
-  @Override
-  protected RunnerAndConfigurationSettings findExistingByElement(Location location,
-                                                                 @NotNull List<RunnerAndConfigurationSettings> existingConfigurations,
-                                                                 ConfigurationContext context) {
-    final Module contextModule = AndroidUtils.getAndroidModule(context);
-    if (contextModule == null) return null;
-    if (location == null) return null;
-
-    location = JavaExecutionUtil.stepIntoSingleClass(location);
-    if (location == null) return null;
-
-    PsiElement element = location.getPsiElement();
-    PsiPackage psiPackage = checkPackage(element);
-    String packageName = psiPackage == null ? null : psiPackage.getQualifiedName();
-
-    PsiClass elementClass = PsiTreeUtil.getParentOfType(element, PsiClass.class, false);
-    String className = elementClass == null ? null : elementClass.getQualifiedName();
-
-    PsiMethod elementMethod = PsiTreeUtil.getParentOfType(element, PsiMethod.class);
-    String methodName = elementMethod == null ? null : elementMethod.getName();
-
-    for (RunnerAndConfigurationSettings settings : existingConfigurations) {
-      if (settings.getConfiguration() instanceof AndroidTestRunConfiguration) {
-        AndroidTestRunConfiguration config = (AndroidTestRunConfiguration)settings.getConfiguration();
-        Module moduleInConfig = config.getConfigurationModule().getModule();
-        if (!Comparing.equal(contextModule, moduleInConfig)) {
-          continue;
-        }
-
-        switch (config.TESTING_TYPE) {
-          case AndroidTestRunConfiguration.TEST_ALL_IN_MODULE:
-            if (psiPackage != null && packageName.isEmpty()) {
-              return settings;
-            }
-            break;
-          case AndroidTestRunConfiguration.TEST_ALL_IN_PACKAGE:
-            if (packageName != null && packageName.equals(config.PACKAGE_NAME)) {
-              return settings;
-            }
-            break;
-          case AndroidTestRunConfiguration.TEST_CLASS:
-            if (className != null && className.equals(config.CLASS_NAME)) {
-              return settings;
-            }
-          case AndroidTestRunConfiguration.TEST_METHOD:
-            if (methodName != null && methodName.equals(config.METHOD_NAME)) {
-              return settings;
-            }
-        }
-      }
+  private boolean setupAllInPackageConfiguration(AndroidTestRunConfiguration configuration,
+                                                 PsiElement element,
+                                                 ConfigurationContext context,
+                                                 Ref<PsiElement> sourceElement) {
+    final PsiPackage p = JavaRuntimeConfigurationProducerBase.checkPackage(element);
+    if (p == null) {
+      return false;
     }
-    return null;
+    final String packageName = p.getQualifiedName();
+    setupConfiguration(configuration, p, context, sourceElement);
+    configuration.TESTING_TYPE = packageName.length() > 0
+                                 ? AndroidTestRunConfiguration.TEST_ALL_IN_PACKAGE
+                                 : AndroidTestRunConfiguration.TEST_ALL_IN_MODULE;
+    configuration.PACKAGE_NAME = packageName;
+    configuration.setGeneratedName();
+    return true;
   }
 
-  @Override
-  @Nullable
-  protected RunnerAndConfigurationSettings createConfigurationByElement(Location location, ConfigurationContext context) {
-    if (AndroidUtils.getAndroidModule(context) == null) return null;
-    if (location == null) return null;
-
-    location = JavaExecutionUtil.stepIntoSingleClass(location);
-    if (location == null) return null;
-
-    PsiElement element = location.getPsiElement();
-    RunnerAndConfigurationSettings settings = createAllInPackageConfiguration(element, context);
-    if (settings != null) return settings;
-
-    settings = createMethodConfiguration(element, context);
-    if (settings != null) return settings;
-
-    return createClassConfiguration(element, context);
-  }
-
-  @Nullable
-  private RunnerAndConfigurationSettings createAllInPackageConfiguration(PsiElement element, ConfigurationContext context) {
-    PsiPackage p = checkPackage(element);
-    if (p != null) {
-      final String packageName = p.getQualifiedName();
-      RunnerAndConfigurationSettings settings =
-        createConfiguration(p, context, packageName.length() > 0
-                                        ? AndroidTestRunConfiguration.TEST_ALL_IN_PACKAGE
-                                        : AndroidTestRunConfiguration.TEST_ALL_IN_MODULE);
-      if (settings == null) return null;
-      AndroidTestRunConfiguration configuration = (AndroidTestRunConfiguration)settings.getConfiguration();
-      configuration.PACKAGE_NAME = packageName;
-      configuration.setGeneratedName();
-      return settings;
-    }
-    return null;
-  }
-
-  @Nullable
-  private RunnerAndConfigurationSettings createClassConfiguration(PsiElement element, ConfigurationContext context) {
+  private boolean setupClassConfiguration(AndroidTestRunConfiguration configuration,
+                                          PsiElement element,
+                                          ConfigurationContext context,
+                                          Ref<PsiElement> sourceElement) {
     PsiClass elementClass = PsiTreeUtil.getParentOfType(element, PsiClass.class, false);
+
     while (elementClass != null) {
       if (JUnitUtil.isTestClass(elementClass)) {
-        RunnerAndConfigurationSettings settings =
-          createConfiguration(elementClass, context, AndroidTestRunConfiguration.TEST_CLASS);
-        if (settings == null) return null;
-        AndroidTestRunConfiguration configuration = (AndroidTestRunConfiguration)settings.getConfiguration();
+        setupConfiguration(configuration, elementClass, context, sourceElement);
+        configuration.TESTING_TYPE = AndroidTestRunConfiguration.TEST_CLASS;
         configuration.CLASS_NAME = elementClass.getQualifiedName();
         configuration.setGeneratedName();
-        return settings;
+        return true;
       }
       elementClass = PsiTreeUtil.getParentOfType(elementClass, PsiClass.class);
     }
-    return null;
+    return false;
   }
 
-  @Nullable
-  private RunnerAndConfigurationSettings createMethodConfiguration(PsiElement element, ConfigurationContext context) {
-    PsiMethod elementMethod = PsiTreeUtil.getParentOfType(element, PsiMethod.class, false);
+  private boolean setupMethodConfiguration(AndroidTestRunConfiguration configuration,
+                                                  PsiElement element,
+                                                  ConfigurationContext context,
+                                                  Ref<PsiElement> sourceElement) {
+    PsiMethod elementMethod = PsiTreeUtil.getParentOfType(element, PsiMethod.class);
+
     while (elementMethod != null) {
       if (isTestMethod(elementMethod)) {
         PsiClass c = elementMethod.getContainingClass();
+        setupConfiguration(configuration, elementMethod, context, sourceElement);
         assert c != null;
-        RunnerAndConfigurationSettings settings =
-          createConfiguration(elementMethod, context, AndroidTestRunConfiguration.TEST_METHOD);
-        if (settings == null) return null;
-        AndroidTestRunConfiguration configuration = (AndroidTestRunConfiguration)settings.getConfiguration();
+        configuration.TESTING_TYPE = AndroidTestRunConfiguration.TEST_METHOD;
         configuration.CLASS_NAME = c.getQualifiedName();
         configuration.METHOD_NAME = elementMethod.getName();
         configuration.setGeneratedName();
-        return settings;
+        return true;
       }
       elementMethod = PsiTreeUtil.getParentOfType(elementMethod, PsiMethod.class);
     }
-    return null;
+    return false;
   }
 
-  @Nullable
-  private RunnerAndConfigurationSettings createConfiguration(PsiElement element, ConfigurationContext context, int testingType) {
-    Module module = AndroidUtils.getAndroidModule(context);
-    if (module == null) return null;
-    mySourceElement = element;
-    RunnerAndConfigurationSettings settings = cloneTemplateConfiguration(element.getProject(), context);
-    AndroidTestRunConfiguration configuration = (AndroidTestRunConfiguration)settings.getConfiguration();
-    configuration.TESTING_TYPE = testingType;
+  private boolean setupConfiguration(AndroidTestRunConfiguration configuration,
+                                     PsiElement element,
+                                     ConfigurationContext context,
+                                     Ref<PsiElement> sourceElement) {
+    final Module module = AndroidUtils.getAndroidModule(context);
+
+    if (module == null) {
+      return false;
+    }
+    sourceElement.set(element);
     setupConfigurationModule(context, configuration);
 
     final TargetSelectionMode targetSelectionMode = AndroidUtils
       .getDefaultTargetSelectionMode(module, AndroidTestRunConfigurationType.getInstance(), AndroidRunConfigurationType.getInstance());
-    
+
     if (targetSelectionMode != null) {
       configuration.setTargetSelectionMode(targetSelectionMode);
     }
-
-    return settings;
+    return true;
   }
 
   private static boolean isTestMethod(PsiMethod method) {
@@ -212,7 +132,73 @@ public class AndroidTestConfigurationProducer extends JavaRuntimeConfigurationPr
   }
 
   @Override
-  public int compareTo(Object o) {
-    return PREFERED;
+  protected boolean setupConfigurationFromContext(AndroidTestRunConfiguration configuration,
+                                                  ConfigurationContext context,
+                                                  Ref<PsiElement> sourceElement) {
+    if (AndroidUtils.getAndroidModule(context) == null) {
+      return false;
+    }
+    Location location = context.getLocation();
+
+    if (location == null) {
+      return false;
+    }
+    location = JavaExecutionUtil.stepIntoSingleClass(location);
+
+    if (location == null) {
+      return false;
+    }
+    final PsiElement element = location.getPsiElement();
+
+    if (setupAllInPackageConfiguration(configuration, element, context, sourceElement)) {
+      return true;
+    }
+    if (setupMethodConfiguration(configuration, element, context, sourceElement)) {
+      return true;
+    }
+    return setupClassConfiguration(configuration, element, context, sourceElement);
+  }
+
+  @Override
+  public boolean isConfigurationFromContext(AndroidTestRunConfiguration configuration, ConfigurationContext context) {
+    Location location = context.getLocation();
+    final Module contextModule = AndroidUtils.getAndroidModule(context);
+
+    if (contextModule == null || location == null) {
+      return false;
+    }
+    location = JavaExecutionUtil.stepIntoSingleClass(location);
+
+    if (location == null) {
+      return false;
+    }
+    final PsiElement element = location.getPsiElement();
+    final PsiPackage psiPackage = JavaRuntimeConfigurationProducerBase.checkPackage(element);
+    final String packageName = psiPackage == null ? null : psiPackage.getQualifiedName();
+
+    final PsiClass elementClass = PsiTreeUtil.getParentOfType(element, PsiClass.class, false);
+    final String className = elementClass == null ? null : elementClass.getQualifiedName();
+
+    final PsiMethod elementMethod = PsiTreeUtil.getParentOfType(element, PsiMethod.class);
+    final String methodName = elementMethod == null ? null : elementMethod.getName();
+    final Module moduleInConfig = configuration.getConfigurationModule().getModule();
+
+    if (!Comparing.equal(contextModule, moduleInConfig)) {
+      return false;
+    }
+    switch (configuration.TESTING_TYPE) {
+      case AndroidTestRunConfiguration.TEST_ALL_IN_MODULE:
+        return psiPackage != null && packageName.isEmpty();
+
+      case AndroidTestRunConfiguration.TEST_ALL_IN_PACKAGE:
+        return packageName != null && packageName.equals(configuration.PACKAGE_NAME);
+
+      case AndroidTestRunConfiguration.TEST_CLASS:
+        return className != null && className.equals(configuration.CLASS_NAME);
+
+      case AndroidTestRunConfiguration.TEST_METHOD:
+        return methodName != null && methodName.equals(configuration.METHOD_NAME);
+    }
+    return false;
   }
 }
