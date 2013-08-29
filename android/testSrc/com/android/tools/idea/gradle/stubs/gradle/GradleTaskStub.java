@@ -39,7 +39,7 @@ public class GradleTaskStub implements GradleTask {
 
   @Override
   public String getDescription() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
