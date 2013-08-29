@@ -255,11 +255,22 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     toTestCompletion("can3.xml", "can3_after.xml");
   }
 
+  public void testCustomAttributeNameCompletion4() throws Throwable {
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
+    toTestCompletion("can4.xml", "can4_after.xml");
+  }
+
+  public void testCustomAttributeNameCompletion5() throws Throwable {
+    myFacet.getProperties().LIBRARY_PROJECT = true;
+    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
+    toTestCompletion("can5.xml", "can5_after.xml");
+  }
+
   public void testCustomAttributeValueCompletion() throws Throwable {
     doTestCompletionVariants("cav.xml", "@color/color0", "@color/color1", "@color/color2");
   }
 
-  public void testIdea64993() throws Throwable {
+  public void testIdea64993() throws  Throwable {
     copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
     doTestHighlighting();
   }

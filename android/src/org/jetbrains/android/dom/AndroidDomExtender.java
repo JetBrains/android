@@ -77,16 +77,19 @@ import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
  */
 public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
   private static final String[] LAYOUT_ATTRIBUTES_SUFS = new String[]{"_Layout", "_MarginLayout", "_Cell"};
-  public static final String ANDROID_NS_PREFIX = "http://schemas.android.com/apk/res/";
+  public static final String ANDROID_NS_PREFIX = "http://schemas.android.com/apk/res";
 
   @Nullable
   public static String getNamespaceKeyByResourcePackage(@NotNull AndroidFacet facet, @Nullable String resPackage) {
     if (resPackage == null) {
+      if (facet.getProperties().LIBRARY_PROJECT) {
+        return SdkConstants.AUTO_URI;
+      }
       Manifest manifest = facet.getManifest();
       if (manifest != null) {
         String aPackage = manifest.getPackage().getValue();
         if (aPackage != null && aPackage.length() > 0) {
-          return ANDROID_NS_PREFIX + aPackage;
+          return ANDROID_NS_PREFIX + "/" + aPackage;
         }
       }
     }

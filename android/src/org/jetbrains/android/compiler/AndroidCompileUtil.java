@@ -383,8 +383,7 @@ public class AndroidCompileUtil {
 
   public static void generate(final Module module, final AndroidAutogeneratorMode mode, boolean withDependentModules) {
     if (withDependentModules) {
-      Set<Module> modules = new HashSet<Module>();
-      collectModules(module, modules, ModuleManager.getInstance(module.getProject()).getModules());
+      Set<Module> modules = AndroidUtils.getBackwardDependencies(module);
       for (Module module1 : modules) {
         generate(module1, mode);
       }
@@ -436,17 +435,6 @@ public class AndroidCompileUtil {
       return;
     }
     AndroidAutogenerator.run(mode, facet, context);
-  }
-
-  private static void collectModules(Module module, Set<Module> result, Module[] allModules) {
-    if (!result.add(module)) {
-      return;
-    }
-    for (Module otherModule : allModules) {
-      if (ModuleRootManager.getInstance(otherModule).isDependsOn(module)) {
-        collectModules(otherModule, result, allModules);
-      }
-    }
   }
 
   // must be invoked in a read action!
