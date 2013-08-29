@@ -60,11 +60,15 @@ public class AndroidIdIndex extends FileBasedIndexExtension<String, Set<String>>
         @Override
         public void addAttribute(String key, String nsPrefix, String nsURI, String value, String type) throws Exception {
           super.addAttribute(key, nsPrefix, nsURI, value, type);
+          final boolean declaration = AndroidResourceUtil.isIdDeclaration(value);
 
-          if (AndroidResourceUtil.isIdDeclaration(value)) {
-            final String id = AndroidResourceUtil.getResourceNameByReferenceText(value);
+          if (declaration || AndroidResourceUtil.isIdReference(value)) {
+            String id = AndroidResourceUtil.getResourceNameByReferenceText(value);
 
             if (id != null) {
+              if (declaration) {
+                id = "+" + id;
+              }
               map.put(id, Collections.<String>emptySet());
             }
           }
@@ -138,6 +142,6 @@ public class AndroidIdIndex extends FileBasedIndexExtension<String, Set<String>>
 
   @Override
   public int getVersion() {
-    return 3;
+    return 4;
   }
 }
