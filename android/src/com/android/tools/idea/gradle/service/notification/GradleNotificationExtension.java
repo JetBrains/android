@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.service.notification;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.project.ProjectImportErrorHandler;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
@@ -90,7 +89,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
         return createNotification(project, msg, new SearchInBuildFilesHyperlink(project, "com.android.tools.build:gradle"));
       }
 
-      if (msg.contains(FAILED_TO_PARSE_SDK_ERROR_MSG)) {
+      if (msg.contains(NotificationHints.FAILED_TO_PARSE_SDK)) {
         String pathOfBrokenSdk = findPathOfSdkMissingOrEmptyAddonsFolder(project);
         String newMsg;
         if (pathOfBrokenSdk != null) {
@@ -112,7 +111,12 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
       String firstLine = lines.get(0);
       String lastLine = lines.get(lines.size() - 1);
 
-      if (lastLine != null && lastLine.contains(INSTALL_ANDROID_SUPPORT_REPO_ERROR_MSG)) {
+      if (lastLine != null && lastLine.equals(NotificationHints.OPEN_GRADLE_SETTINGS)) {
+        //noinspection TestOnlyProblems
+        return createNotification(project, msg, new GradleSettingsHyperlink(project));
+      }
+
+      if (lastLine != null && lastLine.contains(NotificationHints.INSTALL_ANDROID_SUPPORT_REPO)) {
         List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
         if (!facets.isEmpty()) {
           // We can only open SDK manager if the project has an Android facet. Android facet has a reference to the Android SDK manager.
@@ -123,7 +127,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
         return createNotification(project, msg);
       }
 
-      if (lastLine != null && lastLine.contains(SET_UP_GRADLE_HTTP_PROXY)) {
+      if (lastLine != null && lastLine.contains(NotificationHints.SET_UP_GRADLE_HTTP_PROXY)) {
         //noinspection TestOnlyProblems
         return createNotification(project, msg, new OpenUrlHyperlink(
           "http://www.gradle.org/docs/current/userguide/userguide_single.html#sec:accessing_the_web_via_a_proxy",
@@ -151,7 +155,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
       }
 
       if (lastLine != null) {
-        if (lastLine.contains(ProjectImportErrorHandler.UNEXPECTED_ERROR_FILE_BUG_ERROR_MSG)) {
+        if (lastLine.contains(NotificationHints.UNEXPECTED_ERROR_FILE_BUG)) {
           //noinspection TestOnlyProblems
           return createNotification(project, msg, new FileBugHyperlink(), new ShowLogHyperlink());
         }
