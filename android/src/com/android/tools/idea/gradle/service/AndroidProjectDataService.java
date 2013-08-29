@@ -43,15 +43,13 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
 
   // This constructor is called by the IDE. See this module's plugin.xml file, implementation of extension 'externalProjectDataService'.
   public AndroidProjectDataService() {
-    myCustomizers =
-      new ModuleCustomizer[]{
-        new AndroidSdkModuleCustomizer(), new AndroidFacetModuleCustomizer(), new RunConfigModuleCustomizer(),
-        new ContentRootModuleCustomizer(), new CompilerOutputPathModuleCustomizer()
-      };
+    //noinspection TestOnlyProblems
+    this(new AndroidSdkModuleCustomizer(), new AndroidFacetModuleCustomizer(), new RunConfigModuleCustomizer(),
+         new CompilerOutputPathModuleCustomizer());
   }
 
   @VisibleForTesting
-  AndroidProjectDataService(@NotNull ModuleCustomizer...customizers) {
+  AndroidProjectDataService(@NotNull ModuleCustomizer... customizers) {
     myCustomizers = customizers;
   }
 
