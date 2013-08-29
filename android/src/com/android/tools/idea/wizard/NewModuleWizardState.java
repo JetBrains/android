@@ -17,12 +17,16 @@
 package com.android.tools.idea.wizard;
 
 import com.android.sdklib.BuildToolInfo;
+import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 
+import static com.android.tools.idea.templates.RepositoryUrls.*;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
@@ -97,6 +101,34 @@ public class NewModuleWizardState extends TemplateWizardState {
   }
 
   /**
+   * Call this to update the list of dependencies to be compiled into the template
+   */
+  public void updateDependencies() {
+    // Take care of dependencies selected through the wizard
+    Set<String> dependencySet = new HashSet<String>();
+
+    dependencySet.addAll(myActivityTemplateState.getTemplateMetadata().getDependencies());
+
+    // Support Library
+    if ((get(ATTR_FRAGMENTS_EXTRA) != null && Boolean.parseBoolean(get(ATTR_FRAGMENTS_EXTRA).toString())) ||
+        (get(ATTR_NAVIGATION_DRAWER_EXTRA) != null && Boolean.parseBoolean(get(ATTR_NAVIGATION_DRAWER_EXTRA).toString()))) {
+      dependencySet.add(getLibraryUrl(SUPPORT_ID, "v4"));
+    }
+
+    // AppCompat Library
+    if (get(ATTR_ACTION_BAR_EXTRA) != null && Boolean.parseBoolean(get(ATTR_ACTION_BAR_EXTRA).toString())) {
+      dependencySet.add(getLibraryUrl(APP_COMPAT_ID, "v7"));
+    }
+
+    // GridLayout Library
+    if (get(ATTR_GRID_LAYOUT_EXTRA) != null && Boolean.parseBoolean(get(ATTR_GRID_LAYOUT_EXTRA).toString())) {
+      dependencySet.add(getLibraryUrl(GRID_LAYOUT_ID, "v7"));
+    }
+
+    put(ATTR_DEPENDENCIES_LIST, new LinkedList<String>(dependencySet));
+  }
+
+  /**
    * Call this to have this state object propagate common parameter values to sub-state objects
    * (i.e. states for other template wizards that are part of the same dialog).
    */
@@ -108,13 +140,6 @@ public class NewModuleWizardState extends TemplateWizardState {
     copyParameters(myParameters, myLauncherIconState.myParameters, ATTR_PACKAGE_NAME, ATTR_APP_TITLE, ATTR_MIN_API, ATTR_MIN_API_LEVEL,
                    ATTR_TARGET_API, ATTR_BUILD_API, ATTR_COPY_ICONS, ATTR_IS_NEW_PROJECT, ATTR_IS_LAUNCHER, ATTR_CREATE_ACTIVITY,
                    ATTR_CREATE_ICONS, ATTR_IS_GRADLE, ATTR_TOP_OUT, ATTR_PROJECT_OUT, ATTR_SRC_OUT, ATTR_RES_OUT, ATTR_MANIFEST_OUT);
-  }
-
-  /**
-   * Call this to copy the dependencies from the child activity template wizard to the project creation wizard.
-   */
-  public void updateDependencies() {
-    myParameters.putAll(myActivityTemplateState.getTemplateMetadata().getDependencies());
   }
 
   protected void copyParameters(@NotNull Map<String, Object> from, @NotNull Map<String, Object> to, String... keys) {
