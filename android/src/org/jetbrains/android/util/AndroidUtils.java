@@ -844,4 +844,22 @@ public class AndroidUtils {
   public static boolean isPackagePrefix(@NotNull String prefix, @NotNull String name) {
     return name.equals(prefix) || name.startsWith(prefix + ".");
   }
+
+  @NotNull
+  public static Set<Module> getBackwardDependencies(@NotNull Module module) {
+    final Set<Module> modules = new HashSet<Module>();
+    collectModules(module, modules, ModuleManager.getInstance(module.getProject()).getModules());
+    return modules;
+  }
+
+  private static void collectModules(Module module, Set<Module> result, Module[] allModules) {
+    if (!result.add(module)) {
+      return;
+    }
+    for (Module otherModule : allModules) {
+      if (ModuleRootManager.getInstance(otherModule).isDependsOn(module)) {
+        collectModules(otherModule, result, allModules);
+      }
+    }
+  }
 }

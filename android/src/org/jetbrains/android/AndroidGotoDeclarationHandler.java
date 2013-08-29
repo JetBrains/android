@@ -24,12 +24,18 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.xml.XmlElement;
+import org.jetbrains.android.dom.AndroidAttributeValue;
+import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.dom.manifest.ManifestElementWithRequiredName;
 import org.jetbrains.android.dom.resources.Attr;
 import org.jetbrains.android.dom.resources.DeclareStyleable;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,49 +64,88 @@ public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
       return null;
     }
 
-    AndroidResourceUtil.MyReferredResourceFieldInfo info = AndroidResourceUtil.getReferredResourceField(facet, refExp, false);
+    AndroidResourceUtil.MyReferredResourceFieldInfo info = AndroidResourceUtil.getReferredResourceOrManifestField(facet, refExp, false);
     if (info == null) {
       PsiElement parent = refExp.getParent();
       if (parent instanceof PsiReferenceExpression) {
-        info = AndroidResourceUtil.getReferredResourceField(facet, (PsiReferenceExpression)parent, false);
+        info = AndroidResourceUtil.getReferredResourceOrManifestField(facet, (PsiReferenceExpression)parent, false);
       }
       if (info == null) {
         parent = parent.getParent();
         if (parent instanceof PsiReferenceExpression) {
-          info = AndroidResourceUtil.getReferredResourceField(facet, (PsiReferenceExpression)parent, false);
+          info = AndroidResourceUtil.getReferredResourceOrManifestField(facet, (PsiReferenceExpression)parent, false);
         }
       }
     }
     if (info == null) {
       return null;
     }
-    final ResourceManager manager = info.isSystem()
-                                    ? facet.getSystemResourceManager(false)
-                                    : facet.getLocalResourceManager();
-    if (manager == null) {
-      return null;
-    }
-    final String resClassName = info.getClassName();
-    final String resFieldName = info.getFieldName();
-
+    final String nestedClassName = info.getClassName();
+    final String fieldName = info.getFieldName();
     final List<PsiElement> resourceList = new ArrayList<PsiElement>();
-    manager.collectLazyResourceElements(resClassName, resFieldName, false, refExp, resourceList);
 
-    if (manager instanceof LocalResourceManager) {
-      final LocalResourceManager lrm = (LocalResourceManager)manager;
-
-      if (resClassName.equals(ResourceType.ATTR.getName())) {
-        for (Attr attr : lrm.findAttrs(resFieldName)) {
-          resourceList.add(attr.getName().getXmlAttributeValue());
-        }
+    if (info.isFromManifest()) {
+      collectManifestElements(nestedClassName, fieldName, facet, resourceList);
+    }
+    else {
+      final ResourceManager manager = info.isSystem()
+                                      ? facet.getSystemResourceManager(false)
+                                      : facet.getLocalResourceManager();
+      if (manager == null) {
+        return null;
       }
-      else if (resClassName.equals(ResourceType.STYLEABLE.getName())) {
-        for (DeclareStyleable styleable : lrm.findStyleables(resFieldName)) {
-          resourceList.add(styleable.getName().getXmlAttributeValue());
+      manager.collectLazyResourceElements(nestedClassName, fieldName, false, refExp, resourceList);
+
+      if (manager instanceof LocalResourceManager) {
+        final LocalResourceManager lrm = (LocalResourceManager)manager;
+
+        if (nestedClassName.equals(ResourceType.ATTR.getName())) {
+          for (Attr attr : lrm.findAttrs(fieldName)) {
+            resourceList.add(attr.getName().getXmlAttributeValue());
+          }
+        }
+        else if (nestedClassName.equals(ResourceType.STYLEABLE.getName())) {
+          for (DeclareStyleable styleable : lrm.findStyleables(fieldName)) {
+            resourceList.add(styleable.getName().getXmlAttributeValue());
+          }
         }
       }
     }
     return resourceList.toArray(new PsiElement[resourceList.size()]);
+  }
+
+  private static void collectManifestElements(@NotNull String nestedClassName,
+                                              @NotNull String fieldName,
+                                              @NotNull AndroidFacet facet,
+                                              @NotNull List<PsiElement> result) {
+    final Manifest manifest = facet.getManifest();
+
+    if (manifest == null) {
+      return;
+    }
+    List<? extends ManifestElementWithRequiredName> list;
+
+    if ("permission".equals(nestedClassName)) {
+      list = manifest.getPermissions();
+    }
+    else if ("permission_group".equals(nestedClassName)) {
+      list = manifest.getPermissionGroups();
+    }
+    else {
+      return;
+    }
+    for (ManifestElementWithRequiredName domElement : list) {
+      final AndroidAttributeValue<String> nameAttribute = domElement.getName();
+      final String name = nameAttribute.getValue();
+
+      if (AndroidUtils.equal(name, fieldName, false)) {
+        final XmlElement psiElement = nameAttribute.getXmlAttributeValue();
+
+        if (psiElement != null) {
+          result.add(psiElement);
+        }
+      }
+    }
   }
 
   @Override

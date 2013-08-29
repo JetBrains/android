@@ -191,15 +191,23 @@ public class AndroidLibraryProjectTest extends UsefulTestCase {
   }
 
   public void testCompletion() {
+    createInitialStructure();
     doTestCompletion();
   }
 
   public void testCompletion1() {
+    createInitialStructure();
+    doTestCompletion();
+  }
+
+  public void testCustomAttrCompletion() {
+    createInitialStructure();
+    myFixture.copyFileToProject(BASE_PATH + "LibView.java", "lib/src/p1/p2/lib/LibView.java");
+    myFixture.copyFileToProject(BASE_PATH + "lib_attrs.xml", "lib/res/values/lib_attrs.xml");
     doTestCompletion();
   }
 
   private void doTestCompletion() {
-    createInitialStructure();
     String to = "app/res/layout/" + getTestName(true) + ".xml";
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + ".xml", to);
     myFixture.configureFromExistingVirtualFile(file);

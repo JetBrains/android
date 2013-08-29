@@ -44,14 +44,14 @@ public class AndroidQuickFixProvider extends UnresolvedReferenceQuickFixProvider
       return;
     }
 
-    AndroidResourceUtil.MyReferredResourceFieldInfo info = AndroidResourceUtil.getReferredResourceField(facet, exp, true);
+    AndroidResourceUtil.MyReferredResourceFieldInfo info = AndroidResourceUtil.getReferredResourceOrManifestField(facet, exp, true);
     if (info == null) {
       final PsiElement parent = exp.getParent();
       if (parent instanceof PsiReferenceExpression) {
-        info = AndroidResourceUtil.getReferredResourceField(facet, (PsiReferenceExpression)parent, true);
+        info = AndroidResourceUtil.getReferredResourceOrManifestField(facet, (PsiReferenceExpression)parent, true);
       }
     }
-    if (info == null) {
+    if (info == null || info.isFromManifest()) {
       return;
     }
     final String resClassName = info.getClassName();

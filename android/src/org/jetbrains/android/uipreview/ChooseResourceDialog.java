@@ -661,7 +661,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       });
 
       if (type == ResourceType.ID) {
-        for (String id : manager.getIds()) {
+        for (String id : manager.getIds(true)) {
           if (!resourceNames.contains(id)) {
             myItems.add(new ResourceItem(this, id, null, RESOURCE_ITEM_ICON));
           }

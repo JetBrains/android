@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.compiler;
 
 import com.android.tools.idea.gradle.util.Projects;
-import com.intellij.compiler.options.CompilerOptionsManager;
+import com.intellij.compiler.options.CompilerOptionsFilter;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
  *   <li>"Use external build" and children</li>
  * </ul>
  */
-public class HideCompilerOptions implements CompilerOptionsManager {
+public class HideCompilerOptions implements CompilerOptionsFilter {
   @Override
   public boolean isAvailable(@NotNull Setting setting, @NotNull Project project) {
     if (!Projects.isGradleProject(project)) {

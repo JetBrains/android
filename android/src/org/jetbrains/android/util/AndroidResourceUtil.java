@@ -764,17 +764,17 @@ public class AndroidResourceUtil {
   }
 
   @Nullable
-  public static MyReferredResourceFieldInfo getReferredResourceField(@NotNull AndroidFacet facet,
-                                                              @NotNull PsiReferenceExpression exp,
-                                                              boolean localOnly) {
-    return getReferredResourceField(facet, exp, null, localOnly);
+  public static MyReferredResourceFieldInfo getReferredResourceOrManifestField(@NotNull AndroidFacet facet,
+                                                                               @NotNull PsiReferenceExpression exp,
+                                                                               boolean localOnly) {
+    return getReferredResourceOrManifestField(facet, exp, null, localOnly);
   }
 
   @Nullable
-  public static MyReferredResourceFieldInfo getReferredResourceField(@NotNull AndroidFacet facet,
-                                                                     @NotNull PsiReferenceExpression exp,
-                                                                     @Nullable String className,
-                                                                     boolean localOnly) {
+  public static MyReferredResourceFieldInfo getReferredResourceOrManifestField(@NotNull AndroidFacet facet,
+                                                                               @NotNull PsiReferenceExpression exp,
+                                                                               @Nullable String className,
+                                                                               boolean localOnly) {
     final String resFieldName = exp.getReferenceName();
     if (resFieldName == null || resFieldName.length() == 0) {
       return null;
@@ -802,33 +802,40 @@ public class AndroidResourceUtil {
       return null;
     }
     final PsiClass aClass = (PsiClass)resolvedElement;
+    final String classShortName = aClass.getName();
+    final boolean fromManifest = AndroidUtils.MANIFEST_CLASS_NAME.equals(classShortName);
 
-    if (!AndroidUtils.R_CLASS_NAME.equals(aClass.getName())) {
+    if (!fromManifest && !AndroidUtils.R_CLASS_NAME.equals(classShortName)) {
       return null;
     }
     if (!localOnly) {
       final String qName = aClass.getQualifiedName();
 
       if (SdkConstants.CLASS_R.equals(qName) || AndroidPsiElementFinder.INTERNAL_R_CLASS_QNAME.equals(qName)) {
-        return new MyReferredResourceFieldInfo(resClassName, resFieldName, true);
+        return new MyReferredResourceFieldInfo(resClassName, resFieldName, true, false);
       }
     }
     final PsiFile containingFile = resolvedElement.getContainingFile();
-    if (containingFile == null || !isRJavaFile(facet, containingFile)) {
+    if (containingFile == null) {
       return null;
     }
-    return new MyReferredResourceFieldInfo(resClassName, resFieldName, false);
+    if (fromManifest ? !isManifestJavaFile(facet, containingFile) : !isRJavaFile(facet, containingFile)) {
+      return null;
+    }
+    return new MyReferredResourceFieldInfo(resClassName, resFieldName, false, fromManifest);
   }
 
   public static class MyReferredResourceFieldInfo {
     private final String myClassName;
     private final String myFieldName;
     private final boolean mySystem;
+    private final boolean myFromManifest;
 
-    public MyReferredResourceFieldInfo(@NotNull String className, @NotNull String fieldName, boolean system) {
+    public MyReferredResourceFieldInfo(@NotNull String className, @NotNull String fieldName, boolean system, boolean fromManifest) {
       myClassName = className;
       myFieldName = fieldName;
       mySystem = system;
+      myFromManifest = fromManifest;
     }
 
     @NotNull
@@ -843,6 +850,10 @@ public class AndroidResourceUtil {
 
     public boolean isSystem() {
       return mySystem;
+    }
+
+    public boolean isFromManifest() {
+      return myFromManifest;
     }
   }
 
