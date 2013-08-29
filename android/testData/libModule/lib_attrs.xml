@@ -1,0 +1,5 @@
+<resources>
+  <declare-styleable name="LibView">
+    <attr name="myLibAttr" format="string"/>
+  </declare-styleable>
+</resources>
