@@ -72,6 +72,23 @@ public class ProjectImportErrorHandler {
       return createUserFriendlyError(msg, null);
     }
 
+    if (rootCause instanceof OutOfMemoryError) {
+      // The OutOfMemoryError happens in the Gradle daemon process.
+      String originalMessage = rootCause.getMessage();
+      String msg = "Out of memory";
+      if (originalMessage != null && !originalMessage.isEmpty()) {
+        msg = msg + ": " + originalMessage;
+      }
+      if (msg.endsWith("Java heap space")) {
+        msg += ". Configure Gradle memory settings using '-Xmx' JVM option (e.g. '-Xmx2048m'.)";
+      } else if (!msg.endsWith(".")) {
+        msg += ".";
+      }
+      msg += EMPTY_LINE + NotificationHints.OPEN_GRADLE_SETTINGS;
+      // Location of build.gradle is useless for this error. Omitting it.
+      return createUserFriendlyError(msg, null);
+    }
+
     if (rootCause instanceof ClassNotFoundException) {
       String msg = String.format("Unable to load class '%1$s'.", rootCause.getMessage()) + EMPTY_LINE +
                    NotificationHints.UNEXPECTED_ERROR_FILE_BUG;
