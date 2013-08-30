@@ -231,11 +231,11 @@ public class GradleProjectImporter {
             if (!application.isUnitTestMode()) {
               project.save();
             }
-            if (callback != null) {
-              callback.projectImported(project);
-            }
             if (newProject) {
               configureGradleProject(project);
+            }
+            if (callback != null) {
+              callback.projectImported(project);
             }
           }
         };
