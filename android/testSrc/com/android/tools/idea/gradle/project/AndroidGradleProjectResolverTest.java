@@ -84,6 +84,11 @@ public class AndroidGradleProjectResolverTest extends TestCase {
 
   @SuppressWarnings("unchecked")
   public void testResolveProjectInfo() {
+    // Quick test of isIdeaTask
+    assertTrue(AndroidGradleProjectResolver.isIdeaTask("idea"));
+    assertTrue(AndroidGradleProjectResolver.isIdeaTask("ideaFoo"));
+    assertFalse(AndroidGradleProjectResolver.isIdeaTask("ideal"));
+
     // Record mock expectations.
     ModelBuilder<IdeaProject> ideaProjectModelBuilder = createMock(ModelBuilder.class);
     myHelper.getModelBuilder(IdeaProject.class, myId, mySettings, myConnection, NULL_OBJECT, Collections.<String>emptyList());
