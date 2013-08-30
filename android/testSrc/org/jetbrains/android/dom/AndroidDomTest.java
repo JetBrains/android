@@ -162,7 +162,7 @@ abstract class AndroidDomTest extends AndroidTestCase {
       if (ranges != null) {
         for (Pair<HighlightInfo.IntentionActionDescriptor, TextRange> pair : ranges) {
           final IntentionAction action = pair.getFirst().getAction();
-          if (action.getClass() == aClass) {
+          if (aClass == null || action.getClass() == aClass) {
             actions.add(action);
           }
         }
