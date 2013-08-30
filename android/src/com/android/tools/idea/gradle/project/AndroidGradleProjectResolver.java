@@ -284,12 +284,20 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
 
     for (GradleTask task : module.getGradleProject().getTasks()) {
       String taskName = task.getName();
-      if (taskName == null || taskName.trim().isEmpty() || taskName.startsWith("idea") || taskName.endsWith("Idea")) {
+      if (taskName == null || taskName.trim().isEmpty() || isIdeaTask(taskName)) {
         continue;
       }
       TaskData taskData = new TaskData(GradleConstants.SYSTEM_ID, taskName, moduleConfigPath, task.getDescription());
       target.createChild(ProjectKeys.TASK, taskData);
     }
+  }
+
+  private static boolean isIdeaTask(@NotNull String taskName) {
+    return taskName.startsWith("idea") ||
+           taskName.endsWith("Idea") ||
+           taskName.endsWith("IdeaModule") ||
+           taskName.endsWith("IdeaProject") ||
+           taskName.endsWith("IdeaWorkspace");
   }
 
   @Nullable
