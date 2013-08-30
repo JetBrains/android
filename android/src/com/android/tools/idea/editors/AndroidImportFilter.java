@@ -24,7 +24,7 @@ public class AndroidImportFilter extends ImportFilter {
   /** Never import android.R */
   @Override
   public boolean shouldUseFullyQualifiedName(@NotNull String classQualifiedName) {
-    return CLASS_R.equals(classQualifiedName) ||
-           classQualifiedName.startsWith(CLASS_R) && classQualifiedName.charAt(CLASS_R.length()) == '.';
+    return classQualifiedName.startsWith(CLASS_R) &&
+           (CLASS_R.length() == classQualifiedName.length() || classQualifiedName.charAt(CLASS_R.length()) == '.');
   }
 }
