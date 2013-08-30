@@ -284,6 +284,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
 
     for (GradleTask task : module.getGradleProject().getTasks()) {
       String taskName = task.getName();
+      //noinspection TestOnlyProblems
       if (taskName == null || taskName.trim().isEmpty() || isIdeaTask(taskName)) {
         continue;
       }
@@ -292,8 +293,10 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
     }
   }
 
-  private static boolean isIdeaTask(@NotNull String taskName) {
-    return taskName.startsWith("idea") ||
+  @VisibleForTesting
+  static boolean isIdeaTask(@NotNull String taskName) {
+    return taskName.equals("idea") ||
+           (taskName.startsWith("idea") && taskName.length() > 5 && Character.isUpperCase(taskName.charAt(4))) ||
            taskName.endsWith("Idea") ||
            taskName.endsWith("IdeaModule") ||
            taskName.endsWith("IdeaProject") ||
