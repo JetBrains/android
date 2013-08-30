@@ -23,7 +23,6 @@ import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.io.Closeables;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.Messages;
@@ -54,6 +53,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
   private static final String ATTR_GRADLE_DISTRIBUTION_URL = "distributionUrl";
   private static final String JAVA_SRC_PATH =
       FD_SOURCES + File.separator + FD_MAIN + File.separator + FD_JAVA;
+  public static final String ERROR_MSG_TITLE = "New Project Wizard";
 
   private NewProjectWizardState myWizardState;
   private ConfigureAndroidModuleStep myConfigureAndroidModuleStep;
@@ -147,16 +147,20 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
             public void projectImported(@NotNull Project project) {
               TemplateUtils.openEditors(project, myWizardState.myTemplate.getFilesToOpen(), true);
             }
+
+            @Override
+            public void importFailed(@NotNull Project project, @NotNull final String errorMessage) {
+              ApplicationManager.getApplication().invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                  Messages.showErrorDialog(errorMessage, ERROR_MSG_TITLE);
+                }
+              });
+            }
           });
         }
         catch (Exception e) {
-          String title;
-          if (e instanceof ConfigurationException) {
-            title = ((ConfigurationException)e).getTitle();
-          } else {
-            title = "New Project Wizard";
-          }
-          Messages.showErrorDialog(e.getMessage(), title);
+          Messages.showErrorDialog(e.getMessage(), ERROR_MSG_TITLE);
           LOG.error(e);
         }
       }

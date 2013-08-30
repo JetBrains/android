@@ -47,7 +47,7 @@ public class ReImportProjectAction extends AnAction {
       Presentation presentation = e.getPresentation();
       presentation.setEnabled(false);
       try {
-        GradleProjectImporter.getInstance().reImportProject(project);
+        GradleProjectImporter.getInstance().reImportProject(project, null);
       }
       catch (ConfigurationException ex) {
         Messages.showErrorDialog(ex.getMessage(), ex.getTitle());
