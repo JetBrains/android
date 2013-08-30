@@ -86,9 +86,6 @@ public class TemplateWizardState {
   /** Ids for parameters which have been modified directly by the user. */
   protected final Set<String> myModified = new HashSet<String>();
 
-  /**
-   * Create a new state object for use by the {@link NewTemplatePage}
-   */
   public TemplateWizardState() {
     put(TemplateMetadata.ATTR_IS_NEW_PROJECT, false);
     put(TemplateMetadata.ATTR_IS_GRADLE, "true");
@@ -109,7 +106,7 @@ public class TemplateWizardState {
       javaSourcePackageRoot = new File((String)get(TemplateMetadata.ATTR_PACKAGE_ROOT));
     } else {
       File javaSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.JAVA_SOURCE_PATH);
-      javaSourcePackageRoot = new File(javaSourceRoot, ((String)get(TemplateMetadata.ATTR_PACKAGE_NAME)).replace('.', '/'));
+      javaSourcePackageRoot = new File(javaSourceRoot, getString(TemplateMetadata.ATTR_PACKAGE_NAME).replace('.', '/'));
     }
     File resourceSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.RESOURCE_SOURCE_PATH);
     String mavenUrl = System.getProperty(TemplateWizard.MAVEN_URL_PROPERTY);
@@ -141,8 +138,28 @@ public class TemplateWizardState {
   }
 
   @Nullable
-  public Object get(String key) {
+  public Object get(@NotNull String key) {
     return myParameters.get(key);
+  }
+
+  public boolean getBoolean(@NotNull String key) {
+    return get(key, Boolean.class);
+  }
+
+  public int getInt(@NotNull String key) {
+    return get(key, Integer.class);
+  }
+
+  @NotNull
+  public String getString(@NotNull String key) {
+    return get(key, String.class);
+  }
+
+  @NotNull
+  private <T> T get(@NotNull String key, @NotNull Class<T> valueType) {
+    Object val = get(key);
+    assert valueType.isInstance(val);
+    return valueType.cast(val);
   }
 
   public boolean hasAttr(String key) {
@@ -195,10 +212,10 @@ public class TemplateWizardState {
     convertToInt(ATTR_TARGET_API);
   }
 
-  private void convertToInt(String attr) {
-    Object value = get(attr);
+  private void convertToInt(@NotNull String key) {
+    Object value = get(key);
     if (value != null && !(value instanceof Integer)) {
-      put(attr, Integer.parseInt(get(attr).toString()));
+      put(key, Integer.parseInt(value.toString()));
     }
   }
 }

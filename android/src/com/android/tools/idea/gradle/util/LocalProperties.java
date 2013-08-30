@@ -123,7 +123,7 @@ public final class LocalProperties {
    * @param androidSdk the Android SDK.
    * @throws IOException if an I/O error occurs while writing the contents of the file.
    */
-  public static void createFile(File filePath, Sdk androidSdk) throws IOException {
+  public static void createFile(@NotNull File filePath, @NotNull Sdk androidSdk) throws IOException {
     FileUtilRt.createIfNotExists(filePath);
     // TODO: create this file using a template and just populate the path of Android SDK.
     String[] lines = {HEADER_COMMENT, SdkConstants.SDK_DIR_PROPERTY + "=" + androidSdk.getHomePath()};
