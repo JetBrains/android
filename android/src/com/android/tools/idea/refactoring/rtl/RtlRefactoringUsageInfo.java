@@ -21,43 +21,43 @@ import org.jetbrains.annotations.NotNull;
 
 class RtlRefactoringUsageInfo extends UsageInfo {
 
-    private RtlRefactoringType myType = RtlRefactoringType.UNDEFINED;
-    private boolean myCreateV17;
-    private int myAndroidManifestMinSdkVersion;
+  private RtlRefactoringType myType = RtlRefactoringType.UNDEFINED;
+  private boolean myCreateV17;
+  private int myAndroidManifestMinSdkVersion;
 
-    public enum RtlRefactoringType {
-        UNDEFINED,
-        MANIFEST_SUPPORTS_RTL,
-        MANIFEST_TARGET_SDK,
-        LAYOUT_FILE_ATTRIBUTE,
-        STYLE
-    };
+  public enum RtlRefactoringType {
+    UNDEFINED,
+    MANIFEST_SUPPORTS_RTL,
+    MANIFEST_TARGET_SDK,
+    LAYOUT_FILE_ATTRIBUTE,
+    STYLE
+  };
 
-    public RtlRefactoringUsageInfo(@NotNull PsiElement element, int startOffset, int endOffset) {
-        super(element, startOffset, endOffset);
-    }
+  public RtlRefactoringUsageInfo(@NotNull PsiElement element, int startOffset, int endOffset) {
+    super(element, startOffset, endOffset);
+  }
 
-    RtlRefactoringType getType() {
-        return myType;
-    }
+  RtlRefactoringType getType() {
+    return myType;
+  }
 
-    void setType(RtlRefactoringType type) {
-        myType = type;
-    }
+  void setType(RtlRefactoringType type) {
+    myType = type;
+  }
 
-    boolean isCreateV17() {
-        return myCreateV17;
-    }
+  boolean isCreateV17() {
+    return myCreateV17;
+  }
 
-    void setCreateV17(boolean createV17) {
-        myCreateV17 = createV17;
-    }
+  void setCreateV17(boolean createV17) {
+    myCreateV17 = createV17;
+  }
 
-    int getAndroidManifestMinSdkVersion() {
-        return myAndroidManifestMinSdkVersion;
-    }
+  int getAndroidManifestMinSdkVersion() {
+    return myAndroidManifestMinSdkVersion;
+  }
 
-    void setAndroidManifestMinSdkVersion(int version) {
-        myAndroidManifestMinSdkVersion = version;
-    }
+  void setAndroidManifestMinSdkVersion(int version) {
+    myAndroidManifestMinSdkVersion = version;
+  }
 }

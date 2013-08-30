@@ -16,49 +16,40 @@
 
 package com.android.tools.idea.refactoring.rtl;
 
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
+import com.intellij.usageView.UsageViewBundle;
 import com.intellij.usageView.UsageViewDescriptor;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class RtlSupportUsageViewDescriptor implements UsageViewDescriptor {
+  public RtlSupportUsageViewDescriptor() {
+  }
 
-    private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.refactoring.rtl.RtlSupportUsageViewDescriptor");
+  @NotNull
+  @Override
+  public PsiElement[] getElements() {
+    return PsiElement.EMPTY_ARRAY;
+  }
 
-    private RtlSupportProperties myProperties;
+  @Override
+  public String getProcessedElementsHeader() {
+    return "Items to be converted";
+  }
 
-    public RtlSupportUsageViewDescriptor(RtlSupportProperties properties) {
-        myProperties = properties;
-    }
+  @Override
+  public String getCodeReferencesText(int usagesCount, int filesCount) {
+    return String.format("RTL References in code %1$s", UsageViewBundle.getReferencesString(usagesCount, filesCount));
+  }
 
-    @NotNull
-    @Override
-    public PsiElement[] getElements() {
-        return PsiElement.EMPTY_ARRAY;
-    }
+  @Nullable
+  @Override
+  public String getCommentReferencesText(int usagesCount, int filesCount) {
+    return null;
+  }
 
-    @Override
-    public String getProcessedElementsHeader() {
-        LOG.warn("Called getProcessedElementsHeader()");
-        return "getProcessedElementsHeader()";
-    }
-
-    @Override
-    public String getCodeReferencesText(int usagesCount, int filesCount) {
-        LOG.warn("Called getCodeReferencesText()");
-        return "getCodeReferencesText()";
-    }
-
-    @Nullable
-    @Override
-    public String getCommentReferencesText(int usagesCount, int filesCount) {
-        LOG.warn("Called getCommentReferencesText()");
-        return "getCommentReferencesText()";
-    }
-
-    public String getInfo() {
-        return AndroidBundle.message("android.refactoring.rtl.addsupport.dialog.apply.button.text");
-    }
+  public String getInfo() {
+    return AndroidBundle.message("android.refactoring.rtl.addsupport.dialog.apply.button.text");
+  }
 }

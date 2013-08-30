@@ -19,18 +19,18 @@ package com.android.tools.idea.refactoring.rtl;
 import com.intellij.openapi.project.Project;
 
 public class RtlSupportManager {
-    private final Project myProject;
+  private final Project myProject;
 
-    public RtlSupportManager(Project project) {
-        myProject = project;
-    }
+  public RtlSupportManager(Project project) {
+    myProject = project;
+  }
 
-    public void showDialog() {
-        final RtlSupportDialog dialog = new RtlSupportDialog(myProject);
-        dialog.show();
-        if (!dialog.isOK()) {
-            return;
-        }
-        new RtlSupportProcessor(myProject, dialog.getProperties()).run();
+  public void showDialog() {
+    final RtlSupportDialog dialog = new RtlSupportDialog(myProject);
+    dialog.show();
+    if (!dialog.isOK()) {
+      return;
     }
+    new RtlSupportProcessor(myProject, dialog.getProperties()).run();
+  }
 }
