@@ -54,7 +54,7 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
   }
 
   public ChooseTemplateStep(TemplateWizardState state, String templateCategory, @Nullable Project project, @Nullable Icon sidePanelIcon,
-                            UpdateListener updateListener, TemplateChangeListener templateChangeListener) {
+                            UpdateListener updateListener, @Nullable TemplateChangeListener templateChangeListener) {
     super(state, project, sidePanelIcon, updateListener);
     myTemplateChangeListener = templateChangeListener;
 
@@ -62,8 +62,7 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
     TemplateManager manager = TemplateManager.getInstance();
     List<File> templates = manager.getTemplates(templateCategory);
     List<MetadataListItem> metadataList = new ArrayList<MetadataListItem>(templates.size());
-    for (int i = 0, n = templates.size(); i < n; i++) {
-      File template = templates.get(i);
+    for (File template : templates) {
       TemplateMetadata metadata = manager.getTemplate(template);
       if (metadata == null || !metadata.isSupported()) {
         continue;
@@ -148,11 +147,13 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
     return true;
   }
 
+  @NotNull
   @Override
   protected JLabel getDescription() {
     return myDescription;
   }
 
+  @NotNull
   @Override
   protected JLabel getError() {
     return myError;
