@@ -15,16 +15,26 @@
  */
 package com.android.tools.idea.editors;
 
+import com.android.resources.ResourceType;
 import com.intellij.codeInsight.ImportFilter;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.CLASS_R;
 
 public class AndroidImportFilter extends ImportFilter {
-  /** Never import android.R */
+  /** Never import android.R, or inner classes of application R or android.R classes */
   @Override
   public boolean shouldUseFullyQualifiedName(@NotNull String classQualifiedName) {
-    return classQualifiedName.startsWith(CLASS_R) &&
-           (CLASS_R.length() == classQualifiedName.length() || classQualifiedName.charAt(CLASS_R.length()) == '.');
+    if (classQualifiedName.endsWith(".R")) {
+      return CLASS_R.equals(classQualifiedName);
+    }
+    int index = classQualifiedName.lastIndexOf('.');
+    if (index > 2 && classQualifiedName.charAt(index - 1) == 'R' && classQualifiedName.charAt(index - 2) == '.') {
+      // Only accept R inner classes that look like they really are resource classes, e.g.
+      //  foo.bar.R.string and foo.bar.R.layout, but not my.weird.R.pkg
+      return classQualifiedName.startsWith(CLASS_R) || ResourceType.getEnum(classQualifiedName.substring(index + 1)) != null;
+    }
+
+    return false;
   }
 }
