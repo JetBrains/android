@@ -78,7 +78,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
         // Prevent IDEA from refreshing project. We want to do it ourselves.
         myProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
 
-        GradleProjectImporter.getInstance().reImportProject(myProject);
+        GradleProjectImporter.getInstance().reImportProject(myProject, null);
       }
       catch (ConfigurationException e) {
         Messages.showErrorDialog(e.getMessage(), e.getTitle());

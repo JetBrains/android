@@ -179,7 +179,7 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
         myWizardState.getActivityTemplateState().getTemplate()
           .render(moduleRoot, moduleRoot, myWizardState.getActivityTemplateState().myParameters);
       }
-      GradleProjectImporter.getInstance().reImportProject(myProject);
+      GradleProjectImporter.getInstance().reImportProject(myProject, null);
     } catch (Exception e) {
       Messages.showErrorDialog(e.getMessage(), "New Module");
       LOG.error(e);

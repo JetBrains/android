@@ -28,7 +28,6 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.intellij.ProjectTopics;
 import com.intellij.ide.impl.NewProjectUtil;
 import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.openapi.application.Application;
@@ -36,10 +35,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.model.DataNode;
-import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
-import com.intellij.openapi.externalSystem.model.ProjectKeys;
-import com.intellij.openapi.externalSystem.model.ProjectSystemId;
+import com.intellij.openapi.externalSystem.model.*;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
@@ -56,11 +52,8 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.CompilerProjectExtension;
-import com.intellij.openapi.roots.ModuleRootAdapter;
-import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.startup.StartupManager;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -70,7 +63,6 @@ import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.IdeFrameEx;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.util.SystemProperties;
-import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -90,9 +82,8 @@ public class GradleProjectImporter {
   private static final Logger LOG = Logger.getInstance(GradleProjectImporter.class);
   private static final ProjectSystemId SYSTEM_ID = GradleConstants.SYSTEM_ID;
 
-  private final ModuleCustomizer[] myModuleCustomizers = {
-    new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputPathModuleCustomizer()
-  };
+  private final ModuleCustomizer[] myModuleCustomizers =
+    {new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputPathModuleCustomizer()};
 
   private final ImporterDelegate myDelegate;
 
@@ -113,12 +104,14 @@ public class GradleProjectImporter {
   /**
    * Re-imports an existing Android-Gradle project.
    *
-   * @param project the given project. This method does nothing if the project is not an Android-Gradle project.
+   * @param project  the given project. This method does nothing if the project is not an Android-Gradle project.
+   * @param callback called after the project has been imported.
+   * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
    */
-  public void reImportProject(@NotNull final Project project) throws ConfigurationException {
+  public void reImportProject(@NotNull final Project project, @Nullable Callback callback) throws ConfigurationException {
     if (Projects.isGradleProject(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
-      doImport(project, false /* do not open project (already open) */, false /* async import */);
+      doImport(project, false /* existing project */, false /* asynchronous import */, callback);
     }
   }
 
@@ -135,7 +128,7 @@ public class GradleProjectImporter {
   public void importProject(@NotNull String projectName,
                             @NotNull File projectRootDir,
                             @Nullable Sdk androidSdk,
-                            @Nullable final Callback callback) throws IOException, ConfigurationException {
+                            @Nullable Callback callback) throws IOException, ConfigurationException {
     GradleImportNotificationListener.attachToManager();
 
     createTopLevelBuildFileIfNotExisting(projectRootDir);
@@ -154,29 +147,7 @@ public class GradleProjectImporter {
 
     Projects.setProjectBuildAction(newProject, Projects.BuildAction.REBUILD);
 
-    doImport(newProject, true /* open project */, true /* sync import */);
-
-    // Since importing is synchronous we should have modules now. Notify callback.
-    if (notifyCallback(newProject, callback)) {
-      configureGradleProject(newProject);
-      return;
-    }
-
-    // If we got here, there is some bad timing and the module creation got delayed somehow. Notify callback as soon as the project roots
-    // are created.
-    final MessageBusConnection connection = newProject.getMessageBus().connect();
-    connection.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
-      @Override
-      public void rootsChanged(ModuleRootEvent event) {
-        Module[] modules = ModuleManager.getInstance(newProject).getModules();
-        if (modules.length > 0) {
-          connection.disconnect();
-          // TODO: Consider moving callback to AndroidProjectDataService. It can reliably notify when a project has modules.
-          notifyCallback(newProject, callback);
-          configureGradleProject(newProject);
-        }
-      }
-    });
+    doImport(newProject, true /* new project */, true /* synchronous import */, callback);
   }
 
   private static void createTopLevelBuildFileIfNotExisting(@NotNull File projectRootDir) throws IOException {
@@ -239,8 +210,8 @@ public class GradleProjectImporter {
     gradleSettings.setLinkedProjectsSettings(ImmutableList.of(projectSettings));
   }
 
-  private void doImport(@NotNull final Project project, final boolean openProject, boolean modal) throws ConfigurationException {
-    final Ref<ConfigurationException> errorRef = new Ref<ConfigurationException>();
+  private void doImport(@NotNull final Project project, final boolean newProject, boolean modal, @Nullable final Callback callback)
+    throws ConfigurationException {
     myDelegate.importProject(project, new ExternalProjectRefreshCallback() {
       @Override
       public void onSuccess(@Nullable final DataNode<ProjectData> projectInfo) {
@@ -250,16 +221,21 @@ public class GradleProjectImporter {
           @Override
           public void run() {
             populateProject(project, projectInfo);
-            if (openProject) {
+            if (newProject) {
               open(project);
-            } else {
-              // if we don't open the project means the project is already open (it is not a new project.) We need to sync project structure
-              // to reflect selected variant.
+            }
+            else {
               updateStructureAccordingToBuildVariants(project);
             }
 
             if (!application.isUnitTestMode()) {
               project.save();
+            }
+            if (callback != null) {
+              callback.projectImported(project);
+            }
+            if (newProject) {
+              configureGradleProject(project);
             }
           }
         };
@@ -273,15 +249,16 @@ public class GradleProjectImporter {
 
       @Override
       public void onFailure(@NotNull final String errorMessage, @Nullable String errorDetails) {
-        ConfigurationException error = handleImportFailure(errorMessage, errorDetails);
-        errorRef.set(error);
+        if (errorDetails != null) {
+          LOG.warn(errorDetails);
+        }
+        String newMessage = ExternalSystemBundle.message("error.resolve.with.reason", errorMessage);
+        LOG.info(newMessage);
+        if (callback != null) {
+          callback.importFailed(project, newMessage);
+        }
       }
     }, modal);
-
-    ConfigurationException errorCause = errorRef.get();
-    if (errorCause != null) {
-      throw errorCause;
-    }
   }
 
   private static void populateProject(@NotNull final Project newProject, @NotNull final DataNode<ProjectData> projectInfo) {
@@ -342,27 +319,6 @@ public class GradleProjectImporter {
     });
   }
 
-  @NotNull
-  private static ConfigurationException handleImportFailure(@NotNull String errorMessage, @Nullable String errorDetails) {
-    if (errorDetails != null) {
-      LOG.warn(errorDetails);
-    }
-    String reason = "Failed to import Gradle project: " + errorMessage;
-    return new ConfigurationException(ExternalSystemBundle.message("error.resolve.with.reason", reason),
-                                      ExternalSystemBundle.message("error.resolve.generic"));
-  }
-
-  private static boolean notifyCallback(@NotNull Project project, @Nullable Callback callback) {
-    Module[] modules = ModuleManager.getInstance(project).getModules();
-    if (modules.length == 0) {
-      return false;
-    }
-    if (callback != null) {
-      callback.projectImported(project);
-    }
-    return true;
-  }
-
   private static void configureGradleProject(@NotNull Project project) {
     // We need to do this because AndroidGradleProjectComponent#projectOpened is being called when the project is created, instead of when
     // the project is opened. When 'projectOpened' is called, the project is not fully configured, and it does not looks like it is
@@ -373,9 +329,8 @@ public class GradleProjectImporter {
 
   // Makes it possible to mock invocations to the Gradle Tooling API.
   static class ImporterDelegate {
-    void importProject(@NotNull Project project,
-                       @NotNull ExternalProjectRefreshCallback callback,
-                       boolean modal) throws ConfigurationException {
+    void importProject(@NotNull Project project, @NotNull ExternalProjectRefreshCallback callback, boolean modal)
+      throws ConfigurationException {
       try {
         ExternalSystemUtil.refreshProject(project, SYSTEM_ID, project.getBasePath(), callback, true, modal, true);
       }
@@ -393,5 +348,7 @@ public class GradleProjectImporter {
      * @param project the IDEA project created from the Gradle one.
      */
     void projectImported(@NotNull Project project);
+
+    void importFailed(@NotNull Project project, @NotNull String errorMessage);
   }
 }
