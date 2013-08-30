@@ -19,6 +19,7 @@ import com.android.resources.ResourceType;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
+import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.GenericDomValue;
@@ -42,6 +43,14 @@ public class ParentStyleConverter extends ResourceReferenceConverter {
   @NotNull
   @Override
   public PsiReference[] createReferences(GenericDomValue<ResourceValue> value, PsiElement element, ConvertContext context) {
+    if (element instanceof XmlAttributeValue) {
+      // parent="" is allowed; it's used to deliberately allow style A.B.C to not be a child of A.B
+      XmlAttributeValue attributeValue = (XmlAttributeValue)element;
+      if (attributeValue.isValid() && attributeValue.getValue().isEmpty()) {
+        return PsiReference.EMPTY_ARRAY;
+      }
+    }
+
     final PsiReference[] refsFromSuper = super.createReferences(value, element, context);
 
     final ResourceValue resValue = value.getValue();
