@@ -29,11 +29,12 @@ import java.util.Map;
  * Configures a module's content root from an {@link AndroidProject}.
  */
 public final class AndroidContentRoot {
-  private static final String OUTPUT_DIR_NAME = "build";
+  public static final String BUILD_DIR = "build";
 
   // TODO: Retrieve this information from Gradle.
   private static final String[] EXCLUDED_OUTPUT_DIR_NAMES =
-    {"apk", "assets", "bundles", "classes", "dependency-cache", "exploded-bundles", "incremental", "libs", "manifests", "symbols", "tmp"};
+    // Note that build/exploded-bundles should *not* be excluded
+    {"apk", "assets", "bundles", "classes", "dependency-cache", "incremental", "libs", "manifests", "symbols", "tmp"};
 
   private AndroidContentRoot() {
   }
@@ -122,7 +123,7 @@ public final class AndroidContentRoot {
         exclude(child, storage);
       }
     }
-    File outputDir = new File(rootDir, OUTPUT_DIR_NAME);
+    File outputDir = new File(rootDir, BUILD_DIR);
     for (String childName : EXCLUDED_OUTPUT_DIR_NAMES) {
       File child = new File(outputDir, childName);
       storage.storePath(ExternalSystemSourceType.EXCLUDED, child);

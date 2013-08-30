@@ -29,6 +29,8 @@ import com.intellij.ui.EditorNotifications;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Nullable;
 
+import static com.android.tools.idea.gradle.project.AndroidContentRoot.BUILD_DIR;
+
 public class GeneratedFileNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
   private static final Key<EditorNotificationPanel> KEY = Key.create("android.generated.file.ro");
   private final Project myProject;
@@ -60,14 +62,23 @@ public class GeneratedFileNotificationProvider extends EditorNotifications.Provi
     }
 
     // TODO: Look up build folder via Gradle project metadata.
-    if (!file.getPath().contains("build")) { // fast fail
+    if (!file.getPath().contains(BUILD_DIR)) { // fast fail
       return null;
     }
     for (VirtualFile baseDir : ModuleRootManager.getInstance(module).getContentRoots()) {
-      VirtualFile build = baseDir.findChild("build");
+      VirtualFile build = baseDir.findChild(BUILD_DIR);
       if (build != null && VfsUtilCore.isAncestor(build, file, true)) {
+        VirtualFile explodedBundled = build.findChild("exploded-bundles");
+        boolean inAar = explodedBundled != null && VfsUtilCore.isAncestor(explodedBundled, file, true);
+        String text;
+        if (inAar) {
+          text = "Resource files inside Android library archive files (.aar) should not be edited";
+        } else {
+          text = "Files under the build folder are generated and should not be edited.";
+        }
+
         EditorNotificationPanel panel = new EditorNotificationPanel();
-        panel.setText("Files under the build folder are generated and should not be edited.");
+        panel.setText(text);
         return panel;
       }
     }
