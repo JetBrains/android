@@ -22,12 +22,22 @@ public class AndroidImportFilterTest extends TestCase {
     AndroidImportFilter filter = new AndroidImportFilter();
     assertTrue(filter.shouldUseFullyQualifiedName("android.R"));
     assertTrue(filter.shouldUseFullyQualifiedName("android.R.anim"));
+    assertTrue(filter.shouldUseFullyQualifiedName("android.R.anything"));
     assertFalse(filter.shouldUseFullyQualifiedName("com.android.tools.R"));
-    assertFalse(filter.shouldUseFullyQualifiedName("com.android.tools.R.anim"));
+    assertTrue(filter.shouldUseFullyQualifiedName("com.android.tools.R.anim"));
+    assertTrue(filter.shouldUseFullyQualifiedName("com.android.tools.R.layout"));
+    assertTrue(filter.shouldUseFullyQualifiedName("a.R.string"));
+    assertFalse(filter.shouldUseFullyQualifiedName("my.weird.clz.R"));
+    assertFalse(filter.shouldUseFullyQualifiedName("my.weird.clz.R.bogus"));
     assertFalse(filter.shouldUseFullyQualifiedName(""));
+    assertFalse(filter.shouldUseFullyQualifiedName("."));
+    assertFalse(filter.shouldUseFullyQualifiedName("a.R"));
     assertFalse(filter.shouldUseFullyQualifiedName("android"));
     assertFalse(filter.shouldUseFullyQualifiedName("android."));
     assertFalse(filter.shouldUseFullyQualifiedName("android.r"));
     assertFalse(filter.shouldUseFullyQualifiedName("android.Random"));
+    assertFalse(filter.shouldUseFullyQualifiedName("my.R.unrelated"));
+    assertFalse(filter.shouldUseFullyQualifiedName("my.R.unrelated.to"));
+    assertFalse(filter.shouldUseFullyQualifiedName("R.string")); // R is never in the default package
   }
 }
