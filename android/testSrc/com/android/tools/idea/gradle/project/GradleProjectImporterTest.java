@@ -114,6 +114,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
 
     @Override
     public void importFailed(@NotNull Project project, @NotNull String errorMessage) {
+      fail(errorMessage);
     }
   }
 }
