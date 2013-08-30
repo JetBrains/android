@@ -13,6 +13,8 @@
 
   <TextView
       android:layout_height="wrap_content"
+      android:height="30dp"
       android:text="Hello World, MyActivity"
-      android:layout_width="fill_parent" />
+      android:width="30dp"
+      android:layout_width="fill_parent"/>
 </LinearLayout>
