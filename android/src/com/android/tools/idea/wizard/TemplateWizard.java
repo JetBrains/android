@@ -16,7 +16,6 @@
 package com.android.tools.idea.wizard;
 
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.templates.TemplateMetadata;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.wizard.AbstractWizard;
 import com.intellij.openapi.project.Project;
@@ -25,11 +24,10 @@ import com.intellij.openapi.projectRoots.Sdk;
 import icons.AndroidIcons;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.io.File;
-import java.io.IOException;
 
 /**
  * TemplateWizard is a base class for Freemarker template-based wizards.
@@ -44,7 +42,7 @@ public class TemplateWizard extends AbstractWizard<ModuleWizardStep> {
 
   protected Project myProject;
 
-  public TemplateWizard(String title, Project project) {
+  public TemplateWizard(@NotNull String title, @Nullable Project project) {
     super(title, project);
     myProject = project;
   }
