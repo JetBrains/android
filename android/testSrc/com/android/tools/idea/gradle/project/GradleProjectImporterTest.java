@@ -111,5 +111,9 @@ public class GradleProjectImporterTest extends IdeaTestCase {
       assertEquals(1, modules.length);
       assertEquals(myProjectName, modules[0].getName());
     }
+
+    @Override
+    public void importFailed(@NotNull Project project, @NotNull String errorMessage) {
+    }
   }
 }
