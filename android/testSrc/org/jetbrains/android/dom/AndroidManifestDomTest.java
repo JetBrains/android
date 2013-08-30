@@ -6,6 +6,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection;
 import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection;
 
@@ -321,6 +322,15 @@ public class AndroidManifestDomTest extends AndroidDomTest {
   public void testMaxSdkVersionAttributeValueCompletion() throws Throwable {
     doTestSdkVersionAttributeValueCompletion();
   }
+
+  public void testSpellchecker1() throws Throwable {
+    myFixture.enableInspections(SpellCheckingInspection.class);
+    doTestHighlighting();
+  }
+  public void testSpellchecker2() throws Throwable {
+    doTestSpellcheckerQuickFixes();
+  }
+
 
   private void doTestSdkVersionAttributeValueCompletion() throws Throwable {
     final ProjectJdkTable projectJdkTable = ProjectJdkTable.getInstance();

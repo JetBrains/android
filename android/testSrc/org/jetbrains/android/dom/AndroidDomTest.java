@@ -4,6 +4,7 @@ import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.documentation.DocumentationManager;
 import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.codeInspection.ex.QuickFixWrapper;
 import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.lang.documentation.ExternalDocumentationProvider;
 import com.intellij.openapi.application.ApplicationManager;
@@ -11,6 +12,9 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import com.intellij.spellchecker.inspections.SpellCheckingInspection;
+import com.intellij.spellchecker.quickfixes.AcceptWordAsCorrect;
+import com.intellij.spellchecker.quickfixes.RenameTo;
 import com.intellij.testFramework.UsefulTestCase;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.inspections.AndroidDomInspection;
@@ -113,6 +117,16 @@ abstract class AndroidDomTest extends AndroidTestCase {
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
     myFixture.checkResultByFile(testFolder + '/' + fileAfter);
+  }
+
+  protected void doTestSpellcheckerQuickFixes() throws IOException {
+    myFixture.enableInspections(SpellCheckingInspection.class);
+    VirtualFile virtualFile = copyFileToProject(getTestName(true) + ".xml");
+    myFixture.configureFromExistingVirtualFile(virtualFile);
+    final List<IntentionAction> fixes = highlightAndFindQuickFixes(null);
+    assertEquals(2, fixes.size());
+    assertInstanceOf(((QuickFixWrapper)fixes.get(0)).getFix(), RenameTo.class);
+    assertInstanceOf(((QuickFixWrapper)fixes.get(1)).getFix(), AcceptWordAsCorrect.class);
   }
 
   protected abstract String getPathToCopy(String testFileName);
