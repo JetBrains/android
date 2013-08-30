@@ -14,9 +14,12 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
 import org.jetbrains.android.dom.AndroidDomElement;
+import org.jetbrains.android.dom.converters.AndroidPackageConverter;
 import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
 import org.jetbrains.android.dom.converters.ConstantFieldConverter;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
+import org.jetbrains.android.dom.resources.ResourceNameConverter;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -25,10 +28,21 @@ import org.jetbrains.annotations.NotNull;
 public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
   private final MyResourceReferenceTokenizer myResourceReferenceTokenizer = new MyResourceReferenceTokenizer();
 
+  private final Tokenizer<XmlAttributeValue> myAttributeValueRenamingTokenizer = new Tokenizer<XmlAttributeValue>() {
+    @Override
+    public void tokenize(@NotNull XmlAttributeValue element, TokenConsumer consumer) {
+      consumer.consumeToken(element, true, TextSplitter.getInstance());
+    }
+  };
+
   @NotNull
   @Override
   public Tokenizer getTokenizer(PsiElement element) {
     assert element instanceof XmlAttributeValue;
+
+    if (AndroidResourceUtil.isIdDeclaration((XmlAttributeValue)element)) {
+      return myAttributeValueRenamingTokenizer;
+    }
     final PsiElement parent = element.getParent();
 
     if (parent instanceof XmlAttribute) {
@@ -46,6 +60,9 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
           }
           else if (converter instanceof ConstantFieldConverter) {
             return EMPTY_TOKENIZER;
+          }
+          else if (converter instanceof ResourceNameConverter || converter instanceof AndroidPackageConverter) {
+            return myAttributeValueRenamingTokenizer;
           }
         }
       }
