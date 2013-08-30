@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+              android:orientation="vertical">
+
+  <TextView
+      android:id="@+id/my_<TYPO>idddd</TYPO>"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:text="@android:string/defaultMsisdnAlphaTag" />
+
+  <TextView
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:text="@string/my<TYPO>Msisdn</TYPO>AlphaTag" />
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Hello <TYPO>Worlld</TYPO>" />
+</LinearLayout>
+

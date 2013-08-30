@@ -8,6 +8,7 @@ import com.intellij.codeInsight.documentation.DocumentationManager;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupEx;
+import com.intellij.codeInspection.ex.QuickFixWrapper;
 import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -15,6 +16,9 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.spellchecker.inspections.SpellCheckingInspection;
+import com.intellij.spellchecker.quickfixes.AcceptWordAsCorrect;
+import com.intellij.spellchecker.quickfixes.RenameTo;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.util.ThrowableRunnable;
@@ -982,6 +986,22 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     myFixture.configureFromExistingVirtualFile(file);
     final List<IntentionAction> fixes = highlightAndFindQuickFixes(AndroidMissingOnClickHandlerInspection.MyQuickFix.class);
     assertEmpty(fixes);
+  }
+
+  public void testSpellchecker() throws Throwable {
+    myFixture.enableInspections(SpellCheckingInspection.class);
+    myFixture.copyFileToProject(testFolder + "/spellchecker_resources.xml", "res/values/sr.xml");
+    doTestHighlighting();
+  }
+
+  public void testSpellcheckerQuickfix() throws Throwable {
+    myFixture.enableInspections(SpellCheckingInspection.class);
+    myFixture.copyFileToProject(testFolder + "/spellchecker_resources.xml", "res/values/sr.xml");
+    myFixture.configureFromExistingVirtualFile(copyFileToProject(getTestName(true) + ".xml"));
+    final List<IntentionAction> fixes = highlightAndFindQuickFixes(null);
+    assertEquals(2, fixes.size());
+    assertInstanceOf(((QuickFixWrapper)fixes.get(0)).getFix(), RenameTo.class);
+    assertInstanceOf(((QuickFixWrapper)fixes.get(1)).getFix(), AcceptWordAsCorrect.class);
   }
 
   private void doTestAttrReferenceCompletion(String textToType) throws IOException {
