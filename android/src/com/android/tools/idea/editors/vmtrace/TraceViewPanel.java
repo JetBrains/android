@@ -17,6 +17,8 @@
 package com.android.tools.idea.editors.vmtrace;
 
 import com.android.tools.perflib.vmtrace.Call;
+import com.android.tools.perflib.vmtrace.ClockType;
+import com.android.tools.perflib.vmtrace.ThreadInfo;
 import com.android.tools.perflib.vmtrace.VmTraceData;
 import com.android.tools.perflib.vmtrace.viz.TraceViewCanvas;
 import com.android.utils.SparseArray;
@@ -26,6 +28,7 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class TraceViewPanel {
@@ -45,19 +48,19 @@ public class TraceViewPanel {
   public void setTrace(@NotNull VmTraceData trace) {
     List<String> threadNames = getThreadsWithTraces(trace);
     String threadName = !threadNames.isEmpty() ? threadNames.get(0) : "";
-    myTraceViewCanvas.setTrace(trace, threadName);
+    myTraceViewCanvas.setTrace(trace, threadName, ClockType.GLOBAL);
     myThreadCombo.setModel(new DefaultComboBoxModel(threadNames.toArray()));
     myThreadCombo.setEnabled(true);
   }
 
   private static List<String> getThreadsWithTraces(@NotNull VmTraceData trace) {
-    SparseArray<String> threads = trace.getThreads();
+    Collection<ThreadInfo> threads = trace.getThreads();
     List<String> threadNames = new ArrayList<String>(threads.size());
 
-    for (int i = 0; i < threads.size(); i++) {
-      Call topLevelCall = trace.getTopLevelCall(threads.keyAt(i));
+    for (ThreadInfo thread : threads) {
+      Call topLevelCall = thread.getTopLevelCall();
       if (topLevelCall != null) {
-        threadNames.add(threads.valueAt(i));
+        threadNames.add(thread.getName());
       }
     }
     return threadNames;
