@@ -228,9 +228,8 @@ class PsiResourceItem extends ResourceItem {
           isFrameworkAttr = true;
         }
 
-        ResourceValue resValue = new ResourceValue(null, name,
-                                                   styleValue.isFramework());
-        resValue.setValue(ValueXmlHelper.unescapeResourceString(getTextContent(child), false, true));
+        ResourceValue resValue = new ResourceValue(null, name, styleValue.isFramework());
+        resValue.setValue(ValueXmlHelper.unescapeResourceString(getTextContent(child), true, true));
         styleValue.addValue(resValue, isFrameworkAttr);
       }
     }
@@ -268,7 +267,7 @@ class PsiResourceItem extends ResourceItem {
   private ResourceValue parseArrayValue(ArrayResourceValue arrayValue) {
     assert myTag != null;
     for (XmlTag child : myTag.getSubTags()) {
-      String text = ValueXmlHelper.unescapeResourceString(getTextContent(child), false, true);
+      String text = ValueXmlHelper.unescapeResourceString(getTextContent(child), true, true);
       arrayValue.addElement(text);
     }
 
@@ -280,7 +279,7 @@ class PsiResourceItem extends ResourceItem {
     for (XmlTag child : myTag.getSubTags()) {
       String quantity = child.getAttributeValue(ATTR_QUANTITY);
       if (quantity != null) {
-        String text = ValueXmlHelper.unescapeResourceString(getTextContent(child), false, true);
+        String text = ValueXmlHelper.unescapeResourceString(getTextContent(child), true, true);
         value.addPlural(quantity, text);
       }
     }
