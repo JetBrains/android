@@ -505,7 +505,7 @@ public class IntellijApiDetector extends ApiDetector {
               if (expressionOwner != null && !expressionOwner.equals(owner)) {
                 int specificApi = mApiDatabase.getCallVersion(expressionOwner, name, desc);
                 if (specificApi == -1) {
-                  if (expressionOwner.startsWith("android/")
+                  if (expressionOwner.startsWith("android/") && !expressionOwner.startsWith("android/support/")
                            || expressionOwner.startsWith("java/")
                            || expressionOwner.startsWith("javax/")) {
                     return;
@@ -525,7 +525,7 @@ public class IntellijApiDetector extends ApiDetector {
               }
               int specificApi = mApiDatabase.getCallVersion(expressionOwner, name, desc);
               if (specificApi == -1) {
-                if (expressionOwner.startsWith("android/")
+                if (expressionOwner.startsWith("android/") && !expressionOwner.startsWith("android/support/")
                     || expressionOwner.startsWith("java/")
                     || expressionOwner.startsWith("javax/")) {
                   return;
