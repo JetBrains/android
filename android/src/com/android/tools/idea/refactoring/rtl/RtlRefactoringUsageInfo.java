@@ -31,7 +31,7 @@ class RtlRefactoringUsageInfo extends UsageInfo {
     MANIFEST_TARGET_SDK,
     LAYOUT_FILE_ATTRIBUTE,
     STYLE
-  };
+  }
 
   public RtlRefactoringUsageInfo(@NotNull PsiElement element, int startOffset, int endOffset) {
     super(element, startOffset, endOffset);
