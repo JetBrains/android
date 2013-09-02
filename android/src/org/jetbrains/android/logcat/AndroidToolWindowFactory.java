@@ -103,6 +103,10 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
 
     final ContentManager contentManager = toolWindow.getContentManager();
     Content c = contentManager.getFactory().createContent(layoutUi.getComponent(), "DDMS", true);
+
+    // add possibility to access logcat view externally in the future
+    c.putUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY, logcatView);
+
     contentManager.addContent(c);
 
     ApplicationManager.getApplication().invokeLater(new Runnable() {
