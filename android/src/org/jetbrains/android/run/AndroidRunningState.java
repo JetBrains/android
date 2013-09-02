@@ -802,6 +802,16 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
           }
         }
       }
+      if (!myDebugMode) {
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            final ToolWindow androidToolWindow = ToolWindowManager.getInstance(myEnv.getProject()).
+              getToolWindow(AndroidToolWindowFactory.TOOL_WINDOW_ID);
+            androidToolWindow.activate(null, false);
+          }
+        });
+      }
       return true;
     }
     catch (TimeoutException e) {
