@@ -280,7 +280,6 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     VirtualFile file = copyFileToProject("tn1.xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
-    myFixture.type('\n');
     myFixture.checkResultByFile(testFolder + '/' + "tn1_after.xml");
   }
 
