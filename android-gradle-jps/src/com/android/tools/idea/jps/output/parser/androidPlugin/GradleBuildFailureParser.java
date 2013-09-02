@@ -21,6 +21,7 @@ import com.android.tools.idea.jps.output.parser.OutputLineReader;
 import com.android.tools.idea.jps.output.parser.ParsingFailedException;
 import com.android.tools.idea.jps.output.parser.aapt.AaptOutputParser;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 
@@ -91,9 +92,13 @@ public class GradleBuildFailureParser implements CompilerOutputParser {
     int pos = 0;
     String currentLine = line;
     String file = null;
-    int lineNum = 0;
+    long lineNum = -1;
+    long column = -1;
+    String lastQuotedLine = null;
     StringBuilder errorMessage = new StringBuilder();
     Matcher matcher;
+    // TODO: If the output isn't quite matching this format (for example, the "Try" statement is missing) this will eat
+    // some of the output. We should fall back to emitting all the output in that case.
     while (true) {
       switch(myState) {
         case BEGINNING:
@@ -112,6 +117,7 @@ public class GradleBuildFailureParser implements CompilerOutputParser {
           }
           file = matcher.group(1);
           lineNum = Integer.parseInt(matcher.group(2));
+          column = 0;
           myState = State.BEGINNING;
           break;
         case MESSAGE:
@@ -123,6 +129,9 @@ public class GradleBuildFailureParser implements CompilerOutputParser {
           } else {
             if (errorMessage.length() > 0) {
               errorMessage.append("\n");
+            }
+            if (isGradleQuotedLine(currentLine)) {
+              lastQuotedLine = currentLine;
             }
             errorMessage.append(currentLine);
           }
@@ -160,8 +169,24 @@ public class GradleBuildFailureParser implements CompilerOutputParser {
             return false;
           } else if (++pos >= ENDING_PATTERNS.length) {
             if (errorMessage.length() > 0) {
+              // Sometimes Gradle exits with an error message that doesn't have an associated
+              // file. This will show up first in the output, for errors without file associations.
+              // However, in some cases we can guess what the error is by looking at the other error
+              // messages, for example from the XML Validation parser, where the same error message is
+              // provided along with an error message. See for example the parser unit test for
+              // duplicate resources.
+              if (file == null && lastQuotedLine != null) {
+                String msg = unquoteGradleLine(lastQuotedLine);
+                CompilerMessage rootCause = findRootCause(msg, messages);
+                if (rootCause != null) {
+                  file = rootCause.getSourcePath();
+                  lineNum = rootCause.getLine();
+                  column = rootCause.getColumn();
+                }
+              }
               if (file != null) {
-                messages.add(AndroidGradleJps.createCompilerMessage(BuildMessage.Kind.ERROR, errorMessage.toString(), file, lineNum, 0));
+                messages.add(AndroidGradleJps.createCompilerMessage(BuildMessage.Kind.ERROR, errorMessage.toString(), file, lineNum,
+                                                                    column));
               } else {
                 messages.add(AndroidGradleJps.createCompilerMessage(BuildMessage.Kind.ERROR, errorMessage.toString()));
               }
@@ -180,5 +205,47 @@ public class GradleBuildFailureParser implements CompilerOutputParser {
         }
       }
     }
+  }
+
+  /** Looks through the existing errors and attempts to find one that has the same root cause */
+  @Nullable
+  private static CompilerMessage findRootCause(String text, Collection<CompilerMessage> messages) {
+    for (CompilerMessage message : messages) {
+      if (message.getKind() != BuildMessage.Kind.INFO && message.getMessageText().contains(text)) {
+        String sourcePath = message.getSourcePath();
+        if (sourcePath != null) {
+          return message;
+        }
+      }
+    }
+
+    // We sometimes strip out the exception name prefix in the error messages;
+    // e.g. the gradle output may be "> java.io.IOException: My error message" whereas
+    // the XML validation error message was "My error message", so look for these
+    // scenarios too
+    int index = text.indexOf(':');
+    if (index != -1 && index < text.length() - 1) {
+      return findRootCause(text.substring(index + 1).trim(), messages);
+    }
+
+    return null;
+  }
+
+  private static boolean isGradleQuotedLine(String line) {
+    for (int i = 0, n = line.length() - 1; i < n; i++) {
+      char c = line.charAt(i);
+      if (c == '>') {
+        return line.charAt(i + 1) == ' ';
+      } else if (c != ' ') {
+        break;
+      }
+    }
+
+    return false;
+  }
+
+  private static String unquoteGradleLine(String line) {
+    assert isGradleQuotedLine(line);
+    return line.substring(line.indexOf('>') + 2);
   }
 }

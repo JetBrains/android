@@ -20,6 +20,7 @@ import com.android.tools.idea.jps.output.parser.CompilerOutputParser;
 import com.android.tools.idea.jps.output.parser.OutputLineReader;
 import com.android.tools.idea.jps.output.parser.ParsingFailedException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 
@@ -47,18 +48,35 @@ public class XmlValidationErrorParser implements CompilerOutputParser {
     throws ParsingFailedException {
     Matcher m1 = FATAL_ERROR.matcher(line);
     if (!m1.matches()) {
+      // Sometimes the parse failure message appears by itself (for example with duplicate resources);
+      // in this case also recognize the line by itself even though it's separated from the next message
+      Matcher m2 = FILE_REFERENCE.matcher(line);
+      if (m2.matches()) {
+        String sourcePath = m2.group(1);
+        if (new File(sourcePath).exists()) {
+          String message = line;
+          // Eat the entire stacktrace
+          String exceptionMessage = digestStackTrace(reader);
+          if (exceptionMessage != null) {
+            message = exceptionMessage + ": " + message;
+          }
+          messages.add(AndroidGradleJps.createCompilerMessage(BuildMessage.Kind.ERROR, message, sourcePath, -1, -1));
+          return true;
+        }
+      }
       return false;
     }
     String message = m1.group(3);
     int lineNumber = Integer.parseInt(m1.group(1));
     int column = Integer.parseInt(m1.group(2));
     String sourcePath = null;
-    String nextLine = reader.readLine();
+    String nextLine = reader.peek(0);
     if (nextLine == null) {
       return false;
     }
     Matcher m2 = FILE_REFERENCE.matcher(nextLine);
     if (m2.matches()) {
+      reader.readLine(); // digest peeked line
       sourcePath = m2.group(1);
       if (!new File(sourcePath).exists()) {
         sourcePath = null;
@@ -66,5 +84,36 @@ public class XmlValidationErrorParser implements CompilerOutputParser {
     }
     messages.add(AndroidGradleJps.createCompilerMessage(BuildMessage.Kind.ERROR, message, sourcePath, lineNumber, column));
     return true;
+  }
+
+  @Nullable
+  private static String digestStackTrace(OutputLineReader reader) {
+    String message = null;
+    String next = reader.peek(0);
+    if (next == null) {
+      return null;
+    }
+    int index = next.indexOf(':');
+    if (index == -1) {
+      return null;
+    }
+
+    String exceptionName = next.substring(0, index);
+    if (exceptionName.endsWith("Exception") || exceptionName.endsWith("Error")) {
+      message = next.substring(index + 1).trim();
+      reader.readLine();
+
+      // Digest stack frames below it
+      while (true) {
+        String peek = reader.peek(0);
+        if (peek != null && peek.startsWith("\t")) {
+          reader.readLine();
+        } else {
+          break;
+        }
+      }
+    }
+
+    return message;
   }
 }
