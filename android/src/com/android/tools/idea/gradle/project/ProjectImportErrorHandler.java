@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.net.ConnectException;
 import java.net.UnknownHostException;
 
 /**
@@ -36,14 +37,14 @@ public class ProjectImportErrorHandler {
 
   @NonNls private static final String MINIMUM_GRADLE_SUPPORTED_VERSION = "1.6";
 
+  private static final String EMPTY_LINE = "\n\n";
   private static final String UNSUPPORTED_GRADLE_VERSION_ERROR = "Gradle version " + MINIMUM_GRADLE_SUPPORTED_VERSION + " is required";
-  public static final String EMPTY_LINE = "\n\n";
 
   public interface NotificationHints {
     String OPEN_GRADLE_SETTINGS = "Please fix the project's Gradle settings.";
     String FAILED_TO_PARSE_SDK = "failed to parse SDK";
     String INSTALL_ANDROID_SUPPORT_REPO = "Please install the Android Support Repository from the Android SDK Manager.";
-    String SET_UP_GRADLE_HTTP_PROXY = "If you are behind an HTTP proxy, please configure Gradle's proxy settings.";
+    String SET_UP_HTTP_PROXY = "If you are behind an HTTP proxy, please configure the proxy settings either in Android Studio or Gradle.";
     String UNEXPECTED_ERROR_FILE_BUG = "This is an unexpected error. Please file a bug containing the idea.log file.";
   }
 
@@ -99,9 +100,18 @@ public class ProjectImportErrorHandler {
     if (rootCause instanceof UnknownHostException) {
       String msg = String.format("Unknown host '%1$s'.", rootCause.getMessage()) +
                    EMPTY_LINE + "Please ensure the host name is correct. " +
-                   NotificationHints.SET_UP_GRADLE_HTTP_PROXY;
+                   NotificationHints.SET_UP_HTTP_PROXY;
       // Location of build.gradle is useless for this error. Omitting it.
       return createUserFriendlyError(msg, null);
+    }
+
+    if (rootCause instanceof ConnectException) {
+      String msg = rootCause.getMessage();
+      if (msg != null && msg.contains("timed out")) {
+        msg += msg.endsWith(".") ? " " : ". ";
+        msg += NotificationHints.SET_UP_HTTP_PROXY;
+        return createUserFriendlyError(msg, null);
+      }
     }
 
     if (rootCause instanceof RuntimeException) {
