@@ -128,6 +128,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
   private volatile String myAvdName;
   private volatile boolean myDebugMode;
+  private volatile boolean myOpenLogcatAutomatically;
 
   private volatile DebugLauncher myDebugLauncher;
 
@@ -766,6 +767,10 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     }
   }
 
+  public void setOpenLogcatAutomatically(boolean openLogcatAutomatically) {
+    myOpenLogcatAutomatically = openLogcatAutomatically;
+  }
+
   private boolean doPrepareAndStart(IDevice device) {
     if (myClearLogcatBeforeStart) {
       clearLogcatAndConsole(getModule().getProject(), device);
@@ -802,7 +807,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
           }
         }
       }
-      if (!myDebugMode) {
+      if (!myDebugMode && myOpenLogcatAutomatically) {
         ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {
