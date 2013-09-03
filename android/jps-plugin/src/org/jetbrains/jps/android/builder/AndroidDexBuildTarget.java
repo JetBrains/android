@@ -48,6 +48,7 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
       out.println(c.isOptimize());
       out.println(c.isForceJumbo());
       out.println(c.isCoreLibrary());
+      out.println(c.getProguardVmOptions());
     }
   }
 

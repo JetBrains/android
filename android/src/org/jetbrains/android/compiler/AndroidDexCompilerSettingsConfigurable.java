@@ -40,11 +40,13 @@ public class AndroidDexCompilerSettingsConfigurable implements SearchableConfigu
   private JBCheckBox myOptimizeCheckBox;
   private JBCheckBox myJumboModeCheckBox;
   private JBCheckBox myCoreLibraryCheckBox;
+  private RawCommandLineEditor myProguardVmOptionsEditor;
 
   public AndroidDexCompilerSettingsConfigurable(Project project) {
     myConfig = AndroidDexCompilerConfiguration.getInstance(project);
     myVmOptionsLabel.setLabelFor(myVmOptionsEditor);
     myVmOptionsEditor.setDialogCaption(AndroidBundle.message("android.dex.compiler.vm.options.title"));
+    myProguardVmOptionsEditor.setDialogCaption(AndroidBundle.message("android.proguard.vm.options.title"));
   }
 
   @Nls
@@ -70,7 +72,8 @@ public class AndroidDexCompilerSettingsConfigurable implements SearchableConfigu
            !myVmOptionsEditor.getText().equals(myConfig.VM_OPTIONS) ||
            myOptimizeCheckBox.isSelected() != myConfig.OPTIMIZE ||
            myJumboModeCheckBox.isSelected() != myConfig.FORCE_JUMBO ||
-           myCoreLibraryCheckBox.isSelected() != myConfig.CORE_LIBRARY;
+           myCoreLibraryCheckBox.isSelected() != myConfig.CORE_LIBRARY ||
+           !myProguardVmOptionsEditor.getText().equals(myConfig.PROGUARD_VM_OPTIONS);
   }
 
   @Override
@@ -80,6 +83,7 @@ public class AndroidDexCompilerSettingsConfigurable implements SearchableConfigu
     myConfig.OPTIMIZE = myOptimizeCheckBox.isSelected();
     myConfig.FORCE_JUMBO = myJumboModeCheckBox.isSelected();
     myConfig.CORE_LIBRARY = myCoreLibraryCheckBox.isSelected();
+    myConfig.PROGUARD_VM_OPTIONS = myProguardVmOptionsEditor.getText();
   }
 
   @Override
@@ -89,6 +93,7 @@ public class AndroidDexCompilerSettingsConfigurable implements SearchableConfigu
     myOptimizeCheckBox.setSelected(myConfig.OPTIMIZE);
     myJumboModeCheckBox.setSelected(myConfig.FORCE_JUMBO);
     myCoreLibraryCheckBox.setSelected(myConfig.CORE_LIBRARY);
+    myProguardVmOptionsEditor.setText(myConfig.PROGUARD_VM_OPTIONS);
   }
 
   @Override
