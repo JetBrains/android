@@ -16,6 +16,7 @@
 
 package org.jetbrains.android.logcat;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.Log;
 import com.google.common.primitives.Ints;
 import com.intellij.openapi.util.Pair;
@@ -27,25 +28,37 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class AndroidLogcatFormatter {
+  /**
+   * The separator printed out after the tag.
+   * The output of {@link #formatMessage(String, org.jetbrains.android.logcat.AndroidLogcatReceiver.LogMessageHeader)} is displayed
+   * to users, but is also parsed back by {@link #parseMessage(String)}. In particular, the tag and message strings come directly
+   * from the user, and can contain any sequence of characters. So we the unicode colon character to distinguish between
+   * where the tag ends and where the message begins. The character could really be anything as long as it is both displayable and
+   * meaningful to the user, yet is unlikely to occur in user strings.
+   */
+  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PRIVATE)
+  static final String TAG_SEPARATOR = "\ufe55"; // unicode small colon
+
   @NonNls
   private static final Pattern LOGMESSAGE_PATTERN =
     Pattern.compile("(\\d\\d-\\d\\d\\s\\d\\d:\\d\\d:\\d\\d.\\d+)\\s+" +   // time
-                    "(\\d+)-(\\d+)/" +    // pid-tid
-                    "(\\S+)\\s+" +        // package
-                    "([A-Z])/" +          // log level
-                    "(\\S*)\\s*: " +      // tag
-                    "(.*)"                // message
+                    "(\\d+)-(\\d+)/" +                // pid-tid
+                    "(\\S+)\\s+" +                    // package
+                    "([A-Z])/" +                      // log level
+                    "(.*)" + TAG_SEPARATOR + " " +    // tag
+                    "(.*)"                            // message
     );
 
   public static String formatMessage(String message, LogMessageHeader header) {
     String ids = String.format(Locale.US, "%d-%s", header.myPid, header.myTid);
     return String.format(Locale.US,
-                         "%1$s %2$12s/%3$s %4$c/%5$s: %6$s",
+                         "%1$s %2$12s/%3$s %4$c/%5$s%6$s %7$s",
                          header.myTime,
                          ids,
                          header.myAppPackage.isEmpty() ? "?" : header.myAppPackage,
                          header.myLogLevel.getPriorityLetter(),
                          header.myTag,
+                         TAG_SEPARATOR,
                          message);
   }
 
