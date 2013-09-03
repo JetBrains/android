@@ -446,6 +446,15 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     checkBuildLog(executor, "expected_log_4");
     assertEquals(Collections.singleton("proguard_input_jar"), executor.getCheckedJars());
     checkMakeUpToDate(executor);
+
+    final JpsAndroidExtensionService service = JpsAndroidExtensionService.getInstance();
+    final JpsAndroidDexCompilerConfiguration c = service.getDexCompilerConfiguration(myProject);
+    assertNotNull(c);
+    service.setDexCompilerConfiguration(myProject, c);
+    c.setProguardVmOptions("-Xmx700M");
+    makeAll();
+    checkBuildLog(executor, "expected_log_5");
+    checkMakeUpToDate(executor);
   }
 
   public void test5() throws Exception {

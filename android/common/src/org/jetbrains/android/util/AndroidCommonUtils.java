@@ -37,6 +37,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
+import com.intellij.util.execution.ParametersListUtil;
 import org.jetbrains.android.AndroidCommonBundle;
 import org.jetbrains.android.sdk.MessageBuildingSdkLog;
 import org.jetbrains.annotations.NonNls;
@@ -356,6 +357,8 @@ public class AndroidCommonUtils {
   public static Map<AndroidCompilerMessageKind, List<String>> launchProguard(@NotNull IAndroidTarget target,
                                                                              int sdkToolsRevision,
                                                                              @NotNull String sdkOsPath,
+                                                                             @NotNull String javaExecutablePath,
+                                                                             @NotNull String proguardVmOptions,
                                                                              @NotNull String[] proguardConfigFileOsPaths,
                                                                              boolean includeSystemProguardFile,
                                                                              @NotNull String inputJarOsPath,
@@ -363,11 +366,15 @@ public class AndroidCommonUtils {
                                                                              @NotNull String outputJarFileOsPath,
                                                                              @Nullable String logDirOutputOsPath) throws IOException {
     final List<String> commands = new ArrayList<String>();
-    final String toolOsPath = sdkOsPath + File.separator + SdkConstants.OS_SDK_TOOLS_PROGUARD_BIN_FOLDER + SdkConstants.FN_PROGUARD;
-    commands.add(toolOsPath);
+    commands.add(javaExecutablePath);
 
+    if (proguardVmOptions.length() > 0) {
+      commands.addAll(ParametersListUtil.parse(proguardVmOptions));
+    }
+    commands.add("-jar");
     final String proguardHome = sdkOsPath + File.separator + SdkConstants.FD_TOOLS + File.separator + SdkConstants.FD_PROGUARD;
-
+    final String proguardJarOsPath = proguardHome + File.separator + "lib" + File.separator + "proguard.jar";
+    commands.add(proguardJarOsPath);
     final String systemProguardCfgPath = proguardHome + File.separator + SYSTEM_PROGUARD_CFG_FILE_NAME;
 
     if (isIncludingInProguardSupported(sdkToolsRevision)) {

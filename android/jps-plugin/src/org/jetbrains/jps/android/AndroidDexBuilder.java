@@ -303,18 +303,13 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
       context.processMessage(new CompilerMessage(builderName, BuildMessage.Kind.WARNING,
                                                  AndroidJpsBundle.message("android.jps.cannot.delete.file", outFilePath)));
     }
+    final String javaExecutable = getJavaExecutable(platform, context, builderName);
 
-    final JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> sdk = platform.getSdk();
-    final String jdkName = sdk.getSdkProperties().getData().getJdkName();
-    final JpsLibrary javaSdk = context.getProjectDescriptor().getModel().getGlobal().getLibraryCollection().findLibrary(jdkName);
-    if (javaSdk == null || !javaSdk.getType().equals(JpsJavaSdkType.INSTANCE)) {
-      context.processMessage(new CompilerMessage(builderName, BuildMessage.Kind.ERROR,
-                                                 AndroidJpsBundle.message("android.jps.errors.java.sdk.not.specified", jdkName)));
+    if (javaExecutable == null) {
       return false;
     }
-
     final List<String> commandLine = ExternalProcessUtil
-      .buildJavaCommandLine(JpsJavaSdkType.getJavaExecutable((JpsSdk<?>)javaSdk.getProperties()), AndroidDxRunner.class.getName(),
+      .buildJavaCommandLine(javaExecutable, AndroidDxRunner.class.getName(),
                             Collections.<String>emptyList(), classPath, vmOptions, programParamList);
 
     LOG.info(AndroidCommonUtils.command2string(commandLine));
@@ -365,6 +360,19 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
     return success;
   }
 
+  @Nullable
+  private static String getJavaExecutable(@NotNull AndroidPlatform platform, @NotNull CompileContext context, @NotNull String builderName) {
+    final JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> sdk = platform.getSdk();
+    final String jdkName = sdk.getSdkProperties().getData().getJdkName();
+    final JpsLibrary javaSdk = context.getProjectDescriptor().getModel().getGlobal().getLibraryCollection().findLibrary(jdkName);
+    if (javaSdk == null || !javaSdk.getType().equals(JpsJavaSdkType.INSTANCE)) {
+      context.processMessage(new CompilerMessage(builderName, BuildMessage.Kind.ERROR,
+                                                 AndroidJpsBundle.message("android.jps.errors.java.sdk.not.specified", jdkName)));
+      return null;
+    }
+    return JpsJavaSdkType.getJavaExecutable((JpsSdk<?>)javaSdk.getProperties());
+  }
+
   private static Pair<Boolean, AndroidProGuardStateStorage.MyState>
   runProguardIfNecessary(@NotNull JpsAndroidModuleExtension extension,
                          @NotNull AndroidDexBuildTarget target,
@@ -393,6 +401,11 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
     if (mainContentRoot == null) {
       context.processMessage(new CompilerMessage(PRO_GUARD_BUILDER_NAME, BuildMessage.Kind.ERROR, AndroidJpsBundle
         .message("android.jps.errors.main.content.root.not.found", module.getName())));
+      return null;
+    }
+
+    final String javaExecutable = getJavaExecutable(platform, context, PRO_GUARD_BUILDER_NAME);
+    if (javaExecutable == null) {
       return null;
     }
 
@@ -456,13 +469,18 @@ public class AndroidDexBuilder extends TargetBuilder<BuildRootDescriptor, Androi
         return null;
       }
     }
-
+    final JpsAndroidDexCompilerConfiguration configuration =
+      JpsAndroidExtensionService.getInstance().getDexCompilerConfiguration(module.getProject());
+    String proguardVmOptions = configuration != null ? configuration.getProguardVmOptions() : null;
+    if (proguardVmOptions == null) {
+      proguardVmOptions = "";
+    }
     context.processMessage(new ProgressMessage(AndroidJpsBundle.message("android.jps.progress.proguard", module.getName())));
 
     final Map<AndroidCompilerMessageKind, List<String>> messages =
       AndroidCommonUtils.launchProguard(platform.getTarget(), platform.getSdkToolsRevision(), platform.getSdk().getHomePath(),
-                                        proguardCfgPaths, includeSystemProguardCfg, inputJarOsPath, externalJarOsPaths,
-                                        outputJarPath, logsDirOsPath);
+                                        javaExecutable, proguardVmOptions, proguardCfgPaths, includeSystemProguardCfg, inputJarOsPath,
+                                        externalJarOsPaths, outputJarPath, logsDirOsPath);
     AndroidJpsUtil.addMessages(context, messages, PRO_GUARD_BUILDER_NAME, module.getName());
     return messages.get(AndroidCompilerMessageKind.ERROR).isEmpty()
            ? Pair.create(true, newState) : null;
