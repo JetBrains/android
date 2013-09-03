@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.customizer;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.util.LocalProperties;
-import com.google.common.base.Strings;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -53,9 +52,9 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer {
     if (ideaAndroidProject == null) {
       return;
     }
-    LocalProperties properties;
+    LocalProperties localProperties;
     try {
-      properties = new LocalProperties(project);
+      localProperties = new LocalProperties(project);
     }
     catch (IOException e) {
       String msg = String.format("Unable to read local.properties file in project '%1$s'", project.getBasePath());
@@ -63,28 +62,31 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer {
       showErrorDialog(msg);
       return;
     }
-    String androidSdkPath = properties.getAndroidSdkPath();
+    String androidSdkInProperties = localProperties.getAndroidSdkPath();
     String compileTarget = ideaAndroidProject.getDelegate().getCompileTarget();
-    boolean sdkSet = AndroidSdkUtils.findAndSetSdk(module, compileTarget, androidSdkPath, true);
+    boolean sdkSet = AndroidSdkUtils.findAndSetSdk(module, compileTarget, androidSdkInProperties, true);
     if (sdkSet) {
-      if (!Strings.isNullOrEmpty(androidSdkPath)) {
-        // Check that the SDK set is the same as the one in the local.properties.
-        String sdkPath = getSdkPath(module);
-        assert sdkPath != null;
-        sdkPath = FileUtil.toSystemIndependentName(sdkPath);
-        androidSdkPath = FileUtil.toSystemIndependentName(sdkPath);
-        if (!FileUtil.pathsEqual(sdkPath, androidSdkPath)) {
-          // This is *extremely unlikely* to happen. There is no way that project import can happen with an old SDK.
-          // Changing the SDK path in local.properties to match the one set, so Studio and command line builds are consistent.
-          try {
-            properties.setAndroidSdkPath(androidSdkPath);
-          }
-          catch (IOException e) {
-            // An unlikely thing to happen on top of another unlikely thing to happen.
-            String msg = String.format("Unable to set SDK path in local.properties file");
-            LOG.error(msg, e);
-            showErrorDialog(msg);
-          }
+      // Check that the SDK set is the same as the one in the local.properties.
+      String sdkPath = getSdkPath(module);
+      assert sdkPath != null;
+      boolean shouldSetAndroidSdkInLocalProperties;
+      if (androidSdkInProperties == null || androidSdkInProperties.isEmpty()) {
+        shouldSetAndroidSdkInLocalProperties = true;
+      }
+      else {
+        shouldSetAndroidSdkInLocalProperties = !areEqualPaths(sdkPath, androidSdkInProperties);
+      }
+      if (shouldSetAndroidSdkInLocalProperties) {
+        // Changing the SDK path in local.properties to match the one set, so Studio and command line builds are consistent.
+        localProperties.setAndroidSdkPath(sdkPath);
+        try {
+          localProperties.save();
+        }
+        catch (IOException e) {
+          // An unlikely thing to happen on top of another unlikely thing to happen.
+          String msg = String.format("Unable to set SDK path in local.properties file");
+          LOG.error(msg, e);
+          showErrorDialog(msg);
         }
       }
     }
@@ -92,9 +94,9 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer {
       // This should never, ever happen.
       // We already either attempted to create an Android SDK (even prompted the user for its path) or downloaded the matching platform.
       String msg;
-      if (androidSdkPath != null) {
+      if (androidSdkInProperties != null) {
         String format = "Unable to set the Android SDK at '%1$s', with compile target '%2$s', to module '%3$s'";
-        msg = String.format(format, androidSdkPath, compileTarget, module.getName());
+        msg = String.format(format, androidSdkInProperties, compileTarget, module.getName());
       }
       else {
         String format = "Unable to set an Android SDK, with compile target '%1$s', to module '%2$s'";
@@ -113,9 +115,11 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer {
   @Nullable
   private static String getSdkPath(@NotNull Module module) {
     Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-    if (sdk != null) {
-      return sdk.getHomePath();
-    }
-    return null;
+    return sdk != null ? sdk.getHomePath() : null;
+  }
+
+  private static boolean areEqualPaths(@NotNull String sdkPath1, @NotNull String sdkPath2) {
+    return FileUtil.pathsEqual(FileUtil.toSystemIndependentName(sdkPath1),
+                               FileUtil.toSystemIndependentName(sdkPath2));
   }
 }

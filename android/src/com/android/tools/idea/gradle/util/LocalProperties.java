@@ -16,18 +16,19 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.io.Closeables;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Properties;
 
 /**
@@ -36,8 +37,8 @@ import java.util.Properties;
 public final class LocalProperties {
   private static final String HEADER_COMMENT = getHeaderComment();
 
-  @NotNull private final Project myProject;
-  @Nullable private final Properties myProperties;
+  @NotNull private final File myFilePath;
+  @NotNull private final Properties myProperties;
 
   @NotNull
   private static String getHeaderComment() {
@@ -56,29 +57,36 @@ public final class LocalProperties {
   }
 
   /**
-   * Creates a new {@link LocalProperties}.
+   * Creates a new {@link LocalProperties}. This constructor creates a new file at the given path if a local.properties file does not exist.
    *
-   * @param project project containing the local.properties file.
+   * @param project the Android project.
    * @throws IOException if an I/O error occurs while reading the file.
+   * @throws IllegalArgumentException if there is already a directory called "local.properties" in the given project.
    */
   public LocalProperties(@NotNull Project project) throws IOException {
-    myProject = project;
-    myProperties = readFile(project);
+    this(new File(project.getBasePath()));
   }
 
   /**
-   * Returns the contents of the local.properties file in the given project.
+   * Creates a new {@link LocalProperties}. This constructor creates a new file at the given path if a local.properties file does not exist.
    *
-   * @param project the given project.
-   * @return the contents of the local.properties file in the given project, or {@code null} if such file does not exist.
+   * @param projectDirPath the path of the Android project's root directory.
    * @throws IOException if an I/O error occurs while reading the file.
+   * @throws IllegalArgumentException if there is already a directory called "local.properties" at the given path.
    */
-  @VisibleForTesting
-  @Nullable
-  static Properties readFile(@NotNull Project project) throws IOException {
-    File filePath = localPropertiesFilePath(project);
-    if (!filePath.isFile()) {
-      return null;
+  public LocalProperties(@NotNull File projectDirPath) throws IOException {
+    myFilePath = new File(projectDirPath, SdkConstants.FN_LOCAL_PROPERTIES);
+    myProperties = readFile(myFilePath);
+  }
+
+  @NotNull
+  private static Properties readFile(@NotNull File filePath) throws IOException {
+    if (filePath.isDirectory()) {
+      // There is a directory named "local.properties". Unlikely to happen, but worth checking.
+      throw new IllegalArgumentException(String.format("The path '%1$s' belongs to a directory!", filePath.getPath()));
+    }
+    if (!filePath.exists()) {
+      return new Properties();
     }
     Properties properties = new Properties();
     FileInputStream fileInputStream = null;
@@ -86,8 +94,6 @@ public final class LocalProperties {
       //noinspection IOResourceOpenedButNotSafelyClosed
       fileInputStream = new FileInputStream(filePath);
       properties.load(fileInputStream);
-    } catch (FileNotFoundException e) {
-      return null;
     } finally {
       Closeables.closeQuietly(fileInputStream);
     }
@@ -95,57 +101,29 @@ public final class LocalProperties {
   }
 
   /**
-   * Returns the path of the Android SDK specified in the project's local.properties file.
-   *
-   * @return the path of the Android SDK specified in the project's local.properties file; or {@code null} if the given project does not
-   *         have a local.properties file or if the file does not specify the path of the Android SDK to use.
+   * @return the path of the Android SDK specified in this local.properties file; or {@code null} if such property is not specified.
    */
   @Nullable
   public String getAndroidSdkPath() {
-    return myProperties == null ? null : myProperties.getProperty(SdkConstants.SDK_DIR_PROPERTY);
+    return myProperties.getProperty(SdkConstants.SDK_DIR_PROPERTY);
   }
 
-  /**
-   * Creates a local.properties file, containing the path of the given Android SDK, inside the root directory of the given project.
-   *
-   * @param project    the given project.
-   * @param androidSdk the Android SDK.
-   * @throws IOException if an I/O error occurs while writing the contents of the file.
-   */
-  public static void createFile(@NotNull Project project, @NotNull Sdk androidSdk) throws IOException {
-    createFile(localPropertiesFilePath(project), androidSdk);
+  public void setAndroidSdkPath(@NotNull Sdk androidSdk) {
+    String androidSdkPath = androidSdk.getHomePath();
+    assert androidSdkPath != null;
+    setAndroidSdkPath(androidSdkPath);
   }
 
-  /**
-   * Creates a local.properties file, containing the path of the given Android SDK, at the given path.
-   *
-   * @param filePath   the path to the local.properties file.
-   * @param androidSdk the Android SDK.
-   * @throws IOException if an I/O error occurs while writing the contents of the file.
-   */
-  public static void createFile(@NotNull File filePath, @NotNull Sdk androidSdk) throws IOException {
-    FileUtilRt.createIfNotExists(filePath);
-    // TODO: create this file using a template and just populate the path of Android SDK.
-    String[] lines = {HEADER_COMMENT, SdkConstants.SDK_DIR_PROPERTY + "=" + androidSdk.getHomePath()};
-    String contents = Joiner.on(SystemProperties.getLineSeparator()).join(lines);
-    FileUtil.writeToFile(filePath, contents);
-  }
-
-  @NotNull
-  private static File localPropertiesFilePath(@NotNull Project project) {
-    return new File(project.getBasePath(), SdkConstants.FN_LOCAL_PROPERTIES);
-  }
-
-  public void setAndroidSdkPath(@NotNull String androidSdkPath) throws IOException {
-    if (myProperties == null) {
-      String msg = String.format("The project '%1$s' does not have a '%2$s' file", myProject.getName(), SdkConstants.FN_LOCAL_PROPERTIES);
-      throw new IllegalStateException(msg);
-    }
+  public void setAndroidSdkPath(@NotNull String androidSdkPath) {
     myProperties.setProperty(SdkConstants.SDK_DIR_PROPERTY, androidSdkPath);
+  }
+
+  public void save() throws IOException {
+    FileUtilRt.createParentDirs(myFilePath);
     FileOutputStream out = null;
     try {
       //noinspection IOResourceOpenedButNotSafelyClosed
-      out = new FileOutputStream(localPropertiesFilePath(myProject));
+      out = new FileOutputStream(myFilePath);
       myProperties.store(out, HEADER_COMMENT);
     } finally {
       Closeables.closeQuietly(out);
