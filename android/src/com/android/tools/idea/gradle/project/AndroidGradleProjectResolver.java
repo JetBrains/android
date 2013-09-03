@@ -42,8 +42,10 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.util.KeyValue;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.net.HttpConfigurable;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.UnknownModelException;
@@ -141,13 +143,21 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
 
   @NotNull
   private static List<String> getExtraJvmArgs(@NotNull String projectPath) {
-    if (ExternalSystemApiUtil.isInProcessMode(GradleConstants.SYSTEM_ID) &&
-        !AndroidGradleSettings.isAndroidSdkDirInLocalPropertiesFile(new File(projectPath))) {
-      String androidHome = getAndroidSdkPathFromIde();
-      if (androidHome != null) {
-        String androidHomeJvmArg = AndroidGradleSettings.createAndroidHomeJvmArg(androidHome);
-        return Collections.singletonList(androidHomeJvmArg);
+    if (ExternalSystemApiUtil.isInProcessMode(GradleConstants.SYSTEM_ID)) {
+      List<String> args = Lists.newArrayList();
+      if (!AndroidGradleSettings.isAndroidSdkDirInLocalPropertiesFile(new File(projectPath))) {
+        String androidHome = getAndroidSdkPathFromIde();
+        if (androidHome != null) {
+          String arg = AndroidGradleSettings.createAndroidHomeJvmArg(androidHome);
+          args.add(arg);
+        }
       }
+      List<KeyValue<String,String>> proxyProperties = HttpConfigurable.getJvmPropertiesList(false, null);
+      for (KeyValue<String, String> proxyProperty : proxyProperties) {
+        String arg = AndroidGradleSettings.createJvmArg(proxyProperty.getKey(), proxyProperty.getValue());
+        args.add(arg);
+      }
+      return args;
     }
     return Collections.emptyList();
   }
