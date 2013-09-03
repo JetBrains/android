@@ -118,17 +118,14 @@ public class GradleProjectImporter {
   /**
    * Imports and opens the newly created Android project.
    *
+   *
    * @param projectName    name of the project.
    * @param projectRootDir root directory of the project.
-   * @param androidSdk     Android SDK to set.
    * @param callback       called after the project has been imported.
    * @throws IOException            if any file I/O operation fails (e.g. creating the '.idea' directory.)
    * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
    */
-  public void importProject(@NotNull String projectName,
-                            @NotNull File projectRootDir,
-                            @Nullable Sdk androidSdk,
-                            @Nullable Callback callback) throws IOException, ConfigurationException {
+  public void importProject(@NotNull String projectName, @NotNull File projectRootDir, @Nullable Callback callback) throws IOException, ConfigurationException {
     GradleImportNotificationListener.attachToManager();
 
     createTopLevelBuildFileIfNotExisting(projectRootDir);
@@ -139,10 +136,6 @@ public class GradleProjectImporter {
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       newProject.save();
-    }
-
-    if (androidSdk != null) {
-      LocalProperties.createFile(newProject, androidSdk);
     }
 
     Projects.setProjectBuildAction(newProject, Projects.BuildAction.REBUILD);
