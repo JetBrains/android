@@ -179,8 +179,14 @@ public abstract class Dependency {
         IdeaSingleEntryLibraryDependency ideaLibrary = (IdeaSingleEntryLibraryDependency)ideaDependency;
         //noinspection TestOnlyProblems
         LibraryDependency dependency = new LibraryDependency(ideaLibrary.getFile(), scope);
-        dependency.addPath(LibraryDependency.PathType.DOC, ideaLibrary.getJavadoc());
-        dependency.addPath(LibraryDependency.PathType.SOURCE, ideaLibrary.getSource());
+        File javadoc = ideaLibrary.getJavadoc();
+        if (javadoc != null) {
+          dependency.addPath(LibraryDependency.PathType.DOC, javadoc);
+        }
+        File source = ideaLibrary.getSource();
+        if (source != null) {
+          dependency.addPath(LibraryDependency.PathType.SOURCE, source);
+        }
         dependencies.add(dependency);
       }
     }
