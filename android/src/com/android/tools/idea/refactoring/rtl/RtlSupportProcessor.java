@@ -26,6 +26,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.xml.XmlAttribute;
@@ -237,10 +238,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
   }
 
   private static String quoteWith(String str, String quote) {
-    final StringBuilder sb = new StringBuilder(str.length() + 2 * quote.length()).append(quote);
-    sb.append(str);
-    sb.append(quote);
-    return sb.toString();
+    return quote + str + quote;
   }
 
   @Nullable
@@ -256,7 +254,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
 
     if ((layoutV17Dir == null || !layoutV17Dir.exists()) && bCreateIfNeeded) {
       try {
-        layoutV17Dir = parent.createChildDirectory(null /* external requestor */, resNameWithV17);
+        layoutV17Dir = parent.createChildDirectory(this, resNameWithV17);
       }
       catch (IOException e) {
         LOG.error("Cannot create " + quote(resNameWithV17) + " directory in resource directory: " + parent.getName());
@@ -410,7 +408,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
     return result;
   }
 
-  private void performRefactoringForAndroidManifestApplicationTag(@NotNull UsageInfo usageInfo) {
+  private static void performRefactoringForAndroidManifestApplicationTag(@NotNull UsageInfo usageInfo) {
     PsiElement element = usageInfo.getElement();
     assert element != null;
     XmlTag applicationTag = (XmlTag)element;
@@ -424,7 +422,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
     }
   }
 
-  private void performRefactoringForAndroidManifestTargetSdk(@NotNull UsageInfo usageInfo) {
+  private static void performRefactoringForAndroidManifestTargetSdk(@NotNull UsageInfo usageInfo) {
     PsiElement element = usageInfo.getElement();
     assert element != null;
     XmlTag usesSdkTag = (XmlTag)element;
@@ -469,7 +467,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
           @Override
           public void run() {
             try {
-              layoutFile.copy(null /* external requestor */, layoutV17Dir, layoutFileName);
+              layoutFile.copy(this, layoutV17Dir, layoutFileName);
             }
             catch (IOException e) {
               LOG.error("Cannot copy layout file " + quote(layoutFileName) + " from " +
@@ -513,7 +511,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
 
     if (attributeLocalName.equals(ATTR_GRAVITY) || attributeLocalName.equals(ATTR_LAYOUT_GRAVITY)) {
       // Special case for android:gravity and android:layout_gravity
-      final String value = attribute.getValue();
+      final String value = StringUtil.notNullize(attribute.getValue());
       final String newValue = value.replace(GRAVITY_VALUE_LEFT, GRAVITY_VALUE_START).replace(GRAVITY_VALUE_RIGHT, GRAVITY_VALUE_END);
       attribute.setValue(newValue);
       LOG.info("Changing gravity from: " + value + " to: " + newValue);
@@ -534,7 +532,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
       }
       else {
         XmlTag parent = attribute.getParent();
-        attributeForUpdatingValue = parent.setAttribute(mirroredAttributeName, attribute.getValue());
+        attributeForUpdatingValue = parent.setAttribute(mirroredAttributeName, StringUtil.notNullize(attribute.getValue()));
         LOG.info("Adding attribute name: " + mirroredAttributeName + " value: " + attribute.getValue());
       }
       // Special case for updating attribute value
@@ -542,9 +540,9 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
     }
   }
 
-  private void updateAttributeValueIfNeeded(@NotNull XmlAttribute attribute, int minSdk) {
+  private static void updateAttributeValueIfNeeded(@NotNull XmlAttribute attribute, int minSdk) {
     final String attributeLocalName = attribute.getLocalName();
-    final String value = attribute.getValue();
+    final String value = StringUtil.notNullize(attribute.getValue());
     if (attributeLocalName.equals(ATTR_PADDING_LEFT) || attributeLocalName.equals(ATTR_PADDING_RIGHT) ||
         attributeLocalName.equals(ATTR_PADDING_START) || attributeLocalName.equals(ATTR_PADDING_END)) {
       if (minSdk >= RTL_TARGET_SDK_START &&
