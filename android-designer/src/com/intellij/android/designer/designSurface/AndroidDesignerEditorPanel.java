@@ -33,6 +33,7 @@ import com.intellij.android.designer.inspection.ErrorAnalyzer;
 import com.intellij.android.designer.model.*;
 import com.intellij.android.designer.model.layout.actions.ToggleRenderModeAction;
 import com.intellij.designer.DesignerEditor;
+import com.intellij.designer.DesignerToolWindow;
 import com.intellij.designer.DesignerToolWindowManager;
 import com.intellij.designer.actions.DesignerActionPanel;
 import com.intellij.designer.componentTree.TreeComponentDecorator;
@@ -615,7 +616,10 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
         myHorizontalCaption.update();
         myVerticalCaption.update();
 
-        DesignerToolWindowManager.getInstance(AndroidDesignerEditorPanel.this).refresh(updateProperties);
+        DesignerToolWindow toolWindow = getToolWindow();
+        if (toolWindow != null) {
+          toolWindow.refresh(updateProperties);
+        }
 
         if (RenderPreviewMode.getCurrent() != RenderPreviewMode.NONE) {
           RenderPreviewManager previewManager = getPreviewManager(true);
@@ -625,6 +629,17 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
         }
       }
     });
+  }
+
+  @Nullable
+  private DesignerToolWindow getToolWindow() {
+    try {
+      // This method sometimes returns null. We don't want to bother the user with that; the worst that
+      // can happen is that the property view is not updated.
+      return DesignerToolWindowManager.getInstance(this);
+    } catch (Exception ex) {
+      return null;
+    }
   }
 
   /**
@@ -1106,6 +1121,9 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
         break;
       case FIT_INTO:
       case FIT: {
+        if (myRootComponent == null) {
+          return;
+        }
         Dimension sceneSize = myRootComponent.getBounds().getSize();
         Dimension screenSize = getDesignerViewSize();
         if (screenSize.width > 0 && screenSize.height > 0) {
