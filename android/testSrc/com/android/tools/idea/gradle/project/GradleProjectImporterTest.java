@@ -26,7 +26,6 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -86,11 +85,8 @@ public class GradleProjectImporterTest extends IdeaTestCase {
   }
 
   public void testImportProject() throws Exception {
-    Sdk sdk = getTestProjectJdk();
-    assertNotNull(sdk);
-
     MyCallback callback = new MyCallback();
-    myImporter.importProject(myProjectName, myProjectRootDir, sdk, callback);
+    myImporter.importProject(myProjectName, myProjectRootDir, callback);
   }
 
   private class MyCallback implements GradleProjectImporter.Callback {
