@@ -134,7 +134,9 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
             errors.add(String.format("Unable to find an Android SDK with API level %d.", apiLevel));
           }
           else {
-            LocalProperties.createFile(new File(projectRoot, FN_LOCAL_PROPERTIES), sdk);
+            LocalProperties localProperties = new LocalProperties(projectRoot);
+            localProperties.setAndroidSdkPath(sdk);
+            localProperties.save();
           }
           if (myWizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS)) {
             myWizardState.getLauncherIconState().outputImages(moduleRoot);
@@ -158,7 +160,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
             }
           }
           GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
-          projectImporter.importProject(projectName, projectRoot, sdk, new GradleProjectImporter.Callback() {
+          projectImporter.importProject(projectName, projectRoot, new GradleProjectImporter.Callback() {
             @Override
             public void projectImported(@NotNull Project project) {
               TemplateUtils.openEditors(project, myWizardState.myTemplate.getFilesToOpen(), true);
