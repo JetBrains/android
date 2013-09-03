@@ -65,7 +65,7 @@ public class AndroidLogcatFormatterTest extends TestCase {
 
   public void test1() {
     String message = "02-12 17:04:44.005   1282-12/com.google.android.apps" +
-                     ".maps:GoogleLocationService D/dalvikvm: Debugger has detached; object " +
+                     ".maps:GoogleLocationService D/dalvikvm" + AndroidLogcatFormatter.TAG_SEPARATOR + " Debugger has detached; object " +
                      "registry had 1 entries";
 
     LogMessageHeader header = AndroidLogcatFormatter.parseMessage(message).getFirst();
@@ -73,5 +73,13 @@ public class AndroidLogcatFormatterTest extends TestCase {
 
     assertEquals(Log.LogLevel.DEBUG, header.myLogLevel);
     assertEquals("dalvikvm", header.myTag);
+  }
+
+  public void testSpaces() {
+    String msg = String.format("08-23 14:30:59.370  32664-32664/com.timios.gfe I/Web Console%1$s pds: can you see this? at " +
+                                "file:///android_asset/www/scripts/loan_officer.js:429", AndroidLogcatFormatter.TAG_SEPARATOR);
+
+    LogMessageHeader header = AndroidLogcatFormatter.parseMessage(msg).getFirst();
+    assertEquals(Log.LogLevel.INFO, header.myLogLevel);
   }
 }
