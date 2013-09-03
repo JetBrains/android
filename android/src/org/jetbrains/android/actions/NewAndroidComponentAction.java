@@ -30,6 +30,7 @@ import com.intellij.psi.PsiElement;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
 
 /**
  * @author Eugene.Kudelevsky
@@ -60,7 +61,7 @@ public class NewAndroidComponentAction extends AnAction {
     final JavaDirectoryService dirService = JavaDirectoryService.getInstance();
 
     for (PsiDirectory dir : view.getDirectories()) {
-      if (projectIndex.isInSourceContent(dir.getVirtualFile()) &&
+      if (projectIndex.isUnderSourceRootOfType(dir.getVirtualFile(), JavaModuleSourceRootTypes.SOURCES) &&
           dirService.getPackage(dir) != null) {
         return true;
       }
