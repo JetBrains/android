@@ -21,9 +21,10 @@ import com.android.tools.idea.jps.output.parser.javac.JavacOutputParser;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
  * Parses Gradle's error output and creates error/warning messages when appropriate.
@@ -39,19 +40,24 @@ public class GradleErrorOutputParser {
    *         output or if an error occurred while parsing the given output.
    */
   @NotNull
-  public Collection<CompilerMessage> parseErrorOutput(@NotNull String output) {
+  public List<CompilerMessage> parseErrorOutput(@NotNull String output) {
     OutputLineReader outputReader = new OutputLineReader(output);
 
     if (outputReader.getLineCount() == 0) {
       return ImmutableList.of();
     }
 
-    Collection<CompilerMessage> messages = Lists.newArrayList();
+    List<CompilerMessage> messages = Lists.newArrayList();
     String line;
     while ((line = outputReader.readLine()) != null) {
+      if (line.isEmpty()) {
+        continue;
+      }
+      boolean handled = false;
       for (CompilerOutputParser parser : PARSERS) {
         try {
           if (parser.parse(line, outputReader, messages)) {
+            handled = true;
             break;
           }
         }
@@ -59,7 +65,15 @@ public class GradleErrorOutputParser {
           return ImmutableList.of();
         }
       }
+      if (!handled) {
+        // If none of the standard parsers recognize the input, include it as info such
+        // that users don't miss potentially vital output such as gradle plugin exceptions.
+        // If there is predictable useless input we don't want to appear here, add a custom
+        // parser to digest it.
+        messages.add(new CompilerMessage("", BuildMessage.Kind.INFO, line));
+      }
     }
+
     return messages;
   }
 }
