@@ -98,7 +98,7 @@ class BuildVariantUpdater {
     // We changed the way we build projects: now we build only the selected variant. If user changes variant, we need to re-generate sources
     // since the generated sources may not be there.
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      Projects.generateSourcesOnly(project, androidProject.getRootDirPath());
+      Projects.generateSourcesOnly(project);
     }
 
     return facet;
