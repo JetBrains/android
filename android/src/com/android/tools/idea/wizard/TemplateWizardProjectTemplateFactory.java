@@ -52,7 +52,8 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
   @NotNull
   @Override
   public ProjectTemplate[] createTemplates(String group, WizardContext context) {
-    if (!Projects.isGradleProject(context.getProject())) {
+    Project project = context.getProject();
+    if (project == null || !Projects.isGradleProject(project)) {
       return EMPTY_PROJECT_TEMPLATES;
     }
     TemplateManager manager = TemplateManager.getInstance();
@@ -64,7 +65,7 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
       if (metadata == null || !metadata.isSupported()) {
         continue;
       }
-      tt.add(new AndroidProjectTemplate(template, metadata, context.getProject()));
+      tt.add(new AndroidProjectTemplate(template, metadata, project));
     }
     return tt.toArray(EMPTY_PROJECT_TEMPLATES);
   }
