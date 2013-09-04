@@ -109,6 +109,8 @@ import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
 public class RenderErrorPanel extends JPanel {
   public static final boolean SIZE_ERROR_PANEL_DYNAMICALLY = true;
   private static final int ERROR_PANEL_OPACITY = UIUtil.isUnderDarcula() ? 224 : 208; // out of 255
+  /** Class of the render session implementation class; for render errors, we cut off stack dumps at this frame */
+  private static final String RENDER_SESSION_IMPL_FQCN = "com.android.layoutlib.bridge.impl.RenderSessionImpl";
 
   private JEditorPane myHTMLViewer;
   private final HyperlinkListener myHyperLinkListener;
@@ -579,6 +581,7 @@ public class RenderErrorPanel extends JPanel {
         count++;
         // Only display the first 3 render fidelity issues
         if (count == 3) {
+          @SuppressWarnings("ConstantConditions")
           int remaining = fidelityWarnings.size() - count;
           if (remaining > 0) {
             builder.add("(").addHtml(Integer.toString(remaining)).add(" additional render fidelity issues hidden)");
@@ -725,11 +728,12 @@ public class RenderErrorPanel extends JPanel {
           builder.addIcon(HtmlBuilderHelper.getWarningIconPath());
         }
 
-        message.appendHtml(builder.getStringBuilder());
+        String html = message.getHtml();
+        builder.getStringBuilder().append(html);
 
         Throwable throwable = message.getThrowable();
         if (throwable != null) {
-          reportThrowable(builder, throwable, true);
+          reportThrowable(builder, throwable, !html.isEmpty());
         }
 
         if (tag != null) {
@@ -812,7 +816,7 @@ public class RenderErrorPanel extends JPanel {
         haveInterestingFrame = true;
       }
       String className = frame.getClassName();
-      if (className.equals("com.android.layoutlib.bridge.impl.RenderSessionImpl")) { //$NON-NLS-1$
+      if (className.equals(RENDER_SESSION_IMPL_FQCN)) {
         end = i;
         break;
       }
@@ -828,6 +832,17 @@ public class RenderErrorPanel extends JPanel {
           StackTraceElement frame = frames[i];
           if (!isVisible(frame)) {
             end = i;
+            if (end == 0) {
+              // Find end instead
+              for (int j = 0; j < frames.length; j++) {
+                frame = frames[j];
+                String className = frame.getClassName();
+                if (className.equals(RENDER_SESSION_IMPL_FQCN)) {
+                  end = j;
+                  break;
+                }
+              }
+            }
             break;
           }
         }

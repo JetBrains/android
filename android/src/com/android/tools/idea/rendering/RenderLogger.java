@@ -16,11 +16,13 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.LayoutLog;
+import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -166,6 +168,25 @@ public class RenderLogger extends LayoutLog {
 
       if (description.equals(throwable.getLocalizedMessage()) || description.equals(throwable.getMessage())) {
         description = "Exception raised during rendering: " + description;
+      } else if (message == null) {
+        StackTraceElement[] stackTrace = throwable.getStackTrace();
+        if (stackTrace.length >= 2 &&
+          stackTrace[0].getClassName().equals("android.text.format.DateUtils") &&
+          stackTrace[1].getClassName().equals("android.widget.CalendarView")) {
+          RenderProblem.Html problem = RenderProblem.create(WARNING);
+          problem.throwable(throwable);
+          HtmlBuilder builder = problem.getHtmlBuilder();
+          builder.add("<CalendarView> and <DatePicker> are broken in this version of the rendering library. " +
+                          "Try updating your SDK in the SDK Manager when issue 59732 is fixed.");
+          builder.add(" (");
+          builder.addLink("Open Issue 59732", "http://b.android.com/59732");
+          builder.add(", ");
+          ShowExceptionFix detailsFix = new ShowExceptionFix(getModule().getProject(), throwable);
+          builder.addLink("Show Exception", getLinkManager().createRunnableLink(detailsFix));
+          builder.add(")");
+          addMessage(problem);
+          return;
+        }
       }
 
       recordThrowable(throwable);
