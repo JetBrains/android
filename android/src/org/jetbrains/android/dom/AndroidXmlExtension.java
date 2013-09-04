@@ -15,14 +15,18 @@
  */
 package org.jetbrains.android.dom;
 
+import com.android.SdkConstants;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.impl.DirectoryIndex;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.impl.source.xml.SchemaPrefix;
 import com.intellij.psi.impl.source.xml.TagNameReference;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.xml.DefaultXmlExtension;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -61,5 +65,27 @@ public class AndroidXmlExtension extends DefaultXmlExtension {
       });
     }
     return false;
+  }
+
+  @Override
+  public SchemaPrefix getPrefixDeclaration(final XmlTag context, String namespacePrefix) {
+    SchemaPrefix prefix = super.getPrefixDeclaration(context, namespacePrefix);
+    if (prefix != null) {
+      return prefix;
+    }
+
+    if (namespacePrefix.isEmpty()) {
+      // In for example XHTML documents, the root element looks like this:
+      //  <html xmlns="http://www.w3.org/1999/xhtml">
+      // This means that the IDE can find the namespace for "".
+      //
+      // However, in Android XML files it's implicit, so just return a dummy SchemaPrefix so
+      // // that we don't end up with a
+      //      Namespace ''{0}'' is not bound
+      // error from {@link XmlUnboundNsPrefixInspection#checkUnboundNamespacePrefix}
+      return new SchemaPrefix(null, new TextRange(0, 0), SdkConstants.ANDROID_NS_NAME);
+    }
+
+    return null;
   }
 }
