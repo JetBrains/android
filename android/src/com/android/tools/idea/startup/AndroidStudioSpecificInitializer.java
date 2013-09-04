@@ -46,7 +46,7 @@ import java.util.Properties;
 public class AndroidStudioSpecificInitializer implements Runnable {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.startup.AndroidStudioSpecificInitializer");
 
-  @NonNls public static final String NEW_NEW_PROJECT_WIZARD = "android.newProjectWizard";
+  @NonNls private static final String USE_IDEA_NEW_PROJECT_WIZARD = "use.idea.newProjectWizard";
 
   @NonNls private static final String ANDROID_SDK_FOLDER_NAME = "sdk";
 
@@ -58,7 +58,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   public void run() {
     // Fix New Project actions
     //noinspection UseOfArchaicSystemPropertyAccessors
-    if (System.getProperty(NEW_NEW_PROJECT_WIZARD) == null || Boolean.getBoolean(NEW_NEW_PROJECT_WIZARD)) {
+    if (!Boolean.getBoolean(USE_IDEA_NEW_PROJECT_WIZARD)) {
       fixNewProjectActions();
     }
 
