@@ -1354,10 +1354,14 @@ public final class ResourceFolderRepository extends ProjectResources {
       // catch using those methods, and for that we have the below handling.
       if (myIgnoreChildrenChanged) {
         // We've already processed this change as one or more individual childMoved, childAdded, childRemoved etc calls
-        return;
+        // However, we sometimes get some surprising (=bogus) events where the parent and the child
+        // are the same, and in those cases there may be other child events we need to process
+        // so fall through and process the whole file
+        if (event.getParent() != event.getChild()) {
+          return;
+        }
       }
-
-      if (event.getNewChild() == null && event.getOldChild() == null && event.getOldParent() == null && event.getNewParent() == null
+      else if (event.getNewChild() == null && event.getOldChild() == null && event.getOldParent() == null && event.getNewParent() == null
         && event.getParent() instanceof PsiFile) {
         return;
       }
