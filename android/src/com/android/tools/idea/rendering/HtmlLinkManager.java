@@ -85,7 +85,7 @@ public class HtmlLinkManager {
 
   public void handleUrl(@NotNull String url, @Nullable Module module, @Nullable PsiFile file, @Nullable DataContext dataContext,
                         @Nullable RenderResult result) {
-    if (url.startsWith("http:")) {
+    if (url.startsWith("http:") || url.startsWith("https:")) {
       UrlOpener.launchBrowser(null, url);
     } else if (url.startsWith(URL_REPLACE_TAGS)) {
       assert module != null;
