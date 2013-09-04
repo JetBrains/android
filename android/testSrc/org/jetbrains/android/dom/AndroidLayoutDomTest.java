@@ -350,7 +350,10 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
   }
 
   public void testTagNameCompletion2() throws Throwable {
-    doTestCompletionVariants("tn2.xml", "EditText", "ExpandableListView", "ExtractEditText");
+    VirtualFile file = copyFileToProject("tn2.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.assertPreferredCompletionItems(0, "EditText", "ExpandableListView", "ExtractEditText");
   }
 
   public void testTagNameCompletion3() throws Throwable {
