@@ -16,21 +16,16 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.google.common.base.Strings;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.compiler.options.ExternalBuildOptionListener;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.compiler.CompileContext;
-import com.intellij.openapi.compiler.CompileStatusNotification;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBus;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -59,13 +54,13 @@ public final class Projects {
     if (buildAction != null) {
       switch (buildAction) {
         case COMPILE:
-          compile(project, project.getBasePath());
+          compile(project);
           break;
         case REBUILD:
-          rebuild(project, project.getBasePath());
+          rebuild(project);
           break;
         case SOURCE_GEN:
-          generateSourcesOnly(project, project.getBasePath());
+          generateSourcesOnly(project);
           break;
       }
       removeBuildActionFrom(project);
@@ -76,38 +71,20 @@ public final class Projects {
    * Compiles the given project and refreshes the directory at the given path after compilation is finished. This method refreshes the
    * directory asynchronously and recursively.
    *
-   * @param project          the given project.
-   * @param dirToRefreshPath the path of the directory to refresh after compilation is finished.
+   * @param project the given project.
    */
-  public static void compile(@NotNull Project project, @NotNull String dirToRefreshPath) {
-    CompilerManager.getInstance(project).make(new RefreshProjectAfterCompilation(dirToRefreshPath));
+  public static void compile(@NotNull Project project) {
+    CompilerManager.getInstance(project).make(null);
   }
 
   /**
    * Rebuilds the given project and refreshes the directory at the given path after compilation is finished. This method refreshes the
    * directory asynchronously and recursively. Rebuilding cleans the output directories and then compiles the project.
    *
-   * @param project          the given project.
-   * @param dirToRefreshPath the path of the directory to refresh after compilation is finished.
+   * @param project the given project.
    */
-  public static void rebuild(@NotNull Project project, @NotNull String dirToRefreshPath) {
-    CompilerManager.getInstance(project).rebuild(new RefreshProjectAfterCompilation(dirToRefreshPath));
-  }
-
-  private static class RefreshProjectAfterCompilation implements CompileStatusNotification {
-    @NotNull private final String myDirToRefreshPath;
-
-    RefreshProjectAfterCompilation(@NotNull String dirToRefreshPath) {
-      myDirToRefreshPath = dirToRefreshPath;
-    }
-
-    @Override
-    public void finished(boolean aborted, int errors, int warnings, CompileContext compileContext) {
-      VirtualFile rootDir = LocalFileSystem.getInstance().findFileByPath(myDirToRefreshPath);
-      if (rootDir != null && rootDir.isDirectory()) {
-        rootDir.refresh(true, true);
-      }
-    }
+  public static void rebuild(@NotNull Project project) {
+    CompilerManager.getInstance(project).rebuild(null);
   }
 
   /**
@@ -115,12 +92,11 @@ public final class Projects {
    * Gradle task to invoke.
    *
    * @param project the given project.
-   * @param dirToRefreshPath the path of the directory to refresh after compilation is finished.
    */
-  public static void generateSourcesOnly(@NotNull Project project, @NotNull String dirToRefreshPath) {
+  public static void generateSourcesOnly(@NotNull Project project) {
     if (hasSourceGenTasks(project)) {
       project.putUserData(GENERATE_SOURCE_ONLY_ON_COMPILE, true);
-      compile(project, dirToRefreshPath);
+      compile(project);
     } else {
       String msg = String.format("Unable to find tasks for generating source code for project '%1$s'", project.getName());
       LOG.info(msg);

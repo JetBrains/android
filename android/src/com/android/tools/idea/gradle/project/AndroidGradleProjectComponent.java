@@ -21,6 +21,9 @@ import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.google.common.collect.Lists;
 import com.intellij.ProjectTopics;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.compiler.CompileContext;
+import com.intellij.openapi.compiler.CompileTask;
+import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
@@ -30,6 +33,8 @@ import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.util.Function;
 import com.intellij.util.messages.MessageBusConnection;
@@ -45,6 +50,22 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
 
   public AndroidGradleProjectComponent(Project project) {
     super(project);
+    // Register a task that refreshes Studio's view of the file system after a compile.
+    // This is necessary for Studio to see generated code.
+    CompilerManager.getInstance(project).addAfterTask(new CompileTask() {
+      @Override
+      public boolean execute(CompileContext context) {
+        Project contextProject = context.getProject();
+        if (Projects.isGradleProject(contextProject)) {
+          String rootDirPath = contextProject.getBasePath();
+          VirtualFile rootDir = LocalFileSystem.getInstance().findFileByPath(rootDirPath);
+          if (rootDir != null && rootDir.isDirectory()) {
+            rootDir.refresh(true, true);
+          }
+        }
+        return true;
+      }
+    });
   }
 
   /**
