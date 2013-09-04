@@ -215,7 +215,9 @@ public class RadViewComponent extends RadVisualComponent {
       idManager.removeComponent(this, true);
     }
 
-    removeFromParent();
+    if (getParent() != null) {
+      removeFromParent();
+    }
 
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
