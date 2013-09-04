@@ -53,6 +53,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   private static final String LAYOUT2 = "resourceRepository/layout2.xml";
   private static final String VALUES1 = "resourceRepository/values.xml";
   private static final String VALUES_EMPTY = "resourceRepository/empty.xml";
+  private static final String STRINGS = "resourceRepository/strings.xml";
 
   private static void resetScanCounter() {
     ourFullRescans = 0;
@@ -1841,6 +1842,50 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         assertEquals("@android:color/transparent", actionBarStyle.getValue());
         //noinspection ConstantConditions
         assertEquals("Zoom", getOnlyItem(resources, ResourceType.STRING, "title_zoom").getResourceValue(false).getValue());
+      }
+    });
+  }
+
+  public void testIssue56799() throws Exception {
+    // Test deleting a string; ensure that the whole repository is updated correctly.
+    // Regression test for
+    //   https://code.google.com/p/android/issues/detail?id=56799
+    VirtualFile file1 = myFixture.copyFileToProject(STRINGS, "res/values/strings.xml");
+    PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
+    assertNotNull(psiFile1);
+    final ResourceFolderRepository resources = createRepository();
+    assertNotNull(resources);
+    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+    assertFalse(resources.hasResourceItem(ResourceType.STRING, "app_name2"));
+    assertTrue(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
+
+
+    final long generation = resources.getModificationCount();
+    final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
+    final Document document = documentManager.getDocument(psiFile1);
+    assertNotNull(document);
+
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        String string = "    <string name=\"hello_world\">Hello world!</string>";
+        final int offset = document.getText().indexOf(string);
+        assertTrue(offset != -1);
+        document.deleteString(offset, offset + string.length());
+        documentManager.commitDocument(document);
+      }
+    });
+
+    assertTrue(generation < resources.getModificationCount());
+
+    assertTrue(resources.isScanPending(psiFile1));
+    resetScanCounter();
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        ensureSingleScan();
+        assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+        assertFalse(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
       }
     });
   }
