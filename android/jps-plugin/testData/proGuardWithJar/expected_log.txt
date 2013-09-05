@@ -55,7 +55,9 @@ $PROJECT_DIR$/root/libs/external_jar.jar
 --exclude
 
 ______ENTRY_4:0
-$ANDROID_SDK_DIR$/tools/proguard/bin/proguard.bat
+$JAVA_PATH$
+-jar
+$ANDROID_SDK_DIR$/tools/proguard/lib/proguard.jar
 -include
 $ANDROID_SDK_DIR$/tools/proguard/proguard-android.txt
 -include

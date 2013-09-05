@@ -154,6 +154,11 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
     doTestValues("values4.xml");
   }
 
+  public void testHtmlInsideString() throws Exception {
+    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
+    doTestValues(getTestName(true) + ".xml");
+  }
+
   public void testSelector1() throws Exception {
     new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     doTest("selector1.xml", "res/drawable/selector.xml");

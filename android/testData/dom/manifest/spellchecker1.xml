@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="p1.<TYPO>alola</TYPO>">
+  <uses-permission android:name="android.permission.BRICKP"/>
+  <uses-permission android:name="android.permission.BIND_APPWIDGET"/>
+  <application>
+  </application>
+</manifest>

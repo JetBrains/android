@@ -15,6 +15,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.util.ThrowableRunnable;
@@ -279,7 +280,6 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     VirtualFile file = copyFileToProject("tn1.xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
-    myFixture.type('\n');
     myFixture.checkResultByFile(testFolder + '/' + "tn1_after.xml");
   }
 
@@ -350,7 +350,10 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
   }
 
   public void testTagNameCompletion2() throws Throwable {
-    doTestCompletionVariants("tn2.xml", "EditText", "ExpandableListView", "ExtractEditText");
+    VirtualFile file = copyFileToProject("tn2.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.assertPreferredCompletionItems(0, "EditText", "ExpandableListView", "ExtractEditText");
   }
 
   public void testTagNameCompletion3() throws Throwable {
@@ -982,6 +985,17 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     myFixture.configureFromExistingVirtualFile(file);
     final List<IntentionAction> fixes = highlightAndFindQuickFixes(AndroidMissingOnClickHandlerInspection.MyQuickFix.class);
     assertEmpty(fixes);
+  }
+
+  public void testSpellchecker() throws Throwable {
+    myFixture.enableInspections(SpellCheckingInspection.class);
+    myFixture.copyFileToProject(testFolder + "/spellchecker_resources.xml", "res/values/sr.xml");
+    doTestHighlighting();
+  }
+
+  public void testSpellcheckerQuickfix() throws Throwable {
+    myFixture.copyFileToProject(testFolder + "/spellchecker_resources.xml", "res/values/sr.xml");
+    doTestSpellcheckerQuickFixes();
   }
 
   private void doTestAttrReferenceCompletion(String textToType) throws IOException {

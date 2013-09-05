@@ -36,6 +36,7 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.actions.InlineAction;
 import com.intellij.refactoring.util.CommonRefactoringUtil;
+import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
 
@@ -399,6 +400,15 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
     assertEquals("name", ((XmlAttribute)targetAttrValue.getParent()).getName());
     assertEquals("color", ((XmlTag)targetAttrValue.getParent().getParent()).getName());
     assertEquals(file, targetElement.getContainingFile().getVirtualFile());
+  }
+
+  public void testSpellchecker1() throws Throwable {
+    myFixture.enableInspections(SpellCheckingInspection.class);
+    doTestHighlighting();
+  }
+
+  public void testSpellchecker2() throws Throwable {
+    doTestSpellcheckerQuickFixes();
   }
 
   private void doCreateValueResourceFromUsage(VirtualFile virtualFile) {

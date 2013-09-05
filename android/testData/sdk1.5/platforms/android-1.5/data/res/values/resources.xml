@@ -22,4 +22,5 @@
 
   <string name="cancel">cancel</string>
   <string name="private_str">private</string>
+  <string name="defaultMsisdnAlphaTag"></string>
 </resources>

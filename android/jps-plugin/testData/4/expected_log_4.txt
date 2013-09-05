@@ -14,7 +14,9 @@ $ANDROID_SDK_DIR$/platforms/android-1.5/android.jar
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/module/proguard.txt
 
 ______ENTRY_1:0
-$ANDROID_SDK_DIR$/tools/proguard/bin/proguard.bat
+$JAVA_PATH$
+-jar
+$ANDROID_SDK_DIR$/tools/proguard/lib/proguard.jar
 -include
 $ANDROID_SDK_DIR$/tools/proguard/proguard-android.txt
 -include

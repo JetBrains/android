@@ -9,7 +9,11 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.projectRoots.JavaSdkType;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkTypeId;
 import com.intellij.openapi.roots.CompilerModuleExtension;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
@@ -153,6 +157,21 @@ public class AndroidProguardCompiler implements ClassPostProcessingCompiler {
     });
   }
 
+  @Nullable
+  private static String getJavaExecutablePath(@NotNull Module module) {
+    final Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
+
+    if (sdk == null) {
+      return null;
+    }
+    final SdkTypeId sdkType = sdk.getSdkType();
+
+    if (!(sdkType instanceof JavaSdkType)) {
+      return null;
+    }
+    return ((JavaSdkType)sdkType).getVMExecutablePath(sdk);
+  }
+
   @Override
   public ProcessingItem[] process(CompileContext context, ProcessingItem[] items) {
     final List<ProcessingItem> processedItems = new ArrayList<ProcessingItem>();
@@ -161,6 +180,13 @@ public class AndroidProguardCompiler implements ClassPostProcessingCompiler {
       final MyProcessingItem processingItem = (MyProcessingItem)item;
       
       if (!AndroidCompileUtil.isModuleAffected(context, processingItem.myModule)) {
+        continue;
+      }
+      final Module module = ((MyProcessingItem)item).getModule();
+      final String javaExecutablePath = getJavaExecutablePath(module);
+
+      if (javaExecutablePath == null) {
+        context.addMessage(CompilerMessageCategory.ERROR, "Cannot find Java SDK for module " + module.getName(), null, -1, -1);
         continue;
       }
       final List<VirtualFile> cfgFiles = processingItem.getProguardConfigFiles();
@@ -176,7 +202,7 @@ public class AndroidProguardCompiler implements ClassPostProcessingCompiler {
 
         final Map<CompilerMessageCategory, List<String>> messages = AndroidCompileUtil.toCompilerMessageCategoryKeys(
           AndroidCommonUtils.launchProguard(processingItem.getTarget(), processingItem.getSdkToolsRevision(),
-                                            processingItem.getSdkOsPath(), proguardCfgOsPaths,
+                                            processingItem.getSdkOsPath(), javaExecutablePath, "", proguardCfgOsPaths,
                                             processingItem.isIncludeSystemProguardFile(), inputJarOsPath, externalJarOsPaths,
                                             processingItem.getOutputJarOsPath(), logsDirOsPath));
 

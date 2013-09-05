@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="contactsSyncPlug"><font fgcolor="#ffffffff">Sync your Google contacts!</font>
+        \nAfter syncing to your phone, <p>your contacts</p> will be <div><font>available</font></div>\n
+        to you wherever you go.</string>
+</resources>
