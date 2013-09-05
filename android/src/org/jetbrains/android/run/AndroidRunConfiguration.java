@@ -44,9 +44,7 @@ import com.intellij.psi.search.ProjectScope;
 import com.intellij.refactoring.listeners.RefactoringElementAdapter;
 import com.intellij.refactoring.listeners.RefactoringElementListener;
 import org.jetbrains.android.dom.AndroidDomUtil;
-import org.jetbrains.android.dom.manifest.Activity;
-import org.jetbrains.android.dom.manifest.IntentFilter;
-import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.dom.manifest.*;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidBundle;
@@ -57,6 +55,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import static com.intellij.execution.process.ProcessOutputTypes.STDERR;
 import static com.intellij.execution.process.ProcessOutputTypes.STDOUT;
@@ -88,17 +87,29 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
       if (activityClass == null) {
         throw new RuntimeConfigurationError(AndroidBundle.message("cant.find.activity.class.error"));
       }
-      PsiClass c = configurationModule.checkClassName(ACTIVITY_CLASS, AndroidBundle.message("activity.class.not.specified.error"));
-      if (!c.isInheritor(activityClass, true)) {
-        throw new RuntimeConfigurationError(AndroidBundle.message("not.activity.subclass.error", ACTIVITY_CLASS));
+      if (ACTIVITY_CLASS == null || ACTIVITY_CLASS.length() == 0) {
+        throw new RuntimeConfigurationError(AndroidBundle.message("activity.class.not.specified.error"));
       }
+      PsiClass c = configurationModule.findClass(ACTIVITY_CLASS);
 
+      if (c == null || !c.isInheritor(activityClass, true)) {
+        final ActivityAlias activityAlias = findActivityAlias(facet, ACTIVITY_CLASS);
+
+        if (activityAlias == null) {
+          throw new RuntimeConfigurationError(AndroidBundle.message("not.activity.subclass.error", ACTIVITY_CLASS));
+        }
+
+        if (!isActivityLaunchable(activityAlias.getIntentFilters())) {
+          throw new RuntimeConfigurationError(AndroidBundle.message("activity.not.launchable.error", AndroidUtils.LAUNCH_ACTION_NAME));
+        }
+        return;
+      }
       if (!packageContainMavenProperty) {
         final Activity activity = AndroidDomUtil.getActivityDomElementByClass(facet.getModule(), c);
         if (activity == null) {
           throw new RuntimeConfigurationError(AndroidBundle.message("activity.not.declared.in.manifest", c.getName()));
         }
-        if (!isActivityLaunchable(activity)) {
+        if (!isActivityLaunchable(activity.getIntentFilters())) {
           throw new RuntimeConfigurationError(AndroidBundle.message("activity.not.launchable.error", AndroidUtils.LAUNCH_ACTION_NAME));
         }
       }
@@ -110,6 +121,56 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
       }
       throw new RuntimeConfigurationError(AndroidBundle.message("default.activity.not.found.error"));
     }
+  }
+
+
+  @Nullable
+  private static ActivityAlias findActivityAlias(@NotNull AndroidFacet facet, @NotNull String name) {
+    ActivityAlias alias = doFindActivityAlias(facet, name);
+
+    if (alias != null) {
+      return alias;
+    }
+    for (AndroidFacet depFacet : AndroidUtils.getAllAndroidDependencies(facet.getModule(), true)) {
+      alias = doFindActivityAlias(depFacet, name);
+
+      if (alias != null) {
+        return alias;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  private static ActivityAlias doFindActivityAlias(@NotNull AndroidFacet facet, @NotNull String name) {
+    final Manifest manifest = facet.getManifest();
+
+    if (manifest == null) {
+      return null;
+    }
+    final Application application = manifest.getApplication();
+
+    if (application == null) {
+      return null;
+    }
+    final String aPackage = manifest.getPackage().getStringValue();
+
+    for (ActivityAlias activityAlias : application.getActivityAliass()) {
+      final String alias = activityAlias.getName().getStringValue();
+
+      if (alias != null && alias.length() > 0 && name.endsWith(alias)) {
+        String prefix = name.substring(0, name.length() - alias.length());
+
+        if (prefix.endsWith(".")) {
+          prefix = prefix.substring(0, prefix.length() - 1);
+        }
+
+        if (prefix.length() == 0 || prefix.equals(aPackage)) {
+          return activityAlias;
+        }
+      }
+    }
+    return null;
   }
 
   private static boolean doesPackageContainMavenProperty(@NotNull AndroidFacet facet) {
@@ -269,8 +330,8 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     }
   }
 
-  private static boolean isActivityLaunchable(Activity activity) {
-    for (IntentFilter filter : activity.getIntentFilters()) {
+  private static boolean isActivityLaunchable(List<IntentFilter> intentFilters) {
+    for (IntentFilter filter : intentFilters) {
       if (AndroidDomUtil.containsAction(filter, AndroidUtils.LAUNCH_ACTION_NAME)) {
         return true;
       }

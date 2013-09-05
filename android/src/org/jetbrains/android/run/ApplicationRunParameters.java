@@ -16,17 +16,26 @@
 
 package org.jetbrains.android.run;
 
+import com.android.annotations.Nullable;
+import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.execution.ExecutionBundle;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
 import com.intellij.ide.util.TreeClassChooser;
 import com.intellij.ide.util.TreeClassChooserFactory;
+import com.intellij.openapi.editor.ex.EditorEx;
+import com.intellij.openapi.fileTypes.PlainTextLanguage;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComponentWithBrowseButton;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Key;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.ProjectScope;
-import com.intellij.ui.EditorTextFieldWithBrowseButton;
+import com.intellij.ui.EditorTextField;
+import com.intellij.ui.LanguageTextField;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 
@@ -43,7 +52,9 @@ import java.awt.event.ActionListener;
  * To change this template use File | Settings | File Templates.
  */
 class ApplicationRunParameters implements ConfigurationSpecificEditor<AndroidRunConfiguration> {
-  private EditorTextFieldWithBrowseButton myActivityField;
+  public static final Key<ApplicationRunParameters> ACTIVITY_CLASS_TEXT_FIELD_KEY = Key.create("ActivityClassTextField");
+
+  private ComponentWithBrowseButton<EditorTextField> myActivityField;
   private JRadioButton myLaunchDefaultButton;
   private JRadioButton myLaunchCustomButton;
   private JPanel myPanel;
@@ -73,14 +84,14 @@ class ApplicationRunParameters implements ConfigurationSpecificEditor<AndroidRun
           Messages.showErrorDialog(myPanel, ExecutionBundle.message("module.not.specified.error.text"));
           return;
         }
-        PsiClass initialSelection = facade.findClass(myActivityField.getText(), module.getModuleWithDependenciesScope());
+        PsiClass initialSelection = facade.findClass(myActivityField.getChildComponent().getText(), module.getModuleWithDependenciesScope());
         TreeClassChooser chooser = TreeClassChooserFactory.getInstance(project)
           .createInheritanceClassChooser("Select Activity Class", module.getModuleWithDependenciesScope(), activityBaseClass,
                                          initialSelection, null);
         chooser.showDialog();
         PsiClass selClass = chooser.getSelected();
         if (selClass != null) {
-          myActivityField.setText(selClass.getQualifiedName());
+          myActivityField.getChildComponent().setText(selClass.getQualifiedName());
         }
       }
     });
@@ -93,6 +104,11 @@ class ApplicationRunParameters implements ConfigurationSpecificEditor<AndroidRun
     myLaunchCustomButton.addActionListener(listener);
     myLaunchDefaultButton.addActionListener(listener);
     myDoNothingButton.addActionListener(listener);
+  }
+
+  @Nullable
+  public Module getModule() {
+    return myModuleSelector.getModule();
   }
 
   @Override
@@ -108,7 +124,7 @@ class ApplicationRunParameters implements ConfigurationSpecificEditor<AndroidRun
       myDoNothingButton.setSelected(true);
     }
     myActivityField.setEnabled(launchSpecificActivity);
-    myActivityField.setText(configuration.ACTIVITY_CLASS);
+    myActivityField.getChildComponent().setText(configuration.ACTIVITY_CLASS);
     myDeployAndInstallCheckBox.setSelected(configuration.DEPLOY);
   }
 
@@ -119,7 +135,7 @@ class ApplicationRunParameters implements ConfigurationSpecificEditor<AndroidRun
 
   @Override
   public void applyTo(AndroidRunConfiguration configuration) {
-    configuration.ACTIVITY_CLASS = myActivityField.getText();
+    configuration.ACTIVITY_CLASS = myActivityField.getChildComponent().getText();
     if (myLaunchDefaultButton.isSelected()) {
       configuration.MODE = AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY;
     }
@@ -142,8 +158,19 @@ class ApplicationRunParameters implements ConfigurationSpecificEditor<AndroidRun
   }
 
   private void createUIComponents() {
-    myActivityField = new EditorTextFieldWithBrowseButton(myProject, true,
-                                                          new AndroidInheritingClassVisibilityChecker(myProject, myModuleSelector,
-                                                                                            AndroidUtils.ACTIVITY_BASE_CLASS_NAME));
+    final EditorTextField editorTextField = new LanguageTextField(PlainTextLanguage.INSTANCE, myProject, "") {
+      @Override
+      protected EditorEx createEditor() {
+        final EditorEx editor = super.createEditor();
+        final PsiFile file = PsiDocumentManager.getInstance(myProject).getPsiFile(editor.getDocument());
+
+        if (file != null) {
+          DaemonCodeAnalyzer.getInstance(myProject).setHighlightingEnabled(file, false);
+        }
+        editor.putUserData(ACTIVITY_CLASS_TEXT_FIELD_KEY, ApplicationRunParameters.this);
+        return editor;
+      }
+    };
+    myActivityField = new ComponentWithBrowseButton<EditorTextField>(editorTextField, null);
   }
 }

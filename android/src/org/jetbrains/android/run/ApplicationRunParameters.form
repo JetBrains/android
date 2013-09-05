@@ -40,7 +40,7 @@
           <text resource-bundle="messages/AndroidBundle" key="android.run.confguration.deploy.and.install.check.box"/>
         </properties>
       </component>
-      <component id="ec4e0" class="com.intellij.ui.EditorTextFieldWithBrowseButton" binding="myActivityField" custom-create="true">
+      <component id="f31d5" class="com.intellij.openapi.ui.ComponentWithBrowseButton" binding="myActivityField" custom-create="true">
         <constraints>
           <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
