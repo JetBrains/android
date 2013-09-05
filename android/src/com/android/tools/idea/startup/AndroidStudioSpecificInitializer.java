@@ -16,6 +16,7 @@
 package com.android.tools.idea.startup;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.actions.AndroidImportProjectAction;
 import com.android.tools.idea.actions.AndroidNewModuleAction;
 import com.android.tools.idea.actions.AndroidNewModuleInGroupAction;
 import com.android.tools.idea.actions.AndroidNewProjectAction;
@@ -46,7 +47,7 @@ import java.util.Properties;
 public class AndroidStudioSpecificInitializer implements Runnable {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.startup.AndroidStudioSpecificInitializer");
 
-  @NonNls private static final String USE_IDEA_NEW_PROJECT_WIZARD = "use.idea.newProjectWizard";
+  @NonNls private static final String USE_IDEA_NEW_PROJECT_WIZARDS = "use.idea.newProjectWizard";
 
   @NonNls private static final String ANDROID_SDK_FOLDER_NAME = "sdk";
 
@@ -58,8 +59,8 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   public void run() {
     // Fix New Project actions
     //noinspection UseOfArchaicSystemPropertyAccessors
-    if (!Boolean.getBoolean(USE_IDEA_NEW_PROJECT_WIZARD)) {
-      fixNewProjectActions();
+    if (!Boolean.getBoolean(USE_IDEA_NEW_PROJECT_WIZARDS)) {
+      replaceIdeaActions();
     }
 
     try {
@@ -80,7 +81,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     }
   }
 
-  private static void fixNewProjectActions() {
+  private static void replaceIdeaActions() {
     // TODO: This is temporary code. We should build out our own menu set and welcome screen exactly how we want. In the meantime,
     // unregister IntelliJ's version of the project actions and manually register our own.
 
@@ -88,6 +89,8 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     replaceAction("WelcomeScreen.CreateNewProject", new AndroidNewProjectAction());
     replaceAction("NewModule", new AndroidNewModuleAction());
     replaceAction("NewModuleInGroup", new AndroidNewModuleInGroupAction());
+    replaceAction("ImportProject", new AndroidImportProjectAction());
+    replaceAction("WelcomeScreen.ImportProject", new AndroidImportProjectAction());
   }
 
   private static void replaceAction(String actionId, AnAction newAction) {
