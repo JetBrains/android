@@ -26,6 +26,7 @@ public class JpsAndroidDexCompilerConfigurationImpl extends JpsElementBase<JpsAn
     myState.VM_OPTIONS = state.VM_OPTIONS;
     myState.FORCE_JUMBO = state.FORCE_JUMBO;
     myState.CORE_LIBRARY = state.CORE_LIBRARY;
+    myState.PROGUARD_VM_OPTIONS = state.PROGUARD_VM_OPTIONS;
   }
 
   @Override
@@ -93,6 +94,19 @@ public class JpsAndroidDexCompilerConfigurationImpl extends JpsElementBase<JpsAn
     }
   }
 
+  @Override
+  public String getProguardVmOptions() {
+    return myState.PROGUARD_VM_OPTIONS;
+  }
+
+  @Override
+  public void setProguardVmOptions(String value) {
+    if (!myState.PROGUARD_VM_OPTIONS.equals(value)) {
+      myState.PROGUARD_VM_OPTIONS = value;
+      fireElementChanged();
+    }
+  }
+
   @NotNull
   @Override
   public JpsAndroidDexCompilerConfigurationImpl createCopy() {
@@ -106,6 +120,7 @@ public class JpsAndroidDexCompilerConfigurationImpl extends JpsElementBase<JpsAn
     setOptimize(modified.isOptimize());
     setForceJumbo(modified.isForceJumbo());
     setCoreLibrary(modified.isCoreLibrary());
+    setProguardVmOptions(modified.getProguardVmOptions());
   }
 
   @NotNull
@@ -115,6 +130,7 @@ public class JpsAndroidDexCompilerConfigurationImpl extends JpsElementBase<JpsAn
 
   public static class MyState {
     public String VM_OPTIONS = "";
+    public String PROGUARD_VM_OPTIONS = "";
     public int MAX_HEAP_SIZE = 1024;
     public boolean OPTIMIZE = true;
     public boolean FORCE_JUMBO = false;

@@ -136,6 +136,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
   private volatile String myAvdName;
   private volatile boolean myDebugMode;
+  private volatile boolean myOpenLogcatAutomatically;
 
   private volatile DebugLauncher myDebugLauncher;
 
@@ -782,6 +783,10 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     }
   }
 
+  public void setOpenLogcatAutomatically(boolean openLogcatAutomatically) {
+    myOpenLogcatAutomatically = openLogcatAutomatically;
+  }
+
   private boolean doPrepareAndStart(IDevice device) {
     if (myClearLogcatBeforeStart) {
       clearLogcatAndConsole(getModule().getProject(), device);
@@ -840,6 +845,16 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
             message("Waiting for process: " + myTargetPackageName, STDOUT);
           }
         }
+      }
+      if (!myDebugMode && myOpenLogcatAutomatically) {
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            final ToolWindow androidToolWindow = ToolWindowManager.getInstance(myEnv.getProject()).
+              getToolWindow(AndroidToolWindowFactory.TOOL_WINDOW_ID);
+            androidToolWindow.activate(null, false);
+          }
+        });
       }
       return true;
     }

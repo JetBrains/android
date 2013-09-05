@@ -1,5 +1,6 @@
 package org.jetbrains.android;
 
+import com.intellij.codeInspection.deadCode.UnusedDeclarationInspection;
 import com.intellij.codeInspection.unusedSymbol.UnusedSymbolLocalInspection;
 import com.intellij.openapi.vfs.VirtualFile;
 
@@ -17,6 +18,14 @@ public class AndroidJavaHighlightingTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "R1.java", "src/p1/p2/R1.java");
     myFixture.copyFileToProject("R.java", "src/p1/p2/R.java");
     final VirtualFile f = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".java", "src/p1/p2/MyActivity.java");
+    myFixture.configureFromExistingVirtualFile(f);
+    myFixture.checkHighlighting(true, false, true);
+  }
+
+  public void testParcelable() throws Exception {
+    myFixture.enableInspections(new UnusedDeclarationInspection());
+    myFixture.enableInspections(UnusedSymbolLocalInspection.class);
+    final VirtualFile f = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".java", "src/p1/p2/MyParcelable.java");
     myFixture.configureFromExistingVirtualFile(f);
     myFixture.checkHighlighting(true, false, true);
   }
