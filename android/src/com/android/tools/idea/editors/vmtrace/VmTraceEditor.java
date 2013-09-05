@@ -52,7 +52,7 @@ public class VmTraceEditor implements FileEditor {
   }
 
   private void parseTraceFileInBackground(@NotNull final Project project, @NotNull final VirtualFile file) {
-    new Task.Modal(project, "Parsing trace file", false) {
+    final Task.Modal parseTask = new Task.Modal(project, "Parsing trace file", false) {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
         indicator.setIndeterminate(true);
@@ -82,7 +82,13 @@ public class VmTraceEditor implements FileEditor {
           }
         });
       }
-    }.queue();
+    };
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        parseTask.queue();
+      }
+    });
   }
 
   @NotNull
