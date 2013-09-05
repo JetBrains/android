@@ -21,7 +21,7 @@ import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.perflib.vmtrace.ThreadInfo;
 import com.android.tools.perflib.vmtrace.VmTraceData;
 import com.android.tools.perflib.vmtrace.viz.TraceViewCanvas;
-import com.android.utils.SparseArray;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -32,25 +32,66 @@ import java.util.Collection;
 import java.util.List;
 
 public class TraceViewPanel {
+  /** Default name for main thread in Android apps. */
+  @NonNls private static final String MAIN_THREAD_NAME = "main";
+
   private TraceViewCanvas myTraceViewCanvas;
   private JPanel myContainer;
   private JComboBox myThreadCombo;
+  private JComboBox myRenderClockSelectorCombo;
+
+  private static final String[] ourRenderClockOptions = new String[] {
+    "Wall Clock Time",
+    "Thread Time",
+  };
+
+  private static final ClockType[] ourRenderClockTypes = new ClockType[] {
+    ClockType.GLOBAL,
+    ClockType.THREAD,
+  };
 
   public TraceViewPanel() {
-    myThreadCombo.addActionListener(new ActionListener() {
+    myRenderClockSelectorCombo.setModel(new DefaultComboBoxModel(ourRenderClockOptions));
+    myRenderClockSelectorCombo.setSelectedIndex(0);
+
+    ActionListener l = new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        myTraceViewCanvas.displayThread((String)myThreadCombo.getSelectedItem());
+        if (e.getSource() == myThreadCombo) {
+          myTraceViewCanvas.displayThread((String)myThreadCombo.getSelectedItem());
+        } else if (e.getSource() == myRenderClockSelectorCombo) {
+          myTraceViewCanvas.setRenderClock(getCurrentRenderClock());
+        }
       }
-    });
+    };
+
+    myThreadCombo.addActionListener(l);
+    myRenderClockSelectorCombo.addActionListener(l);
   }
 
   public void setTrace(@NotNull VmTraceData trace) {
     List<String> threadNames = getThreadsWithTraces(trace);
-    String threadName = !threadNames.isEmpty() ? threadNames.get(0) : "";
-    myTraceViewCanvas.setTrace(trace, threadName, ClockType.GLOBAL);
+    String defaultThread = getDefaultThreadName(threadNames);
+    myTraceViewCanvas.setTrace(trace, defaultThread, getCurrentRenderClock());
     myThreadCombo.setModel(new DefaultComboBoxModel(threadNames.toArray()));
+    myThreadCombo.setSelectedIndex(threadNames.indexOf(defaultThread));
+
     myThreadCombo.setEnabled(true);
+    myRenderClockSelectorCombo.setEnabled(true);
+  }
+
+  @NotNull
+  private String getDefaultThreadName(@NotNull List<String> threadNames) {
+    if (threadNames.isEmpty()) {
+      return "";
+    }
+
+    // default to displaying info from main thread
+    return threadNames.contains(MAIN_THREAD_NAME) ? MAIN_THREAD_NAME : threadNames.get(0);
+  }
+
+  private ClockType getCurrentRenderClock() {
+    return ourRenderClockTypes[myRenderClockSelectorCombo.getSelectedIndex()];
   }
 
   private static List<String> getThreadsWithTraces(@NotNull VmTraceData trace) {
