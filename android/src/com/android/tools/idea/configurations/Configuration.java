@@ -16,6 +16,7 @@
 package com.android.tools.idea.configurations;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.api.Capability;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.FrameworkResources;
@@ -796,6 +797,19 @@ public class Configuration implements Disposable {
     Locale locale = getLocale();
     myFullConfig.setLanguageQualifier(locale.language);
     myFullConfig.setRegionQualifier(locale.region);
+    if (!locale.hasLanguage()) {
+      // Avoid getting the layout library if the locale doesn't have any language.
+      myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.LTR));
+    } else {
+    LayoutLibrary layoutLib = RenderService.getLayoutLibrary(getModule(), getTarget());
+      if (layoutLib != null) {
+        if (layoutLib.isRtl(locale.toLocaleId())) {
+          myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.RTL));
+        } else {
+          myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.LTR));
+        }
+      }
+    }
 
     // Replace the UiMode with the selected one, if one is selected
     UiMode uiMode = getUiMode();

@@ -118,6 +118,9 @@ public class RenderService {
   @Nullable
   private RenderContext myRenderContext;
 
+  @NotNull
+  private final Locale myLocale;
+
   /**
    * Creates a new {@link RenderService} associated with the given editor.
    *
@@ -217,6 +220,7 @@ public class RenderService {
     Pair<Integer, Integer> sdkVersions = getSdkVersions(myFacet);
     myMinSdkVersion = sdkVersions.getFirst();
     myTargetSdkVersion = sdkVersions.getSecond();
+    myLocale = configuration.getLocale();
   }
 
   @Nullable
@@ -485,11 +489,18 @@ public class RenderService {
     // same session
     params.setExtendedViewInfoMode(true);
 
+    params.setLocale(myLocale.toLocaleId());
+
+    ManifestInfo manifestInfo = ManifestInfo.get(myModule);
+    try {
+      params.setRtlSupport(manifestInfo.isRtlSupported());
+    } catch (Exception e) {
+      // ignore.
+    }
     if (!myShowDecorations) {
       params.setForceNoDecor();
     }
     else {
-      ManifestInfo manifestInfo = ManifestInfo.get(myModule);
       try {
         params.setAppLabel(manifestInfo.getApplicationLabel());
         params.setAppIcon(manifestInfo.getApplicationIcon());
@@ -664,6 +675,30 @@ public class RenderService {
       }
     }
     return false;
+  }
+
+  @Nullable
+  public static LayoutLibrary getLayoutLibrary(@Nullable final Module module, @Nullable IAndroidTarget target) {
+    if (module == null || target == null) {
+      return null;
+    }
+    Project project = module.getProject();
+    AndroidPlatform platform = getPlatform(module);
+    if (platform != null) {
+      try {
+        RenderServiceFactory factory = platform.getSdkData().getTargetData(target).getRenderServiceFactory(project);
+        if (factory != null) {
+          return factory.getLibrary();
+        }
+      }
+      catch (RenderingException e) {
+        // Ignore.
+      }
+      catch (IOException e) {
+        // Ditto
+      }
+    }
+    return null;
   }
 
   /**
