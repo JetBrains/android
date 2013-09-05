@@ -156,7 +156,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
     // For all non library modules in our project
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && !facet.getProperties().LIBRARY_PROJECT) {
+      if (facet != null && !facet.isLibraryProject()) {
         final VirtualFile manifestFile = AndroidRootUtil.getManifestFile(facet);
 
         XmlFile myManifestFile = (XmlFile)PsiManager.getInstance(myProject).findFile(manifestFile);
@@ -288,7 +288,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
     // For all non library modules in our project
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && !facet.getProperties().LIBRARY_PROJECT) {
+      if (facet != null && !facet.isLibraryProject()) {
         final int minSdk = ManifestInfo.get(module).getMinSdkVersion();
 
         if (myProperties.generateV17resourcesOption) {
