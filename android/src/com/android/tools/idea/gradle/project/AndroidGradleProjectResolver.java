@@ -18,14 +18,14 @@ package com.android.tools.idea.gradle.project;
 import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
-import com.android.tools.idea.gradle.AndroidProjectKeys;
-import com.android.tools.idea.gradle.GradleImportNotificationListener;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.IdeaGradleProject;
+import com.android.tools.idea.gradle.*;
 import com.android.tools.idea.gradle.dependency.Dependency;
+import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
+import com.android.tools.idea.gradle.service.notification.SearchInBuildFilesHyperlink;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.execution.configurations.SimpleJavaParameters;
 import com.intellij.externalSystem.JavaProjectData;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -52,6 +52,7 @@ import org.gradle.tooling.UnknownModelException;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
@@ -67,10 +68,7 @@ import org.jetbrains.plugins.gradle.util.GradleUtil;
 
 import java.io.File;
 import java.net.URL;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Imports Android-Gradle projects into IDEA.
@@ -122,7 +120,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   @Override
   public DataNode<ProjectData> resolveProjectInfo(@NotNull final ExternalSystemTaskId id,
                                                   @NotNull final String projectPath,
-                                                  boolean downloadLibraries,
+                                                  final boolean downloadLibraries,
                                                   @Nullable final GradleExecutionSettings settings,
                                                   @NotNull final ExternalSystemTaskNotificationListener listener) {
     return myHelper.execute(projectPath, settings, new Function<ProjectConnection, DataNode<ProjectData>>() {
@@ -130,7 +128,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
       @Override
       public DataNode<ProjectData> fun(ProjectConnection connection) {
         try {
-          List<String> extraJvmArgs = getExtraJvmArgs(projectPath);
+          List<String> extraJvmArgs = getExtraJvmArgs(projectPath, downloadLibraries);
           //noinspection TestOnlyProblems
           return resolveProjectInfo(id, projectPath, connection, listener, extraJvmArgs, settings);
         }
@@ -142,7 +140,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   }
 
   @NotNull
-  private static List<String> getExtraJvmArgs(@NotNull String projectPath) {
+  private static List<String> getExtraJvmArgs(@NotNull String projectPath, boolean downloadLibraries) {
     if (ExternalSystemApiUtil.isInProcessMode(GradleConstants.SYSTEM_ID)) {
       List<String> args = Lists.newArrayList();
       if (!AndroidGradleSettings.isAndroidSdkDirInLocalPropertiesFile(new File(projectPath))) {
@@ -157,6 +155,10 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
         String arg = AndroidGradleSettings.createJvmArg(proxyProperty.getKey(), proxyProperty.getValue());
         args.add(arg);
       }
+      // "build model only" mode means that project import will not be aborted if any dependencies are not found.
+      boolean buildModelOnly = !downloadLibraries;
+      String arg = AndroidGradleSettings.createJvmArg(AndroidProject.BUILD_MODEL_ONLY_SYSTEM_PROPERTY, String.valueOf(buildModelOnly));
+      args.add(arg);
       return args;
     }
     return Collections.emptyList();
@@ -209,6 +211,8 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
 
     AndroidProject first = null;
 
+    Set<String> unresolvedDependencies = Sets.newHashSet();
+
     DomainObjectSet<? extends IdeaModule> modules = ideaProject.getModules();
     for (IdeaModule module : modules) {
       IdeaGradleProject gradleProject = new IdeaGradleProject(module.getName(), module.getGradleProject().getPath());
@@ -230,6 +234,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
         if (androidProject == null || !GradleModelVersionCheck.isSupportedVersion(androidProject)) {
           throw new IllegalStateException(UNSUPPORTED_MODEL_VERSION_ERROR);
         }
+        unresolvedDependencies.addAll(getUnresolvedDependencies(androidProject));
         createModuleInfo(module, androidProject, projectInfo, moduleDirPath, gradleProject);
         if (first == null) {
           first = androidProject;
@@ -254,7 +259,18 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
     }
 
     populateDependencies(projectInfo);
+    populateUnresolvedDependencies(projectInfo, unresolvedDependencies);
     return projectInfo;
+  }
+
+  @NotNull
+  private static Collection<String> getUnresolvedDependencies(@NotNull AndroidProject androidProject) {
+    try {
+      return androidProject.getUnresolvedDependencies();
+    } catch (UnsupportedMethodException e) {
+      // This happens when using Gradle model plug-in prior to 0.6.0.
+      return Collections.emptySet();
+    }
   }
 
   @NotNull
@@ -282,35 +298,6 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
       return "";
     }
     return gradleProjectPath.replaceAll(SdkConstants.GRADLE_PATH_SEPARATOR, separator);
-  }
-
-  private static void addModuleTasks(@NotNull DataNode<ModuleData> moduleInfo,
-                                     @NotNull IdeaModule module,
-                                     @NotNull DataNode<ProjectData> projectInfo) {
-    String rootProjectPath = projectInfo.getData().getLinkedExternalProjectPath();
-    String moduleConfigPath = GradleUtil.getConfigPath(module.getGradleProject(), rootProjectPath);
-
-    DataNode<?> target = moduleConfigPath.equals(rootProjectPath) ? projectInfo : moduleInfo;
-
-    for (GradleTask task : module.getGradleProject().getTasks()) {
-      String taskName = task.getName();
-      //noinspection TestOnlyProblems
-      if (taskName == null || taskName.trim().isEmpty() || isIdeaTask(taskName)) {
-        continue;
-      }
-      TaskData taskData = new TaskData(GradleConstants.SYSTEM_ID, taskName, moduleConfigPath, task.getDescription());
-      target.createChild(ProjectKeys.TASK, taskData);
-    }
-  }
-
-  @VisibleForTesting
-  static boolean isIdeaTask(@NotNull String taskName) {
-    return taskName.equals("idea") ||
-           (taskName.startsWith("idea") && taskName.length() > 5 && Character.isUpperCase(taskName.charAt(4))) ||
-           taskName.endsWith("Idea") ||
-           taskName.endsWith("IdeaModule") ||
-           taskName.endsWith("IdeaProject") ||
-           taskName.endsWith("IdeaWorkspace");
   }
 
   @Nullable
@@ -500,6 +487,45 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   private static <T> T getFirstNodeData(Collection<DataNode<T>> nodes) {
     DataNode<T> node = ContainerUtil.getFirstItem(nodes);
     return node != null ? node.getData() : null;
+  }
+
+  private static void addModuleTasks(@NotNull DataNode<ModuleData> moduleInfo,
+                                     @NotNull IdeaModule module,
+                                     @NotNull DataNode<ProjectData> projectInfo) {
+    String rootProjectPath = projectInfo.getData().getLinkedExternalProjectPath();
+    String moduleConfigPath = GradleUtil.getConfigPath(module.getGradleProject(), rootProjectPath);
+
+    DataNode<?> target = moduleConfigPath.equals(rootProjectPath) ? projectInfo : moduleInfo;
+
+    for (GradleTask task : module.getGradleProject().getTasks()) {
+      String taskName = task.getName();
+      //noinspection TestOnlyProblems
+      if (taskName == null || taskName.trim().isEmpty() || isIdeaTask(taskName)) {
+        continue;
+      }
+      TaskData taskData = new TaskData(GradleConstants.SYSTEM_ID, taskName, moduleConfigPath, task.getDescription());
+      target.createChild(ProjectKeys.TASK, taskData);
+    }
+  }
+
+  @VisibleForTesting
+  static boolean isIdeaTask(@NotNull String taskName) {
+    return taskName.equals("idea") ||
+           (taskName.startsWith("idea") && taskName.length() > 5 && Character.isUpperCase(taskName.charAt(4))) ||
+           taskName.endsWith("Idea") ||
+           taskName.endsWith("IdeaModule") ||
+           taskName.endsWith("IdeaProject") ||
+           taskName.endsWith("IdeaWorkspace");
+  }
+
+  private static void populateUnresolvedDependencies(@NotNull DataNode<ProjectData> projectInfo,
+                                                     @NotNull Set<String> unresolvedDependencies) {
+    String category = "Unresolved dependencies:";
+    for (String dep : unresolvedDependencies) {
+      String url = "search:" + dep;
+      NotificationHyperlink hyperlink = new SearchInBuildFilesHyperlink(url, "Search", dep);
+      projectInfo.createChild(AndroidProjectKeys.IMPORT_EVENT_MSG, new ProjectImportEventMessage(category, dep, hyperlink));
+    }
   }
 
   @Override

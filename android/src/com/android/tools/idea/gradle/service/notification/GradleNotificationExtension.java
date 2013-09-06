@@ -21,7 +21,6 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.facet.ProjectFacetManager;
-import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -41,7 +40,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
-import javax.swing.event.HyperlinkEvent;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
@@ -86,7 +84,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
     if (msg != null && !msg.isEmpty()) {
       if (msg.startsWith("Project is using an old version of the Android Gradle plug-in")) {
         //noinspection TestOnlyProblems
-        return createNotification(project, msg, new SearchInBuildFilesHyperlink(project, "com.android.tools.build:gradle"));
+        return createNotification(project, msg, new SearchInBuildFilesHyperlink("com.android.tools.build:gradle"));
       }
 
       if (msg.contains(NotificationHints.FAILED_TO_PARSE_SDK)) {
@@ -113,7 +111,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
 
       if (lastLine != null && lastLine.equals(NotificationHints.OPEN_GRADLE_SETTINGS)) {
         //noinspection TestOnlyProblems
-        return createNotification(project, msg, new GradleSettingsHyperlink(project));
+        return createNotification(project, msg, new GradleSettingsHyperlink());
       }
 
       if (lastLine != null && lastLine.contains(NotificationHints.INSTALL_ANDROID_SUPPORT_REPO)) {
@@ -121,7 +119,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
         if (!facets.isEmpty()) {
           // We can only open SDK manager if the project has an Android facet. Android facet has a reference to the Android SDK manager.
           //noinspection TestOnlyProblems
-          return createNotification(project, msg, new OpenAndroidSdkManagerHyperlink(project));
+          return createNotification(project, msg, new OpenAndroidSdkManagerHyperlink());
         }
         //noinspection TestOnlyProblems
         return createNotification(project, msg);
@@ -129,7 +127,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
 
       if (lastLine != null && lastLine.contains(NotificationHints.SET_UP_HTTP_PROXY)) {
         //noinspection TestOnlyProblems
-        return createNotification(project, msg, new OpenHttpSettingsHyperlink(project), new OpenUrlHyperlink(
+        return createNotification(project, msg, new OpenHttpSettingsHyperlink(), new OpenUrlHyperlink(
           "http://www.gradle.org/docs/current/userguide/userguide_single.html#sec:accessing_the_web_via_a_proxy",
           "Open Gradle documentation"));
       }
@@ -145,12 +143,11 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
               String filePath = errorLocation.getFirst();
               int line = errorLocation.getSecond();
               //noinspection TestOnlyProblems
-              return createNotification(project, msg, new OpenFileHyperlink(project, filePath, line),
-                                        new SearchInBuildFilesHyperlink(project, dependency));
+              return createNotification(project, msg, new OpenFileHyperlink(filePath, line), new SearchInBuildFilesHyperlink(dependency));
             }
           }
           //noinspection TestOnlyProblems
-          return createNotification(project, msg, new SearchInBuildFilesHyperlink(project, dependency));
+          return createNotification(project, msg, new SearchInBuildFilesHyperlink(dependency));
         }
       }
 
@@ -165,7 +162,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
           String filePath = errorLocation.getFirst();
           int line = errorLocation.getSecond();
           //noinspection TestOnlyProblems
-          return createNotification(project, msg, new OpenFileHyperlink(project, filePath, line));
+          return createNotification(project, msg, new OpenFileHyperlink(filePath, line));
         }
       }
     }
@@ -233,7 +230,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
         }
       }
       text = b.toString();
-      notificationListener = new CustomNotificationListener(hyperlinks);
+      notificationListener = new CustomNotificationListener(project, hyperlinks);
     }
     String title = createNotificationTitle(project, errorMsg);
     return new CustomizationResult(title, text, DEFAULT_NOTIFICATION_TYPE, notificationListener);
@@ -244,30 +241,4 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
     return String.format("Failed to refresh Gradle project '%1$s':\n", project.getName()) + msg;
   }
 
-  @VisibleForTesting
-  static class CustomNotificationListener extends NotificationListener.Adapter {
-    @NotNull private final NotificationHyperlink[] myHyperlinks;
-
-    CustomNotificationListener(@NotNull NotificationHyperlink...hyperlinks) {
-      myHyperlinks = hyperlinks;
-    }
-
-    @Override
-    protected void hyperlinkActivated(@NotNull Notification notification, @NotNull HyperlinkEvent e) {
-      if (myHyperlinks.length == 1) {
-        myHyperlinks[0].executeIfClicked(e);
-        return;
-      }
-      for (NotificationHyperlink hyperlink : myHyperlinks) {
-        if (hyperlink.executeIfClicked(e)) {
-          return;
-        }
-      }
-    }
-
-    @NotNull
-    NotificationHyperlink[] getHyperlinks() {
-      return myHyperlinks;
-    }
-  }
 }

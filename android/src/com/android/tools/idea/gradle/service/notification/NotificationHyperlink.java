@@ -15,25 +15,26 @@
  */
 package com.android.tools.idea.gradle.service.notification;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.event.HyperlinkEvent;
 
-abstract class NotificationHyperlink {
+public abstract class NotificationHyperlink {
   @NotNull private final String myUrl;
   @NotNull private final String myValue;
 
-  NotificationHyperlink(@NotNull String url, @NotNull String text) {
+  protected NotificationHyperlink(@NotNull String url, @NotNull String text) {
     myUrl = url;
     myValue = String.format("<a href=\"%1$s\">%2$s</a>", StringUtil.escapeXml(url), text);
   }
 
-  abstract void execute();
+  protected abstract void execute(@NotNull Project project);
 
-  boolean executeIfClicked(@NotNull HyperlinkEvent event) {
+  public boolean executeIfClicked(@NotNull Project project, @NotNull HyperlinkEvent event) {
     if (myUrl.equals(event.getDescription())) {
-      execute();
+      execute(project);
       return true;
     }
     return false;

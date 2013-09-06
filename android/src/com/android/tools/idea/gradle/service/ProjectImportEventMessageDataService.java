@@ -17,9 +17,13 @@ package com.android.tools.idea.gradle.service;
 
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.ProjectImportEventMessage;
+import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
+import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -29,10 +33,12 @@ import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemIdeNotificationManager;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Presents to the user any unexpected events that occurred during project import.
@@ -55,37 +61,54 @@ public class ProjectImportEventMessageDataService implements ProjectDataService<
       return;
     }
 
-    Multimap<String, String> messagesByCategory = ArrayListMultimap.create();
+    final List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
+
+    Multimap<String, ProjectImportEventMessage.Content> messagesByCategory = ArrayListMultimap.create();
+
     for (DataNode<ProjectImportEventMessage> node : toImport) {
       ProjectImportEventMessage message = node.getData();
       String category = message.getCategory();
-      messagesByCategory.put(category, message.getText());
+      messagesByCategory.put(category, message.getContent());
       LOG.info(message.toString());
     }
+
+    if (messagesByCategory.isEmpty()) {
+      return;
+    }
+
     final StringBuilder builder = new StringBuilder();
-    builder.append("<html>");
     for (String category : messagesByCategory.keySet()) {
-      Collection<String> messages = messagesByCategory.get(category);
+      Collection<ProjectImportEventMessage.Content> messages = messagesByCategory.get(category);
       if (category.isEmpty()) {
-        Joiner.on("<br>").join(messages);
+        Joiner.on('\n').join(messages);
       }
       else {
         // If the category is not an empty String, we show the category and each message as a list.
-        builder.append(category).append("<ul>");
-        for (String message : messages) {
-          builder.append("<li>").append(message).append("</li>");
+        builder.append(category).append('\n');
+        for (ProjectImportEventMessage.Content message : messages) {
+          String text = StringUtil.escapeXml(message.getText());
+          builder.append("- ").append(text);
+          NotificationHyperlink hyperlink = message.getHyperlink();
+          if (hyperlink != null) {
+            hyperlinks.add(hyperlink);
+            builder.append(" ").append(hyperlink.toString());
+          }
+          builder.append('\n');
         }
-        builder.append("</ul>");
+        builder.append("\n\n");
       }
     }
-    builder.append("</html>");
 
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
-        String title = "Unexpected events:";
+        String title = String.format("Problems importing/refreshing Gradle project '%1$s':\n", project.getName());
         String messageToShow = builder.toString();
-        notificationManager.showNotification(title, messageToShow, NotificationType.ERROR, project, GradleConstants.SYSTEM_ID, null);
+        NotificationListener listener = null;
+        if (!hyperlinks.isEmpty()) {
+          listener = new CustomNotificationListener(project, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
+        }
+        notificationManager.showNotification(title, messageToShow, NotificationType.ERROR, project, GradleConstants.SYSTEM_ID, listener);
       }
     });
   }

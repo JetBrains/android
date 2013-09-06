@@ -20,16 +20,13 @@ import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.annotations.NotNull;
 
 class OpenAndroidSdkManagerHyperlink extends NotificationHyperlink {
-  @NotNull private final Project myProject;
-
-  OpenAndroidSdkManagerHyperlink(@NotNull final Project project) {
+  OpenAndroidSdkManagerHyperlink() {
     super("openAndroidSdkManager", "Open Android SDK Manager");
-    myProject = project;
   }
 
   @Override
-  void execute() {
+  protected void execute(@NotNull Project project) {
     RunAndroidSdkManagerAction action = new RunAndroidSdkManagerAction();
-    action.doAction(myProject);
+    action.doAction(project);
   }
 }
