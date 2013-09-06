@@ -21,7 +21,7 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.*;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -54,7 +54,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
 
   @Override
   public State collectionInformation(@NotNull PsiFile file) {
-    final Module module = ModuleUtil.findModuleForPsiElement(file);
+    final Module module = ModuleUtilCore.findModuleForPsiElement(file);
     if (module == null) {
       return null;
     }
@@ -96,7 +96,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
 
   @Override
   public State doAnnotate(final State state) {
-    final IntellijLintClient client = new IntellijLintClient(state);
+    final IntellijLintClient client = IntellijLintClient.forEditor(state);
     try {
       final LintDriver lint = new LintDriver(new IntellijLintIssueRegistry(), client);
 
