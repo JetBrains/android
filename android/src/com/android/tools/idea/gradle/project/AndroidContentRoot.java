@@ -35,7 +35,8 @@ public final class AndroidContentRoot {
   // TODO: Retrieve this information from Gradle.
   private static final String[] EXCLUDED_OUTPUT_DIR_NAMES =
     // Note that build/exploded-bundles should *not* be excluded
-    {"apk", "assets", "bundles", "classes", "dependency-cache", "incremental", "libs", "manifests", "symbols", "tmp"};
+    {"apk", "assets", "bundles", "classes", "dependency-cache", "incremental", "libs", "manifests", "symbols", "tmp",
+     "res"};
 
   private AndroidContentRoot() {
   }
