@@ -35,6 +35,7 @@ public class AndroidDexCompilerConfiguration implements PersistentStateComponent
   public boolean OPTIMIZE = true;
   public boolean FORCE_JUMBO = false;
   public boolean CORE_LIBRARY = false;
+  public String PROGUARD_VM_OPTIONS = "";
 
   @Override
   public AndroidDexCompilerConfiguration getState() {

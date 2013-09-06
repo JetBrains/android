@@ -2,6 +2,7 @@ package org.jetbrains.android;
 
 import com.intellij.codeInsight.daemon.ImplicitUsageProvider;
 import com.intellij.psi.*;
+import com.intellij.psi.util.InheritanceUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 
@@ -11,7 +12,21 @@ import org.jetbrains.android.util.AndroidUtils;
 public class AndroidImplicitUsagesProvider implements ImplicitUsageProvider {
   @Override
   public boolean isImplicitUsage(PsiElement element) {
-    return false;
+    if (!(element instanceof PsiField)) {
+      return false;
+    }
+    final PsiField field = (PsiField)element;
+
+    if (!"CREATOR".equals(field.getName())) {
+      return false;
+    }
+    final PsiModifierList modifierList = field.getModifierList();
+
+    if (modifierList == null || !modifierList.hasModifierProperty(PsiModifier.STATIC)) {
+      return false;
+    }
+    final PsiClass aClass = field.getContainingClass();
+    return aClass != null && InheritanceUtil.isInheritor(aClass, "android.os.Parcelable");
   }
 
   @Override

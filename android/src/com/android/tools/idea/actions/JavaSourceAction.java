@@ -26,6 +26,7 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.psi.JavaDirectoryService;
 import com.intellij.psi.PsiDirectory;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
 
 import javax.swing.*;
 
@@ -51,7 +52,7 @@ public abstract class JavaSourceAction extends AnAction {
     final JavaDirectoryService dirService = JavaDirectoryService.getInstance();
 
     for (PsiDirectory dir : view.getDirectories()) {
-      if (projectIndex.isInSourceContent(dir.getVirtualFile()) &&
+      if (projectIndex.isUnderSourceRootOfType(dir.getVirtualFile(), JavaModuleSourceRootTypes.SOURCES) &&
           dirService.getPackage(dir) != null &&
           !dirService.getPackage(dir).getQualifiedName().isEmpty()) {
         return true;

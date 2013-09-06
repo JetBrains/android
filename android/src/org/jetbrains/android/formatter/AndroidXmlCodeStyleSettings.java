@@ -217,6 +217,21 @@ public class AndroidXmlCodeStyleSettings extends CustomCodeStyleSettings {
         }
 
         @Override
+        public boolean keepWhiteSpacesInsideTag(XmlTag tag) {
+          if (super.keepWhiteSpacesInsideTag(tag)) {
+            return true;
+          }
+
+          while (tag != null) {
+            if ("string".equals(tag.getName())) {
+              return true;
+            }
+            tag = tag.getParentTag();
+          }
+          return false;
+        }
+
+        @Override
         public boolean insertLineBreakBeforeTag(XmlTag xmlTag) {
           if (!INSERT_LINE_BREAKS_AROUND_STYLE) {
             return false;

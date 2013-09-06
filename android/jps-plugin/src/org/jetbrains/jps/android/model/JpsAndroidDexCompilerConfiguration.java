@@ -25,4 +25,8 @@ public interface JpsAndroidDexCompilerConfiguration extends JpsElement {
   boolean isCoreLibrary();
 
   void setCoreLibrary(boolean value);
+
+  String getProguardVmOptions();
+
+  void setProguardVmOptions(String value);
 }
