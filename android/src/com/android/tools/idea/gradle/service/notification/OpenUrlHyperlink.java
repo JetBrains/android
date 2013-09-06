@@ -31,7 +31,7 @@ class OpenUrlHyperlink extends NotificationHyperlink {
   }
 
   @Override
-  void execute() {
+  protected void execute(@NotNull Project project) {
     BrowserUtil.launchBrowser(myUrl);
   }
 }
