@@ -22,27 +22,25 @@ import com.intellij.pom.Navigatable;
 import org.jetbrains.annotations.NotNull;
 
 class OpenFileHyperlink extends NotificationHyperlink {
-  @NotNull private final Project myProject;
   @NotNull private final String myFilePath;
   private final int myLine;
 
-  OpenFileHyperlink(@NotNull final Project project, @NotNull final String filePath, final int line) {
+  OpenFileHyperlink(@NotNull final String filePath, final int line) {
     super("openFile", "Open File");
-    myProject = project;
     myFilePath = filePath;
     myLine = line;
   }
 
   @Override
-  void execute() {
-    VirtualFile projectFile = myProject.getProjectFile();
+  protected void execute(@NotNull Project project) {
+    VirtualFile projectFile = project.getProjectFile();
     if (projectFile == null) {
       // This is the default project. This will NEVER happen.
       return;
     }
     VirtualFile file = projectFile.getParent().getFileSystem().findFileByPath(myFilePath);
     if (file != null) {
-      Navigatable openFile = new OpenFileDescriptor(myProject, file, myLine, -1, false);
+      Navigatable openFile = new OpenFileDescriptor(project, file, myLine, -1, false);
       if (openFile.canNavigate()) {
         openFile.navigate(true);
       }

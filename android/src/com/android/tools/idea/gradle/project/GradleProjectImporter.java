@@ -16,14 +16,15 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.GradleImportNotificationListener;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.ProjectImportEventMessage;
 import com.android.tools.idea.gradle.customizer.CompilerOutputPathModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.ContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.util.Facets;
-import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.annotations.VisibleForTesting;
@@ -265,9 +266,15 @@ public class GradleProjectImporter {
             ProjectRootManagerEx.getInstanceEx(newProject).mergeRootsChangesDuring(new Runnable() {
               @Override
               public void run() {
-                Collection<DataNode<ModuleData>> modules = ExternalSystemApiUtil.findAll(projectInfo, ProjectKeys.MODULE);
+                boolean synchronous = true;
                 ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
-                dataManager.importData(ProjectKeys.MODULE, modules, newProject, true);
+
+                Collection<DataNode<ModuleData>> modules = ExternalSystemApiUtil.findAll(projectInfo, ProjectKeys.MODULE);
+                dataManager.importData(ProjectKeys.MODULE, modules, newProject, synchronous);
+
+                Collection<DataNode<ProjectImportEventMessage>> eventMessages =
+                  ExternalSystemApiUtil.findAll(projectInfo, AndroidProjectKeys.IMPORT_EVENT_MSG);
+                dataManager.importData(AndroidProjectKeys.IMPORT_EVENT_MSG, eventMessages, newProject, synchronous);
               }
             });
           }
@@ -325,7 +332,7 @@ public class GradleProjectImporter {
     void importProject(@NotNull Project project, @NotNull ExternalProjectRefreshCallback callback, boolean modal)
       throws ConfigurationException {
       try {
-        ExternalSystemUtil.refreshProject(project, SYSTEM_ID, project.getBasePath(), callback, true, modal, true);
+        ExternalSystemUtil.refreshProject(project, SYSTEM_ID, project.getBasePath(), callback, false, modal, true);
       }
       catch (RuntimeException e) {
         String externalSystemName = SYSTEM_ID.getReadableName();

@@ -22,15 +22,12 @@ import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.annotations.NotNull;
 
 class OpenHttpSettingsHyperlink extends NotificationHyperlink {
-  @NotNull private final Project myProject;
-
-  OpenHttpSettingsHyperlink(@NotNull final Project project) {
+  OpenHttpSettingsHyperlink() {
     super("openHttpSettings", "HTTP proxy settings");
-    myProject = project;
   }
 
   @Override
-  void execute() {
-    ShowSettingsUtil.getInstance().editConfigurable(myProject, new HTTPProxySettingsPanel(HttpConfigurable.getInstance()));
+  protected void execute(@NotNull Project project) {
+    ShowSettingsUtil.getInstance().editConfigurable(project, new HTTPProxySettingsPanel(HttpConfigurable.getInstance()));
   }
 }

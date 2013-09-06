@@ -28,20 +28,24 @@ import com.intellij.util.AdapterProcessor;
 import com.intellij.util.Processor;
 import org.jetbrains.annotations.NotNull;
 
-class SearchInBuildFilesHyperlink extends NotificationHyperlink {
-  @NotNull private final Project myProject;
+public class SearchInBuildFilesHyperlink extends NotificationHyperlink {
   @NotNull private final String myTextToFind;
 
-  SearchInBuildFilesHyperlink(@NotNull final Project project, @NotNull final String textToFind) {
-    super("searchInBuildFiles", "Search in build.gradle files");
-    myProject = project;
+  SearchInBuildFilesHyperlink(@NotNull final String textToFind) {
+    this("searchInBuildFiles", "Search in build.gradle files", textToFind);
+  }
+
+  public SearchInBuildFilesHyperlink(@NotNull String url,
+                                     @NotNull String text,
+                                     @NotNull final String textToFind) {
+    super(url, text);
     myTextToFind = textToFind;
   }
 
   @Override
-  void execute() {
-    FindManager findManager = FindManager.getInstance(myProject);
-    UsageViewManager usageViewManager = UsageViewManager.getInstance(myProject);
+  protected void execute(@NotNull final Project project) {
+    FindManager findManager = FindManager.getInstance(project);
+    UsageViewManager usageViewManager = UsageViewManager.getInstance(project);
 
     FindModel findModel = (FindModel)findManager.getFindInProjectModel().clone();
     findModel.setStringToFind(myTextToFind);
@@ -57,7 +61,7 @@ class SearchInBuildFilesHyperlink extends NotificationHyperlink {
     UsageViewPresentation presentation = FindInProjectUtil.setupViewPresentation(findModel.isOpenInNewTabEnabled(), findModelCopy);
     boolean showPanelIfOnlyOneUsage = !FindSettings.getInstance().isSkipResultsWithOneUsage();
     final FindUsagesProcessPresentation processPresentation =
-      FindInProjectUtil.setupProcessPresentation(myProject, showPanelIfOnlyOneUsage, presentation);
+      FindInProjectUtil.setupProcessPresentation(project, showPanelIfOnlyOneUsage, presentation);
     UsageTarget usageTarget = new FindInProjectUtil.StringUsageTarget(findModel.getStringToFind());
     usageViewManager.searchAndShowUsages(new UsageTarget[]{usageTarget}, new Factory<UsageSearcher>() {
       @Override
@@ -68,7 +72,7 @@ class SearchInBuildFilesHyperlink extends NotificationHyperlink {
             AdapterProcessor<UsageInfo, Usage> consumer =
               new AdapterProcessor<UsageInfo, Usage>(processor, UsageInfo2UsageAdapter.CONVERTER);
             //noinspection ConstantConditions
-            FindInProjectUtil.findUsages(findModelCopy, null, myProject, true, consumer, processPresentation);
+            FindInProjectUtil.findUsages(findModelCopy, null, project, true, consumer, processPresentation);
           }
         };
       }

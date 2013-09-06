@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.service.notification;
 
 import com.intellij.ide.actions.SendFeedbackAction;
+import com.intellij.openapi.project.Project;
+import org.jetbrains.annotations.NotNull;
 
 class FileBugHyperlink extends NotificationHyperlink {
   FileBugHyperlink() {
@@ -23,7 +25,7 @@ class FileBugHyperlink extends NotificationHyperlink {
   }
 
   @Override
-  void execute() {
+  protected void execute(@NotNull Project project) {
     SendFeedbackAction.launchBrowser();
   }
 }

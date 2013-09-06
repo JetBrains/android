@@ -25,19 +25,16 @@ import org.jetbrains.plugins.gradle.GradleManager;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 class GradleSettingsHyperlink extends NotificationHyperlink {
-  @NotNull private final Project myProject;
-
-  GradleSettingsHyperlink(@NotNull Project project) {
+  GradleSettingsHyperlink() {
     super("openGradleSettings", "Gradle settings");
-    myProject = project;
   }
 
   @Override
-  void execute() {
+  protected void execute(@NotNull Project project) {
     ExternalSystemManager<?,?,?,?,?> manager = ExternalSystemApiUtil.getManager(GradleConstants.SYSTEM_ID);
     assert manager instanceof GradleManager;
     GradleManager gradleManager = (GradleManager)manager;
-    Configurable configurable = gradleManager.getConfigurable(myProject);
-    ShowSettingsUtil.getInstance().editConfigurable(myProject, configurable);
+    Configurable configurable = gradleManager.getConfigurable(project);
+    ShowSettingsUtil.getInstance().editConfigurable(project, configurable);
   }
 }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.service.notification;
 
-import com.android.tools.idea.gradle.service.notification.GradleNotificationExtension.CustomNotificationListener;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationExtension.CustomizationResult;
 import com.intellij.openapi.project.Project;
 import junit.framework.TestCase;
@@ -71,7 +70,7 @@ public class GradleNotificationExtensionTest extends TestCase {
     }
 
     @Override
-    void execute() {
+    protected void execute(@NotNull Project project) {
     }
   }
 }

@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.service.notification;
 
+import com.intellij.openapi.project.Project;
 import junit.framework.TestCase;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.event.HyperlinkEvent;
 
@@ -27,14 +29,16 @@ import static org.easymock.classextension.EasyMock.*;
  */
 public class NotificationHyperlinkTest extends TestCase {
   private boolean myExecuted;
+  private Project myProject;
   private NotificationHyperlink myHyperlink;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    myProject = createMock(Project.class);
     myHyperlink = new NotificationHyperlink("openFile", "Open File") {
       @Override
-      void execute() {
+      protected void execute(@NotNull Project project) {
         myExecuted = true;
       }
     };
@@ -45,7 +49,7 @@ public class NotificationHyperlinkTest extends TestCase {
     expect(event.getDescription()).andReturn("openFile");
     replay(event);
 
-    assertTrue(myHyperlink.executeIfClicked(event));
+    assertTrue(myHyperlink.executeIfClicked(myProject, event));
 
     verify(event);
 
@@ -57,7 +61,7 @@ public class NotificationHyperlinkTest extends TestCase {
     expect(event.getDescription()).andReturn("browse");
     replay(event);
 
-    assertFalse(myHyperlink.executeIfClicked(event));
+    assertFalse(myHyperlink.executeIfClicked(myProject, event));
 
     verify(event);
 
