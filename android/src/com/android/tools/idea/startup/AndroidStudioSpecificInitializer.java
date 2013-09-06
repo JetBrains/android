@@ -16,12 +16,13 @@
 package com.android.tools.idea.startup;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.actions.AndroidImportProjectAction;
-import com.android.tools.idea.actions.AndroidNewModuleAction;
-import com.android.tools.idea.actions.AndroidNewModuleInGroupAction;
-import com.android.tools.idea.actions.AndroidNewProjectAction;
+import com.android.tools.idea.actions.*;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.google.common.io.Closeables;
+import com.intellij.compiler.actions.CompileAction;
+import com.intellij.compiler.actions.GenerateAntBuildAction;
+import com.intellij.compiler.actions.MakeModuleAction;
+import com.intellij.ide.actions.ImportModuleAction;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
@@ -91,6 +92,10 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     replaceAction("NewModuleInGroup", new AndroidNewModuleInGroupAction());
     replaceAction("ImportProject", new AndroidImportProjectAction());
     replaceAction("WelcomeScreen.ImportProject", new AndroidImportProjectAction());
+    replaceAction("ImportModule", new AndroidActionRemover(new ImportModuleAction(), "Import Module..."));
+    replaceAction("MakeModule", new AndroidActionRemover(new MakeModuleAction(), "Make Module"));
+    replaceAction("Compile", new AndroidActionRemover(new CompileAction(), "Compile"));
+    replaceAction("GenerateAntBuild", new AndroidActionRemover(new GenerateAntBuildAction(), "Generate Ant Build..."));
   }
 
   private static void replaceAction(String actionId, AnAction newAction) {
