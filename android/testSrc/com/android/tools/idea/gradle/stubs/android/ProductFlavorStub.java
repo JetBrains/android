@@ -95,4 +95,10 @@ public class ProductFlavorStub implements ProductFlavor {
   public List<File> getProguardFiles() {
     throw new UnsupportedOperationException();
   }
+
+  @NotNull
+  @Override
+  public List<File> getConsumerProguardFiles() {
+    throw new UnsupportedOperationException();
+  }
 }

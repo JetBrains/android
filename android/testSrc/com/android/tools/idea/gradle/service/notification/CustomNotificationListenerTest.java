@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.service.notification;
 
-import com.android.tools.idea.gradle.service.notification.GradleNotificationExtension.CustomNotificationListener;
 import com.intellij.notification.Notification;
+import com.intellij.openapi.project.Project;
 import junit.framework.TestCase;
 
 import javax.swing.event.HyperlinkEvent;
@@ -36,6 +36,7 @@ public class CustomNotificationListenerTest extends TestCase {
   private Notification myNotification;
   private HyperlinkEvent myHyperlinkEvent;
   private CustomNotificationListener myListener;
+  private Project myProject;
 
   @Override
   protected void setUp() throws Exception {
@@ -45,13 +46,14 @@ public class CustomNotificationListenerTest extends TestCase {
     myHyperlink3 = createMock(NotificationHyperlink.class);
     myNotification = createMock(Notification.class);
     myHyperlinkEvent = createMock(HyperlinkEvent.class);
+    myProject = createMock(Project.class);
   }
 
   public void testHyperlinkActivatedWithOneHyperlink() {
-    myListener = new CustomNotificationListener(myHyperlink1);
+    myListener = new CustomNotificationListener(myProject, myHyperlink1);
 
     // if there is only one hyperlink, just execute it.
-    expect(myHyperlink1.executeIfClicked(myHyperlinkEvent)).andReturn(true);
+    expect(myHyperlink1.executeIfClicked(myProject, myHyperlinkEvent)).andReturn(true);
     replay(myHyperlink1, myHyperlink2, myHyperlink3);
 
     myListener.hyperlinkActivated(myNotification, myHyperlinkEvent);
@@ -60,11 +62,11 @@ public class CustomNotificationListenerTest extends TestCase {
   }
 
   public void testHyperlinkActivatedWithMoreThanOneHyperlink() {
-    myListener = new CustomNotificationListener(myHyperlink1, myHyperlink2, myHyperlink3);
+    myListener = new CustomNotificationListener(myProject, myHyperlink1, myHyperlink2, myHyperlink3);
 
     // should not try to execute myHyperlink3, because execution of myHyperlink2 was successful.
-    expect(myHyperlink1.executeIfClicked(myHyperlinkEvent)).andReturn(false);
-    expect(myHyperlink2.executeIfClicked(myHyperlinkEvent)).andReturn(true);
+    expect(myHyperlink1.executeIfClicked(myProject, myHyperlinkEvent)).andReturn(false);
+    expect(myHyperlink2.executeIfClicked(myProject, myHyperlinkEvent)).andReturn(true);
     replay(myHyperlink1, myHyperlink2, myHyperlink3);
 
     myListener.hyperlinkActivated(myNotification, myHyperlinkEvent);

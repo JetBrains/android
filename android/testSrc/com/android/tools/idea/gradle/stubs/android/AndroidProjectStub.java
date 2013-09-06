@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -158,6 +159,12 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   @NotNull
   public AaptOptions getAaptOptions() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
+  public Collection<String> getUnresolvedDependencies() {
     throw new UnsupportedOperationException();
   }
 
