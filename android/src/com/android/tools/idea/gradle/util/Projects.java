@@ -16,8 +16,13 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.compiler.options.ExternalBuildOptionListener;
+import com.intellij.facet.Facet;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.FacetTypeId;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.compiler.CompilerManager;
@@ -125,6 +130,23 @@ public final class Projects {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
       if (Facets.getFirstFacetOfType(module, AndroidGradleFacet.TYPE_ID) != null) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public static boolean isIdeaAndroidProject(@NotNull Project project) {
+    ModuleManager moduleManager = ModuleManager.getInstance(project);
+    for (Module module : moduleManager.getModules()) {
+      FacetManager facetManager = FacetManager.getInstance(module);
+      Multimap<FacetTypeId, Facet> facetsByType = ArrayListMultimap.create();
+      for (Facet facet : facetManager.getAllFacets()) {
+        facetsByType.put(facet.getTypeId(), facet);
+      }
+      boolean hasAndroidFacet = !facetsByType.get(AndroidFacet.ID).isEmpty();
+      boolean hasAndroidGradleFacet = !facetsByType.get(AndroidGradleFacet.TYPE_ID).isEmpty();
+      if (hasAndroidFacet && !hasAndroidGradleFacet) {
         return true;
       }
     }
