@@ -17,6 +17,7 @@ package com.android.tools.idea.jps.builder;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.jps.AndroidGradleJps;
 import com.android.tools.idea.jps.model.JpsAndroidGradleModuleExtension;
 import com.android.tools.idea.jps.output.parser.GradleErrorOutputParser;
@@ -163,7 +164,17 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
     JpsAndroidModuleExtensionImpl androidFacet = (JpsAndroidModuleExtensionImpl)AndroidJpsUtil.getExtension(module);
     if (androidFacet != null) {
       JpsAndroidModuleProperties properties = androidFacet.getProperties();
-      assembleTaskName = executionSettings.isGenerateSourceOnly() ? properties.SOURCE_GEN_TASK_NAME : properties.ASSEMBLE_TASK_NAME;
+      BuildMode buildMode = executionSettings.getBuildMode();
+      switch (buildMode) {
+        case SOURCE_GEN:
+          assembleTaskName = properties.SOURCE_GEN_TASK_NAME;
+          break;
+        case COMPILE_JAVA:
+          assembleTaskName = properties.COMPILE_JAVA_TASK_NAME;
+          break;
+        default:
+          assembleTaskName = properties.ASSEMBLE_TASK_NAME;
+      }
     }
     if (Strings.isNullOrEmpty(assembleTaskName)) {
       assembleTaskName = DEFAULT_ASSEMBLE_TASK_NAME;

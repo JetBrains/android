@@ -268,7 +268,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
     try {
       return androidProject.getUnresolvedDependencies();
     } catch (UnsupportedMethodException e) {
-      // This happens when using Gradle model plug-in prior to 0.6.0.
+      // This happens when using an old but supported v0.5.+ plug-in. This code will be removed once the minimum supported version is 0.6.0.
       return Collections.emptySet();
     }
   }

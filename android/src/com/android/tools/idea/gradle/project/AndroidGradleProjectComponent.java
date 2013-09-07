@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.GradleImportNotificationListener;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.OpenUrlHyperlink;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
@@ -107,7 +108,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     Projects.ensureExternalBuildIsEnabledForGradleProject(myProject);
 
     if (reImportProject) {
-      Projects.setProjectBuildAction(myProject, Projects.BuildAction.SOURCE_GEN);
+      Projects.setProjectBuildMode(myProject, BuildMode.SOURCE_GEN);
       try {
         // Prevent IDEA from refreshing project. We want to do it ourselves.
         myProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
