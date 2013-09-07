@@ -87,11 +87,11 @@ public class AddMissingAttributesFix extends WriteCommandAction<Void> {
 
     if (definesHeight) {
       String value = height.getValue();
-      if (value != null && !Character.isDigit(value.charAt(0))) {
-        return value.equals(VALUE_WRAP_CONTENT) || value.equals(VALUE_FILL_PARENT) || value.equals(VALUE_MATCH_PARENT);
+      if (value == null || value.isEmpty()) {
+        return false;
       }
-
-      return value != null;
+      return value.equals(VALUE_WRAP_CONTENT) || value.equals(VALUE_FILL_PARENT) || value.equals(VALUE_MATCH_PARENT) ||
+             value.startsWith(PREFIX_RESOURCE_REF) || value.startsWith(PREFIX_THEME_REF) || Character.isDigit(value.charAt(0));
     } else if (resourceResolver != null) {
       String style = tag.getAttributeValue(ATTR_STYLE);
       if (style != null) {
@@ -112,11 +112,11 @@ public class AddMissingAttributesFix extends WriteCommandAction<Void> {
 
     if (definesWidth) {
       String value = width.getValue();
-      if (value != null && !Character.isDigit(value.charAt(0))) {
-        return value.equals(VALUE_WRAP_CONTENT) || value.equals(VALUE_FILL_PARENT) || value.equals(VALUE_MATCH_PARENT);
+      if (value == null || value.isEmpty()) {
+        return false;
       }
-
-      return value != null;
+      return value.equals(VALUE_WRAP_CONTENT) || value.equals(VALUE_FILL_PARENT) || value.equals(VALUE_MATCH_PARENT) ||
+             value.startsWith(PREFIX_RESOURCE_REF) || value.startsWith(PREFIX_THEME_REF) || Character.isDigit(value.charAt(0));
     } else if (resourceResolver != null) {
       String style = tag.getAttributeValue(ATTR_STYLE);
       if (style != null) {
