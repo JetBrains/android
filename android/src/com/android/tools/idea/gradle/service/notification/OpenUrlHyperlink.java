@@ -22,10 +22,10 @@ import com.intellij.util.net.HTTPProxySettingsPanel;
 import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.annotations.NotNull;
 
-class OpenUrlHyperlink extends NotificationHyperlink {
+public class OpenUrlHyperlink extends NotificationHyperlink {
   @NotNull private final String myUrl;
 
-  OpenUrlHyperlink(@NotNull String url, @NotNull String text) {
+  public OpenUrlHyperlink(@NotNull String url, @NotNull String text) {
     super(url, text);
     myUrl = url;
   }

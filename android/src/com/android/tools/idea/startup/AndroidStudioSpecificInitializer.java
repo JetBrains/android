@@ -33,6 +33,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.codeStyle.CodeStyleScheme;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
+import com.intellij.util.PlatformUtilsCore;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -55,6 +56,10 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   /** Paths relative to the IDE installation folder where the Android SDK maybe present. */
   private static final String[] ANDROID_SDK_RELATIVE_PATHS =
     { ANDROID_SDK_FOLDER_NAME, File.separator + ".." + File.separator + ANDROID_SDK_FOLDER_NAME,};
+
+  public static boolean isAndroidStudio() {
+    return "AndroidStudio".equals(PlatformUtilsCore.getPlatformPrefix());
+  }
 
   @Override
   public void run() {

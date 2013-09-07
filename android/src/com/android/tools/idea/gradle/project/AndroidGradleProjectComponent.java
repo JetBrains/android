@@ -16,10 +16,18 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.gradle.GradleImportNotificationListener;
+import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
+import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
+import com.android.tools.idea.gradle.service.notification.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.collect.Lists;
 import com.intellij.ProjectTopics;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationListener;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileTask;
@@ -73,6 +81,11 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
    */
   @Override
   public void projectOpened() {
+    if (AndroidStudioSpecificInitializer.isAndroidStudio() && Projects.isIdeaAndroidProject(myProject)) {
+      Notification warning = new IdeaAndroidProjectNotification(myProject).createWarning();
+      warning.notify(myProject);
+      return;
+    }
     if (Projects.isGradleProject(myProject)) {
       configureGradleProject(true);
     }
@@ -166,6 +179,34 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
 
     void addModuleListener(@NotNull ModuleListener listener) {
       additionalListeners.add(listener);
+    }
+  }
+
+  private static class IdeaAndroidProjectNotification {
+    private static final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.balloonGroup("IDEA Android project detector");
+
+    private final NotificationHyperlink[] myHyperlinks = {
+      new OpenUrlHyperlink("http://tools.android.com/tech-docs/new-build-system/migrating-from-intellij-projects",
+                           "Migrating from IntelliJ projects"),
+      new OpenUrlHyperlink("http://tools.android.com/tech-docs/new-build-system/migrating-from-eclipse-projects",
+                           "Migrating from Eclipse projects")
+    };
+
+    private final String myErrorMessage;
+    private final NotificationListener myListener;
+
+    IdeaAndroidProjectNotification(@NotNull Project project) {
+      myListener = new CustomNotificationListener(project, myHyperlinks);
+
+      // We need both "<br>" and "\n" to separate lines. IDEA will show this message in a balloon (which respects "<br>", and in the
+      // 'Event Log' tool window, which respects "\n".)
+      myErrorMessage =
+        "We recommend migrating to Gradle-based Android projects.<br>\n" + myHyperlinks[0].toString() + " " + myHyperlinks[1].toString();
+    }
+
+    @NotNull
+    Notification createWarning() {
+      return NOTIFICATION_GROUP.createNotification("IDEA Android Project Detected", myErrorMessage, NotificationType.WARNING, myListener);
     }
   }
 }
