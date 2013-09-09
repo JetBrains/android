@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.service;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.Facets;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.collect.ImmutableList;
@@ -80,10 +81,10 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
       application.invokeLater(new Runnable() {
         @Override
         public void run() {
-          Projects.BuildAction buildAction = Projects.getBuildActionFrom(project);
-          if (buildAction == null) {
+          BuildMode buildMode = Projects.getBuildModeFrom(project);
+          if (buildMode == null) {
             // This happens when the project is imported and this is the first pass of the 2-pass import. Rebuild on second pass.
-            Projects.setProjectBuildAction(project, Projects.BuildAction.REBUILD);
+            Projects.setProjectBuildMode(project, BuildMode.REBUILD);
           }
           else {
             Projects.make(project);

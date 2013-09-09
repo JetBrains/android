@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.customizer.CompilerOutputPathModuleCustomiz
 import com.android.tools.idea.gradle.customizer.ContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.Facets;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.sdk.Jdks;
@@ -139,7 +140,7 @@ public class GradleProjectImporter {
       newProject.save();
     }
 
-    Projects.setProjectBuildAction(newProject, Projects.BuildAction.REBUILD);
+    Projects.setProjectBuildMode(newProject, BuildMode.REBUILD);
 
     doImport(newProject, true /* new project */, true /* synchronous import */, callback);
   }

@@ -71,6 +71,12 @@ public class ArtifactInfoStub implements ArtifactInfo {
 
   @Override
   @NotNull
+  public String getJavaCompileTaskName() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
   public String getAssembleTaskName() {
     return myAssembleTaskName;
   }
