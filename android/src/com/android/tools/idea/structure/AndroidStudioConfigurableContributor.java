@@ -32,4 +32,13 @@ public class AndroidStudioConfigurableContributor extends ProjectStructureConfig
                                                                     @NotNull StructureConfigurableContext context) {
     return ImmutableList.of(new AndroidHomeConfigurable());
   }
+
+  @NotNull
+  @Override
+  public List<? extends Configurable> getExtraProjectConfigurables(@NotNull Project project,
+                                                                   @NotNull StructureConfigurableContext context) {
+    AndroidModuleStructureConfigurable androidModuleStructureConfigurable = AndroidModuleStructureConfigurable.getInstance(project);
+    androidModuleStructureConfigurable.init(context);
+    return ImmutableList.of(androidModuleStructureConfigurable);
+  }
 }

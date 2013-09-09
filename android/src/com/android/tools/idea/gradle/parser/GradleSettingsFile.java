@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.gradle.parser;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.Facets;
 import com.google.common.base.Function;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -39,9 +42,21 @@ import java.util.Arrays;
  * {@link com.intellij.util.ActionRunner#runInsideWriteAction}.
  */
 public class GradleSettingsFile extends GradleGroovyFile {
+  private static final Logger LOG = Logger.getInstance(GradleGroovyFile.class.getName());
 
   public static final String INCLUDE_METHOD = "include";
   private static final Iterable<String> EMPTY_ITERABLE = Arrays.asList(new String[] {});
+
+  @Nullable
+  public static GradleSettingsFile get(Project project) {
+    VirtualFile settingsFile = project.getBaseDir().findFileByRelativePath(SdkConstants.FN_SETTINGS_GRADLE);
+    if (settingsFile != null) {
+      return new GradleSettingsFile(settingsFile, project);
+    } else {
+      LOG.warn("Unable to find settings.gradle file for project " + project.getName());
+      return null;
+    }
+  }
 
   public GradleSettingsFile(@NotNull VirtualFile file, @NotNull Project project) {
     super(file, project);
@@ -138,12 +153,42 @@ public class GradleSettingsFile extends GradleGroovyFile {
     }));
   }
 
+  /**
+   * Given a module, returns that module's path in Gradle colon-delimited format.
+   */
   @Nullable
-  private static String getModuleGradlePath(@NotNull Module module) {
+  public static String getModuleGradlePath(@NotNull Module module) {
     AndroidGradleFacet androidGradleFacet = Facets.getFirstFacetOfType(module, AndroidGradleFacet.TYPE_ID);
     if (androidGradleFacet == null) {
       return null;
     }
     return androidGradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
+  }
+
+  /**
+   * Given a module path in Gradle colon-delimited format, returns the build.gradle file for that module
+   * if it can be found, or null if it cannot.
+   */
+  @Nullable
+  public GradleBuildFile getModuleBuildFile(@NotNull String modulePath) {
+    VirtualFile vf = myFile;
+    vf = vf.getParent();
+    if (vf == null) {
+      return null;
+    }
+    for (String leaf : Splitter.on(':').split(modulePath)) {
+      if (leaf.isEmpty()) {
+        continue;
+      }
+      vf = vf.findChild(leaf);
+      if (vf == null) {
+        return null;
+      }
+    }
+    vf = vf.findChild(SdkConstants.FN_BUILD_GRADLE);
+    if (vf == null) {
+      return null;
+    }
+    return new GradleBuildFile(vf, myProject);
   }
 }

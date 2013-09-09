@@ -16,6 +16,7 @@
 package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
@@ -57,7 +58,7 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
       return EMPTY_PROJECT_TEMPLATES;
     }
     TemplateManager manager = TemplateManager.getInstance();
-    List<File> templates = manager.getTemplates("projects");
+    List<File> templates = manager.getTemplates(Template.CATEGORY_PROJECTS);
     List<ProjectTemplate> tt = new ArrayList<ProjectTemplate>();
     for (int i = 0, n = templates.size(); i < n; i++) {
       File template = templates.get(i);
