@@ -99,7 +99,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     replaceAction("WelcomeScreen.ImportProject", new AndroidImportProjectAction());
     replaceAction("ImportModule", new AndroidActionRemover(new ImportModuleAction(), "Import Module..."));
     replaceAction("MakeModule", new AndroidActionRemover(new MakeModuleAction(), "Make Module"));
-    replaceAction("Compile", new AndroidActionRemover(new CompileAction(), "Compile"));
+    replaceAction("Compile", new AndroidCompileAction());
     replaceAction("GenerateAntBuild", new AndroidActionRemover(new GenerateAntBuildAction(), "Generate Ant Build..."));
   }
 

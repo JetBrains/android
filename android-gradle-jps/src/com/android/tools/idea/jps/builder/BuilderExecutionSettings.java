@@ -16,6 +16,7 @@
 package com.android.tools.idea.jps.builder;
 
 import com.android.tools.idea.gradle.compiler.BuildProcessJvmArgs;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.util.SystemProperties;
@@ -38,9 +39,9 @@ class BuilderExecutionSettings {
   @Nullable private final File myGradleServiceDir;
   @Nullable private final File myJavaHomeDir;
   @NotNull private final File myProjectDir;
+  @NotNull private final BuildMode myBuildMode;
   private final boolean myVerboseLoggingEnabled;
   private final boolean myParallelBuild;
-  private final boolean myGenerateSourceOnly;
 
   BuilderExecutionSettings() {
     myEmbeddedGradleDaemonEnabled = SystemProperties.getBooleanProperty(BuildProcessJvmArgs.USE_EMBEDDED_GRADLE_DAEMON, false);
@@ -50,9 +51,10 @@ class BuilderExecutionSettings {
     myGradleServiceDir = findDir(BuildProcessJvmArgs.GRADLE_SERVICE_DIR_PATH, "Gradle service");
     myJavaHomeDir = findDir(BuildProcessJvmArgs.GRADLE_JAVA_HOME_DIR_PATH, "Java home");
     myProjectDir = findProjectRootDir();
+    String buildActionName = System.getProperty(BuildProcessJvmArgs.BUILD_ACTION);
+    myBuildMode = Strings.isNullOrEmpty(buildActionName) ? BuildMode.DEFAULT_BUILD_MODE : BuildMode.valueOf(buildActionName);
     myVerboseLoggingEnabled = SystemProperties.getBooleanProperty(BuildProcessJvmArgs.USE_GRADLE_VERBOSE_LOGGING, false);
     myParallelBuild = SystemProperties.getBooleanProperty(GlobalOptions.COMPILE_PARALLEL_OPTION, false);
-    myGenerateSourceOnly = SystemProperties.getBooleanProperty(BuildProcessJvmArgs.GENERATE_SOURCE_ONLY_ON_COMPILE, false);
   }
 
   @NotNull
@@ -142,8 +144,9 @@ class BuilderExecutionSettings {
     return myProjectDir;
   }
 
-  boolean isGenerateSourceOnly() {
-    return myGenerateSourceOnly;
+  @NotNull
+  BuildMode getBuildMode() {
+    return myBuildMode;
   }
 
   boolean isParallelBuild() {
@@ -154,7 +157,7 @@ class BuilderExecutionSettings {
   public String toString() {
     return "BuilderExecutionSettings[" +
            "embeddedGradleDaemonEnabled=" + myEmbeddedGradleDaemonEnabled +
-           ", generateSourceOnly=" + myGenerateSourceOnly +
+           ", buildMode=" + myBuildMode.name() +
            ", gradleDaemonMaxIdleTimeInMs=" + myGradleDaemonMaxIdleTimeInMs +
            ", gradleDaemonVmOptions=" + myGradleDaemonVmOptions +
            ", gradleHomeDir=" + myGradleHomeDir +

@@ -29,6 +29,7 @@ import java.util.*;
 public class JpsAndroidModuleProperties {
   public String SELECTED_BUILD_VARIANT = "";
   public String ASSEMBLE_TASK_NAME = "";
+  public String COMPILE_JAVA_TASK_NAME = "";
   public String ASSEMBLE_TEST_TASK_NAME = "";
   public String SOURCE_GEN_TASK_NAME = "";
 

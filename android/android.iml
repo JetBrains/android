@@ -55,13 +55,13 @@
     <orderEntry type="module-library">
       <library name="android-gradle-model">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/builder-0.6.0-20130905.234349-3.jar!/" />
-          <root url="jar://$MODULE_DIR$/lib/builder-model-0.6.0-20130905.234349-3.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/builder-0.5.0-20130906.195620-5.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/builder-model-0.5.0-20130906.195620-5.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MODULE_DIR$/lib/src/builder-0.6.0-20130905.234349-3-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/lib/src/builder-model-0.6.0-20130905.234349-3-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/src/builder-0.5.0-20130906.195620-5-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/src/builder-model-0.5.0-20130906.195620-5-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.compiler;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
@@ -122,9 +123,12 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     //noinspection TestOnlyProblems
     populateJvmArgs(executionSettings, jvmArgs);
 
-    if (Projects.generateSourceOnlyOnCompile(myProject)) {
-      jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GENERATE_SOURCE_ONLY_ON_COMPILE, "true"));
+    BuildMode buildMode = Projects.getBuildModeFrom(myProject);
+    if (buildMode == null) {
+      buildMode = BuildMode.DEFAULT_BUILD_MODE;
     }
+    Projects.removeBuildActionFrom(myProject);
+    jvmArgs.add(createJvmArg(BuildProcessJvmArgs.BUILD_ACTION, buildMode.name()));
 
     return jvmArgs;
   }
