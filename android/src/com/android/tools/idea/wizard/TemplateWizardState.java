@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.wizard;
 
+import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
@@ -214,8 +215,14 @@ public class TemplateWizardState {
 
   private void convertToInt(@NotNull String key) {
     Object value = get(key);
-    if (value != null && !(value instanceof Integer)) {
-      put(key, Integer.parseInt(value.toString()));
+    if (value instanceof String) {
+      Integer result;
+      try {
+        result = Integer.parseInt((String)value);
+      } catch (NumberFormatException e) {
+        result = SdkVersionInfo.getApiByPreviewName((String)value, true /* Recognize Unknowns */);
+      }
+      put(key, result);
     }
   }
 }
