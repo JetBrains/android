@@ -75,7 +75,7 @@ public class RepositoryUrls {
     path = FileUtil.toSystemIndependentName(path);
     File supportMetadataFile = new File(path);
     if (!supportMetadataFile.exists()) {
-      throw new ExternalSystemException("You must install the Android Support Repository though the SDK Manager.");
+      throw new ExternalSystemException("You must install the Android Support Repository through the SDK Manager.");
     }
 
     String version = getLatestVersionFromMavenMetadata(supportMetadataFile);
