@@ -38,7 +38,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -120,8 +119,9 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
         return state;
       }
 
-      List<File> files = Collections.singletonList(new File(mainFile.getPath()));
-      LintRequest request = new IntellijLintRequest(client, files, state.getModule().getProject());
+      List<VirtualFile> files = Collections.singletonList(mainFile);
+      LintRequest request = new IntellijLintRequest(client, state.getModule().getProject(), files,
+                                                    Collections.singletonList(state.getModule()));
       request.setScope(scope);
 
       lint.analyze(request);

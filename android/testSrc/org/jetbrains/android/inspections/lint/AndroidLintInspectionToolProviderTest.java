@@ -56,6 +56,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
         continue;
       }
 
+      assertFalse(IntellijLintProject.SUPPORT_CLASS_FILES); // When enabled, adjust this to register class based registrations
       Implementation implementation = issue.getImplementation();
       if (implementation.getScope().contains(Scope.CLASS_FILE) ||
           implementation.getScope().contains(Scope.ALL_CLASS_FILES) ||

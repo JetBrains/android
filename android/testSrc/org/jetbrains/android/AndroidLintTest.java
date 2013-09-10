@@ -15,6 +15,7 @@ import org.jetbrains.android.inspections.lint.AndroidAddStringResourceQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidLintExternalAnnotator;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -172,6 +173,9 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testProguard() throws Exception {
     createManifest();
     myFixture.copyFileToProject(getGlobalTestDir() + "/proguard.cfg", "proguard.cfg");
+    myFacet.getProperties().RUN_PROGUARD = true;
+    myFacet.getProperties().PROGUARD_CFG_PATH = "/proguard.cfg";
+
     doGlobalInspectionTest(new AndroidLintInspectionToolProvider.AndroidLintProguardInspection());
   }
 
@@ -244,9 +248,16 @@ public class AndroidLintTest extends AndroidTestCase {
 
   public void testApiOverride() throws Exception {
     createManifest();
-    createProjectProperties(); // Need build target >= 1
-    myFixture.copyFileToProject(getGlobalTestDir() + "/MyActivity.java", "src/p1/p2/MyActivity.java");
-    doGlobalInspectionTest(new AndroidLintInspectionToolProvider.AndroidLintOverrideInspection());
+    createProjectProperties();
+
+    // We need a build target >= 1 but also *smaller* than 17. Ensure this is the case
+    AndroidPlatform platform = AndroidPlatform.getInstance(myFacet.getModule());
+    if (platform != null && platform.getApiLevel() < 17) {
+      myFixture.copyFileToProject(getGlobalTestDir() + "/MyActivity.java", "src/p1/p2/MyActivity.java");
+      doGlobalInspectionTest(new AndroidLintInspectionToolProvider.AndroidLintOverrideInspection());
+    } else {
+      // TODO: else try to find and set a target on the project such that the above returns true
+    }
   }
 
   public void testActivityRegistered() throws Exception {

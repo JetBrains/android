@@ -156,7 +156,7 @@ public class AndroidRootUtil {
 
   @Nullable
   public static VirtualFile getProguardCfgFile(@NotNull AndroidFacet facet) {
-    return getFileByRelativeModulePath(facet.getModule(), facet.getProperties().PROGUARD_CFG_PATH, false);
+    return getFileByRelativeModulePath(facet.getModule(), facet.getProperties().PROGUARD_CFG_PATH, true);
   }
 
   @Nullable
