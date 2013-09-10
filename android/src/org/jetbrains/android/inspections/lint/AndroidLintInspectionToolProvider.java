@@ -619,14 +619,8 @@ public class AndroidLintInspectionToolProvider {
     @NotNull
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-      // TODO: Return one for each parent context (declaration, method, class, outer class(es)
-      Pattern pattern = Pattern.compile("\\s(\\d+)\\s"); //$NON-NLS-1$
-      Matcher matcher = pattern.matcher(message);
-      if (matcher.find()) {
-        int api = Integer.parseInt(matcher.group(1));
-        return new AndroidLintQuickFix[] { new AddTargetApiQuickFix(api) };
-      }
-      return AndroidLintQuickFix.EMPTY_ARRAY;
+      return getApiDetectorFixes(message);
+
     }
   }
 
@@ -634,6 +628,23 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintInlinedApiInspection() {
       super(AndroidBundle.message("android.lint.inspections.inlined.api"), ApiDetector.INLINED);
     }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      return getApiDetectorFixes(message);
+    }
+  }
+
+  private static AndroidLintQuickFix[] getApiDetectorFixes(String message) {
+    // TODO: Return one for each parent context (declaration, method, class, outer class(es)
+    Pattern pattern = Pattern.compile("\\s(\\d+)\\s"); //$NON-NLS-1$
+    Matcher matcher = pattern.matcher(message);
+    if (matcher.find()) {
+      int api = Integer.parseInt(matcher.group(1));
+      return new AndroidLintQuickFix[] { new AddTargetApiQuickFix(api) };
+    }
+    return AndroidLintQuickFix.EMPTY_ARRAY;
   }
 
   public static class AndroidLintOverrideInspection extends AndroidLintInspectionBase {

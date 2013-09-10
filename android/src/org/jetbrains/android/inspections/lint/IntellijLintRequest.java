@@ -16,24 +16,86 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.annotations.NonNull;
-import com.android.tools.lint.client.api.LintClient;
+import com.android.annotations.Nullable;
 import com.android.tools.lint.client.api.LintRequest;
+import com.android.tools.lint.detector.api.Scope;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 
 class IntellijLintRequest extends LintRequest {
-  @NonNull
-  private final Project myProject;
+  @NonNull private final Project myProject;
+  @NonNull private final List<Module> myModules;
+  @NonNull private final IntellijLintClient mLintClient;
+  @Nullable private final List<VirtualFile> myFileList;
 
-  IntellijLintRequest(@NonNull LintClient client, @NonNull List<File> files, @NonNull Project project) {
-    super(client, files);
+  /**
+   * Creates a new {@linkplain IntellijLintRequest}.
+   * @param client the client
+   * @param project the project where lint is run
+   * @param fileList an optional list of specific files to check, normally null
+   * @param modules the set of modules to be checked (or containing the files)
+   */
+  IntellijLintRequest(@NonNull IntellijLintClient client,
+                      @NonNull Project project,
+                      @Nullable List<VirtualFile> fileList,
+                      @NonNull List<Module> modules) {
+    super(client, Collections.<File>emptyList());
+    mLintClient = client;
     myProject = project;
+    myModules = modules;
+    myFileList = fileList;
   }
 
   @NonNull
   Project getProject() {
     return myProject;
+  }
+
+  @Nullable
+  @Override
+  public EnumSet<Scope> getScope() {
+    if (mScope == null) {
+      Collection<com.android.tools.lint.detector.api.Project> projects = getProjects();
+      if (projects != null) {
+        mScope = Scope.infer(projects);
+
+        //noinspection ConstantConditions
+        if (!IntellijLintProject.SUPPORT_CLASS_FILES && (mScope.contains(Scope.CLASS_FILE) || mScope.contains(Scope.ALL_CLASS_FILES)
+                                                         || mScope.contains(Scope.JAVA_LIBRARIES))) {
+          mScope = EnumSet.copyOf(mScope); // make mutable
+          // Can't run class file based checks
+          mScope.remove(Scope.CLASS_FILE);
+          mScope.remove(Scope.ALL_CLASS_FILES);
+          mScope.remove(Scope.JAVA_LIBRARIES);
+        }
+      }
+    }
+
+    return mScope;
+  }
+
+  @Nullable
+  @Override
+  public Collection<com.android.tools.lint.detector.api.Project> getProjects() {
+    if (mProjects == null) {
+      if (!myModules.isEmpty()) {
+        // Make one project for each module, mark each one as a library,
+        // and add projects for the gradle libraries and set error reporting to
+        // false on those
+        //mProjects = computeProjects()
+        mProjects = IntellijLintProject.create(mLintClient, myFileList, myModules.toArray(new Module[myModules.size()]));
+      } else {
+        mProjects = super.getProjects();
+      }
+    }
+
+    return mProjects;
   }
 }
