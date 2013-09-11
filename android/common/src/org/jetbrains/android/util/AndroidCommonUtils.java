@@ -59,6 +59,9 @@ import java.util.regex.Pattern;
  */
 public class AndroidCommonUtils {
   @NonNls public static final String PROGUARD_CFG_FILE_NAME = "proguard-project.txt";
+  public static final String SDK_HOME_MACRO = "%MODULE_SDK_HOME%";
+  public static final String PROGUARD_SYSTEM_CFG_FILE_URL =
+    "file://" + SDK_HOME_MACRO + "/tools/proguard/proguard-android.txt";
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.util.AndroidCommonUtils");
 
   @NonNls public static final String MANIFEST_JAVA_FILE_NAME = "Manifest.java";
@@ -79,17 +82,15 @@ public class AndroidCommonUtils {
   private static final String[] DRAWABLE_EXTENSIONS = new String[]{PNG_EXTENSION, "jpg", "gif"};
 
   @NonNls public static final String RELEASE_BUILD_OPTION = "RELEASE_BUILD_KEY";
-  @NonNls public static final String PROGUARD_CFG_PATH_OPTION = "ANDROID_PROGUARD_CFG_PATH";
+  @NonNls public static final String PROGUARD_CFG_PATHS_OPTION = "ANDROID_PROGUARD_CFG_PATHS";
   @NonNls public static final String DIRECTORY_FOR_LOGS_NAME = "proguard_logs";
   @NonNls public static final String PROGUARD_OUTPUT_JAR_NAME = "obfuscated_sources.jar";
-  @NonNls public static final String INCLUDE_SYSTEM_PROGUARD_FILE_OPTION = "INCLUDE_SYSTEM_PROGUARD_FILE";
   @NonNls public static final String SYSTEM_PROGUARD_CFG_FILE_NAME = "proguard-android.txt";
   @NonNls private static final String PROGUARD_HOME_ENV_VARIABLE = "PROGUARD_HOME";
   public static final ResourceType[] ID_PROVIDING_RESOURCE_TYPES = new ResourceType[] {
     ResourceType.LAYOUT, ResourceType.MENU, ResourceType.DRAWABLE
   };
 
-  @NonNls public static final String INCLUDE_SYSTEM_PROGUARD_FILE_ELEMENT_NAME = "includeSystemProguardFile";
   @NonNls public static final String INCLUDE_ASSETS_FROM_LIBRARIES_ELEMENT_NAME = "includeAssetsFromLibraries";
   @NonNls public static final String ADDITIONAL_NATIVE_LIBS_ELEMENT = "additionalNativeLibs";
   @NonNls public static final String ITEM_ELEMENT = "item";
@@ -360,7 +361,6 @@ public class AndroidCommonUtils {
                                                                              @NotNull String javaExecutablePath,
                                                                              @NotNull String proguardVmOptions,
                                                                              @NotNull String[] proguardConfigFileOsPaths,
-                                                                             boolean includeSystemProguardFile,
                                                                              @NotNull String inputJarOsPath,
                                                                              @NotNull String[] externalJarOsPaths,
                                                                              @NotNull String outputJarFileOsPath,
@@ -372,16 +372,11 @@ public class AndroidCommonUtils {
       commands.addAll(ParametersListUtil.parse(proguardVmOptions));
     }
     commands.add("-jar");
-    final String proguardHome = sdkOsPath + File.separator + SdkConstants.FD_TOOLS + File.separator + SdkConstants.FD_PROGUARD;
+    final String proguardHome = getProguardHomeDirOsPath(sdkOsPath);
     final String proguardJarOsPath = proguardHome + File.separator + "lib" + File.separator + "proguard.jar";
     commands.add(proguardJarOsPath);
-    final String systemProguardCfgPath = proguardHome + File.separator + SYSTEM_PROGUARD_CFG_FILE_NAME;
 
     if (isIncludingInProguardSupported(sdkToolsRevision)) {
-      if (includeSystemProguardFile) {
-        commands.add("-include");
-        commands.add(quotePath(systemProguardCfgPath));
-      }
       for (String proguardConfigFileOsPath : proguardConfigFileOsPaths) {
         commands.add("-include");
         commands.add(quotePath(proguardConfigFileOsPath));
@@ -436,6 +431,20 @@ public class AndroidCommonUtils {
                                      ? Collections.<String, String>emptyMap()
                                      : Collections.singletonMap(PROGUARD_HOME_ENV_VARIABLE, proguardHome);
     return AndroidExecutionUtil.doExecute(ArrayUtil.toStringArray(commands), home);
+  }
+
+  @NotNull
+  public static String getProguardHomeDirOsPath(@NotNull String sdkOsPath) {
+    return sdkOsPath + File.separator + SdkConstants.FD_TOOLS + File.separator + SdkConstants.FD_PROGUARD;
+  }
+
+  @NotNull
+  public static String getProguardHomeDirPath(@NotNull String sdkOsPath) {
+    return FileUtil.toSystemIndependentName(getProguardHomeDirOsPath(sdkOsPath));
+  }
+
+  public static String getProguardSystemCfgPath(@NotNull String sdkOsPath) {
+    return getProguardHomeDirPath(sdkOsPath) + '/' + SYSTEM_PROGUARD_CFG_FILE_NAME;
   }
 
   private static String quotePath(String path) {

@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.compiler;
 
+import com.android.tools.idea.fileTypes.AndroidRenderscriptFileType;
 import com.intellij.CommonBundle;
 import com.intellij.compiler.CompilerConfiguration;
 import com.intellij.compiler.CompilerConfigurationImpl;
@@ -63,7 +64,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.fileTypes.AndroidIdlFileType;
-import com.android.tools.idea.fileTypes.AndroidRenderscriptFileType;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
@@ -72,6 +72,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.io.File;
 import java.io.IOException;
@@ -779,13 +780,17 @@ public class AndroidCompileUtil {
   @Nullable
   public static ProguardRunningOptions getProguardConfigFilePathIfShouldRun(@NotNull AndroidFacet facet, CompileContext context) {
     // wizard
-    String path = context.getCompileScope().getUserData(AndroidProguardCompiler.PROGUARD_CFG_PATH_KEY);
-    if (path != null) {
-      final Boolean includeSystemProguardFile = context.getCompileScope().
-        getUserData(AndroidProguardCompiler.INCLUDE_SYSTEM_PROGUARD_FILE);
-      return new ProguardRunningOptions(path, Boolean.TRUE.equals(includeSystemProguardFile));
+    String pathsStr = context.getCompileScope().getUserData(AndroidProguardCompiler.PROGUARD_CFG_PATHS_KEY);
+    if (pathsStr != null) {
+      final String[] paths = pathsStr.split(File.pathSeparator);
+
+      if (paths.length > 0) {
+        return new ProguardRunningOptions(Arrays.asList(paths));
+      }
     }
-    
+    final AndroidPlatform platform = AndroidPlatform.getInstance(facet.getModule());
+    final String sdkHomePath = platform != null ? FileUtil.toCanonicalPath(platform.getSdkData().getLocation()) : null;
+
     // artifact
     final Project project = context.getProject();
     final Set<Artifact> artifacts = ArtifactCompileScope.getArtifactsToBuild(project, context.getCompileScope(), false);
@@ -799,8 +804,8 @@ public class AndroidCompileUtil {
           final AndroidApplicationArtifactProperties p = (AndroidApplicationArtifactProperties)properties;
           
           if (p.isRunProGuard()) {
-            path = FileUtil.toSystemDependentName(VfsUtilCore.urlToPath(p.getProGuardCfgFileUrl()));
-            return new ProguardRunningOptions(path, p.isIncludeSystemProGuardCfgFile());
+            final List<String> paths = AndroidUtils.urlsToOsPaths(p.getProGuardCfgFiles(), sdkHomePath);
+            return new ProguardRunningOptions(paths);
           }
         }
       }
@@ -808,10 +813,11 @@ public class AndroidCompileUtil {
 
     // facet
     final AndroidFacetConfiguration configuration = facet.getConfiguration();
-    if (configuration.getState().RUN_PROGUARD) {
-      final VirtualFile proguardCfgFile = AndroidRootUtil.getProguardCfgFile(facet);
-      final String proguardCfgPath = proguardCfgFile != null ? FileUtil.toSystemDependentName(proguardCfgFile.getPath()) : null;
-      return new ProguardRunningOptions(proguardCfgPath, configuration.isIncludeSystemProguardCfgPath());
+    final JpsAndroidModuleProperties properties = configuration.getState();
+    if (properties != null && properties.RUN_PROGUARD) {
+      final List<String> urls = properties.myProGuardCfgFiles;
+      final List<String> paths = AndroidUtils.urlsToOsPaths(urls, sdkHomePath);
+      return new ProguardRunningOptions(paths);
     }
     return null;
   }

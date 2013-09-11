@@ -253,7 +253,7 @@ public class AndroidPrecompileTask implements CompileTask {
     final ArtifactProperties<?> properties = artifact.getProperties(AndroidArtifactPropertiesProvider.getInstance());
     if (properties instanceof AndroidApplicationArtifactProperties) {
       final AndroidApplicationArtifactProperties p = (AndroidApplicationArtifactProperties)properties;
-      return new Object[] {p.isRunProGuard(), p.getProGuardCfgFileUrl(), p.isIncludeSystemProGuardCfgFile()};
+      return new Object[] {p.isRunProGuard(), p.getProGuardCfgFiles()};
     }
     return ArrayUtil.EMPTY_OBJECT_ARRAY;
   }

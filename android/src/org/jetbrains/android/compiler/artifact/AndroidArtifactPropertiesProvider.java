@@ -9,8 +9,11 @@ import org.jetbrains.annotations.NotNull;
  * @author Eugene.Kudelevsky
  */
 public class AndroidArtifactPropertiesProvider extends ArtifactPropertiesProvider {
+
+  public static final String ANDROID_PROPERTIES_ID = "android-properties";
+
   protected AndroidArtifactPropertiesProvider() {
-    super("android-properties");
+    super(ANDROID_PROPERTIES_ID);
   }
 
   @Override

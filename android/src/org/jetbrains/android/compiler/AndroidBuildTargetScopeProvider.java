@@ -34,7 +34,8 @@ public class AndroidBuildTargetScopeProvider extends BuildTargetScopeProvider {
         return true;
       }
     }
-    if (scope.getUserData(AndroidProguardCompiler.PROGUARD_CFG_PATH_KEY) != null) {
+    final String proguardCfgPathsStr = scope.getUserData(AndroidProguardCompiler.PROGUARD_CFG_PATHS_KEY);
+    if (proguardCfgPathsStr != null && proguardCfgPathsStr.length() > 0) {
       return true;
     }
     final Set<Artifact> artifacts = ArtifactCompileScope.getArtifactsToBuild(project, scope, false);

@@ -1,11 +1,22 @@
 package org.jetbrains.jps.android.model.impl;
 
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactSigningMode;
+import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.model.JpsAndroidApplicationArtifactProperties;
+import org.jetbrains.jps.android.model.JpsAndroidSdkProperties;
+import org.jetbrains.jps.android.model.JpsAndroidSdkType;
 import org.jetbrains.jps.model.JpsElementChildRole;
+import org.jetbrains.jps.model.JpsSimpleElement;
 import org.jetbrains.jps.model.ex.JpsElementBase;
 import org.jetbrains.jps.model.ex.JpsElementChildRoleBase;
+import org.jetbrains.jps.model.library.sdk.JpsSdk;
+import org.jetbrains.jps.model.module.JpsModule;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Eugene.Kudelevsky
@@ -27,9 +38,8 @@ public class JpsAndroidApplicationArtifactPropertiesImpl extends JpsElementBase<
     myState.KEY_STORE_PASSWORD = state.KEY_STORE_PASSWORD;
     myState.KEY_ALIAS = state.KEY_ALIAS;
     myState.KEY_PASSWORD = state.KEY_PASSWORD;
-    myState.PROGUARD_CFG_FILE_URL = state.PROGUARD_CFG_FILE_URL;
+    myState.PROGUARD_CFG_FILES = state.PROGUARD_CFG_FILES;
     myState.RUN_PROGUARD = state.RUN_PROGUARD;
-    myState.INCLUDE_SYSTEM_PROGUARD_CFG_FILE = state.INCLUDE_SYSTEM_PROGUARD_CFG_FILE;
   }
 
   @NotNull
@@ -46,8 +56,7 @@ public class JpsAndroidApplicationArtifactPropertiesImpl extends JpsElementBase<
     setKeyAlias(modified.getKeyAlias());
     setKeyPassword(modified.getKeyPassword());
     setRunProGuard(modified.isRunProGuard());
-    setProGuardCfgFileUrl(modified.getProGuardCfgFileUrl());
-    setIncludeSystemProGuardCfgFile(modified.isIncludeSystemProGuardCfgFile());
+    setProGuardCfgFiles(modified.getProGuardCfgFiles());
   }
 
   @NotNull
@@ -134,27 +143,35 @@ public class JpsAndroidApplicationArtifactPropertiesImpl extends JpsElementBase<
   }
 
   @Override
-  public String getProGuardCfgFileUrl() {
-    return myState.PROGUARD_CFG_FILE_URL;
+  public List<String> getProGuardCfgFiles() {
+    return myState.PROGUARD_CFG_FILES;
   }
 
   @Override
-  public void setProGuardCfgFileUrl(String url) {
-    if (!myState.PROGUARD_CFG_FILE_URL.equals(url)) {
-      myState.PROGUARD_CFG_FILE_URL = url;
-      fireElementChanged();
+  public List<String> getProGuardCfgFiles(@NotNull JpsModule module) {
+    final List<String> urls = getProGuardCfgFiles();
+
+    if (urls == null || urls.size() == 0) {
+      return urls;
     }
+    final JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> sdk = module.getSdk(JpsAndroidSdkType.INSTANCE);
+    final String sdkHomePath = sdk != null ? FileUtil.toSystemIndependentName(sdk.getHomePath()) : null;
+
+    if (sdkHomePath == null || sdkHomePath.length() == 0) {
+      return urls;
+    }
+    final List<String> result = new ArrayList<String>(urls.size());
+
+    for (String url : urls) {
+      result.add(StringUtil.replace(url, AndroidCommonUtils.SDK_HOME_MACRO, sdkHomePath));
+    }
+    return result;
   }
 
   @Override
-  public boolean isIncludeSystemProGuardCfgFile() {
-    return myState.INCLUDE_SYSTEM_PROGUARD_CFG_FILE;
-  }
-
-  @Override
-  public void setIncludeSystemProGuardCfgFile(boolean value) {
-    if (myState.INCLUDE_SYSTEM_PROGUARD_CFG_FILE != value) {
-      myState.INCLUDE_SYSTEM_PROGUARD_CFG_FILE = value;
+  public void setProGuardCfgFiles(List<String> urls) {
+    if (!myState.PROGUARD_CFG_FILES.equals(urls)) {
+      myState.PROGUARD_CFG_FILES = urls;
       fireElementChanged();
     }
   }
@@ -166,7 +183,6 @@ public class JpsAndroidApplicationArtifactPropertiesImpl extends JpsElementBase<
     public String KEY_ALIAS = "";
     public String KEY_PASSWORD = "";
     public boolean RUN_PROGUARD;
-    public String PROGUARD_CFG_FILE_URL = "";
-    public boolean INCLUDE_SYSTEM_PROGUARD_CFG_FILE;
+    public List<String> PROGUARD_CFG_FILES = new ArrayList<String>();
   }
 }

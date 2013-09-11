@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -39,8 +40,7 @@ public class AndroidApplicationArtifactProperties extends ArtifactProperties<And
   private String myKeyPassword = "";
 
   private boolean myRunProGuard;
-  private String myProGuardCfgFileUrl = "";
-  private boolean myIncludeSystemProGuardCfgFile;
+  private List<String> myProGuardCfgFiles = new ArrayList<String>();
 
   @Override
   public void onBuildFinished(@NotNull Artifact artifact, @NotNull CompileContext context) {
@@ -168,23 +168,15 @@ public class AndroidApplicationArtifactProperties extends ArtifactProperties<And
     return myRunProGuard;
   }
 
-  public String getProGuardCfgFileUrl() {
-    return myProGuardCfgFileUrl;
-  }
-
-  public boolean isIncludeSystemProGuardCfgFile() {
-    return myIncludeSystemProGuardCfgFile;
-  }
-
   public void setRunProGuard(boolean runProGuard) {
     myRunProGuard = runProGuard;
   }
 
-  public void setProGuardCfgFileUrl(String proGuardCfgFileUrl) {
-    myProGuardCfgFileUrl = proGuardCfgFileUrl;
+  public List<String> getProGuardCfgFiles() {
+    return myProGuardCfgFiles;
   }
 
-  public void setIncludeSystemProGuardCfgFile(boolean includeSystemProGuardCfgFile) {
-    myIncludeSystemProGuardCfgFile = includeSystemProGuardCfgFile;
+  public void setProGuardCfgFiles(List<String> proGuardCfgFiles) {
+    myProGuardCfgFiles = proGuardCfgFiles;
   }
 }
