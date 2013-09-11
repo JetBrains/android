@@ -5,6 +5,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.io.TestFileSystemBuilder;
@@ -42,6 +43,7 @@ import org.jetbrains.jps.util.JpsPathUtil;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -440,8 +442,11 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     assertCompiled(JavaBuilder.BUILDER_NAME, "root/java_module/src/com/example/simple/MyClass.java");
     checkMakeUpToDate(executor);
 
-    myBuildParams.put(AndroidCommonUtils.PROGUARD_CFG_PATH_OPTION, getProjectPath("proguard-project.txt"));
-    myBuildParams.put(AndroidCommonUtils.INCLUDE_SYSTEM_PROGUARD_FILE_OPTION, Boolean.TRUE.toString());
+    final String systemProguardCfgPath = FileUtil.toSystemDependentName(androidModule.getSdk(
+      JpsAndroidSdkType.INSTANCE).getHomePath() + "/tools/proguard/proguard-android.txt");
+    myBuildParams.put(AndroidCommonUtils.PROGUARD_CFG_PATHS_OPTION,
+                      systemProguardCfgPath + File.pathSeparator + getProjectPath("proguard-project.txt"));
+
     makeAll();
     checkBuildLog(executor, "expected_log_4");
     assertEquals(Collections.singleton("proguard_input_jar"), executor.getCheckedJars());
@@ -1035,8 +1040,9 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     final JpsAndroidModuleProperties properties = ((JpsAndroidModuleExtensionImpl)extension).getProperties();
     assert properties != null;
     properties.RUN_PROGUARD = true;
-    properties.myIncludeSystemProguardCfgPath = true;
-    properties.PROGUARD_CFG_PATH = "/proguard-project.txt";
+    properties.myProGuardCfgFiles = Arrays.asList(
+      "file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt",
+      VfsUtilCore.pathToUrl(getProjectPath("proguard-project.txt")));
     makeAll().assertSuccessful();
     checkBuildLog(executor, "expected_log");
 

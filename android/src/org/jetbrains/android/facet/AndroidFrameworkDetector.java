@@ -62,6 +62,11 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
     final Module module = facet.getModule();
     final Project project = module.getProject();
 
+    final VirtualFile[] contentRoots = model.getContentRoots();
+
+    if (contentRoots.length == 1) {
+      facet.getConfiguration().init(module, contentRoots[0]);
+    }
     ImportDependenciesUtil.importDependencies(module, true);
 
     StartupManager.getInstance(project).runWhenProjectIsInitialized(new Runnable() {

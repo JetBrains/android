@@ -20,27 +20,23 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerManager;
-import com.intellij.openapi.fileChooser.FileChooser;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.compiler.AndroidProguardCompiler;
+import org.jetbrains.android.compiler.artifact.ProGuardConfigFilesPanel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
-import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.SaveFileListener;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -48,6 +44,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.*;
+import java.util.List;
 
 /**
  * @author Eugene.Kudelevsky
@@ -56,16 +54,13 @@ class ApkStep extends ExportSignedPackageWizardStep {
   public static final String APK_PATH_PROPERTY = "ExportedApkPath";
   public static final String APK_PATH_PROPERTY_UNSIGNED = "ExportedUnsignedApkPath";
   public static final String RUN_PROGUARD_PROPERTY = "AndroidRunProguardForReleaseBuild";
-  public static final String PROGUARD_CFG_PATH_PROPERTY = "AndroidProguardConfigPath";
-  public static final String INCLUDE_SYSTEM_PROGUARD_FILE_PROPERTY = "AndroidIncludeSystemProguardFile";
+  public static final String PROGUARD_CFG_PATHS_PROPERTY = "AndroidProguardConfigPaths";
 
   private TextFieldWithBrowseButton myApkPathField;
   private JPanel myContentPanel;
   private JLabel myApkPathLabel;
   private JCheckBox myProguardCheckBox;
-  private JBLabel myProguardConfigFilePathLabel;
-  private TextFieldWithBrowseButton myProguardConfigFilePathField;
-  private JCheckBox myIncludeSystemProguardFileCheckBox;
+  private ProGuardConfigFilesPanel myProGuardConfigFilesPanel;
 
   private final ExportSignedPackageWizard myWizard;
   private boolean myInited;
@@ -83,7 +78,6 @@ class ApkStep extends ExportSignedPackageWizardStep {
   public ApkStep(ExportSignedPackageWizard wizard) {
     myWizard = wizard;
     myApkPathLabel.setLabelFor(myApkPathField);
-    myProguardConfigFilePathLabel.setLabelFor(myProguardConfigFilePathField);
 
     myApkPathField.getButton().addActionListener(
       new SaveFileListener(myContentPanel, myApkPathField, AndroidBundle.message("android.extract.package.choose.dest.apk"), "apk") {
@@ -94,34 +88,10 @@ class ApkStep extends ExportSignedPackageWizardStep {
         }
       });
 
-    final Project project = wizard.getProject();
-    myProguardConfigFilePathField.getButton().addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        final String path = myProguardConfigFilePathField.getText().trim();
-        VirtualFile defaultFile = path != null && path.length() > 0
-                                  ? LocalFileSystem.getInstance().findFileByPath(path)
-                                  : null;
-        final AndroidFacet facet = myWizard.getFacet();
-
-        if (defaultFile == null && facet != null) {
-          defaultFile = AndroidRootUtil.getMainContentRoot(facet);
-        }
-        final FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor();
-        final VirtualFile file = FileChooser.chooseFile(descriptor, myContentPanel, project, defaultFile);
-        if (file != null) {
-          myProguardConfigFilePathField.setText(FileUtil.toSystemDependentName(file.getPath()));
-        }
-      }
-    });
-
     myProguardCheckBox.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        final boolean enabled = myProguardCheckBox.isSelected();
-        myProguardConfigFilePathLabel.setEnabled(enabled);
-        myProguardConfigFilePathField.setEnabled(enabled);
-        myIncludeSystemProguardFileCheckBox.setEnabled(enabled);
+        myProGuardConfigFilesPanel.setEnabled(myProguardCheckBox.isSelected());
       }
     });
 
@@ -158,43 +128,65 @@ class ApkStep extends ExportSignedPackageWizardStep {
       selected = facet.getProperties().RUN_PROGUARD;
     }
     myProguardCheckBox.setSelected(selected);
-    myProguardConfigFilePathLabel.setEnabled(selected);
-    myProguardConfigFilePathField.setEnabled(selected);
-    myIncludeSystemProguardFileCheckBox.setEnabled(selected);
+    myProGuardConfigFilesPanel.setEnabled(selected);
 
-    final AndroidPlatform platform = AndroidPlatform.getInstance(module);
-    final int sdkToolsRevision = platform != null ? platform.getSdkData().getSdkToolsRevision() : -1;
-    myIncludeSystemProguardFileCheckBox.setVisible(AndroidCommonUtils.isIncludingInProguardSupported(sdkToolsRevision));
-
-    final String proguardCfgPath = properties.getValue(PROGUARD_CFG_PATH_PROPERTY);
-    if (proguardCfgPath != null &&
-        LocalFileSystem.getInstance().refreshAndFindFileByPath(proguardCfgPath) != null) {
-      myProguardConfigFilePathField.setText(FileUtil.toSystemDependentName(proguardCfgPath));
-      final String includeSystemProguardFile = properties.getValue(INCLUDE_SYSTEM_PROGUARD_FILE_PROPERTY);
-      myIncludeSystemProguardFileCheckBox.setSelected(Boolean.parseBoolean(includeSystemProguardFile));
+    final String proguardCfgPathsStr = properties.getValue(PROGUARD_CFG_PATHS_PROPERTY);
+    final String[] proguardCfgPaths = proguardCfgPathsStr != null
+                                      ? parseAndCheckProguardCfgPaths(proguardCfgPathsStr)
+                                      : null;
+    if (proguardCfgPaths != null && proguardCfgPaths.length > 0) {
+      myProGuardConfigFilesPanel.setOsPaths(Arrays.asList(proguardCfgPaths));
     }
     else {
       final AndroidFacetConfiguration configuration = facet.getConfiguration();
       if (configuration.getState().RUN_PROGUARD) {
-        final VirtualFile proguardCfgFile = AndroidRootUtil.getProguardCfgFile(facet);
-        if (proguardCfgFile != null) {
-          myProguardConfigFilePathField.setText(FileUtil.toSystemDependentName(proguardCfgFile.getPath()));
-        }
-        myIncludeSystemProguardFileCheckBox.setSelected(facet.getConfiguration().isIncludeSystemProguardCfgPath());
+        myProGuardConfigFilesPanel.setUrls(facet.getProperties().myProGuardCfgFiles);
       }
       else {
+        final List<String> urls = new ArrayList<String>();
+        urls.add(AndroidCommonUtils.PROGUARD_SYSTEM_CFG_FILE_URL);
         final Pair<VirtualFile, Boolean> pair = AndroidCompileUtil.getDefaultProguardConfigFile(facet);
+
         if (pair != null) {
-          myProguardConfigFilePathField.setText(FileUtil.toSystemDependentName(pair.getFirst().getPath()));
-          myIncludeSystemProguardFileCheckBox.setSelected(pair.getSecond());
+          urls.add(pair.getFirst().getUrl());
         }
-        else {
-          myIncludeSystemProguardFileCheckBox.setSelected(true);
-        }
+        myProGuardConfigFilesPanel.setUrls(urls);
       }
     }
 
     myInited = true;
+  }
+
+  @NotNull
+  private static String[] parseAndCheckProguardCfgPaths(@NotNull String pathsStr) {
+    if (pathsStr.length() == 0) {
+      return ArrayUtil.EMPTY_STRING_ARRAY;
+    }
+    final String[] paths = pathsStr.split(File.pathSeparator);
+
+    if (paths.length == 0) {
+      return ArrayUtil.EMPTY_STRING_ARRAY;
+    }
+    for (String path : paths) {
+      if (LocalFileSystem.getInstance().refreshAndFindFileByPath(path) == null) {
+        return ArrayUtil.EMPTY_STRING_ARRAY;
+      }
+    }
+    return paths;
+  }
+
+  @NotNull
+  private static String mergeProguardCfgPathsToOneString(@NotNull Collection<String> paths) {
+    final StringBuilder builder = new StringBuilder();
+
+    for (Iterator<String> it = paths.iterator(); it.hasNext(); ) {
+      builder.append(it.next());
+
+      if (it.hasNext()) {
+        builder.append(File.pathSeparator);
+      }
+    }
+    return builder.toString();
   }
 
   private String getApkPathPropertyName() {
@@ -248,19 +240,20 @@ class ApkStep extends ExportSignedPackageWizardStep {
     properties.setValue(RUN_PROGUARD_PROPERTY, Boolean.toString(myProguardCheckBox.isSelected()));
 
     if (myProguardCheckBox.isSelected()) {
-      final String proguardCfgPath = myProguardConfigFilePathField.getText().trim();
-      if (proguardCfgPath.length() == 0) {
+      final List<String> proguardOsCfgPaths = myProGuardConfigFilesPanel.getOsPaths();
+
+      if (proguardOsCfgPaths.isEmpty()) {
         throw new CommitStepException(AndroidBundle.message("android.extract.package.specify.proguard.cfg.path.error"));
       }
-      properties.setValue(PROGUARD_CFG_PATH_PROPERTY, proguardCfgPath);
-      properties.setValue(INCLUDE_SYSTEM_PROGUARD_FILE_PROPERTY, Boolean.toString(myIncludeSystemProguardFileCheckBox.isSelected()));
+      final String proguardPathsStr = mergeProguardCfgPathsToOneString(proguardOsCfgPaths);
+      properties.setValue(PROGUARD_CFG_PATHS_PROPERTY, proguardPathsStr);
 
-      if (!new File(proguardCfgPath).isFile()) {
-        throw new CommitStepException("Cannot find file " + proguardCfgPath);
+      for (String path : proguardOsCfgPaths) {
+        if (!new File(path).isFile()) {
+          throw new CommitStepException("Cannot find file " + path);
+        }
       }
-
-      compileScope.putUserData(AndroidProguardCompiler.PROGUARD_CFG_PATH_KEY, proguardCfgPath);
-      compileScope.putUserData(AndroidProguardCompiler.INCLUDE_SYSTEM_PROGUARD_FILE, myIncludeSystemProguardFileCheckBox.isSelected());
+      compileScope.putUserData(AndroidProguardCompiler.PROGUARD_CFG_PATHS_KEY, proguardPathsStr);
     }
     myWizard.setCompileScope(compileScope);
     myWizard.setApkPath(apkPath);
@@ -268,5 +261,15 @@ class ApkStep extends ExportSignedPackageWizardStep {
 
   @Override
   protected void commitForNext() throws CommitStepException {
+  }
+
+  private void createUIComponents() {
+    myProGuardConfigFilesPanel = new ProGuardConfigFilesPanel() {
+      @Nullable
+      @Override
+      protected AndroidFacet getFacet() {
+        return myWizard.getFacet();
+      }
+    };
   }
 }
