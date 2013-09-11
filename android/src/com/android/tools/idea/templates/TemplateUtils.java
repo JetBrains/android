@@ -368,19 +368,6 @@ public class TemplateUtils {
   }
 
   /**
-   * Write the given text to the given file
-   * @param file The file to write.
-   * @param contents the string contents to write.
-   */
-  public static void writeTextFile(@NotNull File file, @NotNull String contents) {
-    try {
-      Files.write(contents.getBytes(), file);
-    } catch (IOException e) {
-      LOG.warn(e);
-    }
-  }
-
-  /**
    * Get the build.gradle file for the given module root.
    * @param moduleRoot The root directory of the module to find the build.gradle file for
    * @return a file containing the build.gradle file for the given module root

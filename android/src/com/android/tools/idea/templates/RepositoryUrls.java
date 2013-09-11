@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.ide.common.repository.MavenCoordinate;
+import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.sdklib.repository.FullRevision;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +33,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import static com.android.tools.idea.templates.TemplateUtils.readTextFile;
 
@@ -61,10 +62,19 @@ public class RepositoryUrls {
 
   private static final String MIN_VERSION_VALUE = "0.0.0";
 
-  private static final String SUPPORT_REPOSITORY_PATH = "%s/extras/android/m2repository/com/android/support/%s-%s/maven-metadata.xml";
+  private static final String SUPPORT_REPOSITORY_BASE_PATH = "%s/extras/android/m2repository/com/android/support/%s/";
 
-  public static final Set<String> SUPPORT_REPOSITORY_ARTIFACTS = ImmutableSet.of(
-    SUPPORT_ID, APP_COMPAT_ID, GRID_LAYOUT_ID
+  // e.g. 18.0.0/appcompat-v7-18.0.0.aar
+  private static final String MAVEN_REVISION_PATH = "%s/%s-%s.aar";
+
+  private static final String MAVEN_METADATA_FILE_NAME = "maven-metadata.xml";
+
+  private static final String HIGHEST_KNOWN_API_FULL_REVISION  = new FullRevision(SdkVersionInfo.HIGHEST_KNOWN_API).toString();
+
+  public static final Map<String, String> SUPPORT_REPOSITORY_DEFAULTS = ImmutableMap.of(
+    SUPPORT_ID, String.format(SUPPORT_BASE_URL, SUPPORT_ID, "v4", HIGHEST_KNOWN_API_FULL_REVISION),
+    APP_COMPAT_ID, String.format(SUPPORT_BASE_URL, APP_COMPAT_ID, "v7", HIGHEST_KNOWN_API_FULL_REVISION),
+    GRID_LAYOUT_ID, String.format(SUPPORT_BASE_URL, GRID_LAYOUT_ID, "v7", HIGHEST_KNOWN_API_FULL_REVISION)
   ); // TODO: Add other libraries here (Cloud SDK, Play Services, YouTube, AdMob, etc).
 
   /**
@@ -76,21 +86,51 @@ public class RepositoryUrls {
   @Nullable
   public static String getLibraryUrl(String libraryId, String revision) {
     // Check to see if this is a URL we support:
-    if (!SUPPORT_REPOSITORY_ARTIFACTS.contains(libraryId)) {
+    if (!SUPPORT_REPOSITORY_DEFAULTS.containsKey(libraryId)) {
       return null;
     }
+
+    if (!AndroidSdkUtils.isAndroidSdkAvailable()) {
+      throw new IllegalStateException("No SDK Available. Please configure your SDK in the Project Structure dialog.");
+    }
+
     // Read the support repository and find the latest version available
     String sdkLocation = AndroidSdkUtils.tryToChooseAndroidSdk().getLocation();
-    String path = String.format(SUPPORT_REPOSITORY_PATH, sdkLocation, libraryId, revision);
-    path = FileUtil.toSystemIndependentName(path);
+    String path = String.format(SUPPORT_REPOSITORY_BASE_PATH, sdkLocation, libraryId + "-" + revision) + MAVEN_METADATA_FILE_NAME;
+    path = FileUtil.toSystemDependentName(path);
     File supportMetadataFile = new File(path);
     if (!supportMetadataFile.exists()) {
-      throw new ExternalSystemException("You must install the Android Support Repository through the SDK Manager.");
+      return SUPPORT_REPOSITORY_DEFAULTS.get(libraryId);
     }
 
     String version = getLatestVersionFromMavenMetadata(supportMetadataFile);
 
     return String.format(SUPPORT_BASE_URL, libraryId, revision, version);
+  }
+
+  /**
+   * Get the file on the local filesystem that corresponds to the given maven coordinate.
+   * @param mavenCoordinate the coordinate to retrieve an archive file for
+   * @return a file pointing at the archive for the given coordinate
+   */
+  public static File getArchiveForCoordinate(MavenCoordinate mavenCoordinate) {
+    String sdkLocation = AndroidSdkUtils.tryToChooseAndroidSdk().getLocation();
+    String path = String.format(SUPPORT_REPOSITORY_BASE_PATH, sdkLocation, mavenCoordinate.getArtifactId());
+    path = FileUtil.toSystemDependentName(path);
+    String revisionPath = String.format(MAVEN_REVISION_PATH, mavenCoordinate.getFullRevision(), mavenCoordinate.getArtifactId(),
+                                        mavenCoordinate.getFullRevision());
+    revisionPath = FileUtil.toSystemDependentName(revisionPath);
+
+    return new File(path, revisionPath);
+  }
+
+  /**
+   * Returns true iff this class knows how to handle the given library id (Maven Artifact Id)
+   * @param libraryId the library id to test
+   * @return true iff this class supports the given library
+   */
+  public static boolean supports(String libraryId) {
+    return SUPPORT_REPOSITORY_DEFAULTS.containsKey(libraryId);
   }
 
   /**
