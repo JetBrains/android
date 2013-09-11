@@ -50,9 +50,43 @@ abstract class IntellijLintClient extends LintClient implements Disposable {
   @NonNull protected abstract List<Issue> getIssues();
   @Nullable protected abstract Module getModule();
   @NonNull protected Project myProject;
+  @Nullable protected Map<com.android.tools.lint.detector.api.Project, Module> myModuleMap;
 
-  public IntellijLintClient(@NonNull Project project) {
+  protected IntellijLintClient(@NonNull Project project) {
     myProject = project;
+  }
+
+  /** Creates a lint client for batch inspections */
+  public static IntellijLintClient forBatch(@NotNull Project project,
+                                            @NotNull Map<Issue, Map<File, List<ProblemData>>> problemMap,
+                                            @NotNull AnalysisScope scope,
+                                            @NotNull List<Issue> issues) {
+    return new BatchLintClient(project, problemMap, scope, issues);
+  }
+
+  /**
+   * Creates a lint client used for in-editor single file lint analysis (e.g. background checking while user is editing.)
+   */
+  public static IntellijLintClient forEditor(@NotNull State state) {
+    return new EditorLintClient(state);
+  }
+
+  @Nullable
+  protected Module findModuleForLintProject(@NotNull Project project,
+                                            @NotNull com.android.tools.lint.detector.api.Project lintProject) {
+    if (myModuleMap != null) {
+      Module module = myModuleMap.get(lintProject);
+      if (module != null) {
+        return module;
+      }
+    }
+    final File dir = lintProject.getDir();
+    final VirtualFile vDir = LocalFileSystem.getInstance().findFileByIoFile(dir);
+    return vDir != null ? ModuleUtilCore.findModuleForFile(vDir, project) : null;
+  }
+
+  void setModuleMap(@Nullable Map<com.android.tools.lint.detector.api.Project, Module> moduleMap) {
+    myModuleMap = moduleMap;
   }
 
   @Override
@@ -209,27 +243,13 @@ abstract class IntellijLintClient extends LintClient implements Disposable {
     return null;
   }
 
-  @Nullable
-  private static Module findModuleForLintProject(@NotNull Project project,
-                                                 @NotNull com.android.tools.lint.detector.api.Project lintProject) {
-    final File dir = lintProject.getDir();
-    final VirtualFile vDir = LocalFileSystem.getInstance().findFileByIoFile(dir);
-    return vDir != null ? ModuleUtilCore.findModuleForFile(vDir, project) : null;
-  }
-
-  public static IntellijLintClient forBatch(@NotNull Project project,
-                                            @NotNull Map<Issue, Map<File, List<ProblemData>>> problemMap,
-                                            @NotNull AnalysisScope scope,
-                                            @NotNull List<Issue> issues) {
-    return new BatchLintClient(project, problemMap, scope, issues);
-  }
-
-  public static IntellijLintClient forEditor(@NotNull State state) {
-    return new EditorLintClient(state);
+  @Override
+  public boolean isProjectDirectory(@NonNull File dir) {
+    return new File(dir, Project.DIRECTORY_STORE_FOLDER).exists();
   }
 
   /**
-   * A lint client used for in-editor single file lint analysis (e.g. background checking while user is editing.
+   * A lint client used for in-editor single file lint analysis (e.g. background checking while user is editing.)
    * <p>
    * Since this applies only to a given file and module, it can take some shortcuts over what the general
    * {@link BatchLintClient} has to do.
