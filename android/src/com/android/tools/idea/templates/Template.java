@@ -39,6 +39,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -422,7 +423,7 @@ public class Template {
               String url = attributes.getValue(ATTR_MAVEN);
               List<String> dependencyList = (List<String>)paramMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
 
-              if (dependencyName != null && RepositoryUrls.SUPPORT_REPOSITORY_ARTIFACTS.contains(dependencyName)) {
+              if (dependencyName != null && RepositoryUrls.supports(dependencyName)) {
                 String libraryUrl = getLibraryUrl(dependencyName, dependencyVersion);
                 if (libraryUrl != null) {
                   dependencyList.add(libraryUrl);
@@ -740,17 +741,47 @@ public class Template {
       }
     }
 
+    List<String> unresolvedDependencies = Lists.newLinkedList();
+
     // Now write the combined ones to a string
     StringBuilder sb = new StringBuilder();
     sb.append(contents.substring(0, dependencyBlockStart));
     for (String key : dependencies.keySet()) {
       MavenCoordinate highest = Collections.max(dependencies.get(key));
-      sb.append(String.format("\n\tcompile '%s'", highest.toString()));
+
+      File archiveFile = RepositoryUrls.getArchiveForCoordinate(highest);
+
+      if (RepositoryUrls.supports(highest.getArtifactId()) && archiveFile.exists()) {
+        sb.append(String.format("\n\tcompile '%s'", highest.toString()));
+      } else {
+        sb.append(String.format(
+          "\n\t// You must install the Support Repository through the SDK manager to use this dependency." +
+          "\n\t// The Support Repository (seperate from the Support Library) can be found in the Extras category.\n\t// compile '%s'",
+          highest.toString()));
+        unresolvedDependencies.add(highest.toString());
+      }
     }
     sb.append('\n');
     sb.append(contents.substring(dependencyBlockEnd));
 
-    TemplateUtils.writeTextFile(gradleBuildFile, sb.toString());
+    try {
+      writeFile(sb.toString(), gradleBuildFile);
+    }
+    catch (IOException e) {
+      LOG.warn(e);
+    }
+
+    // Display an error message if we had to blank out some dependencies which weren't available
+    if (!unresolvedDependencies.isEmpty()) {
+      sb = new StringBuilder();
+      sb.append("The following dependencies were not resolvable. See your build.gradle file for details.\n");
+      for (String s : unresolvedDependencies) {
+        sb.append("\t- ");
+        sb.append(s);
+        sb.append('\n');
+      }
+      Messages.showErrorDialog(sb.toString(), "Unresolvable Dependencies Found");
+    }
   }
 
   /** Instantiates the given template file into the given output file */
