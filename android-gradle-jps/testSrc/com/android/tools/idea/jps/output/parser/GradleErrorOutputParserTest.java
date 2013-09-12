@@ -16,6 +16,7 @@
 package com.android.tools.idea.jps.output.parser;
 
 import com.android.tools.idea.jps.output.parser.aapt.AbstractAaptOutputParser;
+import com.google.common.base.Charsets;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.PathManager;
@@ -490,7 +491,7 @@ public class GradleErrorOutputParserTest extends TestCase {
       "    />\n" +
       "</LinearLayout>\n" +
       "\n" +
-      "<!-- From: src/test/resources/testData/resources/incMergeData/filesVsValues/main/layout/main.xml -->");
+      "<!-- From: file:src/test/resources/testData/resources/incMergeData/filesVsValues/main/layout/main.xml -->");
 
     String messageText = "Random error message here";
     String err = sourceFilePath + ":4: error: Error: " + messageText;
@@ -527,7 +528,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "* What went wrong:\n" +
                  "Execution failed for task ':five:processDebugResources'.\n" +
                  "> Failed to run command:\n" +
-                 "  \t/Applications/Android Studio.app/sdk/build-tools/android-4.2.2/aapt package -f --no-crunch -I /Applications/Android Studio.app/sdk/platforms/android-17/android.jar -M /Users/sbarta/AndroidStudioProjects/fiveProject/five/build/manifests/debug/AndroidManifest.xml -S /Users/sbarta/AndroidStudioProjects/fiveProject/five/build/res/all/debug -A /Users/sbarta/AndroidStudioProjects/fiveProject/five/build/assets/debug -m -J /Users/sbarta/AndroidStudioProjects/fiveProject/five/build/source/r/debug -F /Users/sbarta/AndroidStudioProjects/fiveProject/five/build/libs/five-debug.ap_ --debug-mode --custom-package com.example.five\n" +
+                 "  \t/Applications/Android Studio.app/sdk/build-tools/android-4.2.2/aapt package -f --no-crunch -I ...\n" +
                  "  Error Code:\n" +
                  "  \t1\n" +
                  "  Output:\n" +
@@ -771,5 +772,89 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "2: Info:BUILD FAILED\n" +
                  "3: Info:Total time: 24.154 secs\n",
                  toString(parser.parseErrorOutput(output2)));
+  }
+
+  public void test() throws Exception {
+    File tempDir = Files.createTempDir();
+    sourceFile = new File(tempDir, "values.xml"); // Name matters for position search
+    sourceFilePath = sourceFile.getAbsolutePath();
+    File source = new File(tempDir, "dimens.xml");
+    Files.write("<resources>\n" +
+                "    <!-- Default screen margins, per the Android Design guidelines. -->\n" +
+                "    <dimen name=\"activity_horizontal_margin\">16dp</dimen>\n" +
+                "    <dimen name=\"activity_vertical_margin\">16dp</dimen>\n" +
+                "    <dimen name=\"new_name\">50</dimen>\n" +
+                "</resources>", source, Charsets.UTF_8);
+    source.deleteOnExit();
+    Files.write("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                "<resources>\n" +
+                "    <!-- From: file:/Users/unittest/AndroidStudioProjects/BlankProject1Project/BlankProject1/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values/values.xml -->\n" +
+                "    <dimen name=\"abc_action_bar_default_height\">48dip</dimen>\n" +
+                "    <dimen name=\"abc_action_bar_icon_vertical_padding\">8dip</dimen>\n" +
+                "    <!-- From: file:" + source.getPath() + " -->\n" +
+                "    <dimen name=\"activity_horizontal_margin\">16dp</dimen>\n" +
+                "    <dimen name=\"activity_vertical_margin\">16dp</dimen>\n" +
+                "    <dimen name=\"ok\">50dp</dimen>\n" +
+                "    <dimen name=\"new_name\">50</dimen>\n" +
+                "    <!-- From: file:/Users/unittest/AndroidStudioProjects/BlankProject1Project/BlankProject1/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values/values.xml -->\n" +
+                "    <item name=\"action_bar_activity_content\" type=\"id\"/>\n" +
+                "    <item name=\"action_menu_divider\" type=\"id\"/>\n" +
+                "    <item name=\"action_menu_presenter\" type=\"id\"/>\n" +
+                "    <item name=\"home\" type=\"id\"/>\n" +
+                "</resources>\n", sourceFile, Charsets.UTF_8);
+
+    String output =
+      "Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+      ":BlankProject1:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+      ":BlankProject1:prepareDebugDependencies\n" +
+      ":BlankProject1:mergeDebugAssets UP-TO-DATE\n" +
+      ":BlankProject1:compileDebugRenderscript UP-TO-DATE\n" +
+      ":BlankProject1:mergeDebugResources UP-TO-DATE\n" +
+      ":BlankProject1:processDebugManifest UP-TO-DATE\n" +
+      ":BlankProject1:processDebugResources\n" +
+      sourceFilePath + ":10: error: Error: Integer types not allowed (at 'new_name' with value '50').\n" +
+      ":BlankProject1:processDebugResources FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':BlankProject1:processDebugResources'.\n" +
+      "> Failed to run command:\n" +
+      "  \t/Users/tnorbye/dev/sdks/build-tools/18.0.1/aapt package -f --no-crunch -I ...\n" +
+      "  Error Code:\n" +
+      "  \t1\n" +
+      "  Output:\n" +
+      "  \t" + sourceFilePath + ":10: error: Error: Integer types not allowed (at 'new_name' with value '50').\n" +
+      "\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 5.435 secs";
+
+    assertEquals("0: Info:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+                 "1: Info::BlankProject1:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+                 "2: Info::BlankProject1:prepareDebugDependencies\n" +
+                 "3: Info::BlankProject1:mergeDebugAssets UP-TO-DATE\n" +
+                 "4: Info::BlankProject1:compileDebugRenderscript UP-TO-DATE\n" +
+                 "5: Info::BlankProject1:mergeDebugResources UP-TO-DATE\n" +
+                 "6: Info::BlankProject1:processDebugManifest UP-TO-DATE\n" +
+                 "7: Info::BlankProject1:processDebugResources\n" +
+                 "8: Gradle:Error:Integer types not allowed (at 'new_name' with value '50').\n" +
+                 "\t" + source.getPath() + ":5:28\n" +
+                 "9: Info::BlankProject1:processDebugResources FAILED\n" +
+                 "10: Gradle:Error:Error while executing aapt command\n" +
+                 "11: Gradle:Error:Integer types not allowed (at 'new_name' with value '50').\n" +
+                 "\t" + source.getPath() + ":5:28\n" +
+                 "12: Gradle:Error:Execution failed for task ':BlankProject1:processDebugResources'.\n" +
+                 "13: Info:BUILD FAILED\n" +
+                 "14: Info:Total time: 5.435 secs\n",
+                 toString(parser.parseErrorOutput(output)));
+
+    sourceFile.delete();
+    source.delete();
+    tempDir.delete();
   }
 }

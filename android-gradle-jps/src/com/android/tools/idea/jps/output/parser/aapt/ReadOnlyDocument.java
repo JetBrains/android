@@ -97,7 +97,7 @@ class ReadOnlyDocument {
 
   int findTextBackwards(String text, int offset) {
     StringSearcher searcher = new StringSearcher(text, true, false);
-    return searcher.scan(myContents, offset, myContents.length());
+    return searcher.scan(myContents, 0, offset);
   }
 
   /**

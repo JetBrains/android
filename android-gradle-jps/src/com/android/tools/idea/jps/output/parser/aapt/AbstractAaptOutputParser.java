@@ -27,9 +27,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
+import org.jetbrains.jps.util.JpsPathUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -312,6 +317,7 @@ public abstract class AbstractAaptOutputParser implements CompilerOutputParser {
     }
 
     int start = document.findTextBackwards(START_MARKER, searchStart);
+    assert start < searchStart;
     if (start == -1) {
       return null;
     }
@@ -321,6 +327,13 @@ public abstract class AbstractAaptOutputParser implements CompilerOutputParser {
       return null;
     }
     String sourcePath = document.subsequence(start, end).toString();
+    if (sourcePath.startsWith("file:")) {
+      if (!sourcePath.startsWith("file://")) {
+        // Both JpsPathUril.urlToPath and new File(URI) can only handle file://
+        sourcePath = "file://" + sourcePath.substring("file:".length());
+      }
+      sourcePath = JpsPathUtil.urlToPath(sourcePath);
+    }
     File sourceFile = new File(sourcePath);
 
     if (isValueFile) {
