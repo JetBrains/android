@@ -66,7 +66,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.templates.RepositoryUrls.*;
 import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
 import static com.android.tools.idea.templates.TemplateUtils.readTextFile;
 
@@ -418,17 +417,10 @@ public class Template {
                 mkdir(freemarker, paramMap, relativePath);
               }
             } else if (name.equals(TAG_DEPENDENCY)) {
-              String dependencyName = attributes.getValue(ATTR_NAME);
-              String dependencyVersion = attributes.getValue(ATTR_VERSION);
               String url = attributes.getValue(ATTR_MAVEN);
               List<String> dependencyList = (List<String>)paramMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
 
-              if (dependencyName != null && RepositoryUrls.supports(dependencyName)) {
-                String libraryUrl = getLibraryUrl(dependencyName, dependencyVersion);
-                if (libraryUrl != null) {
-                  dependencyList.add(libraryUrl);
-                }
-              } else if (url != null) {
+              if (url != null) {
                 dependencyList.add(url);
               }
             }
@@ -746,6 +738,7 @@ public class Template {
     // Now write the combined ones to a string
     StringBuilder sb = new StringBuilder();
     sb.append(contents.substring(0, dependencyBlockStart));
+    String repositoryName;
     for (String key : dependencies.keySet()) {
       MavenCoordinate highest = Collections.max(dependencies.get(key));
 
@@ -754,10 +747,13 @@ public class Template {
       if (RepositoryUrls.supports(highest.getArtifactId()) && archiveFile.exists()) {
         sb.append(String.format("\n\tcompile '%s'", highest.toString()));
       } else {
+        // Get the name of the repository necessary for this package
+        repositoryName = highest.getArtifactId().equals(RepositoryUrls.PLAY_SERVICES_ID) ? "Google" : "Support";
+        // Add in a commented-out dependency with instructions.
         sb.append(String.format(
-          "\n\t// You must install the Support Repository through the SDK manager to use this dependency." +
-          "\n\t// The Support Repository (seperate from the Support Library) can be found in the Extras category.\n\t// compile '%s'",
-          highest.toString()));
+          "\n\n\t// You must install or update the %1$s Repository through the SDK manager to use this dependency." +
+          "\n\t// The %1$s Repository (separate from the corresponding library) can be found in the Extras category.\n\t// compile '%2$s'",
+          repositoryName, highest.toString()));
         unresolvedDependencies.add(highest.toString());
       }
     }
