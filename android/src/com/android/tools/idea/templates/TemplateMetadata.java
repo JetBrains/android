@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.templates;
 
-import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,10 +22,8 @@ import org.w3c.dom.*;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
-import static com.android.tools.idea.templates.RepositoryUrls.*;
 import static com.android.tools.idea.templates.Template.*;
 
 /** An ADT template along with metadata */
@@ -171,27 +168,6 @@ public class TemplateMetadata {
     }
 
     return null;
-  }
-
-  /**
-   * Get any dependency declarations from the template.xml file.
-   * @return a list of maven dependency URLs
-   */
-  @NotNull
-  public List<String> getDependencies() {
-    final List<String> dependencyList = Lists.newLinkedList();
-
-    NodeList dependencies = myDocument.getElementsByTagName(TAG_DEPENDENCY);
-    for (int index = 0, max = dependencies.getLength(); index < max; index++) {
-      Element element = (Element) dependencies.item(index);
-      String dependencyName = element.getAttribute(ATTR_NAME);
-      String dependencyVersion = element.getAttribute(ATTR_VERSION);
-      if (dependencyName.equals(SUPPORT_ID) || dependencyName.equals(APP_COMPAT_ID) || dependencyName.equals(GRID_LAYOUT_ID)) {
-        dependencyList.add(getLibraryUrl(dependencyName, dependencyVersion));
-      }// TODO: Add other libraries here (Cloud SDK, Play Services, YouTube, AdMob, etc).
-    }
-
-    return dependencyList;
   }
 
   public boolean isSupported() {
