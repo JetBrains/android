@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.android.tools.idea.templates.Parameter;
 import com.intellij.uiDesigner.core.Spacer;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -35,8 +37,9 @@ public class TemplateParameterStep extends TemplateWizardStep {
   private JLabel myError;
   private JComponent myPreferredFocusComponent;
 
-  public TemplateParameterStep(TemplateWizard templateWizard, TemplateWizardState state) {
-    super(templateWizard, state);
+  public TemplateParameterStep(TemplateWizardState state, @Nullable Project project, @Nullable Icon sidePanelIcon,
+                               UpdateListener updateListener) {
+    super(state, project, sidePanelIcon, updateListener);
   }
 
   @Override

@@ -17,11 +17,10 @@ package org.jetbrains.android.uipreview;
 
 
 import com.android.tools.idea.configurations.*;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.variant.view.BuildVariantView;
-import com.android.tools.idea.rendering.ProjectResources;
-import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.rendering.SaveScreenshotAction;
+import com.android.tools.idea.rendering.ScalableImage;
+import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
@@ -37,7 +36,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.components.JBScrollPane;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,21 +45,22 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
-
-import static com.android.tools.idea.gradle.variant.view.BuildVariantView.BuildVariantSelectionChangeListener;
+import java.awt.image.BufferedImage;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Eugene.Kudelevsky
  */
 public class AndroidLayoutPreviewToolWindowForm implements Disposable, ConfigurationListener, RenderContext,
-                                                           BuildVariantSelectionChangeListener {
+                                                           ResourceFolderManager.ResourceFolderListener {
   private JPanel myContentPanel;
   private AndroidLayoutPreviewPanel myPreviewPanel;
   private JBScrollPane myScrollPane;
   private JPanel myComboPanel;
   private PsiFile myFile;
   private Configuration myConfiguration;
-  private BuildVariantView myVariantView;
+  private AndroidFacet myFacet;
   private final AndroidLayoutPreviewToolWindowManager myToolWindowManager;
   private final ActionToolbar myActionToolBar;
   private final AndroidLayoutPreviewToolWindowSettings mySettings;
@@ -79,6 +79,7 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
     actionGroup.add(new ZoomOutAction());
     actionGroup.addSeparator();
     actionGroup.add(new RefreshAction());
+    actionGroup.add(new SaveScreenshotAction(this));
     myActionToolBar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, actionGroup, true);
     myActionToolBar.setReservePlaceAutoPopupIcon(false);
 
@@ -193,57 +194,21 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
         myConfiguration = null;
       }
 
-      if (myVariantView != null) {
-        myVariantView.removeListener(this);
-        myVariantView = null;
+      if (myFacet != null) {
+        myFacet.getResourceFolderManager().removeListener(this);
       }
 
       if (file != null) {
         final VirtualFile virtualFile = file.getVirtualFile();
         if (virtualFile != null) {
-          final AndroidFacet facet = AndroidFacet.getInstance(file);
-          if (facet != null) {
-            if (facet.isGradleProject() && facet.getIdeaAndroidProject() == null) {
-              facet.addListener(new AndroidFacet.GradleProjectAvailableListener() {
-                @Override
-                public void gradleProjectAvailable(@NotNull IdeaAndroidProject project) {
-                  facet.removeListener(this);
-                  ConfigurationManager manager = facet.getConfigurationManager();
-                  myConfiguration = manager.getConfiguration(virtualFile);
-                  myConfiguration.addListener(AndroidLayoutPreviewToolWindowForm.this);
-                  myToolWindowManager.finishSetFile();
-                  if (facet.isGradleProject()) {
-                    myVariantView = BuildVariantView.getInstance(facet.getModule().getProject());
-                    if (myVariantView != null) {
-                      // Ensure that the project resources have been initialized first, since
-                      // we want it to add its own variant listeners before ours (such that
-                      // when the variant changes, the project resources get notified and updated
-                      // before our own update listener attempts a re-render)
-                      facet.getProjectResources(false /*libraries*/, true /*createIfNecessary*/);
-
-                      myVariantView.removeListener(AndroidLayoutPreviewToolWindowForm.this);
-                      myVariantView.addListener(AndroidLayoutPreviewToolWindowForm.this);
-                    }
-                  }
-                }
-              });
-              // Couldn't initialize: finish later (in project listener will call finishSetFile
-              return false;
-            } else {
-              ConfigurationManager manager = facet.getConfigurationManager();
-              myConfiguration = manager.getConfiguration(virtualFile);
-              myConfiguration.removeListener(this);
-              myConfiguration.addListener(this);
-            }
-
-            if (facet.isGradleProject()) {
-              myVariantView = BuildVariantView.getInstance(facet.getModule().getProject());
-              if (myVariantView != null) {
-                facet.getProjectResources(false /*libraries*/, true /*createIfNecessary*/);
-                myVariantView.removeListener(this);
-                myVariantView.addListener(this);
-              }
-            }
+          myFacet = AndroidFacet.getInstance(file);
+          if (myFacet != null) {
+            myFacet.getResourceFolderManager().removeListener(this);
+            myFacet.getResourceFolderManager().addListener(this);
+            ConfigurationManager manager = myFacet.getConfigurationManager();
+            myConfiguration = manager.getConfiguration(virtualFile);
+            myConfiguration.removeListener(this);
+            myConfiguration.addListener(this);
           }
         }
       }
@@ -273,10 +238,6 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
 
   public void updatePreviewPanel() {
     myPreviewPanel.update();
-  }
-
-  public void updateDevicesAndTargets(@Nullable AndroidPlatform platform) {
-    // TODO: When is this called? How do I update my configuration?
   }
 
   // ---- Implements RenderContext ----
@@ -360,6 +321,19 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
     myPreviewPanel.setDeviceFramesEnabled(on);
   }
 
+  @Nullable
+  @Override
+  public BufferedImage getRenderedImage() {
+    RenderResult result = myPreviewPanel.getRenderResult();
+    if (result != null) {
+      ScalableImage scalableImage = result.getImage();
+      if (scalableImage != null) {
+        return scalableImage.getOriginalImage();
+      }
+    }
+    return null;
+  }
+
   @Override
   @NotNull
   public Dimension getFullImageSize() {
@@ -416,10 +390,13 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
     return true;
   }
 
-  // ---- Implements BuildVariantSelectionChangeListener ----
+  // ---- Implements ResourceFolderManager.ResourceFolderListener ----
 
   @Override
-  public void buildVariantSelected(@NotNull AndroidFacet facet) {
+  public void resourceFoldersChanged(@NotNull AndroidFacet facet,
+                                     @NotNull List<VirtualFile> folders,
+                                     @NotNull Collection<VirtualFile> added,
+                                     @NotNull Collection<VirtualFile> removed) {
     // The project resources should already have been refreshed by their own variant listener
     myToolWindowManager.render();
   }
@@ -484,6 +461,10 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
 
     @Override
     public void actionPerformed(AnActionEvent e) {
+      Configuration configuration = getConfiguration();
+      if (configuration != null) {
+        configuration.updated(ConfigurationListener.MASK_RENDERING);
+      }
       myToolWindowManager.render();
     }
   }

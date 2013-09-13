@@ -74,7 +74,7 @@ class BuildVariantUpdater {
       logAndShowUpdateFailure(buildVariantName, reason);
       return null;
     }
-    AndroidFacet facet = Facets.getFirstFacet(moduleToUpdate, AndroidFacet.ID);
+    AndroidFacet facet = Facets.getFirstFacetOfType(moduleToUpdate, AndroidFacet.ID);
     if (facet == null) {
       // Reason is not capitalized because it is a sentence fragment.
       String reason = String.format("cannot find 'Android' facet in module '%1$s', project '%2$s'", moduleName, project.getName());
@@ -95,10 +95,10 @@ class BuildVariantUpdater {
       customizer.customizeModule(moduleToUpdate, project, androidProject);
     }
 
-    // We changed the way we build projects: now we build only the selected variant. If user changes variant, we need to rebuild the project
+    // We changed the way we build projects: now we build only the selected variant. If user changes variant, we need to re-generate sources
     // since the generated sources may not be there.
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      Projects.compile(project, androidProject.getRootDirPath());
+      Projects.generateSourcesOnly(project);
     }
 
     return facet;

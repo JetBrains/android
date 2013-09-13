@@ -60,6 +60,7 @@ public class JavacOutputParser implements CompilerOutputParser {
       }
       if (part1.equalsIgnoreCase("javac")) {
         messages.add(createErrorMessage(line));
+        return true;
       }
 
       int colonIndex2 = line.indexOf(COLON, colonIndex1 + 1);
@@ -128,10 +129,13 @@ public class JavacOutputParser implements CompilerOutputParser {
         }
       }
     }
-    if(line.endsWith("java.lang.OutOfMemoryError")) {
+
+    if (line.endsWith("java.lang.OutOfMemoryError")) {
       messages.add(createErrorMessage("Out of memory."));
+      return true;
     }
-    return true;
+
+    return false;
   }
 
   @NotNull

@@ -19,6 +19,7 @@ package com.android.tools.idea.wizard;
 import com.android.assetstudiolib.GraphicGenerator;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.ColorPanel;
 import org.jetbrains.annotations.NotNull;
@@ -77,8 +78,9 @@ public class LauncherIconStep extends TemplateWizardStep {
   private JLabel myBackgroundColorLabel;
   private JLabel myForegroundColorLabel;
 
-  public LauncherIconStep(TemplateWizard templateWizard, LauncherIconWizardState state) {
-    super(templateWizard, state);
+  public LauncherIconStep(LauncherIconWizardState state, @Nullable Project project, @Nullable Icon sidePanelIcon,
+                          UpdateListener updateListener) {
+    super(state, project, sidePanelIcon, updateListener);
     myWizardState = state;
 
     register(ATTR_TEXT, myText);

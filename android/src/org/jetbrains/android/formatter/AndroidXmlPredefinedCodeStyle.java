@@ -48,6 +48,8 @@ public class AndroidXmlPredefinedCodeStyle extends PredefinedCodeStyle {
     rules.add(attrArrangementRule("xmlns:android", "", KEEP));
     rules.add(attrArrangementRule("xmlns:.*", "", BY_NAME));
     rules.add(attrArrangementRule(".*:id", SdkConstants.NS_RESOURCES, KEEP));
+    rules.add(attrArrangementRule(".*:name", SdkConstants.NS_RESOURCES, KEEP));
+    rules.add(attrArrangementRule("name", "^$", KEEP));
     rules.add(attrArrangementRule("style", "^$", KEEP));
     rules.add(attrArrangementRule(".*", "^$", BY_NAME));
     rules.add(attrArrangementRule(".*:layout_width", SdkConstants.NS_RESOURCES, KEEP));
@@ -57,6 +59,7 @@ public class AndroidXmlPredefinedCodeStyle extends PredefinedCodeStyle {
     rules.add(attrArrangementRule(".*:height", SdkConstants.NS_RESOURCES, BY_NAME));
     rules.add(attrArrangementRule(".*", SdkConstants.NS_RESOURCES, BY_NAME));
     rules.add(attrArrangementRule(".*", ".*", BY_NAME));
+    // TODO: Should sort name:"color",namespace:"" to the end (primarily for color state lists)
     settings.getCommonSettings(XMLLanguage.INSTANCE).setArrangementSettings(new StdRulePriorityAwareSettings(rules));
   }
 }

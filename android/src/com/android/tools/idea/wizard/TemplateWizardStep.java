@@ -24,6 +24,7 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.ColorPanel;
 import com.intellij.ui.ColorUtil;
@@ -63,14 +64,23 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
   protected final TemplateWizardState myTemplateState;
   protected final BiMap<String, JComponent> myParamFields = HashBiMap.create();
   protected final Map<JRadioButton, Pair<String, Object>> myRadioButtonValues = Maps.newHashMap();
-  protected final TemplateWizard myTemplateWizard;
+  private final Project myProject;
+  private final Icon mySidePanelIcon;
   protected boolean myIgnoreUpdates = false;
   protected boolean myIsValid = true;
   protected boolean myVisible = true;
+  protected final UpdateListener myUpdateListener;
 
-  public TemplateWizardStep(@NotNull TemplateWizard templateWizard, @NotNull TemplateWizardState state) {
+  public interface UpdateListener {
+    public void update();
+  }
+
+  public TemplateWizardStep(@NotNull TemplateWizardState state, @Nullable Project project, @Nullable Icon sidePanelIcon,
+                            UpdateListener updateListener) {
     myTemplateState = state;
-    myTemplateWizard = templateWizard;
+    myProject = project;
+    mySidePanelIcon = sidePanelIcon;
+    myUpdateListener = updateListener;
   }
 
   @Override
@@ -163,6 +173,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
 
   @Override
   public boolean validate() {
+    myTemplateState.convertApisToInt();
     if (!myVisible) {
       return true;
     }
@@ -219,7 +230,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       }
 
       if (param != null) {
-        String error = param.validate(myTemplateWizard.myProject, (String)myTemplateState.get(ATTR_PACKAGE_NAME), newValue);
+        String error = param.validate(myProject, (String)myTemplateState.get(ATTR_PACKAGE_NAME), newValue);
         if (error != null) {
           setErrorHtml(error);
           return false;
@@ -233,6 +244,55 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       }
     }
     return true;
+  }
+
+  public void refreshUiFromParameters() {
+    myTemplateState.myModified.clear();
+
+    for (Parameter param : myTemplateState.myTemplate.getMetadata().getParameters()) {
+      if (param.initial != null) {
+        myTemplateState.myParameters.remove(param.id);
+      }
+    }
+    myTemplateState.setParameterDefaults();
+    try {
+      myIgnoreUpdates = true;
+      for (String paramName : myParamFields.keySet()) {
+        if (myTemplateState.myHidden.contains(paramName)) {
+          continue;
+        }
+        JComponent component = myParamFields.get(paramName);
+        Object value = myTemplateState.get(paramName);
+        if (value == null) {
+          continue;
+        }
+        if (component instanceof JCheckBox) {
+          ((JCheckBox)component).setSelected(Boolean.parseBoolean(value.toString()));
+        }
+        else if (component instanceof JComboBox) {
+          for (int i = 0; i < ((JComboBox)component).getItemCount(); i++) {
+            if (((ComboBoxItem)((JComboBox)component).getItemAt(i)).id.equals(value)) {
+              ((JComboBox)component).setSelectedIndex(i);
+              break;
+            }
+          }
+        }
+        else if (component instanceof JTextField) {
+          ((JTextField)component).setText(value.toString());
+        } else if (component instanceof TextFieldWithBrowseButton) {
+          ((TextFieldWithBrowseButton)component).setText(value.toString());
+        } else if (component instanceof JSlider) {
+          ((JSlider)component).setValue(Integer.parseInt(value.toString()));
+        } else if (component instanceof JSpinner) {
+          ((JSpinner)component).setValue(Integer.parseInt(value.toString()));
+        } else if (component instanceof ColorPanel) {
+          ((ColorPanel)component).setSelectedColor((Color)value);
+        }
+      }
+    } finally {
+      myIgnoreUpdates = false;
+    }
+    update();
   }
 
   /**
@@ -382,7 +442,9 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     }
 
     myIsValid = validate();
-    myTemplateWizard.update();
+    if (myUpdateListener != null) {
+      myUpdateListener.update();
+    }
   }
 
   @Override
@@ -392,7 +454,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
 
   @Override
   public Icon getIcon() {
-    return myTemplateWizard.getSidePanelIcon();
+    return mySidePanelIcon;
   }
 
   @Override

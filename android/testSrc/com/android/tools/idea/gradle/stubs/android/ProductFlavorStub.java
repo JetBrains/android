@@ -19,6 +19,7 @@ import com.android.builder.model.ProductFlavor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.List;
 
 public class ProductFlavorStub implements ProductFlavor {
@@ -91,7 +92,13 @@ public class ProductFlavorStub implements ProductFlavor {
 
   @NotNull
   @Override
-  public List<Object> getProguardFiles() {
+  public List<File> getProguardFiles() {
+    throw new UnsupportedOperationException();
+  }
+
+  @NotNull
+  @Override
+  public List<File> getConsumerProguardFiles() {
     throw new UnsupportedOperationException();
   }
 }

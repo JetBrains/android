@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 /**
  * {@linkplain RenderContext} used when rendering a configuration preview.
@@ -145,5 +146,11 @@ class PreviewRenderContext implements RenderContext {
   @Override
   public void setDeviceFramesEnabled(boolean on) {
     myRenderContext.setDeviceFramesEnabled(on);
+  }
+
+  @Nullable
+  @Override
+  public BufferedImage getRenderedImage() {
+    return myRenderContext.getRenderedImage();
   }
 }

@@ -15,17 +15,15 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.resources.configuration.*;
 import com.android.io.IAbstractFile;
 import com.android.resources.*;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
-import com.android.sdklib.util.SparseIntArray;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.ProjectResources;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.utils.SparseIntArray;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
@@ -127,10 +125,9 @@ public class ConfigurationMatcher {
   */
   public boolean isCurrentFileBestMatchFor(@NotNull FolderConfiguration config) {
     if (myResources != null && myFile != null) {
-      ResourceFile match = myResources.getMatchingFile(ResourceHelper.getResourceName(myFile), ResourceType.LAYOUT, config);
-
+      VirtualFile match = myResources.getMatchingFile(myFile, ResourceType.LAYOUT, config);
       if (match != null) {
-        return myFile.equals(LocalFileSystem.getInstance().findFileByIoFile(match.getFile()));
+        return myFile.equals(match);
       }
       else {
         // if we stop here that means the current file is not even a match!
@@ -149,7 +146,7 @@ public class ConfigurationMatcher {
       BufferingFileWrapper wrapper = (BufferingFileWrapper)file;
       File ioFile = wrapper.getFile();
       return LocalFileSystem.getInstance().findFileByIoFile(ioFile);
-    } else if (file != null) {
+    } else {
       LOG.warn("Unexpected type of match file: " + file.getClass().getName());
     }
     return null;
@@ -163,13 +160,8 @@ public class ConfigurationMatcher {
   @Nullable
   public VirtualFile getBestFileMatch() {
     if (myResources != null && myFile != null) {
-      String name = ResourceHelper.getResourceName(myFile);
       FolderConfiguration config = myConfiguration.getFullConfig();
-      ResourceFile match = myResources.getMatchingFile(name, ResourceType.LAYOUT, config);
-
-      if (match != null) {
-        return LocalFileSystem.getInstance().findFileByIoFile(match.getFile());
-      }
+      return myResources.getMatchingFile(myFile, ResourceType.LAYOUT, config);
     }
 
     return null;
@@ -257,8 +249,6 @@ public class ConfigurationMatcher {
       if (matchState != null) {
         myConfiguration.startBulkEditing();
         myConfiguration.setDeviceState(matchState);
-        Locale locale = localeList.get(localeIndex);
-        myConfiguration.setLocale(locale);
         myConfiguration.finishBulkEditing();
       }
       else {
@@ -385,7 +375,6 @@ public class ConfigurationMatcher {
         myConfiguration.startBulkEditing();
         myConfiguration.setDevice(match.device, false);
         myConfiguration.setDeviceState(match.state);
-        myConfiguration.setLocale(localeList.get(match.bundle.localeIndex));
         myConfiguration.setUiMode(UiMode.getByIndex(match.bundle.dockModeIndex));
         myConfiguration.setNightMode(NightMode.getByIndex(match.bundle.nightModeIndex));
         myConfiguration.finishBulkEditing();
@@ -410,7 +399,6 @@ public class ConfigurationMatcher {
       myConfiguration.startBulkEditing();
       myConfiguration.setDevice(match.device, false);
       myConfiguration.setDeviceState(match.state);
-      myConfiguration.setLocale(localeList.get(match.bundle.localeIndex));
       myConfiguration.setUiMode(UiMode.getByIndex(match.bundle.dockModeIndex));
       myConfiguration.setNightMode(NightMode.getByIndex(match.bundle.nightModeIndex));
       myConfiguration.finishBulkEditing();

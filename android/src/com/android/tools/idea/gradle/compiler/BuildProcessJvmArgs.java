@@ -22,10 +22,13 @@ import org.jetbrains.annotations.NonNls;
  */
 public class BuildProcessJvmArgs {
   @NonNls public static final String GRADLE_DAEMON_MAX_IDLE_TIME_IN_MS = "com.android.studio.gradle.daemon.max.idle.time";
-  @NonNls public static final String GRADLE_DAEMON_MAX_MEMORY_IN_MB = "com.android.studio.gradle.max.memory";
+  @NonNls public static final String GRADLE_DAEMON_VM_OPTION_COUNT = "com.android.studio.daemon.gradle.vm.option.count";
+  @NonNls public static final String GRADLE_DAEMON_VM_OPTION_DOT = "com.android.studio.daemon.gradle.vm.option.";
+  @NonNls public static final String GRADLE_JAVA_HOME_DIR_PATH = "com.android.studio.gradle.java.home.path";
   @NonNls public static final String GRADLE_HOME_DIR_PATH = "com.android.studio.gradle.home.path";
   @NonNls public static final String GRADLE_SERVICE_DIR_PATH = "com.android.studio.gradle.service.dir.path";
   @NonNls public static final String PROJECT_DIR_PATH = "com.android.studio.gradle.project.path";
   @NonNls public static final String USE_EMBEDDED_GRADLE_DAEMON = "com.android.studio.gradle.use.embedded.daemon";
   @NonNls public static final String USE_GRADLE_VERBOSE_LOGGING = "com.android.studio.gradle.use.verbose.logging";
+  @NonNls public static final String BUILD_ACTION = "com.android.studio.gradle.build.action";
 }

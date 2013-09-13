@@ -118,6 +118,9 @@ public class RenderService {
   @Nullable
   private RenderContext myRenderContext;
 
+  @NotNull
+  private final Locale myLocale;
+
   /**
    * Creates a new {@link RenderService} associated with the given editor.
    *
@@ -217,6 +220,7 @@ public class RenderService {
     Pair<Integer, Integer> sdkVersions = getSdkVersions(myFacet);
     myMinSdkVersion = sdkVersions.getFirst();
     myTargetSdkVersion = sdkVersions.getSecond();
+    myLocale = configuration.getLocale();
   }
 
   @Nullable
@@ -279,7 +283,7 @@ public class RenderService {
         }
         candidate = AndroidUtils.getIntAttrValue(usesSdkTag, ATTR_TARGET_SDK_VERSION);
         if (candidate >= 0) {
-          minSdkVersion = candidate;
+          targetSdkVersion = candidate;
         }
       }
     }
@@ -326,9 +330,15 @@ public class RenderService {
    * @param renderingMode the rendering mode to be used
    * @return this (such that chains of setters can be stringed together)
    */
-  public RenderService setRenderingMode(RenderingMode renderingMode) {
+  public RenderService setRenderingMode(@NotNull RenderingMode renderingMode) {
     myRenderingMode = renderingMode;
     return this;
+  }
+
+  /** Returns the {@link RenderingMode} to be used */
+  @NotNull
+  public RenderingMode getRenderingMode() {
+    return myRenderingMode;
   }
 
   public RenderService setTimeout(long timeout) {
@@ -479,11 +489,18 @@ public class RenderService {
     // same session
     params.setExtendedViewInfoMode(true);
 
+    params.setLocale(myLocale.toLocaleId());
+
+    ManifestInfo manifestInfo = ManifestInfo.get(myModule);
+    try {
+      params.setRtlSupport(manifestInfo.isRtlSupported());
+    } catch (Exception e) {
+      // ignore.
+    }
     if (!myShowDecorations) {
       params.setForceNoDecor();
     }
     else {
-      ManifestInfo manifestInfo = ManifestInfo.get(myModule);
       try {
         params.setAppLabel(manifestInfo.getApplicationLabel());
         params.setAppIcon(manifestInfo.getApplicationIcon());
@@ -517,7 +534,13 @@ public class RenderService {
           RenderSession session = null;
           while (retries < 10) {
             session = myLayoutLib.createSession(params);
-            if (session.getResult().getStatus() != Result.Status.ERROR_TIMEOUT) {
+            Result result = session.getResult();
+            if (result.getStatus() != Result.Status.ERROR_TIMEOUT) {
+              // Sometimes happens at startup; treat it as a timeout; typically a retry fixes it
+              if (!result.isSuccess() && "The main Looper has already been prepared.".equals(result.getErrorMessage())) {
+                retries++;
+                continue;
+              }
               break;
             }
             retries++;
@@ -652,5 +675,53 @@ public class RenderService {
       }
     }
     return false;
+  }
+
+  @Nullable
+  public static LayoutLibrary getLayoutLibrary(@Nullable final Module module, @Nullable IAndroidTarget target) {
+    if (module == null || target == null) {
+      return null;
+    }
+    Project project = module.getProject();
+    AndroidPlatform platform = getPlatform(module);
+    if (platform != null) {
+      try {
+        RenderServiceFactory factory = platform.getSdkData().getTargetData(target).getRenderServiceFactory(project);
+        if (factory != null) {
+          return factory.getLibrary();
+        }
+      }
+      catch (RenderingException e) {
+        // Ignore.
+      }
+      catch (IOException e) {
+        // Ditto
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Notifies the render service that it is being used in design mode for this layout.
+   * For example, that means that when rendering a ScrollView, it should measure the necessary
+   * vertical space, and size the layout according to the needs rather than the available
+   * device size.
+   * <p>
+   * We don't want to do this when for example offering thumbnail previews of the various
+   * layouts.
+   *
+   * @param rootTag the tag, if any
+   */
+  public void useDesignMode(@Nullable XmlTag rootTag) {
+    if (rootTag != null) {
+      String tagName = rootTag.getName();
+      if (SCROLL_VIEW.equals(tagName)) {
+        setRenderingMode(RenderingMode.V_SCROLL);
+        setDecorations(false);
+      } else if (HORIZONTAL_SCROLL_VIEW.equals(tagName)) {
+        setRenderingMode(RenderingMode.H_SCROLL);
+        setDecorations(false);
+      }
+    }
   }
 }

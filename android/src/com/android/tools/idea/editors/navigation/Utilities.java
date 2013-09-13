@@ -15,11 +15,16 @@
  */
 package com.android.tools.idea.editors.navigation;
 
+import com.intellij.openapi.util.Condition;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 
 public class Utilities {
+  public static final Dimension ZERO_SIZE = new Dimension(0, 0);
+
   public static Point add(Point p1, Point p2) {
     return new Point(p1.x + p2.x, p1.y + p2.y);
   }
@@ -28,11 +33,47 @@ public class Utilities {
     return new Point(p1.x - p2.x, p1.y - p2.y);
   }
 
+  public static double length(Point p) {
+    return Math.sqrt(p.x * p.x + p.y * p.y);
+  }
+
+  public static Point max(Point p1, Point p2) {
+    return new Point(Math.max(p1.x, p2.x), Math.max(p1.y, p2.y));
+  }
+
   public static Point scale(Point p, float k) {
     return new Point((int)(k * p.x), (int)(k * p.y));
   }
 
-  public static Point project(Rectangle r, Point p) {
+  public static Dimension scale(Dimension d, float k) {
+    return new Dimension((int)(k * d.width), (int)(k * d.height));
+  }
+
+  private static int snap(int i, int d) {
+    return ((int)Math.round((double)i / d)) * d;
+  }
+
+  public static Point snap(Point p, Dimension gridSize) {
+    return new Point(snap(p.x, gridSize.width), snap(p.y, gridSize.height));
+  }
+
+  public static Point midPoint(Point p1, Point p2) {
+    return scale(add(p1, p2), 0.5f);
+  }
+
+  public static Point midPoint(Dimension size) {
+    return point(scale(size, 0.5f));
+  }
+
+  public static Point point(Dimension d) {
+    return new Point(d.width, d.height);
+  }
+
+  public static Dimension dimension(Point p) {
+    return new Dimension(Math.abs(p.x), Math.abs(p.y));
+  }
+
+  public static Point project(Point p, Rectangle r) {
     Point centre = centre(r);
     Point diff = diff(p, centre);
     boolean horizontal = Math.abs((float)diff.y / diff.x) < Math.abs((float)r.height / r.width);
@@ -44,14 +85,10 @@ public class Utilities {
     return new Point(r.x + r.width / 2, r.y + r.height / 2);
   }
 
-  public static Point centre(@NotNull Component c) {
-    return centre(c.getBounds());
-  }
-
   /**
    * Translates a Java file name to a XML file name according
    * to Android naming convention.
-   *
+   * <p/>
    * Doesn't append .xml extension
    *
    * @return XML file name associated with Java file name
@@ -78,11 +115,12 @@ public class Utilities {
   /**
    * Translates a XML file name to a Java file name according
    * to Android naming convention.
-   *
+   * <p/>
    * Doesn't append .java extension
    *
    * @return Java file name associated with XML file name
    */
+  @SuppressWarnings("AssignmentToForLoopParameter")
   public static String getJavaFileNameFromXmlFileName(String xmlFileName) {
 
     if (xmlFileName.endsWith(".xml")) {
@@ -101,10 +139,55 @@ public class Utilities {
         // skip '_' and add the next char as upper case
         char toAppend = Character.toUpperCase(charsXml[++i]);
         stringBuilder.append(toAppend);
-      } else {
+      }
+      else {
         stringBuilder.append(currentChar);
       }
     }
     return stringBuilder.toString();
+  }
+
+  static void drawArrow(Graphics g1, int x1, int y1, int x2, int y2, int lineWidth) {
+    // x1 and y1 are coordinates of circle or rectangle
+    // x2 and y2 are coordinates of circle or rectangle, to this point is directed the arrow
+    Graphics2D g = (Graphics2D)g1.create();
+    double dx = x2 - x1;
+    double dy = y2 - y1;
+    double angle = Math.atan2(dy, dx);
+    int len = (int)Math.sqrt(dx * dx + dy * dy);
+    AffineTransform t = AffineTransform.getTranslateInstance(x1, y1);
+    t.concatenate(AffineTransform.getRotateInstance(angle));
+    g.transform(t);
+    g.drawLine(0, 0, len, 0);
+    Dimension arrowHeadSize = new Dimension(lineWidth * 6, lineWidth * 3);
+    int basePosition = len - arrowHeadSize.width;
+    int height = arrowHeadSize.height;
+    g.fillPolygon(new int[]{len, basePosition, basePosition, len}, new int[]{0, -height, height, 0}, 4);
+  }
+
+  static <T> Condition<T> not(final Condition<T> condition) {
+    return new Condition<T>() {
+      @Override
+      public boolean value(T t) {
+        return !condition.value(t);
+      }
+    };
+  }
+
+  static <T> Condition<T> instanceOf(final Class<?> type) {
+    return new Condition<T>() {
+      @Override
+      public boolean value(Object o) {
+        return type.isAssignableFrom(o.getClass());
+      }
+    };
+  }
+
+  static int sign(int x) {
+    return x > 0 ? 1 : x < 0 ? -1 : 0;
+  }
+
+  static Dimension notNull(@Nullable Dimension d) {
+    return d == null ? ZERO_SIZE : d;
   }
 }

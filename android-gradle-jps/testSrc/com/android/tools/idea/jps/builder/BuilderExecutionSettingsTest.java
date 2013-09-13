@@ -23,6 +23,7 @@ import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Tests for {@link BuilderExecutionSettings}.
@@ -30,6 +31,7 @@ import java.io.File;
 public class BuilderExecutionSettingsTest extends TestCase {
   private File myGradleHomeDir;
   private File myGradleServiceDir;
+  private File myJavaHomeDir;
   private File myProjectDir;
 
   @Override
@@ -38,6 +40,7 @@ public class BuilderExecutionSettingsTest extends TestCase {
     File tempDir = Files.createTempDir();
     myGradleHomeDir = createDirectory(tempDir, "gradle-1.6");
     myGradleServiceDir = createDirectory(tempDir, "gradle");
+    myJavaHomeDir = createDirectory(tempDir, "java");
     myProjectDir = createDirectory(tempDir, "project1");
   }
 
@@ -52,11 +55,12 @@ public class BuilderExecutionSettingsTest extends TestCase {
   protected void tearDown() throws Exception {
     delete(myGradleHomeDir);
     delete(myGradleServiceDir);
+    delete(myJavaHomeDir);
     delete(myProjectDir);
     super.tearDown();
   }
 
-  private void delete(@Nullable File dir) {
+  private static void delete(@Nullable File dir) {
     if (dir != null) {
       dir.delete();
     }
@@ -64,32 +68,48 @@ public class BuilderExecutionSettingsTest extends TestCase {
 
   public void testConstructorWithValidVmArgs() {
     System.setProperty(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_IDLE_TIME_IN_MS, "55");
-    System.setProperty(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_MEMORY_IN_MB, "1024");
 
-    String gradleHomeDirPath = myGradleHomeDir.getAbsolutePath();
+    String gradleHomeDirPath = myGradleHomeDir.getPath();
     System.setProperty(BuildProcessJvmArgs.GRADLE_HOME_DIR_PATH, gradleHomeDirPath);
 
-    String gradleHomeServicePath = myGradleServiceDir.getAbsolutePath();
+    String gradleHomeServicePath = myGradleServiceDir.getPath();
     System.setProperty(BuildProcessJvmArgs.GRADLE_SERVICE_DIR_PATH, gradleHomeServicePath);
 
-    String projectDirPath = myProjectDir.getAbsolutePath();
+    String javaHomePath = myJavaHomeDir.getPath();
+    System.setProperty(BuildProcessJvmArgs.GRADLE_JAVA_HOME_DIR_PATH, javaHomePath);
+
+    String projectDirPath = myProjectDir.getPath();
     System.setProperty(BuildProcessJvmArgs.PROJECT_DIR_PATH, projectDirPath);
 
     System.setProperty(BuildProcessJvmArgs.USE_EMBEDDED_GRADLE_DAEMON, "true");
     System.setProperty(BuildProcessJvmArgs.USE_GRADLE_VERBOSE_LOGGING, "true");
 
+    System.setProperty(BuildProcessJvmArgs.GRADLE_DAEMON_VM_OPTION_COUNT, "2");
+
+    String xmx = "-Xmx2048m";
+    System.setProperty(BuildProcessJvmArgs.GRADLE_DAEMON_VM_OPTION_DOT + 0, xmx);
+
+    String maxPermSize = "-XX:MaxPermSize=512m";
+    System.setProperty(BuildProcessJvmArgs.GRADLE_DAEMON_VM_OPTION_DOT + 1, maxPermSize);
+
+
     BuilderExecutionSettings settings = new BuilderExecutionSettings();
     assertEquals(55, settings.getGradleDaemonMaxIdleTimeInMs());
-    assertEquals(1024, settings.getGradleDaemonMaxMemoryInMb());
     assertEquals(gradleHomeDirPath, pathOf(settings.getGradleHomeDir()));
     assertEquals(gradleHomeServicePath, pathOf(settings.getGradleServiceDir()));
-    assertEquals(projectDirPath, settings.getProjectDir().getAbsolutePath());
+    assertEquals(javaHomePath, pathOf(settings.getJavaHomeDir()));
+    assertEquals(projectDirPath, settings.getProjectDir().getPath());
     assertTrue(settings.isEmbeddedGradleDaemonEnabled());
     assertTrue(settings.isVerboseLoggingEnabled());
+
+    List<String> vmOptions = settings.getGradleDaemonVmOptions();
+    assertEquals(2, vmOptions.size());
+    assertEquals(xmx, vmOptions.get(0));
+    assertEquals(maxPermSize, vmOptions.get(1));
   }
 
-  private static String pathOf(@NotNull File dir) {
+  private static String pathOf(@Nullable File dir) {
     assertNotNull(dir);
-    return dir.getAbsolutePath();
+    return dir.getPath();
   }
 }

@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.customizer;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.model.AndroidContentRoot;
-import com.android.tools.idea.gradle.model.AndroidContentRoot.ContentRootStorage;
+import com.android.tools.idea.gradle.project.AndroidContentRoot;
+import com.android.tools.idea.gradle.project.AndroidContentRoot.ContentRootStorage;
 import com.google.common.base.Preconditions;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.module.Module;
@@ -26,7 +26,7 @@ import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 
 /**
- * Sets the content roots of an IDEA module imported from an {@link com.android.build.gradle.model.AndroidProject}.
+ * Sets the content roots of an IDEA module imported from an {@link com.android.builder.model.AndroidProject}.
  */
 public class ContentRootModuleCustomizer implements ModuleCustomizer {
   /**
@@ -99,7 +99,7 @@ public class ContentRootModuleCustomizer implements ModuleCustomizer {
           return;
         }
         boolean isTestSource = sourceType.equals(ExternalSystemSourceType.TEST);
-        String url = VfsUtil.pathToUrl(dir.getAbsolutePath());
+        String url = VfsUtilCore.pathToUrl(dir.getAbsolutePath());
         contentEntry.addSourceFolder(url, isTestSource);
       }
     };

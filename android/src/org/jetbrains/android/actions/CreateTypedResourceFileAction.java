@@ -17,6 +17,7 @@
 package org.jetbrains.android.actions;
 
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.rendering.ResourceNameValidator;
 import com.intellij.CommonBundle;
 import com.intellij.ide.actions.CreateElementActionBase;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -29,6 +30,7 @@ import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.InputValidator;
 import com.intellij.openapi.ui.InputValidatorEx;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
@@ -79,10 +81,14 @@ public class CreateTypedResourceFileAction extends CreateElementActionBase {
     return myResourceType.getName();
   }
 
+  protected InputValidator createValidator(Project project, PsiDirectory directory) {
+    return new MyValidator(project, directory);
+  }
+
   @NotNull
   @Override
   protected PsiElement[] invokeDialog(Project project, PsiDirectory directory) {
-    MyInputValidator validator = new MyValidator(project, directory);
+    InputValidator validator = createValidator(project, directory);
     Messages.showInputDialog(project, AndroidBundle.message("new.file.dialog.text"),
                              AndroidBundle.message("new.typed.resource.dialog.title", myResourcePresentableName),
                              Messages.getQuestionIcon(), "", validator);
@@ -214,8 +220,10 @@ public class CreateTypedResourceFileAction extends CreateElementActionBase {
   }
 
   private class MyValidator extends MyInputValidator implements InputValidatorEx {
+    private final ResourceNameValidator myNameValidator;
     public MyValidator(Project project, PsiDirectory directory) {
       super(project, directory);
+      myNameValidator = ResourceNameValidator.create(true, myResourceType);
     }
 
     @Override
@@ -225,7 +233,7 @@ public class CreateTypedResourceFileAction extends CreateElementActionBase {
 
     @Override
     public String getErrorText(String inputString) {
-      return AndroidResourceUtil.getInvalidResourceFileNameMessage(inputString);
+      return myNameValidator.getErrorText(inputString);
     }
   }
 }

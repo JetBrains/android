@@ -42,6 +42,10 @@ public class ConfigurationStateManagerTest extends AndroidTestCase {
     assertEquals("en-rUS", manager.getProjectState().getLocale());
     manager.loadState(secondState);
     manager.getProjectState().setLocale("de");
+
+    assertTrue(manager.getProjectState().isPickTarget());
+    manager.getProjectState().setPickTarget(false);
+    assertFalse(manager.getProjectState().isPickTarget());
   }
 
   public void test2() {

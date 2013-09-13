@@ -31,11 +31,13 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import static com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX;
 import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.VALUE_TRUE;
 import static com.android.xml.AndroidManifest.*;
 
 /**
@@ -59,6 +61,7 @@ public class ManifestInfo {
   private int myTargetSdk;
   private String myApplicationIcon;
   private String myApplicationLabel;
+  private boolean myApplicationSupportsRtl;
 
   /**
    * Key for the per-project non-persistent property storing the {@link ManifestInfo} for
@@ -155,6 +158,7 @@ public class ManifestInfo {
     myPackage = ""; //$NON-NLS-1$
     myApplicationIcon = null;
     myApplicationLabel = null;
+    myApplicationSupportsRtl = false;
 
     try {
       XmlTag root = myManifestFile.getRootTag();
@@ -171,6 +175,7 @@ public class ManifestInfo {
         myApplicationIcon = application.getAttributeValue(ATTRIBUTE_ICON, ANDROID_URI);
         myApplicationLabel = application.getAttributeValue(ATTRIBUTE_LABEL, ANDROID_URI);
         myManifestTheme = application.getAttributeValue(ATTRIBUTE_THEME, ANDROID_URI);
+        myApplicationSupportsRtl = VALUE_TRUE.equals(application.getAttributeValue(ATTRIBUTE_SUPPORTS_RTL, ANDROID_URI));
 
         XmlTag[] activities = application.findSubTags(NODE_ACTIVITY);
         for (XmlTag activity : activities) {
@@ -251,7 +256,7 @@ public class ManifestInfo {
   public Map<String, String> getActivityThemes() {
     sync();
     if (myActivityThemes == null) {
-      sync();
+      return Collections.emptyMap();
     }
     return myActivityThemes;
   }
@@ -322,6 +327,16 @@ public class ManifestInfo {
   public String getApplicationLabel() {
     sync();
     return myApplicationLabel;
+  }
+
+  /**
+   * Returns true if the application has RTL support.
+   *
+   * @return true if the application has RTL support.
+   */
+  public boolean isRtlSupported() {
+    sync();
+    return myApplicationSupportsRtl;
   }
 
   /**

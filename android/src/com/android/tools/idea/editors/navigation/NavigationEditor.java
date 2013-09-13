@@ -23,31 +23,38 @@ import com.android.navigation.XMLWriter;
 import com.intellij.AppTopics;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBScrollPane;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class NavigationEditor implements FileEditor {
+  public static final String TOOLBAR = "NavigationEditorToolbar";
   private static final Logger LOG = Logger.getInstance("#" + NavigationEditor.class.getName());
   private static final String NAME = "Navigation";
-  public static final int INITIAL_FILE_BUFFER_SIZE = 1000;
+  private static final int INITIAL_FILE_BUFFER_SIZE = 1000;
+  private static final int SCROLL_UNIT_INCREMENT = 20;
 
   private final UserDataHolderBase myUserDataHolder = new UserDataHolderBase();
-  private final NavigationModel myNavigationModel;
-  private final Listener<Void> myNavigationModelListener;
+  private NavigationModel myNavigationModel;
+  private final Listener<NavigationModel.Event> myNavigationModelListener;
   private VirtualFile myFile;
-  private final JComponent myComponent;
+  private JComponent myComponent;
   private boolean myDirty;
 
   public NavigationEditor(Project project, VirtualFile file) {
@@ -66,24 +73,93 @@ public class NavigationEditor implements FileEditor {
     project.getMessageBus().connect(this).subscribe(AppTopics.FILE_DOCUMENT_SYNC, saveListener);
 
     myFile = file;
-    myNavigationModel = read(file);
-    // component = new NavigationModelEditorPanel1(project, file, read(file));
-    myComponent = new JBScrollPane(new NavigationEditorPanel2(project, file, myNavigationModel));
-    myNavigationModelListener = new Listener<Void>() {
+    try {
+      myNavigationModel = read(file);
+      // component = new NavigationModelEditorPanel1(project, file, read(file));
+      NavigationEditorPanel editor = new NavigationEditorPanel(project, file, myNavigationModel);
+      JBScrollPane scrollPane = new JBScrollPane(editor);
+      scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT_INCREMENT);
+      JPanel p = new JPanel(new BorderLayout());
+
+      JComponent controls = createToolbar(editor);
+      p.add(controls, BorderLayout.NORTH);
+      p.add(scrollPane);
+      myComponent = p;
+    }
+    catch (FileReadException e) {
+      myNavigationModel = new NavigationModel();
+      {
+        JPanel panel = new JPanel(new BorderLayout());
+        JLabel message = new JLabel("Invalid Navigation File");
+        Font font = message.getFont();
+        message.setFont(font.deriveFont(30f));
+        panel.add(message, BorderLayout.NORTH);
+        panel.add(new JLabel(e.getMessage()), BorderLayout.CENTER);
+        myComponent = new JBScrollPane(panel);
+      }
+    }
+    myNavigationModelListener = new Listener<NavigationModel.Event>() {
       @Override
-      public void notify(Void unused) {
+      public void notify(@NotNull NavigationModel.Event event) {
         myDirty = true;
       }
     };
     myNavigationModel.getListeners().add(myNavigationModelListener);
   }
 
-  private static NavigationModel read(VirtualFile file) {
+  // See  AndroidDesignerActionPanel
+  protected JComponent createToolbar(NavigationEditorPanel myDesigner) {
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
+
+    ActionManager actionManager = ActionManager.getInstance();
+    ActionToolbar zoomToolBar = actionManager.createActionToolbar(TOOLBAR, getActions(myDesigner), true);
+    JPanel bottom = new JPanel(new BorderLayout());
+    //bottom.add(layoutToolBar.getComponent(), BorderLayout.WEST);
+    bottom.add(zoomToolBar.getComponent(), BorderLayout.EAST);
+    panel.add(bottom, BorderLayout.SOUTH);
+
+    return panel;
+  }
+
+  private static class FileReadException extends Exception {
+    private FileReadException(Throwable throwable) {
+      super(throwable);
+    }
+  }
+
+  // See AndroidDesignerActionPanel
+  private static ActionGroup getActions(final NavigationEditorPanel myDesigner) {
+    DefaultActionGroup group = new DefaultActionGroup();
+
+    group.add(new AnAction(null, "Zoom Out (-)", AndroidIcons.ZoomOut) {
+      @Override
+      public void actionPerformed(AnActionEvent e) {
+        myDesigner.zoom(false);
+      }
+    });
+    group.add(new AnAction(null, "Reset Zoom to 100% (1)", AndroidIcons.ZoomActual) {
+      @Override
+      public void actionPerformed(AnActionEvent e) {
+        myDesigner.setScale(1);
+      }
+    });
+    group.add(new AnAction(null, "Zoom In (+)", AndroidIcons.ZoomIn) {
+      @Override
+      public void actionPerformed(AnActionEvent e) {
+        myDesigner.zoom(true);
+      }
+    });
+
+    return group;
+  }
+
+  private static NavigationModel read(VirtualFile file) throws FileReadException {
     try {
       return (NavigationModel)new XMLReader(file.getInputStream()).read();
     }
-    catch (IOException e) {
-      throw new RuntimeException(e);
+    catch (Exception e) {
+      throw new FileReadException(e);
     }
   }
 

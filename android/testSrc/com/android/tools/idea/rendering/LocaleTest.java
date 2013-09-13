@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LanguageQualifier;
 import com.android.ide.common.resources.configuration.RegionQualifier;
 import junit.framework.TestCase;
@@ -74,5 +75,14 @@ public class LocaleTest extends TestCase {
     assertFalse(Locale.create(language1, region1).equals(Locale.create(language2, region1)));
     assertEquals("Locale{nb, __}", Locale.create(language1).toString());
     assertEquals("Locale{nb, NO}", Locale.create(language1, region1).toString());
+  }
+
+  public void testFolderConfig() {
+    FolderConfiguration config = new FolderConfiguration();
+    assertEquals(Locale.ANY, Locale.create(config));
+    config.setLanguageQualifier(new LanguageQualifier("en"));
+    assertEquals(Locale.create("en"), Locale.create(config));
+    config.setRegionQualifier(new RegionQualifier("US"));
+    assertEquals(Locale.create("en-rUS"), Locale.create(config));
   }
 }

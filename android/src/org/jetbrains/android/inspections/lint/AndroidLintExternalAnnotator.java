@@ -21,7 +21,7 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.*;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -38,7 +38,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -50,10 +49,11 @@ import static com.android.SdkConstants.*;
  * @author Eugene.Kudelevsky
  */
 public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State> {
+  static final boolean INCLUDE_IDEA_SUPPRESS_ACTIONS = false;
 
   @Override
   public State collectionInformation(@NotNull PsiFile file) {
-    final Module module = ModuleUtil.findModuleForPsiElement(file);
+    final Module module = ModuleUtilCore.findModuleForPsiElement(file);
     if (module == null) {
       return null;
     }
@@ -95,7 +95,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
 
   @Override
   public State doAnnotate(final State state) {
-    final IntellijLintClient client = new IntellijLintClient(state);
+    final IntellijLintClient client = IntellijLintClient.forEditor(state);
     try {
       final LintDriver lint = new LintDriver(new IntellijLintIssueRegistry(), client);
 
@@ -119,8 +119,9 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
         return state;
       }
 
-      List<File> files = Collections.singletonList(new File(mainFile.getPath()));
-      LintRequest request = new IntellijLintRequest(client, files, state.getModule().getProject());
+      List<VirtualFile> files = Collections.singletonList(mainFile);
+      LintRequest request = new IntellijLintRequest(client, state.getModule().getProject(), files,
+                                                    Collections.singletonList(state.getModule()));
       request.setScope(scope);
 
       lint.analyze(request);
@@ -205,10 +206,15 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
             annotation.registerFix(new MyDisableInspectionFix(key));
             annotation.registerFix(new MyEditInspectionToolsSettingsAction(key, inspection));
 
-            final SuppressQuickFix[] suppressActions = inspection.getBatchSuppressActions(startElement);
-            for (SuppressQuickFix action : suppressActions) {
-              ProblemHighlightType type = annotation.getHighlightType();
-              annotation.registerFix(action, null, key, InspectionManager.getInstance(project).createProblemDescriptor(startElement, endElement, message, type, true, LocalQuickFix.EMPTY_ARRAY));
+            if (INCLUDE_IDEA_SUPPRESS_ACTIONS) {
+              final SuppressQuickFix[] suppressActions = inspection.getBatchSuppressActions(startElement);
+              for (SuppressQuickFix action : suppressActions) {
+                if (action.isAvailable(project, startElement)) {
+                  ProblemHighlightType type = annotation.getHighlightType();
+                  annotation.registerFix(action, null, key, InspectionManager.getInstance(project).createProblemDescriptor(
+                    startElement, endElement, message, type, true, LocalQuickFix.EMPTY_ARRAY));
+                }
+              }
             }
           }
         }

@@ -1,5 +1,6 @@
 package org.jetbrains.jps.android;
 
+import com.android.tools.idea.jps.AndroidTargetBuilder;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
@@ -14,7 +15,6 @@ import org.jetbrains.jps.builders.FileProcessor;
 import org.jetbrains.jps.incremental.CompileContext;
 import org.jetbrains.jps.incremental.ProjectBuildException;
 import org.jetbrains.jps.incremental.StopBuildException;
-import org.jetbrains.jps.incremental.TargetBuilder;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 import org.jetbrains.jps.incremental.messages.ProgressMessage;
@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidPreDexBuilder extends TargetBuilder<AndroidPreDexBuildTarget.MyRootDescriptor, AndroidPreDexBuildTarget> {
+public class AndroidPreDexBuilder extends AndroidTargetBuilder<AndroidPreDexBuildTarget.MyRootDescriptor, AndroidPreDexBuildTarget> {
 
   @NonNls private static final String BUILDER_NAME = "Android Pre Dex";
 
@@ -54,10 +54,10 @@ public class AndroidPreDexBuilder extends TargetBuilder<AndroidPreDexBuildTarget
   }
 
   @Override
-  public void build(@NotNull AndroidPreDexBuildTarget target,
-                    @NotNull DirtyFilesHolder<AndroidPreDexBuildTarget.MyRootDescriptor, AndroidPreDexBuildTarget> holder,
-                    @NotNull BuildOutputConsumer outputConsumer,
-                    @NotNull final CompileContext context) throws ProjectBuildException, IOException {
+  protected void buildTarget(@NotNull AndroidPreDexBuildTarget target,
+                             @NotNull DirtyFilesHolder<AndroidPreDexBuildTarget.MyRootDescriptor, AndroidPreDexBuildTarget> holder,
+                             @NotNull BuildOutputConsumer outputConsumer,
+                             @NotNull final CompileContext context) throws ProjectBuildException, IOException {
     if (!doBuild(target, holder, outputConsumer, context)) {
       throw new StopBuildException();
     }

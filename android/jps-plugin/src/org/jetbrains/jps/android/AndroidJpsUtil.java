@@ -84,8 +84,7 @@ public class AndroidJpsUtil {
    */
   public static boolean shouldProcessDependenciesRecursively(JpsModule module) {
     return JpsJavaDependenciesEnumerationHandler.shouldProcessDependenciesRecursively(
-      JpsJavaDependenciesEnumerationHandler.createHandlers(
-        Collections.singletonList(module)));
+      JpsJavaDependenciesEnumerationHandler.createHandlers(Collections.singletonList(module)));
   }
 
   @Nullable
@@ -412,30 +411,11 @@ public class AndroidJpsUtil {
       context.processMessage(new CompilerMessage(builderName, exception));
     }
   }
-
-  public static boolean containsAndroidFacet(@NotNull ModuleChunk chunk) {
-    for (JpsModule module : chunk.getModules()) {
-      if (getExtension(module) != null) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  public static boolean containsAndroidFacet(@NotNull JpsProject project) {
-    for (JpsModule module : project.getModules()) {
-      if (getExtension(module) != null) {
-        return true;
-      }
-    }
-    return false;
-  }
-
+  
   public static ModuleLevelBuilder.ExitCode handleException(@NotNull CompileContext context,
                                                             @NotNull Exception e,
                                                             @NotNull String builderName,
                                                             @Nullable Logger logger) throws ProjectBuildException {
-    
     if (logger != null) {
       logger.info(e);
     }
@@ -535,6 +515,11 @@ public class AndroidJpsUtil {
   public static boolean isLightBuild(@NotNull CompileContext context) {
     final String typeId = getRunConfigurationTypeId(context);
     return typeId != null && AndroidCommonUtils.isTestConfiguration(typeId);
+  }
+
+  public static boolean isInstrumentationTestContext(@NotNull CompileContext context) {
+    final String typeId = getRunConfigurationTypeId(context);
+    return typeId != null && AndroidCommonUtils.isInstrumentationTestConfiguration(typeId);
   }
 
   @Nullable
@@ -852,4 +837,40 @@ public class AndroidJpsUtil {
     }
     return result;
   }
+
+  /**
+   * Indicates whether the given project is a non-Gradle Android project.
+   *
+   * @param project the given project.
+   * @return {@code true} if the the given project is a non-Gradle Android project, {@code false} otherwise.
+   */
+  public static boolean isAndroidProjectWithoutGradleFacet(@NotNull JpsProject project) {
+    return isAndroidProjectWithoutGradleFacet(project.getModules());
+  }
+
+  /**
+   * Indicates whether the given modules belong to a non-Gradle Android project.
+   *
+   * @param chunk the given modules.
+   * @return {@code true} if the the given modules belong to a non-Gradle Android project, {@code false} otherwise.
+   */
+  public static boolean isAndroidProjectWithoutGradleFacet(@NotNull ModuleChunk chunk) {
+    return isAndroidProjectWithoutGradleFacet(chunk.getModules());
+  }
+
+  private static boolean isAndroidProjectWithoutGradleFacet(@NotNull Collection<JpsModule> modules) {
+    boolean hasAndroidFacet = false;
+    for (JpsModule module : modules) {
+      JpsAndroidModuleExtension androidFacet = getExtension(module);
+      if (androidFacet != null) {
+        hasAndroidFacet = true;
+        if (androidFacet.isGradleProject()) {
+          return false;
+        }
+      }
+    }
+    return hasAndroidFacet;
+  }
+  
+  
 }

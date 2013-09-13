@@ -18,7 +18,6 @@ package com.intellij.android.designer.model;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
-import com.intellij.designer.designSurface.DesignerEditorPanel;
 import com.intellij.designer.designSurface.ScalableComponent;
 import com.intellij.designer.model.*;
 import com.intellij.designer.palette.PaletteItem;
@@ -211,9 +210,14 @@ public class RadViewComponent extends RadVisualComponent {
 
   @Override
   public void delete() throws Exception {
-    IdManager.get(this).removeComponent(this, true);
+    IdManager idManager = IdManager.get(this);
+    if (idManager != null) {
+      idManager.removeComponent(this, true);
+    }
 
-    removeFromParent();
+    if (getParent() != null) {
+      removeFromParent();
+    }
 
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override

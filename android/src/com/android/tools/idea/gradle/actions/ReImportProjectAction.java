@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.GradleImportNotificationListener;
-import com.android.tools.idea.gradle.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -41,17 +41,17 @@ public class ReImportProjectAction extends AnAction {
   @Override
   public void actionPerformed(final AnActionEvent e) {
     Project project = e.getProject();
-    if (isGradleProject(project)) {
+    if (project != null && isGradleProject(project)) {
       GradleImportNotificationListener.detachFromManager();
       BuildVariantView.getInstance(project).projectImportStarted();
       Presentation presentation = e.getPresentation();
       presentation.setEnabled(false);
       try {
-        GradleProjectImporter.getInstance().reImportProject(project);
+        GradleProjectImporter.getInstance().reImportProject(project, null);
       }
       catch (ConfigurationException ex) {
         Messages.showErrorDialog(ex.getMessage(), ex.getTitle());
-        LOG.error(ex);
+        LOG.info(ex);
       }
       finally {
         GradleImportNotificationListener.attachToManager();

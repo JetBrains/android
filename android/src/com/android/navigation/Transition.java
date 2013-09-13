@@ -16,28 +16,22 @@
 package com.android.navigation;
 
 import com.android.annotations.Property;
-import com.android.annotations.Nullable;
 
 public class Transition {
   private String type;
-  private String viewIdentifier;
-  private State source;
-  private State destination;
+  private final Locator source;
+  private final Locator destination;
 
-  public Transition(@Property("gesture")     String type,
-                    @Property("source")      State source,
-                    @Property("destination") State destination) {
+  public Transition(@Property("type")        String type,
+                    @Property("source")      Locator source,
+                    @Property("destination") Locator destination) {
     this.type = type;
     this.source = source;
     this.destination = destination;
   }
 
-  public State getSource() {
-    return source;
-  }
-
-  public void setSource(State source) {
-    this.source = source;
+  public static Transition of(String type, State source, State destination) {
+    return new Transition(type, new Locator(source), new Locator(destination));
   }
 
   public String getType() {
@@ -48,28 +42,11 @@ public class Transition {
     this.type = type;
   }
 
-  public State getDestination() {
+  public Locator getSource() {
+    return source;
+  }
+
+  public Locator getDestination() {
     return destination;
-  }
-
-  public void setDestination(State destination) {
-    this.destination = destination;
-  }
-
-  public String getViewIdentifier() {
-    return viewIdentifier;
-  }
-
-  public void setViewIdentifier(@Nullable String viewIdentifier) {
-    this.viewIdentifier = viewIdentifier;
-  }
-
-  @Override
-  public String toString() {
-    return "Navigation{" +
-           "source='" + source + '\'' +
-           ", gesture='" + type + '\'' +
-           ", destination='" + destination + '\'' +
-           '}';
   }
 }

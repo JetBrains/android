@@ -17,12 +17,17 @@
 package com.android.tools.idea.wizard;
 
 import com.android.sdklib.BuildToolInfo;
+import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 
+import static com.android.tools.idea.templates.RepositoryUrls.*;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
@@ -55,7 +60,7 @@ public class NewModuleWizardState extends TemplateWizardState {
     myHidden.add(ATTR_PROJECT_LOCATION);
     myHidden.add(ATTR_IS_LIBRARY_MODULE);
 
-    put(ATTR_IS_LAUNCHER, true);
+    put(ATTR_IS_LAUNCHER, false);
     put(ATTR_CREATE_ICONS, true);
     put(ATTR_IS_NEW_PROJECT, true);
     put(ATTR_CREATE_ACTIVITY, true);
@@ -94,6 +99,36 @@ public class NewModuleWizardState extends TemplateWizardState {
   public void setTemplateLocation(@NotNull File file) {
     super.setTemplateLocation(file);
     myIsAndroidModule = myTemplate.getMetadata().getParameter(ATTR_MIN_API) != null;
+  }
+
+  /**
+   * Call this to update the list of dependencies to be compiled into the template
+   */
+  public void updateDependencies() {
+    // Take care of dependencies selected through the wizard
+    Set<String> dependencySet = new HashSet<String>();
+    if (myParameters.containsKey(ATTR_DEPENDENCIES_LIST)) {
+      dependencySet.addAll((Collection<String>)get(ATTR_DEPENDENCIES_LIST));
+    }
+    dependencySet.addAll(myActivityTemplateState.getTemplateMetadata().getDependencies());
+
+    // Support Library
+    if ((get(ATTR_FRAGMENTS_EXTRA) != null && Boolean.parseBoolean(get(ATTR_FRAGMENTS_EXTRA).toString())) ||
+        (get(ATTR_NAVIGATION_DRAWER_EXTRA) != null && Boolean.parseBoolean(get(ATTR_NAVIGATION_DRAWER_EXTRA).toString()))) {
+      dependencySet.add(getLibraryUrl(SUPPORT_ID, "v4"));
+    }
+
+    // AppCompat Library
+    if (get(ATTR_ACTION_BAR_EXTRA) != null && Boolean.parseBoolean(get(ATTR_ACTION_BAR_EXTRA).toString())) {
+      dependencySet.add(getLibraryUrl(APP_COMPAT_ID, "v7"));
+    }
+
+    // GridLayout Library
+    if (get(ATTR_GRID_LAYOUT_EXTRA) != null && Boolean.parseBoolean(get(ATTR_GRID_LAYOUT_EXTRA).toString())) {
+      dependencySet.add(getLibraryUrl(GRID_LAYOUT_ID, "v7"));
+    }
+
+    put(ATTR_DEPENDENCIES_LIST, new LinkedList<String>(dependencySet));
   }
 
   /**

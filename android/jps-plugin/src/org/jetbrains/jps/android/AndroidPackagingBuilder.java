@@ -1,5 +1,6 @@
 package org.jetbrains.jps.android;
 
+import com.android.tools.idea.jps.AndroidTargetBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.io.FileUtil;
@@ -40,7 +41,7 @@ import java.util.*;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidPackagingBuilder extends TargetBuilder<BuildRootDescriptor, AndroidPackagingBuildTarget> {
+public class AndroidPackagingBuilder extends AndroidTargetBuilder<BuildRootDescriptor, AndroidPackagingBuildTarget> {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.jps.android.AndroidPackagingBuilder");
   private static final String BUILDER_NAME = "Android Packager";
 
@@ -56,11 +57,11 @@ public class AndroidPackagingBuilder extends TargetBuilder<BuildRootDescriptor, 
   }
 
   @Override
-  public void build(@NotNull AndroidPackagingBuildTarget target,
-                    @NotNull DirtyFilesHolder<BuildRootDescriptor, AndroidPackagingBuildTarget> holder,
-                    @NotNull BuildOutputConsumer outputConsumer,
-                    @NotNull CompileContext context) throws ProjectBuildException, IOException {
-    if (!AndroidSourceGeneratingBuilder.IS_ENABLED.get(context, true) || AndroidJpsUtil.isLightBuild(context)) {
+  protected void buildTarget(@NotNull AndroidPackagingBuildTarget target,
+                             @NotNull DirtyFilesHolder<BuildRootDescriptor, AndroidPackagingBuildTarget> holder,
+                             @NotNull BuildOutputConsumer outputConsumer,
+                             @NotNull CompileContext context) throws ProjectBuildException, IOException {
+    if (AndroidJpsUtil.isLightBuild(context)) {
       return;
     }
     final boolean hasDirtyFiles = holder.hasDirtyFiles() || holder.hasRemovedFiles();

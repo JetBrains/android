@@ -16,11 +16,13 @@
 package com.android.tools.idea.gradle.compiler;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.server.BuildProcessParametersProvider;
+import com.intellij.execution.configurations.CommandLineTokenizer;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -28,7 +30,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.PathUtil;
 import org.gradle.tooling.ProjectConnection;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
@@ -41,6 +42,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createJvmArg;
+
 /**
  * Adds Gradle jars to the build process' classpath and adds extra Gradle-related configuration options.
  */
@@ -51,9 +54,6 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
   @NotNull private final Project myProject;
 
   private List<String> myClasspath;
-
-  @NonNls private static final String JVM_ARG_FORMAT = "-D%1$s=%2$s";
-  @NonNls private static final String JVM_ARG_WITH_QUOTED_VALUE_FORMAT = "-D%1$s=\"%2$s\"";
 
   public AndroidGradleBuildProcessParametersProvider(@NotNull Project project) {
     myProject = project;
@@ -116,11 +116,21 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
       LOG.info(msg);
       return Collections.emptyList();
     }
+    List<String> jvmArgs = Lists.newArrayList();
 
     GradleExecutionSettings executionSettings =
       ExternalSystemApiUtil.getExecutionSettings(myProject, projectSettings.getExternalProjectPath(), SYSTEM_ID);
+    //noinspection TestOnlyProblems
+    populateJvmArgs(executionSettings, jvmArgs);
 
-    return getGradleExecutionSettingsAsVmArgs(executionSettings);
+    BuildMode buildMode = Projects.getBuildModeFrom(myProject);
+    if (buildMode == null) {
+      buildMode = BuildMode.DEFAULT_BUILD_MODE;
+    }
+    Projects.removeBuildActionFrom(myProject);
+    jvmArgs.add(createJvmArg(BuildProcessJvmArgs.BUILD_ACTION, buildMode.name()));
+
+    return jvmArgs;
   }
 
   @Nullable
@@ -134,37 +144,40 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
   }
 
   @VisibleForTesting
-  @NotNull
-  List<String> getGradleExecutionSettingsAsVmArgs(@NotNull GradleExecutionSettings executionSettings) {
-    List<String> vmArgs = Lists.newArrayList();
-
+  void populateJvmArgs(@NotNull GradleExecutionSettings executionSettings, @NotNull List<String> jvmArgs) {
     long daemonMaxIdleTimeInMs = executionSettings.getRemoteProcessIdleTtlInMs();
-    vmArgs.add(createVmArg(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_IDLE_TIME_IN_MS, String.valueOf(daemonMaxIdleTimeInMs)));
+    jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_IDLE_TIME_IN_MS, String.valueOf(daemonMaxIdleTimeInMs)));
 
     String gradleHome = executionSettings.getGradleHome();
     if (gradleHome != null && !gradleHome.isEmpty()) {
-      vmArgs.add(createVmArg(BuildProcessJvmArgs.GRADLE_HOME_DIR_PATH, gradleHome));
+      jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_HOME_DIR_PATH, gradleHome));
     }
 
     String serviceDirectory = executionSettings.getServiceDirectory();
     if (serviceDirectory != null && !serviceDirectory.isEmpty()) {
-      vmArgs.add(createVmArg(BuildProcessJvmArgs.GRADLE_SERVICE_DIR_PATH, serviceDirectory));
+      jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_SERVICE_DIR_PATH, serviceDirectory));
     }
 
-    vmArgs.add(createVmArg(BuildProcessJvmArgs.PROJECT_DIR_PATH, myProject.getBasePath()));
+    String javaHome = executionSettings.getJavaHome();
+    if (javaHome != null && !javaHome.isEmpty()) {
+      jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_JAVA_HOME_DIR_PATH, javaHome));
+    }
+
+    jvmArgs.add(createJvmArg(BuildProcessJvmArgs.PROJECT_DIR_PATH, myProject.getBasePath()));
 
     boolean verboseProcessing = executionSettings.isVerboseProcessing();
-    vmArgs.add(createVmArg(BuildProcessJvmArgs.USE_GRADLE_VERBOSE_LOGGING, String.valueOf(verboseProcessing)));
+    jvmArgs.add(createJvmArg(BuildProcessJvmArgs.USE_GRADLE_VERBOSE_LOGGING, String.valueOf(verboseProcessing)));
 
-    return vmArgs;
-  }
-
-  @NotNull
-  private static String createVmArg(@NotNull String name, @NotNull String value) {
-    String format = JVM_ARG_FORMAT;
-    if (value.contains(" ")) {
-      format = JVM_ARG_WITH_QUOTED_VALUE_FORMAT;
+    String vmOptions = executionSettings.getDaemonVmOptions();
+    int vmOptionCount = 0;
+    if (vmOptions != null && !vmOptions.isEmpty()) {
+      CommandLineTokenizer tokenizer = new CommandLineTokenizer(vmOptions);
+      while(tokenizer.hasMoreTokens()) {
+        String vmOption = tokenizer.nextToken();
+        jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_DAEMON_VM_OPTION_DOT + vmOptionCount, vmOption));
+        vmOptionCount++;
+      }
     }
-    return String.format(format, name, value);
+    jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_DAEMON_VM_OPTION_COUNT, String.valueOf(vmOptionCount)));
   }
 }

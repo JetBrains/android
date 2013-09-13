@@ -17,15 +17,12 @@ package com.android.tools.idea.jps.output.parser.aapt;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
-import com.google.common.io.Closeables;
+import com.google.common.io.Files;
 import com.intellij.util.text.StringSearcher;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.List;
 
 /**
@@ -33,7 +30,7 @@ import java.util.List;
  */
 class ReadOnlyDocument {
   @NotNull private final CharSequence myContents;
-  @NotNull private final List<Long> myOffsets;
+  @NotNull private final List<Integer> myOffsets;
 
   /**
    * Creates a new {@link ReadOnlyDocument} for the given file.
@@ -43,21 +40,14 @@ class ReadOnlyDocument {
    */
   @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
   ReadOnlyDocument(@NotNull File file) throws IOException {
-    myOffsets = Lists.newArrayList();
-    RandomAccessFile raf = null;
-    try {
-      raf = new RandomAccessFile(file, "r");
-      myOffsets.add(raf.getFilePointer());
-      while (raf.readLine() != null) {
-        myOffsets.add(raf.getFilePointer());
+    myContents = Files.toString(file, Charsets.UTF_8);
+    myOffsets = Lists.newArrayListWithExpectedSize(myContents.length() / 30);
+    myOffsets.add(0);
+    for (int i = 0; i < myContents.length(); i++) {
+      char c = myContents.charAt(i);
+      if (c == '\n') {
+        myOffsets.add(i + 1);
       }
-      FileChannel channel = raf.getChannel();
-      long channelSize = channel.size();
-      ByteBuffer byteBuffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channelSize);
-      myContents = Charsets.UTF_8.newDecoder().decode(byteBuffer);
-    }
-    finally {
-      Closeables.closeQuietly(raf);
     }
   }
 
@@ -68,10 +58,10 @@ class ReadOnlyDocument {
    * @return the offset of the given line. -1 is returned if the document is empty, or if the given line number is negative or greater than
    *         the number of lines in the document.
    */
-  long lineOffset(long lineNumber) {
-    int index = (int)lineNumber - 1;
-    if (index <= 0 || index >= myOffsets.size()) {
-      return -1L;
+  int lineOffset(int lineNumber) {
+    int index = lineNumber - 1;
+    if (index < 0 || index >= myOffsets.size()) {
+      return -1;
     }
     return myOffsets.get(index);
   }
@@ -83,14 +73,14 @@ class ReadOnlyDocument {
    * @return the line number of the given offset. -1 is returned if the document is empty or if the offset is greater than the position of
    *         the last character in the document.
    */
-  long lineNumber(long offset) {
+  int lineNumber(int offset) {
     for (int i = 0; i < myOffsets.size(); i++) {
-      long savedOffset = myOffsets.get(i);
+      int savedOffset = myOffsets.get(i);
       if (offset <= savedOffset) {
         return i;
       }
     }
-    return -1L;
+    return -1;
   }
 
   /**
@@ -100,9 +90,14 @@ class ReadOnlyDocument {
    * @param offset the starting point of the search.
    * @return the offset of the found result, or -1 if no match was found.
    */
-  long findText(String text, long offset) {
+  int findText(String text, int offset) {
     StringSearcher searcher = new StringSearcher(text, true, true);
-    return searcher.scan(myContents, (int)offset, myContents.length());
+    return searcher.scan(myContents, offset, myContents.length());
+  }
+
+  int findTextBackwards(String text, int offset) {
+    StringSearcher searcher = new StringSearcher(text, true, false);
+    return searcher.scan(myContents, offset, myContents.length());
   }
 
   /**
@@ -112,14 +107,24 @@ class ReadOnlyDocument {
    * @return the character at the given offset.
    * @throws IndexOutOfBoundsException if the {@code offset} argument is negative or not less than the document's size.
    */
-  char charAt(long offset) {
-    return myContents.charAt((int)offset);
+  char charAt(int offset) {
+    return myContents.charAt(offset);
+  }
+
+  /**
+   * Returns the sub sequence for the given range.
+   * @param start the starting offset.
+   * @param end the ending offset, or -1 for the end of the file.
+   * @return the sub sequence.
+   */
+  CharSequence subsequence(int start, int end) {
+    return myContents.subSequence(start, end == -1 ? myContents.length() : end);
   }
 
   /**
    * @return the size (or length) of the document.
    */
-  long length() {
+  int length() {
     return myContents.length();
   }
 }

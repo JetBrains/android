@@ -19,10 +19,18 @@ package com.android.navigation;
 import junit.framework.TestCase;
 import org.jetbrains.android.AndroidTestCase;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 public class NavigationReaderTest extends TestCase {
+  private static State createState(String className, String xmlFileName) {
+    State s0 = new State(className);
+    s0.setXmlResourceName(xmlFileName);
+    return s0;
+  }
+
   public void test1() throws FileNotFoundException {
 
     FileInputStream stream = new FileInputStream(AndroidTestCase.getTestDataPath() + "/resNavigation/res/layout/main.nav");
@@ -34,15 +42,36 @@ public class NavigationReaderTest extends TestCase {
     writer.write(result);
   }
 
-  /*
-  public void test2() throws FileNotFoundException {
-    FileInputStream stream = new FileInputStream("../adt/idea/android/testData/resNavigation/res/xml/test.xml");
-    XMLReader reader = new XMLReader(stream);
-    Object result = reader.read();
-    System.out.println("result = " + result);
-    assertTrue(result != null);
+  private static Object fromString(String output) {
+    return new XMLReader(new ByteArrayInputStream(output.getBytes())).read();
   }
-  */
+
+  private static String toString(Object model) {
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    XMLWriter writer = new XMLWriter(out);
+    writer.write(model);
+    return out.toString();
+  }
+
+  public void test0() throws FileNotFoundException {
+    NavigationModel model = new NavigationModel();
+    State s0 = createState("com.acme.MasterController", "master_controller");
+    State s1 = createState("com.acme.SlaveController", "slave_controller");
+    Transition t1 = Transition.of("click", s0, s1);
+    Transition t2 = Transition.of("swipe", s1, s0);
+    t2.getSource().setViewName("ere");
+    model.add(t1);
+    model.add(t2);
+
+    String output = toString(model);
+    System.out.println(output);
+
+    Object model2 = fromString(output);
+    String output2 = toString(model2);
+    //System.out.println(output2);
+
+    assertEquals(output, output2);
+  }
 
   //public static void main(String[] args) throws FileNotFoundException {
   //  new NavigationReaderTest().test1();

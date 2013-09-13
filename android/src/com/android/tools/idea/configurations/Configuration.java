@@ -16,6 +16,7 @@
 package com.android.tools.idea.configurations;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.api.Capability;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.FrameworkResources;
@@ -121,8 +122,8 @@ public class Configuration implements Disposable {
   /**
    * The locale to use for this configuration
    */
-  @NotNull
-  private Locale myLocale = Locale.ANY;
+  @Nullable
+  private Locale myLocale = null;
 
   /**
    * UI mode
@@ -154,6 +155,8 @@ public class Configuration implements Disposable {
   /** Dirty flags since last folder config sync: corresponds to constants in {@link ConfigurationListener} */
   protected int myFolderConfigDirty = MASK_FOLDERCONFIG;
 
+  protected int myProjectStateVersion;
+
   /**
    * Creates a new {@linkplain Configuration}
    */
@@ -161,6 +164,13 @@ public class Configuration implements Disposable {
     myManager = manager;
     myFile = file;
     myEditedConfig = editedConfig;
+
+    if (editedConfig.getLanguageQualifier() != null) {
+      myLocale = Locale.create(editedConfig);
+    }
+    if (editedConfig.getVersionQualifier() != null) {
+      myTarget = manager.getTarget(editedConfig.getVersionQualifier().getVersion());
+    }
   }
 
   /**
@@ -175,7 +185,6 @@ public class Configuration implements Disposable {
                               @NotNull FolderConfiguration editedConfig) {
     Configuration configuration = new Configuration(manager, file, editedConfig);
     configuration.myDevice = manager.getDefaultDevice();
-    assert configuration.ensureValid();
     return configuration;
   }
 
@@ -202,18 +211,12 @@ public class Configuration implements Disposable {
 
   @NotNull
   public static Configuration create(@NotNull ConfigurationManager manager,
-                                     @Nullable ConfigurationProjectState projectState,
                                      @Nullable VirtualFile file,
                                      @Nullable ConfigurationFileState fileState,
                                      @NotNull FolderConfiguration editedConfig) {
     Configuration configuration = new Configuration(manager, file, editedConfig);
 
     configuration.startBulkEditing();
-    if (projectState != null) {
-      projectState.loadState(configuration);
-    } else {
-      configuration.myTarget = manager.getDefaultTarget();
-    }
     if (fileState != null) {
       fileState.loadState(configuration);
     } else {
@@ -225,7 +228,6 @@ public class Configuration implements Disposable {
     }
     configuration.finishBulkEditing();
 
-    assert configuration.ensureValid();
     return configuration;
   }
 
@@ -242,12 +244,13 @@ public class Configuration implements Disposable {
     Configuration copy = new Configuration(original.myManager, original.myFile, copiedConfig);
     copy.myFullConfig.set(original.myFullConfig);
     copy.myFolderConfigDirty = original.myFolderConfigDirty;
-    copy.myTarget = original.getTarget();
+    copy.myProjectStateVersion = original.myProjectStateVersion;
+    copy.myTarget = original.myTarget; // avoid getTarget() since it fetches project state
+    copy.myLocale = original.myLocale;  // avoid getLocale() since it fetches project state
     copy.myTheme = original.getTheme();
     copy.myDevice = original.getDevice();
     copy.myState = original.getDeviceState();
     copy.myActivity = original.getActivity();
-    copy.myLocale = original.getLocale();
     copy.myUiMode = original.getUiMode();
     copy.myNightMode = original.getNightMode();
     copy.myDisplayName = original.getDisplayName();
@@ -256,7 +259,6 @@ public class Configuration implements Disposable {
     copy.myConfiguredProjectRes = original.myConfiguredProjectRes;
     copy.myConfiguredFrameworkRes = original.myConfiguredFrameworkRes;
 
-    assert copy.ensureValid();
     return copy;
   }
 
@@ -279,7 +281,7 @@ public class Configuration implements Disposable {
     FolderConfiguration editedConfig = destination.getEditedConfig();
 
     if (editedConfig.getVersionQualifier() == null) {
-      destination.myTarget = source.getTarget();
+      destination.myTarget = source.myTarget;  // avoid getTarget() since it fetches project state
     }
     if (editedConfig.getScreenSizeQualifier() == null) {
       destination.myDevice = source.getDevice();
@@ -288,7 +290,7 @@ public class Configuration implements Disposable {
       destination.myState = source.getDeviceState();
     }
     if (editedConfig.getLanguageQualifier() == null) {
-      destination.myLocale = source.getLocale();
+      destination.myLocale = source.myLocale; // avoid getLocale() since it fetches project state
     }
     if (editedConfig.getUiModeQualifier() == null) {
       destination.myUiMode = source.getUiMode();
@@ -304,8 +306,6 @@ public class Configuration implements Disposable {
     destination.myConfiguredProjectRes = null;
     destination.myConfiguredFrameworkRes = null;
 
-    assert destination.ensureValid();
-
     ProjectResources resources = ProjectResources.get(source.myManager.getModule(), true);
     ConfigurationMatcher matcher = new ConfigurationMatcher(destination, resources, destination.myFile);
     //if (!matcher.isCurrentFileBestMatchFor(editedConfig)) {
@@ -318,26 +318,12 @@ public class Configuration implements Disposable {
 
   public void save() {
     ConfigurationStateManager stateManager = ConfigurationStateManager.get(myManager.getModule().getProject());
-    ConfigurationProjectState projectState = stateManager.getProjectState();
-    projectState.saveState(this);
 
     if (myFile != null) {
       ConfigurationFileState fileState = new ConfigurationFileState();
       fileState.saveState(this);
       stateManager.setConfigurationState(myFile, fileState);
     }
-  }
-
-  @SuppressWarnings("AssertWithSideEffects")
-  protected boolean ensureValid() {
-    // Asserting on getters rather than fields since some are initialized lazily
-    assert getTheme() != null;
-    assert getUiMode() != null;
-    assert getNightMode() != null;
-    assert getLocale() != null;
-    // Not checking device, state and target since this causes problem if you open
-    // projects without a proper SDK configured
-    return true;
   }
 
   /**
@@ -439,6 +425,9 @@ public class Configuration implements Disposable {
    */
   @NotNull
   public Locale getLocale() {
+    if (myLocale == null) {
+      return myManager.getLocale();
+    }
     return myLocale;
   }
 
@@ -484,7 +473,7 @@ public class Configuration implements Disposable {
   @Nullable
   public IAndroidTarget getTarget() {
     if (myTarget == null) {
-      myTarget = myManager.getDefaultTarget();
+      return myManager.getTarget();
     }
 
     return myTarget;
@@ -544,7 +533,7 @@ public class Configuration implements Disposable {
    */
   @NotNull
   public FolderConfiguration getFullConfig() {
-    if ((myFolderConfigDirty & MASK_FOLDERCONFIG) != 0) {
+    if ((myFolderConfigDirty & MASK_FOLDERCONFIG) != 0 || myProjectStateVersion < myManager.getStateVersion()) {
       syncFolderConfig();
     }
 
@@ -808,6 +797,19 @@ public class Configuration implements Disposable {
     Locale locale = getLocale();
     myFullConfig.setLanguageQualifier(locale.language);
     myFullConfig.setRegionQualifier(locale.region);
+    if (!locale.hasLanguage()) {
+      // Avoid getting the layout library if the locale doesn't have any language.
+      myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.LTR));
+    } else {
+    LayoutLibrary layoutLib = RenderService.getLayoutLibrary(getModule(), getTarget());
+      if (layoutLib != null) {
+        if (layoutLib.isRtl(locale.toLocaleId())) {
+          myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.RTL));
+        } else {
+          myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.LTR));
+        }
+      }
+    }
 
     // Replace the UiMode with the selected one, if one is selected
     UiMode uiMode = getUiMode();
@@ -825,6 +827,7 @@ public class Configuration implements Disposable {
     }
 
     myFolderConfigDirty = 0;
+    myProjectStateVersion = myManager.getStateVersion();
   }
 
   /** Returns the screen size required for this configuration */
@@ -978,6 +981,12 @@ public class Configuration implements Disposable {
   public void updated(int flags) {
     myNotifyDirty |= flags;
     myFolderConfigDirty |= flags;
+
+    if (myManager.getStateVersion() > myProjectStateVersion) {
+      myNotifyDirty |= MASK_PROJECT_STATE;
+      myFolderConfigDirty |= MASK_PROJECT_STATE;
+      // TODO: Update myProjectStateVersion?
+    }
 
     if ((flags & MASK_RESOLVE_RESOURCES) != 0) {
       myFrameworkResources = null;
@@ -1136,10 +1145,15 @@ public class Configuration implements Disposable {
 
   @NotNull
   public Map<ResourceType, Map<String, ResourceValue>> getConfiguredProjectResources() {
-    ProjectResources resources = ProjectResources.get(myManager.getModule(), true);
+    final ProjectResources resources = ProjectResources.get(myManager.getModule(), true);
     if (myConfiguredProjectRes == null || myCachedGeneration < resources.getModificationCount()) {
       // get the project resource values based on the current config
-      myConfiguredProjectRes = resources.getConfiguredResources(getFullConfig());
+      ApplicationManager.getApplication().runReadAction(new Runnable() {
+        @Override
+        public void run() {
+          myConfiguredProjectRes = resources.getConfiguredResources(getFullConfig());
+        }
+      });
       myCachedGeneration = resources.getModificationCount();
     }
 
@@ -1147,6 +1161,7 @@ public class Configuration implements Disposable {
   }
 
   // For debugging only
+  @SuppressWarnings("SpellCheckingInspection")
   @Override
   public String toString() {
     return Objects.toStringHelper(this.getClass()).add("display", getDisplayName())      //$NON-NLS-1$

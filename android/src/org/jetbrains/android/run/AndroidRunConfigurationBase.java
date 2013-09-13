@@ -92,8 +92,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (facet == null) {
       throw new RuntimeConfigurationError(AndroidBundle.message("android.no.facet.error"));
     }
-    if (facet.getProperties().LIBRARY_PROJECT) {
-      throw new RuntimeConfigurationError(AndroidBundle.message("android.cannot.run.library.project.error"));
+    if (facet.isLibraryProject()) {
+      Pair<Boolean, String> result = supportsRunningLibraryProjects(facet);
+      if (!result.getFirst()) {
+        throw new RuntimeConfigurationError(result.getSecond());
+      }
     }
     if (facet.getConfiguration().getAndroidPlatform() == null) {
       throw new RuntimeConfigurationError(AndroidBundle.message("select.platform.error"));
@@ -120,6 +123,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     checkConfiguration(facet);
   }
 
+  /** Returns whether the configuration supports running library projects, and if it doesn't, then an explanation as to why it doesn't. */
+  protected abstract Pair<Boolean,String> supportsRunningLibraryProjects(@NotNull AndroidFacet facet);
   protected abstract void checkConfiguration(@NotNull AndroidFacet facet) throws RuntimeConfigurationException;
 
   @Override

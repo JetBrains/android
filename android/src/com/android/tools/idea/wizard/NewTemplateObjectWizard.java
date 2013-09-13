@@ -17,44 +17,46 @@ package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.rendering.ManifestInfo;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.intellij.openapi.application.AccessToken;
+import com.android.tools.idea.templates.TemplateUtils;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileSystem;
-import com.intellij.openapi.vfs.newvfs.NewVirtualFile;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API_LEVEL;
 
 /**
  * NewTemplateObjectWizard is a base class for templates that instantiate new Android objects based on templates. These aren't for
  * complex objects like projects or modules that get customized wizards, but objects simple enough that we can show a generic template
  * parameter page and run the template against the source tree.
  */
-public class NewTemplateObjectWizard extends TemplateWizard {
+public class NewTemplateObjectWizard extends TemplateWizard implements TemplateParameterStep.UpdateListener {
   private static final Logger LOG = Logger.getInstance("#" + NewTemplateObjectWizard.class.getName());
 
   private TemplateWizardState myWizardState;
   private Project myProject;
   private Module myModule;
   private String myTemplateCategory;
+  private VirtualFile myTargetFolder;
 
-  public NewTemplateObjectWizard(@Nullable Project project, Module module, String templateCategory) {
+  public NewTemplateObjectWizard(@Nullable Project project, Module module, VirtualFile invocationTarget, String templateCategory) {
     super("New " + templateCategory, project);
     myProject = project;
     myModule = module;
     myTemplateCategory = templateCategory;
+    if (invocationTarget.isDirectory()) {
+      myTargetFolder = invocationTarget;
+    } else {
+      myTargetFolder = invocationTarget.getParent();
+    }
+
     init();
   }
 
@@ -62,15 +64,21 @@ public class NewTemplateObjectWizard extends TemplateWizard {
   protected void init() {
     myWizardState = new TemplateWizardState();
     myWizardState.put(ATTR_BUILD_API, AndroidPlatform.getInstance(myModule).getTarget().getVersion().getApiLevel());
+    myWizardState.put(ATTR_MIN_API_LEVEL, ManifestInfo.get(myModule).getMinSdkVersion());
 
-    mySteps.add(new ChooseTemplateStep(this, myWizardState, myTemplateCategory));
-    mySteps.add(new TemplateParameterStep(this, myWizardState));
+    mySteps.add(new ChooseTemplateStep(myWizardState, myTemplateCategory, myProject, null, this, null));
+    mySteps.add(new TemplateParameterStep(myWizardState, myProject, null, this));
 
     myWizardState.put(NewProjectWizardState.ATTR_PROJECT_LOCATION, myProject.getBasePath());
-    myWizardState.put(NewProjectWizardState.ATTR_MODULE_NAME, myModule.getName());
+    // We're really interested in the directory name on disk, not the module name. These will be different if you give a module the same
+    // name as its containing project.
+    String moduleName = new File(myModule.getModuleFilePath()).getParentFile().getName();
+    myWizardState.put(NewProjectWizardState.ATTR_MODULE_NAME, moduleName);
 
     myWizardState.myHidden.add(TemplateMetadata.ATTR_PACKAGE_NAME);
-    myWizardState.put(TemplateMetadata.ATTR_PACKAGE_NAME, ManifestInfo.get(myModule).getPackage());
+    myWizardState.put(TemplateMetadata.ATTR_PACKAGE_ROOT, myTargetFolder.getPath());
+
+    myWizardState.myFinal.add(TemplateMetadata.ATTR_PACKAGE_ROOT);
 
     super.init();
   }
@@ -80,7 +88,7 @@ public class NewTemplateObjectWizard extends TemplateWizard {
       @Override
       public void run() {
         try {
-          populateDirectoryParameters(myWizardState);
+          myWizardState.populateDirectoryParameters();
           File projectRoot = new File(myProject.getBasePath());
 
           ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
@@ -89,6 +97,8 @@ public class NewTemplateObjectWizard extends TemplateWizard {
             VirtualFile rootDir = contentRoots[0];
             File moduleRoot = new File(rootDir.getCanonicalPath());
             myWizardState.myTemplate.render(projectRoot, moduleRoot, myWizardState.myParameters);
+            // Open any new files specified by the template
+            TemplateUtils.openEditors(myProject, myWizardState.myTemplate.getFilesToOpen(), true);
           }
         }
         catch (Exception e) {

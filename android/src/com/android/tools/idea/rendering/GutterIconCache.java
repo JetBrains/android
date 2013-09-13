@@ -32,7 +32,7 @@ import java.util.Map;
 
 public class GutterIconCache {
   private static final Logger LOG = Logger.getInstance("#" + GutterIconCache.class.getName());
-  private static final int MAX_WIDTH = 12;
+  private static final int MAX_WIDTH = 16;
   private static final int MAX_HEIGHT = 16;
   private static final Icon NONE = AndroidIcons.Android; // placeholder
 

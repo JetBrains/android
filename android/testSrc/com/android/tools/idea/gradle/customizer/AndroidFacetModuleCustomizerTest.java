@@ -55,12 +55,11 @@ public class AndroidFacetModuleCustomizerTest extends IdeaTestCase {
     VariantStub selectedVariant = myAndroidProject.getFirstVariant();
     assertNotNull(selectedVariant);
     String selectedVariantName = selectedVariant.getName();
-    IdeaAndroidProject project =
-      new IdeaAndroidProject(myAndroidProject.getName(), rootDirPath, rootDirPath, myAndroidProject, selectedVariantName);
+    IdeaAndroidProject project = new IdeaAndroidProject(myAndroidProject.getName(), rootDirPath, myAndroidProject, selectedVariantName);
     myCustomizer.customizeModule(myModule, myProject, project);
 
     // Verify that AndroidFacet was added and configured.
-    AndroidFacet facet = Facets.getFirstFacet(myModule, AndroidFacet.ID);
+    AndroidFacet facet = Facets.getFirstFacetOfType(myModule, AndroidFacet.ID);
     assertNotNull(facet);
     assertSame(project, facet.getIdeaAndroidProject());
 

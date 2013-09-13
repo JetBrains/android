@@ -15,19 +15,29 @@
  */
 package com.android.tools.idea.startup;
 
-import com.android.tools.idea.actions.AndroidNewModuleAction;
-import com.android.tools.idea.actions.AndroidNewModuleInGroupAction;
-import com.android.tools.idea.actions.AndroidNewProjectAction;
+import com.android.SdkConstants;
+import com.android.tools.idea.actions.*;
+import com.android.tools.idea.structure.AndroidHomeConfigurable;
+import com.android.tools.idea.sdk.VersionCheck;
 import com.google.common.io.Closeables;
+import com.intellij.compiler.actions.GenerateAntBuildAction;
+import com.intellij.compiler.actions.MakeModuleAction;
+import com.intellij.ide.actions.ImportModuleAction;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkModificator;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.codeStyle.CodeStyleScheme;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
+import com.intellij.util.PlatformUtilsCore;
 import com.intellij.util.SystemProperties;
+import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
+import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.Nullable;
@@ -35,14 +45,13 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.List;
 import java.util.Properties;
 
 /** Initialization performed only in the context of the Android IDE. */
 public class AndroidStudioSpecificInitializer implements Runnable {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.startup.AndroidStudioSpecificInitializer");
 
-  @NonNls public static final String NEW_NEW_PROJECT_WIZARD = "android.newProjectWizard";
+  @NonNls private static final String USE_IDEA_NEW_PROJECT_WIZARDS = "use.idea.newProjectWizard";
 
   @NonNls private static final String ANDROID_SDK_FOLDER_NAME = "sdk";
 
@@ -50,12 +59,16 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   private static final String[] ANDROID_SDK_RELATIVE_PATHS =
     { ANDROID_SDK_FOLDER_NAME, File.separator + ".." + File.separator + ANDROID_SDK_FOLDER_NAME,};
 
+  public static boolean isAndroidStudio() {
+    return "AndroidStudio".equals(PlatformUtilsCore.getPlatformPrefix());
+  }
+
   @Override
   public void run() {
     // Fix New Project actions
     //noinspection UseOfArchaicSystemPropertyAccessors
-    if (System.getProperty(NEW_NEW_PROJECT_WIZARD) == null || Boolean.getBoolean(NEW_NEW_PROJECT_WIZARD)) {
-      fixNewProjectActions();
+    if (!Boolean.getBoolean(USE_IDEA_NEW_PROJECT_WIZARDS)) {
+      replaceIdeaActions();
     }
 
     try {
@@ -76,7 +89,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     }
   }
 
-  private static void fixNewProjectActions() {
+  private static void replaceIdeaActions() {
     // TODO: This is temporary code. We should build out our own menu set and welcome screen exactly how we want. In the meantime,
     // unregister IntelliJ's version of the project actions and manually register our own.
 
@@ -84,6 +97,12 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     replaceAction("WelcomeScreen.CreateNewProject", new AndroidNewProjectAction());
     replaceAction("NewModule", new AndroidNewModuleAction());
     replaceAction("NewModuleInGroup", new AndroidNewModuleInGroupAction());
+    replaceAction("ImportProject", new AndroidImportProjectAction());
+    replaceAction("WelcomeScreen.ImportProject", new AndroidImportProjectAction());
+    replaceAction("ImportModule", new AndroidActionRemover(new ImportModuleAction(), "Import Module..."));
+    replaceAction("MakeModule", new AndroidActionRemover(new MakeModuleAction(), "Make Module"));
+    replaceAction("Compile", new AndroidCompileAction());
+    replaceAction("GenerateAntBuild", new AndroidActionRemover(new GenerateAntBuildAction(), "Generate Ant Build..."));
   }
 
   private static void replaceAction(String actionId, AnAction newAction) {
@@ -95,19 +114,55 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   }
 
   private static void setupSdks() {
-    Sdk sdk = findFirstAndroidSdk();
+    Sdk sdk = findFirstCompatibleAndroidSdk();
     if (sdk != null) {
       return;
     }
-    String androidSdkPath = getAndroidSdkPath();
-    AndroidSdkUtils.createNewAndroidPlatform(androidSdkPath);
+    // Called in a 'invokeLater' block, otherwise file chooser will hang forever.
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        String androidSdkPath = getAndroidSdkPath();
+        if (androidSdkPath == null) {
+          return;
+        }
+        Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(androidSdkPath);
+        if (sdk != null) {
+          // Rename the SDK to fit our default naming convention.
+          if (sdk.getName().startsWith(AndroidSdkUtils.SDK_NAME_PREFIX)) {
+            SdkModificator sdkModificator = sdk.getSdkModificator();
+            sdkModificator.setName(AndroidSdkUtils.SDK_NAME_PREFIX +
+                                   sdk.getName().substring(AndroidSdkUtils.SDK_NAME_PREFIX.length()));
+            sdkModificator.commitChanges();
+
+            // Rename the JDK that goes along with this SDK.
+            AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+            if (additionalData != null) {
+              Sdk jdk = additionalData.getJavaSdk();
+              if (jdk != null) {
+                sdkModificator = jdk.getSdkModificator();
+                sdkModificator.setName(AndroidSdkUtils.DEFAULT_JDK_NAME);
+                sdkModificator.commitChanges();
+              }
+            }
+
+            // Fill out any missing build APIs for this new SDK.
+            AndroidHomeConfigurable.createSdksForAllTargets(androidSdkPath);
+          }
+        }
+      }
+    });
   }
 
   @Nullable
-  private static Sdk findFirstAndroidSdk() {
-    // TODO check version
-    List<Sdk> allSdks = AndroidSdkUtils.getAllAndroidSdks();
-    return allSdks.isEmpty() ? null : allSdks.get(0);
+  private static Sdk findFirstCompatibleAndroidSdk() {
+    for (Sdk sdk : AndroidSdkUtils.getAllAndroidSdks()) {
+      String sdkPath = sdk.getHomePath();
+      if (VersionCheck.isCompatibleVersion(sdkPath)) {
+        return sdk;
+      }
+    }
+    return null;
   }
 
   @Nullable
@@ -120,28 +175,34 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       LOG.info(String.format("Found Studio home directory at: '1$%s'", studioHome));
       for (String path : ANDROID_SDK_RELATIVE_PATHS) {
         File dir = new File(studioHome, path);
-        LOG.info(String.format("Looking for Android SDK at '1$%s'", dir.getAbsolutePath()));
-        if (dir.isDirectory()) {
-          LOG.info(String.format("Found Android SDK at '1$%s'", dir.getAbsolutePath()));
-          return dir.getAbsolutePath();
+        String absolutePath = dir.getAbsolutePath();
+        LOG.info(String.format("Looking for Android SDK at '1$%s'", absolutePath));
+        if (AndroidSdkType.getInstance().isValidSdkHome(absolutePath) && VersionCheck.isCompatibleVersion(dir)) {
+          LOG.info(String.format("Found Android SDK at '1$%s'", absolutePath));
+          return absolutePath;
         }
       }
     }
-    LOG.info("Unable to locate SDK within the Android studio installation");
+    LOG.info("Unable to locate SDK within the Android studio installation.");
 
-    String androidHomeValue = System.getenv(AndroidSdkUtils.ANDROID_HOME_ENV);
-    String msg = String.format("Value of property '%1$s' is '%2$s'", AndroidSdkUtils.ANDROID_HOME_ENV, androidHomeValue);
+    String androidHomeValue = System.getenv(SdkConstants.ANDROID_HOME_ENV);
+    String msg = String.format("Checking if ANDROID_HOME is set: '%1$s' is '%2$s'", SdkConstants.ANDROID_HOME_ENV, androidHomeValue);
     LOG.info(msg);
 
-    if (androidHomeValue != null) {
+    if (!StringUtil.isEmpty(androidHomeValue) &&
+        AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue) &&
+        VersionCheck.isCompatibleVersion(androidHomeValue)) {
+      LOG.info("Using Android SDK specified by the environment variable.");
       return androidHomeValue;
     }
 
     String sdkPath = getLastSdkPathUsedByAndroidTools();
-    if (sdkPath == null) {
-      msg = "Unable to locate last SDK used by Android tools";
+    if (!StringUtil.isEmpty(sdkPath) &&
+        AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue) &&
+        VersionCheck.isCompatibleVersion(sdkPath)) {
+      msg = String.format("Last SDK used by Android tools: '%1$s'", sdkPath);
     } else {
-      msg = String.format("Last SDK used by Android tools: '1$%s'", sdkPath);
+      msg = "Unable to locate last SDK used by Android tools";
     }
     LOG.info(msg);
     return sdkPath;

@@ -1,6 +1,7 @@
 package org.jetbrains.jps.android;
 
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.jps.AndroidTargetBuilder;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.PathUtilRt;
@@ -18,7 +19,6 @@ import org.jetbrains.jps.builders.DirtyFilesHolder;
 import org.jetbrains.jps.incremental.CompileContext;
 import org.jetbrains.jps.incremental.ProjectBuildException;
 import org.jetbrains.jps.incremental.StopBuildException;
-import org.jetbrains.jps.incremental.TargetBuilder;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 import org.jetbrains.jps.incremental.messages.ProgressMessage;
@@ -36,7 +36,7 @@ import java.util.Map;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidResourcePackagingBuilder extends TargetBuilder<BuildRootDescriptor, AndroidResourcePackagingBuildTarget> {
+public class AndroidResourcePackagingBuilder extends AndroidTargetBuilder<BuildRootDescriptor, AndroidResourcePackagingBuildTarget> {
   @NonNls private static final String BUILDER_NAME = "Android Resource Packaging";
 
   protected AndroidResourcePackagingBuilder() {
@@ -44,13 +44,10 @@ public class AndroidResourcePackagingBuilder extends TargetBuilder<BuildRootDesc
   }
 
   @Override
-  public void build(@NotNull AndroidResourcePackagingBuildTarget target,
-                    @NotNull DirtyFilesHolder<BuildRootDescriptor, AndroidResourcePackagingBuildTarget> holder,
-                    @NotNull BuildOutputConsumer outputConsumer,
-                    @NotNull CompileContext context) throws ProjectBuildException, IOException {
-    if (!AndroidSourceGeneratingBuilder.IS_ENABLED.get(context, true)) {
-      return;
-    }
+  protected void buildTarget(@NotNull AndroidResourcePackagingBuildTarget target,
+                             @NotNull DirtyFilesHolder<BuildRootDescriptor, AndroidResourcePackagingBuildTarget> holder,
+                             @NotNull BuildOutputConsumer outputConsumer,
+                             @NotNull CompileContext context) throws ProjectBuildException, IOException {
     final boolean releaseBuild = AndroidJpsUtil.isReleaseBuild(context);
     final AndroidPackagingStateStorage packagingStateStorage =
       context.getProjectDescriptor().dataManager.getStorage(target, AndroidPackagingStateStorage.Provider.INSTANCE);

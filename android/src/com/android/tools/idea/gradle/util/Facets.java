@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetTypeId;
@@ -43,9 +42,26 @@ public final class Facets {
    * @return the first found facet in the given module.
    */
   @Nullable
-  public static <T extends Facet> T getFirstFacet(@NotNull Module module, @NotNull FacetTypeId<T> typeId) {
+  public static <T extends Facet> T getFirstFacetOfType(@NotNull Module module, @NotNull FacetTypeId<T> typeId) {
     FacetManager facetManager = FacetManager.getInstance(module);
     Collection<T> facets = facetManager.getFacetsByType(typeId);
     return ContainerUtil.getFirstItem(facets);
   }
+
+  public static <T extends Facet> void removeAllFacetsOfType(@NotNull Module module, @NotNull FacetTypeId<T> typeId) {
+    FacetManager facetManager = FacetManager.getInstance(module);
+    Collection<T> facets = facetManager.getFacetsByType(typeId);
+    if (!facets.isEmpty()) {
+      ModifiableFacetModel model = facetManager.createModifiableModel();
+      try {
+        for (T facet : facets) {
+          model.removeFacet(facet);
+        }
+      }
+      finally {
+        model.commit();
+      }
+    }
+  }
 }
+
