@@ -2,6 +2,7 @@ package org.jetbrains.android.uipreview;
 
 import com.android.builder.model.ArtifactInfo;
 import com.android.builder.model.Variant;
+import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.openapi.diagnostic.Logger;
@@ -40,11 +41,19 @@ public final class ProjectClassLoader extends ClassLoader {
     myModule = module;
   }
 
+  @Nullable
   public static ClassLoader create(IAndroidTarget target, Module module) throws Exception {
     AndroidPlatform androidPlatform = AndroidPlatform.getInstance(module);
+    if (androidPlatform == null) {
+      return null;
+    }
     AndroidTargetData targetData = androidPlatform.getSdkData().getTargetData(target);
-    RenderServiceFactory factory = targetData.getRenderServiceFactory(module.getProject());
-    return new ProjectClassLoader(factory.getLibrary().getClassLoader(), module);
+    LayoutLibrary library = targetData.getLayoutLibrary(module.getProject());
+    if (library == null) {
+      return null;
+    }
+
+    return new ProjectClassLoader(library.getClassLoader(), module);
   }
 
   @Override
@@ -140,6 +149,7 @@ public final class ProjectClassLoader extends ClassLoader {
     return loadClassFromOutputFolder(name, vOutFolder);
   }
 
+  @Nullable
   private Class<?> loadClassFromOutputFolder(String name, VirtualFile vOutFolder) {
     final String[] segments = name.split("\\.");
 
