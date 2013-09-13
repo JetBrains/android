@@ -3,6 +3,7 @@ package org.jetbrains.android.run;
 import com.intellij.codeInsight.completion.CompletionContributor;
 import com.intellij.codeInsight.completion.CompletionParameters;
 import com.intellij.codeInsight.completion.CompletionResultSet;
+import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
@@ -27,6 +28,9 @@ public class AndroidActivityAliasCompletionContributor extends CompletionContrib
 
   @Override
   public void fillCompletionVariants(CompletionParameters parameters, CompletionResultSet result) {
+    if (parameters.getCompletionType() != CompletionType.BASIC) {
+      return;
+    }
     final Editor editor = parameters.getEditor();
 
     if (editor == null) {
