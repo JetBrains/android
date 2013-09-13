@@ -16,12 +16,16 @@
 
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.Density;
+import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.RenderContext;
+import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.compiler.impl.javaCompiler.javac.JavacConfiguration;
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -55,9 +59,13 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
+import org.jetbrains.android.dom.attrs.AttributeDefinitions;
+import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
+import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.compiler.JpsJavaCompilerOptions;
@@ -74,6 +82,9 @@ import javax.swing.text.html.HTMLFrameHyperlinkEvent;
 import java.awt.*;
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -83,6 +94,7 @@ import static com.android.SdkConstants.*;
 import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_PREFIX;
 import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
 import static com.android.tools.idea.configurations.RenderContext.UsageType.LAYOUT_EDITOR;
+import static com.android.tools.idea.rendering.HtmlLinkManager.URL_ACTION_CLOSE;
 import static com.android.tools.idea.rendering.ResourceHelper.viewNeedsPackage;
 import static com.android.tools.lint.detector.api.LintUtils.editDistance;
 import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
@@ -97,6 +109,8 @@ import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
 public class RenderErrorPanel extends JPanel {
   public static final boolean SIZE_ERROR_PANEL_DYNAMICALLY = true;
   private static final int ERROR_PANEL_OPACITY = UIUtil.isUnderDarcula() ? 224 : 208; // out of 255
+  /** Class of the render session implementation class; for render errors, we cut off stack dumps at this frame */
+  private static final String RENDER_SESSION_IMPL_FQCN = "com.android.layoutlib.bridge.impl.RenderSessionImpl";
 
   private JEditorPane myHTMLViewer;
   private final HyperlinkListener myHyperLinkListener;
@@ -161,13 +175,17 @@ public class RenderErrorPanel extends JPanel {
             return;
           }
 
-          String ref = e.getDescription();
+          String url = e.getDescription();
+          if (url.equals(URL_ACTION_CLOSE)) {
+            close();
+            return;
+          }
           Module module = myResult.getModule();
           PsiFile file = myResult.getFile();
           DataContext dataContext = DataManager.getInstance().getDataContext(RenderErrorPanel.this);
           assert dataContext != null;
 
-          myLinkManager.handleUrl(ref, module, file, dataContext, myResult);
+          myLinkManager.handleUrl(url, module, file, dataContext, myResult);
         }
       }
     };
@@ -178,6 +196,10 @@ public class RenderErrorPanel extends JPanel {
     setupStyle();
 
     add(myScrollPane, BorderLayout.CENTER);
+  }
+
+  private void close() {
+    this.setVisible(false);
   }
 
   private void setupStyle() {
@@ -223,7 +245,16 @@ public class RenderErrorPanel extends JPanel {
     assert logger.hasProblems();
 
     HtmlBuilder builder = new HtmlBuilder(new StringBuilder(300));
-    builder.addHeading("Rendering Problems").newline();
+    builder.openHtmlBody();
+
+    // Construct close button. Sadly <img align="right"> doesn't work in JEditorPanes; would
+    // have looked a lot nicer with the image flushed to the right!
+    builder.addHtml("<A HREF=\"");
+    builder.addHtml(URL_ACTION_CLOSE);
+    builder.addHtml("\">");
+    builder.addIcon(HtmlBuilderHelper.getCloseIconPath());
+    builder.addHtml("</A>");
+    builder.addHeading("Rendering Problems", HtmlBuilderHelper.getHeaderFontColor()).newline();
 
     reportMissingStyles(logger, builder);
     if (renderService != null) {
@@ -240,7 +271,9 @@ public class RenderErrorPanel extends JPanel {
       reportRenderingFidelityProblems(logger, builder, renderService);
     }
 
-    return "<HTML><BODY>" + builder.getHtml() + "</BODY></HTML>";
+    builder.closeHtmlBody();
+
+    return builder.getHtml();
   }
 
   private void reportMissingClasses(@NotNull RenderLogger logger, @NotNull HtmlBuilder builder, @NotNull RenderService renderService) {
@@ -309,7 +342,7 @@ public class RenderErrorPanel extends JPanel {
       }
       builder.endList();
 
-      builder.addTipIcon();
+      builder.addIcon(HtmlBuilderHelper.getTipIconPath());
       builder.addLink("Tip: Try to ", "build", " the project", myLinkManager.createCompileModuleUrl());
       builder.newline().newline();
     }
@@ -508,14 +541,14 @@ public class RenderErrorPanel extends JPanel {
       }
       builder.endList();
 
-      builder.addTipIcon();
+      builder.addIcon(HtmlBuilderHelper.getTipIconPath());
       builder.addLink("Tip: Use ", "View.isInEditMode()", " in your custom views to skip code or show sample data when shown in the IDE",
                       "http://developer.android.com/reference/android/view/View.html#isInEditMode()");
 
       if (firstThrowable != null) {
         builder.newline().newline();
-        builder.addHeading("Exception Details").newline();
-        reportThrowable(builder, firstThrowable);
+        builder.addHeading("Exception Details", HtmlBuilderHelper.getHeaderFontColor()).newline();
+        reportThrowable(builder, firstThrowable, false);
       }
       builder.newline().newline();
     }
@@ -548,6 +581,7 @@ public class RenderErrorPanel extends JPanel {
         count++;
         // Only display the first 3 render fidelity issues
         if (count == 3) {
+          @SuppressWarnings("ConstantConditions")
           int remaining = fidelityWarnings.size() - count;
           if (remaining > 0) {
             builder.add("(").addHtml(Integer.toString(remaining)).add(" additional render fidelity issues hidden)");
@@ -573,7 +607,7 @@ public class RenderErrorPanel extends JPanel {
   private static void reportMissingStyles(RenderLogger logger, HtmlBuilder builder) {
     if (logger.seenTagPrefix(TAG_RESOURCES_RESOLVE_THEME_ATTR)) {
       builder.addBold("Missing styles. Is the correct theme chosen for this layout?").newline();
-      builder.addTipIcon();
+      builder.addIcon(HtmlBuilderHelper.getTipIconPath());
       builder.add("Use the Theme combo box above the layout to choose a different layout, or fix the theme style references.");
       builder.newline().newline();
     }
@@ -689,19 +723,24 @@ public class RenderErrorPanel extends JPanel {
 
         HighlightSeverity severity = message.getSeverity();
         if (severity == HighlightSeverity.ERROR) {
-          builder.addErrorIcon();
+          builder.addIcon(HtmlBuilderHelper.getErrorIconPath());
         } else if (severity == HighlightSeverity.WARNING) {
-          builder.addWarningIcon();
+          builder.addIcon(HtmlBuilderHelper.getWarningIconPath());
         }
 
-        message.appendHtml(builder.getStringBuilder());
+        String html = message.getHtml();
+        builder.getStringBuilder().append(html);
 
         Throwable throwable = message.getThrowable();
         if (throwable != null) {
-          reportThrowable(builder, throwable);
+          reportThrowable(builder, throwable, !html.isEmpty());
         }
 
         if (tag != null) {
+          if (LayoutLog.TAG_RESOURCES_FORMAT.equals(tag)) {
+            appendFlagValueSuggestions(builder, message);
+          }
+
           int count = logger.getTagCount(tag);
           if (count > 1) {
             builder.add(" (").addHtml(Integer.toString(count)).add(" similar errors not shown)");
@@ -713,8 +752,61 @@ public class RenderErrorPanel extends JPanel {
     }
   }
 
+  private void appendFlagValueSuggestions(HtmlBuilder builder, RenderProblem message) {
+    Object clientData = message.getClientData();
+    if (!(clientData instanceof String[])) {
+      return;
+    }
+    String[] strings = (String[])clientData;
+    if (strings.length != 2) {
+      return;
+    }
+
+    RenderService renderService = myResult.getRenderService();
+    if (renderService == null) {
+      return;
+    }
+    IAndroidTarget target = renderService.getConfiguration().getTarget();
+    if (target == null) {
+      return;
+    }
+    AndroidPlatform platform = renderService.getPlatform();
+    if (platform == null) {
+      return;
+    }
+    AndroidTargetData targetData = platform.getSdkData().getTargetData(target);
+    AttributeDefinitions definitionLookup = targetData.getAttrDefs(myResult.getFile().getProject());
+    final String attributeName = strings[0];
+    final String currentValue = strings[1];
+    if (definitionLookup == null) {
+      return;
+    }
+    AttributeDefinition definition = definitionLookup.getAttrDefByName(attributeName);
+    if (definition == null) {
+      return;
+    }
+    Set<AttributeFormat> formats = definition.getFormats();
+    if (formats.contains(AttributeFormat.Flag) || formats.contains(AttributeFormat.Enum)) {
+      String[] values = definition.getValues();
+      if (values.length > 0) {
+        builder.newline();
+        builder.addNbsps(4);
+        builder.add("Change ").add(currentValue).add(" to: ");
+        boolean first = true;
+        for (String value : values) {
+          if (first) {
+            first = false;
+          } else {
+            builder.add(", ");
+          }
+          builder.addLink(value, myLinkManager.createReplaceAttributeValueUrl(attributeName, currentValue, value));
+        }
+      }
+    }
+  }
+
   /** Display the problem list encountered during a render */
-  private void reportThrowable(@NotNull HtmlBuilder builder, @NotNull Throwable throwable) {
+  private void reportThrowable(@NotNull HtmlBuilder builder, @NotNull Throwable throwable, boolean hideIfIrrelevant) {
     StackTraceElement[] frames = throwable.getStackTrace();
     int end = -1;
     boolean haveInterestingFrame = false;
@@ -724,7 +816,7 @@ public class RenderErrorPanel extends JPanel {
         haveInterestingFrame = true;
       }
       String className = frame.getClassName();
-      if (className.equals("com.android.layoutlib.bridge.impl.RenderSessionImpl")) { //$NON-NLS-1$
+      if (className.equals(RENDER_SESSION_IMPL_FQCN)) {
         end = i;
         break;
       }
@@ -732,7 +824,29 @@ public class RenderErrorPanel extends JPanel {
 
     if (end == -1 || !haveInterestingFrame) {
       // Not a recognized stack trace range: just skip it
-      return;
+      if (hideIfIrrelevant) {
+        return;
+      } else {
+        // List just the top frames
+        for (int i = 0; i < frames.length; i++) {
+          StackTraceElement frame = frames[i];
+          if (!isVisible(frame)) {
+            end = i;
+            if (end == 0) {
+              // Find end instead
+              for (int j = 0; j < frames.length; j++) {
+                frame = frames[j];
+                String className = frame.getClassName();
+                if (className.equals(RENDER_SESSION_IMPL_FQCN)) {
+                  end = j;
+                  break;
+                }
+              }
+            }
+            break;
+          }
+        }
+      }
     }
 
     builder.add(throwable.toString()).newline();
@@ -782,6 +896,14 @@ public class RenderErrorPanel extends JPanel {
     return !(className.startsWith("android.")          //$NON-NLS-1$
              || className.startsWith("org.jetbrains.") //$NON-NLS-1$
              || className.startsWith("com.android.")   //$NON-NLS-1$
+             || className.startsWith("java.")          //$NON-NLS-1$
+             || className.startsWith("javax.")         //$NON-NLS-1$
+             || className.startsWith("sun."));         //$NON-NLS-1$
+  }
+
+  private static boolean isVisible(StackTraceElement frame) {
+    String className = frame.getClassName();
+    return !(className.startsWith("android.")          //$NON-NLS-1$
              || className.startsWith("java.")          //$NON-NLS-1$
              || className.startsWith("javax.")         //$NON-NLS-1$
              || className.startsWith("sun."));         //$NON-NLS-1$
@@ -858,9 +980,8 @@ public class RenderErrorPanel extends JPanel {
   // Code copied from the old RenderUtil
 
   private static void askAndRebuild(Project project) {
-    final int r = Messages.showYesNoDialog(project,
-                   "You have to rebuild project to see the fixed preview. Would you like to do it?", "Rebuild Project",
-                   Messages.getQuestionIcon());
+    final int r = Messages.showYesNoDialog(project, "You have to rebuild project to see the fixed preview. Would you like to do it?",
+                                           "Rebuild Project", Messages.getQuestionIcon());
     if (r == Messages.YES) {
       CompilerManager.getInstance(project).rebuild(null);
     }
@@ -971,6 +1092,50 @@ public class RenderErrorPanel extends JPanel {
       if (ModulesConfigurator.showDialog(myProject, moduleToSelect, ClasspathEditor.NAME)) {
         askAndRebuild(myProject);
       }
+    }
+  }
+
+  private static class HtmlBuilderHelper {
+    @Nullable
+    private static String getIconPath(String relative) {
+      // TODO: Find a way to do this more efficiently; not referencing assets but the corresponding
+      // AllIcons constants, and loading them into HTML class loader contexts?
+      URL resource = AllIcons.class.getClassLoader().getResource(relative);
+      try {
+        return (resource != null) ? resource.toURI().toURL().toExternalForm() : null;
+      }
+      catch (MalformedURLException e) {
+        return null;
+      }
+      catch (URISyntaxException e) {
+        return null;
+      }
+    }
+
+    @Nullable
+    public static String getCloseIconPath() {
+      return getIconPath("/actions/closeNew.png");
+    }
+
+    @Nullable
+    public static String getTipIconPath() {
+      return getIconPath("/actions/createFromUsage.png");
+    }
+
+    @Nullable
+    public static String getWarningIconPath() {
+      return getIconPath("/actions/warning.png");
+    }
+
+    @Nullable
+    public static String getErrorIconPath() {
+      return getIconPath("/actions/error.png");
+    }
+
+    public static String getHeaderFontColor() {
+      // See om.intellij.codeInspection.HtmlComposer.appendHeading
+      // (which operates on StringBuffers)
+      return UIUtil.isUnderDarcula() ? "#A5C25C" : "#005555";
     }
   }
 }

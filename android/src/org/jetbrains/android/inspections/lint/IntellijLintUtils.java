@@ -18,11 +18,13 @@ package org.jetbrains.android.inspections.lint;
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.builder.model.SourceProvider;
 import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.*;
 import com.google.common.base.Splitter;
 import com.intellij.debugger.engine.JVMNameUtil;
 import com.intellij.ide.util.JavaAnonymousClassesHelper;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.io.FileUtil;
@@ -33,9 +35,13 @@ import com.intellij.psi.*;
 import com.intellij.psi.util.ClassUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.TypeConversionUtil;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.android.SdkConstants.CONSTRUCTOR_NAME;
 import static com.android.SdkConstants.SUPPRESS_ALL;
@@ -337,4 +343,38 @@ public class IntellijLintUtils {
     }
     return true;
   }
+
+  /** Returns the resource directories to use for the given module */
+  @NotNull
+  public static List<File> getResourceDirectories(@NotNull AndroidFacet facet) {
+    if (facet.isGradleProject()) {
+      List<File> resDirectories = new ArrayList<File>();
+      resDirectories.addAll(facet.getMainSourceSet().getResDirectories());
+      List<SourceProvider> flavorSourceSets = facet.getFlavorSourceSets();
+      if (flavorSourceSets != null) {
+        for (SourceProvider provider : flavorSourceSets) {
+          for (File file : provider.getResDirectories()) {
+            if (file.isDirectory()) {
+              resDirectories.add(file);
+            }
+          }
+        }
+      }
+
+      SourceProvider buildTypeSourceSet = facet.getBuildTypeSourceSet();
+      if (buildTypeSourceSet != null) {
+        for (File file : buildTypeSourceSet.getResDirectories()) {
+          if (file.isDirectory()) {
+            resDirectories.add(file);
+          }
+        }
+      }
+
+      return resDirectories;
+    } else {
+      return new ArrayList<File>(facet.getMainSourceSet().getResDirectories());
+    }
+  }
+
+
 }

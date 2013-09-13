@@ -73,6 +73,7 @@ class DomPsiConverter {
 
       if (BENCHMARK) {
         timer.stop();
+        //noinspection UseOfSystemOutOrSystemErr
         System.out.println("Creating PSI for " + xmlFile.getName() + " took " + timer.elapsedMillis() + "ms (" + timer.toString() + ")");
       }
 
@@ -1129,7 +1130,11 @@ class DomPsiConverter {
     @NotNull
     @Override
     public String getValue() {
-      return myAttribute.getValue();
+      String value = myAttribute.getValue();
+      if (value == null) {
+        value = "";
+      }
+      return value;
     }
 
     @NotNull

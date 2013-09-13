@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle;
 
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
-import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,12 +24,16 @@ import org.jetbrains.annotations.NotNull;
  * Common project entity {@link Key keys}.
  */
 public class AndroidProjectKeys {
-  @NotNull public static final Key<IdeaAndroidProject> IDE_ANDROID_PROJECT = Key.create(IdeaAndroidProject.class,
-                                                                                        ProjectKeys.PROJECT.getProcessingWeight() + 5);
-  @NotNull public static final Key<IdeaModule>         IDEA_MODULE         = Key.create(IdeaModule.class,
-                                                                                        ProjectKeys.MODULE.getProcessingWeight() + 5);
-  @NotNull public static final Key<IdeaGradleProject>  GRADLE_PROJECT      = Key.create(IdeaGradleProject.class,
-                                                                                        IDE_ANDROID_PROJECT.getProcessingWeight() + 10);
+  @NotNull public static final Key<IdeaAndroidProject> IDE_ANDROID_PROJECT =
+    Key.create(IdeaAndroidProject.class, ProjectKeys.PROJECT.getProcessingWeight() + 5);
+
+  @NotNull public static final Key<IdeaModule> IDEA_MODULE = Key.create(IdeaModule.class, ProjectKeys.MODULE.getProcessingWeight() + 5);
+
+  @NotNull public static final Key<ProjectImportEventMessage> IMPORT_EVENT_MSG =
+    Key.create(ProjectImportEventMessage.class, IDE_ANDROID_PROJECT.getProcessingWeight() + 5);
+
+  @NotNull public static final Key<IdeaGradleProject> IDE_GRADLE_PROJECT =
+    Key.create(IdeaGradleProject.class, IDE_ANDROID_PROJECT.getProcessingWeight() + 10);
 
   private AndroidProjectKeys() {
   }

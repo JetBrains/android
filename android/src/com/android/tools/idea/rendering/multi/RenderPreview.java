@@ -18,7 +18,6 @@ package com.android.tools.idea.rendering.multi;
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.Result.Status;
-import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
@@ -39,7 +38,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -433,10 +431,9 @@ public class RenderPreview implements Disposable {
     if (editedFile != null) {
       if (!myConfiguration.isBestMatchFor(editedFile, config)) {
         ProjectResources resources = ProjectResources.get(myConfiguration.getModule(), true);
-        ResourceFile best = resources.getMatchingFile(ResourceHelper.getResourceName(editedFile), ResourceType.LAYOUT, config);
+        VirtualFile best = resources.getMatchingFile(editedFile, ResourceType.LAYOUT, config);
         if (best != null) {
-          File file = best.getFile();
-          myAlternateInput = LocalFileSystem.getInstance().findFileByIoFile(file);
+          myAlternateInput = best;
         }
         if (myAlternateInput != null) {
           myAlternateConfiguration = Configuration.create(myConfiguration, myAlternateInput);

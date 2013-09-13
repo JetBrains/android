@@ -19,12 +19,13 @@ package com.android.tools.idea.actions;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.wizard.NewTemplateObjectWizard;
 import com.intellij.facet.FacetManager;
-import com.intellij.ide.IdeView;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAware;
 import icons.AndroidIcons;
-import org.jetbrains.android.facet.AndroidFacet;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
 
@@ -50,7 +51,9 @@ public class AndroidNewActivityAction extends JavaSourceAction implements DumbAw
   @Override
   public void actionPerformed(AnActionEvent e) {
     NewTemplateObjectWizard dialog = new NewTemplateObjectWizard(PlatformDataKeys.PROJECT.getData(e.getDataContext()),
-                                                                 LangDataKeys.MODULE.getData(e.getDataContext()), CATEGORY_ACTIVITIES);
+                                                                 LangDataKeys.MODULE.getData(e.getDataContext()),
+                                                                 PlatformDataKeys.VIRTUAL_FILE.getData(e.getDataContext()),
+                                                                 CATEGORY_ACTIVITIES);
     dialog.show();
     if (!dialog.isOK()) {
       return;

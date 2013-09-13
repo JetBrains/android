@@ -67,9 +67,10 @@ public class SuppressLintIntentionAction implements IntentionAction, Iconable {
       return "";
     } else if (file instanceof XmlFile) {
       return AndroidBundle.message("android.lint.fix.suppress.lint.api.attr", id);
-    } else {
-      assert file instanceof PsiJavaFile : file;
+    } else if (file instanceof PsiJavaFile) {
       return AndroidBundle.message("android.lint.fix.suppress.lint.api.annotation", id);
+    } else {
+      return "";
     }
   }
 
@@ -85,7 +86,7 @@ public class SuppressLintIntentionAction implements IntentionAction, Iconable {
   }
 
   @Override
-  public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
+  public void invoke(@NotNull Project project, @Nullable Editor editor, @NotNull PsiFile file) throws IncorrectOperationException {
     if (file instanceof XmlFile) {
       final XmlTag element = PsiTreeUtil.getParentOfType(myElement, XmlTag.class);
       if (element == null) {

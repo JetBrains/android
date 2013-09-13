@@ -15,24 +15,36 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.tools.idea.gradle.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.templates.TemplateUtils;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+import com.google.common.io.Closeables;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
-import icons.AndroidIcons;
+import com.intellij.openapi.util.io.FileUtilRt;
+import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.List;
+import java.util.Properties;
 
+import static com.android.SdkConstants.*;
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME;
+import static icons.AndroidIcons.Wizards.NewProjectSidePanel;
 
 /**
  * NewProjectWizard runs the wizard for creating entirely new Android projects. It takes the user
@@ -40,18 +52,21 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
  * the user to choose an activity to populate it. The wizard is template-driven, using templates
  * that live in the ADK.
  */
-public class NewProjectWizard extends TemplateWizard {
+public class NewProjectWizard extends TemplateWizard implements TemplateParameterStep.UpdateListener {
   private static final Logger LOG = Logger.getInstance("#" + NewProjectWizard.class.getName());
+  private static final String ATTR_GRADLE_DISTRIBUTION_URL = "distributionUrl";
+  private static final String JAVA_SRC_PATH = FD_SOURCES + File.separator + FD_MAIN + File.separator + FD_JAVA;
+  private static final String ERROR_MSG_TITLE = "New Project Wizard";
+  private static final String UNABLE_TO_CREATE_DIR_FORMAT = "Unable to create directory '%s1$s'.";
 
   private NewProjectWizardState myWizardState;
-  private ConfigureAndroidModuleStep myConfigureAndroidModuleStep;
   private LauncherIconStep myLauncherIconStep;
   private ChooseTemplateStep myChooseActivityStep;
   private TemplateParameterStep myActivityParameterStep;
   private boolean myInitializationComplete = false;
 
   public NewProjectWizard() {
-    super("New Project", (Project)null);
+    super("New Project", null);
     getWindow().setMinimumSize(new Dimension(800, 640));
     init();
   }
@@ -66,13 +81,19 @@ public class NewProjectWizard extends TemplateWizard {
       throw new IllegalStateException(msg);
     }
     myWizardState = new NewProjectWizardState();
+    myWizardState.convertApisToInt();
+    myWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, TemplateMetadata.GRADLE_VERSION);
+    myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, TemplateMetadata.GRADLE_PLUGIN_VERSION);
+    myWizardState.put(TemplateMetadata.ATTR_V4_SUPPORT_LIBRARY_VERSION, TemplateMetadata.V4_SUPPORT_LIBRARY_VERSION);
 
-    myConfigureAndroidModuleStep = new ConfigureAndroidModuleStep(this, myWizardState);
-    myLauncherIconStep = new LauncherIconStep(this, myWizardState.getLauncherIconState());
-    myChooseActivityStep = new ChooseTemplateStep(this, myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES);
-    myActivityParameterStep = new TemplateParameterStep(this, myWizardState.getActivityTemplateState());
+    ConfigureAndroidModuleStep configureAndroidModuleStep =
+      new ConfigureAndroidModuleStep(myWizardState, myProject, NewProjectSidePanel, this);
+    myLauncherIconStep = new LauncherIconStep(myWizardState.getLauncherIconState(), myProject, NewProjectSidePanel, this);
+    myChooseActivityStep = new ChooseTemplateStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, myProject,
+                                                  NewProjectSidePanel, this, null);
+    myActivityParameterStep = new TemplateParameterStep(myWizardState.getActivityTemplateState(), myProject, NewProjectSidePanel, this);
 
-    mySteps.add(myConfigureAndroidModuleStep);
+    mySteps.add(configureAndroidModuleStep);
     mySteps.add(myLauncherIconStep);
     mySteps.add(myChooseActivityStep);
     mySteps.add(myActivityParameterStep);
@@ -82,57 +103,116 @@ public class NewProjectWizard extends TemplateWizard {
   }
 
   @Override
-  void update() {
+  public void update() {
     if (!myInitializationComplete) {
       return;
     }
-    myLauncherIconStep.setVisible((Boolean)myWizardState.get(TemplateMetadata.ATTR_CREATE_ICONS));
-    myChooseActivityStep.setVisible((Boolean)myWizardState.get(NewProjectWizardState.ATTR_CREATE_ACTIVITY));
-    myActivityParameterStep.setVisible((Boolean)myWizardState.get(NewProjectWizardState.ATTR_CREATE_ACTIVITY));
+    myLauncherIconStep.setVisible(myWizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS));
+    myChooseActivityStep.setVisible(myWizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY));
+    myActivityParameterStep.setVisible(myWizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY));
     super.update();
-  }
-
-  @Override
-  public Icon getSidePanelIcon() {
-    return AndroidIcons.Wizards.NewProjectSidePanel;
   }
 
   public void createProject() {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
+        List<String> errors = Lists.newArrayList();
         try {
-          populateDirectoryParameters(myWizardState);
-          String projectName = (String)myWizardState.get(NewProjectWizardState.ATTR_MODULE_NAME);
-          File projectRoot = new File((String)myWizardState.get(NewProjectWizardState.ATTR_PROJECT_LOCATION));
+          myWizardState.populateDirectoryParameters();
+          String projectName = myWizardState.getString(NewProjectWizardState.ATTR_MODULE_NAME);
+          File projectRoot = new File(myWizardState.getString(NewModuleWizardState.ATTR_PROJECT_LOCATION));
           File moduleRoot = new File(projectRoot, projectName);
-          File gradleWrapperSrc = new File(TemplateManager.getTemplateRootFolder(), GRADLE_WRAPPER_PATH);
-          projectRoot.mkdirs();
-          FileUtil.copyDirContent(gradleWrapperSrc, projectRoot);
-          if ((Boolean)myWizardState.get(TemplateMetadata.ATTR_CREATE_ICONS)) {
+          if (!FileUtilRt.createDirectory(projectRoot)) {
+            errors.add(String.format(UNABLE_TO_CREATE_DIR_FORMAT, projectRoot.getPath()));
+          }
+          createGradleWrapper(projectRoot);
+          int apiLevel = myWizardState.getInt(ATTR_BUILD_API);
+          Sdk sdk = getSdk(apiLevel);
+          if (sdk == null) {
+            // This will NEVER happen. The SDK has been already set before this wizard runs.
+            errors.add(String.format("Unable to find an Android SDK with API level %d.", apiLevel));
+          }
+          else {
+            LocalProperties localProperties = new LocalProperties(projectRoot);
+            localProperties.setAndroidSdkPath(sdk);
+            localProperties.save();
+          }
+          if (myWizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS)) {
             myWizardState.getLauncherIconState().outputImages(moduleRoot);
           }
           myWizardState.updateParameters();
+          myWizardState.updateDependencies();
           myWizardState.myTemplate.render(projectRoot, moduleRoot, myWizardState.myParameters);
-          if ((Boolean)myWizardState.get(NewProjectWizardState.ATTR_CREATE_ACTIVITY)) {
+          if (myWizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY)) {
             myWizardState.getActivityTemplateState().getTemplate()
               .render(moduleRoot, moduleRoot, myWizardState.getActivityTemplateState().myParameters);
+            myWizardState.myTemplate.getFilesToOpen().addAll(myWizardState.getActivityTemplateState().getTemplate().getFilesToOpen());
           }
-          Sdk sdk = getSdk((Integer)myWizardState.get(ATTR_BUILD_API));
+          else {
+            // Ensure that at least the Java source directory exists. We could create other directories but this is the most used.
+            // TODO: We should perhaps instantiate this from the Freemarker template, using the mkdir command
+            File javaSrcDir = new File(moduleRoot, JAVA_SRC_PATH);
+            File packageDir = new File(javaSrcDir, myWizardState.getString(ATTR_PACKAGE_NAME).replace('.', File.separatorChar));
+            if (!FileUtilRt.createDirectory(packageDir)) {
+              errors.add(String.format(UNABLE_TO_CREATE_DIR_FORMAT, packageDir.getPath()));
+            }
+          }
           GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
-          projectImporter.importProject(projectName, projectRoot, sdk, null);
+          projectImporter.importProject(projectName, projectRoot, new GradleProjectImporter.Callback() {
+            @Override
+            public void projectImported(@NotNull Project project) {
+              TemplateUtils.openEditors(project, myWizardState.myTemplate.getFilesToOpen(), true);
+            }
+
+            @Override
+            public void importFailed(@NotNull Project project, @NotNull final String errorMessage) {
+              ApplicationManager.getApplication().invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                  Messages.showErrorDialog(errorMessage, ERROR_MSG_TITLE);
+                }
+              });
+            }
+          });
         }
         catch (Exception e) {
-          String title;
-          if (e instanceof ConfigurationException) {
-            title = ((ConfigurationException)e).getTitle();
-          } else {
-            title = "New Project Wizard";
-          }
-          Messages.showErrorDialog(e.getMessage(), title);
+          Messages.showErrorDialog(e.getMessage(), ERROR_MSG_TITLE);
           LOG.error(e);
+        }
+        if (!errors.isEmpty()) {
+          String msg = errors.size() == 1 ? errors.get(0) : Joiner.on('\n').join(errors);
+          Messages.showErrorDialog(msg, ERROR_MSG_TITLE);
+          LOG.error(msg);
         }
       }
     });
+  }
+
+  private static void createGradleWrapper(File projectRoot) throws IOException {
+    File gradleWrapperSrc = new File(TemplateManager.getTemplateRootFolder(), GRADLE_WRAPPER_PATH);
+    FileUtil.copyDirContent(gradleWrapperSrc, projectRoot);
+    File gradleWrapperProperties = new File(projectRoot, GRADLE_WRAPPER_PROPERTIES_PATH);
+
+    Properties wrapperProperties = new Properties();
+
+    FileInputStream is = null;
+    try {
+      //noinspection IOResourceOpenedButNotSafelyClosed
+      is = new FileInputStream(gradleWrapperProperties);
+      wrapperProperties.load(is);
+    } finally {
+      Closeables.closeQuietly(is);
+    }
+
+    FileOutputStream os = null;
+    try {
+      wrapperProperties.setProperty(ATTR_GRADLE_DISTRIBUTION_URL, TemplateMetadata.GRADLE_DISTRIBUTION_URL);
+      //noinspection IOResourceOpenedButNotSafelyClosed
+      os = new FileOutputStream(gradleWrapperProperties);
+      wrapperProperties.store(os, "");
+    } finally {
+      Closeables.closeQuietly(os);
+    }
   }
 }

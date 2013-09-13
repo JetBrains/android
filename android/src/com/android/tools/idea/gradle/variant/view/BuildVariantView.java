@@ -22,18 +22,16 @@ import com.android.tools.idea.gradle.util.Facets;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.intellij.ProjectTopics;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.project.ModuleAdapter;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.table.JBTable;
-import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -110,18 +108,6 @@ public class BuildVariantView {
     Content content = contentFactory.createContent(myToolWindowPanel, "", false);
     toolWindow.getContentManager().addContent(content);
     updateContents();
-    MessageBusConnection connection = myProject.getMessageBus().connect();
-    connection.subscribe(ProjectTopics.MODULES, new ModuleAdapter() {
-      @Override
-      public void moduleAdded(Project project, Module module) {
-        updateContents();
-      }
-
-      @Override
-      public void moduleRemoved(Project project, Module module) {
-        updateContents();
-      }
-    });
   }
 
   public void updateContents() {
@@ -135,11 +121,11 @@ public class BuildVariantView {
 
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     for (Module module : moduleManager.getModules()) {
-      AndroidFacet androidFacet = Facets.getFirstFacet(module, AndroidFacet.ID);
+      AndroidFacet androidFacet = Facets.getFirstFacetOfType(module, AndroidFacet.ID);
       if (androidFacet == null) {
         continue;
       }
-      if (Facets.getFirstFacet(module, AndroidGradleFacet.TYPE_ID) == null) {
+      if (Facets.getFirstFacetOfType(module, AndroidGradleFacet.TYPE_ID) == null) {
         // If the module does not have an Android-Gradle facet, just skip it.
         continue;
       }
@@ -158,12 +144,18 @@ public class BuildVariantView {
         rows.add(row);
       }
     }
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+    Runnable setModelTask = new Runnable() {
       @Override
       public void run() {
         getVariantsTable().setModel(rows, variantNamesPerRow);
       }
-    });
+    };
+    Application application = ApplicationManager.getApplication();
+    if (application.isDispatchThread()) {
+      setModelTask.run();
+    } else {
+      application.invokeLater(setModelTask);
+    }
   }
 
   @NotNull
@@ -189,7 +181,7 @@ public class BuildVariantView {
 
   @Nullable
   private static IdeaAndroidProject getAndroidProject(@NotNull Module module) {
-    AndroidFacet androidFacet = Facets.getFirstFacet(module, AndroidFacet.ID);
+    AndroidFacet androidFacet = Facets.getFirstFacetOfType(module, AndroidFacet.ID);
     return androidFacet != null ? androidFacet.getIdeaAndroidProject() : null;
   }
 
@@ -260,13 +252,8 @@ public class BuildVariantView {
     void setLoading(boolean loading) {
       myLoading = loading;
       setPaintBusy(myLoading);
-      String text;
-      if (myLoading) {
-        clearContents();
-        text = "Loading...";
-      } else {
-        text = "Nothing to Show";
-      }
+      clearContents();
+      String text = myLoading ? "Loading..." : "Nothing to Show";
       getEmptyText().setText(text);
     }
 

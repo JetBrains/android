@@ -55,22 +55,20 @@
     <orderEntry type="module-library">
       <library name="android-gradle-model">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/builder-0.4-SNAPSHOT.jar!/" />
-          <root url="jar://$MODULE_DIR$/lib/builder-model-0.4-SNAPSHOT.jar!/" />
-          <root url="jar://$MODULE_DIR$/lib/gradle-0.4-SNAPSHOT.jar!/" />
-          <root url="jar://$MODULE_DIR$/lib/gradle-model-0.4-SNAPSHOT.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/builder-0.5.0-20130906.195620-5.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/builder-model-0.5.0-20130906.195620-5.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MODULE_DIR$/lib/src/builder-0.4-SNAPSHOT-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/lib/src/builder-model-0.4-SNAPSHOT-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/lib/src/gradle-0.4-SNAPSHOT-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/lib/src/gradle-model-0.4-SNAPSHOT-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/src/builder-0.5.0-20130906.195620-5-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/src/builder-model-0.5.0-20130906.195620-5-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="external-system-impl" />
     <orderEntry type="library" name="gson" level="project" />
+    <orderEntry type="module" module-name="jetgroovy" />
+    <orderEntry type="module" module-name="perflib" />
   </component>
 </module>
 

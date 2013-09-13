@@ -15,20 +15,33 @@
  */
 package com.android.tools.idea.jps.builder;
 
-import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.jps.builders.BuildTargetType;
 import org.jetbrains.jps.incremental.BuilderService;
 import org.jetbrains.jps.incremental.ModuleLevelBuilder;
+import org.jetbrains.jps.incremental.TargetBuilder;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
  * Factory of {@link AndroidGradleBuilder} instances.
  */
 public class AndroidGradleBuilderService extends BuilderService {
-  @NotNull
   @Override
+  @NotNull
   public List<? extends ModuleLevelBuilder> createModuleLevelBuilders() {
-    return ImmutableList.of(new AndroidGradleBuilder());
+    return Collections.singletonList(new AndroidGradleBuilder());
+  }
+
+  @Override
+  public List<? extends BuildTargetType<?>> getTargetTypes() {
+    return Collections.singletonList(AndroidGradleBuildTarget.TargetType.INSTANCE);
+  }
+
+  @Override
+  @NotNull
+  public List<? extends TargetBuilder<?, ?>> createBuilders() {
+    return Collections.singletonList(new AndroidGradleTargetBuilder());
   }
 }

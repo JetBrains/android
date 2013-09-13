@@ -19,6 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.tools.lint.checks.ApiDetector;
+import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.detector.api.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.*;
@@ -44,7 +45,7 @@ import static org.jetbrains.android.inspections.lint.IntellijLintUtils.SUPPRESS_
  * <p>
  * TODO:
  * <ul>
- *   <li>Unit tests, and compare to the bytecode based results</li>
+ *   <li>Compare to the bytecode based results</li>
  * </ul>
  */
 public class IntellijApiDetector extends ApiDetector {
@@ -157,14 +158,8 @@ public class IntellijApiDetector extends ApiDetector {
     if (dotIndex != -1) {
       text = text.substring(dotIndex + 1);
     }
-    for (int api = 1; api <= SdkVersionInfo.HIGHEST_KNOWN_API; api++) {
-      String code = SdkVersionInfo.getBuildCode(api);
-      if (code != null && code.equalsIgnoreCase(text)) {
-        return api;
-      }
-    }
 
-    return -1;
+    return SdkVersionInfo.getApiByBuildCode(text, true);
   }
 
   private class ApiCheckVisitor extends JavaRecursiveElementVisitor {
@@ -405,7 +400,7 @@ public class IntellijApiDetector extends ApiDetector {
       @NonNull PsiElement node,
       @NonNull String name,
       @NonNull String owner) {
-      if (IntellijApiDetector.this.isBenignConstantUsage(null, name, owner)) {
+      if (ApiDetector.isBenignConstantUsage(null, name, owner)) {
         return true;
       }
 
@@ -511,9 +506,7 @@ public class IntellijApiDetector extends ApiDetector {
               if (expressionOwner != null && !expressionOwner.equals(owner)) {
                 int specificApi = mApiDatabase.getCallVersion(expressionOwner, name, desc);
                 if (specificApi == -1) {
-                  if (expressionOwner.startsWith("android/")
-                           || expressionOwner.startsWith("java/")
-                           || expressionOwner.startsWith("javax/")) {
+                  if (ApiLookup.isRelevantOwner(expressionOwner)) {
                     return;
                   }
                 } else if (specificApi <= minSdk) {
@@ -531,9 +524,7 @@ public class IntellijApiDetector extends ApiDetector {
               }
               int specificApi = mApiDatabase.getCallVersion(expressionOwner, name, desc);
               if (specificApi == -1) {
-                if (expressionOwner.startsWith("android/")
-                    || expressionOwner.startsWith("java/")
-                    || expressionOwner.startsWith("javax/")) {
+                if (ApiLookup.isRelevantOwner(expressionOwner)) {
                   return;
                 }
               } else if (specificApi <= minSdk) {
@@ -582,7 +573,7 @@ public class IntellijApiDetector extends ApiDetector {
   private static boolean isWithinVersionCheckConditional(PsiElement element, int api) {
     PsiElement current = element.getParent();
     PsiElement prev = current;
-    while (true) {
+    while (current != null) {
       if (current instanceof PsiIfStatement) {
         PsiIfStatement ifStatement = (PsiIfStatement)current;
         PsiExpression condition = ifStatement.getCondition();
@@ -600,7 +591,7 @@ public class IntellijApiDetector extends ApiDetector {
                 if (right instanceof PsiReferenceExpression) {
                   PsiReferenceExpression ref2 = (PsiReferenceExpression)right;
                   String codeName = ref2.getReferenceName();
-                  level = getApiForCodenameField(codeName);
+                  level = SdkVersionInfo.getApiByBuildCode(codeName, true);
                 } else if (right instanceof PsiLiteralExpression) {
                   PsiLiteralExpression lit = (PsiLiteralExpression)right;
                   Object value = lit.getValue();
@@ -635,7 +626,6 @@ public class IntellijApiDetector extends ApiDetector {
             }
           }
         }
-        break;
       } else if (current instanceof PsiMethod || current instanceof PsiFile) {
         return false;
       }
@@ -644,16 +634,5 @@ public class IntellijApiDetector extends ApiDetector {
     }
 
     return false;
-  }
-
-  private static int getApiForCodenameField(@Nullable String codeName) {
-    for (int level = 1; level < SdkVersionInfo.HIGHEST_KNOWN_API; level++) {
-      String s = SdkVersionInfo.getBuildCode(level);
-      if (s != null && s.equals(codeName)) {
-        return level;
-      }
-    }
-
-    return -1;
   }
 }

@@ -24,8 +24,6 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationToolBar;
 import com.android.tools.idea.configurations.RenderContext;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
@@ -33,7 +31,9 @@ import com.google.common.primitives.Ints;
 import com.intellij.android.designer.componentTree.AndroidTreeDecorator;
 import com.intellij.android.designer.inspection.ErrorAnalyzer;
 import com.intellij.android.designer.model.*;
+import com.intellij.android.designer.model.layout.actions.ToggleRenderModeAction;
 import com.intellij.designer.DesignerEditor;
+import com.intellij.designer.DesignerToolWindow;
 import com.intellij.designer.DesignerToolWindowManager;
 import com.intellij.designer.actions.DesignerActionPanel;
 import com.intellij.designer.componentTree.TreeComponentDecorator;
@@ -88,6 +88,7 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -95,14 +96,14 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import static com.android.tools.idea.configurations.ConfigurationListener.MASK_ALL;
 import static com.android.tools.idea.configurations.ConfigurationListener.MASK_RENDERING;
-import static com.android.tools.idea.gradle.variant.view.BuildVariantView.BuildVariantSelectionChangeListener;
 import static com.android.tools.idea.rendering.RenderErrorPanel.SIZE_ERROR_PANEL_DYNAMICALLY;
 import static com.intellij.designer.designSurface.ZoomType.FIT_INTO;
+import static org.jetbrains.android.facet.ResourceFolderManager.ResourceFolderListener;
 
 /**
  * @author Alexander Lobas
  */
-public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implements RenderContext, BuildVariantSelectionChangeListener {
+public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implements RenderContext, ResourceFolderListener {
   private static final int DEFAULT_HORIZONTAL_MARGIN = 30;
   private static final int DEFAULT_VERTICAL_MARGIN = 20;
   private static final Integer LAYER_ERRORS = LAYER_INPLACE_EDITING + 150; // Must be an Integer, not an int; see JLayeredPane.addImpl
@@ -144,39 +145,16 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     AndroidFacet facet = AndroidFacet.getInstance(getModule());
     assert facet != null;
     myFacet = facet;
-    // The configuration depends on project state, which may not yet be available: defer
-    boolean initializeConfiguration = true;
     if (facet.isGradleProject()) {
-      IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
-      if (gradleProject == null) {
-        initializeConfiguration = false;
-        // Still syncing model; typically on IDE restart when the editor is reopened but
-        // project model has not yet been fully initialized
-        facet.addListener(new AndroidFacet.GradleProjectAvailableListener() {
-          @Override
-          public void gradleProjectAvailable(@NotNull IdeaAndroidProject project) {
-            myFacet.removeListener(this);
-            initializeConfiguration();
-            requestRender();
-          }
-        });
-      }
-      BuildVariantView variantView = BuildVariantView.getInstance(facet.getModule().getProject());
-      if (variantView != null) {
-        // Ensure that the project resources have been initialized first, since
-        // we want it to add its own variant listeners before ours (such that
-        // when the variant changes, the project resources get notified and updated
-        // before our own update listener attempts a re-render)
-        facet.getProjectResources(false /*libraries*/, true /*createIfNecessary*/);
-
-        variantView.removeListener(this);
-        variantView.addListener(this);
-      }
+      // Ensure that the project resources have been initialized first, since
+      // we want it to add its own variant listeners before ours (such that
+      // when the variant changes, the project resources get notified and updated
+      // before our own update listener attempts a re-render)
+      facet.getProjectResources(false /*libraries*/, true /*createIfNecessary*/);
+      myFacet.getResourceFolderManager().addListener(this);
     }
     myConfigListener = new LayoutConfigurationListener();
-    if (initializeConfiguration) {
-      initializeConfiguration();
-    }
+    initializeConfiguration();
 
     mySessionQueue = ViewsMetaManager.getInstance(project).getSessionQueue();
     myXmlFile = (XmlFile)ApplicationManager.getApplication().runReadAction(new Computable<PsiFile>() {
@@ -453,9 +431,6 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       return;
     }
 
-    // TODO: Get rid of this when the project resources are read directly from (possibly unsaved) PSI elements
-    ApplicationManager.getApplication().saveAll();
-
     mySessionAlarm.addRequest(new Runnable() {
       @Override
       public void run() {
@@ -483,31 +458,33 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       @Override
       public void run() {
         try {
-          final Module module = getModule();
-          AndroidFacet facet = AndroidFacet.getInstance(module);
-          if (facet == null) {
-            throw new RenderingException("No facet available");
-          }
-
-          if (myConfiguration.getTarget() == null) {
-            throw new RenderingException("No target selected");
-          }
-
-          if (myConfiguration.getTheme() == null) {
-            throw new RenderingException("No theme");
-          }
-
           if (sessionId != mySessionId) {
             cancel();
             return;
           }
 
+          final Module module = getModule();
           final RenderLogger logger = new RenderLogger(myFile.getName(), module);
+
+          if (myConfiguration.getTarget() == null) {
+            logger.error(null, "No render target selected", null);
+          } else if (myConfiguration.getTheme() == null) {
+            logger.error(null, "No theme selected", null);
+          }
+
+          if (logger.hasProblems()) {
+            cancel();
+            RenderResult renderResult = new RenderResult(null, null, myXmlFile, logger);
+            runnable.consume(renderResult);
+            updateErrors(renderResult);
+            return;
+          }
+
           final RenderResult renderResult;
           RenderContext renderContext = AndroidDesignerEditorPanel.this;
           if (myRendererLock.tryLock()) {
             try {
-              final RenderService service = RenderService.create(facet, module, myXmlFile, myConfiguration, logger, renderContext);
+              final RenderService service = RenderService.create(myFacet, module, myXmlFile, myConfiguration, logger, renderContext);
               if (service != null) {
                 // Prefetch outside of read lock
                 service.getResourceResolver();
@@ -515,6 +492,9 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
                   @Nullable
                   @Override
                   public RenderResult compute() {
+                    if (!ToggleRenderModeAction.isRenderViewPort()) {
+                      service.useDesignMode(myXmlFile.getRootTag());
+                    }
                     return service.render();
                   }
                 });
@@ -636,7 +616,10 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
         myHorizontalCaption.update();
         myVerticalCaption.update();
 
-        DesignerToolWindowManager.getInstance(AndroidDesignerEditorPanel.this).refresh(updateProperties);
+        DesignerToolWindow toolWindow = getToolWindow();
+        if (toolWindow != null) {
+          toolWindow.refresh(updateProperties);
+        }
 
         if (RenderPreviewMode.getCurrent() != RenderPreviewMode.NONE) {
           RenderPreviewManager previewManager = getPreviewManager(true);
@@ -646,6 +629,17 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
         }
       }
     });
+  }
+
+  @Nullable
+  private DesignerToolWindow getToolWindow() {
+    try {
+      // This method sometimes returns null. We don't want to bother the user with that; the worst that
+      // can happen is that the property view is not updated.
+      return DesignerToolWindowManager.getInstance(this);
+    } catch (Exception ex) {
+      return null;
+    }
   }
 
   /**
@@ -786,6 +780,8 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       myPreviewManager.dispose();
       myPreviewManager = null;
     }
+
+    myFacet.getResourceFolderManager().removeListener(this);
   }
 
   @Override
@@ -942,14 +938,26 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   }
 
   @Override
-  protected boolean execute(ThrowableRunnable<Exception> operation, boolean updateProperties) {
+  protected boolean execute(ThrowableRunnable<Exception> operation, final boolean updateProperties) {
     if (!ReadonlyStatusHandler.ensureFilesWritable(getProject(), myFile)) {
       return false;
     }
     try {
       myPsiChangeListener.stop();
       operation.run();
-      updateRenderer(updateProperties);
+      ApplicationManager.getApplication().invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          boolean active = myPsiChangeListener.isActive();
+          if (active) {
+            myPsiChangeListener.stop();
+          }
+          updateRenderer(updateProperties);
+          if (active) {
+            myPsiChangeListener.start();
+          }
+        }
+      });
       return true;
     }
     catch (Throwable e) {
@@ -1113,6 +1121,9 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
         break;
       case FIT_INTO:
       case FIT: {
+        if (myRootComponent == null) {
+          return;
+        }
         Dimension sceneSize = myRootComponent.getBounds().getSize();
         Dimension screenSize = getDesignerViewSize();
         if (screenSize.width > 0 && screenSize.height > 0) {
@@ -1385,6 +1396,11 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     // TODO
   }
 
+  @Nullable
+  @Override
+  public BufferedImage getRenderedImage() {
+    return myRootView != null ? myRootView.getImage() : null;
+  }
 
   @Override
   @NotNull
@@ -1449,11 +1465,13 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     return myPreviewManager;
   }
 
-
-  // ---- Implements BuildVariantSelectionChangeListener ----
+  // ---- Implements ResourceFolderManager.ResourceFolderListener ----
 
   @Override
-  public void buildVariantSelected(@NotNull AndroidFacet facet) {
+  public void resourceFoldersChanged(@NotNull AndroidFacet facet,
+                                     @NotNull List<VirtualFile> folders,
+                                     @NotNull Collection<VirtualFile> added,
+                                     @NotNull Collection<VirtualFile> removed) {
     if (facet == myFacet) {
       if (myActive) {
         // The project resources should already have been refreshed by their own variant listener

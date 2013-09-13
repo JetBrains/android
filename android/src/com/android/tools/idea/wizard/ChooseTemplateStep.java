@@ -19,9 +19,11 @@ import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -38,24 +40,37 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
  */
 public class ChooseTemplateStep extends TemplateWizardStep implements ListSelectionListener {
   private static final Logger LOG = Logger.getInstance("#" + ChooseTemplateStep.class.getName());
+  private final TemplateChangeListener myTemplateChangeListener;
 
   private JPanel myPanel;
   private JBList myTemplateList;
   private ImageComponent myTemplateImage;
   private JLabel myDescription;
   private JLabel myError;
+  private int myPreviousSelection = -1;
 
-  public ChooseTemplateStep(TemplateWizard templateWizard, TemplateWizardState state, String templateCategory) {
-    super(templateWizard, state);
+  public interface TemplateChangeListener {
+    void templateChanged();
+  }
+
+  public ChooseTemplateStep(TemplateWizardState state, String templateCategory, @Nullable Project project, @Nullable Icon sidePanelIcon,
+                            UpdateListener updateListener, @Nullable TemplateChangeListener templateChangeListener) {
+    super(state, project, sidePanelIcon, updateListener);
+    myTemplateChangeListener = templateChangeListener;
 
     myTemplateList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     TemplateManager manager = TemplateManager.getInstance();
     List<File> templates = manager.getTemplates(templateCategory);
     List<MetadataListItem> metadataList = new ArrayList<MetadataListItem>(templates.size());
-    for (int i = 0, n = templates.size(); i < n; i++) {
-      File template = templates.get(i);
+    for (File template : templates) {
       TemplateMetadata metadata = manager.getTemplate(template);
       if (metadata == null || !metadata.isSupported()) {
+        continue;
+      }
+      // If we're trying to create a launchable activity, don't include templates that
+      // lack the isLauncher parameter.
+      Boolean isLauncher = (Boolean)state.get(ATTR_IS_LAUNCHER);
+      if (isLauncher != null && isLauncher && metadata.getParameter(TemplateMetadata.ATTR_IS_LAUNCHER) == null) {
         continue;
       }
       metadataList.add(new MetadataListItem(template, metadata));
@@ -97,10 +112,7 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
 
       if (template != null) {
         myTemplateState.setTemplateLocation(template.myTemplate);
-        myTemplateState.convertToInt(ATTR_MIN_API);
-        myTemplateState.convertToInt(ATTR_BUILD_API);
-        myTemplateState.convertToInt(ATTR_MIN_API_LEVEL);
-        myTemplateState.convertToInt(ATTR_TARGET_API);
+        myTemplateState.convertApisToInt();
         String thumb = template.myMetadata.getThumbnailPath();
         if (thumb != null && !thumb.isEmpty()) {
           File file = new File(myTemplateState.myTemplate.getRootPath(), thumb.replace('/', File.separatorChar));
@@ -126,16 +138,22 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
           setErrorHtml(String.format("The activity %s has a minimum build API level of %d.", template.myMetadata.getTitle(), minBuildApi));
           return false;
         }
+        if (myTemplateChangeListener != null && myPreviousSelection != index) {
+          myPreviousSelection = index;
+          myTemplateChangeListener.templateChanged();
+        }
       }
     }
     return true;
   }
 
+  @NotNull
   @Override
   protected JLabel getDescription() {
     return myDescription;
   }
 
+  @NotNull
   @Override
   protected JLabel getError() {
     return myError;

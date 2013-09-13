@@ -1,5 +1,6 @@
 package org.jetbrains.android.compiler;
 
+import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.compiler.impl.BuildTargetScopeProvider;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.compiler.CompileScope;
@@ -60,8 +61,7 @@ public class AndroidBuildTargetScopeProvider extends BuildTargetScopeProvider {
   @Override
   public List<TargetTypeBuildScope> getBuildTargetScopes(@NotNull CompileScope baseScope, @NotNull CompilerFilter filter,
                                                          @NotNull Project project, boolean forceBuild) {
-
-    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
+    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID) || Projects.isGradleProject(project)) {
       return Collections.emptyList();
     }
     final List<String> appTargetIds = new ArrayList<String>();
@@ -79,7 +79,7 @@ public class AndroidBuildTargetScopeProvider extends BuildTargetScopeProvider {
       allTargetIds.add(module.getName());
 
       if (fullBuild) {
-        if (facet.getProperties().LIBRARY_PROJECT) {
+        if (facet.isLibraryProject()) {
           libTargetIds.add(module.getName());
         }
         else {

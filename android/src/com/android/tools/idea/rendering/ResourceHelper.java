@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
+import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
 
 public class ResourceHelper {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.ResourceHelper");
@@ -268,7 +269,8 @@ public class ResourceHelper {
     }
     String value = color.getValue();
 
-    while (value != null) {
+    int depth = 0;
+    while (value != null && depth < MAX_RESOURCE_INDIRECTION) {
       if (value.startsWith("#")) {
         return parseColor(value);
       }
@@ -300,6 +302,8 @@ public class ResourceHelper {
 
         return null;
       }
+
+      depth++;
     }
 
     return null;

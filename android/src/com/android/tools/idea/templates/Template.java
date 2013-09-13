@@ -17,6 +17,7 @@ package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.repository.MavenCoordinate;
 import com.android.ide.common.xml.XmlFormatPreferences;
 import com.android.ide.common.xml.XmlFormatStyle;
 import com.android.ide.common.xml.XmlPrettyPrinter;
@@ -28,16 +29,17 @@ import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
-import com.android.utils.NullLogger;
 import com.android.utils.SdkUtils;
 import com.android.utils.StdLogger;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
+import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.io.Closeables;
+import com.google.common.collect.Multimap;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -52,6 +54,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.*;
 import org.xml.sax.Attributes;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
@@ -63,7 +66,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.templates.RepositoryUrls.*;
 import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
+import static com.android.tools.idea.templates.TemplateUtils.readTextFile;
 
 /**
  * Handler which manages instantiating FreeMarker templates, copying resources
@@ -71,7 +76,6 @@ import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFo
  */
 public class Template {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.templates.Template");
-  static final String SUPPORT_LIBRARY_NAME = "android-support-v4";
   /** Highest supported format; templates with a higher number will be skipped
    * <p>
    * <ul>
@@ -113,6 +117,9 @@ public class Template {
   /** Finds include ':module_name_1', ':module_name_2',... statements in settings.gradle files */
   private static final Pattern INCLUDE_PATTERN = Pattern.compile("include +(':[^']+', *)*':[^']+'");
 
+  /** Finds compile '<maven coordinates' in build.gradle files */
+  private static final Pattern COMPILE_PATTERN = Pattern.compile("compile\\s*'([^']+)'");
+
   /**
    * Most recent thrown exception during template instantiation. This should
    * basically always be null. Used by unit tests to see if any template
@@ -136,6 +143,7 @@ public class Template {
   public static final String TAG_THUMBS = "thumbs";
   public static final String TAG_DEPENDENCY = "dependency";
   public static final String TAG_ICONS = "icons";
+  public static final String TAG_MKDIR = "mkdir";
   public static final String ATTR_FORMAT = "format";
   public static final String ATTR_VALUE = "value";
   public static final String ATTR_DEFAULT = "default";
@@ -143,24 +151,21 @@ public class Template {
   public static final String ATTR_ID = "id";
   public static final String ATTR_NAME = "name";
   public static final String ATTR_DESCRIPTION = "description";
+  public static final String ATTR_VERSION = "version";
+  public static final String ATTR_MAVEN = "mavenUrl";
   public static final String ATTR_TYPE = "type";
   public static final String ATTR_HELP = "help";
   public static final String ATTR_FILE = "file";
   public static final String ATTR_TO = "to";
   public static final String ATTR_FROM = "from";
+  public static final String ATTR_AT = "at";
   public static final String ATTR_CONSTRAINTS = "constraints";
 
   public static final String CATEGORY_ACTIVITIES = "activities";
-  public static final String CATEGORY_PROJECTS = "projects";
+  public static final String CATEGORY_PROJECTS = "gradle-projects";
 
-  /** The vendor ID of the support library. */
-  private static final String VENDOR_ID = "android";
-  /** The path ID of the support library. */
-  private static final String SUPPORT_ID = "support";
-  /** The path ID of the compatibility library (which was its id for releases 1-3). */
-  private static final String COMPATIBILITY_ID = "compatibility";
-  private static final String FD_V4 = "v4";
-  private static final String ANDROID_SUPPORT_V4_JAR = "android-support-v4.jar";
+  public static final String BLOCK_DEPENDENCIES = "dependencies";
+
 
   /**
    * List of files to open after the wizard has been created (these are
@@ -232,6 +237,12 @@ public class Template {
     freemarker.setTemplateLoader(myLoader);
 
     processFile(freemarker, TEMPLATE_XML, paramMap);
+
+    // Handle dependencies
+    List<String> dependencyList = (List<String>)paramMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
+    if (dependencyList != null && dependencyList.size() > 0) {
+      mergeDependenciesIntoFile(dependencyList, TemplateUtils.getGradleBuildFile(moduleRootPath));
+    }
   }
 
   @NotNull
@@ -246,6 +257,11 @@ public class Template {
     }
 
     return myMetadata;
+  }
+
+  @NotNull
+  public List<String> getFilesToOpen() {
+    return myFilesToOpen;
   }
 
   @NotNull
@@ -264,6 +280,9 @@ public class Template {
     paramMap.put("escapeXmlText", new FmEscapeXmlStringMethod());
     paramMap.put("escapeXmlString", new FmEscapeXmlStringMethod());
     paramMap.put("extractLetters", new FmExtractLettersMethod());
+
+    // Dependency list
+    paramMap.put(TemplateMetadata.ATTR_DEPENDENCIES_LIST, new LinkedList<String>());
 
     // This should be handled better: perhaps declared "required packages" as part of the
     // inputs? (It would be better if we could conditionally disable template based
@@ -293,7 +312,12 @@ public class Template {
         xml = processFreemarkerTemplate(freemarker, paramMap, path);
       }
 
-      SAXParserFactory.newInstance().newSAXParser().parse(new ByteArrayInputStream(xml.getBytes()), new DefaultHandler() {
+      // Handle UTF-8 since processed file may contain file paths
+      ByteArrayInputStream inputStream = new ByteArrayInputStream(xml.getBytes(Charsets.UTF_8.toString()));
+      Reader reader = new InputStreamReader(inputStream, Charsets.UTF_8.toString());
+      InputSource inputSource = new InputSource(reader);
+      inputSource.setEncoding(Charsets.UTF_8.toString());
+      SAXParserFactory.newInstance().newSAXParser().parse(inputSource, new DefaultHandler() {
         @Override
         public void startElement(String uri, String localName, String name, Attributes attributes) throws SAXException {
           if (TAG_PARAMETER.equals(name)) {
@@ -326,25 +350,8 @@ public class Template {
             if (path != null) {
               executeRecipeFile(freemarker, path, paramMap);
             }
-          } else if (TAG_DEPENDENCY.equals(name)) {
-            String dependencyName = attributes.getValue(ATTR_NAME);
-            if (dependencyName.equals(SUPPORT_LIBRARY_NAME)) {
-              // We assume the revision requirement has been satisfied
-              // by the wizard
-              File path = getSupportJarFile();
-              if (path != null) {
-                try {
-                  // The dependency library always goes in a libs directory off the module root.
-                  String to = FD_NATIVE_LIBS + File.separator + path.getName();
-                  File targetFile = new File(myModuleRoot, to.replace('/', File.separatorChar));
-                  copy(path, targetFile);
-                } catch (IOException ioe) {
-                  LOG.warn(ioe);
-                }
-              }
-            }
           } else if (!name.equals("template") && !name.equals("category") && !name.equals("option") && !name.equals(TAG_THUMBS) &&
-                     !name.equals(TAG_THUMB) && !name.equals(TAG_ICONS)) {
+                     !name.equals(TAG_THUMB) && !name.equals(TAG_ICONS) && !name.equals(TAG_DEPENDENCY)) {
             LOG.error("WARNING: Unknown template directive " + name);
           }
         }
@@ -355,50 +362,6 @@ public class Template {
     }
   }
 
-  /**
-   * Returns a path to the installed jar file for the support library,
-   * or null if it does not exist
-   *
-   * @return a path to the v4.jar or null
-   */
-  @Nullable
-  private static File getSupportJarFile() {
-    File supportDir = getSupportPackageDir();
-    if (supportDir != null) {
-      File path = new File(supportDir, FD_V4 + File.separator + ANDROID_SUPPORT_V4_JAR);
-      if (path.exists()) {
-        return path;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Returns the directory containing the support libraries (v4, v7, v13,
-   * ...), which may or may not exist
-   *
-   * @return a path to the support library or null
-   */
-  @Nullable
-  private static File getSupportPackageDir() {
-      String sdkLocation = AndroidSdkUtils.tryToChooseAndroidSdk().getLocation();
-      SdkManager manager = SdkManager.createManager(sdkLocation, NullLogger.getLogger());
-      Map<String, Integer> versions = manager.getExtrasVersions();
-      Integer version = versions.get(VENDOR_ID + '/' + SUPPORT_ID);
-      if (version != null) {
-        return new File(sdkLocation, SdkConstants.FD_EXTRAS + File.separator + VENDOR_ID + File.separator + SUPPORT_ID);
-      }
-
-      // Check the old compatibility library. When the library is updated in-place
-      // the manager doesn't change its folder name (since that is a source of
-      // endless issues on Windows.)
-      version = versions.get(VENDOR_ID + '/' + COMPATIBILITY_ID);
-      if (version != null) {
-        return new File(sdkLocation, SdkConstants.FD_EXTRAS + File.separator + VENDOR_ID + File.separator + COMPATIBILITY_ID);
-      }
-    return null;
-  }
-
   /** Executes the given recipe file: copying, merging, instantiating, opening files etc */
   private void executeRecipeFile(@NotNull final Configuration freemarker, @NotNull String file, @NotNull final Map<String,
     Object> paramMap) {
@@ -406,8 +369,13 @@ public class Template {
       myLoader.setTemplateFile(getTemplateFile(file));
       String xml = processFreemarkerTemplate(freemarker, paramMap, file);
 
-      // Parse and execute the resulting instruction list.
-      SAXParserFactory.newInstance().newSAXParser().parse(new ByteArrayInputStream(xml.getBytes()), new DefaultHandler() {
+      // Parse and execute the resulting instruction list. We handle UTF-8 since the processed file contains paths which may
+      // have UTF-8 characters.
+      ByteArrayInputStream inputStream = new ByteArrayInputStream(xml.getBytes(Charsets.UTF_8.toString()));
+      Reader reader = new InputStreamReader(inputStream, Charsets.UTF_8.toString());
+      InputSource inputSource = new InputSource(reader);
+      inputSource.setEncoding(Charsets.UTF_8.toString());
+      SAXParserFactory.newInstance().newSAXParser().parse(inputSource, new DefaultHandler() {
         @Override
         public void startElement(String uri, String localName, String name, Attributes attributes) throws SAXException {
           try {
@@ -443,6 +411,27 @@ public class Template {
                 myFilesToOpen.add(relativePath);
               }
             }
+            else if (name.equals(TAG_MKDIR)) {
+              // The relative path here is within the output directory:
+              String relativePath = attributes.getValue(ATTR_AT);
+              if (relativePath != null && !relativePath.isEmpty()) {
+                mkdir(freemarker, paramMap, relativePath);
+              }
+            } else if (name.equals(TAG_DEPENDENCY)) {
+              String dependencyName = attributes.getValue(ATTR_NAME);
+              String dependencyVersion = attributes.getValue(ATTR_VERSION);
+              String url = attributes.getValue(ATTR_MAVEN);
+              List<String> dependencyList = (List<String>)paramMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
+
+              if (dependencyName != null && RepositoryUrls.supports(dependencyName)) {
+                String libraryUrl = getLibraryUrl(dependencyName, dependencyVersion);
+                if (libraryUrl != null) {
+                  dependencyList.add(libraryUrl);
+                }
+              } else if (url != null) {
+                dependencyList.add(url);
+              }
+            }
             else if (!name.equals("recipe")) {
               System.err.println("WARNING: Unknown template directive " + name);
             }
@@ -453,7 +442,6 @@ public class Template {
           }
         }
       });
-
     } catch (Exception e) {
       ourMostRecentException = e;
       LOG.warn(e);
@@ -676,7 +664,8 @@ public class Template {
                                          @NotNull final Configuration freemarker,
                                          @NotNull final Map<String, Object> paramMap) throws IOException, TemplateException {
     // TODO: Right now this is implemented as a dumb text merge. It would be much better to read it into PSI using IJ's Groovy support.
-    // If Gradle build files get first-class PSI support in the future, we will pick that up cheaply.
+    // If Gradle build files get first-class PSI support in the future, we will pick that up cheaply. At the moment, Our Gradle-Groovy
+    // support requires a project, which we don't necessarily have when instantiating a template.
 
     StringBuilder contents = new StringBuilder(dest);
 
@@ -694,6 +683,105 @@ public class Template {
       }
     }
     return contents.toString();
+  }
+
+  /**
+   * Merge the given dependency URLs into the given build.gradle file
+   * @param dependencyList the list of URLs to merge
+   * @param gradleBuildFile the build.gradle file which will be written with the merged dependencies
+   */
+  private void mergeDependenciesIntoFile(List<String> dependencyList, File gradleBuildFile) {
+    // First, get the contents of the gradle file.
+    String contents = readTextFile(gradleBuildFile);
+
+    // Now, look for a (top-level) dependency block
+    int braceCount = 0;
+    boolean inDependencyBlock = false;
+    int dependencyBlockStart = 0;
+    int dependencyBlockEnd = 0;
+    for (int i = 0; i < contents.length(); ++i) {
+      if (contents.charAt(i) == '{') {
+        if (inDependencyBlock && braceCount == 0) {
+          dependencyBlockStart = i + 1;
+        }
+        braceCount++;
+      } else if (contents.charAt(i) == '}') {
+        braceCount--;
+        if (inDependencyBlock && braceCount == 0) {
+          dependencyBlockEnd = i;
+          inDependencyBlock = false;
+        }
+      } else if (braceCount == 0 && contents.length() > i + BLOCK_DEPENDENCIES.length() &&
+                 contents.substring(i, i + BLOCK_DEPENDENCIES.length()).equals(BLOCK_DEPENDENCIES)) {
+        inDependencyBlock = true;
+      }
+    }
+
+    String dependencyBlock = contents.substring(dependencyBlockStart, dependencyBlockEnd);
+
+    Multimap<String, MavenCoordinate> dependencies = LinkedListMultimap.create();
+
+    // If we have dependencies already in the file, load those up
+    if (!dependencyBlock.isEmpty()) {
+      // Load up dependency URLs which are already present.
+      Matcher matcher = COMPILE_PATTERN.matcher(dependencyBlock);
+      while (matcher.find()) {
+        MavenCoordinate coord = MavenCoordinate.parseCoordinateString(matcher.group(1));
+        if (coord != null) {
+          dependencies.put(coord.getId(), coord);
+        }
+      }
+    }
+
+    // Now load the new ones in
+    for (String coordinateString : dependencyList) {
+      MavenCoordinate coord = MavenCoordinate.parseCoordinateString(coordinateString);
+      if (coord != null) {
+        dependencies.put(coord.getId(), coord);
+      }
+    }
+
+    List<String> unresolvedDependencies = Lists.newLinkedList();
+
+    // Now write the combined ones to a string
+    StringBuilder sb = new StringBuilder();
+    sb.append(contents.substring(0, dependencyBlockStart));
+    for (String key : dependencies.keySet()) {
+      MavenCoordinate highest = Collections.max(dependencies.get(key));
+
+      File archiveFile = RepositoryUrls.getArchiveForCoordinate(highest);
+
+      if (RepositoryUrls.supports(highest.getArtifactId()) && archiveFile.exists()) {
+        sb.append(String.format("\n\tcompile '%s'", highest.toString()));
+      } else {
+        sb.append(String.format(
+          "\n\t// You must install the Support Repository through the SDK manager to use this dependency." +
+          "\n\t// The Support Repository (seperate from the Support Library) can be found in the Extras category.\n\t// compile '%s'",
+          highest.toString()));
+        unresolvedDependencies.add(highest.toString());
+      }
+    }
+    sb.append('\n');
+    sb.append(contents.substring(dependencyBlockEnd));
+
+    try {
+      writeFile(sb.toString(), gradleBuildFile);
+    }
+    catch (IOException e) {
+      LOG.warn(e);
+    }
+
+    // Display an error message if we had to blank out some dependencies which weren't available
+    if (!unresolvedDependencies.isEmpty()) {
+      sb = new StringBuilder();
+      sb.append("The following dependencies were not resolvable. See your build.gradle file for details.\n");
+      for (String s : unresolvedDependencies) {
+        sb.append("\t- ");
+        sb.append(s);
+        sb.append('\n');
+      }
+      Messages.showErrorDialog(sb.toString(), "Unresolvable Dependencies Found");
+    }
   }
 
   /** Instantiates the given template file into the given output file */
@@ -718,6 +806,15 @@ public class Template {
       VfsUtil.createDirectories(targetFile.getParentFile().getAbsolutePath());
       writeFile(contents, targetFile);
     }
+  }
+
+  /** Creates a directory at the given path */
+  private void mkdir(
+    @NotNull final Configuration freemarker,
+    @NotNull final Map<String, Object> paramMap,
+    @NotNull String at) throws IOException, TemplateException {
+    File targetFile = getTargetFile(at);
+    VfsUtil.createDirectories(targetFile.getAbsolutePath());
   }
 
   @NotNull
@@ -752,18 +849,6 @@ public class Template {
     inputsTemplate.process(paramMap, out);
     out.flush();
     return out.toString();
-  }
-
-  /** Reads the given file as text. */
-  @Nullable
-  private static String readTextFile(@NotNull File file) {
-    assert file.isAbsolute();
-    try {
-      return Files.toString(file, Charsets.UTF_8);
-    } catch (IOException e) {
-      LOG.warn(e);
-      return null;
-    }
   }
 
   @NotNull

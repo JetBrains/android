@@ -18,7 +18,9 @@ package com.android.tools.idea.rendering;
 import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.legacy.ILegacyPullParser;
+import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.resources.Density;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
@@ -362,9 +364,13 @@ public class XmlTagPullParser implements ILegacyPullParser {
             return VALUE_FILL_PARENT;
           }
 
-          // Handle unicode escapes
-          if (value.indexOf('\\') != -1) {
-            value = replaceUnicodeEscapes(value);
+          // Handle unicode and XML escapes
+          for (int i = 0, n = value.length(); i < n; i++) {
+            char c = value.charAt(i);
+            if (c == '&' || c == '\\') {
+              value = ValueXmlHelper.unescapeResourceString(value, true, false);
+              break;
+            }
           }
         }
 

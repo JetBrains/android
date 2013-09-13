@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.customizer;
 
+import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.google.common.base.Strings;
 import com.intellij.openapi.module.Module;
@@ -29,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 
 /**
- * Sets the compiler output folder to a module imported from an {@link com.android.build.gradle.model.AndroidProject}.
+ * Sets the compiler output folder to a module imported from an {@link com.android.builder.model.AndroidProject}.
  */
 public class CompilerOutputPathModuleCustomizer implements ModuleCustomizer {
   @Override
@@ -40,7 +41,8 @@ public class CompilerOutputPathModuleCustomizer implements ModuleCustomizer {
         // We are dealing with old model that does not have 'class' folder.
         return;
       }
-      File outputFile = ideaAndroidProject.getSelectedVariant().getClassesFolder();
+      Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
+      File outputFile = selectedVariant.getMainArtifactInfo().getClassesFolder();
       String url = VfsUtil.pathToUrl(outputFile.getAbsolutePath());
 
       ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);

@@ -102,7 +102,10 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
         public void visitXmlAttributeValue(XmlAttributeValue value) {
           ResourceString resourceString = getResolvedString(value);
           if (resourceString != NONE) {
-            result.add(resourceString.getDescriptor());
+            FoldingDescriptor descriptor = resourceString.getDescriptor();
+            if (descriptor != null) {
+              result.add(descriptor);
+            }
           }
           super.visitXmlAttributeValue(value);
         }

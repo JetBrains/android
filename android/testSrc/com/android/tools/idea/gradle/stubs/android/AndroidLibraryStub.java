@@ -15,36 +15,55 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
-import com.android.annotations.NonNull;
+import com.android.SdkConstants;
 import com.android.builder.model.AndroidLibrary;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.List;
 
 public class AndroidLibraryStub implements AndroidLibrary {
   @NotNull private final File myJarFile;
+  @NotNull private final String myProject;
   @NotNull private final List<File> myLocalJars = Lists.newArrayList();
 
   public AndroidLibraryStub(@NotNull File jarFile) {
-    myJarFile = jarFile;
+    this(jarFile, null);
   }
 
-  @NonNull
+  public AndroidLibraryStub(@NotNull File jarFile, @Nullable String project) {
+    myJarFile = jarFile;
+    myProject = project;
+  }
+
+  @Nullable
   @Override
-  public File getFolder() {
+  public String getProject() {
+    return myProject;
+  }
+
+  @Override
+  @NotNull
+  public File getBundle() {
     throw new UnsupportedOperationException();
   }
 
-  @NonNull
   @Override
+  @NotNull
+  public File getFolder() {
+    return myJarFile.getParentFile();
+  }
+
+  @Override
+  @NotNull
   public List<? extends AndroidLibrary> getLibraryDependencies() {
     throw new UnsupportedOperationException();
   }
 
-  @NonNull
   @Override
+  @NotNull
   public File getJarFile() {
     return myJarFile;
   }
@@ -53,50 +72,50 @@ public class AndroidLibraryStub implements AndroidLibrary {
     myLocalJars.add(localJar);
   }
 
-  @NonNull
   @Override
+  @NotNull
   public List<File> getLocalJars() {
     return myLocalJars;
   }
 
-  @NonNull
   @Override
+  @NotNull
   public File getResFolder() {
-    throw new UnsupportedOperationException();
+    return new File(getFolder(), SdkConstants.FD_RES);
   }
 
-  @NonNull
   @Override
+  @NotNull
   public File getAssetsFolder() {
     throw new UnsupportedOperationException();
   }
 
-  @NonNull
   @Override
+  @NotNull
   public File getJniFolder() {
     throw new UnsupportedOperationException();
   }
 
-  @NonNull
   @Override
+  @NotNull
   public File getAidlFolder() {
     throw new UnsupportedOperationException();
   }
 
-  @NonNull
   @Override
+  @NotNull
   public File getRenderscriptFolder() {
     throw new UnsupportedOperationException();
   }
 
-  @NonNull
   @Override
+  @NotNull
   public File getProguardRules() {
     throw new UnsupportedOperationException();
   }
 
-  @NonNull
   @Override
+  @NotNull
   public File getLintJar() {
     throw new UnsupportedOperationException();
   }

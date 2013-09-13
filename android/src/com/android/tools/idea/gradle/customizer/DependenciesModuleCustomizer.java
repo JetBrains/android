@@ -16,11 +16,13 @@
 package com.android.tools.idea.gradle.customizer;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.model.AndroidDependencies;
-import com.android.tools.idea.gradle.model.AndroidDependencies.DependencyFactory;
-import com.google.common.collect.Maps;
+import com.android.tools.idea.gradle.dependency.*;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.util.Facets;
+import com.google.common.base.Objects;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
@@ -33,12 +35,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Map;
+import java.util.Collection;
 
 /**
- * Sets the dependencies of a module imported from an {@link com.android.build.gradle.model.AndroidProject}.
+ * Sets the dependencies of a module imported from an {@link com.android.builder.model.AndroidProject}.
  */
-public class DependenciesModuleCustomizer implements ModuleCustomizer {
+public class DependenciesModuleCustomizer extends DependencyUpdater<ModifiableRootModel> implements ModuleCustomizer {
   private static final Logger LOG = Logger.getInstance(DependenciesModuleCustomizer.class);
 
   @Override
@@ -46,105 +48,118 @@ public class DependenciesModuleCustomizer implements ModuleCustomizer {
     if (ideaAndroidProject == null) {
       return;
     }
-    // first pass we update existing libraries or import any missing project-level library
-    updateProjectLibraries(project, ideaAndroidProject);
-
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
     ModifiableRootModel model = moduleRootManager.getModifiableModel();
     try {
-      // remove existing dependencies.
       removeExistingDependencies(model);
-      populateDependencies(model, project, ideaAndroidProject);
+      Collection<Dependency> dependencies = Dependency.extractFrom(ideaAndroidProject);
+      updateDependencies(model, dependencies);
     } finally {
       model.commit();
     }
   }
 
-  private static void updateProjectLibraries(@NotNull Project project, @NotNull IdeaAndroidProject ideaAndroidProject) {
-    final LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
-    final LibraryTable.ModifiableModel model = libraryTable.getModifiableModel();
-    final Map<File, Library> libraries = Maps.newHashMap();
-    try {
-      AndroidDependencies.populate(ideaAndroidProject, new DependencyFactory() {
-        @Override
-        public void addDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull File binaryPath) {
-          Library library = libraryTable.getLibraryByName(name);
-          if (library == null) {
-            library = model.createLibrary(name);
-          }
-          libraries.put(binaryPath, library);
-        }
-      });
-    }
-    finally {
-      model.commit();
-    }
-    registerPaths(OrderRootType.CLASSES, libraries);
-  }
-
-  private static void registerPaths(@NotNull OrderRootType type, @NotNull Map<File, Library> libraries) {
-    for (Map.Entry<File, Library> entry : libraries.entrySet()) {
-      Library library = entry.getValue();
-      Library.ModifiableModel model = library.getModifiableModel();
-      try {
-        File file = entry.getKey();
-        VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file);
-        if (virtualFile == null) {
-          String msg = String.format("Unable to find file at path '%1$s', library '%2$s'", file.getAbsolutePath(), library.getName());
-          LOG.warn(msg);
-          continue;
-        }
-        if (virtualFile.isDirectory()) {
-          model.addRoot(virtualFile, type);
-          continue;
-        }
-        VirtualFile jarRoot = JarFileSystem.getInstance().getJarRootForLocalFile(virtualFile);
-        if (jarRoot == null) {
-          String msg =
-            String.format("Unable to parse contents of jar file '%1$s', library '%2$s'", file.getAbsolutePath(), library.getName());
-          LOG.warn(msg);
-          continue;
-        }
-        model.addRoot(jarRoot, type);
-      }
-      finally {
-        model.commit();
-      }
-    }
-  }
-
-  private static void removeExistingDependencies(@NotNull final ModifiableRootModel model) {
+  private static void removeExistingDependencies(@NotNull final ModifiableRootModel moduleModel) {
     RootPolicy<Object> dependencyRemover = new RootPolicy<Object>() {
       @Override
       public Object visitLibraryOrderEntry(LibraryOrderEntry libraryOrderEntry, Object value) {
-        model.removeOrderEntry(libraryOrderEntry);
+        moduleModel.removeOrderEntry(libraryOrderEntry);
         return value;
       }
 
       @Override
       public Object visitModuleOrderEntry(ModuleOrderEntry moduleOrderEntry, Object value) {
-        model.removeOrderEntry(moduleOrderEntry);
+        moduleModel.removeOrderEntry(moduleOrderEntry);
         return value;
       }
     };
-    for (OrderEntry orderEntry : model.getOrderEntries()) {
+    for (OrderEntry orderEntry : moduleModel.getOrderEntries()) {
       orderEntry.accept(dependencyRemover, null);
     }
   }
 
-  private static void populateDependencies(@NotNull final ModifiableRootModel model,
-                                           @NotNull Project project,
-                                           @NotNull IdeaAndroidProject ideaAndroidProject) {
-    final LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
-    AndroidDependencies.populate(ideaAndroidProject, new DependencyFactory() {
-      @Override
-      public void addDependency(@NotNull DependencyScope scope, @NotNull String name, @NotNull File binaryPath) {
-        Library library = libraryTable.getLibraryByName(name);
-        if (library != null) {
-          LibraryOrderEntry orderEntry = model.addLibraryEntry(library);
-          orderEntry.setScope(scope);
+  @Override
+  protected void updateDependency(@NotNull ModifiableRootModel moduleModel, @NotNull LibraryDependency dependency) {
+    LibraryTable libraryTable = ProjectLibraryTable.getInstance(moduleModel.getProject());
+    Library library = libraryTable.getLibraryByName(dependency.getName());
+    if (library == null) {
+      // Create library.
+      LibraryTable.ModifiableModel libraryTableModel = libraryTable.getModifiableModel();
+      try {
+        library = libraryTableModel.createLibrary(dependency.getName());
+        updateLibraryPaths(library, dependency);
+      }
+      finally {
+        libraryTableModel.commit();
+      }
+    }
+    LibraryOrderEntry orderEntry = moduleModel.addLibraryEntry(library);
+    orderEntry.setScope(dependency.getScope());
+    orderEntry.setExported(true);
+  }
+
+  private static void updateLibraryPaths(@NotNull Library library, @NotNull LibraryDependency dependency) {
+    Library.ModifiableModel libraryModel = library.getModifiableModel();
+    try {
+      Collection<String> binaryPaths = dependency.getPaths(LibraryDependency.PathType.BINARY);
+      for (String binaryPath : binaryPaths) {
+        File file = new File(binaryPath);
+        VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file);
+        if (virtualFile == null) {
+          // TODO: log and show balloon
+          String msg = String.format("Unable to find file at path '%1$s', library '%2$s'", file.getPath(), library.getName());
+          LOG.warn(msg);
+          continue;
+        }
+        if (virtualFile.isDirectory()) {
+          libraryModel.addRoot(virtualFile, OrderRootType.CLASSES);
+          continue;
+        }
+        VirtualFile jarRoot = JarFileSystem.getInstance().getJarRootForLocalFile(virtualFile);
+        if (jarRoot == null) {
+          // TODO: log and show balloon
+          String msg = String.format("Unable to parse contents of jar file '%1$s', library '%2$s'", file.getPath(), library.getName());
+          LOG.warn(msg);
+          continue;
+        }
+        libraryModel.addRoot(jarRoot, OrderRootType.CLASSES);
+      }
+    }
+    finally {
+      libraryModel.commit();
+    }
+  }
+
+  @Override
+  protected boolean tryUpdating(@NotNull ModifiableRootModel moduleModel, @NotNull ModuleDependency dependency) {
+    ModuleManager moduleManager = ModuleManager.getInstance(moduleModel.getProject());
+    Module moduleDependency = null;
+    for (Module module : moduleManager.getModules()) {
+      AndroidGradleFacet androidGradleFacet = Facets.getFirstFacetOfType(module, AndroidGradleFacet.TYPE_ID);
+      if (androidGradleFacet != null) {
+        String gradlePath = androidGradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
+        if (Objects.equal(gradlePath, dependency.getGradlePath())) {
+          moduleDependency = module;
+          break;
         }
       }
-    });
+    }
+    if (moduleDependency != null) {
+      ModuleOrderEntry orderEntry = moduleModel.addModuleOrderEntry(moduleDependency);
+      orderEntry.setExported(true);
+      return true;
+    }
+    return false;
+  }
+
+  @NotNull
+  @Override
+  protected String getNameOf(@NotNull ModifiableRootModel moduleModel) {
+    return moduleModel.getModule().getName();
+  }
+
+  @Override
+  protected void log(ModifiableRootModel moduleModel, String category, String msg) {
+    // TODO: log and show balloon.
   }
 }

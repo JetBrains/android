@@ -21,27 +21,26 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link AndroidSdkUtils}.
  */
 public class AndroidSdkUtilsTest extends IdeaTestCase {
-  public static final String MODERN_ANDROID_SDK_PATH = "android.modern.sdk.path";
-
-  private String myModernAndroidSdkPath;
+  private String mySdkPath;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myModernAndroidSdkPath = System.getProperty(MODERN_ANDROID_SDK_PATH);
-    String msg =
-      String.format("Please specify the path of a modern Android SDK (v22.0.1) in the system property '%1$s'", MODERN_ANDROID_SDK_PATH);
-    assertNotNull(msg, myModernAndroidSdkPath);
+    mySdkPath = System.getProperty(AndroidTestCase.SDK_PATH_PROPERTY);
+    String format = "Please specify the path of an Android SDK (v22.0.0) in the system property '%1$s'";
+    String msg = String.format(format, AndroidTestCase.SDK_PATH_PROPERTY);
+    assertNotNull(msg, mySdkPath);
   }
 
   public void testFindSuitableAndroidSdkWhenNoSdkSet() {
-    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk("android-17", myModernAndroidSdkPath, false);
+    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk("android-17", mySdkPath, false);
     assertNull(sdk);
   }
 
@@ -49,25 +48,25 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
     String targetHashString = "android-17";
     Sdk jdk = getTestProjectJdk();
     assertNotNull(jdk);
-    createAndroidSdk(myModernAndroidSdkPath, targetHashString, jdk);
+    createAndroidSdk(mySdkPath, targetHashString, jdk);
 
-    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk(targetHashString, myModernAndroidSdkPath, false);
+    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk(targetHashString, mySdkPath, false);
     assertNotNull(sdk);
-    assertEquals(myModernAndroidSdkPath, sdk.getHomePath());
+    assertEquals(mySdkPath, sdk.getHomePath());
   }
 
   public void testTryToCreateAndSetAndroidSdkWithPathOfModernSdk() {
-    boolean sdkSet = AndroidSdkUtils.tryToCreateAndSetAndroidSdk(myModule, myModernAndroidSdkPath, "android-17", false);
+    boolean sdkSet = AndroidSdkUtils.tryToCreateAndSetAndroidSdk(myModule, mySdkPath, "android-17", false);
     assertTrue(sdkSet);
     Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
     assertNotNull(sdk);
-    assertEquals(myModernAndroidSdkPath, sdk.getHomePath());
+    assertEquals(mySdkPath, sdk.getHomePath());
   }
 
   public void testCreateNewAndroidPlatformWithPathOfModernSdkOnly() {
-    Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(myModernAndroidSdkPath);
+    Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(mySdkPath);
     assertNotNull(sdk);
-    assertEquals(myModernAndroidSdkPath, sdk.getHomePath());
+    assertEquals(mySdkPath, sdk.getHomePath());
   }
 
   private static void createAndroidSdk(@NotNull String androidHomePath, @NotNull String targetHashString, @NotNull Sdk javaSdk) {

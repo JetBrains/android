@@ -4,7 +4,6 @@ import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
-import com.android.tools.idea.rendering.ProjectResources;
 import com.android.utils.Pair;
 import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.openapi.module.Module;
@@ -37,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static com.android.SdkConstants.ANDROID_PREFIX;
+import static com.android.SdkConstants.*;
 import static com.intellij.psi.xml.XmlTokenType.XML_ATTRIBUTE_VALUE_START_DELIMITER;
 import static com.intellij.psi.xml.XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN;
 
@@ -81,6 +80,25 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
           ResourceType type = pair.getFirst();
           String name = pair.getSecond();
           return generateDoc(originalElement, type, name);
+        } else {
+          // See if it's in a resource file definition: This allows you to invoke
+          // documentation on <string name="cursor_here">...</string>
+          // and see the various translations etc of the string
+          XmlAttribute attribute = PsiTreeUtil.getParentOfType(originalElement, XmlAttribute.class, false);
+          if (attribute != null && ATTR_NAME.equals(attribute.getName())) {
+            XmlTag tag = attribute.getParent();
+            String typeName = tag.getName();
+            if (TAG_ITEM.equals(typeName)) {
+              typeName = tag.getAttributeValue(ATTR_TYPE);
+              if (typeName == null) {
+                return null;
+              }
+            }
+            ResourceType type = ResourceType.getEnum(typeName);
+            if (type != null) {
+              return generateDoc(originalElement, type, value);
+            }
+          }
         }
       }
     }
@@ -259,8 +277,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       return null;
     }
 
-    ProjectResources projectResources = ProjectResources.get(module, true);
-    return AndroidJavaDocRenderer.render(projectResources, type, name);
+    return AndroidJavaDocRenderer.render(module, type, name);
   }
 
   @Override

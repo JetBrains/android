@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
-import com.android.build.gradle.model.AndroidProject;
-import com.android.build.gradle.model.BuildTypeContainer;
-import com.android.build.gradle.model.ProductFlavorContainer;
-import com.android.build.gradle.model.Variant;
+import com.android.SdkConstants;
+import com.android.builder.model.*;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -53,17 +52,17 @@ public class AndroidProjectStub implements AndroidProject {
     this.myName = name;
     myFileStructure = fileStructure;
     myDefaultConfig = new ProductFlavorContainerStub("main", myFileStructure);
-    myBuildFile = myFileStructure.createProjectFile("build.gradle");
+    myBuildFile = myFileStructure.createProjectFile(SdkConstants.FN_BUILD_GRADLE);
   }
 
-  @NotNull
   @Override
+  @NotNull
   public String getModelVersion() {
-    return "0.4-SNAPSHOT";
+    return "0.5.0-SNAPSHOT";
   }
 
-  @NotNull
   @Override
+  @NotNull
   public String getName() {
     return myName;
   }
@@ -77,8 +76,8 @@ public class AndroidProjectStub implements AndroidProject {
     return myLibrary;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public ProductFlavorContainerStub getDefaultConfig() {
     return myDefaultConfig;
   }
@@ -89,8 +88,8 @@ public class AndroidProjectStub implements AndroidProject {
     return buildType;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public Map<String, BuildTypeContainer> getBuildTypes() {
     return myBuildTypes;
   }
@@ -102,8 +101,8 @@ public class AndroidProjectStub implements AndroidProject {
     return flavor;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public Map<String, ProductFlavorContainer> getProductFlavors() {
     return myProductFlavors;
   }
@@ -114,7 +113,7 @@ public class AndroidProjectStub implements AndroidProject {
     return addVariant(variantName, variantName);
   }
 
-    @NotNull
+  @NotNull
   public VariantStub addVariant(@NotNull String variantName, @NotNull String buildTypeName) {
     VariantStub variant = new VariantStub(variantName, buildTypeName, myFileStructure);
     addVariant(variant);
@@ -128,8 +127,8 @@ public class AndroidProjectStub implements AndroidProject {
     myVariants.put(variant.getName(), variant);
   }
 
-  @NotNull
   @Override
+  @NotNull
   public Map<String, Variant> getVariants() {
     return myVariants;
   }
@@ -139,15 +138,33 @@ public class AndroidProjectStub implements AndroidProject {
     return myFirstVariant;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public String getCompileTarget() {
     throw new UnsupportedOperationException();
   }
 
-  @NotNull
   @Override
+  @NotNull
   public List<String> getBootClasspath() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
+  public Map<String, SigningConfig> getSigningConfigs() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
+  public AaptOptions getAaptOptions() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
+  public Collection<String> getUnresolvedDependencies() {
     throw new UnsupportedOperationException();
   }
 

@@ -53,7 +53,8 @@ import java.util.List;
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 public abstract class AndroidTestCase extends UsefulTestCase {
   /** Environment variable or system property containing the full path to an SDK install */
-  private static final String SDK_PATH_PROPERTY = "ADT_TEST_SDK_PATH";
+  public static final String SDK_PATH_PROPERTY = "ADT_TEST_SDK_PATH";
+
   /** Environment variable or system property pointing to the directory name of the platform inside $sdk/platforms, e.g. "android-17" */
   private static final String PLATFORM_DIR_PROPERTY = "ADT_TEST_PLATFORM";
 
@@ -189,7 +190,7 @@ public abstract class AndroidTestCase extends UsefulTestCase {
       final Module additionalModule = data.myModuleFixtureBuilder.getFixture().getModule();
       myAdditionalModules.add(additionalModule);
       final AndroidFacet facet = addAndroidFacet(additionalModule, sdkPath, getPlatformDir());
-      facet.getConfiguration().getState().LIBRARY_PROJECT = data.myLibrary;
+      facet.setLibraryProject(data.myLibrary);
       final String rootPath = getContentRootPath(data.myDirName);
       myFixture.copyDirectoryToProject("res", rootPath + "/res");
       myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML,

@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.maven;
 
+import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.utils.NullLogger;
 import com.intellij.facet.FacetType;
@@ -128,7 +129,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     AndroidMavenProviderImpl.configureAaptCompilation(mavenProject, facet.getModule(), facet.getConfiguration(), hasApkSources);
 
     if (AndroidMavenUtil.APKLIB_DEPENDENCY_AND_PACKAGING_TYPE.equals(mavenProject.getPackaging())) {
-      facet.getProperties().LIBRARY_PROJECT = true;
+      facet.setLibraryProject(true);
     }
     facet.getConfiguration().setIncludeAssetsFromLibraries(true);
 
@@ -766,7 +767,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       sdkPath = ANDROID_SDK_PATH_TEST;
     }
     else {
-      sdkPath = System.getenv(AndroidSdkUtils.ANDROID_HOME_ENV);
+      sdkPath = System.getenv(SdkConstants.ANDROID_HOME_ENV);
     }
     LOG.info("android home: " + sdkPath);
 

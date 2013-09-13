@@ -19,7 +19,11 @@ import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,6 +41,14 @@ import static com.android.tools.idea.templates.Template.TEMPLATE_XML;
  */
 public class TemplateManager {
   private static final Logger LOG = Logger.getInstance("#" + TemplateManager.class.getName());
+
+  /**
+   * A directory relative to application home folder where we can find an extra template folder. This lets us ship more up-to-date
+   * templates with the application instead of waiting for SDK updates.
+   */
+  private static final String BUNDLED_TEMPLATE_PATH = "/plugins/android/lib/templates";
+  private static final String DEVELOPMENT_TEMPLATE_PATH = "/../../tools/base/templates";
+
   /**
    * Cache for {@link #getTemplate()}
    */
@@ -99,6 +111,23 @@ public class TemplateManager {
       }
     }
 
+    String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
+    // Release build?
+    VirtualFile root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(homePath + BUNDLED_TEMPLATE_PATH));
+    if (root == null) {
+      // Development build?
+      root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(homePath + DEVELOPMENT_TEMPLATE_PATH));
+    }
+
+    if (root == null) {
+      // error message tailored for release build file layout
+      LOG.error("Templates not found in: " + homePath + BUNDLED_TEMPLATE_PATH + " or " + homePath + DEVELOPMENT_TEMPLATE_PATH);
+    } else {
+      File templateDir = new File(root.getCanonicalPath()).getAbsoluteFile();
+      if (templateDir.isDirectory()) {
+        folders.add(templateDir);
+      }
+    }
     return folders;
   }
 

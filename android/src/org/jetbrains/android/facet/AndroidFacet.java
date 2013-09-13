@@ -17,8 +17,7 @@ package org.jetbrains.android.facet;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
-import com.android.build.gradle.model.Variant;
-import com.android.builder.model.SourceProvider;
+import com.android.builder.model.*;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.prefs.AndroidLocation;
@@ -29,8 +28,10 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.rendering.ProjectResources;
 import com.android.utils.ILogger;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
 import com.intellij.ProjectTopics;
@@ -60,10 +61,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.JarFileSystem;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.*;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
@@ -75,6 +73,7 @@ import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.compiler.AndroidAptCompiler;
 import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
@@ -123,6 +122,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private ProjectResources myProjectResources;
   private ProjectResources myProjectResourcesWithLibraries;
   private IdeaAndroidProject myIdeaAndroidProject;
+  private final ResourceFolderManager myFolderManager = new ResourceFolderManager(this);
 
   private final List<GradleProjectAvailableListener> myGradleProjectAvailableListeners = Lists.newArrayList();
   private SourceProvider myMainSourceSet;
@@ -139,6 +139,14 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   public boolean isGradleProject() {
     return !getConfiguration().getState().ALLOW_USER_CONFIGURATION;
+  }
+
+  public boolean isLibraryProject() {
+    return getConfiguration().getState().LIBRARY_PROJECT;
+  }
+
+  public void setLibraryProject(boolean library) {
+    getConfiguration().getState().LIBRARY_PROJECT = library;
   }
 
   /**
@@ -204,6 +212,10 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     }
   }
 
+  public ResourceFolderManager getResourceFolderManager() {
+    return myFolderManager;
+  }
+
   /**
    * Returns all resource directories, in the overlay order
    *
@@ -211,25 +223,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    */
   @NotNull
   public List<VirtualFile> getAllResourceDirectories() {
-    if (isGradleProject()) {
-      List<VirtualFile> resDirectories = new ArrayList<VirtualFile>();
-      resDirectories.addAll(getMainIdeaSourceSet().getResDirectories());
-      List<IdeaSourceProvider> flavorSourceSets = getIdeaFlavorSourceSets();
-      if (flavorSourceSets != null) {
-        for (IdeaSourceProvider provider : flavorSourceSets) {
-          resDirectories.addAll(provider.getResDirectories());
-        }
-      }
-
-      IdeaSourceProvider buildTypeSourceSet = getIdeaBuildTypeSourceSet();
-      if (buildTypeSourceSet != null) {
-        resDirectories.addAll(buildTypeSourceSet.getResDirectories());
-      }
-
-      return resDirectories;
-    } else {
-      return new ArrayList<VirtualFile>(getMainIdeaSourceSet().getResDirectories());
-    }
+    return myFolderManager.getFolders();
   }
 
   /**
@@ -339,9 +333,9 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @Deprecated
   @Nullable
   public VirtualFile getPrimaryResourceDir() {
-    Set<VirtualFile> resDirectories = getMainIdeaSourceSet().getResDirectories();
-    if (!resDirectories.isEmpty()) {
-      return resDirectories.iterator().next();
+    List<VirtualFile> dirs = getAllResourceDirectories();
+    if (!dirs.isEmpty()) {
+      return dirs.get(0);
     }
 
     return null;
@@ -1092,7 +1086,21 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     if (myIdeaAndroidProject != null) {
       Variant variant = myIdeaAndroidProject.getSelectedVariant();
       JpsAndroidModuleProperties state = getConfiguration().getState();
-      state.ASSEMBLE_TASK_NAME = variant.getAssembleTaskName();
+
+      ArtifactInfo mainArtifactInfo = variant.getMainArtifactInfo();
+      state.ASSEMBLE_TASK_NAME = mainArtifactInfo.getAssembleTaskName();
+      try {
+        state.COMPILE_JAVA_TASK_NAME = mainArtifactInfo.getJavaCompileTaskName();
+      } catch (UnsupportedMethodException e) {
+        // This happens when using an old but supported v0.5.+ plug-in. This code will be removed once the minimum supported version is 0.6.0.
+        state.COMPILE_JAVA_TASK_NAME = "";
+      }
+      Projects.setProjectCanCompileJavaOnly(getModule().getProject(), !Strings.isNullOrEmpty(state.COMPILE_JAVA_TASK_NAME));
+
+      ArtifactInfo testArtifactInfo = variant.getTestArtifactInfo();
+      state.ASSEMBLE_TEST_TASK_NAME = testArtifactInfo != null ? testArtifactInfo.getAssembleTaskName() : "";
+
+      state.SOURCE_GEN_TASK_NAME = mainArtifactInfo.getSourceGenTaskName();
       state.SELECTED_BUILD_VARIANT = variant.getName();
     }
   }

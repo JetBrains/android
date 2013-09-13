@@ -1,11 +1,15 @@
 package org.jetbrains.android.dom.converters;
 
+import com.android.ide.common.res2.ResourceItem;
+import com.android.resources.ResourceType;
+import com.android.tools.idea.rendering.ProjectResources;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlElement;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.xml.DomUtil;
 import com.intellij.util.xml.GenericDomValue;
@@ -89,6 +93,24 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
     final List<PsiElement> elements = new ArrayList<PsiElement>();
     collectTargets(myFacet, myResourceValue, elements);
     final List<ResolveResult> result = new ArrayList<ResolveResult>();
+
+    if (elements.isEmpty() && myResourceValue.getResourceName() != null) {
+      // Temporary workaround: AAR libraries may not have been picked up properly.
+      // Use project resources to find these missing references, if applicable.
+      ProjectResources resources = ProjectResources.get(myFacet.getModule(), true);
+      ResourceType resourceType = ResourceType.getEnum(myResourceValue.getResourceType());
+      if (resourceType != null) { // If not, it could be some broken source, such as @android/test
+        List<ResourceItem> items = resources.getResourceItem(resourceType, myResourceValue.getResourceName());
+        if (items != null) {
+          for (ResourceItem item : items) {
+            XmlTag tag = ProjectResources.getItemTag(myFacet, item);
+            if (tag != null) {
+              elements.add(tag);
+            }
+          }
+        }
+      }
+    }
 
     for (PsiElement target : elements) {
       result.add(new PsiElementResolveResult(target));

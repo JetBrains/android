@@ -16,11 +16,14 @@
 
 package org.jetbrains.android.run.testing;
 
+import com.android.builder.model.ArtifactInfo;
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.google.common.base.Predicate;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.execution.*;
 import com.intellij.execution.configurations.*;
@@ -36,7 +39,9 @@ import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Pair;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
@@ -56,11 +61,9 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 
 /**
- * Created by IntelliJ IDEA.
  * User: Eugene.Kudelevsky
  * Date: Aug 27, 2009
  * Time: 2:23:56 PM
- * To change this template use File | Settings | File Templates.
  */
 public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.testing.AndroidTestRunConfiguration");
@@ -79,6 +82,65 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
 
   public AndroidTestRunConfiguration(final Project project, final ConfigurationFactory factory) {
     super(project, factory);
+  }
+
+  @Override
+  protected Pair<Boolean, String> supportsRunningLibraryProjects(@NotNull AndroidFacet facet) {
+    if (!facet.isGradleProject()) {
+      // Non Gradle projects always require an application
+      return new Pair<Boolean, String>(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
+    }
+
+    final IdeaAndroidProject project = facet.getIdeaAndroidProject();
+    if (project == null) {
+      return new Pair<Boolean, String>(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
+    }
+
+    // Gradle only supports testing against a single build type (which could be anything, but is "debug" build type by default)
+    // Currently, the only information the model exports that we can use to detect whether the current build type
+    // is testable is by looking at the test task name and checking whether it is null.
+    ArtifactInfo testArtifactInfo = project.getSelectedVariant().getTestArtifactInfo();
+    String testTask = testArtifactInfo != null ? testArtifactInfo.getAssembleTaskName() : null;
+    return new Pair<Boolean, String>(testTask != null, AndroidBundle.message("android.cannot.run.library.project.in.this.buildtype"));
+  }
+
+  @Override
+  public boolean isGeneratedName() {
+    final String name = getName();
+
+    if ((TESTING_TYPE == TEST_CLASS || TESTING_TYPE == TEST_METHOD) &&
+        (CLASS_NAME == null || CLASS_NAME.length() == 0)) {
+      return JavaExecutionUtil.isNewName(name);
+    }
+    if (TESTING_TYPE == TEST_METHOD &&
+        (METHOD_NAME == null || METHOD_NAME.length() == 0)) {
+      return JavaExecutionUtil.isNewName(name);
+    }
+    return Comparing.equal(name, getGeneratedName());
+  }
+
+  @Nullable
+  @Override
+  public String getGeneratedName() {
+    final JavaRunConfigurationModule confModule = getConfigurationModule();
+    final String moduleName = confModule.getModuleName();
+
+    if (TESTING_TYPE == TEST_ALL_IN_PACKAGE) {
+      if (PACKAGE_NAME.length() == 0) {
+        return ExecutionBundle.message("default.junit.config.name.all.in.module", moduleName);
+      }
+      if (moduleName.length() > 0) {
+        return ExecutionBundle.message("default.junit.config.name.all.in.package.in.module", PACKAGE_NAME, moduleName);
+      }
+      return PACKAGE_NAME + " in "  + moduleName;
+    }
+    else if (TESTING_TYPE == TEST_CLASS) {
+      return JavaExecutionUtil.getPresentableClassName(CLASS_NAME, confModule);
+    }
+    else if (TESTING_TYPE == TEST_METHOD) {
+      return JavaExecutionUtil.getPresentableClassName(CLASS_NAME, confModule) + "." + METHOD_NAME;
+    }
+    return moduleName;
   }
 
   @Override
@@ -134,8 +196,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
 
     final AndroidFacet facet = state.getFacet();
     final AndroidFacetConfiguration configuration = facet.getConfiguration();
-    
-    if (!configuration.getState().PACK_TEST_CODE) {
+
+    if (!facet.isGradleProject() && !configuration.getState().PACK_TEST_CODE) {
       final Module module = facet.getModule();
       final int count = getTestSourceRootCount(module);
       
@@ -201,7 +263,12 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
     Project project = getProject();
     AndroidRunConfigurationEditor<AndroidTestRunConfiguration> editor =
-      new AndroidRunConfigurationEditor<AndroidTestRunConfiguration>(project);
+      new AndroidRunConfigurationEditor<AndroidTestRunConfiguration>(project, new Predicate<AndroidFacet>() {
+        @Override
+        public boolean apply(@Nullable AndroidFacet facet) {
+          return facet != null && supportsRunningLibraryProjects(facet).getFirst();
+        }
+      });
     editor.setConfigurationSpecificEditor(new TestRunParameters(project, editor.getModuleSelector()));
     return editor;
   }
@@ -259,7 +326,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
     public LaunchResult launch(@NotNull AndroidRunningState state, @NotNull IDevice device)
       throws IOException, AdbCommandRejectedException, TimeoutException {
       state.getProcessHandler().notifyTextAvailable("Running tests\n", ProcessOutputTypes.STDOUT);
-      RemoteAndroidTestRunner runner = new RemoteAndroidTestRunner(state.getPackageName(), myInstrumentationTestRunner, device);
+      RemoteAndroidTestRunner runner = new RemoteAndroidTestRunner(state.getTestPackageName(), myInstrumentationTestRunner, device);
       switch (TESTING_TYPE) {
         case TEST_ALL_IN_PACKAGE:
           runner.setTestPackageName(PACKAGE_NAME);

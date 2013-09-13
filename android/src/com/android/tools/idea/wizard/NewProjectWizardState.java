@@ -25,7 +25,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
-import static com.android.tools.idea.templates.TemplateMetadata.*;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE;
 
 /**
  * Value object which holds the current state of the wizard pages for the
@@ -48,14 +49,10 @@ public class NewProjectWizardState extends NewModuleWizardState {
     myHidden.remove(ATTR_IS_LIBRARY_MODULE);
 
     put(ATTR_LIBRARY, false);
+    put(ATTR_IS_LAUNCHER, true);
     put(ATTR_PROJECT_LOCATION, getProjectFileDirectory());
     updateTemplate();
     setParameterDefaults();
-
-    convertToInt(ATTR_MIN_API);
-    convertToInt(ATTR_BUILD_API);
-    convertToInt(ATTR_MIN_API_LEVEL);
-    convertToInt(ATTR_TARGET_API);
 
     updateParameters();
   }

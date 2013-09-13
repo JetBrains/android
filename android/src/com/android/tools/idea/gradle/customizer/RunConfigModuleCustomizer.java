@@ -33,14 +33,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 /**
- * Creates run configurations for modules imported from {@link com.android.build.gradle.model.AndroidProject}s.
+ * Creates run configurations for modules imported from {@link com.android.builder.model.AndroidProject}s.
  */
 public class RunConfigModuleCustomizer implements ModuleCustomizer {
   @Override
   public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
     if (ideaAndroidProject != null) {
-      AndroidFacet facet = Facets.getFirstFacet(module, AndroidFacet.ID);
-      if (facet != null && !facet.getConfiguration().getState().LIBRARY_PROJECT) {
+      AndroidFacet facet = Facets.getFirstFacetOfType(module, AndroidFacet.ID);
+      if (facet != null && !facet.isLibraryProject()) {
         RunManager runManager = RunManager.getInstance(project);
         ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
         List<RunConfiguration> configs = runManager.getConfigurationsList(configurationFactory.getType());

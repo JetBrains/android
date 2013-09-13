@@ -69,15 +69,21 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   private JCheckBox myCreateCustomLauncherIconCheckBox;
   private JCheckBox myCreateActivityCheckBox;
   private JCheckBox myLibraryCheckBox;
+  private JCheckBox myFragmentCheckBox;
+  private JCheckBox myActionBarCheckBox;
   private JPanel myPanel;
   private JTextField myModuleName;
   private JLabel myDescription;
   private JLabel myError;
   private JLabel myProjectLocationLabel;
+  private JLabel myModuleNameLabel;
+  private JCheckBox myGridLayoutCheckBox;
+  private JCheckBox myNavigationDrawerCheckBox;
   boolean myInitializedPackageNameText = false;
 
-  public ConfigureAndroidModuleStep(TemplateWizard templateWizard, TemplateWizardState state) {
-    super(templateWizard, state);
+  public ConfigureAndroidModuleStep(TemplateWizardState state, @Nullable Project project, @Nullable Icon sidePanelIcon,
+                                    UpdateListener updateListener) {
+    super(state, project, sidePanelIcon, updateListener);
 
     IAndroidTarget[] targets = getCompilationTargets();
 
@@ -100,25 +106,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       }
     }
 
-    TemplateMetadata metadata = myTemplateState.getTemplateMetadata();
-    if (metadata != null) {
-      Parameter param = metadata.getParameter(ATTR_BASE_THEME);
-      if (param != null && param.element != null) {
-        populateComboBox(myTheme, param);
-        register(ATTR_BASE_THEME, myTheme);
-      }
-    }
-
-    register(ATTR_MODULE_NAME, myModuleName);
-    register(ATTR_PROJECT_LOCATION, myProjectLocation);
-    register(ATTR_APP_TITLE, myAppName);
-    register(ATTR_PACKAGE_NAME, myPackageName);
-    register(ATTR_MIN_API, myMinSdk);
-    register(ATTR_TARGET_API, myTargetSdk);
-    register(ATTR_BUILD_API, myCompileWith);
-    register(ATTR_CREATE_ACTIVITY, myCreateActivityCheckBox);
-    register(ATTR_CREATE_ICONS, myCreateCustomLauncherIconCheckBox);
-    register(ATTR_LIBRARY, myLibraryCheckBox);
+    registerUiElements();
 
     myProjectLocation.addActionListener(new ActionListener() {
       @Override
@@ -147,6 +135,44 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     if (myTemplateState.myHidden.contains(ATTR_IS_LIBRARY_MODULE)) {
       myLibraryCheckBox.setVisible(false);
     }
+    if (myTemplateState.myHidden.contains(ATTR_MODULE_NAME)) {
+      myModuleName.setVisible(false);
+      myModuleNameLabel.setVisible(false);
+    }
+  }
+
+  private void registerUiElements() {
+    TemplateMetadata metadata = myTemplateState.getTemplateMetadata();
+    if (metadata != null) {
+      Parameter param = metadata.getParameter(ATTR_BASE_THEME);
+      if (param != null && param.element != null) {
+        populateComboBox(myTheme, param);
+        register(ATTR_BASE_THEME, myTheme);
+      }
+    }
+
+    register(ATTR_MODULE_NAME, myModuleName);
+    register(ATTR_PROJECT_LOCATION, myProjectLocation);
+    register(ATTR_APP_TITLE, myAppName);
+    register(ATTR_PACKAGE_NAME, myPackageName);
+    register(ATTR_MIN_API, myMinSdk);
+    register(ATTR_TARGET_API, myTargetSdk);
+    register(ATTR_BUILD_API, myCompileWith);
+    register(ATTR_CREATE_ACTIVITY, myCreateActivityCheckBox);
+    register(ATTR_CREATE_ICONS, myCreateCustomLauncherIconCheckBox);
+    register(ATTR_LIBRARY, myLibraryCheckBox);
+    register(ATTR_FRAGMENTS_EXTRA, myFragmentCheckBox);
+    register(ATTR_NAVIGATION_DRAWER_EXTRA, myNavigationDrawerCheckBox);
+    register(ATTR_ACTION_BAR_EXTRA, myActionBarCheckBox);
+    register(ATTR_GRID_LAYOUT_EXTRA, myGridLayoutCheckBox);
+  }
+
+  @Override
+  public void refreshUiFromParameters() {
+    // It's easier to just re-register the UI elements instead of trying to set their values manually. Not all of the elements have
+    // parameters in the template, and the super refreshUiFromParameters won't touch those elements.
+    registerUiElements();
+    super.refreshUiFromParameters();
   }
 
   @Override
@@ -158,6 +184,13 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   @Override
   public JComponent getPreferredFocusedComponent() {
     return myAppName;
+  }
+
+  public void setModuleName(String name) {
+    myModuleName.setText(name);
+    myTemplateState.put(ATTR_MODULE_NAME, name);
+    myTemplateState.myModified.add(ATTR_MODULE_NAME);
+    validate();
   }
 
   @NotNull
@@ -202,6 +235,14 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
              "or the first version that supports all the APIs you want to directly access without reflection.";
     } else if (param.equals(ATTR_BASE_THEME)) {
       return "Choose the base theme to use for the application";
+    } else if (param.equals(ATTR_FRAGMENTS_EXTRA)) {
+      return "Select this box if you plan to use Fragments and will need the Support Library.";
+    } else if (param.equals(ATTR_ACTION_BAR_EXTRA)) {
+      return "Select this box if you plan to use the Action Bar and will need the AppCompat Library.";
+    } else if (param.equals(ATTR_GRID_LAYOUT_EXTRA)) {
+      return "Select this box if you plan to use the new GridLayout and will need the GridLayout Support Library.";
+    } else if (param.equals(ATTR_NAVIGATION_DRAWER_EXTRA)) {
+      return "Select this box if you plan to use the Navigation Drawer and will need the Support Library.";
     } else {
       return null;
     }
@@ -292,10 +333,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       setErrorHtml("The application name for most apps begins with an uppercase letter");
     }
     String packageName = (String)myTemplateState.get(ATTR_PACKAGE_NAME);
-    if (packageName == null || packageName.isEmpty()) {
-      setErrorHtml("Please specify a package name.");
-      return false;
-    } else if (packageName.startsWith(SAMPLE_PACKAGE_PREFIX)) {
+    if (packageName.startsWith(SAMPLE_PACKAGE_PREFIX)) {
       setErrorHtml(String.format("The prefix '%1$s' is meant as a placeholder and should " +
                                     "not be used", SAMPLE_PACKAGE_PREFIX));
     }
@@ -326,6 +364,11 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       setErrorHtml("The build target version should be at least as high as the minimum SDK version");
       return false;
     }
+
+    toggleVisibleOnApi(myFragmentCheckBox, 10, minLevel);
+    toggleVisibleOnApi(myNavigationDrawerCheckBox, 10, minLevel);
+    toggleVisibleOnApi(myActionBarCheckBox, 10, minLevel);
+    toggleVisibleOnApi(myGridLayoutCheckBox, 13, minLevel);
 
     if (!myTemplateState.myHidden.contains(ATTR_PROJECT_LOCATION)) {
       String projectLocation = (String)myTemplateState.get(ATTR_PROJECT_LOCATION);
@@ -371,6 +414,19 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       myIgnoreUpdates = false;
     }
     return updated;
+  }
+
+  /**
+   * Shows or hides a checkbox based on a given API level and the max API level for which it should be shown
+   * @param component The component to hide
+   * @param maxApiLevel the maximum API level for which the given component should be visible
+   * @param apiLevel the selected API level
+   */
+  private void toggleVisibleOnApi(JCheckBox component, int maxApiLevel, int apiLevel) {
+    component.setVisible(apiLevel <= maxApiLevel);
+    if (!component.isVisible()) {
+      component.setSelected(false);
+    }
   }
 
   @NotNull

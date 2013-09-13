@@ -15,8 +15,10 @@
  */
 package org.jetbrains.android.newProject;
 
+import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.platform.ProjectTemplate;
 import com.intellij.platform.ProjectTemplatesFactory;
@@ -39,6 +41,8 @@ public class AndroidProjectTemplatesFactory extends ProjectTemplatesFactory {
   public static final String LIBRARY_MODULE = "Library Module";
   public static final String TEST_MODULE = "Test Module";
 
+  public static final ProjectTemplate[] EMPTY_PROJECT_TEMPLATES = new ProjectTemplate[]{};
+
   @NotNull
   @Override
   public String[] getGroups() {
@@ -53,6 +57,10 @@ public class AndroidProjectTemplatesFactory extends ProjectTemplatesFactory {
   @NotNull
   @Override
   public ProjectTemplate[] createTemplates(String group, WizardContext context) {
+    Project project = context.getProject();
+    if (project != null && Projects.isGradleProject(project)) {
+      return EMPTY_PROJECT_TEMPLATES;
+    }
     ProjectTemplate[] templates = {
       new BuilderBasedTemplate(new AndroidModuleBuilder()),
       new AndroidProjectTemplate(EMPTY_MODULE,
@@ -76,7 +84,7 @@ public class AndroidProjectTemplatesFactory extends ProjectTemplatesFactory {
                                  "that can be referenced by other Android modules",
                                  new AndroidModuleBuilder.Library())
     };
-    if (context.getProject() == null) {
+    if (project == null) {
       return templates;
     }
     else {

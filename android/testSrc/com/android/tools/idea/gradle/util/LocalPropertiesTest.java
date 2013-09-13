@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import com.android.SdkConstants;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.testFramework.IdeaTestCase;
 
 import java.io.File;
-import java.util.Properties;
 
 import static org.easymock.EasyMock.*;
 
@@ -27,31 +27,42 @@ import static org.easymock.EasyMock.*;
  * Tests for {@link LocalProperties}.
  */
 public class LocalPropertiesTest extends IdeaTestCase {
-  private Sdk androidSdk;
+  private LocalProperties myLocalProperties;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    androidSdk = createMock(Sdk.class);
+    myLocalProperties = new LocalProperties(myProject);
   }
 
-  public void testCreateAndReadFile() throws Exception {
-    String androidSdkPath = "/home/sdk";
-
-    expect(androidSdk.getHomePath()).andReturn(androidSdkPath);
-    replay(androidSdk);
-
-    LocalProperties.createFile(getProject(), androidSdk);
-
-    verify(androidSdk);
-
-    File localPropertiesFile = new File(myProject.getBasePath(), "local.properties");
+  public void testCreateFileOnSave() throws Exception {
+    myLocalProperties.save();
+    File localPropertiesFile = new File(myProject.getBasePath(), SdkConstants.FN_LOCAL_PROPERTIES);
     assertTrue(localPropertiesFile.isFile());
+  }
 
-    Properties properties = LocalProperties.readFile(myProject);
-    assertNotNull(properties);
+  public void testSetAndroidSdkPathWithString() throws Exception {
+    String androidSdkPath = "/home/sdk2";
+    myLocalProperties.setAndroidSdkPath(androidSdkPath);
+    myLocalProperties.save();
 
-    assertEquals(androidSdkPath, properties.getProperty("sdk.dir"));
-    assertEquals(androidSdkPath, LocalProperties.getAndroidSdkPath(myProject));
+    assertEquals(androidSdkPath, myLocalProperties.getAndroidSdkPath());
+  }
+
+  public void testSetAndroidSdkPathWithSdk() throws Exception {
+    String androidSdkPath = "/home/sdk2";
+
+    Sdk sdk = createMock(Sdk.class);
+    expect(sdk.getHomePath()).andReturn(androidSdkPath);
+
+    replay(sdk);
+
+    myLocalProperties.setAndroidSdkPath(sdk);
+
+    verify(sdk);
+
+    myLocalProperties.save();
+
+    assertEquals(androidSdkPath, myLocalProperties.getAndroidSdkPath());
   }
 }

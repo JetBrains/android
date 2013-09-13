@@ -20,37 +20,55 @@ import com.android.tools.idea.rendering.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.Point;
 import java.awt.image.BufferedImage;
+import java.util.List;
 
 public class AndroidRootComponent extends JComponent {
-  private static final Object RENDERING_LOCK = new Object();
-  private RenderResult myRenderResult = null;
-  private double myScale;
+  //private static final Object RENDERING_LOCK = new Object();
 
-  public AndroidRootComponent() {
-    myScale = 1;
+  private final RenderingParameters myRenderingParameters;
+  private final PsiFile myPsiFile;
+
+  @NotNull
+  Transform transform = new Transform(1);
+  private Image myScaledImage;
+  private RenderResult myRenderResult = null;
+
+  public AndroidRootComponent(@NotNull final RenderingParameters renderingParameters, @Nullable final PsiFile psiFile) {
+    this.myRenderingParameters = renderingParameters;
+    this.myPsiFile = psiFile;
   }
 
   @Nullable
-  public RenderResult getRenderResult() {
+  private RenderResult getRenderResult() {
     return myRenderResult;
   }
 
-  public double getScale() {
-    return myScale;
+  private void setRenderResult(@Nullable RenderResult renderResult) {
+    myRenderResult = renderResult;
+    revalidate(); // once we have finished rendering we will know where our internal views are, need to relayout otherwise
+    repaint();
   }
 
-  public void setScale(double scale) {
-    myScale = scale;
+  public float getScale() {
+    return transform.myScale;
+  }
+
+  private void invalidate2() {
+    myScaledImage = null;
+  }
+
+  public void setScale(float scale) {
+    transform = new Transform(scale);
+    invalidate2();
   }
 
   @Nullable
@@ -60,13 +78,14 @@ public class AndroidRootComponent extends JComponent {
   }
 
   @Override
-  public void paintComponent(Graphics g) {
-    //ScalableImage image = myRenderResult.getImage();
-    //if (image != null) {
-    //  image.paint(g);
-    //}
-    BufferedImage image = getImage();
-    if (image != null) {
+  public Dimension getPreferredSize() {
+    return myRenderingParameters.getDeviceScreenSizeFor(transform);
+  }
+
+  //ScalableImage image = myRenderResult.getImage();
+  //if (image != null) {
+  //  image.paint(g);
+  //}
       /*
       if (false) {
         Graphics2D g2 = (Graphics2D)g;
@@ -80,39 +99,98 @@ public class AndroidRootComponent extends JComponent {
         g.drawImage(image, 0, 0, getWidth(), getHeight(), null);
       }
       */
-      g.drawImage(ImageUtils.scale(image, myScale, myScale, 0, 0), 0, 0, getWidth(), getHeight(), null);
+
+  private Image getScaledImage() {
+    if (myScaledImage == null ||
+        myScaledImage.getWidth(null) != getWidth() ||
+        myScaledImage.getHeight(null) != getHeight()) {
+      BufferedImage image = getImage();
+      if (image != null) {
+        myScaledImage = ImageUtils.scale(image, transform.myScale, transform.myScale, 0, 0);
+      }
     }
+    return myScaledImage;
   }
 
   @Override
-  public Dimension getPreferredSize() {
-    //return myRenderResult.getImage().getRequiredSize();
-    BufferedImage image = getImage();
-    return image == null ? new Dimension() : new Dimension(image.getWidth(), image.getHeight());
+  public void paintComponent(Graphics g) {
+    Image scaledImage = getScaledImage();
+    if (scaledImage != null) {
+      g.drawImage(scaledImage, 0, 0, null);
+    }
+    else {
+      g.setColor(Color.WHITE);
+      g.fillRect(0, 0, getWidth(), getHeight());
+      g.setColor(Color.GRAY);
+      String message = "Initialising...";
+      Font font = g.getFont();
+      int messageWidth = getFontMetrics(font).stringWidth(message);
+      g.drawString(message, (getWidth() - messageWidth) / 2, getHeight() / 2);
+      render();
+    }
   }
 
-  public void render(@NotNull final Project project, @NotNull final VirtualFile file) {
-    ApplicationManager.getApplication().runReadAction(new Runnable() {
+  private void render() {
+    if (myPsiFile == null) {
+      return;
+    }
+    Project project = myRenderingParameters.myProject;
+    AndroidFacet facet = myRenderingParameters.myFacet;
+    Configuration configuration = myRenderingParameters.myConfiguration;
+
+    if (project.isDisposed()) {
+      return;
+    }
+    Module module = facet.getModule();
+    RenderLogger logger = new RenderLogger(myPsiFile.getName(), module);
+    //synchronized (RENDERING_LOCK) {
+    final RenderService service = RenderService.create(facet, module, myPsiFile, configuration, logger, null);
+    // The rendering service takes long enough to initialise that we don't want to do this from the EDT.
+    // Further, IntellJ's helper classes don't not allow read access from outside EDT, so we need nested runnables.
+    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
-        PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-        AndroidFacet facet = AndroidFacet.getInstance(psiFile);
-        synchronized (RENDERING_LOCK) {
-          Module module = facet.getModule();
-          Configuration configuration = facet.getConfigurationManager().getConfiguration(file);
-          configuration.setTheme("@android:style/Theme.Holo");
-          final RenderLogger logger = new RenderLogger(file.getName(), module);
-          RenderService service = RenderService.create(facet, module, psiFile, configuration, logger, null);
-          if (service != null) {
-            myRenderResult = service.render();
-            service.dispose();
+        ApplicationManager.getApplication().runReadAction(new Runnable() {
+          @Override
+          public void run() {
+            if (service != null) {
+              setRenderResult(service.render());
+              service.dispose();
+            }
+            //}
           }
-          else {
-            myRenderResult = new RenderResult(null, null, psiFile, logger);
-          }
-          repaint();
-        }
+        });
       }
     });
+  }
+
+  @Nullable
+  public RenderedView getRootView() {
+    RenderResult renderResult = getRenderResult();
+    if (renderResult == null) {
+      return null;
+    }
+    RenderedViewHierarchy hierarchy = renderResult.getHierarchy();
+    if (hierarchy == null) {
+      return null;
+    }
+    List<RenderedView> roots = hierarchy.getRoots();
+    if (roots.isEmpty()) {
+      return null;
+    }
+    return roots.get(0);
+  }
+
+  @Nullable
+  public RenderedView getRenderedView(Point p) {
+    RenderResult renderResult = getRenderResult();
+    if (renderResult == null) {
+      return null;
+    }
+    RenderedViewHierarchy hierarchy = renderResult.getHierarchy();
+    if (hierarchy == null) {
+      return null;
+    }
+    return hierarchy.findLeafAt(transform.viewToModel(p.x), transform.viewToModel(p.y));
   }
 }

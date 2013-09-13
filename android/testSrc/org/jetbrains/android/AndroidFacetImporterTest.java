@@ -487,12 +487,12 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
       final Module module = getModule("module");
       final AndroidFacet facet = AndroidFacet.getInstance(module);
       assertNotNull(facet);
-      assertFalse(facet.getProperties().LIBRARY_PROJECT);
+      assertFalse(facet.isLibraryProject());
 
       final Module apklibModule = getModule("~apklib-com_myapklib_1.0");
       final AndroidFacet apklibFacet = AndroidFacet.getInstance(apklibModule);
       assertNotNull(apklibFacet);
-      assertTrue(apklibFacet.getProperties().LIBRARY_PROJECT);
+      assertTrue(apklibFacet.isLibraryProject());
       checkSdk(ModuleRootManager.getInstance(apklibModule).getSdk(), "Maven Android 1.1 Platform", "android-2");
 
       final Library jarLib = checkAppModuleDeps(module, apklibModule);
@@ -561,17 +561,17 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
       final Module module1 = getModule("module1");
       final AndroidFacet facet1 = AndroidFacet.getInstance(module1);
       assertNotNull(facet1);
-      assertFalse(facet1.getProperties().LIBRARY_PROJECT);
+      assertFalse(facet1.isLibraryProject());
 
       final Module module2 = getModule("module1");
       final AndroidFacet facet2 = AndroidFacet.getInstance(module2);
       assertNotNull(facet2);
-      assertFalse(facet2.getProperties().LIBRARY_PROJECT);
+      assertFalse(facet2.isLibraryProject());
 
       final Module apklibModule = getModule("~apklib-com_myapklib_1.0");
       final AndroidFacet apklibFacet = AndroidFacet.getInstance(apklibModule);
       assertNotNull(apklibFacet);
-      assertTrue(apklibFacet.getProperties().LIBRARY_PROJECT);
+      assertTrue(apklibFacet.isLibraryProject());
 
       final Library jarLib1 = checkAppModuleDeps(module1, apklibModule);
       final Library jarLib2 = checkAppModuleDeps(module2, apklibModule);

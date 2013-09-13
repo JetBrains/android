@@ -210,7 +210,7 @@ public class ConfigurationTest extends AndroidTestCase {
     assertSame(manager, facet.getConfigurationManager());
 
     Configuration configuration1 = manager.getConfiguration(file1);
-    configuration1.setLocale(Locale.create("en"));
+    configuration1.getConfigurationManager().setLocale(Locale.create("en"));
     configuration1.setTheme("Theme.Dialog");
     Device device = manager.getDevices().get(manager.getDevices().size() / 2);
     State state = device.getAllStates().get(device.getAllStates().size() - 1);
@@ -233,6 +233,10 @@ public class ConfigurationTest extends AndroidTestCase {
     assertNotSame(configuration3.getDeviceState(), portrait);
     assertEquals("Landscape", configuration3.getDeviceState().getName());
     assertEquals(ScreenSize.XLARGE, configuration3.getDevice().getDefaultHardware().getScreen().getSize());
+    assertEquals(configuration1.getLocale(), configuration3.getLocale());
+    // Ensure project-wide location switching works: both locales should update
+    configuration1.getConfigurationManager().setLocale(Locale.create("no"));
+    assertEquals(Locale.create("no"), configuration1.getLocale());
     assertEquals(configuration1.getLocale(), configuration3.getLocale());
   }
 

@@ -16,9 +16,9 @@
 package com.android.tools.idea.rendering;
 
 import com.android.resources.ResourceType;
-import com.android.sdklib.util.SparseArray;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.lint.detector.api.LintUtils;
+import com.android.utils.SparseArray;
 import com.intellij.codeInsight.daemon.impl.quickfix.CreateClassKind;
 import com.intellij.codeInsight.intention.impl.CreateClassDialog;
 import com.intellij.compiler.actions.CompileDirtyAction;
@@ -73,6 +73,8 @@ public class HtmlLinkManager {
   private static final String URL_ASSIGN_FRAGMENT_URL = "assignFragmentUrl:";
   private static final String URL_ASSIGN_LAYOUT_URL = "assignLayoutUrl:";
   private static final String URL_EDIT_ATTRIBUTE = "editAttribute:";
+  private static final String URL_REPLACE_ATTRIBUTE_VALUE = "replaceAttributeValue:";
+  static final String URL_ACTION_CLOSE = "action:close";
 
   private SparseArray<Runnable> myLinkRunnables;
   private SparseArray<WriteCommandAction> myLinkCommands;
@@ -83,7 +85,7 @@ public class HtmlLinkManager {
 
   public void handleUrl(@NotNull String url, @Nullable Module module, @Nullable PsiFile file, @Nullable DataContext dataContext,
                         @Nullable RenderResult result) {
-    if (url.startsWith("http:")) {
+    if (url.startsWith("http:") || url.startsWith("https:")) {
       UrlOpener.launchBrowser(null, url);
     } else if (url.startsWith(URL_REPLACE_TAGS)) {
       assert module != null;
@@ -122,6 +124,9 @@ public class HtmlLinkManager {
     } else if (url.startsWith(URL_EDIT_ATTRIBUTE)) {
       assert result != null;
       handleEditAttribute(url, module, file);
+    } else if (url.startsWith(URL_REPLACE_ATTRIBUTE_VALUE)) {
+      assert result != null;
+      handleReplaceAttributeValue(url, module, file);
     } else if (url.startsWith(URL_RUNNABLE)) {
       Runnable linkRunnable = getLinkRunnable(url);
       if (linkRunnable != null) {
@@ -601,7 +606,7 @@ public class HtmlLinkManager {
     return URL_EDIT_ATTRIBUTE + attribute + '/' + value;
   }
 
-  private void handleEditAttribute(@NotNull String url, @NotNull Module module, @NotNull final PsiFile file) {
+  private static void handleEditAttribute(@NotNull String url, @NotNull Module module, @NotNull final PsiFile file) {
     assert url.startsWith(URL_EDIT_ATTRIBUTE);
     int attributeStart = URL_EDIT_ATTRIBUTE.length();
     int valueStart = url.indexOf('/');
@@ -612,8 +617,8 @@ public class HtmlLinkManager {
       @Override
       @Nullable
       public XmlAttribute compute() {
-        Collection<XmlAttribute> xmlTags = PsiTreeUtil.findChildrenOfType(file, XmlAttribute.class);
-        for (XmlAttribute attribute : xmlTags) {
+        Collection<XmlAttribute> attributes = PsiTreeUtil.findChildrenOfType(file, XmlAttribute.class);
+        for (XmlAttribute attribute : attributes) {
           if (attributeName.equals(attribute.getLocalName()) && value.equals(attribute.getValue())) {
             return attribute;
           }
@@ -629,5 +634,48 @@ public class HtmlLinkManager {
       // Fall back to just opening the editor
       openEditor(module.getProject(), file, 0, -1);
     }
+  }
+
+  public String createReplaceAttributeValueUrl(String attribute, String oldValue, String newValue) {
+    return URL_REPLACE_ATTRIBUTE_VALUE + attribute + '/' + oldValue + '/' + newValue;
+  }
+
+  private static void handleReplaceAttributeValue(@NotNull String url, @NotNull Module module, @NotNull final PsiFile file) {
+    assert url.startsWith(URL_REPLACE_ATTRIBUTE_VALUE);
+    int attributeStart = URL_REPLACE_ATTRIBUTE_VALUE.length();
+    int valueStart = url.indexOf('/');
+    int newValueStart = url.indexOf('/', valueStart + 1);
+    final String attributeName = url.substring(attributeStart, valueStart);
+    final String oldValue = url.substring(valueStart + 1, newValueStart);
+    final String newValue = url.substring(newValueStart + 1);
+
+    WriteCommandAction<Void> action = new WriteCommandAction<Void>(module.getProject(), "Set Attribute Value", file) {
+      @Override
+      protected void run(Result<Void> result) throws Throwable {
+        Collection<XmlAttribute> attributes = PsiTreeUtil.findChildrenOfType(file, XmlAttribute.class);
+        int oldValueLen = oldValue.length();
+        for (XmlAttribute attribute : attributes) {
+          if (attributeName.equals(attribute.getLocalName())) {
+            String attributeValue = attribute.getValue();
+            if (attributeValue == null) {
+              continue;
+            }
+            if (oldValue.equals(attributeValue)) {
+              attribute.setValue(newValue);
+            } else {
+              int index = attributeValue.indexOf(oldValue);
+              if (index != -1) {
+                if ((index == 0 || attributeValue.charAt(index - 1) == '|') &&
+                    (index + oldValueLen == attributeValue.length() || attributeValue.charAt(index + oldValueLen) == '|')) {
+                  attributeValue = attributeValue.substring(0, index) + newValue + attributeValue.substring(index + oldValueLen);
+                  attribute.setValue(attributeValue);
+                }
+              }
+            }
+          }
+        }
+      }
+    };
+    action.execute();
   }
 }

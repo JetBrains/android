@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
+import static org.jetbrains.android.inspections.lint.IntellijLintProject.*;
+
 /**
  * Custom version of the {@link BuiltinIssueRegistry}. This
  * variation will filter the default issues and remove
@@ -58,6 +60,9 @@ public class IntellijLintIssueRegistry extends BuiltinIssueRegistry {
         } else if (scope.contains(Scope.CLASS_FILE) ||
             scope.contains(Scope.ALL_CLASS_FILES) ||
             scope.contains(Scope.JAVA_LIBRARIES)) {
+          //noinspection ConstantConditions
+          assert !SUPPORT_CLASS_FILES; // When enabled, adjust this to include class detector based issues
+
           boolean isOk = false;
           for (EnumSet<Scope> analysisScope : implementation.getAnalysisScopes()) {
             if (!analysisScope.contains(Scope.CLASS_FILE) &&
@@ -74,6 +79,7 @@ public class IntellijLintIssueRegistry extends BuiltinIssueRegistry {
         }
         result.add(issue);
       }
+      //noinspection AssignmentToStaticFieldFromInstanceMethod
       ourFilteredIssues = result;
     }
 

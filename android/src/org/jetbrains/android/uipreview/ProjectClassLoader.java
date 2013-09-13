@@ -1,6 +1,7 @@
 package org.jetbrains.android.uipreview;
 
-import com.android.build.gradle.model.Variant;
+import com.android.builder.model.ArtifactInfo;
+import com.android.builder.model.Variant;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.openapi.diagnostic.Logger;
@@ -107,13 +108,14 @@ public final class ProjectClassLoader extends ClassLoader {
         if (gradleProject != null) {
           Variant variant = gradleProject.getSelectedVariant();
           String variantName = variant.getName();
-          File classesFolder = variant.getClassesFolder();
+          ArtifactInfo mainArtifactInfo = variant.getMainArtifactInfo();
+          File classesFolder = mainArtifactInfo.getClassesFolder();
 
           // Older models may not supply it; in that case, we rely on looking relative
           // to the .APK file location:
           //noinspection ConstantConditions
           if (classesFolder == null) {
-            File file = variant.getOutputFile();
+            File file = mainArtifactInfo.getOutputFile();
             File buildFolder = file.getParentFile().getParentFile();
             classesFolder = new File(buildFolder, "classes"); // See AndroidContentRoot
           }

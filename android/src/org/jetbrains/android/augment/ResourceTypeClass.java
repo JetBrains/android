@@ -23,7 +23,7 @@ class ResourceTypeClass extends ResourceTypeClassBase {
                                              @NotNull String resClassName,
                                              @NotNull final PsiClass context) {
     final Module circularDepLibWithSamePackage = AndroidCompileUtil.findCircularDependencyOnLibraryWithSamePackage(facet);
-    final boolean generateNonFinalFields = facet.getProperties().LIBRARY_PROJECT || circularDepLibWithSamePackage != null;
+    final boolean generateNonFinalFields = facet.isLibraryProject() || circularDepLibWithSamePackage != null;
     return buildResourceFields(facet.getLocalResourceManager(), generateNonFinalFields, resClassName, context);
   }
 

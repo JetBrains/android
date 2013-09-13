@@ -29,6 +29,11 @@ import java.util.*;
 public class JpsAndroidModuleProperties {
   public String SELECTED_BUILD_VARIANT = "";
   public String ASSEMBLE_TASK_NAME = "";
+  public String COMPILE_JAVA_TASK_NAME = "";
+  public String ASSEMBLE_TEST_TASK_NAME = "";
+  public String SOURCE_GEN_TASK_NAME = "";
+
+  // This value is false when the Android project is Gradle-based.
   public boolean ALLOW_USER_CONFIGURATION = true;
 
   public String GEN_FOLDER_RELATIVE_PATH_APT = "/" + SdkConstants.FD_GEN_SOURCES;
@@ -37,6 +42,7 @@ public class JpsAndroidModuleProperties {
   public String MANIFEST_FILE_RELATIVE_PATH = "/" + SdkConstants.FN_ANDROID_MANIFEST_XML;
 
   public String RES_FOLDER_RELATIVE_PATH = "/" + SdkConstants.FD_RES;
+  public String RES_FOLDERS_RELATIVE_PATH;
   public String ASSETS_FOLDER_RELATIVE_PATH = "/" + SdkConstants.FD_ASSETS;
   public String LIBS_FOLDER_RELATIVE_PATH = "/" + SdkConstants.FD_NATIVE_LIBS;
 

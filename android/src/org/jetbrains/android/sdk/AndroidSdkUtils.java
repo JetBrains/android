@@ -26,6 +26,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
+import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
@@ -75,7 +76,6 @@ import org.jetbrains.android.logcat.AndroidToolWindowFactory;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -88,7 +88,8 @@ public final class AndroidSdkUtils {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.sdk.AndroidSdkUtils");
 
   public static final String DEFAULT_PLATFORM_NAME_PROPERTY = "AndroidPlatformName";
-  @NonNls public static final String ANDROID_HOME_ENV = "ANDROID_HOME";
+  public static final String SDK_NAME_PREFIX = "Android ";
+  public static final String DEFAULT_JDK_NAME = "JDK";
 
   private static SdkManager ourSdkManager;
 
@@ -248,7 +249,6 @@ public final class AndroidSdkUtils {
       if (target != null) {
         Sdk sdk = createNewAndroidPlatform(target, sdkPath, chooseNameForNewLibrary(target), jdk, true);
         if (sdk != null) {
-          // TODO check version
           return sdk;
         }
       }
@@ -300,7 +300,15 @@ public final class AndroidSdkUtils {
     return createNewAndroidPlatform(target, sdkPath, sdkName, jdk, addRoots);
   }
 
-  private static Sdk createNewAndroidPlatform(IAndroidTarget target, String sdkPath, String sdkName, Sdk javaSdk, boolean addRoots) {
+  @Nullable
+  public static Sdk createNewAndroidPlatform(@NotNull IAndroidTarget target,
+                                              @NotNull String sdkPath,
+                                              @NotNull String sdkName,
+                                              @Nullable Sdk jdk,
+                                              boolean addRoots) {
+    if (!VersionCheck.isCompatibleVersion(sdkPath)) {
+      return null;
+    }
     ProjectJdkTable table = ProjectJdkTable.getInstance();
     String tmpName = SdkConfigurationUtil.createUniqueSdkName(AndroidSdkType.SDK_NAME, Arrays.asList(table.getAllJdks()));
 
@@ -310,7 +318,7 @@ public final class AndroidSdkUtils {
     sdkModificator.setHomePath(sdkPath);
     sdkModificator.commitChanges();
 
-    setUpSdk(sdk, sdkName, table.getAllJdks(), target, javaSdk, addRoots);
+    setUpSdk(sdk, sdkName, table.getAllJdks(), target, jdk, addRoots);
 
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
@@ -324,13 +332,13 @@ public final class AndroidSdkUtils {
   @NotNull
   public static String chooseNameForNewLibrary(@NotNull IAndroidTarget target) {
     if (target.isPlatform()) {
-      return target.getName() + " Platform";
+      return SDK_NAME_PREFIX + target.getVersion().toString() + " Platform";
     }
     IAndroidTarget parentTarget = target.getParent();
     if (parentTarget != null) {
-      return "Android " + parentTarget.getVersionName() + ' ' + target.getName();
+      return SDK_NAME_PREFIX + parentTarget.getVersionName() + ' ' + target.getName();
     }
-    return "Android " + target.getName();
+    return SDK_NAME_PREFIX + target.getName();
   }
 
   public static String getTargetPresentableName(@NotNull IAndroidTarget target) {
@@ -376,13 +384,20 @@ public final class AndroidSdkUtils {
   @NotNull
   public static Collection<String> getAndroidSdkPathsFromExistingPlatforms() {
     List<Sdk> androidSdks = getAllAndroidSdks();
-    Set<String> result = new HashSet<String>(androidSdks.size());
+    List<String> result = Lists.newArrayList();
     for (Sdk androidSdk : androidSdks) {
       AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)androidSdk.getSdkAdditionalData();
       if (data != null) {
         AndroidPlatform androidPlatform = data.getAndroidPlatform();
         if (androidPlatform != null) {
-          result.add(FileUtil.toSystemIndependentName(androidPlatform.getSdkData().getLocation()));
+          // Put default platforms in the list before non-default ones so they'll be looked at first.
+          String sdkPath = FileUtil.toSystemIndependentName(androidPlatform.getSdkData().getLocation());
+          if (result.contains(sdkPath)) continue;
+          if (androidSdk.getName().startsWith(SDK_NAME_PREFIX)) {
+            result.add(0, sdkPath);
+          } else {
+            result.add(sdkPath);
+          }
         }
       }
     }
@@ -444,18 +459,25 @@ public final class AndroidSdkUtils {
       AndroidPlatform androidPlatform = data.getAndroidPlatform();
       if (androidPlatform != null) {
         String baseDir = FileUtil.toSystemIndependentName(androidPlatform.getSdkData().getLocation());
+        boolean compatibleVersion = VersionCheck.isCompatibleVersion(baseDir);
         boolean matchingHashString = targetHashString.equals(androidPlatform.getTarget().hashString());
-        boolean suitable = matchingHashString && checkSdkRoots(sdk, androidPlatform.getTarget(), false);
+        boolean suitable = compatibleVersion && matchingHashString && checkSdkRoots(sdk, androidPlatform.getTarget(), false);
         if (sdkPath != null && FileUtil.pathsEqual(baseDir, sdkPath)) {
           if (suitable) {
              return sdk;
           }
           if (promptUserIfNecessary) {
+            if (!compatibleVersion) {
+              // Old SDK, needs to be replaced.
+              Sdk jdk = Jdks.chooseOrCreateJavaSdk();
+              String jdkPath = jdk == null ? null : jdk.getHomePath();
+              return promptUserForSdkCreation(androidPlatform.getTarget(), null, jdkPath);
+            }
+
             if (!matchingHashString) {
               // This is the specified SDK (usually in local.properties file.) We try our best to fix it.
               // TODO download platform;
             }
-            // TODO: check if it is an old SDK. If so, it needs to be replaced.
           }
         }
         else if (suitable) {
@@ -496,23 +518,27 @@ public final class AndroidSdkUtils {
       sdkPath = FileUtil.toSystemIndependentName(sdkPath);
     }
 
+    //noinspection TestOnlyProblems
     Sdk sdk = findSuitableAndroidSdk(targetHashString, sdkPath, promptUserIfNecessary);
     if (sdk != null) {
       ModuleRootModificationUtil.setModuleSdk(module, sdk);
       return true;
     }
 
+    //noinspection TestOnlyProblems
     if (sdkPath != null && tryToCreateAndSetAndroidSdk(module, sdkPath, targetHashString, promptUserIfNecessary)) {
       return true;
     }
 
-    String androidHomeValue = System.getenv(ANDROID_HOME_ENV);
+    String androidHomeValue = System.getenv(SdkConstants.ANDROID_HOME_ENV);
+    //noinspection TestOnlyProblems
     if (androidHomeValue != null &&
         tryToCreateAndSetAndroidSdk(module, FileUtil.toSystemIndependentName(androidHomeValue), targetHashString, false)) {
       return true;
     }
 
     for (String dir : getAndroidSdkPathsFromExistingPlatforms()) {
+      //noinspection TestOnlyProblems
       if (tryToCreateAndSetAndroidSdk(module, dir, targetHashString, false)) {
         return true;
       }
@@ -544,8 +570,16 @@ public final class AndroidSdkUtils {
         }
       }
       else if (promptUserIfNecessary) {
-        // There is not a matching target hashString.
-        // TODO download platform and try again.
+        // We got here because we couldn't get target for given SDK path. Most likely it is an old SDK.
+        String pathToShow = VersionCheck.isCompatibleVersion(sdkPath) ? sdkPath : null;
+        Sdk jdk = Jdks.chooseOrCreateJavaSdk();
+        String jdkPath = jdk == null ? null : jdk.getHomePath();
+        Sdk androidSdk = promptUserForSdkCreation(null, pathToShow, jdkPath);
+        // TODO check platform
+        if (androidSdk != null) {
+          ModuleRootModificationUtil.setModuleSdk(module, androidSdk);
+          return true;
+        }
       }
     }
     return false;

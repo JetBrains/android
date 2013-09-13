@@ -18,6 +18,8 @@
 <idea-plugin url="http://www.jetbrains.com/idea">
   <extensions defaultExtensionNs="com.intellij">
     <androidStudioInitializer implementation="com.android.tools.idea.startup.AndroidStudioSpecificInitializer" />
+    <projectStructureConfigurableFilter implementation="com.android.tools.idea.structure.AndroidStudioConfigurableFilter"/>
+    <projectStructureConfigurableAdder implementation="com.android.tools.idea.structure.AndroidStudioConfigurableContributor"/>
   </extensions>
 
   <actions>
@@ -31,5 +33,11 @@
 
       <add-to-group group-id="MainToolBar" anchor="before" relative-to-action="HelpTopics" />
     </group>
+
+    <action id="AndroidAddRTLSupport" class="com.android.tools.idea.actions.AndroidAddRtlSupportAction"
+            text="Add right-to-left (RTL) support where possible..." description="Add right-to-left (RTL) support where possible">
+      <add-to-group group-id="RefactoringMenu"/>
+    </action>
+
   </actions>
 </idea-plugin>

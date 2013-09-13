@@ -24,6 +24,8 @@ import com.intellij.psi.PsiBinaryFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -187,11 +189,51 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool imp
   @NotNull
   @Override
   public SuppressQuickFix[] getBatchSuppressActions(@Nullable PsiElement element) {
-    final List<SuppressQuickFix> result = new ArrayList<SuppressQuickFix>();
-    result.addAll(Arrays.asList(BatchSuppressManager.SERVICE.getInstance().createBatchSuppressActions(HighlightDisplayKey.find(getShortName()))));
-    result.addAll(Arrays.asList(new XmlSuppressableInspectionTool.SuppressTagStatic(getShortName()),
-                                new XmlSuppressableInspectionTool.SuppressForFile(getShortName())));
-    return result.toArray(new SuppressQuickFix[result.size()]);
+    SuppressLintQuickFix suppressLintQuickFix = new SuppressLintQuickFix(myIssue);
+    if (AndroidLintExternalAnnotator.INCLUDE_IDEA_SUPPRESS_ACTIONS) {
+      final List<SuppressQuickFix> result = new ArrayList<SuppressQuickFix>();
+      result.add(suppressLintQuickFix);
+      result.addAll(Arrays.asList(BatchSuppressManager.SERVICE.getInstance().createBatchSuppressActions(HighlightDisplayKey.find(getShortName()))));
+      result.addAll(Arrays.asList(new XmlSuppressableInspectionTool.SuppressTagStatic(getShortName()),
+                                  new XmlSuppressableInspectionTool.SuppressForFile(getShortName())));
+      return result.toArray(new SuppressQuickFix[result.size()]);
+    } else {
+      return new SuppressQuickFix[] { suppressLintQuickFix };
+    }
+  }
+
+  private static class SuppressLintQuickFix implements SuppressQuickFix {
+    private Issue myIssue;
+
+    private SuppressLintQuickFix(Issue issue) {
+      myIssue = issue;
+    }
+
+    @Override
+    public boolean isAvailable(@NotNull Project project, @NotNull PsiElement context) {
+      return true;
+    }
+
+    @NotNull
+    @Override
+    public String getName() {
+      return "Suppress with @SuppressLint (Java) or tools:ignore (XML)";
+    }
+
+    @NotNull
+    @Override
+    public String getFamilyName() {
+      return "Suppress";
+    }
+
+    @Override
+    public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
+      PsiElement myElement = descriptor.getPsiElement();
+      PsiFile file = PsiTreeUtil.getParentOfType(myElement, PsiFile.class, false);
+      if (file != null) {
+        new SuppressLintIntentionAction(myIssue.getId(), myElement).invoke(project, null, file);
+      }
+    }
   }
 
   @Override

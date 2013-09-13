@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 public class ConfigurationProjectState {
   @Nullable private String myLocale;
   @Nullable private String myTarget;
+  private boolean myPickTarget = true;
 
   @Tag("locale")
   @Nullable
@@ -49,22 +50,13 @@ public class ConfigurationProjectState {
     myTarget = target;
   }
 
-  public void saveState(@NotNull Configuration configuration) {
-    setLocale(toLocaleString(configuration.getLocale()));
-    setTarget(toTargetString(configuration.getTarget()));
+  @Tag("pickBest")
+  public boolean isPickTarget() {
+    return myPickTarget;
   }
 
-  public void loadState(@NotNull Configuration configuration) {
-    ConfigurationManager manager = configuration.getConfigurationManager();
-    IAndroidTarget target = fromTargetString(manager, myTarget);
-    configuration.startBulkEditing();
-    if (target != null) {
-      configuration.setTarget(target);
-    }
-    if (myLocale != null) {
-      configuration.setLocale(Locale.create(myLocale));
-    }
-    configuration.finishBulkEditing();
+  public void setPickTarget(boolean pickTarget) {
+    myPickTarget = pickTarget;
   }
 
   @Nullable

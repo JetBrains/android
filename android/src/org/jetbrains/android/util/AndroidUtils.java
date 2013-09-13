@@ -110,6 +110,9 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
+import static com.android.SdkConstants.*;
+import static com.android.utils.SdkUtils.endsWithIgnoreCase;
+
 /**
  * @author yole, coyote
  */
@@ -609,7 +612,7 @@ public class AndroidUtils {
     final List<AndroidFacet> result = new ArrayList<AndroidFacet>();
 
     for (AndroidFacet facet : ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)) {
-      if (!facet.getProperties().LIBRARY_PROJECT) {
+      if (!facet.isLibraryProject()) {
         result.add(facet);
       }
     }
@@ -630,7 +633,7 @@ public class AndroidUtils {
           if (depModule != null) {
             final AndroidFacet depFacet = AndroidFacet.getInstance(depModule);
 
-            if (depFacet != null && depFacet.getProperties().LIBRARY_PROJECT) {
+            if (depFacet != null && depFacet.isLibraryProject()) {
               depFacets.add(depFacet);
             }
           }
@@ -682,7 +685,7 @@ public class AndroidUtils {
             final AndroidFacet depFacet = AndroidFacet.getInstance(depModule);
 
             if (depFacet != null &&
-                (!androidLibrariesOnly || depFacet.getProperties().LIBRARY_PROJECT) &&
+                (!androidLibrariesOnly || depFacet.isLibraryProject()) &&
                 visited.add(depFacet)) {
               collectAllAndroidDependencies(depModule, androidLibrariesOnly, result, visited);
               result.add(0, depFacet);
@@ -809,47 +812,11 @@ public class AndroidUtils {
 
   public static boolean isIdentifier(@NotNull String candidate) {
     ApplicationManager.getApplication().assertReadAccessAllowed();
-    Lexer lexer = JavaParserDefinition.createLexer(LanguageLevel.JDK_1_3);
+    Lexer lexer = JavaParserDefinition.createLexer(LanguageLevel.JDK_1_5);
     lexer.start(candidate);
     if (lexer.getTokenType() != JavaTokenType.IDENTIFIER) return false;
     lexer.advance();
     return lexer.getTokenType() == null;
-  }
-
-  @Nullable
-  public static String isValidResourceName(@NotNull String name, boolean isFileType) {
-    // Resource names must be valid Java identifiers, since they will
-    // be represented as Java identifiers in the R file:
-    if (!Character.isJavaIdentifierStart(name.charAt(0))) {
-      return "The resource name must begin with a character";
-    }
-    for (int i = 1, n = name.length(); i < n; i++) {
-      char c = name.charAt(i);
-      if (!Character.isJavaIdentifierPart(c)) {
-        return String.format("'%1$c' is not a valid resource name character", c);
-      }
-    }
-
-    if (isFileType) {
-      char first = name.charAt(0);
-      if (!(first >= 'a' && first <= 'z')) {
-        return String.format(
-          "File-based resource names must start with a lowercase letter.");
-      }
-
-      // AAPT only allows lowercase+digits+_:
-      // "%s: Invalid file name: must contain only [a-z0-9_.]","
-      for (int i = 0, n = name.length(); i < n; i++) {
-        char c = name.charAt(i);
-        if (!((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_')) {
-          return String.format(
-            "File-based resource names must contain only lowercase a-z, 0-9, or _.");
-
-
-        }
-      }
-    }
-    return null;
   }
 
   public static void reportImportErrorToEventLog(String message, String modName, Project project) {
@@ -857,6 +824,23 @@ public class AndroidUtils {
                                               AndroidBundle.message("android.facet.importing.title", modName),
                                               message, NotificationType.ERROR, null), project);
     LOG.debug(message);
+  }
+
+  /**
+   * Returns true if the given file path points to an image file recognized by
+   * Android. See http://developer.android.com/guide/appendix/media-formats.html
+   * for details.
+   *
+   * @param path the filename to be tested
+   * @return true if the file represents an image file
+   */
+  public static boolean hasImageExtension(String path) {
+    return endsWithIgnoreCase(path, DOT_PNG) ||
+           endsWithIgnoreCase(path, DOT_9PNG) ||
+           endsWithIgnoreCase(path, DOT_GIF) ||
+           endsWithIgnoreCase(path, DOT_JPG) ||
+           endsWithIgnoreCase(path, DOT_JPEG) ||
+           endsWithIgnoreCase(path, DOT_BMP);
   }
 
   public static boolean isPackagePrefix(@NotNull String prefix, @NotNull String name) {

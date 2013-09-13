@@ -104,6 +104,8 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     final ContentManager contentManager = toolWindow.getContentManager();
     Content c = contentManager.getFactory().createContent(layoutUi.getComponent(), "DDMS", true);
 
+    // Store a reference to the logcat view, so that this view can be retrieved directly from
+    // the DDMS tool window. (e.g. to clear logcat before a launch)
     // add possibility to access logcat view externally in the future
     c.putUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY, logcatView);
 

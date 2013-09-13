@@ -31,9 +31,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileWrapper;
+import com.intellij.openapi.vfs.*;
 import com.intellij.ui.components.JBScrollPane;
 import org.intellij.images.editor.ImageEditor;
 import org.intellij.images.editor.ImageFileEditor;
@@ -57,6 +55,8 @@ import java.util.concurrent.atomic.AtomicReference;
 public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   @NonNls private static final String SCREENSHOT_VIEWER_DIMENSIONS_KEY = "ScreenshotViewer.Dimensions";
 
+  private static VirtualFile ourLastSavedFolder = null;
+
   private final Project myProject;
   private final IDevice myDevice;
 
@@ -64,7 +64,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   private final ImageFileEditor myImageFileEditor;
   private final FileEditorProvider myProvider;
 
-  private final List<DeviceArtDescriptor> myDeviceArtSpecs;
+  private final List<DeviceArtDescriptor> myDeviceArtDescriptors;
 
   private JPanel myPanel;
   private JButton myRefreshButton;
@@ -93,7 +93,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   public ScreenshotViewer(@NotNull Project project,
                           @NotNull BufferedImage image,
                           @NotNull File backingFile,
-                          @NotNull IDevice device) {
+                          @Nullable IDevice device,
+                          @Nullable String deviceModel) {
     super(project, true);
 
     myProject = project;
@@ -105,6 +106,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     assert myBackingVirtualFile != null;
 
     myRefreshButton.setIcon(AllIcons.Actions.Refresh);
+    myRefreshButton.setEnabled(device != null);
     myRotateButton.setIcon(AllIcons.Actions.AllRight);
 
     myProvider = getImageFileEditorProvider();
@@ -134,16 +136,52 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     myDropShadowCheckBox.addActionListener(l);
     myScreenGlareCheckBox.addActionListener(l);
 
-    myDeviceArtSpecs = DeviceArtDescriptor.getDescriptors(null);
-    String[] titles = new String[myDeviceArtSpecs.size()];
-    for (int i = 0; i < myDeviceArtSpecs.size(); i++) {
-      titles[i] = myDeviceArtSpecs.get(i).getName();
+    myDeviceArtDescriptors = DeviceArtDescriptor.getDescriptors(null);
+    String[] titles = new String[myDeviceArtDescriptors.size()];
+    for (int i = 0; i < myDeviceArtDescriptors.size(); i++) {
+      titles[i] = myDeviceArtDescriptors.get(i).getName();
     }
     DefaultComboBoxModel model = new DefaultComboBoxModel(titles);
     myDeviceArtCombo.setModel(model);
     myDeviceArtCombo.setSelectedIndex(0);
 
+    // Set the default device art descriptor selection
+    myDeviceArtCombo.setSelectedIndex(getDefaultDescriptor(myDeviceArtDescriptors, image, deviceModel));
+
     init();
+  }
+
+  private static int getDefaultDescriptor(List<DeviceArtDescriptor> deviceArtDescriptors, BufferedImage image,
+                                          @Nullable String deviceModel) {
+    int index = -1;
+
+    if (deviceModel != null) {
+      index = findDescriptorIndexForProduct(deviceArtDescriptors, deviceModel);
+    }
+
+    if (index < 0) {
+      // Assume that if the min resolution is > 1280, then we are on a tablet
+      String defaultDevice = Math.min(image.getWidth(), image.getHeight()) > 1280 ? "Generic Tablet" : "Generic Phone";
+      index = findDescriptorIndexForProduct(deviceArtDescriptors, defaultDevice);
+    }
+
+    // If we can't find anything (which shouldn't happen since we should get the Generic Phone/Tablet),
+    // default to the first one.
+    if (index < 0) {
+      index = 0;
+    }
+
+    return index;
+  }
+
+  private static int findDescriptorIndexForProduct(List<DeviceArtDescriptor> descriptors, String deviceModel) {
+    for (int i = 0; i < descriptors.size(); i++) {
+      DeviceArtDescriptor d = descriptors.get(i);
+      if (d.getName().equalsIgnoreCase(deviceModel)) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   @Override
@@ -153,6 +191,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   }
 
   private void doRefreshScreenshot() {
+    assert myDevice != null;
     new ScreenshotTask(myProject, myDevice) {
       @Override
       public void onSuccess() {
@@ -164,14 +203,14 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
         BufferedImage image = getScreenshot();
         mySourceImageRef.set(image);
-        frameScreenshot(myRotationAngle);
+        processScreenshot(myFrameScreenshotCheckBox.isSelected(), myRotationAngle);
       }
     }.queue();
   }
 
   private void doRotateScreenshot() {
     myRotationAngle = (myRotationAngle + 90) % 360;
-    frameScreenshot(90);
+    processScreenshot(myFrameScreenshotCheckBox.isSelected(), 90);
   }
 
   private void doFrameScreenshot() {
@@ -182,17 +221,17 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     myScreenGlareCheckBox.setEnabled(shouldFrame);
 
     if (shouldFrame) {
-      frameScreenshot(0);
+      processScreenshot(shouldFrame, 0);
     } else {
       myDisplayedImageRef.set(mySourceImageRef.get());
       updateEditorImage();
     }
   }
 
-  private void frameScreenshot(int rotateByAngle) {
-    DeviceArtDescriptor spec = myDeviceArtSpecs.get(myDeviceArtCombo.getSelectedIndex());
-    boolean shadow = myDropShadowCheckBox.isSelected();
-    boolean reflection = myScreenGlareCheckBox.isSelected();
+  private void processScreenshot(boolean addFrame, int rotateByAngle) {
+    DeviceArtDescriptor spec = addFrame ? myDeviceArtDescriptors.get(myDeviceArtCombo.getSelectedIndex()) : null;
+    boolean shadow = addFrame && myDropShadowCheckBox.isSelected();
+    boolean reflection = addFrame && myScreenGlareCheckBox.isSelected();
 
     new ImageProcessorTask(myProject, mySourceImageRef.get(), rotateByAngle, spec, shadow, reflection) {
       @Override
@@ -315,7 +354,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     FileSaverDescriptor descriptor =
       new FileSaverDescriptor(AndroidBundle.message("android.ddms.screenshot.save.title"), "", SdkConstants.EXT_PNG);
     FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, myProject);
-    VirtualFileWrapper fileWrapper = saveFileDialog.save(myProject.getBaseDir(), getDefaultFileName());
+    VirtualFile baseDir = ourLastSavedFolder != null ? ourLastSavedFolder : myProject.getBaseDir();
+    VirtualFileWrapper fileWrapper = saveFileDialog.save(baseDir, getDefaultFileName());
     if (fileWrapper == null) {
       return;
     }
@@ -331,12 +371,18 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       return;
     }
 
+    VirtualFile virtualFile = fileWrapper.getVirtualFile();
+    if (virtualFile != null) {
+      //noinspection AssignmentToStaticFieldFromInstanceMethod
+      ourLastSavedFolder = virtualFile.getParent();
+    }
+
     super.doOKAction();
   }
 
-  private static String getDefaultFileName() {
+  private String getDefaultFileName() {
     Calendar now = Calendar.getInstance();
-    return String.format("device-%tF-%tH%tM%tS.png", now, now, now, now);
+    return String.format("%s-%tF-%tH%tM%tS.png", myDevice != null ? "device" : "layout", now, now, now, now);
   }
 
   public File getScreenshot() {
