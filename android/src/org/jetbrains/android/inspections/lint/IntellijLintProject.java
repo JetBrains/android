@@ -37,8 +37,10 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.io.File;
 import java.util.*;
@@ -286,10 +288,19 @@ class IntellijLintProject extends Project {
     public List<File> getProguardFiles() {
       if (mProguardFiles == null) {
         assert !myFacet.isGradleProject(); // Should be overridden to read from gradle state
-        if (myFacet.getProperties().RUN_PROGUARD) {
-          VirtualFile proguardCfgFile = AndroidRootUtil.getProguardCfgFile(myFacet);
-          if (proguardCfgFile != null) {
-            mProguardFiles = Collections.singletonList(VfsUtilCore.virtualToIoFile(proguardCfgFile));
+        final JpsAndroidModuleProperties properties = myFacet.getProperties();
+
+        if (properties.RUN_PROGUARD) {
+          final List<String> urls = properties.myProGuardCfgFiles;
+
+          if (!urls.isEmpty()) {
+            mProguardFiles = new ArrayList<File>();
+
+            for (String osPath : AndroidUtils.urlsToOsPaths(urls, null)) {
+              if (!osPath.contains(AndroidCommonUtils.SDK_HOME_MACRO)) {
+                mProguardFiles.add(new File(osPath));
+              }
+            }
           }
         }
 
