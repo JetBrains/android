@@ -15,6 +15,7 @@
  */
 package com.intellij.android.designer.model;
 
+import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.intellij.android.designer.propertyTable.*;
@@ -28,7 +29,6 @@ import org.jetbrains.android.dom.attrs.StyleableDefinition;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.uipreview.ProjectClassLoader;
-import org.jetbrains.android.uipreview.RenderServiceFactory;
 
 import java.util.*;
 
@@ -59,8 +59,8 @@ public class PropertyParser {
     AndroidTargetData targetData = androidPlatform.getSdkData().getTargetData(target);
     myDefinitions = targetData.getAttrDefs(module.getProject());
 
-    RenderServiceFactory factory = targetData.getRenderServiceFactory(module.getProject());
-    myClassLoader = new ProjectClassLoader(factory.getLibrary().getClassLoader(), module);
+    LayoutLibrary library = targetData.getLayoutLibrary(module.getProject());
+    myClassLoader = new ProjectClassLoader(library.getClassLoader(), module);
   }
 
   public void loadRecursive(RadViewComponent component) throws Exception {

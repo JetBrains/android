@@ -27,13 +27,15 @@ import com.android.resources.*;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
-import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.rendering.ProjectResources;
+import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.google.common.base.Objects;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Computable;
@@ -48,8 +50,6 @@ import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidTargetData;
-import org.jetbrains.android.uipreview.RenderServiceFactory;
-import org.jetbrains.android.uipreview.RenderingException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -1127,14 +1127,7 @@ public class Configuration implements Disposable {
 
     AndroidTargetData targetData = platform.getSdkData().getTargetData(target);
     try {
-      Project project = module.getProject();
-      RenderServiceFactory factory = targetData.getRenderServiceFactory(project);
-      if (factory != null) {
-        return factory.getFrameworkResources();
-      }
-    }
-    catch (RenderingException e) {
-      LOG.error(e);
+      return targetData.getFrameworkResources();
     }
     catch (IOException e) {
       LOG.error(e);
