@@ -84,7 +84,8 @@ public class ImportedDependencyUpdaterTest extends TestCase {
   }
 
   public void testImportDependenciesWithLibraryDependency() {
-    File jarFile = new File("~/repo/guava/guava-11.0.2.jar");
+    final String jarFilePath = "~/repo/guava/guava-11.0.2.jar";
+    File jarFile = new File(jarFilePath);
     final LibraryDependency dependency = new LibraryDependency(jarFile, DependencyScope.TEST);
     List<LibraryDependency> dependencies = Lists.newArrayList(dependency);
 
@@ -105,7 +106,7 @@ public class ImportedDependencyUpdaterTest extends TestCase {
     assertEquals(1, paths.size());
     String actualPath = ContainerUtil.getFirstItem(paths);
     assertNotNull(actualPath);
-    assertTrue(actualPath.endsWith(jarFile.getPath()));
+    assertTrue(FileUtil.toSystemIndependentName(actualPath).endsWith(jarFilePath));
 
     // verify that the library dependency was added.
     DataNode<LibraryDependencyData> dependencyInfo = findLibraryDependency(dependency);
