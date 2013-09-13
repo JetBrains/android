@@ -208,6 +208,11 @@
     </intentionAction>
 
     <intentionAction>
+      <className>org.jetbrains.android.intentions.AndroidExtractDimensionAction</className>
+      <category>Android</category>
+    </intentionAction>
+
+    <intentionAction>
       <className>org.jetbrains.android.dom.AndroidCreateOnClickHandlerAction</className>
       <category>Android</category>
     </intentionAction>
