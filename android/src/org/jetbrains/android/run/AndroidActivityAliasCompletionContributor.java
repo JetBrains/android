@@ -5,6 +5,7 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.util.text.StringUtilRt;
 import com.intellij.psi.*;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.util.Processor;
@@ -79,10 +80,10 @@ public class AndroidActivityAliasCompletionContributor extends CompletionContrib
     if (aliases.size() > 0) {
       for (String alias : aliases) {
         LookupElementBuilder element = LookupElementBuilder.create(alias);
-        final int idx = alias.lastIndexOf('.');
+        final String shortName = StringUtilRt.getShortName(alias);
 
-        if (idx >= 0) {
-          element = element.withLookupString(alias.substring(idx + 1));
+        if (!shortName.equals(alias)) {
+          element = element.withLookupString(shortName);
         }
         result.addElement(element);
       }
