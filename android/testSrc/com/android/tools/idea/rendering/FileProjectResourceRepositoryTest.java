@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.intellij.testFramework.PlatformTestUtil;
 import junit.framework.TestCase;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 public class FileProjectResourceRepositoryTest extends TestCase {
   public void test() throws IOException {
@@ -36,16 +34,5 @@ public class FileProjectResourceRepositoryTest extends TestCase {
     PlatformTestUtil.tryGcSoftlyReachableObjects();
     System.gc();
     assertNull(FileProjectResourceRepository.getCached(dir));
-  }
-
-  public static void runOutOfMemory() {
-    List<Object> objects = Lists.newArrayList();
-    while (true) {
-      try {
-        objects.add(new String[1024*1024]);
-      } catch (OutOfMemoryError error) {
-        return;
-      }
-    }
   }
 }
