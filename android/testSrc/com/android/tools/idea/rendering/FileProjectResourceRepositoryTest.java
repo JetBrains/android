@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering;
 
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
+import com.intellij.testFramework.PlatformTestUtil;
 import junit.framework.TestCase;
 
 import java.io.File;
@@ -32,7 +33,7 @@ public class FileProjectResourceRepositoryTest extends TestCase {
     System.gc();
     assertNotNull(FileProjectResourceRepository.getCached(dir));
     // However, in low memory conditions we should:
-    runOutOfMemory();
+    PlatformTestUtil.tryGcSoftlyReachableObjects();
     System.gc();
     assertNull(FileProjectResourceRepository.getCached(dir));
   }
