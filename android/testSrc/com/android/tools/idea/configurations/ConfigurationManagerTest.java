@@ -15,16 +15,14 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.tools.idea.rendering.FileProjectResourceRepositoryTest;
 import com.android.tools.idea.rendering.Locale;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.PlatformTestUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
 import java.util.Arrays;
 import java.util.List;
-
-import static com.android.tools.idea.rendering.FileProjectResourceRepositoryTest.runOutOfMemory;
 
 public class ConfigurationManagerTest extends AndroidTestCase {
   public void testGetLocales() {
@@ -75,7 +73,7 @@ public class ConfigurationManagerTest extends AndroidTestCase {
     assertTrue(manager.hasCachedConfiguration(file1));
     assertTrue(manager.hasCachedConfiguration(file2));
 
-    runOutOfMemory();
+    PlatformTestUtil.tryGcSoftlyReachableObjects();
     System.gc();
     assertFalse(manager.hasCachedConfiguration(file1));
     assertFalse(manager.hasCachedConfiguration(file2));
