@@ -43,8 +43,8 @@ public class VariantStub implements Variant {
   VariantStub(@NotNull String name, @NotNull String buildType, @NotNull FileStructure fileStructure) {
     myName = name;
     myBuildType = buildType;
-    myMainArtifactInfo = new ArtifactInfoStub("assemble", buildType, fileStructure);
-    myTestArtifactInfo = new ArtifactInfoStub("assembleTest", buildType, fileStructure);
+    myMainArtifactInfo = new ArtifactInfoStub(buildType, fileStructure);
+    myTestArtifactInfo = new ArtifactInfoStub(buildType, fileStructure);
   }
 
   @Override
