@@ -470,9 +470,6 @@ public class RenderService {
       }
     }
 
-    // todo: support caching
-
-    myLayoutLib.clearCaches(myModule);
     final SessionParams params =
       new SessionParams(topParser, myRenderingMode, myModule /* projectKey */, hardwareConfig, resolver, myProjectCallback,
                         myMinSdkVersion, myTargetSdkVersion, myLogger);
