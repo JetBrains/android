@@ -17,16 +17,20 @@
 package org.jetbrains.android.dom;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.source.xml.XmlElementDescriptorProvider;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.containers.HashMap;
 import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import com.intellij.xml.XmlElementDescriptor;
 import com.intellij.xml.impl.dom.DomElementXmlDescriptor;
+import icons.AndroidIcons;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
@@ -36,6 +40,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.Map;
 
 /**
@@ -46,24 +51,29 @@ import java.util.Map;
  * To change this template use File | Settings | File Templates.
  */
 public class AndroidDomElementDescriptorProvider implements XmlElementDescriptorProvider {
+  private static final Map<String, Ref<Icon>> ourViewTagName2Icon = new HashMap<String, Ref<Icon>>();
+
   @Nullable
   private static XmlElementDescriptor getDescriptor(DomElement domElement, XmlTag tag, @Nullable String baseClassName) {
     AndroidFacet facet = AndroidFacet.getInstance(domElement);
     if (facet == null) return null;
+    final String name = domElement.getXmlTag().getName();
     PsiClass aClass;
+    Map<String, PsiClass> classMap;
 
     if (baseClassName != null) {
-      Map<String, PsiClass> classMap = facet.getClassMap(baseClassName, SimpleClassMapConstructor.getInstance());
-      String name = domElement.getXmlTag().getName();
+      classMap = facet.getClassMap(baseClassName, SimpleClassMapConstructor.getInstance());
       aClass = classMap.get(name);
     }
     else {
+      classMap = null;
       aClass = null;
     }
+    final Icon icon = getIconForTag(name, domElement);
 
     final DefinesXml definesXml = domElement.getAnnotation(DefinesXml.class);
     if (definesXml != null) {
-      return new AndroidXmlTagDescriptor(aClass, new DomElementXmlDescriptor(domElement));
+      return new AndroidXmlTagDescriptor(aClass, new DomElementXmlDescriptor(domElement), classMap, icon);
     }
     final PsiElement parent = tag.getParent();
     if (parent instanceof XmlTag) {
@@ -72,7 +82,7 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
       if (parentDescriptor != null && parentDescriptor instanceof AndroidXmlTagDescriptor) {
         XmlElementDescriptor domDescriptor = parentDescriptor.getElementDescriptor(tag, (XmlTag)parent);
         if (domDescriptor != null) {
-          return new AndroidXmlTagDescriptor(aClass, domDescriptor);
+          return new AndroidXmlTagDescriptor(aClass, domDescriptor, classMap, icon);
         }
       }
     }
@@ -105,5 +115,39 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
       className = AndroidXmlResourcesUtil.PREFERENCE_CLASS_NAME;
     }
     return Pair.create((AndroidDomElement)domElement, className);
+  }
+
+  @Nullable
+  public static Icon getIconForTag(@Nullable String tagName, @Nullable DomElement context) {
+    if (tagName == null || !(context instanceof LayoutViewElement)) {
+      return null;
+    }
+
+    synchronized (ourViewTagName2Icon) {
+      if (ourViewTagName2Icon.isEmpty()) {
+        final Map<String, Icon> map = getInitialViewTagName2IconMap();
+
+        for (Map.Entry<String, Icon> entry : map.entrySet()) {
+          ourViewTagName2Icon.put(entry.getKey(), Ref.create(entry.getValue()));
+        }
+      }
+      Ref<Icon> iconRef = ourViewTagName2Icon.get(tagName);
+
+      if (iconRef == null) {
+        iconRef = Ref.create(IconLoader.findIcon("AndroidIcons.Views." + tagName));
+        ourViewTagName2Icon.put(tagName, iconRef);
+      }
+      return iconRef.get();
+    }
+  }
+
+  @NotNull
+  private static Map<String, Icon> getInitialViewTagName2IconMap() {
+    final HashMap<String, Icon> map = new HashMap<String, Icon>();
+    map.put("fragment", AndroidIcons.Views.Fragment);
+    map.put("include", AndroidIcons.Views.Include);
+    map.put("view", AndroidIcons.Views.View);
+    map.put("requestFocus", AndroidIcons.Views.RequestFocus);
+    return map;
   }
 }
