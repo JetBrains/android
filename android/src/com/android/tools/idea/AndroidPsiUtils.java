@@ -93,15 +93,14 @@ public class AndroidPsiUtils {
     PsiReferenceExpression ref = (PsiReferenceExpression)exp;
     if (R_CLASS.equals(ref.getReferenceName())) {
       PsiExpression qualifierExpression = ref.getQualifierExpression();
-      if (qualifierExpression == null) {
+      if (qualifierExpression instanceof PsiReferenceExpression &&
+          ANDROID_PKG.equals(((PsiReferenceExpression)qualifierExpression).getReferenceName())) {
+        return ResourceReferenceType.FRAMEWORK;
+      } else {
         // TODO: Check resolved type to make sure it's not a class with android.R imported?
         // Not super important since we actively discourage importing android.R directly
         // via lint checks and the AndroidImportFilter preventing it from happening automatically
         return ResourceReferenceType.APP;
-      }
-      if (qualifierExpression instanceof PsiReferenceExpression &&
-          ANDROID_PKG.equals(((PsiReferenceExpression)qualifierExpression).getReferenceName())) {
-        return ResourceReferenceType.FRAMEWORK;
       }
     }
 

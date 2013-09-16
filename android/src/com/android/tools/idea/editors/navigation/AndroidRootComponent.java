@@ -71,12 +71,6 @@ public class AndroidRootComponent extends JComponent {
     invalidate2();
   }
 
-  @Nullable
-  private BufferedImage getImage() {
-    ScalableImage image = myRenderResult == null ? null : myRenderResult.getImage();
-    return image == null ? null : image.getOriginalImage();
-  }
-
   @Override
   public Dimension getPreferredSize() {
     return myRenderingParameters.getDeviceScreenSizeFor(transform);
@@ -104,7 +98,8 @@ public class AndroidRootComponent extends JComponent {
     if (myScaledImage == null ||
         myScaledImage.getWidth(null) != getWidth() ||
         myScaledImage.getHeight(null) != getHeight()) {
-      BufferedImage image = getImage();
+      ScalableImage scalableImage = myRenderResult == null ? null : myRenderResult.getImage();
+      BufferedImage image = scalableImage == null ? null : scalableImage.getOriginalImage();
       if (image != null) {
         myScaledImage = ImageUtils.scale(image, transform.myScale, transform.myScale, 0, 0);
       }
@@ -141,6 +136,7 @@ public class AndroidRootComponent extends JComponent {
     if (project.isDisposed()) {
       return;
     }
+
     Module module = facet.getModule();
     RenderLogger logger = new RenderLogger(myPsiFile.getName(), module);
     //synchronized (RENDERING_LOCK) {
@@ -161,7 +157,8 @@ public class AndroidRootComponent extends JComponent {
           }
         });
       }
-    });
+    }
+    );
   }
 
   @Nullable

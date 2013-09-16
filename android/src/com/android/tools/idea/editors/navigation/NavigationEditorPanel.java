@@ -15,22 +15,24 @@
  */
 package com.android.tools.idea.editors.navigation;
 
+import com.android.SdkConstants;
 import com.android.navigation.*;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderedView;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.ShadowPainter;
 import com.intellij.ide.dnd.DnDEvent;
 import com.intellij.ide.dnd.DnDManager;
 import com.intellij.ide.dnd.DnDTarget;
 import com.intellij.ide.dnd.TransferableWrapper;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiQualifiedNamedElement;
+import com.intellij.psi.*;
+import com.intellij.psi.impl.source.xml.XmlFileImpl;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.Gray;
 import com.intellij.util.ui.UIUtil;
@@ -467,6 +469,10 @@ public class NavigationEditorPanel extends JComponent {
 
     Point project(Point p) {
       boolean horizontal = a.x == b.x;
+      boolean vertical   = a.y == b.y;
+      if (!horizontal && !vertical) {
+        throw new UnsupportedOperationException();
+      }
       return horizontal ? new Point(a.x, p.y) : new Point(p.x, a.y);
     }
   }
@@ -749,18 +755,29 @@ public class NavigationEditorPanel extends JComponent {
   }
 
   @Nullable
-  private static VirtualFile getFile(State state, VirtualFileSystem fileSystem, String path, String dir) {
-    return fileSystem.findFileByPath(path + dir + state.getXmlResourceName() + ".xml");
+  private static String getXMLFileName(Module module, String controllerClassName) {
+    PsiJavaCodeReferenceElement referenceElement = Utilities.getReferenceElement(module, controllerClassName, "onCreate");
+    return referenceElement != null ? referenceElement.getLastChild().getText() : null;
+  }
+
+  @Nullable
+  private static VirtualFile getFile(VirtualFileSystem fileSystem, String path, String dir, @Nullable String xmlResourceName) {
+    return xmlResourceName == null ? null : fileSystem.findFileByPath(path + dir + xmlResourceName + ".xml");
   }
 
   private AndroidRootComponent createRootComponentFor(State state) {
     VirtualFileSystem fileSystem = myFile.getFileSystem();
+    Module module = myMyRenderingParams.myFacet.getModule();
     String path = myFile.getParent().getParent().getPath();
     String directoryName = myFile.getParent().getName();
     int index = directoryName.indexOf('-');
-    String qualifier = index == -1 ? "" : directoryName.substring(index + 1);
-    VirtualFile qualifiedFile = getFile(state, fileSystem, path, "/layout" + qualifier + "/");
-    VirtualFile file = qualifiedFile != null ? qualifiedFile : getFile(state, fileSystem, path, "/layout/");
+    String qualifier = index == -1 ? "" : directoryName.substring(index);
+    String controllerClassName = state.getClassName();
+    String  definedXmlFileName = state.getXmlResourceName();
+    String dir = (state instanceof MenuState) ? ResourceType.MENU.getName() : ResourceType.LAYOUT.getName();
+    String xmlFileName = definedXmlFileName != null ? definedXmlFileName : getXMLFileName(module, controllerClassName);
+    VirtualFile qualifiedFile = getFile(fileSystem, path, "/" + dir + qualifier + "/", xmlFileName);
+    VirtualFile file = qualifiedFile != null ? qualifiedFile : getFile(fileSystem, path, "/" + dir + "/", xmlFileName);
     PsiFile psiFile = file == null ? null : PsiManager.getInstance(myMyRenderingParams.myProject).findFile(file);
     AndroidRootComponent result = new AndroidRootComponent(myMyRenderingParams, psiFile);
     result.setScale(myTransform.myScale);
@@ -856,21 +873,16 @@ public class NavigationEditorPanel extends JComponent {
       if (attachedObject instanceof TransferableWrapper) {
         TransferableWrapper wrapper = (TransferableWrapper)attachedObject;
         PsiElement[] psiElements = wrapper.getPsiElements();
-        Point dropLocation = diff(anEvent.getPointOn(NavigationEditorPanel.this),
-                                  midPoint(myMyRenderingParams.getDeviceScreenSizeFor(myTransform)));
+        Point dropLoc = anEvent.getPointOn(NavigationEditorPanel.this);
 
         if (psiElements != null) {
           for (PsiElement element : psiElements) {
-            if (element instanceof PsiQualifiedNamedElement) {
-              PsiQualifiedNamedElement namedElement = (PsiQualifiedNamedElement)element;
-              String qualifiedName = namedElement.getQualifiedName();
-              if (qualifiedName != null) {
-                State state = new State(qualifiedName);
-                state.setLocation(myTransform.viewToModel(snap(dropLocation, MIDDLE_SNAP_GRID)));
-                String name = namedElement.getName();
-                if (name != null) {
-                  state.setXmlResourceName(getXmlFileNameFromJavaFileName(name));
-                }
+            if (element instanceof XmlFileImpl) {
+              PsiFile containingFile = element.getContainingFile();
+              PsiDirectory dir = containingFile.getParent();
+              if (dir != null && dir.getName().equals(SdkConstants.FD_RES_MENU)) {
+                String resourceName = ResourceHelper.getResourceName(containingFile);
+                State state = new MenuState(resourceName);
                 if (!getStateComponentAssociation().keyToValue.containsKey(state)) {
                   if (execute) {
                     myNavigationModel.addState(state);
@@ -879,7 +891,25 @@ public class NavigationEditorPanel extends JComponent {
                     applicableDropCount++;
                   }
                 }
-                dropLocation = Utilities.add(dropLocation, MULTIPLE_DROP_STRIDE);
+              }
+            }
+            if (element instanceof PsiQualifiedNamedElement) {
+              PsiQualifiedNamedElement namedElement = (PsiQualifiedNamedElement)element;
+              String qualifiedName = namedElement.getQualifiedName();
+              if (qualifiedName != null) {
+                State state = new ActivityState(qualifiedName);
+                Dimension size = myMyRenderingParams.getDeviceScreenSizeFor(myTransform);
+                Point dropLocation = diff(dropLoc, midPoint(size));
+                state.setLocation(myTransform.viewToModel(snap(dropLocation, MIDDLE_SNAP_GRID)));
+                if (!getStateComponentAssociation().keyToValue.containsKey(state)) {
+                  if (execute) {
+                    myNavigationModel.addState(state);
+                  }
+                  else {
+                    applicableDropCount++;
+                  }
+                }
+                dropLoc = Utilities.add(dropLocation, MULTIPLE_DROP_STRIDE);
               }
             }
           }
@@ -912,11 +942,5 @@ public class NavigationEditorPanel extends JComponent {
     @Override
     public void updateDraggedImage(Image image, Point dropPoint, Point imageOffset) {
     }
-
   }
-
-  private static String getXmlFileNameFromJavaFileName(String name) {
-    return Utilities.getXmlFileNameFromJavaFileName(name);
-  }
-
 }

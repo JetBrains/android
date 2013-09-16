@@ -189,7 +189,10 @@ class Selections {
       Graphics2D lineGraphics = NavigationEditorPanel.createLineGraphics(g, lineWidth);
       Rectangle sourceBounds = NavigationEditorPanel.getBounds(mySourceComponent, myNamedLeaf);
       Rectangle destBounds = myNavigationEditor.getNamedLeafBoundsAt(mySourceComponent, myMouseLocation);
-      Line midLine = NavigationEditorPanel.getMidLine(mySourceComponent.getBounds(), new Rectangle(myMouseLocation));
+      Rectangle sourceComponentBounds = mySourceComponent.getBounds();
+      // if the mouse hasn't left the bounds of the originating component yet, use leaf bounds instead for the midLine calculation
+      Rectangle startBounds = sourceComponentBounds.contains(myMouseLocation) ? sourceBounds : sourceComponentBounds;
+      Line midLine = NavigationEditorPanel.getMidLine(startBounds, new Rectangle(myMouseLocation));
       Point[] controlPoints = NavigationEditorPanel.getControlPoints(sourceBounds, destBounds, midLine);
       myNavigationEditor.drawTransition(lineGraphics, sourceBounds, destBounds, controlPoints);
     }
