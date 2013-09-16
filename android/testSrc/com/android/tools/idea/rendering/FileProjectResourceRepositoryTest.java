@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.google.common.io.Files;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.PlatformTestUtil;
 import junit.framework.TestCase;
 
@@ -26,13 +27,18 @@ public class FileProjectResourceRepositoryTest extends TestCase {
   public void test() throws IOException {
 
     File dir = Files.createTempDir();
-    assertNotNull(FileProjectResourceRepository.get(dir));
-    // We shouldn't clear it out immediately on GC *eligibility*:
-    System.gc();
-    assertNotNull(FileProjectResourceRepository.getCached(dir));
-    // However, in low memory conditions we should:
-    PlatformTestUtil.tryGcSoftlyReachableObjects();
-    System.gc();
-    assertNull(FileProjectResourceRepository.getCached(dir));
+    try {
+      assertNotNull(FileProjectResourceRepository.get(dir));
+      // We shouldn't clear it out immediately on GC *eligibility*:
+      System.gc();
+      assertNotNull(FileProjectResourceRepository.getCached(dir));
+      // However, in low memory conditions we should:
+      PlatformTestUtil.tryGcSoftlyReachableObjects();
+      System.gc();
+      assertNull(FileProjectResourceRepository.getCached(dir));
+    }
+    finally {
+      FileUtil.delete(dir);
+    }
   }
 }
