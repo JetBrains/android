@@ -22,6 +22,7 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.codeInsight.lookup.LookupElementDecorator;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
@@ -33,6 +34,7 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
 import com.intellij.util.xml.converters.DelimitedListConverter;
+import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.android.dom.animation.AndroidAnimationUtils;
 import org.jetbrains.android.dom.animation.AnimationDomFileDescription;
 import org.jetbrains.android.dom.animator.AndroidAnimatorUtil;
@@ -49,8 +51,11 @@ import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.PreferenceElement;
 import org.jetbrains.android.dom.xml.XmlResourceDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.SimpleClassMapConstructor;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.util.*;
 
 /**
@@ -70,7 +75,21 @@ public class AndroidCompletionContributor extends CompletionContributor {
       return false;
     }
     else if (LayoutDomFileDescription.isLayoutFile(xmlFile)) {
-      addAll(AndroidLayoutUtil.getPossibleRoots(facet), resultSet);
+      final Map<String,PsiClass> classMap = facet.getClassMap(
+        AndroidUtils.VIEW_CLASS_NAME, SimpleClassMapConstructor.getInstance());
+
+      for (String rootTag : AndroidLayoutUtil.getPossibleRoots(facet)) {
+        final PsiClass aClass = classMap.get(rootTag);
+        LookupElementBuilder builder = aClass != null
+                                       ? LookupElementBuilder.create(aClass, rootTag)
+                                       : LookupElementBuilder.create(rootTag);
+        final Icon icon = AndroidDomElementDescriptorProvider.getIconForViewTag(rootTag);
+
+        if (icon != null) {
+          builder = builder.withIcon(icon);
+        }
+        resultSet.addElement(builder);
+      }
       return false;
     }
     else if (AnimationDomFileDescription.isAnimationFile(xmlFile)) {

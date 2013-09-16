@@ -415,17 +415,32 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
   }
 
   public void testTagNameIcons1() throws Throwable {
-    VirtualFile file = copyFileToProject("tn10.xml");
+    doTestTagNameIcons("tn10.xml");
+  }
+
+  public void testTagNameIcons2() throws Throwable {
+    doTestTagNameIcons("tn12.xml");
+  }
+
+  private void doTestTagNameIcons(String fileName) throws IOException {
+    VirtualFile file = copyFileToProject(fileName);
     myFixture.configureFromExistingVirtualFile(file);
     final LookupElement[] elements = myFixture.complete(CompletionType.BASIC);
     final Set<String> elementsToCheck = new HashSet<String>(Arrays.asList(
       "view", "include", "requestFocus", "fragment", "Button"));
 
     for (LookupElement element : elements) {
-      if (elementsToCheck.contains(element.getLookupString())) {
+      final String s = element.getLookupString();
+      final Object obj = element.getObject();
+
+      if (elementsToCheck.contains(s)) {
         LookupElementPresentation presentation = new LookupElementPresentation();
         element.renderElement(presentation);
         assertNotNull("no icon for element: " + element, presentation.getIcon());
+
+        if ("Button".equals(s)) {
+          assertInstanceOf(obj, PsiClass.class);
+        }
       }
     }
   }
