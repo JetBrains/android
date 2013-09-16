@@ -122,7 +122,11 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
     if (tagName == null || !(context instanceof LayoutViewElement)) {
       return null;
     }
+    return getIconForViewTag(tagName);
+  }
 
+  @Nullable
+  public static Icon getIconForViewTag(@NotNull String tagName) {
     synchronized (ourViewTagName2Icon) {
       if (ourViewTagName2Icon.isEmpty()) {
         final Map<String, Icon> map = getInitialViewTagName2IconMap();
