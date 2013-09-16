@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.stubs.android;
 import com.android.SdkConstants;
 import com.android.builder.model.*;
 import com.android.tools.idea.gradle.stubs.FileStructure;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 
 public class AndroidProjectStub implements AndroidProject {
+  private static final Collection<String> NO_UNRESOLVED_DEPENDENCIES = ImmutableList.of();
+
   @NotNull private final Map<String, BuildTypeContainer> myBuildTypes = Maps.newHashMap();
   @NotNull private final Map<String, ProductFlavorContainer> myProductFlavors = Maps.newHashMap();
   @NotNull private final Map<String, Variant> myVariants = Maps.newHashMap();
@@ -165,7 +168,7 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   @NotNull
   public Collection<String> getUnresolvedDependencies() {
-    throw new UnsupportedOperationException();
+    return NO_UNRESOLVED_DEPENDENCIES;
   }
 
   /**
