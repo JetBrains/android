@@ -17,11 +17,9 @@
 package com.android.navigation;
 
 import junit.framework.TestCase;
-import org.jetbrains.android.AndroidTestCase;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 public class NavigationReaderTest extends TestCase {
@@ -29,17 +27,6 @@ public class NavigationReaderTest extends TestCase {
     State s0 = new State(className);
     s0.setXmlResourceName(xmlFileName);
     return s0;
-  }
-
-  public void test1() throws FileNotFoundException {
-
-    FileInputStream stream = new FileInputStream(AndroidTestCase.getTestDataPath() + "/resNavigation/res/layout/main.nav");
-    XMLReader reader = new XMLReader(stream);
-    Object result = reader.read();
-    System.out.println("result = " + result);
-
-    XMLWriter writer = new XMLWriter(System.out);
-    writer.write(result);
   }
 
   private static Object fromString(String output) {
@@ -64,7 +51,7 @@ public class NavigationReaderTest extends TestCase {
     model.add(t2);
 
     String output = toString(model);
-    System.out.println(output);
+    //System.out.println(output);
 
     Object model2 = fromString(output);
     String output2 = toString(model2);
