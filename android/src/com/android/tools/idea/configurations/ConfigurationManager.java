@@ -431,6 +431,18 @@ public class ConfigurationManager implements Disposable {
 
   public void setTarget(@Nullable IAndroidTarget target) {
     if (target != myTarget) {
+      if (myTarget != null) {
+        // Clear out the bitmap cache of the previous platform, since it's likely we won't
+        // need it again. If you have *two* projects open with different platforms, this will
+        // needlessly flush the bitmap cache for the project still using it, but that just
+        // means the next render will need to fetch them again; from that point on both platform
+        // bitmap sets are in memory.
+        AndroidTargetData targetData = AndroidTargetData.getTargetData(myTarget, myModule);
+        if (targetData != null) {
+          targetData.clearLayoutBitmapCache(myModule);
+        }
+      }
+
       myTarget = target;
       if (target != null) {
         getStateManager().getProjectState().setTarget(ConfigurationProjectState.toTargetString(target));
