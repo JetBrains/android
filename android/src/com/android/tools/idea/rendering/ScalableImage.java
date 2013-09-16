@@ -48,10 +48,14 @@ public class ScalableImage {
   /** Whether current thumbnail actually has a device frame */
   private boolean myThumbnailHasFrame;
 
-  public ScalableImage(RenderSession session, @NotNull Configuration configuration) {
-    myImage = session.getImage();
+  public ScalableImage(@NotNull Configuration configuration, @NotNull BufferedImage image, boolean alphaChannelImage) {
     myConfiguration = configuration;
-    myAlphaChannelImage = session.isAlphaChannelImage();
+    myImage = image;
+    myAlphaChannelImage = alphaChannelImage;
+  }
+
+  public ScalableImage(@NotNull RenderSession session, @NotNull Configuration configuration) {
+    this(configuration, session.getImage(), session.isAlphaChannelImage());
   }
 
   /**

@@ -15,32 +15,45 @@
  */
 package com.android.navigation;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.annotations.Property;
 import com.android.resources.ResourceFolderType;
 
-public abstract class State {
-  private Point location = Point.ORIGIN;
+public class ActivityState extends State {
+  private final String className;
+  private String xmlResourceName;
 
-  @Nullable
-  public abstract String getClassName();
-
-  @Nullable
-  public abstract String getXmlResourceName();
-
-  @NonNull
-  public Point getLocation() {
-    return location;
-  }
-
-  public void setLocation(@NonNull Point location) {
-    this.location = location;
+  public ActivityState(@Property("className") String className) {
+    this.className = className;
   }
 
   @Override
-  public abstract boolean equals(Object o);
+  public String getClassName() {
+    return className;
+  }
 
   @Override
-  public abstract int hashCode();
+  public String getXmlResourceName() {
+    return xmlResourceName;
+  }
+
+  public void setXmlResourceName(String xmlResourceName) {
+    this.xmlResourceName = xmlResourceName;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    ActivityState that = (ActivityState)o;
+
+    if (!className.equals(that.className)) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    return className.hashCode();
+  }
 }
