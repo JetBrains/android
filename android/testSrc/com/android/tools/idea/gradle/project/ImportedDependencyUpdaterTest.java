@@ -105,7 +105,7 @@ public class ImportedDependencyUpdaterTest extends TestCase {
     assertEquals(1, paths.size());
     String actualPath = ContainerUtil.getFirstItem(paths);
     assertNotNull(actualPath);
-    assertTrue(actualPath.endsWith(jarFile.getPath()));
+    assertTrue(actualPath.endsWith(FileUtil.toSystemIndependentName(jarFile.getPath())));
 
     // verify that the library dependency was added.
     DataNode<LibraryDependencyData> dependencyInfo = findLibraryDependency(dependency);

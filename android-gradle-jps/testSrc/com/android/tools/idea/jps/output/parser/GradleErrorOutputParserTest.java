@@ -300,7 +300,7 @@ public class GradleErrorOutputParserTest extends TestCase {
 
   private void createTempFile(String fileExtension) throws IOException {
     sourceFile = File.createTempFile(GradleErrorOutputParserTest.class.getName(), fileExtension);
-    sourceFilePath = sourceFile.getAbsolutePath();
+    sourceFilePath = FileUtil.toSystemIndependentName(sourceFile.getAbsolutePath());
   }
 
   @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
@@ -367,7 +367,7 @@ public class GradleErrorOutputParserTest extends TestCase {
     File valueDir = new File(tempDir, "values-en");
     valueDir.mkdirs();
     sourceFile = new File(valueDir, "values.xml"); // Keep in sync with MergedResourceWriter.FN_VALUES_XML
-    sourceFilePath = sourceFile.getAbsolutePath();
+    sourceFilePath = FileUtil.toSystemIndependentName(sourceFile.getAbsolutePath());
 
     writeToFile(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -777,7 +777,7 @@ public class GradleErrorOutputParserTest extends TestCase {
   public void test() throws Exception {
     File tempDir = Files.createTempDir();
     sourceFile = new File(tempDir, "values.xml"); // Name matters for position search
-    sourceFilePath = sourceFile.getAbsolutePath();
+    sourceFilePath = FileUtil.toSystemIndependentName(sourceFile.getAbsolutePath());
     File source = new File(tempDir, "dimens.xml");
     Files.write("<resources>\n" +
                 "    <!-- Default screen margins, per the Android Design guidelines. -->\n" +
@@ -791,7 +791,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "    <!-- From: file:/Users/unittest/AndroidStudioProjects/BlankProject1Project/BlankProject1/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values/values.xml -->\n" +
                 "    <dimen name=\"abc_action_bar_default_height\">48dip</dimen>\n" +
                 "    <dimen name=\"abc_action_bar_icon_vertical_padding\">8dip</dimen>\n" +
-                "    <!-- From: file:" + source.getPath() + " -->\n" +
+                "    <!-- From: file:" + FileUtil.toSystemIndependentName(source.getPath()) + " -->\n" +
                 "    <dimen name=\"activity_horizontal_margin\">16dp</dimen>\n" +
                 "    <dimen name=\"activity_vertical_margin\">16dp</dimen>\n" +
                 "    <dimen name=\"ok\">50dp</dimen>\n" +
@@ -843,11 +843,11 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "6: Info::BlankProject1:processDebugManifest UP-TO-DATE\n" +
                  "7: Info::BlankProject1:processDebugResources\n" +
                  "8: Gradle:Error:Integer types not allowed (at 'new_name' with value '50').\n" +
-                 "\t" + source.getPath() + ":5:28\n" +
+                 "\t" + FileUtil.toSystemIndependentName(source.getPath()) + ":5:28\n" +
                  "9: Info::BlankProject1:processDebugResources FAILED\n" +
                  "10: Gradle:Error:Error while executing aapt command\n" +
                  "11: Gradle:Error:Integer types not allowed (at 'new_name' with value '50').\n" +
-                 "\t" + source.getPath() + ":5:28\n" +
+                 "\t" + FileUtil.toSystemIndependentName(source.getPath()) + ":5:28\n" +
                  "12: Gradle:Error:Execution failed for task ':BlankProject1:processDebugResources'.\n" +
                  "13: Info:BUILD FAILED\n" +
                  "14: Info:Total time: 5.435 secs\n",
