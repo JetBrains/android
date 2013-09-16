@@ -20,6 +20,7 @@ import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -102,11 +103,13 @@ public class TemplateWizardState {
     File moduleRoot = new File(projectRoot, (String)get(NewProjectWizardState.ATTR_MODULE_NAME));
     File mainFlavorSourceRoot = new File(moduleRoot, TemplateWizard.MAIN_FLAVOR_SOURCE_PATH);
 
+    File javaSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.JAVA_SOURCE_PATH);
     File javaSourcePackageRoot;
     if (myParameters.containsKey(TemplateMetadata.ATTR_PACKAGE_ROOT)) {
       javaSourcePackageRoot = new File((String)get(TemplateMetadata.ATTR_PACKAGE_ROOT));
+      String javaPackage = FileUtil.getRelativePath(javaSourceRoot, javaSourcePackageRoot).replace('/', '.');
+        put(TemplateMetadata.ATTR_PACKAGE_NAME, javaPackage);
     } else {
-      File javaSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.JAVA_SOURCE_PATH);
       javaSourcePackageRoot = new File(javaSourceRoot, getString(TemplateMetadata.ATTR_PACKAGE_NAME).replace('.', '/'));
     }
     File resourceSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.RESOURCE_SOURCE_PATH);
