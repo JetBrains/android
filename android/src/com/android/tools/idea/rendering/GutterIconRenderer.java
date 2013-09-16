@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
@@ -48,8 +49,7 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
     if (myIcon == null) {
       myIcon = GutterIconCache.getInstance().getIcon(myFile.getPath());
       if (myIcon == null) {
-        // Broken icon -- what do I show here?
-        myIcon = AndroidIcons.Android;
+        myIcon = AllIcons.General.Error;
       }
     }
 

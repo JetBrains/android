@@ -1013,7 +1013,14 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @NotNull
   public ConfigurationManager getConfigurationManager() {
-    if (myConfigurationManager == null) {
+    //noinspection ConstantConditions
+    return getConfigurationManager(true);
+  }
+
+
+  @Nullable
+  public ConfigurationManager getConfigurationManager(boolean createIfNecessary) {
+    if (myConfigurationManager == null && createIfNecessary) {
       myConfigurationManager = ConfigurationManager.create(getModule());
       Disposer.register(this, myConfigurationManager);
     }
