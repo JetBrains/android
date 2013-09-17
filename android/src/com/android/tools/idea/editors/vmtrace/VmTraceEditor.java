@@ -21,6 +21,7 @@ import com.android.tools.perflib.vmtrace.VmTraceParser;
 import com.google.common.base.Throwables;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
+import com.intellij.openapi.actionSystem.DataKey;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -47,7 +48,7 @@ public class VmTraceEditor implements FileEditor {
   private final TraceViewPanel myTraceViewPanel;
 
   public VmTraceEditor(@NotNull final Project project, @NotNull final VirtualFile file) {
-    myTraceViewPanel = new TraceViewPanel();
+    myTraceViewPanel = new TraceViewPanel(project);
     parseTraceFileInBackground(project, file);
   }
 
