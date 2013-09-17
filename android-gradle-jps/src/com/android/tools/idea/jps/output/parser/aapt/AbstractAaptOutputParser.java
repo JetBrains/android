@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -327,14 +326,38 @@ public abstract class AbstractAaptOutputParser implements CompilerOutputParser {
       return null;
     }
     String sourcePath = document.subsequence(start, end).toString();
+    File sourceFile;
     if (sourcePath.startsWith("file:")) {
       if (!sourcePath.startsWith("file://")) {
-        // Both JpsPathUril.urlToPath and new File(URI) can only handle file://
+        // Both JpsPathUtil.urlToPath and new File(URI) can only handle file://
         sourcePath = "file://" + sourcePath.substring("file:".length());
       }
+      String originalPath = sourcePath;
       sourcePath = JpsPathUtil.urlToPath(sourcePath);
+      sourceFile = new File(sourcePath);
+      if (!sourceFile.exists()) {
+        // JpsPathUtil.urlToPath just chops off the prefix; try a little harder
+        // for example to decode %2D's which are used by the MergedResourceWriter to
+        // encode --'s in the path, since those are invalid in XML comments
+          try {
+            URL url = new URL(originalPath);
+            try {
+              sourceFile = new File(url.toURI());
+            }
+            catch (IllegalArgumentException e) {
+              LOG.warn("Invalid file URL: " + originalPath);
+            }
+            catch (URISyntaxException e) {
+              sourceFile = new File(url.getPath());
+            }
+          }
+          catch (MalformedURLException e) {
+            LOG.warn("Invalid file URL: " + originalPath);
+          }
+      }
+    } else {
+      sourceFile = new File(sourcePath);
     }
-    File sourceFile = new File(sourcePath);
 
     if (isValueFile) {
       // Look up the line number
