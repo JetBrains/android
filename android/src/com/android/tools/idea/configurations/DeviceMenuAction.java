@@ -16,6 +16,7 @@
 package com.android.tools.idea.configurations;
 
 import com.android.annotations.Nullable;
+import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.sdklib.internal.avd.AvdInfo;
@@ -77,7 +78,7 @@ public class DeviceMenuAction extends FlatComboAction {
     if (device == null) {
       return "";
     }
-    String name = device.getName();
+    String name = device.getDisplayName();
 
     if (brief) {
       // Produce a really brief summary of the device name, suitable for
@@ -89,7 +90,11 @@ public class DeviceMenuAction extends FlatComboAction {
           begin++;
           int end = name.indexOf(')', begin);
           if (end != -1) {
-            return name.substring(begin, end).trim();
+            if (name.equals("Nexus 7 (2012)")) {
+              return "Nexus 7";
+            } else {
+              return name.substring(begin, end).trim();
+            }
           }
         }
       }
@@ -119,7 +124,7 @@ public class DeviceMenuAction extends FlatComboAction {
         Device device = configurationManager.createDeviceForAvd(avd);
         if (device != null) {
           String avdName = avd.getName();
-          boolean selected = current != null && current.getName().equals(avdName);
+          boolean selected = current != null && (current.getDisplayName().equals(avdName) || current.getId().equals(avdName));
           group.add(new SetDeviceAction(myRenderContext, avdName, device, selected));
           separatorNeeded = true;
         }

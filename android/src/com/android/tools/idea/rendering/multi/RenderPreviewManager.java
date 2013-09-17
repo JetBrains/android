@@ -887,10 +887,7 @@ public class RenderPreviewManager implements Disposable {
         state = device.getAllStates().get(0);
       }
 
-      if (device.getName().startsWith("Nexus ")         //$NON-NLS-1$
-          || device.getName().endsWith(" Nexus")) { //$NON-NLS-1$
-        // Not String#contains("Nexus") because that would also pick up all the generic
-        // entries ("3.7in WVGA (Nexus One)") so we'd have them duplicated
+      if (device.getId().contains("Nexus")) {
         interesting = true;
       }
 
