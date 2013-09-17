@@ -92,7 +92,7 @@ public class ConfigurationFileState {
     myDevice = null;
     myDeviceState = null;
     if (device != null) {
-      myDevice = device.getName();
+      myDevice = device.getId();
       State deviceState = configuration.getDeviceState();
       if (deviceState != null && deviceState != device.getDefaultState()) {
         myDeviceState = deviceState.getName();
@@ -125,7 +125,7 @@ public class ConfigurationFileState {
     if (myDevice != null) {
       Device matchedDevice = null;
       for (Device device : manager.getDevices()) {
-        if (myDevice.equals(device.getName())) {
+        if (myDevice.equals(device.getId())) {
           matchedDevice = device;
           break;
         }
