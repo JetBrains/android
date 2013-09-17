@@ -36,6 +36,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
+import static com.android.ide.common.res2.MergedResourceWriter.createPathComment;
+
 /**
  * Tests for {@link GradleErrorOutputParser}.
  */
@@ -851,6 +853,205 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "12: Gradle:Error:Execution failed for task ':BlankProject1:processDebugResources'.\n" +
                  "13: Info:BUILD FAILED\n" +
                  "14: Info:Total time: 5.435 secs\n",
+                 toString(parser.parseErrorOutput(output)));
+
+    sourceFile.delete();
+    source.delete();
+    tempDir.delete();
+  }
+
+  public void testDashes() throws Exception {
+    File tempDir = Files.createTempDir();
+    File dir = new File(tempDir, "My -- Q&A< Dir"); // path which should force encoding of path chars, see for example issue 60050
+    dir.mkdirs();
+    sourceFile = new File(dir, "values.xml"); // Name matters for position search
+    sourceFilePath = FileUtil.toSystemIndependentName(sourceFile.getAbsolutePath());
+    File source = new File(dir, "dimens.xml");
+    Files.write("<resources>\n" +
+                "    <!-- Default screen margins, per the Android Design guidelines. -->\n" +
+                "    <dimen name=\"activity_horizontal_margin\">16dp</dimen>\n" +
+                "    <dimen name=\"activity_vertical_margin\">16dp</dimen>\n" +
+                "    <dimen name=\"new_name\">50</dimen>\n" +
+                "</resources>", source, Charsets.UTF_8);
+    source.deleteOnExit();
+    Files.write("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                "<resources>\n" +
+                "    <!-- From: file:/Users/unittest/AndroidStudioProjects/BlankProject1Project/BlankProject1/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values/values.xml -->\n" +
+                "    <dimen name=\"abc_action_bar_default_height\">48dip</dimen>\n" +
+                "    <dimen name=\"abc_action_bar_icon_vertical_padding\">8dip</dimen>\n" +
+                "    <!-- " + createPathComment(source) + " -->\n" +
+                "    <dimen name=\"activity_horizontal_margin\">16dp</dimen>\n" +
+                "    <dimen name=\"activity_vertical_margin\">16dp</dimen>\n" +
+                "    <dimen name=\"ok\">50dp</dimen>\n" +
+                "    <dimen name=\"new_name\">50</dimen>\n" +
+                "    <!-- From: file:/Users/unittest/AndroidStudioProjects/BlankProject1Project/BlankProject1/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values/values.xml -->\n" +
+                "    <item name=\"action_bar_activity_content\" type=\"id\"/>\n" +
+                "    <item name=\"action_menu_divider\" type=\"id\"/>\n" +
+                "    <item name=\"action_menu_presenter\" type=\"id\"/>\n" +
+                "    <item name=\"home\" type=\"id\"/>\n" +
+                "</resources>\n", sourceFile, Charsets.UTF_8);
+
+    // TODO: Test layout too
+
+    String output =
+      "Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+      ":BlankProject1:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+      ":BlankProject1:prepareDebugDependencies\n" +
+      ":BlankProject1:mergeDebugAssets UP-TO-DATE\n" +
+      ":BlankProject1:compileDebugRenderscript UP-TO-DATE\n" +
+      ":BlankProject1:mergeDebugResources UP-TO-DATE\n" +
+      ":BlankProject1:processDebugManifest UP-TO-DATE\n" +
+      ":BlankProject1:processDebugResources\n" +
+      sourceFilePath + ":10: error: Error: Integer types not allowed (at 'new_name' with value '50').\n" +
+      ":BlankProject1:processDebugResources FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':BlankProject1:processDebugResources'.\n" +
+      "> Failed to run command:\n" +
+      "  \t/Users/tnorbye/dev/sdks/build-tools/18.0.1/aapt package -f --no-crunch -I ...\n" +
+      "  Error Code:\n" +
+      "  \t1\n" +
+      "  Output:\n" +
+      "  \t" + sourceFilePath + ":10: error: Error: Integer types not allowed (at 'new_name' with value '50').\n" +
+      "\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 5.435 secs";
+
+    assertEquals("0: Info:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+                 "1: Info::BlankProject1:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+                 "2: Info::BlankProject1:prepareDebugDependencies\n" +
+                 "3: Info::BlankProject1:mergeDebugAssets UP-TO-DATE\n" +
+                 "4: Info::BlankProject1:compileDebugRenderscript UP-TO-DATE\n" +
+                 "5: Info::BlankProject1:mergeDebugResources UP-TO-DATE\n" +
+                 "6: Info::BlankProject1:processDebugManifest UP-TO-DATE\n" +
+                 "7: Info::BlankProject1:processDebugResources\n" +
+                 "8: Gradle:Error:Integer types not allowed (at 'new_name' with value '50').\n" +
+                 "\t" + FileUtil.toSystemIndependentName(source.getPath()) + ":5:28\n" +
+                 "9: Info::BlankProject1:processDebugResources FAILED\n" +
+                 "10: Gradle:Error:Error while executing aapt command\n" +
+                 "11: Gradle:Error:Integer types not allowed (at 'new_name' with value '50').\n" +
+                 "\t" + FileUtil.toSystemIndependentName(source.getPath()) + ":5:28\n" +
+                 "12: Gradle:Error:Execution failed for task ':BlankProject1:processDebugResources'.\n" +
+                 "13: Info:BUILD FAILED\n" +
+                 "14: Info:Total time: 5.435 secs\n",
+                 toString(parser.parseErrorOutput(output)));
+
+    sourceFile.delete();
+    source.delete();
+    dir.delete();
+    tempDir.delete();
+  }
+
+  public void testLayoutFileSuffix() throws Exception {
+    File tempDir = Files.createTempDir();
+    sourceFile = new File(tempDir, "layout.xml");
+    sourceFilePath = FileUtil.toSystemIndependentName(sourceFile.getAbsolutePath());
+    File source = new File(tempDir, "layout.xml");
+    Files.write("<RelativeLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+                "    android:layout_width=\"match_parent\"\n" +
+                "    android:layout_height=\"match_parent\"\n" +
+                "    android:paddingLeft=\"@dimen/activity_horizontal_margin\"\n" +
+                "    android:paddingRight=\"@dimen/activity_horizontal_margin\"\n" +
+                "    android:paddingTop=\"@dimen/activity_vertical_margin\"\n" +
+                "    android:paddingBottom=\"@dimen/activity_vertical_margin\"\n" +
+                "    tools:context=\".MainActivity\">\n" +
+                "\n" +
+                "\n" +
+                "    <Button\n" +
+                "        android:layout_width=\"wrap_content\"\n" +
+                "        android:layout_height=\"wrap_content\"\n" +
+                "        android:hint=\"fy faen\"\n" +
+                "        android:text=\"@string/hello_world\"\n" +
+                "        android:slayout_alignParentTop=\"true\"\n" +
+                "        android:layout_alignParentLeft=\"true\" />\n" +
+                "\n" +
+                "</RelativeLayout>\n", source, Charsets.UTF_8);
+    source.deleteOnExit();
+    Files.write("<RelativeLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+                "    android:layout_width=\"match_parent\"\n" +
+                "    android:layout_height=\"match_parent\"\n" +
+                "    android:paddingLeft=\"@dimen/activity_horizontal_margin\"\n" +
+                "    android:paddingRight=\"@dimen/activity_horizontal_margin\"\n" +
+                "    android:paddingTop=\"@dimen/activity_vertical_margin\"\n" +
+                "    android:paddingBottom=\"@dimen/activity_vertical_margin\"\n" +
+                "    tools:context=\".MainActivity\">\n" +
+                "\n" +
+                "    <!--style=\"@style/Buttons\"-->\n" +
+                "    <Button\n" +
+                "        android:layout_width=\"wrap_content\"\n" +
+                "        android:layout_height=\"wrap_content\"\n" +
+                "        android:hint=\"fy faen\"\n" +
+                "        android:text=\"@string/hello_world\"\n" +
+                "        android:slayout_alignParentTop=\"true\"\n" +
+                "        android:layout_alignParentLeft=\"true\" />\n" +
+                "\n" +
+                "</RelativeLayout>\n" +
+                "<!-- " + createPathComment(source) + " -->", sourceFile, Charsets.UTF_8);
+
+    String output =
+      "Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+      ":BlankProject1:preBuild UP-TO-DATE\n" +
+      ":BlankProject1:preDebugBuild UP-TO-DATE\n" +
+      ":BlankProject1:preReleaseBuild UP-TO-DATE\n" +
+      ":BlankProject1:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+      ":BlankProject1:prepareDebugDependencies\n" +
+      ":BlankProject1:compileDebugAidl UP-TO-DATE\n" +
+      ":BlankProject1:compileDebugRenderscript UP-TO-DATE\n" +
+      ":BlankProject1:generateDebugBuildConfig UP-TO-DATE\n" +
+      ":BlankProject1:mergeDebugAssets UP-TO-DATE\n" +
+      ":BlankProject1:mergeDebugResources UP-TO-DATE\n" +
+      ":BlankProject1:processDebugManifest UP-TO-DATE\n" +
+      ":BlankProject1:processDebugResources\n" +
+      sourceFilePath + ":12: error: No resource identifier found for attribute 'slayout_alignParentTop' in package 'android'\n" +
+      ":BlankProject1:processDebugResources FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':BlankProject1:processDebugResources'.\n" +
+      "> Failed to run command:\n" +
+      "  \t/Users/tnorbye/dev/sdks/build-tools/18.0.1/aapt package -f --no-crunch -I ... " +
+      "  Error Code:\n" +
+      "  \t1\n" +
+      "  Output:\n" +
+      "  \t" + sourceFilePath + ":12: error: No resource identifier found for attribute 'slayout_alignParentTop' in package 'android'\n" +
+      "\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n";
+
+    assertEquals("0: Info:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+                 "1: Info::BlankProject1:preBuild UP-TO-DATE\n" +
+                 "2: Info::BlankProject1:preDebugBuild UP-TO-DATE\n" +
+                 "3: Info::BlankProject1:preReleaseBuild UP-TO-DATE\n" +
+                 "4: Info::BlankProject1:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+                 "5: Info::BlankProject1:prepareDebugDependencies\n" +
+                 "6: Info::BlankProject1:compileDebugAidl UP-TO-DATE\n" +
+                 "7: Info::BlankProject1:compileDebugRenderscript UP-TO-DATE\n" +
+                 "8: Info::BlankProject1:generateDebugBuildConfig UP-TO-DATE\n" +
+                 "9: Info::BlankProject1:mergeDebugAssets UP-TO-DATE\n" +
+                 "10: Info::BlankProject1:mergeDebugResources UP-TO-DATE\n" +
+                 "11: Info::BlankProject1:processDebugManifest UP-TO-DATE\n" +
+                 "12: Info::BlankProject1:processDebugResources\n" +
+                 "13: Gradle:Error:No resource identifier found for attribute 'slayout_alignParentTop' in package 'android'\n" +
+                 "\t" + FileUtil.toSystemIndependentName(source.getPath()) + ":12:-1\n" +
+                 "14: Info::BlankProject1:processDebugResources FAILED\n" +
+                 "15: Gradle:Error:Error while executing aapt command\n" +
+                 "16: Gradle:Error:No resource identifier found for attribute 'slayout_alignParentTop' in package 'android'\n" +
+                 "\t" +  FileUtil.toSystemIndependentName(source.getPath()) + ":12:-1\n" +
+                 "17: Gradle:Error:Execution failed for task ':BlankProject1:processDebugResources'.\n" +
+                 "18: Info:BUILD FAILED\n",
                  toString(parser.parseErrorOutput(output)));
 
     sourceFile.delete();
