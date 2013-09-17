@@ -191,7 +191,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     AndroidRunningState state = super.getState(executor, env);
     if (state != null) {
       state.setDeploy(DEPLOY);
-      state.setOpenLogcatAutomatically(true);
+      state.setOpenLogcatAutomatically(SHOW_LOGCAT_AUTOMATICALLY);
     }
     return state;
   }

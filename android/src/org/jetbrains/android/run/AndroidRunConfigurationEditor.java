@@ -63,6 +63,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private JBLabel myMinSdkInfoMessageLabel;
   private JBCheckBox myUseAdditionalCommandLineOptionsCheckBox;
   private RawCommandLineEditor myCommandLineField;
+  private JCheckBox myShowLogcatCheckBox;
   private AvdComboBox myAvdCombo;
   private String incorrectPreferredAvd;
   private JComponent anchor;
@@ -77,6 +78,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myConfigurationSpecificEditor = configurationSpecificEditor;
     myConfigurationSpecificPanel.add(configurationSpecificEditor.getComponent());
     setAnchor(myConfigurationSpecificEditor.getAnchor());
+    myShowLogcatCheckBox.setVisible(configurationSpecificEditor instanceof ApplicationRunParameters);
   }
 
   public AndroidRunConfigurationEditor(final Project project, final Predicate<AndroidFacet> libraryProjectValidator) {
@@ -245,6 +247,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     selectItemCaseInsensitively(myNetworkSpeedCombo, configuration.NETWORK_SPEED);
     selectItemCaseInsensitively(myNetworkLatencyCombo, configuration.NETWORK_LATENCY);
     myClearLogCheckBox.setSelected(configuration.CLEAR_LOGCAT);
+    myShowLogcatCheckBox.setSelected(configuration.SHOW_LOGCAT_AUTOMATICALLY);
   }
 
   private static void selectItemCaseInsensitively(@NotNull JComboBox comboBox, @Nullable String item) {
@@ -286,6 +289,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     configuration.NETWORK_SPEED = ((String)myNetworkSpeedCombo.getSelectedItem()).toLowerCase();
     configuration.NETWORK_LATENCY = ((String)myNetworkLatencyCombo.getSelectedItem()).toLowerCase();
     configuration.CLEAR_LOGCAT = myClearLogCheckBox.isSelected();
+    configuration.SHOW_LOGCAT_AUTOMATICALLY = myShowLogcatCheckBox.isSelected();
     if (myAvdComboComponent.isEnabled()) {
       JComboBox combo = myAvdCombo.getComboBox();
       String preferredAvd = (String)combo.getSelectedItem();
