@@ -51,7 +51,7 @@ public final class ErrorAnalyzer {
     RadComponent.clearErrors(rootComponent);
 
     AndroidLintExternalAnnotator annotator = new AndroidLintExternalAnnotator();
-    State state = annotator.collectionInformation(xmlFile);
+    State state = annotator.collectInformation(xmlFile);
     if (state != null) {
       state = annotator.doAnnotate(state);
       for (ProblemData problemData : state.getProblems()) {
