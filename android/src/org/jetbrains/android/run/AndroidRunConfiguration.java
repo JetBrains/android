@@ -115,9 +115,6 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
         if (activity == null) {
           throw new RuntimeConfigurationError(AndroidBundle.message("activity.not.declared.in.manifest", c.getName()));
         }
-        if (!isActivityLaunchable(activity.getIntentFilters())) {
-          throw new RuntimeConfigurationError(AndroidBundle.message("activity.not.launchable.error", AndroidUtils.LAUNCH_ACTION_NAME));
-        }
       }
     }
     else if (MODE.equals(LAUNCH_DEFAULT_ACTIVITY)) {
