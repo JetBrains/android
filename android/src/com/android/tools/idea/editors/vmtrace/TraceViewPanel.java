@@ -16,29 +16,61 @@
 
 package com.android.tools.idea.editors.vmtrace;
 
-import com.android.tools.perflib.vmtrace.Call;
-import com.android.tools.perflib.vmtrace.ClockType;
-import com.android.tools.perflib.vmtrace.ThreadInfo;
-import com.android.tools.perflib.vmtrace.VmTraceData;
+import com.android.tools.perflib.vmtrace.*;
 import com.android.tools.perflib.vmtrace.viz.TraceViewCanvas;
+import com.intellij.find.editorHeaderActions.Utils;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.DataKey;
+import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.editor.impl.EditorHeaderComponent;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.wm.IdeFocusManager;
+import com.intellij.ui.DocumentAdapter;
+import com.intellij.ui.SearchTextField;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.panels.NonOpaquePanel;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.text.BadLocationException;
+import java.awt.*;
+import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 public class TraceViewPanel {
+  @NonNls public static DataKey<TraceViewPanel> KEY = DataKey.create("android.traceview.panel");
+
+  // The names for the cards used in the card layout.
+  // Note that these are duplicated in the layout form.
+  @NonNls private static final String CARD_FIND = "FIND";
+  @NonNls private static final String CARD_DEFAULT = "DEFAULT";
+
   /** Default name for main thread in Android apps. */
   @NonNls private static final String MAIN_THREAD_NAME = "main";
 
-  private TraceViewCanvas myTraceViewCanvas;
+  private final Project myProject;
+
   private JPanel myContainer;
+
+  private JPanel myHeaderPanel;
+  private TraceViewCanvas myTraceViewCanvas;
+
+  private JPanel myDefaultHeaderPanel;
   private JComboBox myThreadCombo;
   private JComboBox myRenderClockSelectorCombo;
+
+  private JPanel myFindPanel;
+  private JPanel myFindFieldWrapper;
+  private final SearchTextField mySearchField;
+  private JLabel myCloseLabel;
+  private JBLabel myResultsLabel;
+  private JLabel mySearchLabel;
 
   private static final String[] ourRenderClockOptions = new String[] {
     "Wall Clock Time",
@@ -49,8 +81,11 @@ public class TraceViewPanel {
     ClockType.GLOBAL,
     ClockType.THREAD,
   };
+  private VmTraceData myTraceData;
 
-  public TraceViewPanel() {
+  public TraceViewPanel(Project project) {
+    myProject = project;
+
     myRenderClockSelectorCombo.setModel(new DefaultComboBoxModel(ourRenderClockOptions));
     myRenderClockSelectorCombo.setSelectedIndex(0);
 
@@ -67,9 +102,67 @@ public class TraceViewPanel {
 
     myThreadCombo.addActionListener(l);
     myRenderClockSelectorCombo.addActionListener(l);
+
+    mySearchField = createSearchField();
+    myFindFieldWrapper.add(mySearchField);
+  }
+
+  private SearchTextField createSearchField() {
+    SearchTextField stf = new SearchTextField(true);
+    stf.setOpaque(false);
+    stf.setEnabled(true);
+    Utils.setSmallerFont(stf);
+
+    stf.addDocumentListener(new DocumentAdapter() {
+      @Override
+      protected void textChanged(DocumentEvent e) {
+        searchTextChanged(getText(e));
+      }
+
+      private String getText(DocumentEvent e) {
+        try {
+          return e.getDocument().getText(0, e.getDocument().getLength());
+        }
+        catch (BadLocationException e1) {
+          return "";
+        }
+      }
+    });
+
+    JTextField editorTextField = stf.getTextEditor();
+    editorTextField.setMinimumSize(new Dimension(200, -1));
+
+    editorTextField.registerKeyboardAction(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        closeSearchComponent();
+      }
+    }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
+
+    return stf;
+  }
+
+  private void searchTextChanged(@Nullable String pattern) {
+    if (StringUtil.isEmpty(pattern)) {
+      myTraceViewCanvas.setHighlightMethods(null);
+      myResultsLabel.setText("");
+      return;
+    }
+
+    SearchResult results = myTraceData.searchFor(pattern, (String)myThreadCombo.getSelectedItem());
+    myTraceViewCanvas.setHighlightMethods(results.getMethods());
+
+    String result = String.format("%1$d %2$s, %3$d %4$s",
+                                  results.getMethods().size(),
+                                  StringUtil.pluralize("method", results.getMethods().size()),
+                                  results.getInstances().size(),
+                                  StringUtil.pluralize("instance", results.getInstances().size()));
+    myResultsLabel.setText(result);
   }
 
   public void setTrace(@NotNull VmTraceData trace) {
+    myTraceData = trace;
+
     List<String> threadNames = getThreadsWithTraces(trace);
     String defaultThread = getDefaultThreadName(threadNames);
     myTraceViewCanvas.setTrace(trace, defaultThread, getCurrentRenderClock());
@@ -110,5 +203,63 @@ public class TraceViewPanel {
   @NotNull
   public JComponent getComponent() {
     return myContainer;
+  }
+
+  private void createUIComponents() {
+    MouseAdapter l = new MouseAdapter() {
+      @Override
+      public void mousePressed(MouseEvent e) {
+        if (e.getSource() == myCloseLabel) {
+          closeSearchComponent();
+        } else if (e.getSource() == mySearchLabel) {
+          showSearchComponent();
+        }
+      }
+    };
+
+    myDefaultHeaderPanel = new EditorHeaderComponent();
+    mySearchLabel = new JLabel(AllIcons.Actions.Search);
+    mySearchLabel.addMouseListener(l);
+    mySearchLabel.setToolTipText("Find (Ctrl + F)");
+
+    myFindPanel = new EditorHeaderComponent();
+    myFindFieldWrapper = new NonOpaquePanel(new BorderLayout());
+    myCloseLabel = new JLabel(AllIcons.Actions.Cross);
+    myCloseLabel.addMouseListener(l);
+
+    myTraceViewCanvas = new TraceViewCanvasWrapper();
+  }
+
+  public void showSearchComponent() {
+    CardLayout layout = (CardLayout)myHeaderPanel.getLayout();
+    layout.show(myHeaderPanel, CARD_FIND);
+    IdeFocusManager.getInstance(myProject).requestFocus(mySearchField, true);
+  }
+
+  private void closeSearchComponent() {
+    CardLayout layout = (CardLayout)myHeaderPanel.getLayout();
+    layout.show(myHeaderPanel, CARD_DEFAULT);
+    IdeFocusManager.getInstance(myProject).requestFocus(myTraceViewCanvas, true);
+  }
+
+  /**
+   * {@link TraceViewCanvasWrapper} is a wrapper around {@link TraceViewCanvas} that also implements the {@link DataProvider} interface.
+   * This allows {@link VmTraceEditorSearchAction} to identify the editor from the current context of an event.
+   */
+  private class TraceViewCanvasWrapper extends TraceViewCanvas implements DataProvider {
+    public TraceViewCanvasWrapper() {
+      addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseReleased(MouseEvent e) {
+          IdeFocusManager.getInstance(myProject).requestFocus(TraceViewCanvasWrapper.this, true);
+        }
+      });
+    }
+
+    @Nullable
+    @Override
+    public Object getData(@NonNls String dataId) {
+      return KEY.is(dataId) ? TraceViewPanel.this : null;
+    }
   }
 }
