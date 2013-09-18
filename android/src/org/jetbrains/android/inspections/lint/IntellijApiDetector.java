@@ -348,24 +348,7 @@ public class IntellijApiDetector extends ApiDetector {
             return;
           }
           int minSdk = getMinSdk(myContext);
-          if (api <= minSdk) {
-            return;
-          }
-          if (mySeenTargetApi) {
-            int target = getTargetApi(expression, myFile);
-            if (target != -1) {
-              if (api <= target) {
-                return;
-              }
-            }
-          }
-          if (mySeenSuppress &&
-              (IntellijLintUtils.isSuppressed(expression, myFile, UNSUPPORTED)
-               || IntellijLintUtils.isSuppressed(expression, myFile, INLINED))) {
-            return;
-          }
-
-          if (isWithinVersionCheckConditional(expression, api)) {
+          if (isSuppressed(api, expression, minSdk)) {
             return;
           }
 
@@ -394,6 +377,48 @@ public class IntellijApiDetector extends ApiDetector {
           myContext.report(issue, location, message, null);
         }
       }
+    }
+
+    @Override
+    public void visitTryStatement(PsiTryStatement statement) {
+      super.visitTryStatement(statement);
+
+      PsiResourceList resourceList = statement.getResourceList();
+      if (resourceList != null) {
+        int api = 19; // minSdk for try with resources
+        int minSdk = getMinSdk(myContext);
+
+        if (isSuppressed(api, statement, minSdk)) {
+          return;
+        }
+        Location location = IntellijLintUtils.getLocation(myContext.file, resourceList);
+        String message = String.format("Try-with-resources requires API level %1$d (current min is %2$d)", api, minSdk);
+        myContext.report(UNSUPPORTED, location, message, null);
+      }
+    }
+
+    private boolean isSuppressed(int api, PsiElement element, int minSdk) {
+      if (api <= minSdk) {
+        return true;
+      }
+      if (mySeenTargetApi) {
+        int target = getTargetApi(element, myFile);
+        if (target != -1) {
+          if (api <= target) {
+            return true;
+          }
+        }
+      }
+      if (mySeenSuppress &&
+          (IntellijLintUtils.isSuppressed(element, myFile, UNSUPPORTED) || IntellijLintUtils.isSuppressed(element, myFile, INLINED))) {
+        return true;
+      }
+
+      if (isWithinVersionCheckConditional(element, api)) {
+        return true;
+      }
+
+      return false;
     }
 
     public boolean isBenignConstantUsage(
@@ -537,21 +562,7 @@ public class IntellijApiDetector extends ApiDetector {
           }
         }
 
-        if (mySeenTargetApi) {
-          int target = getTargetApi(expression, myFile);
-          if (target != -1) {
-            if (api <= target) {
-              return;
-            }
-          }
-        }
-        if (mySeenSuppress &&
-            (IntellijLintUtils.isSuppressed(expression, myFile, UNSUPPORTED)
-              || IntellijLintUtils.isSuppressed(expression, myFile, INLINED))) {
-          return;
-        }
-
-        if (isWithinVersionCheckConditional(expression, api)) {
+        if (isSuppressed(api, expression, minSdk)) {
           return;
         }
 
