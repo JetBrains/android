@@ -936,12 +936,14 @@ public final class ResourceFolderRepository extends ProjectResources {
       ResourceFolderType folderType = getFolderType(psiFile);
       if (folderType == VALUES || folderType == LAYOUT || folderType == MENU) {
         removeItemsFromFile(resourceFile);
-      } else if (folderType == DRAWABLE) {
-        FileType fileType = psiFile.getFileType();
-        if (fileType.isBinary() && fileType == FileTypeManager.getInstance().getFileTypeByExtension(EXT_PNG)) {
-          bitmapUpdated();
-        }
       } else if (folderType != null) {
+        if (folderType == DRAWABLE) {
+          FileType fileType = psiFile.getFileType();
+          if (fileType.isBinary() && fileType == FileTypeManager.getInstance().getFileTypeByExtension(EXT_PNG)) {
+            bitmapUpdated();
+          }
+        }
+
         // Remove the file item
         List<ResourceType> resourceTypes = FolderTypeRelationship.getRelatedResourceTypes(folderType);
         for (ResourceType type : resourceTypes) {
