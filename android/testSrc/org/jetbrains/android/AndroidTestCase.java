@@ -329,7 +329,9 @@ public abstract class AndroidTestCase extends UsefulTestCase {
     sdkModificator.addRoot(resFolder, OrderRootType.CLASSES);
 
     VirtualFile docsFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/docs/reference");
-    sdkModificator.addRoot(docsFolder, JavadocOrderRootType.getInstance());
+    if (docsFolder != null) {
+      sdkModificator.addRoot(docsFolder, JavadocOrderRootType.getInstance());
+    }
 
     AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(sdk);
     AndroidSdkData sdkData = AndroidSdkData.parse(sdkPath, NullLogger.getLogger());
