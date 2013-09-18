@@ -1,0 +1,8 @@
+<resources>
+    <string-array name="colors">
+        <item>r\u00F8d</item>
+        <item>oransj</item>
+        <item>gul</item>
+        <item>gr\u00F8nn</item>
+    </string-array>
+</resources>
