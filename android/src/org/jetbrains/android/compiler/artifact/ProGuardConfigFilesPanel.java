@@ -9,13 +9,9 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.ToolbarDecorator;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.table.JBTable;
-import com.intellij.util.ui.ColumnInfo;
-import com.intellij.util.ui.EditableModel;
-import com.intellij.util.ui.ListTableModel;
+import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -35,13 +31,26 @@ import java.util.List;
  */
 public abstract class ProGuardConfigFilesPanel extends JPanel {
 
-  private final MyTableModel myModel;
+  private final JBList myList;
+  private CollectionListModel<String> myModel;
 
   public ProGuardConfigFilesPanel() {
     super(new BorderLayout());
-    myModel = new MyTableModel();
-    JPanel tablePanel = ToolbarDecorator.createDecorator(new JBTable(myModel)).
-      setPreferredSize(new Dimension(-1, 120)).createPanel();
+    myModel = new CollectionListModel<String>();
+    myList = new JBList(myModel);
+
+    final ToolbarDecorator decorator = ToolbarDecorator.createDecorator(myList).
+      setAddAction(new AnActionButtonRunnable() {
+      @Override
+      public void run(AnActionButton button) {
+        final String path = chooseFile();
+
+        if (path != null) {
+          myModel.add(path);
+        }
+      }
+    });
+    JPanel tablePanel = decorator.setPreferredSize(new Dimension(-1, 120)).createPanel();
     tablePanel.setMinimumSize(new Dimension(-1, 120));
     add(tablePanel, BorderLayout.CENTER);
     final JBLabel label = new JBLabel("Config file paths:");
@@ -100,8 +109,9 @@ public abstract class ProGuardConfigFilesPanel extends JPanel {
     setOsPaths(AndroidUtils.urlsToOsPaths(urls, getCanonicalSdkHome()));
   }
 
-  public void setOsPaths(@NotNull List<String> path) {
-    myModel.setItems(new ArrayList<String>(path));
+  public void setOsPaths(@NotNull List<String> paths) {
+    myModel = new CollectionListModel<String>(paths);
+    myList.setModel(myModel);
   }
 
   @Nullable
@@ -122,19 +132,4 @@ public abstract class ProGuardConfigFilesPanel extends JPanel {
 
   @Nullable
   protected abstract AndroidFacet getFacet();
-
-  private class MyTableModel extends ListTableModel<String> implements EditableModel {
-    private MyTableModel() {
-      super(new ColumnInfo.StringColumn(""));
-    }
-
-    @Override
-    public void addRow() {
-      final String path = chooseFile();
-
-      if (path != null) {
-        addRow(path);
-      }
-    }
-  }
 }
