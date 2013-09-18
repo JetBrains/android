@@ -309,17 +309,17 @@ public class RenderErrorPanel extends JPanel {
       }
 
       if (missingResourceClass) {
-        // TODO: Use projectCallBack isUsed rather than hasLoadedClasses; an *attempt* is enough!
         builder.listItem();
         builder.add(logger.getResourceClass());
       }
 
+      boolean foundCustomView = false;
       for (String className : missingClasses) {
         builder.listItem();
         builder.add(className);
         builder.add(" (");
 
-        addTypoSuggestions(builder, className, customViews, false);
+        foundCustomView |= addTypoSuggestions(builder, className, customViews, false);
         addTypoSuggestions(builder, className, customViews, true);
         addTypoSuggestions(builder, className, androidViewClassNames, false);
 
@@ -343,17 +343,22 @@ public class RenderErrorPanel extends JPanel {
       builder.endList();
 
       builder.addIcon(HtmlBuilderHelper.getTipIconPath());
-      builder.addLink("Tip: Try to ", "build", " the project", myLinkManager.createCompileModuleUrl());
+      builder.addLink("Tip: Try to ", "build", " the project.",
+                      myLinkManager.createCompileModuleUrl());
+      if (foundCustomView) {
+        builder.newline();
+        builder.add("One or more missing custom views were found in the project, but does not appear to have been compiled yet.");
+      }
       builder.newline().newline();
     }
   }
 
-  private void addTypoSuggestions(@NotNull HtmlBuilder builder,
+  private boolean addTypoSuggestions(@NotNull HtmlBuilder builder,
                                   String actual,
                                   @Nullable Collection<String> views,
                                   boolean compareWithPackage) {
     if (views == null || views.isEmpty()) {
-      return;
+      return false;
     }
 
     // Look for typos and try to match with custom views and android views
@@ -396,6 +401,12 @@ public class RenderErrorPanel extends JPanel {
           continue;
         }
 
+        if (match.equals(matchWith)) {
+          // Exact match: Likely that we're looking for a valid package, but project has
+          // not yet been built
+          return true;
+        }
+
         if (editDistance(match, matchWith) <= maxDistance) {
           // Suggest this class as a typo for the given class
           String labelClass = (suggestedBase.equals(actual) || actual.indexOf('.') != -1) ? suggested : suggestedBase;
@@ -408,6 +419,8 @@ public class RenderErrorPanel extends JPanel {
         }
       }
     }
+
+    return false;
   }
 
   private void reportUnknownFragments(@NotNull RenderLogger logger, @NotNull HtmlBuilder builder) {
