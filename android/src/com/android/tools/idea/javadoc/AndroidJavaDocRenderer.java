@@ -18,6 +18,7 @@ package com.android.tools.idea.javadoc;
 
 import com.android.SdkConstants;
 import com.android.builder.model.*;
+import com.android.ide.common.rendering.api.ArrayResourceValue;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;
@@ -28,6 +29,7 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.rendering.*;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.XmlUtils;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
@@ -60,13 +62,20 @@ public class AndroidJavaDocRenderer {
       return null;
     }
 
-    if (ResourceType.STRING.equals(type) || ResourceType.DIMEN.equals(type)
-        || ResourceType.INTEGER.equals(type) || ResourceType.BOOL.equals(type)) {
-      return renderKeyValues(module, new TextValueRenderer(), projectResources, type, name);
-    } else if (ResourceType.DRAWABLE.equals(type)) {
-      return renderKeyValues(module, new DrawableValueRenderer(), projectResources, type, name);
+    switch (type) {
+      case STRING:
+      case DIMEN:
+      case INTEGER:
+      case BOOL:
+        return renderKeyValues(module, new TextValueRenderer(), projectResources, type, name);
+      case ARRAY:
+        return renderKeyValues(module, new ArrayRenderer(), projectResources, type, name);
+      case DRAWABLE:
+        return renderKeyValues(module, new DrawableValueRenderer(), projectResources, type, name);
+      default:
+        // Ignore
+        return null;
     }
-    return null;
   }
 
   @Nullable
@@ -208,7 +217,9 @@ public class AndroidJavaDocRenderer {
     builder.openHtmlBody();
     if (items.size() == 1) {
       String value = renderer.renderToHtml(resources, items.get(0).item);
-      builder.addHtml(value);
+      if (value != null) {
+        builder.addHtml(value);
+      }
     } else {
       //noinspection SpellCheckingInspection
       builder.beginTable("valign=\"top\"");
@@ -223,6 +234,9 @@ public class AndroidJavaDocRenderer {
       String prevFlavor = null;
       for (ItemInfo info : items) {
         String value = renderer.renderToHtml(resources, info.item);
+        if (value == null) {
+          value = "";
+        }
         String folder = info.folder;
         String flavor = StringUtil.notNullize(info.flavor);
         if (flavor.equals(prevFlavor)) {
@@ -301,18 +315,26 @@ public class AndroidJavaDocRenderer {
   }
 
   private interface ResourceValueRenderer {
-    String renderToHtml(ProjectResources resources, @NotNull ResourceItem item);
+    @Nullable String renderToHtml(ProjectResources resources, @NotNull ResourceItem item);
+  }
+
+  private static class ArrayRenderer implements ResourceValueRenderer {
+    @Override
+    public String renderToHtml(ProjectResources resources, @NotNull ResourceItem item) {
+      ResourceValue value = item.getResourceValue(resources.isFramework());
+      if (value instanceof ArrayResourceValue) {
+        ArrayResourceValue arv = (ArrayResourceValue)value;
+        return Joiner.on(", ").skipNulls().join(arv);
+      }
+
+      return getStringValue(resources, item);
+    }
   }
 
   private static class TextValueRenderer implements ResourceValueRenderer {
     @Override
     public String renderToHtml(ProjectResources resources, @NotNull ResourceItem item) {
-      String value = getStringValue(resources, item);
-      if (value == null) {
-        return "";
-      }
-
-      return value;
+      return getStringValue(resources, item);
     }
   }
 
@@ -333,13 +355,13 @@ public class AndroidJavaDocRenderer {
     public String renderToHtml(ProjectResources resources, @NotNull ResourceItem item) {
       ResourceFile source = item.getSource();
       if (source == null) {
-        return "";
+        return null;
       }
       String v = source.getFile().getPath();
       if (!hasImageExtension(v)) {
         v = getStringValue(resources, item);
         if (v == null) {
-          return "";
+          return null;
         }
       }
 
