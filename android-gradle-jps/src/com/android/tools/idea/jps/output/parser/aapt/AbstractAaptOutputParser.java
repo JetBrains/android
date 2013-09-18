@@ -20,6 +20,7 @@ import com.android.tools.idea.jps.AndroidGradleJps;
 import com.android.tools.idea.jps.output.parser.CompilerOutputParser;
 import com.android.tools.idea.jps.output.parser.OutputLineReader;
 import com.android.tools.idea.jps.output.parser.ParsingFailedException;
+import com.android.utils.SdkUtils;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
 import com.intellij.util.containers.SoftValueHashMap;
@@ -32,8 +33,6 @@ import org.jetbrains.jps.util.JpsPathUtil;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -339,21 +338,12 @@ public abstract class AbstractAaptOutputParser implements CompilerOutputParser {
         // JpsPathUtil.urlToPath just chops off the prefix; try a little harder
         // for example to decode %2D's which are used by the MergedResourceWriter to
         // encode --'s in the path, since those are invalid in XML comments
-          try {
-            URL url = new URL(originalPath);
-            try {
-              sourceFile = new File(url.toURI());
-            }
-            catch (IllegalArgumentException e) {
-              LOG.warn("Invalid file URL: " + originalPath);
-            }
-            catch (URISyntaxException e) {
-              sourceFile = new File(url.getPath());
-            }
-          }
-          catch (MalformedURLException e) {
-            LOG.warn("Invalid file URL: " + originalPath);
-          }
+        try {
+          sourceFile = SdkUtils.urlToFile(originalPath);
+        }
+        catch (MalformedURLException e) {
+          LOG.warn("Invalid file URL: " + originalPath);
+        }
       }
     } else {
       sourceFile = new File(sourcePath);

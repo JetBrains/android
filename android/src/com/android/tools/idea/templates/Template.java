@@ -988,7 +988,7 @@ public class Template {
       String path = myPrefix != null ? myPrefix + '/' + name : name;
       File file = new File(path);
       if (file.exists()) {
-        return file.toURI().toURL();
+        return SdkUtils.fileToUrl(file);
       }
       return null;
     }

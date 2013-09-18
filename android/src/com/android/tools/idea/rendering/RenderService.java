@@ -210,7 +210,7 @@ public class RenderService {
     myHardwareConfigHelper.setOrientation(configuration.getFullConfig().getScreenOrientationQualifier().getValue());
     myLayoutLib = layoutLib;
     ProjectResources projectResources = ProjectResources.get(myModule, true);
-    myProjectCallback = new ProjectCallback(myLayoutLib, projectResources, myModule, myLogger); // TODO: true: /* reset*/
+    myProjectCallback = new ProjectCallback(myLayoutLib, projectResources, myModule, myLogger);
     myProjectCallback.loadAndParseRClass();
     Pair<Integer, Integer> sdkVersions = getSdkVersions(facet);
     myMinSdkVersion = sdkVersions.getFirst();
@@ -435,10 +435,9 @@ public class RenderService {
     XmlTagPullParser modelParser = new XmlTagPullParser(myPsiFile, myExpandNodes, hardwareConfig.getDensity(), myLogger);
     ILayoutPullParser topParser = modelParser;
 
-    // Code to support editing included layout
-    // first reset the layout parser just in case.
-    myProjectCallback.setLayoutParser(null, null);
+    myProjectCallback.reset();
 
+    // Code to support editing included layout
     if (myIncludedWithin != null) {
       // Outer layout name:
       String contextLayoutName = myIncludedWithin.getName();
