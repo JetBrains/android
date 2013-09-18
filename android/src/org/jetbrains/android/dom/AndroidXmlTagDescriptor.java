@@ -27,6 +27,8 @@ import com.intellij.xml.XmlAttributeDescriptor;
 import com.intellij.xml.XmlElementDescriptor;
 import com.intellij.xml.XmlElementsGroup;
 import com.intellij.xml.XmlNSDescriptor;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.SimpleClassMapConstructor;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,17 +46,17 @@ import java.util.Map;
 public class AndroidXmlTagDescriptor implements XmlElementDescriptor, PsiPresentableMetaData {
   private final XmlElementDescriptor myParentDescriptor;
   private final PsiClass myDeclarationClass;
-  private final Map<String, PsiClass> myClassMap;
   private final Icon myIcon;
+  private final String myBaseClassName;
 
   public AndroidXmlTagDescriptor(@Nullable PsiClass declarationClass,
                                  @NotNull XmlElementDescriptor parentDescriptor,
-                                 @Nullable Map<String, PsiClass> classMap,
+                                 @Nullable String baseClassName,
                                  @Nullable Icon icon) {
     myParentDescriptor = parentDescriptor;
     myDeclarationClass = declarationClass;
-    myClassMap = classMap;
     myIcon = icon;
+    myBaseClassName = baseClassName;
   }
 
   @Override
@@ -71,18 +73,24 @@ public class AndroidXmlTagDescriptor implements XmlElementDescriptor, PsiPresent
   public XmlElementDescriptor[] getElementsDescriptors(XmlTag context) {
     final XmlElementDescriptor[] descriptors = myParentDescriptor.getElementsDescriptors(context);
 
-    if (myClassMap == null || myClassMap.isEmpty()) {
+    if (myBaseClassName == null || context == null) {
       return descriptors;
     }
+    final AndroidFacet facet = AndroidFacet.getInstance(context);
+
+    if (facet == null) {
+      return descriptors;
+    }
+    final Map<String, PsiClass> classMap = facet.getClassMap(myBaseClassName, SimpleClassMapConstructor.getInstance());
     final XmlElementDescriptor[] androidDescriptors = new XmlElementDescriptor[descriptors.length];
     final DomElement domElement = DomManager.getDomManager(context.getProject()).getDomElement(context);
 
     for (int i = 0; i < descriptors.length; i++) {
       final XmlElementDescriptor descriptor = descriptors[i];
       final String tagName = descriptor.getName();
-      final PsiClass aClass = tagName != null ? myClassMap.get(tagName) : null;
+      final PsiClass aClass = tagName != null ? classMap.get(tagName) : null;
       final Icon icon = AndroidDomElementDescriptorProvider.getIconForTag(tagName, domElement);
-      androidDescriptors[i] = new AndroidXmlTagDescriptor(aClass, descriptor, myClassMap, icon);
+      androidDescriptors[i] = new AndroidXmlTagDescriptor(aClass, descriptor, myBaseClassName, icon);
     }
     return androidDescriptors;
   }
