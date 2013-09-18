@@ -226,7 +226,7 @@ public class ConfigurationManager implements Disposable {
     assert facet != null;
     for (Device device : getDevices()) {
       if (device.getManufacturer().equals(avd.getDeviceManufacturer())
-          && device.getName().equals(avd.getDeviceName())) {
+          && (device.getId().equals(avd.getDeviceName()) || device.getDisplayName().equals(avd.getDeviceName()))) {
 
         String avdName = avd.getName();
         Device.Builder builder = new Device.Builder(device);
@@ -309,7 +309,7 @@ public class ConfigurationManager implements Disposable {
       if (!devices.isEmpty()) {
         Device device = devices.get(0);
         for (Device d : devices) {
-          String name = d.getName();
+          String name = d.getId();
           if (name.equals("Nexus 4")) {
             device = d;
             break;

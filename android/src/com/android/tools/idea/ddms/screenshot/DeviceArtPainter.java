@@ -16,6 +16,7 @@
 package com.android.tools.idea.ddms.screenshot;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ninepatch.NinePatch;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
@@ -34,6 +35,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static com.android.SdkConstants.DOT_PNG;
@@ -92,18 +94,18 @@ public class DeviceArtPainter {
 
   @NotNull
   private DeviceArtDescriptor findDescriptor(@NotNull Device device) {
-    String name = device.getName().trim();
+    String id = device.getId();
+    String name = device.getDisplayName();
 
     // Make generic devices use the frames as well:
-    String id;
-    if (name.equals("3.7in WVGA (Nexus One)")) {
+    if (id.equals("3.7in WVGA (Nexus One)")) {
       id = "nexus_one";
-    } else if (name.equals("4in WVGA (Nexus S)")) {
+    } else if (id.equals("4in WVGA (Nexus S)")) {
       id = "nexus_s";
-    } else if (name.equals("4.65in 720p (Galaxy Nexus)")) {
+    } else if (id.equals("4.65in 720p (Galaxy Nexus)")) {
       id = "galaxy_nexus";
     } else {
-      id = name.replace(' ', '_');
+      id = id.replace(' ', '_');
     }
     DeviceArtDescriptor descriptor = findDescriptor(id, name);
     if (descriptor == null) {
