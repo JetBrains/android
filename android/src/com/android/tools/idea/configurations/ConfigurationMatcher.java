@@ -108,7 +108,7 @@ public class ConfigurationMatcher {
 
     @Override
     public String toString() {
-      return device.getName() + " - " + state.getName();
+      return device.getDisplayName() + " - " + state.getName();
     }
   }
 
@@ -646,8 +646,8 @@ public class ConfigurationMatcher {
       }
 
       // Default to a modern device
-      String n1 = o1.device.getName();
-      String n2 = o2.device.getName();
+      String n1 = o1.device.getId();
+      String n2 = o2.device.getId();
       if (n1.equals(NEXUS_4)) {
         return n2.equals(NEXUS_4) ? 0 : -1;
       } else if (n2.equals(NEXUS_4)) {
