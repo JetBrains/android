@@ -46,7 +46,7 @@ public class AndroidExtractDimensionActionTest extends AndroidTestCase {
   public void testFromLayout() throws IOException {
     createManifest();
     final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + ".xml", "res/layout/layout.xml");
-    doExtractAndCheckStringsXml("strings.xml", null, true, "dimens_after.xml", file);
+    doExtractAndCheckStringsXml("dimens.xml", null, true, "dimens_after.xml", file);
     myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after.xml");
   }
 
