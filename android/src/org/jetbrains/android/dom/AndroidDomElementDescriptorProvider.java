@@ -25,6 +25,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.source.xml.XmlElementDescriptorProvider;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.HashMap;
+import com.intellij.util.containers.SoftHashMap;
 import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
@@ -51,7 +52,7 @@ import java.util.Map;
  * To change this template use File | Settings | File Templates.
  */
 public class AndroidDomElementDescriptorProvider implements XmlElementDescriptorProvider {
-  private static final Map<String, Ref<Icon>> ourViewTagName2Icon = new HashMap<String, Ref<Icon>>();
+  private static final Map<String, Ref<Icon>> ourViewTagName2Icon = new SoftHashMap<String, Ref<Icon>>();
 
   @Nullable
   private static XmlElementDescriptor getDescriptor(DomElement domElement, XmlTag tag, @Nullable String baseClassName) {
