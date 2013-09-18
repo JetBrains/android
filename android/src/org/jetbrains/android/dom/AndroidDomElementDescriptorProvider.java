@@ -49,7 +49,7 @@ import java.util.Map;
  * User: Eugene.Kudelevsky
  * Date: Sep 4, 2009
  * Time: 6:04:18 PM
- * To change this template use File | Settings | File Templates.
+ * To change this template use File | Settings | File Temptes.
  */
 public class AndroidDomElementDescriptorProvider implements XmlElementDescriptorProvider {
   private static final Map<String, Ref<Icon>> ourViewTagName2Icon = new SoftHashMap<String, Ref<Icon>>();
@@ -59,22 +59,14 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
     AndroidFacet facet = AndroidFacet.getInstance(domElement);
     if (facet == null) return null;
     final String name = domElement.getXmlTag().getName();
-    PsiClass aClass;
-    Map<String, PsiClass> classMap;
-
-    if (baseClassName != null) {
-      classMap = facet.getClassMap(baseClassName, SimpleClassMapConstructor.getInstance());
-      aClass = classMap.get(name);
-    }
-    else {
-      classMap = null;
-      aClass = null;
-    }
+    final PsiClass aClass = baseClassName != null
+                            ? facet.getClassMap(baseClassName, SimpleClassMapConstructor.getInstance()).get(name)
+                            : null;
     final Icon icon = getIconForTag(name, domElement);
 
     final DefinesXml definesXml = domElement.getAnnotation(DefinesXml.class);
     if (definesXml != null) {
-      return new AndroidXmlTagDescriptor(aClass, new DomElementXmlDescriptor(domElement), classMap, icon);
+      return new AndroidXmlTagDescriptor(aClass, new DomElementXmlDescriptor(domElement), baseClassName, icon);
     }
     final PsiElement parent = tag.getParent();
     if (parent instanceof XmlTag) {
@@ -83,7 +75,7 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
       if (parentDescriptor != null && parentDescriptor instanceof AndroidXmlTagDescriptor) {
         XmlElementDescriptor domDescriptor = parentDescriptor.getElementDescriptor(tag, (XmlTag)parent);
         if (domDescriptor != null) {
-          return new AndroidXmlTagDescriptor(aClass, domDescriptor, classMap, icon);
+          return new AndroidXmlTagDescriptor(aClass, domDescriptor, baseClassName, icon);
         }
       }
     }
