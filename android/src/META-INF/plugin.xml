@@ -99,6 +99,7 @@
             text="Use style _where possible..." description="Replaces attributes by Android style reference where possible">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
+    <action id="Android.TraceViewSearch" class="com.android.tools.idea.editors.vmtrace.VmTraceEditorSearchAction" use-shortcut-of="Find" />
   </actions>
 
   <depends>JUnit</depends>
