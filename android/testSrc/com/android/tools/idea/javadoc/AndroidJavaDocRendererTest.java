@@ -108,6 +108,19 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "</table></body></html>", VERTICAL_ALIGN, divTag, imgTag1, imgTag2));
   }
 
+  public void testArrays() {
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/arrays/arrays.xml", "res/values/arrays.xml");
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/arrays/arrays-no.xml", "res/values-no/arrays.xml");
+    checkJavadoc("/javadoc/arrays/Activity1.java",
+                 "<html><body>" +
+                 "<table>" +
+                 "<tr><th valign=\"top\">Configuration</th><th valign=\"top\">Value</th></tr>" +
+                 "<tr><td valign=\"top\">Default</td><td valign=\"top\">red, orange, yellow, green</td></tr>" +
+                 "<tr><td valign=\"top\">no</td><td valign=\"top\">r\u00F8d, oransj, gul, gr\u00F8nn</td></tr>" +
+                 "</table>" +
+                 "</body></html>");
+  }
+
   public void testXmlString1() {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/strings/strings.xml", "res/values/strings.xml");
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/strings/strings-ta.xml", "res/values-ta/strings.xml");
