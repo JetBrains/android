@@ -28,6 +28,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.rendering.*;
 import com.android.utils.HtmlBuilder;
+import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -370,7 +371,7 @@ public class AndroidJavaDocRenderer {
         if (bitmap.exists()) {
           URL url = null;
           try {
-            url = bitmap.toURI().toURL();
+            url = SdkUtils.fileToUrl(bitmap);
           }
           catch (MalformedURLException e) {
             // pass

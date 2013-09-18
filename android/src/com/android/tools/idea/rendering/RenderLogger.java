@@ -22,7 +22,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -453,7 +453,7 @@ public class RenderLogger extends LayoutLog {
 
   public void addIncorrectFormatClass(@NotNull String className) {
     if (myClassesWithIncorrectFormat == null) {
-      myClassesWithIncorrectFormat = new com.intellij.util.containers.HashSet<String>();
+      myClassesWithIncorrectFormat = new HashSet<String>();
     }
     myClassesWithIncorrectFormat.add(className);
   }
