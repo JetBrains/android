@@ -215,7 +215,7 @@ public final class Projects {
   public static void ensureExternalBuildIsEnabledForGradleProject(@NotNull Project project) {
     if (isGradleProject(project)) {
       CompilerWorkspaceConfiguration workspaceConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
-      boolean wasUsingExternalMake = workspaceConfiguration.USE_COMPILE_SERVER;
+      boolean wasUsingExternalMake = workspaceConfiguration.useOutOfProcessBuild();
       if (!wasUsingExternalMake) {
         String format = "Enabled 'External Build' for Android project '%1$s'. Otherwise, the project will not be built with Gradle";
         String msg = String.format(format, project.getName());
