@@ -529,6 +529,129 @@ public class LombokPsiConverterTest extends AndroidTestCase {
     check(file, testClass);
   }
 
+  public void testJava7() {
+    String testClass =
+      "package test.pkg;\n" +
+      "\n" +
+      "import java.io.BufferedReader;\n" +
+      "import java.io.FileReader;\n" +
+      "import java.io.IOException;\n" +
+      "import java.lang.reflect.InvocationTargetException;\n" +
+      "import java.util.List;\n" +
+      "import java.util.Map;\n" +
+      "import java.util.TreeMap;\n" +
+      "\n" +
+      "public class Java7LanguageFeatureTest {\n" +
+      "    public void testDiamondOperator() {\n" +
+      "        Map<String, List<Integer>> map = new TreeMap<>();\n" +
+      "    }\n" +
+      "\n" +
+      "    public int testStringSwitches(String value) {\n" +
+      "        final String first = \"first\";\n" +
+      "        final String second = \"second\";\n" +
+      "\n" +
+      "        switch (value) {\n" +
+      "            case first:\n" +
+      "                return 41;\n" +
+      "            case second:\n" +
+      "                return 42;\n" +
+      "            default:\n" +
+      "                return 0;\n" +
+      "        }\n" +
+      "    }\n" +
+      "\n" +
+      "    public String testTryWithResources(String path) throws IOException {\n" +
+      "        try (BufferedReader br = new BufferedReader(new FileReader(path))) {\n" +
+      "            return br.readLine();\n" +
+      "        }\n" +
+      "    }\n" +
+      "\n" +
+      "    public void testNumericLiterals() {\n" +
+      "        int thousand = 1_000;\n" +
+      "        int million = 1_000_000;\n" +
+      "        int binary = 0B01010101;\n" +
+      "    }\n" +
+      "\n" +
+      "    public void testMultiCatch() {\n" +
+      "\n" +
+      "        try {\n" +
+      "            Class.forName(\"java.lang.Integer\").getMethod(\"toString\").invoke(null);\n" +
+      "        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {\n" +
+      "            e.printStackTrace();\n" +
+      "        } catch (ClassNotFoundException e) {\n" +
+      "            // TODO: Logging here\n" +
+      "        }\n" +
+      "    }\n" +
+      "}\n";
+    PsiFile psiFile = myFixture.addFileToProject("src/test/pkg/R9.java", testClass);
+
+    // Can't call check(psiFile, testClass) here; the source code won't parse
+    // with Lombok's parser since it doesn't support Java 7, so we just manually
+    // check that the LombokPsiConverter doesn't abort, and format it's view of
+    // the Lombok AST and check that it looks like what we expect; an AST containing
+    // fragments usable by lint, but not providing support for syntactic constructs
+    // such as try with resources or containing type variables where the diamond operator
+    // should have been etc.
+    assertTrue(psiFile.getClass().getName(), psiFile instanceof PsiJavaFile);
+    PsiJavaFile psiJavaFile = (PsiJavaFile)psiFile;
+    CompilationUnit node = LombokPsiConverter.convert(psiJavaFile);
+    assertNotNull(node);
+    TextFormatter formatter = new TextFormatter();
+    node.accept(new SourcePrinter(formatter));
+    String actual = formatter.finish();
+
+    assertEquals("package test.pkg;\n" +
+                 "\n" +
+                 "import java.io.BufferedReader;\n" +
+                 "import java.io.FileReader;\n" +
+                 "import java.io.IOException;\n" +
+                 "import java.lang.reflect.InvocationTargetException;\n" +
+                 "import java.util.List;\n" +
+                 "import java.util.Map;\n" +
+                 "import java.util.TreeMap;\n" +
+                 "\n" +
+                 "class Java7LanguageFeatureTest {\n" +
+                 "    void testDiamondOperator() {\n" +
+                 "        Map<String, List<Integer>> map = new TreeMap();\n" +
+                 "    }\n" +
+                 "    \n" +
+                 "    int testStringSwitches(String value) {\n" +
+                 "        String first = \"first\";\n" +
+                 "        String second = \"second\";\n" +
+                 "        switch (value) {\n" +
+                 "        case first:\n" +
+                 "            return 41;\n" +
+                 "        case second:\n" +
+                 "            return 42;\n" +
+                 "        case :\n" +
+                 "            return 0;\n" +
+                 "        }\n" +
+                 "    }\n" +
+                 "    \n" +
+                 "    String testTryWithResources(String path) throws IOException {\n" +
+                 "        try {\n" +
+                 "            return br.readLine();\n" +
+                 "        }\n" +
+                 "    }\n" +
+                 "    \n" +
+                 "    void testNumericLiterals() {\n" +
+                 "        int thousand = 1_000;\n" +
+                 "        int million = 1_000_000;\n" +
+                 "        int binary = 0B01010101;\n" +
+                 "    }\n" +
+                 "    \n" +
+                 "    void testMultiCatch() {\n" +
+                 "        try {\n" +
+                 "            Class.forName(\"java.lang.Integer\").getMethod(\"toString\").invoke(null);\n" +
+                 "        } catch (?!?INVALID_IDENTIFIER: IllegalAccessException | InvocationTargetException | NoSuchMethodException?!? e) {\n" +
+                 "            e.printStackTrace();\n" +
+                 "        } catch (ClassNotFoundException e) {\n" +
+                 "        }\n" +
+                 "    }\n" +
+                 "}",
+                 actual);
+  }
+
   private void check(VirtualFile file) {
     assertNotNull(file);
     assertTrue(file.exists());
