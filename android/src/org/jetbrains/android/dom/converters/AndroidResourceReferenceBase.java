@@ -91,7 +91,8 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
   @NotNull
   private ResolveResult[] resolveInner() {
     final List<PsiElement> elements = new ArrayList<PsiElement>();
-    collectTargets(myFacet, myResourceValue, elements);
+    final boolean attrReference = myResourceValue.getPrefix() == '?';
+    collectTargets(myFacet, myResourceValue, elements, attrReference);
     final List<ResolveResult> result = new ArrayList<ResolveResult>();
 
     if (elements.isEmpty() && myResourceValue.getResourceName() != null) {
@@ -99,7 +100,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
       // Use project resources to find these missing references, if applicable.
       ProjectResources resources = ProjectResources.get(myFacet.getModule(), true);
       ResourceType resourceType = ResourceType.getEnum(myResourceValue.getResourceType());
-      if (resourceType != null) { // If not, it could be some broken source, such as @android/test
+      if (resourceType != null && (resourceType != ResourceType.ATTR || attrReference)) { // If not, it could be some broken source, such as @android/test
         List<ResourceItem> items = resources.getResourceItem(resourceType, myResourceValue.getResourceName());
         if (items != null) {
           for (ResourceItem item : items) {
@@ -118,7 +119,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
     return result.toArray(new ResolveResult[result.size()]);
   }
 
-  private void collectTargets(AndroidFacet facet, ResourceValue resValue, List<PsiElement> elements) {
+  private void collectTargets(AndroidFacet facet, ResourceValue resValue, List<PsiElement> elements, boolean attrReference) {
     String resType = resValue.getResourceType();
     if (resType == null) {
       return;
@@ -127,7 +128,6 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
     if (manager != null) {
       String resName = resValue.getResourceName();
       if (resName != null) {
-        final boolean attrReference = resValue.getPrefix() == '?';
         manager.collectLazyResourceElements(resType, resName, attrReference, myElement, elements);
       }
     }

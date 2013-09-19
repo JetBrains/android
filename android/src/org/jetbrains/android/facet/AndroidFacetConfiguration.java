@@ -153,14 +153,6 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
   public void writeExternal(Element element) throws WriteExternalException {
   }
 
-  public boolean isIncludeSystemProguardCfgPath() {
-    return myProperties.myIncludeSystemProguardCfgPath;
-  }
-
-  public void setIncludeSystemProguardCfgPath(boolean includeSystemProguardCfgPath) {
-    myProperties.myIncludeSystemProguardCfgPath = includeSystemProguardCfgPath;
-  }
-
   @NotNull
   public List<AndroidNativeLibData> getAdditionalNativeLibraries() {
     final List<AndroidNativeLibData> libDatas = new ArrayList<AndroidNativeLibData>();

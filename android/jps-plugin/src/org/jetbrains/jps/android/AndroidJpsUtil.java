@@ -411,7 +411,7 @@ public class AndroidJpsUtil {
       context.processMessage(new CompilerMessage(builderName, exception));
     }
   }
-
+  
   public static ModuleLevelBuilder.ExitCode handleException(@NotNull CompileContext context,
                                                             @NotNull Exception e,
                                                             @NotNull String builderName,
@@ -778,16 +778,30 @@ public class AndroidJpsUtil {
     return extensions;
   }
 
+  @NotNull
+  private static File[] toFiles(@NotNull String[] paths) {
+    final File[] files = new File[paths.length];
+
+    for (int i = 0; i < paths.length; i++) {
+      files[i] = new File(paths[i]);
+    }
+    return files;
+  }
+
   public static ProGuardOptions getProGuardConfigIfShouldRun(@NotNull CompileContext context, @NotNull JpsAndroidModuleExtension extension)
     throws IOException {
     if (extension.isRunProguard()) {
-      return new ProGuardOptions(extension.getProguardConfigFile(), extension.isIncludeSystemProguardCfgFile());
+      return new ProGuardOptions(extension.getProguardConfigFiles(extension.getModule()));
     }
 
-    final String cfgPathFromContext = context.getBuilderParameter(AndroidCommonUtils.PROGUARD_CFG_PATH_OPTION);
-    if (cfgPathFromContext != null) {
-      final String includeSystemProGuardFile = context.getBuilderParameter(AndroidCommonUtils.INCLUDE_SYSTEM_PROGUARD_FILE_OPTION);
-      return new ProGuardOptions(new File(cfgPathFromContext), Boolean.parseBoolean(includeSystemProGuardFile));
+    final String cfgPathsStrFromContext = context.getBuilderParameter(AndroidCommonUtils.PROGUARD_CFG_PATHS_OPTION);
+    if (cfgPathsStrFromContext != null && cfgPathsStrFromContext.length() > 0) {
+      final String[] paths = cfgPathsStrFromContext.split(File.pathSeparator);
+
+      if (paths.length > 0) {
+        final File[] files = toFiles(paths);
+        return new ProGuardOptions(Arrays.asList(files));
+      }
     }
 
     for (JpsArtifact artifact : getAndroidArtifactsToBuild(context)) {
@@ -801,14 +815,27 @@ public class AndroidJpsUtil {
           final JpsAndroidApplicationArtifactProperties androidProps = (JpsAndroidApplicationArtifactProperties)props;
 
           if (androidProps.isRunProGuard()) {
-            final String cfgFileUrl = androidProps.getProGuardCfgFileUrl();
-            final String cfgPath = cfgFileUrl != null ? JpsPathUtil.urlToPath(cfgFileUrl) : null;
-            return new ProGuardOptions(new File(cfgPath), androidProps.isIncludeSystemProGuardCfgFile());
+            final List<String> cfgFileUrls = androidProps.getProGuardCfgFiles(moduleFromArtifact);
+            final List<File> cfgPaths = cfgFileUrls != null ? urlsToFiles(cfgFileUrls) : null;
+            return new ProGuardOptions(cfgPaths);
           }
         }
       }
     }
     return null;
+  }
+
+  @NotNull
+  public static List<File> urlsToFiles(@NotNull List<String> urls) {
+    if (urls.isEmpty()) {
+      return Collections.emptyList();
+    }
+    final List<File> result = new ArrayList<File>();
+
+    for (String path : urls) {
+      result.add(JpsPathUtil.urlToFile(path));
+    }
+    return result;
   }
 
   /**
@@ -844,4 +871,6 @@ public class AndroidJpsUtil {
     }
     return hasAndroidFacet;
   }
+  
+  
 }

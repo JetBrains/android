@@ -1,21 +1,15 @@
 package org.jetbrains.android.compiler.artifact;
 
 import com.android.annotations.NonNull;
-import com.intellij.openapi.fileChooser.FileChooser;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.packaging.ui.ArtifactPropertiesEditor;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidUiUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,16 +36,20 @@ public class AndroidArtifactPropertiesEditor extends ArtifactPropertiesEditor im
   private JButton myLoadKeyStoreButton;
   private JButton myCreateKeyStoreButton;
   private JCheckBox myProGuardCheckBox;
-  private TextFieldWithBrowseButton myProGuardConfigFilePathField;
-  private JCheckBox myIncludeSystemProGuardFileCheckBox;
   private JPanel myProGuardConfigPanel;
   private JPanel myKeyStoreButtonsPanel;
   private JPanel myProGuardPanel;
+  private ProGuardConfigFilesPanel myProGuardConfigFilesPanel;
+
+  private final Artifact myArtifact;
+  private final Project myProject;
 
   public AndroidArtifactPropertiesEditor(@Nullable final Artifact artifact,
                                          @NonNull AndroidApplicationArtifactProperties properties,
                                          @NotNull final Project project) {
     myProperties = properties;
+    myArtifact = artifact;
+    myProject = project;
 
     myKeyStoreButtonsPanel.setBorder(IdeBorderFactory.createEmptyBorder(0, 0, 5, 0));
     myProGuardPanel.setBorder(IdeBorderFactory.createEmptyBorder(10, 0, 0, 0));
@@ -72,27 +70,6 @@ public class AndroidArtifactPropertiesEditor extends ArtifactPropertiesEditor im
       @Override
       public void actionPerformed(ActionEvent e) {
         UIUtil.setEnabled(myProGuardConfigPanel, myProGuardCheckBox.isSelected(), true);
-      }
-    });
-
-    myProGuardConfigFilePathField.getButton().addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        final String path = myProGuardConfigFilePathField.getText().trim();
-        VirtualFile defaultFile = path != null && path.length() > 0
-                                  ? LocalFileSystem.getInstance().findFileByPath(path)
-                                  : null;
-        if (defaultFile == null) {
-          final AndroidFacet facet = AndroidArtifactUtil.getPackagedFacet(project, artifact);
-          if (facet != null) {
-            defaultFile = AndroidRootUtil.getMainContentRoot(facet);
-          }
-        }
-        final FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor();
-        final VirtualFile file = FileChooser.chooseFile(descriptor, myPanel, project, defaultFile);
-        if (file != null) {
-          myProGuardConfigFilePathField.setText(FileUtil.toSystemDependentName(file.getPath()));
-        }
       }
     });
   }
@@ -119,8 +96,7 @@ public class AndroidArtifactPropertiesEditor extends ArtifactPropertiesEditor im
            !getKeyAlias().equals(myProperties.getKeyAlias()) ||
            !getKeyPassword().equals(myProperties.getPlainKeyPassword()) ||
            myProGuardCheckBox.isSelected() != myProperties.isRunProGuard() ||
-           !getProGuardConfigFileUrl().equals(myProperties.getProGuardCfgFileUrl()) ||
-           myIncludeSystemProGuardFileCheckBox.isSelected() != myProperties.isIncludeSystemProGuardCfgFile();
+           !myProGuardConfigFilesPanel.getUrls().equals(myProperties.getProGuardCfgFiles());
   }
 
   @Override
@@ -131,12 +107,7 @@ public class AndroidArtifactPropertiesEditor extends ArtifactPropertiesEditor im
     myProperties.setKeyAlias(getKeyAlias());
     myProperties.setPlainKeyPassword(getKeyPassword());
     myProperties.setRunProGuard(myProGuardCheckBox.isSelected());
-    myProperties.setProGuardCfgFileUrl(getProGuardConfigFileUrl());
-    myProperties.setIncludeSystemProGuardCfgFile(myIncludeSystemProGuardFileCheckBox.isSelected());
-  }
-
-  private String getProGuardConfigFileUrl() {
-    return VfsUtilCore.pathToUrl(FileUtil.toSystemIndependentName(myProGuardConfigFilePathField.getText().trim()));
+    myProperties.setProGuardCfgFiles(myProGuardConfigFilesPanel.getUrls());
   }
 
   @Override
@@ -167,8 +138,7 @@ public class AndroidArtifactPropertiesEditor extends ArtifactPropertiesEditor im
     myKeyPasswordField.setText(myProperties.getPlainKeyPassword());
 
     myProGuardCheckBox.setSelected(myProperties.isRunProGuard());
-    myProGuardConfigFilePathField.setText(FileUtil.toSystemDependentName(VfsUtilCore.urlToPath(myProperties.getProGuardCfgFileUrl())));
-    myIncludeSystemProGuardFileCheckBox.setSelected(myProperties.isIncludeSystemProGuardCfgFile());
+    myProGuardConfigFilesPanel.setUrls(myProperties.getProGuardCfgFiles());
 
     UIUtil.setEnabled(myReleaseKeyPanel, myProperties.getSigningMode() == AndroidArtifactSigningMode.RELEASE_SIGNED, true);
     UIUtil.setEnabled(myProGuardConfigPanel, myProperties.isRunProGuard(), true);
@@ -243,5 +213,15 @@ public class AndroidArtifactPropertiesEditor extends ArtifactPropertiesEditor im
   @Override
   public JPasswordField getKeyPasswordField() {
     return myKeyPasswordField;
+  }
+
+  private void createUIComponents() {
+    myProGuardConfigFilesPanel = new ProGuardConfigFilesPanel() {
+      @Nullable
+      @Override
+      protected AndroidFacet getFacet() {
+        return AndroidArtifactUtil.getPackagedFacet(myProject, myArtifact);
+      }
+    };
   }
 }

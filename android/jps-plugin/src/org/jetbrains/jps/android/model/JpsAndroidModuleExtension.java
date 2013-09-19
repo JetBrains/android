@@ -1,6 +1,7 @@
 package org.jetbrains.jps.android.model;
 
 import org.jetbrains.android.util.AndroidNativeLibData;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.JpsElement;
 import org.jetbrains.jps.model.module.JpsModule;
@@ -28,7 +29,7 @@ public interface JpsAndroidModuleExtension extends JpsElement {
   File getManifestFileForCompilation();
 
   @Nullable
-  File getProguardConfigFile() throws IOException;
+  List<File> getProguardConfigFiles(@NotNull JpsModule module) throws IOException;
 
   @Nullable
   File getAssetsDir();
@@ -57,8 +58,6 @@ public interface JpsAndroidModuleExtension extends JpsElement {
   boolean isRunProcessResourcesMavenTask();
 
   boolean isRunProguard();
-
-  boolean isIncludeSystemProguardCfgFile();
 
   String getApkRelativePath();
 

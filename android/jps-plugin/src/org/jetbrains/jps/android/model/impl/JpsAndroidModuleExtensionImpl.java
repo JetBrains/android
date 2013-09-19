@@ -16,13 +16,19 @@
 package org.jetbrains.jps.android.model.impl;
 
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidNativeLibData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.JpsAndroidModuleExtension;
+import org.jetbrains.jps.android.model.JpsAndroidSdkProperties;
+import org.jetbrains.jps.android.model.JpsAndroidSdkType;
+import org.jetbrains.jps.model.JpsSimpleElement;
 import org.jetbrains.jps.model.ex.JpsElementBase;
 import org.jetbrains.jps.model.ex.JpsElementChildRoleBase;
+import org.jetbrains.jps.model.library.sdk.JpsSdk;
 import org.jetbrains.jps.model.module.JpsModule;
 import org.jetbrains.jps.model.serialization.JpsModelSerializationDataService;
 import org.jetbrains.jps.util.JpsPathUtil;
@@ -30,6 +36,7 @@ import org.jetbrains.jps.util.JpsPathUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -125,10 +132,28 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
     return manifestFile != null ? canonizeFilePath(manifestFile) : null;
   }
 
+  @Nullable
   @Override
-  public File getProguardConfigFile() throws IOException {
-    File proguardFile = findFileByRelativeModulePath(myProperties.PROGUARD_CFG_PATH, true);
-    return proguardFile != null ? canonizeFilePath(proguardFile) : null;
+  public List<File> getProguardConfigFiles(@NotNull JpsModule module) throws IOException {
+    final JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> sdk = module.getSdk(JpsAndroidSdkType.INSTANCE);
+    final String sdkHomePath = sdk != null ? FileUtil.toSystemIndependentName(sdk.getHomePath()) : null;
+    final List<String> urls = myProperties.myProGuardCfgFiles;
+
+    if (urls == null) {
+      return null;
+    }
+    if (urls.isEmpty()) {
+      return Collections.emptyList();
+    }
+    final List<File> result = new ArrayList<File>();
+
+    for (String url : urls) {
+      if (sdkHomePath != null) {
+        url = StringUtil.replace(url, AndroidCommonUtils.SDK_HOME_MACRO, sdkHomePath);
+      }
+      result.add(JpsPathUtil.urlToFile(url));
+    }
+    return result;
   }
 
   @Override
@@ -218,11 +243,6 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
   @Override
   public boolean isRunProguard() {
     return myProperties.RUN_PROGUARD;
-  }
-
-  @Override
-  public boolean isIncludeSystemProguardCfgFile() {
-    return myProperties.myIncludeSystemProguardCfgPath;
   }
 
   @Override
