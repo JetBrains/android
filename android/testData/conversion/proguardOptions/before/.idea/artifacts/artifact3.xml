@@ -1,0 +1,15 @@
+<component name="ArtifactManager">
+  <artifact type="apk" name="artifact3">
+    <output-path>$PROJECT_DIR$/out/artifacts/artifact1</output-path>
+    <properties id="android-properties">
+      <options>
+        <option name="includeSystemProGuardCfgFile" value="false" />
+        <option name="proGuardCfgFileUrl" value="file://$PROJECT_DIR$/proguard-project.txt" />
+        <option name="runProGuard" value="true" />
+      </options>
+    </properties>
+    <root id="archive" name="artifact1.apk">
+      <element id="android-final-package" facet="module1/android/Android" />
+    </root>
+  </artifact>
+</component>

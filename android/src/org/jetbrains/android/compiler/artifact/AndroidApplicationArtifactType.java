@@ -6,7 +6,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.artifacts.sourceItems.LibrarySourceItem;
 import com.intellij.openapi.roots.ui.configuration.artifacts.sourceItems.ModuleOutputSourceItem;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.packaging.artifacts.ArtifactProperties;
 import com.intellij.packaging.artifacts.ArtifactTemplate;
@@ -18,7 +17,6 @@ import com.intellij.packaging.elements.PackagingElementResolvingContext;
 import com.intellij.packaging.impl.artifacts.ArtifactUtil;
 import com.intellij.packaging.ui.PackagingSourceItem;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -118,13 +116,7 @@ public class AndroidApplicationArtifactType extends ArtifactType {
 
         if (properties instanceof AndroidApplicationArtifactProperties) {
           final AndroidApplicationArtifactProperties p = (AndroidApplicationArtifactProperties)properties;
-
-          final VirtualFile proguardCfgFile = AndroidRootUtil.getProguardCfgFile(facet);
-          if (proguardCfgFile != null) {
-            p.setProGuardCfgFileUrl(proguardCfgFile.getUrl());
-          }
-
-          p.setIncludeSystemProGuardCfgFile(facet.getConfiguration().isIncludeSystemProguardCfgPath());
+          p.setProGuardCfgFiles(facet.getProperties().myProGuardCfgFiles);
         }
       }
     }

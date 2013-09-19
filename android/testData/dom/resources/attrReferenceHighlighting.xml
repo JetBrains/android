@@ -1,7 +1,7 @@
 <resources>
   <attr name="myAttr" format="integer"/>
 
-  <style name="myStyle1" parent="<error>?myAttr</error>">
+   <style name="myStyle1" parent="<error>?myAttr</error>">
   </style>
   <style name="myStyle2" parent="<error>?attr/myAttr</error>">
   </style>

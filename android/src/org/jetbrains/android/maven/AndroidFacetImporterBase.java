@@ -90,8 +90,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
   @NonNls private static final String DEFAULT_NATIVE_ARCHITECTURE = "armeabi";
 
   private static final Key<Boolean> DELETE_OBSOLETE_MODULE_TASK_KEY = Key.create("DELETE_OBSOLETE_MODULE_TASK");
-
-  private static final Key<Boolean> CLEAR_RESOLVED_APKLIBS_TASK_KEY = Key.create("CLEAR_RESOLVED_APKLIBS");
+  private static final Key<Set<MavenId>> RESOLVED_APKLIB_ARTIFACTS_KEY = Key.create("RESOLVED_APKLIB_ARTIFACTS");
 
   public AndroidFacetImporterBase(@NotNull String pluginId) {
     super("com.jayway.maven.plugins.android.generation2", pluginId, FacetType.findInstance(AndroidFacetType.class));
@@ -173,16 +172,6 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     project.putUserData(DELETE_OBSOLETE_MODULE_TASK_KEY, Boolean.TRUE);
     postTasks.add(new MyDeleteObsoleteApklibModulesTask(project));
 
-    project.putUserData(CLEAR_RESOLVED_APKLIBS_TASK_KEY, Boolean.TRUE);
-    postTasks.add(new MavenProjectsProcessorTask() {
-      @Override
-      public void perform(Project project, MavenEmbeddersManager embeddersManager,
-                          MavenConsole console, MavenProgressIndicator indicator)
-        throws MavenProcessCanceledException {
-        clearResolvedApklibsInfo(project);
-      }
-    });
-
     // exclude folders where Maven generates sources if gen source roots were changed by user manually
     final AndroidFacetConfiguration defaultConfig = new AndroidFacetConfiguration();
     AndroidMavenProviderImpl.setPathsToDefault(mavenProject, module, defaultConfig);
@@ -200,25 +189,6 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       rootModel.unregisterAll(aidlPath, false, true);
       rootModel.addExcludedFolder(aidlPath);
     }
-  }
-
-  private static void clearResolvedApklibsInfo(final Project project) {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        if (project.isDisposed() || project.getUserData(CLEAR_RESOLVED_APKLIBS_TASK_KEY) != Boolean.TRUE) {
-          return;
-        }
-        project.putUserData(CLEAR_RESOLVED_APKLIBS_TASK_KEY, null);
-        final AndroidExternalApklibDependenciesManager.State state =
-          AndroidExternalApklibDependenciesManager.getInstance(project).getState();
-
-        if (state != null) {
-          state.getResolvedInfoMap().clear();
-          state.getArtifactFilesMap().clear();
-        }
-      }
-    });
   }
 
   private void importNativeDependencies(@NotNull AndroidFacet facet, @NotNull MavenProject mavenProject, @NotNull String moduleDirPath) {
@@ -666,7 +636,8 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
   public void resolve(final Project project,
                       MavenProject mavenProject,
                       NativeMavenProjectHolder nativeMavenProject,
-                      MavenEmbedderWrapper embedder)
+                      MavenEmbedderWrapper embedder,
+                      ResolveContext context)
     throws MavenProcessCanceledException {
     final AndroidExternalApklibDependenciesManager adm =
       AndroidExternalApklibDependenciesManager.getInstance(project);
@@ -678,8 +649,14 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
           mavenProjectsManager.findProject(depArtifact) == null &&
           MavenConstants.SCOPE_COMPILE.equals(depArtifact.getScope())) {
 
-        if (adm.getResolvedInfoForArtifact(depArtifact.getMavenId()) == null) {
-          doResolveApklibArtifact(project, depArtifact, embedder, mavenProjectsManager, mavenProject.getName(), adm);
+        Set<MavenId> resolvedArtifacts = context.getUserData(RESOLVED_APKLIB_ARTIFACTS_KEY);
+
+        if (resolvedArtifacts == null) {
+          resolvedArtifacts = new HashSet<MavenId>();
+          context.putUserData(RESOLVED_APKLIB_ARTIFACTS_KEY, resolvedArtifacts);
+        }
+        if (resolvedArtifacts.add(depArtifact.getMavenId())) {
+          doResolveApklibArtifact(project, depArtifact, embedder, mavenProjectsManager, mavenProject.getName(), adm, context);
       }
     }
   }
@@ -690,7 +667,8 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
                                        MavenEmbedderWrapper embedder,
                                        MavenProjectsManager mavenProjectsManager,
                                        String moduleName,
-                                       AndroidExternalApklibDependenciesManager adm) throws MavenProcessCanceledException {
+                                       AndroidExternalApklibDependenciesManager adm,
+                                       ResolveContext context) throws MavenProcessCanceledException {
     final File depArtifacetFile = new File(FileUtil.getNameWithoutExtension(artifact.getPath()) + ".pom");
     if (!depArtifacetFile.exists()) {
       AndroidUtils.reportImportErrorToEventLog("Cannot find file " + depArtifacetFile.getPath(), moduleName, project);
@@ -718,7 +696,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     adm.setResolvedInfoForArtifact(artifact.getMavenId(), info);
 
     projectForExternalApklib.read(generalSettings, mavenProjectsManager.getAvailableProfiles(), mavenProjectReader, locator);
-    projectForExternalApklib.resolve(project, generalSettings, embedder, mavenProjectReader, locator);
+    projectForExternalApklib.resolve(project, generalSettings, embedder, mavenProjectReader, locator, context);
 
     final String apiLevel = getPlatformFromConfig(projectForExternalApklib);
 

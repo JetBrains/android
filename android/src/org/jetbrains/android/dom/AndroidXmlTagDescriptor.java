@@ -18,15 +18,23 @@ package org.jetbrains.android.dom;
 
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.meta.PsiPresentableMetaData;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.xml.DomElement;
+import com.intellij.util.xml.DomManager;
 import com.intellij.xml.XmlAttributeDescriptor;
 import com.intellij.xml.XmlElementDescriptor;
 import com.intellij.xml.XmlElementsGroup;
 import com.intellij.xml.XmlNSDescriptor;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.SimpleClassMapConstructor;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.util.Map;
 
 /**
  * Created by IntelliJ IDEA.
@@ -35,32 +43,56 @@ import org.jetbrains.annotations.Nullable;
  * Time: 7:34:33 PM
  * To change this template use File | Settings | File Templates.
  */
-public class AndroidXmlTagDescriptor implements XmlElementDescriptor {
+public class AndroidXmlTagDescriptor implements XmlElementDescriptor, PsiPresentableMetaData {
   private final XmlElementDescriptor myParentDescriptor;
   private final PsiClass myDeclarationClass;
+  private final Icon myIcon;
+  private final String myBaseClassName;
 
-  public AndroidXmlTagDescriptor(@Nullable PsiClass declarationClass, @NotNull XmlElementDescriptor parentDescriptor) {
+  public AndroidXmlTagDescriptor(@Nullable PsiClass declarationClass,
+                                 @NotNull XmlElementDescriptor parentDescriptor,
+                                 @Nullable String baseClassName,
+                                 @Nullable Icon icon) {
     myParentDescriptor = parentDescriptor;
     myDeclarationClass = declarationClass;
+    myIcon = icon;
+    myBaseClassName = baseClassName;
   }
 
   @Override
   public String getQualifiedName() {
-    return getDefaultName();
+    return myParentDescriptor.getQualifiedName();
   }
 
   @Override
   public String getDefaultName() {
-    if (myDeclarationClass == null) {
-      return myParentDescriptor.getDefaultName();
-    }
-    String qualifiedName = myDeclarationClass.getQualifiedName();
-    return qualifiedName != null ? qualifiedName : myDeclarationClass.getName();
+    return myParentDescriptor.getDefaultName();
   }
 
   @Override
   public XmlElementDescriptor[] getElementsDescriptors(XmlTag context) {
-    return myParentDescriptor.getElementsDescriptors(context);
+    final XmlElementDescriptor[] descriptors = myParentDescriptor.getElementsDescriptors(context);
+
+    if (myBaseClassName == null || context == null) {
+      return descriptors;
+    }
+    final AndroidFacet facet = AndroidFacet.getInstance(context);
+
+    if (facet == null) {
+      return descriptors;
+    }
+    final Map<String, PsiClass> classMap = facet.getClassMap(myBaseClassName, SimpleClassMapConstructor.getInstance());
+    final XmlElementDescriptor[] androidDescriptors = new XmlElementDescriptor[descriptors.length];
+    final DomElement domElement = DomManager.getDomManager(context.getProject()).getDomElement(context);
+
+    for (int i = 0; i < descriptors.length; i++) {
+      final XmlElementDescriptor descriptor = descriptors[i];
+      final String tagName = descriptor.getName();
+      final PsiClass aClass = tagName != null ? classMap.get(tagName) : null;
+      final Icon icon = AndroidDomElementDescriptorProvider.getIconForTag(tagName, domElement);
+      androidDescriptors[i] = new AndroidXmlTagDescriptor(aClass, descriptor, myBaseClassName, icon);
+    }
+    return androidDescriptors;
   }
 
   @Override
@@ -123,7 +155,7 @@ public class AndroidXmlTagDescriptor implements XmlElementDescriptor {
 
   @Override
   public String getName() {
-    return getDefaultName();
+    return myParentDescriptor.getName();
   }
 
   @Override
@@ -134,5 +166,16 @@ public class AndroidXmlTagDescriptor implements XmlElementDescriptor {
   @Override
   public Object[] getDependences() {
     return myParentDescriptor.getDependences();
+  }
+
+  @Override
+  public String getTypeName() {
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public Icon getIcon() {
+    return myIcon;
   }
 }

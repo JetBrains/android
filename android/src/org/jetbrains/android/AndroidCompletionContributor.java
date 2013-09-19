@@ -16,22 +16,25 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
-import com.intellij.codeInsight.completion.CompletionContributor;
-import com.intellij.codeInsight.completion.CompletionParameters;
-import com.intellij.codeInsight.completion.CompletionResultSet;
-import com.intellij.codeInsight.completion.PrioritizedLookupElement;
+import com.intellij.codeInsight.completion.*;
+import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
+import com.intellij.codeInsight.lookup.LookupElementDecorator;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.xml.*;
+import com.intellij.util.Consumer;
+import com.intellij.util.containers.HashSet;
 import com.intellij.util.xml.Converter;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
 import com.intellij.util.xml.converters.DelimitedListConverter;
+import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.android.dom.animation.AndroidAnimationUtils;
 import org.jetbrains.android.dom.animation.AnimationDomFileDescription;
 import org.jetbrains.android.dom.animator.AndroidAnimatorUtil;
@@ -48,12 +51,12 @@ import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.PreferenceElement;
 import org.jetbrains.android.dom.xml.XmlResourceDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.SimpleClassMapConstructor;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Set;
+import javax.swing.*;
+import java.util.*;
 
 /**
  * @author coyote
@@ -72,7 +75,21 @@ public class AndroidCompletionContributor extends CompletionContributor {
       return false;
     }
     else if (LayoutDomFileDescription.isLayoutFile(xmlFile)) {
-      addAll(AndroidLayoutUtil.getPossibleRoots(facet), resultSet);
+      final Map<String,PsiClass> classMap = facet.getClassMap(
+        AndroidUtils.VIEW_CLASS_NAME, SimpleClassMapConstructor.getInstance());
+
+      for (String rootTag : AndroidLayoutUtil.getPossibleRoots(facet)) {
+        final PsiClass aClass = classMap.get(rootTag);
+        LookupElementBuilder builder = aClass != null
+                                       ? LookupElementBuilder.create(aClass, rootTag)
+                                       : LookupElementBuilder.create(rootTag);
+        final Icon icon = AndroidDomElementDescriptorProvider.getIconForViewTag(rootTag);
+
+        if (icon != null) {
+          builder = builder.withIcon(icon);
+        }
+        resultSet.addElement(builder);
+      }
       return false;
     }
     else if (AnimationDomFileDescription.isAnimationFile(xmlFile)) {
@@ -146,32 +163,128 @@ public class AndroidCompletionContributor extends CompletionContributor {
       final ASTNode attrName = XmlChildRole.ATTRIBUTE_NAME_FINDER.findChild(parent.getNode());
 
       if (attrName == null ||
-          attrName.getPsi() != position ||
-          position.getText().startsWith("android:")) {
+          attrName.getPsi() != position) {
         return;
       }
-
-      final PsiElement gp = parent.getParent();
-      if (!(gp instanceof XmlTag)) {
-        return;
-      }
-
-      final DomElement element = DomManager.getDomManager(gp.getProject()).getDomElement((XmlTag)gp);
-      if (!(element instanceof LayoutElement) &&
-          !(element instanceof PreferenceElement)) {
-        return;
-      }
-
-      final String prefix = ((XmlTag)gp).getPrefixByNamespace(SdkConstants.NS_RESOURCES);
-      if (prefix == null || prefix.length() < 3) {
-        return;
-      }
-      final LookupElementBuilder e = LookupElementBuilder.create(prefix + ":").withTypeText("[Namespace Prefix]", true);
-      resultSet.addElement(PrioritizedLookupElement.withPriority(e, Double.MAX_VALUE));
+      addAndroidPrefixElement(position, parent, resultSet);
+      moveLayoutAttributeUp(parameters, (XmlAttribute)parent, resultSet);
     }
     else if (originalParent instanceof XmlAttributeValue) {
       completeTailsInFlagAttribute(parameters, resultSet, (XmlAttributeValue)originalParent);
     }
+  }
+
+  private static void addAndroidPrefixElement(PsiElement position, PsiElement parent, CompletionResultSet resultSet) {
+    if (position.getText().startsWith("android:")) {
+      return;
+    }
+
+    final PsiElement gp = parent.getParent();
+    if (!(gp instanceof XmlTag)) {
+      return;
+    }
+
+    final DomElement element = DomManager.getDomManager(gp.getProject()).getDomElement((XmlTag)gp);
+    if (!(element instanceof LayoutElement) &&
+        !(element instanceof PreferenceElement)) {
+      return;
+    }
+
+    final String prefix = ((XmlTag)gp).getPrefixByNamespace(SdkConstants.NS_RESOURCES);
+    if (prefix == null || prefix.length() < 3) {
+      return;
+    }
+    final LookupElementBuilder e = LookupElementBuilder.create(prefix + ":").withTypeText("[Namespace Prefix]", true);
+    resultSet.addElement(PrioritizedLookupElement.withPriority(e, Double.MAX_VALUE));
+  }
+
+  private static void moveLayoutAttributeUp(CompletionParameters parameters,
+                                            XmlAttribute attribute,
+                                            final CompletionResultSet resultSet) {
+    final PsiElement gp = attribute.getParent();
+
+    if (gp == null) {
+      return;
+    }
+    final XmlTag tag = (XmlTag)gp;
+    final DomElement element = DomManager.getDomManager(gp.getProject()).getDomElement(tag);
+
+    if (!(element instanceof LayoutElement)) {
+      return;
+    }
+    final boolean localNameCompletion;
+
+    if (attribute.getName().contains(":")) {
+      final String nsPrefix = attribute.getNamespacePrefix();
+
+      if (nsPrefix.length() == 0) {
+        return;
+      }
+      if (!SdkConstants.NS_RESOURCES.equals(tag.getNamespaceByPrefix(nsPrefix))) {
+        return;
+      }
+      else {
+        localNameCompletion = true;
+      }
+    }
+    else {
+      localNameCompletion = false;
+    }
+    final Map<String, String> prefix2ns = new HashMap<String, String>();
+
+    resultSet.runRemainingContributors(parameters, new Consumer<CompletionResult>() {
+      @Override
+      public void consume(CompletionResult result) {
+        LookupElement lookupElement = result.getLookupElement();
+        final Object obj = lookupElement.getObject();
+
+        if (obj instanceof String) {
+          final String s = (String)obj;
+          final int idx = s.indexOf(':');
+
+          if (idx > 0) {
+            final String prefix = s.substring(0, idx);
+            String ns = prefix2ns.get(prefix);
+
+            if (ns == null) {
+              ns = tag.getNamespaceByPrefix(prefix);
+              prefix2ns.put(prefix, ns);
+            }
+            if (SdkConstants.NS_RESOURCES.equals(ns)) {
+              result = customizeLayoutAttributeLookupElement(s.substring(idx + 1), lookupElement, result);
+            }
+          }
+          else if (localNameCompletion) {
+            result = customizeLayoutAttributeLookupElement(s.substring(idx + 1), lookupElement, result);
+          }
+        }
+        resultSet.passResult(result);
+      }
+    });
+  }
+
+  private static CompletionResult customizeLayoutAttributeLookupElement(String localName,
+                                                                        LookupElement lookupElement,
+                                                                        CompletionResult result) {
+    final String layoutPrefix = "layout_";
+
+    if (!localName.startsWith(layoutPrefix)) {
+      return result;
+    }
+    final String localSuffix = localName.substring(layoutPrefix.length());
+
+    if (localSuffix.length() > 0) {
+      final HashSet<String> lookupStrings = new HashSet<String>(lookupElement.getAllLookupStrings());
+      lookupStrings.add(localSuffix);
+
+      lookupElement = new LookupElementDecorator<LookupElement>(lookupElement) {
+        @Override
+        public Set<String> getAllLookupStrings() {
+          return lookupStrings;
+        }
+      };
+    }
+    return result.withLookupElement(PrioritizedLookupElement.withPriority(lookupElement, 100.0));
   }
 
   private static void completeTailsInFlagAttribute(CompletionParameters parameters,

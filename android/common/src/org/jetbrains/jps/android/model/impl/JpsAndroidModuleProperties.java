@@ -63,7 +63,10 @@ public class JpsAndroidModuleProperties {
   public boolean PACK_TEST_CODE = false;
 
   public boolean RUN_PROGUARD = false;
-  public String PROGUARD_CFG_PATH = "/" + AndroidCommonUtils.PROGUARD_CFG_FILE_NAME;
+
+  @Tag("proGuardCfgFiles")
+  @AbstractCollection(surroundWithTag = false, elementTag = "file", elementValueAttribute = "")
+  public List<String> myProGuardCfgFiles = new ArrayList<String>(Arrays.asList(AndroidCommonUtils.PROGUARD_SYSTEM_CFG_FILE_URL));
 
   public boolean USE_CUSTOM_MANIFEST_PACKAGE = false;
   public String CUSTOM_MANIFEST_PACKAGE = "";
@@ -75,9 +78,6 @@ public class JpsAndroidModuleProperties {
   public boolean ENABLE_PRE_DEXING = true;
 
   public boolean COMPILE_CUSTOM_GENERATED_SOURCES = true;
-
-  @Tag(AndroidCommonUtils.INCLUDE_SYSTEM_PROGUARD_FILE_ELEMENT_NAME)
-  public boolean myIncludeSystemProguardCfgPath = true;
 
   @Tag(AndroidCommonUtils.INCLUDE_ASSETS_FROM_LIBRARIES_ELEMENT_NAME)
   public boolean myIncludeAssetsFromLibraries = false;

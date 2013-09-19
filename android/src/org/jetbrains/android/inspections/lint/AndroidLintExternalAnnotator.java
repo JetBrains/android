@@ -52,7 +52,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
   static final boolean INCLUDE_IDEA_SUPPRESS_ACTIONS = false;
 
   @Override
-  public State collectionInformation(@NotNull PsiFile file) {
+  public State collectInformation(@NotNull PsiFile file) {
     final Module module = ModuleUtilCore.findModuleForPsiElement(file);
     if (module == null) {
       return null;

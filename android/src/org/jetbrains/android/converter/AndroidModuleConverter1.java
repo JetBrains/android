@@ -26,38 +26,30 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jdom.Element;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidFacetType;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.List;
 
 /**
  * @author Eugene.Kudelevsky
  */
 public class AndroidModuleConverter1 extends ConversionProcessor<ModuleSettings> {
   private static final String PLATFORM_NAME_ATTRIBUTE = "PLATFORM_NAME";
-  @NonNls private static final String OPTION_VALUE_ATTRIBUTE = "value";
 
   @Override
   public boolean isConversionNeeded(ModuleSettings moduleSettings) {
-    Element confElement = findAndroidFacetConfigurationElement(moduleSettings);
-    return confElement != null && getOptionValue(confElement, PLATFORM_NAME_ATTRIBUTE) != null;
+    Element confElement = AndroidConversionUtil.findAndroidFacetConfigurationElement(moduleSettings);
+    return confElement != null && AndroidConversionUtil.getOptionValue(confElement, PLATFORM_NAME_ATTRIBUTE) != null;
   }
 
   @Override
   public void process(ModuleSettings moduleSettings) throws CannotConvertException {
-    Element confElement = findAndroidFacetConfigurationElement(moduleSettings);
+    Element confElement = AndroidConversionUtil.findAndroidFacetConfigurationElement(moduleSettings);
     assert confElement != null;
 
-    Element platformNameElement = getOptionElement(confElement, PLATFORM_NAME_ATTRIBUTE);
-    String platformName = platformNameElement != null ? platformNameElement.getAttributeValue(OPTION_VALUE_ATTRIBUTE) : null;
+    Element platformNameElement = AndroidConversionUtil.getOptionElement(confElement, PLATFORM_NAME_ATTRIBUTE);
+    String platformName = platformNameElement != null ? platformNameElement.getAttributeValue(AndroidConversionUtil.OPTION_VALUE_ATTRIBUTE) : null;
 
     if (platformName == null) return;
 
@@ -95,42 +87,6 @@ public class AndroidModuleConverter1 extends ConversionProcessor<ModuleSettings>
     }
   }
 
-  @Nullable
-  private static Element findAndroidFacetConfigurationElement(ModuleSettings moduleSettings) {
-    if (moduleSettings != null) {
-      AndroidFacetType facetType = AndroidFacet.getFacetType();
-      if (facetType != null) {
-        final Collection<? extends Element> facetElements = moduleSettings.getFacetElements(facetType.getStringId());
-        if (!facetElements.isEmpty()) {
-          return facetElements.iterator().next().getChild("configuration");
-        }
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  private static String getOptionValue(@NotNull Element facetElement, @NotNull String optionName) {
-    Element element = getOptionElement(facetElement, optionName);
-    return element != null ? element.getAttributeValue(OPTION_VALUE_ATTRIBUTE) : null;
-  }
-
-  @Nullable
-  private static Element getOptionElement(Element facetElement, String optionName) {
-    Element e = null;
-    for (Element optionElement : getChildren(facetElement, "option")) {
-      if (optionName.equals(optionElement.getAttributeValue("name"))) {
-        return optionElement;
-      }
-    }
-    return e;
-  }
-
-  private static Element[] getChildren(@NotNull Element parent, @NotNull String name) {
-    final List<?> children = parent.getChildren(name);
-    return children.toArray(new Element[children.size()]);
-  }
-
   private static void addNewDependency(ModuleSettings moduleSettings, @NotNull String jdkName) {
     Element moduleManagerElement = moduleSettings.getComponentElement(ModuleSettings.MODULE_ROOT_MANAGER_COMPONENT);
     if (moduleManagerElement != null) {
@@ -145,7 +101,7 @@ public class AndroidModuleConverter1 extends ConversionProcessor<ModuleSettings>
   private static void removeOldDependencies(ModuleSettings moduleSettings, @NotNull String libName) {
     Element moduleManagerElement = moduleSettings.getComponentElement(ModuleSettings.MODULE_ROOT_MANAGER_COMPONENT);
     if (moduleManagerElement != null) {
-      for (Element entryElement : getChildren(moduleManagerElement, OrderEntryFactory.ORDER_ENTRY_ELEMENT_NAME)) {
+      for (Element entryElement : moduleManagerElement.getChildren(OrderEntryFactory.ORDER_ENTRY_ELEMENT_NAME)) {
 
         if (libName.equals(entryElement.getAttributeValue("name")) &&
             "library".equals(entryElement.getAttributeValue("type")) &&

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="ArtifactManager">
+  <artifact type="apk" name="artifact6">
+    <output-path>$PROJECT_DIR$/out/artifacts/artifact1</output-path>
+    <properties id="android-properties">
+      <options />
+    </properties>
+    <root id="archive" name="artifact1.apk">
+      <element id="android-final-package" facet="module1/android/Android" />
+    </root>
+  </artifact>
+</component>
+

@@ -31,8 +31,10 @@ import javax.swing.*;
  */
 public class AndroidFacetType extends FacetType<AndroidFacet, AndroidFacetConfiguration> {
 
+  public static final String TYPE_ID = "android";
+
   public AndroidFacetType() {
-    super(AndroidFacet.ID, "android", "Android");
+    super(AndroidFacet.ID, TYPE_ID, "Android");
   }
 
 

@@ -65,7 +65,9 @@ import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
@@ -861,5 +863,21 @@ public class AndroidUtils {
         collectModules(otherModule, result, allModules);
       }
     }
+  }
+
+  @NotNull
+  public static List<String> urlsToOsPaths(@NotNull List<String> urls, @Nullable String sdkHomeCanonicalPath) {
+    if (urls.isEmpty()) {
+      return Collections.emptyList();
+    }
+    final List<String> result = new ArrayList<String>(urls.size());
+
+    for (String url : urls) {
+      if (sdkHomeCanonicalPath != null) {
+        url = StringUtil.replace(url, AndroidCommonUtils.SDK_HOME_MACRO, sdkHomeCanonicalPath);
+      }
+      result.add(FileUtil.toSystemDependentName(VfsUtilCore.urlToPath(url)));
+    }
+    return result;
   }
 }
