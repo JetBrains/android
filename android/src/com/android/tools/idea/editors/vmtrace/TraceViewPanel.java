@@ -18,6 +18,8 @@ package com.android.tools.idea.editors.vmtrace;
 
 import com.android.tools.perflib.vmtrace.*;
 import com.android.tools.perflib.vmtrace.viz.TraceViewCanvas;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import com.intellij.find.editorHeaderActions.Utils;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.DataKey;
@@ -26,6 +28,7 @@ import com.intellij.openapi.editor.impl.EditorHeaderComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.IdeFocusManager;
+import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBLabel;
@@ -93,7 +96,7 @@ public class TraceViewPanel {
       @Override
       public void actionPerformed(ActionEvent e) {
         if (e.getSource() == myThreadCombo) {
-          myTraceViewCanvas.displayThread((String)myThreadCombo.getSelectedItem());
+          myTraceViewCanvas.displayThread((ThreadInfo)myThreadCombo.getSelectedItem());
         } else if (e.getSource() == myRenderClockSelectorCombo) {
           myTraceViewCanvas.setRenderClock(getCurrentRenderClock());
         }
@@ -149,7 +152,8 @@ public class TraceViewPanel {
       return;
     }
 
-    SearchResult results = myTraceData.searchFor(pattern, (String)myThreadCombo.getSelectedItem());
+    ThreadInfo thread = (ThreadInfo)myThreadCombo.getSelectedItem();
+    SearchResult results = myTraceData.searchFor(pattern, thread);
     myTraceViewCanvas.setHighlightMethods(results.getMethods());
 
     String result = String.format("%1$d %2$s, %3$d %4$s",
@@ -163,41 +167,35 @@ public class TraceViewPanel {
   public void setTrace(@NotNull VmTraceData trace) {
     myTraceData = trace;
 
-    List<String> threadNames = getThreadsWithTraces(trace);
-    String defaultThread = getDefaultThreadName(threadNames);
+    List<ThreadInfo> threads = trace.getThreads(true);
+    if (threads.isEmpty()) {
+      return;
+    }
+
+    ThreadInfo defaultThread = Iterables.find(threads, new Predicate<ThreadInfo>() {
+      @Override
+      public boolean apply(ThreadInfo input) {
+        return MAIN_THREAD_NAME.equals(input.getName());
+      }
+    }, threads.get(0));
+
     myTraceViewCanvas.setTrace(trace, defaultThread, getCurrentRenderClock());
-    myThreadCombo.setModel(new DefaultComboBoxModel(threadNames.toArray()));
-    myThreadCombo.setSelectedIndex(threadNames.indexOf(defaultThread));
+    myThreadCombo.setModel(new DefaultComboBoxModel(threads.toArray()));
+    myThreadCombo.setSelectedItem(defaultThread);
+    myThreadCombo.setRenderer(new ColoredListCellRenderer() {
+      @Override
+      protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+        String name = value instanceof ThreadInfo ? ((ThreadInfo)value).getName() : value.toString();
+        append(name);
+      }
+    });
 
     myThreadCombo.setEnabled(true);
     myRenderClockSelectorCombo.setEnabled(true);
   }
 
-  @NotNull
-  private String getDefaultThreadName(@NotNull List<String> threadNames) {
-    if (threadNames.isEmpty()) {
-      return "";
-    }
-
-    // default to displaying info from main thread
-    return threadNames.contains(MAIN_THREAD_NAME) ? MAIN_THREAD_NAME : threadNames.get(0);
-  }
-
   private ClockType getCurrentRenderClock() {
     return ourRenderClockTypes[myRenderClockSelectorCombo.getSelectedIndex()];
-  }
-
-  private static List<String> getThreadsWithTraces(@NotNull VmTraceData trace) {
-    Collection<ThreadInfo> threads = trace.getThreads();
-    List<String> threadNames = new ArrayList<String>(threads.size());
-
-    for (ThreadInfo thread : threads) {
-      Call topLevelCall = thread.getTopLevelCall();
-      if (topLevelCall != null) {
-        threadNames.add(thread.getName());
-      }
-    }
-    return threadNames;
   }
 
   @NotNull
