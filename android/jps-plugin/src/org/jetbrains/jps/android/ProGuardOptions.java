@@ -1,28 +1,22 @@
 package org.jetbrains.jps.android;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * @author Eugene.Kudelevsky
  */
 public class ProGuardOptions {
-  private final File myCfgFile;
-  private final boolean myIncludeSystemCfgFile;
+  private final List<File> myCfgFiles;
 
-  public ProGuardOptions(@Nullable File cfgFile, boolean includeSystemCfgFile) {
-    myCfgFile = cfgFile;
-    myIncludeSystemCfgFile = includeSystemCfgFile;
+  public ProGuardOptions(@Nullable List<File> cfgFiles) {
+    myCfgFiles = cfgFiles;
   }
 
   @Nullable
-  public File getCfgFile() {
-    return myCfgFile;
-  }
-
-  public boolean isIncludeSystemCfgFile() {
-    return myIncludeSystemCfgFile;
+  public List<File> getCfgFiles() {
+    return myCfgFiles;
   }
 }

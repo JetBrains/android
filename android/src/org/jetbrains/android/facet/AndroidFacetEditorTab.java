@@ -46,11 +46,10 @@ import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.compiler.AndroidAptCompiler;
 import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
+import org.jetbrains.android.compiler.artifact.ProGuardConfigFilesPanel;
 import org.jetbrains.android.maven.AndroidMavenProvider;
 import org.jetbrains.android.maven.AndroidMavenUtil;
-import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -100,9 +99,6 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   private JBLabel myCustomKeystoreLabel;
   private JCheckBox myIncludeTestCodeAndCheckBox;
   private JBCheckBox myRunProguardCheckBox;
-  private JBLabel myProguardConfigFileLabel;
-  private TextFieldWithBrowseButton myProguardConfigFileTextField;
-  private JCheckBox myIncludeSystemProguardFileCheckBox;
   private JBCheckBox myIncludeAssetsFromLibraries;
   private JBCheckBox myUseCustomManifestPackage;
   private JTextField myCustomManifestPackageField;
@@ -111,6 +107,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   private JBTabbedPane myTabbedPane;
   private JBCheckBox myEnableManifestMerging;
   private JBCheckBox myPreDexEnabledCheckBox;
+  private ProGuardConfigFilesPanel myProGuardConfigFilesPanel;
 
   private static final String MAVEN_TAB_TITLE = "Maven";
   private final Component myMavenTabComponent;
@@ -127,7 +124,6 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     myAidlGenPathLabel.setLabelFor(myAidlGenPathField);
     myRGenPathLabel.setLabelFor(myRGenPathField);
     myCustomKeystoreLabel.setLabelFor(myCustomDebugKeystoreField);
-    myProguardConfigFileLabel.setLabelFor(myProguardConfigFileTextField);
 
     final AndroidFacet facet = (AndroidFacet)myContext.getFacet();
 
@@ -154,32 +150,10 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
                                                                                       AndroidAptCompiler.getCustomResourceDirForApt(facet),
                                                                                       false, null));
 
-    myProguardConfigFileTextField.getButton().addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        final String path = myProguardConfigFileTextField.getText().trim();
-        VirtualFile defaultFile = path != null && path.length() > 0
-                                  ? LocalFileSystem.getInstance().findFileByPath(path)
-                                  : null;
-
-        if (defaultFile == null) {
-          defaultFile = AndroidRootUtil.getMainContentRoot(facet);
-        }
-        final FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor();
-        final VirtualFile file = FileChooser.chooseFile(descriptor, myContentPanel, project, defaultFile);
-        if (file != null) {
-          myProguardConfigFileTextField.setText(FileUtil.toSystemDependentName(file.getPath()));
-        }
-      }
-    });
-
     myRunProguardCheckBox.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        final boolean enabled = myRunProguardCheckBox.isSelected();
-        myProguardConfigFileLabel.setEnabled(enabled);
-        myProguardConfigFileTextField.setEnabled(enabled);
-        myIncludeSystemProguardFileCheckBox.setEnabled(enabled);
+        myProGuardConfigFilesPanel.setEnabled(myRunProguardCheckBox.isSelected());
       }
     });
     
@@ -378,15 +352,10 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     if (myConfiguration.isIncludeAssetsFromLibraries() != myIncludeAssetsFromLibraries.isSelected()) {
       return true;
     }
-
-    if (checkRelativePath(myConfiguration.getState().PROGUARD_CFG_PATH, myProguardConfigFileTextField.getText())) {
-      return true;
-    }
-
     if (myConfiguration.getState().RUN_PROGUARD != myRunProguardCheckBox.isSelected()) {
       return true;
     }
-    if (myConfiguration.isIncludeSystemProguardCfgPath() != myIncludeSystemProguardFileCheckBox.isSelected()) {
+    if (!myProGuardConfigFilesPanel.getUrls().equals(myConfiguration.getState().myProGuardCfgFiles)) {
       return true;
     }
     if (myConfiguration.getState().USE_CUSTOM_MANIFEST_PACKAGE != myUseCustomManifestPackage.isSelected()) {
@@ -419,12 +388,6 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   @NotNull
   private String getSelectedCustomKeystorePath() {
     final String path = myCustomDebugKeystoreField.getText().trim();
-    return path.length() > 0 ? VfsUtil.pathToUrl(FileUtil.toSystemIndependentName(path)) : "";
-  }
-
-  @NotNull
-  private String getSelectedProguardConfigPath() {
-    final String path = myProguardConfigFileTextField.getText().trim();
     return path.length() > 0 ? VfsUtil.pathToUrl(FileUtil.toSystemIndependentName(path)) : "";
   }
 
@@ -537,22 +500,8 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
         }
       }
     }
-
-    String absProguardPath = myProguardConfigFileTextField.getText().trim();
-    if (absProguardPath.length() == 0) {
-      if (myRunProguardCheckBox.isSelected()) {
-        throw new ConfigurationException("Proguard config file path not specified");
-      }
-      else {
-        myConfiguration.getState().PROGUARD_CFG_PATH = "";
-      }
-    }
-    else {
-      myConfiguration.getState().PROGUARD_CFG_PATH = '/' + getAndCheckRelativePath(absProguardPath, false);
-    }
-
     myConfiguration.getState().RUN_PROGUARD = myRunProguardCheckBox.isSelected();
-    myConfiguration.setIncludeSystemProguardCfgPath(myIncludeSystemProguardFileCheckBox.isSelected());
+    myConfiguration.getState().myProGuardCfgFiles = myProGuardConfigFilesPanel.getUrls();
 
     boolean useCustomAptSrc = myUseCustomSourceDirectoryRadio.isSelected();
 
@@ -636,20 +585,10 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     myCustomDebugKeystoreField.setText(FileUtil.toSystemDependentName(
       VfsUtil.urlToPath(configuration.getState().CUSTOM_DEBUG_KEYSTORE_PATH)));
 
-    String proguardCfgRelPath = configuration.getState().PROGUARD_CFG_PATH;
-    String proguardCfgAbsPath = proguardCfgRelPath.length() > 0 ? toAbsolutePath(proguardCfgRelPath) : "";
-    myProguardConfigFileTextField.setText(proguardCfgAbsPath != null ? proguardCfgAbsPath : "");
-
     final boolean runProguard = configuration.getState().RUN_PROGUARD;
     myRunProguardCheckBox.setSelected(runProguard);
-    myProguardConfigFileLabel.setEnabled(runProguard);
-    myProguardConfigFileTextField.setEnabled(runProguard);
-    myIncludeSystemProguardFileCheckBox.setEnabled(runProguard);
-
-    myIncludeSystemProguardFileCheckBox.setSelected(configuration.isIncludeSystemProguardCfgPath());
-    final AndroidPlatform platform = configuration.getAndroidPlatform();
-    final int sdkToolsRevision = platform != null ? platform.getSdkData().getSdkToolsRevision() : -1;
-    myIncludeSystemProguardFileCheckBox.setVisible(AndroidCommonUtils.isIncludingInProguardSupported(sdkToolsRevision));
+    myProGuardConfigFilesPanel.setEnabled(runProguard);
+    myProGuardConfigFilesPanel.setUrls(configuration.getState().myProGuardCfgFiles);
 
     myUseCustomSourceDirectoryRadio.setSelected(configuration.getState().USE_CUSTOM_APK_RESOURCE_FOLDER);
     myUseAptResDirectoryFromPathRadio.setSelected(!configuration.getState().USE_CUSTOM_APK_RESOURCE_FOLDER);
@@ -720,7 +659,13 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   }
 
   private void createUIComponents() {
-    // TODO: place custom component creation code here
+    myProGuardConfigFilesPanel = new ProGuardConfigFilesPanel() {
+      @Nullable
+      @Override
+      protected AndroidFacet getFacet() {
+        return (AndroidFacet)myContext.getFacet();
+      }
+    };
   }
 
   private class MyGenSourceFieldListener implements ActionListener {

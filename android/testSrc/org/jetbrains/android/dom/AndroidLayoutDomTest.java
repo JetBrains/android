@@ -7,6 +7,7 @@ import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.documentation.DocumentationManager;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.lookup.LookupElement;
+import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.codeInsight.lookup.LookupEx;
 import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.openapi.application.ApplicationManager;
@@ -19,13 +20,16 @@ import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.util.ThrowableRunnable;
+import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author coyote
@@ -408,6 +412,37 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
 
   public void testTagNameCompletion11() throws Throwable {
     toTestCompletion("tn11.xml", "tn11_after.xml");
+  }
+
+  public void testTagNameIcons1() throws Throwable {
+    doTestTagNameIcons("tn10.xml");
+  }
+
+  public void testTagNameIcons2() throws Throwable {
+    doTestTagNameIcons("tn12.xml");
+  }
+
+  private void doTestTagNameIcons(String fileName) throws IOException {
+    VirtualFile file = copyFileToProject(fileName);
+    myFixture.configureFromExistingVirtualFile(file);
+    final LookupElement[] elements = myFixture.complete(CompletionType.BASIC);
+    final Set<String> elementsToCheck = new HashSet<String>(Arrays.asList(
+      "view", "include", "requestFocus", "fragment", "Button"));
+
+    for (LookupElement element : elements) {
+      final String s = element.getLookupString();
+      final Object obj = element.getObject();
+
+      if (elementsToCheck.contains(s)) {
+        LookupElementPresentation presentation = new LookupElementPresentation();
+        element.renderElement(presentation);
+        assertNotNull("no icon for element: " + element, presentation.getIcon());
+
+        if ("Button".equals(s)) {
+          assertInstanceOf(obj, PsiClass.class);
+        }
+      }
+    }
   }
 
   public void testIdCompletion1() throws Throwable {

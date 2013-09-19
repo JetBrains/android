@@ -43,8 +43,7 @@ import java.util.Set;
  */
 public class AndroidProguardCompiler implements ClassPostProcessingCompiler {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.compiler.AndroidProguardCompiler");
-  public static Key<String> PROGUARD_CFG_PATH_KEY = Key.create(AndroidCommonUtils.PROGUARD_CFG_PATH_OPTION);
-  public static Key<Boolean> INCLUDE_SYSTEM_PROGUARD_FILE = Key.create(AndroidCommonUtils.INCLUDE_SYSTEM_PROGUARD_FILE_OPTION);
+  public static Key<String> PROGUARD_CFG_PATHS_KEY = Key.create(AndroidCommonUtils.PROGUARD_CFG_PATHS_OPTION);
 
   @NotNull
   @Override
@@ -66,24 +65,32 @@ public class AndroidProguardCompiler implements ClassPostProcessingCompiler {
           if (proguardRunningOptions == null) {
             continue;
           }
-          final String proguardCfgPath = proguardRunningOptions.getProguardCfgFile();
+          final List<String> proguardCfgPaths = proguardRunningOptions.getProguardCfgFiles();
 
-          if (proguardCfgPath == null || proguardCfgPath.length() == 0) {
+          if (proguardCfgPaths.size() == 0) {
             context
               .addMessage(CompilerMessageCategory.ERROR, "Proguard config file path is not specified for module " + module.getName(), null,
                           -1, -1);
             continue;
           }
+          final List<VirtualFile> proguardConfigFiles = new ArrayList<VirtualFile>();
+          boolean proguardCfgNotFound = false;
 
-          final VirtualFile proguardConfigFile =
-            LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(proguardCfgPath));
-          if (proguardConfigFile == null) {
-            context.addMessage(CompilerMessageCategory.ERROR, "Cannot find file " + proguardCfgPath, null, -1, -1);
+          for (String proguardCfgPath : proguardCfgPaths) {
+            final VirtualFile proguardConfigFile =
+              LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(proguardCfgPath));
+
+            if (proguardConfigFile == null) {
+              context.addMessage(CompilerMessageCategory.ERROR, "Cannot find file " + proguardCfgPath, null, -1, -1);
+              proguardCfgNotFound = true;
+              break;
+            }
+            proguardConfigFiles.add(proguardConfigFile);
+          }
+
+          if (proguardCfgNotFound) {
             continue;
           }
-          final List<VirtualFile> proguardConfigFiles = new ArrayList<VirtualFile>();
-          proguardConfigFiles.add(proguardConfigFile);
-
           final CompilerModuleExtension extension = CompilerModuleExtension.getInstance(module);
           if (extension == null) {
             LOG.error("Cannot find compiler module extension for module " + module.getName());
@@ -107,7 +114,7 @@ public class AndroidProguardCompiler implements ClassPostProcessingCompiler {
           final AndroidPlatform platform = facet.getConfiguration().getAndroidPlatform();
           if (platform == null) {
             context.addMessage(CompilerMessageCategory.ERROR,
-                               AndroidBundle.message("android.compilation.error.specify.platform", module.getName()), null, -1, -1);
+                               AndroidBundle.message("android.compilation.proguardCfgNotFound.specify.platform", module.getName()), null, -1, -1);
             continue;
           }
 
@@ -147,7 +154,7 @@ public class AndroidProguardCompiler implements ClassPostProcessingCompiler {
           }
 
           items.add(new MyProcessingItem(module, sdkPath, platform.getTarget(), platform.getSdkData().getSdkToolsRevision(),
-                                         proguardConfigFiles, proguardRunningOptions.isIncludeSystemProguardFile(), outputJarOsPath,
+                                         proguardConfigFiles, false, outputJarOsPath,
                                          classFilesDir, classFilesDirs.toArray(new VirtualFile[classFilesDirs.size()]),
                                          libClassFilesDirs.toArray(new VirtualFile[libClassFilesDirs.size()]),
                                          externalJars.toArray(new VirtualFile[externalJars.size()]), logsDirOsPath));
@@ -203,8 +210,7 @@ public class AndroidProguardCompiler implements ClassPostProcessingCompiler {
         final Map<CompilerMessageCategory, List<String>> messages = AndroidCompileUtil.toCompilerMessageCategoryKeys(
           AndroidCommonUtils.launchProguard(processingItem.getTarget(), processingItem.getSdkToolsRevision(),
                                             processingItem.getSdkOsPath(), javaExecutablePath, "", proguardCfgOsPaths,
-                                            processingItem.isIncludeSystemProguardFile(), inputJarOsPath, externalJarOsPaths,
-                                            processingItem.getOutputJarOsPath(), logsDirOsPath));
+                                            inputJarOsPath, externalJarOsPaths, processingItem.getOutputJarOsPath(), logsDirOsPath));
 
         CompilerUtil.refreshIOFile(new File(processingItem.getOutputJarOsPath()));
 

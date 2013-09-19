@@ -53,8 +53,7 @@ public class AndroidProGuardStateStorage implements StorageOwner {
           final long timestamp = input.readLong();
           cfgFiles.put(path, timestamp);
         }
-        final boolean includeSystemProGuardFile = input.readBoolean();
-        return new MyState(cfgFiles, includeSystemProGuardFile);
+        return new MyState(cfgFiles);
       }
       finally {
         input.close();
@@ -84,7 +83,6 @@ public class AndroidProGuardStateStorage implements StorageOwner {
             output.writeUTF(path);
             output.writeLong(timestamp);
           }
-          output.writeBoolean(state.myIncludeSystemProGuardFile);
         }
       }
       finally {
@@ -98,20 +96,17 @@ public class AndroidProGuardStateStorage implements StorageOwner {
 
   public static class MyState {
     private final Map<String, Long> myProGuardConfigFiles;
-    private final boolean myIncludeSystemProGuardFile;
 
-    public MyState(@NotNull File[] proGuardCfgFiles, boolean includeSystemProGuardFile) {
+    public MyState(@NotNull File[] proGuardCfgFiles) {
       myProGuardConfigFiles = new HashMap<String, Long>();
 
       for (File file : proGuardCfgFiles) {
         myProGuardConfigFiles.put(file.getPath(), file.lastModified());
       }
-      myIncludeSystemProGuardFile = includeSystemProGuardFile;
     }
 
-    private MyState(@NotNull Map<String, Long> proGuardConfigFiles, boolean includeSystemProGuardFile) {
+    private MyState(@NotNull Map<String, Long> proGuardConfigFiles) {
       myProGuardConfigFiles = proGuardConfigFiles;
-      myIncludeSystemProGuardFile = includeSystemProGuardFile;
     }
 
     @Override
@@ -121,7 +116,6 @@ public class AndroidProGuardStateStorage implements StorageOwner {
 
       MyState state = (MyState)o;
 
-      if (myIncludeSystemProGuardFile != state.myIncludeSystemProGuardFile) return false;
       if (!myProGuardConfigFiles.equals(state.myProGuardConfigFiles)) return false;
 
       return true;
@@ -129,9 +123,7 @@ public class AndroidProGuardStateStorage implements StorageOwner {
 
     @Override
     public int hashCode() {
-      int result = myProGuardConfigFiles.hashCode();
-      result = 31 * result + (myIncludeSystemProGuardFile ? 1 : 0);
-      return result;
+      return myProGuardConfigFiles.hashCode();
     }
   }
 }

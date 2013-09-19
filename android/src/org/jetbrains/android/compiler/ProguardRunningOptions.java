@@ -1,25 +1,21 @@
 package org.jetbrains.android.compiler;
 
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 /**
  * @author Eugene.Kudelevsky
  */
 public class ProguardRunningOptions {
-  private final String myProguardCfgFile;
-  private final boolean myIncludeSystemProguardFile;
+  private final List<String> myProguardCfgFiles;
 
-  public ProguardRunningOptions(@Nullable String proguardCfgFile, boolean includeSystemProguardFile) {
-    myProguardCfgFile = proguardCfgFile;
-    myIncludeSystemProguardFile = includeSystemProguardFile;
+  public ProguardRunningOptions(@NotNull List<String> proguardCfgFiles) {
+    myProguardCfgFiles = proguardCfgFiles;
   }
 
-  @Nullable
-  public String getProguardCfgFile() {
-    return myProguardCfgFile;
-  }
-
-  public boolean isIncludeSystemProguardFile() {
-    return myIncludeSystemProguardFile;
+  @NotNull
+  public List<String> getProguardCfgFiles() {
+    return myProguardCfgFiles;
   }
 }

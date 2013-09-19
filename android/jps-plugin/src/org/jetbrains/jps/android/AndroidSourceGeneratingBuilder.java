@@ -1542,7 +1542,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
       final boolean runProGuard = p.isRunProGuard();
 
       return runProGuard
-             ? new Object[]{runProGuard, p.getProGuardCfgFileUrl(), p.isIncludeSystemProGuardCfgFile()}
+             ? new Object[]{runProGuard, p.getProGuardCfgFiles()}
              : new Object[]{runProGuard};
     }
     return ArrayUtil.EMPTY_OBJECT_ARRAY;

@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.Collections;
 
 /**
  * @author Eugene.Kudelevsky
@@ -172,9 +173,9 @@ public class AndroidLintTest extends AndroidTestCase {
 
   public void testProguard() throws Exception {
     createManifest();
-    myFixture.copyFileToProject(getGlobalTestDir() + "/proguard.cfg", "proguard.cfg");
+    final VirtualFile proguardCfgPath = myFixture.copyFileToProject(getGlobalTestDir() + "/proguard.cfg", "proguard.cfg");
     myFacet.getProperties().RUN_PROGUARD = true;
-    myFacet.getProperties().PROGUARD_CFG_PATH = "/proguard.cfg";
+    myFacet.getProperties().myProGuardCfgFiles = Collections.singletonList(proguardCfgPath.getUrl());
 
     doGlobalInspectionTest(new AndroidLintInspectionToolProvider.AndroidLintProguardInspection());
   }

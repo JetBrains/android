@@ -1,18 +1,22 @@
 package org.jetbrains.android.augment;
 
 import com.intellij.facet.ProjectFacetManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.reference.SoftReference;
+import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.AndroidSdkResolveScopeProvider;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -22,6 +26,26 @@ public class AndroidPsiElementFinder extends PsiElementFinder {
   public static final String INTERNAL_PACKAGE_QNAME = "com.android.internal";
   public static final String INTERNAL_R_CLASS_QNAME = INTERNAL_PACKAGE_QNAME + ".R";
   private final Object myLock = new Object();
+
+  private final Map<Sdk, SoftReference<PsiClass>> myInternalRClasses = new HashMap<Sdk, SoftReference<PsiClass>>();
+
+  public AndroidPsiElementFinder(@NotNull Project project) {
+    ApplicationManager.getApplication().getMessageBus().connect(project)
+      .subscribe(ProjectJdkTable.JDK_TABLE_TOPIC, new ProjectJdkTable.Listener() {
+      @Override
+      public void jdkAdded(final Sdk sdk) {
+      }
+
+      @Override
+      public void jdkRemoved(final Sdk sdk) {
+        myInternalRClasses.remove(sdk);
+      }
+
+      @Override
+      public void jdkNameChanged(final Sdk sdk, final String previousName) {
+      }
+    });
+  }
 
   @Nullable
   @Override
@@ -57,7 +81,7 @@ public class AndroidPsiElementFinder extends PsiElementFinder {
     return rClass.findInnerClassByName(shortName, false);
   }
 
-  private static PsiClass getAndroidInternalRClass(Project project, AndroidSdkResolveScopeProvider.MyJdkScope scope) {
+  private PsiClass getAndroidInternalRClass(Project project, AndroidSdkResolveScopeProvider.MyJdkScope scope) {
     final Sdk sdk = scope.getJdkOrderEntry().getJdk();
 
     if (sdk == null) {
@@ -68,12 +92,11 @@ public class AndroidPsiElementFinder extends PsiElementFinder {
     if (platform == null) {
       return null;
     }
-    final AndroidSdkData sdkData = platform.getSdkData();
-    PsiClass internalRClass = sdkData.getInternalRClass();
+    PsiClass internalRClass = SoftReference.dereference(myInternalRClasses.get(sdk));
 
     if (internalRClass == null) {
       internalRClass = new AndroidInternalRClass(PsiManager.getInstance(project), platform);
-      sdkData.setInternalRClass(internalRClass);
+      myInternalRClasses.put(sdk, new SoftReference<PsiClass>(internalRClass));
     }
     return internalRClass;
   }

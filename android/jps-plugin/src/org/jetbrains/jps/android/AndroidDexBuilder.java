@@ -119,7 +119,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
     final ProGuardOptions proGuardOptions = AndroidJpsUtil.getProGuardConfigIfShouldRun(context, extension);
 
     if (proGuardOptions != null) {
-      if (proGuardOptions.getCfgFile() == null) {
+      if (proGuardOptions.getCfgFiles() == null) {
         context.processMessage(new CompilerMessage(DEX_BUILDER_NAME, BuildMessage.Kind.ERROR,
                                                    AndroidJpsBundle
                                                      .message("android.jps.errors.cannot.find.proguard.cfg", module.getName())));
@@ -138,15 +138,19 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
 
     try {
       if (proGuardOptions != null) {
-        final String[] proguardCfgFilePaths = new String[]{
-          proGuardOptions.getCfgFile().getAbsolutePath(),
-          proguardCfgOutputFile.getPath()};
+        final List<String> proguardCfgFilePathsList = new ArrayList<String>();
+
+        for (File file : proGuardOptions.getCfgFiles()) {
+          proguardCfgFilePathsList.add(file.getAbsolutePath());
+        }
+        proguardCfgFilePathsList.add(proguardCfgOutputFile.getPath());
+        final String[] proguardCfgFilePaths = ArrayUtil.toStringArray(proguardCfgFilePathsList);
         final String outputJarPath =
           FileUtil.toSystemDependentName(dexOutputDir.getPath() + '/' + AndroidCommonUtils.PROGUARD_OUTPUT_JAR_NAME);
 
         final Pair<Boolean, AndroidProGuardStateStorage.MyState> pair = runProguardIfNecessary(
           extension, target, platform, context, outputJarPath, proguardCfgFilePaths,
-          proGuardOptions.isIncludeSystemCfgFile(), hasDirtyFiles, oldProGuardState);
+          hasDirtyFiles, oldProGuardState);
 
         if (pair == null) {
           // error reported
@@ -378,7 +382,6 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
                          @NotNull CompileContext context,
                          @NotNull String outputJarPath,
                          @NotNull String[] proguardCfgPaths,
-                         boolean includeSystemProguardCfg,
                          boolean hasDirtyFiles,
                          @Nullable AndroidProGuardStateStorage.MyState oldState)
     throws IOException {
@@ -410,7 +413,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
     final String logsDirOsPath =
           FileUtil.toSystemDependentName(mainContentRoot.getPath() + '/' + AndroidCommonUtils.DIRECTORY_FOR_LOGS_NAME);
     final AndroidProGuardStateStorage.MyState newState = new AndroidProGuardStateStorage.MyState(
-      proguardCfgFiles, includeSystemProguardCfg);
+      proguardCfgFiles);
 
     if (!hasDirtyFiles && newState.equals(oldState)) {
       return Pair.create(false, null);
@@ -477,8 +480,8 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
 
     final Map<AndroidCompilerMessageKind, List<String>> messages =
       AndroidCommonUtils.launchProguard(platform.getTarget(), platform.getSdkToolsRevision(), platform.getSdk().getHomePath(),
-                                        javaExecutable, proguardVmOptions, proguardCfgPaths, includeSystemProguardCfg, inputJarOsPath,
-                                        externalJarOsPaths, outputJarPath, logsDirOsPath);
+                                        javaExecutable, proguardVmOptions, proguardCfgPaths, inputJarOsPath, externalJarOsPaths,
+                                        outputJarPath, logsDirOsPath);
     AndroidJpsUtil.addMessages(context, messages, PRO_GUARD_BUILDER_NAME, module.getName());
     return messages.get(AndroidCompilerMessageKind.ERROR).isEmpty()
            ? Pair.create(true, newState) : null;

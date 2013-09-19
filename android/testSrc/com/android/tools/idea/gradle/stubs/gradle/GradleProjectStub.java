@@ -18,13 +18,12 @@ package com.android.tools.idea.gradle.stubs.gradle;
 import com.google.common.collect.Lists;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
-import org.gradle.tooling.model.GradleScript;
 import org.gradle.tooling.model.GradleTask;
+import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.List;
 
 public class GradleProjectStub implements GradleProject {
