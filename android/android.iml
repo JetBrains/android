@@ -69,6 +69,7 @@
     <orderEntry type="library" name="gson" level="project" />
     <orderEntry type="module" module-name="jetgroovy" />
     <orderEntry type="module" module-name="perflib" />
+    <orderEntry type="library" name="swingx" level="project" />
   </component>
 </module>
 
