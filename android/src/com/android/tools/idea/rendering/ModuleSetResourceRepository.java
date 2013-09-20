@@ -191,7 +191,22 @@ public final class ModuleSetResourceRepository extends MultiResourceRepository {
   private static void addGradleLibraries(List<AndroidLibrary> list, AndroidFacet facet) {
     IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
     if (gradleProject != null) {
-      list.addAll(gradleProject.getSelectedVariant().getMainArtifactInfo().getDependencies().getLibraries());
+      List<AndroidLibrary> libraries = gradleProject.getSelectedVariant().getMainArtifactInfo().getDependencies().getLibraries();
+      Set<File> unique = Sets.newHashSet();
+      for (AndroidLibrary library : libraries) {
+        addGradleLibrary(list, library, unique);
+      }
+    }
+  }
+
+  private static void addGradleLibrary(List<AndroidLibrary> list, AndroidLibrary library, Set<File> unique) {
+    File folder = library.getFolder();
+    if (!unique.add(folder)) {
+      return;
+    }
+    list.add(library);
+    for (AndroidLibrary dependency : library.getLibraryDependencies()) {
+      addGradleLibrary(list, dependency, unique);
     }
   }
 

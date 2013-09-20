@@ -20,6 +20,7 @@ import com.android.builder.model.ArtifactInfo;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.util.io.FileUtil;
 import org.gradle.tooling.model.idea.*;
@@ -29,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import static com.android.SdkConstants.DOT_AAR;
 import static com.android.SdkConstants.FD_RES;
@@ -109,6 +111,7 @@ public abstract class Dependency {
   private static void populate(@NotNull DependencySet dependencies, @NotNull ArtifactInfo artifactInfo, @NotNull DependencyScope scope) {
     populate(dependencies, artifactInfo.getDependencies().getJars(), scope);
 
+    Set<File> unique = Sets.newHashSet();
     for (AndroidLibrary lib : artifactInfo.getDependencies().getLibraries()) {
       ModuleDependency mainDependency = null;
       String gradleProjectPath = lib.getProject();
@@ -117,28 +120,14 @@ public abstract class Dependency {
         mainDependency = new ModuleDependency(gradleProjectPath, scope);
         dependencies.add(mainDependency);
       }
-      File jar = lib.getJarFile();
-      File aar = jar.getParentFile();
-      String name = aar != null ? aar.getName() : FileUtil.getNameWithoutExtension(jar);
       if (mainDependency == null) {
-        LibraryDependency dependency = new LibraryDependency(name, scope);
-        dependency.addPath(LibraryDependency.PathType.BINARY, jar);
-        dependencies.add(dependency);
-
-        // The model does not yet provide pointers to resources in AAR files, so
-        // manually look for them where they are known to be and add them manually
-        if (aar != null && aar.getName().endsWith(DOT_AAR)) {
-          File res = new File(aar, FD_RES);
-          if (res.exists()) {
-            dependency.addPath(LibraryDependency.PathType.BINARY, res);
-          }
-        }
+        addLibrary(lib, dependencies, scope, unique);
       }
       else {
         // add the aar as dependency in case there is a module dependency that cannot be satisfied (e.g. the module is outside of the
         // project.) If we cannot set the module dependency, we set a library dependency instead.
-        LibraryDependency backupDependency = new LibraryDependency(name);
-        backupDependency.addPath(LibraryDependency.PathType.BINARY, jar);
+        LibraryDependency backupDependency = new LibraryDependency(getLibraryName(lib));
+        backupDependency.addPath(LibraryDependency.PathType.BINARY, lib.getJarFile());
         //noinspection TestOnlyProblems
         mainDependency.setBackupDependency(backupDependency);
       }
@@ -152,6 +141,43 @@ public abstract class Dependency {
         ModuleDependency dependency = new ModuleDependency(gradleProjectPath, scope);
         dependencies.add(dependency);
       }
+    }
+  }
+
+  private static String getLibraryName(@NotNull AndroidLibrary library) {
+    File jar = library.getJarFile();
+    File aar = jar.getParentFile();
+    return aar != null ? aar.getName() : FileUtil.getNameWithoutExtension(jar);
+  }
+
+  /** Add a library, along with any recursive library dependencies */
+  private static void addLibrary(@NotNull AndroidLibrary library, @NotNull DependencySet dependencies, @NotNull DependencyScope scope,
+                                 @NotNull Set<File> unique) {
+    // We're using the library location as a unique handle rather than the AndroidLibrary instance itself, in case
+    // the model just blindly manufactures library instances as it's following dependencies
+    File folder = library.getFolder();
+    if (unique.contains(folder)) {
+      return;
+    }
+    unique.add(folder);
+
+    LibraryDependency dependency = new LibraryDependency(getLibraryName(library), scope);
+    File jar = library.getJarFile();
+    dependency.addPath(LibraryDependency.PathType.BINARY, jar);
+    dependencies.add(dependency);
+
+    // The model does not yet provide pointers to resources in AAR files, so
+    // manually look for them where they are known to be and add them manually
+    File aar = jar.getParentFile();
+    if (aar != null && aar.getName().endsWith(DOT_AAR)) {
+      File res = new File(aar, FD_RES);
+      if (res.exists()) {
+        dependency.addPath(LibraryDependency.PathType.BINARY, res);
+      }
+    }
+
+    for (AndroidLibrary dependentLibrary : library.getLibraryDependencies()) {
+      addLibrary(dependentLibrary, dependencies, scope, unique);
     }
   }
 

@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 
 public class AndroidLibraryStub implements AndroidLibrary {
@@ -59,7 +60,7 @@ public class AndroidLibraryStub implements AndroidLibrary {
   @Override
   @NotNull
   public List<? extends AndroidLibrary> getLibraryDependencies() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyList();
   }
 
   @Override
