@@ -28,6 +28,8 @@ import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.HashSet;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -193,5 +195,24 @@ public class AndroidPlatform {
 
   public int getApiLevel() {
     return myTarget.getVersion().getApiLevel();
+  }
+
+  /** Looks up the platform for a given module */
+  @Nullable
+  public static AndroidPlatform getPlatform(Module module) {
+    if (AndroidFacet.getInstance(module) != null) {
+      Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
+      if (sdk == null) {
+        sdk = AndroidFacetConfiguration.findAndSetAndroidSdk(module);
+      }
+      if (sdk != null && sdk.getSdkType() instanceof AndroidSdkType) {
+        final AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+        if (additionalData != null) {
+          return additionalData.getAndroidPlatform();
+        }
+      }
+    }
+    return null;
+
   }
 }
