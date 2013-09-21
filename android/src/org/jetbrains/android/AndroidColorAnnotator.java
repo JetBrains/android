@@ -17,11 +17,15 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
+import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.configuration.DensityQualifier;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
@@ -32,7 +36,7 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
@@ -64,17 +68,22 @@ import java.awt.*;
 import java.io.File;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType;
 
 /**
  * Annotator which puts colors in the editor gutter for both color files, as well
  * as any XML resource that references a color attribute (\@color) or color literal (#AARRGGBBB),
  * or references it from Java code (R.color.name). It also previews small icons.
+ * <p>
+ * TODO: Use {@link com.android.ide.common.resources.ResourceItemResolver} when possible!
+ *
  */
 public class AndroidColorAnnotator implements Annotator {
   private static final int ICON_SIZE = 8;
   private static final String COLOR_PREFIX = "@color/";
   private static final String ANDROID_COLOR_PREFIX = "@android:color/";
   private static final String DRAWABLE_PREFIX = "@drawable/";
+  private static final int MAX_ICON_SIZE = 5000;
 
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
@@ -103,14 +112,17 @@ public class AndroidColorAnnotator implements Annotator {
         return;
       }
       annotateXml(element, holder, value);
-    } else if (element instanceof PsiReferenceExpression && AndroidPsiUtils.isResourceReference(element)) {
-      // (isResourceReference will return true for both "R.drawable.foo" and the foo literal leaf in the
-      // same expression, which would result in both elements getting annotated and the icon showing up
-      // in the gutter twice. Instead we only count the outer one.
-      ResourceType type = AndroidPsiUtils.getResourceType(element);
-      if (type == ResourceType.COLOR || type == ResourceType.DRAWABLE) {
-        String name = AndroidPsiUtils.getResourceName(element);
-        annotateResourceReference(type, holder, element, name, false);
+    } else if (element instanceof PsiReferenceExpression) {
+      ResourceReferenceType referenceType = AndroidPsiUtils.getResourceReferenceType(element);
+      if (referenceType != ResourceReferenceType.NONE) {
+        // (isResourceReference will return true for both "R.drawable.foo" and the foo literal leaf in the
+        // same expression, which would result in both elements getting annotated and the icon showing up
+        // in the gutter twice. Instead we only count the outer one.
+        ResourceType type = AndroidPsiUtils.getResourceType(element);
+        if (type == ResourceType.COLOR || type == ResourceType.DRAWABLE) {
+          String name = AndroidPsiUtils.getResourceName(element);
+          annotateResourceReference(type, holder, element, name, referenceType == ResourceReferenceType.FRAMEWORK);
+        }
       }
     }
   }
@@ -135,7 +147,7 @@ public class AndroidColorAnnotator implements Annotator {
     } else if (value.startsWith(DRAWABLE_PREFIX)) {
       annotateResourceReference(ResourceType.DRAWABLE, holder, element, value.substring(DRAWABLE_PREFIX.length()), false);
     } else if (value.startsWith(ANDROID_DRAWABLE_PREFIX)) {
-      annotateResourceReference(ResourceType.DRAWABLE, holder, element, value.substring(ANDROID_DRAWABLE_PREFIX.length()), false);
+      annotateResourceReference(ResourceType.DRAWABLE, holder, element, value.substring(ANDROID_DRAWABLE_PREFIX.length()), true);
     }
   }
 
@@ -239,34 +251,83 @@ public class AndroidColorAnnotator implements Annotator {
                                             @NotNull ResourceValue value,
                                             @NotNull ResourceResolver resourceResolver) {
     if (type == ResourceType.COLOR) {
-      Color color = ResourceHelper.resolveColor(resourceResolver, value);
+      Color color = ResourceHelper.resolveColor(resourceResolver, value, null);
       if (color != null) {
         Annotation annotation = holder.createInfoAnnotation(element, null);
         annotation.setGutterIconRenderer(new MyRenderer(element, color));
       }
     } else {
       assert type == ResourceType.DRAWABLE;
-      // TODO: Supported nested resolution, as is handled by ResourceHelper.resolveColor
-      // TODO: Pick the smallest resolution, if possible! E.g. if the theme resolver located
-      //    drawable-hdpi/foo.png, and drawable-mdpi/foo.png pick that one instead (and ditto
-      //    for -ldpi etc)
-      //    This is probably simplest by just iterating through the source files in the
-      //    ResourceItem if it's not a value alias
-      String path = value.getValue();
-      if (path != null && path.endsWith(DOT_PNG)) {
-        File iconFile = new File(path);
-        if (iconFile.exists()) {
-          // Try to find the smallest resolution of the same image
-          //String parentName = file.getParentFile().getName();
-          long length = iconFile.length();
-          if (length > 5000) { // Don't try to load large images
-            return;
+
+      File iconFile = pickBestBitmap(ResourceHelper.resolveDrawable(resourceResolver, value, null));
+      if (iconFile != null) {
+        Annotation annotation = holder.createInfoAnnotation(element, null);
+        annotation.setGutterIconRenderer(new com.android.tools.idea.rendering.GutterIconRenderer(element, iconFile));
+      }
+    }
+  }
+
+  @Nullable
+  private static File pickBestBitmap(@Nullable File bitmap) {
+    if (bitmap != null && bitmap.exists()) {
+      // Pick the smallest resolution, if possible! E.g. if the theme resolver located
+      // drawable-hdpi/foo.png, and drawable-mdpi/foo.png pick that one instead (and ditto
+      // for -ldpi etc)
+      File smallest = findSmallestDpiVersion(bitmap);
+      if (smallest != null) {
+        return smallest;
+      }
+
+      long length = bitmap.length();
+      if (length < MAX_ICON_SIZE) {
+        return bitmap;
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  private static File findSmallestDpiVersion(@NonNull File bitmap) {
+    File parentFile = bitmap.getParentFile();
+    if (parentFile == null) {
+      return null;
+    }
+    File resFolder = parentFile.getParentFile();
+    if (resFolder == null) {
+      return null;
+    }
+    String parentName = parentFile.getName();
+    FolderConfiguration config = FolderConfiguration.getConfigForFolder(parentName);
+    if (config == null) {
+      return null;
+    }
+    DensityQualifier qualifier = config.getDensityQualifier();
+    if (qualifier == null) {
+      return null;
+    }
+    Density density = qualifier.getValue();
+    if (density != null && density != Density.NODPI) {
+      String fileName = bitmap.getName();
+      Density[] densities = Density.values();
+      // Iterate in reverse, since the Density enum is in descending order
+      for (int i = densities.length - 1; i >= 0; i--) {
+        Density d = densities[i];
+        if (d != Density.NODPI) {
+          String folder = parentName.replace(density.getResourceValue(), d.getResourceValue());
+          bitmap = new File(resFolder, folder + File.separator + fileName);
+          if (bitmap.exists()) {
+            if (bitmap.length() > MAX_ICON_SIZE) {
+              // No point continuing the loop; the other densities will be too big too
+              return null;
+            }
+            return bitmap;
           }
-          Annotation annotation = holder.createInfoAnnotation(element, null);
-          annotation.setGutterIconRenderer(new com.android.tools.idea.rendering.GutterIconRenderer(element, iconFile));
         }
       }
     }
+
+    return null;
   }
 
   /** Looks up the resource item of the given type and name for the given configuration, if any */
@@ -341,7 +402,7 @@ public class AndroidColorAnnotator implements Annotator {
       return new AnAction() {
         @Override
         public void actionPerformed(AnActionEvent e) {
-          final Editor editor = PlatformDataKeys.EDITOR.getData(e.getDataContext());
+          final Editor editor = CommonDataKeys.EDITOR.getData(e.getDataContext());
           if (editor != null) {
             final Color color =
               ColorChooser.chooseColor(editor.getComponent(), AndroidBundle.message("android.choose.color"), getCurrentColor());
