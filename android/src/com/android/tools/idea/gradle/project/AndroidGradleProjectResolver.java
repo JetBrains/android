@@ -28,6 +28,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.execution.configurations.SimpleJavaParameters;
 import com.intellij.externalSystem.JavaProjectData;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
@@ -46,6 +48,7 @@ import com.intellij.openapi.util.KeyValue;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.net.HttpConfigurable;
+import org.gradle.tooling.BuildActionExecuter;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.UnknownModelException;
@@ -53,6 +56,7 @@ import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
 import org.gradle.tooling.model.UnsupportedMethodException;
+import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
@@ -60,8 +64,10 @@ import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.service.GradleInstallationManager;
 import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension;
+import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 import org.jetbrains.plugins.gradle.util.GradleUtil;
@@ -74,7 +80,8 @@ import java.util.*;
  * Imports Android-Gradle projects into IDEA.
  */
 public class AndroidGradleProjectResolver implements GradleProjectResolverExtension {
-  @NonNls private static final String ANDROID_TASK_NAME_PREFIX = "android";
+  private static final Logger LOG = Logger.getInstance(AndroidGradleProjectResolver.class);
+
   @NonNls private static final String COMPILE_JAVA_TASK_NAME = "compileJava";
   @NonNls private static final String CLASSES_TASK_NAME = "classes";
   @NonNls private static final String JAR_TASK_NAME = "jar";
@@ -123,12 +130,29 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
                                                   final boolean downloadLibraries,
                                                   @Nullable final GradleExecutionSettings settings,
                                                   @NotNull final ExternalSystemTaskNotificationListener listener) {
+    final List<String> extraJvmArgs = getExtraJvmArgs(projectPath, downloadLibraries);
+    if (supportsBuildActions(projectPath, settings)) {
+      LOG.info("Using single-pass project import");
+      return myHelper.execute(projectPath, settings, new Function<ProjectConnection, DataNode<ProjectData>>() {
+        @Nullable
+        @Override
+        public DataNode<ProjectData> fun(ProjectConnection connection) {
+          try {
+            //noinspection TestOnlyProblems
+            return resolveProjectInfoInSinglePass(id, projectPath, connection, listener, extraJvmArgs, settings);
+          }
+          catch (RuntimeException e) {
+            throw myErrorHandler.getUserFriendlyError(e, projectPath, null);
+          }
+        }
+      });
+    }
+    // TODO: remove after we support Gradle 1.8 or later only.
     return myHelper.execute(projectPath, settings, new Function<ProjectConnection, DataNode<ProjectData>>() {
       @Nullable
       @Override
       public DataNode<ProjectData> fun(ProjectConnection connection) {
         try {
-          List<String> extraJvmArgs = getExtraJvmArgs(projectPath, downloadLibraries);
           //noinspection TestOnlyProblems
           return resolveProjectInfo(id, projectPath, connection, listener, extraJvmArgs, settings);
         }
@@ -138,6 +162,84 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
       }
     });
   }
+
+  // TODO: remove after we support Gradle 1.8 or later only.
+  private static boolean supportsBuildActions(@NotNull String projectPath, @Nullable GradleExecutionSettings settings) {
+    if (settings == null) {
+      return false;
+    }
+    GradleInstallationManager gradleInstallation = ServiceManager.getService(GradleInstallationManager.class);
+    if (gradleInstallation == null) {
+      return false;
+    }
+    File gradleBuildFile = new File(projectPath, SdkConstants.FN_BUILD_GRADLE);
+    if (!gradleBuildFile.isFile()) {
+      return false;
+    }
+    DistributionType distributionType = settings.getDistributionType();
+    String linkedProjectPath = gradleBuildFile.getPath();
+    String gradleHome = settings.getGradleHome();
+    File gradleHomeDir = gradleInstallation.getGradleHome(distributionType, linkedProjectPath, gradleHome);
+    if (gradleHomeDir == null) {
+      return false;
+    }
+    String gradleVersion = GradleVersions.getGradleVersion(gradleHomeDir);
+    // Only 1.8 supports BuildActions.
+    return "1.8".equals(gradleVersion);
+  }
+
+  @VisibleForTesting
+  @Nullable
+  DataNode<ProjectData> resolveProjectInfoInSinglePass(@NotNull ExternalSystemTaskId id,
+                                                       @NotNull String projectPath,
+                                                       @NotNull ProjectConnection connection,
+                                                       @NotNull ExternalSystemTaskNotificationListener listener,
+                                                       @NotNull List<String> extraJvmArgs,
+                                                       @Nullable GradleExecutionSettings settings) {
+    BuildActionExecuter<ProjectImportAction.AllModels> action = connection.action(new ProjectImportAction());
+    GradleExecutionHelper.prepare(action, id, settings, listener, extraJvmArgs);
+    ProjectImportAction.AllModels allModels = action.run();
+    if (allModels == null) {
+      return null;
+    }
+    IdeaProject ideaProject = allModels.getIdeaProject();
+    String name = new File(projectPath).getName();
+    DataNode<ProjectData> projectInfo = createProjectInfo(projectPath, name);
+
+    for (IdeaModule module : ideaProject.getModules()) {
+      GradleScript buildScript = module.getGradleProject().getBuildScript();
+      if (buildScript == null || buildScript.getSourceFile() == null) {
+        continue;
+      }
+      File buildFile = buildScript.getSourceFile();
+      File moduleDir = buildFile.getParentFile();
+      String moduleDirPath = moduleDir.getPath();
+
+      IdeaGradleProject gradleProject = new IdeaGradleProject(module.getName(), module.getGradleProject().getPath());
+
+      AndroidProject androidProject = allModels.getAndroidProject(module);
+      if (androidProject != null) {
+        if (!GradleModelVersionCheck.isSupportedVersion(androidProject)) {
+          throw new IllegalStateException(UNSUPPORTED_MODEL_VERSION_ERROR);
+        }
+        createModuleInfo(module, androidProject, projectInfo, moduleDirPath, gradleProject);
+
+      } else if (isJavaLibrary(module.getGradleProject())) {
+        createModuleInfo(module, projectInfo, moduleDirPath, gradleProject);
+      }
+
+      else {
+        File gradleSettingsFile = new File(moduleDir, SdkConstants.FN_SETTINGS_GRADLE);
+        if (gradleSettingsFile.isFile()) {
+          // This is just a root folder for a group of Gradle projects. Set the Gradle project to null so the JPS builder won't try to
+          // compile it using Gradle. We still need to create the module to display files inside it.
+          createModuleInfo(module, projectInfo, moduleDirPath, null);
+        }
+      }
+    }
+    return projectInfo;
+  }
+
 
   @NotNull
   private static List<String> getExtraJvmArgs(@NotNull String projectPath, boolean downloadLibraries) {
@@ -150,7 +252,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
           args.add(arg);
         }
       }
-      List<KeyValue<String,String>> proxyProperties = HttpConfigurable.getJvmPropertiesList(false, null);
+      List<KeyValue<String, String>> proxyProperties = HttpConfigurable.getJvmPropertiesList(false, null);
       for (KeyValue<String, String> proxyProperty : proxyProperties) {
         String arg = AndroidGradleSettings.createJvmArg(proxyProperty.getKey(), proxyProperty.getValue());
         args.add(arg);
@@ -194,6 +296,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
    */
   @VisibleForTesting
   @Nullable
+  // TODO: remove after we support Gradle 1.8 or later only.
   DataNode<ProjectData> resolveProjectInfo(@NotNull ExternalSystemTaskId id,
                                            @NotNull String projectPath,
                                            @NotNull ProjectConnection connection,
@@ -229,7 +332,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
         continue;
       }
       String moduleDirPath = moduleDir.getPath();
-      if (isAndroidProject(module.getGradleProject())) {
+      if (ProjectImportAction.isAndroidProject(module)) {
         AndroidProject androidProject = getAndroidProject(id, moduleDirPath, gradleBuildFile, listener, extraJvmArgs, settings);
         if (androidProject == null || !GradleModelVersionCheck.isSupportedVersion(androidProject)) {
           throw new IllegalStateException(UNSUPPORTED_MODEL_VERSION_ERROR);
@@ -267,7 +370,8 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   private static Collection<String> getUnresolvedDependencies(@NotNull AndroidProject androidProject) {
     try {
       return androidProject.getUnresolvedDependencies();
-    } catch (UnsupportedMethodException e) {
+    }
+    catch (UnsupportedMethodException e) {
       // This happens when using an old but supported v0.5.+ plug-in. This code will be removed once the minimum supported version is 0.6.0.
       return Collections.emptySet();
     }
@@ -329,17 +433,6 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
         }
       }
     });
-  }
-
-  private static boolean isAndroidProject(@NotNull GradleProject gradleProject) {
-    // A Gradle project is an Android project is if has at least one task with name starting with 'android'.
-    for (GradleTask task : gradleProject.getTasks()) {
-      String taskName = task.getName();
-      if (taskName != null && taskName.startsWith(ANDROID_TASK_NAME_PREFIX)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   private static boolean isJavaLibrary(@NotNull GradleProject gradleProject) {
