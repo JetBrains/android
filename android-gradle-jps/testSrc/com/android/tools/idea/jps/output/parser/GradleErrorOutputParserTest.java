@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.jps.output.parser;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.jps.output.parser.aapt.AbstractAaptOutputParser;
 import com.google.common.base.Charsets;
 import com.google.common.io.Closeables;
@@ -36,6 +37,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
+import static com.android.SdkConstants.DOT_XML;
 import static com.android.ide.common.res2.MergedResourceWriter.createPathComment;
 
 /**
@@ -225,7 +227,7 @@ public class GradleErrorOutputParserTest extends TestCase {
   }
 
   private void createTempXmlFile() throws IOException {
-    createTempFile(".xml");
+    createTempFile(DOT_XML);
   }
 
   public void testParseJavaOutput1() throws IOException {
@@ -591,6 +593,66 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "> Found item String/drawer_open more than one time\n" +
                  "\t" + sourceFilePath + ":-1:-1\n",
                  toString(parser.parseErrorOutput(output)));
+  }
+
+  public void testDuplicateResources2() throws Exception {
+    File file1 = File.createTempFile(GradleErrorOutputParserTest.class.getName(), DOT_XML);
+    File file2 = File.createTempFile(GradleErrorOutputParserTest.class.getName(), DOT_XML);
+    String path1 = FileUtil.toSystemIndependentName(file1.getPath());
+    String path2 = FileUtil.toSystemIndependentName(file2.getPath());
+
+    Files.write(
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+      "<resources xmlns:ns1=\"urn:oasis:names:tc:xliff:document:1.2\">\n" +
+      "    <!-- This is just a comment: group2_string -->" +
+      "    <item name=\"group1\" type=\"id\"/>\n" +
+      "    <string name=\"group2_string\">Hello</string>\n" +
+      "\n" +
+      "</resources>\n", file1, Charsets.UTF_8);
+
+    Files.write(
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+      "<resources xmlns:ns1=\"urn:oasis:names:tc:xliff:document:1.2\">\n" +
+      "    <item type=\"string\" name=\"group2_string\">Hello</item>\n" +
+      "</resources>\n", file2, Charsets.UTF_8);
+
+    String output =
+      ":preBuild UP-TO-DATE\n" +
+      ":preF2FaDebugBuild UP-TO-DATE\n" +
+      ":prepareF2FaDebugDependencies\n" +
+      ":compileF2FaDebugRenderscript UP-TO-DATE\n" +
+      ":mergeF2FaDebugResources FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':mergeF2FaDebugResources'.\n" +
+      "> Duplicate resources: " + path1 + ":string/group2_string, " + path2 + ":string/group2_string\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 6.462 secs";
+
+    assertEquals("0: Info::preBuild UP-TO-DATE\n" +
+                 "1: Info::preF2FaDebugBuild UP-TO-DATE\n" +
+                 "2: Info::prepareF2FaDebugDependencies\n" +
+                 "3: Info::compileF2FaDebugRenderscript UP-TO-DATE\n" +
+                 "4: Info::mergeF2FaDebugResources FAILED\n" +
+                 "5: Gradle:Error:> Duplicate resources: " + path1 + ":string/group2_string, " + path2 + ":string/group2_string\n" +
+                 "\t" + path1 + ":4:-1\n" +
+                 "6: Gradle:Error:Other duplicate occurrence here\n" +
+                 "\t" + path2 + ":3:-1\n" +
+                 "7: Gradle:Error:Execution failed for task ':mergeF2FaDebugResources'.\n" +
+                 "\t" + path1 + ":4:-1\n" +
+                 "8: Info:BUILD FAILED\n" +
+                 "9: Info:Total time: 6.462 secs\n",
+                 toString(parser.parseErrorOutput(output)));
+
+    file1.delete();
+    file2.delete();
   }
 
   public void testUnexpectedOutput() throws Exception {
@@ -1057,5 +1119,34 @@ public class GradleErrorOutputParserTest extends TestCase {
     sourceFile.delete();
     source.delete();
     tempDir.delete();
+  }
+
+  public void testChangedFile() throws Exception {
+    createTempXmlFile();
+    String output =
+      ":MyApp:compileReleaseRenderscript UP-TO-DATE\n" +
+      ":MyApp:mergeReleaseResources FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':MyApp:mergeReleaseResources'.\n" +
+      "> In DataSet 'main', no data file for changedFile '" + sourceFilePath + "'\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 15.612 secs";
+
+    assertEquals("0: Info::MyApp:compileReleaseRenderscript UP-TO-DATE\n" +
+                 "1: Info::MyApp:mergeReleaseResources FAILED\n" +
+                 "2: Gradle:Error:Execution failed for task ':MyApp:mergeReleaseResources'.\n" +
+                 "> In DataSet 'main', no data file for changedFile '" + sourceFilePath + "'\n" +
+                 "\t" + sourceFilePath + ":-1:-1\n" +
+                 "3: Info:BUILD FAILED\n" +
+                 "4: Info:Total time: 15.612 secs\n", toString(parser.parseErrorOutput(output)));
+    sourceFile.delete();
   }
 }
