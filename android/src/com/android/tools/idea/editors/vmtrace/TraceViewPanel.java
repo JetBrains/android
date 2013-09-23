@@ -16,7 +16,12 @@
 
 package com.android.tools.idea.editors.vmtrace;
 
-import com.android.tools.perflib.vmtrace.*;
+import com.android.tools.idea.editors.vmtrace.treemodel.VmStatsTreeTableModel;
+import com.android.tools.idea.editors.vmtrace.treemodel.VmStatsTreeUtils;
+import com.android.tools.perflib.vmtrace.ClockType;
+import com.android.tools.perflib.vmtrace.SearchResult;
+import com.android.tools.perflib.vmtrace.ThreadInfo;
+import com.android.tools.perflib.vmtrace.VmTraceData;
 import com.android.tools.perflib.vmtrace.viz.TraceViewCanvas;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -30,9 +35,12 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.DocumentAdapter;
+import com.intellij.ui.JBSplitter;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.NonOpaquePanel;
+import com.intellij.ui.treeStructure.treetable.TreeTable;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,8 +50,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.text.BadLocationException;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public class TraceViewPanel {
@@ -63,17 +69,21 @@ public class TraceViewPanel {
 
   private JPanel myHeaderPanel;
   private TraceViewCanvas myTraceViewCanvas;
+  private TreeTable myTreeTable;
 
+  @SuppressWarnings("UnusedDeclaration") // custom creation only
   private JPanel myDefaultHeaderPanel;
   private JComboBox myThreadCombo;
   private JComboBox myRenderClockSelectorCombo;
 
+  @SuppressWarnings("UnusedDeclaration") // custom creation only
   private JPanel myFindPanel;
   private JPanel myFindFieldWrapper;
-  private final SearchTextField mySearchField;
+  private SearchTextField mySearchField;
   private JLabel myCloseLabel;
   private JBLabel myResultsLabel;
   private JLabel mySearchLabel;
+  private JBSplitter mySplitter;
 
   private static final String[] ourRenderClockOptions = new String[] {
     "Wall Clock Time",
@@ -85,6 +95,7 @@ public class TraceViewPanel {
     ClockType.THREAD,
   };
   private VmTraceData myTraceData;
+  private VmStatsTreeTableModel myVmStatsTreeTableModel;
 
   public TraceViewPanel(Project project) {
     myProject = project;
@@ -96,18 +107,18 @@ public class TraceViewPanel {
       @Override
       public void actionPerformed(ActionEvent e) {
         if (e.getSource() == myThreadCombo) {
-          myTraceViewCanvas.displayThread((ThreadInfo)myThreadCombo.getSelectedItem());
+          final ThreadInfo selectedThread = (ThreadInfo)myThreadCombo.getSelectedItem();
+          myTraceViewCanvas.displayThread(selectedThread);
+          myVmStatsTreeTableModel.setThread(selectedThread);
         } else if (e.getSource() == myRenderClockSelectorCombo) {
           myTraceViewCanvas.setRenderClock(getCurrentRenderClock());
+          myVmStatsTreeTableModel.setClockType(getCurrentRenderClock());
         }
       }
     };
 
     myThreadCombo.addActionListener(l);
     myRenderClockSelectorCombo.addActionListener(l);
-
-    mySearchField = createSearchField();
-    myFindFieldWrapper.add(mySearchField);
   }
 
   private SearchTextField createSearchField() {
@@ -192,6 +203,14 @@ public class TraceViewPanel {
 
     myThreadCombo.setEnabled(true);
     myRenderClockSelectorCombo.setEnabled(true);
+
+    myVmStatsTreeTableModel.setTraceData(trace, defaultThread);
+    myVmStatsTreeTableModel.setClockType(getCurrentRenderClock());
+    myTreeTable.setModel(myVmStatsTreeTableModel);
+
+    VmStatsTreeUtils.adjustTableColumnWidths(myTreeTable);
+    VmStatsTreeUtils.setCellRenderers(myTreeTable);
+    VmStatsTreeUtils.setSpeedSearch(myTreeTable);
   }
 
   private ClockType getCurrentRenderClock() {
@@ -222,10 +241,22 @@ public class TraceViewPanel {
 
     myFindPanel = new EditorHeaderComponent();
     myFindFieldWrapper = new NonOpaquePanel(new BorderLayout());
+    mySearchField = createSearchField();
+    myFindFieldWrapper.add(mySearchField);
+
     myCloseLabel = new JLabel(AllIcons.Actions.Cross);
     myCloseLabel.addMouseListener(l);
 
+    myVmStatsTreeTableModel = new VmStatsTreeTableModel();
+    myTreeTable = new TreeTable(myVmStatsTreeTableModel);
     myTraceViewCanvas = new TraceViewCanvasWrapper();
+    JBScrollPane scrollPane = new JBScrollPane(myTreeTable);
+
+    mySplitter = new JBSplitter(true, 0.75f);
+    mySplitter.setShowDividerControls(true);
+    mySplitter.setShowDividerIcon(true);
+    mySplitter.setFirstComponent(myTraceViewCanvas);
+    mySplitter.setSecondComponent(scrollPane);
   }
 
   public void showSearchComponent() {
