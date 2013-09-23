@@ -16,12 +16,14 @@
 
 package com.android.tools.idea.rendering;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.utils.HtmlBuilder;
+import com.android.utils.SdkUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.compiler.impl.javaCompiler.javac.JavacConfiguration;
@@ -80,6 +82,7 @@ import javax.swing.text.StyledDocument;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLFrameHyperlinkEvent;
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.MalformedURLException;
@@ -866,6 +869,8 @@ public class RenderErrorPanel extends JPanel {
 
     boolean wasHidden = false;
     int indent = 2;
+    File platformSource = null;
+    boolean platformSourceExists = true;
     for (int i = 0; i < end; i++) {
       StackTraceElement frame = frames[i];
       if (isHiddenFrame(frame)) {
@@ -889,10 +894,74 @@ public class RenderErrorPanel extends JPanel {
           }
           String url = myLinkManager.createOpenStackUrl(className, methodName, fileName, lineNumber);
           builder.add("(").addLink(location, url).add(")");
+        } else {
+          // Try to link to local documentation
+          String url = null;
+          if (isFramework(frame) && platformSourceExists) { // try to link to documentation, if available
+            if (platformSource == null) {
+              IAndroidTarget target = myResult.getRenderService().getConfiguration().getTarget();
+              platformSource = findPlatformSources(target);
+              platformSourceExists = platformSource != null;
+            }
+
+            if (platformSourceExists) {
+              File classFile = new File(platformSource, frame.getClassName().replace('.', File.separatorChar) + DOT_JAVA);
+              if (!classFile.exists()) {
+                // Probably an innerclass like foo.bar.Outer.Inner; the above would look for foo/bar/Outer/Inner.java; try
+                // again at foo/bar/
+                File parentFile = classFile.getParentFile();
+                classFile = new File(parentFile.getParentFile(), parentFile.getName() + DOT_JAVA);
+                if (!classFile.exists()) {
+                  classFile = null; // in theory we should keep trying this repeatedly for more deeply nested inner classes
+                }
+              }
+              if (classFile != null) {
+                url = HtmlLinkManager.createFilePositionUrl(classFile, lineNumber, 0);
+              }
+            }
+          }
+          if (url != null) {
+            builder.add("(").addLink(location, url).add(")");
+          } else {
+            builder.add("(").add(location).add(")");
+          }
         }
         builder.newline();
       }
     }
+  }
+
+  /** Finds the root source code folder for the given android target, if any */
+  @VisibleForTesting
+  @Nullable
+  public static File findPlatformSources(@NotNull IAndroidTarget target) {
+    String path = target.getPath(IAndroidTarget.SOURCES);
+    if (path != null) {
+      File platformSource = new File(path);
+      if (platformSource.isDirectory()) {
+        return platformSource;
+      } else {
+        // Workaround for https://code.google.com/p/android/issues/detail?id=60363:
+        // There seems to be a bug in the source lookup relative to where it really lives now (at least
+        // for some platforms): try to work around this by modifying the search as follows:
+        //    /full/path/to/platforms/android-18/sources => /full/path/to/sources/android-18
+        File p1 = platformSource.getParentFile();
+        if (p1 != null) {
+          File p2 = p1.getParentFile();
+          if (p2 != null) {
+            File p3 = p2.getParentFile();
+            if (p3 != null) {
+              platformSource = new File(p3, platformSource.getName() + File.separator + p1.getName());
+              if (platformSource.isDirectory()) {
+                return platformSource;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return null;
   }
 
   private static boolean isHiddenFrame(StackTraceElement frame) {
@@ -914,12 +983,17 @@ public class RenderErrorPanel extends JPanel {
              || className.startsWith("sun."));         //$NON-NLS-1$
   }
 
-  private static boolean isVisible(StackTraceElement frame) {
+  private static boolean isFramework(StackTraceElement frame) {
     String className = frame.getClassName();
-    return !(className.startsWith("android.")          //$NON-NLS-1$
+    return (className.startsWith("android.")          //$NON-NLS-1$
              || className.startsWith("java.")          //$NON-NLS-1$
              || className.startsWith("javax.")         //$NON-NLS-1$
              || className.startsWith("sun."));         //$NON-NLS-1$
+  }
+
+  private static boolean isVisible(StackTraceElement frame) {
+    String className = frame.getClassName();
+    return !(isFramework(frame) || className.startsWith("sun.")); //$NON-NLS-1$
   }
 
   private void reportMissingSize(@NotNull HtmlBuilder builder,
