@@ -29,4 +29,6 @@ public interface StatsNode {
 
   @Nullable
   Object getValueAt(int column, ThreadInfo thread, VmTraceData vmTraceData, ClockType clock);
+
+  void setSortColumn(StatsTableColumn sortByColumn, boolean sortAscending);
 }

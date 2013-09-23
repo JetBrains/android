@@ -19,7 +19,10 @@ package com.android.tools.idea.editors.vmtrace.treemodel;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.perflib.vmtrace.ThreadInfo;
 import com.android.tools.perflib.vmtrace.VmTraceData;
+import com.intellij.ui.treeStructure.treetable.TreeColumnInfo;
 import com.intellij.ui.treeStructure.treetable.TreeTableModel;
+import com.intellij.util.ui.ColumnInfo;
+import com.intellij.util.ui.SortableColumnModel;
 import org.jdesktop.swingx.treetable.AbstractTreeTableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,6 +41,9 @@ public class VmStatsTreeTableModel extends AbstractTreeTableModel implements Tre
   private StatsNode myRootNode;
   private ThreadInfo myThread;
   private ClockType myClockType = ClockType.GLOBAL;
+
+  private StatsTableColumn mySortByColumn = StatsTableColumn.EXCLUSIVE_TIME;
+  private boolean mySortAscending = true;
 
   public VmStatsTreeTableModel() {
     myRootNode = new NullStatsNode();
@@ -131,5 +137,16 @@ public class VmStatsTreeTableModel extends AbstractTreeTableModel implements Tre
   @Override
   public int getIndexOfChild(Object parent, Object child) {
     return 0;
+  }
+
+  public void sortByColumn(StatsTableColumn column) {
+    if (column != mySortByColumn) {
+      mySortByColumn = column;
+      mySortAscending = true;
+    } else {
+      mySortAscending = !mySortAscending;
+    }
+    myRootNode.setSortColumn(mySortByColumn, mySortAscending);
+    fireTreeStructureChanged();
   }
 }

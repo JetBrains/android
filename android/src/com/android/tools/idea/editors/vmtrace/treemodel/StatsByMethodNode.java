@@ -48,6 +48,10 @@ public class StatsByMethodNode extends AbstractProfileDataNode implements StatsN
   }
 
   @Override
+  public void setSortColumn(StatsTableColumn sortByColumn, boolean sortAscending) {
+  }
+
+  @Override
   protected MethodProfileData getProfileData() {
     return myMethod.getProfileData();
   }
