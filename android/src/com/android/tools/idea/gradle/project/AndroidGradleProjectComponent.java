@@ -26,8 +26,6 @@ import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.collect.Lists;
 import com.intellij.ProjectTopics;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
@@ -56,6 +54,7 @@ import java.util.List;
 
 public class AndroidGradleProjectComponent extends AbstractProjectComponent {
   private static final Logger LOG = Logger.getInstance(AndroidGradleProjectComponent.class);
+
   @NonNls private static final String SHOW_MIGRATE_TO_GRADLE_POPUP = "show.migrate.to.gradle.popup";
 
   @Nullable private Disposable myDisposable;
@@ -88,9 +87,8 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     if (shouldShowMigrateToGradleNotification()
         && AndroidStudioSpecificInitializer.isAndroidStudio()
         && Projects.isIdeaAndroidProject(myProject)) {
-      // Suggest that Android Studio users use Gradle instead of IDEA project builder
-      Notification warning = new MigrateToGradleNotification(myProject).createWarning();
-      warning.notify(myProject);
+      // Suggest that Android Studio users use Gradle instead of IDEA project builder.
+      showMigrateToGradleWarning();
       return;
     }
     if (Projects.isGradleProject(myProject)) {
@@ -102,9 +100,27 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     return PropertiesComponent.getInstance(myProject).getBoolean(SHOW_MIGRATE_TO_GRADLE_POPUP, true);
   }
 
-  private void disableShowMigrateToGradleNotification() {
-    PropertiesComponent.getInstance(myProject).setValue(SHOW_MIGRATE_TO_GRADLE_POPUP, Boolean.FALSE.toString());
+  private void showMigrateToGradleWarning() {
+    NotificationHyperlink moreInfoHyperlink = new OpenMigrationToGradleUrlHyperlink();
+    NotificationHyperlink doNotShowAgainHyperlink = new NotificationHyperlink("do.not.show", "Don't show this message again.") {
+      @Override
+      protected void execute(@NotNull Project project) {
+        PropertiesComponent.getInstance(myProject).setValue(SHOW_MIGRATE_TO_GRADLE_POPUP, Boolean.FALSE.toString());
+      }
+    };
+    NotificationListener notificationListener = new CustomNotificationListener(myProject, moreInfoHyperlink, doNotShowAgainHyperlink);
+
+    // We need both "<br>" and "\n" to separate lines. IDEA will show this message in a balloon (which respects "<br>", and in the
+    // 'Event Log' tool window, which respects "\n".)
+    String errMsg =
+      "This project does not use the Gradle build system. We recommend that you migrate to using the Gradle build system.<br>\n" +
+      moreInfoHyperlink.toString() + "<br>\n" +
+      doNotShowAgainHyperlink.toString();
+
+    AndroidGradleNotification notification = AndroidGradleNotification.getInstance(myProject);
+    notification.showBalloon("Migrate Project to Gradle?", errMsg, NotificationType.WARNING, notificationListener);
   }
+
 
   public void configureGradleProject(boolean reImportProject) {
     if (myDisposable != null) {
@@ -194,42 +210,6 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
 
     void addModuleListener(@NotNull ModuleListener listener) {
       additionalListeners.add(listener);
-    }
-  }
-
-  private class MigrateToGradleNotification {
-    private final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.balloonGroup("IDEA Android project detector");
-
-    private final NotificationHyperlink myMoreInfoHyperlink =
-      new OpenUrlHyperlink("http://tools.android.com/tech-docs/new-build-system/intellij_to_gradle",
-                           "More Information about migrating to Gradle");
-
-    private final NotificationHyperlink myDoNotShowAgainHyperlink =
-      new NotificationHyperlink("do.not.show", "Don't show this message again.") {
-        @Override
-        protected void execute(@NotNull Project project) {
-          disableShowMigrateToGradleNotification();
-        }
-      };
-
-    private final String myErrorMessage;
-    private final NotificationListener myListener;
-
-    MigrateToGradleNotification(@NotNull Project project) {
-      myListener = new CustomNotificationListener(project, myMoreInfoHyperlink, myDoNotShowAgainHyperlink);
-
-      // We need both "<br>" and "\n" to separate lines. IDEA will show this message in a balloon (which respects "<br>", and in the
-      // 'Event Log' tool window, which respects "\n".)
-      myErrorMessage =
-        "This project does not use the Gradle build system. We recommend that you migrate to using the Gradle build system.<br>\n" +
-        myMoreInfoHyperlink.toString() + "<br>\n" +
-        myDoNotShowAgainHyperlink.toString();
-    }
-
-    @NotNull
-    Notification createWarning() {
-      return NOTIFICATION_GROUP.createNotification("Migrate Project to Gradle?",
-                                                   myErrorMessage, NotificationType.WARNING, myListener);
     }
   }
 }
