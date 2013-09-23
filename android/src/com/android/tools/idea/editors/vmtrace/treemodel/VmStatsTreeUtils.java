@@ -9,10 +9,10 @@ import com.intellij.ui.treeStructure.treetable.TreeTable;
 import sun.swing.table.DefaultTableCellHeaderRenderer;
 
 import javax.swing.*;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
+import javax.swing.table.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.text.NumberFormat;
 import java.util.Locale;
 
@@ -56,6 +56,23 @@ public class VmStatsTreeUtils {
         return text != null && text.contains(pattern);
       }
     };
+  }
+
+  // Enable sorting in the vm stats tree table.
+  // Sorting is ill-defined in the context of a TreeTable since you can't sort across different levels in the
+  // hierarchy. As a result, we can't hook into JTable's sorting infrastructure and we roll our own. This
+  // implementation listens to mouse click events on the tree table's header, interprets them as sort requests
+  // and passes them on to the model.
+  public static void enableSorting(final TreeTable treeTable, final VmStatsTreeTableModel vmStatsTreeTableModel) {
+    JTableHeader header = treeTable.getTableHeader();
+    header.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        TableColumnModel columnModel = treeTable.getColumnModel();
+        int index = columnModel.getColumnIndexAtX(e.getX());
+        vmStatsTreeTableModel.sortByColumn(StatsTableColumn.fromColumnIndex(index));
+      }
+    });
   }
 
   /** A {@link TableCellRenderer} used to render certain columns of the VM Trace statistics tree table. */

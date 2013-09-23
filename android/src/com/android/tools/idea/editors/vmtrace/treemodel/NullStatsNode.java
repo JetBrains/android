@@ -45,6 +45,10 @@ public class NullStatsNode implements StatsNode {
   }
 
   @Override
+  public void setSortColumn(StatsTableColumn sortByColumn, boolean sortAscending) {
+  }
+
+  @Override
   public String toString() {
     return "Loading...";
   }

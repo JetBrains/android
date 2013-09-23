@@ -18,10 +18,14 @@ package com.android.tools.idea.editors.vmtrace.treemodel;
 
 import com.android.tools.perflib.vmtrace.*;
 import com.google.common.collect.Lists;
+import com.google.common.primitives.Ints;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class StatsByThreadNode extends AbstractProfileDataNode implements StatsNode {
   private final VmTraceData myTraceData;
@@ -32,6 +36,7 @@ public class StatsByThreadNode extends AbstractProfileDataNode implements StatsN
     myTraceData = traceData;
     myThread = thread;
     myMethods = getMethodsInThread(traceData, myThread);
+    setSortColumn(StatsTableColumn.INCLUSIVE_TIME, false);
   }
 
   @Override
@@ -86,6 +91,36 @@ public class StatsByThreadNode extends AbstractProfileDataNode implements StatsN
       default:
         return null;
     }
+  }
+
+  @Override
+  public void setSortColumn(final StatsTableColumn sortByColumn, final boolean sortAscending) {
+    Collections.sort(myMethods, new Comparator<MethodInfo>() {
+      @Override
+      public int compare(MethodInfo m1, MethodInfo m2) {
+        int diff;
+        switch (sortByColumn) {
+          case NAME:
+            diff = m1.getFullName().compareTo(m2.getFullName());
+            break;
+          case INVOCATION_COUNT:
+            diff = Ints.saturatedCast(m1.getProfileData().getInvocationCount(myThread) - m2.getProfileData().getInvocationCount(myThread));
+            break;
+          case INCLUSIVE_TIME:
+            diff = Ints.saturatedCast(m1.getProfileData().getInclusiveTime(myThread, ClockType.GLOBAL, TimeUnit.MICROSECONDS) -
+                   m2.getProfileData().getInclusiveTime(myThread, ClockType.GLOBAL, TimeUnit.MICROSECONDS));
+            break;
+          case EXCLUSIVE_TIME:
+            diff = Ints.saturatedCast(m1.getProfileData().getExclusiveTime(myThread, ClockType.GLOBAL, TimeUnit.MICROSECONDS) -
+                                      m2.getProfileData().getExclusiveTime(myThread, ClockType.GLOBAL, TimeUnit.MICROSECONDS));
+            break;
+          default:
+            diff = 0;
+        }
+
+        return sortAscending ? diff : -diff;
+      }
+    });
   }
 
   @Override

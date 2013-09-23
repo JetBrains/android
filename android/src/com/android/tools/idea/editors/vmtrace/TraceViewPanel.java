@@ -47,6 +47,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 import javax.swing.text.BadLocationException;
 import java.awt.*;
 import java.awt.event.*;
@@ -211,6 +213,7 @@ public class TraceViewPanel {
     VmStatsTreeUtils.adjustTableColumnWidths(myTreeTable);
     VmStatsTreeUtils.setCellRenderers(myTreeTable);
     VmStatsTreeUtils.setSpeedSearch(myTreeTable);
+    VmStatsTreeUtils.enableSorting(myTreeTable, myVmStatsTreeTableModel);
   }
 
   private ClockType getCurrentRenderClock() {
