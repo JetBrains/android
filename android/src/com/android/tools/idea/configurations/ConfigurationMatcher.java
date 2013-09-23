@@ -23,6 +23,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.ProjectResources;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.utils.SparseIntArray;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -527,7 +528,7 @@ public class ConfigurationMatcher {
         FileDocumentManager documentManager = FileDocumentManager.getInstance();
         VirtualFile file = documentManager.getFile(activeEditor.getDocument());
         if (file != null && file != myFile && file.getFileType() == StdFileTypes.XML
-            && ResourceFolderType.LAYOUT.equals(ResourceFolderType.getFolderType(file.getParent().getName()))) {
+            && ResourceFolderType.LAYOUT == ResourceHelper.getFolderType(file)) {
           Configuration configuration = myManager.getConfiguration(file);
           FolderConfiguration fullConfig = configuration.getFullConfig();
           for (ConfigMatch match : matches) {
