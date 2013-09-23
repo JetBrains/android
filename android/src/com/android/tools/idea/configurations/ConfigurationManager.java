@@ -31,13 +31,10 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.SoftValueHashMap;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.sdk.*;
 import org.jetbrains.android.uipreview.UserDeviceManager;
 import org.jetbrains.annotations.NotNull;
@@ -179,29 +176,13 @@ public class ConfigurationManager implements Disposable {
     return new ConfigurationManager(module);
   }
 
-  @Nullable
-  private AndroidPlatform getPlatform() {
-    // TODO: How do we refresh this if the user remaps chosen target?
-    Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
-    if (sdk == null) {
-      sdk = AndroidFacetConfiguration.findAndSetAndroidSdk(myModule);
-    }
-    if (sdk != null && sdk.getSdkType() instanceof AndroidSdkType) {
-      final AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-      if (additionalData != null) {
-        return additionalData.getAndroidPlatform();
-      }
-    }
-    return null;
-  }
-
   /** Returns the list of available devices for the current platform, if any */
   @NotNull
   public List<Device> getDevices() {
     if (myDevices == null) {
       List<Device> devices = null;
 
-      AndroidPlatform platform = getPlatform();
+      AndroidPlatform platform = AndroidPlatform.getPlatform(myModule);
       if (platform != null) {
         final AndroidSdkData sdkData = platform.getSdkData();
         devices = new ArrayList<Device>();
@@ -243,7 +224,7 @@ public class ConfigurationManager implements Disposable {
     if (myTargets == null) {
       List<IAndroidTarget> targets = new ArrayList<IAndroidTarget>();
 
-      AndroidPlatform platform = getPlatform();
+      AndroidPlatform platform = AndroidPlatform.getPlatform(myModule);
       if (platform != null) {
         final AndroidSdkData sdkData = platform.getSdkData();
 
@@ -362,7 +343,7 @@ public class ConfigurationManager implements Disposable {
 
   @Nullable
   public IAndroidTarget getProjectTarget() {
-    AndroidPlatform platform = getPlatform();
+    AndroidPlatform platform = AndroidPlatform.getPlatform(myModule);
     return platform != null ? platform.getTarget() : null;
   }
 

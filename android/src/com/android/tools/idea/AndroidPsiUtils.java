@@ -24,23 +24,39 @@ import com.intellij.psi.PsiReferenceExpression;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.android.SdkConstants.ANDROID_PKG;
 import static com.android.SdkConstants.R_CLASS;
 
 public class AndroidPsiUtils {
+  /** Type of resource reference: R.type.name or android.R.type.name or neither */
+  public enum ResourceReferenceType { NONE, APP, FRAMEWORK }
+
   /**
    * Returns true if the given PsiElement is a reference to an Android Resource.
    * The element can either be an identifier such as y in R.x.y, or the expression R.x.y itself.
    */
   public static boolean isResourceReference(@NotNull PsiElement element) {
+    return getResourceReferenceType(element) != ResourceReferenceType.NONE;
+  }
+
+  /**
+   * Returns the type of resource reference for the given PSiElement; for R fields and android.R
+   * fields it will return {@link ResourceReferenceType#APP} and {@link ResourceReferenceType#FRAMEWORK}
+   * respectively, and otherwise it returns {@link ResourceReferenceType#NONE}.
+   * <p>
+   * The element can either be an identifier such as y in R.x.y, or the expression R.x.y itself.
+   */
+  @NotNull
+  public static ResourceReferenceType getResourceReferenceType(@NotNull PsiElement element) {
     if (element instanceof PsiReferenceExpression) {
-      return isResourceReference((PsiReferenceExpression)element);
+      return getResourceReferenceType((PsiReferenceExpression)element);
     }
 
     if (element instanceof PsiIdentifier && element.getParent() instanceof PsiReferenceExpression) {
-      return isResourceReference((PsiReferenceExpression)element.getParent());
+      return getResourceReferenceType((PsiReferenceExpression)element.getParent());
     }
 
-    return false;
+    return ResourceReferenceType.NONE;
   }
 
   /**
@@ -62,19 +78,34 @@ public class AndroidPsiUtils {
     return element.getText();
   }
 
-  private static boolean isResourceReference(PsiReferenceExpression element) {
+  @NotNull
+  private static ResourceReferenceType getResourceReferenceType(PsiReferenceExpression element) {
     PsiExpression exp = element.getQualifierExpression();
     if (!(exp instanceof PsiReferenceExpression)) {
-      return false;
+      return ResourceReferenceType.NONE;
     }
 
     exp = ((PsiReferenceExpression)exp).getQualifierExpression();
     if (!(exp instanceof PsiReferenceExpression)) {
-      return false;
+      return ResourceReferenceType.NONE;
     }
 
     PsiReferenceExpression ref = (PsiReferenceExpression)exp;
-    return R_CLASS.equals(ref.getReferenceName()) && ref.getQualifierExpression() == null;
+    if (R_CLASS.equals(ref.getReferenceName())) {
+      PsiExpression qualifierExpression = ref.getQualifierExpression();
+      if (qualifierExpression == null) {
+        // TODO: Check resolved type to make sure it's not a class with android.R imported?
+        // Not super important since we actively discourage importing android.R directly
+        // via lint checks and the AndroidImportFilter preventing it from happening automatically
+        return ResourceReferenceType.APP;
+      }
+      if (qualifierExpression instanceof PsiReferenceExpression &&
+          ANDROID_PKG.equals(((PsiReferenceExpression)qualifierExpression).getReferenceName())) {
+        return ResourceReferenceType.FRAMEWORK;
+      }
+    }
+
+    return ResourceReferenceType.NONE;
   }
 
   /** Returns the Android {@link ResourceType} given a PSI reference to an Android resource. */
