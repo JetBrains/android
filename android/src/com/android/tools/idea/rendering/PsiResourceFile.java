@@ -91,8 +91,6 @@ class PsiResourceFile extends ResourceFile {
     myFile = psiFile;
     setQualifiers(qualifiers);
     myFolderConfiguration = FolderConfiguration.getConfigFromQualifiers(Splitter.on('-').split(qualifiers));
-    PsiDirectory parent = psiFile.getParent();
-    assert parent != null : psiFile;
-    myFolderType = ResourceFolderType.getFolderType(parent.getName());
+    myFolderType = ResourceHelper.getFolderType(psiFile);
   }
 }

@@ -1,0 +1,28 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:title="Declared 1"
+        android:orderInCategory="100" />
+    <item android:title="Declared 2" />
+
+    <group android:checkableBehavior="all">
+        <item android:title="Radio 1" />
+        <item android:title="Radio 2" />
+    </group>
+    <group
+        android:checkableBehavior="single"
+        android:enabled="false">
+        <item android:title="Check" />
+    </group>
+    <item
+        android:title="Declared 3"
+        android:orderInCategory="5"
+        android:menuCategory="container" />
+
+    <item
+        android:orderInCategory="5"
+        android:title="Declared 4" />
+
+    <item android:title="Declared 5" />
+    <item android:title="@string/key1" />
+</menu>

@@ -16,9 +16,9 @@
 package com.android.tools.idea.rendering;
 
 import com.android.resources.ResourceFolderType;
+import com.android.utils.XmlUtils;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlAttribute;
@@ -27,6 +27,8 @@ import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.Nullable;
 import org.kxml2.io.KXmlParser;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -34,64 +36,31 @@ import java.io.StringReader;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import static com.android.SdkConstants.*;
-import static org.xmlpull.v1.XmlPullParser.END_TAG;
-import static org.xmlpull.v1.XmlPullParser.START_TAG;
+import static com.android.SdkConstants.VALUE_FILL_PARENT;
+import static com.android.SdkConstants.VALUE_MATCH_PARENT;
 
-public class LayoutPsiPullParserTest extends AndroidTestCase {
+/**
+ * Tests the parser by constructing a DOM from an XML file, and then it runs an XmlPullParser
+ * in parallel with this parser and checks event for event that the two parsers are returning the same results
+ */
+public class DomPullParserTest extends AndroidTestCase {
   @SuppressWarnings("SpellCheckingInspection")
-  public static final String BASE_PATH = "xmlpull/";
-
-  public LayoutPsiPullParserTest() {
-  }
-
-  public void testDesignAttributes() throws Exception {
-    @SuppressWarnings("SpellCheckingInspection")
-    VirtualFile virtualFile = myFixture.copyFileToProject("xmlpull/designtime.xml", "res/layout/designtime.xml");
-    assertNotNull(virtualFile);
-    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
-    assertTrue(psiFile instanceof XmlFile);
-    XmlFile xmlFile = (XmlFile)psiFile;
-    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
-    assertEquals(START_TAG, parser.nextTag());
-    assertEquals("LinearLayout", parser.getName());
-    assertEquals(START_TAG, parser.nextTag());
-    assertEquals("TextView", parser.getName());
-    assertEquals("@+id/first", parser.getAttributeValue(ANDROID_URI, ATTR_ID));
-    assertEquals(END_TAG, parser.nextTag());
-    assertEquals(START_TAG, parser.nextTag());
-    assertEquals("TextView", parser.getName());
-    assertEquals("fill_parent", parser.getAttributeValue(ANDROID_URI, ATTR_LAYOUT_WIDTH)); // auto converted from match_parent
-    assertEquals("wrap_content", parser.getAttributeValue(ANDROID_URI, ATTR_LAYOUT_HEIGHT));
-    assertEquals("Designtime Text", parser.getAttributeValue(ANDROID_URI, ATTR_TEXT)); // overriding runtime text attribute
-    assertEquals("@android:color/darker_gray", parser.getAttributeValue(ANDROID_URI, "textColor"));
-    assertEquals(END_TAG, parser.nextTag());
-    assertEquals(START_TAG, parser.nextTag());
-    assertEquals("TextView", parser.getName());
-    assertEquals("@+id/blank", parser.getAttributeValue(ANDROID_URI, ATTR_ID));
-    assertEquals("", parser.getAttributeValue(ANDROID_URI, ATTR_TEXT)); // Don't unset when no framework attribute is defined
-    assertEquals(END_TAG, parser.nextTag());
-    assertEquals(START_TAG, parser.nextTag());
-    assertEquals("ListView", parser.getName());
-    assertEquals("@+id/listView", parser.getAttributeValue(ANDROID_URI, ATTR_ID));
-    assertNull(parser.getAttributeValue(ANDROID_URI, "fastScrollAlwaysVisible")); // Cleared by overriding defined framework attribute
+  public DomPullParserTest() {
   }
 
   public void test1() throws Exception {
-    checkFile("layout.xml", ResourceFolderType.LAYOUT);
-  }
-
-  public void test2() throws Exception {
-    checkFile("simple.xml",  ResourceFolderType.LAYOUT);
+    //noinspection SpellCheckingInspection
+    checkFile("xmlpull/layout2.xml", ResourceFolderType.LAYOUT);
   }
 
   enum NextEventType { NEXT, NEXT_TOKEN, NEXT_TAG }
 
-  private void compareParsers(PsiFile file, NextEventType nextEventType) throws Exception {
+  private static void compareParsers(PsiFile file, NextEventType nextEventType) throws Exception {
     assertTrue(file instanceof XmlFile);
-    XmlFile xmlFile = (XmlFile)file;
+    Document document = XmlUtils.parseDocumentSilently(file.getText(), true);
+    assertNotNull(document);
     KXmlParser referenceParser = createReferenceParser(file);
-    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
+    DomPullParser parser = new DomPullParser(document.getDocumentElement());
 
     assertEquals("Expected " + name(referenceParser.getEventType()) + " but was "
                  + name(parser.getEventType())
@@ -127,17 +96,17 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
           return;
       }
 
-      PsiElement element = null;
+      Element element = null;
       if (expected == XmlPullParser.START_TAG) {
         assertNotNull(parser.getViewKey());
         assertNotNull(parser.getViewCookie());
-        assertTrue(parser.getViewCookie() instanceof PsiElement);
-        element = (PsiElement)parser.getViewCookie();
+        assertTrue(parser.getViewCookie() == null || parser.getViewCookie() instanceof Element);
+        element = (Element)parser.getViewCookie();
       }
 
       if (expected == XmlPullParser.START_TAG) {
         assertEquals(referenceParser.getName(), parser.getName());
-        if (element != xmlFile.getRootTag()) { // KXmlParser seems to not include xmlns: attributes on the root tag!{
+        if (element != document.getDocumentElement()) { // KXmlParser seems to not include xmlns: attributes on the root tag!
           SortedSet<String> referenceAttributes = new TreeSet<String>();
           SortedSet<String> attributes = new TreeSet<String>();
           for (int i = 0; i < referenceParser.getAttributeCount(); i++) {
@@ -156,7 +125,6 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
           }
 
           assertEquals(referenceAttributes, attributes);
-
         }
         assertEquals(referenceParser.isEmptyElementTag(), parser.isEmptyElementTag());
 
@@ -165,7 +133,6 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
           for (XmlAttribute attribute : tag.getAttributes()) {
             String namespace = attribute.getNamespace();
             String name = attribute.getLocalName();
-            //noinspection ConstantConditions
             assertEquals(namespace + ':' + name + " in element " + parser.getName(),
                          normalizeValue(referenceParser.getAttributeValue(namespace, name)),
                          normalizeValue(parser.getAttributeValue(namespace, name)));
@@ -187,7 +154,7 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
   }
 
   @Nullable
-  private static String normalizeValue(String value) {
+  private static String normalizeValue(@Nullable String value) {
     // Some parser translate values; ensure that these are identical
     if (value != null && value.equals(VALUE_MATCH_PARENT)) {
       return VALUE_FILL_PARENT;
@@ -200,7 +167,7 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
   }
 
   private void checkFile(String filename, ResourceFolderType folder) throws Exception {
-    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + filename, "res/" + folder.getName() + "/" + filename);
+    VirtualFile file = myFixture.copyFileToProject(filename, "res/" + folder.getName() + "/" + filename.substring(filename.lastIndexOf('/') + 1));
     assertNotNull(file);
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
     assertNotNull(psiFile);

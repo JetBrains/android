@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.rendering.api.SessionParams.RenderingMode;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.resources.ResourceFolderType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
@@ -31,6 +32,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -48,6 +50,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xmlpull.v1.XmlPullParserException;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -248,6 +251,29 @@ public class RenderService {
     return myConfiguration;
   }
 
+  @NotNull
+  public Module getModule() {
+    return myModule;
+  }
+
+  @NotNull
+  public RenderLogger getLogger() {
+    return myLogger;
+  }
+
+  @Nullable
+  public Set<XmlTag> getExpandNodes() {
+    return myExpandNodes;
+  }
+
+  @NotNull
+  public HardwareConfigHelper getHardwareConfigHelper() {
+    return myHardwareConfigHelper;
+  }
+
+  public boolean getShowDecorations() {
+    return myShowDecorations;
+  }
 
   public void dispose() {
     myProjectCallback.setLogger(null);
@@ -425,11 +451,7 @@ public class RenderService {
       return null;
     }
 
-    HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
-
-    ApplicationManager.getApplication().assertReadAccessAllowed();
-    LayoutPsiPullParser modelParser;
-    modelParser = LayoutPsiPullParser.create(myPsiFile, myLogger, myExpandNodes, hardwareConfig.getDensity());
+    ILayoutPullParser modelParser = LayoutPullParserFactory.create(this);
     ILayoutPullParser topParser = modelParser;
 
     myProjectCallback.reset();
@@ -461,6 +483,7 @@ public class RenderService {
       }
     }
 
+    HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
     final SessionParams params =
       new SessionParams(topParser, myRenderingMode, myModule /* projectKey */, hardwareConfig, resolver, myProjectCallback,
                         myMinSdkVersion, myTargetSdkVersion, myLogger);
@@ -538,6 +561,11 @@ public class RenderService {
       myLogger.error(null, t.getLocalizedMessage(), t, null);
       throw t;
     }
+  }
+
+  /** Returns true if the given file can be rendered */
+  public static boolean canRender(@Nullable PsiFile file) {
+    return LayoutPullParserFactory.isSupported(file);
   }
 
   @Nullable
