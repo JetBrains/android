@@ -29,7 +29,7 @@ import java.util.List;
  * A read-only representation of the text of a file.
  */
 class ReadOnlyDocument {
-  @NotNull private final CharSequence myContents;
+  @NotNull private final String myContents;
   @NotNull private final List<Integer> myOffsets;
 
   /**
@@ -117,8 +117,16 @@ class ReadOnlyDocument {
    * @param end the ending offset, or -1 for the end of the file.
    * @return the sub sequence.
    */
-  CharSequence subsequence(int start, int end) {
-    return myContents.subSequence(start, end == -1 ? myContents.length() : end);
+  String subsequence(int start, int end) {
+    return myContents.substring(start, end == -1 ? myContents.length() : end);
+  }
+
+  /**
+   * Returns the contents of the document
+   * @return the contents
+   */
+  String getContents() {
+    return myContents;
   }
 
   /**
