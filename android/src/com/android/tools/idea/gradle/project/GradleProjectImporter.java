@@ -197,7 +197,7 @@ public class GradleProjectImporter {
 
   private static void setUpGradleSettings(@NotNull Project newProject) {
     GradleProjectSettings projectSettings = new GradleProjectSettings();
-    projectSettings.setDistributionType(DistributionType.WRAPPED);
+    projectSettings.setDistributionType(DistributionType.DEFAULT_WRAPPED);
     projectSettings.setExternalProjectPath(newProject.getBasePath());
     projectSettings.setUseAutoImport(true);
 
