@@ -24,6 +24,8 @@ import com.android.tools.idea.gradle.customizer.CompilerOutputPathModuleCustomiz
 import com.android.tools.idea.gradle.customizer.ContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
+import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
+import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.Facets;
 import com.android.tools.idea.gradle.util.Projects;
@@ -32,12 +34,17 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.impl.NewProjectUtil;
 import com.intellij.ide.impl.ProjectUtil;
+import com.intellij.notification.NotificationListener;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.model.*;
+import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
+import com.intellij.openapi.externalSystem.model.ProjectKeys;
+import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
@@ -59,6 +66,7 @@ import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
@@ -111,15 +119,39 @@ public class GradleProjectImporter {
    * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
    */
   public void reImportProject(@NotNull final Project project, @Nullable Callback callback) throws ConfigurationException {
-    if (Projects.isGradleProject(project)) {
+    if (Projects.isGradleProject(project) || hasTopLevelGradleBuildFile(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
       doImport(project, false /* existing project */, false /* asynchronous import */, callback);
     }
+    else {
+      Runnable notificationTask = new Runnable() {
+        @Override
+        public void run() {
+          String msg = String.format("The project '%s' is not a Gradle-based project", project.getName());
+          AndroidGradleNotification notification = AndroidGradleNotification.getInstance(project);
+
+          NotificationListener notificationListener = new CustomNotificationListener(project, new OpenMigrationToGradleUrlHyperlink());
+          notification.showBalloon("Project Sync", msg, NotificationType.ERROR, notificationListener);
+        }
+      };
+      Application application = ApplicationManager.getApplication();
+      if (application.isDispatchThread()) {
+        notificationTask.run();
+      }
+      else {
+        application.invokeLater(notificationTask);
+      }
+    }
+  }
+
+  private static boolean hasTopLevelGradleBuildFile(@NotNull Project project) {
+    VirtualFile baseDir = project.getBaseDir();
+    VirtualFile gradleBuildFile = baseDir.findChild(SdkConstants.FN_BUILD_GRADLE);
+    return gradleBuildFile != null && gradleBuildFile.exists() && !gradleBuildFile.isDirectory();
   }
 
   /**
    * Imports and opens the newly created Android project.
-   *
    *
    * @param projectName    name of the project.
    * @param projectRootDir root directory of the project.
@@ -127,7 +159,8 @@ public class GradleProjectImporter {
    * @throws IOException            if any file I/O operation fails (e.g. creating the '.idea' directory.)
    * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
    */
-  public void importProject(@NotNull String projectName, @NotNull File projectRootDir, @Nullable Callback callback) throws IOException, ConfigurationException {
+  public void importProject(@NotNull String projectName, @NotNull File projectRootDir, @Nullable Callback callback)
+    throws IOException, ConfigurationException {
     GradleImportNotificationListener.attachToManager();
 
     createTopLevelBuildFileIfNotExisting(projectRootDir);
