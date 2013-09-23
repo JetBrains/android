@@ -20,11 +20,13 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -252,21 +254,38 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     String html = panel.showErrors(render);
     assert html != null;
     html = stripImages(html);
+    html = stripSdkHome(html);
 
-    assertEquals(
-      "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
-      "java.lang.ArithmeticException: / by zero<BR/>\n" +
-      "&nbsp;&nbsp;at com.example.myapplication574.MyCustomView.&lt;init>" +
-           "(<A HREF=\"open:com.example.myapplication574.MyCustomView#<init>;MyCustomView.java:13\">MyCustomView.java:13</A>)<BR/>\n" +
-      "&nbsp;&nbsp;at java.lang.reflect.Constructor.newInstance<BR/>\n" +
-      "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate_Original<BR/>\n" +
-      "&nbsp;&nbsp;at android.view.LayoutInflater_Delegate.rInflate<BR/>\n" +
-      "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate<BR/>\n" +
-      "&nbsp;&nbsp;at android.view.LayoutInflater.inflate<BR/>\n" +
-      "&nbsp;&nbsp;at android.view.LayoutInflater.inflate<BR/>\n" +
-      "<BR/>\n" +
-      "</body></html>",
-      html);
+    boolean havePlatformSources = RenderErrorPanel.findPlatformSources(configuration.getTarget()) != null;
+    if (havePlatformSources) {
+      assertEquals(
+        "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
+        "java.lang.ArithmeticException: / by zero<BR/>\n" +
+        "&nbsp;&nbsp;at com.example.myapplication574.MyCustomView.&lt;init>(<A HREF=\"open:com.example.myapplication574.MyCustomView#<init>;MyCustomView.java:13\">MyCustomView.java:13</A>)<BR/>\n" +
+        "&nbsp;&nbsp;at java.lang.reflect.Constructor.newInstance(<A HREF=\"file:$SDK_HOME/sources/android-18/java/lang/reflect/Constructor.java:513\">Constructor.java:513</A>)<BR/>\n" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate_Original(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:755\">LayoutInflater.java:755</A>)<BR/>\n" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater_Delegate.rInflate(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/LayoutInflater_Delegate.java:64\">LayoutInflater_Delegate.java:64</A>)<BR/>\n" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:727\">LayoutInflater.java:727</A>)<BR/>\n" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:492\">LayoutInflater.java:492</A>)<BR/>\n" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:373\">LayoutInflater.java:373</A>)<BR/>\n" +
+        "<BR/>\n" +
+        "</body></html>",
+        html);
+    } else {
+      assertEquals(
+        "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
+        "java.lang.ArithmeticException: / by zero<BR/>\n" +
+        "&nbsp;&nbsp;at com.example.myapplication574.MyCustomView.&lt;init>(<A HREF=\"open:com.example.myapplication574.MyCustomView#<init>;MyCustomView.java:13\">MyCustomView.java:13</A>)<BR/>\n" +
+        "&nbsp;&nbsp;at java.lang.reflect.Constructor.newInstance(Constructor.java:513)<BR/>\n" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate_Original(LayoutInflater.java:755)<BR/>\n" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater_Delegate.rInflate(LayoutInflater_Delegate.java:64)<BR/>\n" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate(LayoutInflater.java:727)<BR/>\n" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:492)<BR/>\n" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:373)<BR/>\n" +
+        "<BR/>\n" +
+        "</body></html>",
+        html);
+    }
   }
 
   // Image paths will include full resource urls which depends on the test environment
@@ -283,6 +302,15 @@ public class RenderErrorPanelTest extends AndroidTestCase {
         html = html.substring(0, index) + html.substring(end + 1);
       }
     }
+  }
+
+  private String stripSdkHome(@NotNull String html) {
+    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
+    assertNotNull(platform);
+    String location = platform.getSdkData().getLocation();
+    location = FileUtil.toSystemIndependentName(location);
+    html = html.replace(location, "$SDK_HOME");
+    return html;
   }
 
   /** Attempts to create an exception object that matches the given description, which
