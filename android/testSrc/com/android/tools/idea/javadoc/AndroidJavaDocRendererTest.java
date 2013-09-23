@@ -177,4 +177,28 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "            short-hand if the first character of the class\n" +
                  "            is a period then it is appended to your package name. </body></html>");
   }
+
+  /**
+   * This test requires {@link #requireRecentSdk} to return true (since we need a real SDK to resolve this
+   * framework color, but unfortunately that doesn't work for other tests; the testLocalAttributes tests don't
+   * pass on a recent SDK
+   * <pre>
+  public void testFrameworkColors() {
+    checkJavadoc("/javadoc/colors/layout.xml", "res/layout/layout.xml",
+                 "<html><body>" +
+                 "<table style=\"background-color:rgb(255,255,255);color:black;width:200px;text-align:center;" +
+                 "vertical-align:middle;\" border=\"0\">" +
+                 "<tr height=\"100\">" +
+                 "<td align=\"center\" valign=\"middle\" height=\"100\">" +
+                 "#ffffff" +
+                 "</td>" +
+                 "</tr><" +
+                 "/table><BR/>\n" +
+                 "@color/primary_text_dark => primary_text_dark.xml => @android:color/background_light => #ffffffff<BR/>\n" +
+                 "</body></html>");
+  }
+  </pre>
+  */
+
+  // TODO: Test flavor docs
 }
