@@ -63,13 +63,13 @@ public class VmTraceEditor implements FileEditor {
         try {
           parser.parse();
         }
-        catch (final IOException e) {
+        catch (final Throwable throwable) {
           ApplicationManager.getApplication().invokeAndWait(new Runnable() {
             @Override
             public void run() {
               //noinspection ThrowableResultOfMethodCallIgnored
-              Messages.showErrorDialog(project, "Unexpected error while parsing trace file: " + Throwables.getRootCause(e).getMessage(),
-                                       getName());
+              Messages.showErrorDialog(project, "Unexpected error while parsing trace file: " +
+                                                Throwables.getRootCause(throwable).getMessage(), getName());
             }
           }, ModalityState.defaultModalityState());
           return;
