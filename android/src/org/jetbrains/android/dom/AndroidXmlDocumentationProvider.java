@@ -1,7 +1,6 @@
 package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
-import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
@@ -17,7 +16,10 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.impl.FakePsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.*;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.psi.xml.XmlToken;
 import com.intellij.util.xml.*;
 import com.intellij.util.xml.reflect.DomAttributeChildDescription;
 import com.intellij.util.xml.reflect.DomExtension;
@@ -37,9 +39,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static com.intellij.psi.xml.XmlTokenType.XML_ATTRIBUTE_VALUE_START_DELIMITER;
-import static com.intellij.psi.xml.XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN;
-import static com.intellij.psi.xml.XmlTokenType.XML_DATA_CHARACTERS;
+import static com.intellij.psi.xml.XmlTokenType.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -67,11 +67,6 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       ResourceType type = resourceInfo.getType();
       String name = resourceInfo.getName();
 
-      // Figure out if this resource is a framework file?
-      // We really should store that info in the ValueResourceInfo instances themselves.
-      // For now, attempt to figure it out
-
-      VirtualFile containingFile = resourceInfo.getContainingFile();
       Module module = ModuleUtilCore.findModuleForPsiElement(element);
       if (module == null) {
         return null;
@@ -81,19 +76,34 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
         return null;
       }
 
-      boolean isFramework = false;
-      SystemResourceManager systemResourceManager = facet.getSystemResourceManager();
-      if (systemResourceManager != null && containingFile != null) {
-        VirtualFile parent = containingFile.getParent();
-        if (parent != null) {
-          VirtualFile resDir = parent.getParent();
-          if (resDir != null) {
-            isFramework = systemResourceManager.isResourceDir(resDir);
+      ResourceUrl url;
+      ResourceUrl originalUrl = originalElement != null ? ResourceUrl.parse(originalElement.getText()) : null;
+      if (originalUrl != null && name.equals(originalUrl.name)) {
+        url  = originalUrl;
+      } else {
+        boolean isFramework = false;
+        if (originalUrl != null) {
+          isFramework = originalUrl.framework;
+        } else {
+          // Figure out if this resource is a framework file.
+          // We really should store that info in the ValueResourceInfo instances themselves.
+          // For now, attempt to figure it out
+          SystemResourceManager systemResourceManager = facet.getSystemResourceManager();
+          VirtualFile containingFile = resourceInfo.getContainingFile();
+          if (systemResourceManager != null) {
+            VirtualFile parent = containingFile.getParent();
+            if (parent != null) {
+              VirtualFile resDir = parent.getParent();
+              if (resDir != null) {
+                isFramework = systemResourceManager.isResourceDir(resDir);
+              }
+            }
           }
         }
-      }
 
-      return generateDoc(element, type, name, isFramework);
+        url = ResourceUrl.create(type, name, isFramework, false);
+      }
+      return generateDoc(element, url);
     } else if (element instanceof MyResourceElement) {
       return getResourceDocumentation(element, ((MyResourceElement)element).myResource);
     } else if (element instanceof XmlAttributeValue) {
@@ -130,10 +140,10 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
   }
 
   @Nullable
-  private String getResourceDocumentation(PsiElement element, String value) {
+  private static String getResourceDocumentation(PsiElement element, String value) {
     ResourceUrl url = ResourceUrl.parse(value);
     if (url != null) {
-      return generateDoc(element, url.type, url.name, url.framework);
+      return generateDoc(element, url);
     } else {
       // See if it's in a resource file definition: This allows you to invoke
       // documentation on <string name="cursor_here">...</string>
@@ -312,6 +322,16 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     }
 
     return AndroidJavaDocRenderer.render(module, type, name, framework);
+  }
+
+  @Nullable
+  private static String generateDoc(PsiElement originalElement, ResourceUrl url) {
+    Module module = ModuleUtilCore.findModuleForPsiElement(originalElement);
+    if (module == null) {
+      return null;
+    }
+
+    return AndroidJavaDocRenderer.render(module, url);
   }
 
   @Override
