@@ -469,6 +469,66 @@ public class LombokPsiConverterTest extends AndroidTestCase {
     check(file, testClass);
   }
 
+  public void testPrivateEnum() {
+    String testClass =
+      "package test.pkg;\n" +
+      "\n" +
+      "import android.os.Bundle;\n" +
+      "import android.app.Activity;\n" +
+      "\n" +
+      "public class R9 extends Activity {\n" +
+      "\n" +
+      "    @Override\n" +
+      "    protected void onCreate(Bundle savedInstanceState) {\n" +
+      "        super.onCreate(savedInstanceState);\n" +
+      "        setContentView(R.layout.main);\n" +
+      "    }\n" +
+      "\n" +
+      "    private enum IconGridSize {\n" +
+      "        NORMAL(R.layout.other);\n" +
+      "\n" +
+      "        IconGridSize(int foo) {\n" +
+      "        }\n" +
+      "    }\n" +
+      "}\n";
+    PsiFile file = myFixture.addFileToProject("src/test/pkg/R9.java", testClass);
+    check(file, testClass);
+  }
+
+  public void testInterface() {
+    String testClass =
+      "package test.pkg;\n" +
+      "public interface R11 {\n" +
+      "    int call();\n" +
+      "}";
+    PsiFile file = myFixture.addFileToProject("src/test/pkg/R10.java", testClass);
+    check(file, testClass);
+  }
+
+  public void testAnnotation() {
+    String testClass =
+      "package test.pkg;\n" +
+      "\n" +
+      "import java.lang.annotation.Retention;\n" +
+      "import java.lang.annotation.RetentionPolicy;\n" +
+      "import java.lang.annotation.Target;\n" +
+      "\n" +
+      "import static java.lang.annotation.ElementType.ANNOTATION_TYPE;\n" +
+      "import static java.lang.annotation.ElementType.FIELD;\n" +
+      "import static java.lang.annotation.ElementType.METHOD;\n" +
+      "import static java.lang.annotation.ElementType.PARAMETER;\n" +
+      "import static java.lang.annotation.RetentionPolicy.CLASS;\n" +
+      "import static java.lang.annotation.RetentionPolicy.SOURCE;\n" +
+      "@Retention(CLASS)\n" +
+      "@Target({ANNOTATION_TYPE})\n" +
+      "public @interface R11 {\n" +
+      "    long[] value();\n" +
+      "    boolean flag();\n" +
+      "}";
+    PsiFile file = myFixture.addFileToProject("src/test/pkg/R11.java", testClass);
+    check(file, testClass);
+  }
+
   private void check(VirtualFile file) {
     assertNotNull(file);
     assertTrue(file.exists());
