@@ -17,10 +17,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.impl.FakePsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlAttributeValue;
-import com.intellij.psi.xml.XmlTag;
-import com.intellij.psi.xml.XmlToken;
+import com.intellij.psi.xml.*;
 import com.intellij.util.xml.*;
 import com.intellij.util.xml.reflect.DomAttributeChildDescription;
 import com.intellij.util.xml.reflect.DomExtension;
@@ -42,6 +39,7 @@ import java.util.*;
 import static com.android.SdkConstants.*;
 import static com.intellij.psi.xml.XmlTokenType.XML_ATTRIBUTE_VALUE_START_DELIMITER;
 import static com.intellij.psi.xml.XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN;
+import static com.intellij.psi.xml.XmlTokenType.XML_DATA_CHARACTERS;
 
 /**
  * @author Eugene.Kudelevsky
@@ -111,6 +109,9 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       }
       if (token.getTokenType() == XML_ATTRIBUTE_VALUE_TOKEN) {
         return getResourceDocumentation(originalElement, token.getText());
+      } else if (token.getTokenType() == XML_DATA_CHARACTERS) {
+        String text = token.getText().trim();
+        return getResourceDocumentation(originalElement, text);
       }
     }
 
