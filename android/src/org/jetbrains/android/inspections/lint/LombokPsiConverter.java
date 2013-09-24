@@ -328,6 +328,10 @@ public class LombokPsiConverter {
     if (psiClass.isAnnotationType()) {
       AnnotationDeclaration declaration = new AnnotationDeclaration();
       bind(declaration, psiClass);
+      PsiIdentifier nameIdentifier = psiClass.getNameIdentifier();
+      if (nameIdentifier != null) {
+        declaration.astName(toIdentifier(nameIdentifier));
+      }
       PsiModifierList modifierList = psiClass.getModifierList();
       if (modifierList != null) {
         declaration.astModifiers(toModifiers(modifierList));
@@ -337,6 +341,10 @@ public class LombokPsiConverter {
     } else if (psiClass.isEnum()) {
       EnumDeclaration declaration = new EnumDeclaration();
       bind(declaration, psiClass);
+      PsiIdentifier nameIdentifier = psiClass.getNameIdentifier();
+      if (nameIdentifier != null) {
+        declaration.astName(toIdentifier(nameIdentifier));
+      }
       declaration = declaration.astBody(toEnumTypeBody(psiClass));
       PsiModifierList modifierList = psiClass.getModifierList();
       if (modifierList != null) {
@@ -354,6 +362,10 @@ public class LombokPsiConverter {
     } else if (psiClass.isInterface()) {
       InterfaceDeclaration declaration = new InterfaceDeclaration();
       bind(declaration, psiClass);
+      PsiIdentifier nameIdentifier = psiClass.getNameIdentifier();
+      if (nameIdentifier != null) {
+        declaration.astName(toIdentifier(nameIdentifier));
+      }
       PsiModifierList modifierList = psiClass.getModifierList();
       if (modifierList != null) {
         declaration.astModifiers(toModifiers(modifierList));
@@ -464,6 +476,34 @@ public class LombokPsiConverter {
     return body;
   }
 
+  private static EnumConstant toEnumConstant(@NonNull PsiEnumConstant enumConstant) {
+    EnumConstant constant = new EnumConstant();
+    bind(constant, enumConstant);
+
+    constant.astName(toIdentifier(enumConstant.getNameIdentifier()));
+    PsiExpressionList argumentList = enumConstant.getArgumentList();
+    if (argumentList != null) {
+      StrictListAccessor<Expression, EnumConstant> arguments = constant.astArguments();
+      for (PsiExpression argument : argumentList.getExpressions()) {
+        arguments.addToEnd(toExpression(argument));
+      }
+    }
+    StrictListAccessor<Annotation, EnumConstant> annotations = constant.astAnnotations();
+    PsiModifierList modifierList = enumConstant.getModifierList();
+    if (modifierList != null) {
+      for (PsiAnnotation annotation : modifierList.getAnnotations()) {
+        annotations.addToEnd(toAnnotation(annotation));
+      }
+    }
+    PsiEnumConstantInitializer initializer = enumConstant.getInitializingClass();
+    if (false && initializer != null) {
+      NormalTypeBody body = toTypeBody(initializer);
+      constant.astBody(body);
+    }
+
+    return constant;
+  }
+
   @NonNull
   private static EnumTypeBody toEnumTypeBody(@NonNull PsiClass psiClass) {
     EnumTypeBody body = new EnumTypeBody();
@@ -478,13 +518,18 @@ public class LombokPsiConverter {
       members.addToEnd(s);
     }
     for (PsiField field : psiClass.getFields()) {
-      members.addToEnd(toField(field));
-    }
-    for (PsiMethod method : psiClass.getConstructors()) {
-      members.addToEnd(toConstructorDeclaration(method));
+      if (field instanceof PsiEnumConstant) {
+        PsiEnumConstant pec = (PsiEnumConstant)field;
+        EnumConstant enumConstant = toEnumConstant(pec);
+        body.astConstants().addToEnd(enumConstant);
+      }
     }
     for (PsiMethod method : psiClass.getMethods()) {
-      members.addToEnd(toMethodDeclaration(method));
+      if (method.isConstructor()) {
+        members.addToEnd(toConstructorDeclaration(method));
+      } else {
+        members.addToEnd(toMethodDeclaration(method));
+      }
     }
     for (PsiClass innerClass : psiClass.getInnerClasses()) {
       TypeDeclaration typeDeclaration = toTypeDeclaration(innerClass);
