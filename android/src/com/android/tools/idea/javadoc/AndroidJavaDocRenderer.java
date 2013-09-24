@@ -23,19 +23,16 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.resources.FrameworkResources;
-import com.android.ide.common.resources.ResourceItemResolver;
-import com.android.ide.common.resources.ResourceRepository;
-import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.*;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.rendering.*;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
-import com.android.utils.XmlUtils;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -44,6 +41,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColorUtil;
+import org.jetbrains.android.AndroidColorAnnotator;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidTargetData;
@@ -62,20 +60,25 @@ import java.util.*;
 import java.util.List;
 import java.util.Locale;
 
-import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
-import static com.android.SdkConstants.PREFIX_THEME_REF;
 import static org.jetbrains.android.util.AndroidUtils.hasImageExtension;
 
 public class AndroidJavaDocRenderer {
   /** Renders the Javadoc for a resource of given type and name. */
   @Nullable
   public static String render(@NotNull Module module, @NotNull ResourceType type, @NotNull String name, boolean framework) {
-    ResourceValueRenderer renderer = ResourceValueRenderer.create(type, module);
+    return render(module, ResourceUrl.create(type, name, framework, false));
+  }
+
+  /** Renders the Javadoc for a resource of given type and name. */
+  @Nullable
+  public static String render(@NotNull Module module, @NotNull ResourceUrl url) {
+    ResourceValueRenderer renderer = ResourceValueRenderer.create(url.type, module);
+    boolean framework = url.framework;
     if (renderer == null || framework && renderer.getFrameworkResources() == null || !framework && renderer.getAppResources() == null) {
       return null;
     }
 
-    return renderer.render(type, name, framework);
+    return renderer.render(url);
   }
 
   /** Combines external javadoc into the documentation rendered by the {@link #render} method */
@@ -116,21 +119,23 @@ public class AndroidJavaDocRenderer {
   }
 
   private static abstract class ResourceValueRenderer implements ResourceItemResolver.ResourceProvider {
-    private final Module myModule;
-    private FrameworkResources myFrameworkResources;
-    private ProjectResources myAppResources;
+    protected final Module myModule;
+    protected FrameworkResources myFrameworkResources;
+    protected ProjectResources myAppResources;
+    protected ResourceResolver myResourceResolver;
 
     protected ResourceValueRenderer(Module module) {
       myModule = module;
     }
 
-    @Nullable
-    public abstract String renderToHtml(@NotNull ItemInfo item, @NotNull ResourceType type, @NotNull String name);
+    public abstract void renderToHtml(@NotNull HtmlBuilder builder, @NotNull ItemInfo item, @NotNull ResourceUrl url,
+                                      boolean showResolution, @Nullable ResourceValue resourceValue);
 
     /** Creates a renderer suitable for the given resource type */
     @Nullable
     public static ResourceValueRenderer create(@NotNull ResourceType type, @NotNull Module module) {
       switch (type) {
+        case ATTR:
         case STRING:
         case DIMEN:
         case INTEGER:
@@ -167,18 +172,22 @@ public class AndroidJavaDocRenderer {
     }
 
     @Nullable
-    public String render(@NotNull ResourceType type, @NotNull String name, boolean framework) {
-      List<ItemInfo> items = gatherItems(type, name, framework);
+    public String render(@NotNull ResourceUrl url) {
+      List<ItemInfo> items = gatherItems(url);
       if (items != null) {
         Collections.sort(items);
-        return renderKeyValues(items, type, name);
+        return renderKeyValues(items, url);
       }
 
       return null;
     }
 
     @Nullable
-    private List<ItemInfo> gatherItems(@NotNull ResourceType type, @NotNull String name, boolean framework) {
+    private List<ItemInfo> gatherItems(@NotNull ResourceUrl url) {
+      ResourceType type = url.type;
+      String name = url.name;
+      boolean framework = url.framework;
+
       if (framework) {
         List<ItemInfo> results = Lists.newArrayList();
         addItemsFromFramework(null, MASK_NORMAL, 0, type, name, results);
@@ -325,7 +334,7 @@ public class AndroidJavaDocRenderer {
     }
 
     @Nullable
-    private String renderKeyValues(@NotNull List<ItemInfo> items, @NotNull ResourceType type, @NotNull String name) {
+    private String renderKeyValues(@NotNull List<ItemInfo> items, @NotNull ResourceUrl url) {
       if (items.isEmpty()) {
         return null;
       }
@@ -335,10 +344,7 @@ public class AndroidJavaDocRenderer {
       HtmlBuilder builder = new HtmlBuilder();
       builder.openHtmlBody();
       if (items.size() == 1) {
-        String value = renderToHtml(items.get(0), type, name);
-        if (value != null) {
-          builder.addHtml(value);
-        }
+        renderToHtml(builder, items.get(0), url, true, items.get(0).value);
       } else {
         //noinspection SpellCheckingInspection
         builder.beginTable("valign=\"top\"");
@@ -351,11 +357,8 @@ public class AndroidJavaDocRenderer {
         }
 
         String prevFlavor = null;
+        boolean showResolution = true;
         for (ItemInfo info : items) {
-          String value = renderToHtml(info, type, name);
-          if (value == null) {
-            value = "";
-          }
           String folder = info.folder;
           String flavor = StringUtil.notNullize(info.flavor);
           if (flavor.equals(prevFlavor)) {
@@ -368,53 +371,103 @@ public class AndroidJavaDocRenderer {
           if (haveFlavors) {
             // Bold selected flavors?
             String style = ( (info.displayMask & MASK_FLAVOR_SELECTED) != 0) ? "b" : null;
-            addTableCell(builder, flavor, style);
+            addTableCell(builder, style, flavor, null, null, false);
           }
-          addTableCell(builder, folder, null);
+          addTableCell(builder, null, folder, null, null, false);
           String style = ( (info.displayMask & MASK_ITEM_HIDDEN) != 0) ? "s" : null;
-          addTableCell(builder, value, style);
+          addTableCell(builder, style, null, info, url, showResolution);
+          showResolution = false; // Only show for first item
           builder.addHtml("</tr>");
         }
 
         builder.endTable();
       }
-      builder.addHtml("</body></html>");
+      builder.closeHtmlBody();
       return builder.getHtml();
     }
 
-    protected void displayChain(@NotNull ResourceType type, @NotNull String name, @NotNull List<ResourceValue> lookupChain,
-                                @NotNull HtmlBuilder builder) {
-      if (lookupChain.size() > 1) {
-        builder.add(PREFIX_RESOURCE_REF);
-        builder.add(type.getName());
-        builder.add("/");
-        builder.add(name);
-        ResourceValue prev = null;
-        for (ResourceValue element : lookupChain) {
-          if (element == null) {
-            continue;
-          }
-          String text = element.getValue();
-          if (prev != null && text.equals(prev.getValue())) {
-            continue;
-          }
-
-          builder.add(" => ");
-
-          // Strip paths
-          if (!(text.startsWith(PREFIX_THEME_REF) || text.startsWith(PREFIX_RESOURCE_REF))) {
-            int end = Math.max(text.lastIndexOf('/'), text.lastIndexOf('\\'));
-            if (end != -1) {
-              text = text.substring(end + 1);
-            }
-          }
-          builder.add(text);
-          prev = element;
-        }
-        builder.newline();
+    private void addTableCell(@NotNull HtmlBuilder builder,
+                              @Nullable String attribute,
+                              @Nullable String text,
+                              @Nullable ItemInfo info,
+                              @Nullable ResourceUrl url,
+                              boolean showResolution) {
+      //noinspection SpellCheckingInspection
+      builder.addHtml("<td valign=\"top\">");
+      if (attribute != null) {
+        builder.addHtml("<").addHtml(attribute).addHtml(">");
       }
+
+      if (text != null) {
+        builder.add(text);
+      } else {
+        assert info != null;
+        assert url != null;
+        renderToHtml(builder, info, url, showResolution, info.value);
+      }
+
+      if (attribute != null) {
+        builder.addHtml("</").addHtml(attribute).addHtml(">");
+      }
+      builder.addHtml("</td>");
     }
 
+    @NotNull
+    protected ResourceItemResolver createResolver(@NotNull ItemInfo item) {
+      ResourceItemResolver resolver = new ResourceItemResolver(item.configuration, this, null);
+      List<ResourceValue> lookupChain = Lists.newArrayList();
+      lookupChain.add(item.value);
+      resolver.setLookupChainList(lookupChain);
+      return resolver;
+    }
+
+    @Nullable
+    protected Object resolveValue(@NotNull ResourceItemResolver resolver, @Nullable ResourceValue itemValue, @NotNull ResourceUrl url) {
+      assert resolver.getLookupChain() != null;
+      resolver.getLookupChain().clear();
+
+      if (itemValue != null) {
+        String value = itemValue.getValue();
+        if (value != null) {
+          ResourceUrl parsed = ResourceUrl.parse(value);
+          if (parsed != null) {
+            ResourceValue v = new ResourceValue(url.type, url.name, url.framework);
+            v.setValue(url.toString());
+            ResourceValue resourceValue = resolver.resolveResValue(v);
+            if (resourceValue != null && resourceValue.getValue() != null) {
+              return resourceValue.getValue();
+            }
+          }
+          return value;
+        } else {
+          ResourceValue v = new ResourceValue(url.type, url.name, url.framework);
+          v.setValue(url.toString());
+          ResourceValue resourceValue = resolver.resolveResValue(v);
+          if (resourceValue != null && resourceValue.getValue() != null) {
+            return resourceValue.getValue();
+          }
+
+          return url.toString();
+        }
+      }
+
+      return null;
+    }
+
+    protected void displayChain(@NotNull ResourceUrl url, @NotNull List<ResourceValue> lookupChain,
+                                @NotNull HtmlBuilder builder, boolean newlineBefore, boolean newlineAfter) {
+      if (!lookupChain.isEmpty()) {
+        if (newlineBefore) {
+          builder.newline();
+        }
+        String text = ResourceItemResolver.getDisplayString(url.toString(), lookupChain);
+        builder.add(text);
+        builder.newline();
+        if (newlineAfter) {
+          builder.newline();
+        }
+      }
+    }
 
     // ---- Implements ResourceItemResolver.ResourceProvider ----
 
@@ -441,7 +494,18 @@ public class AndroidJavaDocRenderer {
     @Override
     @Nullable
     public ResourceResolver getResolver(boolean createIfNecessary) {
-      return null;
+      if (myResourceResolver == null && createIfNecessary) {
+        AndroidFacet facet = AndroidFacet.getInstance(myModule);
+        if (facet != null) {
+          VirtualFile layout = AndroidColorAnnotator.pickLayoutFile(myModule, facet);
+          if (layout != null) {
+            Configuration configuration = facet.getConfigurationManager().getConfiguration(layout);
+            myResourceResolver = configuration.getResourceResolver();
+          }
+        }
+      }
+
+      return myResourceResolver;
     }
   }
 
@@ -467,21 +531,6 @@ public class AndroidJavaDocRenderer {
     }
   }
 
-  private static void addTableCell(HtmlBuilder builder, String text, @Nullable String attribute) {
-    //noinspection SpellCheckingInspection
-    builder.addHtml("<td valign=\"top\">");
-    if (attribute != null) {
-      builder.addHtml("<").addHtml(attribute).addHtml(">");
-    }
-
-    builder.addHtml(text);
-
-    if (attribute != null) {
-      builder.addHtml("</").addHtml(attribute).addHtml(">");
-    }
-    builder.addHtml("</td>");
-  }
-
   private static String renderFolderName(String name) {
     String prefix = SdkConstants.FD_RES_VALUES;
 
@@ -496,37 +545,139 @@ public class AndroidJavaDocRenderer {
     }
   }
 
-  private static class ArrayRenderer extends ResourceValueRenderer {
-    private ArrayRenderer(Module module) {
-      super(module);
-    }
-
-    @Override
-    public String renderToHtml(@NotNull ItemInfo item, @NotNull ResourceType type, @NotNull String name) {
-      ResourceValue value = item.value;
-      if (value instanceof ArrayResourceValue) {
-        ArrayResourceValue arv = (ArrayResourceValue)value;
-        return Joiner.on(", ").skipNulls().join(arv);
-      }
-
-      if (item.value != null) {
-        return item.value.getValue();
-      }
-      return null;
-    }
-  }
-
   private static class TextValueRenderer extends ResourceValueRenderer {
     private TextValueRenderer(Module module) {
       super(module);
     }
 
+    @Nullable
     @Override
-    public String renderToHtml(@NotNull ItemInfo item, @NotNull ResourceType type, @NotNull String name) {
-      if (item.value != null) {
-        return item.value.getValue();
+    protected String resolveValue(@NotNull ResourceItemResolver resolver, @Nullable ResourceValue value, @NotNull ResourceUrl url) {
+      return (String)super.resolveValue(resolver, value, url);
+    }
+
+    @Override
+    public void renderToHtml(@NotNull HtmlBuilder builder,
+                             @NotNull ItemInfo item,
+                             @NotNull ResourceUrl url,
+                             boolean showResolution,
+                             @Nullable ResourceValue resourceValue) {
+      ResourceItemResolver resolver = createResolver(item);
+      String value = resolveValue(resolver, resourceValue, url);
+
+      if (value != null) {
+        boolean found = false;
+        if (url.theme) {
+          // If it's a theme attribute such as ?foo, it might resolve to a value we can
+          // preview in a better way, such as a drawable, color or array. In that case,
+          // look at the resolution chain and figure out the type of the resolved value,
+          // and if appropriate, append a customized rendering.
+          if (value.startsWith("#")) {
+            Color color = ResourceHelper.parseColor(value);
+            if (color != null) {
+              found = true;
+              ResourceValueRenderer renderer = ResourceValueRenderer.create(ResourceType.COLOR, myModule);
+              assert renderer != null;
+              ResourceValue resolved = new ResourceValue(url.type, url.name, url.framework);
+              resolved.setValue(value);
+              renderer.renderToHtml(builder, item, url, false, resolved);
+              builder.newline();
+            }
+          } else if (value.endsWith(SdkConstants.DOT_PNG)) {
+            File f = new File(value);
+            if (f.exists()) {
+              found = true;
+              ResourceValueRenderer renderer = ResourceValueRenderer.create(ResourceType.DRAWABLE, myModule);
+              assert renderer != null;
+              ResourceValue resolved = new ResourceValue(url.type, url.name, url.framework);
+              resolved.setValue(value);
+              renderer.renderToHtml(builder, item, url, false, resolved);
+              builder.newline();
+            }
+          }
+
+          if (!found) {
+            List<ResourceValue> lookupChain = resolver.getLookupChain();
+            assert lookupChain != null;
+            for (int i = lookupChain.size() - 1; i >= 0; i--) {
+              ResourceValue rv = lookupChain.get(i);
+              if (rv != null) {
+                String value2 = rv.getValue();
+                if (value2 != null) {
+                  ResourceUrl resourceUrl = ResourceUrl.parse(value2);
+                  if (resourceUrl != null && !resourceUrl.theme) {
+                    ResourceValueRenderer renderer = create(resourceUrl.type, myModule);
+                    if (renderer != null && renderer.getClass() != this.getClass()) {
+                      found = true;
+                      ResourceValue resolved = new ResourceValue(url.type, url.name, url.framework);
+                      resolved.setValue(value);
+                      renderer.renderToHtml(builder, item, resourceUrl, false, resolved);
+                      builder.newline();
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        if (!found) {
+          builder.add(value);
+        }
+      } else if (item.value != null && item.value.getValue() != null) {
+        builder.add(item.value.getValue());
       }
+
+      if (showResolution) {
+        List<ResourceValue> lookupChain = resolver.getLookupChain();
+        assert lookupChain != null;
+        displayChain(url, lookupChain, builder, true, true);
+      }
+    }
+  }
+
+  private static class ArrayRenderer extends ResourceValueRenderer {
+    private ArrayRenderer(Module module) {
+      super(module);
+    }
+
+    @Nullable
+    @Override
+    protected Object resolveValue(@NotNull ResourceItemResolver resolver, @Nullable ResourceValue value, @NotNull ResourceUrl url) {
+      if (value != null) {
+        assert resolver.getLookupChain() != null;
+        resolver.getLookupChain().clear();
+        return resolver.resolveResValue(value);
+      }
+
       return null;
+    }
+
+    @Override
+    public void renderToHtml(@NotNull HtmlBuilder builder,
+                             @NotNull ItemInfo item,
+                             @NotNull ResourceUrl url,
+                             boolean showResolution,
+                             @Nullable ResourceValue resourceValue) {
+      ResourceItemResolver resolver = createResolver(item);
+      Object value = resolveValue(resolver, resourceValue, url);
+      if (value instanceof ArrayResourceValue) {
+        ArrayResourceValue arv = (ArrayResourceValue)value;
+        builder.add(Joiner.on(", ").skipNulls().join(arv));
+      } else if (value != null) {
+        builder.add(value.toString());
+      }
+
+      if (showResolution) {
+        List<ResourceValue> lookupChain = resolver.getLookupChain();
+        assert lookupChain != null;
+        // For arrays we end up pointing to the first element with PsiResourceItem.getValue, so only show the
+        // resolution chain if it reveals something interesting (e.g. intermediate aliases)
+        if (lookupChain.size() > 1) {
+          displayChain(url, lookupChain, builder, true, false);
+        }
+      }
     }
   }
 
@@ -535,27 +686,34 @@ public class AndroidJavaDocRenderer {
       super(module);
     }
 
+    @Nullable
     @Override
-    public String renderToHtml(@NotNull ItemInfo item, @NotNull ResourceType type, @NotNull String name) {
-      ResourceValue value = item.value;
-      ResourceItemResolver resolver = new ResourceItemResolver(item.configuration, this, null);
-      List<ResourceValue> lookupChain = Lists.newArrayList();
-      lookupChain.add(value);
-      resolver.setLookupChainList(lookupChain);
-      File bitmap = ResourceHelper.resolveDrawable(resolver, value);
+    protected File resolveValue(@NotNull ResourceItemResolver resolver, @Nullable ResourceValue value, @NotNull ResourceUrl url) {
+      assert resolver.getLookupChain() != null;
+      resolver.getLookupChain().clear();
+      return ResourceHelper.resolveDrawable(resolver, value);
+    }
+
+    @Override
+    public void renderToHtml(@NotNull HtmlBuilder builder,
+                             @NotNull ItemInfo item,
+                             @NotNull ResourceUrl url,
+                             boolean showResolution,
+                             @Nullable ResourceValue resourceValue) {
+      ResourceItemResolver resolver = createResolver(item);
+      File bitmap = resolveValue(resolver, resourceValue, url);
       if (bitmap != null && bitmap.exists() && hasImageExtension(bitmap.getPath())) {
-        URL url = null;
+        URL fileUrl = null;
         try {
-          url = SdkUtils.fileToUrl(bitmap);
+          fileUrl = SdkUtils.fileToUrl(bitmap);
         }
         catch (MalformedURLException e) {
           // pass
         }
 
-        if (url != null) {
-          HtmlBuilder builder = new HtmlBuilder();
+        if (fileUrl != null) {
           builder.beginDiv("background-color:gray;padding:10px");
-          builder.addImage(url, bitmap.getPath());
+          builder.addImage(fileUrl, bitmap.getPath());
           builder.endDiv();
 
           Dimension size = getSize(bitmap);
@@ -565,19 +723,17 @@ public class AndroidJavaDocRenderer {
 
             builder.addHtml(String.format(Locale.US, "%1$d&#xd7;%2$d px (%3$d&#xd7;%4$d dp @ %5$s)", size.width, size.height,
                                           px2dp(size.width, density), px2dp(size.height, density), density.getResourceValue()));
-            builder.newline();
-            displayChain(type, name, lookupChain, builder);
           }
-
-          return builder.getHtml();
         }
+      } else if (bitmap != null) {
+        builder.add(bitmap.getPath());
       }
 
-      if (value != null) {
-        return XmlUtils.toXmlTextValue(value.getValue());
+      if (showResolution) {
+        List<ResourceValue> lookupChain = resolver.getLookupChain();
+        assert lookupChain != null;
+        displayChain(url, lookupChain, builder, true, false);
       }
-
-      return null;
     }
 
     private static int px2dp(int px, Density density) {
@@ -590,16 +746,23 @@ public class AndroidJavaDocRenderer {
       super(module);
     }
 
+    @Nullable
     @Override
-    public String renderToHtml(@NotNull ItemInfo item, @NotNull ResourceType type, @NotNull String name) {
-      ResourceValue value = item.value;
-      ResourceItemResolver resolver = new ResourceItemResolver(item.configuration, this, null);
-      List<ResourceValue> lookupChain = Lists.newArrayList();
-      lookupChain.add(value);
-      resolver.setLookupChainList(lookupChain);
-      Color color = ResourceHelper.resolveColor(resolver, value);
+    protected Color resolveValue(@NotNull ResourceItemResolver resolver, @Nullable ResourceValue value, @NotNull ResourceUrl url) {
+      assert resolver.getLookupChain() != null;
+      resolver.getLookupChain().clear();
+      return ResourceHelper.resolveColor(resolver, value);
+    }
+
+    @Override
+    public void renderToHtml(@NotNull HtmlBuilder builder,
+                             @NotNull ItemInfo item,
+                             @NotNull ResourceUrl url,
+                             boolean showResolution,
+                             @Nullable ResourceValue resourceValue) {
+      ResourceItemResolver resolver = createResolver(item);
+      Color color = resolveValue(resolver, resourceValue, url);
       if (color != null) {
-        HtmlBuilder builder = new HtmlBuilder();
         String colorString = String.format(Locale.US, "rgb(%d,%d,%d)", color.getRed(), color.getGreen(), color.getBlue());
         String foregroundColor = ColorUtil.isDark(color) ? "white" : "black";
         String css = "background-color:" + colorString + ";color:" + foregroundColor +
@@ -610,17 +773,15 @@ public class AndroidJavaDocRenderer {
         builder.addHtml("<td align=\"center\" valign=\"middle\" height=\"100\">");
         builder.add('#' + ColorUtil.toHex(color));
         builder.addHtml("</td></tr></table>");
-        builder.newline();
-        displayChain(type, name, lookupChain, builder);
-
-        return builder.getHtml();
+      } else if (item.value != null && item.value.getValue() != null) {
+        builder.add(item.value.getValue());
       }
 
-      if (value != null) {
-        return XmlUtils.toXmlTextValue(value.getValue());
+      if (showResolution) {
+        List<ResourceValue> lookupChain = resolver.getLookupChain();
+        assert lookupChain != null;
+        displayChain(url, lookupChain, builder, true, false);
       }
-
-      return null;
     }
   }
 

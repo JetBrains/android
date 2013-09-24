@@ -158,7 +158,7 @@ public class AndroidColorAnnotator implements Annotator {
    * file found in the resources (if any).
    * */
   @Nullable
-  private static VirtualFile pickLayoutFile(@NotNull Module module, @NotNull AndroidFacet facet) {
+  public static VirtualFile pickLayoutFile(@NotNull Module module, @NotNull AndroidFacet facet) {
     VirtualFile layout = null;
     VirtualFile[] openFiles = FileEditorManager.getInstance(module.getProject()).getOpenFiles();
     for (VirtualFile file : openFiles) {
