@@ -28,6 +28,7 @@ import com.android.utils.Pair;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -55,9 +56,11 @@ import javax.swing.event.ListSelectionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class DevicePanel implements Disposable,
                                     AndroidDebugBridge.IClientChangeListener,
@@ -97,6 +100,8 @@ public class DevicePanel implements Disposable,
 
     myBridge.addDeviceChangeListener(this);
     myBridge.addClientChangeListener(this);
+
+    ClientData.setMethodProfilingHandler(new OpenVmTraceHandler(project));
 
     initializeDeviceCombo();
     initializeClientsList();
@@ -325,7 +330,7 @@ public class DevicePanel implements Disposable,
     //group.add(new MyAllocationTrackerAction());
     //group.add(new Separator());
 
-    //group.add(new MyToggleMethodProfilingAction());
+    group.add(new MyToggleMethodProfilingAction());
     //group.add(new MyThreadDumpAction()); // thread dump -> systrace
     return group;
   }
@@ -430,6 +435,66 @@ public class DevicePanel implements Disposable,
           }
         }
       }.queue();
+    }
+  }
+
+  private class MyToggleMethodProfilingAction extends ToggleAction {
+    public MyToggleMethodProfilingAction() {
+      super(AndroidBundle.message("android.ddms.actions.methodprofile.start"),
+            null,
+            AndroidIcons.Ddms.StartMethodProfiling);
+    }
+
+    @Override
+    public boolean isSelected(AnActionEvent e) {
+      Client c = myDeviceContext.getSelectedClient();
+      if (c == null) {
+        return false;
+      }
+
+      ClientData cd = c.getClientData();
+      return cd.getMethodProfilingStatus() == ClientData.MethodProfilingStatus.TRACER_ON ||
+             cd.getMethodProfilingStatus() == ClientData.MethodProfilingStatus.SAMPLER_ON;
+    }
+
+    @Override
+    public void setSelected(AnActionEvent e, boolean state) {
+      Client c = myDeviceContext.getSelectedClient();
+      if (c == null) {
+        return;
+      }
+
+      ClientData cd = c.getClientData();
+      try {
+        if (cd.getMethodProfilingStatus() == ClientData.MethodProfilingStatus.TRACER_ON) {
+          c.stopMethodTracer();
+        }
+        else {
+          c.startMethodTracer();
+        }
+      }
+      catch (IOException e1) {
+        Messages.showErrorDialog(myProject,
+                                 "Unexpected error while toggling method profiling: " + e1,
+                                 "Method Profiling");
+      }
+    }
+
+    @Override
+    public void update(AnActionEvent e) {
+      super.update(e);
+
+      Client c = myDeviceContext.getSelectedClient();
+      if (c == null) {
+        e.getPresentation().setEnabled(false);
+        return;
+      }
+
+      String text = c.getClientData().getMethodProfilingStatus() == ClientData.MethodProfilingStatus.TRACER_ON ?
+                    AndroidBundle.message("android.ddms.actions.methodprofile.stop") :
+                    AndroidBundle.message("android.ddms.actions.methodprofile.start");
+      e.getPresentation().setText(text);
+      e.getPresentation().setEnabled(true);
     }
   }
 }
