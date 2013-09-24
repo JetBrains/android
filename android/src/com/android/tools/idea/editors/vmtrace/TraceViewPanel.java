@@ -41,6 +41,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.ui.treeStructure.treetable.TreeTable;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -86,6 +87,8 @@ public class TraceViewPanel {
   private JBLabel myResultsLabel;
   private JLabel mySearchLabel;
   private JBSplitter mySplitter;
+  private JLabel myZoomFitLabel;
+  private JCheckBox myUseInclusiveTimeForColoring;
 
   private static final String[] ourRenderClockOptions = new String[] {
     "Wall Clock Time",
@@ -115,12 +118,15 @@ public class TraceViewPanel {
         } else if (e.getSource() == myRenderClockSelectorCombo) {
           myTraceViewCanvas.setRenderClock(getCurrentRenderClock());
           myVmStatsTreeTableModel.setClockType(getCurrentRenderClock());
+        } else if (e.getSource() == myUseInclusiveTimeForColoring) {
+          myTraceViewCanvas.setUseInclusiveTimeForColorAssignment(myUseInclusiveTimeForColoring.isSelected());
         }
       }
     };
 
     myThreadCombo.addActionListener(l);
     myRenderClockSelectorCombo.addActionListener(l);
+    myUseInclusiveTimeForColoring.addActionListener(l);
   }
 
   private SearchTextField createSearchField() {
@@ -233,6 +239,8 @@ public class TraceViewPanel {
           closeSearchComponent();
         } else if (e.getSource() == mySearchLabel) {
           showSearchComponent();
+        } else if (e.getSource() == myZoomFitLabel) {
+          myTraceViewCanvas.zoomFit();
         }
       }
     };
@@ -241,6 +249,9 @@ public class TraceViewPanel {
     mySearchLabel = new JLabel(AllIcons.Actions.Search);
     mySearchLabel.addMouseListener(l);
     mySearchLabel.setToolTipText("Find (Ctrl + F)");
+    myZoomFitLabel = new JLabel(AndroidIcons.ZoomFit);
+    myZoomFitLabel.setToolTipText("Zoom Fit");
+    myZoomFitLabel.addMouseListener(l);
 
     myFindPanel = new EditorHeaderComponent();
     myFindFieldWrapper = new NonOpaquePanel(new BorderLayout());
