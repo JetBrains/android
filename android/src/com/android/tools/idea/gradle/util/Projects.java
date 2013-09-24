@@ -220,9 +220,9 @@ public final class Projects {
         String format = "Enabled 'External Build' for Android project '%1$s'. Otherwise, the project will not be built with Gradle";
         String msg = String.format(format, project.getName());
         LOG.info(msg);
-        workspaceConfiguration.USE_COMPILE_SERVER = true;
+        workspaceConfiguration.USE_OUT_OF_PROCESS_BUILD = true;
         MessageBus messageBus = project.getMessageBus();
-        messageBus.syncPublisher(ExternalBuildOptionListener.TOPIC).externalBuildOptionChanged(workspaceConfiguration.USE_COMPILE_SERVER);
+        messageBus.syncPublisher(ExternalBuildOptionListener.TOPIC).externalBuildOptionChanged(true);
       }
     }
   }
