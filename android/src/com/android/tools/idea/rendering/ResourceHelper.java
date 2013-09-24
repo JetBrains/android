@@ -258,17 +258,11 @@ public class ResourceHelper {
    *
    * @param resources the resource resolver to use to follow color references
    * @param color the color to resolve
-   * @param lookupChain an optional list which if non null will be filled with all the intermediate resource values examined by
-   *                    this method
    * @return the corresponding {@link Color} color, or null
    */
   @Nullable
-  public static Color resolveColor(@NotNull RenderResources resources, @Nullable ResourceValue color,
-                                   @Nullable List<ResourceValue> lookupChain) {
+  public static Color resolveColor(@NotNull RenderResources resources, @Nullable ResourceValue color) {
     if (color != null) {
-      if (lookupChain != null) {
-        lookupChain.add(color);
-      }
       color = resources.resolveResValue(color);
     }
     if (color == null) {
@@ -285,9 +279,6 @@ public class ResourceHelper {
         boolean isFramework = color.isFramework();
         color = resources.findResValue(value, isFramework);
         if (color != null) {
-          if (lookupChain != null) {
-            lookupChain.add(color);
-          }
           value = color.getValue();
         } else {
           break;
@@ -301,7 +292,6 @@ public class ResourceHelper {
             Document document = XmlUtils.parseDocumentSilently(xml, true);
             if (document != null) {
               NodeList items = document.getElementsByTagName(TAG_ITEM);
-
               value = findInStateList(items, ATTR_COLOR);
               continue;
             }
@@ -412,17 +402,11 @@ public class ResourceHelper {
    *
    * @param resources the resource resolver to use to follow drawable references
    * @param drawable the drawable to resolve
-   * @param lookupChain an optional list which if non null will be filled with all the intermediate resource values examined by
-   *                    this method
    * @return the corresponding {@link File}, or null
    */
   @Nullable
-  public static File resolveDrawable(@NotNull RenderResources resources, @Nullable ResourceValue drawable,
-                                     @Nullable List<ResourceValue> lookupChain) {
+  public static File resolveDrawable(@NotNull RenderResources resources, @Nullable ResourceValue drawable) {
     if (drawable != null) {
-      if (lookupChain != null) {
-        lookupChain.add(drawable);
-      }
       drawable = resources.resolveResValue(drawable);
     }
     if (drawable == null) {
@@ -436,9 +420,6 @@ public class ResourceHelper {
         boolean isFramework = drawable.isFramework();
         drawable = resources.findResValue(value, isFramework);
         if (drawable != null) {
-          if (lookupChain != null) {
-            lookupChain.add(drawable);
-          }
           value = drawable.getValue();
         } else {
           break;

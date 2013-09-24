@@ -389,11 +389,19 @@ public class AndroidJavaDocRenderer {
         builder.add(type.getName());
         builder.add("/");
         builder.add(name);
+        ResourceValue prev = null;
         for (ResourceValue element : lookupChain) {
+          if (element == null) {
+            continue;
+          }
+          String text = element.getValue();
+          if (prev != null && text.equals(prev.getValue())) {
+            continue;
+          }
+
           builder.add(" => ");
 
           // Strip paths
-          String text = element.getValue();
           if (!(text.startsWith(PREFIX_THEME_REF) || text.startsWith(PREFIX_RESOURCE_REF))) {
             int end = Math.max(text.lastIndexOf('/'), text.lastIndexOf('\\'));
             if (end != -1) {
@@ -401,6 +409,7 @@ public class AndroidJavaDocRenderer {
             }
           }
           builder.add(text);
+          prev = element;
         }
         builder.newline();
       }
@@ -529,8 +538,11 @@ public class AndroidJavaDocRenderer {
     @Override
     public String renderToHtml(@NotNull ItemInfo item, @NotNull ResourceType type, @NotNull String name) {
       ResourceValue value = item.value;
+      ResourceItemResolver resolver = new ResourceItemResolver(item.configuration, this, null);
       List<ResourceValue> lookupChain = Lists.newArrayList();
-      File bitmap = ResourceHelper.resolveDrawable(new ResourceItemResolver(item.configuration, this, null), value, lookupChain);
+      lookupChain.add(value);
+      resolver.setLookupChainList(lookupChain);
+      File bitmap = ResourceHelper.resolveDrawable(resolver, value);
       if (bitmap != null && bitmap.exists() && hasImageExtension(bitmap.getPath())) {
         URL url = null;
         try {
@@ -581,8 +593,11 @@ public class AndroidJavaDocRenderer {
     @Override
     public String renderToHtml(@NotNull ItemInfo item, @NotNull ResourceType type, @NotNull String name) {
       ResourceValue value = item.value;
+      ResourceItemResolver resolver = new ResourceItemResolver(item.configuration, this, null);
       List<ResourceValue> lookupChain = Lists.newArrayList();
-      Color color = ResourceHelper.resolveColor(new ResourceItemResolver(item.configuration, this, null), value, lookupChain);
+      lookupChain.add(value);
+      resolver.setLookupChainList(lookupChain);
+      Color color = ResourceHelper.resolveColor(resolver, value);
       if (color != null) {
         HtmlBuilder builder = new HtmlBuilder();
         String colorString = String.format(Locale.US, "rgb(%d,%d,%d)", color.getRed(), color.getGreen(), color.getBlue());
