@@ -39,12 +39,18 @@ import java.util.List;
 public class Jdks {
   @Nullable
   public static Sdk chooseOrCreateJavaSdk() {
+    // JDK 7 not really needed, added it to be more consistent with IDEA's way of getting JDK.
+    return chooseOrCreateJavaSdk(JavaSdkVersion.JDK_1_6, JavaSdkVersion.JDK_1_7);
+  }
+
+  @Nullable
+  public static Sdk chooseOrCreateJavaSdk(@NotNull JavaSdkVersion... jdkVersions) {
     for (Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
-      if (isApplicableJdk(sdk)) {
+      if (isApplicableJdk(sdk, jdkVersions)) {
         return sdk;
       }
     }
-    String jdkHomePath = getJdkHomePath();
+    String jdkHomePath = getJdkHomePath(jdkVersions);
     if (jdkHomePath != null) {
       return createJdk(jdkHomePath);
     }
@@ -52,16 +58,25 @@ public class Jdks {
   }
 
   public static boolean isApplicableJdk(@NotNull Sdk jdk) {
+    // TODO this code is from IDEA. Do we really need JDK 1.5 and 1.7?
+    return isApplicableJdk(jdk, JavaSdkVersion.JDK_1_5, JavaSdkVersion.JDK_1_6, JavaSdkVersion.JDK_1_7);
+  }
+
+  public static boolean isApplicableJdk(@NotNull Sdk jdk, @NotNull JavaSdkVersion... jdkVersions) {
     if (!(jdk.getSdkType() instanceof JavaSdk)) {
       return false;
     }
     JavaSdkVersion version = JavaSdk.getInstance().getVersion(jdk);
-    // TODO this code is from IDEA. Do we really need JDK 1.5 and 1.7?
-    return version == JavaSdkVersion.JDK_1_5 || version == JavaSdkVersion.JDK_1_6 || version == JavaSdkVersion.JDK_1_7;
+    for (JavaSdkVersion v : jdkVersions) {
+      if (v.equals(version)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Nullable
-  private static String getJdkHomePath() {
+  private static String getJdkHomePath(@NotNull JavaSdkVersion[] jdkVersions) {
     Collection<String> jdkHomePaths = JavaSdk.getInstance().suggestHomePaths();
     if (jdkHomePaths.isEmpty()) {
       return null;
@@ -74,7 +89,7 @@ public class Jdks {
         roots.addAll(getChildrenPaths(jdkHomePath));
       }
     }
-    return getBestJdk(roots);
+    return getBestJdk(roots, jdkVersions);
   }
 
   @NotNull
@@ -95,39 +110,45 @@ public class Jdks {
   }
 
   @Nullable
-  private static String getBestJdk(@NotNull List<String> jdkRoots) {
+  private static String getBestJdk(@NotNull List<String> jdkRoots, @NotNull JavaSdkVersion[] jdkVersions) {
     String bestJdk = null;
     for (String jdkRoot : jdkRoots) {
       if (JavaSdk.getInstance().isValidSdkHome(jdkRoot)) {
-        if (bestJdk == null) {
+        if (bestJdk == null && hasMatchingVersion(jdkRoot, jdkVersions)) {
           bestJdk = jdkRoot;
-        } else {
-          bestJdk = selectJdk(bestJdk, jdkRoot);
+        }
+        else if (bestJdk != null) {
+          bestJdk = selectJdk(bestJdk, jdkRoot, jdkVersions);
         }
       }
     }
     return bestJdk;
   }
 
-  /**
-   * Prioritize JDK 1.6, otherwise pick the one with the highest version.
-   */
-  @NotNull
-  private static String selectJdk(@NotNull String jdk1, @NotNull String jdk2) {
-    JavaSdkVersion v1 = getVersion(jdk1);
-    if (JavaSdkVersion.JDK_1_6.equals(v1)) {
+  @Nullable
+  private static String selectJdk(@NotNull String jdk1, @NotNull String jdk2, @NotNull JavaSdkVersion[] jdkVersions) {
+    if (hasMatchingVersion(jdk1, jdkVersions)) {
       return jdk1;
     }
-    JavaSdkVersion v2 = getVersion(jdk2);
-    if (JavaSdkVersion.JDK_1_6.equals(v2)) {
+    if (hasMatchingVersion(jdk2, jdkVersions)) {
       return jdk2;
     }
-    return v1.ordinal() > v2.ordinal() ? jdk1 : jdk2;
+    return null;
+  }
+
+  private static boolean hasMatchingVersion(@NotNull String jdkRoot, @NotNull JavaSdkVersion[] jdkVersions) {
+    JavaSdkVersion version = getVersion(jdkRoot);
+    for (JavaSdkVersion v : jdkVersions) {
+      if (v.equals(version)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @NotNull
-  private static JavaSdkVersion getVersion(@NotNull String jdk) {
-    String version = JavaSdk.getInstance().getVersionString(jdk);
+  private static JavaSdkVersion getVersion(@NotNull String jdkRoot) {
+    String version = JavaSdk.getInstance().getVersionString(jdkRoot);
     if (version == null) {
       return JavaSdkVersion.JDK_1_0;
     }

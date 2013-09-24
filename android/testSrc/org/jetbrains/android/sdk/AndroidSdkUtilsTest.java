@@ -40,7 +40,7 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
   }
 
   public void testFindSuitableAndroidSdkWhenNoSdkSet() {
-    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk("android-17", mySdkPath, false);
+    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk("android-17", mySdkPath, null, false);
     assertNull(sdk);
   }
 
@@ -50,7 +50,7 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
     assertNotNull(jdk);
     createAndroidSdk(mySdkPath, targetHashString, jdk);
 
-    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk(targetHashString, mySdkPath, false);
+    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk(targetHashString, mySdkPath, null, false);
     assertNotNull(sdk);
     assertEquals(mySdkPath, sdk.getHomePath());
   }

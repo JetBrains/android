@@ -155,6 +155,12 @@ public class AndroidProjectStub implements AndroidProject {
 
   @Override
   @NotNull
+  public List<File> getFrameworkSource() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
   public Map<String, SigningConfig> getSigningConfigs() {
     throw new UnsupportedOperationException();
   }
@@ -169,6 +175,12 @@ public class AndroidProjectStub implements AndroidProject {
   @NotNull
   public Collection<String> getUnresolvedDependencies() {
     return NO_UNRESOLVED_DEPENDENCIES;
+  }
+
+  @Override
+  @NotNull
+  public JavaCompileOptions getJavaCompileOptions() {
+    throw new UnsupportedOperationException();
   }
 
   /**

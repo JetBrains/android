@@ -82,6 +82,12 @@ public class ArtifactInfoStub implements ArtifactInfo {
 
   @Override
   @NotNull
+  public File getGeneratedManifest() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
   public List<File> getGeneratedSourceFolders() {
     return myGeneratedSourceFolders;
   }
