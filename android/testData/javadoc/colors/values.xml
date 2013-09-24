@@ -1,0 +1,6 @@
+<resources>
+    <color name="first">@color/second</color>
+    <color name="second">@color/third</color>
+    <color name="fourth">#aa44aa</color>
+    <color name="custom2">@color/fi<caret>rst</color>
+</resources>
