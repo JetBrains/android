@@ -127,6 +127,7 @@ public class TraceViewPanel {
     myThreadCombo.addActionListener(l);
     myRenderClockSelectorCombo.addActionListener(l);
     myUseInclusiveTimeForColoring.addActionListener(l);
+    myUseInclusiveTimeForColoring.setOpaque(false);
   }
 
   private SearchTextField createSearchField() {
