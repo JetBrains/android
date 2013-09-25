@@ -37,10 +37,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.CollectionListModel;
-import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.ListSpeedSearch;
-import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
@@ -59,6 +56,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -71,7 +69,18 @@ public class DevicePanel implements Disposable,
   private JBList myClientsList;
 
   private final DefaultComboBoxModel myComboBoxModel = new DefaultComboBoxModel();
-  private final CollectionListModel<Client> myClientsListModel = new CollectionListModel<Client>();
+  private final SortedListModel<Client> myClientsListModel = new SortedListModel<Client>(new Comparator<Client>() {
+    @Override
+    public int compare(Client c1, Client c2) {
+      String pkg1 = c1.getClientData().getClientDescription();
+      String pkg2 = c2.getClientData().getClientDescription();
+      if (pkg1 != null && pkg2 != null) {
+        return pkg1.compareTo(pkg2);
+      } else {
+        return 0;
+      }
+    }
+  });
 
   private final DeviceContext myDeviceContext;
   private final Project myProject;
@@ -305,7 +314,8 @@ public class DevicePanel implements Disposable,
   }
 
   private void updateClientsForDevice(@Nullable IDevice device) {
-    myClientsListModel.removeAll();
+    Object selectedObject = myClientsList.getSelectedValue();
+    myClientsListModel.clear();
 
     if (device == null) {
       return;
@@ -314,6 +324,8 @@ public class DevicePanel implements Disposable,
     for (Client c: device.getClients()) {
       myClientsListModel.add(c);
     }
+
+    myClientsList.setSelectedValue(selectedObject, false);
   }
 
   @NotNull
