@@ -18,18 +18,26 @@ package com.android.tools.idea.gradle.service;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.*;
+import com.android.tools.idea.sdk.Jdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import com.intellij.ide.impl.NewProjectUtil;
+import com.intellij.notification.NotificationType;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
+import com.intellij.openapi.externalSystem.service.notification.ExternalSystemIdeNotificationManager;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataService;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.JavaSdkVersion;
+import com.intellij.openapi.projectRoots.Sdk;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.util.Collection;
 import java.util.List;
@@ -79,10 +87,37 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
     ExternalSystemApiUtil.executeProjectChangeAction(synchronous, new Runnable() {
       @Override
       public void run() {
+        JavaSdkVersion jdkVersion = null;
+
         Map<String, IdeaAndroidProject> androidProjectsByModuleName = indexByModuleName(toImport);
         for (Module module : modules) {
           IdeaAndroidProject androidProject = androidProjectsByModuleName.get(module.getName());
           customizeModule(module, project, androidProject);
+          if (androidProject != null && jdkVersion == null) {
+            jdkVersion = androidProject.getJdkVersion();
+          }
+        }
+
+        Sdk jdk;
+        if (jdkVersion == null) {
+          jdk = Jdks.chooseOrCreateJavaSdk();
+        }
+        else {
+          jdk = Jdks.chooseOrCreateJavaSdk(jdkVersion);
+        }
+        if (jdk == null) {
+          ExternalSystemIdeNotificationManager notification = ServiceManager.getService(ExternalSystemIdeNotificationManager.class);
+          if (notification != null) {
+            String title = String.format("Problems importing/refreshing Gradle project '%1$s':\n", project.getName());
+            String version = jdkVersion != null ? jdkVersion.getDescription() : JavaSdkVersion.JDK_1_6.getDescription();
+            String msg = String.format("Unable to find a JDK %1$s installed.\n", version);
+            msg += "After configuring a suitable JDK in the Project Structure dialog, sync the Gradle project again.";
+            notification.showNotification(title, msg, NotificationType.ERROR, project, GradleConstants.SYSTEM_ID, null);
+          }
+        }
+        else {
+          // This takes care of setting the project language level.
+          NewProjectUtil.applyJdkToProject(project, jdk);
         }
       }
     });

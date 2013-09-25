@@ -64,7 +64,8 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer {
     }
     String androidSdkInProperties = localProperties.getAndroidSdkPath();
     String compileTarget = ideaAndroidProject.getDelegate().getCompileTarget();
-    boolean sdkSet = AndroidSdkUtils.findAndSetSdk(module, compileTarget, androidSdkInProperties, true);
+
+    boolean sdkSet = AndroidSdkUtils.findAndSetSdk(module, compileTarget, androidSdkInProperties, ideaAndroidProject.getJdkVersion(), true);
     if (sdkSet) {
       // Check that the SDK set is the same as the one in the local.properties.
       String sdkPath = getSdkPath(module);

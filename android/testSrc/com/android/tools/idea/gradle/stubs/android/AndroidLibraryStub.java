@@ -27,7 +27,7 @@ import java.util.List;
 
 public class AndroidLibraryStub implements AndroidLibrary {
   @NotNull private final File myJarFile;
-  @NotNull private final String myProject;
+  @Nullable private final String myProject;
   @NotNull private final List<File> myLocalJars = Lists.newArrayList();
 
   public AndroidLibraryStub(@NotNull File jarFile) {
@@ -61,6 +61,12 @@ public class AndroidLibraryStub implements AndroidLibrary {
   @NotNull
   public List<? extends AndroidLibrary> getLibraryDependencies() {
     return Collections.emptyList();
+  }
+
+  @Override
+  @NotNull
+  public File getManifest() {
+    throw new UnsupportedOperationException();
   }
 
   @Override

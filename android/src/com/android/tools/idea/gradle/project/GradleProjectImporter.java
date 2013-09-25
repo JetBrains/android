@@ -25,14 +25,11 @@ import com.android.tools.idea.gradle.customizer.ContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
-import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.Facets;
 import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.sdk.Jdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.intellij.ide.impl.NewProjectUtil;
 import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
@@ -59,7 +56,6 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
-import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.startup.StartupManager;
@@ -211,10 +207,6 @@ public class GradleProjectImporter {
         ApplicationManager.getApplication().runWriteAction(new Runnable() {
           @Override
           public void run() {
-            Sdk sdk = Jdks.chooseOrCreateJavaSdk();
-            if (sdk != null) {
-              NewProjectUtil.applyJdkToProject(newProject, sdk);
-            }
             // In practice, it really does not matter where the compiler output folder is. Gradle handles that. This is done just to please
             // IDEA.
             String compileOutputUrl = VfsUtilCore.pathToUrl(newProject.getBasePath() + "/build/classes");
