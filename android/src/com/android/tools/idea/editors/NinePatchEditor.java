@@ -82,6 +82,9 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
 
   private BufferedImage loadImage(VirtualFile file) throws IOException {
     myBufferedImage = ImageIO.read(file.getInputStream());
+    if (myBufferedImage == null) {
+      throw new IOException("Unable to parse file: " + file.getCanonicalPath());
+    }
     return GraphicsUtilities.toCompatibleImage(myBufferedImage);
   }
 
