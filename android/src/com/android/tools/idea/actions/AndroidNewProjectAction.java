@@ -25,8 +25,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbAware;
 
 public class AndroidNewProjectAction extends AnAction implements DumbAware {
-  private static Logger LOG = Logger.getInstance(AndroidNewProjectAction.class);
-
   public AndroidNewProjectAction() {
     super("New Project...");
   }
@@ -38,7 +36,7 @@ public class AndroidNewProjectAction extends AnAction implements DumbAware {
       dialog = new NewProjectWizard();
     }
     catch (IllegalStateException e1) {
-      LOG.error("Unable to launch New Project Wizard", e1);
+      Logger.getInstance(AndroidNewProjectAction.class).error("Unable to launch New Project Wizard", e1);
       return;
     }
 
