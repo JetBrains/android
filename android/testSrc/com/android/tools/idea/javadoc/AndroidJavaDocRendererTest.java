@@ -106,8 +106,7 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "<tr><td %1$s>drawable</td><td %1$s>%2$s%3$s</div>12&#xd7;12 px (12&#xd7;12 dp @ mdpi)<BR/>\n" +
                  "@drawable/ic_launcher => ic_launcher.png<BR/>\n" +
                  "</td></tr>" +
-                 "<tr><td %1$s>drawable-hdpi</td><td %1$s>%2$s%4$s</div>12&#xd7;12 px (8&#xd7;8 dp @ hdpi)<BR/>\n" +
-                 "@drawable/ic_launcher => ic_launcher.png<BR/>\n" +
+                 "<tr><td %1$s>drawable-hdpi</td><td %1$s>%2$s%4$s</div>12&#xd7;12 px (8&#xd7;8 dp @ hdpi)" +
                  "</td></tr>" +
                  "</table></body></html>", VERTICAL_ALIGN, divTag, imgTag1, imgTag2));
   }
@@ -221,7 +220,7 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "</td>" +
                  "</tr>" +
                  "</table><BR/>\n" +
-                 "@color/my_white => #ffffff<BR/>\n" +
+                 "@android:color/my_white => #ffffff<BR/>\n" +
                  "</body></html>");
   }
 
