@@ -77,6 +77,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
       String title = "SDK problem";
       String msg = "<html>Your Android SDK is out of date or is missing templates. Please ensure you are using SDK version 22 or later.<br>"
         + "You can configure your SDK via <b>Configure | Project Defaults | Project Structure | SDKs</b></html>";
+      super.init();
       Messages.showErrorDialog(msg, title);
       throw new IllegalStateException(msg);
     }
