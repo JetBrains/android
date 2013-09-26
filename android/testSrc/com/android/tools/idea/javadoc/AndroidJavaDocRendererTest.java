@@ -131,6 +131,15 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     checkJavadoc("/javadoc/strings/layout1.xml", "res/layout/layout1.xml", "<html><body>Application Name</body></html>");
   }
 
+  public void testXmlString2() {
+    // Like testXmlString1, but the caret is at the right edge of an attribute value so the document provider has
+    // to go to the previous XML token to obtain the resource url
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/strings/strings.xml", "res/values/strings.xml");
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/strings/strings-ta.xml", "res/values-ta/strings.xml");
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/strings/strings-zh-rTW.xml", "res/values-zh-rTW/strings.xml");
+    checkJavadoc("/javadoc/strings/layout2.xml", "res/layout/layout2.xml", "<html><body>Application Name</body></html>");
+  }
+
   public void testSystemAttributes() {
     checkJavadoc("/javadoc/attrs/layout1.xml", "res/layout/layout.xml",
                  "<html><body>Formats: enum<br>Values: horizontal, vertical<br><br> Should the layout be a column or a row?  Use \"horizontal\"\n" +
