@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.uipreview;
 
+import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderResult;
@@ -60,7 +61,6 @@ import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import icons.AndroidIcons;
-import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.util.AndroidBundle;
@@ -330,7 +330,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
         final Editor activeEditor = newEditor != null ? newEditor.getEditor() : null;
 
         if (myToolWindow == null) {
-          if (activeEditor == null) {
+          if (activeEditor == null || !activeEditor.getComponent().isShowing()) {
             return;
           }
           initToolWindow();
@@ -362,6 +362,14 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
         myToolWindow.setAvailable(true, null);
         final boolean visible = AndroidLayoutPreviewToolWindowSettings.getInstance(myProject).getGlobalState().isVisible();
         if (visible) {
+          // Clear out the render result for the previous file, such that it doesn't briefly show between the time the
+          // tool window is shown and the time the render has completed
+          if (!myToolWindow.isVisible()) {
+            RenderResult renderResult = myToolWindowForm.getRenderResult();
+            if (renderResult != null && renderResult.getFile() != null && renderResult.getFile() != psiFile) {
+              myToolWindowForm.setRenderResult(RenderResult.createBlank(psiFile, null), null);
+            }
+          }
           myToolWindow.show(null);
         }
 
@@ -449,7 +457,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
         service.dispose();
       }
       if (result == null) {
-        result = new RenderResult(null, null, psiFile, logger);
+        result = RenderResult.createBlank(psiFile, logger);
       }
     }
 
@@ -493,9 +501,27 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
   private boolean isApplicableEditor(TextEditor textEditor) {
     final Document document = textEditor.getEditor().getDocument();
     final PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(document);
-    return psiFile instanceof XmlFile &&
-           AndroidFacet.getInstance(psiFile) != null &&
-           LayoutDomFileDescription.isLayoutFile((XmlFile)psiFile);
+    // In theory, we should just check
+    //   LayoutDomFileDescription.isLayoutFile((XmlFile)psiFile);
+    // here, but there are problems where files don't show up with layout preview
+    // at startup, presumably because the resource directories haven't been properly
+    // initialized yet.
+    return isInResourceFolder(psiFile, ResourceType.LAYOUT);
+  }
+
+  private static boolean isInResourceFolder(@Nullable PsiFile psiFile, @NotNull ResourceType type) {
+    if (psiFile instanceof XmlFile && AndroidFacet.getInstance(psiFile) != null) {
+      PsiDirectory parent = psiFile.getParent();
+      if (parent != null) {
+        String parentName = parent.getName();
+        String typeName = type.getName();
+        if (parentName.startsWith(typeName) &&
+            (typeName.equals(parentName) || parentName.charAt(typeName.length()) == '-')) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   public static AndroidLayoutPreviewToolWindowManager getInstance(Project project) {
