@@ -82,11 +82,12 @@ public class RenderLogger extends LayoutLog {
   /**
    * Construct a logger for the given named layout
    */
-  public RenderLogger(String name, Module module) {
+  public RenderLogger(@Nullable String name, @Nullable Module module) {
     myName = name;
     myModule = module;
   }
 
+  @Nullable
   public Module getModule() {
     return myModule;
   }

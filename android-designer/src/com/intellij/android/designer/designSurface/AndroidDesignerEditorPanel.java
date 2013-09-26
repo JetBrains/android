@@ -475,7 +475,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
           if (logger.hasProblems()) {
             cancel();
-            RenderResult renderResult = new RenderResult(null, null, myXmlFile, logger);
+            RenderResult renderResult = RenderResult.createBlank(myXmlFile, logger);
             runnable.consume(renderResult);
             updateErrors(renderResult);
             return;
@@ -501,7 +501,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
                 });
                 service.dispose();
               } else {
-                renderResult = new RenderResult(null, null, myXmlFile, logger);
+                renderResult = RenderResult.createBlank(myXmlFile, logger);
               }
             }
             finally {

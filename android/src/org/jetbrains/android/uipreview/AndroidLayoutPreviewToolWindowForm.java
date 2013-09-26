@@ -227,6 +227,11 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
   public void dispose() {
   }
 
+  @Nullable
+  public RenderResult getRenderResult() {
+    return myPreviewPanel.getRenderResult();
+  }
+
   public void setRenderResult(@NotNull final RenderResult renderResult, @Nullable final TextEditor editor) {
     myPreviewPanel.setRenderResult(renderResult, editor);
   }
