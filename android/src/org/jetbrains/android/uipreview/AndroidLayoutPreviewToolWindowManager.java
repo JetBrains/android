@@ -16,11 +16,12 @@
 package org.jetbrains.android.uipreview;
 
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.intellij.ProjectTopics;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileTask;
@@ -32,7 +33,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -43,18 +44,17 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.vfs.*;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowManagerAdapter;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.psi.*;
-import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.*;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.util.Alarm;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.update.MergingUpdateQueue;
@@ -62,8 +62,6 @@ import com.intellij.util.ui.update.Update;
 import icons.AndroidIcons;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
@@ -77,14 +75,13 @@ import java.util.Map;
  * @author Eugene.Kudelevsky
  */
 public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
+  @SuppressWarnings("SpellCheckingInspection")
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager");
 
   private final MergingUpdateQueue myToolWindowUpdateQueue;
 
   private final Object myRenderingQueueLock = new Object();
   private MergingUpdateQueue myRenderingQueue;
-
-  private final MergingUpdateQueue myRenderQueue;
 
   private final Project myProject;
   private final FileEditorManager myFileEditorManager;
@@ -93,7 +90,6 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
   private ToolWindow myToolWindow;
   private boolean myToolWindowReady = false;
   private boolean myToolWindowDisposed = false;
-  private final VirtualFileListener myListener = new MyVirtualFileListener();
 
   private static final Object RENDERING_LOCK = new Object();
 
@@ -102,39 +98,87 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
     myFileEditorManager = fileEditorManager;
 
     myToolWindowUpdateQueue = new MergingUpdateQueue("android.layout.preview", 300, true, null, project);
-    myRenderQueue = new MergingUpdateQueue("android.layout.preview.save.and.render", 1000, true, null, project, null, true);
 
     final MessageBusConnection connection = project.getMessageBus().connect(project);
     connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new MyFileEditorManagerListener());
     connection.subscribe(ProjectTopics.PROJECT_ROOTS, new MyAndroidPlatformListener(project));
 
-    LocalFileSystem.getInstance().addVirtualFileListener(myListener);
-    Disposer.register(project, new Disposable() {
-      @Override
-      public void dispose() {
-        LocalFileSystem.getInstance().removeVirtualFileListener(myListener);
-      }
-    });
-
     PsiManager.getInstance(project).addPsiTreeChangeListener(new PsiTreeChangeAdapter() {
+      boolean myIgnoreChildrenChanged;
+
+      @Override
+      public void beforeChildrenChange(@NotNull PsiTreeChangeEvent event) {
+        myIgnoreChildrenChanged = false;
+      }
+
       @Override
       public void childrenChanged(@NotNull PsiTreeChangeEvent event) {
-        update(event);
-      }
-
-      @Override
-      public void childRemoved(@NotNull PsiTreeChangeEvent event) {
-        update(event);
+        // See ResourceFolderManager#PsiListener#childrenChanged
+        if (isRelevant(event) && !myIgnoreChildrenChanged && event.getParent() != event.getChild()) {
+          update(event);
+        }
       }
 
       @Override
       public void childAdded(@NotNull PsiTreeChangeEvent event) {
-        update(event);
+        if (isRelevant(event)) {
+          myIgnoreChildrenChanged = true;
+          PsiElement child = event.getChild();
+          PsiElement parent = event.getParent();
+
+          if (child instanceof XmlAttribute && parent instanceof XmlTag) {
+            // Typing in a new attribute. Don't need to do any rendering until there
+            // is an actual value
+            if (((XmlAttribute)child).getValueElement() == null) {
+              return;
+            }
+          } else if (parent instanceof XmlAttribute && child instanceof XmlAttributeValue) {
+            XmlAttributeValue attributeValue = (XmlAttributeValue)child;
+            if (attributeValue.getValue() == null || attributeValue.getValue().isEmpty()) {
+              // Just added a new blank attribute; nothing to render yet
+              return;
+            }
+          }
+          update(event);
+        }
       }
 
       @Override
       public void childReplaced(@NotNull PsiTreeChangeEvent event) {
-        update(event);
+        if (isRelevant(event)) {
+          myIgnoreChildrenChanged = true;
+          PsiElement child = event.getChild();
+          PsiElement parent = event.getParent();
+
+          if (parent instanceof XmlAttribute && child instanceof XmlToken) {
+            // Typing in attribute name. Don't need to do any rendering until there
+            // is an actual value
+            XmlAttributeValue valueElement = ((XmlAttribute)parent).getValueElement();
+            if (valueElement == null || valueElement.getValue() == null || valueElement.getValue().isEmpty()) {
+              return;
+            }
+          }
+          update(event);
+        }
+      }
+
+      @Override
+      public void childRemoved(@NotNull PsiTreeChangeEvent event) {
+        if (isRelevant(event)) {
+          myIgnoreChildrenChanged = true;
+          PsiElement child = event.getChild();
+          PsiElement parent = event.getParent();
+
+          if (parent instanceof XmlAttribute && child instanceof XmlToken) {
+            // Typing in attribute name. Don't need to do any rendering until there
+            // is an actual value
+            XmlAttributeValue valueElement = ((XmlAttribute)parent).getValueElement();
+            if (valueElement == null || valueElement.getValue() == null || valueElement.getValue().isEmpty()) {
+              return;
+            }
+          }
+          update(event);
+        }
       }
     }, project);
 
@@ -167,43 +211,35 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
     }
   }
 
-  private void update(PsiTreeChangeEvent event) {
+  private boolean isRelevant(PsiTreeChangeEvent event) {
     if (myToolWindowForm == null || !myToolWindowReady || myToolWindowDisposed) {
-      return;
+      return false;
     }
     final PsiFile fileInPreview = myToolWindowForm.getFile();
     final PsiFile file = event.getFile();
 
-    if (fileInPreview == null || file == null) {
-      return;
+    if (fileInPreview == null || file == null || fileInPreview != file) {
+      return false;
     }
 
-    if (fileInPreview == file) {
+    PsiElement child = event.getChild();
+    PsiElement parent = event.getParent();
+
+    // We can ignore edits in whitespace, and in XML error nodes, and in comments
+    // (Note that editing text in an attribute value, including whitespace characters,
+    // is not a PsiWhiteSpace element; it's an XmlToken of token type XML_ATTRIBUTE_VALUE_TOKEN
+    if (child instanceof PsiWhiteSpace || child instanceof PsiErrorElement
+        || child instanceof XmlComment || parent instanceof XmlComment) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private void update(PsiTreeChangeEvent event) {
+    if (isRelevant(event)) {
       getRenderingQueue().cancelAllUpdates();
       render();
-      return;
-    }
-    final AndroidFacet facet = AndroidFacet.getInstance(file);
-
-    if (facet != null) {
-      VirtualFile vFile = file.getVirtualFile();
-      vFile = vFile != null ? vFile.getParent() : null;
-      vFile = vFile != null ? vFile.getParent() : null;
-
-      if (vFile != null) {
-        final VirtualFile finalVFile = vFile;
-
-        myRenderQueue.queue(new Update("saveAndRender") {
-          @Override
-          public void run() {
-            final VirtualFile[] resDirs = facet.getLocalResourceManager().getAllResourceDirs();
-
-            if (ArrayUtil.find(resDirs, finalVFile) >= 0) {
-              render();
-            }
-          }
-        });
-      }
     }
   }
 
@@ -248,6 +284,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
 
     final JPanel contentPanel = myToolWindowForm.getContentPanel();
     final ContentManager contentManager = myToolWindow.getContentManager();
+    @SuppressWarnings("ConstantConditions")
     final Content content = contentManager.getFactory().createContent(contentPanel, null, false);
     content.setDisposer(myToolWindowForm);
     content.setCloseable(false);
@@ -282,7 +319,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
   public void disposeComponent() {
   }
 
-  private void processFileEditorChange(final TextEditor newEditor) {
+  private void processFileEditorChange(@Nullable final TextEditor newEditor) {
     myToolWindowUpdateQueue.cancelAllUpdates();
     myToolWindowUpdateQueue.queue(new Update("update") {
       @Override
@@ -335,16 +372,6 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
     });
   }
 
-  void finishSetFile() {
-    myToolWindow.setAvailable(true, null);
-    final boolean visible = AndroidLayoutPreviewToolWindowSettings.getInstance(myProject).getGlobalState().isVisible();
-    if (visible) {
-      myToolWindow.show(null);
-    }
-
-    render();
-  }
-
   public void render() {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
@@ -387,7 +414,8 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
   }
 
   private void doRender(@NotNull final AndroidFacet facet, @NotNull final PsiFile psiFile) {
-    if (myToolWindowForm == null) {
+    final AndroidLayoutPreviewToolWindowForm toolWindowForm = myToolWindowForm;
+    if (toolWindowForm == null) {
       return;
     }
 
@@ -395,15 +423,15 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
     if (layoutXmlFile == null) {
       return;
     }
+    Module module = facet.getModule();
+    Configuration configuration = toolWindowForm.getConfiguration();
+    if (configuration == null) {
+      return;
+    }
     RenderResult result = null;
     synchronized (RENDERING_LOCK) {
-      Module module = facet.getModule();
-      Configuration configuration = myToolWindowForm.getConfiguration();
-      if (configuration == null) {
-        return;
-      }
       final RenderLogger logger = new RenderLogger(layoutXmlFile.getName(), module);
-      final RenderService service = RenderService.create(facet, module, psiFile, configuration, logger, myToolWindowForm);
+      final RenderService service = RenderService.create(facet, module, psiFile, configuration, logger, toolWindowForm);
       if (service != null) {
         // Prefetch outside of read lock
         service.getResourceResolver();
@@ -474,58 +502,6 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
     return project.getComponent(AndroidLayoutPreviewToolWindowManager.class);
   }
 
-  private class MyVirtualFileListener extends VirtualFileAdapter {
-    @Override
-    public void propertyChanged(VirtualFilePropertyEvent event) {
-      fileChanged(event);
-    }
-
-    @Override
-    public void fileCreated(VirtualFileEvent event) {
-      fileChanged(event);
-    }
-
-    @Override
-    public void fileDeleted(VirtualFileEvent event) {
-      fileChanged(event);
-    }
-
-    @Override
-    public void fileMoved(VirtualFileMoveEvent event) {
-      fileChanged(event);
-    }
-
-    private void fileChanged(VirtualFileEvent event) {
-      if (myToolWindowForm == null || !myToolWindowReady || myToolWindowDisposed) {
-        return;
-      }
-
-      final PsiFile layoutFile = myToolWindowForm.getFile();
-      if (layoutFile == null) {
-        return;
-      }
-
-      final VirtualFile changedFile = event.getFile();
-      final VirtualFile parent = changedFile.getParent();
-
-      if (parent == null) {
-        return;
-      }
-
-      // TODO: Refresh cached locale folders! (For now, it's computed each time)
-      //if (AndroidResourceUtil.isLocalResourceDirectory(parent, myProject)) {
-      //  myToolWindowForm.updateLocales();
-      //  render();
-      //}
-      //
-      //final VirtualFile gp = parent.getParent();
-      //if (gp != null && AndroidResourceUtil.isLocalResourceDirectory(gp, myProject)) {
-      //  myToolWindowForm.updateLocales();
-      //  render();
-      //}
-    }
-  }
-
   private class MyAndroidPlatformListener extends ModuleRootAdapter {
     private final Map<Module, Sdk> myModule2Sdk = new HashMap<Module, Sdk>();
     private final Project myProject;
@@ -543,7 +519,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
 
       final PsiFile file = myToolWindowForm.getFile();
       if (file != null) {
-        final Module module = ModuleUtil.findModuleForPsiElement(file);
+        final Module module = ModuleUtilCore.findModuleForPsiElement(file);
         if (module != null) {
           final Sdk prevSdk = myModule2Sdk.get(module);
           final Sdk newSdk = ModuleRootManager.getInstance(module).getSdk();
@@ -551,12 +527,6 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
               && (newSdk.getSdkType() instanceof AndroidSdkType ||
                   (prevSdk != null && prevSdk.getSdkType() instanceof AndroidSdkType))
               && !newSdk.equals(prevSdk)) {
-
-            final AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData)newSdk.getSdkAdditionalData();
-            final AndroidPlatform newPlatform = additionalData != null ? additionalData.getAndroidPlatform() : null;
-            //myToolWindowForm.updateDevicesAndTargets(newPlatform);
-            //myToolWindowForm.updateThemes();
-
             render();
           }
         }
