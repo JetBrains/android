@@ -6,6 +6,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.Messages;
 import org.jetbrains.android.exportSignedPackage.CheckModulePanel;
 import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -69,8 +70,14 @@ public class GenerateSignedApkAction extends AnAction {
     if (facets.size() == 1) {
       if (!checkFacet(facets.get(0))) return;
     }
-    ExportSignedPackageWizard wizard = new ExportSignedPackageWizard(project, facets, true);
-    wizard.show();
+    if (facets.get(0).getIdeaAndroidProject() != null) {
+      Messages.showInfoMessage(project,
+                               AndroidBundle.message("android.generate.signed.apk.use.gradle.message"),
+                               AndroidBundle.message("android.generate.signed.apk.action.text"));
+    } else {
+      ExportSignedPackageWizard wizard = new ExportSignedPackageWizard(project, facets, true);
+      wizard.show();
+    }
   }
 
   @Override
