@@ -23,7 +23,6 @@ import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.utils.HtmlBuilder;
-import com.android.utils.SdkUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.compiler.impl.javaCompiler.javac.JavacConfiguration;
@@ -940,24 +939,6 @@ public class RenderErrorPanel extends JPanel {
       File platformSource = new File(path);
       if (platformSource.isDirectory()) {
         return platformSource;
-      } else {
-        // Workaround for https://code.google.com/p/android/issues/detail?id=60363:
-        // There seems to be a bug in the source lookup relative to where it really lives now (at least
-        // for some platforms): try to work around this by modifying the search as follows:
-        //    /full/path/to/platforms/android-18/sources => /full/path/to/sources/android-18
-        File p1 = platformSource.getParentFile();
-        if (p1 != null) {
-          File p2 = p1.getParentFile();
-          if (p2 != null) {
-            File p3 = p2.getParentFile();
-            if (p3 != null) {
-              platformSource = new File(p3, platformSource.getName() + File.separator + p1.getName());
-              if (platformSource.isDirectory()) {
-                return platformSource;
-              }
-            }
-          }
-        }
       }
     }
 
