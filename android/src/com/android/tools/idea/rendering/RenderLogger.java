@@ -146,7 +146,8 @@ public class RenderLogger extends LayoutLog {
     }
 
     // Workaround: older layout libraries don't provide a tag for this error
-    if (tag == null && message != null && message.startsWith("Failed to find style ")) { //$NON-NLS-1$
+    if (tag == null && message != null &&
+        (message.startsWith("Failed to find style ") || message.startsWith("Unable to resolve parent style name: "))) { //$NON-NLS-1$
       tag = LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
     }
     addTag(tag);

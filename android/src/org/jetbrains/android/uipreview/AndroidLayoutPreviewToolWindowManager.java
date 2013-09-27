@@ -90,14 +90,20 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
   private ToolWindow myToolWindow;
   private boolean myToolWindowReady = false;
   private boolean myToolWindowDisposed = false;
+  /**
+   * Indicator used to indicate the progress between the time we switch editors to the time the rendering
+   * is done
+   */
+  private AndroidPreviewProgressIndicator myCurrentIndicator;
 
   private static final Object RENDERING_LOCK = new Object();
+  private static final Object PROGRESS_LOCK = new Object();
 
   public AndroidLayoutPreviewToolWindowManager(final Project project, final FileEditorManager fileEditorManager) {
     myProject = project;
     myFileEditorManager = fileEditorManager;
 
-    myToolWindowUpdateQueue = new MergingUpdateQueue("android.layout.preview", 300, true, null, project);
+    myToolWindowUpdateQueue = new MergingUpdateQueue("android.layout.preview", 100, true, null, project);
 
     final MessageBusConnection connection = project.getMessageBus().connect(project);
     connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new MyFileEditorManagerListener());
@@ -374,27 +380,36 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
         }
 
         if (toRender) {
-          render();
+          boolean requestedRender = render();
+          if (requestedRender) {
+            AndroidLayoutPreviewToolWindowForm toolWindowForm = myToolWindowForm;
+            synchronized (PROGRESS_LOCK) {
+              if (myCurrentIndicator == null) {
+                myCurrentIndicator = new AndroidPreviewProgressIndicator(toolWindowForm, 0);
+                myCurrentIndicator.start();
+              }
+            }
+          }
         }
       }
     });
   }
 
-  public void render() {
+  public boolean render() {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
     if (myToolWindow == null || !myToolWindow.isVisible()) {
-      return;
+      return false;
     }
 
     final PsiFile psiFile = myToolWindowForm.getFile();
     if (psiFile == null) {
-      return;
+      return false;
     }
 
     final AndroidFacet facet = AndroidFacet.getInstance(psiFile);
     if (facet == null) {
-      return;
+      return false;
     }
 
     getRenderingQueue().queue(new Update("render") {
@@ -410,8 +425,14 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
             catch (Throwable e) {
               LOG.error(e);
             }
+            synchronized (PROGRESS_LOCK) {
+              if (myCurrentIndicator != null) {
+                myCurrentIndicator.stop();
+                myCurrentIndicator = null;
+              }
+            }
           }
-        }, new AndroidPreviewProgressIndicator(myToolWindowForm, 1000));
+        }, new AndroidPreviewProgressIndicator(myToolWindowForm, 100));
       }
 
       @Override
@@ -419,6 +440,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
         return true;
       }
     });
+    return true;
   }
 
   private void doRender(@NotNull final AndroidFacet facet, @NotNull final PsiFile psiFile) {

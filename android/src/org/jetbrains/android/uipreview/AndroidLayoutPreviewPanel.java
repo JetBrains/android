@@ -37,15 +37,12 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.util.ui.AsyncProcessIcon;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -63,23 +60,18 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
   public static final Color SELECTION_FILL_COLOR = new Color(0x00, 0x99, 0xFF, 32);
   /** FileEditorProvider ID for the layout editor */
   public static final String ANDROID_DESIGNER_ID = "android-designer";
-  private static final boolean SHOW_TITLE_PANEL = false;
+  private static final Integer LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 100;
 
   private RenderResult myRenderResult;
 
-  private final JPanel myTitlePanel;
   private boolean myZoomToFit = true;
 
   private final List<ProgressIndicator> myProgressIndicators = new ArrayList<ProgressIndicator>();
-  private boolean myProgressVisible = false;
   private final JComponent myImagePanel = new JComponent() {
   };
 
-  private AsyncProcessIcon myProgressIcon;
-  @NonNls private static final String PROGRESS_ICON_CARD_NAME = "Progress";
-  @NonNls private static final String EMPTY_CARD_NAME = "Empty";
-  private JPanel myProgressIconWrapper = new JPanel();
-  private final JLabel myFileNameLabel = new JLabel();
+  @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
+  private MyProgressPanel myProgressPanel;
   private TextEditor myEditor;
   private RenderedView mySelectedView;
   private CaretModel myCaretModel;
@@ -122,44 +114,13 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
       }
     });
 
-    myFileNameLabel.setHorizontalAlignment(SwingConstants.CENTER);
-    myFileNameLabel.setBorder(new EmptyBorder(5, 0, 5, 0));
-    // We're using a hardcoded color here rather than say a JBLabel, since this
-    // label is sitting on top of the preview gray background, which is the same
-    // in all themes
-    myFileNameLabel.setForeground(Color.BLACK);
-
-    final JPanel progressPanel = new JPanel();
-    progressPanel.setLayout(new BoxLayout(progressPanel, BoxLayout.X_AXIS));
-    myProgressIcon = new AsyncProcessIcon("Android layout rendering");
-    myProgressIconWrapper.setLayout(new CardLayout());
-    myProgressIconWrapper.add(PROGRESS_ICON_CARD_NAME, myProgressIcon);
-    myProgressIconWrapper.add(EMPTY_CARD_NAME, new JBLabel(" "));
-    myProgressIconWrapper.setOpaque(false);
-
-    Disposer.register(this, myProgressIcon);
-    progressPanel.add(myProgressIconWrapper);
-    progressPanel.add(new JBLabel(" "));
-    progressPanel.setOpaque(false);
-
-    myTitlePanel = new JPanel(new BorderLayout());
-    myTitlePanel.setOpaque(false);
-    myTitlePanel.add(myFileNameLabel, BorderLayout.CENTER);
-    myTitlePanel.add(progressPanel, BorderLayout.EAST);
-
-    //noinspection ConstantConditions
-    if (!SHOW_TITLE_PANEL) {
-      myTitlePanel.setVisible(false);
-    }
-
-    ((CardLayout)myProgressIconWrapper.getLayout()).show(myProgressIconWrapper, EMPTY_CARD_NAME);
-
-    add(myTitlePanel);
     add(previewPanel);
 
     myErrorPanel = new RenderErrorPanel();
     myErrorPanel.setVisible(false);
     previewPanel.add(myErrorPanel, JLayeredPane.POPUP_LAYER);
+    myProgressPanel = new MyProgressPanel();
+    previewPanel.add(myProgressPanel, LAYER_PROGRESS);
   }
 
   private void switchToLayoutEditor() {
@@ -310,7 +271,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
         }
         if (y < 0) {
           h -= y;
-          h = 0;
+          y = 0;
         }
 
         g.drawRect(x, y, w, h);
@@ -353,11 +314,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
       }
       image.setScale(prevScale);
     }
-
     mySelectedView = null;
-    if (renderResult.getFile() != null) {
-      myFileNameLabel.setText(renderResult.getFile().getName());
-    }
 
     RenderLogger logger = myRenderResult.getLogger();
     if (logger.hasProblems()) {
@@ -403,13 +360,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
   public synchronized void registerIndicator(@NotNull ProgressIndicator indicator) {
     synchronized (myProgressIndicators) {
       myProgressIndicators.add(indicator);
-
-      if (!myProgressVisible) {
-        myProgressVisible = true;
-        ((CardLayout)myProgressIconWrapper.getLayout()).show(myProgressIconWrapper, PROGRESS_ICON_CARD_NAME);
-        myProgressIcon.setVisible(true);
-        myProgressIcon.resume();
-      }
+      myProgressPanel.showProgressIcon();
     }
   }
 
@@ -417,11 +368,8 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     synchronized (myProgressIndicators) {
       myProgressIndicators.remove(indicator);
 
-      if (myProgressIndicators.size() == 0 && myProgressVisible) {
-        myProgressVisible = false;
-        myProgressIcon.suspend();
-        ((CardLayout)myProgressIconWrapper.getLayout()).show(myProgressIconWrapper, EMPTY_CARD_NAME);
-        myProgressIcon.setVisible(false);
+      if (myProgressIndicators.size() == 0) {
+        myProgressPanel.hideProgressIcon();
       }
     }
   }
@@ -456,7 +404,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     }
     else {
       if (myZoomToFit) {
-        double availableHeight = getPanelHeight() - myTitlePanel.getSize().getHeight();
+        double availableHeight = getPanelHeight();
         double availableWidth = getPanelWidth();
         final int MIN_SIZE = 200;
         if (myPreviewManager != null && availableWidth > MIN_SIZE) {
@@ -577,10 +525,6 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     return RenderContext.NO_SIZE;
   }
 
-  int getTitleBarHeight() {
-    return myTitlePanel.isVisible() ? myTitlePanel.getSize().height : 0;
-  }
-
   public Component getRenderComponent() {
     return myImagePanel.getParent();
   }
@@ -616,9 +560,6 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
       scaledImage.setUseLargeShadows(width <= 0);
       myImagePanel.revalidate();
     }
-    if (SHOW_TITLE_PANEL) {
-      myTitlePanel.setVisible(width <= 0);
-    }
   }
 
   private boolean myShowDeviceFrames = true;
@@ -645,14 +586,10 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     }
 
     @Override
-    public void revalidate() {
-      super.revalidate();
-    }
-
-    @Override
     public void doLayout() {
       super.doLayout();
       positionErrorPanel();
+      myProgressPanel.setBounds(0, 0, getWidth(), getHeight());
 
       if (myPreviewManager == null || !myPreviewManager.hasPreviews()) {
         centerComponents();
@@ -745,6 +682,117 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     @Override
     public Dimension getPreferredSize() {
       return myImagePanel.getSize();
+    }
+  }
+
+  /**
+   * Panel which displays the progress icon. The progress icon can either be a large icon in the
+   * center, when there is no rendering showing, or a small icon in the upper right corner when there
+   * is a rendering. This is necessary because even though the progress icon looks good on some
+   * renderings, depending on the layout theme colors it is invisible in other cases.
+   */
+  private class MyProgressPanel extends JPanel {
+    private AsyncProcessIcon mySmallProgressIcon;
+    private AsyncProcessIcon myLargeProgressIcon;
+    private boolean mySmall;
+    private boolean myProgressVisible;
+
+    private MyProgressPanel() {
+      super(new BorderLayout());
+      setOpaque(false);
+    }
+
+    /** The "small" icon mode isn't just for the icon size; it's for the layout position too; see {@link #doLayout} */
+    private void setSmallIcon(boolean small) {
+      if (small != mySmall) {
+        if (myProgressVisible && getComponentCount() != 0) {
+          AsyncProcessIcon oldIcon = getProgressIcon();
+          oldIcon.suspend();
+        }
+        mySmall = true;
+        removeAll();
+        AsyncProcessIcon icon = getProgressIcon();
+        add(icon, BorderLayout.CENTER);
+        if (myProgressVisible) {
+          icon.setVisible(true);
+          icon.resume();
+        }
+      }
+    }
+
+    public void showProgressIcon() {
+      if (!myProgressVisible) {
+        setSmallIcon(myRenderResult != null && myRenderResult.getImage() != null);
+        myProgressVisible = true;
+        setVisible(true);
+        AsyncProcessIcon icon = getProgressIcon();
+        if (getComponentCount() == 0) { // First time: haven't added icon yet?
+          add(getProgressIcon(), BorderLayout.CENTER);
+        } else {
+          icon.setVisible(true);
+        }
+        icon.resume();
+      }
+    }
+
+    public void hideProgressIcon() {
+      if (myProgressVisible) {
+        myProgressVisible = false;
+        setVisible(false);
+        AsyncProcessIcon icon = getProgressIcon();
+        icon.setVisible(false);
+        icon.suspend();
+      }
+    }
+
+    @Override
+    public void doLayout() {
+      super.doLayout();
+
+      if (!myProgressVisible) {
+        return;
+      }
+
+      // Place the progress icon in the center if there's no rendering, and in the
+      // upper right corner if there's a rendering. The reason for this is that the icon color
+      // will depend on whether we're in a light or dark IDE theme, and depending on the rendering
+      // in the layout it will be invisible. For example, in Darcula the icon is white, and if the
+      // layout is rendering a white screen, the progress is invisible.
+      AsyncProcessIcon icon = getProgressIcon();
+      Dimension size = icon.getPreferredSize();
+      if (mySmall) {
+        icon.setBounds(getWidth() - size.width - 1, 1, size.width, size.height);
+      } else {
+        icon.setBounds(getWidth() / 2 - size.width / 2, getHeight() / 2 - size.height / 2, size.width, size.height);
+      }
+    }
+
+    @Override
+    public Dimension getPreferredSize() {
+      return getProgressIcon().getPreferredSize();
+    }
+
+    @NotNull
+    private AsyncProcessIcon getProgressIcon() {
+      return getProgressIcon(mySmall);
+    }
+
+    @NotNull
+    private AsyncProcessIcon getProgressIcon(boolean small) {
+      if (small) {
+        if (mySmallProgressIcon == null) {
+          mySmallProgressIcon = new AsyncProcessIcon("Android layout rendering");
+          Disposer.register(AndroidLayoutPreviewPanel.this, mySmallProgressIcon);
+        }
+        return mySmallProgressIcon;
+      }
+      else {
+        if (myLargeProgressIcon == null) {
+          myLargeProgressIcon = new AsyncProcessIcon.Big("Android layout rendering");
+          Disposer.register(AndroidLayoutPreviewPanel.this, myLargeProgressIcon);
+        }
+        return myLargeProgressIcon;
+      }
     }
   }
 }
