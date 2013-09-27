@@ -354,9 +354,7 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
   @Override
   @NotNull
   public Rectangle getClientArea() {
-    Rectangle bounds = myScrollPane.getViewport().getViewRect();
-    bounds.height -= myPreviewPanel.getTitleBarHeight();
-    return bounds;
+    return myScrollPane.getViewport().getViewRect();
   }
 
   @Override
