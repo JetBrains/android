@@ -706,7 +706,7 @@ public class AndroidCompileUtil {
 
       // In JPS generated roots are excluded by AndroidExcludeJavaSourceRootProvider,
       // so we don't need to mark them in the project model
-      if (!config.USE_COMPILE_SERVER) {
+      if (!config.useOutOfProcessBuild()) {
         excludeFromCompilation(module.getProject(), sourceRoot);
       }
     }
@@ -896,7 +896,7 @@ public class AndroidCompileUtil {
   @Nullable
   public static String getUnsignedApkPath(@NotNull AndroidFacet facet) {
     final boolean useCompileServer = CompilerWorkspaceConfiguration.getInstance(
-      facet.getModule().getProject()).USE_COMPILE_SERVER;
+      facet.getModule().getProject()).useOutOfProcessBuild();
     final String apkPath = AndroidRootUtil.getApkPath(facet);
 
     if (apkPath != null) {
