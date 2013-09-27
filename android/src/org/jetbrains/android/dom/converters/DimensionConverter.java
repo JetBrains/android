@@ -1,6 +1,7 @@
 package org.jetbrains.android.dom.converters;
 
 import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.xml.ConvertContext;
@@ -67,12 +68,7 @@ public class DimensionConverter extends ResolvingConverter<String> implements At
     if (SdkConstants.UNIT_DIP.equals(unit)) {
       return s;
     }
-    for (String u : ourUnits.keySet()) {
-      if (unit.equals(u)) {
-        return s;
-      }
-    }
-    return null;
+    return ourUnits.get(unit) != null ? s : null;
   }
 
   @Nullable
@@ -84,9 +80,13 @@ public class DimensionConverter extends ResolvingConverter<String> implements At
   @Override
   public String getErrorMessage(@Nullable String s, ConvertContext context) {
     final String unit = getUnitFromValue(s);
-    return unit != null && !unit.isEmpty()
-           ? "Unknown unit '" + unit + "'"
-           : super.getErrorMessage(s, context);
+    if (unit != null && !unit.isEmpty()) {
+      if (unit.startsWith(",")) {
+        return "Use a dot instead of a comma as the decimal mark";
+      }
+      return "Unknown unit '" + unit + "'";
+    }
+    return super.getErrorMessage(s, context);
   }
 
   @Nullable
@@ -102,8 +102,9 @@ public class DimensionConverter extends ResolvingConverter<String> implements At
     return value.substring(intPrefix.length());
   }
 
+  @VisibleForTesting
   @NotNull
-  private static String getIntegerPrefix(@NotNull String s) {
+  static String getIntegerPrefix(@NotNull String s) {
     if (s.length() == 0) {
       return "";
     }
@@ -112,7 +113,7 @@ public class DimensionConverter extends ResolvingConverter<String> implements At
     for (int i = 0; i < s.length(); i++) {
       final char c = s.charAt(i);
 
-      if (!Character.isDigit(c) && (i > 0 || c != '-')) {
+      if (!Character.isDigit(c) && c != '.' && (i > 0 || c != '-')) {
         break;
       }
       intPrefixBuilder.append(c);
