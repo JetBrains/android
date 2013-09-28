@@ -64,7 +64,9 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
   protected void init() {
     myWizardState = new TemplateWizardState();
     myWizardState.put(ATTR_BUILD_API, AndroidPlatform.getInstance(myModule).getTarget().getVersion().getApiLevel());
-    myWizardState.put(ATTR_MIN_API_LEVEL, ManifestInfo.get(myModule).getMinSdkVersion());
+    ManifestInfo manifestInfo = ManifestInfo.get(myModule);
+    myWizardState.put(ATTR_MIN_API_LEVEL, manifestInfo.getMinSdkVersion());
+    myWizardState.put(TemplateMetadata.ATTR_PACKAGE_NAME, manifestInfo.getPackage());
 
     mySteps.add(new ChooseTemplateStep(myWizardState, myTemplateCategory, myProject, null, this, null));
     mySteps.add(new TemplateParameterStep(myWizardState, myProject, null, this));
