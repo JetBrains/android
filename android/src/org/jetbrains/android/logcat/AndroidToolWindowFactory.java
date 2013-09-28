@@ -100,6 +100,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     layoutUi.addContent(adbLogsContent, 1, PlaceInGrid.center, false);
 
     layoutUi.getOptions().setLeftToolbar(devicePanel.getToolbarActions(), ActionPlaces.UNKNOWN);
+    layoutUi.getOptions().setTopToolbar(logcatView.getToolbarActions(), ActionPlaces.UNKNOWN);
 
     final ContentManager contentManager = toolWindow.getContentManager();
     Content c = contentManager.getFactory().createContent(layoutUi.getComponent(), "DDMS", true);

@@ -71,6 +71,15 @@ public class AndroidConfiguredLogFilters implements PersistentStateComponent<And
     return null;
   }
 
+  @NotNull
+  public MyFilterEntry createFilterForProcess(int pid) {
+    MyFilterEntry entry = new MyFilterEntry();
+    final String pidString = Integer.toString(pid);
+    entry.setName("Process id: " + pidString);
+    entry.setPid(pidString);
+    return entry;
+  }
+
   public void setFilterEntries(List<MyFilterEntry> filterEntries) {
     myFilterEntries = filterEntries;
   }
