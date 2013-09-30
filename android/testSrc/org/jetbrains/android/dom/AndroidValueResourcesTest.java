@@ -411,6 +411,38 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
     doTestSpellcheckerQuickFixes();
   }
 
+  public void testSpellchecker3() throws Throwable {
+    // In English locale, should highlight typos
+    myFixture.enableInspections(SpellCheckingInspection.class);
+    VirtualFile file = copyFileToProject("spellchecker3.xml", "res/values-en-rUS/spellchecker3.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.checkHighlighting(true, false, false);
+  }
+
+  public void testSpellchecker4() throws Throwable {
+    // In non-English locale, should not highlight typos
+    myFixture.enableInspections(SpellCheckingInspection.class);
+    VirtualFile file = copyFileToProject("spellchecker4.xml", "res/values-nb/spellchecker4.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.checkHighlighting(true, false, false);
+  }
+
+  public void testSpellchecker5() throws Throwable {
+    // In default locale, with a tools:locale defined to non-English, should not get typos highlighted
+    myFixture.enableInspections(SpellCheckingInspection.class);
+    VirtualFile file = copyFileToProject("spellchecker5.xml", "res/values/spellchecker5.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.checkHighlighting(true, false, false);
+  }
+
+  public void testSpellchecker6() throws Throwable {
+    // In default locale, with a tools:locale defined to English, should get typos highlighted
+    myFixture.enableInspections(SpellCheckingInspection.class);
+    VirtualFile file = copyFileToProject("spellchecker6.xml", "res/values/spellchecker6.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.checkHighlighting(true, false, false);
+  }
+
   private void doCreateValueResourceFromUsage(VirtualFile virtualFile) {
     myFixture.configureFromExistingVirtualFile(virtualFile);
     final List<HighlightInfo> infos = myFixture.doHighlighting();
