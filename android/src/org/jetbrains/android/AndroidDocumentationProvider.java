@@ -85,7 +85,7 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
       return null;
     }
 
-    String name = AndroidPsiUtils.getResourceName(element);
+    String name = AndroidPsiUtils.getResourceName(originalElement);
     boolean isFrameworkResource = referenceType == ResourceReferenceType.FRAMEWORK;
     return AndroidJavaDocRenderer.render(module, type, name, isFrameworkResource);
   }
