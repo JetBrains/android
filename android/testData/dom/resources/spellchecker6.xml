@@ -1,0 +1,3 @@
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="en">
+  <string name="hello_<TYPO>worlld</TYPO>">Hello, <TYPO>worlld</TYPO></string>
+</resources>
