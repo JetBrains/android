@@ -1149,4 +1149,59 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "4: Info:Total time: 15.612 secs\n", toString(parser.parseErrorOutput(output)));
     sourceFile.delete();
   }
+
+  public void testMismatchedTag() throws Exception {
+    // https://code.google.com/p/android/issues/detail?id=59824
+    createTempXmlFile();
+    String output =
+      ":AudioPlayer:prepareDebugDependencies\n" +
+      ":AudioPlayer:compileDebugAidl UP-TO-DATE\n" +
+      ":AudioPlayer:generateDebugBuildConfig UP-TO-DATE\n" +
+      ":AudioPlayer:mergeDebugAssets UP-TO-DATE\n" +
+      ":AudioPlayer:compileDebugRenderscript UP-TO-DATE\n" +
+      ":AudioPlayer:mergeDebugResources UP-TO-DATE\n" +
+      ":AudioPlayer:processDebugManifest UP-TO-DATE\n" +
+      ":AudioPlayer:processDebugResources\n" +
+      sourceFilePath + ":101: error: Error parsing XML: mismatched tag\n" +
+      ":AudioPlayer:processDebugResources FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':AudioPlayer:processDebugResources'.\n" +
+      "> Failed to run command:\n" +
+      "  \t/Users/sbarta/sdk/build-tools/android-4.2.2/aapt package -f --no-crunch -I ...\n" +
+      "  Error Code:\n" +
+      "  \t1\n" +
+      "  Output:\n" +
+      "  \t" + sourceFilePath + ":101: error: Error parsing XML: mismatched tag\n" +
+      "\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 3.836 secs";
+    assertEquals("0: Info::AudioPlayer:prepareDebugDependencies\n" +
+                 "1: Info::AudioPlayer:compileDebugAidl UP-TO-DATE\n" +
+                 "2: Info::AudioPlayer:generateDebugBuildConfig UP-TO-DATE\n" +
+                 "3: Info::AudioPlayer:mergeDebugAssets UP-TO-DATE\n" +
+                 "4: Info::AudioPlayer:compileDebugRenderscript UP-TO-DATE\n" +
+                 "5: Info::AudioPlayer:mergeDebugResources UP-TO-DATE\n" +
+                 "6: Info::AudioPlayer:processDebugManifest UP-TO-DATE\n" +
+                 "7: Info::AudioPlayer:processDebugResources\n" +
+                 "8: Gradle:Error:Error parsing XML: mismatched tag\n" +
+                 "\t" + sourceFilePath + ":101:-1\n" +
+                 "9: Info::AudioPlayer:processDebugResources FAILED\n" +
+                 "10: Gradle:Error:Error while executing aapt command\n" +
+                 "11: Gradle:Error:Error parsing XML: mismatched tag\n" +
+                 "\t" + sourceFilePath + ":101:-1\n" +
+                 "12: Gradle:Error:Execution failed for task ':AudioPlayer:processDebugResources'.\n" +
+                 "13: Info:BUILD FAILED\n" +
+                 "14: Info:Total time: 3.836 secs\n",
+                 toString(parser.parseErrorOutput(output)));
+    sourceFile.delete();
+
+  }
 }
