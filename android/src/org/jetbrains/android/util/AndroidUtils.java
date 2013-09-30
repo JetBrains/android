@@ -76,6 +76,7 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.*;
+import com.intellij.psi.tree.java.IKeywordElementType;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.ScrollPaneFactory;
@@ -799,7 +800,22 @@ public class AndroidUtils {
     wrapper.show();
   }
 
-  public static boolean isValidPackageName(@NotNull String name) {
+  /**
+   * Checks if the given name is a valid Android application package (which has
+   * additional requirements beyond a normal Java package)
+   *
+   * @see #validateAndroidPackageName(String)
+   */
+  public static boolean isValidAndroidPackageName(@NotNull String name) {
+    return validateAndroidPackageName(name) == null;
+  }
+
+  /**
+   * Checks if the given name is a valid general Java package name.
+   * <p>
+   * If validating the Android package name, use {@link #validateAndroidPackageName(String)} instead!
+   */
+  public static boolean isValidJavaPackageName(@NotNull String name) {
     int index = 0;
     while (true) {
       int index1 = name.indexOf('.', index);
@@ -808,6 +824,94 @@ public class AndroidUtils {
       if (index1 == name.length()) return true;
       index = index1 + 1;
     }
+  }
+
+  /**
+   * Validates a potential package name and returns null if the package name is valid, and otherwise
+   * returns a description for why it is not valid.
+   * <p>
+   * Note that Android package names are more restrictive than general Java package names;
+   * we require at least two segments, limit the character set to [a-zA-Z0-9_] (Java allows any
+   * {@link Character#isLetter(char)} and require that each segment start with a letter (Java allows
+   * underscores at the beginning).
+   * <p>
+   * For details, see core/java/android/content/pm/PackageParser.java#validateName
+   *
+   * @param name the package name
+   * @return null if the package is valid as an Android package name, and otherwise a description for why not
+   */
+  @Nullable
+  public static String validateAndroidPackageName(@NotNull String name) {
+    if (name.isEmpty()) {
+      return "Package name is missing";
+    }
+
+    String packageManagerCheck = validateName(name, true);
+    if (packageManagerCheck != null) {
+      return packageManagerCheck;
+    }
+
+    // In addition, we have to check that none of the segments are Java identifiers, since
+    // that will lead to compilation errors, which the package manager doesn't need to worry about
+    // (the code wouldn't have compiled)
+
+    ApplicationManager.getApplication().assertReadAccessAllowed();
+    Lexer lexer = JavaParserDefinition.createLexer(LanguageLevel.JDK_1_5);
+    int index = 0;
+    while (true) {
+      int index1 = name.indexOf('.', index);
+      if (index1 < 0) {
+        index1 = name.length();
+      }
+      String segment = name.substring(index, index1);
+      lexer.start(segment);
+      if (lexer.getTokenType() != JavaTokenType.IDENTIFIER) {
+        if (lexer.getTokenType() instanceof IKeywordElementType) {
+          return "Package names cannot contain Java keywords like '" + segment + "'";
+        }
+        return segment + " is not a valid identifier";
+      }
+      if (index1 == name.length()) {
+        break;
+      }
+      index = index1 + 1;
+    }
+
+    return null;
+  }
+
+  // This method is a copy of android.content.pm.PackageParser#validateName with the
+  // error messages tweaked
+  @Nullable
+  private static String validateName(String name, boolean requiresSeparator) {
+    final int N = name.length();
+    boolean hasSep = false;
+    boolean front = true;
+    for (int i=0; i<N; i++) {
+      final char c = name.charAt(i);
+      if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+        front = false;
+        continue;
+      }
+      if ((c >= '0' && c <= '9') || c == '_') {
+        if (!front) {
+          continue;
+        } else {
+          if (c == '_') {
+            return "The character '_' cannot be the first character in a package segment";
+          } else {
+            return "A digit cannot be the first character in a package segment";
+          }
+        }
+      }
+      if (c == '.') {
+        hasSep = true;
+        front = true;
+        continue;
+      }
+      return "The character '" + c + "' is not allowed in Android application package names";
+    }
+    return hasSep || !requiresSeparator ? null : "The package must have at least one '.' separator";
   }
 
   public static boolean isIdentifier(@NotNull String candidate) {

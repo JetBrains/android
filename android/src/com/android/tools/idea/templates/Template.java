@@ -66,6 +66,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.templates.Parameter.Constraint;
 import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
 import static com.android.tools.idea.templates.TemplateUtils.readTextFile;
 
@@ -84,9 +85,10 @@ public class Template {
    *    proper Booleans. Templates which rely on this should specify format >= 2.
    * <li> 3: The wizard infrastructure passes the {@code isNewProject} boolean variable
    *    to indicate whether a wizard is created as part of a new blank project
+   * <li> 4: Constraint type app_package ({@link Constraint#APP_PACKAGE})
    * </ul>
    */
-  static final int CURRENT_FORMAT = 3;
+  static final int CURRENT_FORMAT = 4;
 
   /**
    * Special marker indicating that this path refers to the special shared
