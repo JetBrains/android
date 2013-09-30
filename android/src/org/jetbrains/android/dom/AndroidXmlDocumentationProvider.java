@@ -117,16 +117,22 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
           token = (XmlToken)next;
         }
       } else if (token.getTokenType() == XML_ATTRIBUTE_VALUE_END_DELIMITER) {
-        PsiElement next = token.getPrevSibling();
-        if (next instanceof XmlToken) {
-          token = (XmlToken)next;
+        PsiElement prev = token.getPrevSibling();
+        if (prev instanceof XmlToken) {
+          token = (XmlToken)prev;
         }
       }
       if (token.getTokenType() == XML_ATTRIBUTE_VALUE_TOKEN) {
-        return getResourceDocumentation(originalElement, token.getText());
+        String documentation = getResourceDocumentation(originalElement, token.getText());
+        if (documentation != null) {
+          return documentation;
+        }
       } else if (token.getTokenType() == XML_DATA_CHARACTERS) {
         String text = token.getText().trim();
-        return getResourceDocumentation(originalElement, text);
+        String documentation = getResourceDocumentation(originalElement, text);
+        if (documentation != null) {
+          return documentation;
+        }
       }
     }
 
