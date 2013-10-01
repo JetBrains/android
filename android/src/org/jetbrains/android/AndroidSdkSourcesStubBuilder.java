@@ -31,7 +31,7 @@ public class AndroidSdkSourcesStubBuilder implements BinaryFileStubBuilder {
 
   @Override
   public boolean acceptsFile(VirtualFile file) {
-    return file.getFileType() == StdFileTypes.JAVA;
+    return false;
   }
 
   @Nullable
