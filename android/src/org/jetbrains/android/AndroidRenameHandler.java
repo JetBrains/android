@@ -2,6 +2,7 @@ package org.jetbrains.android;
 
 import com.android.annotations.Nullable;
 import com.intellij.ide.TitledHandler;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
@@ -50,7 +51,7 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
     if (AndroidUsagesTargetProvider.findValueResourceTagInContext(editor, file) != null) {
       return true;
     }
-    final Project project = PlatformDataKeys.PROJECT.getData(dataContext);
+    final Project project = CommonDataKeys.PROJECT.getData(dataContext);
 
     if (project == null) {
       return false;
