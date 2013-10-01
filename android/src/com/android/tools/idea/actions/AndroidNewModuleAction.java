@@ -19,6 +19,7 @@ package com.android.tools.idea.actions;
 import com.android.tools.idea.wizard.NewModuleWizard;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.DumbAware;
 import org.jetbrains.annotations.Nullable;
@@ -37,7 +38,7 @@ public class AndroidNewModuleAction extends AnAction implements DumbAware {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    NewModuleWizard dialog = new NewModuleWizard(PlatformDataKeys.PROJECT.getData(e.getDataContext()));
+    NewModuleWizard dialog = new NewModuleWizard(CommonDataKeys.PROJECT.getData(e.getDataContext()));
     dialog.show();
     if (!dialog.isOK()) {
       return;

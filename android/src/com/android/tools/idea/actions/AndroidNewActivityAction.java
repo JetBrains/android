@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.wizard.NewTemplateObjectWizard;
 import com.intellij.facet.FacetManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
@@ -50,7 +51,7 @@ public class AndroidNewActivityAction extends JavaSourceAction implements DumbAw
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    NewTemplateObjectWizard dialog = new NewTemplateObjectWizard(PlatformDataKeys.PROJECT.getData(e.getDataContext()),
+    NewTemplateObjectWizard dialog = new NewTemplateObjectWizard(CommonDataKeys.PROJECT.getData(e.getDataContext()),
                                                                  LangDataKeys.MODULE.getData(e.getDataContext()),
                                                                  PlatformDataKeys.VIRTUAL_FILE.getData(e.getDataContext()),
                                                                  CATEGORY_ACTIVITIES);
