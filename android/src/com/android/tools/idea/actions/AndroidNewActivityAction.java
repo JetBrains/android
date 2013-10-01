@@ -53,7 +53,7 @@ public class AndroidNewActivityAction extends JavaSourceAction implements DumbAw
   public void actionPerformed(AnActionEvent e) {
     NewTemplateObjectWizard dialog = new NewTemplateObjectWizard(CommonDataKeys.PROJECT.getData(e.getDataContext()),
                                                                  LangDataKeys.MODULE.getData(e.getDataContext()),
-                                                                 PlatformDataKeys.VIRTUAL_FILE.getData(e.getDataContext()),
+                                                                 CommonDataKeys.VIRTUAL_FILE.getData(e.getDataContext()),
                                                                  CATEGORY_ACTIVITIES);
     dialog.show();
     if (!dialog.isOK()) {
