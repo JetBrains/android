@@ -53,6 +53,7 @@ import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
 import org.gradle.tooling.model.UnsupportedMethodException;
+import org.gradle.tooling.model.idea.BasicIdeaProject;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
@@ -111,7 +112,10 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
    *
    * @param id                id of the current 'resolve project info' task.
    * @param projectPath       absolute path of the parent folder of the build.gradle file.
-   * @param downloadLibraries a hint that specifies if third-party libraries that are not available locally should be resolved (downloaded.)
+   * @param isPreviewMode     Indicates, that an implementation can not provide/resolve any external dependencies.
+   *                          Only project dependencies and local file dependencies may included on the modules' classpath.
+   *                          And should not include any 'heavy' tasks like not trivial code generations.
+   *                          It is supposed to be fast.
    * @param settings          settings to use for the project resolving; {@code null} as indication that no specific settings are required.
    * @param listener          callback to be notified about the execution
    * @return the imported project, or {@code null} if the project to import is not supported.
@@ -120,17 +124,27 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   @Override
   public DataNode<ProjectData> resolveProjectInfo(@NotNull final ExternalSystemTaskId id,
                                                   @NotNull final String projectPath,
-                                                  final boolean downloadLibraries,
+                                                  final boolean isPreviewMode,
                                                   @Nullable final GradleExecutionSettings settings,
                                                   @NotNull final ExternalSystemTaskNotificationListener listener) {
+    // skip preview stage, the default implementation (GradleProjectResolver#) will be used
+    // this can be changed if Android-specific issues should be taken into account during resolving of the 'preview' model
+    if(isPreviewMode) return null;
+
+    // to skip any further resolve processing (even default one) throw com.intellij.openapi.externalSystem.service.ImportCanceledException
+    // e.g.:
+    //  if(isPreviewMode && isAndroidProject()) {
+    //    throw new ImportCanceledException();
+    //  }
+
     return myHelper.execute(projectPath, settings, new Function<ProjectConnection, DataNode<ProjectData>>() {
       @Nullable
       @Override
       public DataNode<ProjectData> fun(ProjectConnection connection) {
         try {
-          List<String> extraJvmArgs = getExtraJvmArgs(projectPath, downloadLibraries);
+          List<String> extraJvmArgs = getExtraJvmArgs(projectPath, isPreviewMode);
           //noinspection TestOnlyProblems
-          return resolveProjectInfo(id, projectPath, connection, listener, extraJvmArgs, settings);
+          return resolveProjectInfo(id, projectPath, isPreviewMode, connection, listener, extraJvmArgs, settings);
         }
         catch (RuntimeException e) {
           throw myErrorHandler.getUserFriendlyError(e, projectPath, null);
@@ -140,7 +154,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   }
 
   @NotNull
-  private static List<String> getExtraJvmArgs(@NotNull String projectPath, boolean downloadLibraries) {
+  private static List<String> getExtraJvmArgs(@NotNull String projectPath, boolean isPreviewMode) {
     if (ExternalSystemApiUtil.isInProcessMode(GradleConstants.SYSTEM_ID)) {
       List<String> args = Lists.newArrayList();
       if (!AndroidGradleSettings.isAndroidSdkDirInLocalPropertiesFile(new File(projectPath))) {
@@ -156,7 +170,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
         args.add(arg);
       }
       // "build model only" mode means that project import will not be aborted if any dependencies are not found.
-      boolean buildModelOnly = !downloadLibraries;
+      boolean buildModelOnly = isPreviewMode;
       String arg = AndroidGradleSettings.createJvmArg(AndroidProject.BUILD_MODEL_ONLY_SYSTEM_PROPERTY, String.valueOf(buildModelOnly));
       args.add(arg);
       return args;
@@ -196,11 +210,13 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   @Nullable
   DataNode<ProjectData> resolveProjectInfo(@NotNull ExternalSystemTaskId id,
                                            @NotNull String projectPath,
+                                           final boolean isPreviewMode,
                                            @NotNull ProjectConnection connection,
                                            @NotNull ExternalSystemTaskNotificationListener listener,
                                            @NotNull List<String> extraJvmArgs,
                                            @Nullable GradleExecutionSettings settings) {
-    ModelBuilder<IdeaProject> modelBuilder = myHelper.getModelBuilder(IdeaProject.class, id, settings, connection, listener, extraJvmArgs);
+    ModelBuilder<? extends IdeaProject> modelBuilder = myHelper.getModelBuilder(
+      isPreviewMode ? BasicIdeaProject.class : IdeaProject.class, id, settings, connection, listener, extraJvmArgs);
     IdeaProject ideaProject = modelBuilder.get();
     if (ideaProject == null || ideaProject.getModules().isEmpty()) {
       return null;
