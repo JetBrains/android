@@ -20,7 +20,6 @@ import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.legacy.ILegacyPullParser;
 import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.resources.Density;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
@@ -379,51 +378,6 @@ public class XmlTagPullParser implements ILegacyPullParser {
     }
 
     return null;
-  }
-
-  /**
-   * Replaces any {@code \\uNNNN} references in the given string with the corresponding
-   * unicode characters.
-   *
-   * @param s the string to perform replacements in
-   * @return the string with unicode escapes replaced with actual characters
-   */
-  @SuppressWarnings("AssignmentToForLoopParameter")
-  @NotNull
-  public static String replaceUnicodeEscapes(@NotNull String s) {
-    // Handle unicode escapes
-    if (s.contains("\\u")) { //$NON-NLS-1$
-      StringBuilder sb = new StringBuilder(s.length());
-      for (int i = 0, n = s.length(); i < n; i++) {
-        char c = s.charAt(i);
-        if (c == '\\' && i < n - 1) {
-          char next = s.charAt(i + 1);
-          if (next == 'u' && i < n - 5) { // case sensitive
-            String hex = s.substring(i + 2, i + 6);
-            try {
-              int unicodeValue = Integer.parseInt(hex, 16);
-              sb.append((char)unicodeValue);
-              i += 5;
-            }
-            catch (NumberFormatException nufe) {
-              // Invalid escape: Just proceed to literally transcribe it
-              sb.append(c);
-            }
-          }
-          else {
-            sb.append(c);
-            sb.append(next);
-            i++;
-          }
-        }
-        else {
-          sb.append(c);
-        }
-      }
-      s = sb.toString();
-    }
-
-    return s;
   }
 
   @Override
