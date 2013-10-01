@@ -16,6 +16,7 @@
 package com.android.tools.idea.folding;
 
 import com.android.resources.ResourceType;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.rendering.ProjectResources;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.lang.ASTNode;
@@ -25,12 +26,12 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.SourceTreeToPsiMap;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,15 +39,16 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import static com.android.SdkConstants.R_CLASS;
 import static com.android.SdkConstants.STRING_PREFIX;
-import static com.android.tools.idea.folding.ResourceString.NONE;
+import static com.android.tools.idea.folding.InlinedResource.NONE;
 
 public class ResourceFoldingBuilder extends FoldingBuilderEx {
   private static final String ANDROID_RESOURCE_INT = "android.annotation.ResourceInt";
   private static final boolean FORCE_PROJECT_RESOURCE_LOADING = true;
-  private static final Key<ResourceString> CACHE = Key.create("android.resourceString.cache");
+  private static final boolean ONLY_FOLD_ANNOTATED_METHODS = false;
   private static final boolean UNIT_TEST_MODE =  ApplicationManager.getApplication().isUnitTestMode();
+  public static final String DIMEN_PREFIX = "@dimen/";
+  public static final String INTEGER_PREFIX = "@integer/";
 
   public ResourceFoldingBuilder() {
   }
@@ -64,7 +66,7 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
   public String getPlaceholderText(@NotNull ASTNode node) {
     PsiElement element = SourceTreeToPsiMap.treeElementToPsi(node);
     if (element != null) {
-      ResourceString string = getResolvedString(element);
+      InlinedResource string = getResolvedString(element);
       if (string != NONE) {
         String foldLabel = string.getResolvedString();
         if (foldLabel != null) {
@@ -87,12 +89,12 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
       final PsiJavaFile file = (PsiJavaFile) element;
       file.accept(new JavaRecursiveElementWalkingVisitor() {
         @Override
-        public void visitMethodCallExpression(PsiMethodCallExpression expression) {
-          ResourceString resourceString = getResolvedString(expression);
-          if (resourceString != NONE) {
-            result.add(resourceString.getDescriptor());
+        public void visitReferenceExpression(PsiReferenceExpression expression) {
+          InlinedResource inlinedResource = findJavaExpressionReference(expression);
+          if (inlinedResource != NONE) {
+            result.add(inlinedResource.getDescriptor());
           }
-          super.visitMethodCallExpression(expression);
+          super.visitReferenceExpression(expression);
         }
       });
     } else {
@@ -100,9 +102,9 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
       file.accept(new XmlRecursiveElementVisitor() {
         @Override
         public void visitXmlAttributeValue(XmlAttributeValue value) {
-          ResourceString resourceString = getResolvedString(value);
-          if (resourceString != NONE) {
-            FoldingDescriptor descriptor = resourceString.getDescriptor();
+          InlinedResource inlinedResource = findXmlValueReference(value);
+          if (inlinedResource != NONE) {
+            FoldingDescriptor descriptor = inlinedResource.getDescriptor();
             if (descriptor != null) {
               result.add(descriptor);
             }
@@ -116,136 +118,22 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
   }
 
   @NotNull
-  private static ResourceString getResolvedString(PsiElement element) {
-    ResourceString item = element.getUserData(CACHE);
-    if (item != null) {
-      // We need to refresh the folding descriptors since their text positions
-      // need to be recomputed from the AST node ranges after edits earlier in
-      // the document
-      item.refreshTextPosition();
-      return item;
-    }
-    if (element instanceof PsiMethodCallExpression) {
-      item = findJavaExpressionReference((PsiMethodCallExpression)element);
+  private static InlinedResource getResolvedString(PsiElement element) {
+    if (element instanceof PsiReferenceExpression) {
+      return findJavaExpressionReference((PsiReferenceExpression)element);
     } else if (element instanceof XmlAttributeValue) {
-      item = findXmlValueReference((XmlAttributeValue)element);
-    } else {
-      item = NONE;
-    }
-    element.putUserData(CACHE, item);
-    if (item != NONE) {
-      PsiElement itemElement = item.getElement();
-      if (itemElement != element && itemElement != null) {
-        // Store cache item on the sub-node of the expression as well,
-        // such that string lookup can find it from there
-        itemElement.putUserData(CACHE, item);
-      }
-    }
-
-    return item;
-  }
-
-  @NotNull
-  private static ResourceString findXmlValueReference(XmlAttributeValue element) {
-    String value = element.getValue();
-    if (!(value.startsWith(STRING_PREFIX))) {
-      return NONE;
-    }
-    Module module = ModuleUtilCore.findModuleForPsiElement(element);
-    if (module == null) {
-      return NONE;
-    }
-    ProjectResources projectResources = ProjectResources.get(module, true, FORCE_PROJECT_RESOURCE_LOADING);
-    if (projectResources == null) {
-      return NONE;
-    }
-    ASTNode node = element.getNode();
-    if (node == null) {
-      return NONE;
-    }
-    String name = value.substring(STRING_PREFIX.length());
-    TextRange textRange = element.getTextRange();
-    HashSet<Object> dependencies = new HashSet<Object>();
-    dependencies.add(element);
-    FoldingDescriptor descriptor = new FoldingDescriptor(node, textRange, null, dependencies);
-    ResourceString resourceString = new ResourceString(name, projectResources, descriptor, element);
-    dependencies.add(resourceString);
-    return resourceString;
-  }
-
-  @NotNull
-  private static ResourceString findJavaExpressionReference(PsiMethodCallExpression expression) {
-    PsiReferenceExpression methodExpression = expression.getMethodExpression();
-    PsiExpression[] expressions = expression.getArgumentList().getExpressions();
-
-    // Only check the first couple of parameters since those are the only occurrences
-    // in the SDK
-    int parameterCount = Math.min(2, expressions.length);
-    PsiParameter[] parameters = null;
-    for (int i = 0; i < parameterCount; i++) {
-      String name = getStringResourceName(expressions[i]);
-      if (name == null) {
-        continue;
-      }
-
-      if (parameters == null) {
-        PsiMethod method = expression.resolveMethod();
-        if (!UNIT_TEST_MODE) { // For some reason, we can't resolve PsiMethods from the unit tests
-          if (method == null) {
-            return NONE;
+      return findXmlValueReference((XmlAttributeValue)element);
+    } else if (element instanceof PsiMethodCallExpression) {
+      // This can happen when a folding lookup for a parameter ends up returning the
+      // surrounding method call as the folding region; in that case we have to map
+      // back to the right parameter
+      PsiMethodCallExpression call = (PsiMethodCallExpression)element;
+      for (PsiExpression expression : call.getArgumentList().getExpressions()) {
+        if (expression instanceof PsiReferenceExpression) {
+          InlinedResource string = findJavaExpressionReference((PsiReferenceExpression)expression);
+          if (string != NONE) {
+            return string;
           }
-          PsiParameterList parameterList = method.getParameterList();
-          parameters = parameterList.getParameters();
-          if (parameters.length == 0) {
-            return NONE;
-          }
-          parameterCount = Math.min(parameters.length, parameterCount);
-        }
-      }
-
-      if (UNIT_TEST_MODE || allowsResourceType(ResourceType.STRING, parameters[i])
-          || i == 0 && "getString".equals(methodExpression.getReferenceName())) {
-        Module module = ModuleUtilCore.findModuleForPsiElement(expression);
-        if (module == null) {
-          return NONE;
-        }
-
-        ProjectResources projectResources = ProjectResources.get(module, true, FORCE_PROJECT_RESOURCE_LOADING);
-        if (projectResources == null) {
-          return NONE;
-        }
-
-        // Determine whether we should just replace the parameter expression, or the
-        // whole method call. For now, we just replace calls into Resources or calls called getText/getString
-        PsiElement foldElement = expressions[0]; // same arg
-        String referenceName = expression.getMethodExpression().getReferenceName();
-        if ("getString".equals(referenceName) || "getText".equals(referenceName)) {
-          foldElement = expression;
-        } else {
-          PsiElement resolve = methodExpression.resolve();
-          if (resolve instanceof PsiMethod) {
-            PsiClass containingClass = ((PsiMethod)resolve).getContainingClass();
-            if (containingClass != null && "Resources".equals(containingClass.getName())) {
-              // Fold the entire element, e.g.
-              //    getResources().getString(R.string, ...) => "...."
-              // instead of just the parameter containing the string reference:
-              //    getResources().getString(R.string, ...) => getResources().getString("...")
-              // In other cases we don't want to do this; for example for
-              //    button.setText(R.string...) we just want button.setText("...")
-              foldElement = expression;
-            }
-          }
-        }
-
-        ASTNode node = foldElement.getNode();
-        if (node != null) {
-          TextRange textRange = foldElement.getTextRange();
-          HashSet<Object> dependencies = new HashSet<Object>();
-          dependencies.add(foldElement);
-          FoldingDescriptor descriptor = new FoldingDescriptor(node, textRange, null, dependencies);
-          ResourceString resourceString = new ResourceString(name, projectResources, descriptor, foldElement);
-          dependencies.add(resourceString);
-          return resourceString;
         }
       }
     }
@@ -253,27 +141,112 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
     return NONE;
   }
 
-  @Nullable
-  private static String getStringResourceName(@NotNull PsiExpression expression) {
-    // Check whether the expression corresponds to R.string.<name>
-    if (expression instanceof PsiReferenceExpression) {
-      PsiReferenceExpression refExp = (PsiReferenceExpression)expression;
-      PsiExpression qualifier = refExp.getQualifierExpression();
-      if (qualifier instanceof PsiReferenceExpression) {
-        PsiReferenceExpression refExp2 = (PsiReferenceExpression)qualifier;
-        if (ResourceType.STRING.getName().equals(refExp2.getReferenceName())) {
-          PsiExpression qualifier2 = refExp2.getQualifierExpression();
-          if (qualifier2 instanceof PsiReferenceExpression) {
-            PsiReferenceExpression refExp3 = (PsiReferenceExpression)qualifier2;
-            if (R_CLASS.equals(refExp3.getReferenceName()) && refExp3.getQualifierExpression() == null) {
-              return refExp.getReferenceName();
+  @NotNull
+  private static InlinedResource findXmlValueReference(XmlAttributeValue element) {
+    String value = element.getValue();
+    if (value.startsWith(STRING_PREFIX)) {
+      String name = value.substring(STRING_PREFIX.length());
+      return createdInlinedResource(ResourceType.STRING, name, element);
+    } else if (value.startsWith(DIMEN_PREFIX)) {
+      String name = value.substring(DIMEN_PREFIX.length());
+      return createdInlinedResource(ResourceType.DIMEN, name, element);
+    } else if (value.startsWith(INTEGER_PREFIX)) {
+      String name = value.substring(INTEGER_PREFIX.length());
+      return createdInlinedResource(ResourceType.INTEGER, name, element);
+    } else {
+      return NONE;
+    }
+  }
+
+  @NotNull
+  private static InlinedResource findJavaExpressionReference(PsiReferenceExpression expression) {
+    AndroidPsiUtils.ResourceReferenceType referenceType = AndroidPsiUtils.getResourceReferenceType(expression);
+    if (referenceType != AndroidPsiUtils.ResourceReferenceType.APP) {
+      return NONE;
+    }
+    ResourceType type = AndroidPsiUtils.getResourceType(expression);
+    if (type == null || !(type == ResourceType.STRING || type == ResourceType.DIMEN || type == ResourceType.INTEGER)) {
+      return NONE;
+    }
+
+    PsiElement parameterList = expression.getParent();
+    String name = AndroidPsiUtils.getResourceName(expression);
+    if (parameterList instanceof PsiExpressionList) {
+      PsiElement call = parameterList.getParent();
+      if (call instanceof PsiMethodCallExpression) {
+        PsiMethodCallExpression callExpression = (PsiMethodCallExpression)call;
+        PsiReferenceExpression methodExpression = callExpression.getMethodExpression();
+        String methodName = methodExpression.getReferenceName();
+        if (methodName != null &&
+            (methodName.equals("getString") ||
+             methodName.equals("getText") ||
+             methodName.equals("getInteger") ||
+             methodName.startsWith("getDimension"))) {
+          // This seems to be an IntelliJ bug; it complains that type can be null, but it clearly can not
+          // (and if I insert assert type != null it correctly says that the assertion is not necessary)
+          //noinspection ConstantConditions
+          @NotNull ResourceType resourceType = type;
+          //noinspection ConstantConditions
+          return createdInlinedResource(resourceType, name, callExpression);
+        }
+
+        //noinspection ConstantConditions
+        if (!UNIT_TEST_MODE && ONLY_FOLD_ANNOTATED_METHODS) {
+          PsiParameter[] parameters = null;
+          int parameterIndex = ArrayUtil.indexOf(callExpression.getArgumentList().getExpressions(), expression);
+          if (parameterIndex == -1) {
+            return NONE;
+          }
+          PsiMethod method = callExpression.resolveMethod();
+          if (!UNIT_TEST_MODE) { // For some reason, we can't resolve PsiMethods from the unit tests
+            if (method == null) {
+              return NONE;
             }
+            parameters = method.getParameterList().getParameters();
+            if (parameters.length <= parameterIndex) {
+              return NONE;
+            }
+          }
+
+          if (!allowsResourceType(ResourceType.STRING, parameters[parameterIndex])) {
+            return NONE;
           }
         }
       }
     }
 
-    return null;
+    // Suppress null warning; see @NotNull comment further up in this method
+    //noinspection ConstantConditions
+    return createdInlinedResource(type, name, expression);
+  }
+
+  @Nullable
+  private static ProjectResources getProjectResources(PsiElement element) {
+    Module module = ModuleUtilCore.findModuleForPsiElement(element);
+    if (module == null) {
+      return null;
+    }
+
+    return ProjectResources.get(module, true, FORCE_PROJECT_RESOURCE_LOADING);
+  }
+
+  private static InlinedResource createdInlinedResource(@NotNull ResourceType type, @NotNull String name, @NotNull PsiElement foldElement) {
+    // Not part of a call: just fold the R.string reference itself
+    ProjectResources projectResources = getProjectResources(foldElement);
+    if (projectResources != null) {
+      ASTNode node = foldElement.getNode();
+      if (node != null) {
+        TextRange textRange = foldElement.getTextRange();
+        HashSet<Object> dependencies = new HashSet<Object>();
+        dependencies.add(foldElement);
+        FoldingDescriptor descriptor = new FoldingDescriptor(node, textRange, null, dependencies);
+        InlinedResource inlinedResource = new InlinedResource(type, name, projectResources, descriptor, foldElement);
+        dependencies.add(inlinedResource);
+        return inlinedResource;
+      }
+    }
+
+    return NONE;
   }
 
   /**
