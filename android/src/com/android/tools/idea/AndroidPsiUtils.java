@@ -79,7 +79,7 @@ public class AndroidPsiUtils {
   }
 
   @NotNull
-  private static ResourceReferenceType getResourceReferenceType(PsiReferenceExpression element) {
+  public static ResourceReferenceType getResourceReferenceType(PsiReferenceExpression element) {
     PsiExpression exp = element.getQualifierExpression();
     if (!(exp instanceof PsiReferenceExpression)) {
       return ResourceReferenceType.NONE;

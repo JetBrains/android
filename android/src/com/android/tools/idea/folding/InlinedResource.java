@@ -20,10 +20,8 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LanguageQualifier;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.ProjectResources;
-import com.intellij.lang.ASTNode;
 import com.intellij.lang.folding.FoldingDescriptor;
 import com.intellij.openapi.util.ModificationTracker;
-import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiExpression;
@@ -32,14 +30,16 @@ import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** A string referenced in code (Java or XML) */
-class ResourceString implements ModificationTracker {
-  static final ResourceString NONE = new ResourceString("", null, null, null);
+/** A resource referenced in code (Java or XML) */
+class InlinedResource implements ModificationTracker {
+  static final InlinedResource NONE = new InlinedResource(ResourceType.STRING, "", null, null, null);
   private static final int FOLD_MAX_LENGTH = 60;
+
+  /** Resource type, typically a string or dimension */
+  private final ResourceType myType;
 
   /** The string key, such as "foo" in {@code @string/foo} or {@code R.string.foo} */
   @NotNull private String myKey;
@@ -57,10 +57,12 @@ class ResourceString implements ModificationTracker {
   /** The project resources for looking up resource strings lazily */
   @Nullable private ProjectResources myProjectResources;
 
-  ResourceString(@NotNull String key,
-                 @Nullable ProjectResources projectResources,
-                 @Nullable FoldingDescriptor descriptor,
-                 @Nullable PsiElement element) {
+  InlinedResource(@NotNull ResourceType type,
+                  @NotNull String key,
+                  @Nullable ProjectResources projectResources,
+                  @Nullable FoldingDescriptor descriptor,
+                  @Nullable PsiElement element) {
+    myType = type;
     myKey = key;
     myProjectResources = projectResources;
     myDescriptor = descriptor;
@@ -70,11 +72,6 @@ class ResourceString implements ModificationTracker {
   @Nullable
   FoldingDescriptor getDescriptor() {
     return myDescriptor;
-  }
-
-  @Nullable
-  PsiElement getElement() {
-    return myElement;
   }
 
   @Override
@@ -87,11 +84,11 @@ class ResourceString implements ModificationTracker {
   @Nullable
   public String getResolvedString() {
     if (myProjectResources != null) {
-      if (myProjectResources.hasResourceItem(ResourceType.STRING, myKey)) {
+      if (myProjectResources.hasResourceItem(myType, myKey)) {
         FolderConfiguration referenceConfig = new FolderConfiguration();
         // Nonexistent language qualifier: trick it to fall back to the default locale
         referenceConfig.setLanguageQualifier(new LanguageQualifier("xx"));
-        ResourceValue value = myProjectResources.getConfiguredValue(ResourceType.STRING, myKey, referenceConfig);
+        ResourceValue value = myProjectResources.getConfiguredValue(myType, myKey, referenceConfig);
         if (value != null) {
           String text = value.getValue();
           if (text != null) {
@@ -184,18 +181,5 @@ class ResourceString implements ModificationTracker {
     }
 
     return sb.toString();
-  }
-
-  public void refreshTextPosition() {
-    if (myDescriptor != null && myElement != null) {
-      ASTNode node = myElement.getNode();
-      Set<Object> dependencies = myDescriptor.getDependencies();
-      TextRange textRange = node.getTextRange();
-      if (!textRange.isEmpty()) {
-        myDescriptor = new FoldingDescriptor(node, textRange, null, dependencies);
-      } else {
-        myDescriptor = null;
-      }
-    }
   }
 }
