@@ -43,7 +43,7 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
       return false;
     }
 
-    final PsiFile file = LangDataKeys.PSI_FILE.getData(dataContext);
+    final PsiFile file = CommonDataKeys.PSI_FILE.getData(dataContext);
     if (file == null) {
       return false;
     }
@@ -99,7 +99,7 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
       return;
     }
 
-    final PsiFile file = LangDataKeys.PSI_FILE.getData(dataContext);
+    final PsiFile file = CommonDataKeys.PSI_FILE.getData(dataContext);
     if (file == null) {
       return;
     }
