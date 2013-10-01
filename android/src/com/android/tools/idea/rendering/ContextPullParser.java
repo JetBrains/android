@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.IProjectCallback;
+import com.android.ide.common.res2.ValueXmlHelper;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.Nullable;
@@ -140,13 +141,13 @@ public class ContextPullParser extends KXmlParser implements ILayoutPullParser {
     }
 
     if (value != null) {
-      if (value.indexOf('&') != -1) {
-        value = StringUtil.unescapeXml(value);
-      }
-
-      // Handle unicode escapes
-      if (value.indexOf('\\') != -1) {
-        value = XmlTagPullParser.replaceUnicodeEscapes(value);
+      // Handle unicode and XML escapes
+      for (int i = 0, n = value.length(); i < n; i++) {
+        char c = value.charAt(i);
+        if (c == '&' || c == '\\') {
+          value = ValueXmlHelper.unescapeResourceString(value, true, false);
+          break;
+        }
       }
     }
 
