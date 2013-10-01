@@ -106,7 +106,7 @@ public class AndroidGradleProjectResolverTest extends TestCase {
     String projectPath = myIdeaProject.getBuildFile().getParentFile().getPath();
     List<String> extraJvmArgs = Collections.emptyList();
     DataNode<ProjectData> projectInfo =
-      myProjectResolver.resolveProjectInfo(myId, projectPath, myConnection, NULL_OBJECT, extraJvmArgs, mySettings);
+      myProjectResolver.resolveProjectInfo(myId, projectPath, false, myConnection, NULL_OBJECT, extraJvmArgs, mySettings);
 
     // Verify mock expectations.
     verify(myConnection, myHelper, ideaProjectModelBuilder);
