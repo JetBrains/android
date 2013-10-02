@@ -21,6 +21,7 @@ import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
+import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.StdModuleTypes;
@@ -61,7 +62,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
 
     GradleProjectImporter.ImporterDelegate delegate = new GradleProjectImporter.ImporterDelegate() {
       @Override
-      void importProject(@NotNull Project project, @NotNull ExternalProjectRefreshCallback callback, boolean modal)
+      void importProject(@NotNull Project project, @NotNull ExternalProjectRefreshCallback callback, @NotNull final ProgressExecutionMode progressTaskMode)
         throws ConfigurationException {
         assertNotNull(project);
         assertEquals(myProjectName, project.getName());
