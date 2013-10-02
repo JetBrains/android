@@ -41,6 +41,7 @@ import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -68,7 +69,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       public boolean execute(CompileContext context) {
         Project contextProject = context.getProject();
         if (Projects.isGradleProject(contextProject)) {
-          String rootDirPath = contextProject.getBasePath();
+          String rootDirPath = FileUtil.toSystemIndependentName(contextProject.getBasePath());
           VirtualFile rootDir = LocalFileSystem.getInstance().findFileByPath(rootDirPath);
           if (rootDir != null && rootDir.isDirectory()) {
             rootDir.refresh(true, true);

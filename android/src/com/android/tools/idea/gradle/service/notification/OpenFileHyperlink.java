@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.service.notification;
 
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +28,7 @@ class OpenFileHyperlink extends NotificationHyperlink {
 
   OpenFileHyperlink(@NotNull final String filePath, final int line) {
     super("openFile", "Open File");
-    myFilePath = filePath;
+    myFilePath = FileUtil.toSystemIndependentName(filePath);
     myLine = line;
   }
 
