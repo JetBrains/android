@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/first"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Normal text"/>
+
+    <TextView
+        android:id="@+id/second"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Runtime Text"
+        android:layout_gravity="left|center_vertical"
+        tools:text="Designtime Text"
+        tools:textColor="@android:color/darker_gray"/>
+
+    <TextView
+        android:id="@+id/blank"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text=""/>
+
+    <!--
+    Reset fastScrollAlwaysVisible attribute at designtime (fastScrollAlwaysVisible breaks
+    rendering, see http://b.android.com/58448
+    -->
+    <ListView
+        android:id="@+id/listView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fastScrollAlwaysVisible="true"
+        tools:fastScrollAlwaysVisible=""/>
+</LinearLayout>

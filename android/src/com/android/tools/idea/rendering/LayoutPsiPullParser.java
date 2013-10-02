@@ -58,6 +58,12 @@ public class LayoutPsiPullParser implements ILegacyPullParser {
   @Nullable
   protected final XmlTag myRoot;
 
+  @Nullable
+  private String myToolsPrefix;
+
+  @Nullable
+  private String myAndroidPrefix;
+
   /**
    * Constructs a new {@link LayoutPsiPullParser}, a parser dedicated to the special case of
    * parsing a layout resource files.
@@ -99,6 +105,11 @@ public class LayoutPsiPullParser implements ILegacyPullParser {
   protected LayoutPsiPullParser(@NotNull XmlFile file, @NotNull RenderLogger logger) {
     myRoot = file.getRootTag();
     myLogger = logger;
+
+    if (myRoot != null) {
+      myAndroidPrefix = myRoot.getPrefixByNamespace(ANDROID_URI);
+      myToolsPrefix = myRoot.getPrefixByNamespace(TOOLS_URI);
+    }
   }
 
   @Nullable
@@ -255,52 +266,72 @@ public class LayoutPsiPullParser implements ILegacyPullParser {
   @Override
   public String getAttributeValue(String namespace, String localName) {
     // get the current uiNode
-    XmlTag uiNode = getCurrentNode();
-    if (uiNode != null) {
-      if (ATTR_LAYOUT.equals(localName) && VIEW_FRAGMENT.equals(uiNode.getName())) {
-        String layout = LayoutMetadata.getFragmentLayout(uiNode);
+    XmlTag tag = getCurrentNode();
+    if (tag != null) {
+      if (ATTR_LAYOUT.equals(localName) && VIEW_FRAGMENT.equals(tag.getName())) {
+        String layout = LayoutMetadata.getFragmentLayout(tag);
         if (layout != null) {
           return layout;
         }
       }
 
-      XmlAttribute attribute = uiNode.getAttribute(localName, namespace);
-
-      // Auto-convert http://schemas.android.com/apk/res-auto resources. The lookup
-      // will be for the current application's resource package, e.g.
-      // http://schemas.android.com/apk/res/foo.bar, but the XML document will
-      // be using http://schemas.android.com/apk/res-auto in library projects:
-      if (attribute == null && namespace != null && !namespace.equals(ANDROID_URI)) {
-        attribute = uiNode.getAttribute(localName, AUTO_URI);
-      }
-
-      if (attribute != null) {
-        String value = attribute.getValue();
-        if (value != null) {
-          if (value.isEmpty()) {
-            return null;
-          }
-
-          // on the fly convert match_parent to fill_parent for compatibility with older
-          // platforms.
-          if (VALUE_MATCH_PARENT.equals(value) &&
-              (ATTR_LAYOUT_WIDTH.equals(localName) || ATTR_LAYOUT_HEIGHT.equals(localName)) &&
-              ANDROID_URI.equals(namespace)) {
-            return VALUE_FILL_PARENT;
-          }
-
-          // Handle unicode and XML escapes
-          for (int i = 0, n = value.length(); i < n; i++) {
-            char c = value.charAt(i);
-            if (c == '&' || c == '\\') {
-              value = ValueXmlHelper.unescapeResourceString(value, true, false);
-              break;
+      String value = null;
+      if (namespace == null) {
+        value = tag.getAttributeValue(localName);
+      } else if (namespace.equals(ANDROID_URI)) {
+        if (myAndroidPrefix != null) {
+          // The PSI implementation of XmlTag#getAttributeValue(name, namespace)
+          // just turns around and looks up the prefix, then concatenates the prefix
+          // and the name and turns around and calls getAttributeValue(name) anyway.
+          // Here we pre-compute the prefix once, and if we know that the document
+          // also has a tools prefix, we allow the tools attribute to win at designtime.
+          if (myToolsPrefix != null) {
+            value = tag.getAttributeValue(myToolsPrefix + ':' + localName);
+            if (value != null) {
+              if (value.isEmpty()) {
+                // Empty when there is a runtime attribute set means unset the runtime attribute
+                return tag.getAttributeValue(myAndroidPrefix + ':' + localName) != null ? null : value;
+              }
             }
           }
+          if (value == null) {
+            value = tag.getAttributeValue(myAndroidPrefix + ':' + localName);
+          }
+        } else {
+          value = tag.getAttributeValue(localName, namespace);
+        }
+      } else {
+        value = tag.getAttributeValue(localName, namespace);
+
+        // Auto-convert http://schemas.android.com/apk/res-auto resources. The lookup
+        // will be for the current application's resource package, e.g.
+        // http://schemas.android.com/apk/res/foo.bar, but the XML document will
+        // be using http://schemas.android.com/apk/res-auto in library projects:
+        if (value == null) {
+          value = tag.getAttributeValue(localName, AUTO_URI);
+        }
+      }
+
+      if (value != null) {
+        // on the fly convert match_parent to fill_parent for compatibility with older
+        // platforms.
+        if (VALUE_MATCH_PARENT.equals(value) &&
+            (ATTR_LAYOUT_WIDTH.equals(localName) || ATTR_LAYOUT_HEIGHT.equals(localName)) &&
+            ANDROID_URI.equals(namespace)) {
+          return VALUE_FILL_PARENT;
         }
 
-        return value;
+        // Handle unicode and XML escapes
+        for (int i = 0, n = value.length(); i < n; i++) {
+          char c = value.charAt(i);
+          if (c == '&' || c == '\\') {
+            value = ValueXmlHelper.unescapeResourceString(value, true, false);
+            break;
+          }
+        }
       }
+
+      return value;
     }
 
     return null;
