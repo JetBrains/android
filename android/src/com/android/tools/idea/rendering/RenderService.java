@@ -24,8 +24,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -48,13 +46,11 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
@@ -432,7 +428,8 @@ public class RenderService {
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
     ApplicationManager.getApplication().assertReadAccessAllowed();
-    XmlTagPullParser modelParser = new XmlTagPullParser(myPsiFile, myExpandNodes, hardwareConfig.getDensity(), myLogger);
+    LayoutPsiPullParser modelParser;
+    modelParser = LayoutPsiPullParser.create(myPsiFile, myLogger, myExpandNodes, hardwareConfig.getDensity());
     ILayoutPullParser topParser = modelParser;
 
     myProjectCallback.reset();
@@ -452,17 +449,12 @@ public class RenderService {
             // as it's what IXmlPullParser.getParser(String) will receive.
             String queryLayoutName = ResourceHelper.getResourceName(myPsiFile);
             myProjectCallback.setLayoutParser(queryLayoutName, modelParser);
-            topParser = new ContextPullParser(myProjectCallback);
-            topParser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
-            String xmlText = Files.toString(layoutFile, Charsets.UTF_8);
-            topParser.setInput(new StringReader(xmlText));
+            topParser = LayoutFilePullParser.create(myProjectCallback, layoutFile);
           }
           catch (IOException e) {
-            //LOG.error(e);
             myLogger.error(null, String.format("Could not read layout file %1$s", layoutFile), e);
           }
           catch (XmlPullParserException e) {
-            //LOG.error(e);
             myLogger.error(null, String.format("XML parsing error: %1$s", e.getMessage()), e.getDetail() != null ? e.getDetail() : e);
           }
         }

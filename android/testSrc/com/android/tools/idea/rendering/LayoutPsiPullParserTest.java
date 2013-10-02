@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -31,15 +30,15 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.StringReader;
-import java.util.Collections;
 
 import static com.android.SdkConstants.VALUE_FILL_PARENT;
 import static com.android.SdkConstants.VALUE_MATCH_PARENT;
 
-public class XmlTagPullParserTest extends AndroidTestCase {
+public class LayoutPsiPullParserTest extends AndroidTestCase {
+  @SuppressWarnings("SpellCheckingInspection")
   public static final String BASE_PATH = "xmlpull/";
 
-  public XmlTagPullParserTest() {
+  public LayoutPsiPullParserTest() {
   }
 
   public void test1() throws Exception {
@@ -56,12 +55,11 @@ public class XmlTagPullParserTest extends AndroidTestCase {
     assertTrue(file instanceof XmlFile);
     XmlFile xmlFile = (XmlFile)file;
     KXmlParser referenceParser = createReferenceParser(file);
-    XmlTagPullParser parser = new XmlTagPullParser(xmlFile, Collections.<XmlTag>emptySet(), Density.MEDIUM,
-                                                   new RenderLogger("test", myModule));
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
 
     assertEquals("Expected " + name(referenceParser.getEventType()) + " but was "
                  + name(parser.getEventType())
-                 + " (at line:column " + describPosition(referenceParser) + ")",
+                 + " (at line:column " + describePosition(referenceParser) + ")",
                  referenceParser.getEventType(), parser.getEventType());
 
     while (true) {
@@ -106,7 +104,7 @@ public class XmlTagPullParserTest extends AndroidTestCase {
         if (false && element != xmlFile.getRootTag()) { // This doesn't work quite right; KXmlParser seems to not include xmlns: attributes on the root tag!
           if (referenceParser.getAttributeCount() != parser.getAttributeCount()) {
             StringBuilder difference = new StringBuilder();
-            difference.append("Expected Atributes:\n");
+            difference.append("Expected Attributes:\n");
             for (int i = 0; i < referenceParser.getAttributeCount(); i++) {
               difference.append(referenceParser.getAttributeName(i)).append('\n');
             }
@@ -144,7 +142,7 @@ public class XmlTagPullParserTest extends AndroidTestCase {
 
       if (expected != next) {
         assertEquals("Expected " + name(expected) + " but was " + name(next)
-                     + "(At " + describPosition(referenceParser) + ")",
+                     + "(At " + describePosition(referenceParser) + ")",
                      expected, next);
       }
       if (expected == KXmlParser.END_DOCUMENT) {
@@ -171,19 +169,19 @@ public class XmlTagPullParserTest extends AndroidTestCase {
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
     assertNotNull(psiFile);
     compareParsers(psiFile, NextEventType.NEXT_TAG);
-    // The XmlTagPullParser only supports tags, not text (no text is used in layouts)
+    // The LayoutPsiPullParser only supports tags, not text (no text is used in layouts)
     //compareParsers(psiFile, NextEventType.NEXT);
     //compareParsers(psiFile, NextEventType.NEXT_TOKEN);
   }
 
-  private KXmlParser createReferenceParser(PsiFile file) throws XmlPullParserException {
+  private static KXmlParser createReferenceParser(PsiFile file) throws XmlPullParserException {
     KXmlParser referenceParser = new KXmlParser();
     referenceParser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
     referenceParser.setInput(new StringReader(file.getText()));
     return referenceParser;
   }
 
-  private String describPosition(KXmlParser referenceParser) {
+  private String describePosition(KXmlParser referenceParser) {
     return referenceParser.getLineNumber() + ":" + referenceParser.getColumnNumber();
   }
 }
