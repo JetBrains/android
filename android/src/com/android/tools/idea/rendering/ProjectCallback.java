@@ -31,6 +31,11 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -40,13 +45,11 @@ import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.util.*;
 
@@ -274,16 +277,28 @@ public final class ProjectCallback extends LegacyCallback {
       return parser;
     }
 
-    // For included layouts, create a ContextPullParser such that we get the
-    // layout editor behavior in included layouts as well - which for example
-    // replaces <fragment> tags with <include>.
+    // See if we can find a corresponding PSI file for this included layout, and
+    // if so directly reuse the PSI parser, such that we pick up the live, edited
+    // contents rather than the most recently saved file contents.
     if (xml != null && xml.isFile()) {
-      ContextPullParser parser = new ContextPullParser(this);
+      File parent = xml.getParentFile();
+      if (parent != null && parent.getName().startsWith(FD_RES_LAYOUT)) {
+        VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(xml);
+        if (file != null) {
+          PsiManager psiManager = PsiManager.getInstance(myModule.getProject());
+          PsiFile psiFile = psiManager.findFile(file);
+          if (psiFile instanceof XmlFile) {
+            assert myLogger != null;
+            return LayoutPsiPullParser.create((XmlFile)psiFile, myLogger);
+          }
+        }
+      }
+
+      // For included layouts, create a LayoutFilePullParser such that we get the
+      // layout editor behavior in included layouts as well - which for example
+      // replaces <fragment> tags with <include>.
       try {
-        parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
-        String xmlText = Files.toString(xml, Charsets.UTF_8);
-        parser.setInput(new StringReader(xmlText));
-        return parser;
+        return LayoutFilePullParser.create(this, xml);
       }
       catch (XmlPullParserException e) {
         LOG.error(e);
