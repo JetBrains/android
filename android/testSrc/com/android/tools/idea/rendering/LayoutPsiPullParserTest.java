@@ -31,14 +31,47 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.StringReader;
 
-import static com.android.SdkConstants.VALUE_FILL_PARENT;
-import static com.android.SdkConstants.VALUE_MATCH_PARENT;
+import static com.android.SdkConstants.*;
+import static org.xmlpull.v1.XmlPullParser.END_TAG;
+import static org.xmlpull.v1.XmlPullParser.START_TAG;
 
 public class LayoutPsiPullParserTest extends AndroidTestCase {
   @SuppressWarnings("SpellCheckingInspection")
   public static final String BASE_PATH = "xmlpull/";
 
   public LayoutPsiPullParserTest() {
+  }
+
+  public void testDesignAttributes() throws Exception {
+    @SuppressWarnings("SpellCheckingInspection")
+    VirtualFile virtualFile = myFixture.copyFileToProject("xmlpull/designtime.xml", "res/layout/designtime.xml");
+    assertNotNull(virtualFile);
+    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
+    assertTrue(psiFile instanceof XmlFile);
+    XmlFile xmlFile = (XmlFile)psiFile;
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("LinearLayout", parser.getName());
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("TextView", parser.getName());
+    assertEquals("@+id/first", parser.getAttributeValue(ANDROID_URI, ATTR_ID));
+    assertEquals(END_TAG, parser.nextTag());
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("TextView", parser.getName());
+    assertEquals("fill_parent", parser.getAttributeValue(ANDROID_URI, ATTR_LAYOUT_WIDTH)); // auto converted from match_parent
+    assertEquals("wrap_content", parser.getAttributeValue(ANDROID_URI, ATTR_LAYOUT_HEIGHT));
+    assertEquals("Designtime Text", parser.getAttributeValue(ANDROID_URI, ATTR_TEXT)); // overriding runtime text attribute
+    assertEquals("@android:color/darker_gray", parser.getAttributeValue(ANDROID_URI, "textColor"));
+    assertEquals(END_TAG, parser.nextTag());
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("TextView", parser.getName());
+    assertEquals("@+id/blank", parser.getAttributeValue(ANDROID_URI, ATTR_ID));
+    assertEquals("", parser.getAttributeValue(ANDROID_URI, ATTR_TEXT)); // Don't unset when no framework attribute is defined
+    assertEquals(END_TAG, parser.nextTag());
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("ListView", parser.getName());
+    assertEquals("@+id/listView", parser.getAttributeValue(ANDROID_URI, ATTR_ID));
+    assertNull(parser.getAttributeValue(ANDROID_URI, "fastScrollAlwaysVisible")); // Cleared by overriding defined framework attribute
   }
 
   public void test1() throws Exception {
