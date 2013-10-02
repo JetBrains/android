@@ -19,11 +19,18 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.IProjectCallback;
 import com.android.ide.common.res2.ValueXmlHelper;
+import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.util.text.StringUtil;
+import com.google.common.io.Files;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kxml2.io.KXmlParser;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.Map;
 
 import static com.android.SdkConstants.*;
@@ -36,7 +43,7 @@ import static com.android.SdkConstants.*;
  * It will return a given parser when queried for one through
  * {@link com.android.ide.common.rendering.api.ILayoutPullParser#getParser(String)} for a given name.
  */
-public class ContextPullParser extends KXmlParser implements ILayoutPullParser {
+public class LayoutFilePullParser extends KXmlParser implements ILayoutPullParser {
   /**
    * The callback to request parsers from
    */
@@ -47,15 +54,26 @@ public class ContextPullParser extends KXmlParser implements ILayoutPullParser {
   private String myFragmentLayout = null;
 
   /**
-   * Creates a new {@link ContextPullParser}
+   * Crates a new {@link LayoutFilePullParser
+   */
+  public static LayoutFilePullParser create(@NotNull IProjectCallback projectCallback,
+                                            @NotNull File xml) throws XmlPullParserException, IOException {
+    LayoutFilePullParser parser = new LayoutFilePullParser(projectCallback);
+    parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+    String xmlText = Files.toString(xml, Charsets.UTF_8);
+    parser.setInput(new StringReader(xmlText));
+    return parser;
+  }
+
+  /**
+   * Creates a new {@link LayoutFilePullParser}
    *
    * @param projectCallback the associated callback
    */
-  public ContextPullParser(IProjectCallback projectCallback) {
+  private LayoutFilePullParser(IProjectCallback projectCallback) {
     super();
     myProjectCallback = projectCallback;
   }
-
   // --- Layout lib API methods
 
   @SuppressWarnings("deprecation") // Required to support older layoutlib versions
