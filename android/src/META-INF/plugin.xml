@@ -28,6 +28,10 @@
       <implementation-class>com.android.tools.idea.gradle.project.AndroidGradleProjectComponent</implementation-class>
       <skipForDefaultProject/>
     </component>
+    <component>
+      <implementation-class>org.jetbrains.android.AndroidSdkLanguageLevelPusher</implementation-class>
+      <skipForDefaultProject/>
+    </component>
   </project-components>
   <actions>
     <action id="NewActivity" class="com.android.tools.idea.actions.AndroidNewActivityAction">
