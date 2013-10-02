@@ -18,9 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -57,9 +55,27 @@ class AndroidDbUtil {
       finally {
         syncService.close();
       }
-      device.executeShellCommand("run-as " + packageName + " cp " + TEMP_REMOTE_DB_PATH + " /data/data/" + packageName +
-                                 "/databases/" + dbName, new MyShellOutputReceiver(progressIndicator),
+      final String remoteDbPath = "/data/data/" + packageName + "/databases/" + dbName;
+      final String remoteDbDirPath = remoteDbPath.substring(0, remoteDbPath.lastIndexOf('/'));
+
+      MyShellOutputReceiver outputReceiver = new MyShellOutputReceiver(progressIndicator);
+      device.executeShellCommand("run-as " + packageName + " mkdir " + remoteDbDirPath, outputReceiver,
                                  DB_COPYING_TIMEOUT_SEC, TimeUnit.SECONDS);
+      String output = outputReceiver.getOutput();
+
+      if (!output.isEmpty() && !output.startsWith("mkdir failed")) {
+        errorReporter.reportError(output);
+        return false;
+      }
+      outputReceiver = new MyShellOutputReceiver(progressIndicator);
+      device.executeShellCommand("run-as " + packageName + " cp " + TEMP_REMOTE_DB_PATH + " " + remoteDbPath,
+                                 outputReceiver, DB_COPYING_TIMEOUT_SEC, TimeUnit.SECONDS);
+      output = outputReceiver.getOutput();
+
+      if (!output.isEmpty()) {
+        errorReporter.reportError(output);
+        return false;
+      }
       progressIndicator.checkCanceled();
     }
     catch (Exception e) {
@@ -78,9 +94,16 @@ class AndroidDbUtil {
     try {
       device.executeShellCommand("touch " + TEMP_REMOTE_DB_PATH, new MyShellOutputReceiver(progressIndicator),
                                  SHELL_COMMAND_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+      final MyShellOutputReceiver receiver = new MyShellOutputReceiver(progressIndicator);
       device.executeShellCommand("run-as " + packageName + " cp /data/data/" + packageName + "/databases/" + dbName + " " +
-                                 TEMP_REMOTE_DB_PATH, new MyShellOutputReceiver(progressIndicator),
+                                 TEMP_REMOTE_DB_PATH, receiver,
                                  DB_COPYING_TIMEOUT_SEC, TimeUnit.SECONDS);
+      final String output = receiver.getOutput();
+
+      if (!output.isEmpty()) {
+        errorReporter.reportError(output);
+        return false;
+      }
       progressIndicator.checkCanceled();
       final File parent = localDbFile.getParentFile();
 
@@ -158,8 +181,8 @@ class AndroidDbUtil {
                                                           @NotNull String dbName,
                                                           @NotNull AndroidDbErrorReporter errorReporter) {
     final String command = "run-as " + packageName + " ls -l /data/data/" + packageName + "/databases/" + dbName;
-    final String result = executeCommandWithSingleLineOutput(device, errorReporter, command);
-    return result != null ? parseModificationTimeAndSizeFromLsResult(result) : null;
+    final String result = executeSingleCommand(device, errorReporter, command);
+    return result != null ? parseModificationTimeAndSizeFromLsResult(result, errorReporter) : null;
   }
 
   @Nullable
@@ -168,67 +191,52 @@ class AndroidDbUtil {
                                    @NotNull String dbName,
                                    @NotNull AndroidDbErrorReporter errorReporter) {
     final String command = "run-as " + packageName + " md5 /data/data/" + packageName + "/databases/" + dbName;
-    final String result = executeCommandWithSingleLineOutput(device, errorReporter, command);
+    final String result = executeSingleCommand(device, errorReporter, command);
 
     if (result == null) {
+      return null;
+    }
+    if (result.startsWith("run-as:")) {
+      errorReporter.reportError(result);
       return null;
     }
     final int idx = result.indexOf(' ');
 
     if (idx < 0) {
-      LOG.error("Incorrect md5 output: " + result);
+      errorReporter.reportError(result);
       return null;
     }
     final String md5Str = result.substring(0, idx);
 
-    if (md5Str.length() == 0) {
-      LOG.error("Incorrect md5 output: " + result);
+    if (md5Str.length() != 32) {
+      errorReporter.reportError(result);
       return null;
     }
     return md5Str;
   }
 
   @Nullable
-  private static String executeCommandWithSingleLineOutput(@NotNull IDevice device,
-                                                           @NotNull AndroidDbErrorReporter errorReporter,
-                                                           @NotNull String command) {
-    final List<String> result = new ArrayList<String>();
+  private static String executeSingleCommand(@NotNull IDevice device,
+                                             @NotNull AndroidDbErrorReporter errorReporter,
+                                             @NotNull String command) {
+    final MyShellOutputReceiver receiver = new MyShellOutputReceiver(null);
 
     try {
-      device.executeShellCommand(command, new MultiLineReceiver() {
-        @Override
-        public void processNewLines(String[] lines) {
-          for (String line : lines) {
-            if (line.length() > 0) {
-              result.add(line);
-            }
-          }
-        }
-
-        @Override
-        public boolean isCancelled() {
-          return false;
-        }
-      }, SHELL_COMMAND_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+      device.executeShellCommand(command, receiver, SHELL_COMMAND_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
     catch (Exception e) {
       errorReporter.reportError(e);
       return null;
     }
-
-    if (result.size() != 1) {
-      LOG.error("Unknown output of ls -l: " + result.toString());
-      return null;
-    }
-    return result.get(0);
+    return receiver.getOutput();
   }
 
   @Nullable
-  private static String parseModificationTimeAndSizeFromLsResult(@NotNull String s) {
+  private static String parseModificationTimeAndSizeFromLsResult(@NotNull String s, @NotNull AndroidDbErrorReporter errorReporter) {
     final Matcher matcher = LS_L_OUTPUT_PATTERN.matcher(s);
 
     if (!matcher.matches()) {
-      LOG.error("Incorrect ls output: " + s);
+      errorReporter.reportError(s);
       return null;
     }
     final String sizeStr = matcher.group(4);
@@ -237,7 +245,7 @@ class AndroidDbUtil {
     final String fullDateStr = dateStr + "|" + timeStr + "|" + sizeStr;
 
     if (sizeStr.length() == 0 || dateStr.length() == 0 || timeStr.length() == 0) {
-      LOG.error("Incorrect ls output1: " + fullDateStr);
+      LOG.error("Incorrect ls output: " + fullDateStr);
       return null;
     }
     return fullDateStr;
@@ -263,24 +271,36 @@ class AndroidDbUtil {
   }
 
   private static class MyShellOutputReceiver extends MultiLineReceiver {
-    private final ProgressIndicator myProgressIndicator;
+    @Nullable private final ProgressIndicator myProgressIndicator;
+    private final StringBuilder myOutputBuilder = new StringBuilder();
 
-    public MyShellOutputReceiver(@NotNull ProgressIndicator progressIndicator) {
+    public MyShellOutputReceiver(@Nullable ProgressIndicator progressIndicator) {
       myProgressIndicator = progressIndicator;
     }
 
     @Override
     public void processNewLines(String[] lines) {
       for (String line : lines) {
-        if (line.length() > 0) {
-          LOG.debug("ADB_SHELL: " + line);
+        String s = line.trim();
+
+        if (s.length() > 0) {
+          LOG.debug("ADB_SHELL: " + s);
+          if (myOutputBuilder.length() > 0) {
+            myOutputBuilder.append('\n');
+          }
+          myOutputBuilder.append(s);
         }
       }
     }
 
     @Override
     public boolean isCancelled() {
-      return myProgressIndicator.isCanceled();
+      return myProgressIndicator != null && myProgressIndicator.isCanceled();
+    }
+
+    @NotNull
+    public String getOutput() {
+      return myOutputBuilder.toString();
     }
   }
 
