@@ -17,6 +17,7 @@ package org.jetbrains.android.resourceManagers;
 
 import com.android.sdklib.IAndroidTarget;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xml.ConvertContext;
@@ -58,6 +59,7 @@ public class SystemResourceManager extends ResourceManager {
   @Nullable
   private VirtualFile getResourceDir() {
     String resPath = myPlatform.getTarget().getPath(IAndroidTarget.RESOURCES);
+    resPath = FileUtil.toSystemIndependentName(resPath);
     return LocalFileSystem.getInstance().findFileByPath(resPath);
   }
 
@@ -70,6 +72,7 @@ public class SystemResourceManager extends ResourceManager {
   @NotNull
   public List<VirtualFile> getResourceDirs() {
     String resPath = myPlatform.getTarget().getPath(IAndroidTarget.RESOURCES);
+    resPath = FileUtil.toSystemIndependentName(resPath);
     VirtualFile dir = LocalFileSystem.getInstance().findFileByPath(resPath);
     return dir != null ? Collections.singletonList(dir) : Collections.<VirtualFile>emptyList();
   }
