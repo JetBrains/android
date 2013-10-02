@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.IProjectCallback;
 import com.android.ide.common.res2.ValueXmlHelper;
@@ -154,8 +153,29 @@ public class LayoutFilePullParser extends KXmlParser implements ILayoutPullParse
     // platforms.
     if (VALUE_MATCH_PARENT.equals(value) &&
         (ATTR_LAYOUT_WIDTH.equals(localName) || ATTR_LAYOUT_HEIGHT.equals(localName)) &&
-        SdkConstants.NS_RESOURCES.equals(namespace)) {
+        ANDROID_URI.equals(namespace)) {
       return VALUE_FILL_PARENT;
+    }
+
+    if (namespace != null) {
+      if (namespace.equals(ANDROID_URI)) {
+        // Allow the tools namespace to override the framework attributes at designtime
+        String designValue = super.getAttributeValue(TOOLS_URI, localName);
+        if (designValue != null) {
+          if (value != null && designValue.isEmpty()) {
+            // Empty when there is a runtime attribute set means unset the runtime attribute
+            value = null;
+          } else {
+            value = designValue;
+          }
+        }
+      } else if (value == null) {
+        // Auto-convert http://schemas.android.com/apk/res-auto resources. The lookup
+        // will be for the current application's resource package, e.g.
+        // http://schemas.android.com/apk/res/foo.bar, but the XML document will
+        // be using http://schemas.android.com/apk/res-auto in library projects:
+        value = super.getAttributeValue(AUTO_URI, localName);
+      }
     }
 
     if (value != null) {
