@@ -206,6 +206,8 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
     String name = new File(projectPath).getName();
     DataNode<ProjectData> projectInfo = createProjectInfo(projectPath, name);
 
+    Set<String> unresolvedDependencies = Sets.newHashSet();
+
     for (IdeaModule module : ideaProject.getModules()) {
       GradleScript buildScript = module.getGradleProject().getBuildScript();
       if (buildScript == null || buildScript.getSourceFile() == null) {
@@ -222,6 +224,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
         if (!GradleModelVersionCheck.isSupportedVersion(androidProject)) {
           throw new IllegalStateException(UNSUPPORTED_MODEL_VERSION_ERROR);
         }
+        unresolvedDependencies.addAll(getUnresolvedDependencies(androidProject));
         createModuleInfo(module, androidProject, projectInfo, moduleDirPath, gradleProject);
 
       } else if (isJavaLibrary(module.getGradleProject())) {
@@ -237,6 +240,9 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
         }
       }
     }
+
+    populateDependencies(projectInfo);
+    populateUnresolvedDependencies(projectInfo, unresolvedDependencies);
     return projectInfo;
   }
 
