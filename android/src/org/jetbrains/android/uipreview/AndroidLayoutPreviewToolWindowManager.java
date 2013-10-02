@@ -69,6 +69,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
 import java.util.Map;
 
 /**
@@ -325,7 +327,19 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
   public void disposeComponent() {
   }
 
+  /** Whether we've seen an open file editor yet */
+  private boolean mySeenEditor;
+  /** The most recently opened file editor that was not showing (while {@link #mySeenEditor} was false) */
+  private JComponent myPendingShowComponent;
+  /** A listener on {@link #myPendingShowComponent} which listens for the most recently opened file editor to start showing */
+  private HierarchyListener myHierarchyListener;
+
   private void processFileEditorChange(@Nullable final TextEditor newEditor) {
+    if (myPendingShowComponent != null) {
+      myPendingShowComponent.removeHierarchyListener(myHierarchyListener);
+      myPendingShowComponent = null;
+    }
+
     myToolWindowUpdateQueue.cancelAllUpdates();
     myToolWindowUpdateQueue.queue(new Update("update") {
       @Override
@@ -336,9 +350,54 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
         final Editor activeEditor = newEditor != null ? newEditor.getEditor() : null;
 
         if (myToolWindow == null) {
-          if (activeEditor == null || !activeEditor.getComponent().isShowing()) {
+          if (activeEditor == null) {
+            return;
+          } else if (!activeEditor.getComponent().isShowing()) {
+            // When the IDE starts, it opens all the previously open editors, one
+            // after the other. This means that this method gets called, and for
+            // each layout editor that is on top, it opens up the preview window
+            // and starts a render, even if the topmost editor is not a layout
+            // editor file. However, unlike a normal tab switch performed by the
+            // user, we can detect the startup scenario by ignoring editors that
+            // are not actually showing, so if editor tabs aren't showing, we ignore
+            // them.
+            //
+            // However, it's possible for the last editor to come up and not be
+            // marked showing yet. That means that the XML editor comes up and
+            // you have to give it focus before the layout preview kicks in.
+            // The reason this happens is that the last event we receive is when
+            // the file is opened (but the editor is not yet showing).
+            // To deal with this, the following code adds a hierarchy listener,
+            // which is notified when the component associated with this editor
+            // is actually shown. We need to remove those listeners as soon
+            // as we switch to a different editor (which at startup happens rapidly
+            // for each successive restored editor tab). And we only do this
+            // at startup (recorded by the mySeenEditor field; this is startup
+            // per project frame.)
+            if (!mySeenEditor) {
+              myPendingShowComponent = activeEditor.getComponent();
+              if (myHierarchyListener == null) {
+                myHierarchyListener = new HierarchyListener() {
+                  @Override
+                  public void hierarchyChanged(HierarchyEvent hierarchyEvent) {
+                    if ((hierarchyEvent.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0) {
+                      if (hierarchyEvent.getComponent() == myPendingShowComponent &&
+                          myPendingShowComponent.isShowing()) {
+                        myPendingShowComponent.removeHierarchyListener(myHierarchyListener);
+                        mySeenEditor = true;
+                        myPendingShowComponent = null;
+                        processFileEditorChange(getActiveLayoutXmlEditor());
+                      }
+                    }
+                  }
+                };
+              }
+              myPendingShowComponent.addHierarchyListener(myHierarchyListener);
+            }
+
             return;
           }
+          mySeenEditor = true;
           initToolWindow();
         }
 
@@ -372,7 +431,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
           // tool window is shown and the time the render has completed
           if (!myToolWindow.isVisible()) {
             RenderResult renderResult = myToolWindowForm.getRenderResult();
-            if (renderResult != null && renderResult.getFile() != null && renderResult.getFile() != psiFile) {
+            if (renderResult != null && renderResult.getFile() != psiFile) {
               myToolWindowForm.setRenderResult(RenderResult.createBlank(psiFile, null), null);
             }
           }
