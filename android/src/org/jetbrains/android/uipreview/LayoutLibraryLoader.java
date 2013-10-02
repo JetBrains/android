@@ -51,20 +51,20 @@ public class LayoutLibraryLoader {
   @Nullable
   public static LayoutLibrary load(@NotNull IAndroidTarget target,
                                    @NotNull Map<String, Map<String, Integer>> enumMap) throws RenderingException, IOException {
-    final String layoutLibJarPath = target.getPath(IAndroidTarget.LAYOUT_LIB);
+    final String layoutLibJarPath = FileUtil.toSystemIndependentName((target.getPath(IAndroidTarget.LAYOUT_LIB)));
     final VirtualFile layoutLibJar = LocalFileSystem.getInstance().findFileByPath(layoutLibJarPath);
     if (layoutLibJar == null || layoutLibJar.isDirectory()) {
       throw new RenderingException(AndroidBundle.message("android.file.not.exist.error", FileUtil.toSystemDependentName(layoutLibJarPath)));
     }
 
-    final String resFolderPath = target.getPath(IAndroidTarget.RESOURCES);
+    final String resFolderPath = FileUtil.toSystemIndependentName((target.getPath(IAndroidTarget.RESOURCES)));
     final VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(resFolderPath);
     if (resFolder == null || !resFolder.isDirectory()) {
       throw new RenderingException(
         AndroidBundle.message("android.directory.cannot.be.found.error", FileUtil.toSystemDependentName(resFolderPath)));
     }
 
-    final String fontFolderPath = target.getPath(IAndroidTarget.FONTS);
+    final String fontFolderPath = FileUtil.toSystemIndependentName((target.getPath(IAndroidTarget.FONTS)));
     final VirtualFile fontFolder = LocalFileSystem.getInstance().findFileByPath(fontFolderPath);
     if (fontFolder == null || !fontFolder.isDirectory()) {
       throw new RenderingException(
