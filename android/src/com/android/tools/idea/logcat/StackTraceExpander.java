@@ -84,7 +84,7 @@ public class StackTraceExpander {
 
     // if it is a "Caused by:" line, then we move the stack we've seen till now to be the
     // outer stack
-    if (!myCurrentStack.isEmpty() && isCauseLine(line)) {
+    if (isCauseLine(line)) {
       myPreviousStack.clear();
       for (String s : myCurrentStack) {
         myPreviousStack.add(s);
@@ -96,7 +96,7 @@ public class StackTraceExpander {
     // if it is the "...N more", we replace that line with the last N frames from the outer stack
     int elidedFrameCount = getElidedFrameCount(line);
     if (elidedFrameCount > 0) {
-      if (elidedFrameCount < myPreviousStack.size()) {
+      if (elidedFrameCount <= myPreviousStack.size()) {
       StringBuilder sb = new StringBuilder();
 
         for (int i = myPreviousStack.size() - elidedFrameCount; i < myPreviousStack.size(); i++) {
