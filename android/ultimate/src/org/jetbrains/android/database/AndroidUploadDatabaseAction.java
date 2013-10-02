@@ -90,7 +90,7 @@ public class AndroidUploadDatabaseAction extends AnAction {
                                      @NotNull ProgressIndicator indicator,
                                      @NotNull AndroidDebugBridge debugBridge) {
     final String localDbFilePath = dataSource.buildLocalDbFileOsPath();
-    final AndroidDbErrorReporterImpl errorReporter = new AndroidDbErrorReporterImpl(project, dataSource);
+    final AndroidDbErrorReporterImpl errorReporter = new AndroidDbErrorReporterImpl(project, dataSource, true);
     final AndroidDbConnectionInfo dbConnectionInfo = AndroidDbUtil.checkDataSource(dataSource, debugBridge, errorReporter);
 
     if (dbConnectionInfo == null) {

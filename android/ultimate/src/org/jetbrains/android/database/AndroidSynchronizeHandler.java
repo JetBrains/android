@@ -71,7 +71,7 @@ public class AndroidSynchronizeHandler extends SynchronizeHandler {
                                               @NotNull AndroidDataSource dataSource,
                                               @NotNull ProgressIndicator progressIndicator,
                                               @NotNull AndroidDebugBridge debugBridge) {
-    final AndroidDbErrorReporterImpl errorReporter = new AndroidDbErrorReporterImpl(project, dataSource);
+    final AndroidDbErrorReporterImpl errorReporter = new AndroidDbErrorReporterImpl(project, dataSource, false);
     final AndroidDbConnectionInfo dbConnectionInfo = AndroidDbUtil.checkDataSource(dataSource, debugBridge, errorReporter);
 
     if (dbConnectionInfo == null) {

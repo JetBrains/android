@@ -12,21 +12,20 @@ import org.jetbrains.annotations.NotNull;
 class AndroidDbErrorReporterImpl extends AndroidDbErrorReporter {
   private final Project myProject;
   private final AndroidDataSource myDataSource;
+  private final boolean myUpload;
 
-  public AndroidDbErrorReporterImpl(Project project, AndroidDataSource dataSource) {
+  public AndroidDbErrorReporterImpl(@NotNull Project project, @NotNull AndroidDataSource dataSource, boolean upload) {
     myProject = project;
     myDataSource = dataSource;
+    myUpload = upload;
   }
 
   @Override
   public void reportError(@NotNull String message) {
-    reportErrorToEventLog(myProject, myDataSource, message);
-  }
-
-  private static void reportErrorToEventLog(@NotNull Project project, @NotNull AndroidDataSource dataSource, @NotNull String message) {
     final Notification notification = new Notification(
       AndroidDbManager.NOTIFICATION_GROUP_ID, "Data Source Synchronization Error",
-      "Cannot synchronize '" + dataSource.getName() + "': " + message, NotificationType.ERROR);
-    Notifications.Bus.notify(notification, project);
+      "Cannot " + (myUpload ? "upload" : "synchronize") + " '" + myDataSource.getName() + "': " + message,
+      NotificationType.ERROR);
+    Notifications.Bus.notify(notification, myProject);
   }
 }
