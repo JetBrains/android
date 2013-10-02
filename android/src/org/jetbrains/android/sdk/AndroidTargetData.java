@@ -86,8 +86,9 @@ public class AndroidTargetData {
       ApplicationManager.getApplication().runReadAction(new Runnable() {
         @Override
         public void run() {
-          final String attrsPath = myTarget.getPath(IAndroidTarget.ATTRIBUTES);
-          final String attrsManifestPath = myTarget.getPath(IAndroidTarget.MANIFEST_ATTRIBUTES);
+          final String attrsPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.ATTRIBUTES));
+          final String attrsManifestPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.MANIFEST_ATTRIBUTES));
+
           final XmlFile[] files = findXmlFiles(project, attrsPath, attrsManifestPath);
           if (files != null) {
             myAttrDefs = new AttributeDefinitionsImpl(files);

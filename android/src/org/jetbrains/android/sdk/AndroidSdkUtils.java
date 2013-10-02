@@ -98,7 +98,7 @@ public final class AndroidSdkUtils {
   @Nullable
   private static VirtualFile getPlatformDir(@NotNull IAndroidTarget target) {
     String platformPath = target.isPlatform() ? target.getLocation() : target.getParent().getLocation();
-    return LocalFileSystem.getInstance().refreshAndFindFileByPath(platformPath);
+    return LocalFileSystem.getInstance().refreshAndFindFileByPath(FileUtil.toSystemIndependentName((platformPath)));
   }
 
   @NotNull
@@ -148,14 +148,14 @@ public final class AndroidSdkUtils {
 
     VirtualFile targetDir = platformDir;
     if (!target.isPlatform()) {
-      targetDir = LocalFileSystem.getInstance().findFileByPath(target.getLocation());
+      targetDir = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName((target.getLocation())));
     }
     boolean docsOrSourcesFound = false;
 
     if (targetDir != null) {
       docsOrSourcesFound = addJavaDocAndSources(result, targetDir) || docsOrSourcesFound;
     }
-    VirtualFile sdkDir = sdkPath != null ? LocalFileSystem.getInstance().findFileByPath(sdkPath) : null;
+    VirtualFile sdkDir = sdkPath != null ? LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName((sdkPath))) : null;
     if (sdkDir != null) {
       docsOrSourcesFound = addJavaDocAndSources(result, sdkDir) || docsOrSourcesFound;
     }
@@ -179,7 +179,7 @@ public final class AndroidSdkUtils {
 
     String resFolderPath = target.getPath(IAndroidTarget.RESOURCES);
     if (resFolderPath != null) {
-      VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(resFolderPath);
+      VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName((resFolderPath)));
       if (resFolder != null) {
         result.add(new OrderRoot(resFolder, OrderRootType.CLASSES));
       }

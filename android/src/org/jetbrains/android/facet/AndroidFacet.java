@@ -727,7 +727,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     }
     final List<VirtualFile> filesToAdd = new ArrayList<VirtualFile>();
 
-    final VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(resFolderPath);
+    final VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(resFolderPath));
     if (resFolder != null) {
       filesToAdd.add(resFolder);
     }
