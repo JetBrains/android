@@ -21,7 +21,6 @@ import com.android.builder.model.JavaCompileOptions;
 import com.android.builder.model.Variant;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.pom.java.LanguageLevel;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;

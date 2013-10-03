@@ -63,7 +63,7 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   @NotNull
   public String getModelVersion() {
-    return "0.5.0-SNAPSHOT";
+    return "0.6.1-SNAPSHOT";
   }
 
   @Override
