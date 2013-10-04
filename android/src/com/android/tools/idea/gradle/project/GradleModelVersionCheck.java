@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 final class GradleModelVersionCheck {
   private static final Logger LOG = Logger.getInstance(GradleModelVersionCheck.class);
 
-  static final FullRevision MINIMUM_SUPPORTED_VERSION = FullRevision.parseRevision("0.6.1");
+  static final FullRevision MINIMUM_SUPPORTED_VERSION = FullRevision.parseRevision("0.5.0");
 
   static boolean isSupportedVersion(@NotNull AndroidProject androidProject) {
     String modelVersion = androidProject.getModelVersion();

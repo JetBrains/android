@@ -21,7 +21,9 @@ import com.android.builder.model.Variant;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -109,10 +111,16 @@ public class IdeaAndroidProject implements Serializable {
     return myDelegate.getVariants().keySet();
   }
 
-  @NotNull
+  @Nullable
   public JavaSdkVersion getJdkVersion() {
-    JavaCompileOptions compileOptions = myDelegate.getJavaCompileOptions();
-    String sourceCompatibility = compileOptions.getSourceCompatibility();
-    return JavaSdkVersion.byDescription(sourceCompatibility);
+    try {
+      JavaCompileOptions compileOptions = myDelegate.getJavaCompileOptions();
+      String sourceCompatibility = compileOptions.getSourceCompatibility();
+      return JavaSdkVersion.byDescription(sourceCompatibility);
+    }
+    catch (UnsupportedMethodException e) {
+      // This happens when using an old but supported v0.5.+ plug-in. This code will be removed once the minimum supported version is 0.6.0.
+      return null;
+    }
   }
 }
