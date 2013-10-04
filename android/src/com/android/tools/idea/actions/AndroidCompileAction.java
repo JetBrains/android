@@ -34,7 +34,7 @@ public class AndroidCompileAction extends AndroidActionRemover {
   @Override
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
-    if (project != null && Projects.isGradleProject(project)) {
+    if (project != null && Projects.canCompileJavaOnly(project)) {
       Projects.compileJava(project);
       return;
     }
@@ -45,7 +45,7 @@ public class AndroidCompileAction extends AndroidActionRemover {
   public void update(AnActionEvent e) {
     Presentation presentation = e.getPresentation();
     Project project = e.getProject();
-    if (project != null && Projects.isGradleProject(project)) {
+    if (project != null && Projects.canCompileJavaOnly(project)) {
       presentation.setEnabledAndVisible(true);
       presentation.setText("Compile Project");
       return;

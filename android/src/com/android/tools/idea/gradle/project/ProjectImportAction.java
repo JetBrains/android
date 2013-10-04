@@ -48,14 +48,14 @@ public class ProjectImportAction implements BuildAction<ProjectImportAction.AllM
     for (IdeaModule module : ideaProject.getModules()) {
       if (isAndroidProject(module)) {
         AndroidProject androidProject = controller.getModel(module, AndroidProject.class);
-        allModels.addAndroidProject(androidProject, module);
+        allModels.addAndroidProject(module, androidProject);
       }
     }
 
     return allModels.hasAndroidProjects() ? allModels : null;
   }
 
-  private static boolean isAndroidProject(@NotNull IdeaModule module) {
+  public static boolean isAndroidProject(@NotNull IdeaModule module) {
     // A Gradle project is an Android project is if has at least one task with name starting with 'android'.
     for (GradleTask task : module.getGradleProject().getTasks()) {
       String taskName = task.getName();
@@ -79,7 +79,7 @@ public class ProjectImportAction implements BuildAction<ProjectImportAction.AllM
       return myIdeaProject;
     }
 
-    public void addAndroidProject(@NotNull AndroidProject project, @NotNull IdeaModule module) {
+    public void addAndroidProject(@NotNull IdeaModule module, @NotNull AndroidProject project) {
       androidProjectsByPath.put(extractMapKey(module), project);
     }
 
