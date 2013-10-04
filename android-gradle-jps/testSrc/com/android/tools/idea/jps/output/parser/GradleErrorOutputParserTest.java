@@ -1150,6 +1150,35 @@ public class GradleErrorOutputParserTest extends TestCase {
     sourceFile.delete();
   }
 
+  public void testChangedFile2() throws Exception {
+    createTempXmlFile();
+    String output =
+      ":MyApp:compileReleaseRenderscript UP-TO-DATE\n" +
+      ":MyApp:mergeReleaseResources FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':MyApp:mergeReleaseResources'.\n" +
+      "> In DataSet 'main', no data file for changedFile '" + sourceFilePath + "'. This is an internal error in the incremental builds code; to work around it, try doing a full clean build.\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 15.612 secs";
+
+    assertEquals("0: Info::MyApp:compileReleaseRenderscript UP-TO-DATE\n" +
+                 "1: Info::MyApp:mergeReleaseResources FAILED\n" +
+                 "2: Gradle:Error:Execution failed for task ':MyApp:mergeReleaseResources'.\n" +
+                 "> In DataSet 'main', no data file for changedFile '" + sourceFilePath + "'. This is an internal error in the incremental builds code; to work around it, try doing a full clean build.\n" +
+                 "\t" + sourceFilePath + ":-1:-1\n" +
+                 "3: Info:BUILD FAILED\n" +
+                 "4: Info:Total time: 15.612 secs\n", toString(parser.parseErrorOutput(output)));
+    sourceFile.delete();
+  }
+
   public void testMismatchedTag() throws Exception {
     // https://code.google.com/p/android/issues/detail?id=59824
     createTempXmlFile();
