@@ -303,7 +303,7 @@ public class PaddingLayoutPsiPullParser extends LayoutPsiPullParser {
     }
 
     // check the first character
-    if (buf[0] < '0' && buf[0] > '9' && buf[0] != '.') {
+    if (buf[0] < '0' && buf[0] > '9' && buf[0] != '.' && buf[0] != '-') {
       return false;
     }
 
