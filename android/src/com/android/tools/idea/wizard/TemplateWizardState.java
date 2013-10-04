@@ -107,8 +107,9 @@ public class TemplateWizardState {
     File javaSourcePackageRoot;
     if (myParameters.containsKey(TemplateMetadata.ATTR_PACKAGE_ROOT)) {
       javaSourcePackageRoot = new File((String)get(TemplateMetadata.ATTR_PACKAGE_ROOT));
-      String javaPackage = FileUtil.getRelativePath(javaSourceRoot, javaSourcePackageRoot).replace('/', '.');
-        put(TemplateMetadata.ATTR_PACKAGE_NAME, javaPackage);
+      String relativePath = FileUtil.getRelativePath(javaSourceRoot, javaSourcePackageRoot);
+      String javaPackage = relativePath != null ? FileUtil.toSystemIndependentName(relativePath).replace('/', '.') : null;
+      put(TemplateMetadata.ATTR_PACKAGE_NAME, javaPackage);
     } else {
       javaSourcePackageRoot = new File(javaSourceRoot, getString(TemplateMetadata.ATTR_PACKAGE_NAME).replace('.', '/'));
     }
