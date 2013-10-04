@@ -59,15 +59,14 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
     TemplateManager manager = TemplateManager.getInstance();
     List<File> templates = manager.getTemplates("projects");
     List<ProjectTemplate> tt = new ArrayList<ProjectTemplate>();
-    for (int i = 0, n = templates.size(); i < n; i++) {
-      File template = templates.get(i);
+    for (File template : templates) {
       TemplateMetadata metadata = manager.getTemplate(template);
       if (metadata == null || !metadata.isSupported()) {
         continue;
       }
       tt.add(new AndroidProjectTemplate(template, metadata, project));
     }
-    return tt.toArray(EMPTY_PROJECT_TEMPLATES);
+    return tt.toArray(new ProjectTemplate[tt.size()]);
   }
 
   private static class AndroidProjectTemplate extends BuilderBasedTemplate {
@@ -81,7 +80,9 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
     @NotNull
     @Override
     public String getName() {
-      return myTemplateMetadata.getTitle();
+      String title = myTemplateMetadata.getTitle();
+      assert title != null;
+      return title;
     }
 
     @Nullable

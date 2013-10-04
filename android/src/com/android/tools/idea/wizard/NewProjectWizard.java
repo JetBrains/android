@@ -16,13 +16,14 @@
 package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.google.common.io.Closeables;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -34,11 +35,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
-import java.util.Properties;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
@@ -54,7 +52,6 @@ import static icons.AndroidIcons.Wizards.NewProjectSidePanel;
  */
 public class NewProjectWizard extends TemplateWizard implements TemplateParameterStep.UpdateListener {
   private static final Logger LOG = Logger.getInstance("#" + NewProjectWizard.class.getName());
-  private static final String ATTR_GRADLE_DISTRIBUTION_URL = "distributionUrl";
   private static final String JAVA_SRC_PATH = FD_SOURCES + File.separator + FD_MAIN + File.separator + FD_JAVA;
   private static final String ERROR_MSG_TITLE = "New Project Wizard";
   private static final String UNABLE_TO_CREATE_DIR_FORMAT = "Unable to create directory '%s1$s'.";
@@ -83,8 +80,8 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
     }
     myWizardState = new NewProjectWizardState();
     myWizardState.convertApisToInt();
-    myWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, TemplateMetadata.GRADLE_VERSION);
-    myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, TemplateMetadata.GRADLE_PLUGIN_VERSION);
+    myWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, GradleUtil.GRADLE_LATEST_VERSION);
+    myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GradleUtil.GRADLE_PLUGIN_LATEST_VERSION);
     myWizardState.put(TemplateMetadata.ATTR_V4_SUPPORT_LIBRARY_VERSION, TemplateMetadata.V4_SUPPORT_LIBRARY_VERSION);
 
     ConfigureAndroidModuleStep configureAndroidModuleStep =
@@ -146,9 +143,11 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
           myWizardState.updateDependencies();
           myWizardState.myTemplate.render(projectRoot, moduleRoot, myWizardState.myParameters);
           if (myWizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY)) {
-            myWizardState.getActivityTemplateState().getTemplate()
-              .render(moduleRoot, moduleRoot, myWizardState.getActivityTemplateState().myParameters);
-            myWizardState.myTemplate.getFilesToOpen().addAll(myWizardState.getActivityTemplateState().getTemplate().getFilesToOpen());
+            TemplateWizardState activityTemplateState = myWizardState.getActivityTemplateState();
+            Template template = activityTemplateState.getTemplate();
+            assert template != null;
+            template.render(moduleRoot, moduleRoot, activityTemplateState.myParameters);
+            myWizardState.myTemplate.getFilesToOpen().addAll(template.getFilesToOpen());
           }
           else {
             // Ensure that at least the Java source directory exists. We could create other directories but this is the most used.
@@ -193,27 +192,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
   private static void createGradleWrapper(File projectRoot) throws IOException {
     File gradleWrapperSrc = new File(TemplateManager.getTemplateRootFolder(), GRADLE_WRAPPER_PATH);
     FileUtil.copyDirContent(gradleWrapperSrc, projectRoot);
-    File gradleWrapperProperties = new File(projectRoot, GRADLE_WRAPPER_PROPERTIES_PATH);
-
-    Properties wrapperProperties = new Properties();
-
-    FileInputStream is = null;
-    try {
-      //noinspection IOResourceOpenedButNotSafelyClosed
-      is = new FileInputStream(gradleWrapperProperties);
-      wrapperProperties.load(is);
-    } finally {
-      Closeables.closeQuietly(is);
-    }
-
-    FileOutputStream os = null;
-    try {
-      wrapperProperties.setProperty(ATTR_GRADLE_DISTRIBUTION_URL, TemplateMetadata.GRADLE_DISTRIBUTION_URL);
-      //noinspection IOResourceOpenedButNotSafelyClosed
-      os = new FileOutputStream(gradleWrapperProperties);
-      wrapperProperties.store(os, "");
-    } finally {
-      Closeables.closeQuietly(os);
-    }
+    File wrapperPropertiesFile = GradleUtil.getGradleWrapperPropertiesFilePath(projectRoot);
+    GradleUtil.updateGradleDistributionUrl(GradleUtil.GRADLE_LATEST_VERSION, wrapperPropertiesFile);
   }
 }
