@@ -6,14 +6,12 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.MultiLineReceiver;
 import com.android.tools.idea.ddms.DeviceComboBoxRenderer;
 import com.intellij.facet.ProjectFacetManager;
-import com.intellij.openapi.Disposable;
+import com.intellij.javaee.dataSource.AbstractDataSourceConfigurable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
@@ -21,6 +19,7 @@ import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,11 +34,9 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidDataSourcePropertiesDialog extends DialogWrapper {
+public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigurable<AndroidDbManager, AndroidDataSource> {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.database.AndroidDataSourcePropertiesDialog");
 
-  private final Project myProject;
-  private final AndroidDataSource myDataSource;
   private final boolean myCreate;
 
   private DefaultComboBoxModel myDeviceComboBoxModel = new DefaultComboBoxModel();
@@ -53,11 +50,10 @@ public class AndroidDataSourcePropertiesDialog extends DialogWrapper {
 
   private IDevice mySelectedDevice = null;
   private Map<String, List<String>> myDatabaseMap;
+  private final AndroidDebugBridge.IDeviceChangeListener myDeviceListener;
 
-  protected AndroidDataSourcePropertiesDialog(@NotNull Project project, @NotNull AndroidDataSource dataSource, boolean create) {
-    super(project);
-    myProject = project;
-    myDataSource = dataSource;
+  protected AndroidDataSourcePropertiesDialog(@NotNull AndroidDbManager manager, @NotNull Project project, @NotNull AndroidDataSource dataSource, boolean create) {
+    super(manager, dataSource, project);
     myCreate = create;
 
     myDeviceComboBox.setRenderer(new DeviceComboBoxRenderer() {
@@ -73,7 +69,7 @@ public class AndroidDataSourcePropertiesDialog extends DialogWrapper {
     });
     loadDevices();
 
-    final AndroidDebugBridge.IDeviceChangeListener listener = new AndroidDebugBridge.IDeviceChangeListener() {
+    myDeviceListener = new AndroidDebugBridge.IDeviceChangeListener() {
       @Override
       public void deviceConnected(IDevice device) {
         addDeviceToComboBoxIfNeeded(device);
@@ -90,14 +86,7 @@ public class AndroidDataSourcePropertiesDialog extends DialogWrapper {
         }
       }
     };
-    AndroidDebugBridge.addDeviceChangeListener(listener);
-
-    Disposer.register(myDisposable, new Disposable() {
-      @Override
-      public void dispose() {
-        AndroidDebugBridge.removeDeviceChangeListener(listener);
-      }
-    });
+    AndroidDebugBridge.addDeviceChangeListener(myDeviceListener);
 
     myDeviceComboBox.addActionListener(new ActionListener() {
       @Override
@@ -125,10 +114,13 @@ public class AndroidDataSourcePropertiesDialog extends DialogWrapper {
       final String dbName = state.getDatabaseName();
       myDataBaseComboBox.getEditor().setItem(dbName != null ? dbName : "");
     }
-    setTitle(myCreate ? "Create Android SQLite Data Source" : "Android SQLite Data Source Properties");
 
     myDeviceComboBox.setPreferredSize(new Dimension(300 , myDeviceComboBox.getPreferredSize().height));
-    init();
+
+    setChangeListener(myNameTextField);
+    setChangeListener(myPackageNameComboBox);
+    setChangeListener(myDataBaseComboBox);
+    setChangeListener(myDeviceComboBox);
   }
 
   private void addDeviceToComboBoxIfNeeded(@NotNull final IDevice device) {
@@ -156,7 +148,6 @@ public class AndroidDataSourcePropertiesDialog extends DialogWrapper {
           myDeviceComboBoxModel.removeElement(myMissingDeviceIds);
           myMissingDeviceIds = null;
         }
-        pack();
       }
     }, ModalityState.stateForComponent(myPanel));
   }
@@ -306,16 +297,6 @@ public class AndroidDataSourcePropertiesDialog extends DialogWrapper {
     return result;
   }
 
-  public static boolean showPropertiesDialog(@NotNull AndroidDataSource dataSource, @NotNull Project project, boolean create) {
-    return new AndroidDataSourcePropertiesDialog(project, dataSource, create).showAndGet();
-  }
-
-  @Nullable
-  @Override
-  protected JComponent createCenterPanel() {
-    return myPanel;
-  }
-
   @NotNull
   private String getSelectedDeviceId() {
     final Object item = myDeviceComboBox.getSelectedItem();
@@ -328,9 +309,14 @@ public class AndroidDataSourcePropertiesDialog extends DialogWrapper {
     return deviceId != null ? deviceId : "";
   }
 
+  @Nullable
   @Override
-  protected void doOKAction() {
-    super.doOKAction();
+  public JComponent createComponent() {
+    return myPanel;
+  }
+
+  @Override
+  public void apply() {
     myDataSource.setName(myNameTextField.getText());
     final AndroidDataSource.State state = myDataSource.getState();
     state.setDeviceId(getSelectedDeviceId());
@@ -340,11 +326,39 @@ public class AndroidDataSourcePropertiesDialog extends DialogWrapper {
 
     AndroidSynchronizeHandler.doSynchronize(myProject, Collections.singletonList(myDataSource));
     AndroidDbUtil.detectDriverAndRefresh(myProject, myDataSource, myCreate);
+
+    setModified(false);
+
+    if (!isDataSourcePersisted()) {
+      myManager.processAddOrRemove(myDataSource, true);
+    }
+  }
+
+  @Override
+  public void reset() {
+    setModified(false);
+  }
+
+  @Override
+  public void disposeUIResources() {
+    AndroidDebugBridge.removeDeviceChangeListener(myDeviceListener);
   }
 
   @Nullable
   @Override
   public JComponent getPreferredFocusedComponent() {
     return myNameTextField;
+  }
+
+  @Nls
+  @Override
+  public String getDisplayName() {
+    return myNameTextField.getText();
+  }
+
+  @Nullable
+  @Override
+  public String getHelpTopic() {
+    return null;
   }
 }
