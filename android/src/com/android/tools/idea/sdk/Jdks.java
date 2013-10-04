@@ -67,10 +67,13 @@ public class Jdks {
       return false;
     }
     JavaSdkVersion version = JavaSdk.getInstance().getVersion(jdk);
-    for (JavaSdkVersion v : jdkVersions) {
-      if (v.equals(version)) {
-        return true;
+    if (version != null) {
+      for (JavaSdkVersion v : jdkVersions) {
+        if (!version.isAtLeast(v)) {
+          return false;
+        }
       }
+      return true;
     }
     return false;
   }
