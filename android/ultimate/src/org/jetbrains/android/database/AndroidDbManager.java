@@ -1,20 +1,20 @@
 package org.jetbrains.android.database;
 
 import com.intellij.facet.ProjectFacetManager;
-import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.command.undo.GlobalUndoableAction;
 import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.command.undo.UndoableAction;
 import com.intellij.openapi.command.undo.UnexpectedUndoException;
+import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.persistence.DatabaseMessages;
 import com.intellij.persistence.database.DataSourceInfo;
-import com.intellij.persistence.database.DbUtil;
+import com.intellij.persistence.database.DataSourceTemplate;
 import com.intellij.persistence.database.dialects.DatabaseDialect;
 import com.intellij.persistence.database.dialects.SqliteDialect;
 import com.intellij.persistence.database.psi.*;
@@ -24,6 +24,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.*;
 
 /**
@@ -31,6 +32,7 @@ import java.util.*;
  */
 public class AndroidDbManager extends DbPsiManagerSpi {
   public static final String NOTIFICATION_GROUP_ID = "Android Data Source Manager";
+  static final DataSourceTemplate DEFAULT_TEMPLATE = new AndroidDataSourceTemplate();
 
   private final static Key<Map<AndroidDataSource, DbDataSourceElement>> DS_MAP_KEY = Key.create("ANDROID_DATASOURCE_MAP_KEY");
 
@@ -90,47 +92,26 @@ public class AndroidDbManager extends DbPsiManagerSpi {
     processAddOrRemove(dataSource, false);
   }
 
+  @NotNull
   @Override
-  public void editDataSource(DbDataSourceElement element) {
-    if (!(element.getDelegate() instanceof AndroidDataSource)) throw new UnsupportedOperationException();
-    final AndroidDataSource dataSource = (AndroidDataSource)element.getDelegate();
-
-    if (AndroidDataSourcePropertiesDialog.showPropertiesDialog(dataSource, element.getProject(), false)) {
-      clearCaches(dataSource);
-    }
+  public Configurable createDataSourceEditor(DbDataSourceElement template) {
+    if (!(template.getDelegate() instanceof AndroidDataSource)) throw new UnsupportedOperationException();
+    AndroidDataSource dataSource = (AndroidDataSource)template.getDelegate();
+    return new AndroidDataSourcePropertiesDialog(this, template.getProject(), dataSource, false);
   }
 
+  @NotNull
   @Override
-  public void addDataSource(@Nullable DbDataSourceElement template) {
-    if (template != null && !(template.getDelegate() instanceof AndroidDataSource)) throw new UnsupportedOperationException();
-    final AndroidDataSource dataSource = template == null ? null : (AndroidDataSource)template.getDelegate();
-    doAddDatasource(dataSource);
-  }
-
-  @Nullable
-  private AndroidDataSource doAddDatasource(AndroidDataSource template) {
-    final Project project = myDbFacade.getProject();
-    final String defaultName = DbUtil.createNewDataSourceName(
-      project, template != null ? template.getName() : "Android Data Source");
-    final AndroidDataSource dataSource;
-
-    if (template != null) {
-      dataSource = template.copy();
-      dataSource.setName(defaultName);
+  public DataSourceTemplate[] getDataSourceTemplates() {
+    if (ProjectFacetManager.getInstance(myDbFacade.getProject()).hasFacets(AndroidFacet.ID)) {
+      return new DataSourceTemplate[] { DEFAULT_TEMPLATE };
     }
     else {
-      dataSource = new AndroidDataSource(defaultName);
+      return new DataSourceTemplate[0];
     }
-    dataSource.init();
-
-    if (AndroidDataSourcePropertiesDialog.showPropertiesDialog(dataSource, project, true)) {
-      processAddOrRemove(dataSource, true);
-      return dataSource;
-    }
-    return null;
   }
 
-  private void processAddOrRemove(final AndroidDataSource dataSource, final boolean add) {
+  public void processAddOrRemove(final AndroidDataSource dataSource, final boolean add) {
     final Project project = myDbFacade.getProject();
 
     final UndoableAction action = new GlobalUndoableAction() {
@@ -191,13 +172,6 @@ public class AndroidDbManager extends DbPsiManagerSpi {
   }
 
   @Override
-  public void tuneCreateDataSourceAction(Presentation presentation) {
-    presentation.setIcon(AndroidIcons.Android);
-    presentation.setText("Android SQLite Data Source", true);
-    presentation.setVisible(ProjectFacetManager.getInstance(myDbFacade.getProject()).hasFacets(AndroidFacet.ID));
-  }
-
-  @Override
   public boolean canCreateDataSourceByFiles(Collection<VirtualFile> files) {
     return false;
   }
@@ -210,5 +184,45 @@ public class AndroidDbManager extends DbPsiManagerSpi {
 
   @Override
   public void fireDataSourceUpdated(DbDataSourceElement element) {
+  }
+
+  private static class AndroidDataSourceTemplate implements DataSourceTemplate {
+    @NotNull
+    @Override
+    public String getName() {
+      return "Android SQLite Connection";
+    }
+
+    @NotNull
+    @Override
+    public String getFullName() {
+      return getName();
+    }
+
+    @Nullable
+    @Override
+    public DataSourceTemplate[] getSubConfigurations() {
+      return null;
+    }
+
+    @NotNull
+    @Override
+    public DataSourceInfo createDataSource(Project project, DataSourceInfo copyFrom) {
+      AndroidDataSource result;
+      if (copyFrom instanceof AndroidDataSource ) {
+        result = ((AndroidDataSource )copyFrom).copy();
+        result.setName(copyFrom.getName() + " [copy]");
+      }
+      else {
+        result = new AndroidDataSource ("Android connection");
+      }
+      result.init();
+      return result;
+    }
+
+    @Override
+    public Icon getIcon(@IconFlags int flags) {
+      return AndroidIcons.Android;
+    }
   }
 }
