@@ -66,10 +66,6 @@ public class TemplateMetadata {
   public static final String ATTR_NAVIGATION_DRAWER_EXTRA = "usesNavigationDrawer";
 
   public static final String V4_SUPPORT_LIBRARY_VERSION = "13.0.+";
-  public static final String GRADLE_PLUGIN_VERSION = "0.6.+";
-  public static final String GRADLE_VERSION = "1.8";
-  public static final String GRADLE_DISTRIBUTION_URL = "http://services.gradle.org/distributions/gradle-" +
-                                                       GRADLE_VERSION + "-bin.zip";
 
   private final Document myDocument;
   private final Map<String, Parameter> myParameterMap;

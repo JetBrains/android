@@ -28,16 +28,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.io.File;
 
 /**
  * TemplateWizard is a base class for Freemarker template-based wizards.
  */
 public class TemplateWizard extends AbstractWizard<ModuleWizardStep> {
-  public static final String MAIN_FLAVOR_SOURCE_PATH = "src/main";
+  public static final String MAIN_FLAVOR_SOURCE_PATH = "src" + File.separator + "main";
   public static final String JAVA_SOURCE_PATH = "java";
   public static final String RESOURCE_SOURCE_PATH = "res";
-  public static final String GRADLE_WRAPPER_PATH = "gradle/wrapper";
-  public static final String GRADLE_WRAPPER_PROPERTIES_PATH = "gradle/wrapper/gradle-wrapper.properties";
+  public static final String GRADLE_WRAPPER_PATH = "gradle" + File.separator + "wrapper";
   protected static final String MAVEN_URL_PROPERTY = "android.mavenRepoUrl";
 
   protected Project myProject;
@@ -63,8 +63,8 @@ public class TemplateWizard extends AbstractWizard<ModuleWizardStep> {
       return;
     }
     TemplateWizardStep step = (TemplateWizardStep)mySteps.get(currentStep);
-    step.getPreferredFocusedComponent();
     if (step != null) {
+      step.getPreferredFocusedComponent();
       step.update();
     }
   }

@@ -24,8 +24,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.GradleManager;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
-class GradleSettingsHyperlink extends NotificationHyperlink {
-  GradleSettingsHyperlink() {
+class OpenGradleSettingsHyperlink extends NotificationHyperlink {
+  OpenGradleSettingsHyperlink() {
     super("openGradleSettings", "Gradle settings");
   }
 
