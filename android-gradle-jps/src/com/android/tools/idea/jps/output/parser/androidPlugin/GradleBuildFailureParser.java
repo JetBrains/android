@@ -131,7 +131,7 @@ public class GradleBuildFailureParser implements CompilerOutputParser {
           } else {
             if (currentLine.contains("no data file for changedFile")) {
               matcher = Pattern.compile("\\s*> In DataSet '.+', no data file for changedFile '(.+)'").matcher(currentLine);
-              if (matcher.matches()) {
+              if (matcher.find()) {
                 file = matcher.group(1);
               }
             }
