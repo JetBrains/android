@@ -26,10 +26,9 @@ import java.util.Collections;
 import java.util.List;
 
 public class AndroidLibraryStub implements AndroidLibrary {
-  @NotNull private final List<File> myLocalJars = Lists.newArrayList();
-
   @NotNull private final File myJarFile;
   @Nullable private final String myProject;
+  @NotNull private final List<File> myLocalJars = Lists.newArrayList();
 
   public AndroidLibraryStub(@NotNull File jarFile) {
     this(jarFile, null);
