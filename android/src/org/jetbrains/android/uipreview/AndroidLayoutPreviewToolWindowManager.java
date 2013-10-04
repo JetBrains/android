@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.uipreview;
 
+import com.android.ide.common.resources.ResourceUrl;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderLogger;
@@ -73,6 +74,9 @@ import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
 import java.util.Map;
 
+import static com.android.SdkConstants.ANDROID_PREFIX;
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+
 /**
  * @author Eugene.Kudelevsky
  */
@@ -129,8 +133,8 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
 
       @Override
       public void childAdded(@NotNull PsiTreeChangeEvent event) {
+        myIgnoreChildrenChanged = true;
         if (isRelevant(event)) {
-          myIgnoreChildrenChanged = true;
           PsiElement child = event.getChild();
           PsiElement parent = event.getParent();
 
@@ -146,6 +150,21 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
               // Just added a new blank attribute; nothing to render yet
               return;
             }
+          } else if (parent instanceof XmlAttributeValue && child instanceof XmlToken && event.getOldChild() == null) {
+            // Just added attribute value
+            String text = child.getText();
+            // See if this is an attribute that takes a resource!
+            if (text.startsWith(PREFIX_RESOURCE_REF)) {
+              if (text.equals(PREFIX_RESOURCE_REF) ||text.equals(ANDROID_PREFIX)) {
+                // Using code completion to insert resource reference; not yet done
+                return;
+              }
+              ResourceUrl url = ResourceUrl.parse(text);
+              if (url != null && url.name.isEmpty()) {
+                // Using code completion to insert resource reference; not yet done
+                return;
+              }
+            }
           }
           update(event);
         }
@@ -153,8 +172,8 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
 
       @Override
       public void childReplaced(@NotNull PsiTreeChangeEvent event) {
+        myIgnoreChildrenChanged = true;
         if (isRelevant(event)) {
-          myIgnoreChildrenChanged = true;
           PsiElement child = event.getChild();
           PsiElement parent = event.getParent();
 
@@ -165,6 +184,23 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
             if (valueElement == null || valueElement.getValue() == null || valueElement.getValue().isEmpty()) {
               return;
             }
+          } else if (parent instanceof XmlAttributeValue && child instanceof XmlToken && event.getOldChild() != null) {
+            String newText = child.getText();
+            String prevText = event.getOldChild().getText();
+            // See if user is working on an incomplete URL, and is still not complete, e.g. typing in @string/foo manually
+            if (newText.startsWith(PREFIX_RESOURCE_REF)) {
+              ResourceUrl prevUrl = ResourceUrl.parse(prevText);
+              ResourceUrl newUrl = ResourceUrl.parse(newText);
+              if (prevUrl != null && prevUrl.name.isEmpty()) {
+                prevUrl = null;
+              }
+              if (newUrl != null && newUrl.name.isEmpty()) {
+                newUrl = null;
+              }
+              if (prevUrl == null && newUrl == null) {
+                return;
+              }
+            }
           }
           update(event);
         }
@@ -172,8 +208,8 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
 
       @Override
       public void childRemoved(@NotNull PsiTreeChangeEvent event) {
+        myIgnoreChildrenChanged = true;
         if (isRelevant(event)) {
-          myIgnoreChildrenChanged = true;
           PsiElement child = event.getChild();
           PsiElement parent = event.getParent();
 
