@@ -66,6 +66,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.ObjectUtils;
 import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
 import org.jetbrains.android.actions.AndroidRunDdmsAction;
@@ -451,7 +452,7 @@ public final class AndroidSdkUtils {
   @Nullable
   static Sdk findSuitableAndroidSdk(@NotNull String targetHashString,
                                     @Nullable String sdkPath,
-                                    @Nullable JavaSdkVersion jdkVersion,
+                                    @Nullable LanguageLevel javaLangLevel,
                                     boolean promptUserIfNecessary) {
     for (Sdk sdk : getAllAndroidSdks()) {
       AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
@@ -472,11 +473,11 @@ public final class AndroidSdkUtils {
             if (!compatibleVersion) {
               // Old SDK, needs to be replaced.
               Sdk jdk;
-              if (jdkVersion == null) {
+              if (javaLangLevel == null) {
                 jdk = Jdks.chooseOrCreateJavaSdk();
               }
               else {
-                jdk = Jdks.chooseOrCreateJavaSdk(jdkVersion);
+                jdk = Jdks.chooseOrCreateJavaSdk(javaLangLevel);
               }
               String jdkPath = jdk == null ? null : jdk.getHomePath();
               return promptUserForSdkCreation(androidPlatform.getTarget(), null, jdkPath);
@@ -504,10 +505,10 @@ public final class AndroidSdkUtils {
 
   private static boolean findAndSetSdkWithHashString(@NotNull Module module,
                                                      @NotNull String targetHashString,
-                                                     @Nullable JavaSdkVersion jdkVersion) {
+                                                     @Nullable LanguageLevel javaLangLevel) {
     Pair<String, VirtualFile> sdkDirProperty = AndroidRootUtil.getPropertyValue(module, SdkConstants.FN_LOCAL_PROPERTIES, "sdk.dir");
     String sdkDir = sdkDirProperty != null ? sdkDirProperty.getFirst() : null;
-    return findAndSetSdk(module, targetHashString, sdkDir, jdkVersion, false);
+    return findAndSetSdk(module, targetHashString, sdkDir, javaLangLevel, false);
   }
 
   /**
@@ -516,7 +517,7 @@ public final class AndroidSdkUtils {
    * @param module                the module to set the found SDK to.
    * @param targetHashString      compile target.
    * @param sdkPath               path, in the file system, of the Android SDK.
-   * @param jdkVersion            version of the JDK to use.
+   * @param javaLangLevel         Java language level to use.
    * @param promptUserIfNecessary indicates whether user can be prompted to enter information in case an Android SDK cannot be found (e.g.
    *                              download a platform, or enter the path of an Android SDK to use.)
    * @return {@code true} if a matching Android SDK was found and set in the module; {@code false} otherwise.
@@ -524,14 +525,14 @@ public final class AndroidSdkUtils {
   public static boolean findAndSetSdk(@NotNull Module module,
                                       @NotNull String targetHashString,
                                       @Nullable String sdkPath,
-                                      @Nullable JavaSdkVersion jdkVersion,
+                                      @Nullable LanguageLevel javaLangLevel,
                                       boolean promptUserIfNecessary) {
     if (sdkPath != null) {
       sdkPath = FileUtil.toSystemIndependentName(sdkPath);
     }
 
     //noinspection TestOnlyProblems
-    Sdk sdk = findSuitableAndroidSdk(targetHashString, sdkPath, jdkVersion, promptUserIfNecessary);
+    Sdk sdk = findSuitableAndroidSdk(targetHashString, sdkPath, javaLangLevel, promptUserIfNecessary);
     if (sdk != null) {
       ModuleRootModificationUtil.setModuleSdk(module, sdk);
       return true;

@@ -33,8 +33,8 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -87,30 +87,30 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
     ExternalSystemApiUtil.executeProjectChangeAction(synchronous, new Runnable() {
       @Override
       public void run() {
-        JavaSdkVersion jdkVersion = null;
+        LanguageLevel javaLangVersion = null;
 
         Map<String, IdeaAndroidProject> androidProjectsByModuleName = indexByModuleName(toImport);
         for (Module module : modules) {
           IdeaAndroidProject androidProject = androidProjectsByModuleName.get(module.getName());
           customizeModule(module, project, androidProject);
-          if (androidProject != null && jdkVersion == null) {
-            jdkVersion = androidProject.getJdkVersion();
+          if (androidProject != null && javaLangVersion == null) {
+            javaLangVersion = androidProject.getJavaLanguageLevel();
           }
         }
 
         Sdk jdk;
-        if (jdkVersion == null) {
+        if (javaLangVersion == null) {
           jdk = Jdks.chooseOrCreateJavaSdk();
         }
         else {
-          jdk = Jdks.chooseOrCreateJavaSdk(jdkVersion);
+          jdk = Jdks.chooseOrCreateJavaSdk(javaLangVersion);
         }
         if (jdk == null) {
           ExternalSystemIdeNotificationManager notification = ServiceManager.getService(ExternalSystemIdeNotificationManager.class);
           if (notification != null) {
             String title = String.format("Problems importing/refreshing Gradle project '%1$s':\n", project.getName());
-            String version = jdkVersion != null ? jdkVersion.getDescription() : JavaSdkVersion.JDK_1_6.getDescription();
-            String msg = String.format("Unable to find a JDK %1$s installed.\n", version);
+            LanguageLevel level = javaLangVersion != null ? javaLangVersion : LanguageLevel.JDK_1_6;
+            String msg = String.format("Unable to find a JDK %1$s installed.\n", level.getPresentableText());
             msg += "After configuring a suitable JDK in the Project Structure dialog, sync the Gradle project again.";
             notification.showNotification(title, msg, NotificationType.ERROR, project, GradleConstants.SYSTEM_ID, null);
           }
