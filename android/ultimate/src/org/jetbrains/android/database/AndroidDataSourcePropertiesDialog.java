@@ -43,7 +43,7 @@ public class AndroidDataSourcePropertiesDialog extends DialogWrapper {
   private final boolean myCreate;
 
   private DefaultComboBoxModel myDeviceComboBoxModel = new DefaultComboBoxModel();
-  private String myMissingSerialNumber;
+  private String myMissingDeviceIds;
 
   private ComboBox myDeviceComboBox;
   private ComboBox myPackageNameComboBox;
@@ -64,7 +64,7 @@ public class AndroidDataSourcePropertiesDialog extends DialogWrapper {
       @Override
       protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
         if (value instanceof String) {
-          append("serial: " + value);
+          append(AndroidDbUtil.getPresentableNameFromDeviceId((String)value));
         }
         else {
           super.customizeCellRenderer(list, value, index, selected, hasFocus);
@@ -138,9 +138,9 @@ public class AndroidDataSourcePropertiesDialog extends DialogWrapper {
         if (!device.isOnline()) {
           return;
         }
-        final String serialNumber = device.getSerialNumber();
+        final String deviceId = AndroidDbUtil.getDeviceId(device);
 
-        if (serialNumber == null || serialNumber.length() == 0) {
+        if (deviceId == null || deviceId.length() == 0) {
           return;
         }
         for (int i = 0; i < myDeviceComboBoxModel.getSize(); i++) {
@@ -152,9 +152,9 @@ public class AndroidDataSourcePropertiesDialog extends DialogWrapper {
         }
         myDeviceComboBoxModel.addElement(device);
 
-        if (myMissingSerialNumber != null && myMissingSerialNumber.equals(serialNumber)) {
-          myDeviceComboBoxModel.removeElement(myMissingSerialNumber);
-          myMissingSerialNumber = null;
+        if (myMissingDeviceIds != null && myMissingDeviceIds.equals(deviceId)) {
+          myDeviceComboBoxModel.removeElement(myMissingDeviceIds);
+          myMissingDeviceIds = null;
         }
         pack();
       }
@@ -163,24 +163,24 @@ public class AndroidDataSourcePropertiesDialog extends DialogWrapper {
 
   private void loadDevices() {
     final AndroidDebugBridge bridge = AndroidSdkUtils.getDebugBridge(myProject);
-    final IDevice[] devices = bridge != null ? getDevicesWithValidSerialNumber(bridge) : new IDevice[0];
-    final String deviceSerialNumber = myDataSource.getState().getDeviceSerialNumber();
+    final IDevice[] devices = bridge != null ? getDevicesWithValidDeviceId(bridge) : new IDevice[0];
+    final String deviceId = myDataSource.getState().getDeviceId();
     final DefaultComboBoxModel model = new DefaultComboBoxModel(devices);
 
-    if (deviceSerialNumber != null) {
+    if (deviceId != null) {
       Object selectedItem = null;
 
       for (IDevice device : devices) {
-        if (deviceSerialNumber.equals(device.getSerialNumber())) {
+        if (deviceId.equals(AndroidDbUtil.getDeviceId(device))) {
           selectedItem = device;
           break;
         }
       }
 
       if (!myCreate && selectedItem == null) {
-        model.addElement(deviceSerialNumber);
-        myMissingSerialNumber = deviceSerialNumber;
-        selectedItem = deviceSerialNumber;
+        model.addElement(deviceId);
+        myMissingDeviceIds = deviceId;
+        selectedItem = deviceId;
       }
       myDeviceComboBoxModel = model;
       myDeviceComboBox.setModel(model);
@@ -193,14 +193,14 @@ public class AndroidDataSourcePropertiesDialog extends DialogWrapper {
   }
 
   @NotNull
-  private static IDevice[] getDevicesWithValidSerialNumber(@NotNull AndroidDebugBridge bridge) {
+  private static IDevice[] getDevicesWithValidDeviceId(@NotNull AndroidDebugBridge bridge) {
     final List<IDevice> result = new ArrayList<IDevice>();
 
     for (IDevice device : bridge.getDevices()) {
       if (device.isOnline()) {
-        final String serialNumber = device.getSerialNumber();
+        final String deviceId = AndroidDbUtil.getDeviceId(device);
 
-        if (serialNumber != null && serialNumber.length() > 0) {
+        if (deviceId != null && deviceId.length() > 0) {
           result.add(device);
         }
       }
@@ -317,15 +317,15 @@ public class AndroidDataSourcePropertiesDialog extends DialogWrapper {
   }
 
   @NotNull
-  private String getSelectedDeviceSerialNumber() {
+  private String getSelectedDeviceId() {
     final Object item = myDeviceComboBox.getSelectedItem();
 
     if (item instanceof String) {
       return (String)item;
     }
     assert item instanceof IDevice;
-    final String serialNumber = ((IDevice)item).getSerialNumber();
-    return serialNumber != null ? serialNumber : "";
+    final String deviceId = AndroidDbUtil.getDeviceId((IDevice)item);
+    return deviceId != null ? deviceId : "";
   }
 
   @Override
@@ -333,7 +333,7 @@ public class AndroidDataSourcePropertiesDialog extends DialogWrapper {
     super.doOKAction();
     myDataSource.setName(myNameTextField.getText());
     final AndroidDataSource.State state = myDataSource.getState();
-    state.setDeviceSerialNumber(getSelectedDeviceSerialNumber());
+    state.setDeviceId(getSelectedDeviceId());
     state.setPackageName(getSelectedPackage());
     state.setDatabaseName(getSelectedDatabase());
     myDataSource.resetUrl();

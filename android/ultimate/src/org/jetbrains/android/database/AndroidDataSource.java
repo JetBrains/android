@@ -99,7 +99,7 @@ class AndroidDataSource extends LocalDataSource implements DataSourceInfo, Modif
   public String buildLocalDbFileOsPath() {
     final State state = getState();
     return AndroidRemoteDataBaseManager.buildLocalDbFileOsPath(
-      state.getDeviceSerialNumber(), state.getPackageName(), state.getDatabaseName());
+      state.getDeviceId(), state.getPackageName(), state.getDatabaseName());
   }
 
   @Override
@@ -113,7 +113,7 @@ class AndroidDataSource extends LocalDataSource implements DataSourceInfo, Modif
     final State newState = newSource.getState();
     final State state = buildFullState();
     newState.setName(state.getName());
-    newState.setDeviceSerialNumber(state.getDeviceSerialNumber());
+    newState.setDeviceId(state.getDeviceId());
     newState.setPackageName(state.getPackageName());
     newState.setDatabaseName(state.getDatabaseName());
     newState.setClasspathElements(cloneElementsArray(state.getClasspathElements()));
@@ -134,13 +134,13 @@ class AndroidDataSource extends LocalDataSource implements DataSourceInfo, Modif
   @Tag("data-source")
   public static class State {
     private String myName = "";
-    private String myDeviceSerialNumber = "";
+    private String myDeviceId = "";
     private String myPackageName = "";
     private String myDatabaseName = "";
     private Element[] myClasspathElements = new Element[0];
 
-    public String getDeviceSerialNumber() {
-      return myDeviceSerialNumber;
+    public String getDeviceId() {
+      return myDeviceId;
     }
 
     public String getDatabaseName() {
@@ -160,8 +160,8 @@ class AndroidDataSource extends LocalDataSource implements DataSourceInfo, Modif
       return myClasspathElements;
     }
 
-    public void setDeviceSerialNumber(String deviceSerialNumber) {
-      myDeviceSerialNumber = deviceSerialNumber;
+    public void setDeviceId(String deviceId) {
+      myDeviceId = deviceId;
     }
 
     public void setDatabaseName(String databaseName) {
