@@ -1,6 +1,7 @@
 package org.jetbrains.android.database;
 
 import com.android.ddmlib.*;
+import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.intellij.javaee.dataSource.LoaderContext;
 import com.intellij.javaee.module.view.dataSource.DataSourceUiUtil;
 import com.intellij.javaee.module.view.dataSource.LocalDataSource;
@@ -33,6 +34,9 @@ class AndroidDbUtil {
     "/data/local/tmp/intellij_native_tools/get_modification_time";
   public static final long DB_COPYING_TIMEOUT_SEC = 30;
   public static final int SHELL_COMMAND_TIMEOUT_SECONDS = 2;
+
+  private static final String DEVICE_ID_EMULATOR_PREFIX = "EMULATOR_";
+  private static final String DEVICE_ID_SERIAL_NUMBER_PREFIX = "SERIAL_NUMBER_";
 
   private AndroidDbUtil() {
   }
@@ -129,16 +133,16 @@ class AndroidDbUtil {
                                                         @NotNull AndroidDebugBridge debugBridge,
                                                         @NotNull AndroidDbErrorReporter errorReporter) {
     final AndroidDataSource.State state = dataSource.getState();
-    final String deviceSerialNumber = state.getDeviceSerialNumber();
+    final String deviceId = state.getDeviceId();
 
-    if (deviceSerialNumber == null) {
-      errorReporter.reportError("serial number is not specified");
+    if (deviceId == null) {
+      errorReporter.reportError("device is not specified");
       return null;
     }
-    final IDevice device = getDeviceBySerialNumber(debugBridge, deviceSerialNumber);
+    final IDevice device = getDeviceById(debugBridge, deviceId);
 
     if (device == null) {
-      errorReporter.reportError("device with serial number '" + deviceSerialNumber + "' is not connected");
+      errorReporter.reportError("device '" + getPresentableNameFromDeviceId(deviceId) + "' is not connected");
       return null;
     }
     if (!device.isOnline()) {
@@ -161,9 +165,9 @@ class AndroidDbUtil {
   }
 
   @Nullable
-  private static IDevice getDeviceBySerialNumber(@NotNull AndroidDebugBridge debugBridge, @NotNull String serialNumber) {
+  private static IDevice getDeviceById(@NotNull AndroidDebugBridge debugBridge, @NotNull String deviceId) {
     for (IDevice device : debugBridge.getDevices()) {
-      if (serialNumber.equals(device.getSerialNumber())) {
+      if (deviceId.equals(getDeviceId(device))) {
         return device;
       }
     }
@@ -349,6 +353,53 @@ class AndroidDbUtil {
     else {
       DataSourceUiUtil.refreshDatasource(project, true, true, LoaderContext.loadAll(dataSource));
     }
+  }
+
+  @Nullable
+  public static String getDeviceId(@NotNull IDevice device) {
+    if (device.isEmulator()) {
+      return DEVICE_ID_EMULATOR_PREFIX + device.getAvdName();
+    }
+    else {
+      final String serialNumber = device.getSerialNumber();
+
+      if (serialNumber != null && serialNumber.length() > 0) {
+        return DEVICE_ID_SERIAL_NUMBER_PREFIX + serialNumber;
+      }
+      final String manufacturer = DevicePropertyUtil.getManufacturer(device, "");
+      final String model = DevicePropertyUtil.getModel(device, "");
+
+      if (manufacturer.length() > 0 || model.length() > 0) {
+        return replaceByDirAllowedName(manufacturer + "_" + model);
+      }
+      return null;
+    }
+  }
+
+  @NotNull
+  public static String getPresentableNameFromDeviceId(@NotNull String deviceId) {
+    if (deviceId.startsWith(DEVICE_ID_EMULATOR_PREFIX)) {
+      return "emulator: " + deviceId.substring(DEVICE_ID_EMULATOR_PREFIX.length());
+    }
+    if (deviceId.startsWith(DEVICE_ID_SERIAL_NUMBER_PREFIX)) {
+      return "serial: " + deviceId.substring(DEVICE_ID_SERIAL_NUMBER_PREFIX.length());
+    }
+    return deviceId;
+  }
+
+  @NotNull
+  private static String replaceByDirAllowedName(@NotNull String s) {
+    final StringBuilder builder = new StringBuilder();
+
+    for (int i = 0, n = s.length(); i < n; i++) {
+      char c = s.charAt(i);
+
+      if (Character.isWhitespace(c)) {
+        c = '_';
+      }
+      builder.append(c);
+    }
+    return builder.toString();
   }
 
   private static class MyShellOutputReceiver extends MultiLineReceiver {

@@ -31,20 +31,20 @@ public class AndroidRemoteDataBaseManager implements PersistentStateComponent<An
   }
 
   @NotNull
-  public static String buildLocalDbFileOsPath(@Nullable String deviceSerialNumber,
+  public static String buildLocalDbFileOsPath(@Nullable String deviceId,
                                               @Nullable String packageName,
                                               @Nullable String databaseName) {
-    if (deviceSerialNumber == null ||
+    if (deviceId == null ||
         packageName == null ||
         databaseName == null ||
-        deviceSerialNumber.length() == 0 ||
+        deviceId.length() == 0 ||
         packageName.length() == 0 ||
         databaseName.length() == 0) {
       return "";
     }
     return AndroidUtils.getAndroidSystemDirectoryOsPath() +
            File.separator + "databases" +
-           File.separator + deviceSerialNumber +
+           File.separator + deviceId +
            File.separator + packageName +
            File.separator + databaseName;
   }
@@ -76,7 +76,7 @@ public class AndroidRemoteDataBaseManager implements PersistentStateComponent<An
       final MyDatabaseInfo value = entry.getValue();
 
       if (value.referringProjects.contains(projectBasePath) &&
-          !usedDatabases.contains(new AndroidRemoteDbInfo(key.deviceSerialNumber, key.packageName, key.databaseName))) {
+          !usedDatabases.contains(new AndroidRemoteDbInfo(key.deviceId, key.packageName, key.databaseName))) {
         value.referringProjects.remove(projectBasePath);
         keysToRemove.add(key);
       }
@@ -93,7 +93,7 @@ public class AndroidRemoteDataBaseManager implements PersistentStateComponent<An
 
       if (value.referringProjects.isEmpty()) {
         it.remove();
-        final String localDbPath = buildLocalDbFileOsPath(key.deviceSerialNumber, key.packageName, key.databaseName);
+        final String localDbPath = buildLocalDbFileOsPath(key.deviceId, key.packageName, key.databaseName);
         final File localDbFile = new File(localDbPath);
 
         if (localDbFile.exists()) {
@@ -104,17 +104,17 @@ public class AndroidRemoteDataBaseManager implements PersistentStateComponent<An
   }
 
   @Nullable
-  public synchronized MyDatabaseInfo getDatabaseInfo(@NotNull String deviceSerialNumber,
+  public synchronized MyDatabaseInfo getDatabaseInfo(@NotNull String deviceId,
                                                      @NotNull String packageName,
                                                      @NotNull String databaseName) {
-    return myState.databases.get(new MyDbKey(deviceSerialNumber, packageName, databaseName));
+    return myState.databases.get(new MyDbKey(deviceId, packageName, databaseName));
   }
 
-  public synchronized void setDatabaseInfo(@NotNull String deviceSerialNumber,
+  public synchronized void setDatabaseInfo(@NotNull String deviceId,
                                            @NotNull String packageName,
                                            @NotNull String databaseName,
                                            @NotNull MyDatabaseInfo databaseInfo) {
-    myState.databases.put(new MyDbKey(deviceSerialNumber, packageName, databaseName), databaseInfo);
+    myState.databases.put(new MyDbKey(deviceId, packageName, databaseName), databaseInfo);
   }
 
   @Override
@@ -135,12 +135,12 @@ public class AndroidRemoteDataBaseManager implements PersistentStateComponent<An
 
   @Tag("db-key")
   public static class MyDbKey {
-    public String deviceSerialNumber = "";
+    public String deviceId = "";
     public String packageName = "";
     public String databaseName = "";
 
-    public MyDbKey(@NotNull String deviceSerialNumber, @NotNull String packageName, @NotNull String databaseName) {
-      this.deviceSerialNumber = deviceSerialNumber;
+    public MyDbKey(@NotNull String deviceId, @NotNull String packageName, @NotNull String databaseName) {
+      this.deviceId = deviceId;
       this.packageName = packageName;
       this.databaseName = databaseName;
     }
@@ -156,7 +156,7 @@ public class AndroidRemoteDataBaseManager implements PersistentStateComponent<An
       MyDbKey key = (MyDbKey)o;
 
       if (databaseName != null ? !databaseName.equals(key.databaseName) : key.databaseName != null) return false;
-      if (deviceSerialNumber != null ? !deviceSerialNumber.equals(key.deviceSerialNumber) : key.deviceSerialNumber != null) return false;
+      if (deviceId != null ? !deviceId.equals(key.deviceId) : key.deviceId != null) return false;
       if (packageName != null ? !packageName.equals(key.packageName) : key.packageName != null) return false;
 
       return true;
@@ -164,7 +164,7 @@ public class AndroidRemoteDataBaseManager implements PersistentStateComponent<An
 
     @Override
     public int hashCode() {
-      int result = deviceSerialNumber != null ? deviceSerialNumber.hashCode() : 0;
+      int result = deviceId != null ? deviceId.hashCode() : 0;
       result = 31 * result + (packageName != null ? packageName.hashCode() : 0);
       result = 31 * result + (databaseName != null ? databaseName.hashCode() : 0);
       return result;
