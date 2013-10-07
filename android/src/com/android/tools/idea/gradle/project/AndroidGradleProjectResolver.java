@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project;
 import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
+import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.*;
 import com.android.tools.idea.gradle.dependency.Dependency;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
@@ -44,7 +45,9 @@ import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.KeyValue;
 import com.intellij.util.Function;
+import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.containers.ContainerUtilRt;
 import com.intellij.util.net.HttpConfigurable;
 import org.gradle.tooling.BuildActionExecuter;
 import org.gradle.tooling.ProjectConnection;
@@ -433,6 +436,14 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
 
   @Override
   public void enhanceRemoteProcessing(@NotNull SimpleJavaParameters parameters) {
+    final List<String> classPath = ContainerUtilRt.newArrayList();
+    // Android module jars
+    ContainerUtil.addIfNotNull(PathUtil.getJarPathForClass(getClass()), classPath);
+    // Android sdklib jar
+    ContainerUtil.addIfNotNull(PathUtil.getJarPathForClass(FullRevision.class), classPath);
+    // Android common jar
+    ContainerUtil.addIfNotNull(PathUtil.getJarPathForClass(AndroidGradleSettings.class), classPath);
+    parameters.getClassPath().addAll(classPath);
   }
 
   @Override
