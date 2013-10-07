@@ -1,5 +1,6 @@
 package org.jetbrains.android;
 
+import com.android.SdkConstants;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.InspectionManager;
@@ -10,6 +11,8 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.InspectionTestUtil;
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
+import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 import org.jetbrains.android.inspections.lint.AndroidAddStringResourceQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidLintExternalAnnotator;
@@ -23,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Eugene.Kudelevsky
@@ -35,6 +39,15 @@ public class AndroidLintTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     AndroidLintInspectionBase.invalidateInspectionShortName2IssueMap();
+  }
+
+  @Override
+  protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
+                                            @NotNull List<MyAdditionalModuleData> modules) {
+    if ("testImlFileOutsideContentRoot".equals(getName())) {
+      addModuleWithAndroidFacet(projectBuilder, modules, "module1", true);
+      addModuleWithAndroidFacet(projectBuilder, modules, "module2", true);
+    }
   }
 
   public void testHardcodedQuickfix() throws Exception {
@@ -241,6 +254,14 @@ public class AndroidLintTest extends AndroidTestCase {
     doGlobalInspectionTest(new AndroidLintInspectionToolProvider.AndroidLintNewApiInspection());
   }
 
+  public void testImlFileOutsideContentRoot() throws Exception {
+    myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, "additionalModules/module1/" + SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, "additionalModules/module2/" + SdkConstants.FN_ANDROID_MANIFEST_XML);
+    final String testDir = BASE_PATH_GLOBAL + "apiCheck1";
+    myFixture.copyFileToProject(testDir + "/MyActivity.java", "additionalModules/module1/src/p1/p2/MyActivity.java");
+    doGlobalInspectionTest(new AndroidLintInspectionToolProvider.AndroidLintNewApiInspection(), testDir, new AnalysisScope(getProject()));
+  }
+
   public void testApiInlined() throws Exception {
     createManifest();
     myFixture.copyFileToProject(getGlobalTestDir() + "/MyActivity.java", "src/p1/p2/MyActivity.java");
@@ -269,10 +290,15 @@ public class AndroidLintTest extends AndroidTestCase {
   }
 
   private void doGlobalInspectionTest(@NotNull AndroidLintInspectionBase inspection) {
+    doGlobalInspectionTest(inspection, getGlobalTestDir(), new AnalysisScope(myModule));
+  }
+
+  private void doGlobalInspectionTest(@NotNull AndroidLintInspectionBase inspection,
+                                      @NotNull String globalTestDir,
+                                      @NotNull AnalysisScope scope) {
     final GlobalInspectionToolWrapper wrapper = new GlobalInspectionToolWrapper(inspection);
     myFixture.enableInspections(inspection);
 
-    final AnalysisScope scope = new AnalysisScope(myModule);
     scope.invalidate();
 
     final InspectionManagerEx inspectionManager = (InspectionManagerEx)InspectionManager.getInstance(getProject());
@@ -280,7 +306,7 @@ public class AndroidLintTest extends AndroidTestCase {
       CodeInsightTestFixtureImpl.createGlobalContextForTool(scope, getProject(), inspectionManager, wrapper);
 
     InspectionTestUtil.runTool(wrapper, scope, globalContext, inspectionManager);
-    InspectionTestUtil.compareToolResults(globalContext, wrapper, false, getTestDataPath() + getGlobalTestDir());
+    InspectionTestUtil.compareToolResults(globalContext, wrapper, false, getTestDataPath() + globalTestDir);
   }
 
   private String getGlobalTestDir() {

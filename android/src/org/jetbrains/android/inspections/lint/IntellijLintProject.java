@@ -113,7 +113,9 @@ class IntellijLintProject extends Project {
     }
 
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) {
+    LintModuleProject project = facet != null ? createModuleProject(client, module, facet) : null;
+
+    if (project == null) {
       // It's possible for the module to *depend* on Android code, e.g. in a Gradle
       // project there will be a top-level non-Android module
       List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(module, false);
@@ -123,7 +125,6 @@ class IntellijLintProject extends Project {
       return;
     }
 
-    LintModuleProject project = createModuleProject(client, module, facet);
     projects.add(project);
     moduleMap.put(module, project);
     projectMap.put(project, module);
@@ -176,10 +177,14 @@ class IntellijLintProject extends Project {
   }
 
   /** Creates a new module project */
-  @NonNull
+  @Nullable
   private static LintModuleProject createModuleProject(@NonNull LintClient client, @NonNull Module module, @NonNull AndroidFacet facet) {
-    String moduleFilePath = module.getModuleFilePath();
-    File dir = new File(moduleFilePath).getParentFile();
+    final VirtualFile mainContentRoot = AndroidRootUtil.getMainContentRoot(facet);
+
+    if (mainContentRoot == null) {
+      return null;
+    }
+    File dir = new File(mainContentRoot.getPath());
 
     LintModuleProject project;
     if (facet.isGradleProject()) {
