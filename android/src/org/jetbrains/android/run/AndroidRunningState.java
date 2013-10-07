@@ -16,7 +16,8 @@
 package org.jetbrains.android.run;
 
 import com.android.SdkConstants;
-import com.android.builder.model.*;
+import com.android.builder.model.ArtifactInfo;
+import com.android.builder.model.Variant;
 import com.android.ddmlib.*;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
@@ -1002,32 +1003,14 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     return (testPackageName != null) ? testPackageName : packageName + DEFAULT_TEST_PACKAGE_SUFFIX;
   }
 
-  @NotNull
+  @Nullable
   private static String getPackageNameFromGradle(@NotNull String packageNameInManifest, @NotNull AndroidFacet facet) {
     IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
     if (ideaAndroidProject == null) {
       return packageNameInManifest;
     }
 
-    Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
-    ProductFlavor flavor = selectedVariant.getMergedFlavor();
-
-    // if the current variant specifies a package name, use that
-    String packageName = flavor.getPackageName();
-    if (packageName == null) {
-      // otherwise default to whatever was in the manifest
-      packageName = packageNameInManifest;
-    }
-
-    String buildTypeName = selectedVariant.getBuildType();
-    AndroidProject delegate = ideaAndroidProject.getDelegate();
-    BuildTypeContainer buildTypeContainer = delegate.getBuildTypes().get(buildTypeName);
-    String packageNameSuffix = buildTypeContainer.getBuildType().getPackageNameSuffix();
-    // append the build type suffix to package name if necessary
-    if (packageNameSuffix != null) {
-      packageName += packageNameSuffix;
-    }
-    return packageName;
+    return IdeaAndroidProject.computePackageName(ideaAndroidProject, packageNameInManifest);
   }
 
   private boolean uploadAndInstall(@NotNull IDevice device, @NotNull String packageName, AndroidFacet facet)
