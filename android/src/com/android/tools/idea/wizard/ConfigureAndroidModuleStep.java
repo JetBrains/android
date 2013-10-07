@@ -95,6 +95,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
         myMinSdk.addItem(targetInfo);
         myTargetSdk.addItem(targetInfo);
       }
+      myTemplateState.put(ATTR_TARGET_API, SdkVersionInfo.HIGHEST_KNOWN_API);
     }
     for (IAndroidTarget target : targets) {
       AndroidTargetComboBoxItem targetInfo = new AndroidTargetComboBoxItem(target);
