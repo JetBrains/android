@@ -6,19 +6,19 @@ import org.jetbrains.annotations.NotNull;
  * @author Eugene.Kudelevsky
  */
 class AndroidRemoteDbInfo {
-  private final String myDeviceSerialNumber;
+  private final String myDeviceId;
   private final String myPackageName;
   private final String myDatabaseName;
 
-  public AndroidRemoteDbInfo(@NotNull String deviceSerialNumber, @NotNull String packageName, @NotNull String databaseName) {
-    myDeviceSerialNumber = deviceSerialNumber;
+  public AndroidRemoteDbInfo(@NotNull String deviceId, @NotNull String packageName, @NotNull String databaseName) {
+    myDeviceId = deviceId;
     myPackageName = packageName;
     myDatabaseName = databaseName;
   }
 
   @NotNull
-  public String getDeviceSerialNumber() {
-    return myDeviceSerialNumber;
+  public String getDeviceId() {
+    return myDeviceId;
   }
 
   @NotNull
@@ -39,7 +39,7 @@ class AndroidRemoteDbInfo {
     AndroidRemoteDbInfo info = (AndroidRemoteDbInfo)o;
 
     if (!myDatabaseName.equals(info.myDatabaseName)) return false;
-    if (!myDeviceSerialNumber.equals(info.myDeviceSerialNumber)) return false;
+    if (!myDeviceId.equals(info.myDeviceId)) return false;
     if (!myPackageName.equals(info.myPackageName)) return false;
 
     return true;
@@ -47,7 +47,7 @@ class AndroidRemoteDbInfo {
 
   @Override
   public int hashCode() {
-    int result = myDeviceSerialNumber.hashCode();
+    int result = myDeviceId.hashCode();
     result = 31 * result + myPackageName.hashCode();
     result = 31 * result + myDatabaseName.hashCode();
     return result;

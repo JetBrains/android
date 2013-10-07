@@ -100,23 +100,23 @@ public class AndroidUploadDatabaseAction extends AnAction {
     final String packageName = dbConnectionInfo.getPackageName();
     final String dbName = dbConnectionInfo.getDbName();
     final String localFileMd5Hash = getLocalFileMd5Hash(new File(localDbFilePath));
+    final String deviceId = AndroidDbUtil.getDeviceId(device);
 
-    if (localFileMd5Hash == null) {
+    if (localFileMd5Hash == null || deviceId == null) {
       return;
     }
     if (AndroidDbUtil.uploadDatabase(device, packageName, dbName, localDbFilePath, indicator, errorReporter)) {
       final Long modificationTime = AndroidDbUtil.getModificationTime(device, packageName, dbName, errorReporter, indicator);
 
       if (modificationTime != null) {
-        final String deviceSerialNumber = device.getSerialNumber();
         AndroidRemoteDataBaseManager.MyDatabaseInfo dbInfo = AndroidRemoteDataBaseManager.
-          getInstance().getDatabaseInfo(deviceSerialNumber, packageName, dbName);
+          getInstance().getDatabaseInfo(deviceId, packageName, dbName);
 
         if (dbInfo == null) {
           dbInfo = new AndroidRemoteDataBaseManager.MyDatabaseInfo();
         }
         dbInfo.modificationTime = modificationTime;
-        AndroidRemoteDataBaseManager.getInstance().setDatabaseInfo(deviceSerialNumber, packageName, dbName, dbInfo);
+        AndroidRemoteDataBaseManager.getInstance().setDatabaseInfo(deviceId, packageName, dbName, dbInfo);
       }
     }
   }

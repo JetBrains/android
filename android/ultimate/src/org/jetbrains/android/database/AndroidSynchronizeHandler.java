@@ -78,7 +78,11 @@ public class AndroidSynchronizeHandler extends SynchronizeHandler {
       return;
     }
     final IDevice device = dbConnectionInfo.getDevice();
-    final String deviceSerialNumber = device.getSerialNumber();
+    final String deviceId = AndroidDbUtil.getDeviceId(device);
+
+    if (deviceId == null) {
+      return;
+    }
     final String packageName = dbConnectionInfo.getPackageName();
     final String dbName = dbConnectionInfo.getDbName();
 
@@ -89,7 +93,7 @@ public class AndroidSynchronizeHandler extends SynchronizeHandler {
       return;
     }
     final AndroidRemoteDataBaseManager remoteDbManager = AndroidRemoteDataBaseManager.getInstance();
-    AndroidRemoteDataBaseManager.MyDatabaseInfo info = remoteDbManager.getDatabaseInfo(deviceSerialNumber, packageName, dbName);
+    AndroidRemoteDataBaseManager.MyDatabaseInfo info = remoteDbManager.getDatabaseInfo(deviceId, packageName, dbName);
 
     if (info == null) {
       info = new AndroidRemoteDataBaseManager.MyDatabaseInfo();
@@ -102,7 +106,7 @@ public class AndroidSynchronizeHandler extends SynchronizeHandler {
     if (!localDbFile.exists() || !modificationTime.equals(info.modificationTime)) {
       if (AndroidDbUtil.downloadDatabase(device, packageName, dbName, localDbFile, progressIndicator, errorReporter)) {
         info.modificationTime = modificationTime;
-        remoteDbManager.setDatabaseInfo(deviceSerialNumber, packageName, dbName, info);
+        remoteDbManager.setDatabaseInfo(deviceId, packageName, dbName, info);
       }
     }
   }
