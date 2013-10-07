@@ -11,14 +11,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.persistence.database.psi.DbDataSourceElement;
+import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -27,7 +26,7 @@ public class AndroidSynchronizeHandler extends SynchronizeHandler {
 
   @Override
   public void synchronizationStarted(@NotNull final Project project,
-                                     @NotNull Collection<DbDataSourceElement> elements) {
+                                     @NotNull Set<DbDataSourceElement> elements) {
     final List<AndroidDataSource> dataSourcesToSync = new ArrayList<AndroidDataSource>();
 
     for (DbDataSourceElement element : elements) {
@@ -41,37 +40,38 @@ public class AndroidSynchronizeHandler extends SynchronizeHandler {
     if (dataSourcesToSync.isEmpty()) {
       return;
     }
-    doSynchronize(project, dataSourcesToSync);
+    final Set<AndroidDataSource> syncedDataSources = doSynchronize(project, dataSourcesToSync);
+
+    for (Iterator<DbDataSourceElement> it = elements.iterator(); it.hasNext(); ) {
+      final DbDataSourceElement element = it.next();
+      final Object delegate = element.getDelegate();
+
+      if (delegate instanceof AndroidDataSource && !syncedDataSources.contains(delegate)) {
+        it.remove();
+      }
+    }
   }
 
-  public static void doSynchronize(@NotNull final Project project, @NotNull final List<AndroidDataSource> dataSourcesToSync) {
+  @NotNull
+  public static Set<AndroidDataSource> doSynchronize(@NotNull final Project project,
+                                                     @NotNull final Collection<AndroidDataSource> dataSourcesToSync) {
     final AndroidDebugBridge debugBridge = AndroidSdkUtils.getDebugBridge(project);
 
     if (debugBridge == null) {
       Messages.showErrorDialog(project, AndroidBundle.message("cannot.connect.to.adb.error"), CommonBundle.getErrorTitle());
-      return;
+      return Collections.emptySet();
     }
-    ProgressManager.getInstance().run(new Task.Modal(project, AndroidBundle.message("android.db.downloading.progress.title"), true) {
-      @Override
-      public void run(@NotNull ProgressIndicator indicator) {
-
-        for (final AndroidDataSource dataSource : dataSourcesToSync) {
-          indicator.setText("Downloading '" + dataSource.getName() + "'");
-
-          synchronized (AndroidDbUtil.DB_SYNC_LOCK) {
-            doSynchronizeDataSource(project, dataSource, indicator, debugBridge);
-          }
-          indicator.checkCanceled();
-        }
-      }
-    });
+    final Set<AndroidDataSource> syncedDataSources = Collections.synchronizedSet(new HashSet<AndroidDataSource>(dataSourcesToSync));
+    final MySynchronizeDataSourcesTask task = new MySynchronizeDataSourcesTask(project, debugBridge, syncedDataSources);
+    ProgressManager.getInstance().run(task);
+    return syncedDataSources;
   }
 
   private static void doSynchronizeDataSource(@NotNull Project project,
                                               @NotNull AndroidDataSource dataSource,
                                               @NotNull ProgressIndicator progressIndicator,
-                                              @NotNull AndroidDebugBridge debugBridge) {
-    final AndroidDbErrorReporterImpl errorReporter = new AndroidDbErrorReporterImpl(project, dataSource, false);
+                                              @NotNull AndroidDebugBridge debugBridge,
+                                              @NotNull AndroidDbErrorReporter errorReporter) {
     final AndroidDbConnectionInfo dbConnectionInfo = AndroidDbUtil.checkDataSource(dataSource, debugBridge, errorReporter);
 
     if (dbConnectionInfo == null) {
@@ -103,6 +103,39 @@ public class AndroidSynchronizeHandler extends SynchronizeHandler {
       if (AndroidDbUtil.downloadDatabase(device, packageName, dbName, localDbFile, progressIndicator, errorReporter)) {
         info.modificationTime = modificationTime;
         remoteDbManager.setDatabaseInfo(deviceSerialNumber, packageName, dbName, info);
+      }
+    }
+  }
+
+  private static class MySynchronizeDataSourcesTask extends Task.Modal {
+    private final Project myProject;
+    private final AndroidDebugBridge myDebugBridge;
+    private final Set<AndroidDataSource> myDataSources;
+
+    public MySynchronizeDataSourcesTask(@NotNull Project project,
+                                        @NotNull AndroidDebugBridge debugBridge,
+                                        @NotNull Set<AndroidDataSource> dataSources) {
+      super(project, AndroidBundle.message("android.db.downloading.progress.title"), true);
+      myProject = project;
+      myDebugBridge = debugBridge;
+      myDataSources = dataSources;
+    }
+
+    @Override
+    public void run(@NotNull ProgressIndicator indicator) {
+      for (Iterator<AndroidDataSource> it = myDataSources.iterator(); it.hasNext(); ) {
+        final AndroidDataSource dataSource = it.next();
+        indicator.setText("Downloading '" + dataSource.getName() + "'");
+
+        synchronized (AndroidDbUtil.DB_SYNC_LOCK) {
+          final AndroidDbErrorReporter errorReporter = new AndroidDbErrorReporterImpl(myProject, dataSource, false);
+          doSynchronizeDataSource(myProject, dataSource, indicator, myDebugBridge, errorReporter);
+
+          if (errorReporter.hasError()) {
+            it.remove();
+          }
+        }
+        indicator.checkCanceled();
       }
     }
   }

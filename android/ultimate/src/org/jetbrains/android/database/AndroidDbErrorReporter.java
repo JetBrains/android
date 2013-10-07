@@ -6,10 +6,18 @@ import org.jetbrains.annotations.NotNull;
 /**
 * @author Eugene.Kudelevsky
 */
-abstract class AndroidDbErrorReporter {
+class AndroidDbErrorReporter {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.database.AndroidDbErrorReporter");
 
-  public abstract void reportError(@NotNull String message);
+  private volatile boolean myHasError;
+
+  public synchronized void reportError(@NotNull String message) {
+    myHasError = true;
+  }
+
+  public synchronized boolean hasError() {
+    return myHasError;
+  }
 
   public void reportError(@NotNull Exception exception) {
     final String exceptionMessage = exception.getMessage();
