@@ -1,9 +1,6 @@
 package org.jetbrains.android.database;
 
-import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.MultiLineReceiver;
-import com.android.ddmlib.SyncService;
+import com.android.ddmlib.*;
 import com.intellij.javaee.dataSource.LoaderContext;
 import com.intellij.javaee.module.view.dataSource.DataSourceUiUtil;
 import com.intellij.javaee.module.view.dataSource.LocalDataSource;
@@ -12,16 +9,17 @@ import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.persistence.database.autoconfig.DataSourceConfigUtil;
 import com.intellij.persistence.database.autoconfig.MissingDriversNotification;
+import com.intellij.util.io.URLUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
+import java.io.*;
+import java.net.URL;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author Eugene.Kudelevsky
@@ -31,11 +29,10 @@ class AndroidDbUtil {
 
   public static final Object DB_SYNC_LOCK = new Object();
   public static final String TEMP_REMOTE_DB_PATH = "/data/local/tmp/intellij_temp_db_file";
+  public static final String TEMP_REMOTE_GET_MODIFICATION_TIME_TOOL_PATH =
+    "/data/local/tmp/intellij_native_tools/get_modification_time";
   public static final long DB_COPYING_TIMEOUT_SEC = 30;
   public static final int SHELL_COMMAND_TIMEOUT_SECONDS = 2;
-  private static final Pattern LS_L_OUTPUT_PATTERN = Pattern.compile(
-    "^([bcdlsp-][-r][-w][-xsS][-r][-w][-xsS][-r][-w][-xstST])\\s+(\\S+)\\s+(\\S+)\\s+" +
-    "([\\d\\s,]*)\\s+(\\d{4}-\\d\\d-\\d\\d)\\s+(\\d\\d:\\d\\d)\\s+(.*)$");
 
   private AndroidDbUtil() {
   }
@@ -175,44 +172,150 @@ class AndroidDbUtil {
     return null;
   }
 
-  @Nullable
-  public static String getRemoteDbModificationTimeAndSize(@NotNull IDevice device,
-                                                          @NotNull final String packageName,
-                                                          @NotNull String dbName,
-                                                          @NotNull AndroidDbErrorReporter errorReporter) {
-    final String command = "run-as " + packageName + " ls -l /data/data/" + packageName + "/databases/" + dbName;
-    final String result = executeSingleCommand(device, errorReporter, command);
-    return result != null ? parseModificationTimeAndSizeFromLsResult(result, errorReporter) : null;
+
+  private static boolean installGetModificationTimeTool(@NotNull IDevice device,
+                                                        @NotNull AndroidDbErrorReporter reporter,
+                                                        @NotNull ProgressIndicator progressIndicator) {
+    String abi = device.getProperty("ro.product.cpu.abi");
+
+    if (abi == null) {
+      abi = "armeabi";
+    }
+    final String urlStr = "/native_tools/" + abi + "/get_modification_time";
+    final URL url = AndroidDbUtil.class.getResource(urlStr);
+
+    if (url == null) {
+      LOG.error("Cannot find resource " + urlStr);
+      return false;
+    }
+    final String remoteToolPath = TEMP_REMOTE_GET_MODIFICATION_TIME_TOOL_PATH;
+    
+    if (!pushGetModificationTimeTool(device, url, reporter, progressIndicator, remoteToolPath)) {
+      return false;
+    }
+    final String chmodResult = executeSingleCommand(device, reporter, "chmod 755 " + remoteToolPath);
+
+    if (chmodResult == null) {
+      return false;
+    }
+    if (!chmodResult.isEmpty()) {
+      reporter.reportError(chmodResult);
+      return false;
+    }
+    return true;
+  }
+
+  private static boolean pushGetModificationTimeTool(@NotNull IDevice device,
+                                                     @NotNull URL url,
+                                                     @NotNull AndroidDbErrorReporter reporter,
+                                                     @NotNull ProgressIndicator progressIndicator,
+                                                     @NotNull String remotePath) {
+    final File toolLocalCopy;
+
+    try {
+      toolLocalCopy = FileUtil.createTempFile("android_get_modification_time_tool", "tmp");
+    }
+    catch (IOException e) {
+      reporter.reportError(e);
+      return false;
+    }
+    try {
+      if (!copyResourceToFile(url, toolLocalCopy, reporter)) {
+        return false;
+      }
+
+      try {
+        final SyncService service = device.getSyncService();
+        try {
+          service.pushFile(toolLocalCopy.getPath(), remotePath,
+                           new MySyncProgressMonitor(progressIndicator));
+        }
+        finally {
+          service.close();
+        }
+      }
+      catch (Exception e) {
+        reporter.reportError(e);
+        return false;
+      }
+    }
+    finally {
+      FileUtil.delete(toolLocalCopy);
+    }
+    return true;
+  }
+
+  private static boolean copyResourceToFile(@NotNull URL url, @NotNull File file, @NotNull AndroidDbErrorReporter reporter) {
+    try {
+      final InputStream is = new BufferedInputStream(URLUtil.openStream(url));
+      final OutputStream os = new BufferedOutputStream(new FileOutputStream(file));
+
+      try {
+        FileUtil.copy(is, os);
+      }
+      finally {
+        is.close();
+        os.close();
+      }
+    }
+    catch (IOException e) {
+      reporter.reportError(e);
+      return false;
+    }
+    return true;
   }
 
   @Nullable
-  static String getRemoteDbMd5Hash(@NotNull IDevice device,
-                                   @NotNull final String packageName,
-                                   @NotNull String dbName,
-                                   @NotNull AndroidDbErrorReporter errorReporter) {
-    final String command = "run-as " + packageName + " md5 /data/data/" + packageName + "/databases/" + dbName;
-    final String result = executeSingleCommand(device, errorReporter, command);
+  public static Long getModificationTime(@NotNull IDevice device,
+                                         @NotNull final String packageName,
+                                         @NotNull String dbName,
+                                         @NotNull AndroidDbErrorReporter errorReporter,
+                                         @NotNull ProgressIndicator progressIndicator) {
+    final String path = TEMP_REMOTE_GET_MODIFICATION_TIME_TOOL_PATH;
+    final String lsResult = executeSingleCommand(device, errorReporter, "ls " + path);
 
-    if (result == null) {
+    if (lsResult == null) {
       return null;
     }
-    if (result.startsWith("run-as:")) {
-      errorReporter.reportError(result);
-      return null;
-    }
-    final int idx = result.indexOf(' ');
+    boolean reinstalled = false;
 
-    if (idx < 0) {
-      errorReporter.reportError(result);
-      return null;
+    if (!lsResult.equals(path)) {
+      if (!installGetModificationTimeTool(device, errorReporter, progressIndicator)) {
+        return null;
+      }
+      reinstalled = true;
     }
-    final String md5Str = result.substring(0, idx);
+    Long l = doGetModificationTime(device, packageName, dbName, errorReporter);
 
-    if (md5Str.length() != 32) {
-      errorReporter.reportError(result);
+    if (l != null) {
+      return l;
+    }
+    if (!reinstalled) {
+      // get_modification_time tools seems to be broken, so reinstall it for future
+      installGetModificationTimeTool(device, errorReporter, progressIndicator);
+    }
+    return null;
+  }
+
+  @Nullable
+  private static Long doGetModificationTime(@NotNull IDevice device,
+                                            @NotNull String packageName,
+                                            @NotNull String dbName,
+                                            @NotNull AndroidDbErrorReporter errorReporter) {
+    final String command = "run-as " + packageName + " " + TEMP_REMOTE_GET_MODIFICATION_TIME_TOOL_PATH +
+                           " /data/data/" + packageName + "/databases/" + dbName;
+    final String s = executeSingleCommand(device, errorReporter, command);
+
+    if (s == null) {
       return null;
     }
-    return md5Str;
+    try {
+      return Long.parseLong(s);
+    }
+    catch (NumberFormatException e) {
+      errorReporter.reportError(s);
+      return null;
+    }
   }
 
   @Nullable
@@ -229,26 +332,6 @@ class AndroidDbUtil {
       return null;
     }
     return receiver.getOutput();
-  }
-
-  @Nullable
-  private static String parseModificationTimeAndSizeFromLsResult(@NotNull String s, @NotNull AndroidDbErrorReporter errorReporter) {
-    final Matcher matcher = LS_L_OUTPUT_PATTERN.matcher(s);
-
-    if (!matcher.matches()) {
-      errorReporter.reportError(s);
-      return null;
-    }
-    final String sizeStr = matcher.group(4);
-    final String dateStr = matcher.group(5);
-    final String timeStr = matcher.group(6);
-    final String fullDateStr = dateStr + "|" + timeStr + "|" + sizeStr;
-
-    if (sizeStr.length() == 0 || dateStr.length() == 0 || timeStr.length() == 0) {
-      LOG.error("Incorrect ls output: " + fullDateStr);
-      return null;
-    }
-    return fullDateStr;
   }
 
   public static void detectDriverAndRefresh(@NotNull Project project, @NotNull AndroidDataSource dataSource, boolean create) {
