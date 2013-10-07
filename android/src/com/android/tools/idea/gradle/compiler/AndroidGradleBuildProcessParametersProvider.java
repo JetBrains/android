@@ -27,6 +27,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.PathUtil;
 import org.gradle.tooling.ProjectConnection;
@@ -150,20 +152,29 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
 
     String gradleHome = executionSettings.getGradleHome();
     if (gradleHome != null && !gradleHome.isEmpty()) {
+      gradleHome = FileUtil.toSystemDependentName(gradleHome);
       jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_HOME_DIR_PATH, gradleHome));
     }
 
     String serviceDirectory = executionSettings.getServiceDirectory();
     if (serviceDirectory != null && !serviceDirectory.isEmpty()) {
+      serviceDirectory = FileUtil.toSystemDependentName(serviceDirectory);
       jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_SERVICE_DIR_PATH, serviceDirectory));
     }
 
-    String javaHome = executionSettings.getJavaHome();
-    if (javaHome != null && !javaHome.isEmpty()) {
-      jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_JAVA_HOME_DIR_PATH, javaHome));
+    ProjectRootManagerEx rootManager = ProjectRootManagerEx.getInstanceEx(myProject);
+    Sdk projectSdk = rootManager.getProjectSdk();
+
+    if (projectSdk != null) {
+      String javaHome = projectSdk.getHomePath();
+      if (javaHome != null && !javaHome.isEmpty()) {
+        javaHome = FileUtil.toSystemDependentName(javaHome);
+        jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_JAVA_HOME_DIR_PATH, javaHome));
+      }
     }
 
-    jvmArgs.add(createJvmArg(BuildProcessJvmArgs.PROJECT_DIR_PATH, myProject.getBasePath()));
+    String basePath = FileUtil.toSystemDependentName(myProject.getBasePath());
+    jvmArgs.add(createJvmArg(BuildProcessJvmArgs.PROJECT_DIR_PATH, basePath));
 
     boolean verboseProcessing = executionSettings.isVerboseProcessing();
     jvmArgs.add(createJvmArg(BuildProcessJvmArgs.USE_GRADLE_VERBOSE_LOGGING, String.valueOf(verboseProcessing)));
