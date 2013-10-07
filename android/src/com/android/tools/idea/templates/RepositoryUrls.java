@@ -17,7 +17,7 @@ package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
 import com.android.annotations.Nullable;
-import com.android.ide.common.repository.MavenCoordinate;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.FullRevision;
 import com.google.common.collect.ImmutableMap;
@@ -118,11 +118,11 @@ public class RepositoryUrls {
 
   /**
    * Get the file on the local filesystem that corresponds to the given maven coordinate.
-   * @param mavenCoordinate the coordinate to retrieve an archive file for
+   * @param gradleCoordinate the coordinate to retrieve an archive file for
    * @return a file pointing at the archive for the given coordinate or null if no SDK is configured
    */
   @Nullable
-  public static File getArchiveForCoordinate(MavenCoordinate mavenCoordinate) {
+  public static File getArchiveForCoordinate(GradleCoordinate gradleCoordinate) {
     SdkManager sdk = AndroidSdkUtils.tryToChooseAndroidSdk();
 
     if (sdk == null) {
@@ -131,8 +131,8 @@ public class RepositoryUrls {
 
     // Get the parameters to include in the path
     String sdkLocation = sdk.getLocation();
-    String artifactId = mavenCoordinate.getArtifactId();
-    String revision = mavenCoordinate.getFullRevision();
+    String artifactId = gradleCoordinate.getArtifactId();
+    String revision = gradleCoordinate.getFullRevision();
     RepositoryLibrary library = EXTRAS_REPOSITORY.get(artifactId);
 
     File path = new File(String.format(library.basePath, sdkLocation, library.id));
