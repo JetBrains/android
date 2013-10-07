@@ -15,6 +15,6 @@ abstract class AndroidDbErrorReporter {
     final String exceptionMessage = exception.getMessage();
     final String suffix = exceptionMessage != null && exceptionMessage.length() > 0 ? (": " + exceptionMessage) : "";
     reportError(exception.getClass().getSimpleName() + suffix);
-    LOG.debug(exception);
+    LOG.info(exception);
   }
 }
