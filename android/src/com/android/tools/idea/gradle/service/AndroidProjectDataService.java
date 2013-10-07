@@ -34,6 +34,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -116,8 +117,17 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
           }
         }
         else {
-          // This takes care of setting the project language level.
+          // This takes care of setting the project language level, but only if the current project's language level is higher than the
+          // maximum supported by this JDK.
           NewProjectUtil.applyJdkToProject(project, jdk);
+
+          // Set language level passed by Gradle.
+          if (javaLangVersion != null) {
+            LanguageLevelProjectExtension ext = LanguageLevelProjectExtension.getInstance(project);
+            if (javaLangVersion != ext.getLanguageLevel()) {
+              ext.setLanguageLevel(javaLangVersion);
+            }
+          }
         }
       }
     });
