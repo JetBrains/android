@@ -65,7 +65,7 @@ class AndroidDbUtil {
         return false;
       }
       outputReceiver = new MyShellOutputReceiver(progressIndicator);
-      device.executeShellCommand("run-as " + packageName + " cp " + TEMP_REMOTE_DB_PATH + " " + remoteDbPath,
+      device.executeShellCommand("run-as " + packageName + " cat " + TEMP_REMOTE_DB_PATH + " >" + remoteDbPath,
                                  outputReceiver, DB_COPYING_TIMEOUT_SEC, TimeUnit.SECONDS);
       output = outputReceiver.getOutput();
 
@@ -89,10 +89,8 @@ class AndroidDbUtil {
                                          @NotNull final ProgressIndicator progressIndicator,
                                          @NotNull AndroidDbErrorReporter errorReporter) {
     try {
-      device.executeShellCommand("touch " + TEMP_REMOTE_DB_PATH, new MyShellOutputReceiver(progressIndicator),
-                                 SHELL_COMMAND_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       final MyShellOutputReceiver receiver = new MyShellOutputReceiver(progressIndicator);
-      device.executeShellCommand("run-as " + packageName + " cp /data/data/" + packageName + "/databases/" + dbName + " " +
+      device.executeShellCommand("run-as " + packageName + " cat /data/data/" + packageName + "/databases/" + dbName + " >" +
                                  TEMP_REMOTE_DB_PATH, receiver,
                                  DB_COPYING_TIMEOUT_SEC, TimeUnit.SECONDS);
       final String output = receiver.getOutput();
