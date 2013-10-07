@@ -225,4 +225,9 @@ public class AndroidXmlResourcesDomTest extends AndroidDomTest {
     }
     fail();
   }
+
+  public void testJavaCompletion1() throws Throwable {
+    copyFileToProject("javaCompletion.xml");
+    doTestJavaCompletion("p1.p2");
+  }
 }
