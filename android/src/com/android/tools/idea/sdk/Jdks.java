@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sdk;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
@@ -23,6 +24,7 @@ import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
+import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
@@ -39,18 +41,17 @@ import java.util.List;
 public class Jdks {
   @Nullable
   public static Sdk chooseOrCreateJavaSdk() {
-    // JDK 7 not really needed, added it to be more consistent with IDEA's way of getting JDK.
-    return chooseOrCreateJavaSdk(JavaSdkVersion.JDK_1_6, JavaSdkVersion.JDK_1_7);
+    return chooseOrCreateJavaSdk(LanguageLevel.JDK_1_6);
   }
 
   @Nullable
-  public static Sdk chooseOrCreateJavaSdk(@NotNull JavaSdkVersion... jdkVersions) {
+  public static Sdk chooseOrCreateJavaSdk(@NotNull LanguageLevel langLevel) {
     for (Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
-      if (isApplicableJdk(sdk, jdkVersions)) {
+      if (isApplicableJdk(sdk, langLevel)) {
         return sdk;
       }
     }
-    String jdkHomePath = getJdkHomePath(jdkVersions);
+    String jdkHomePath = getJdkHomePath(langLevel);
     if (jdkHomePath != null) {
       return createJdk(jdkHomePath);
     }
@@ -58,32 +59,35 @@ public class Jdks {
   }
 
   public static boolean isApplicableJdk(@NotNull Sdk jdk) {
-    // TODO this code is from IDEA. Do we really need JDK 1.5 and 1.7?
-    return isApplicableJdk(jdk, JavaSdkVersion.JDK_1_5, JavaSdkVersion.JDK_1_6, JavaSdkVersion.JDK_1_7);
+    return isApplicableJdk(jdk, LanguageLevel.JDK_1_6);
   }
 
-  public static boolean isApplicableJdk(@NotNull Sdk jdk, @NotNull JavaSdkVersion... jdkVersions) {
+  public static boolean isApplicableJdk(@NotNull Sdk jdk, @NotNull LanguageLevel langLevel) {
     if (!(jdk.getSdkType() instanceof JavaSdk)) {
       return false;
     }
     JavaSdkVersion version = JavaSdk.getInstance().getVersion(jdk);
     if (version != null) {
-      for (JavaSdkVersion v : jdkVersions) {
-        if (!version.isAtLeast(v)) {
-          return false;
-        }
-      }
-      return true;
+      //noinspection TestOnlyProblems
+      return hasMatchingLangLevel(version, langLevel);
     }
     return false;
   }
 
   @Nullable
-  private static String getJdkHomePath(@NotNull JavaSdkVersion[] jdkVersions) {
+  private static String getJdkHomePath(@NotNull LanguageLevel langLevel) {
     Collection<String> jdkHomePaths = JavaSdk.getInstance().suggestHomePaths();
     if (jdkHomePaths.isEmpty()) {
       return null;
     }
+    //noinspection TestOnlyProblems
+    return getBestJdkHomePath(jdkHomePaths, langLevel);
+
+  }
+
+  @VisibleForTesting
+  @Nullable
+  static String getBestJdkHomePath(@NotNull Collection<String> jdkHomePaths, @NotNull LanguageLevel langLevel) {
     // Search for JDKs in both the suggest folder and all its sub folders.
     List<String> roots = Lists.newArrayList();
     for (String jdkHomePath : jdkHomePaths) {
@@ -92,7 +96,7 @@ public class Jdks {
         roots.addAll(getChildrenPaths(jdkHomePath));
       }
     }
-    return getBestJdk(roots, jdkVersions);
+    return getBestJdk(roots, langLevel);
   }
 
   @NotNull
@@ -113,15 +117,15 @@ public class Jdks {
   }
 
   @Nullable
-  private static String getBestJdk(@NotNull List<String> jdkRoots, @NotNull JavaSdkVersion[] jdkVersions) {
+  private static String getBestJdk(@NotNull List<String> jdkRoots, @NotNull LanguageLevel langLevel) {
     String bestJdk = null;
     for (String jdkRoot : jdkRoots) {
       if (JavaSdk.getInstance().isValidSdkHome(jdkRoot)) {
-        if (bestJdk == null && hasMatchingVersion(jdkRoot, jdkVersions)) {
+        if (bestJdk == null && hasMatchingLangLevel(jdkRoot, langLevel)) {
           bestJdk = jdkRoot;
         }
         else if (bestJdk != null) {
-          bestJdk = selectJdk(bestJdk, jdkRoot, jdkVersions);
+          bestJdk = selectJdk(bestJdk, jdkRoot, langLevel);
         }
       }
     }
@@ -129,24 +133,26 @@ public class Jdks {
   }
 
   @Nullable
-  private static String selectJdk(@NotNull String jdk1, @NotNull String jdk2, @NotNull JavaSdkVersion[] jdkVersions) {
-    if (hasMatchingVersion(jdk1, jdkVersions)) {
+  private static String selectJdk(@NotNull String jdk1, @NotNull String jdk2, @NotNull LanguageLevel langLevel) {
+    if (hasMatchingLangLevel(jdk1, langLevel)) {
       return jdk1;
     }
-    if (hasMatchingVersion(jdk2, jdkVersions)) {
+    if (hasMatchingLangLevel(jdk2, langLevel)) {
       return jdk2;
     }
     return null;
   }
 
-  private static boolean hasMatchingVersion(@NotNull String jdkRoot, @NotNull JavaSdkVersion[] jdkVersions) {
+  private static boolean hasMatchingLangLevel(@NotNull String jdkRoot, @NotNull LanguageLevel langLevel) {
     JavaSdkVersion version = getVersion(jdkRoot);
-    for (JavaSdkVersion v : jdkVersions) {
-      if (v.equals(version)) {
-        return true;
-      }
-    }
-    return false;
+    //noinspection TestOnlyProblems
+    return hasMatchingLangLevel(version, langLevel);
+  }
+
+  @VisibleForTesting
+  static boolean hasMatchingLangLevel(JavaSdkVersion jdkVersion, LanguageLevel langLevel) {
+    LanguageLevel max = jdkVersion.getMaxLanguageLevel();
+    return max.isAtLeast(langLevel);
   }
 
   @NotNull
