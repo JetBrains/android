@@ -2,7 +2,6 @@ package org.jetbrains.android;
 
 import com.android.resources.ResourceType;
 import com.intellij.openapi.fileTypes.StdFileTypes;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.ex.temp.TempFileSystem;
 import com.intellij.psi.PsiFile;
@@ -243,7 +242,7 @@ public class AndroidValueResourcesIndex extends FileBasedIndexExtension<Resource
     return new DefaultFileTypeSpecificInputFilter(StdFileTypes.XML) {
       @Override
       public boolean acceptInput(final VirtualFile file) {
-        return file.getFileSystem() == LocalFileSystem.getInstance() || file.getFileSystem() instanceof TempFileSystem;
+        return file.isInLocalFileSystem() || file.getFileSystem() instanceof TempFileSystem;
       }
     };
   }
