@@ -168,7 +168,7 @@ public class AndroidDbManager extends DbPsiManagerSpi {
     final AndroidDataSourceStorage storage = AndroidDataSourceStorage.getInstance(project);
     storage.removeDataSource(dataSource);
     elementMap.remove(dataSource);
-    clearCaches(dataSource);
+    clearCaches(null);
   }
 
   private void addDataSourceInner(final Project project, final AndroidDataSource dataSource) {
@@ -177,11 +177,11 @@ public class AndroidDbManager extends DbPsiManagerSpi {
     final AndroidDataSourceStorage storage = AndroidDataSourceStorage.getInstance(project);
     storage.addDataSource(dataSource);
     elementMap.put(dataSource, createDataSourceElement(facade, this, dataSource));
-    clearCaches(dataSource);
+    clearCaches(null);
   }
 
-  private void clearCaches(final DataSourceInfo info) {
-    myDbFacade.clearCaches(myDbFacade.findDataSource(info.getUniqueId()));
+  private void clearCaches(@Nullable final DataSourceInfo info) {
+    myDbFacade.clearCaches(info != null ? myDbFacade.findDataSource(info.getUniqueId()) : null);
   }
 
   private static DbDataSourceElement createDataSourceElement(final DbPsiFacade facade,
