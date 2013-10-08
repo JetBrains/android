@@ -8,10 +8,12 @@ import com.intellij.persistence.database.DataSourceInfo;
 import com.intellij.util.ui.classpath.SimpleClasspathElement;
 import com.intellij.util.ui.classpath.SimpleClasspathElementFactory;
 import com.intellij.util.xmlb.annotations.Tag;
+import icons.AndroidIcons;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -129,6 +131,11 @@ class AndroidDataSource extends LocalDataSource implements DataSourceInfo, Modif
       copy[i] = list[i].clone();
     }
     return copy;
+  }
+
+  @Override
+  public Icon getIcon(@IconFlags int flags) {
+    return AndroidIcons.Android;
   }
 
   @Tag("data-source")
