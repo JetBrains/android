@@ -1,0 +1,31 @@
+package org.jetbrains.android.database;
+
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
+import com.intellij.openapi.project.Project;
+import org.jetbrains.annotations.NotNull;
+
+/**
+* @author Eugene.Kudelevsky
+*/
+class AndroidDbErrorReporterImpl extends AndroidDbErrorReporter {
+  private final Project myProject;
+  private final AndroidDataSource myDataSource;
+  private final boolean myUpload;
+
+  public AndroidDbErrorReporterImpl(@NotNull Project project, @NotNull AndroidDataSource dataSource, boolean upload) {
+    myProject = project;
+    myDataSource = dataSource;
+    myUpload = upload;
+  }
+
+  @Override
+  public void reportError(@NotNull String message) {
+    final Notification notification = new Notification(
+      AndroidDbManager.NOTIFICATION_GROUP_ID, "Data Source Synchronization Error",
+      "Cannot " + (myUpload ? "upload" : "synchronize") + " '" + myDataSource.getName() + "': " + message,
+      NotificationType.ERROR);
+    Notifications.Bus.notify(notification, myProject);
+  }
+}

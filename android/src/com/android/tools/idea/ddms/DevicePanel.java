@@ -128,25 +128,7 @@ public class DevicePanel implements Disposable,
         myDeviceContext.fireClientSelected(null);
       }
     });
-    myDevicesComboBox.setRenderer(new ColoredListCellRenderer() {
-      @Override
-      protected void customizeCellRenderer(JList list,
-                                           Object value,
-                                           int index,
-                                           boolean selected,
-                                           boolean hasFocus) {
-        if (value instanceof String) {
-          append((String)value, SimpleTextAttributes.ERROR_ATTRIBUTES);
-        } else if (value instanceof IDevice) {
-          IDevice d = (IDevice)value;
-          setIcon(d.isEmulator() ? AndroidIcons.Ddms.Emulator2 : AndroidIcons.Ddms.RealDevice);
-          List<Pair<String, SimpleTextAttributes>> components = renderDeviceName(d);
-          for (Pair<String, SimpleTextAttributes> c : components) {
-            append(c.getFirst(), c.getSecond());
-          }
-        }
-      }
-    });
+    myDevicesComboBox.setRenderer(new DeviceComboBoxRenderer());
 
     IDevice[] devices = myBridge.getDevices();
     if (devices.length == 0) {

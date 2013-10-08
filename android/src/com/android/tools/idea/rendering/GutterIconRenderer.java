@@ -18,7 +18,7 @@ package com.android.tools.idea.rendering;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -26,7 +26,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,7 +61,7 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
     return new AnAction() {
       @Override
       public void actionPerformed(AnActionEvent e) {
-        final Editor editor = PlatformDataKeys.EDITOR.getData(e.getDataContext());
+        final Editor editor = CommonDataKeys.EDITOR.getData(e.getDataContext());
         if (editor != null) {
           Project project = editor.getProject();
           VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(myFile);
