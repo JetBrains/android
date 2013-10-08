@@ -26,6 +26,10 @@ class OpenFileHyperlink extends NotificationHyperlink {
   @NotNull private final String myFilePath;
   private final int myLine;
 
+  /**
+   * Creates a file hyperlink. The line number should be 0-based. The file path should be a file system dependent
+   * path.
+   */
   OpenFileHyperlink(@NotNull final String filePath, final int line) {
     super("openFile", "Open File");
     myFilePath = FileUtil.toSystemIndependentName(filePath);
