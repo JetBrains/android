@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle;
 
 import com.android.builder.model.AndroidProject;
+import com.android.builder.model.BuildTypeContainer;
 import com.android.builder.model.JavaCompileOptions;
 import com.android.builder.model.Variant;
 import com.google.common.base.Preconditions;
@@ -123,5 +124,45 @@ public class IdeaAndroidProject implements Serializable {
       // This happens when using an old but supported v0.5.+ plug-in. This code will be removed once the minimum supported version is 0.6.0.
       return null;
     }
+  }
+
+  /**
+   * Computes the package name to be used for the current variant in the given project.
+   *
+   * @param project the project
+   * @param manifestPackage the manifest package, if known
+   * @return the package for the current variant (and is only null if the user's project is configured incorrectly)
+   */
+  @Nullable
+  public static String computePackageName(@NotNull IdeaAndroidProject project, @Nullable String manifestPackage) {
+    return computePackageName(project, project.getSelectedVariant(), manifestPackage);
+  }
+
+  /**
+   * Computes the package name to be used for the given project, if specified in the Gradle files.
+   *
+   * @param project the project
+   * @param variant the variant to compute the package name for
+   * @param manifestPackage the manifest package, if known
+   * @return the package for the given variant (and is only null if the user's project is configured incorrectly)
+   */
+  @Nullable
+  public static String computePackageName(@NotNull IdeaAndroidProject project,
+                                          @NotNull Variant variant,
+                                          @Nullable String manifestPackage) {
+    String packageName = variant.getMergedFlavor().getPackageName();
+    if (packageName == null) {
+      packageName = manifestPackage;
+    }
+    if (packageName != null) {
+      String buildTypeName = variant.getBuildType();
+      BuildTypeContainer buildTypeContainer = project.getDelegate().getBuildTypes().get(buildTypeName);
+      String packageNameSuffix = buildTypeContainer.getBuildType().getPackageNameSuffix();
+      if (packageNameSuffix != null && !packageNameSuffix.isEmpty()) {
+        packageName += packageNameSuffix;
+      }
+    }
+
+    return packageName;
   }
 }
