@@ -143,7 +143,8 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
               String filePath = errorLocation.getFirst();
               int line = errorLocation.getSecond();
               //noinspection TestOnlyProblems
-              return createNotification(project, msg, new OpenFileHyperlink(filePath, line), new SearchInBuildFilesHyperlink(dependency));
+              return createNotification(project, msg, new OpenFileHyperlink(filePath, line - 1),
+                                        new SearchInBuildFilesHyperlink(dependency));
             }
           }
           //noinspection TestOnlyProblems
@@ -162,7 +163,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
           String filePath = errorLocation.getFirst();
           int line = errorLocation.getSecond();
           //noinspection TestOnlyProblems
-          return createNotification(project, msg, new OpenFileHyperlink(filePath, line));
+          return createNotification(project, msg, new OpenFileHyperlink(filePath, line - 1));
         }
       }
     }
