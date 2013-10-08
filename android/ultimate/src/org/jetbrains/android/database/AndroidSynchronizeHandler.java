@@ -3,7 +3,7 @@ package org.jetbrains.android.database;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.intellij.CommonBundle;
-import com.intellij.javaee.dataSource.SynchronizeHandler;
+import com.intellij.persistence.database.SynchronizeHandler;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
