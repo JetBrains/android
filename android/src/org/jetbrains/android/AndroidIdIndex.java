@@ -18,7 +18,6 @@ package org.jetbrains.android;
 import com.android.SdkConstants;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.ex.temp.TempFileSystem;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.indexing.*;
@@ -129,7 +128,7 @@ public class AndroidIdIndex extends FileBasedIndexExtension<String, Set<String>>
     return new DefaultFileTypeSpecificInputFilter(StdFileTypes.XML) {
       @Override
       public boolean acceptInput(final VirtualFile file) {
-        return file.isInLocalFileSystem() || file.getFileSystem() instanceof TempFileSystem;
+        return file.isInLocalFileSystem();
       }
     };
   }
