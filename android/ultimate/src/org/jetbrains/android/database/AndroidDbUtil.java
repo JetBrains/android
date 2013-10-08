@@ -336,11 +336,11 @@ class AndroidDbUtil {
     return receiver.getOutput();
   }
 
-  public static void detectDriverAndRefresh(@NotNull Project project, @NotNull AndroidDataSource dataSource, boolean create) {
+  public static void detectDriverAndRefresh(@NotNull Project project, @NotNull AndroidDataSource dataSource) {
     if (!DataSourceConfigUtil.detectDriverClassPath(project, dataSource.getDriverClass(), dataSource.getClasspathElements())) {
       final String message =
         "<html><body><font face=\"verdana\">\n" +
-        "<font size=\"3\">Android SQLite data source is " + (create ? "created" : "updated") + ", but some<br>\n" +
+        "<font size=\"3\">Android SQLite data source is updated, but some<br>\n" +
         "additional drivers are required for " + ApplicationNamesInfo.getInstance().getProductName() + "<br>\n" +
         "to connect to the database<br>\n" +
         "<a href=\"create\">Download drivers</a><br>\n" +
