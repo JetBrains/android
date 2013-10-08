@@ -129,7 +129,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
                                                   @NotNull final ExternalSystemTaskNotificationListener listener) {
     // skip preview stage, the default implementation (GradleProjectResolver#) will be used
     // this can be changed if Android-specific issues should be taken into account during resolving of the 'preview' model
-    if(isPreviewMode) return null;
+    // if(isPreviewMode) return null;
 
     // to skip any further resolve processing (even default one) throw com.intellij.openapi.externalSystem.service.ImportCanceledException
     // e.g.:
