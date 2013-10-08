@@ -228,8 +228,13 @@ public abstract class AndroidLogcatView implements Disposable {
       group1.addAll(toolbarActions);
     }
     group1.add(new MyRestartAction());
-    final JComponent tbComp1 =
-      ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group1, false).getComponent();
+    final ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group1, false);
+    final ConsoleView console = myLogConsole.getConsole();
+
+    if (console != null) {
+      toolbar.setTargetComponent(console.getComponent());
+    }
+    final JComponent tbComp1 = toolbar.getComponent();
     myPanel.add(tbComp1, BorderLayout.EAST);
 
     myPanel.add(consoleComponent, BorderLayout.CENTER);
