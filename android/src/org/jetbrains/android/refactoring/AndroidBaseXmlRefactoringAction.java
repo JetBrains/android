@@ -3,6 +3,7 @@ package org.jetbrains.android.refactoring;
 import com.intellij.lang.Language;
 import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.editor.Editor;
@@ -175,7 +176,7 @@ abstract class AndroidBaseXmlRefactoringAction extends BaseRefactoringAction {
         if (data != null) {
           return data;
         }
-        if (LangDataKeys.PSI_ELEMENT.is(dataId)) {
+        if (CommonDataKeys.PSI_ELEMENT.is(dataId)) {
           final XmlTag[] tags = getXmlTagsFromExternalContext(context);
           return tags.length == 1 ? tags[0] : null;
         }

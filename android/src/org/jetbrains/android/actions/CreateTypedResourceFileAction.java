@@ -20,6 +20,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.rendering.ResourceNameValidator;
 import com.intellij.CommonBundle;
 import com.intellij.ide.actions.CreateElementActionBase;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
@@ -154,7 +155,7 @@ public class CreateTypedResourceFileAction extends CreateElementActionBase {
   }
 
   static boolean doIsAvailable(DataContext context, final String resourceType) {
-    final PsiElement element = (PsiElement)context.getData(LangDataKeys.PSI_ELEMENT.getName());
+    final PsiElement element = (PsiElement)context.getData(CommonDataKeys.PSI_ELEMENT.getName());
     if (element == null || AndroidFacet.getInstance(element) == null) {
       return false;
     }
