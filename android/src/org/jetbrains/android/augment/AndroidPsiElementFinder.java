@@ -38,7 +38,9 @@ public class AndroidPsiElementFinder extends PsiElementFinder {
 
       @Override
       public void jdkRemoved(final Sdk sdk) {
-        myInternalRClasses.remove(sdk);
+        synchronized (myLock) {
+          myInternalRClasses.remove(sdk);
+        }
       }
 
       @Override
