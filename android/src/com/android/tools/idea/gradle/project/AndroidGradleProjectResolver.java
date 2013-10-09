@@ -68,6 +68,8 @@ import java.io.File;
 import java.net.URL;
 import java.util.*;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_PLUGIN_MINIMUM_VERSION;
+
 /**
  * Imports Android-Gradle projects into IDEA.
  */
@@ -79,7 +81,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   @NonNls private static final String UNSUPPORTED_MODEL_VERSION_ERROR = String.format(
     "Project is using an old version of the Android Gradle plug-in. The minimum supported version is %1$s.\n\n" +
     "Please update the version of the dependency 'com.android.tools.build:gradle' in your build.gradle files.",
-    GradleModelVersionCheck.MINIMUM_SUPPORTED_VERSION.toString());
+    GRADLE_PLUGIN_MINIMUM_VERSION);
 
   @NotNull private final GradleExecutionHelper myHelper;
   @NotNull private final ProjectImportErrorHandler myErrorHandler;

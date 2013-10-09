@@ -16,6 +16,8 @@
 package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.intellij.ide.util.projectWizard.ModuleBuilder;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
@@ -44,7 +46,7 @@ import static com.android.tools.idea.wizard.NewProjectWizardState.ATTR_MODULE_NA
 public class TemplateWizardModuleBuilder extends ModuleBuilder implements TemplateWizardStep.UpdateListener {
   private static final Logger LOG = Logger.getInstance("#" + TemplateWizardModuleBuilder.class.getName());
   private final TemplateMetadata myMetadata;
-  final List<ModuleWizardStep> mySteps;
+  @NotNull final List<ModuleWizardStep> mySteps;
   private Project myProject;
 
   NewModuleWizardState myWizardState;
@@ -59,7 +61,7 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
                                      @Nullable TemplateMetadata metadata,
                                      @NotNull Project project,
                                      @Nullable Icon sidePanelIcon,
-                                     List<ModuleWizardStep> steps,
+                                     @NotNull List<ModuleWizardStep> steps,
                                      boolean hideModuleName) {
     myMetadata = metadata;
     myProject = project;
@@ -96,8 +98,8 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
     mySteps.add(myActivityTemplateParameterStep);
 
     myWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
-    myWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, TemplateMetadata.GRADLE_VERSION);
-    myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, TemplateMetadata.GRADLE_PLUGIN_VERSION);
+    myWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, GradleUtil.GRADLE_LATEST_VERSION);
+    myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GradleUtil.GRADLE_PLUGIN_LATEST_VERSION);
     myWizardState.put(TemplateMetadata.ATTR_V4_SUPPORT_LIBRARY_VERSION, TemplateMetadata.V4_SUPPORT_LIBRARY_VERSION);
 
     update();
@@ -108,14 +110,14 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
   @Nullable
   @Override
   public String getBuilderId() {
+    assert myMetadata != null;
     return myMetadata.getTitle();
   }
-
 
   @Override
   @NotNull
   public ModuleWizardStep[] createWizardSteps(@NotNull WizardContext wizardContext, @NotNull ModulesProvider modulesProvider) {
-    return mySteps.toArray(new ModuleWizardStep[] {});
+    return mySteps.toArray(new ModuleWizardStep[mySteps.size()]);
   }
 
   @Override
@@ -125,11 +127,11 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
     }
     myConfigureAndroidModuleStep.setVisible(myWizardState.myIsAndroidModule);
     myTemplateParameterStep.setVisible(!myWizardState.myIsAndroidModule);
-    myLauncherIconStep.setVisible(myWizardState.myIsAndroidModule && (Boolean)myWizardState.get(TemplateMetadata.ATTR_CREATE_ICONS));
+    myLauncherIconStep.setVisible(myWizardState.myIsAndroidModule && myWizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS));
     myChooseActivityStep.setVisible(
-      myWizardState.myIsAndroidModule && (Boolean)myWizardState.get(NewProjectWizardState.ATTR_CREATE_ACTIVITY));
+      myWizardState.myIsAndroidModule && myWizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY));
     myActivityTemplateParameterStep.setVisible(
-      myWizardState.myIsAndroidModule && (Boolean)myWizardState.get(NewProjectWizardState.ATTR_CREATE_ACTIVITY));
+      myWizardState.myIsAndroidModule && myWizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY));
   }
 
   @Override
@@ -168,16 +170,19 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
     try {
       myWizardState.populateDirectoryParameters();
       File projectRoot = new File(myProject.getBasePath());
-      File moduleRoot = new File(projectRoot, (String)myWizardState.get(NewProjectWizardState.ATTR_MODULE_NAME));
+      File moduleRoot = new File(projectRoot, myWizardState.getString(NewProjectWizardState.ATTR_MODULE_NAME));
+      // TODO: handle return type of "mkdirs".
       projectRoot.mkdirs();
-      if (myLauncherIconStep.isStepVisible() && (Boolean)myWizardState.get(TemplateMetadata.ATTR_CREATE_ICONS)) {
+      if (myLauncherIconStep.isStepVisible() && myWizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS)) {
         myWizardState.getLauncherIconState().outputImages(moduleRoot);
       }
       myWizardState.updateParameters();
       myWizardState.myTemplate.render(projectRoot, moduleRoot, myWizardState.myParameters);
-      if (myActivityTemplateParameterStep.isStepVisible() && (Boolean)myWizardState.get(NewProjectWizardState.ATTR_CREATE_ACTIVITY)) {
-        myWizardState.getActivityTemplateState().getTemplate()
-          .render(moduleRoot, moduleRoot, myWizardState.getActivityTemplateState().myParameters);
+      if (myActivityTemplateParameterStep.isStepVisible() && myWizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY)) {
+        TemplateWizardState activityTemplateState = myWizardState.getActivityTemplateState();
+        Template template = activityTemplateState.getTemplate();
+        assert template != null;
+        template.render(moduleRoot, moduleRoot, activityTemplateState.myParameters);
       }
       GradleProjectImporter.getInstance().reImportProject(myProject, null);
     } catch (Exception e) {
