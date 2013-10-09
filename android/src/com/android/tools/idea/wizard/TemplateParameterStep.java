@@ -15,27 +15,35 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.tools.idea.templates.Parameter;
+import com.google.common.io.Files;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
-import com.android.tools.idea.templates.Parameter;
 import com.intellij.uiDesigner.core.Spacer;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-
 import javax.swing.*;
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
 
 /**
  * TemplateParameterStep is a step in new project or add module wizards that pulls eligible parameters from the template being run
  * and puts up a UI to let the user edit those parameters.
  */
 public class TemplateParameterStep extends TemplateWizardStep {
+  private static final Logger LOG = Logger.getInstance(TemplateParameterStep.class);
+
   private JPanel myParamContainer;
   private JPanel myContainer;
   private JLabel myDescription;
   private JLabel myError;
   private JComponent myPreferredFocusComponent;
+  private ImageComponent myTemplateImage;
+  private String myCurrentThumb;
 
   public TemplateParameterStep(TemplateWizardState state, @Nullable Project project, @Nullable Icon sidePanelIcon,
                                UpdateListener updateListener) {
@@ -48,7 +56,7 @@ public class TemplateParameterStep extends TemplateWizardStep {
     myPreferredFocusComponent = null;
     int row = 0;
     Collection<Parameter> parameters = myTemplateState.getTemplateMetadata().getParameters();
-    myParamContainer.setLayout(new GridLayoutManager(parameters.size() + 1, 3));
+    myParamContainer.setLayout(new GridLayoutManager(parameters.size() + 2, 3));
     GridConstraints c = new GridConstraints();
     c.setVSizePolicy(GridConstraints.SIZEPOLICY_FIXED);
     c.setAnchor(GridConstraints.ANCHOR_WEST);
@@ -102,12 +110,51 @@ public class TemplateParameterStep extends TemplateWizardStep {
           break;
       }
     }
+    if (myTemplateState.getTemplateMetadata().getThumbnailPath() != null) {
+      JLabel label = new JLabel("Preview");
+      c.setColumn(0);
+      c.setRow(row++);
+      c.setColSpan(1);
+      myParamContainer.add(label, c);
+
+      c.setColumn(1);
+      c.setColSpan(2);
+      c.setFill(GridConstraints.FILL_NONE);
+      myTemplateImage = new ImageComponent(null);
+      myParamContainer.add(myTemplateImage, c);
+
+      Dimension d = new Dimension(256, 256);
+      myTemplateImage.setPreferredSize(d);
+      myTemplateImage.setMinimumSize(d);
+      deriveValues();
+    }
+    c.setFill(GridConstraints.FILL_HORIZONTAL);
     c.setHSizePolicy(GridConstraints.SIZEPOLICY_WANT_GROW);
     c.setVSizePolicy(GridConstraints.SIZEPOLICY_WANT_GROW);
     c.setRow(row);
+    c.setRowSpan(1);
     c.setColSpan(1);
     c.setColumn(2);
     myParamContainer.add(new Spacer(), c);
+  }
+
+  @Override
+  protected void deriveValues() {
+    String thumb = myTemplateState.getTemplateMetadata().getThumbnailPath(myTemplateState);
+    // Only show new image if we have something to show (and skip decoding if it's the same image we already have)
+    if (thumb != null && !thumb.isEmpty() && !thumb.equals(myCurrentThumb)) {
+      File file = new File(myTemplateState.myTemplate.getRootPath(), thumb.replace('/', File.separatorChar));
+      try {
+        byte[] bytes = Files.toByteArray(file);
+        ImageIcon previewImage = new ImageIcon(bytes);
+        myTemplateImage.setIcon(previewImage);
+        myCurrentThumb = thumb;
+      }
+      catch (IOException e) {
+        LOG.warn(e);
+      }
+    }
+    setDescriptionHtml(myTemplateState.getTemplateMetadata().getDescription());
   }
 
   @Override
