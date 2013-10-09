@@ -51,7 +51,9 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     myProject = project;
     myModule = module;
     myTemplateCategory = templateCategory;
-    if (invocationTarget.isDirectory()) {
+    if (invocationTarget == null) {
+      myTargetFolder = null;
+    } else if (invocationTarget.isDirectory()) {
       myTargetFolder = invocationTarget;
     } else {
       myTargetFolder = invocationTarget.getParent();
@@ -77,8 +79,10 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     String moduleName = new File(myModule.getModuleFilePath()).getParentFile().getName();
     myWizardState.put(NewProjectWizardState.ATTR_MODULE_NAME, moduleName);
 
-    myWizardState.myHidden.add(TemplateMetadata.ATTR_PACKAGE_NAME);
-    myWizardState.put(TemplateMetadata.ATTR_PACKAGE_ROOT, myTargetFolder.getPath());
+    if (myTargetFolder != null) {
+      myWizardState.myHidden.add(TemplateMetadata.ATTR_PACKAGE_NAME);
+      myWizardState.put(TemplateMetadata.ATTR_PACKAGE_ROOT, myTargetFolder.getPath());
+    }
 
     myWizardState.myFinal.add(TemplateMetadata.ATTR_PACKAGE_ROOT);
 
