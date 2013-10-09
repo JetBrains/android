@@ -8,17 +8,20 @@ import com.android.utils.Pair;
 import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
 import com.intellij.pom.PomTarget;
 import com.intellij.pom.PomTargetPsiElement;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.impl.FakePsiElement;
-import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.util.*;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlToken;
+import com.intellij.reference.SoftReference;
+import com.intellij.util.containers.HashMap;
 import com.intellij.util.xml.*;
 import com.intellij.util.xml.reflect.DomAttributeChildDescription;
 import com.intellij.util.xml.reflect.DomExtension;
@@ -44,6 +47,9 @@ import static com.intellij.psi.xml.XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN;
  * @author Eugene.Kudelevsky
  */
 public class AndroidXmlDocumentationProvider implements DocumentationProvider {
+  private static final Key<SoftReference<Map<XmlName, CachedValue<String>>>> ANDROID_ATTRIBUTE_DOCUMENTATION_CACHE_KEY =
+    Key.create("ANDROID_ATTRIBUTE_DOCUMENTATION_CACHE");
+
   @Override
   public String getQuickNavigateInfo(PsiElement element, PsiElement originalElement) {
     if (element instanceof LazyValueResourceElementWrapper) {
@@ -114,7 +120,9 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       final PomTarget target = ((PomTargetPsiElement)element).getTarget();
 
       if (target instanceof DomAttributeChildDescription) {
-        return generateDocForXmlAttribute((DomAttributeChildDescription)target, originalElement);
+        synchronized (ANDROID_ATTRIBUTE_DOCUMENTATION_CACHE_KEY) {
+          return generateDocForXmlAttribute((DomAttributeChildDescription)target, originalElement);
+        }
       }
     }
 
@@ -125,13 +133,24 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
   }
 
   @Nullable
-  private static String generateDocForXmlAttribute(@NotNull DomAttributeChildDescription description, @NotNull PsiElement originalElement) {
+  private static String generateDocForXmlAttribute(@NotNull DomAttributeChildDescription description, @NotNull final PsiElement originalElement) {
+    final XmlName xmlName = description.getXmlName();
+
+    Map<XmlName, CachedValue<String>> cachedDocsMap = SoftReference.dereference(
+      originalElement.getUserData(ANDROID_ATTRIBUTE_DOCUMENTATION_CACHE_KEY));
+
+    if (cachedDocsMap != null) {
+      final CachedValue<String> cachedDoc = cachedDocsMap.get(xmlName);
+
+      if (cachedDoc != null) {
+        return cachedDoc.getValue();
+      }
+    }
     final AndroidFacet facet = AndroidFacet.getInstance(originalElement);
 
     if (facet == null) {
       return null;
     }
-    final XmlName xmlName = description.getXmlName();
     final String localName = xmlName.getLocalName();
     String namespace = xmlName.getNamespaceKey();
 
@@ -143,20 +162,38 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     }
 
     if (namespace.startsWith(AndroidDomExtender.ANDROID_NS_PREFIX)) {
-      final Pair<AttributeDefinition, String> pair = findAttributeDefinition(originalElement, facet, namespace, localName);
+      final String finalNamespace = namespace;
 
-      if (pair != null) {
-        return generateDocForXmlAttribute(pair.getFirst(), pair.getSecond());
+      final CachedValue<String> cachedValue = CachedValuesManager.getManager(originalElement.getProject()).createCachedValue(
+        new CachedValueProvider<String>() {
+          @Nullable
+          @Override
+          public Result<String> compute() {
+            final Pair<AttributeDefinition, String> pair = findAttributeDefinition(originalElement, facet, finalNamespace, localName);
+            final String doc = pair != null ? generateDocForXmlAttribute(pair.getFirst(), pair.getSecond()) : null;
+            return Result.create(doc, PsiModificationTracker.MODIFICATION_COUNT);
+          }
+        }, false);
+      if (cachedDocsMap == null) {
+        cachedDocsMap = new HashMap<XmlName, CachedValue<String>>();
+        originalElement.putUserData(ANDROID_ATTRIBUTE_DOCUMENTATION_CACHE_KEY,
+                                    new SoftReference<Map<XmlName, CachedValue<String>>>(cachedDocsMap));
       }
+      cachedDocsMap.put(xmlName, cachedValue);
+      return cachedValue.getValue();
     }
     return null;
   }
 
-  private static Pair<AttributeDefinition, String> findAttributeDefinition(@NotNull PsiElement context,
+  @Nullable
+  private static Pair<AttributeDefinition, String> findAttributeDefinition(@NotNull PsiElement originalElement,
                                                                            @NotNull AndroidFacet facet,
                                                                            @NotNull final String namespace,
                                                                            @NotNull final String localName) {
-    final XmlTag parentTag = PsiTreeUtil.getParentOfType(context, XmlTag.class);
+    if (!originalElement.isValid()) {
+      return null;
+    }
+    final XmlTag parentTag = PsiTreeUtil.getParentOfType(originalElement, XmlTag.class);
 
     if (parentTag == null) {
       return null;
