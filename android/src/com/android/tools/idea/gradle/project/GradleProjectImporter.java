@@ -49,6 +49,7 @@ import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataMan
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
+import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -117,7 +118,7 @@ public class GradleProjectImporter {
   public void reImportProject(@NotNull final Project project, @Nullable Callback callback) throws ConfigurationException {
     if (Projects.isGradleProject(project) || hasTopLevelGradleBuildFile(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
-      doImport(project, false /* existing project */, false /* asynchronous import */, callback);
+      doImport(project, false /* existing project */, ProgressExecutionMode.IN_BACKGROUND_ASYNC /* asynchronous import */, callback);
     }
     else {
       Runnable notificationTask = new Runnable() {
@@ -171,7 +172,7 @@ public class GradleProjectImporter {
 
     Projects.setProjectBuildMode(newProject, BuildMode.REBUILD);
 
-    doImport(newProject, true /* new project */, true /* synchronous import */, callback);
+    doImport(newProject, true /* new project */, ProgressExecutionMode.MODAL_SYNC /* synchronous import */, callback);
   }
 
   private static void createTopLevelBuildFileIfNotExisting(@NotNull File projectRootDir) throws IOException {
@@ -230,7 +231,7 @@ public class GradleProjectImporter {
     gradleSettings.setLinkedProjectsSettings(ImmutableList.of(projectSettings));
   }
 
-  private void doImport(@NotNull final Project project, final boolean newProject, boolean modal, @Nullable final Callback callback)
+  private void doImport(@NotNull final Project project, final boolean newProject, @NotNull final ProgressExecutionMode progressExecutionMode, @Nullable final Callback callback)
     throws ConfigurationException {
     myDelegate.importProject(project, new ExternalProjectRefreshCallback() {
       @Override
@@ -278,7 +279,7 @@ public class GradleProjectImporter {
           callback.importFailed(project, newMessage);
         }
       }
-    }, modal);
+    }, progressExecutionMode);
   }
 
   private static void populateProject(@NotNull final Project newProject, @NotNull final DataNode<ProjectData> projectInfo) {
@@ -355,10 +356,10 @@ public class GradleProjectImporter {
 
   // Makes it possible to mock invocations to the Gradle Tooling API.
   static class ImporterDelegate {
-    void importProject(@NotNull Project project, @NotNull ExternalProjectRefreshCallback callback, boolean modal)
+    void importProject(@NotNull Project project, @NotNull ExternalProjectRefreshCallback callback, @NotNull final ProgressExecutionMode progressExecutionMode)
       throws ConfigurationException {
       try {
-        ExternalSystemUtil.refreshProject(project, SYSTEM_ID, project.getBasePath(), callback, false, modal, true);
+        ExternalSystemUtil.refreshProject(project, SYSTEM_ID, project.getBasePath(), callback, true, progressExecutionMode, true);
       }
       catch (RuntimeException e) {
         String externalSystemName = SYSTEM_ID.getReadableName();

@@ -1,0 +1,30 @@
+<idea-plugin url="http://www.jetbrains.com/idea">
+  <application-components>
+    <component>
+      <implementation-class>org.jetbrains.android.database.AndroidDataSourceApplicationComponent</implementation-class>
+      <interface-class>org.jetbrains.android.database.AndroidDataSourceApplicationComponent</interface-class>
+    </component>
+  </application-components>
+  <project-components>
+    <component>
+      <implementation-class>org.jetbrains.android.database.AndroidDataSourceProjectComponent</implementation-class>
+      <skipForDefaultProject/>
+    </component>
+  </project-components>
+
+  <actions>
+    <action id="Android.UploadDatabase" class="org.jetbrains.android.database.AndroidUploadDatabaseAction" text="Upload"
+            description="Uploads database to related device">
+      <add-to-group group-id="DatabaseViewPopupMenu" anchor="after" relative-to-action="DatabaseView.SynchronizeAction"/>
+    </action>
+  </actions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <persistence.database.dbPsiManager implementation="org.jetbrains.android.database.AndroidDbManager"/>
+    <projectService serviceInterface="org.jetbrains.android.database.AndroidDataSourceStorage"
+                    serviceImplementation="org.jetbrains.android.database.AndroidDataSourceStorage"/>
+    <applicationService serviceInterface="org.jetbrains.android.database.AndroidRemoteDataBaseManager"
+                        serviceImplementation="org.jetbrains.android.database.AndroidRemoteDataBaseManager"/>
+    <persistence.database.synchronizeHandler implementation="org.jetbrains.android.database.AndroidSynchronizeHandler"/>
+  </extensions>
+</idea-plugin>

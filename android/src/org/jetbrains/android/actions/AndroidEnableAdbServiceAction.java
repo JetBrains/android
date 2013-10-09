@@ -21,6 +21,7 @@ import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.application.ApplicationManager;
@@ -68,7 +69,7 @@ public class AndroidEnableAdbServiceAction extends ToggleAction {
 
   @Override
   public void setSelected(AnActionEvent e, boolean state) {
-    Project project = e.getData(PlatformDataKeys.PROJECT);
+    Project project = e.getData(CommonDataKeys.PROJECT);
     if (state) {
       setAdbServiceEnabled(project, true);
     }
@@ -132,7 +133,7 @@ public class AndroidEnableAdbServiceAction extends ToggleAction {
   @Override
   public void update(AnActionEvent e) {
     super.update(e);
-    final Project project = e.getData(PlatformDataKeys.PROJECT);
+    final Project project = e.getData(CommonDataKeys.PROJECT);
     e.getPresentation().setEnabled(project != null && ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).size() > 0);
   }
 }
