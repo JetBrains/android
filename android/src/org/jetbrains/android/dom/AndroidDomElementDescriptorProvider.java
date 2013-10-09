@@ -60,7 +60,7 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
     if (facet == null) return null;
     final String name = domElement.getXmlTag().getName();
     final PsiClass aClass = baseClassName != null
-                            ? facet.getClassMap(baseClassName, SimpleClassMapConstructor.getInstance()).get(name)
+                            ? SimpleClassMapConstructor.findClassByTagName(facet, name, baseClassName)
                             : null;
     final Icon icon = getIconForTag(name, domElement);
 
