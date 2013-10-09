@@ -27,6 +27,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiExpression;
 import com.intellij.psi.PsiMethodCallExpression;
 import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
+import com.intellij.psi.xml.XmlAttributeValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -95,7 +96,7 @@ class InlinedResource implements ModificationTracker {
             if (myElement instanceof PsiMethodCallExpression) {
               text = insertArguments((PsiMethodCallExpression)myElement, text);
             }
-            if (myType == ResourceType.STRING) {
+            if (myType == ResourceType.STRING || myElement instanceof XmlAttributeValue) {
               return '"' + StringUtil.shortenTextWithEllipsis(text, FOLD_MAX_LENGTH - 2, 0) + '"';
             } else {
               return StringUtil.shortenTextWithEllipsis(text, FOLD_MAX_LENGTH, 0);
