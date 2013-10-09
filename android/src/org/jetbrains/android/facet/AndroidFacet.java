@@ -69,6 +69,10 @@ import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
+import com.intellij.psi.util.CachedValue;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.psi.util.PsiModificationTracker;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
@@ -110,8 +114,10 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private SystemResourceManager myFullSystemResourceManager;
   private LocalResourceManager myLocalResourceManager;
 
-  private final Map<String, Map<String, SmartPsiElementPointer<PsiClass>>> myClassMaps =
+  private final Map<String, Map<String, SmartPsiElementPointer<PsiClass>>> myInitialClassMaps =
     new HashMap<String, Map<String, SmartPsiElementPointer<PsiClass>>>();
+
+  private Map<String, CachedValue<Map<String, PsiClass>>> myClassMaps = new HashMap<String, CachedValue<Map<String, PsiClass>>>();
 
   private final Object myClassMapLock = new Object();
 
@@ -397,7 +403,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     myAvdManager = null;
     myLocalResourceManager = null;
     myPublicSystemResourceManager = null;
-    myClassMaps.clear();
+    myInitialClassMaps.clear();
   }
 
   // can be invoked only from dispatch thread!
@@ -889,43 +895,62 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   // todo: correctly support classes from external non-platform jars
   @NotNull
-  public Map<String, PsiClass> getClassMap(@NotNull String className, @NotNull ClassMapConstructor constructor) {
+  public Map<String, PsiClass> getClassMap(@NotNull final String className, @NotNull final ClassMapConstructor constructor) {
     synchronized (myClassMapLock) {
-      Map<String, SmartPsiElementPointer<PsiClass>> classMap = getInitialClassMap(className, constructor, false);
-      final Map<String, PsiClass> result = new HashMap<String, PsiClass>();
-      boolean shouldRebuildInitialMap = false;
+      CachedValue<Map<String, PsiClass>> value = myClassMaps.get(className);
+
+      if (value == null) {
+        value = CachedValuesManager.getManager(getModule().getProject()).createCachedValue(
+          new CachedValueProvider<Map<String, PsiClass>>() {
+          @Nullable
+          @Override
+          public Result<Map<String, PsiClass>> compute() {
+            final Map<String, PsiClass> map = computeClassMap(className, constructor);
+            return Result.create(map, PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT);
+          }
+        }, false);
+        myClassMaps.put(className, value);
+      }
+      return value.getValue();
+    }
+  }
+
+  @NotNull
+  private Map<String, PsiClass> computeClassMap(@NotNull String className, @NotNull ClassMapConstructor constructor) {
+    Map<String, SmartPsiElementPointer<PsiClass>> classMap = getInitialClassMap(className, constructor, false);
+    final Map<String, PsiClass> result = new HashMap<String, PsiClass>();
+    boolean shouldRebuildInitialMap = false;
+
+    for (final String key : classMap.keySet()) {
+      final SmartPsiElementPointer<PsiClass> pointer = classMap.get(key);
+
+      if (!isUpToDate(pointer, key, constructor)) {
+        shouldRebuildInitialMap = true;
+        break;
+      }
+      final PsiClass aClass = pointer.getElement();
+
+      if (aClass != null) {
+        result.put(key, aClass);
+      }
+    }
+
+    if (shouldRebuildInitialMap) {
+      result.clear();
+      classMap = getInitialClassMap(className, constructor, true);
 
       for (final String key : classMap.keySet()) {
         final SmartPsiElementPointer<PsiClass> pointer = classMap.get(key);
-
-        if (!isUpToDate(pointer, key, constructor)) {
-          shouldRebuildInitialMap = true;
-          break;
-        }
         final PsiClass aClass = pointer.getElement();
 
         if (aClass != null) {
           result.put(key, aClass);
         }
       }
-
-      if (shouldRebuildInitialMap) {
-        result.clear();
-        classMap = getInitialClassMap(className, constructor, true);
-
-        for (final String key : classMap.keySet()) {
-          final SmartPsiElementPointer<PsiClass> pointer = classMap.get(key);
-          final PsiClass aClass = pointer.getElement();
-
-          if (aClass != null) {
-            result.put(key, aClass);
-          }
-        }
-      }
-      final Project project = getModule().getProject();
-      fillMap(className, constructor, ProjectScope.getProjectScope(project), result, false);
-      return result;
     }
+    final Project project = getModule().getProject();
+    fillMap(className, constructor, ProjectScope.getProjectScope(project), result, false);
+    return result;
   }
 
   private static boolean isUpToDate(SmartPsiElementPointer<PsiClass> pointer, String tagName, ClassMapConstructor constructor) {
@@ -941,7 +966,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private Map<String, SmartPsiElementPointer<PsiClass>> getInitialClassMap(@NotNull String className,
                                                                            @NotNull ClassMapConstructor constructor,
                                                                            boolean forceRebuild) {
-    Map<String, SmartPsiElementPointer<PsiClass>> viewClassMap = myClassMaps.get(className);
+    Map<String, SmartPsiElementPointer<PsiClass>> viewClassMap = myInitialClassMaps.get(className);
     if (viewClassMap != null && !forceRebuild) return viewClassMap;
     final HashMap<String, PsiClass> map = new HashMap<String, PsiClass>();
 
@@ -952,7 +977,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       for (Map.Entry<String, PsiClass> entry : map.entrySet()) {
         viewClassMap.put(entry.getKey(), manager.createSmartPsiElementPointer(entry.getValue()));
       }
-      myClassMaps.put(className, viewClassMap);
+      myInitialClassMaps.put(className, viewClassMap);
     }
     return viewClassMap != null
            ? viewClassMap
