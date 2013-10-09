@@ -50,9 +50,7 @@ import java.util.Map;
 
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.tools.idea.templates.Template.ATTR_DEFAULT;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME;
+import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
  * TemplateWizardStep is the base class for step pages in Freemarker template-based wizards.
@@ -64,6 +62,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
   protected final TemplateWizardState myTemplateState;
   protected final BiMap<String, JComponent> myParamFields = HashBiMap.create();
   protected final Map<JRadioButton, Pair<String, Object>> myRadioButtonValues = Maps.newHashMap();
+  protected final Map<Parameter, ComboBoxItem> myComboBoxValues = Maps.newHashMap();
   private final Project myProject;
   private final Icon mySidePanelIcon;
   protected boolean myIgnoreUpdates = false;
@@ -171,15 +170,17 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     return myVisible;
   }
 
-  @Override
-  public boolean validate() {
-    myTemplateState.convertApisToInt();
+  /**
+   * Called by update to write the new values of the parameters being edited into the template model.
+   */
+  public void updateParams() {
     if (!myVisible) {
-      return true;
+      return;
     }
+
+    myTemplateState.convertApisToInt();
+
     JComponent focusedComponent = (JComponent)KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
-    Integer minApi = (Integer)myTemplateState.get(ATTR_MIN_API);
-    Integer buildApi = (Integer)myTemplateState.get(ATTR_BUILD_API);
     setDescriptionHtml("");
     setErrorHtml("");
     for (String paramName : myParamFields.keySet()) {
@@ -199,18 +200,10 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       }
       else if (component instanceof JComboBox) {
         ComboBoxItem selectedItem = (ComboBoxItem)((JComboBox)component).getSelectedItem();
+        myComboBoxValues.put(param, selectedItem);
+
         if (selectedItem != null) {
           newValue = selectedItem.id;
-        }
-        if (minApi != null && selectedItem.minApi > minApi) {
-          setErrorHtml(String.format("The \"%s\" option for %s requires a minimum API level of %d", selectedItem.label, param.name,
-                                     selectedItem.minApi));
-          return false;
-        }
-        if (buildApi != null && selectedItem.minBuildApi > buildApi) {
-          setErrorHtml(String.format("The \"%s\" option for %s requires a minimum API level of %d", selectedItem.label, param.name,
-                                     selectedItem.minBuildApi));
-          return false;
         }
       }
       else if (component instanceof JTextField) {
@@ -228,14 +221,6 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
         myTemplateState.put(paramName, newValue);
         myTemplateState.myModified.add(paramName);
       }
-
-      if (param != null) {
-        String error = param.validate(myProject, (String)myTemplateState.get(ATTR_PACKAGE_NAME), newValue);
-        if (error != null) {
-          setErrorHtml(error);
-          return false;
-        }
-      }
     }
     for (Map.Entry<JRadioButton, Pair<String, Object>> entry : myRadioButtonValues.entrySet()) {
       if (entry.getKey().isSelected()) {
@@ -243,6 +228,46 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
         myTemplateState.put(value.getFirst(), value.getSecond());
       }
     }
+  }
+
+  @Override
+  public boolean validate() {
+    myTemplateState.convertApisToInt();
+    if (!myVisible) {
+      return true;
+    }
+    Integer minApi = (Integer)myTemplateState.get(ATTR_MIN_API);
+    Integer buildApi = (Integer)myTemplateState.get(ATTR_BUILD_API);
+
+    for (String paramName : myParamFields.keySet()) {
+      if (myTemplateState.myHidden.contains(paramName)) {
+        continue;
+      }
+      Parameter param = myTemplateState.hasTemplate() ? myTemplateState.getTemplateMetadata().getParameter(paramName) : null;
+      if (param != null) {
+        String error = param.validate(myProject, (String)myTemplateState.get(ATTR_PACKAGE_NAME), myTemplateState.get(paramName));
+        if (error != null) {
+          setErrorHtml(error);
+          return false;
+        }
+
+        // Check to see that the selection's constraints are met if this is a combo box
+        if (myComboBoxValues.containsKey(param)) {
+          ComboBoxItem selectedItem = myComboBoxValues.get(param);
+          if (minApi != null && selectedItem.minApi > minApi) {
+            setErrorHtml(String.format("The \"%s\" option for %s requires a minimum API level of %d", selectedItem.label, param.name,
+                                       selectedItem.minApi));
+            return false;
+          }
+          if (buildApi != null && selectedItem.minBuildApi > buildApi) {
+            setErrorHtml(String.format("The \"%s\" option for %s requires a minimum API level of %d", selectedItem.label, param.name,
+                                       selectedItem.minBuildApi));
+            return false;
+          }
+        }
+      }
+    }
+
     return true;
   }
 
@@ -441,10 +466,21 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       return;
     }
 
+    // First we load the updated values into our model
+    updateParams();
+    // Then we calculate any values that we need to
+    deriveValues();
+    // Finally we make sure these new values are valid
     myIsValid = validate();
     if (myUpdateListener != null) {
       myUpdateListener.update();
     }
+  }
+
+  /**
+   * Called by update() to write derived values to the template model.
+   */
+  protected void deriveValues() {
   }
 
   @Override
