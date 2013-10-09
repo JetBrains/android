@@ -317,8 +317,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     String suffix = "Preference";
     if (prefClassName.endsWith(suffix)) {
       String widgetClassName = prefClassName.substring(0, prefClassName.length() - suffix.length());
-      Map<String, PsiClass> viewClassMap = getViewClassMap(facet);
-      PsiClass widgetClass = viewClassMap.get(widgetClassName);
+      PsiClass widgetClass = SimpleClassMapConstructor.findClassByTagName(facet, widgetClassName, AndroidUtils.VIEW_CLASS_NAME);
       registerAttributesForClassAndSuperclasses(facet, element, widgetClass, callback, null, skipAttrNames);
     }
 

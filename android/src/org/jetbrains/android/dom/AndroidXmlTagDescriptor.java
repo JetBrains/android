@@ -16,6 +16,7 @@
 
 package org.jetbrains.android.dom;
 
+import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.meta.PsiPresentableMetaData;
@@ -34,7 +35,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.Map;
 
 /**
  * Created by IntelliJ IDEA.
@@ -81,14 +81,17 @@ public class AndroidXmlTagDescriptor implements XmlElementDescriptor, PsiPresent
     if (facet == null) {
       return descriptors;
     }
-    final Map<String, PsiClass> classMap = facet.getClassMap(myBaseClassName, SimpleClassMapConstructor.getInstance());
     final XmlElementDescriptor[] androidDescriptors = new XmlElementDescriptor[descriptors.length];
     final DomElement domElement = DomManager.getDomManager(context.getProject()).getDomElement(context);
+    final PsiClass baseClass = JavaPsiFacade.getInstance(context.getProject()).findClass(
+      myBaseClassName, facet.getModule().getModuleWithLibrariesScope());
 
     for (int i = 0; i < descriptors.length; i++) {
       final XmlElementDescriptor descriptor = descriptors[i];
       final String tagName = descriptor.getName();
-      final PsiClass aClass = tagName != null ? classMap.get(tagName) : null;
+      final PsiClass aClass = tagName != null && baseClass != null
+                              ? SimpleClassMapConstructor.findClassByTagName(facet, tagName, baseClass)
+                              : null;
       final Icon icon = AndroidDomElementDescriptorProvider.getIconForTag(tagName, domElement);
       androidDescriptors[i] = new AndroidXmlTagDescriptor(aClass, descriptor, myBaseClassName, icon);
     }

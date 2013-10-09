@@ -20,6 +20,7 @@ import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.dom.AndroidDomExtender;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.SimpleClassMapConstructor;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -78,6 +79,6 @@ public class AndroidXmlResourcesUtil {
 
   public static boolean isSupportedRootTag(@NotNull AndroidFacet facet, @NotNull String rootTagName) {
     return ROOT_TAGS_SET.contains(rootTagName) ||
-           AndroidDomExtender.getPreferencesClassMap(facet).keySet().contains(rootTagName);
+           SimpleClassMapConstructor.findClassByTagName(facet, rootTagName, PREFERENCE_CLASS_NAME) != null;
   }
 }
