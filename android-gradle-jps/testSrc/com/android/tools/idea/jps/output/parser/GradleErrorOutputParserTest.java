@@ -552,6 +552,33 @@ public class GradleErrorOutputParserTest extends TestCase {
                  toString(parser.parseErrorOutput(err)));
   }
 
+  public void testLockOwner() throws Exception {
+    // https://code.google.com/p/android/issues/detail?id=59444
+    String output =
+      "FAILURE: Build failed with an exception.\n" +
+      "* What went wrong:\n" +
+      "Gradle: A problem occurred configuring project ':MyApplication1'.\n" +
+      "> Failed to notify project evaluation listener.\n" +
+      "   > Could not resolve all dependencies for configuration ':MyApplication1:_DebugCompile'.\n" +
+      "      > Problems pinging owner of lock '-7513739537696464924' at port: 55416\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 24.154 secs";
+
+    assertEquals("0: Gradle:Error:Possibly unstable network connection: Failed to connect to lock owner. Try to rebuild.\n" +
+                 "1: Gradle:Error:Gradle: A problem occurred configuring project ':MyApplication1'.\n" +
+                 "> Failed to notify project evaluation listener.\n" +
+                 "   > Could not resolve all dependencies for configuration ':MyApplication1:_DebugCompile'.\n" +
+                 "      > Problems pinging owner of lock '-7513739537696464924' at port: 55416\n" +
+                 "2: Info:BUILD FAILED\n" +
+                 "3: Info:Total time: 24.154 secs\n",
+                 toString(parser.parseErrorOutput(output)));
+  }
+
   public void testDuplicateResources() throws Exception {
     // To reproduce, create a source file with two duplicate string item definitions
     createTempXmlFile();
