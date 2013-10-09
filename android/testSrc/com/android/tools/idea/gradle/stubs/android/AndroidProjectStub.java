@@ -40,6 +40,8 @@ public class AndroidProjectStub implements AndroidProject {
   @NotNull private final ProductFlavorContainerStub myDefaultConfig;
   @NotNull private final File myBuildFile;
 
+  @NotNull private final JavaCompileOptionsStub myJavaCompileOptions = new JavaCompileOptionsStub();
+
   @Nullable private VariantStub myFirstVariant;
   private boolean myLibrary;
 
@@ -179,8 +181,8 @@ public class AndroidProjectStub implements AndroidProject {
 
   @Override
   @NotNull
-  public JavaCompileOptions getJavaCompileOptions() {
-    throw new UnsupportedOperationException();
+  public JavaCompileOptionsStub getJavaCompileOptions() {
+    return myJavaCompileOptions;
   }
 
   /**

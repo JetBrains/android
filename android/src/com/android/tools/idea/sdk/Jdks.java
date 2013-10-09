@@ -39,13 +39,18 @@ import java.util.List;
  * Utility methods related to IDEA JDKs.
  */
 public class Jdks {
+  private static final LanguageLevel DEFAULT_LANG_LEVEL = LanguageLevel.JDK_1_6;
+
   @Nullable
   public static Sdk chooseOrCreateJavaSdk() {
-    return chooseOrCreateJavaSdk(LanguageLevel.JDK_1_6);
+    return chooseOrCreateJavaSdk(null);
   }
 
   @Nullable
-  public static Sdk chooseOrCreateJavaSdk(@NotNull LanguageLevel langLevel) {
+  public static Sdk chooseOrCreateJavaSdk(@Nullable LanguageLevel langLevel) {
+    if (langLevel == null) {
+      langLevel = DEFAULT_LANG_LEVEL;
+    }
     for (Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
       if (isApplicableJdk(sdk, langLevel)) {
         return sdk;
@@ -59,12 +64,15 @@ public class Jdks {
   }
 
   public static boolean isApplicableJdk(@NotNull Sdk jdk) {
-    return isApplicableJdk(jdk, LanguageLevel.JDK_1_6);
+    return isApplicableJdk(jdk, null);
   }
 
-  public static boolean isApplicableJdk(@NotNull Sdk jdk, @NotNull LanguageLevel langLevel) {
+  public static boolean isApplicableJdk(@NotNull Sdk jdk, @Nullable LanguageLevel langLevel) {
     if (!(jdk.getSdkType() instanceof JavaSdk)) {
       return false;
+    }
+    if (langLevel == null) {
+      langLevel = DEFAULT_LANG_LEVEL;
     }
     JavaSdkVersion version = JavaSdk.getInstance().getVersion(jdk);
     if (version != null) {
