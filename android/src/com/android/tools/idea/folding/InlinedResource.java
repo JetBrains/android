@@ -95,7 +95,11 @@ class InlinedResource implements ModificationTracker {
             if (myElement instanceof PsiMethodCallExpression) {
               text = insertArguments((PsiMethodCallExpression)myElement, text);
             }
-            return '"' + StringUtil.shortenTextWithEllipsis(text, FOLD_MAX_LENGTH - 2, 0) + '"';
+            if (myType == ResourceType.STRING) {
+              return '"' + StringUtil.shortenTextWithEllipsis(text, FOLD_MAX_LENGTH - 2, 0) + '"';
+            } else {
+              return StringUtil.shortenTextWithEllipsis(text, FOLD_MAX_LENGTH, 0);
+            }
           }
         }
       }
