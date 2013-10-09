@@ -39,24 +39,24 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testGetTopLevelValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    assertEquals("17.0.0", file.getValue(GradleBuildFile.BuildSettingKey.BUILD_TOOLS_VERSION));
+    assertEquals("17.0.0", file.getValue(BuildFileKey.BUILD_TOOLS_VERSION));
   }
 
   public void testNestedValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     GrStatementOwner closure = file.getClosure("android/defaultConfig");
-    assertEquals(1, file.getValue(closure, GradleBuildFile.BuildSettingKey.TARGET_SDK_VERSION));
+    assertEquals(1, file.getValue(closure, BuildFileKey.TARGET_SDK_VERSION));
   }
 
   public void testCanParseSimpleValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    assertTrue(file.canParseValue(GradleBuildFile.BuildSettingKey.BUILD_TOOLS_VERSION));
+    assertTrue(file.canParseValue(BuildFileKey.BUILD_TOOLS_VERSION));
   }
 
   public void testCantParseComplexValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     GrStatementOwner closure = file.getClosure("android/defaultConfig");
-    assertFalse(file.canParseValue(closure, GradleBuildFile.BuildSettingKey.MIN_SDK_VERSION));
+    assertFalse(file.canParseValue(closure, BuildFileKey.MIN_SDK_VERSION));
   }
 
   public void testSetTopLevelValue() throws Exception {
@@ -64,7 +64,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
       @Override
       public void run() throws Exception {
-        file.setValue(GradleBuildFile.BuildSettingKey.BUILD_TOOLS_VERSION, "18.0.0");
+        file.setValue(BuildFileKey.BUILD_TOOLS_VERSION, "18.0.0");
       }
     });
     String expected = getSimpleTestFile().replaceAll("17.0.0", "18.0.0");
@@ -77,7 +77,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       @Override
       public void run() throws Exception {
         GrStatementOwner closure = file.getClosure("android/defaultConfig");
-        file.setValue(closure, GradleBuildFile.BuildSettingKey.TARGET_SDK_VERSION, 2);
+        file.setValue(closure, BuildFileKey.TARGET_SDK_VERSION, 2);
       }
     });
     String expected = getSimpleTestFile().replaceAll("targetSdkVersion 1", "targetSdkVersion 2");
@@ -87,7 +87,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
   public void testCanParseValueChecksInitialization() {
     GradleBuildFile file = getBadGradleBuildFile();
     try {
-      file.canParseValue(GradleBuildFile.BuildSettingKey.TARGET_SDK_VERSION);
+      file.canParseValue(BuildFileKey.TARGET_SDK_VERSION);
     } catch (IllegalStateException e) {
       // expected
       return;
@@ -98,7 +98,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
   public void testCanParseNestedValueChecksInitialization() {
     GradleBuildFile file = getBadGradleBuildFile();
     try {
-      file.canParseValue(getDummyClosure(), GradleBuildFile.BuildSettingKey.TARGET_SDK_VERSION);
+      file.canParseValue(getDummyClosure(), BuildFileKey.TARGET_SDK_VERSION);
     } catch (IllegalStateException e) {
       // expected
       return;
@@ -120,7 +120,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
   public void testGetValueChecksInitialization() {
     GradleBuildFile file = getBadGradleBuildFile();
     try {
-      file.getValue(GradleBuildFile.BuildSettingKey.TARGET_SDK_VERSION);
+      file.getValue(BuildFileKey.TARGET_SDK_VERSION);
     } catch (IllegalStateException e) {
       // expected
       return;
@@ -131,7 +131,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
   public void testGetNestedValueChecksInitialization() {
     GradleBuildFile file = getBadGradleBuildFile();
     try {
-      file.getValue(getDummyClosure(), GradleBuildFile.BuildSettingKey.TARGET_SDK_VERSION);
+      file.getValue(getDummyClosure(), BuildFileKey.TARGET_SDK_VERSION);
     } catch (IllegalStateException e) {
       // expected
       return;
@@ -142,7 +142,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
   public void testSetValueChecksInitialization() {
     GradleBuildFile file = getBadGradleBuildFile();
     try {
-      file.setValue(GradleBuildFile.BuildSettingKey.TARGET_SDK_VERSION, 2);
+      file.setValue(BuildFileKey.TARGET_SDK_VERSION, 2);
     } catch (IllegalStateException e) {
       // expected
       return;
@@ -153,7 +153,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
   public void testSetNestedValueChecksInitialization() {
     GradleBuildFile file = getBadGradleBuildFile();
     try {
-      file.setValue(getDummyClosure(), GradleBuildFile.BuildSettingKey.TARGET_SDK_VERSION, 2);
+      file.setValue(getDummyClosure(), BuildFileKey.TARGET_SDK_VERSION, 2);
     } catch (IllegalStateException e) {
       // expected
       return;
@@ -170,8 +170,8 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    compileSdkVersion 17\n" +
       "}\n"
     );
-    assertEquals(17, file.getValue(GradleBuildFile.BuildSettingKey.COMPILE_SDK_VERSION));
-    assertEquals("17.0.0", file.getValue(GradleBuildFile.BuildSettingKey.BUILD_TOOLS_VERSION));
+    assertEquals(17, file.getValue(BuildFileKey.COMPILE_SDK_VERSION));
+    assertEquals("17.0.0", file.getValue(BuildFileKey.BUILD_TOOLS_VERSION));
   }
 
   private static String getSimpleTestFile() throws IOException {

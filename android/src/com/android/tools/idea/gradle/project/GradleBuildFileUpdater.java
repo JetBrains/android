@@ -54,13 +54,7 @@ public class GradleBuildFileUpdater extends ModuleAdapter implements BulkFileLis
 
   public GradleBuildFileUpdater(@NotNull Project project) {
     myProject = project;
-    VirtualFile settingsFile = project.getBaseDir().findFileByRelativePath(SdkConstants.FN_SETTINGS_GRADLE);
-    if (settingsFile != null) {
-      mySettingsFile = new GradleSettingsFile(settingsFile, project);
-    } else {
-      mySettingsFile = null;
-      LOG.warn("Unable to find settings.gradle file for project " + project.getName());
-    }
+    mySettingsFile = GradleSettingsFile.get(project);
     findAndAddAllBuildFiles();
   }
 
