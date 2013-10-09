@@ -207,7 +207,7 @@ public class AndroidDbManager extends DbPsiManagerSpi {
 
     @NotNull
     @Override
-    public DataSourceInfo createDataSource(@NotNull JComponent parentPanel, Project project, DataSourceInfo copyFrom) {
+    public DataSourceInfo createDataSource(Project project, DataSourceInfo copyFrom) {
       AndroidDataSource result;
       if (copyFrom instanceof AndroidDataSource ) {
         result = ((AndroidDataSource )copyFrom).copy();
