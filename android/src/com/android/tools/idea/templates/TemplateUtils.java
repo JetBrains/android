@@ -345,8 +345,8 @@ public class TemplateUtils {
   public static void selectEditor(Project project, VirtualFile file) {
     ApplicationManager.getApplication().assertReadAccessAllowed();
     PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-    ProjectPaneSelectInTarget selectAction = new ProjectPaneSelectInTarget(project);
-    if (selectAction.canSelect(psiFile)) {
+    if (psiFile != null) {
+      ProjectPaneSelectInTarget selectAction = new ProjectPaneSelectInTarget(project);
       selectAction.select(psiFile, false);
     }
   }
