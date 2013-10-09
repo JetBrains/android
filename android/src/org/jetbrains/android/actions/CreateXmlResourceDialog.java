@@ -21,8 +21,8 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.fileChooser.actions.VirtualFileDeleteProvider;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
@@ -45,7 +45,6 @@ import com.intellij.util.containers.hash.HashMap;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
@@ -264,7 +263,7 @@ public class CreateXmlResourceDialog extends DialogWrapper {
     provider.deleteElement(new DataContext() {
       @Override
       public Object getData(@NonNls String dataId) {
-        if (PlatformDataKeys.VIRTUAL_FILE_ARRAY.getName().equals(dataId)) {
+        if (CommonDataKeys.VIRTUAL_FILE_ARRAY.getName().equals(dataId)) {
           return new VirtualFile[] {selectedDir};
         }
         else {

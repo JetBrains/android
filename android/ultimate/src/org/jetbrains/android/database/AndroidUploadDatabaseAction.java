@@ -1,0 +1,157 @@
+package org.jetbrains.android.database;
+
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.IDevice;
+import com.intellij.CommonBundle;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.persistence.database.psi.DbDataSourceElement;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.io.*;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
+import static com.intellij.persistence.database.view.DatabaseViewActionsHelper.getSelectedElementsByType;
+
+/**
+ * @author Eugene.Kudelevsky
+ */
+public class AndroidUploadDatabaseAction extends AnAction {
+  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.database.AndroidUploadDatabaseAction");
+
+  @Override
+  public void update(AnActionEvent e) {
+    final Project project = e.getProject();
+    e.getPresentation().setVisible(project != null && !getSelectedAndroidDataSources(e).isEmpty());
+  }
+
+  @Override
+  public void actionPerformed(AnActionEvent e) {
+    final Project project = e.getProject();
+    assert project != null;
+    final List<AndroidDataSource> dataSources = getSelectedAndroidDataSources(e);
+
+    final AndroidDebugBridge debugBridge = AndroidSdkUtils.getDebugBridge(project);
+
+    if (debugBridge == null) {
+      Messages.showErrorDialog(project, AndroidBundle.message("cannot.connect.to.adb.error"), CommonBundle.getErrorTitle());
+      return;
+    }
+    ProgressManager.getInstance().run(new Task.Backgroundable(project, AndroidBundle.message("android.db.uploading.progress.title"), true) {
+      @Override
+      public void run(@NotNull ProgressIndicator indicator) {
+        for (final AndroidDataSource dataSource : dataSources) {
+          indicator.setText("Uploading " + dataSource.getName());
+
+          synchronized (AndroidDbUtil.DB_SYNC_LOCK) {
+            uploadDatabase(project, dataSource, indicator, debugBridge);
+          }
+          indicator.checkCanceled();
+        }
+      }
+    });
+  }
+
+  @NotNull
+  private static List<AndroidDataSource> getSelectedAndroidDataSources(AnActionEvent e) {
+    final Set<DbDataSourceElement> dataSourceElements = getSelectedElementsByType(e.getDataContext(), DbDataSourceElement.class);
+
+    if (dataSourceElements.isEmpty()) {
+      return Collections.emptyList();
+    }
+    final List<AndroidDataSource> androidDataSources = new ArrayList<AndroidDataSource>();
+
+    for (DbDataSourceElement element : dataSourceElements) {
+      final Object delegate = element.getDelegate();
+
+      if (delegate instanceof AndroidDataSource) {
+        androidDataSources.add((AndroidDataSource)delegate);
+      }
+    }
+    return androidDataSources;
+  }
+
+  private static void uploadDatabase(@NotNull Project project,
+                                     @NotNull AndroidDataSource dataSource,
+                                     @NotNull ProgressIndicator indicator,
+                                     @NotNull AndroidDebugBridge debugBridge) {
+    final String localDbFilePath = dataSource.buildLocalDbFileOsPath();
+    final AndroidDbErrorReporterImpl errorReporter = new AndroidDbErrorReporterImpl(project, dataSource, true);
+    final AndroidDbConnectionInfo dbConnectionInfo = AndroidDbUtil.checkDataSource(dataSource, debugBridge, errorReporter);
+
+    if (dbConnectionInfo == null) {
+      return;
+    }
+    final IDevice device = dbConnectionInfo.getDevice();
+    final String packageName = dbConnectionInfo.getPackageName();
+    final String dbName = dbConnectionInfo.getDbName();
+    final String localFileMd5Hash = getLocalFileMd5Hash(new File(localDbFilePath));
+
+    if (localFileMd5Hash == null) {
+      return;
+    }
+    if (AndroidDbUtil.uploadDatabase(device, packageName, dbName, localDbFilePath, indicator, errorReporter)) {
+      final String lsResult = AndroidDbUtil.getRemoteDbModificationTimeAndSize(device, packageName, dbName, errorReporter);
+
+      if (lsResult != null) {
+        final String deviceSerialNumber = device.getSerialNumber();
+        AndroidRemoteDataBaseManager.MyDatabaseInfo dbInfo = AndroidRemoteDataBaseManager.
+          getInstance().getDatabaseInfo(deviceSerialNumber, packageName, dbName);
+
+        if (dbInfo == null) {
+          dbInfo = new AndroidRemoteDataBaseManager.MyDatabaseInfo();
+        }
+        dbInfo.lsResult = lsResult;
+        dbInfo.md5Hash = localFileMd5Hash;
+        AndroidRemoteDataBaseManager.getInstance().setDatabaseInfo(deviceSerialNumber, packageName, dbName, dbInfo);
+      }
+    }
+  }
+
+  @Nullable
+  private static String getLocalFileMd5Hash(@NotNull File file) {
+    try {
+      final byte[] buffer = new byte[1024];
+      final MessageDigest md5 = MessageDigest.getInstance("MD5");
+      final InputStream fis = new BufferedInputStream(new FileInputStream(file));
+      try {
+        int read;
+
+        while ((read = fis.read(buffer)) > 0) {
+          md5.update(buffer, 0, read);
+        }
+      }
+      finally {
+        fis.close();
+      }
+      final StringBuilder builder = new StringBuilder();
+
+      for (byte b : md5.digest()) {
+        builder.append(Integer.toString((b & 0xff) + 0x100, 16).substring(1));
+      }
+      return builder.toString();
+    }
+    catch (IOException e) {
+      LOG.error(e);
+      return null;
+    }
+    catch (NoSuchAlgorithmException e) {
+      LOG.error(e);
+      return null;
+    }
+  }
+}

@@ -3,6 +3,7 @@ package org.jetbrains.android.actions;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -62,7 +63,7 @@ public class GenerateSignedApkAction extends AnAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    final Project project = e.getData(PlatformDataKeys.PROJECT);
+    final Project project = e.getData(CommonDataKeys.PROJECT);
     assert project != null;
 
     List<AndroidFacet> facets = AndroidUtils.getApplicationFacets(project);
@@ -82,7 +83,7 @@ public class GenerateSignedApkAction extends AnAction {
 
   @Override
   public void update(AnActionEvent e) {
-    final Project project = e.getData(PlatformDataKeys.PROJECT);
+    final Project project = e.getData(CommonDataKeys.PROJECT);
     e.getPresentation().setEnabled(project != null && AndroidUtils.getApplicationFacets(project).size() > 0);
   }
 }
