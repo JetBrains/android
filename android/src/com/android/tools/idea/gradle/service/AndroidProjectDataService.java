@@ -99,13 +99,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
           }
         }
 
-        Sdk jdk;
-        if (javaLangVersion == null) {
-          jdk = Jdks.chooseOrCreateJavaSdk();
-        }
-        else {
-          jdk = Jdks.chooseOrCreateJavaSdk(javaLangVersion);
-        }
+        Sdk jdk = Jdks.chooseOrCreateJavaSdk(javaLangVersion);
         if (jdk == null) {
           ExternalSystemIdeNotificationManager notification = ServiceManager.getService(ExternalSystemIdeNotificationManager.class);
           if (notification != null) {
