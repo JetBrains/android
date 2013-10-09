@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.tools.idea.wizard.TemplateWizardState;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -108,6 +109,11 @@ public class TemplateMetadata {
 
   @Nullable
   public String getThumbnailPath() {
+    return getThumbnailPath(null);
+  }
+
+  @Nullable
+  public String getThumbnailPath(TemplateWizardState currentState) {
     // Apply selector logic. Pick the thumb first thumb that satisfies the largest number
     // of conditions.
     NodeList thumbs = myDocument.getElementsByTagName(TAG_THUMB);
@@ -139,9 +145,8 @@ public class TemplateMetadata {
             continue;
           }
           String thumbNailValue = attribute.getValue();
-          // TODO: have current value passed in?
-          String editedValue = "";
-          if (!thumbNailValue.equals(editedValue)) {
+
+          if (currentState == null || !thumbNailValue.equals(currentState.get(parameter.id))) {
             match = false;
             break;
           }

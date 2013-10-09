@@ -265,60 +265,56 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   }
 
   @Override
+  protected void deriveValues() {
+    if (myTemplateState.myModified.contains(ATTR_MODULE_NAME)) {
+      updateDerivedValue(ATTR_APP_TITLE, myAppName, new Callable<String>() {
+        @Override
+        public String call() {
+          return computeAppName();
+        }
+      });
+    }
+    updateDerivedValue(ATTR_MODULE_NAME, myModuleName, new Callable<String>() {
+      @Override
+      public String call() {
+        return computeModuleName();
+      }
+    });
+    updateDerivedValue(ATTR_PACKAGE_NAME, myPackageName, new Callable<String>() {
+      @Override
+      public String call() {
+        return computePackageName();
+      }
+    });
+    if (!myTemplateState.myHidden.contains(ATTR_PROJECT_LOCATION)) {
+      updateDerivedValue(ATTR_PROJECT_LOCATION, myProjectLocation.getTextField(), new Callable<String>() {
+        @Override
+        public String call() {
+          return computeProjectLocation();
+        }
+      });
+    }
+
+    if (!myInitializedPackageNameText) {
+      myInitializedPackageNameText = true;
+      if (((String)myTemplateState.get(ATTR_PACKAGE_NAME)).startsWith(SAMPLE_PACKAGE_PREFIX)) {
+        int length = SAMPLE_PACKAGE_PREFIX.length();
+        if (SAMPLE_PACKAGE_PREFIX.endsWith(".")) {
+          length--;
+        }
+        myPackageName.select(0, length);
+      }
+    }
+  }
+
+  @Override
   public boolean validate() {
+    ((NewModuleWizardState)myTemplateState).updateParameters();
+
     if (!super.validate()) {
       return false;
     }
 
-    ((NewModuleWizardState)myTemplateState).updateParameters();
-
-    SwingUtilities.invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        boolean updated = false;
-        if (myTemplateState.myModified.contains(ATTR_MODULE_NAME)) {
-          updated |= updateDerivedValue(ATTR_APP_TITLE, myAppName, new Callable<String>() {
-            @Override
-            public String call() {
-              return computeAppName();
-            }
-          });
-        }
-        updated |= updateDerivedValue(ATTR_MODULE_NAME, myModuleName, new Callable<String>() {
-          @Override
-          public String call() {
-            return computeModuleName();
-          }
-        });
-        updated |= updateDerivedValue(ATTR_PACKAGE_NAME, myPackageName, new Callable<String>() {
-          @Override
-          public String call() {
-            return computePackageName();
-          }
-        });
-        if (!myTemplateState.myHidden.contains(ATTR_PROJECT_LOCATION)) {
-          updated |= updateDerivedValue(ATTR_PROJECT_LOCATION, myProjectLocation.getTextField(), new Callable<String>() {
-            @Override
-            public String call() {
-              return computeProjectLocation();
-            }
-          });
-        }
-        if (updated) {
-          validate();
-        }
-        if (!myInitializedPackageNameText) {
-          myInitializedPackageNameText = true;
-          if (((String)myTemplateState.get(ATTR_PACKAGE_NAME)).startsWith(SAMPLE_PACKAGE_PREFIX)) {
-            int length = SAMPLE_PACKAGE_PREFIX.length();
-            if (SAMPLE_PACKAGE_PREFIX.endsWith(".")) {
-              length--;
-            }
-            myPackageName.select(0, length);
-          }
-        }
-      }
-    });
     AndroidTargetComboBoxItem item = (AndroidTargetComboBoxItem)myMinSdk.getSelectedItem();
     if (item != null) {
       myTemplateState.put(ATTR_MIN_API_LEVEL, item.apiLevel);
