@@ -16,7 +16,7 @@ import com.intellij.refactoring.safeDelete.SafeDeleteProcessorDelegateBase;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.android.dom.AndroidAttributeValue;
-import org.jetbrains.android.dom.manifest.*;
+import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -72,7 +72,7 @@ public class AndroidComponentSafeDeleteProcessor extends SafeDeleteProcessorDele
 
     assert element instanceof PsiClass;
     final PsiClass componentClass = (PsiClass)element;
-    final AndroidAttributeValue<PsiClass> declaration = findComponentDeclarationInManifest(componentClass);
+    final AndroidAttributeValue<PsiClass> declaration = AndroidDomUtil.findComponentDeclarationInManifest(componentClass);
     if (declaration == null) {
       return info;
     }
@@ -114,7 +114,7 @@ public class AndroidComponentSafeDeleteProcessor extends SafeDeleteProcessorDele
   @Override
   public void prepareForDeletion(PsiElement element) throws IncorrectOperationException {
     assert element instanceof PsiClass;
-    final AndroidAttributeValue<PsiClass> declaration = findComponentDeclarationInManifest((PsiClass)element);
+    final AndroidAttributeValue<PsiClass> declaration = AndroidDomUtil.findComponentDeclarationInManifest((PsiClass)element);
     if (declaration != null) {
       final XmlAttribute declarationAttr = declaration.getXmlAttribute();
       if (declarationAttr != null) {
@@ -130,64 +130,6 @@ public class AndroidComponentSafeDeleteProcessor extends SafeDeleteProcessorDele
       }
     }
     getBaseHandler().prepareForDeletion(element);
-  }
-
-  @Nullable
-  private static AndroidAttributeValue<PsiClass> findComponentDeclarationInManifest(@NotNull PsiClass aClass) {
-    final AndroidFacet facet = AndroidFacet.getInstance(aClass);
-    if (facet == null) {
-      return null;
-    }
-
-    final Manifest manifest = facet.getManifest();
-    if (manifest == null) {
-      return null;
-    }
-
-    final Application application = manifest.getApplication();
-    if (application == null) {
-      return null;
-    }
-
-    if (isInheritor(aClass, AndroidUtils.ACTIVITY_BASE_CLASS_NAME)) {
-      for (Activity activity : application.getActivities()) {
-        final AndroidAttributeValue<PsiClass> activityClass = activity.getActivityClass();
-        if (activityClass.getValue() == aClass) {
-          return activityClass;
-        }
-      }
-    }
-    else if (isInheritor(aClass, AndroidUtils.SERVICE_CLASS_NAME)) {
-      for (Service service : application.getServices()) {
-        final AndroidAttributeValue<PsiClass> serviceClass = service.getServiceClass();
-        if (serviceClass.getValue() == aClass) {
-          return serviceClass;
-        }
-      }
-    }
-    else if (isInheritor(aClass, AndroidUtils.RECEIVER_CLASS_NAME)) {
-      for (Receiver receiver : application.getReceivers()) {
-        final AndroidAttributeValue<PsiClass> receiverClass = receiver.getReceiverClass();
-        if (receiverClass.getValue() == aClass) {
-          return receiverClass;
-        }
-      }
-    }
-    else if (isInheritor(aClass, AndroidUtils.PROVIDER_CLASS_NAME)) {
-      for (Provider provider : application.getProviders()) {
-        final AndroidAttributeValue<PsiClass> providerClass = provider.getProviderClass();
-        if (providerClass.getValue() == aClass) {
-          return providerClass;
-        }
-      }
-    }
-    return null;
-  }
-
-  private static boolean isInheritor(@NotNull PsiClass aClass, @NotNull String baseClassQName) {
-    final Project project = aClass.getProject();
-    final PsiClass baseClass = JavaPsiFacade.getInstance(project).findClass(baseClassQName, ProjectScope.getAllScope(project));
-    return baseClass != null && aClass.isInheritor(baseClass, true);
   }
 
   @Override

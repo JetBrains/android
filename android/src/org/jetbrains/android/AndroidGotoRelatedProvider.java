@@ -2,6 +2,7 @@ package org.jetbrains.android;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.navigation.GotoRelatedItem;
 import com.intellij.navigation.GotoRelatedProvider;
 import com.intellij.openapi.module.Module;
@@ -14,15 +15,19 @@ import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.HashSet;
+import org.jetbrains.android.dom.AndroidAttributeValue;
+import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.*;
 
 /**
@@ -83,7 +88,7 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
       }
 
       if (aClass != null) {
-        return getLazyItemsForClass(aClass, facet);
+        return getLazyItemsForClass(aClass, facet, false);
       }
     }
     else {
@@ -103,14 +108,31 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
   }
 
   @Nullable
-  static Computable<List<GotoRelatedItem>> getLazyItemsForClass(@NotNull PsiClass aClass, @NotNull AndroidFacet facet) {
-    if (!isInheritorOfContextClass(aClass, facet.getModule())) {
+  static Computable<List<GotoRelatedItem>> getLazyItemsForClass(@NotNull PsiClass aClass,
+                                                                @NotNull AndroidFacet facet,
+                                                                boolean addDeclarationInManifest) {
+    final GotoRelatedItem item = findDeclarationInManifest(aClass);
+    final boolean isContextClass = isInheritorOfContextClass(aClass, facet.getModule());
+
+    if (!isContextClass && item == null) {
       return null;
     }
-    final List<GotoRelatedItem> items = collectRelatedLayoutFiles(facet, aClass);
+    final List<GotoRelatedItem> items;
 
-    if (items.isEmpty()) {
-      return null;
+    if (isContextClass) {
+      items = new ArrayList<GotoRelatedItem>(collectRelatedLayoutFiles(facet, aClass));
+
+      if (addDeclarationInManifest) {
+        if (item != null) {
+          items.add(item);
+        }
+      }
+      if (items.isEmpty()) {
+        return null;
+      }
+    }
+    else {
+      items = Collections.singletonList(item);
     }
     return new Computable<List<GotoRelatedItem>>() {
       @Override
@@ -118,6 +140,17 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
         return items;
       }
     };
+  }
+
+  @Nullable
+  private static GotoRelatedItem findDeclarationInManifest(@NotNull PsiClass psiClass) {
+    final AndroidAttributeValue<PsiClass> domAttrValue = AndroidDomUtil.findComponentDeclarationInManifest(psiClass);
+
+    if (domAttrValue == null) {
+      return null;
+    }
+    final XmlAttributeValue attrValue = domAttrValue.getXmlAttributeValue();
+    return attrValue != null ? new MyGotoManifestItem(attrValue) : null;
   }
 
   private static boolean isInheritorOfContextClass(@NotNull PsiClass psiClass, @NotNull Module module) {
@@ -262,6 +295,31 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
     public String getCustomContainerName() {
       final PsiDirectory directory = myFile.getContainingDirectory();
       return directory != null ? "(" + directory.getName() + ")" : null;
+    }
+  }
+
+  private static class MyGotoManifestItem extends GotoRelatedItem {
+
+    public MyGotoManifestItem(@NotNull XmlAttributeValue attributeValue) {
+      super(attributeValue);
+    }
+
+    @Nullable
+    @Override
+    public String getCustomName() {
+      return "AndroidManifest.xml";
+    }
+
+    @Nullable
+    @Override
+    public String getCustomContainerName() {
+      return "";
+    }
+
+    @Nullable
+    @Override
+    public Icon getCustomIcon() {
+      return XmlFileType.INSTANCE.getIcon();
     }
   }
 }
