@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.builder.model.AndroidProject;
+import com.android.sdklib.repository.FullRevision;
 import junit.framework.TestCase;
 
 import static org.easymock.EasyMock.*;
@@ -24,6 +25,8 @@ import static org.easymock.EasyMock.*;
  * Tests for {@link GradleModelVersionCheck}.
  */
 public class GradleModelVersionCheckTest extends TestCase {
+  private static final FullRevision MINIMUM_SUPPORTED_VERSION = FullRevision.parseRevision("0.5.0");
+
   private AndroidProject myProject;
 
   @Override
@@ -36,16 +39,20 @@ public class GradleModelVersionCheckTest extends TestCase {
     expect(myProject.getModelVersion()).andReturn(null);
     replay(myProject);
 
-    assertFalse(GradleModelVersionCheck.isSupportedVersion(myProject));
+    assertFalse(isSupportedVersion());
 
     verify(myProject);
+  }
+
+  private boolean isSupportedVersion() {
+    return GradleModelVersionCheck.isSupportedVersion(myProject, MINIMUM_SUPPORTED_VERSION);
   }
 
   public void testIsSupportedVersionWithEmptyVersion() {
     expect(myProject.getModelVersion()).andReturn("");
     replay(myProject);
 
-    assertFalse(GradleModelVersionCheck.isSupportedVersion(myProject));
+    assertFalse(isSupportedVersion());
 
     verify(myProject);
   }
@@ -54,7 +61,7 @@ public class GradleModelVersionCheckTest extends TestCase {
     expect(myProject.getModelVersion()).andReturn("0.4.3");
     replay(myProject);
 
-    assertFalse(GradleModelVersionCheck.isSupportedVersion(myProject));
+    assertFalse(isSupportedVersion());
 
     verify(myProject);
   }
@@ -63,7 +70,7 @@ public class GradleModelVersionCheckTest extends TestCase {
     expect(myProject.getModelVersion()).andReturn("0.5.0");
     replay(myProject);
 
-    assertTrue(GradleModelVersionCheck.isSupportedVersion(myProject));
+    assertTrue(isSupportedVersion());
 
     verify(myProject);
   }
@@ -72,7 +79,7 @@ public class GradleModelVersionCheckTest extends TestCase {
     expect(myProject.getModelVersion()).andReturn("0.5.1");
     replay(myProject);
 
-    assertTrue(GradleModelVersionCheck.isSupportedVersion(myProject));
+    assertTrue(isSupportedVersion());
 
     verify(myProject);
   }
@@ -81,7 +88,7 @@ public class GradleModelVersionCheckTest extends TestCase {
     expect(myProject.getModelVersion()).andReturn("0.6.0");
     replay(myProject);
 
-    assertTrue(GradleModelVersionCheck.isSupportedVersion(myProject));
+    assertTrue(isSupportedVersion());
 
     verify(myProject);
   }
@@ -90,7 +97,7 @@ public class GradleModelVersionCheckTest extends TestCase {
     expect(myProject.getModelVersion()).andReturn("1.0.0");
     replay(myProject);
 
-    assertTrue(GradleModelVersionCheck.isSupportedVersion(myProject));
+    assertTrue(isSupportedVersion());
 
     verify(myProject);
   }
@@ -99,7 +106,7 @@ public class GradleModelVersionCheckTest extends TestCase {
     expect(myProject.getModelVersion()).andReturn("0.5.0-SNAPSHOT");
     replay(myProject);
 
-    assertTrue(GradleModelVersionCheck.isSupportedVersion(myProject));
+    assertTrue(isSupportedVersion());
 
     verify(myProject);
   }
@@ -108,7 +115,7 @@ public class GradleModelVersionCheckTest extends TestCase {
     expect(myProject.getModelVersion()).andReturn("Hello");
     replay(myProject);
 
-    assertFalse(GradleModelVersionCheck.isSupportedVersion(myProject));
+    assertFalse(isSupportedVersion());
 
     verify(myProject);
   }
