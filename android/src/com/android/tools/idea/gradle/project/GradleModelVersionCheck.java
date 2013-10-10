@@ -28,6 +28,10 @@ final class GradleModelVersionCheck {
   static final FullRevision MINIMUM_SUPPORTED_VERSION = FullRevision.parseRevision(GradleUtil.GRADLE_PLUGIN_MINIMUM_VERSION);
 
   static boolean isSupportedVersion(@NotNull AndroidProject androidProject) {
+    return isSupportedVersion(androidProject, MINIMUM_SUPPORTED_VERSION);
+  }
+
+  static boolean isSupportedVersion(@NotNull AndroidProject androidProject, @NotNull FullRevision minimumSupportedVersion) {
     String modelVersion = androidProject.getModelVersion();
     if (Strings.isNullOrEmpty(modelVersion)) {
       return false;
@@ -38,7 +42,7 @@ final class GradleModelVersionCheck {
     }
     try {
       FullRevision modelRevision = FullRevision.parseRevision(modelVersion);
-      return modelRevision.compareTo(MINIMUM_SUPPORTED_VERSION) >= 0;
+      return modelRevision.compareTo(minimumSupportedVersion) >= 0;
     } catch (NumberFormatException e) {
       LOG.info(String.format("Unable to parse Gradle model version '%1$s'", modelVersion), e);
       return false;
