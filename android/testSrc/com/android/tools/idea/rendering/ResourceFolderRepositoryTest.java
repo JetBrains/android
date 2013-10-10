@@ -53,6 +53,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   private static final String LAYOUT2 = "resourceRepository/layout2.xml";
   private static final String VALUES1 = "resourceRepository/values.xml";
   private static final String VALUES_EMPTY = "resourceRepository/empty.xml";
+  private static final String XLIFF = "resourceRepository/xliff.xml";
   private static final String STRINGS = "resourceRepository/strings.xml";
 
   private static void resetScanCounter() {
@@ -92,7 +93,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceItem label = labelList.get(0);
     ResourceValue resourceValue = label.getResourceValue(false);
     assertNotNull(resourceValue);
-    assertEquals("Step %1$d: Lorem Ipsum", resourceValue.getValue()); // In the file, there's whitespace unlike example above
+    assertEquals("Step ${step_number}: Lorem Ipsum", resourceValue.getValue()); // In the file, there's whitespace unlike example above
 
     // Test unicode escape handling: <string name="ellipsis">Here it is: \u2026!</string>
     labelList = resources.getResourceItem(ResourceType.STRING, "ellipsis");
@@ -106,6 +107,24 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     // Make sure we pick up id's defined using types
     assertTrue(resources.hasResourceItem(ResourceType.ID, "action_next"));
     assertFalse(resources.hasResourceItem(ResourceType.ID, "action_next2"));
+  }
+
+  @SuppressWarnings("ConstantConditions")
+  public void testXliff() throws Exception {
+    // Tests the handling of xliff markup
+    VirtualFile file1 = myFixture.copyFileToProject(XLIFF, "res/values/myvalues.xml");
+    PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
+    assertNotNull(psiFile1);
+    ResourceFolderRepository resources = createRepository();
+    assertNotNull(resources);
+    assertEquals("Share your score of (1337) with (Bluetooth)!",
+                 resources.getResourceItem(ResourceType.STRING, "share_with_application").get(0).getResourceValue(false).getValue());
+    assertEquals("Call ${name}",
+                 resources.getResourceItem(ResourceType.STRING, "description_call").get(0).getResourceValue(false).getValue());
+    assertEquals("(42) mins (28) secs",
+                 resources.getResourceItem(ResourceType.STRING, "callDetailsDurationFormat").get(0).getResourceValue(false).getValue());
+    assertEquals("${number_of_sessions} sessions removed from your schedule",
+                 resources.getResourceItem(ResourceType.STRING, "other").get(0).getResourceValue(false).getValue());
   }
 
   public void testInitialCreate() throws Exception {
@@ -955,7 +974,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceItem label = labelList.get(0);
     ResourceValue resourceValue = label.getResourceValue(false);
     assertNotNull(resourceValue);
-    assertEquals("Step %1$d: Lorem Ipsum", resourceValue.getValue());
+    assertEquals("Step ${step_number}: Lorem Ipsum", resourceValue.getValue());
 
     long generation = resources.getModificationCount();
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
@@ -974,7 +993,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(generation < resources.getModificationCount());
     resourceValue = label.getResourceValue(false);
     assertNotNull(resourceValue);
-    assertEquals("Step %1$d: Llorem Ipsum", resourceValue.getValue());
+    assertEquals("Step ${step_number}: Llorem Ipsum", resourceValue.getValue());
 
     // Shouldn't have done any full file rescans during the above edits
     ensureIncremental();
