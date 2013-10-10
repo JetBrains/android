@@ -37,7 +37,7 @@ public class JdksTest extends IdeaTestCase {
     assertNotNull("Path to JDK 1.6 not set, please set JAVA6_HOME", myJdk6HomePath);
 
     myJdk7HomePath = AndroidSdkTestCaseHelper.getSystemPropertyOrEnvironmentVariable("JAVA7_HOME");
-    assertNotNull("Path to JDK 1.7 not set, please set JAVA6_HOME", myJdk6HomePath);
+    assertNotNull("Path to JDK 1.7 not set, please set JAVA7_HOME", myJdk7HomePath);
   }
 
   public void testGetBestJdkHomePathWithLangLevel1dot6() {
@@ -52,7 +52,8 @@ public class JdksTest extends IdeaTestCase {
     assertEquals(myJdk7HomePath, best);
   }
 
-  // TODO: rename the following 3 tests (or add comments)
+  // These tests verify that LanguageLevel#isAtLeast does what we think it does (this is IntelliJ code.) Leaving these tests here as a way
+  // ensure that regressions are not introduced later.
   public void testHasMatchingLangLevelWithLangLevel1dot6AndJdk7() {
     assertTrue(Jdks.hasMatchingLangLevel(JavaSdkVersion.JDK_1_7, LanguageLevel.JDK_1_6));
   }
