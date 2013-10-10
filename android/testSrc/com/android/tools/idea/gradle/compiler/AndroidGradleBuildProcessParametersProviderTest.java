@@ -53,7 +53,7 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
     ExternalSystemApiUtil.executeProjectChangeAction(true, new Runnable() {
       @Override
       public void run() {
-        NewProjectUtil.applyJdkToProject(myProject, getTestProjectJdk());
+        NewProjectUtil.applyJdkToProject(myProject, myJdk);
       }
     });
   }
@@ -86,8 +86,6 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
     String javaHomeDirPath = myJdk.getHomePath();
     assertNotNull(javaHomeDirPath);
     javaHomeDirPath = FileUtil.toSystemDependentName(javaHomeDirPath);
-
-    // TODO: this is not present
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.java.home.path=" + javaHomeDirPath));
   }
 
