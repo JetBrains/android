@@ -66,7 +66,7 @@ public class BuilderExecutionSettingsTest extends TestCase {
     }
   }
 
-  public void testConstructorWithValidVmArgs() {
+  public void testConstructorWithValidJvmArgs() {
     System.setProperty(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_IDLE_TIME_IN_MS, "55");
 
     String gradleHomeDirPath = myGradleHomeDir.getPath();
@@ -84,14 +84,25 @@ public class BuilderExecutionSettingsTest extends TestCase {
     System.setProperty(BuildProcessJvmArgs.USE_EMBEDDED_GRADLE_DAEMON, "true");
     System.setProperty(BuildProcessJvmArgs.USE_GRADLE_VERBOSE_LOGGING, "true");
 
-    System.setProperty(BuildProcessJvmArgs.GRADLE_DAEMON_VM_OPTION_COUNT, "2");
+    System.setProperty(BuildProcessJvmArgs.GRADLE_DAEMON_JVM_OPTION_COUNT, "2");
 
     String xmx = "-Xmx2048m";
-    System.setProperty(BuildProcessJvmArgs.GRADLE_DAEMON_VM_OPTION_DOT + 0, xmx);
+    System.setProperty(BuildProcessJvmArgs.GRADLE_DAEMON_JVM_OPTION_PREFIX + 0, xmx);
 
     String maxPermSize = "-XX:MaxPermSize=512m";
-    System.setProperty(BuildProcessJvmArgs.GRADLE_DAEMON_VM_OPTION_DOT + 1, maxPermSize);
+    System.setProperty(BuildProcessJvmArgs.GRADLE_DAEMON_JVM_OPTION_PREFIX + 1, maxPermSize);
 
+    System.setProperty(BuildProcessJvmArgs.HTTP_PROXY_PROPERTY_COUNT, "4");
+
+    String httpProxyHost = "proxy.android.com";
+    System.setProperty(BuildProcessJvmArgs.HTTP_PROXY_PROPERTY_PREFIX + 0, "http.proxyHost:" + httpProxyHost);
+
+    String httpProxyPort = "8080";
+    System.setProperty(BuildProcessJvmArgs.HTTP_PROXY_PROPERTY_PREFIX + 1, "http.proxyPort:" + httpProxyPort);
+
+    // Add some garbage to test that parsing HTTP proxy properties is correct.
+    System.setProperty(BuildProcessJvmArgs.HTTP_PROXY_PROPERTY_PREFIX + 2, "randomText");
+    System.setProperty(BuildProcessJvmArgs.HTTP_PROXY_PROPERTY_PREFIX + 3, "randomText:");
 
     BuilderExecutionSettings settings = new BuilderExecutionSettings();
     assertEquals(55, settings.getGradleDaemonMaxIdleTimeInMs());
@@ -102,10 +113,12 @@ public class BuilderExecutionSettingsTest extends TestCase {
     assertTrue(settings.isEmbeddedGradleDaemonEnabled());
     assertTrue(settings.isVerboseLoggingEnabled());
 
-    List<String> vmOptions = settings.getGradleDaemonVmOptions();
-    assertEquals(2, vmOptions.size());
+    List<String> vmOptions = settings.getGradleDaemonJvmOptions();
+    assertEquals(4, vmOptions.size());
     assertEquals(xmx, vmOptions.get(0));
     assertEquals(maxPermSize, vmOptions.get(1));
+    assertEquals("-Dhttp.proxyHost=" + httpProxyHost, vmOptions.get(2));
+    assertEquals("-Dhttp.proxyPort=" + httpProxyPort, vmOptions.get(3));
   }
 
   private static String pathOf(@Nullable File dir) {
