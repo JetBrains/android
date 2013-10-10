@@ -21,8 +21,6 @@ import junit.framework.TestCase;
 import java.io.StringWriter;
 
 public class AndroidLogcatReceiverTest extends TestCase {
-  private static final String SHIFT = "        ";
-
   private StringWriter myWriter;
   private AndroidLogcatReceiver myReceiver;
 
@@ -55,8 +53,8 @@ public class AndroidLogcatReceiverTest extends TestCase {
     assertEquals("02-11 18:03:35.037  19796-19796/? E/AndroidRuntime"
                  + AndroidLogcatFormatter.TAG_SEPARATOR + " "
                  + line1 + "\n" +
-                 "    " + line2 + "\n" +
-                 "            " + line3 + "\n",
+                 AndroidLogcatReceiver.CONTINUATION_LINE_PREFIX + line2 + "\n" +
+                 AndroidLogcatReceiver.STACK_TRACE_LINE_PREFIX + line3 + "\n",
                  myWriter.getBuffer().toString());
   }
 

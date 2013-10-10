@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.compiler;
 
-import com.google.common.base.Strings;
+import com.android.tools.idea.AndroidSdkTestCaseHelper;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.intellij.ide.impl.NewProjectUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -25,7 +26,6 @@ import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
 import java.util.List;
@@ -42,6 +42,13 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
   @Override
   public void setUp() throws Exception {
     super.setUp();
+
+    String[] names = {"JAVA6_HOME", "JAVA_HOME"};
+    String jdkHomePath = AndroidSdkTestCaseHelper.getSystemPropertyOrEnvironmentVariable(names);
+    assertNotNull("Please set one of the following env vars (or system properties) to point to the JDK: " + Joiner.on(",").join(names),
+                  jdkHomePath);
+    myJdk = SdkConfigurationUtil.createAndAddSDK(jdkHomePath, JavaSdk.getInstance());
+
     myParametersProvider = new AndroidGradleBuildProcessParametersProvider(myProject);
     ExternalSystemApiUtil.executeProjectChangeAction(true, new Runnable() {
       @Override
@@ -49,29 +56,6 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
         NewProjectUtil.applyJdkToProject(myProject, getTestProjectJdk());
       }
     });
-  }
-
-  @Override
-  @NotNull
-  protected Sdk getTestProjectJdk() {
-    if (myJdk == null) {
-      String jdkHomePath = getSystemPropertyOrEnvironmentVariable("JAVA6_HOME");
-      myJdk = SdkConfigurationUtil.createAndAddSDK(jdkHomePath, JavaSdk.getInstance());
-    }
-    assertNotNull(myJdk);
-    return myJdk;
-  }
-
-  @NotNull
-  private static String getSystemPropertyOrEnvironmentVariable(@NotNull String name) {
-    String s = System.getProperty(name);
-    if (Strings.isNullOrEmpty(s)) {
-      s = System.getenv(name);
-    }
-    if (Strings.isNullOrEmpty(s)) {
-      fail(String.format("Please set the system property or environment variable '%1$s'", name));
-    }
-    return s;
   }
 
   public void testPopulateJvmArgsWithGradleExecutionSettings() {
@@ -90,7 +74,6 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
 
     verify(settings);
 
-    assertEquals(9, jvmArgs.size());
     String projectDirPath = FileUtil.toSystemDependentName(myProject.getBasePath());
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.project.path=" + projectDirPath));
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.daemon.max.idle.time=55"));
@@ -103,6 +86,8 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
     String javaHomeDirPath = myJdk.getHomePath();
     assertNotNull(javaHomeDirPath);
     javaHomeDirPath = FileUtil.toSystemDependentName(javaHomeDirPath);
+
+    // TODO: this is not present
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.java.home.path=" + javaHomeDirPath));
   }
 
