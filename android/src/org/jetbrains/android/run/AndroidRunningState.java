@@ -844,7 +844,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       clearLogcatAndConsole(getModule().getProject(), device);
     }
 
-    message("Target device: " + getDevicePresentableName(device), STDOUT);
+    message("Target device: " + device.getName(), STDOUT);
     try {
       if (myDeploy) {
         if (!checkPackageNames()) return false;
@@ -1007,16 +1007,6 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     if (result[0]) {
       AndroidLogcatUtil.clearLogcat(project, device);
     }
-  }
-
-  @NotNull
-  private static String getDevicePresentableName(IDevice device) {
-    StringBuilder deviceMessageBuilder = new StringBuilder();
-    deviceMessageBuilder.append(device.getSerialNumber());
-    if (device.getAvdName() != null) {
-      deviceMessageBuilder.append(" (").append(device.getAvdName()).append(')');
-    }
-    return deviceMessageBuilder.toString();
   }
 
   private boolean checkDdms() {
