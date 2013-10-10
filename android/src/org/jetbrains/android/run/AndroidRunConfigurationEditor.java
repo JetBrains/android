@@ -65,6 +65,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private JBCheckBox myUseAdditionalCommandLineOptionsCheckBox;
   private RawCommandLineEditor myCommandLineField;
   private JCheckBox myShowLogcatCheckBox;
+  private JCheckBox myUseLastSelectedDeviceCheckBox;
   private AvdComboBox myAvdCombo;
   private String incorrectPreferredAvd;
   private JComponent anchor;
@@ -146,6 +147,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myShowChooserRadioButton.addActionListener(listener);
     myEmulatorRadioButton.addActionListener(listener);
     myUsbDeviceRadioButton.addActionListener(listener);
+    myUseLastSelectedDeviceCheckBox.addActionListener(listener);
 
     myNetworkSpeedCombo.setModel(new DefaultComboBoxModel(NETWORK_SPEEDS));
     myNetworkLatencyCombo.setModel(new DefaultComboBoxModel(NETWORK_LATENCIES));
@@ -236,6 +238,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myShowChooserRadioButton.setSelected(targetSelectionMode == TargetSelectionMode.SHOW_DIALOG);
     myEmulatorRadioButton.setSelected(targetSelectionMode == TargetSelectionMode.EMULATOR);
     myUsbDeviceRadioButton.setSelected(targetSelectionMode == TargetSelectionMode.USB_DEVICE);
+    myUseLastSelectedDeviceCheckBox.setSelected(configuration.USE_LAST_SELECTED_DEVICE);
 
     myAvdComboComponent.setEnabled(targetSelectionMode == TargetSelectionMode.EMULATOR);
 
@@ -285,6 +288,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
       configuration.setTargetSelectionMode(TargetSelectionMode.USB_DEVICE);
     }
 
+    configuration.USE_LAST_SELECTED_DEVICE = myUseLastSelectedDeviceCheckBox.isSelected();
     configuration.COMMAND_LINE = myCommandLineField.getText();
     configuration.USE_COMMAND_LINE = myUseAdditionalCommandLineOptionsCheckBox.isSelected();
     configuration.PREFERRED_AVD = "";

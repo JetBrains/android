@@ -207,27 +207,46 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     myConsole = console;
 
     if (myTargetChooser instanceof ManualTargetChooser) {
+      if (myConfiguration.USE_LAST_SELECTED_DEVICE) {
+        Set<String> devicesUsedInLastLaunch = myConfiguration.getDevicesUsedInLastLaunch();
 
-      final ExtendedDeviceChooserDialog chooser = new ExtendedDeviceChooserDialog(myFacet, mySupportMultipleDevices);
-      chooser.show();
-      if (chooser.getExitCode() != DialogWrapper.OK_EXIT_CODE) {
-        return null;
+        if (devicesUsedInLastLaunch != null) {
+          myTargetDevices = getDevicesStillOnline(devicesUsedInLastLaunch);
+        }
+
+        if (myTargetDevices.length > 1 && !mySupportMultipleDevices) {
+          myTargetDevices = EMPTY_DEVICE_ARRAY;
+        }
       }
-      
-      if (chooser.isToLaunchEmulator()) {
-        final String selectedAvd = chooser.getSelectedAvd();
-        if (selectedAvd == null) {
+
+      if (myTargetDevices.length == 0) {
+        final ExtendedDeviceChooserDialog chooser = new ExtendedDeviceChooserDialog(myFacet, mySupportMultipleDevices,
+                                                                                    true, myConfiguration.USE_LAST_SELECTED_DEVICE);
+        chooser.show();
+        if (chooser.getExitCode() != DialogWrapper.OK_EXIT_CODE) {
           return null;
         }
-        myTargetChooser = new EmulatorTargetChooser(selectedAvd);
-        myAvdName = selectedAvd;
-      }
-      else {
-        final IDevice[] selectedDevices = chooser.getSelectedDevices();
-        if (selectedDevices.length == 0) {
-          return null;
+
+        if (chooser.isToLaunchEmulator()) {
+          final String selectedAvd = chooser.getSelectedAvd();
+          if (selectedAvd == null) {
+            return null;
+          }
+          myTargetChooser = new EmulatorTargetChooser(selectedAvd);
+          myAvdName = selectedAvd;
         }
-        myTargetDevices = selectedDevices;
+        else {
+          final IDevice[] selectedDevices = chooser.getSelectedDevices();
+          if (selectedDevices.length == 0) {
+            return null;
+          }
+          myTargetDevices = selectedDevices;
+
+          if (chooser.useSameDevicesAgain()) {
+            myConfiguration.USE_LAST_SELECTED_DEVICE = true;
+            myConfiguration.setDevicesUsedInLaunch(getDeviceNames(selectedDevices));
+          }
+        }
       }
     }
 
@@ -238,6 +257,37 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       }
     });
     return new DefaultExecutionResult(console, myProcessHandler);
+  }
+
+  private Set<String> getDeviceNames(@NotNull IDevice[] selectedDevices) {
+    Set<String> s = new HashSet<String>(selectedDevices.length);
+
+    for (IDevice d : selectedDevices) {
+      String name = d.getName();
+      if (name != null) {
+        s.add(name);
+      }
+    }
+
+    return s;
+  }
+
+  private IDevice[] getDevicesStillOnline(Set<String> devicesUsedInLastLaunch) {
+    AndroidDebugBridge debugBridge = myFacet.getDebugBridge();
+    if (debugBridge == null) {
+      return EMPTY_DEVICE_ARRAY;
+    }
+
+    IDevice[] devices = debugBridge.getDevices();
+    List<IDevice> onlineDevices = new ArrayList<IDevice>(devices.length);
+
+    for (IDevice d : devices) {
+      if (devicesUsedInLastLaunch.contains(d.getName())) {
+        onlineDevices.add(d);
+      }
+    }
+
+    return onlineDevices.toArray(new IDevice[onlineDevices.size()]);
   }
 
   @Nullable
