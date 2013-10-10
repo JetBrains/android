@@ -17,10 +17,15 @@
 package org.jetbrains.android.facet;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
+import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.search.PsiShortNamesCache;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by IntelliJ IDEA.
@@ -67,5 +72,43 @@ public class SimpleClassMapConstructor implements ClassMapConstructor {
   protected static boolean isAndroidLibraryClass(@NotNull String qualifiedClassName) {
     String[] ar = qualifiedClassName.split("\\.");
     return ar.length < 0 || ar[0].equals("android");
+  }
+
+  @Nullable
+  public static PsiClass findClassByTagName(@NotNull AndroidFacet facet, @NotNull String name, @NotNull PsiClass baseClass) {
+    final Module module = facet.getModule();
+    final Project project = module.getProject();
+
+    if (!name.contains(".")) {
+      final PsiClass[] classes = PsiShortNamesCache.getInstance(project).
+        getClassesByName(name, module.getModuleWithLibrariesScope());
+
+      for (PsiClass aClass : classes) {
+        final String qName = aClass.getQualifiedName();
+
+        if (qName != null && isAndroidLibraryClass(qName) && aClass.isInheritor(baseClass, true)) {
+          return aClass;
+        }
+      }
+      return null;
+    }
+    else {
+      final PsiClass[] classes = JavaPsiFacade.getInstance(project).findClasses(
+        name, module.getModuleWithDependenciesAndLibrariesScope(false));
+
+      for (PsiClass aClass : classes) {
+        if (aClass.isInheritor(baseClass, true)) {
+          return aClass;
+        }
+      }
+      return null;
+    }
+  }
+
+  @Nullable
+  public static PsiClass findClassByTagName(@NotNull AndroidFacet facet, @NotNull String name, @NotNull String baseClassQName) {
+    final PsiClass baseClass = JavaPsiFacade.getInstance(facet.getModule().getProject()).findClass(
+      baseClassQName, facet.getModule().getModuleWithLibrariesScope());
+    return baseClass != null ? findClassByTagName(facet, name, baseClass) : null;
   }
 }
