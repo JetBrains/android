@@ -42,6 +42,9 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
       String format = "Please specify the path of an Android SDK (v22.0.0) in the system property or environment variable '%1$s'";
       fail(String.format(format, AndroidTestCase.SDK_PATH_PROPERTY));
     }
+
+    // for debugging on the build server
+    System.out.println("Using sdk @ " + mySdkPath);
   }
 
   public void testFindSuitableAndroidSdkWhenNoSdkSet() {

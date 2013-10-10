@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.sdk;
 
-import com.google.common.base.Strings;
+import com.android.tools.idea.AndroidSdkTestCaseHelper;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.IdeaTestCase;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -34,20 +33,11 @@ public class JdksTest extends IdeaTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myJdk6HomePath = getSystemPropertyOrEnvironmentVariable("JAVA6_HOME");
-    myJdk7HomePath = getSystemPropertyOrEnvironmentVariable("JAVA7_HOME");
-  }
+    myJdk6HomePath = AndroidSdkTestCaseHelper.getSystemPropertyOrEnvironmentVariable("JAVA6_HOME");
+    assertNotNull("Path to JDK 1.6 not set, please set JAVA6_HOME", myJdk6HomePath);
 
-  @NotNull
-  private static String getSystemPropertyOrEnvironmentVariable(@NotNull String name) {
-    String s = System.getProperty(name);
-    if (Strings.isNullOrEmpty(s)) {
-      s = System.getenv(name);
-    }
-    if (Strings.isNullOrEmpty(s)) {
-      fail(String.format("Please set the system property or environment variable '%1$s'", name));
-    }
-    return s;
+    myJdk7HomePath = AndroidSdkTestCaseHelper.getSystemPropertyOrEnvironmentVariable("JAVA7_HOME");
+    assertNotNull("Path to JDK 1.7 not set, please set JAVA6_HOME", myJdk6HomePath);
   }
 
   public void testGetBestJdkHomePathWithLangLevel1dot6() {
@@ -62,6 +52,7 @@ public class JdksTest extends IdeaTestCase {
     assertEquals(myJdk7HomePath, best);
   }
 
+  // TODO: rename the following 3 tests (or add comments)
   public void testHasMatchingLangLevelWithLangLevel1dot6AndJdk7() {
     assertTrue(Jdks.hasMatchingLangLevel(JavaSdkVersion.JDK_1_7, LanguageLevel.JDK_1_6));
   }
