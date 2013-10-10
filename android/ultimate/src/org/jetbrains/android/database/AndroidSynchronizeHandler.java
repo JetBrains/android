@@ -82,10 +82,10 @@ public class AndroidSynchronizeHandler extends SynchronizeHandler {
     final String packageName = dbConnectionInfo.getPackageName();
     final String dbName = dbConnectionInfo.getDbName();
 
-    final String lsResult = AndroidDbUtil.getRemoteDbModificationTimeAndSize(device, packageName, dbName, errorReporter);
+    final Long modificationTime = AndroidDbUtil.getModificationTime(device, packageName, dbName, errorReporter, progressIndicator);
     progressIndicator.checkCanceled();
 
-    if (lsResult == null) {
+    if (modificationTime == null) {
       return;
     }
     final AndroidRemoteDataBaseManager remoteDbManager = AndroidRemoteDataBaseManager.getInstance();
@@ -94,19 +94,14 @@ public class AndroidSynchronizeHandler extends SynchronizeHandler {
     if (info == null) {
       info = new AndroidRemoteDataBaseManager.MyDatabaseInfo();
     }
-    final String remoteDbMd5 = AndroidDbUtil.getRemoteDbMd5Hash(device, packageName, dbName, errorReporter);
     progressIndicator.checkCanceled();
 
-    if (remoteDbMd5 == null) {
-      return;
-    }
     final File localDbFile = new File(dataSource.buildLocalDbFileOsPath());
     info.referringProjects.add(FileUtil.toCanonicalPath(project.getBasePath()));
 
-    if (!localDbFile.exists() || !lsResult.equals(info.lsResult) || !remoteDbMd5.equals(info.md5Hash)) {
+    if (!localDbFile.exists() || !modificationTime.equals(info.modificationTime)) {
       if (AndroidDbUtil.downloadDatabase(device, packageName, dbName, localDbFile, progressIndicator, errorReporter)) {
-        info.lsResult = lsResult;
-        info.md5Hash = remoteDbMd5;
+        info.modificationTime = modificationTime;
         remoteDbManager.setDatabaseInfo(deviceSerialNumber, packageName, dbName, info);
       }
     }
