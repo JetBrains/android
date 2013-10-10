@@ -4,6 +4,7 @@ import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.persistence.database.autoconfig.DataSourceConfigUtil;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -22,12 +23,6 @@ public class AndroidDataSourceProjectComponent extends AbstractProjectComponent 
 
   @Override
   public void projectOpened() {
-    if (!ProjectFacetManager.getInstance(myProject).hasFacets(AndroidFacet.ID)) {
-      return;
-    }
-    for (AndroidDataSource dataSource : AndroidDataSourceStorage.getInstance(myProject).getDataSources()) {
-      AndroidDbUtil.detectDriverAndRefresh(myProject, dataSource);
-    }
   }
 
   @Override
