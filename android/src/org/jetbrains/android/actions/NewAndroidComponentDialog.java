@@ -74,6 +74,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
     myKindCombo.registerUpDownHint(myNameField);
     myUpDownHint.setIcon(PlatformIcons.UP_DOWN_ARROWS);
     myKindCombo.addItem(AndroidBundle.message("android.new.component.dialog.activity.item"), null, AndroidFileTemplateProvider.ACTIVITY);
+    myKindCombo.addItem(AndroidBundle.message("android.new.component.dialog.fragment.item"), null, AndroidFileTemplateProvider.FRAGMENT);
 
     if (!containsCustomApplicationClass(module)) {
       myKindCombo.addItem(AndroidBundle.message("android.new.component.dialog.application.item"), null,
@@ -107,11 +108,12 @@ public class NewAndroidComponentDialog extends DialogWrapper {
       @Override
       public void actionPerformed(ActionEvent e) {
         String selected = myKindCombo.getSelectedName();
-        final boolean activity = AndroidFileTemplateProvider.ACTIVITY.equals(selected);
-        myMarkAsStartupActivityCheckBox.setEnabled(activity);
-        myCreateLayoutFile.setEnabled(activity);
+        myMarkAsStartupActivityCheckBox.setEnabled(AndroidFileTemplateProvider.ACTIVITY.equals(selected));
+        myCreateLayoutFile.setEnabled(AndroidFileTemplateProvider.ACTIVITY.equals(selected) ||
+                                      AndroidFileTemplateProvider.FRAGMENT.equals(selected));
         myLabelField.setEnabled(!AndroidFileTemplateProvider.REMOTE_INTERFACE_TEMPLATE.equals(selected) &&
-                                !AndroidFileTemplateProvider.APPLICATION.equals(selected));
+                                !AndroidFileTemplateProvider.APPLICATION.equals(selected) &&
+                                !AndroidFileTemplateProvider.FRAGMENT.equals(selected));
       }
     });
   }
@@ -154,7 +156,9 @@ public class NewAndroidComponentDialog extends DialogWrapper {
         registerComponent(templateName, (PsiClass)element, JavaDirectoryService.getInstance().getPackage(directory), facet,
                           label, startupActivity);
 
-        if (AndroidFileTemplateProvider.ACTIVITY.equals(templateName) && createLayoutFile) {
+        if ((AndroidFileTemplateProvider.ACTIVITY.equals(templateName) || AndroidFileTemplateProvider.FRAGMENT.equals(templateName)) &&
+            createLayoutFile) {
+          final boolean activity = AndroidFileTemplateProvider.ACTIVITY.equals(templateName);
           final Manifest manifest = facet.getManifest();
           final String appPackage = manifest != null ? manifest.getPackage().getValue() : null;
 
@@ -162,7 +166,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
             ApplicationManager.getApplication().invokeLater(new Runnable() {
               @Override
               public void run() {
-                createLayoutFileForActivity(facet, (PsiClass)element, appPackage);
+                createLayoutFileForActivityOrFragment(facet, (PsiClass)element, appPackage, activity);
               }
             });
           }
@@ -172,9 +176,10 @@ public class NewAndroidComponentDialog extends DialogWrapper {
     return element;
   }
 
-  private static void createLayoutFileForActivity(@NotNull final AndroidFacet facet,
-                                                  @NotNull PsiClass activityClass,
-                                                  @NotNull final String appPackage) {
+  private static void createLayoutFileForActivityOrFragment(@NotNull final AndroidFacet facet,
+                                                            @NotNull PsiClass activityClass,
+                                                            @NotNull final String appPackage,
+                                                            boolean activity) {
     if (facet.isDisposed() || !activityClass.isValid()) {
       return;
     }
@@ -188,34 +193,65 @@ public class NewAndroidComponentDialog extends DialogWrapper {
     final String layoutFileName = layoutFile != null ? layoutFile.getName() : null;
 
     if (layoutFileName != null) {
-      final PsiMethod[] onCreateMethods = activityClass.findMethodsByName("onCreate", false);
+      final PsiMethod[] onCreateMethods = activityClass.findMethodsByName(activity ? "onCreate" : "onCreateView", false);
 
       if (onCreateMethods.length != 1) {
         return;
       }
       final PsiMethod onCreateMethod = onCreateMethods[0];
       final PsiCodeBlock body = onCreateMethod.getBody();
+      final Project project = facet.getModule().getProject();
 
       if (body != null) {
-        final PsiElement lastBodyElement = body.getLastBodyElement();
+        final String fieldName = AndroidResourceUtil.getRJavaFieldName(FileUtil.getNameWithoutExtension(layoutFileName));
+        final String layoutFieldRef = appPackage + ".R.layout." + fieldName;
 
-        if (lastBodyElement != null) {
-          final Project project = facet.getModule().getProject();
-          final String fieldName = AndroidResourceUtil.getRJavaFieldName(FileUtil.getNameWithoutExtension(layoutFileName));
-
-          ApplicationManager.getApplication().runWriteAction(new Runnable() {
-            @Override
-            public void run() {
-              final PsiStatement setContentViewSt = PsiElementFactory.SERVICE.getInstance(project)
-                .createStatementFromText("setContentView(" + appPackage + ".R.layout." + fieldName + ");", body);
-              body.addAfter(setContentViewSt, lastBodyElement);
-
-              JavaCodeStyleManager.getInstance(project).shortenClassReferences(body);
-              CodeStyleManager.getInstance(project).reformat(body);
-            }
-          });
+        if (activity) {
+          addSetContentViewStatement(body, layoutFieldRef);
+        }
+        else {
+          addInflateStatement(body, layoutFieldRef);
         }
       }
+    }
+  }
+
+  private static void addInflateStatement(final PsiCodeBlock body, final String layoutFieldRef) {
+    final Project project = body.getProject();
+    final PsiStatement[] statements = body.getStatements();
+
+    if (statements.length == 1) {
+      final PsiStatement statement = statements[0];
+      ApplicationManager.getApplication().runWriteAction(new Runnable() {
+        @Override
+        public void run() {
+          final PsiStatement newStatement = PsiElementFactory.SERVICE.getInstance(project).createStatementFromText(
+            "return inflater.inflate(" + layoutFieldRef + ", container, false);", body);
+          statement.replace(newStatement);
+
+          JavaCodeStyleManager.getInstance(project).shortenClassReferences(body);
+          CodeStyleManager.getInstance(project).reformat(body);
+        }
+      });
+    }
+  }
+
+  private static void addSetContentViewStatement(final PsiCodeBlock body, final String layoutFieldRef) {
+    final Project project = body.getProject();
+    final PsiElement lastBodyElement = body.getLastBodyElement();
+
+    if (lastBodyElement != null) {
+      ApplicationManager.getApplication().runWriteAction(new Runnable() {
+        @Override
+        public void run() {
+          final PsiStatement newStatement = PsiElementFactory.SERVICE.getInstance(project).createStatementFromText(
+            "setContentView(" + layoutFieldRef + ");", body);
+          body.addAfter(newStatement, lastBodyElement);
+
+          JavaCodeStyleManager.getInstance(project).shortenClassReferences(body);
+          CodeStyleManager.getInstance(project).reformat(body);
+        }
+      });
     }
   }
 
