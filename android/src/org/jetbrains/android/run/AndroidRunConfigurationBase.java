@@ -17,8 +17,10 @@
 package org.jetbrains.android.run;
 
 import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.google.common.collect.Maps;
 import com.intellij.CommonBundle;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
@@ -40,6 +42,7 @@ import com.intellij.openapi.util.*;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PathUtil;
+import com.intellij.util.containers.ConcurrentHashMap;
 import org.jdom.Element;
 import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.android.dom.manifest.Manifest;
@@ -54,9 +57,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -67,8 +68,15 @@ import java.util.List;
  */
 public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidRunConfigurationBase");
-  
+
+  /**
+   * A map from launch configuration name to set of devices used in that launch configuration.
+   * We want this list of devices persisted across launches, but not across invocations of studio, so we use a static variable.
+   */
+  private static Map<String,Set<String>> ourLastUsedDevices = new ConcurrentHashMap<String, Set<String>>();
+
   public String TARGET_SELECTION_MODE = TargetSelectionMode.EMULATOR.name();
+  public boolean USE_LAST_SELECTED_DEVICE = false;
   public String PREFERRED_AVD = "";
   public boolean USE_COMMAND_LINE = true;
   public String COMMAND_LINE = "";
@@ -150,9 +158,18 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return TargetSelectionMode.EMULATOR;
     }
   }
-  
+
   public void setTargetSelectionMode(@NotNull TargetSelectionMode mode) {
     TARGET_SELECTION_MODE = mode.name();
+  }
+
+  public void setDevicesUsedInLaunch(@NotNull Set<String> devices) {
+    ourLastUsedDevices.put(getName(), devices);
+  }
+
+  @Nullable
+  public Set<String> getDevicesUsedInLastLaunch() {
+    return ourLastUsedDevices.get(getName());
   }
 
   @Override
