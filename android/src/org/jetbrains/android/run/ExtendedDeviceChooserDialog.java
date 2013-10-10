@@ -47,13 +47,16 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
   private JRadioButton myLaunchEmulatorRadioButton;
   private JPanel myComboBoxWrapper;
   private JLabel myAvdLabel;
+  private JCheckBox myReuseSelectionCheckbox;
   private final AvdComboBox myAvdCombo;
 
   @NonNls private static final String SELECTED_SERIALS_PROPERTY = "ANDROID_EXTENDED_DEVICE_CHOOSER_SERIALS";
   @NonNls private static final String SELECTED_AVD_PROPERTY = "ANDROID_EXTENDED_DEVICE_CHOOSER_AVD";
 
   public ExtendedDeviceChooserDialog(@NotNull final AndroidFacet facet,
-                                     boolean multipleSelection) {
+                                     boolean multipleSelection,
+                                     boolean showReuseDevicesCheckbox,
+                                     boolean selectReuseDevicesCheckbox) {
     super(facet.getModule().getProject(), true);
     setTitle(AndroidBundle.message("choose.device.dialog.title"));
 
@@ -142,9 +145,12 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
       myAvdCombo.getComboBox().setSelectedIndex(0);
     }
 
+    myReuseSelectionCheckbox.setVisible(showReuseDevicesCheckbox);
+    myReuseSelectionCheckbox.setSelected(selectReuseDevicesCheckbox);
+
     updateEnabled();
   }
-  
+
   private void updateOkButton() {
     if (myLaunchEmulatorRadioButton.isSelected()) {
       getOKAction().setEnabled(getSelectedAvd() != null);
@@ -206,5 +212,9 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
 
   public boolean isToLaunchEmulator() {
     return myLaunchEmulatorRadioButton.isSelected();
+  }
+
+  public boolean useSameDevicesAgain() {
+    return myReuseSelectionCheckbox.isSelected();
   }
 }
