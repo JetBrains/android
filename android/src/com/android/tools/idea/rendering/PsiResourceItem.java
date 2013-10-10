@@ -38,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 
 import static com.android.SdkConstants.*;
+import static com.android.ide.common.resources.ResourceResolver.*;
 
 class PsiResourceItem extends ResourceItem {
   private final XmlTag myTag;
@@ -353,7 +354,24 @@ class PsiResourceItem extends ResourceItem {
         XmlText text = (XmlText)child;
         sb.append(getXmlTextValue(text));
       } else if (child instanceof XmlTag) {
-        appendText(sb, (XmlTag)child);
+        XmlTag childTag = (XmlTag)child;
+        // xliff support
+        if (XLIFF_G_TAG.equals(childTag.getLocalName()) && childTag.getNamespace().startsWith(XLIFF_NAMESPACE_PREFIX)) {
+          String example = childTag.getAttributeValue(ATTR_EXAMPLE);
+          if (example != null) {
+            // <xliff:g id="number" example="7">%d</xliff:g> minutes => "(7) minutes"
+            sb.append('(').append(example).append(')');
+            continue;
+          } else {
+            String id = childTag.getAttributeValue(ATTR_ID);
+            if (id != null) {
+              // Step <xliff:g id="step_number">%1$d</xliff:g> => Step ${step_number}
+              sb.append('$').append('{').append(id).append('}');
+              continue;
+            }
+          }
+        }
+        appendText(sb, childTag);
       }
     }
   }
