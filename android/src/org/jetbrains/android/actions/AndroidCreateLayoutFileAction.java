@@ -67,7 +67,7 @@ public class AndroidCreateLayoutFileAction extends CreateTypedResourceFileAction
   @Override
   protected PsiElement[] create(String newName, PsiDirectory directory) throws Exception {
     final String rootTag = myLastRootComponentName != null ? myLastRootComponentName : getDefaultRootTag();
-    return doCreateAndNavigate(newName, directory, rootTag, false);
+    return doCreateAndNavigate(newName, directory, rootTag, false, true);
   }
 
   @NotNull

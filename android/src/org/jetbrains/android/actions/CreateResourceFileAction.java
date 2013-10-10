@@ -59,6 +59,7 @@ public class CreateResourceFileAction extends CreateElementActionBase {
 
   private final Map<String, CreateTypedResourceFileAction> mySubactions = new HashMap<String, CreateTypedResourceFileAction>();
   private String myRootElement;
+  private boolean myNavigate;
 
   @NotNull
   public static CreateResourceFileAction getInstance() {
@@ -102,14 +103,26 @@ public class CreateResourceFileAction extends CreateElementActionBase {
                                            @Nullable String rootElement,
                                            @Nullable FolderConfiguration config,
                                            boolean chooseResName,
-                                           @Nullable String dialogTitle) {
+                                           @Nullable String dialogTitle,
+                                           boolean navigate) {
     final PsiElement[] elements = doCreateFileResource(facet, resType, resName, rootElement,
-                                                       config, chooseResName, dialogTitle);
+                                                       config, chooseResName, dialogTitle, navigate);
     if (elements.length == 0) {
       return null;
     }
     assert elements.length == 1 && elements[0] instanceof XmlFile;
     return (XmlFile)elements[0];
+  }
+
+  @Nullable
+  public static XmlFile createFileResource(@NotNull AndroidFacet facet,
+                                           @NotNull final ResourceType resType,
+                                           @Nullable String resName,
+                                           @Nullable String rootElement,
+                                           @Nullable FolderConfiguration config,
+                                           boolean chooseResName,
+                                           @Nullable String dialogTitle) {
+    return createFileResource(facet, resType, resName, rootElement, config, chooseResName, dialogTitle, true);
   }
 
   @NotNull
@@ -119,7 +132,8 @@ public class CreateResourceFileAction extends CreateElementActionBase {
                                                    @Nullable String rootElement,
                                                    @Nullable FolderConfiguration config,
                                                    boolean chooseResName,
-                                                   @Nullable String dialogTitle) {
+                                                   @Nullable String dialogTitle,
+                                                   final boolean navigate) {
     final CreateResourceFileAction action = getInstance();
 
     final String subdirName;
@@ -131,6 +145,7 @@ public class CreateResourceFileAction extends CreateElementActionBase {
     else {
       final MyDialog dialog = new MyDialog(facet, action.mySubactions.values(), resType, resName, rootElement,
                                            config, chooseResName, action, facet.getModule(), true);
+      dialog.setNavigate(navigate);
       if (dialogTitle != null) {
         dialog.setTitle(dialogTitle);
       }
@@ -210,7 +225,7 @@ public class CreateResourceFileAction extends CreateElementActionBase {
       throw new IllegalArgumentException("Incorrect directory");
     }
     if (myRootElement != null && myRootElement.length() > 0) {
-      return action.doCreateAndNavigate(newName, directory, myRootElement, false);
+      return action.doCreateAndNavigate(newName, directory, myRootElement, false, myNavigate);
     }
     return action.create(newName, directory);
   }
@@ -249,6 +264,7 @@ public class CreateResourceFileAction extends CreateElementActionBase {
 
   private static class MyDialog extends CreateResourceFileDialog {
     private final CreateResourceFileAction myAction;
+    private boolean myNavigate = true;
 
     protected MyDialog(@NotNull AndroidFacet facet,
                        Collection<CreateTypedResourceFileAction> actions,
@@ -268,7 +284,12 @@ public class CreateResourceFileAction extends CreateElementActionBase {
     @Override
     protected void doOKAction() {
       myAction.myRootElement = getRootElement();
+      myAction.myNavigate = myNavigate;
       super.doOKAction();
+    }
+
+    public void setNavigate(boolean navigate) {
+      myNavigate = navigate;
     }
   }
 }
