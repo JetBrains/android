@@ -398,6 +398,8 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
               if (myMaxWidth > 0) {
                 myRootView.setLocation(Math.max(0, (myMaxWidth - myRootView.getScaledWidth()) / 2),
                                          2 + Math.max(0, (myMaxHeight - myRootView.getScaledHeight()) / 2));
+              } else {
+                myRootView.setLocation(x, y);
               }
             }
           });
