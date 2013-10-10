@@ -394,6 +394,9 @@ public class AndroidRootUtil {
       return null;
     }
 
+    if (contentRoots.length == 1) {
+      return contentRoots[0];
+    }
     final VirtualFile manifestFile = getManifestFile(facet);
     if (manifestFile != null) {
       for (VirtualFile root : contentRoots) {
