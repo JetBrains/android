@@ -26,7 +26,7 @@ public class AndroidDataSourceProjectComponent extends AbstractProjectComponent 
       return;
     }
     for (AndroidDataSource dataSource : AndroidDataSourceStorage.getInstance(myProject).getDataSources()) {
-      AndroidDbUtil.detectDriverAndRefresh(myProject, dataSource, false);
+      AndroidDbUtil.detectDriverAndRefresh(myProject, dataSource);
     }
   }
 

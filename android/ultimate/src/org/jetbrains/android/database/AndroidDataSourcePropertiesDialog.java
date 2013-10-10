@@ -37,8 +37,6 @@ import java.util.concurrent.TimeUnit;
 public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigurable<AndroidDbManager, AndroidDataSource> {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.database.AndroidDataSourcePropertiesDialog");
 
-  private final boolean myCreate;
-
   private DefaultComboBoxModel myDeviceComboBoxModel = new DefaultComboBoxModel();
   private String myMissingDeviceIds;
 
@@ -52,9 +50,8 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   private Map<String, List<String>> myDatabaseMap;
   private final AndroidDebugBridge.IDeviceChangeListener myDeviceListener;
 
-  protected AndroidDataSourcePropertiesDialog(@NotNull AndroidDbManager manager, @NotNull Project project, @NotNull AndroidDataSource dataSource, boolean create) {
+  protected AndroidDataSourcePropertiesDialog(@NotNull AndroidDbManager manager, @NotNull Project project, @NotNull AndroidDataSource dataSource) {
     super(manager, dataSource, project);
-    myCreate = create;
 
     myDeviceComboBox.setRenderer(new DeviceComboBoxRenderer() {
       @Override
@@ -107,15 +104,12 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
     final String name = dataSource.getName();
     myNameTextField.setText(name != null ? name : "");
 
-    if (!create) {
-      final AndroidDataSource.State state = dataSource.getState();
-      final String packageName = state.getPackageName();
-      myPackageNameComboBox.getEditor().setItem(packageName != null ? packageName : "");
-      final String dbName = state.getDatabaseName();
-      myDataBaseComboBox.getEditor().setItem(dbName != null ? dbName : "");
-    }
-
-    myDeviceComboBox.setPreferredSize(new Dimension(300 , myDeviceComboBox.getPreferredSize().height));
+    final AndroidDataSource.State state = dataSource.getState();
+    final String packageName = state.getPackageName();
+    myPackageNameComboBox.getEditor().setItem(packageName != null ? packageName : "");
+    final String dbName = state.getDatabaseName();
+    myDataBaseComboBox.getEditor().setItem(dbName != null ? dbName : "");
+    myDeviceComboBox.setPreferredSize(new Dimension(300, myDeviceComboBox.getPreferredSize().height));
 
     setChangeListener(myNameTextField);
     setChangeListener(myPackageNameComboBox);
@@ -157,10 +151,9 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
     final IDevice[] devices = bridge != null ? getDevicesWithValidDeviceId(bridge) : new IDevice[0];
     final String deviceId = myDataSource.getState().getDeviceId();
     final DefaultComboBoxModel model = new DefaultComboBoxModel(devices);
+    Object selectedItem = null;
 
-    if (deviceId != null) {
-      Object selectedItem = null;
-
+    if (deviceId != null && deviceId.length() > 0) {
       for (IDevice device : devices) {
         if (deviceId.equals(AndroidDbUtil.getDeviceId(device))) {
           selectedItem = device;
@@ -168,18 +161,17 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
         }
       }
 
-      if (!myCreate && selectedItem == null) {
+      if (selectedItem == null) {
         model.addElement(deviceId);
         myMissingDeviceIds = deviceId;
         selectedItem = deviceId;
       }
-      myDeviceComboBoxModel = model;
-      myDeviceComboBox.setModel(model);
+    }
+    myDeviceComboBoxModel = model;
+    myDeviceComboBox.setModel(model);
 
-      if (selectedItem != null) {
-        myDeviceComboBox.setSelectedItem(selectedItem);
-      }
-
+    if (selectedItem != null) {
+      myDeviceComboBox.setSelectedItem(selectedItem);
     }
   }
 
@@ -325,7 +317,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
     myDataSource.resetUrl();
 
     AndroidSynchronizeHandler.doSynchronize(myProject, Collections.singletonList(myDataSource));
-    AndroidDbUtil.detectDriverAndRefresh(myProject, myDataSource, myCreate);
+    AndroidDbUtil.detectDriverAndRefresh(myProject, myDataSource);
 
     setModified(false);
 
