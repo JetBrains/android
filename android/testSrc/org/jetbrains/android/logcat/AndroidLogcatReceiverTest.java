@@ -55,8 +55,8 @@ public class AndroidLogcatReceiverTest extends TestCase {
     assertEquals("02-11 18:03:35.037  19796-19796/? E/AndroidRuntime"
                  + AndroidLogcatFormatter.TAG_SEPARATOR + " "
                  + line1 + "\n" +
-                 SHIFT + line2 + "\n" +
-                 SHIFT + line3 + "\n",
+                 "    " + line2 + "\n" +
+                 "            " + line3 + "\n",
                  myWriter.getBuffer().toString());
   }
 
