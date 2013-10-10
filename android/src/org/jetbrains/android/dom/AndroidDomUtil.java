@@ -126,11 +126,15 @@ public class AndroidDomUtil {
   @Nullable
   public static ResourceReferenceConverter getResourceReferenceConverter(@NotNull AttributeDefinition attr) {
     boolean containsReference = false;
+    boolean containsNotReference = false;
     Set<String> resourceTypes = new HashSet<String>();
     Set<AttributeFormat> formats = attr.getFormats();
     for (AttributeFormat format : formats) {
       if (format == AttributeFormat.Reference) {
         containsReference = true;
+      }
+      else {
+        containsNotReference = true;
       }
       String type = getResourceType(format);
       if (type != null) {
@@ -150,7 +154,9 @@ public class AndroidDomUtil {
       }
     }
     if (resourceTypes.size() > 0) {
-      return new ResourceReferenceConverter(resourceTypes);
+      final ResourceReferenceConverter converter = new ResourceReferenceConverter(resourceTypes);
+      converter.setAllowLiterals(containsNotReference);
+      return converter;
     }
     return null;
   }
