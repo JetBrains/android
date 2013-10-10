@@ -103,6 +103,7 @@
             text="Use style _where possible..." description="Replaces attributes by Android style reference where possible">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
+    <action id="Android.TraceViewSearch" class="com.android.tools.idea.editors.vmtrace.VmTraceEditorSearchAction" use-shortcut-of="Find" />
   </actions>
 
   <depends>JUnit</depends>
@@ -128,6 +129,7 @@
     <lang.foldingBuilder language="JAVA" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
     <lang.foldingBuilder language="XML" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
     <codeFoldingOptionsProvider instance="com.android.tools.idea.folding.AndroidCodeFoldingOptionsProvider"/>
+    <console.folding implementation="com.android.tools.idea.logcat.ExceptionFolding"/>
     <applicationService serviceInterface="com.android.tools.idea.folding.AndroidFoldingSettings"
                         serviceImplementation="com.android.tools.idea.folding.AndroidFoldingSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.GradleProjectImporter"/>
@@ -211,6 +213,11 @@
 
     <intentionAction>
       <className>org.jetbrains.android.intentions.AndroidAddStringResourceAction</className>
+      <category>Android</category>
+    </intentionAction>
+
+    <intentionAction>
+      <className>org.jetbrains.android.intentions.AndroidExtractDimensionAction</className>
       <category>Android</category>
     </intentionAction>
 
@@ -398,6 +405,7 @@
                       icon="AndroidIcons.AndroidToolWindow"
                       factoryClass="com.android.tools.idea.gradle.variant.view.BuildVariantToolWindowFactory"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantView"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleNotification"/>
     <projectService serviceInterface="org.jetbrains.android.logcat.AndroidLogcatFiltersPreferences"
                     serviceImplementation="org.jetbrains.android.logcat.AndroidLogcatFiltersPreferences"/>
     <projectService serviceInterface="org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowSettings"
@@ -481,6 +489,7 @@
     <codeInsight.lineMarkerProvider language="JAVA" implementationClass="org.jetbrains.android.AndroidLineMarkerProvider"/>
     <implicitUsageProvider implementation="org.jetbrains.android.AndroidImplicitUsagesProvider"/>
     <spellchecker.support language="XML" implementationClass="org.jetbrains.android.spellchecker.AndroidXmlSpellcheckingStrategy" order="before xml"/>
+    <projectService serviceImplementation="com.android.tools.idea.structure.AndroidModuleStructureConfigurable"/>
   </extensions>
 
   <extensionPoints>

@@ -147,7 +147,7 @@ public class AndroidAutogenerator {
             return null;
           }
 
-          if (!AndroidUtils.isValidPackageName(packageName)) {
+          if (!AndroidUtils.isValidAndroidPackageName(packageName)) {
             context.addMessage(CompilerMessageCategory.ERROR, AndroidBundle.message("not.valid.package.name.error", packageName),
                                manifestFile.getUrl(), -1, -1);
             return null;
@@ -226,7 +226,7 @@ public class AndroidAutogenerator {
           return null;
         }
 
-        if (!AndroidUtils.isValidPackageName(packageName)) {
+        if (!AndroidUtils.isValidAndroidPackageName(packageName)) {
           context.addMessage(CompilerMessageCategory.ERROR, AndroidBundle.message("not.valid.package.name.error", packageName),
                              manifestFile.getUrl(), -1, -1);
           return null;

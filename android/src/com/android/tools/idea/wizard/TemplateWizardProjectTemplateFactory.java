@@ -16,6 +16,7 @@
 package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
@@ -57,17 +58,16 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
       return EMPTY_PROJECT_TEMPLATES;
     }
     TemplateManager manager = TemplateManager.getInstance();
-    List<File> templates = manager.getTemplates("projects");
+    List<File> templates = manager.getTemplates(Template.CATEGORY_PROJECTS);
     List<ProjectTemplate> tt = new ArrayList<ProjectTemplate>();
-    for (int i = 0, n = templates.size(); i < n; i++) {
-      File template = templates.get(i);
+    for (File template : templates) {
       TemplateMetadata metadata = manager.getTemplate(template);
       if (metadata == null || !metadata.isSupported()) {
         continue;
       }
       tt.add(new AndroidProjectTemplate(template, metadata, project));
     }
-    return tt.toArray(EMPTY_PROJECT_TEMPLATES);
+    return tt.toArray(new ProjectTemplate[tt.size()]);
   }
 
   private static class AndroidProjectTemplate extends BuilderBasedTemplate {
@@ -81,7 +81,9 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
     @NotNull
     @Override
     public String getName() {
-      return myTemplateMetadata.getTitle();
+      String title = myTemplateMetadata.getTitle();
+      assert title != null;
+      return title;
     }
 
     @Nullable

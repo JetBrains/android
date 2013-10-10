@@ -500,6 +500,60 @@ class IntellijLintProject extends Project {
 
       return Collections.emptyList();
     }
+
+    @Nullable
+    @Override
+    public String getPackage() {
+      String manifestPackage = super.getPackage();
+
+      IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
+      if (project != null) {
+        return IdeaAndroidProject.computePackageName(project, manifestPackage);
+      }
+
+      // Read from the manifest: Not overridden in the configuration
+      return manifestPackage;
+    }
+
+    @Override
+    public int getMinSdk() {
+      IdeaAndroidProject ideaAndroidProject = myFacet.getIdeaAndroidProject();
+      if (ideaAndroidProject != null) {
+        int minSdkVersion = ideaAndroidProject.getSelectedVariant().getMergedFlavor().getMinSdkVersion();
+        if (minSdkVersion >= 1) {
+          return minSdkVersion;
+        }
+        // Else: not specified in gradle files; fall back to manifest
+      }
+
+      return super.getMinSdk();
+    }
+
+    @Override
+    public int getTargetSdk() {
+      IdeaAndroidProject ideaAndroidProject = myFacet.getIdeaAndroidProject();
+      if (ideaAndroidProject != null) {
+        int targetSdkVersion = ideaAndroidProject.getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
+        if (targetSdkVersion >= 1) {
+          return targetSdkVersion;
+        }
+        // Else: not specified in gradle files; fall back to manifest
+      }
+
+      return super.getTargetSdk();
+    }
+
+    @Override
+    public int getBuildSdk() {
+      // TODO: Get this from the model! For now, we take advantage of the fact that
+      // the model should have synced the right type of Android SDK to the IntelliJ facet.
+      AndroidPlatform platform = AndroidPlatform.getPlatform(myFacet.getModule());
+      if (platform != null) {
+        return platform.getApiLevel();
+      }
+
+      return super.getBuildSdk();
+    }
   }
 
   private static class LintGradleLibraryProject extends IntellijLintProject {

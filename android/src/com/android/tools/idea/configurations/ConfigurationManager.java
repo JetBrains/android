@@ -31,13 +31,10 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.SoftValueHashMap;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.sdk.*;
 import org.jetbrains.android.uipreview.UserDeviceManager;
 import org.jetbrains.annotations.NotNull;
@@ -179,29 +176,13 @@ public class ConfigurationManager implements Disposable {
     return new ConfigurationManager(module);
   }
 
-  @Nullable
-  private AndroidPlatform getPlatform() {
-    // TODO: How do we refresh this if the user remaps chosen target?
-    Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
-    if (sdk == null) {
-      sdk = AndroidFacetConfiguration.findAndSetAndroidSdk(myModule);
-    }
-    if (sdk != null && sdk.getSdkType() instanceof AndroidSdkType) {
-      final AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-      if (additionalData != null) {
-        return additionalData.getAndroidPlatform();
-      }
-    }
-    return null;
-  }
-
   /** Returns the list of available devices for the current platform, if any */
   @NotNull
   public List<Device> getDevices() {
     if (myDevices == null) {
       List<Device> devices = null;
 
-      AndroidPlatform platform = getPlatform();
+      AndroidPlatform platform = AndroidPlatform.getPlatform(myModule);
       if (platform != null) {
         final AndroidSdkData sdkData = platform.getSdkData();
         devices = new ArrayList<Device>();
@@ -226,7 +207,7 @@ public class ConfigurationManager implements Disposable {
     assert facet != null;
     for (Device device : getDevices()) {
       if (device.getManufacturer().equals(avd.getDeviceManufacturer())
-          && device.getName().equals(avd.getDeviceName())) {
+          && (device.getId().equals(avd.getDeviceName()) || device.getDisplayName().equals(avd.getDeviceName()))) {
 
         String avdName = avd.getName();
         Device.Builder builder = new Device.Builder(device);
@@ -243,7 +224,7 @@ public class ConfigurationManager implements Disposable {
     if (myTargets == null) {
       List<IAndroidTarget> targets = new ArrayList<IAndroidTarget>();
 
-      AndroidPlatform platform = getPlatform();
+      AndroidPlatform platform = AndroidPlatform.getPlatform(myModule);
       if (platform != null) {
         final AndroidSdkData sdkData = platform.getSdkData();
 
@@ -309,7 +290,7 @@ public class ConfigurationManager implements Disposable {
       if (!devices.isEmpty()) {
         Device device = devices.get(0);
         for (Device d : devices) {
-          String name = d.getName();
+          String name = d.getId();
           if (name.equals("Nexus 4")) {
             device = d;
             break;
@@ -362,7 +343,7 @@ public class ConfigurationManager implements Disposable {
 
   @Nullable
   public IAndroidTarget getProjectTarget() {
-    AndroidPlatform platform = getPlatform();
+    AndroidPlatform platform = AndroidPlatform.getPlatform(myModule);
     return platform != null ? platform.getTarget() : null;
   }
 
@@ -431,6 +412,18 @@ public class ConfigurationManager implements Disposable {
 
   public void setTarget(@Nullable IAndroidTarget target) {
     if (target != myTarget) {
+      if (myTarget != null) {
+        // Clear out the bitmap cache of the previous platform, since it's likely we won't
+        // need it again. If you have *two* projects open with different platforms, this will
+        // needlessly flush the bitmap cache for the project still using it, but that just
+        // means the next render will need to fetch them again; from that point on both platform
+        // bitmap sets are in memory.
+        AndroidTargetData targetData = AndroidTargetData.getTargetData(myTarget, myModule);
+        if (targetData != null) {
+          targetData.clearLayoutBitmapCache(myModule);
+        }
+      }
+
       myTarget = target;
       if (target != null) {
         getStateManager().getProjectState().setTarget(ConfigurationProjectState.toTargetString(target));

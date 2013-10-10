@@ -35,16 +35,12 @@ import com.intellij.util.messages.MessageBus;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 /**
  * Utility methods for {@link Project}s.
  */
 public final class Projects {
   private static final Key<BuildMode> PROJECT_BUILD_MODE_KEY = Key.create("android.gradle.project.build.mode");
-
-  // TOOD: Remove once we support Android Gradle plug-in 0.6.0 only.
-  private static final Key<Boolean> PROJECT_CAN_COMPILE_JAVA_ONLY_KEY = Key.create("android.gradle.project.can.compile.java.only");
 
   private static final Logger LOG = Logger.getInstance(Projects.class);
 
@@ -108,53 +104,13 @@ public final class Projects {
    * @param project the given project.
    */
   public static void generateSourcesOnly(@NotNull Project project) {
-    if (hasSourceGenTasks(project)) {
-      setProjectBuildMode(project, BuildMode.SOURCE_GEN);
-      doMake(project);
-    } else {
-      String msg = String.format("Unable to find tasks for generating source code for project '%1$s'", project.getName());
-      LOG.info(msg);
-      removeBuildActionFrom(project);
-    }
-  }
-
-  private static boolean hasSourceGenTasks(@NotNull Project project) {
-    Module[] modules = ModuleManager.getInstance(project).getModules();
-    for (Module module : modules) {
-      AndroidFacet androidFacet = Facets.getFirstFacetOfType(module, AndroidFacet.ID);
-      if (androidFacet != null) {
-        JpsAndroidModuleProperties androidFacetState = androidFacet.getProperties();
-        String taskName = androidFacetState.SOURCE_GEN_TASK_NAME;
-        if (taskName != null && !taskName.isEmpty() && !"TODO".equalsIgnoreCase(taskName)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  public static void setProjectCanCompileJavaOnly(@NotNull Project project, boolean canCompileJavaOnly) {
-    if (canCompileJavaOnly) {
-      project.putUserData(PROJECT_CAN_COMPILE_JAVA_ONLY_KEY, canCompileJavaOnly);
-    }
-    else {
-      project.putUserData(PROJECT_CAN_COMPILE_JAVA_ONLY_KEY, null);
-    }
+    setProjectBuildMode(project, BuildMode.SOURCE_GEN);
+    doMake(project);
   }
 
   public static void compileJava(@NotNull Project project) {
-    if (canCompileJavaOnly(project)) {
-      setProjectBuildMode(project, BuildMode.COMPILE_JAVA);
-      doMake(project);
-    } else {
-      String msg = String.format("Unable to find tasks for compiling Java code for project '%1$s'", project.getName());
-      LOG.info(msg);
-      removeBuildActionFrom(project);
-    }
-  }
-
-  public static boolean canCompileJavaOnly(@NotNull Project project) {
-    return project.getUserData(PROJECT_CAN_COMPILE_JAVA_ONLY_KEY) == Boolean.TRUE;
+    setProjectBuildMode(project, BuildMode.COMPILE_JAVA);
+    doMake(project);
   }
 
   private static void doMake(@NotNull Project project) {

@@ -40,6 +40,15 @@ public class DeviceArtPainterTest extends TestCase {
     Device device = newDevice();
     for (DeviceArtDescriptor spec : framePainter.getDescriptors()) {
       DeviceData data = new DeviceData(device, spec);
+      Rectangle cropRect = spec.getCrop(ScreenOrientation.LANDSCAPE);
+      if (spec.getName().startsWith("Generic ")) {
+        // No crop data for generic nine patches since they are stretchable
+        continue;
+      }
+      if (cropRect != null && !cropRect.getSize().equals(spec.getScreenSize(ScreenOrientation.LANDSCAPE))) {
+        // Already have crop data for this spec; skipping
+        continue;
+      }
       System.out.println("for spec " + spec.getName() + " -- " + spec.getId());
       FrameData landscapeData = data.getFrameData(ScreenOrientation.LANDSCAPE, Integer.MAX_VALUE);
       // Must use computeImage rather than getImage here since we want to get the

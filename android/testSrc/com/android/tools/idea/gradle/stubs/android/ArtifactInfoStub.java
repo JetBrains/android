@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.stubs.android;
 import com.android.builder.model.ArtifactInfo;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,13 +30,11 @@ public class ArtifactInfoStub implements ArtifactInfo {
   @NotNull private final List<File> myGeneratedSourceFolders = Lists.newArrayList();
 
   @NotNull private final DependenciesStub myDependencies;
-  @NotNull private final String myAssembleTaskName;
   @NotNull private final String myBuildType;
   @NotNull private final FileStructure myFileStructure;
 
-  ArtifactInfoStub(@NotNull String assembleTaskName, @NotNull String buildType, @NotNull FileStructure fileStructure) {
+  ArtifactInfoStub(@NotNull String buildType, @NotNull FileStructure fileStructure) {
     myDependencies = new DependenciesStub();
-    myAssembleTaskName = assembleTaskName;
     myBuildType = buildType;
     myFileStructure = fileStructure;
   }
@@ -66,19 +65,25 @@ public class ArtifactInfoStub implements ArtifactInfo {
   @Override
   @NotNull
   public String getSourceGenTaskName() {
-    throw new UnsupportedOperationException();
+    return "generate" + StringUtil.capitalize(myBuildType) + "Sources";
   }
 
   @Override
   @NotNull
   public String getJavaCompileTaskName() {
-    throw new UnsupportedOperationException();
+    return "compile" + StringUtil.capitalize(myBuildType);
   }
 
   @Override
   @NotNull
   public String getAssembleTaskName() {
-    return myAssembleTaskName;
+    return "assemble" + StringUtil.capitalize(myBuildType);
+  }
+
+  @Override
+  @NotNull
+  public File getGeneratedManifest() {
+    throw new UnsupportedOperationException();
   }
 
   @Override

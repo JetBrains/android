@@ -49,6 +49,7 @@ import com.intellij.designer.palette.PaletteGroup;
 import com.intellij.designer.palette.PaletteItem;
 import com.intellij.designer.palette.PaletteToolWindowManager;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -474,7 +475,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
           if (logger.hasProblems()) {
             cancel();
-            RenderResult renderResult = new RenderResult(null, null, myXmlFile, logger);
+            RenderResult renderResult = RenderResult.createBlank(myXmlFile, logger);
             runnable.consume(renderResult);
             updateErrors(renderResult);
             return;
@@ -500,7 +501,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
                 });
                 service.dispose();
               } else {
-                renderResult = new RenderResult(null, null, myXmlFile, logger);
+                renderResult = RenderResult.createBlank(myXmlFile, logger);
               }
             }
             finally {
@@ -564,7 +565,17 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
   private MyRenderPanelWrapper myErrorPanelWrapper;
 
-  private void updateErrors(@NotNull RenderResult result) {
+  private void updateErrors(@NotNull final RenderResult result) {
+    Application application = ApplicationManager.getApplication();
+    if (!application.isDispatchThread()) {
+      application.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          updateErrors(result);
+        }
+      });
+      return;
+    }
     RenderLogger logger = result.getLogger();
     if (!logger.hasProblems()) {
       if (myErrorPanelWrapper == null) {

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.stubs.android;
 import com.android.SdkConstants;
 import com.android.builder.model.*;
 import com.android.tools.idea.gradle.stubs.FileStructure;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 
 public class AndroidProjectStub implements AndroidProject {
+  private static final Collection<String> NO_UNRESOLVED_DEPENDENCIES = ImmutableList.of();
+
   @NotNull private final Map<String, BuildTypeContainer> myBuildTypes = Maps.newHashMap();
   @NotNull private final Map<String, ProductFlavorContainer> myProductFlavors = Maps.newHashMap();
   @NotNull private final Map<String, Variant> myVariants = Maps.newHashMap();
@@ -36,6 +39,8 @@ public class AndroidProjectStub implements AndroidProject {
   @NotNull private final FileStructure myFileStructure;
   @NotNull private final ProductFlavorContainerStub myDefaultConfig;
   @NotNull private final File myBuildFile;
+
+  @NotNull private final JavaCompileOptionsStub myJavaCompileOptions = new JavaCompileOptionsStub();
 
   @Nullable private VariantStub myFirstVariant;
   private boolean myLibrary;
@@ -58,7 +63,7 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   @NotNull
   public String getModelVersion() {
-    return "0.5.0-SNAPSHOT";
+    return "0.6.1-SNAPSHOT";
   }
 
   @Override
@@ -152,6 +157,12 @@ public class AndroidProjectStub implements AndroidProject {
 
   @Override
   @NotNull
+  public List<File> getFrameworkSource() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
   public Map<String, SigningConfig> getSigningConfigs() {
     throw new UnsupportedOperationException();
   }
@@ -165,7 +176,13 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   @NotNull
   public Collection<String> getUnresolvedDependencies() {
-    throw new UnsupportedOperationException();
+    return NO_UNRESOLVED_DEPENDENCIES;
+  }
+
+  @Override
+  @NotNull
+  public JavaCompileOptionsStub getJavaCompileOptions() {
+    return myJavaCompileOptions;
   }
 
   /**

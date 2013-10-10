@@ -22,10 +22,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
+import java.net.*;
 import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -119,7 +116,7 @@ public class LegacySdkStatsService {
       URL url = createPingUrl(nApp, nVersion, id, extras);
       actuallySendPing(url);
     } catch (IOException e) {
-      LOG.error("[AndroidSdk.SendPing failed", e);
+      LOG.error("AndroidSdk.SendPing failed", e);
     }
   }
 
@@ -140,10 +137,18 @@ public class LegacySdkStatsService {
     // Discard the actual response, but make sure it reads OK
     HttpURLConnection conn = (HttpURLConnection)url.openConnection();
 
+    int responseCode;
+    try {
+      responseCode = conn.getResponseCode();
+    }
+    catch (UnknownHostException e) {
+      responseCode = HttpURLConnection.HTTP_BAD_REQUEST;
+    }
+
     // Believe it or not, a 404 response indicates success:
     // the ping was logged, but no update is configured.
-    if (conn.getResponseCode() != HttpURLConnection.HTTP_OK &&
-        conn.getResponseCode() != HttpURLConnection.HTTP_NOT_FOUND) {
+    if (responseCode != HttpURLConnection.HTTP_OK &&
+        responseCode != HttpURLConnection.HTTP_NOT_FOUND) {
       throw new IOException(conn.getResponseMessage() + ": " + url);            //$NON-NLS-1$
     }
   }

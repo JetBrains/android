@@ -17,7 +17,6 @@ package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.Nullable;
@@ -31,9 +30,6 @@ import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
  * first step of the wizard allows the user to choose a template which will guide the rest of the wizard flow.
  */
 public class NewModuleWizard extends TemplateWizard implements ChooseTemplateStep.TemplateChangeListener {
-  private static final Logger LOG = Logger.getInstance("#" + NewModuleWizard.class.getName());
-
-  private ChooseTemplateStep myChooseModuleStep;
   private TemplateWizardModuleBuilder myModuleBuilder;
 
   public NewModuleWizard(@Nullable Project project) {
@@ -52,9 +48,10 @@ public class NewModuleWizard extends TemplateWizard implements ChooseTemplateSte
       }
     };
 
-    myChooseModuleStep = new ChooseTemplateStep(myModuleBuilder.myWizardState, CATEGORY_PROJECTS, myProject,
-                                                AndroidIcons.Wizards.NewModuleSidePanel, myModuleBuilder, this);
-    myModuleBuilder.mySteps.add(0, myChooseModuleStep);
+    ChooseTemplateStep chooseModuleStep =
+      new ChooseTemplateStep(myModuleBuilder.myWizardState, CATEGORY_PROJECTS, myProject, AndroidIcons.Wizards.NewModuleSidePanel,
+                             myModuleBuilder, this);
+    myModuleBuilder.mySteps.add(0, chooseModuleStep);
     super.init();
   }
 
@@ -67,11 +64,11 @@ public class NewModuleWizard extends TemplateWizard implements ChooseTemplateSte
     myModuleBuilder.myConfigureAndroidModuleStep.setVisible(wizardState.myIsAndroidModule);
     myModuleBuilder.myTemplateParameterStep.setVisible(!wizardState.myIsAndroidModule);
     myModuleBuilder.myLauncherIconStep.setVisible(wizardState.myIsAndroidModule &&
-                                                  (Boolean)wizardState.get(TemplateMetadata.ATTR_CREATE_ICONS));
+                                                  wizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS));
     myModuleBuilder.myChooseActivityStep.setVisible(wizardState.myIsAndroidModule &&
-                                                    (Boolean)wizardState.get(NewProjectWizardState.ATTR_CREATE_ACTIVITY));
+                                                    wizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY));
     myModuleBuilder.myActivityTemplateParameterStep.setVisible(wizardState.myIsAndroidModule &&
-                                                               (Boolean)wizardState.get(NewProjectWizardState.ATTR_CREATE_ACTIVITY));
+                                                               wizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY));
     super.update();
   }
 

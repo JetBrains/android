@@ -51,7 +51,9 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     myProject = project;
     myModule = module;
     myTemplateCategory = templateCategory;
-    if (invocationTarget.isDirectory()) {
+    if (invocationTarget == null) {
+      myTargetFolder = null;
+    } else if (invocationTarget.isDirectory()) {
       myTargetFolder = invocationTarget;
     } else {
       myTargetFolder = invocationTarget.getParent();
@@ -64,7 +66,9 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
   protected void init() {
     myWizardState = new TemplateWizardState();
     myWizardState.put(ATTR_BUILD_API, AndroidPlatform.getInstance(myModule).getTarget().getVersion().getApiLevel());
-    myWizardState.put(ATTR_MIN_API_LEVEL, ManifestInfo.get(myModule).getMinSdkVersion());
+    ManifestInfo manifestInfo = ManifestInfo.get(myModule);
+    myWizardState.put(ATTR_MIN_API_LEVEL, manifestInfo.getMinSdkVersion());
+    myWizardState.put(TemplateMetadata.ATTR_PACKAGE_NAME, manifestInfo.getPackage());
 
     mySteps.add(new ChooseTemplateStep(myWizardState, myTemplateCategory, myProject, null, this, null));
     mySteps.add(new TemplateParameterStep(myWizardState, myProject, null, this));
@@ -75,8 +79,10 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     String moduleName = new File(myModule.getModuleFilePath()).getParentFile().getName();
     myWizardState.put(NewProjectWizardState.ATTR_MODULE_NAME, moduleName);
 
-    myWizardState.myHidden.add(TemplateMetadata.ATTR_PACKAGE_NAME);
-    myWizardState.put(TemplateMetadata.ATTR_PACKAGE_ROOT, myTargetFolder.getPath());
+    if (myTargetFolder != null) {
+      myWizardState.myHidden.add(TemplateMetadata.ATTR_PACKAGE_NAME);
+      myWizardState.put(TemplateMetadata.ATTR_PACKAGE_ROOT, myTargetFolder.getPath());
+    }
 
     myWizardState.myFinal.add(TemplateMetadata.ATTR_PACKAGE_ROOT);
 

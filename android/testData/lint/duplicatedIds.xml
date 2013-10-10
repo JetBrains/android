@@ -6,12 +6,12 @@
   <TextView
       android:layout_width="fill_parent"
       android:layout_height="wrap_content"
-      android:id="@+id/id123"
+      <warning descr="Duplicate id @+id/id123, already defined earlier in this layout (@+id/id123 originally defined here)">android:id="@+id/id123"</warning>
       />
   <TextView
       android:layout_width="fill_parent"
       android:layout_height="wrap_content"
-      <warning>android:id="@+id/id123"</warning>
+      <warning descr="Duplicate id @+id/id123, already defined earlier in this layout">android:id="@+id/id123"</warning>
       />
 </LinearLayout>
 

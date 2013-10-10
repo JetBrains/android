@@ -22,6 +22,7 @@ import com.intellij.diagnostic.logging.LogConsoleBase;
 import com.intellij.diagnostic.logging.LogConsoleListener;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
@@ -33,7 +34,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
+import icons.AndroidIcons;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,10 +56,16 @@ import static javax.swing.BoxLayout.X_AXIS;
  */
 public abstract class AndroidLogcatView implements Disposable {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.logcat.AndroidLogcatView");
+
   public static final Key<AndroidLogcatView> ANDROID_LOGCAT_VIEW_KEY =
     Key.create("ANDROID_LOGCAT_VIEW_KEY");
   public static final String NO_FILTERS = AndroidBundle.message("android.logcat.filters.none");
   public static final String EDIT_FILTER_CONFIGURATION = AndroidBundle.message("android.logcat.filters.edit");
+
+  /** The {@link #FILTER_LOGCAT_WHEN_SELECTION_CHANGES} property controls whether selecting a VM in the device panel automatically
+   * filters logcat to only show messages from that client only. */
+  @NonNls
+  private static final String FILTER_LOGCAT_WHEN_SELECTION_CHANGES = "android.logcat.filter.apply.if.client.selection.changes";
 
   private final Project myProject;
   private final DeviceContext myDeviceContext;
@@ -203,6 +212,9 @@ public abstract class AndroidLogcatView implements Disposable {
 
           @Override
           public void clientSelected(@Nullable Client c) {
+            if (PropertiesComponent.getInstance().getBoolean(FILTER_LOGCAT_WHEN_SELECTION_CHANGES, true)) {
+              createAndSelectFilterForClient(c);
+            }
           }
         };
       deviceContext.addListener(deviceSelectionListener, this);
@@ -234,6 +246,13 @@ public abstract class AndroidLogcatView implements Disposable {
   }
 
   @NotNull
+  public ActionGroup getToolbarActions() {
+    DefaultActionGroup group = new DefaultActionGroup();
+    group.add(new MyFilterSelectedClientAction());
+    return group;
+  }
+
+  @NotNull
   public JPanel createSearchComponent(final Project project) {
     final JButton clearLogButton = new JButton(AndroidBundle.message("android.logcat.clear.log.button.title"));
     clearLogButton.addActionListener(new ActionListener() {
@@ -256,7 +275,7 @@ public abstract class AndroidLogcatView implements Disposable {
       public void actionPerformed(ActionEvent e) {
         String prev = myCurrentFilterName;
         myCurrentFilterName = (String)editFiltersCombo.getSelectedItem();
-        if (myCurrentFilterName.equals(prev)) {
+        if (myCurrentFilterName == null || myCurrentFilterName.equals(prev)) {
           return;
         }
 
@@ -291,17 +310,6 @@ public abstract class AndroidLogcatView implements Disposable {
   }
 
   protected abstract boolean isActive();
-  
-  @Nullable
-  private ConfiguredFilter compileConfiguredFilter(@NotNull String name) {
-    if (NO_FILTERS.equals(name)) {
-      return null;
-    }
-
-    final AndroidConfiguredLogFilters.MyFilterEntry entry = 
-      AndroidConfiguredLogFilters.getInstance(myProject).findFilterEntryByName(name);
-    return ConfiguredFilter.compile(entry, name);
-  }
 
   public void activate() {
     if (isActive()) {
@@ -364,8 +372,23 @@ public abstract class AndroidLogcatView implements Disposable {
     }
   }
 
+  @Nullable
+  private ConfiguredFilter compileConfiguredFilter(@NotNull String name) {
+    if (NO_FILTERS.equals(name)) {
+      return null;
+    }
+
+    final AndroidConfiguredLogFilters.MyFilterEntry entry =
+      AndroidConfiguredLogFilters.getInstance(myProject).findFilterEntryByName(name);
+    return ConfiguredFilter.compile(entry, name);
+  }
+
   private void selectFilter(@NotNull final String filterName) {
     final ConfiguredFilter filter = compileConfiguredFilter(filterName);
+    selectFilter(filter, filterName);
+  }
+
+  private void selectFilter(@Nullable final ConfiguredFilter filter, @NotNull final String filterName) {
     ProgressManager.getInstance().run(
       new Task.Backgroundable(myProject, LogConsoleBase.APPLYING_FILTER_TITLE) {
         @Override
@@ -374,6 +397,23 @@ public abstract class AndroidLogcatView implements Disposable {
           myCurrentFilterName = filterName;
         }
       });
+  }
+
+  private void createAndSelectFilterForClient(@Nullable Client client) {
+    ConfiguredFilter filter;
+    String name;
+    if (client != null) {
+      AndroidConfiguredLogFilters.MyFilterEntry f =
+        AndroidConfiguredLogFilters.getInstance(myProject).createFilterForProcess(client.getClientData().getPid());
+      name = f.getName();
+      filter = ConfiguredFilter.compile(f, name);
+    } else {
+      filter = null;
+      name = NO_FILTERS;
+    }
+
+    selectFilter(filter, name);
+    myFilterComboBoxModel.setSelectedItem(NO_FILTERS.equals(name) ? NO_FILTERS : null);
   }
 
   private void updateConfiguredFilters(@NotNull String defaultSelection) {
@@ -426,6 +466,30 @@ public abstract class AndroidLogcatView implements Disposable {
     @Override
     public boolean isActive() {
       return AndroidLogcatView.this.isActive();
+    }
+  }
+
+  private class MyFilterSelectedClientAction extends ToggleAction {
+    public MyFilterSelectedClientAction() {
+      super("Only show logcat from selected process",
+            "",
+            AndroidIcons.Ddms.LogcatAutoFilterSelectedPid);
+    }
+
+    @Override
+    public boolean isSelected(AnActionEvent e) {
+      return PropertiesComponent.getInstance().getBoolean(FILTER_LOGCAT_WHEN_SELECTION_CHANGES, true);
+    }
+
+    @Override
+    public void setSelected(AnActionEvent e, boolean state) {
+      // update state so that future changes to selected client don't trigger a filter action
+      PropertiesComponent.getInstance().setValue(FILTER_LOGCAT_WHEN_SELECTION_CHANGES, Boolean.valueOf(state).toString());
+
+      if (myDeviceContext != null) {
+        // reset or apply filter depending on current state
+        createAndSelectFilterForClient(state ? myDeviceContext.getSelectedClient() : null);
+      }
     }
   }
 }

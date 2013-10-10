@@ -29,8 +29,8 @@ public class DeviceArtDescriptorTest extends TestCase {
   public void test1() throws FileNotFoundException {
     List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
 
-    // Currently there are 7 devices for which we have device art, plus 2 generic/stretchable
-    assertEquals(9, specs.size());
+    // Currently there are 8 devices for which we have device art, plus 2 generic/stretchable
+    assertEquals(10, specs.size());
 
     DeviceArtDescriptor nexus4 = specs.get(0);
     assertEquals("nexus_4", nexus4.getId());

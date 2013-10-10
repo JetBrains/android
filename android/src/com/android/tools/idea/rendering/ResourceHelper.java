@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -44,6 +43,8 @@ import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_IND
 
 public class ResourceHelper {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.ResourceHelper");
+  private static final String STATE_NAME_PREFIX = "state_";
+
   /**
    * Returns true if the given style represents a project theme
    *
@@ -260,7 +261,7 @@ public class ResourceHelper {
    * @return the corresponding {@link Color} color, or null
    */
   @Nullable
-  public static Color resolveColor(@NotNull ResourceResolver resources, @Nullable ResourceValue color) {
+  public static Color resolveColor(@NotNull RenderResources resources, @Nullable ResourceValue color) {
     if (color != null) {
       color = resources.resolveResValue(color);
     }
@@ -291,8 +292,7 @@ public class ResourceHelper {
             Document document = XmlUtils.parseDocumentSilently(xml, true);
             if (document != null) {
               NodeList items = document.getElementsByTagName(TAG_ITEM);
-
-              value = findColorValue(items);
+              value = findInStateList(items, ATTR_COLOR);
               continue;
             }
           } catch (Exception e) {
@@ -314,26 +314,37 @@ public class ResourceHelper {
    * have an associated state and returns its color
    */
   @Nullable
-  private static String findColorValue(@NotNull NodeList items) {
+  private static String findInStateList(@NotNull NodeList items, String attributeName) {
     for (int i = 0, n = items.getLength(); i < n; i++) {
       // Find non-state color definition
       Node item = items.item(i);
       boolean hasState = false;
       if (item.getNodeType() == Node.ELEMENT_NODE) {
         Element element = (Element) item;
-        if (element.hasAttributeNS(ANDROID_URI, ATTR_COLOR)) {
+        if (element.hasAttributeNS(ANDROID_URI, attributeName)) {
           NamedNodeMap attributes = element.getAttributes();
           for (int j = 0, m = attributes.getLength(); j < m; j++) {
             Attr attribute = (Attr) attributes.item(j);
-            if (attribute.getLocalName().startsWith("state_")) { //$NON-NLS-1$
+            if (attribute.getLocalName().startsWith(STATE_NAME_PREFIX)) {
               hasState = true;
               break;
             }
           }
 
           if (!hasState) {
-            return element.getAttributeNS(ANDROID_URI, ATTR_COLOR);
+            return element.getAttributeNS(ANDROID_URI, attributeName);
           }
+        }
+      }
+    }
+
+    // If no match, go and look for the last mentioned item and use that one
+    for (int i = items.getLength() - 1; i >= 0; i--) {
+      Node item = items.item(i);
+      if (item.getNodeType() == Node.ELEMENT_NODE) {
+        Element element = (Element) item;
+        if (element.hasAttributeNS(ANDROID_URI, attributeName)) {
+            return element.getAttributeNS(ANDROID_URI, attributeName);
         }
       }
     }
@@ -346,7 +357,6 @@ public class ResourceHelper {
    * http://developer.android.com/guide/topics/resources/more-resources.html#Color
    */
   @Nullable
-  @VisibleForTesting
   public static Color parseColor(String s) {
     if (StringUtil.isEmpty(s)) {
       return null;
@@ -384,5 +394,62 @@ public class ResourceHelper {
 
   private static long extend(long nibble) {
     return nibble | nibble << 4;
+  }
+
+  /**
+   * Tries to resolve the given resource value to an actual drawable bitmap file. For state lists
+   * it will pick the simplest/fallback drawable.
+   *
+   * @param resources the resource resolver to use to follow drawable references
+   * @param drawable the drawable to resolve
+   * @return the corresponding {@link File}, or null
+   */
+  @Nullable
+  public static File resolveDrawable(@NotNull RenderResources resources, @Nullable ResourceValue drawable) {
+    if (drawable != null) {
+      drawable = resources.resolveResValue(drawable);
+    }
+    if (drawable == null) {
+      return null;
+    }
+    String value = drawable.getValue();
+
+    int depth = 0;
+    while (value != null && depth < MAX_RESOURCE_INDIRECTION) {
+      if (value.startsWith(PREFIX_RESOURCE_REF)) {
+        boolean isFramework = drawable.isFramework();
+        drawable = resources.findResValue(value, isFramework);
+        if (drawable != null) {
+          value = drawable.getValue();
+        } else {
+          break;
+        }
+      } else {
+        File file = new File(value);
+        if (file.exists()) {
+          if (file.getName().endsWith(DOT_XML)) {
+            // Parse
+            try {
+              String xml = Files.toString(file, Charsets.UTF_8);
+              Document document = XmlUtils.parseDocumentSilently(xml, true);
+              if (document != null) {
+                NodeList items = document.getElementsByTagName(TAG_ITEM);
+                value = findInStateList(items, ATTR_DRAWABLE);
+                continue;
+              }
+            } catch (Exception e) {
+              LOG.warn(String.format("Failed parsing color file %1$s", file.getName()), e);
+            }
+          }
+          return file;
+        } else {
+          return null;
+        }
+      }
+
+      depth++;
+    }
+
+    return null;
   }
 }

@@ -110,22 +110,21 @@ public class NewModuleWizardState extends TemplateWizardState {
     if (myParameters.containsKey(ATTR_DEPENDENCIES_LIST)) {
       dependencySet.addAll((Collection<String>)get(ATTR_DEPENDENCIES_LIST));
     }
-    dependencySet.addAll(myActivityTemplateState.getTemplateMetadata().getDependencies());
 
     // Support Library
     if ((get(ATTR_FRAGMENTS_EXTRA) != null && Boolean.parseBoolean(get(ATTR_FRAGMENTS_EXTRA).toString())) ||
         (get(ATTR_NAVIGATION_DRAWER_EXTRA) != null && Boolean.parseBoolean(get(ATTR_NAVIGATION_DRAWER_EXTRA).toString()))) {
-      dependencySet.add(getLibraryUrl(SUPPORT_ID, "v4"));
+      dependencySet.add(getLibraryCoordinate(SUPPORT_ID_V4));
     }
 
     // AppCompat Library
     if (get(ATTR_ACTION_BAR_EXTRA) != null && Boolean.parseBoolean(get(ATTR_ACTION_BAR_EXTRA).toString())) {
-      dependencySet.add(getLibraryUrl(APP_COMPAT_ID, "v7"));
+      dependencySet.add(getLibraryCoordinate(APP_COMPAT_ID_V7));
     }
 
     // GridLayout Library
     if (get(ATTR_GRID_LAYOUT_EXTRA) != null && Boolean.parseBoolean(get(ATTR_GRID_LAYOUT_EXTRA).toString())) {
-      dependencySet.add(getLibraryUrl(GRID_LAYOUT_ID, "v7"));
+      dependencySet.add(getLibraryCoordinate(GRID_LAYOUT_ID_V7));
     }
 
     put(ATTR_DEPENDENCIES_LIST, new LinkedList<String>(dependencySet));

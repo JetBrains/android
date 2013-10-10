@@ -227,6 +227,11 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
   public void dispose() {
   }
 
+  @Nullable
+  public RenderResult getRenderResult() {
+    return myPreviewPanel.getRenderResult();
+  }
+
   public void setRenderResult(@NotNull final RenderResult renderResult, @Nullable final TextEditor editor) {
     myPreviewPanel.setRenderResult(renderResult, editor);
   }
@@ -349,9 +354,7 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
   @Override
   @NotNull
   public Rectangle getClientArea() {
-    Rectangle bounds = myScrollPane.getViewport().getViewRect();
-    bounds.height -= myPreviewPanel.getTitleBarHeight();
-    return bounds;
+    return myScrollPane.getViewport().getViewRect();
   }
 
   @Override

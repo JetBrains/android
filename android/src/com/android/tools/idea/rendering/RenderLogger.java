@@ -17,20 +17,24 @@ package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.utils.HtmlBuilder;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.util.PathUtil;
+import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.android.SdkConstants.VIEW_FRAGMENT;
+import static com.android.SdkConstants.*;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
@@ -78,11 +82,12 @@ public class RenderLogger extends LayoutLog {
   /**
    * Construct a logger for the given named layout
    */
-  public RenderLogger(String name, Module module) {
+  public RenderLogger(@Nullable String name, @Nullable Module module) {
     myName = name;
     myModule = module;
   }
 
+  @Nullable
   public Module getModule() {
     return myModule;
   }
@@ -141,7 +146,8 @@ public class RenderLogger extends LayoutLog {
     }
 
     // Workaround: older layout libraries don't provide a tag for this error
-    if (tag == null && message != null && message.startsWith("Failed to find style ")) { //$NON-NLS-1$
+    if (tag == null && message != null &&
+        (message.startsWith("Failed to find style ") || message.startsWith("Unable to resolve parent style name: "))) { //$NON-NLS-1$
       tag = LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
     }
     addTag(tag);
@@ -169,11 +175,13 @@ public class RenderLogger extends LayoutLog {
       if (description.equals(throwable.getLocalizedMessage()) || description.equals(throwable.getMessage())) {
         description = "Exception raised during rendering: " + description;
       } else if (message == null) {
+        // See if it looks like the known issue with CalendarView; if so, add a more intuitive message
         StackTraceElement[] stackTrace = throwable.getStackTrace();
         if (stackTrace.length >= 2 &&
           stackTrace[0].getClassName().equals("android.text.format.DateUtils") &&
           stackTrace[1].getClassName().equals("android.widget.CalendarView")) {
           RenderProblem.Html problem = RenderProblem.create(WARNING);
+          problem.tag("59732");
           problem.throwable(throwable);
           HtmlBuilder builder = problem.getHtmlBuilder();
           builder.add("<CalendarView> and <DatePicker> are broken in this version of the rendering library. " +
@@ -186,6 +194,50 @@ public class RenderLogger extends LayoutLog {
           builder.add(")");
           addMessage(problem);
           return;
+        }
+      } else if (message.startsWith("Failed to configure parser for ") && message.endsWith(DOT_PNG)) {
+        // See if it looks like a mismatched bitmap/color; if so, make a more intuitive error message
+        StackTraceElement[] frames = throwable.getStackTrace();
+        for (StackTraceElement frame : frames) {
+          if (frame.getMethodName().equals("createFromXml") && frame.getClassName().equals("android.content.res.ColorStateList")) {
+            String path = message.substring("Failed to configure parser for ".length());
+            RenderProblem.Html problem = RenderProblem.create(WARNING);
+            problem.tag("bitmapAsColor");
+            // deliberately not setting the throwable on the problem: exception is misleading
+            HtmlBuilder builder = problem.getHtmlBuilder();
+            builder.add("Resource error: Attempted to load a bitmap as a color state list.").newline();
+            builder.add("Verify that your style/theme attributes are correct, and make sure layouts are using the right attributes.");
+            builder.newline().newline();
+            path = FileUtil.toSystemIndependentName(path);
+            String basePath = FileUtil.toSystemIndependentName(myModule.getProject().getBasePath());
+            if (path.startsWith(basePath)) {
+              path = path.substring(basePath.length());
+              if (path.startsWith(File.separator)) {
+                path = path.substring(File.separator.length());
+              }
+            }
+            path = FileUtil.toSystemDependentName(path);
+            builder.add("The relevant image is ").add(path);
+            Set<String> widgets = Sets.newHashSet();
+            for (StackTraceElement f : frames) {
+              if (f.getMethodName().equals(CONSTRUCTOR_NAME)) {
+                String className = f.getClassName();
+                if (className.startsWith(WIDGET_PKG_PREFIX)) {
+                  widgets.add(className.substring(className.lastIndexOf('.') + 1));
+                }
+              }
+            }
+            if (!widgets.isEmpty()) {
+              List<String> sorted = Lists.newArrayList(widgets);
+              Collections.sort(sorted);
+              builder.newline().newline().add("Widgets possibly involved: ").add(Joiner.on(", ").join(sorted));
+            }
+
+            addMessage(problem);
+            return;
+          } else if (frame.getClassName().startsWith("com.android.tools.")) {
+            break;
+          }
         }
       }
 
@@ -453,7 +505,7 @@ public class RenderLogger extends LayoutLog {
 
   public void addIncorrectFormatClass(@NotNull String className) {
     if (myClassesWithIncorrectFormat == null) {
-      myClassesWithIncorrectFormat = new com.intellij.util.containers.HashSet<String>();
+      myClassesWithIncorrectFormat = new HashSet<String>();
     }
     myClassesWithIncorrectFormat.add(className);
   }

@@ -39,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -107,6 +108,9 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
       }
     });
     myAvdCombo = myAvdComboComponent.getComponent();
+
+    // In Darcula, combo boxes are not resized appropriately when a model is set, so we have to explicitly size it
+    myAvdCombo.setMinimumSize(new Dimension(250, myAvdCombo.getMinimumSize().height));
 
     myAvdCombo.getComboBox().addActionListener(new ActionListener() {
       @Override

@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.util.Pair;
 import org.gradle.api.internal.LocationAwareException;
+import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,20 +34,19 @@ import java.net.UnknownHostException;
  * Provides better error messages for project import failures.
  */
 public class ProjectImportErrorHandler {
+  public static final String OPEN_GRADLE_SETTINGS = "Please fix the project's Gradle settings.";
+  public static final String FAILED_TO_PARSE_SDK = "failed to parse SDK";
+  public static final String INSTALL_ANDROID_SUPPORT_REPO = "Please install the Android Support Repository from the Android SDK Manager.";
+  public static final String SET_UP_HTTP_PROXY = "If you are behind an HTTP proxy, please configure the proxy settings either in Android Studio or Gradle.";
+  public static final String UNEXPECTED_ERROR_FILE_BUG = "This is an unexpected error. Please file a bug containing the idea.log file.";
+  public static final String FIX_GRADLE_VERSION =
+    "Please point to a supported Gradle version in the project's Gradle settings or in the project's Gradle wrapper (if applicable.)";
+
   private static final Logger LOG = Logger.getInstance(ProjectImportErrorHandler.class);
 
-  @NonNls private static final String MINIMUM_GRADLE_SUPPORTED_VERSION = "1.6";
-
   private static final String EMPTY_LINE = "\n\n";
-  private static final String UNSUPPORTED_GRADLE_VERSION_ERROR = "Gradle version " + MINIMUM_GRADLE_SUPPORTED_VERSION + " is required";
-
-  public interface NotificationHints {
-    String OPEN_GRADLE_SETTINGS = "Please fix the project's Gradle settings.";
-    String FAILED_TO_PARSE_SDK = "failed to parse SDK";
-    String INSTALL_ANDROID_SUPPORT_REPO = "Please install the Android Support Repository from the Android SDK Manager.";
-    String SET_UP_HTTP_PROXY = "If you are behind an HTTP proxy, please configure the proxy settings either in Android Studio or Gradle.";
-    String UNEXPECTED_ERROR_FILE_BUG = "This is an unexpected error. Please file a bug containing the idea.log file.";
-  }
+  private static final String UNSUPPORTED_GRADLE_VERSION_ERROR =
+    "Gradle version " + GradleUtil.GRADLE_MINIMUM_VERSION + " is required";
 
   @NotNull
   ExternalSystemException getUserFriendlyError(@NotNull Throwable error, @NotNull String projectPath, @Nullable String buildFilePath) {
@@ -66,9 +66,10 @@ public class ProjectImportErrorHandler {
       location = String.format("Build file: '%1$s'", buildFilePath);
     }
 
-    if (isOldGradleVersion(rootCause)) {
+    if (rootCause instanceof UnsupportedVersionException || isOldGradleVersion(rootCause)) {
       String msg = String.format("You are using an old, unsupported version of Gradle. Please use version %1$s or greater.",
-                                 MINIMUM_GRADLE_SUPPORTED_VERSION);
+                                 GradleUtil.GRADLE_MINIMUM_VERSION);
+      msg += ('\n' + FIX_GRADLE_VERSION);
       // Location of build.gradle is useless for this error. Omitting it.
       return createUserFriendlyError(msg, null);
     }
@@ -85,14 +86,14 @@ public class ProjectImportErrorHandler {
       } else if (!msg.endsWith(".")) {
         msg += ".";
       }
-      msg += EMPTY_LINE + NotificationHints.OPEN_GRADLE_SETTINGS;
+      msg += EMPTY_LINE + OPEN_GRADLE_SETTINGS;
       // Location of build.gradle is useless for this error. Omitting it.
       return createUserFriendlyError(msg, null);
     }
 
     if (rootCause instanceof ClassNotFoundException) {
       String msg = String.format("Unable to load class '%1$s'.", rootCause.getMessage()) + EMPTY_LINE +
-                   NotificationHints.UNEXPECTED_ERROR_FILE_BUG;
+                   UNEXPECTED_ERROR_FILE_BUG;
       // Location of build.gradle is useless for this error. Omitting it.
       return createUserFriendlyError(msg, null);
     }
@@ -100,7 +101,7 @@ public class ProjectImportErrorHandler {
     if (rootCause instanceof UnknownHostException) {
       String msg = String.format("Unknown host '%1$s'.", rootCause.getMessage()) +
                    EMPTY_LINE + "Please ensure the host name is correct. " +
-                   NotificationHints.SET_UP_HTTP_PROXY;
+                   SET_UP_HTTP_PROXY;
       // Location of build.gradle is useless for this error. Omitting it.
       return createUserFriendlyError(msg, null);
     }
@@ -109,7 +110,7 @@ public class ProjectImportErrorHandler {
       String msg = rootCause.getMessage();
       if (msg != null && msg.contains("timed out")) {
         msg += msg.endsWith(".") ? " " : ". ";
-        msg += NotificationHints.SET_UP_HTTP_PROXY;
+        msg += SET_UP_HTTP_PROXY;
         return createUserFriendlyError(msg, null);
       }
     }
@@ -121,7 +122,7 @@ public class ProjectImportErrorHandler {
         if (!msg.endsWith(".")) {
           msg += ".";
         }
-        msg += EMPTY_LINE + NotificationHints.OPEN_GRADLE_SETTINGS;
+        msg += EMPTY_LINE + OPEN_GRADLE_SETTINGS;
         // Location of build.gradle is useless for this error. Omitting it.
         return createUserFriendlyError(msg, null);
       }
@@ -129,12 +130,12 @@ public class ProjectImportErrorHandler {
       // With this condition we cover 2 similar messages about the same problem.
       if (msg != null && msg.contains("Could not find") && msg.contains("com.android.support:support")) {
         // We keep the original error message and we append a hint about how to fix the missing dependency.
-        String newMsg = msg + EMPTY_LINE + NotificationHints.INSTALL_ANDROID_SUPPORT_REPO;
+        String newMsg = msg + EMPTY_LINE + INSTALL_ANDROID_SUPPORT_REPO;
         // Location of build.gradle is useless for this error. Omitting it.
         return createUserFriendlyError(newMsg, null);
       }
 
-      if (msg != null && msg.contains(NotificationHints.FAILED_TO_PARSE_SDK)) {
+      if (msg != null && msg.contains(FAILED_TO_PARSE_SDK)) {
         String newMsg = msg + EMPTY_LINE + "The Android SDK may be missing the directory 'add-ons'.";
         // Location of build.gradle is useless for this error. Omitting it.
         return createUserFriendlyError(newMsg, null);
@@ -197,9 +198,7 @@ public class ProjectImportErrorHandler {
     }
 
     if (!Strings.isNullOrEmpty(location)) {
-      StringBuilder msgBuilder = new StringBuilder();
-      msgBuilder.append(newMsg).append(EMPTY_LINE).append(location);
-      newMsg = msgBuilder.toString();
+      newMsg = newMsg + EMPTY_LINE + location;
     }
     return new ExternalSystemException(newMsg);
   }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
-import com.google.common.collect.Lists;
+import com.android.tools.idea.wizard.TemplateWizardState;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,10 +23,8 @@ import org.w3c.dom.*;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
-import static com.android.tools.idea.templates.RepositoryUrls.*;
 import static com.android.tools.idea.templates.Template.*;
 
 /** An ADT template along with metadata */
@@ -69,10 +67,6 @@ public class TemplateMetadata {
   public static final String ATTR_NAVIGATION_DRAWER_EXTRA = "usesNavigationDrawer";
 
   public static final String V4_SUPPORT_LIBRARY_VERSION = "13.0.+";
-  public static final String GRADLE_PLUGIN_VERSION = "0.5.+";
-  public static final String GRADLE_VERSION = "1.7";
-  public static final String GRADLE_DISTRIBUTION_URL = "http://services.gradle.org/distributions/gradle-" +
-                                                       GRADLE_VERSION + "-bin.zip";
 
   private final Document myDocument;
   private final Map<String, Parameter> myParameterMap;
@@ -115,6 +109,11 @@ public class TemplateMetadata {
 
   @Nullable
   public String getThumbnailPath() {
+    return getThumbnailPath(null);
+  }
+
+  @Nullable
+  public String getThumbnailPath(TemplateWizardState currentState) {
     // Apply selector logic. Pick the thumb first thumb that satisfies the largest number
     // of conditions.
     NodeList thumbs = myDocument.getElementsByTagName(TAG_THUMB);
@@ -146,9 +145,8 @@ public class TemplateMetadata {
             continue;
           }
           String thumbNailValue = attribute.getValue();
-          // TODO: have current value passed in?
-          String editedValue = "";
-          if (!thumbNailValue.equals(editedValue)) {
+
+          if (currentState == null || !thumbNailValue.equals(currentState.get(parameter.id))) {
             match = false;
             break;
           }
@@ -171,27 +169,6 @@ public class TemplateMetadata {
     }
 
     return null;
-  }
-
-  /**
-   * Get any dependency declarations from the template.xml file.
-   * @return a list of maven dependency URLs
-   */
-  @NotNull
-  public List<String> getDependencies() {
-    final List<String> dependencyList = Lists.newLinkedList();
-
-    NodeList dependencies = myDocument.getElementsByTagName(TAG_DEPENDENCY);
-    for (int index = 0, max = dependencies.getLength(); index < max; index++) {
-      Element element = (Element) dependencies.item(index);
-      String dependencyName = element.getAttribute(ATTR_NAME);
-      String dependencyVersion = element.getAttribute(ATTR_VERSION);
-      if (dependencyName.equals(SUPPORT_ID) || dependencyName.equals(APP_COMPAT_ID) || dependencyName.equals(GRID_LAYOUT_ID)) {
-        dependencyList.add(getLibraryUrl(dependencyName, dependencyVersion));
-      }// TODO: Add other libraries here (Cloud SDK, Play Services, YouTube, AdMob, etc).
-    }
-
-    return dependencyList;
   }
 
   public boolean isSupported() {

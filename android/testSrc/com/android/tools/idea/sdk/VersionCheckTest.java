@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.sdk;
 
+import com.google.common.base.Strings;
 import junit.framework.TestCase;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Tests for {@link VersionCheck}.
@@ -30,20 +33,26 @@ public class VersionCheckTest extends TestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    mySdkPath = System.getProperty(AndroidTestCase.SDK_PATH_PROPERTY);
-    if (mySdkPath == null) {
-      mySdkPath = System.getenv(AndroidTestCase.SDK_PATH_PROPERTY);
+    mySdkPath = getSystemPropertyOrEnvironmentVariable(AndroidTestCase.SDK_PATH_PROPERTY);
+    if (Strings.isNullOrEmpty(mySdkPath)) {
+      String format = "Please specify the path of an Android SDK (v22.0.0) in the system property or environment variable '%1$s'";
+      fail(String.format(format, AndroidTestCase.SDK_PATH_PROPERTY));
     }
-    String format = "Please specify the path of an Android SDK (v22.0.0) in the system property '%1$s'";
-    String msg = String.format(format, AndroidTestCase.SDK_PATH_PROPERTY);
-    assertNotNull(msg, mySdkPath);
 
-    myPreV22SdkPath = System.getProperty(PRE_V22_SDK_PATH);
-    if (myPreV22SdkPath == null) {
-      myPreV22SdkPath = System.getenv(PRE_V22_SDK_PATH);
+    myPreV22SdkPath = getSystemPropertyOrEnvironmentVariable(PRE_V22_SDK_PATH);
+    if (Strings.isNullOrEmpty(myPreV22SdkPath)) {
+      String format = "Please specify the path of a pre-v22.0.0 Android SDK in the system property or environment variable '%1$s'";
+      fail(String.format(format, AndroidTestCase.SDK_PATH_PROPERTY));
     }
-    msg = String.format("Please specify the path of an old Android SDK (pre-22.0.0) with the system property '%1$s'", PRE_V22_SDK_PATH);
-    assertNotNull(msg, myPreV22SdkPath);
+  }
+
+  @Nullable
+  private static String getSystemPropertyOrEnvironmentVariable(@NotNull String name) {
+    String s = System.getProperty(name);
+    if (Strings.isNullOrEmpty(s)) {
+      s = System.getenv(name);
+    }
+    return s;
   }
 
   public void testCheckVersion() {

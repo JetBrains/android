@@ -18,7 +18,9 @@ package org.jetbrains.android.logcat;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.Log;
+import com.android.tools.idea.logcat.StackTraceExpander;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.util.AndroidOutputReceiver;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,13 +41,32 @@ public class AndroidLogcatReceiver extends AndroidOutputReceiver {
   private static Pattern LOG_PATTERN =
     Pattern.compile("^\\[\\s(\\d\\d-\\d\\d\\s\\d\\d:\\d\\d:\\d\\d\\.\\d+)\\s+(\\d*):\\s*(\\S+)\\s([VDIWEAF])/(.*)\\]$", Pattern.DOTALL);
 
-  private static final String SHIFT = "        ";
+  /** Prefix to use for all lines without a header. */
+  public static final String CONTINUATION_LINE_PREFIX = StringUtil.repeatSymbol(' ', 4);
+
+  /** Prefix to use for stack trace lines. */
+  public static final String STACK_TRACE_LINE_PREFIX = CONTINUATION_LINE_PREFIX + StringUtil.repeatSymbol(' ', 8);
+
+  /**
+   * Prefix to use for stack trace lines that were expanded in by {@link StackTraceExpander}.
+   * The only reason this is different from {@link #STACK_TRACE_LINE_PREFIX} is that we want {@link ExceptionFolding}
+   * class to be able to determine and fold just the expanded lines.
+   */
+  public static final String EXPANDED_STACK_TRACE_LINE_PREFIX = STACK_TRACE_LINE_PREFIX.replace(' ', '\u00A0');
+
+  /** Prefix to use for the stack trace "Caused by:" lines. */
+  public static final String STACK_TRACE_CAUSE_LINE_PREFIX = CONTINUATION_LINE_PREFIX + Character.toString(' ');
 
   private LogMessageHeader myLastMessageHeader;
   private volatile boolean myCanceled = false;
   private Log.LogLevel myPrevLogLevel;
   private final Writer myWriter;
   private final IDevice myDevice;
+
+  private final StackTraceExpander myStackTraceExpander = new StackTraceExpander(CONTINUATION_LINE_PREFIX,
+                                                                                 STACK_TRACE_LINE_PREFIX,
+                                                                                 EXPANDED_STACK_TRACE_LINE_PREFIX,
+                                                                                 STACK_TRACE_CAUSE_LINE_PREFIX);
 
   public AndroidLogcatReceiver(IDevice device, Writer writer) {
     myDevice = device;
@@ -78,10 +99,11 @@ public class AndroidLogcatReceiver extends AndroidOutputReceiver {
     }
     else {
       if (line.length() == 0) return;
-      String text = myLastMessageHeader == null ? SHIFT + line : getFullMessage(line, myLastMessageHeader);
+      String text;
       if (myLastMessageHeader == null) {
-        myLastMessageHeader = new LogMessageHeader();
-        myLastMessageHeader.myLogLevel = myPrevLogLevel;
+        text = myStackTraceExpander.expand(line);
+      } else {
+        text = getFullMessage(line, myLastMessageHeader);
       }
       try {
         myWriter.write(text + '\n');
@@ -89,7 +111,6 @@ public class AndroidLogcatReceiver extends AndroidOutputReceiver {
       catch (IOException ignored) {
         LOG.info(ignored);
       }
-      myPrevLogLevel = myLastMessageHeader.myLogLevel;
       myLastMessageHeader = null;
     }
   }

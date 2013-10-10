@@ -22,6 +22,7 @@ public class ResourceFoldingBuilderTest extends AndroidTestCase {
 
   public void testJavaStrings() throws Throwable { performTest(".java"); }
   public void testJavaStrings2() throws Throwable { performTest(".java"); }
+  public void testJavaDimens() throws Throwable { performTest(".java"); }
   public void testXmlString() throws Throwable { performTest(".xml"); }
 
   @SuppressWarnings("JUnitTestCaseWithNonTrivialConstructors")
@@ -30,7 +31,7 @@ public class ResourceFoldingBuilderTest extends AndroidTestCase {
   }
 
   private void performTest(String extension) throws Throwable {
-    myFixture.copyFileToProject(getTestDataPath() + "/folding/strings.xml", "res/values/strings.xml");
+    myFixture.copyFileToProject(getTestDataPath() + "/folding/values.xml", "res/values/values.xml");
     myFixture.testFoldingWithCollapseStatus(getTestDataPath() + "/folding/" + getTestName(true) + extension);
   }
 }
