@@ -12,7 +12,8 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.components.JBTextField;
+import com.intellij.ui.FieldPanel;
+import com.intellij.ui.IdeBorderFactory;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
@@ -44,7 +45,8 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   private ComboBox myPackageNameComboBox;
   private ComboBox myDataBaseComboBox;
   private JPanel myPanel;
-  private JBTextField myNameTextField;
+  private FieldPanel myNameField;
+  private JPanel myConfigurationPanel;
 
   private IDevice mySelectedDevice = null;
   private Map<String, List<String>> myDatabaseMap;
@@ -52,6 +54,10 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
 
   protected AndroidDataSourcePropertiesDialog(@NotNull AndroidDbManager manager, @NotNull Project project, @NotNull AndroidDataSource dataSource) {
     super(manager, dataSource, project);
+
+    myConfigurationPanel.setBorder(IdeBorderFactory.createEmptyBorder(10, 0, 0, 0));
+    myNameField.setLabelText("Data Source Name");
+    myNameField.createComponent();
 
     myDeviceComboBox.setRenderer(new DeviceComboBoxRenderer() {
       @Override
@@ -102,7 +108,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
     updateDbCombo();
 
     final String name = dataSource.getName();
-    myNameTextField.setText(name != null ? name : "");
+    myNameField.setText(name != null ? name : "");
 
     final AndroidDataSource.State state = dataSource.getState();
     final String packageName = state.getPackageName();
@@ -111,7 +117,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
     myDataBaseComboBox.getEditor().setItem(dbName != null ? dbName : "");
     myDeviceComboBox.setPreferredSize(new Dimension(300, myDeviceComboBox.getPreferredSize().height));
 
-    setChangeListener(myNameTextField);
+    setChangeListener(myNameField);
     setChangeListener(myPackageNameComboBox);
     setChangeListener(myDataBaseComboBox);
     setChangeListener(myDeviceComboBox);
@@ -309,7 +315,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
 
   @Override
   public void apply() {
-    myDataSource.setName(myNameTextField.getText());
+    myDataSource.setName(myNameField.getText());
     final AndroidDataSource.State state = myDataSource.getState();
     state.setDeviceId(getSelectedDeviceId());
     state.setPackageName(getSelectedPackage());
@@ -339,13 +345,13 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   @Nullable
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return myNameTextField;
+    return myNameField;
   }
 
   @Nls
   @Override
   public String getDisplayName() {
-    return myNameTextField.getText();
+    return myNameField.getText();
   }
 
   @Nullable
