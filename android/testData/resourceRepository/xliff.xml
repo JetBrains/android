@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2" >
+    <string name="share_with_application">
+        Share your score of <xliff:g id="score" example="1337">%1$s</xliff:g>
+        with <xliff:g id="application_name" example="Bluetooth">%2$s</xliff:g>!
+    </string>
+    <string name="callDetailsDurationFormat"><xliff:g id="minutes" example="42">%s</xliff:g> mins <xliff:g id="seconds" example="28">%s</xliff:g> secs</string>
+    <string name="description_call">Call <xliff:g id="name">%1$s</xliff:g></string>
+    <string name="other"><xliff:g id="number_of_sessions">%1$s</xliff:g> sessions removed from your schedule</string>
+</resources>
+
