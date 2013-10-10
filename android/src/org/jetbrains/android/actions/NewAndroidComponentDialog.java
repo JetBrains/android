@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.actions;
 
+import com.android.resources.ResourceType;
 import com.intellij.CommonBundle;
 import com.intellij.ide.actions.ElementCreator;
 import com.intellij.ide.actions.TemplateKindCombo;
@@ -24,10 +25,15 @@ import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.ui.components.JBCheckBox;
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.android.AndroidFileTemplateProvider;
 import org.jetbrains.android.dom.manifest.Action;
@@ -36,6 +42,7 @@ import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,6 +62,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
   private TemplateKindCombo myKindCombo;
   private JTextField myLabelField;
   private JCheckBox myMarkAsStartupActivityCheckBox;
+  private JBCheckBox myCreateLayoutFile;
 
   private ElementCreator myCreator;
 
@@ -99,7 +107,9 @@ public class NewAndroidComponentDialog extends DialogWrapper {
       @Override
       public void actionPerformed(ActionEvent e) {
         String selected = myKindCombo.getSelectedName();
-        myMarkAsStartupActivityCheckBox.setEnabled(AndroidFileTemplateProvider.ACTIVITY.equals(selected));
+        final boolean activity = AndroidFileTemplateProvider.ACTIVITY.equals(selected);
+        myMarkAsStartupActivityCheckBox.setEnabled(activity);
+        myCreateLayoutFile.setEnabled(activity);
         myLabelField.setEnabled(!AndroidFileTemplateProvider.REMOTE_INTERFACE_TEMPLATE.equals(selected) &&
                                 !AndroidFileTemplateProvider.APPLICATION.equals(selected));
       }
@@ -121,7 +131,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
   @Nullable
   private PsiElement create(String newName, PsiDirectory directory, Project project) throws Exception {
     return doCreate(myKindCombo.getSelectedName(), directory, project, newName, myLabelField.getText(),
-                    myMarkAsStartupActivityCheckBox.isSelected());
+                    myMarkAsStartupActivityCheckBox.isSelected(), myCreateLayoutFile.isSelected());
   }
 
   @Nullable
@@ -130,21 +140,83 @@ public class NewAndroidComponentDialog extends DialogWrapper {
                              Project project,
                              String newName,
                              String label,
-                             boolean startupActivity) throws Exception {
-    PsiElement element = AndroidFileTemplateProvider.createFromTemplate(templateName, newName, directory);
+                             boolean startupActivity,
+                             boolean createLayoutFile) throws Exception {
+    final PsiElement element = AndroidFileTemplateProvider.createFromTemplate(templateName, newName, directory);
     if (element == null) {
       return null;
     }
     Module module = ModuleUtil.findModuleForFile(directory.getVirtualFile(), project);
     if (module != null) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
+      final AndroidFacet facet = AndroidFacet.getInstance(module);
       assert facet != null;
       if (element instanceof PsiClass) {
         registerComponent(templateName, (PsiClass)element, JavaDirectoryService.getInstance().getPackage(directory), facet,
                           label, startupActivity);
+
+        if (AndroidFileTemplateProvider.ACTIVITY.equals(templateName) && createLayoutFile) {
+          final Manifest manifest = facet.getManifest();
+          final String appPackage = manifest != null ? manifest.getPackage().getValue() : null;
+
+          if (appPackage != null && appPackage.length() > 0) {
+            ApplicationManager.getApplication().invokeLater(new Runnable() {
+              @Override
+              public void run() {
+                createLayoutFileForActivity(facet, (PsiClass)element, appPackage);
+              }
+            });
+          }
+        }
       }
     }
     return element;
+  }
+
+  private static void createLayoutFileForActivity(@NotNull final AndroidFacet facet,
+                                                  @NotNull PsiClass activityClass,
+                                                  @NotNull final String appPackage) {
+    if (facet.isDisposed() || !activityClass.isValid()) {
+      return;
+    }
+    final String className = activityClass.getName();
+
+    if (className == null) {
+      return;
+    }
+    final XmlFile layoutFile = CreateResourceFileAction.createFileResource(facet, ResourceType.LAYOUT, null, null, null, true,
+                                                                           "Create Layout For '" + className + "'", false);
+    final String layoutFileName = layoutFile != null ? layoutFile.getName() : null;
+
+    if (layoutFileName != null) {
+      final PsiMethod[] onCreateMethods = activityClass.findMethodsByName("onCreate", false);
+
+      if (onCreateMethods.length != 1) {
+        return;
+      }
+      final PsiMethod onCreateMethod = onCreateMethods[0];
+      final PsiCodeBlock body = onCreateMethod.getBody();
+
+      if (body != null) {
+        final PsiElement lastBodyElement = body.getLastBodyElement();
+
+        if (lastBodyElement != null) {
+          final Project project = facet.getModule().getProject();
+          final String fieldName = AndroidResourceUtil.getRJavaFieldName(FileUtil.getNameWithoutExtension(layoutFileName));
+
+          ApplicationManager.getApplication().runWriteAction(new Runnable() {
+            @Override
+            public void run() {
+              final PsiStatement setContentViewSt = PsiElementFactory.SERVICE.getInstance(project)
+                .createStatementFromText("setContentView(" + appPackage + ".R.layout." + fieldName + ");", body);
+              body.addAfter(setContentViewSt, lastBodyElement);
+
+              JavaCodeStyleManager.getInstance(project).shortenClassReferences(body);
+              CodeStyleManager.getInstance(project).reformat(body);
+            }
+          });
+        }
+      }
+    }
   }
 
   protected static void registerComponent(String templateName,
