@@ -179,7 +179,7 @@ public abstract class AndroidLogcatView implements Disposable {
           return myConfiguredFilter;
         }
       };
-    myLogConsole = new MyLogConsole(project, myLogFilterModel);
+    myLogConsole = new AndroidLogConsole(project, myLogFilterModel);
     myLogConsole.addListener(new LogConsoleListener() {
       @Override
       public void loggingWillBeStopped() {
@@ -254,18 +254,6 @@ public abstract class AndroidLogcatView implements Disposable {
 
   @NotNull
   public JPanel createSearchComponent(final Project project) {
-    final JButton clearLogButton = new JButton(AndroidBundle.message("android.logcat.clear.log.button.title"));
-    clearLogButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        IDevice device = getSelectedDevice();
-        if (device != null) {
-          AndroidLogcatUtil.clearLogcat(project, device);
-          myLogConsole.clear();
-        }
-      }
-    });
-
     final JPanel panel = new JPanel();
     final JComboBox editFiltersCombo = new JComboBox();
     myFilterComboBoxModel = new DefaultComboBoxModel();
@@ -299,7 +287,6 @@ public abstract class AndroidLogcatView implements Disposable {
     updateConfiguredFilters(NO_FILTERS);
 
     panel.add(editFiltersCombo);
-    panel.add(clearLogButton);
 
     final JPanel searchComponent = new JPanel();
     searchComponent.setLayout(new BoxLayout(searchComponent, X_AXIS));
@@ -457,15 +444,23 @@ public abstract class AndroidLogcatView implements Disposable {
     }
   }
 
-  class MyLogConsole extends LogConsoleBase {
+  public class AndroidLogConsole extends LogConsoleBase {
     @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
-    public MyLogConsole(Project project, AndroidLogFilterModel logFilterModel) {
+    public AndroidLogConsole(Project project, AndroidLogFilterModel logFilterModel) {
       super(project, new MyLoggingReader(), "", false, logFilterModel);
     }
 
     @Override
     public boolean isActive() {
       return AndroidLogcatView.this.isActive();
+    }
+
+    public void clearLogcat() {
+      IDevice device = getSelectedDevice();
+      if (device != null) {
+        AndroidLogcatUtil.clearLogcat(myProject, device);
+        myLogConsole.clear();
+      }
     }
   }
 
