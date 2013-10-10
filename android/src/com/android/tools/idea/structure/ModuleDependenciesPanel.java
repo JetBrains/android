@@ -432,7 +432,7 @@ public class ModuleDependenciesPanel extends JPanel {
     private final Border NO_FOCUS_BORDER = BorderFactory.createEmptyBorder(1, 1, 1, 1);
 
     @Override
-    protected void customizeCellRenderer(@NotNull JTable table, @NotNull Object value, boolean selected, boolean hasFocus,
+    protected void customizeCellRenderer(JTable table, @NotNull Object value, boolean selected, boolean hasFocus,
                                          int row, int column) {
       setPaintFocusBorder(false);
       setFocusBorderAroundIcon(true);
