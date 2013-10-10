@@ -16,6 +16,7 @@
 package com.android.tools.idea.jps.builder;
 
 import com.android.tools.idea.gradle.compiler.BuildProcessJvmArgs;
+import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -25,7 +26,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.api.GlobalOptions;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -34,7 +34,7 @@ import java.util.List;
 class BuilderExecutionSettings {
   private final boolean myEmbeddedGradleDaemonEnabled;
   private final int myGradleDaemonMaxIdleTimeInMs;
-  @NotNull private final List<String> myGradleDaemonVmOptions;
+  @NotNull private final List<String> myGradleDaemonJvmOptions = Lists.newArrayList();
   @Nullable private final File myGradleHomeDir;
   @Nullable private final File myGradleServiceDir;
   @Nullable private final File myJavaHomeDir;
@@ -46,7 +46,6 @@ class BuilderExecutionSettings {
   BuilderExecutionSettings() {
     myEmbeddedGradleDaemonEnabled = SystemProperties.getBooleanProperty(BuildProcessJvmArgs.USE_EMBEDDED_GRADLE_DAEMON, false);
     myGradleDaemonMaxIdleTimeInMs = SystemProperties.getIntProperty(BuildProcessJvmArgs.GRADLE_DAEMON_MAX_IDLE_TIME_IN_MS, -1);
-    myGradleDaemonVmOptions = getJvmOptions();
     myGradleHomeDir = findDir(BuildProcessJvmArgs.GRADLE_HOME_DIR_PATH, "Gradle home");
     myGradleServiceDir = findDir(BuildProcessJvmArgs.GRADLE_SERVICE_DIR_PATH, "Gradle service");
     myJavaHomeDir = findDir(BuildProcessJvmArgs.GRADLE_JAVA_HOME_DIR_PATH, "Java home");
@@ -55,22 +54,34 @@ class BuilderExecutionSettings {
     myBuildMode = Strings.isNullOrEmpty(buildActionName) ? BuildMode.DEFAULT_BUILD_MODE : BuildMode.valueOf(buildActionName);
     myVerboseLoggingEnabled = SystemProperties.getBooleanProperty(BuildProcessJvmArgs.USE_GRADLE_VERBOSE_LOGGING, false);
     myParallelBuild = SystemProperties.getBooleanProperty(GlobalOptions.COMPILE_PARALLEL_OPTION, false);
+    populateGradleDaemonJvmOptions();
+    populateHttpProxyJvmOptions();
   }
 
-  @NotNull
-  private static List<String> getJvmOptions() {
-    int vmOptionCount = SystemProperties.getIntProperty(BuildProcessJvmArgs.GRADLE_DAEMON_VM_OPTION_COUNT, 0);
-    if (vmOptionCount <= 0) {
-      return Collections.emptyList();
-    }
-    List<String> vmOptions = Lists.newArrayList();
+  private void populateGradleDaemonJvmOptions() {
+    int vmOptionCount = SystemProperties.getIntProperty(BuildProcessJvmArgs.GRADLE_DAEMON_JVM_OPTION_COUNT, 0);
     for (int i = 0; i < vmOptionCount; i++) {
-      String vmOption = System.getProperty(BuildProcessJvmArgs.GRADLE_DAEMON_VM_OPTION_DOT + i);
-      if (!Strings.isNullOrEmpty(vmOption)) {
-        vmOptions.add(vmOption);
+      String jvmOption = System.getProperty(BuildProcessJvmArgs.GRADLE_DAEMON_JVM_OPTION_PREFIX + i);
+      if (!Strings.isNullOrEmpty(jvmOption)) {
+        myGradleDaemonJvmOptions.add(jvmOption);
       }
     }
-    return vmOptions;
+  }
+
+  private void populateHttpProxyJvmOptions() {
+    int vmOptionCount = SystemProperties.getIntProperty(BuildProcessJvmArgs.HTTP_PROXY_PROPERTY_COUNT, 0);
+    for (int i = 0; i < vmOptionCount; i++) {
+      String jvmOption = System.getProperty(BuildProcessJvmArgs.HTTP_PROXY_PROPERTY_PREFIX + i);
+      if (!Strings.isNullOrEmpty(jvmOption)) {
+        int indexOfSeparator = jvmOption.indexOf(BuildProcessJvmArgs.HTTP_PROXY_PROPERTY_SEPARATOR);
+        if (indexOfSeparator < 0 || indexOfSeparator >= jvmOption.length() -1) {
+          continue;
+        }
+        String name = jvmOption.substring(0, indexOfSeparator);
+        String value = jvmOption.substring(indexOfSeparator + 1);
+        myGradleDaemonJvmOptions.add(AndroidGradleSettings.createJvmArg(name, value));
+      }
+    }
   }
 
   @Nullable
@@ -120,8 +131,8 @@ class BuilderExecutionSettings {
   }
 
   @NotNull
-  List<String> getGradleDaemonVmOptions() {
-    return myGradleDaemonVmOptions;
+  List<String> getGradleDaemonJvmOptions() {
+    return myGradleDaemonJvmOptions;
   }
 
   @Nullable
@@ -159,7 +170,7 @@ class BuilderExecutionSettings {
            "embeddedGradleDaemonEnabled=" + myEmbeddedGradleDaemonEnabled +
            ", buildMode=" + myBuildMode.name() +
            ", gradleDaemonMaxIdleTimeInMs=" + myGradleDaemonMaxIdleTimeInMs +
-           ", gradleDaemonVmOptions=" + myGradleDaemonVmOptions +
+           ", gradleDaemonJvmOptions=" + myGradleDaemonJvmOptions +
            ", gradleHomeDir=" + myGradleHomeDir +
            ", gradleServiceDir=" + myGradleServiceDir +
            ", javaHomeDir=" + myJavaHomeDir +
