@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.lint.detector.api.LintUtils;
+import com.android.utils.SdkUtils;
 import com.android.utils.SparseArray;
 import com.intellij.codeInsight.daemon.impl.quickfix.CreateClassKind;
 import com.intellij.codeInsight.intention.impl.CreateClassDialog;
@@ -30,6 +31,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
@@ -37,6 +39,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -54,7 +58,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.io.File;
+import java.net.MalformedURLException;
 import java.util.Collection;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
 
@@ -87,6 +95,9 @@ public class HtmlLinkManager {
                         @Nullable RenderResult result) {
     if (url.startsWith("http:") || url.startsWith("https:")) {
       UrlOpener.launchBrowser(null, url);
+    } else if (url.startsWith("file:")) {
+      assert module != null;
+      handleFileUrl(url, module);
     } else if (url.startsWith(URL_REPLACE_TAGS)) {
       assert module != null;
       assert file != null;
@@ -141,6 +152,67 @@ public class HtmlLinkManager {
       assert false : "Unexpected URL: " + url;
     }
   }
+
+  /** Creates a file url for the given file and line position
+   *
+   * @param file the file
+   * @param line the line, or -1 if not known
+   * @param column the column, or 0 if not known
+   * @return a URL which points to a given position in a file
+   */
+  @Nullable
+  public static String createFilePositionUrl(@NotNull File file, int line, int column) {
+    try {
+      String fileUrl = SdkUtils.fileToUrlString(file);
+      if (line != -1) {
+        if (column > 0) {
+          return fileUrl + ':' + line + ':' + column;
+        } else {
+          return fileUrl + ':' + line;
+        }
+      }
+      return fileUrl;
+    }
+    catch (MalformedURLException e) {
+      // Ignore
+      Logger.getInstance(HtmlLinkManager.class).error(e);
+      return null;
+    }
+  }
+
+  private static void handleFileUrl(@NotNull String url, @NotNull Module module) {
+    Project project = module.getProject();
+    try {
+      // Allow line numbers and column numbers to be tacked on at the end of
+      // the file URL:
+      //   file:<path>:<line>:<column>
+      //   file:<path>:<line>
+      int line = -1;
+      int column = 0;
+      Pattern pattern = Pattern.compile(".*:(\\d+)(:(\\d+))");
+      Matcher matcher = pattern.matcher(url);
+      if (matcher.matches()) {
+        line = Integer.parseInt(matcher.group(1));
+        column = Integer.parseInt(matcher.group(3));
+        url = url.substring(0, matcher.start(1) - 1);
+      } else {
+        matcher = Pattern.compile(".*:(\\d+)").matcher(url);
+        if (matcher.matches()) {
+          line = Integer.parseInt(matcher.group(1));
+          url = url.substring(0, matcher.start(1) - 1);
+        }
+      }
+      File ioFile = SdkUtils.urlToFile(url);
+      VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(ioFile);
+      if (file != null) {
+        openEditor(project, file, line, column);
+      }
+    }
+    catch (MalformedURLException e) {
+      // Ignore
+    }
+  }
+
   public String createCommandLink(@NotNull WriteCommandAction command) {
     String url = URL_COMMAND + myNextLinkId;
     if (myLinkCommands == null) {
@@ -447,21 +519,29 @@ public class HtmlLinkManager {
   private static boolean openEditor(@NotNull Project project, @NotNull PsiFile psiFile, int line, int column) {
     VirtualFile file = psiFile.getVirtualFile();
     if (file != null) {
-      OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file, line, column);
-      return !FileEditorManager.getInstance(project).openEditor(descriptor, true).isEmpty();
+      return openEditor(project, file, line, column);
     }
 
     return false;
   }
 
+  private static boolean openEditor(@NotNull Project project, @NotNull VirtualFile file, int line, int column) {
+    OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file, line, column);
+    return !FileEditorManager.getInstance(project).openEditor(descriptor, true).isEmpty();
+  }
+
   private static boolean openEditor(@NotNull Project project, @NotNull PsiFile psiFile, int offset) {
     VirtualFile file = psiFile.getVirtualFile();
     if (file != null) {
-      OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file, offset);
-      return !FileEditorManager.getInstance(project).openEditor(descriptor, true).isEmpty();
+      return openEditor(project, file, offset);
     }
 
     return false;
+  }
+
+  private static boolean openEditor(@NotNull Project project, @NotNull VirtualFile file, int offset) {
+    OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file, offset);
+    return !FileEditorManager.getInstance(project).openEditor(descriptor, true).isEmpty();
   }
 
   public String createAssignFragmentUrl(@Nullable String id) {

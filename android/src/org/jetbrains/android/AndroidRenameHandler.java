@@ -172,7 +172,7 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
         if (name.length() == 0) {
           throw new ConfigurationException(AndroidBundle.message("specify.package.name.error"));
         }
-        if (!AndroidUtils.isValidPackageName(name)) {
+        if (!AndroidUtils.isValidAndroidPackageName(name)) {
           throw new ConfigurationException(AndroidBundle.message("not.valid.package.name.error", name));
         }
         if (!AndroidCommonUtils.contains2Identifiers(name)) {

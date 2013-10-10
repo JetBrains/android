@@ -132,8 +132,8 @@ public class AndroidAppPropertiesEditor {
     if (candidate.length() == 0) {
       return AndroidBundle.message("specify.package.name.error");
     }
-    if (!AndroidUtils.isValidPackageName(candidate)) {
-      return AndroidBundle.message("not.valid.package.name.error", candidate);
+    if (!AndroidUtils.isValidAndroidPackageName(candidate)) {
+      return candidate;
     }
     if (!AndroidCommonUtils.contains2Identifiers(candidate)) {
       return AndroidBundle.message("package.name.must.contain.2.ids.error");

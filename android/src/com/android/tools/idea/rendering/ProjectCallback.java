@@ -20,28 +20,41 @@ import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.rendering.legacy.LegacyCallback;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.tools.lint.detector.api.LintUtils;
+import com.android.utils.HtmlBuilder;
+import com.android.utils.SdkUtils;
+import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
+import com.google.common.collect.*;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ViewLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.xmlpull.v1.XmlPullParser;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.StringReader;
-import java.util.Map;
+import java.net.MalformedURLException;
+import java.util.*;
 
 import static com.android.SdkConstants.*;
+import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
  * Loader for Android Project class in order to use them in the layout editor.
@@ -50,6 +63,10 @@ import static com.android.SdkConstants.*;
  */
 public final class ProjectCallback extends LegacyCallback {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.ProjectCallback");
+
+  /** Maximum number of getParser calls in a render before we suspect and investigate potential include cycles */
+  private static final int MAX_PARSER_INCLUDES = 50;
+
   @NotNull private final Module myModule;
   @NotNull private final ProjectResources myProjectRes;
   @NotNull final private LayoutLibrary myLayoutLib;
@@ -60,6 +77,8 @@ public final class ProjectCallback extends LegacyCallback {
   @Nullable private ILayoutPullParser myLayoutEmbeddedParser;
   @Nullable private ResourceResolver myResourceResolver;
   private boolean myUsed = false;
+  private Set<File> myParserFiles;
+  private int myParserCount;
 
   /**
    * Creates a new {@link ProjectCallback} to be used with the layout lib.
@@ -77,6 +96,14 @@ public final class ProjectCallback extends LegacyCallback {
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assert facet != null;
     myClassLoader = new ViewLoader(myLayoutLib, facet, myProjectRes, logger);
+  }
+
+  /** Resets the callback state for another render */
+  void reset() {
+    myParserCount = 0;
+    myParserFiles = null;
+    myLayoutName = null;
+    myLayoutEmbeddedParser = null;
   }
 
   /**
@@ -222,6 +249,25 @@ public final class ProjectCallback extends LegacyCallback {
 
   @Nullable
   private ILayoutPullParser getParser(@NotNull String layoutName, @Nullable File xml) {
+    if (myParserFiles != null && myParserFiles.contains(xml)) {
+      if (myParserCount > MAX_PARSER_INCLUDES) {
+        // Unlikely large number of includes. Look for cyclic dependencies in the available
+        // files.
+        if (findCycles()) {
+          throw new RuntimeException("Aborting rendering");
+        }
+
+        // Also reset counter to 0 so we don't check on every subsequent iteration.
+        myParserCount = 0;
+      }
+    } else {
+      if (myParserFiles == null) {
+        myParserFiles = Sets.newHashSet();
+      }
+      myParserFiles.add(xml);
+    }
+    myParserCount++;
+
     if (layoutName.equals(myLayoutName)) {
       ILayoutPullParser parser = myLayoutEmbeddedParser;
       // The parser should only be used once!! If it is included more than once,
@@ -231,16 +277,28 @@ public final class ProjectCallback extends LegacyCallback {
       return parser;
     }
 
-    // For included layouts, create a ContextPullParser such that we get the
-    // layout editor behavior in included layouts as well - which for example
-    // replaces <fragment> tags with <include>.
+    // See if we can find a corresponding PSI file for this included layout, and
+    // if so directly reuse the PSI parser, such that we pick up the live, edited
+    // contents rather than the most recently saved file contents.
     if (xml != null && xml.isFile()) {
-      ContextPullParser parser = new ContextPullParser(this);
+      File parent = xml.getParentFile();
+      if (parent != null && parent.getName().startsWith(FD_RES_LAYOUT)) {
+        VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(xml);
+        if (file != null) {
+          PsiManager psiManager = PsiManager.getInstance(myModule.getProject());
+          PsiFile psiFile = psiManager.findFile(file);
+          if (psiFile instanceof XmlFile) {
+            assert myLogger != null;
+            return LayoutPsiPullParser.create((XmlFile)psiFile, myLogger);
+          }
+        }
+      }
+
+      // For included layouts, create a LayoutFilePullParser such that we get the
+      // layout editor behavior in included layouts as well - which for example
+      // replaces <fragment> tags with <include>.
       try {
-        parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
-        String xmlText = Files.toString(xml, Charsets.UTF_8);
-        parser.setInput(new StringReader(xmlText));
-        return parser;
+        return LayoutFilePullParser.create(this, xml);
       }
       catch (XmlPullParserException e) {
         LOG.error(e);
@@ -253,6 +311,107 @@ public final class ProjectCallback extends LegacyCallback {
       }
     }
 
+    return null;
+  }
+
+  /**
+   * Searches for cycles in the {@code <include>} tag graph of the layout files we've
+   * been asked to provide parsers for
+   */
+  private boolean findCycles() {
+    Map<File,String> fileToLayout = Maps.newHashMap();
+    Map<String,File> layoutToFile = Maps.newHashMap();
+    Multimap<String,String> includeMap = ArrayListMultimap.create();
+    for (File file : myParserFiles) {
+      String layoutName = LintUtils.getLayoutName(file);
+      layoutToFile.put(layoutName, file);
+      fileToLayout.put(file, layoutName);
+      try {
+        String xml = Files.toString(file, Charsets.UTF_8);
+        Document document = XmlUtils.parseDocumentSilently(xml, true);
+        if (document != null) {
+          NodeList includeNodeList = document.getElementsByTagName(VIEW_INCLUDE);
+          for (int i = 0, n = includeNodeList.getLength(); i < n; i++) {
+            Element include = (Element)includeNodeList.item(i);
+            String included = include.getAttribute(ATTR_LAYOUT);
+            if (included.startsWith(LAYOUT_RESOURCE_PREFIX)) {
+              String resource = included.substring(LAYOUT_RESOURCE_PREFIX.length());
+              includeMap.put(layoutName, resource);
+            }
+          }
+        }
+      }
+      catch (IOException e) {
+        LOG.warn("Could not check file " + file + " for cyclic dependencies", e);
+      }
+    }
+
+    // We now have a DAG over the include dependencies in the layouts
+    // Do a DFS to detect cycles
+
+    // Perform DFS on the include graph and look for a cycle; if we find one, produce
+    // a chain of includes on the way back to show to the user
+    if (includeMap.size() > 0) {
+      for (String from : includeMap.keySet()) {
+        Set<String> visiting = Sets.newHashSetWithExpectedSize(includeMap.size());
+        List<String> chain = dfs(from, visiting, includeMap);
+        if (chain != null) {
+          if (myLogger != null) {
+            RenderProblem.Html problem = RenderProblem.create(WARNING);
+            HtmlBuilder builder = problem.getHtmlBuilder();
+            builder.add("Found cyclical <include> chain: ");
+            boolean first = true;
+            Collections.reverse(chain);
+            for (String layout : chain) {
+              if (first) {
+                first = false;
+              } else {
+                builder.add(" includes ");
+              }
+              File file = layoutToFile.get(layout);
+              if (file != null) {
+                try {
+                  String url = SdkUtils.fileToUrlString(file);
+                  builder.addLink(layout, url);
+                }
+                catch (MalformedURLException e) {
+                  builder.add(layout);
+                }
+              } else {
+                builder.add(layout);
+              }
+            }
+
+            myLogger.addMessage(problem);
+          }
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  @Nullable
+  private static List<String> dfs(String from, Set<String> visiting, Multimap<String,String> includeMap) {
+    visiting.add(from);
+    Collection<String> includes = includeMap.get(from);
+    if (includes != null && includes.size() > 0) {
+      for (String include : includes) {
+        if (visiting.contains(include)) {
+          List<String> list = Lists.newLinkedList();
+          list.add(include);
+          list.add(from);
+          return list;
+        }
+        List<String> chain = dfs(include, visiting, includeMap);
+        if (chain != null) {
+          chain.add(from);
+          return chain;
+        }
+      }
+    }
+    visiting.remove(from);
     return null;
   }
 

@@ -1,7 +1,7 @@
 package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
-import com.android.ide.common.resources.ResourceRepository;
+import com.android.ide.common.resources.ResourceUrl;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.utils.Pair;
@@ -10,6 +10,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.PomTarget;
 import com.intellij.pom.PomTargetPsiElement;
 import com.intellij.psi.PsiElement;
@@ -21,7 +22,6 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlToken;
 import com.intellij.reference.SoftReference;
-import com.intellij.util.containers.HashMap;
 import com.intellij.util.xml.*;
 import com.intellij.util.xml.reflect.DomAttributeChildDescription;
 import com.intellij.util.xml.reflect.DomExtension;
@@ -32,6 +32,7 @@ import org.jetbrains.android.dom.converters.AttributeValueDocumentationProvider;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ResourceManager;
+import org.jetbrains.android.resourceManagers.SystemResourceManager;
 import org.jetbrains.android.resourceManagers.ValueResourceInfo;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -40,8 +41,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static com.intellij.psi.xml.XmlTokenType.XML_ATTRIBUTE_VALUE_START_DELIMITER;
-import static com.intellij.psi.xml.XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN;
+import static com.intellij.psi.xml.XmlTokenType.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -66,6 +66,54 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
 
   @Override
   public String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
+    if (element instanceof LazyValueResourceElementWrapper) {
+      LazyValueResourceElementWrapper wrapper = (LazyValueResourceElementWrapper)element;
+      ValueResourceInfo resourceInfo = wrapper.getResourceInfo();
+      ResourceType type = resourceInfo.getType();
+      String name = resourceInfo.getName();
+
+      Module module = ModuleUtilCore.findModuleForPsiElement(element);
+      if (module == null) {
+        return null;
+      }
+      AndroidFacet facet = AndroidFacet.getInstance(element);
+      if (facet == null) {
+        return null;
+      }
+
+      ResourceUrl url;
+      ResourceUrl originalUrl = originalElement != null ? ResourceUrl.parse(originalElement.getText()) : null;
+      if (originalUrl != null && name.equals(originalUrl.name)) {
+        url  = originalUrl;
+      } else {
+        boolean isFramework = false;
+        if (originalUrl != null) {
+          isFramework = originalUrl.framework;
+        } else {
+          // Figure out if this resource is a framework file.
+          // We really should store that info in the ValueResourceInfo instances themselves.
+          // For now, attempt to figure it out
+          SystemResourceManager systemResourceManager = facet.getSystemResourceManager();
+          VirtualFile containingFile = resourceInfo.getContainingFile();
+          if (systemResourceManager != null) {
+            VirtualFile parent = containingFile.getParent();
+            if (parent != null) {
+              VirtualFile resDir = parent.getParent();
+              if (resDir != null) {
+                isFramework = systemResourceManager.isResourceDir(resDir);
+              }
+            }
+          }
+        }
+
+        url = ResourceUrl.create(type, name, isFramework, false);
+      }
+      return generateDoc(element, url);
+    } else if (element instanceof MyResourceElement) {
+      return getResourceDocumentation(element, ((MyResourceElement)element).myResource);
+    } else if (element instanceof XmlAttributeValue) {
+      return getResourceDocumentation(element, ((XmlAttributeValue)element).getValue());
+    }
     if (originalElement instanceof XmlToken) {
       XmlToken token = (XmlToken)originalElement;
       if (token.getTokenType() == XML_ATTRIBUTE_VALUE_START_DELIMITER) {
@@ -73,47 +121,24 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
         if (next instanceof XmlToken) {
           token = (XmlToken)next;
         }
+      } else if (token.getTokenType() == XML_ATTRIBUTE_VALUE_END_DELIMITER) {
+        PsiElement prev = token.getPrevSibling();
+        if (prev instanceof XmlToken) {
+          token = (XmlToken)prev;
+        }
       }
-
       if (token.getTokenType() == XML_ATTRIBUTE_VALUE_TOKEN) {
-        String value = token.getText();
-        if (value.startsWith(ANDROID_PREFIX)) {
-          // TODO: Support framework resources
-          return null;
+        String documentation = getResourceDocumentation(originalElement, token.getText());
+        if (documentation != null) {
+          return documentation;
         }
-        Pair<ResourceType, String> pair = ResourceRepository.parseResource(value);
-        if (pair != null) {
-          ResourceType type = pair.getFirst();
-          String name = pair.getSecond();
-          return generateDoc(originalElement, type, name);
-        } else {
-          // See if it's in a resource file definition: This allows you to invoke
-          // documentation on <string name="cursor_here">...</string>
-          // and see the various translations etc of the string
-          XmlAttribute attribute = PsiTreeUtil.getParentOfType(originalElement, XmlAttribute.class, false);
-          if (attribute != null && ATTR_NAME.equals(attribute.getName())) {
-            XmlTag tag = attribute.getParent();
-            String typeName = tag.getName();
-            if (TAG_ITEM.equals(typeName)) {
-              typeName = tag.getAttributeValue(ATTR_TYPE);
-              if (typeName == null) {
-                return null;
-              }
-            }
-            ResourceType type = ResourceType.getEnum(typeName);
-            if (type != null) {
-              return generateDoc(originalElement, type, value);
-            }
-          }
+      } else if (token.getTokenType() == XML_DATA_CHARACTERS) {
+        String text = token.getText().trim();
+        String documentation = getResourceDocumentation(originalElement, text);
+        if (documentation != null) {
+          return documentation;
         }
       }
-    }
-    else if (originalElement != null && element instanceof LazyValueResourceElementWrapper) {
-      LazyValueResourceElementWrapper wrapper = (LazyValueResourceElementWrapper)element;
-      ResourceType type = wrapper.getResourceInfo().getType();
-      String name = wrapper.getResourceInfo().getName();
-
-      return generateDoc(originalElement, type, name);
     }
 
     if (element instanceof PomTargetPsiElement && originalElement != null) {
@@ -128,6 +153,34 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
 
     if (element instanceof MyDocElement) {
       return ((MyDocElement)element).myDocumentation;
+    }
+    return null;
+  }
+
+  @Nullable
+  private static String getResourceDocumentation(PsiElement element, String value) {
+    ResourceUrl url = ResourceUrl.parse(value);
+    if (url != null) {
+      return generateDoc(element, url);
+    } else {
+      // See if it's in a resource file definition: This allows you to invoke
+      // documentation on <string name="cursor_here">...</string>
+      // and see the various translations etc of the string
+      XmlAttribute attribute = PsiTreeUtil.getParentOfType(element, XmlAttribute.class, false);
+      if (attribute != null && ATTR_NAME.equals(attribute.getName())) {
+        XmlTag tag = attribute.getParent();
+        String typeName = tag.getName();
+        if (TAG_ITEM.equals(typeName)) {
+          typeName = tag.getAttributeValue(ATTR_TYPE);
+          if (typeName == null) {
+            return null;
+          }
+        }
+        ResourceType type = ResourceType.getEnum(typeName);
+        if (type != null) {
+          return generateDoc(element, type, value, false);
+        }
+      }
     }
     return null;
   }
@@ -308,13 +361,23 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
   }
 
   @Nullable
-  private static String generateDoc(PsiElement originalElement, ResourceType type, String name) {
+  private static String generateDoc(PsiElement originalElement, ResourceType type, String name, boolean framework) {
     Module module = ModuleUtilCore.findModuleForPsiElement(originalElement);
     if (module == null) {
       return null;
     }
 
-    return AndroidJavaDocRenderer.render(module, type, name);
+    return AndroidJavaDocRenderer.render(module, type, name, framework);
+  }
+
+  @Nullable
+  private static String generateDoc(PsiElement originalElement, ResourceUrl url) {
+    Module module = ModuleUtilCore.findModuleForPsiElement(originalElement);
+    if (module == null) {
+      return null;
+    }
+
+    return AndroidJavaDocRenderer.render(module, url);
   }
 
   @Override
@@ -343,6 +406,11 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
         return new MyDocElement(element, doc);
       }
     }
+
+    if (value.startsWith(PREFIX_RESOURCE_REF) || value.startsWith(PREFIX_THEME_REF)) {
+      return new MyResourceElement(element, value);
+    }
+
     return null;
   }
 
@@ -358,6 +426,21 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     private MyDocElement(@NotNull PsiElement parent, @NotNull String documentation) {
       myParent = parent;
       myDocumentation = documentation;
+    }
+
+    @Override
+    public PsiElement getParent() {
+      return myParent;
+    }
+  }
+
+  private static class MyResourceElement extends FakePsiElement {
+    final PsiElement myParent;
+    final String myResource;
+
+    private MyResourceElement(@NotNull PsiElement parent, @NotNull String resource) {
+      myParent = parent;
+      myResource = resource;
     }
 
     @Override

@@ -102,6 +102,22 @@ abstract class IntellijLintClient extends LintClient implements Disposable {
                               @NonNull String message,
                               @Nullable Object data);
 
+  /**
+   * Recursively calls {@link #report} on the secondary location of this error, if any, which in turn may call it on a third
+   * linked location, and so on.This is necessary since IntelliJ problems don't have secondary locations; instead, we create one
+   * problem for each location associated with the lint error.
+   */
+  protected void reportSecondary(@NonNull Context context, @NonNull Issue issue, @NonNull Severity severity, @NonNull Location location,
+                                 @NonNull String message, @Nullable Object data) {
+    Location secondary = location.getSecondary();
+    if (secondary != null) {
+      if (secondary.getMessage() != null) {
+        message = message + " (" + secondary.getMessage() + ")";
+      }
+      report(context, issue, severity, secondary, message, data);
+    }
+  }
+
   @Override
   public void log(@NonNull Severity severity, @Nullable Throwable exception, @Nullable String format, @Nullable Object... args) {
     if (severity == Severity.ERROR || severity == Severity.FATAL) {
@@ -295,6 +311,11 @@ abstract class IntellijLintClient extends LintClient implements Disposable {
 
           myState.getProblems().add(new ProblemData(issue, message, textRange));
         }
+
+        Location secondary = location.getSecondary();
+        if (secondary != null && myState.getMainFile().equals(LocalFileSystem.getInstance().findFileByIoFile(secondary.getFile()))) {
+          reportSecondary(context, issue, severity, location, message, data);
+        }
       }
     }
 
@@ -458,6 +479,10 @@ abstract class IntellijLintClient extends LintClient implements Disposable {
           }
         }
         problemList.add(new ProblemData(issue, message, textRange));
+
+        if (location != null && location.getSecondary() != null) {
+          reportSecondary(context, issue, severity, location, message, data);
+        }
       }
     }
 

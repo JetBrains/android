@@ -18,18 +18,27 @@ package com.android.tools.idea.gradle.service;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.*;
+import com.android.tools.idea.sdk.Jdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import com.intellij.ide.impl.NewProjectUtil;
+import com.intellij.notification.NotificationType;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
+import com.intellij.openapi.externalSystem.service.notification.ExternalSystemIdeNotificationManager;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataService;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.LanguageLevelProjectExtension;
+import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.util.Collection;
 import java.util.List;
@@ -79,10 +88,40 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
     ExternalSystemApiUtil.executeProjectChangeAction(synchronous, new Runnable() {
       @Override
       public void run() {
+        LanguageLevel javaLangVersion = null;
+
         Map<String, IdeaAndroidProject> androidProjectsByModuleName = indexByModuleName(toImport);
         for (Module module : modules) {
           IdeaAndroidProject androidProject = androidProjectsByModuleName.get(module.getName());
           customizeModule(module, project, androidProject);
+          if (androidProject != null && javaLangVersion == null) {
+            javaLangVersion = androidProject.getJavaLanguageLevel();
+          }
+        }
+
+        Sdk jdk = Jdks.chooseOrCreateJavaSdk(javaLangVersion);
+        if (jdk == null) {
+          ExternalSystemIdeNotificationManager notification = ServiceManager.getService(ExternalSystemIdeNotificationManager.class);
+          if (notification != null) {
+            String title = String.format("Problems importing/refreshing Gradle project '%1$s':\n", project.getName());
+            LanguageLevel level = javaLangVersion != null ? javaLangVersion : LanguageLevel.JDK_1_6;
+            String msg = String.format("Unable to find a JDK %1$s installed.\n", level.getPresentableText());
+            msg += "After configuring a suitable JDK in the Project Structure dialog, sync the Gradle project again.";
+            notification.showNotification(title, msg, NotificationType.ERROR, project, GradleConstants.SYSTEM_ID, null);
+          }
+        }
+        else {
+          // This takes care of setting the project language level, but only if the current project's language level is higher than the
+          // maximum supported by this JDK.
+          NewProjectUtil.applyJdkToProject(project, jdk);
+
+          // Set language level passed by Gradle.
+          if (javaLangVersion != null) {
+            LanguageLevelProjectExtension ext = LanguageLevelProjectExtension.getInstance(project);
+            if (javaLangVersion != ext.getLanguageLevel()) {
+              ext.setLanguageLevel(javaLangVersion);
+            }
+          }
         }
       }
     });

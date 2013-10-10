@@ -122,7 +122,7 @@ public abstract class AvdComboBox extends ComboboxWithBrowseButton {
         }
       }
 
-      newAvds = newAvdList.toArray(new String[newAvdList.size()]);
+      newAvds = ArrayUtil.toStringArray(newAvdList);
     }
     else {
       newAvds = ArrayUtil.EMPTY_STRING_ARRAY;

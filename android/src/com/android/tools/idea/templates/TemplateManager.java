@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.sdklib.SdkManager;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
@@ -68,8 +69,9 @@ public class TemplateManager {
    */
   @Nullable
   public static File getTemplateRootFolder() {
-    String location = AndroidSdkUtils.tryToChooseAndroidSdk().getLocation();
-    if (location != null) {
+    SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
+    if (sdkManager != null) {
+      String location = sdkManager.getLocation();
       File folder = new File(location, FD_TOOLS + File.separator + FD_TEMPLATES);
       if (folder.isDirectory()) {
         return folder;
@@ -254,7 +256,15 @@ public class TemplateManager {
    * @return whether the templates pass the check or not
    */
   public static boolean templatesAreValid() {
-    try { return  new File(getTemplateRootFolder(), "gradle/wrapper/gradlew").exists(); } catch (Exception e) {}
-    return false;
+    try {
+      File templateRootFolder = getTemplateRootFolder();
+      if (templateRootFolder == null) {
+        return false;
+      }
+      return new File(templateRootFolder, FileUtil.join("gradle", "wrapper", "gradlew")).exists();
+    }
+    catch (Exception e) {
+      return false;
+    }
   }
 }

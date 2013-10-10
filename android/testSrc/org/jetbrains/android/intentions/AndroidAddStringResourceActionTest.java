@@ -1,5 +1,6 @@
 package org.jetbrains.android.intentions;
 
+import com.android.resources.ResourceType;
 import com.intellij.codeInsight.template.impl.TemplateManagerImpl;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationManager;
@@ -193,7 +194,8 @@ public class AndroidAddStringResourceActionTest extends AndroidTestCase {
         ApplicationManager.getApplication().runWriteAction(new Runnable() {
           @Override
           public void run() {
-            AndroidAddStringResourceAction.doInvoke(myFixture.getProject(), myFixture.getEditor(), javaPsiFile, "hello");
+            AndroidAddStringResourceAction.doInvoke(myFixture.getProject(), myFixture.getEditor(), javaPsiFile, "hello",
+                                                    ResourceType.STRING);
             if (invokeAfterTemplate != null) {
               invokeAfterTemplate.run();
             }

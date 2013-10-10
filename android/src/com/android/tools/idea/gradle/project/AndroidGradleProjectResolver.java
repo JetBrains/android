@@ -49,14 +49,11 @@ import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ContainerUtilRt;
 import com.intellij.util.net.HttpConfigurable;
-import org.gradle.tooling.ModelBuilder;
+import org.gradle.tooling.BuildActionExecuter;
 import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.UnknownModelException;
-import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
-import org.gradle.tooling.model.UnsupportedMethodException;
-import org.gradle.tooling.model.idea.BasicIdeaProject;
+import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
@@ -74,11 +71,12 @@ import java.io.File;
 import java.net.URL;
 import java.util.*;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_PLUGIN_MINIMUM_VERSION;
+
 /**
  * Imports Android-Gradle projects into IDEA.
  */
 public class AndroidGradleProjectResolver implements GradleProjectResolverExtension {
-  @NonNls private static final String ANDROID_TASK_NAME_PREFIX = "android";
   @NonNls private static final String COMPILE_JAVA_TASK_NAME = "compileJava";
   @NonNls private static final String CLASSES_TASK_NAME = "classes";
   @NonNls private static final String JAR_TASK_NAME = "jar";
@@ -86,7 +84,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   @NonNls private static final String UNSUPPORTED_MODEL_VERSION_ERROR = String.format(
     "Project is using an old version of the Android Gradle plug-in. The minimum supported version is %1$s.\n\n" +
     "Please update the version of the dependency 'com.android.tools.build:gradle' in your build.gradle files.",
-    GradleModelVersionCheck.MINIMUM_SUPPORTED_VERSION.toString());
+    GRADLE_PLUGIN_MINIMUM_VERSION);
 
   @NotNull private final GradleExecutionHelper myHelper;
   @NotNull private final ProjectImportErrorHandler myErrorHandler;
@@ -130,24 +128,17 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
                                                   final boolean isPreviewMode,
                                                   @Nullable final GradleExecutionSettings settings,
                                                   @NotNull final ExternalSystemTaskNotificationListener listener) {
-    // skip preview stage, the default implementation (GradleProjectResolver#) will be used
-    // this can be changed if Android-specific issues should be taken into account during resolving of the 'preview' model
-    if(isPreviewMode) return null;
-
-    // to skip any further resolve processing (even default one) throw com.intellij.openapi.externalSystem.service.ImportCanceledException
-    // e.g.:
-    //  if(isPreviewMode && isAndroidProject()) {
-    //    throw new ImportCanceledException();
-    //  }
-
     return myHelper.execute(projectPath, settings, new Function<ProjectConnection, DataNode<ProjectData>>() {
       @Nullable
       @Override
       public DataNode<ProjectData> fun(ProjectConnection connection) {
         try {
           List<String> extraJvmArgs = getExtraJvmArgs(projectPath, isPreviewMode);
+          BuildActionExecuter<ProjectImportAction.AllModels> buildActionExecutor = connection.action(new ProjectImportAction());
+          GradleExecutionHelper.prepare(buildActionExecutor, id, settings, listener, extraJvmArgs, connection);
+
           //noinspection TestOnlyProblems
-          return resolveProjectInfo(id, projectPath, isPreviewMode, connection, listener, extraJvmArgs, settings);
+          return resolveProjectInfo(projectPath, buildActionExecutor);
         }
         catch (RuntimeException e) {
           throw myErrorHandler.getUserFriendlyError(e, projectPath, null);
@@ -167,18 +158,67 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
           args.add(arg);
         }
       }
-      List<KeyValue<String,String>> proxyProperties = HttpConfigurable.getJvmPropertiesList(false, null);
+      List<KeyValue<String, String>> proxyProperties = HttpConfigurable.getJvmPropertiesList(false, null);
       for (KeyValue<String, String> proxyProperty : proxyProperties) {
         String arg = AndroidGradleSettings.createJvmArg(proxyProperty.getKey(), proxyProperty.getValue());
         args.add(arg);
       }
-      // "build model only" mode means that project import will not be aborted if any dependencies are not found.
-      boolean buildModelOnly = isPreviewMode;
-      String arg = AndroidGradleSettings.createJvmArg(AndroidProject.BUILD_MODEL_ONLY_SYSTEM_PROPERTY, String.valueOf(buildModelOnly));
+      String arg = AndroidGradleSettings.createJvmArg(AndroidProject.BUILD_MODEL_ONLY_SYSTEM_PROPERTY, String.valueOf(isPreviewMode));
       args.add(arg);
       return args;
     }
     return Collections.emptyList();
+  }
+
+  @VisibleForTesting
+  @Nullable
+  DataNode<ProjectData> resolveProjectInfo(@NotNull String projectPath,
+                                           @NotNull BuildActionExecuter<ProjectImportAction.AllModels> buildActionExecutor) {
+    ProjectImportAction.AllModels allModels = buildActionExecutor.run();
+    if (allModels == null) {
+      return null;
+    }
+    IdeaProject ideaProject = allModels.getIdeaProject();
+    String name = new File(projectPath).getName();
+    DataNode<ProjectData> projectInfo = createProjectInfo(projectPath, name);
+
+    Set<String> unresolvedDependencies = Sets.newHashSet();
+
+    for (IdeaModule module : ideaProject.getModules()) {
+      GradleScript buildScript = module.getGradleProject().getBuildScript();
+      if (buildScript == null || buildScript.getSourceFile() == null) {
+        continue;
+      }
+      File buildFile = buildScript.getSourceFile();
+      File moduleDir = buildFile.getParentFile();
+      String moduleDirPath = moduleDir.getPath();
+
+      IdeaGradleProject gradleProject = new IdeaGradleProject(module.getName(), module.getGradleProject().getPath());
+
+      AndroidProject androidProject = allModels.getAndroidProject(module);
+      if (androidProject != null) {
+        if (!GradleModelVersionCheck.isSupportedVersion(androidProject)) {
+          throw new IllegalStateException(UNSUPPORTED_MODEL_VERSION_ERROR);
+        }
+        createModuleInfo(module, androidProject, projectInfo, moduleDirPath, gradleProject);
+        unresolvedDependencies.addAll(androidProject.getUnresolvedDependencies());
+
+      } else if (isJavaLibrary(module.getGradleProject())) {
+        createModuleInfo(module, projectInfo, moduleDirPath, gradleProject);
+      }
+
+      else {
+        File gradleSettingsFile = new File(moduleDir, SdkConstants.FN_SETTINGS_GRADLE);
+        if (gradleSettingsFile.isFile()) {
+          // This is just a root folder for a group of Gradle projects. Set the Gradle project to null so the JPS builder won't try to
+          // compile it using Gradle. We still need to create the module to display files inside it.
+          createModuleInfo(module, projectInfo, moduleDirPath, null);
+        }
+      }
+    }
+    populateDependencies(projectInfo);
+    populateUnresolvedDependencies(projectInfo, unresolvedDependencies);
+    return projectInfo;
   }
 
   @Nullable
@@ -193,104 +233,6 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
     return null;
   }
 
-  /**
-   * Imports multiple Android-Gradle projects. The set of projects to import may include regular Java projects as well.
-   * <p/>
-   * </p>Since the Android Gradle model does not support multiple projects, we query the Gradle Tooling API for a regular Java
-   * multi-project. Then, for each of the modules in the imported project, we query for an (@link AndroidProject Android Gradle model.) If
-   * we get one we create an IDE module from it, otherwise we just use the regular Java module. Unfortunately, this process requires
-   * creation of multiple {@link ProjectConnection}s.
-   *
-   * @param id           id of the current 'resolve project info' task.
-   * @param projectPath  absolute path of the parent folder of the build.gradle file.
-   * @param connection   Gradle Tooling API connection to the project to import.
-   * @param listener     callback to be notified about the execution.
-   * @param extraJvmArgs extra JVM arguments to pass to Gradle tooling API.
-   * @param settings     settings to use for the project resolving; {@code null} as indication that no specific settings are required.
-   * @return the imported project, or {@link null} if the project to import is not an Android-Gradle project.
-   */
-  @VisibleForTesting
-  @Nullable
-  DataNode<ProjectData> resolveProjectInfo(@NotNull ExternalSystemTaskId id,
-                                           @NotNull String projectPath,
-                                           final boolean isPreviewMode,
-                                           @NotNull ProjectConnection connection,
-                                           @NotNull ExternalSystemTaskNotificationListener listener,
-                                           @NotNull List<String> extraJvmArgs,
-                                           @Nullable GradleExecutionSettings settings) {
-    ModelBuilder<? extends IdeaProject> modelBuilder = myHelper.getModelBuilder(
-      isPreviewMode ? BasicIdeaProject.class : IdeaProject.class, id, settings, connection, listener, extraJvmArgs);
-    IdeaProject ideaProject = modelBuilder.get();
-    if (ideaProject == null || ideaProject.getModules().isEmpty()) {
-      return null;
-    }
-
-    String name = new File(projectPath).getName();
-    DataNode<ProjectData> projectInfo = createProjectInfo(projectPath, name);
-
-    AndroidProject first = null;
-
-    Set<String> unresolvedDependencies = Sets.newHashSet();
-
-    DomainObjectSet<? extends IdeaModule> modules = ideaProject.getModules();
-    for (IdeaModule module : modules) {
-      IdeaGradleProject gradleProject = new IdeaGradleProject(module.getName(), module.getGradleProject().getPath());
-      String relativePath = getRelativePath(gradleProject);
-      File moduleDir;
-      if (relativePath.isEmpty()) {
-        moduleDir = new File(projectPath);
-      }
-      else {
-        moduleDir = new File(projectPath, relativePath);
-      }
-      File gradleBuildFile = new File(moduleDir, SdkConstants.FN_BUILD_GRADLE);
-      if (!gradleBuildFile.isFile()) {
-        continue;
-      }
-      String moduleDirPath = moduleDir.getPath();
-      if (isAndroidProject(module.getGradleProject())) {
-        AndroidProject androidProject = getAndroidProject(id, moduleDirPath, gradleBuildFile, listener, extraJvmArgs, settings);
-        if (androidProject == null || !GradleModelVersionCheck.isSupportedVersion(androidProject)) {
-          throw new IllegalStateException(UNSUPPORTED_MODEL_VERSION_ERROR);
-        }
-        unresolvedDependencies.addAll(getUnresolvedDependencies(androidProject));
-        createModuleInfo(module, androidProject, projectInfo, moduleDirPath, gradleProject);
-        if (first == null) {
-          first = androidProject;
-        }
-      }
-      else if (isJavaLibrary(module.getGradleProject())) {
-        createModuleInfo(module, projectInfo, moduleDirPath, gradleProject);
-      }
-      else {
-        File gradleSettingsFile = new File(moduleDir, SdkConstants.FN_SETTINGS_GRADLE);
-        if (gradleSettingsFile.isFile()) {
-          // This is just a root folder for a group of Gradle projects. Set the Gradle project to null so the JPS builder won't try to
-          // compile it using Gradle. We still need to create the module to display files inside it.
-          createModuleInfo(module, projectInfo, moduleDirPath, null);
-        }
-      }
-    }
-
-    if (first == null) {
-      // Don't import project if we don't have at least one AndroidProject.
-      return null;
-    }
-
-    populateDependencies(projectInfo);
-    populateUnresolvedDependencies(projectInfo, unresolvedDependencies);
-    return projectInfo;
-  }
-
-  @NotNull
-  private static Collection<String> getUnresolvedDependencies(@NotNull AndroidProject androidProject) {
-    try {
-      return androidProject.getUnresolvedDependencies();
-    } catch (UnsupportedMethodException e) {
-      // This happens when using an old but supported v0.5.+ plug-in. This code will be removed once the minimum supported version is 0.6.0.
-      return Collections.emptySet();
-    }
-  }
 
   @NotNull
   private static DataNode<ProjectData> createProjectInfo(@NotNull String projectDirPath, @NotNull String name) {
@@ -304,61 +246,6 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
     projectInfo.createChild(JavaProjectData.KEY, javaProjectData);
 
     return projectInfo;
-  }
-
-  @NotNull
-  private static String getRelativePath(@NotNull IdeaGradleProject gradleProject) {
-    String separator = File.separator;
-    if (separator.equals("\\")) {
-      separator = "\\\\";
-    }
-    String gradleProjectPath = gradleProject.getGradleProjectPath();
-    if (SdkConstants.GRADLE_PATH_SEPARATOR.equals(gradleProjectPath)) {
-      return "";
-    }
-    return gradleProjectPath.replaceAll(SdkConstants.GRADLE_PATH_SEPARATOR, separator);
-  }
-
-  @Nullable
-  private AndroidProject getAndroidProject(@NotNull final ExternalSystemTaskId id,
-                                           @NotNull final String projectPath,
-                                           @NotNull final File gradleBuildFile,
-                                           @NotNull final ExternalSystemTaskNotificationListener listener,
-                                           @NotNull final List<String> extraJvmArgs,
-                                           @Nullable final GradleExecutionSettings settings) {
-    return myHelper.execute(projectPath, settings, new Function<ProjectConnection, AndroidProject>() {
-      @Nullable
-      @Override
-      public AndroidProject fun(ProjectConnection connection) {
-        try {
-          ModelBuilder<AndroidProject> modelBuilder =
-            myHelper.getModelBuilder(AndroidProject.class, id, settings, connection, listener, extraJvmArgs);
-          return modelBuilder.get();
-        }
-        catch (UnknownModelException e) {
-          // Safe to ignore. It means that the Gradle project does not have an AndroidProject (e.g. a Java library project.)
-          return null;
-        }
-        catch (RuntimeException e) {
-          // This code should go away once we have one-pass project resolution in Gradle 1.8.
-          // Once that version of Gradle is out, we don't need to pass the project path because we won't be iterating through each
-          // sub-project looking for an AndroidProject. The current problem is: in this particular call to Gradle we don't get the location
-          // of the build.gradle file that has a problem.
-          throw myErrorHandler.getUserFriendlyError(e, projectPath, gradleBuildFile.getPath());
-        }
-      }
-    });
-  }
-
-  private static boolean isAndroidProject(@NotNull GradleProject gradleProject) {
-    // A Gradle project is an Android project is if has at least one task with name starting with 'android'.
-    for (GradleTask task : gradleProject.getTasks()) {
-      String taskName = task.getName();
-      if (taskName != null && taskName.startsWith(ANDROID_TASK_NAME_PREFIX)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   private static boolean isJavaLibrary(@NotNull GradleProject gradleProject) {

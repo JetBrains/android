@@ -16,6 +16,7 @@
 
 package org.jetbrains.android.intentions;
 
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
@@ -41,6 +42,7 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.refactoring.util.RefactoringUtil;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.xml.Converter;
 import com.intellij.util.xml.DomManager;
@@ -91,16 +93,23 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
       return false;
     }
     PsiElement element = getPsiElement(file, editor);
-    return element != null && getStringLiteralValue(project, element, file) != null;
+    return element != null && getStringLiteralValue(project, element, file, getType()) != null;
+  }
+
+  protected ResourceType getType() {
+    return ResourceType.STRING;
   }
 
   @Nullable
-  protected static String getStringLiteralValue(@NotNull Project project, @NotNull PsiElement element, @NotNull PsiFile file) {
+  protected static String getStringLiteralValue(@NotNull Project project, @NotNull PsiElement element, @NotNull PsiFile file,
+                                                ResourceType resourceType) {
     if (file instanceof PsiJavaFile && element instanceof PsiLiteralExpression) {
       PsiLiteralExpression literalExpression = (PsiLiteralExpression)element;
       Object value = literalExpression.getValue();
-      if (value instanceof String) {
+      if (resourceType == ResourceType.STRING && value instanceof String) {
         return (String)value;
+      } else if (resourceType == ResourceType.DIMEN && (value instanceof Integer || value instanceof Float)) {
+        return value.toString();
       }
     }
     else if (file instanceof XmlFile && element instanceof XmlAttributeValue) {
@@ -118,8 +127,9 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
             if (value != null && !value.isReference()) {
               final Set<String> types = ((ResourceReferenceConverter)converter).getResourceTypes(domAttribute);
 
+              String typeName = resourceType.getName();
               for (String type : types) {
-                if (ResourceType.STRING.getName().equals(type)) {
+                if (typeName.equals(type)) {
                   return ((XmlAttributeValue)element).getValue();
                 }
               }
@@ -147,7 +157,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
   }
 
   @Nullable
-  private static PsiElement getPsiElement(PsiFile file, Editor editor) {
+  protected static PsiElement getPsiElement(PsiFile file, Editor editor) {
     int offset = editor.getCaretModel().getOffset();
     PsiElement element = file.findElementAt(offset);
     return element != null ? element.getParent() : null;
@@ -155,18 +165,19 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
 
   @Override
   public void invoke(@NotNull final Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-    doInvoke(project, editor, file, null);
+    doInvoke(project, editor, file, null, getType());
   }
 
-  static void doInvoke(Project project, Editor editor, PsiFile file, @Nullable String resName) {
+  static void doInvoke(Project project, Editor editor, PsiFile file, @Nullable String resName, ResourceType type) {
     final PsiElement element = getPsiElement(file, editor);
     assert element != null;
 
-    doInvoke(project, editor, file, resName, element);
+    doInvoke(project, editor, file, resName, element, type);
   }
 
-  protected static void doInvoke(Project project, Editor editor, PsiFile file, @Nullable String resName, PsiElement element) {
-    String value = getStringLiteralValue(project, element, file);
+  protected static void doInvoke(Project project, Editor editor, PsiFile file, @Nullable String resName, PsiElement element,
+                                 ResourceType type) {
+    String value = getStringLiteralValue(project, element, file, type);
     assert value != null;
 
     final AndroidFacet facet = AndroidFacet.getInstance(file);
@@ -179,8 +190,8 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     }
 
     if (resName == null) {
-      final CreateXmlResourceDialog dialog = new CreateXmlResourceDialog(facet.getModule(), ResourceType.STRING, null, value, false);
-      dialog.setTitle("Extract String Resource");
+      final CreateXmlResourceDialog dialog = new CreateXmlResourceDialog(facet.getModule(), type, null, value, false);
+      dialog.setTitle("Extract Resource");
       dialog.show();
 
       if (!dialog.isOK()) {
@@ -194,23 +205,25 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
 
       resName = dialog.getResourceName();
       if (!AndroidResourceUtil
-        .createValueResource(module, resName, ResourceType.STRING, dialog.getFileName(), dialog.getDirNames(), value)) {
+        .createValueResource(module, resName, type, dialog.getFileName(), dialog.getDirNames(), value)) {
         return;
       }
     }
     else {
+      String fileName = AndroidResourceUtil.getDefaultResourceFileName(type);
       assert ApplicationManager.getApplication().isUnitTestMode();
-      AndroidResourceUtil
-        .createValueResource(facet.getModule(), resName, ResourceType.STRING, "strings.xml", Collections.singletonList("values"), value);
+      assert fileName != null;
+      AndroidResourceUtil.createValueResource(facet.getModule(), resName, type, fileName,
+                                              Collections.singletonList(ResourceFolderType.VALUES.getName()), value);
     }
 
     if (file instanceof PsiJavaFile) {
-      createJavaResourceReference(facet.getModule(), editor, file, element, aPackage, resName, ResourceType.STRING.getName());
+      createJavaResourceReference(facet.getModule(), editor, file, element, aPackage, resName, type);
     }
     else {
       final XmlAttribute attribute = PsiTreeUtil.getParentOfType(element, XmlAttribute.class);
       if (attribute != null) {
-        attribute.setValue(ResourceValue.referenceTo('@', null, ResourceType.STRING.getName(), resName).toString());
+        attribute.setValue(ResourceValue.referenceTo('@', null, type.getName(), resName).toString());
       }
     }
 
@@ -224,18 +237,18 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
                                                   final PsiElement element,
                                                   final String aPackage,
                                                   final String resName,
-                                                  final String resType) {
+                                                  final ResourceType resType) {
     final boolean extendsContext = getContainingInheritorOf(element, CONTEXT) != null;
     final String rJavaFieldName = AndroidResourceUtil.getRJavaFieldName(resName);
     final String field = aPackage + ".R." + resType + '.' + rJavaFieldName;
-    final String methodName = getGetterNameForResourceType(resType);
+    final String methodName = getGetterNameForResourceType(resType, element);
     assert methodName != null;
     final TemplateImpl template;
     final boolean inStaticContext = RefactoringUtil.isInStaticContext(element, null);
     final Project project = module.getProject();
 
     if (extendsContext && !inStaticContext) {
-      if (ResourceType.STRING.getName().equals(resType)) {
+      if (ResourceType.STRING == resType) {
         template = new TemplateImpl("", methodName + '(' + field + ')', "");
       }
       else {
@@ -246,7 +259,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
       }
     }
     else {
-      if (ResourceType.STRING.getName().equals(resType)) {
+      if (ResourceType.STRING == resType) {
         template = new TemplateImpl("", "$context$." + methodName + "(" + field + ")", "");
       }
       else {
@@ -265,6 +278,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     final RangeMarker marker = editor.getDocument().createRangeMarker(offset, offset);
     marker.setGreedyToLeft(true);
     marker.setGreedyToRight(true);
+    //noinspection ConstantConditions
     TemplateManager.getInstance(project).startTemplate(editor, template, false, null, new TemplateEditingAdapter() {
       @Override
       public void waitingForInput(Template template) {
@@ -286,13 +300,49 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
   }
 
   @Nullable
-  private static String getGetterNameForResourceType(@NotNull String type) {
+  private static String getGetterNameForResourceType(@NotNull ResourceType resourceType, @NotNull PsiElement element) {
+    String type = resourceType.getName();
     if (type.length() < 2) return null;
-    if (type.equals("dimen")) {
+    if (resourceType == ResourceType.DIMEN) {
+      // Choose between getDimensionPixelSize and getDimension based on whether we're needing an int or a float
+      PsiType targetType = computeTargetType(element);
+      if (targetType != null && targetType == PsiType.INT) {
+        return "getDimensionPixelSize";
+      }
       return "getDimension";
     }
     return "get" + Character.toUpperCase(type.charAt(0)) + type.substring(1);
   }
+
+  @Nullable
+  private static PsiType computeTargetType(PsiElement element) {
+    PsiMethodCallExpression call = PsiTreeUtil.getParentOfType(element, PsiMethodCallExpression.class);
+    if (call != null) {
+      PsiExpressionList expressionList = PsiTreeUtil.getParentOfType(element, PsiExpressionList.class, true);
+      if (expressionList != null) {
+        int index = ArrayUtil.indexOf(expressionList.getExpressions(), element);
+        if (index >= 0) {
+          PsiMethod resolved = call.resolveMethod();
+          if (resolved != null) {
+            PsiParameterList parameterList = resolved.getParameterList();
+            if (index >= 0 && index < parameterList.getParametersCount()) {
+              PsiParameter psiParameter = parameterList.getParameters()[index];
+              return psiParameter.getType();
+            }
+          }
+        }
+      }
+    }
+    else {
+      PsiLocalVariable variable = PsiTreeUtil.getParentOfType(element, PsiLocalVariable.class, false);
+      if (variable != null) {
+        return variable.getType();
+      }
+    }
+
+    return null;
+  }
+
 
   @Override
   public boolean startInWriteAction() {
@@ -327,7 +377,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
         JavaTemplateUtil.addElementLookupItem(set, var);
       }
       LookupElement[] elements = set.toArray(new LookupElement[set.size()]);
-      if (elements == null || elements.length == 0) {
+      if (elements.length == 0) {
         return elements;
       }
       LookupElement lookupElementForDefValue = LookupElementBuilder.create(myDefaultValue);

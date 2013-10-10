@@ -63,6 +63,7 @@ public final class TestProjects {
     mainArtifactInfo.addGeneratedResourceFolder("build/res/rs/debug");
 
     ArtifactInfoStub testArtifactInfo = debugVariant.getTestArtifactInfo();
+    assert testArtifactInfo != null;
     testArtifactInfo.addGeneratedSourceFolder("build/source/aidl/test");
     testArtifactInfo.addGeneratedSourceFolder("build/source/buildConfig/test");
     testArtifactInfo.addGeneratedSourceFolder("build/source/r/test");
@@ -85,6 +86,7 @@ public final class TestProjects {
     mainArtifactInfo.addGeneratedResourceFolder("build/res/rs/f1fa/debug");
 
     ArtifactInfoStub testArtifactInfo = f1faDebugVariant.getTestArtifactInfo();
+    assert testArtifactInfo != null;
     testArtifactInfo.addGeneratedSourceFolder("build/source/aidl/f1fa/test");
     testArtifactInfo.addGeneratedSourceFolder("build/source/buildConfig/f1fa/test");
     testArtifactInfo.addGeneratedSourceFolder("build/source/r/f1fa/test");

@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.rendering;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.Density;
@@ -80,6 +81,7 @@ import javax.swing.text.StyledDocument;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLFrameHyperlinkEvent;
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.MalformedURLException;
@@ -309,17 +311,17 @@ public class RenderErrorPanel extends JPanel {
       }
 
       if (missingResourceClass) {
-        // TODO: Use projectCallBack isUsed rather than hasLoadedClasses; an *attempt* is enough!
         builder.listItem();
         builder.add(logger.getResourceClass());
       }
 
+      boolean foundCustomView = false;
       for (String className : missingClasses) {
         builder.listItem();
         builder.add(className);
         builder.add(" (");
 
-        addTypoSuggestions(builder, className, customViews, false);
+        foundCustomView |= addTypoSuggestions(builder, className, customViews, false);
         addTypoSuggestions(builder, className, customViews, true);
         addTypoSuggestions(builder, className, androidViewClassNames, false);
 
@@ -343,17 +345,22 @@ public class RenderErrorPanel extends JPanel {
       builder.endList();
 
       builder.addIcon(HtmlBuilderHelper.getTipIconPath());
-      builder.addLink("Tip: Try to ", "build", " the project", myLinkManager.createCompileModuleUrl());
+      builder.addLink("Tip: Try to ", "build", " the project.",
+                      myLinkManager.createCompileModuleUrl());
+      if (foundCustomView) {
+        builder.newline();
+        builder.add("One or more missing custom views were found in the project, but does not appear to have been compiled yet.");
+      }
       builder.newline().newline();
     }
   }
 
-  private void addTypoSuggestions(@NotNull HtmlBuilder builder,
+  private boolean addTypoSuggestions(@NotNull HtmlBuilder builder,
                                   String actual,
                                   @Nullable Collection<String> views,
                                   boolean compareWithPackage) {
     if (views == null || views.isEmpty()) {
-      return;
+      return false;
     }
 
     // Look for typos and try to match with custom views and android views
@@ -396,6 +403,12 @@ public class RenderErrorPanel extends JPanel {
           continue;
         }
 
+        if (match.equals(matchWith)) {
+          // Exact match: Likely that we're looking for a valid package, but project has
+          // not yet been built
+          return true;
+        }
+
         if (editDistance(match, matchWith) <= maxDistance) {
           // Suggest this class as a typo for the given class
           String labelClass = (suggestedBase.equals(actual) || actual.indexOf('.') != -1) ? suggested : suggestedBase;
@@ -408,6 +421,8 @@ public class RenderErrorPanel extends JPanel {
         }
       }
     }
+
+    return false;
   }
 
   private void reportUnknownFragments(@NotNull RenderLogger logger, @NotNull HtmlBuilder builder) {
@@ -853,6 +868,8 @@ public class RenderErrorPanel extends JPanel {
 
     boolean wasHidden = false;
     int indent = 2;
+    File platformSource = null;
+    boolean platformSourceExists = true;
     for (int i = 0; i < end; i++) {
       StackTraceElement frame = frames[i];
       if (isHiddenFrame(frame)) {
@@ -876,10 +893,56 @@ public class RenderErrorPanel extends JPanel {
           }
           String url = myLinkManager.createOpenStackUrl(className, methodName, fileName, lineNumber);
           builder.add("(").addLink(location, url).add(")");
+        } else {
+          // Try to link to local documentation
+          String url = null;
+          if (isFramework(frame) && platformSourceExists) { // try to link to documentation, if available
+            if (platformSource == null) {
+              IAndroidTarget target = myResult.getRenderService().getConfiguration().getTarget();
+              platformSource = findPlatformSources(target);
+              platformSourceExists = platformSource != null;
+            }
+
+            if (platformSourceExists) {
+              File classFile = new File(platformSource, frame.getClassName().replace('.', File.separatorChar) + DOT_JAVA);
+              if (!classFile.exists()) {
+                // Probably an innerclass like foo.bar.Outer.Inner; the above would look for foo/bar/Outer/Inner.java; try
+                // again at foo/bar/
+                File parentFile = classFile.getParentFile();
+                classFile = new File(parentFile.getParentFile(), parentFile.getName() + DOT_JAVA);
+                if (!classFile.exists()) {
+                  classFile = null; // in theory we should keep trying this repeatedly for more deeply nested inner classes
+                }
+              }
+              if (classFile != null) {
+                url = HtmlLinkManager.createFilePositionUrl(classFile, lineNumber, 0);
+              }
+            }
+          }
+          if (url != null) {
+            builder.add("(").addLink(location, url).add(")");
+          } else {
+            builder.add("(").add(location).add(")");
+          }
         }
         builder.newline();
       }
     }
+  }
+
+  /** Finds the root source code folder for the given android target, if any */
+  @VisibleForTesting
+  @Nullable
+  public static File findPlatformSources(@NotNull IAndroidTarget target) {
+    String path = target.getPath(IAndroidTarget.SOURCES);
+    if (path != null) {
+      File platformSource = new File(path);
+      if (platformSource.isDirectory()) {
+        return platformSource;
+      }
+    }
+
+    return null;
   }
 
   private static boolean isHiddenFrame(StackTraceElement frame) {
@@ -901,12 +964,17 @@ public class RenderErrorPanel extends JPanel {
              || className.startsWith("sun."));         //$NON-NLS-1$
   }
 
-  private static boolean isVisible(StackTraceElement frame) {
+  private static boolean isFramework(StackTraceElement frame) {
     String className = frame.getClassName();
-    return !(className.startsWith("android.")          //$NON-NLS-1$
+    return (className.startsWith("android.")          //$NON-NLS-1$
              || className.startsWith("java.")          //$NON-NLS-1$
              || className.startsWith("javax.")         //$NON-NLS-1$
              || className.startsWith("sun."));         //$NON-NLS-1$
+  }
+
+  private static boolean isVisible(StackTraceElement frame) {
+    String className = frame.getClassName();
+    return !(isFramework(frame) || className.startsWith("sun.")); //$NON-NLS-1$
   }
 
   private void reportMissingSize(@NotNull HtmlBuilder builder,

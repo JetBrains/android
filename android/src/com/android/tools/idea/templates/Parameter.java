@@ -108,6 +108,9 @@ public class Parameter {
     /** The associated value should represent a valid package name */
     PACKAGE,
 
+    /** The associated value should represent a valid Android application package name */
+    APP_PACKAGE,
+
     /** The associated value should represent a valid layout resource name */
     LAYOUT,
 
@@ -281,6 +284,14 @@ public class Parameter {
       if (project != null) {
         exists = JavaPsiFacade.getInstance(project).findPackage(value) != null;
       }
+    } else if (constraints.contains(Constraint.APP_PACKAGE)) {
+      String message = AndroidUtils.validateAndroidPackageName(value);
+      if (message != null) {
+        return message;
+      }
+      if (project != null) {
+        exists = JavaPsiFacade.getInstance(project).findPackage(value) != null;
+      }
     } else if (constraints.contains(Constraint.LAYOUT)) {
       String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.LAYOUT).getErrorText(value);
       if (resourceNameError != null) {
@@ -312,7 +323,7 @@ public class Parameter {
   }
 
   private static boolean isValidFullyQualifiedJavaIdentifier(String value) {
-    return AndroidUtils.isValidPackageName(value) && value.indexOf('.') != -1;
+    return AndroidUtils.isValidJavaPackageName(value) && value.indexOf('.') != -1;
   }
 
   private static boolean existsResourceFile(@Nullable Project project, @NotNull String resourceType, @Nullable String name) {

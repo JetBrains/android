@@ -17,7 +17,7 @@ package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.repository.MavenCoordinate;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.xml.XmlFormatPreferences;
 import com.android.ide.common.xml.XmlFormatStyle;
 import com.android.ide.common.xml.XmlPrettyPrinter;
@@ -66,7 +66,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.templates.RepositoryUrls.*;
+import static com.android.tools.idea.templates.Parameter.Constraint;
 import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
 import static com.android.tools.idea.templates.TemplateUtils.readTextFile;
 
@@ -85,9 +85,10 @@ public class Template {
    *    proper Booleans. Templates which rely on this should specify format >= 2.
    * <li> 3: The wizard infrastructure passes the {@code isNewProject} boolean variable
    *    to indicate whether a wizard is created as part of a new blank project
+   * <li> 4: Constraint type app_package ({@link Constraint#APP_PACKAGE})
    * </ul>
    */
-  static final int CURRENT_FORMAT = 3;
+  static final int CURRENT_FORMAT = 4;
 
   /**
    * Special marker indicating that this path refers to the special shared
@@ -418,17 +419,10 @@ public class Template {
                 mkdir(freemarker, paramMap, relativePath);
               }
             } else if (name.equals(TAG_DEPENDENCY)) {
-              String dependencyName = attributes.getValue(ATTR_NAME);
-              String dependencyVersion = attributes.getValue(ATTR_VERSION);
               String url = attributes.getValue(ATTR_MAVEN);
               List<String> dependencyList = (List<String>)paramMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
 
-              if (dependencyName != null && RepositoryUrls.supports(dependencyName)) {
-                String libraryUrl = getLibraryUrl(dependencyName, dependencyVersion);
-                if (libraryUrl != null) {
-                  dependencyList.add(libraryUrl);
-                }
-              } else if (url != null) {
+              if (url != null) {
                 dependencyList.add(url);
               }
             }
@@ -456,8 +450,8 @@ public class Template {
     String targetText = null;
 
     File to = getTargetFile(toPath);
-    if (!(toPath.endsWith(EXT_XML) || to.getName().equals(GRADLE_PROJECT_SETTINGS_FILE))) {
-      throw new RuntimeException("Only XML or Gradle build files can be merged at this point: " + to);
+    if (!(toPath.endsWith(DOT_XML) || toPath.endsWith(DOT_GRADLE))) {
+      throw new RuntimeException("Only XML or Gradle files can be merged at this point: " + to);
     }
 
     if (to.exists()) {
@@ -491,8 +485,10 @@ public class Template {
     String contents;
     if (to.getName().equals(GRADLE_PROJECT_SETTINGS_FILE)) {
       contents = mergeGradleSettingsFile(sourceText, targetText, freemarker, paramMap);
-    } else {
+    } else if (toPath.endsWith(DOT_XML)) {
       contents = mergeXml(sourceText, targetText, to, paramMap);
+    } else {
+      throw new RuntimeException("Only XML or Gradle settings files can be merged at this point: " + to);
     }
 
     writeFile(contents, to);
@@ -533,15 +529,25 @@ public class Template {
     } else {
       // Just insert into file along with comment, using the "standard" conflict
       // syntax that many tools and editors recognize.
-      String sep = SdkUtils.getLineSeparator();
-      contents =
-        "<<<<<<< Original" + sep
-        + targetXml + sep
-        + "=======" + sep
-        + sourceXml
-        + ">>>>>>> Added" + sep;
+
+      contents = wrapWithMergeConflict(sourceXml, targetXml);
     }
     return contents;
+  }
+
+  /**
+   * Wraps the given strings in the standard conflict syntax
+   * @param original
+   * @param added
+   * @return
+   */
+  private static String wrapWithMergeConflict(String original, String added) {
+    String sep = SdkUtils.getLineSeparator();
+    return "<<<<<<< Original" + sep
+    + original + sep
+    + "=======" + sep
+    + added
+    + ">>>>>>> Added" + sep;
   }
 
   /** Merges the given resource file contents into the given resource file
@@ -719,14 +725,14 @@ public class Template {
 
     String dependencyBlock = contents.substring(dependencyBlockStart, dependencyBlockEnd);
 
-    Multimap<String, MavenCoordinate> dependencies = LinkedListMultimap.create();
+    Multimap<String, GradleCoordinate> dependencies = LinkedListMultimap.create();
 
     // If we have dependencies already in the file, load those up
     if (!dependencyBlock.isEmpty()) {
       // Load up dependency URLs which are already present.
       Matcher matcher = COMPILE_PATTERN.matcher(dependencyBlock);
       while (matcher.find()) {
-        MavenCoordinate coord = MavenCoordinate.parseCoordinateString(matcher.group(1));
+        GradleCoordinate coord = GradleCoordinate.parseCoordinateString(matcher.group(1));
         if (coord != null) {
           dependencies.put(coord.getId(), coord);
         }
@@ -735,7 +741,7 @@ public class Template {
 
     // Now load the new ones in
     for (String coordinateString : dependencyList) {
-      MavenCoordinate coord = MavenCoordinate.parseCoordinateString(coordinateString);
+      GradleCoordinate coord = GradleCoordinate.parseCoordinateString(coordinateString);
       if (coord != null) {
         dependencies.put(coord.getId(), coord);
       }
@@ -746,19 +752,33 @@ public class Template {
     // Now write the combined ones to a string
     StringBuilder sb = new StringBuilder();
     sb.append(contents.substring(0, dependencyBlockStart));
+    String repositoryName;
     for (String key : dependencies.keySet()) {
-      MavenCoordinate highest = Collections.max(dependencies.get(key));
+      GradleCoordinate highest = Collections.max(dependencies.get(key));
 
-      File archiveFile = RepositoryUrls.getArchiveForCoordinate(highest);
+      boolean isOurRepository = RepositoryUrls.supports(highest.getArtifactId());
 
-      if (RepositoryUrls.supports(highest.getArtifactId()) && archiveFile.exists()) {
-        sb.append(String.format("\n\tcompile '%s'", highest.toString()));
+      if (!isOurRepository) {
+        sb.append(String.format("\n\tcompile '%1$s'", highest));
       } else {
-        sb.append(String.format(
-          "\n\t// You must install the Support Repository through the SDK manager to use this dependency." +
-          "\n\t// The Support Repository (seperate from the Support Library) can be found in the Extras category.\n\t// compile '%s'",
-          highest.toString()));
-        unresolvedDependencies.add(highest.toString());
+        GradleCoordinate available = GradleCoordinate.parseCoordinateString(
+          RepositoryUrls.getLibraryCoordinate(highest.getArtifactId()));
+
+        File archiveFile = RepositoryUrls.getArchiveForCoordinate(highest);
+
+        if (archiveFile.exists() ||
+            (available != null && highest.acceptsGreaterRevisions() && available.compareTo(highest) > 0)) {
+          sb.append(String.format("\n\tcompile '%1$s'", highest));
+        } else {
+          // Get the name of the repository necessary for this package
+          repositoryName = highest.getArtifactId().equals(RepositoryUrls.PLAY_SERVICES_ID) ? "Google" : "Support";
+          // Add in a commented-out dependency with instructions.
+          sb.append(String.format(
+            "\n\n\t// You must install or update the %1$s Repository through the SDK manager to use this dependency." +
+            "\n\t// The %1$s Repository (separate from the corresponding library) can be found in the Extras category.\n\t// compile '%2$s'",
+            repositoryName, highest));
+          unresolvedDependencies.add(highest.toString());
+        }
       }
     }
     sb.append('\n');
@@ -992,7 +1012,7 @@ public class Template {
       String path = myPrefix != null ? myPrefix + '/' + name : name;
       File file = new File(path);
       if (file.exists()) {
-        return file.toURI().toURL();
+        return SdkUtils.fileToUrl(file);
       }
       return null;
     }

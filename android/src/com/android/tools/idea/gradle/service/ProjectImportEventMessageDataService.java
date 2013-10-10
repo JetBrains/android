@@ -56,7 +56,7 @@ public class ProjectImportEventMessageDataService implements ProjectDataService<
   public void importData(@NotNull Collection<DataNode<ProjectImportEventMessage>> toImport,
                          @NotNull final Project project,
                          boolean synchronous) {
-    final ExternalSystemIdeNotificationManager notificationManager = ServiceManager.getService(ExternalSystemIdeNotificationManager.class);
+    ExternalSystemIdeNotificationManager notificationManager = ServiceManager.getService(ExternalSystemIdeNotificationManager.class);
     if (notificationManager == null) {
       return;
     }
@@ -99,18 +99,13 @@ public class ProjectImportEventMessageDataService implements ProjectDataService<
       }
     }
 
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        String title = String.format("Problems importing/refreshing Gradle project '%1$s':\n", project.getName());
-        String messageToShow = builder.toString();
-        NotificationListener listener = null;
-        if (!hyperlinks.isEmpty()) {
-          listener = new CustomNotificationListener(project, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
-        }
-        notificationManager.showNotification(title, messageToShow, NotificationType.ERROR, project, GradleConstants.SYSTEM_ID, listener);
-      }
-    });
+    String title = String.format("Problems importing/refreshing Gradle project '%1$s':\n", project.getName());
+    String messageToShow = builder.toString();
+    NotificationListener listener = null;
+    if (!hyperlinks.isEmpty()) {
+      listener = new CustomNotificationListener(project, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
+    }
+    notificationManager.showNotification(title, messageToShow, NotificationType.ERROR, project, GradleConstants.SYSTEM_ID, listener);
   }
 
   @Override

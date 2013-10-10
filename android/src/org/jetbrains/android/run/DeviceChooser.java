@@ -23,6 +23,7 @@ import com.android.utils.Pair;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.ScrollPaneFactory;
@@ -130,6 +131,9 @@ public class DeviceChooser implements Disposable {
 
     // Do not recreate columns on every model update - this should help maintain the column sizes set above
     myDeviceTable.setAutoCreateColumnsFromModel(false);
+
+    // Allow sorting by columns (in lexicographic order)
+    myDeviceTable.setAutoCreateRowSorter(true);
   }
 
   private void setColumnWidth(JBTable deviceTable, int columnIndex, String sampleText) {
@@ -187,6 +191,26 @@ public class DeviceChooser implements Disposable {
   void updateTable() {
     final AndroidDebugBridge bridge = myFacet.getDebugBridge();
     IDevice[] devices = bridge != null ? getFilteredDevices(bridge) : EMPTY_DEVICE_ARRAY;
+    if (devices.length > 1) {
+      // sort by API level
+      Arrays.sort(devices, new Comparator<IDevice>() {
+        @Override
+        public int compare(IDevice device1, IDevice device2) {
+          int apiLevel1 = safeGetApiLevel(device1);
+          int apiLevel2 = safeGetApiLevel(device2);
+          return apiLevel2 - apiLevel1;
+        }
+
+        private int safeGetApiLevel(IDevice device) {
+          try {
+            String s = device.getPropertyCacheOrSync(IDevice.PROP_BUILD_API_LEVEL);
+            return StringUtil.isNotEmpty(s) ? Integer.parseInt(s) : 0;
+          } catch (Exception e) {
+            return 0;
+          }
+        }
+      });
+    }
     if (!Arrays.equals(myOldDevices, devices)) {
       myOldDevices = devices;
       final IDevice[] selectedDevices = getSelectedDevices();

@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.ide.common.repository.MavenCoordinate;
-import com.android.ide.common.sdk.SdkVersionInfo;
+import com.android.SdkConstants;
+import com.android.annotations.Nullable;
+import com.android.ide.common.repository.GradleCoordinate;
+import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.FullRevision;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.annotations.Nullable;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -35,8 +35,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.tools.idea.templates.TemplateUtils.readTextFile;
-
 /**
  * Helper class to aid in generating Maven URLs for various internal repository files (Support Library, AppCompat, etc).
  */
@@ -46,80 +44,99 @@ public class RepositoryUrls {
   /** The tag used by the maven metadata file to describe versions */
   public static final String TAG_VERSION = "version";
 
-  /** The vendor ID of the support library. */
-  public static final String VENDOR_ID = "android";
   /** The path ID of the support library. */
-  public static final String SUPPORT_ID = "support";
+  public static final String SUPPORT_ID_V4 = "support-v4";
+  /** The path ID of the support library. */
+  public static final String SUPPORT_ID_V13 = "support-v13";
   /** The path ID of the appcompat library. */
-  public static final String APP_COMPAT_ID = "appcompat";
+  public static final String APP_COMPAT_ID_V7 = "appcompat-v7";
+
   /** The path ID of the appcompat library. */
-  public static final String GRID_LAYOUT_ID = "gridlayout";
+  public static final String GRID_LAYOUT_ID_V7 = "gridlayout-v7";
+  /** The path ID of the Play Services library */
+  public static final String PLAY_SERVICES_ID = "play-services";
+
   /** The path ID of the compatibility library (which was its id for releases 1-3). */
   public static final String COMPATIBILITY_ID = "compatibility";
 
   /** Internal Maven Repository settings */
-  private static final String SUPPORT_BASE_URL = "com.android.support:%s-%s:%s";
+  /** Constant full revision for "anything available" */
+  public static final String REVISION_ANY = "0.0.+";
 
-  private static final String MIN_VERSION_VALUE = "0.0.0";
+  private static final String SUPPORT_BASE_COORDINATE = "com.android.support:%s:%s";
+  private static final String GOOGLE_BASE_COORDINATE = "com.google.android.gms:%s:";
 
   private static final String SUPPORT_REPOSITORY_BASE_PATH = "%s/extras/android/m2repository/com/android/support/%s/";
 
-  // e.g. 18.0.0/appcompat-v7-18.0.0.aar
-  private static final String MAVEN_REVISION_PATH = "%s/%s-%s.aar";
+  private static final String GOOGLE_REPOSITORY_BASE_PATH = "%s/extras/google/m2repository/com/google/android/gms/%s/";
 
-  private static final String MAVEN_METADATA_FILE_NAME = "maven-metadata.xml";
+  // e.g. 18.0.0/appcompat-v7-18.0.0
+  private static final String MAVEN_REVISION_PATH = "%2$s/%1$s-%2$s";
 
-  private static final String HIGHEST_KNOWN_API_FULL_REVISION  = new FullRevision(SdkVersionInfo.HIGHEST_KNOWN_API).toString();
+  public static final String MAVEN_METADATA_FILE_NAME = "maven-metadata.xml";
 
-  public static final Map<String, String> SUPPORT_REPOSITORY_DEFAULTS = ImmutableMap.of(
-    SUPPORT_ID, String.format(SUPPORT_BASE_URL, SUPPORT_ID, "v4", HIGHEST_KNOWN_API_FULL_REVISION),
-    APP_COMPAT_ID, String.format(SUPPORT_BASE_URL, APP_COMPAT_ID, "v7", HIGHEST_KNOWN_API_FULL_REVISION),
-    GRID_LAYOUT_ID, String.format(SUPPORT_BASE_URL, GRID_LAYOUT_ID, "v7", HIGHEST_KNOWN_API_FULL_REVISION)
-  ); // TODO: Add other libraries here (Cloud SDK, Play Services, YouTube, AdMob, etc).
+  /** Model of our internal extras repository */
+  public static final Map<String, RepositoryLibrary> EXTRAS_REPOSITORY = ImmutableMap.of(
+    SUPPORT_ID_V4, new RepositoryLibrary(SUPPORT_ID_V4, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_JAR),
+    SUPPORT_ID_V13, new RepositoryLibrary(SUPPORT_ID_V13, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_JAR),
+    APP_COMPAT_ID_V7, new RepositoryLibrary(APP_COMPAT_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR),
+    GRID_LAYOUT_ID_V7, new RepositoryLibrary(GRID_LAYOUT_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR),
+    PLAY_SERVICES_ID, new RepositoryLibrary(PLAY_SERVICES_ID, GOOGLE_REPOSITORY_BASE_PATH, GOOGLE_BASE_COORDINATE, SdkConstants.DOT_AAR)
+  );
 
   /**
-   * Calculate the correct version of the support library and generate the corresponding maven URL
-   * @param minApiLevel the minimum api level specified by the template (-1 if no minApiLevel specified)
-   * @param revision the version of the support library (should be v13 or v4)
-   * @return a maven url for the android support library
+   * Calculate the coordinate pointing to the highest valued version of the given library we
+   * have available in our repository.
+   * @param libraryId the id of the library to find
+   * @return a maven coordinate for the requested library or null if we don't support that library
    */
   @Nullable
-  public static String getLibraryUrl(String libraryId, String revision) {
+  public static String getLibraryCoordinate(String libraryId) {
     // Check to see if this is a URL we support:
-    if (!SUPPORT_REPOSITORY_DEFAULTS.containsKey(libraryId)) {
+    if (!EXTRAS_REPOSITORY.containsKey(libraryId)) {
       return null;
     }
 
-    if (!AndroidSdkUtils.isAndroidSdkAvailable()) {
-      throw new IllegalStateException("No SDK Available. Please configure your SDK in the Project Structure dialog.");
+    SdkManager sdk = AndroidSdkUtils.tryToChooseAndroidSdk();
+    if (sdk == null) {
+      return null;
     }
 
     // Read the support repository and find the latest version available
-    String sdkLocation = AndroidSdkUtils.tryToChooseAndroidSdk().getLocation();
-    String path = String.format(SUPPORT_REPOSITORY_BASE_PATH, sdkLocation, libraryId + "-" + revision) + MAVEN_METADATA_FILE_NAME;
-    path = FileUtil.toSystemDependentName(path);
-    File supportMetadataFile = new File(path);
+    String sdkLocation = sdk.getLocation();
+    RepositoryLibrary library = EXTRAS_REPOSITORY.get(libraryId);
+
+    File supportMetadataFile = new File(String.format(library.basePath, sdkLocation, library.id), MAVEN_METADATA_FILE_NAME);
     if (!supportMetadataFile.exists()) {
-      return SUPPORT_REPOSITORY_DEFAULTS.get(libraryId);
+      return String.format(library.baseCoordinate, library.id, REVISION_ANY);
     }
 
     String version = getLatestVersionFromMavenMetadata(supportMetadataFile);
 
-    return String.format(SUPPORT_BASE_URL, libraryId, revision, version);
+    return String.format(library.baseCoordinate, library.id, version);
   }
 
   /**
    * Get the file on the local filesystem that corresponds to the given maven coordinate.
-   * @param mavenCoordinate the coordinate to retrieve an archive file for
-   * @return a file pointing at the archive for the given coordinate
+   * @param gradleCoordinate the coordinate to retrieve an archive file for
+   * @return a file pointing at the archive for the given coordinate or null if no SDK is configured
    */
-  public static File getArchiveForCoordinate(MavenCoordinate mavenCoordinate) {
-    String sdkLocation = AndroidSdkUtils.tryToChooseAndroidSdk().getLocation();
-    String path = String.format(SUPPORT_REPOSITORY_BASE_PATH, sdkLocation, mavenCoordinate.getArtifactId());
-    path = FileUtil.toSystemDependentName(path);
-    String revisionPath = String.format(MAVEN_REVISION_PATH, mavenCoordinate.getFullRevision(), mavenCoordinate.getArtifactId(),
-                                        mavenCoordinate.getFullRevision());
-    revisionPath = FileUtil.toSystemDependentName(revisionPath);
+  @Nullable
+  public static File getArchiveForCoordinate(GradleCoordinate gradleCoordinate) {
+    SdkManager sdk = AndroidSdkUtils.tryToChooseAndroidSdk();
+
+    if (sdk == null) {
+      return null;
+    }
+
+    // Get the parameters to include in the path
+    String sdkLocation = sdk.getLocation();
+    String artifactId = gradleCoordinate.getArtifactId();
+    String revision = gradleCoordinate.getFullRevision();
+    RepositoryLibrary library = EXTRAS_REPOSITORY.get(artifactId);
+
+    File path = new File(String.format(library.basePath, sdkLocation, library.id));
+    String revisionPath = String.format(MAVEN_REVISION_PATH, library.id, revision) + library.archiveExtension;
 
     return new File(path, revisionPath);
   }
@@ -130,7 +147,7 @@ public class RepositoryUrls {
    * @return true iff this class supports the given library
    */
   public static boolean supports(String libraryId) {
-    return SUPPORT_REPOSITORY_DEFAULTS.containsKey(libraryId);
+    return EXTRAS_REPOSITORY.containsKey(libraryId);
   }
 
   /**
@@ -139,7 +156,7 @@ public class RepositoryUrls {
    * @return the string representing the highest version found in the file or "0.0.0" if no versions exist in the file
    */
   private static String getLatestVersionFromMavenMetadata(File metadataFile) {
-    String xml = readTextFile(metadataFile);
+    String xml = TemplateUtils.readTextFile(metadataFile);
     final List<FullRevision> versions = new LinkedList<FullRevision>();
     try {
       SAXParserFactory.newInstance().newSAXParser().parse(new ByteArrayInputStream(xml.getBytes()), new DefaultHandler() {
@@ -166,9 +183,24 @@ public class RepositoryUrls {
     }
 
     if (versions.isEmpty()) {
-      return MIN_VERSION_VALUE;
+      return REVISION_ANY;
     } else {
       return Collections.max(versions).toString();
+    }
+  }
+
+  private static class RepositoryLibrary {
+    public final String id;
+    public final String basePath;
+    public final String baseCoordinate;
+    public final String archiveExtension;
+
+
+    private RepositoryLibrary(String id, String basePath, String baseCoordinate, String archiveExtension) {
+      this.id = id;
+      this.basePath = basePath;
+      this.baseCoordinate = baseCoordinate;
+      this.archiveExtension = archiveExtension;
     }
   }
 }

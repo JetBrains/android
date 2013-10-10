@@ -1,5 +1,6 @@
 package org.jetbrains.android.inspections.lint;
 
+import com.android.resources.ResourceType;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
@@ -28,7 +29,7 @@ public class AndroidAddStringResourceQuickFix extends AndroidAddStringResourceAc
       return false;
     }
     final XmlAttributeValue value = getAttributeValue(myStartElement);
-    return value != null && getStringLiteralValue(project, value, file) != null;
+    return value != null && getStringLiteralValue(project, value, file, ResourceType.STRING) != null;
   }
 
   @Override
@@ -39,7 +40,7 @@ public class AndroidAddStringResourceQuickFix extends AndroidAddStringResourceAc
   public void invokeIntention(Project project, Editor editor, PsiFile file, String resName) {
     final XmlAttributeValue attributeValue = getAttributeValue(myStartElement);
     if (attributeValue != null) {
-      doInvoke(project, editor, file, resName, attributeValue);
+      doInvoke(project, editor, file, resName, attributeValue, ResourceType.STRING);
     }
   }
 

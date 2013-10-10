@@ -20,11 +20,13 @@ import com.android.tools.idea.jps.output.parser.CompilerOutputParser;
 import com.android.tools.idea.jps.output.parser.OutputLineReader;
 import com.android.tools.idea.jps.output.parser.ParsingFailedException;
 import com.android.tools.idea.jps.output.parser.aapt.AaptOutputParser;
+import com.android.tools.idea.jps.output.parser.aapt.AbstractAaptOutputParser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -127,6 +129,44 @@ public class GradleBuildFailureParser implements CompilerOutputParser {
           } else if (COMMAND_FAILURE_MESSAGE.matcher(currentLine).matches()) {
             myState = State.COMMAND_FAILURE_COMMAND_LINE;
           } else {
+            // Determine whether the string starts with ">" (possibly indented by whitespace), and if so, where
+            int quoted = -1;
+            for (int i = 0, n = currentLine.length(); i < n; i++) {
+              char c = currentLine.charAt(i);
+              if (c == '>') {
+                quoted = i;
+                break;
+              } else if (!Character.isWhitespace(c)) {
+                break;
+              }
+            }
+            if (quoted != -1) {
+              if (currentLine.startsWith("> In DataSet ", quoted) && currentLine.contains("no data file for changedFile")) {
+                matcher = Pattern.compile("\\s*> In DataSet '.+', no data file for changedFile '(.+)'").matcher(currentLine);
+                if (matcher.find()) {
+                  file = matcher.group(1);
+                }
+              } else if (currentLine.startsWith("> Duplicate resources: ", quoted)) {
+                // For exact format, see com.android.ide.common.res2.DuplicateDataException
+                matcher = Pattern.compile("\\s*> Duplicate resources: (.+):(.+), (.+):(.+)\\s*").matcher(currentLine);
+                if (matcher.matches()) {
+                  file = matcher.group(1);
+                  lineNum = AbstractAaptOutputParser.findResourceLine(new File(file), matcher.group(2));
+                  messages.add(AndroidGradleJps.createCompilerMessage(BuildMessage.Kind.ERROR, currentLine, file, lineNum, -1));
+                  String other = matcher.group(3);
+                  int otherLine = AbstractAaptOutputParser.findResourceLine(new File(other), matcher.group(4));
+                  messages.add(AndroidGradleJps.createCompilerMessage(BuildMessage.Kind.ERROR, "Other duplicate occurrence here",
+                                                                      other, otherLine, -1));
+                  // Skip appending to the errorMessage buffer; we've already manually added this line and a line pointing to
+                  // the second occurrence as separate errors
+                  break;
+                }
+              } else if (currentLine.startsWith("> Problems pinging owner of lock ", quoted)) {
+                messages.add(AndroidGradleJps.createCompilerMessage(BuildMessage.Kind.ERROR,
+                                                  "Possibly unstable network connection: Failed to connect to lock owner. Try to rebuild.",
+                                                  null, -1, -1));
+              }
+            }
             if (errorMessage.length() > 0) {
               errorMessage.append("\n");
             }

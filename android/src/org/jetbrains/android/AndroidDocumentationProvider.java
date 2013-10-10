@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
-import com.android.tools.idea.rendering.ProjectResources;
 import com.intellij.codeInsight.javadoc.JavaDocExternalFilter;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.lang.documentation.DocumentationProvider;
@@ -28,16 +27,14 @@ import com.intellij.lang.java.JavaDocumentationProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
+import com.intellij.psi.*;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -47,6 +44,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.List;
+import java.util.Locale;
+
+import static com.android.SdkConstants.CLASS_R;
+import static com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType;
 
 /**
  * @author Eugene.Kudelevsky
@@ -69,7 +70,8 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
     if (originalElement == null) {
       return null;
     }
-    if (!AndroidPsiUtils.isResourceReference(originalElement)) {
+    ResourceReferenceType referenceType = AndroidPsiUtils.getResourceReferenceType(originalElement);
+    if (referenceType == ResourceReferenceType.NONE) {
       return null;
     }
 
@@ -83,8 +85,9 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
       return null;
     }
 
-    String name = originalElement.getText();
-    return AndroidJavaDocRenderer.render(module, type, name);
+    String name = AndroidPsiUtils.getResourceName(originalElement);
+    boolean isFrameworkResource = referenceType == ResourceReferenceType.FRAMEWORK;
+    return AndroidJavaDocRenderer.render(module, type, name, isFrameworkResource);
   }
 
   @Override
@@ -99,9 +102,62 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
 
   @Override
   public String fetchExternalDocumentation(Project project, PsiElement element, List<String> docUrls) {
+    // Workaround: When you invoke completion on an android.R.type.name field in a Java class, we
+    // never get a chance to provide documentation for it via generateDoc, presumably because the
+    // field is recognized by an earlier documentation provider (the generic Java javadoc one?) as
+    // something we have documentation for. We do however get a chance to fetch documentation for it;
+    // that's this call, so in that case we insert our javadoc rendering into the fetched documentation.
+    if (isFrameworkFieldDeclaration(element)) {
+      // We don't have the original module, so just find one of the Android modules in the project.
+      // It's theoretically possible that this will point to a different Android version than the one
+      // module used by the original request.
+      Module module = guessAndroidModule(project, element);
+      PsiField field = (PsiField)element;
+      PsiClass containingClass = field.getContainingClass();
+      assert containingClass != null; // because isFrameworkFieldDeclaration returned true
+      ResourceType type = ResourceType.getEnum(containingClass.getName());
+      if (module != null && type != null) {
+        String name = field.getName();
+        String render = AndroidJavaDocRenderer.render(module, type, name, true);
+        String external = JavaDocumentationProvider.fetchExternalJavadoc(element, docUrls, new MyDocExternalFilter(project));
+        return AndroidJavaDocRenderer.injectExternalDocumentation(render, external);
+      }
+    }
+
     return isMyContext(element, project) ?
            JavaDocumentationProvider.fetchExternalJavadoc(element, docUrls, new MyDocExternalFilter(project)) :
            null;
+  }
+
+  @Nullable
+  private static Module guessAndroidModule(Project project, PsiElement element) {
+    Module module = ModuleUtilCore.findModuleForPsiElement(element);
+    if (module == null) {
+      Module[] modules = ModuleManager.getInstance(project).getModules();
+      for (Module m : modules) {
+        if (AndroidFacet.getInstance(m) != null) {
+          module = m;
+          break;
+        }
+      }
+      if (module == null) {
+        return null;
+      }
+    }
+    return module;
+  }
+
+  private static boolean isFrameworkFieldDeclaration(PsiElement element) {
+    if (element instanceof PsiField) {
+      PsiField field = (PsiField) element;
+      PsiClass typeClass = field.getContainingClass();
+      if (typeClass != null) {
+        PsiClass rClass = typeClass.getContainingClass();
+        return rClass != null && CLASS_R.equals(rClass.getQualifiedName());
+      }
+
+    }
+    return false;
   }
 
   @Override
@@ -132,7 +188,7 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
             return false;
           }
           String path = FileUtil.toSystemIndependentName(vFile.getPath());
-          if (path.toLowerCase().indexOf("/" + SdkConstants.FN_FRAMEWORK_LIBRARY + "!/") >= 0) {
+          if (path.toLowerCase(Locale.US).contains("/" + SdkConstants.FN_FRAMEWORK_LIBRARY + "!/")) {
             if (ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).size() > 0) {
               VirtualFile jarFile = JarFileSystem.getInstance().getVirtualFileForJar(vFile);
               return jarFile != null && SdkConstants.FN_FRAMEWORK_LIBRARY.equals(jarFile.getName());
@@ -169,7 +225,7 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
           do {
             read = buf.readLine();
           }
-          while (read != null && read.toUpperCase().indexOf(startSection) == -1);
+          while (read != null && !read.toUpperCase(Locale.US).contains(startSection));
 
           if (read == null) {
             data.delete(0, data.length());
@@ -179,11 +235,11 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
           data.append(read).append("\n");
 
           boolean skip = false;
-          while (((read = buf.readLine()) != null) && read.toLowerCase().indexOf("class overview") < 0) {
+          while (((read = buf.readLine()) != null) && !read.toLowerCase(Locale.US).contains("class overview")) {
             if (!skip && read.length() > 0) {
               data.append(read).append("\n");
             }
-            if (read.toUpperCase().indexOf(endHeader) != -1) {
+            if (read.toUpperCase(Locale.US).contains(endHeader)) {
               skip = true;
             }
           }

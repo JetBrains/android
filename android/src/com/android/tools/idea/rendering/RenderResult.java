@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.configurations.Configuration;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,6 +51,19 @@ public class RenderResult {
       myRootViews = null;
       myImage = null;
     }
+  }
+
+  /**
+   * Creates a new blank {@link RenderResult}
+   *
+   * @param file the PSI file the render result corresponds to
+   * @param logger the optional logger
+   * @return a blank render result
+   */
+  @NotNull
+  public static RenderResult createBlank(@NotNull PsiFile file, @Nullable RenderLogger logger) {
+    Module module = ModuleUtilCore.findModuleForPsiElement(file);
+    return new RenderResult(null, null, file, logger != null ? logger : new RenderLogger(null, module));
   }
 
   @Nullable

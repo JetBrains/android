@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.GradleImportNotificationListener;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -26,7 +26,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Re-imports an Android-Gradle project, without showing the "Import Project" wizard.
@@ -41,7 +40,7 @@ public class ReImportProjectAction extends AnAction {
   @Override
   public void actionPerformed(final AnActionEvent e) {
     Project project = e.getProject();
-    if (project != null && isGradleProject(project)) {
+    if (project != null) {
       GradleImportNotificationListener.detachFromManager();
       BuildVariantView.getInstance(project).projectImportStarted();
       Presentation presentation = e.getPresentation();
@@ -62,16 +61,11 @@ public class ReImportProjectAction extends AnAction {
 
   @Override
   public void update(AnActionEvent e) {
-    boolean isGradleProject = isGradleProject(e.getProject());
-    Presentation presentation = e.getPresentation();
-    presentation.setVisible(isGradleProject);
-    if (isGradleProject) {
-      boolean enabled = !GradleImportNotificationListener.isProjectImportInProgress();
-      presentation.setEnabled(enabled);
+    if (!AndroidStudioSpecificInitializer.isAndroidStudio()) {
+      e.getPresentation().setEnabledAndVisible(false);
+      return;
     }
-  }
-
-  private static boolean isGradleProject(@Nullable Project project) {
-    return project != null && Projects.isGradleProject(project);
+    boolean enabled = !GradleImportNotificationListener.isProjectImportInProgress();
+    e.getPresentation().setEnabled(enabled);
   }
 }

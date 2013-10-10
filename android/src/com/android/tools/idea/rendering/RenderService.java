@@ -24,8 +24,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -43,19 +41,16 @@ import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.android.uipreview.RenderServiceFactory;
 import org.jetbrains.android.uipreview.RenderingException;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
@@ -70,9 +65,6 @@ public class RenderService {
 
   @NotNull
   private final Module myModule;
-
-  @NotNull
-  private final AndroidFacet myFacet;
 
   @NotNull
   private final XmlFile myPsiFile;
@@ -161,10 +153,10 @@ public class RenderService {
       return null;
     }
 
-    RenderServiceFactory factory;
+    LayoutLibrary layoutLib;
     try {
-      factory = platform.getSdkData().getTargetData(target).getRenderServiceFactory(project);
-      if (factory == null) {
+      layoutLib = platform.getSdkData().getTargetData(target).getLayoutLibrary(project);
+      if (layoutLib == null) {
         String message = AndroidBundle.message("android.layout.preview.cannot.load.library.error");
         logger.addMessage(RenderProblem.createPlain(ERROR, message));
         return null;
@@ -182,7 +174,7 @@ public class RenderService {
       return null;
     }
 
-    RenderService service = new RenderService(facet, module, psiFile, configuration, logger, factory);
+    RenderService service = new RenderService(facet, module, psiFile, configuration, logger, layoutLib);
     if (renderContext != null) {
       service.setRenderContext(renderContext);
     }
@@ -198,8 +190,7 @@ public class RenderService {
                         @NotNull PsiFile psiFile,
                         @NotNull Configuration configuration,
                         @NotNull RenderLogger logger,
-                        @NotNull RenderServiceFactory factory) {
-    myFacet = facet;
+                        @NotNull LayoutLibrary layoutLib) {
     myModule = module;
     myLogger = logger;
     if (!(psiFile instanceof XmlFile)) {
@@ -213,11 +204,11 @@ public class RenderService {
     myHardwareConfigHelper = new HardwareConfigHelper(device);
 
     myHardwareConfigHelper.setOrientation(configuration.getFullConfig().getScreenOrientationQualifier().getValue());
-    myLayoutLib = factory.getLibrary(); // TODO: editor.getReadyLayoutLib(true /*displayError*/);
+    myLayoutLib = layoutLib;
     ProjectResources projectResources = ProjectResources.get(myModule, true);
-    myProjectCallback = new ProjectCallback(myLayoutLib, projectResources, myModule, myLogger); // TODO: true: /* reset*/
+    myProjectCallback = new ProjectCallback(myLayoutLib, projectResources, myModule, myLogger);
     myProjectCallback.loadAndParseRClass();
-    Pair<Integer, Integer> sdkVersions = getSdkVersions(myFacet);
+    Pair<Integer, Integer> sdkVersions = getSdkVersions(facet);
     myMinSdkVersion = sdkVersions.getFirst();
     myTargetSdkVersion = sdkVersions.getSecond();
     myLocale = configuration.getLocale();
@@ -437,13 +428,13 @@ public class RenderService {
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
     ApplicationManager.getApplication().assertReadAccessAllowed();
-    XmlTagPullParser modelParser = new XmlTagPullParser(myPsiFile, myExpandNodes, hardwareConfig.getDensity(), myLogger);
+    LayoutPsiPullParser modelParser;
+    modelParser = LayoutPsiPullParser.create(myPsiFile, myLogger, myExpandNodes, hardwareConfig.getDensity());
     ILayoutPullParser topParser = modelParser;
 
-    // Code to support editing included layout
-    // first reset the layout parser just in case.
-    myProjectCallback.setLayoutParser(null, null);
+    myProjectCallback.reset();
 
+    // Code to support editing included layout
     if (myIncludedWithin != null) {
       // Outer layout name:
       String contextLayoutName = myIncludedWithin.getName();
@@ -458,26 +449,18 @@ public class RenderService {
             // as it's what IXmlPullParser.getParser(String) will receive.
             String queryLayoutName = ResourceHelper.getResourceName(myPsiFile);
             myProjectCallback.setLayoutParser(queryLayoutName, modelParser);
-            topParser = new ContextPullParser(myProjectCallback);
-            topParser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
-            String xmlText = Files.toString(layoutFile, Charsets.UTF_8);
-            topParser.setInput(new StringReader(xmlText));
+            topParser = LayoutFilePullParser.create(myProjectCallback, layoutFile);
           }
           catch (IOException e) {
-            //LOG.error(e);
             myLogger.error(null, String.format("Could not read layout file %1$s", layoutFile), e);
           }
           catch (XmlPullParserException e) {
-            //LOG.error(e);
             myLogger.error(null, String.format("XML parsing error: %1$s", e.getMessage()), e.getDetail() != null ? e.getDetail() : e);
           }
         }
       }
     }
 
-    // todo: support caching
-
-    myLayoutLib.clearCaches(myModule);
     final SessionParams params =
       new SessionParams(topParser, myRenderingMode, myModule /* projectKey */, hardwareConfig, resolver, myProjectCallback,
                         myMinSdkVersion, myTargetSdkVersion, myLogger);
@@ -659,12 +642,9 @@ public class RenderService {
     AndroidPlatform platform = getPlatform(module);
     if (platform != null) {
       try {
-        RenderServiceFactory factory = platform.getSdkData().getTargetData(target).getRenderServiceFactory(project);
-        if (factory != null) {
-          LayoutLibrary library = factory.getLibrary();
-          if (library != null) {
-            return library.supports(capability);
-          }
+        LayoutLibrary library = platform.getSdkData().getTargetData(target).getLayoutLibrary(project);
+        if (library != null) {
+          return library.supports(capability);
         }
       }
       catch (RenderingException e) {
@@ -686,10 +666,7 @@ public class RenderService {
     AndroidPlatform platform = getPlatform(module);
     if (platform != null) {
       try {
-        RenderServiceFactory factory = platform.getSdkData().getTargetData(target).getRenderServiceFactory(project);
-        if (factory != null) {
-          return factory.getLibrary();
-        }
+        return platform.getSdkData().getTargetData(target).getLayoutLibrary(project);
       }
       catch (RenderingException e) {
         // Ignore.

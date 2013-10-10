@@ -20,11 +20,13 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -252,19 +254,140 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     String html = panel.showErrors(render);
     assert html != null;
     html = stripImages(html);
+    html = stripSdkHome(html);
+
+    boolean havePlatformSources = RenderErrorPanel.findPlatformSources(configuration.getTarget()) != null;
+    if (havePlatformSources) {
+      assertEquals(
+        "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
+        "java.lang.ArithmeticException: / by zero<BR/>\n" +
+        "&nbsp;&nbsp;at com.example.myapplication574.MyCustomView.&lt;init>(<A HREF=\"open:com.example.myapplication574.MyCustomView#<init>;MyCustomView.java:13\">MyCustomView.java:13</A>)<BR/>\n" +
+        "&nbsp;&nbsp;at java.lang.reflect.Constructor.newInstance(<A HREF=\"file:$SDK_HOME/sources/android-18/java/lang/reflect/Constructor.java:513\">Constructor.java:513</A>)<BR/>\n" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate_Original(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:755\">LayoutInflater.java:755</A>)<BR/>\n" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater_Delegate.rInflate(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/LayoutInflater_Delegate.java:64\">LayoutInflater_Delegate.java:64</A>)<BR/>\n" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:727\">LayoutInflater.java:727</A>)<BR/>\n" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:492\">LayoutInflater.java:492</A>)<BR/>\n" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:373\">LayoutInflater.java:373</A>)<BR/>\n" +
+        "<BR/>\n" +
+        "</body></html>",
+        html);
+    } else {
+      assertEquals(
+        "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
+        "java.lang.ArithmeticException: / by zero<BR/>\n" +
+        "&nbsp;&nbsp;at com.example.myapplication574.MyCustomView.&lt;init>(<A HREF=\"open:com.example.myapplication574.MyCustomView#<init>;MyCustomView.java:13\">MyCustomView.java:13</A>)<BR/>\n" +
+        "&nbsp;&nbsp;at java.lang.reflect.Constructor.newInstance(Constructor.java:513)<BR/>\n" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate_Original(LayoutInflater.java:755)<BR/>\n" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater_Delegate.rInflate(LayoutInflater_Delegate.java:64)<BR/>\n" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate(LayoutInflater.java:727)<BR/>\n" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:492)<BR/>\n" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:373)<BR/>\n" +
+        "<BR/>\n" +
+        "</body></html>",
+        html);
+    }
+  }
+
+  public void testMismatchedBinary() throws Exception {
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml");
+    assertNotNull(file);
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
+    assertNotNull(psiFile);
+    assertNotNull(facet);
+    ConfigurationManager configurationManager = facet.getConfigurationManager();
+    assertNotNull(configurationManager);
+    Configuration configuration = configurationManager.getConfiguration(file);
+    RenderLogger logger = new RenderLogger("mylogger", myModule);
+    RenderService service = RenderService.create(facet, myModule, psiFile, configuration, logger, null);
+    assertNotNull(service);
+    RenderResult render = service.render();
+    assertNotNull(render);
+
+    Throwable throwable = createExceptionFromDesc(
+      "org.xmlpull.v1.XmlPullParserException: unterminated entity ref (position:TEXT \u0050PNG\u001A\u0000\u0000\u0000" +
+      "IHDR\u0000...@8:38 in java.io.InputStreamReader@12caea1b)\n" +
+      "\tat org.kxml2.io.KXmlParser.exception(Unknown Source)\n" +
+      "\tat org.kxml2.io.KXmlParser.error(Unknown Source)\n" +
+      "\tat org.kxml2.io.KXmlParser.pushEntity(Unknown Source)\n" +
+      "\tat org.kxml2.io.KXmlParser.pushText(Unknown Source)\n" +
+      "\tat org.kxml2.io.KXmlParser.nextImpl(Unknown Source)\n" +
+      "\tat org.kxml2.io.KXmlParser.next(Unknown Source)\n" +
+      "\tat com.android.layoutlib.bridge.android.BridgeXmlBlockParser.next(BridgeXmlBlockParser.java:301)\n" +
+      "\tat android.content.res.ColorStateList.createFromXml(ColorStateList.java:122)\n" +
+      "\tat android.content.res.BridgeTypedArray.getColorStateList(BridgeTypedArray.java:373)\n" +
+      "\tat android.widget.TextView.<init>(TextView.java:956)\n" +
+      "\tat android.widget.Button.<init>(Button.java:107)\n" +
+      "\tat android.widget.Button.<init>(Button.java:103)\n" +
+      "\tat sun.reflect.GeneratedConstructorAccessor53.newInstance(Unknown Source)\n" +
+      "\tat sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:27)\n" +
+      "\tat java.lang.reflect.Constructor.newInstance(Constructor.java:513)\n" +
+      "\tat android.view.LayoutInflater.createView(LayoutInflater.java:594)\n" +
+      "\tat android.view.BridgeInflater.onCreateView(BridgeInflater.java:86)\n" +
+      "\tat android.view.LayoutInflater.onCreateView(LayoutInflater.java:669)\n" +
+      "\tat android.view.LayoutInflater.createViewFromTag(LayoutInflater.java:694)\n" +
+      "\tat android.view.BridgeInflater.createViewFromTag(BridgeInflater.java:131)\n" +
+      "\tat android.view.LayoutInflater.rInflate_Original(LayoutInflater.java:755)\n" +
+      "\tat android.view.LayoutInflater_Delegate.rInflate(LayoutInflater_Delegate.java:64)\n" +
+      "\tat android.view.LayoutInflater.rInflate(LayoutInflater.java:727)\n" +
+      "\tat android.view.LayoutInflater.rInflate_Original(LayoutInflater.java:758)\n" +
+      "\tat android.view.LayoutInflater_Delegate.rInflate(LayoutInflater_Delegate.java:64)\n" +
+      "\tat android.view.LayoutInflater.rInflate(LayoutInflater.java:727)\n" +
+      "\tat android.view.LayoutInflater.rInflate_Original(LayoutInflater.java:758)\n" +
+      "\tat android.view.LayoutInflater_Delegate.rInflate(LayoutInflater_Delegate.java:64)\n" +
+      "\tat android.view.LayoutInflater.rInflate(LayoutInflater.java:727)\n" +
+      "\tat android.view.LayoutInflater.inflate(LayoutInflater.java:492)\n" +
+      "\tat android.view.LayoutInflater.inflate(LayoutInflater.java:373)\n" +
+      "\tat com.android.layoutlib.bridge.impl.RenderSessionImpl.inflate(RenderSessionImpl.java:400)\n" +
+      "\tat com.android.layoutlib.bridge.Bridge.createSession(Bridge.java:336)\n" +
+      "\tat com.android.ide.common.rendering.LayoutLibrary.createSession(LayoutLibrary.java:332)\n" +
+      "\tat com.android.tools.idea.rendering.RenderService$3.compute(RenderService.java:527)\n" +
+      "\tat com.android.tools.idea.rendering.RenderService$3.compute(RenderService.java:520)\n" +
+      "\tat com.intellij.openapi.application.impl.ApplicationImpl.runReadAction(ApplicationImpl.java:957)\n" +
+      "\tat com.android.tools.idea.rendering.RenderService.createRenderSession(RenderService.java:520)\n" +
+      "\tat com.android.tools.idea.rendering.RenderService.render(RenderService.java:557)\n" +
+      "\tat org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager$9.compute(AndroidLayoutPreviewToolWindowManager.java:418)\n" +
+      "\tat org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager$9.compute(AndroidLayoutPreviewToolWindowManager.java:411)\n" +
+      "\tat com.intellij.openapi.application.impl.ApplicationImpl.runReadAction(ApplicationImpl.java:968)\n" +
+      "\tat org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager.doRender(AndroidLayoutPreviewToolWindowManager.java:411)\n" +
+      "\tat org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager.access$1100(AndroidLayoutPreviewToolWindowManager.java:79)\n" +
+      "\tat org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager$8$1.run(AndroidLayoutPreviewToolWindowManager.java:373)\n" +
+      "\tat com.intellij.openapi.progress.impl.ProgressManagerImpl$2.run(ProgressManagerImpl.java:178)\n" +
+      "\tat com.intellij.openapi.progress.ProgressManager.executeProcessUnderProgress(ProgressManager.java:209)\n" +
+      "\tat com.intellij.openapi.progress.impl.ProgressManagerImpl.executeProcessUnderProgress(ProgressManagerImpl.java:212)\n" +
+      "\tat com.intellij.openapi.progress.impl.ProgressManagerImpl.runProcess(ProgressManagerImpl.java:171)\n" +
+      "\tat org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager$8.run(AndroidLayoutPreviewToolWindowManager.java:368)\n" +
+      "\tat com.intellij.util.ui.update.MergingUpdateQueue.execute(MergingUpdateQueue.java:320)\n" +
+      "\tat com.intellij.util.ui.update.MergingUpdateQueue.execute(MergingUpdateQueue.java:310)\n" +
+      "\tat com.intellij.util.ui.update.MergingUpdateQueue$2.run(MergingUpdateQueue.java:254)\n" +
+      "\tat com.intellij.util.ui.update.MergingUpdateQueue.flush(MergingUpdateQueue.java:269)\n" +
+      "\tat com.intellij.util.ui.update.MergingUpdateQueue.flush(MergingUpdateQueue.java:227)\n" +
+      "\tat com.intellij.util.ui.update.MergingUpdateQueue.run(MergingUpdateQueue.java:217)\n" +
+      "\tat com.intellij.util.concurrency.QueueProcessor.runSafely(QueueProcessor.java:237)\n" +
+      "\tat com.intellij.util.Alarm$Request$1.run(Alarm.java:297)\n" +
+      "\tat java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:439)\n" +
+      "\tat java.util.concurrent.FutureTask$Sync.innerRun(FutureTask.java:303)\n" +
+      "\tat java.util.concurrent.FutureTask.run(FutureTask.java:138)\n" +
+      "\tat java.util.concurrent.ThreadPoolExecutor$Worker.runTask(ThreadPoolExecutor.java:895)\n" +
+      "\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:918)\n" +
+      "\tat java.lang.Thread.run(Thread.java:680)\n");
+    String path = FileUtil.toSystemDependentName("/foo/bar/baz.png");
+    logger.error(null, "Failed to configure parser for " + path, throwable, null);
+
+    assertTrue(logger.hasProblems());
+    RenderErrorPanel panel = new RenderErrorPanel();
+    String html = panel.showErrors(render);
+    assert html != null;
+    html = stripImages(html);
 
     assertEquals(
       "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
-      "java.lang.ArithmeticException: / by zero<BR/>\n" +
-      "&nbsp;&nbsp;at com.example.myapplication574.MyCustomView.&lt;init>" +
-           "(<A HREF=\"open:com.example.myapplication574.MyCustomView#<init>;MyCustomView.java:13\">MyCustomView.java:13</A>)<BR/>\n" +
-      "&nbsp;&nbsp;at java.lang.reflect.Constructor.newInstance<BR/>\n" +
-      "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate_Original<BR/>\n" +
-      "&nbsp;&nbsp;at android.view.LayoutInflater_Delegate.rInflate<BR/>\n" +
-      "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate<BR/>\n" +
-      "&nbsp;&nbsp;at android.view.LayoutInflater.inflate<BR/>\n" +
-      "&nbsp;&nbsp;at android.view.LayoutInflater.inflate<BR/>\n" +
+      "Resource error: Attempted to load a bitmap as a color state list.<BR/>\n" +
+      "Verify that your style/theme attributes are correct, and make sure layouts are using the right attributes.<BR/>\n" +
       "<BR/>\n" +
+      "The relevant image is " + path + "<BR/>\n" +
+      "<BR/>\n" +
+      "Widgets possibly involved: Button, TextView<BR/>\n" +
       "</body></html>",
       html);
   }
@@ -283,6 +406,15 @@ public class RenderErrorPanelTest extends AndroidTestCase {
         html = html.substring(0, index) + html.substring(end + 1);
       }
     }
+  }
+
+  private String stripSdkHome(@NotNull String html) {
+    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
+    assertNotNull(platform);
+    String location = platform.getSdkData().getLocation();
+    location = FileUtil.toSystemIndependentName(location);
+    html = html.replace(location, "$SDK_HOME");
+    return html;
   }
 
   /** Attempts to create an exception object that matches the given description, which
@@ -339,6 +471,8 @@ public class RenderErrorPanelTest extends AndroidTestCase {
         String inner = outerMatcher.group(3);
         if (inner.equals("Native Method")) {
           frames.add(new StackTraceElement(clz, method, null, -2));
+        } else if (inner.equals("Unknown Source")) {
+          frames.add(new StackTraceElement(clz, method, null, -1));
         } else {
           Matcher innerMatcher = innerPattern.matcher(inner);
           if (!innerMatcher.matches()) {

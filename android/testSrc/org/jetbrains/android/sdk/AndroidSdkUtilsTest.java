@@ -17,6 +17,7 @@ package org.jetbrains.android.sdk;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.utils.NullLogger;
+import com.google.common.base.Strings;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -34,13 +35,17 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     mySdkPath = System.getProperty(AndroidTestCase.SDK_PATH_PROPERTY);
-    String format = "Please specify the path of an Android SDK (v22.0.0) in the system property '%1$s'";
-    String msg = String.format(format, AndroidTestCase.SDK_PATH_PROPERTY);
-    assertNotNull(msg, mySdkPath);
+    if (Strings.isNullOrEmpty(mySdkPath)) {
+      mySdkPath = System.getenv(AndroidTestCase.SDK_PATH_PROPERTY);
+    }
+    if (Strings.isNullOrEmpty(mySdkPath)) {
+      String format = "Please specify the path of an Android SDK (v22.0.0) in the system property or environment variable '%1$s'";
+      fail(String.format(format, AndroidTestCase.SDK_PATH_PROPERTY));
+    }
   }
 
   public void testFindSuitableAndroidSdkWhenNoSdkSet() {
-    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk("android-17", mySdkPath, false);
+    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk("android-17", mySdkPath, null, false);
     assertNull(sdk);
   }
 
@@ -50,7 +55,7 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
     assertNotNull(jdk);
     createAndroidSdk(mySdkPath, targetHashString, jdk);
 
-    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk(targetHashString, mySdkPath, false);
+    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk(targetHashString, mySdkPath, null, false);
     assertNotNull(sdk);
     assertEquals(mySdkPath, sdk.getHomePath());
   }

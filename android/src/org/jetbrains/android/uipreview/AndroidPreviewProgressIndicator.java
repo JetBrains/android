@@ -15,7 +15,7 @@ import java.awt.event.ActionListener;
 class AndroidPreviewProgressIndicator extends ProgressIndicatorBase {
   private final Object myLock = new Object();
   private final int myDelay;
-  private final AndroidLayoutPreviewToolWindowForm myForm;
+  private @NotNull final AndroidLayoutPreviewToolWindowForm myForm;
 
   AndroidPreviewProgressIndicator(@NotNull AndroidLayoutPreviewToolWindowForm form, int delay) {
     myDelay = delay;
@@ -32,7 +32,7 @@ class AndroidPreviewProgressIndicator extends ProgressIndicatorBase {
           @Override
           public void actionPerformed(ActionEvent e) {
             synchronized (myLock) {
-              if (isRunning() && myForm != null) {
+              if (isRunning()) {
                 myForm.getPreviewPanel().registerIndicator(AndroidPreviewProgressIndicator.this);
               }
             }
@@ -51,9 +51,7 @@ class AndroidPreviewProgressIndicator extends ProgressIndicatorBase {
       ApplicationManager.getApplication().invokeLater(new Runnable() {
         @Override
         public void run() {
-          if (myForm != null) {
-            myForm.getPreviewPanel().unregisterIndicator(AndroidPreviewProgressIndicator.this);
-          }
+          myForm.getPreviewPanel().unregisterIndicator(AndroidPreviewProgressIndicator.this);
         }
       });
     }

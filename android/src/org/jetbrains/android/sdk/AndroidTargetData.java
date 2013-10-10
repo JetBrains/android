@@ -1,11 +1,32 @@
+/*
+ * Copyright 2000-2010 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.jetbrains.android.sdk;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.LayoutLibrary;
+import com.android.ide.common.resources.FrameworkResources;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -19,7 +40,7 @@ import com.intellij.util.xml.NanoXmlUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl;
 import org.jetbrains.android.resourceManagers.FilteredAttributeDefinitions;
-import org.jetbrains.android.uipreview.RenderServiceFactory;
+import org.jetbrains.android.uipreview.LayoutLibraryLoader;
 import org.jetbrains.android.uipreview.RenderingException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,7 +48,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Eugene.Kudelevsky
@@ -39,12 +61,13 @@ public class AndroidTargetData {
   private final IAndroidTarget myTarget;
 
   private volatile AttributeDefinitionsImpl myAttrDefs;
-  private volatile RenderServiceFactory myRenderServiceFactory;
+  private volatile LayoutLibrary myLayoutLibrary;
 
   private final Object myPublicResourceCacheLock = new Object();
   private volatile Map<String, Set<String>> myPublicResourceCache;
 
   private volatile MyStaticConstantsData myStaticConstantsData;
+  private FrameworkResources myFrameworkResources;
 
   public AndroidTargetData(@NotNull AndroidSdkData sdkData, @NotNull IAndroidTarget target) {
     mySdkData = sdkData;
@@ -63,8 +86,9 @@ public class AndroidTargetData {
       ApplicationManager.getApplication().runReadAction(new Runnable() {
         @Override
         public void run() {
-          final String attrsPath = myTarget.getPath(IAndroidTarget.ATTRIBUTES);
-          final String attrsManifestPath = myTarget.getPath(IAndroidTarget.MANIFEST_ATTRIBUTES);
+          final String attrsPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.ATTRIBUTES));
+          final String attrsManifestPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.MANIFEST_ATTRIBUTES));
+
           final XmlFile[] files = findXmlFiles(project, attrsPath, attrsManifestPath);
           if (files != null) {
             myAttrDefs = new AttributeDefinitionsImpl(files);
@@ -117,15 +141,22 @@ public class AndroidTargetData {
   }
 
   @Nullable
-  public synchronized RenderServiceFactory getRenderServiceFactory(@NotNull Project project) throws RenderingException, IOException {
-    if (myRenderServiceFactory == null) {
+  public synchronized LayoutLibrary getLayoutLibrary(@NotNull Project project) throws RenderingException, IOException {
+    if (myLayoutLibrary == null) {
       final AttributeDefinitionsImpl attrDefs = getAttrDefsImpl(project);
       if (attrDefs == null) {
         return null;
       }
-      myRenderServiceFactory = RenderServiceFactory.create(myTarget, attrDefs.getEnumMap());
+      myLayoutLibrary = LayoutLibraryLoader.load(myTarget, attrDefs.getEnumMap());
     }
-    return myRenderServiceFactory;
+
+    return myLayoutLibrary;
+  }
+
+  public void clearLayoutBitmapCache(Module module) {
+    if (myLayoutLibrary != null) {
+      myLayoutLibrary.clearCaches(module);
+    }
   }
 
   @NotNull
@@ -165,6 +196,33 @@ public class AndroidTargetData {
       myStaticConstantsData = new MyStaticConstantsData();
     }
     return myStaticConstantsData;
+  }
+
+  @Nullable
+  public synchronized FrameworkResources getFrameworkResources() throws IOException {
+    if (myFrameworkResources == null) {
+      myFrameworkResources = FrameworkResourceLoader.load(myTarget);
+    }
+
+    return myFrameworkResources;
+  }
+
+  @Nullable
+  public static AndroidTargetData getTargetData(@NotNull IAndroidTarget target, @NotNull Module module) {
+    Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
+    if (sdk == null || !(sdk.getSdkType() instanceof AndroidSdkType)) {
+      return null;
+    }
+    AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+    if (data == null) {
+      return null;
+    }
+    AndroidPlatform platform = data.getAndroidPlatform();
+    if (platform == null) {
+      return null;
+    }
+
+    return platform.getSdkData().getTargetData(target);
   }
 
   private class PublicAttributeDefinitions extends FilteredAttributeDefinitions {

@@ -22,12 +22,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 
 public class AndroidLibraryStub implements AndroidLibrary {
-  @NotNull private final File myJarFile;
-  @NotNull private final String myProject;
   @NotNull private final List<File> myLocalJars = Lists.newArrayList();
+
+  @NotNull private final File myJarFile;
+  @Nullable private final String myProject;
 
   public AndroidLibraryStub(@NotNull File jarFile) {
     this(jarFile, null);
@@ -59,6 +61,12 @@ public class AndroidLibraryStub implements AndroidLibrary {
   @Override
   @NotNull
   public List<? extends AndroidLibrary> getLibraryDependencies() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  @NotNull
+  public File getManifest() {
     throw new UnsupportedOperationException();
   }
 

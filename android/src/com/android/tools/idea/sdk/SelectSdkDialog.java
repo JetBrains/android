@@ -21,6 +21,7 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.ui.*;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -194,8 +195,8 @@ public class SelectSdkDialog extends DialogWrapper {
       }
 
       return myDefaultPath == null
-             ? LocalFileSystem.getInstance().findFileByPath(PathManager.getHomePath())
-             : LocalFileSystem.getInstance().findFileByPath(myDefaultPath);
+             ? LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(PathManager.getHomePath()))
+             : LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(myDefaultPath));
     }
   }
 }

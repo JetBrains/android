@@ -22,11 +22,14 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -34,6 +37,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.*;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -580,6 +584,24 @@ public final class ResourceFolderRepository extends ProjectResources {
     return removed;
   }
 
+  /**
+   * Called when a bitmap has been changed/deleted. In that case we need to clear out any caches for that
+   * image held by layout lib.
+   */
+  private void bitmapUpdated() {
+    ConfigurationManager configurationManager = myFacet.getConfigurationManager(false);
+    if (configurationManager != null) {
+      IAndroidTarget target = configurationManager.getTarget();
+      if (target != null) {
+        Module module = myFacet.getModule();
+        AndroidTargetData targetData = AndroidTargetData.getTargetData(target, module);
+        if (targetData != null) {
+          targetData.clearLayoutBitmapCache(module);
+        }
+      }
+    }
+  }
+
   @NotNull
   public PsiTreeChangeListener getPsiListener() {
     return myListener;
@@ -915,6 +937,13 @@ public final class ResourceFolderRepository extends ProjectResources {
       if (folderType == VALUES || folderType == LAYOUT || folderType == MENU) {
         removeItemsFromFile(resourceFile);
       } else if (folderType != null) {
+        if (folderType == DRAWABLE) {
+          FileType fileType = psiFile.getFileType();
+          if (fileType.isBinary() && fileType == FileTypeManager.getInstance().getFileTypeByExtension(EXT_PNG)) {
+            bitmapUpdated();
+          }
+        }
+
         // Remove the file item
         List<ResourceType> resourceTypes = FolderTypeRelationship.getRelatedResourceTypes(folderType);
         for (ResourceType type : resourceTypes) {

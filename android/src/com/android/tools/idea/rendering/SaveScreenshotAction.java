@@ -88,6 +88,6 @@ public class SaveScreenshotAction extends AnAction {
       return null;
     }
 
-    return device.getName();
+    return device.getDisplayName();
   }
 }

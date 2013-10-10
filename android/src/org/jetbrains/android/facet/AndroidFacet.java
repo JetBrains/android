@@ -17,7 +17,9 @@ package org.jetbrains.android.facet;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
-import com.android.builder.model.*;
+import com.android.builder.model.ArtifactInfo;
+import com.android.builder.model.SourceProvider;
+import com.android.builder.model.Variant;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.prefs.AndroidLocation;
@@ -28,10 +30,8 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.rendering.ProjectResources;
 import com.android.utils.ILogger;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
 import com.intellij.ProjectTopics;
@@ -61,7 +61,10 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.*;
+import com.intellij.openapi.vfs.JarFileSystem;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
@@ -77,7 +80,6 @@ import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.compiler.AndroidAptCompiler;
 import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
@@ -733,7 +735,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     }
     final List<VirtualFile> filesToAdd = new ArrayList<VirtualFile>();
 
-    final VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(resFolderPath);
+    final VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(resFolderPath));
     if (resFolder != null) {
       filesToAdd.add(resFolder);
     }
@@ -1038,7 +1040,14 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @NotNull
   public ConfigurationManager getConfigurationManager() {
-    if (myConfigurationManager == null) {
+    //noinspection ConstantConditions
+    return getConfigurationManager(true);
+  }
+
+
+  @Nullable
+  public ConfigurationManager getConfigurationManager(boolean createIfNecessary) {
+    if (myConfigurationManager == null && createIfNecessary) {
       myConfigurationManager = ConfigurationManager.create(getModule());
       Disposer.register(this, myConfigurationManager);
     }
@@ -1114,13 +1123,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
       ArtifactInfo mainArtifactInfo = variant.getMainArtifactInfo();
       state.ASSEMBLE_TASK_NAME = mainArtifactInfo.getAssembleTaskName();
-      try {
-        state.COMPILE_JAVA_TASK_NAME = mainArtifactInfo.getJavaCompileTaskName();
-      } catch (UnsupportedMethodException e) {
-        // This happens when using an old but supported v0.5.+ plug-in. This code will be removed once the minimum supported version is 0.6.0.
-        state.COMPILE_JAVA_TASK_NAME = "";
-      }
-      Projects.setProjectCanCompileJavaOnly(getModule().getProject(), !Strings.isNullOrEmpty(state.COMPILE_JAVA_TASK_NAME));
+      state.COMPILE_JAVA_TASK_NAME = mainArtifactInfo.getJavaCompileTaskName();
 
       ArtifactInfo testArtifactInfo = variant.getTestArtifactInfo();
       state.ASSEMBLE_TEST_TASK_NAME = testArtifactInfo != null ? testArtifactInfo.getAssembleTaskName() : "";
