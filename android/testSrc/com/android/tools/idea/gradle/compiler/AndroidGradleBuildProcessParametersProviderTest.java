@@ -22,6 +22,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
+import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -96,12 +97,26 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.home.path=~/gradle-1.6"));
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.use.verbose.logging=true"));
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.service.dir.path=~./gradle"));
-    assertTrue(jvmArgs.contains("-Dcom.android.studio.daemon.gradle.vm.option.count=2"));
-    assertTrue(jvmArgs.contains("-Dcom.android.studio.daemon.gradle.vm.option.0=-Xmx2048m"));
-    assertTrue(jvmArgs.contains("-Dcom.android.studio.daemon.gradle.vm.option.1=-XX:MaxPermSize=512m"));
+    assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.daemon.jvm.option.count=2"));
+    assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.daemon.jvm.option.0=-Xmx2048m"));
+    assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.daemon.jvm.option.1=-XX:MaxPermSize=512m"));
     String javaHomeDirPath = myJdk.getHomePath();
     assertNotNull(javaHomeDirPath);
     javaHomeDirPath = FileUtil.toSystemDependentName(javaHomeDirPath);
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.java.home.path=" + javaHomeDirPath));
+  }
+
+  public void testPopulateHttpProxyProperties() {
+    List<KeyValue<String, String>> properties = Lists.newArrayList();
+    properties.add(KeyValue.create("http.proxyHost", "proxy.android.com"));
+    properties.add(KeyValue.create("http.proxyPort", "8080"));
+
+    List<String> jvmArgs = Lists.newArrayList();
+    AndroidGradleBuildProcessParametersProvider.populateHttpProxyProperties(jvmArgs, properties);
+
+    assertEquals(3, jvmArgs.size());
+    assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.proxy.property.count=2"));
+    assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.proxy.property.0=http.proxyHost:proxy.android.com"));
+    assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.proxy.property.1=http.proxyPort:8080"));
   }
 }

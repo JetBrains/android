@@ -29,8 +29,10 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
+import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.PathUtil;
+import com.intellij.util.net.HttpConfigurable;
 import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -132,6 +134,8 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     Projects.removeBuildActionFrom(myProject);
     jvmArgs.add(createJvmArg(BuildProcessJvmArgs.BUILD_ACTION, buildMode.name()));
 
+    addHttpProxySettings(jvmArgs);
+
     return jvmArgs;
   }
 
@@ -179,16 +183,35 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     boolean verboseProcessing = executionSettings.isVerboseProcessing();
     jvmArgs.add(createJvmArg(BuildProcessJvmArgs.USE_GRADLE_VERBOSE_LOGGING, String.valueOf(verboseProcessing)));
 
-    String vmOptions = executionSettings.getDaemonVmOptions();
-    int vmOptionCount = 0;
-    if (vmOptions != null && !vmOptions.isEmpty()) {
-      CommandLineTokenizer tokenizer = new CommandLineTokenizer(vmOptions);
+    String jvmOptions = executionSettings.getDaemonVmOptions();
+    int jvmOptionCount = 0;
+    if (jvmOptions != null && !jvmOptions.isEmpty()) {
+      CommandLineTokenizer tokenizer = new CommandLineTokenizer(jvmOptions);
       while(tokenizer.hasMoreTokens()) {
-        String vmOption = tokenizer.nextToken();
-        jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_DAEMON_VM_OPTION_DOT + vmOptionCount, vmOption));
-        vmOptionCount++;
+        String name = BuildProcessJvmArgs.GRADLE_DAEMON_JVM_OPTION_PREFIX + jvmOptionCount;
+        jvmArgs.add(createJvmArg(name, tokenizer.nextToken()));
+        jvmOptionCount++;
       }
     }
-    jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_DAEMON_VM_OPTION_COUNT, String.valueOf(vmOptionCount)));
+    jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_DAEMON_JVM_OPTION_COUNT, jvmOptionCount));
+  }
+
+  private static void addHttpProxySettings(@NotNull List<String> jvmArgs) {
+    List<KeyValue<String, String>> proxyProperties = HttpConfigurable.getJvmPropertiesList(false, null);
+    //noinspection TestOnlyProblems
+    populateHttpProxyProperties(jvmArgs, proxyProperties);
+  }
+
+  @VisibleForTesting
+  static void populateHttpProxyProperties(List<String> jvmArgs, List<KeyValue<String, String>> properties) {
+    int propertyCount = properties.size();
+    jvmArgs.add(createJvmArg(BuildProcessJvmArgs.HTTP_PROXY_PROPERTY_COUNT, propertyCount));
+
+    for (int i = 0; i < propertyCount; i++) {
+      KeyValue<String, String> property = properties.get(i);
+      String name = BuildProcessJvmArgs.HTTP_PROXY_PROPERTY_PREFIX + i;
+      String value = property.getKey() + BuildProcessJvmArgs.HTTP_PROXY_PROPERTY_SEPARATOR + property.getValue();
+      jvmArgs.add(createJvmArg(name, value));
+    }
   }
 }

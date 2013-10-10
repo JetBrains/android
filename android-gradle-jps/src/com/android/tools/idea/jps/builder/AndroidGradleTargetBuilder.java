@@ -260,7 +260,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
         jvmArgs.add(androidSdkArg);
       }
 
-      jvmArgs.addAll(executionSettings.getGradleDaemonVmOptions());
+      jvmArgs.addAll(executionSettings.getGradleDaemonJvmOptions());
 
       if (!jvmArgs.isEmpty()) {
         LOG.info("Passing JVM args to Gradle Tooling API: " + jvmArgs);
