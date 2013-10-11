@@ -679,6 +679,12 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+      Module module = myContext.getModule();
+      final VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
+
+      if (contentRoots.length == 0) {
+        return;
+      }
       VirtualFile initialFile = null;
       String path = myTextField.getText().trim();
       if (path.length() == 0) {
@@ -688,7 +694,6 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
         initialFile = LocalFileSystem.getInstance().findFileByPath(path);
       }
       if (initialFile == null) {
-        Module module = myContext.getModule();
         ModuleRootManager manager = ModuleRootManager.getInstance(module);
         VirtualFile[] sourceRoots = manager.getSourceRoots();
         if (sourceRoots.length > 0) {
@@ -705,6 +710,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
         }
       }
       final FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
+      descriptor.setRoots(contentRoots);
       VirtualFile file = FileChooser.chooseFile(descriptor, myContentPanel, myContext.getProject(), initialFile);
       if (file != null) {
         myTextField.setText(FileUtil.toSystemDependentName(file.getPath()));
