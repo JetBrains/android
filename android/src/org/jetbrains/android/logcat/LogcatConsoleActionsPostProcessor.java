@@ -25,6 +25,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.actions.ScrollToTheEndToolbarAction;
 import com.intellij.openapi.project.DumbAwareAction;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -57,9 +58,17 @@ public class LogcatConsoleActionsPostProcessor implements ConsoleActionsPostProc
 
     // remove actions that don't make sense for logcat
     for (AnAction a : actions) {
-      if (!(a instanceof ConsoleViewImpl.ClearAllAction)) {
-        actionList.add(a);
+      if (a instanceof ConsoleViewImpl.ClearAllAction) {
+        continue;
       }
+
+      if (a instanceof ScrollToTheEndToolbarAction) {
+        String message = "Scroll to the end. Clicking on a particular line stops scrolling and keeps that line visible.";
+        a.getTemplatePresentation().setDescription(message);
+        a.getTemplatePresentation().setText(message);
+      }
+
+      actionList.add(a);
     }
 
     // add logcat specific actions
