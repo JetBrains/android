@@ -261,7 +261,6 @@ public class RadLinearLayout extends RadViewLayoutWithData implements ILayoutDec
       Gravity unknown = horizontal ? Gravity.left : Gravity.top;
       setItems(horizontal ? VERTICALS : HORIZONTALS, unknown);
 
-      Iterator<? extends RadComponent> iterator = myComponents.iterator();
       Iterator<? extends RadViewComponent> I = myComponents.iterator();
       mySelection = LinearLayoutOperation.getGravity(horizontal, I.next());
 
@@ -288,7 +287,7 @@ public class RadLinearLayout extends RadViewLayoutWithData implements ILayoutDec
       execute(new Runnable() {
         @Override
         public void run() {
-          LinearLayoutOperation.execute(isHorizontal(), item, myComponents);
+          LinearLayoutOperation.applyGravity(isHorizontal(), item, myComponents);
         }
       });
 

@@ -542,8 +542,8 @@ public class RadViewComponent extends RadVisualComponent {
 
     return new Rectangle(bounds.x + padding.left,
                          bounds.y + padding.top,
-                         bounds.width - padding.left - padding.right,
-                         bounds.height - padding.top - padding.bottom);
+                         Math.max(0, bounds.width - padding.left - padding.right),
+                         Math.max(0, bounds.height - padding.top - padding.bottom));
   }
 
   /**
