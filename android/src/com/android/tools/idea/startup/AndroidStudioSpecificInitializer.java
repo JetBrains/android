@@ -126,7 +126,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
         if (androidSdkPath == null) {
           return;
         }
-        Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(androidSdkPath);
+        Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(androidSdkPath, true);
         if (sdk != null) {
           // Rename the SDK to fit our default naming convention.
           if (sdk.getName().startsWith(AndroidSdkUtils.SDK_NAME_PREFIX)) {
