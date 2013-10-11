@@ -338,6 +338,10 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
     doTestHighlighting();
   }
 
+  public void testToolsBaseAttribute() throws Throwable {
+    doTestHighlighting();
+  }
+
   public void testLocalStyleItemReferenceCompletion() throws Throwable {
     copyFileToProject("localStyleItemReference_layout.xml", "res/layout/myLayout.xml");
     doTestCompletion();
