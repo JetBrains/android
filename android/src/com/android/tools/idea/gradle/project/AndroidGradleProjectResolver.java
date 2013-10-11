@@ -44,6 +44,7 @@ import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.KeyValue;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.Function;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
@@ -128,30 +129,36 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
                                                   final boolean isPreviewMode,
                                                   @Nullable final GradleExecutionSettings settings,
                                                   @NotNull final ExternalSystemTaskNotificationListener listener) {
-    return myHelper.execute(projectPath, settings, new Function<ProjectConnection, DataNode<ProjectData>>() {
+    String systemDependentProjectPath = FileUtil.toSystemDependentName(projectPath);
+    final File projectDir = new File(systemDependentProjectPath);
+    if (!isPreviewMode) {
+      // We ignore the second pass of the import process. We got everything we needed from the first one.
+      return createProjectInfo(projectDir);
+    }
+    return myHelper.execute(systemDependentProjectPath, settings, new Function<ProjectConnection, DataNode<ProjectData>>() {
       @Nullable
       @Override
       public DataNode<ProjectData> fun(ProjectConnection connection) {
         try {
-          List<String> extraJvmArgs = getExtraJvmArgs(projectPath, isPreviewMode);
+          List<String> extraJvmArgs = getExtraJvmArgs(projectDir);
           BuildActionExecuter<ProjectImportAction.AllModels> buildActionExecutor = connection.action(new ProjectImportAction());
           GradleExecutionHelper.prepare(buildActionExecutor, id, settings, listener, extraJvmArgs, connection);
 
           //noinspection TestOnlyProblems
-          return resolveProjectInfo(projectPath, buildActionExecutor);
+          return resolveProjectInfo(projectDir, buildActionExecutor);
         }
         catch (RuntimeException e) {
-          throw myErrorHandler.getUserFriendlyError(e, projectPath, null);
+          throw myErrorHandler.getUserFriendlyError(e, projectDir, null);
         }
       }
     });
   }
 
   @NotNull
-  private static List<String> getExtraJvmArgs(@NotNull String projectPath, boolean isPreviewMode) {
+  private static List<String> getExtraJvmArgs(@NotNull File projectDir) {
     if (ExternalSystemApiUtil.isInProcessMode(GradleConstants.SYSTEM_ID)) {
       List<String> args = Lists.newArrayList();
-      if (!AndroidGradleSettings.isAndroidSdkDirInLocalPropertiesFile(new File(projectPath))) {
+      if (!AndroidGradleSettings.isAndroidSdkDirInLocalPropertiesFile(projectDir)) {
         String androidHome = getAndroidSdkPathFromIde();
         if (androidHome != null) {
           String arg = AndroidGradleSettings.createAndroidHomeJvmArg(androidHome);
@@ -163,7 +170,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
         String arg = AndroidGradleSettings.createJvmArg(proxyProperty.getKey(), proxyProperty.getValue());
         args.add(arg);
       }
-      String arg = AndroidGradleSettings.createJvmArg(AndroidProject.BUILD_MODEL_ONLY_SYSTEM_PROPERTY, String.valueOf(isPreviewMode));
+      String arg = AndroidGradleSettings.createJvmArg(AndroidProject.BUILD_MODEL_ONLY_SYSTEM_PROPERTY, "true");
       args.add(arg);
       return args;
     }
@@ -172,15 +179,14 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
 
   @VisibleForTesting
   @Nullable
-  DataNode<ProjectData> resolveProjectInfo(@NotNull String projectPath,
+  DataNode<ProjectData> resolveProjectInfo(@NotNull File projectDir,
                                            @NotNull BuildActionExecuter<ProjectImportAction.AllModels> buildActionExecutor) {
     ProjectImportAction.AllModels allModels = buildActionExecutor.run();
     if (allModels == null) {
       return null;
     }
     IdeaProject ideaProject = allModels.getIdeaProject();
-    String name = new File(projectPath).getName();
-    DataNode<ProjectData> projectInfo = createProjectInfo(projectPath, name);
+    DataNode<ProjectData> projectInfo = createProjectInfo(projectDir);
 
     Set<String> unresolvedDependencies = Sets.newHashSet();
 
@@ -235,7 +241,10 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
 
 
   @NotNull
-  private static DataNode<ProjectData> createProjectInfo(@NotNull String projectDirPath, @NotNull String name) {
+  private static DataNode<ProjectData> createProjectInfo(@NotNull File projectDir) {
+    String name = projectDir.getName();
+
+    String projectDirPath = projectDir.getPath();
     ProjectData projectData = new ProjectData(GradleConstants.SYSTEM_ID, projectDirPath, projectDirPath);
     projectData.setName(name);
 

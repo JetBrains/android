@@ -19,19 +19,21 @@ import junit.framework.TestCase;
 import org.gradle.api.internal.LocationAwareException;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 
+import java.io.File;
+
 /**
  * Tests for {@link ProjectImportErrorHandler}.
  */
 @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
 public class ProjectImportErrorHandlerTest extends TestCase {
   private ProjectImportErrorHandler myErrorHandler;
-  private String myProjectPath;
+  private File myProjectPath;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     myErrorHandler = new ProjectImportErrorHandler();
-    myProjectPath = "basic";
+    myProjectPath = new File("basic");
   }
 
   public void testGetUserFriendlyErrorWithOldGradleVersion() {
