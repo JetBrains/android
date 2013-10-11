@@ -16,10 +16,12 @@
 
 package org.jetbrains.android.dom;
 
+import com.android.SdkConstants;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.meta.PsiPresentableMetaData;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.DomElement;
@@ -138,6 +140,19 @@ public class AndroidXmlTagDescriptor implements XmlElementDescriptor, PsiPresent
 
   @Override
   public int getContentType() {
+    if (myDeclarationClass != null) {
+      final GlobalSearchScope scope = myDeclarationClass.getResolveScope();
+      final JavaPsiFacade facade = JavaPsiFacade.getInstance(myDeclarationClass.getProject());
+      final PsiClass view = facade.findClass(SdkConstants.CLASS_VIEW, scope);
+
+      if (view != null && myDeclarationClass.isInheritor(view, true)) {
+        final PsiClass viewGroup = facade.findClass(SdkConstants.CLASS_VIEWGROUP, scope);
+
+        if (viewGroup != null) {
+          return myDeclarationClass.isInheritor(viewGroup, true) ? CONTENT_TYPE_MIXED : CONTENT_TYPE_EMPTY;
+        }
+      }
+    }
     return myParentDescriptor.getContentType();
   }
 
