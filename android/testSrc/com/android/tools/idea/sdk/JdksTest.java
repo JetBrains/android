@@ -44,13 +44,15 @@ public class JdksTest extends IdeaTestCase {
   public void testGetBestJdkHomePathWithLangLevel1dot6() {
     List<String> jdkHomePaths = Lists.newArrayList(myJdk6HomePath, myJdk7HomePath);
     String best = Jdks.getBestJdkHomePath(jdkHomePaths, LanguageLevel.JDK_1_6);
-    assertEquals(myJdk6HomePath, best);
+    assertTrue("Expected: " + myJdk6HomePath + ", actual: " + best,
+               FileUtil.pathsEqual(myJdk6HomePath, best));
   }
 
   public void testGetBestJdkHomePathWithLangLevel1dot7() {
     List<String> jdkHomePaths = Lists.newArrayList(myJdk6HomePath, myJdk7HomePath);
     String best = Jdks.getBestJdkHomePath(jdkHomePaths, LanguageLevel.JDK_1_7);
-    assertTrue(FileUtil.pathsEqual(myJdk7HomePath, best));
+    assertTrue("Expected: " + myJdk7HomePath + ", Actual: " + best,
+               FileUtil.pathsEqual(myJdk7HomePath, best));
   }
 
   // These tests verify that LanguageLevel#isAtLeast does what we think it does (this is IntelliJ code.) Leaving these tests here as a way

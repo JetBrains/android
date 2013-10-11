@@ -45,10 +45,12 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
     }
   }
 
-  public void testFindSuitableAndroidSdkWhenNoSdkSet() {
-    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk("android-17", mySdkPath, null, false);
-    assertNull(sdk);
-  }
+  // TODO: disabling this test since it relies on the test order
+  // It expects that no SDK's are setup, while other tests in this class create SDKs.
+  //public void testFindSuitableAndroidSdkWhenNoSdkSet() {
+  //  Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk("android-17", mySdkPath, null, false);
+  //  assertNull(sdk);
+  //}
 
   public void testFindSuitableAndroidSdkWithPathOfExistingModernSdk() {
     String targetHashString = "android-17";
