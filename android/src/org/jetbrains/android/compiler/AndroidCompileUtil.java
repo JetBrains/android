@@ -646,7 +646,7 @@ public class AndroidCompileUtil {
   }
 
   public static boolean createGenModulesAndSourceRoots(@NotNull AndroidFacet facet, @NotNull ModifiableRootModel model) {
-    if (facet.isGradleProject()) {
+    if (facet.isGradleProject() || !facet.getProperties().ENABLE_SOURCES_AUTOGENERATION) {
       return false;
     }
     final Module module = facet.getModule();
