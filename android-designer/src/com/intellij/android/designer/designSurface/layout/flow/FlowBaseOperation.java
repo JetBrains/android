@@ -38,23 +38,33 @@ public class FlowBaseOperation extends AbstractFlowBaseOperation {
   }
 
   @Override
+  protected void createFeedback() {
+    // Not calling super.createFeedback(): Instead we are replicating its work, slightly modified,
+    // because we want to initialize myBounds such that it includes the bounds.
+    if (myFirstInsertFeedback == null) {
+      FeedbackLayer layer = myContext.getArea().getFeedbackLayer();
+      //myBounds = myContainer.getBounds(layer);
+      myBounds = ((RadViewComponent)myContainer).getPaddedBounds(layer);
+
+      createFirstInsertFeedback();
+      createInsertFeedback();
+
+      if (getChildren().isEmpty()) {
+        layer.add(myFirstInsertFeedback);
+      }
+      else {
+        layer.add(myInsertFeedback);
+      }
+      layer.repaint();
+    }
+  }
+
+  @Override
   protected Rectangle getBounds(RadComponent component, FeedbackLayer layer) {
     Rectangle bounds = component.getBounds(layer);
 
     Insets margins = ((RadViewComponent)component).getMargins(layer);
-
-    if (margins.isEmpty()) {
-      return bounds;
-    }
-
-    bounds.x -= margins.left;
-    bounds.width += margins.left;
-
-    bounds.y -= margins.top;
-    bounds.height += margins.top;
-
-    bounds.width += margins.right;
-    bounds.height += margins.bottom;
+    margins.subtractFrom(bounds);
 
     return bounds;
   }
