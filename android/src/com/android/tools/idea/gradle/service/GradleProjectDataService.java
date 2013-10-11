@@ -34,11 +34,13 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Service that stores the "Gradle project paths" of an imported Android-Gradle project.
@@ -54,9 +56,12 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
   public void importData(@NotNull final Collection<DataNode<IdeaGradleProject>> toImport,
                          @NotNull final Project project,
                          boolean synchronous) {
+    final AtomicBoolean hasUnresolvedDependenciesRef = new AtomicBoolean(false);
+
     if (!toImport.isEmpty()) {
       ModuleManager moduleManager = ModuleManager.getInstance(project);
       final List<Module> modules = ImmutableList.copyOf(moduleManager.getModules());
+
       ExternalSystemApiUtil.executeProjectChangeAction(synchronous, new Runnable() {
         @Override
         public void run() {
@@ -70,27 +75,30 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
               Facets.removeAllFacetsOfType(module, AndroidGradleFacet.TYPE_ID);
             } else {
               customizeModule(module, gradleProject);
+              boolean hasUnresolvedDependencies = hasUnresolvedDependenciesRef.get() || hasUnresolvedDependencies(module);
+              hasUnresolvedDependenciesRef.set(hasUnresolvedDependencies);
             }
           }
         }
       });
     }
+
     Projects.ensureExternalBuildIsEnabledForGradleProject(project);
-    Application application = ApplicationManager.getApplication();
-    if (!application.isUnitTestMode()) {
-      application.invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          BuildMode buildMode = Projects.getBuildModeFrom(project);
-          if (buildMode == null) {
-            // This happens when the project is imported and this is the first pass of the 2-pass import. Compile on second pass.
-            Projects.setProjectBuildMode(project, BuildMode.COMPILE_JAVA);
-          }
-          else {
+
+    if (!hasUnresolvedDependenciesRef.get()) {
+      Application application = ApplicationManager.getApplication();
+      if (!application.isUnitTestMode()) {
+        application.invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            BuildMode buildMode = Projects.getBuildModeFrom(project);
+            if (buildMode == null) {
+              Projects.setProjectBuildMode(project, BuildMode.CLEAN_AND_SOURCE_GEN);
+            }
             Projects.build(project);
           }
-        }
-      });
+        });
+      }
     }
   }
 
@@ -132,6 +140,14 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
       model.commit();
     }
     return facet;
+  }
+
+  private static boolean hasUnresolvedDependencies(@NotNull Module module) {
+    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+    if (androidFacet == null || androidFacet.getIdeaAndroidProject() == null) {
+      return false;
+    }
+    return !androidFacet.getIdeaAndroidProject().getDelegate().getUnresolvedDependencies().isEmpty();
   }
 
   @Override

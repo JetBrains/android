@@ -33,6 +33,7 @@ import junit.framework.TestCase;
 import org.gradle.tooling.BuildActionExecuter;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.List;
 
 import static org.easymock.classextension.EasyMock.*;
@@ -94,8 +95,8 @@ public class AndroidGradleProjectResolverTest extends TestCase {
     replay(myBuildActionExecutor, myHelper);
 
     // Code under test.
-    String projectPath = myIdeaProject.getBuildFile().getParentFile().getPath();
-    DataNode<ProjectData> projectInfo = myProjectResolver.resolveProjectInfo(projectPath, myBuildActionExecutor);
+    File projectDir = myIdeaProject.getBuildFile().getParentFile();
+    DataNode<ProjectData> projectInfo = myProjectResolver.resolveProjectInfo(projectDir, myBuildActionExecutor);
 
     // Verify mock expectations.
     verify(myBuildActionExecutor, myHelper);

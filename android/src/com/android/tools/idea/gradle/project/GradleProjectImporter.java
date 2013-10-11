@@ -253,7 +253,12 @@ public class GradleProjectImporter {
               project.save();
             }
             if (newProject) {
-              configureGradleProject(project);
+              // We need to do this because AndroidGradleProjectComponent#projectOpened is being called when the project is created, instead
+              // of when the project is opened. When 'projectOpened' is called, the project is not fully configured, and it does not look
+              // like it is Gradle-based, resulting in listeners (e.g. modules added events) not being registered. Here we force the
+              // listeners to be registered.
+              AndroidGradleProjectComponent projectComponent = ServiceManager.getService(project, AndroidGradleProjectComponent.class);
+              projectComponent.configureGradleProject(false);
             }
             if (callback != null) {
               callback.projectImported(project);
@@ -344,14 +349,6 @@ public class GradleProjectImporter {
         }
       }
     });
-  }
-
-  private static void configureGradleProject(@NotNull Project project) {
-    // We need to do this because AndroidGradleProjectComponent#projectOpened is being called when the project is created, instead of when
-    // the project is opened. When 'projectOpened' is called, the project is not fully configured, and it does not looks like it is
-    // Gradle-based, resulting in listeners (e.g. modules added events) not being registered. Here we force the listeners to be registered.
-    AndroidGradleProjectComponent projectComponent = ServiceManager.getService(project, AndroidGradleProjectComponent.class);
-    projectComponent.configureGradleProject(false);
   }
 
   // Makes it possible to mock invocations to the Gradle Tooling API.

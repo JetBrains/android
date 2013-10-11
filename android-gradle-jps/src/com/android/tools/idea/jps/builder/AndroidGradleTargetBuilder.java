@@ -167,6 +167,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
       BuildMode buildMode = executionSettings.getBuildMode();
       switch (buildMode) {
         case SOURCE_GEN:
+        case CLEAN_AND_SOURCE_GEN:
           assembleTaskName = properties.SOURCE_GEN_TASK_NAME;
           break;
         case COMPILE_JAVA:
