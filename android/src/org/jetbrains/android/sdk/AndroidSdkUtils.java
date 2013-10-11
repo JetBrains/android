@@ -241,7 +241,7 @@ public final class AndroidSdkUtils {
    * @return the created IDEA Android SDK, or {@null} if it was not possible to create it.
    */
   @Nullable
-  public static Sdk createNewAndroidPlatform(@Nullable String sdkPath) {
+  public static Sdk createNewAndroidPlatform(@Nullable String sdkPath, boolean promptUser) {
     Sdk jdk = Jdks.chooseOrCreateJavaSdk();
     if (sdkPath != null && jdk != null) {
       sdkPath = FileUtil.toSystemIndependentName(sdkPath);
@@ -254,7 +254,8 @@ public final class AndroidSdkUtils {
       }
     }
     String jdkPath = jdk == null ? null : jdk.getHomePath();
-    return promptUserForSdkCreation(null, sdkPath, jdkPath);
+
+    return promptUser ? promptUserForSdkCreation(null, sdkPath, jdkPath) : null;
   }
 
   @Nullable

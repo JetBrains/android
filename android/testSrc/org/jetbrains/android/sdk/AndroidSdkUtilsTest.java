@@ -73,7 +73,7 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
   }
 
   public void testCreateNewAndroidPlatformWithPathOfModernSdkOnly() {
-    Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(mySdkPath);
+    Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(mySdkPath, false);
     System.out.println("Creating new android platform from: " + mySdkPath + " -> " + sdk);
     assertNotNull(sdk);
     assertTrue(FileUtil.pathsEqual(mySdkPath, sdk.getHomePath()));
