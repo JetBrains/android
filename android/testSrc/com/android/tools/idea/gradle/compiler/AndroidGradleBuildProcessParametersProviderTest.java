@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.compiler;
 
-import com.android.tools.idea.AndroidSdkTestCaseHelper;
+import com.android.tools.idea.AndroidTestCaseHelper;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.intellij.ide.impl.NewProjectUtil;
@@ -44,7 +44,7 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
     super.setUp();
 
     String[] names = {"JAVA6_HOME", "JAVA_HOME"};
-    String jdkHomePath = AndroidSdkTestCaseHelper.getSystemPropertyOrEnvironmentVariable(names);
+    String jdkHomePath = AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable(names);
     assertNotNull("Please set one of the following env vars (or system properties) to point to the JDK: " + Joiner.on(",").join(names),
                   jdkHomePath);
     myJdk = SdkConfigurationUtil.createAndAddSDK(jdkHomePath, JavaSdk.getInstance());

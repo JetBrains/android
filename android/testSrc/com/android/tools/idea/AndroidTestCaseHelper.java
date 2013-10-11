@@ -20,7 +20,7 @@ import com.google.common.base.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidSdkTestCaseHelper {
+public class AndroidTestCaseHelper {
   @Nullable
   public static String getSystemPropertyOrEnvironmentVariable(String... names) {
     for (String name : names) {
