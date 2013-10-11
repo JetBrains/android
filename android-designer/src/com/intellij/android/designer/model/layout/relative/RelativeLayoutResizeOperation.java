@@ -93,10 +93,10 @@ public class RelativeLayoutResizeOperation implements EditOperation {
     myFeedback.repaint();
 
     // Update the text
-    describeMatch(myResizeHandler.getCurrentLeftMatch(), 0, myResizeHandler.getLeftMargin(), ATTR_LAYOUT_MARGIN_LEFT);
-    describeMatch(myResizeHandler.getCurrentRightMatch(), 1, myResizeHandler.getRightMargin(), ATTR_LAYOUT_MARGIN_RIGHT);
-    describeMatch(myResizeHandler.getCurrentTopMatch(), 2, myResizeHandler.getTopMargin() , ATTR_LAYOUT_MARGIN_TOP);
-    describeMatch(myResizeHandler.getCurrentBottomMatch(), 3, myResizeHandler.getBottomMargin(), ATTR_LAYOUT_MARGIN_BOTTOM);
+    describeMatch(myResizeHandler.getCurrentLeftMatch(), 0, myResizeHandler.getLeftMarginDp(), ATTR_LAYOUT_MARGIN_LEFT);
+    describeMatch(myResizeHandler.getCurrentRightMatch(), 1, myResizeHandler.getRightMarginDp(), ATTR_LAYOUT_MARGIN_RIGHT);
+    describeMatch(myResizeHandler.getCurrentTopMatch(), 2, myResizeHandler.getTopMarginDp() , ATTR_LAYOUT_MARGIN_TOP);
+    describeMatch(myResizeHandler.getCurrentBottomMatch(), 3, myResizeHandler.getBottomMarginDp(), ATTR_LAYOUT_MARGIN_BOTTOM);
 
     // Position the tooltip
     Point location = myContext.getLocation();
@@ -111,7 +111,7 @@ public class RelativeLayoutResizeOperation implements EditOperation {
 
     myTooltip.setVisible(line, true);
     TextFeedback feedback = myTooltip.getFeedback(line);
-    m.describe(myContext.getArea(), feedback, margin, marginAttribute);
+    m.describe(feedback, margin, marginAttribute);
   }
 
   @Override

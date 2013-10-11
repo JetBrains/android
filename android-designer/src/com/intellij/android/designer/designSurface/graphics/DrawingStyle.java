@@ -25,6 +25,7 @@ import java.awt.*;
  * hovers, anchors, etc. Each style may have different colors, line thickness,
  * dashing style, transparency, etc.
  */
+@SuppressWarnings("UseJBColor") // The designer canvas is not using light/dark themes; colors match Android theme rendering
 public class DrawingStyle {
   /** Whether we should show a static grid of all the linear layout insert positions or not
    * (if false, it is shown only during an active drag) */
@@ -215,6 +216,10 @@ public class DrawingStyle {
   /** Style used to edit margin resizing bars */
   public static final DrawingStyle MARGIN_HANDLE = new DrawingStyle(new Color(0x00, 0xAA, 0x00, 192), new Color(0x00, 0xAA, 0x00, 64),
                                                               SOLID_STROKE);
+
+  /** Style used to edit margins bounds */
+  public static final DrawingStyle PADDING_BOUNDS = new DrawingStyle(new Color(0xFF, 0x99, 0x00, 255),
+                                                                     new Color(0xFF, 0x99, 0x00, 160), DASHED_STROKE);
 
   /** Style used to show gravity locations */
   public static final DrawingStyle GRAVITY = new DrawingStyle(new Color(0xFF, 0x00, 0x00, 192), null, THICK_PATTERN_STROKE);

@@ -41,14 +41,13 @@ import static com.android.SdkConstants.VALUE_TRUE;
  * </ul>
  */
 public class DependencyGraph {
-  @NonNls static final String KEY = "DependencyGraph";
+  @NonNls private static final String KEY = "DependencyGraph";
 
   /**
    * Format to chain constraint dependencies: button 1 above button2 etc
    */
   private static final String DEPENDENCY_FORMAT = "%1$s %2$s %3$s"; //$NON-NLS-1$
 
-  private final Map<String, ViewData> myIdToView = new HashMap<String, ViewData>();
   private final Map<RadViewComponent, ViewData> myNodeToView = new HashMap<RadViewComponent, ViewData>();
 
   /**
@@ -93,9 +92,8 @@ public class DependencyGraph {
     }
     ViewData parentView = new ViewData(layout, parentId);
     myNodeToView.put(layout, parentView);
-    if (parentId != null) {
-      myIdToView.put(parentId, parentView);
-    }
+    Map<String, ViewData> idToView = new HashMap<String, ViewData>();
+    idToView.put(parentId, parentView);
 
     for (RadViewComponent child : RadViewComponent.getViewComponents(nodes)) {
       String id = child.getId();
@@ -105,7 +103,7 @@ public class DependencyGraph {
       ViewData view = new ViewData(child, id);
       myNodeToView.put(child, view);
       if (id != null) {
-        myIdToView.put(id, view);
+        idToView.put(id, view);
       }
     }
 
@@ -117,7 +115,7 @@ public class DependencyGraph {
           String value = attribute.getValue();
 
           if (type.targetParent) {
-            if (value.equals(VALUE_TRUE)) {
+            if (VALUE_TRUE.equals(value)) {
               Constraint constraint = new Constraint(type, view, parentView);
               view.dependsOn.add(constraint);
               parentView.dependedOnBy.add(constraint);
@@ -127,7 +125,7 @@ public class DependencyGraph {
             // id-based constraint.
             // NOTE: The id could refer to some widget that is NOT a sibling!
             String targetId = LintUtils.stripIdPrefix(value);
-            ViewData target = myIdToView.get(targetId);
+            ViewData target = idToView.get(targetId);
             if (target == view) {
               // Self-reference. RelativeLayout ignores these so it's
               // not an error like a deeper cycle (where RelativeLayout
@@ -282,12 +280,12 @@ public class DependencyGraph {
    * is a node in the dependency graph.
    */
   static class ViewData {
-    public final RadViewComponent node;
-    public final String id;
-    public final List<Constraint> dependsOn = new ArrayList<Constraint>(4);
-    public final List<Constraint> dependedOnBy = new ArrayList<Constraint>(8);
+    @NotNull public final RadViewComponent node;
+    @Nullable public final String id;
+    @NotNull public final List<Constraint> dependsOn = new ArrayList<Constraint>(4);
+    @NotNull public final List<Constraint> dependedOnBy = new ArrayList<Constraint>(8);
 
-    ViewData(RadViewComponent node, String id) {
+    ViewData(@NotNull RadViewComponent node, @Nullable String id) {
       this.node = node;
       this.id = id;
     }
@@ -298,7 +296,7 @@ public class DependencyGraph {
    * an edge in the dependency graph.
    */
   static class Constraint {
-    public final ConstraintType type;
+    @NotNull public final ConstraintType type;
     public final ViewData from;
     public final ViewData to;
 
@@ -307,13 +305,13 @@ public class DependencyGraph {
     // are closer to a parent edge:
     //public int depth;
 
-    Constraint(ConstraintType type, ViewData from, ViewData to) {
+    Constraint(@NotNull ConstraintType type, @NotNull ViewData from, @NotNull ViewData to) {
       this.type = type;
       this.from = from;
       this.to = to;
     }
 
-    static String describePath(List<Constraint> path, String newName, String newId) {
+    static String describePath(@NotNull List<Constraint> path, @Nullable String newName, @Nullable String newId) {
       String s = "";
       for (int i = path.size() - 1; i >= 0; i--) {
         Constraint constraint = path.get(i);
@@ -322,7 +320,7 @@ public class DependencyGraph {
       }
 
       if (newName != null) {
-        s = String.format(DEPENDENCY_FORMAT, s, stripLayoutAttributePrefix(newName), LintUtils.stripIdPrefix(newId));
+        s = String.format(DEPENDENCY_FORMAT, s, stripLayoutAttributePrefix(newName), newId != null ? LintUtils.stripIdPrefix(newId) : "?");
       }
 
       return s;

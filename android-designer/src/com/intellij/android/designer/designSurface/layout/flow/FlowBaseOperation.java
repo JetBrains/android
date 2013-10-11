@@ -20,7 +20,7 @@ import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.designSurface.graphics.LineInsertFeedback;
 import com.intellij.android.designer.designSurface.graphics.RectangleFeedback;
 import com.intellij.android.designer.designSurface.layout.AbstractFlowBaseOperation;
-import com.intellij.android.designer.model.Margins;
+import com.intellij.android.designer.model.Insets;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.designer.designSurface.FeedbackLayer;
 import com.intellij.designer.designSurface.OperationContext;
@@ -41,7 +41,7 @@ public class FlowBaseOperation extends AbstractFlowBaseOperation {
   protected Rectangle getBounds(RadComponent component, FeedbackLayer layer) {
     Rectangle bounds = component.getBounds(layer);
 
-    Margins margins = ((RadViewComponent)component).getMargins(layer);
+    Insets margins = ((RadViewComponent)component).getMargins(layer);
 
     if (margins.isEmpty()) {
       return bounds;

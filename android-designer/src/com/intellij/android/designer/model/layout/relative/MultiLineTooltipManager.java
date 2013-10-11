@@ -23,8 +23,8 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 
 /**
- * The {@link com.intellij.designer.designSurface.feedbacks.TextFeedback} class does not support multiline text, so we
- * have to manage multiple {@link com.intellij.designer.designSurface.feedbacks.TextFeedback} objects, one for each line.
+ * The {@link com.intellij.designer.designSurface.feedbacks.AbstractTextFeedback} class does not support multiline text, so we
+ * have to manage multiple {@link com.intellij.designer.designSurface.feedbacks.AbstractTextFeedback} objects, one for each line.
  */
 public class MultiLineTooltipManager {
   /** Horizontal delta from the mouse cursor to shift the tooltip by */

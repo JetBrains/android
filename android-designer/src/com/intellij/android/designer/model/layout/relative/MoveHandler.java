@@ -79,7 +79,7 @@ public class MoveHandler extends GuidelineHandler {
           boolean addHorizontal = !myHorizontalDeps.contains(child);
           boolean addVertical = !myVerticalDeps.contains(child);
 
-          addBounds(child, id, addHorizontal, addVertical);
+          addBounds(child, id, addHorizontal, addVertical, false /*includePadding*/);
           if (addHorizontal) {
             addBaseLine(child, id);
           }
@@ -88,7 +88,7 @@ public class MoveHandler extends GuidelineHandler {
     }
 
     String id = layout.getId();
-    addBounds(layout, id, true, true);
+    addBounds(layout, id, true, true, true /*includePadding*/);
     addCenter(layout, id);
   }
 
@@ -164,15 +164,13 @@ public class MoveHandler extends GuidelineHandler {
   /**
    * Updates the handler for the given mouse move
    *
-   * @param components   the components being dragged
    * @param primary      the primary element being dragged
    * @param newBounds    the new bounds of the primary
    * @param modifierMask the keyboard modifiers pressed during the drag
    */
-  public void updateMove(List<RadViewComponent> components, RadViewComponent primary, Rectangle newBounds,
-                         int modifierMask) {
+  public void updateMove(RadViewComponent primary, Rectangle newBounds, int modifierMask) {
     clearSuggestions();
-    //mySnap = (modifierMask & InputEvent.SHIFT_MASK) == 0;
+    mySnap = (modifierMask & InputEvent.SHIFT_MASK) == 0;
     myBounds = new Rectangle(newBounds);
 
     Rectangle b = myBounds;

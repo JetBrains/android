@@ -69,7 +69,7 @@ public enum SegmentType {
    * @param bounds the bounds of the node
    * @return the X coordinate for an edge of this type given its bounds
    */
-  public int getX(@Nullable RadViewComponent node, @NotNull Rectangle bounds) {
+  public int getX(@SuppressWarnings("UnusedParameters") @Nullable RadViewComponent node, @NotNull Rectangle bounds) {
     // We pass in the bounds rather than look it up via node.getBounds() because
     // during a resize or move operation, we call this method to look up proposed
     // bounds rather than actual bounds

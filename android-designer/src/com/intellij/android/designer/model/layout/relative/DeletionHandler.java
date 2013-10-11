@@ -92,6 +92,9 @@ public class DeletionHandler {
         ANDROID_URI.equals(attribute.getNamespace()) &&
         !attribute.getLocalName().startsWith(ATTR_LAYOUT_MARGIN)) {
       String id = attribute.getValue();
+      if (id == null) {
+        return null;
+      }
       // It might not be an id reference, so check manually rather than just
       // calling stripIdPrefix():
       if (id.startsWith(NEW_ID_PREFIX)) {
