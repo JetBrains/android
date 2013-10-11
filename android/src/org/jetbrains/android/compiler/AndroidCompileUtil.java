@@ -457,7 +457,7 @@ public class AndroidCompileUtil {
     if (context == null) {
       return false;
     }
-    generate(facet, mode, context);
+    generate(facet, mode, context, false);
     return context.getMessages(CompilerMessageCategory.ERROR).length == 0;
   }
 
@@ -467,11 +467,12 @@ public class AndroidCompileUtil {
 
   public static void generate(AndroidFacet facet,
                               AndroidAutogeneratorMode mode,
-                              final CompileContext context) {
+                              final CompileContext context,
+                              boolean force) {
     if (context == null) {
       return;
     }
-    AndroidAutogenerator.run(mode, facet, context);
+    AndroidAutogenerator.run(mode, facet, context, force);
   }
 
   // must be invoked in a read action!
