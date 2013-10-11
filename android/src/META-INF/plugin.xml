@@ -104,7 +104,7 @@
       <add-to-group group-id="RefactoringMenu"/>
     </action>
     <action id="Android.TraceViewSearch" class="com.android.tools.idea.editors.vmtrace.VmTraceEditorSearchAction" use-shortcut-of="Find" />
-    <action id="Android.GenerateSourcesAction" class="org.jetbrains.android.actions.AndroidRegenerateRJavaFileAction">
+    <action id="Android.GenerateSourcesAction" class="org.jetbrains.android.actions.AndroidRegenerateSourcesAction">
       <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
     </action>
   </actions>
