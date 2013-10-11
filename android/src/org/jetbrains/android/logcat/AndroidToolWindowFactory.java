@@ -66,7 +66,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
 
   @NonNls private static final String DEVICE_PANEL_CONTENT = "DevicePanelContent";
   @NonNls private static final String ADBLOGS_CONTENT_ID = "AdbLogsContent";
-  private static final Key<DevicePanel> DEVICES_PANEL_KEY = Key.create("DevicePanel");
+  public static final Key<DevicePanel> DEVICES_PANEL_KEY = Key.create("DevicePanel");
 
   @Override
   public void createToolWindowContent(final Project project, final ToolWindow toolWindow) {
@@ -105,10 +105,10 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     final ContentManager contentManager = toolWindow.getContentManager();
     Content c = contentManager.getFactory().createContent(layoutUi.getComponent(), "DDMS", true);
 
-    // Store a reference to the logcat view, so that this view can be retrieved directly from
-    // the DDMS tool window. (e.g. to clear logcat before a launch)
-    // add possibility to access logcat view externally in the future
+    // Store references to the logcat & device panel views, so that these views can be retrieved directly from
+    // the DDMS tool window. (e.g. to clear logcat before a launch, select a particular device, etc)
     c.putUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY, logcatView);
+    c.putUserData(DEVICES_PANEL_KEY, devicePanel);
 
     contentManager.addContent(c);
 

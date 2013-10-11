@@ -28,7 +28,6 @@ import com.android.utils.Pair;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -37,7 +36,10 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.*;
+import com.intellij.ui.ColoredListCellRenderer;
+import com.intellij.ui.ListSpeedSearch;
+import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.SortedListModel;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
@@ -58,7 +60,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class DevicePanel implements Disposable,
                                     AndroidDebugBridge.IClientChangeListener,
@@ -139,6 +140,10 @@ public class DevicePanel implements Disposable,
       }
     }
     myDevicesComboBox.setSelectedIndex(0);
+  }
+
+  public void selectDevice(@NotNull final IDevice device) {
+    myDevicesComboBox.setSelectedItem(device);
   }
 
   private void initializeClientsList() {

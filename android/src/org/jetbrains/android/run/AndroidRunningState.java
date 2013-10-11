@@ -23,6 +23,7 @@ import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.tools.idea.ddms.DevicePanel;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.CommonBundle;
 import com.intellij.execution.DefaultExecutionResult;
@@ -838,7 +839,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     myOpenLogcatAutomatically = openLogcatAutomatically;
   }
 
-  private boolean doPrepareAndStart(IDevice device) {
+  private boolean doPrepareAndStart(final IDevice device) {
     if (myClearLogcatBeforeStart) {
       clearLogcatAndConsole(getModule().getProject(), device);
     }
@@ -903,7 +904,22 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
           public void run() {
             final ToolWindow androidToolWindow = ToolWindowManager.getInstance(myEnv.getProject()).
               getToolWindow(AndroidToolWindowFactory.TOOL_WINDOW_ID);
-            androidToolWindow.activate(null, false);
+
+            // Activate the tool window, and once activated, make sure the right device is selected
+            androidToolWindow.activate(new Runnable() {
+              @Override
+              public void run() {
+                int count = androidToolWindow.getContentManager().getContentCount();
+                for (int i = 0; i < count; i++) {
+                  Content content = androidToolWindow.getContentManager().getContent(i);
+                  DevicePanel devicePanel = content.getUserData(AndroidToolWindowFactory.DEVICES_PANEL_KEY);
+                  if (devicePanel != null) {
+                    devicePanel.selectDevice(device);
+                    break;
+                  }
+                }
+              }
+            }, false);
           }
         });
       }
