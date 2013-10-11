@@ -59,6 +59,9 @@ public class AndroidAutogenerator {
       // Don't generate anything if a module has an Android-Gradle facet.
       return false;
     }
+    if (!facet.getProperties().ENABLE_SOURCES_AUTOGENERATION) {
+      return false;
+    }
     switch (mode) {
       case AAPT:
         return AndroidAptCompiler.isToCompileModule(facet.getModule(), facet.getConfiguration());
