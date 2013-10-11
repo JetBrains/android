@@ -23,6 +23,7 @@ import com.intellij.designer.model.RadComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
@@ -52,6 +53,7 @@ public class RadRelativeLayoutComponent extends RadViewContainer implements ICom
     DependencyGraph.refresh(this);
   }
 
+  @Nullable
   public static String parseIdValue(String idValue) {
     if (!StringUtil.isEmpty(idValue)) {
       if (idValue.startsWith("@android:id/")) {

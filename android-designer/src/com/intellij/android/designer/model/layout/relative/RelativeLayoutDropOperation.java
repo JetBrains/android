@@ -80,14 +80,14 @@ public class RelativeLayoutDropOperation extends AbstractEditOperation {
       newBounds.y = location.y - newBounds.height / 2;
     }
 
-    myMoveHandler.updateMove(viewComponents, myPrimary, newBounds, myContext.getModifiers());
+    myMoveHandler.updateMove(myPrimary, newBounds, myContext.getModifiers());
     myFeedback.repaint();
 
     // Update the text
-    describeMatch(myMoveHandler.getCurrentLeftMatch(), 0, myMoveHandler.getLeftMargin(), ATTR_LAYOUT_MARGIN_LEFT);
-    describeMatch(myMoveHandler.getCurrentRightMatch(), 1, myMoveHandler.getRightMargin(), ATTR_LAYOUT_MARGIN_RIGHT);
-    describeMatch(myMoveHandler.getCurrentTopMatch(), 2, myMoveHandler.getTopMargin(), ATTR_LAYOUT_MARGIN_TOP);
-    describeMatch(myMoveHandler.getCurrentBottomMatch(), 3, myMoveHandler.getBottomMargin(), ATTR_LAYOUT_MARGIN_BOTTOM);
+    describeMatch(myMoveHandler.getCurrentLeftMatch(), 0, myMoveHandler.getLeftMarginDp(), ATTR_LAYOUT_MARGIN_LEFT);
+    describeMatch(myMoveHandler.getCurrentRightMatch(), 1, myMoveHandler.getRightMarginDp(), ATTR_LAYOUT_MARGIN_RIGHT);
+    describeMatch(myMoveHandler.getCurrentTopMatch(), 2, myMoveHandler.getTopMarginDp(), ATTR_LAYOUT_MARGIN_TOP);
+    describeMatch(myMoveHandler.getCurrentBottomMatch(), 3, myMoveHandler.getBottomMarginDp(), ATTR_LAYOUT_MARGIN_BOTTOM);
 
     // Position the tooltip
     Point location = myContext.getLocation();
@@ -102,7 +102,7 @@ public class RelativeLayoutDropOperation extends AbstractEditOperation {
 
     myTooltip.setVisible(line, true);
     TextFeedback feedback = myTooltip.getFeedback(line);
-    m.describe(myContext.getArea(), feedback, margin, marginAttribute);
+    m.describe(feedback, margin, marginAttribute);
   }
 
   @Override

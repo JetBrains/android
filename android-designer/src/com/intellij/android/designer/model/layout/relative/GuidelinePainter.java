@@ -17,6 +17,7 @@ package com.intellij.android.designer.model.layout.relative;
 
 import com.intellij.android.designer.designSurface.RootView;
 import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;
+import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.designer.model.RadComponent;
 import org.jetbrains.annotations.NotNull;
@@ -77,6 +78,14 @@ public final class GuidelinePainter extends JComponent {
         Rectangle bounds = n.getBounds(g.getTarget());
         g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
       }
+    }
+
+    // If the layout has padding applied, draw the padding bounds to make it obvious what the boundaries are
+    if (!myState.layout.getPadding().isEmpty() || !myState.layout.getMargins().isEmpty()) {
+      g.useStyle(DrawingStyle.PADDING_BOUNDS);
+      JComponent target = myState.myContext.getArea().getFeedbackLayer();
+      Rectangle bounds = myState.layout.getPaddedBounds(target);
+      g.drawRect(bounds.x, bounds.y, bounds.width, bounds.height);
     }
 
     if (myState.myBounds != null) {
@@ -145,7 +154,7 @@ public final class GuidelinePainter extends JComponent {
     if (m == null) {
       return;
     }
-    ConstraintPainter.paintConstraint(g, state.myBounds, m);
+    ConstraintPainter.paintConstraint(g, state, m);
   }
 
   private static Point center(Rectangle rectangle) {

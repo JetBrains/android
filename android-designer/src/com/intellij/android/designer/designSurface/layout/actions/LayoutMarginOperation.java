@@ -18,7 +18,7 @@ package com.intellij.android.designer.designSurface.layout.actions;
 import com.android.SdkConstants;
 import com.intellij.android.designer.AndroidDesignerUtils;
 import com.intellij.android.designer.designSurface.graphics.*;
-import com.intellij.android.designer.model.Margins;
+import com.intellij.android.designer.model.Insets;
 import com.intellij.android.designer.designSurface.feedbacks.TextFeedback;
 import com.intellij.android.designer.model.ModelParser;
 import com.intellij.android.designer.model.RadViewComponent;
@@ -50,7 +50,7 @@ public class LayoutMarginOperation implements EditOperation {
   protected RectangleFeedback myFeedback;
   protected TextFeedback myTextFeedback;
   private Rectangle myBounds; // in screen coordinates
-  protected Margins myMargins; // in model coordinates
+  protected Insets myMargins; // in model coordinates
 
   public LayoutMarginOperation(OperationContext context) {
     myContext = context;
@@ -88,7 +88,7 @@ public class LayoutMarginOperation implements EditOperation {
 
     Rectangle bounds = myContext.getTransformedRectangle(myBounds);
     FeedbackLayer layer = myContext.getArea().getFeedbackLayer();
-    applyMargins(bounds, myComponent.getMargins(layer));
+    myComponent.getMargins(layer).subtractFrom(bounds);
     myFeedback.setBounds(bounds);
 
     myTextFeedback.clear();
@@ -224,9 +224,9 @@ public class LayoutMarginOperation implements EditOperation {
       @Override
       protected void paint(DecorationLayer layer, Graphics2D g, RadComponent component) {
         Rectangle bounds = component.getBounds(layer);
-        Margins margins = ((RadViewComponent)component).getMargins(layer);
+        Insets margins = ((RadViewComponent)component).getMargins(layer);
         if (!margins.isEmpty()) {
-          applyMargins(bounds, margins);
+          margins.subtractFrom(bounds);
           DesignerGraphics.drawRect(DrawingStyle.MARGIN_BOUNDS, g, bounds.x, bounds.y, bounds.width, bounds.height);
         }
       }
@@ -263,20 +263,5 @@ public class LayoutMarginOperation implements EditOperation {
         return location;
       }
     }.move(xSeparator, 1));
-  }
-
-  private static void applyMargins(Rectangle bounds, Margins margins) {
-    if (margins.isEmpty()) {
-      return;
-    }
-
-    bounds.x -= margins.left;
-    bounds.width += margins.left;
-
-    bounds.y -= margins.top;
-    bounds.height += margins.top;
-
-    bounds.width += margins.right;
-    bounds.height += margins.bottom;
   }
 }

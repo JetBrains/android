@@ -16,7 +16,7 @@
 package com.intellij.android.designer.model.layout.relative;
 
 import com.intellij.android.designer.AndroidDesignerUtils;
-import com.intellij.android.designer.model.Margins;
+import com.intellij.android.designer.model.Insets;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.designer.designSurface.OperationContext;
 import com.intellij.psi.xml.XmlAttribute;
@@ -256,10 +256,12 @@ public class GuidelineHandler {
 
   private boolean checkCycle(Match match, boolean vertical) {
     if (match != null && match.cycle) {
-      for (RadViewComponent node : myDraggedNodes) {
+      for (RadViewComponent to : myDraggedNodes) {
         RadViewComponent from = match.edge.node;
-        assert match.with.node == null || match.with.node == node;
-        RadViewComponent to = node;
+        if (from == null) {
+          continue;
+        }
+        assert match.with.node == null || match.with.node == to;
         List<Constraint> path = myDependencyGraph.getPathTo(from, to, vertical);
         if (path != null) {
           if (vertical) {
@@ -302,24 +304,28 @@ public class GuidelineHandler {
   /**
    * Records the matchable outside edges for the given node to the potential match list
    */
-  protected void addBounds(RadViewComponent node, String id, boolean addHorizontal, boolean addVertical) {
+  protected void addBounds(RadViewComponent node, String id, boolean addHorizontal, boolean addVertical, boolean includePadding) {
     JComponent target = myContext.getArea().getFeedbackLayer();
     Rectangle b = node.getBounds(target);
-    Margins margins = node.getMargins(target);
+    Insets margins = node.getMargins(target);
+    Insets padding = includePadding ? node.getPadding(target) : Insets.NONE;
+
     if (addHorizontal) {
       if (margins.top != 0) {
         myHorizontalEdges.add(new Segment(b.y, b.x, x2(b), node, id, SegmentType.TOP, MarginType.WITHOUT_MARGIN));
         myHorizontalEdges.add(new Segment(b.y - margins.top, b.x, x2(b), node, id, SegmentType.TOP, MarginType.WITH_MARGIN));
       }
       else {
-        myHorizontalEdges.add(new Segment(b.y, b.x, x2(b), node, id, SegmentType.TOP, MarginType.NO_MARGIN));
+        myHorizontalEdges.add(new Segment(b.y + padding.top, b.x + padding.left, x2(b) - padding.right,
+                                          node, id, SegmentType.TOP, MarginType.NO_MARGIN));
       }
       if (margins.bottom != 0) {
         myHorizontalEdges.add(new Segment(y2(b), b.x, x2(b), node, id, SegmentType.BOTTOM, MarginType.WITHOUT_MARGIN));
         myHorizontalEdges.add(new Segment(y2(b) + margins.bottom, b.x, x2(b), node, id, SegmentType.BOTTOM, MarginType.WITH_MARGIN));
       }
       else {
-        myHorizontalEdges.add(new Segment(y2(b), b.x, x2(b), node, id, SegmentType.BOTTOM, MarginType.NO_MARGIN));
+        myHorizontalEdges.add(new Segment(y2(b) - padding.bottom, b.x + padding.left, x2(b) - padding.right,
+                                          node, id, SegmentType.BOTTOM, MarginType.NO_MARGIN));
       }
     }
     if (addVertical) {
@@ -328,7 +334,8 @@ public class GuidelineHandler {
         myVerticalEdges.add(new Segment(b.x - margins.left, b.y, y2(b), node, id, SegmentType.LEFT, MarginType.WITH_MARGIN));
       }
       else {
-        myVerticalEdges.add(new Segment(b.x, b.y, y2(b), node, id, SegmentType.LEFT, MarginType.NO_MARGIN));
+        myVerticalEdges.add(new Segment(b.x + padding.left, b.y + padding.top, y2(b) - padding.bottom,
+                                        node, id, SegmentType.LEFT, MarginType.NO_MARGIN));
       }
 
       if (margins.right != 0) {
@@ -336,7 +343,8 @@ public class GuidelineHandler {
         myVerticalEdges.add(new Segment(x2(b) + margins.right, b.y, y2(b), node, id, SegmentType.RIGHT, MarginType.WITH_MARGIN));
       }
       else {
-        myVerticalEdges.add(new Segment(x2(b), b.y, y2(b), node, id, SegmentType.RIGHT, MarginType.NO_MARGIN));
+        myVerticalEdges.add(new Segment(x2(b) - padding.right, b.y + padding.top, y2(b) - padding.bottom,
+                                        node, id, SegmentType.RIGHT, MarginType.NO_MARGIN));
       }
     }
   }
@@ -494,7 +502,7 @@ public class GuidelineHandler {
   public void applyConstraints(RadViewComponent n) {
     // Process each edge separately
     XmlAttribute centerBoth = n.getTag().getAttribute(ATTR_LAYOUT_CENTER_IN_PARENT, ANDROID_URI);
-    if (centerBoth != null && centerBoth.getValue().equals(VALUE_TRUE)) {
+    if (centerBoth != null && VALUE_TRUE.equals(centerBoth.getValue())) {
       centerBoth.delete();
 
       // If you had a center-in-both-directions attribute, and you're
@@ -568,16 +576,16 @@ public class GuidelineHandler {
     }
 
     if (myMoveLeft) {
-      applyMargin(n, ATTR_LAYOUT_MARGIN_LEFT, myLeftMargin);
+      applyMargin(n, ATTR_LAYOUT_MARGIN_LEFT, getLeftMarginDp());
     }
     if (myMoveRight) {
-      applyMargin(n, ATTR_LAYOUT_MARGIN_RIGHT, myRightMargin);
+      applyMargin(n, ATTR_LAYOUT_MARGIN_RIGHT, getRightMarginDp());
     }
     if (myMoveTop) {
-      applyMargin(n, ATTR_LAYOUT_MARGIN_TOP, myTopMargin);
+      applyMargin(n, ATTR_LAYOUT_MARGIN_TOP, getTopMarginDp());
     }
     if (myMoveBottom) {
-      applyMargin(n, ATTR_LAYOUT_MARGIN_BOTTOM, myBottomMargin);
+      applyMargin(n, ATTR_LAYOUT_MARGIN_BOTTOM, getBottomMarginDp());
     }
   }
 
@@ -595,10 +603,9 @@ public class GuidelineHandler {
     n.getTag().setAttribute(name, ANDROID_URI, value);
   }
 
-  private void applyMargin(RadViewComponent n, String marginAttribute, int margin) {
-    if (margin > 0) {
-      int dp = AndroidDesignerUtils.pxToDp(myContext.getArea(), margin);
-      n.getTag().setAttribute(marginAttribute, ANDROID_URI, String.format(VALUE_N_DP, dp));
+  private static void applyMargin(RadViewComponent n, String marginAttribute, int marginDp) {
+    if (marginDp > 0) {
+      n.getTag().setAttribute(marginAttribute, ANDROID_URI, String.format(VALUE_N_DP, marginDp));
     }
     else {
       // Clear out existing margin
@@ -651,11 +658,11 @@ public class GuidelineHandler {
       // Apply same top/bottom constraints as the parent
       if (myCurrentTopMatch != null) {
         applyConstraint(node, myCurrentTopMatch.getConstraint(true));
-        applyMargin(node, ATTR_LAYOUT_MARGIN_TOP, myTopMargin);
+        applyMargin(node, ATTR_LAYOUT_MARGIN_TOP, getTopMarginDp());
       }
       else if (myCurrentBottomMatch != null) {
         applyConstraint(node, myCurrentBottomMatch.getConstraint(true));
-        applyMargin(node, ATTR_LAYOUT_MARGIN_BOTTOM, myBottomMargin);
+        applyMargin(node, ATTR_LAYOUT_MARGIN_BOTTOM, getBottomMarginDp());
       }
     }
   }
@@ -721,28 +728,52 @@ public class GuidelineHandler {
   /**
    * The amount of margin to add to the left edge, or 0
    */
-  public int getLeftMargin() {
+  public int getLeftMarginDp() {
+    if (myLeftMargin != 0) {
+      JComponent target = myContext.getArea().getFeedbackLayer();
+      int dpi = AndroidDesignerUtils.getDpi(myContext.getArea());
+      return layout.toModelDp(dpi, target, new Dimension(myLeftMargin, 0)).width;
+    }
+
     return myLeftMargin;
   }
 
   /**
    * The amount of margin to add to the right edge, or 0
    */
-  public int getRightMargin() {
+  public int getRightMarginDp() {
+    if (myRightMargin != 0) {
+      JComponent target = myContext.getArea().getFeedbackLayer();
+      int dpi = AndroidDesignerUtils.getDpi(myContext.getArea());
+      return layout.toModelDp(dpi, target, new Dimension(myRightMargin, 0)).width;
+    }
+
     return myRightMargin;
   }
 
   /**
    * The amount of margin to add to the top edge, or 0
    */
-  public int getTopMargin() {
+  public int getTopMarginDp() {
+    if (myTopMargin != 0) {
+      JComponent target = myContext.getArea().getFeedbackLayer();
+      int dpi = AndroidDesignerUtils.getDpi(myContext.getArea());
+      return layout.toModelDp(dpi, target, new Dimension(0, myTopMargin)).height;
+    }
+
     return myTopMargin;
   }
 
   /**
    * The amount of margin to add to the bottom edge, or 0
    */
-  public int getBottomMargin() {
+  public int getBottomMarginDp() {
+    if (myBottomMargin != 0) {
+      JComponent target = myContext.getArea().getFeedbackLayer();
+      int dpi = AndroidDesignerUtils.getDpi(myContext.getArea());
+      return layout.toModelDp(dpi, target, new Dimension(0, myBottomMargin)).height;
+    }
+
     return myBottomMargin;
   }
 

@@ -17,43 +17,41 @@ package com.intellij.android.designer.model;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
+
 /**
- * Set of margins - distances to outer left, top, right and bottom edges. These objects
- * can be used for both actual <b>margins</b> as well as insets - and in general any
+ * Set of insets - distances to outer left, top, right and bottom edges. These objects
+ * can be used for both actual <b>margins</b> and <b>padding</b> -- and in general any
  * deltas to the bounds of a rectangle.
  */
-public class Margins {
+public class Insets {
+  public static final Insets NONE = new Insets(0, 0, 0, 0);
   /**
    * The left margin
    */
   public final int left;
-
   /**
    * The top margin
    */
   public final int top;
-
   /**
    * The right margin
    */
   public final int right;
-
   /**
    * The bottom margin
    */
   public final int bottom;
 
-  public static final Margins NONE = new Margins(0, 0, 0, 0);
-
   /**
-   * Creates a new {@link Margins} instance.
+   * Creates a new {@link Insets} instance.
    *
    * @param left   the left side margin
    * @param top    the top margin
    * @param right  the right side margin
    * @param bottom the bottom margin
    */
-  public Margins(int left, int top, int right, int bottom) {
+  public Insets(int left, int top, int right, int bottom) {
     this.left = left;
     this.right = right;
     this.top = top;
@@ -66,7 +64,53 @@ public class Margins {
    * @return true if empty
    */
   public boolean isEmpty() {
-    return left == 0 && top == 0 && right == 0 && bottom == 0;
+    return this == NONE || (left == 0 && top == 0 && right == 0 && bottom == 0);
+  }
+
+  /**
+   * Applies these insets to the given bounds rectangle by subtracting them. For example, for a view that has margins,
+   * you can subtract the margins to the bounds to find out the real bounds prior to the margins being applied.
+   *
+   * @param bounds the rectangle the be modified
+   * @return true if the rectangle was modified
+   */
+  public boolean subtractFrom(Rectangle bounds) {
+    if (isEmpty()) {
+      return false;
+    }
+
+    bounds.x -= left;
+    bounds.width += left;
+
+    bounds.y -= top;
+    bounds.height += top;
+
+    bounds.width += right;
+    bounds.height += bottom;
+    return true;
+  }
+
+  /**
+   * Applies these insets to the given bounds rectangle by adding them. For example, for a view that has padding,
+   * you can add the padding to the bounds to find out the bounds of the child content.
+   *
+   * @param bounds the rectangle the be modified
+   * @return true if the rectangle was modified
+   */
+  public boolean addTo(Rectangle bounds) {
+    if (isEmpty()) {
+      return false;
+    }
+
+    bounds.x += left;
+    bounds.width -= left;
+
+    bounds.y += top;
+    bounds.height -= top;
+
+    bounds.width -= right;
+    bounds.height -= bottom;
+    return true;
   }
 
   @NotNull
@@ -80,12 +124,12 @@ public class Margins {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    Margins margins = (Margins)o;
+    Insets insets = (Insets)o;
 
-    if (bottom != margins.bottom) return false;
-    if (left != margins.left) return false;
-    if (right != margins.right) return false;
-    if (top != margins.top) return false;
+    if (bottom != insets.bottom) return false;
+    if (left != insets.left) return false;
+    if (right != insets.right) return false;
+    if (top != insets.top) return false;
 
     return true;
   }
