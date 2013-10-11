@@ -15,9 +15,7 @@
  */
 package com.intellij.android.designer.model.layout.relative;
 
-import com.intellij.android.designer.AndroidDesignerUtils;
 import com.intellij.android.designer.designSurface.feedbacks.TextFeedback;
-import com.intellij.designer.designSurface.EditableArea;
 import com.intellij.ui.SimpleTextAttributes;
 
 import java.awt.*;
@@ -104,18 +102,18 @@ class Match {
   }
 
   /** Style to use when describing component names */
+  @SuppressWarnings("UseJBColor") // The designer canvas is not using light/dark themes; colors match Android theme rendering
   private static final SimpleTextAttributes SNAP_ATTRIBUTES = new SimpleTextAttributes(SimpleTextAttributes.STYLE_BOLD,
                                                                                        new Color(60, 139, 186));
 
   /**
    * Describes this match in the given {@link TextFeedback}
    *
-   * @param area            the associated editing area
    * @param feedback        the feedback to write the description into
    * @param margin          the number of pixels to use as a margin
    * @param marginAttribute the name of the applicable margin attribute
    */
-  public void describe(EditableArea area, TextFeedback feedback, int margin, String marginAttribute) {
+  public void describe(TextFeedback feedback, int margin, String marginAttribute) {
     // Display the constraint. Remove the @id/ and @+id/ prefixes to make the text
     // shorter and easier to read. This doesn't use stripPrefix() because the id is
     // usually not a prefix of the value (for example, 'layout_alignBottom=@+id/foo').
@@ -131,8 +129,7 @@ class Match {
     }
     feedback.append(description, SNAP_ATTRIBUTES);
     if (margin > 0) {
-      int dp = AndroidDesignerUtils.pxToDp(area, margin);
-      feedback.append(String.format(", margin=%1$d dp", dp));
+      feedback.append(String.format(", margin=%1$d dp", margin));
     }
   }
 }

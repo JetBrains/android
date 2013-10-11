@@ -16,8 +16,9 @@
 package com.intellij.android.designer.model.layout.relative;
 
 import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;
-import com.intellij.android.designer.model.Margins;
+import com.intellij.android.designer.model.Insets;
 import com.intellij.android.designer.model.RadViewComponent;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -47,14 +48,20 @@ public class ConstraintPainter {
    * Paints a given match as a constraint.
    *
    * @param graphics     the graphics context
-   * @param sourceBounds the source bounds
+   * @param state        the handler state
    * @param match        the match
    */
-  static void paintConstraint(DesignerGraphics graphics, Rectangle sourceBounds, Match match) {
-    Rectangle targetBounds = match.edge.node.getBounds(graphics.getTarget());
+  static void paintConstraint(DesignerGraphics graphics, GuidelineHandler state, Match match) {
+    RadViewComponent node = match.edge.node;
+    if (node == null) {
+      return;
+    }
+    JComponent layer = graphics.getTarget();
+    Rectangle targetBounds = node == state.layout ? node.getPaddedBounds(layer) : node.getBounds(layer);
     ConstraintType type = match.type;
     assert type != null;
-    paintConstraint(graphics, type, match.with.node, sourceBounds, match.edge.node, targetBounds, null /* allConstraints */,
+    Rectangle sourceBounds = state.myBounds;
+    paintConstraint(graphics, type, node, sourceBounds, node, targetBounds, null /* allConstraints */,
                     true /* highlightTargetEdge */);
   }
 
@@ -171,7 +178,7 @@ public class ConstraintPainter {
                                       Rectangle sourceBounds,
                                       RadViewComponent targetNode,
                                       Rectangle targetBounds,
-                                      Set<DependencyGraph.Constraint> allConstraints,
+                                      @Nullable Set<DependencyGraph.Constraint> allConstraints,
                                       boolean highlightTargetEdge) {
 
     SegmentType sourceSegmentTypeX = type.sourceSegmentTypeX;
@@ -382,7 +389,7 @@ public class ConstraintPainter {
     SegmentType sourceSegmentTypeY = type.sourceSegmentTypeY;
     SegmentType targetSegmentTypeY = type.targetSegmentTypeY;
     JComponent targetComponent = graphics.getTarget();
-    Margins targetMargins = targetNode.getMargins(targetComponent);
+    Insets targetMargins = targetNode.getMargins(targetComponent);
 
     assert sourceSegmentTypeY != SegmentType.UNKNOWN;
     assert targetBounds != null;
@@ -623,7 +630,7 @@ public class ConstraintPainter {
     SegmentType sourceSegmentTypeX = type.sourceSegmentTypeX;
     SegmentType targetSegmentTypeX = type.targetSegmentTypeX;
     JComponent targetComponent = graphics.getTarget();
-    Margins targetMargins = targetNode.getMargins(targetComponent);
+    Insets targetMargins = targetNode.getMargins(targetComponent);
 
     assert sourceSegmentTypeX != SegmentType.UNKNOWN;
     assert targetBounds != null;

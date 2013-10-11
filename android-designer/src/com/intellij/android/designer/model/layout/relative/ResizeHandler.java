@@ -23,7 +23,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
 import java.util.Collections;
 import java.util.Set;
 
@@ -90,11 +89,11 @@ public class ResizeHandler extends GuidelineHandler {
       if (child != resized && child instanceof RadViewComponent) {
         RadViewComponent view = (RadViewComponent)child;
         String id = view.getId();
-        addBounds(view, id, !myHorizontalDeps.contains(view), !myVerticalDeps.contains(view));
+        addBounds(view, id, !myHorizontalDeps.contains(view), !myVerticalDeps.contains(view), false /*includePadding*/);
       }
     }
 
-    addBounds(layout, layout.getId(), true, true);
+    addBounds(layout, layout.getId(), true, true, true /*includePadding*/);
   }
 
   @Override
@@ -172,18 +171,6 @@ public class ResizeHandler extends GuidelineHandler {
     return compatible;
   }
 
-  /** Returns the horizontal edge type being resized */
-  @Nullable
-  SegmentType getHorizontalEdgeType() {
-    return myHorizontalEdgeType;
-  }
-
-  /** Returns the vertical edge type being resized */
-  @Nullable
-  SegmentType getVerticalEdgeType() {
-    return myVerticalEdgeType;
-  }
-
   /**
    * Updates the handler for the given mouse resize
    *
@@ -196,6 +183,7 @@ public class ResizeHandler extends GuidelineHandler {
     myBounds = newBounds;
     clearSuggestions();
 
+    @SuppressWarnings("UnnecessaryLocalVariable") // To make arithmetic with x/y/w/h below fit on one line
     Rectangle b = newBounds;
     Segment hEdge = null;
     Segment vEdge = null;

@@ -44,7 +44,8 @@ import java.util.Map;
 public class RadViewComponent extends RadVisualComponent {
   private final List<RadComponent> myChildren = new ArrayList<RadComponent>();
   protected ViewInfo myViewInfo;
-  private Margins myMargins;
+  private Insets myMargins;
+  private Insets myPadding;
   private XmlTag myTag;
   private List<Property> myProperties;
   private PaletteItem myPaletteItem;
@@ -125,31 +126,68 @@ public class RadViewComponent extends RadVisualComponent {
     return -1;
   }
 
-  public Margins getMargins() {
+  @NotNull
+  public Insets getMargins() {
     if (myMargins == null) {
       try {
         Object layoutParams = myViewInfo.getLayoutParamsObject();
         Class<?> layoutClass = layoutParams.getClass();
 
-        int left = fixDefault(layoutClass.getField("leftMargin").getInt(layoutParams));
+        int left = fixDefault(layoutClass.getField("leftMargin").getInt(layoutParams)); // TODO: startMargin?
         int top = fixDefault(layoutClass.getField("topMargin").getInt(layoutParams));
         int right = fixDefault(layoutClass.getField("rightMargin").getInt(layoutParams));
         int bottom = fixDefault(layoutClass.getField("bottomMargin").getInt(layoutParams));
-        myMargins = new Margins(left, top, right, bottom);
+        if (left == 0 && top == 0 && right == 0 && bottom == 0) {
+          myMargins = Insets.NONE;
+        } else {
+          myMargins = new Insets(left, top, right, bottom);
+        }
       }
       catch (Throwable e) {
-        myMargins = Margins.NONE;
+        myMargins = Insets.NONE;
       }
     }
     return myMargins;
   }
 
-  public Margins getMargins(Component relativeTo) {
-    Margins margins = getMargins();
+  @NotNull
+  public Insets getPadding() {
+    if (myPadding == null) {
+      try {
+        Object layoutParams = myViewInfo.getViewObject();
+        Class<?> layoutClass = layoutParams.getClass();
+
+        int left = fixDefault((Integer)layoutClass.getMethod("getPaddingLeft").invoke(layoutParams)); // TODO: getPaddingStart!
+        int top = fixDefault((Integer)layoutClass.getMethod("getPaddingTop").invoke(layoutParams));
+        int right = fixDefault((Integer)layoutClass.getMethod("getPaddingRight").invoke(layoutParams));
+        int bottom = fixDefault((Integer)layoutClass.getMethod("getPaddingBottom").invoke(layoutParams));
+        if (left == 0 && top == 0 && right == 0 && bottom == 0) {
+          myPadding = Insets.NONE;
+        } else {
+          myPadding = new Insets(left, top, right, bottom);
+        }
+      }
+      catch (Throwable e) {
+        myPadding = Insets.NONE;
+      }
+    }
+    return myPadding;
+  }
+
+  public Insets getMargins(Component relativeTo) {
+    Insets margins = getMargins();
     if (margins.isEmpty()) {
       return margins;
     }
     return fromModel(relativeTo, margins);
+  }
+
+  public Insets getPadding(Component relativeTo) {
+    Insets padding = getPadding();
+    if (padding.isEmpty()) {
+      return padding;
+    }
+    return fromModel(relativeTo, padding);
   }
 
   private static int fixDefault(int value) {
@@ -339,7 +377,7 @@ public class RadViewComponent extends RadVisualComponent {
    * This method performs both computations in a single go which reduces
    * the amount of rounding error.
    */
-  public Rectangle toModelDp(double dpi, Component source, Rectangle rectangle) {
+  public Rectangle toModelDp(int dpi, @NotNull Component source, @NotNull Rectangle rectangle) {
     Component myNativeComponent = getNativeComponent();
     Rectangle bounds = myNativeComponent == source
                        ? rectangle : SwingUtilities.convertRectangle(source, rectangle, myNativeComponent);
@@ -361,11 +399,13 @@ public class RadViewComponent extends RadVisualComponent {
       }
     }
 
+    @SuppressWarnings("UnnecessaryLocalVariable")
+    double dpiDouble = dpi;
     return new Rectangle(
-      (int)(x / dpi),
-      (int)(y / dpi),
-      (int)(w / dpi),
-      (int)(h / dpi));
+      (int)(x / dpiDouble),
+      (int)(y / dpiDouble),
+      (int)(w / dpiDouble),
+      (int)(h / dpiDouble));
   }
 
   /**
@@ -382,7 +422,7 @@ public class RadViewComponent extends RadVisualComponent {
    * This method performs both computations in a single go which reduces
    * the amount of rounding error.
    */
-  public Point toModelDp(double dpi, @NotNull Component source, @NotNull Point point) {
+  public Point toModelDp(int dpi, @NotNull Component source, @NotNull Point point) {
     Component myNativeComponent = getNativeComponent();
     Point bounds = myNativeComponent == source
                        ? point : SwingUtilities.convertPoint(source, point, myNativeComponent);
@@ -400,9 +440,11 @@ public class RadViewComponent extends RadVisualComponent {
       }
     }
 
+    @SuppressWarnings("UnnecessaryLocalVariable")
+    double dpiDouble = dpi;
     return new Point(
-      (int)(x / dpi),
-      (int)(y / dpi));
+      (int)(x / dpiDouble),
+      (int)(y / dpiDouble));
   }
 
   /**
@@ -419,7 +461,7 @@ public class RadViewComponent extends RadVisualComponent {
    * This method performs both computations in a single go which reduces
    * the amount of rounding error.
    */
-  public Dimension toModelDp(double dpi, @NotNull Component source, @NotNull Dimension size) {
+  public Dimension toModelDp(int dpi, @NotNull Component source, @NotNull Dimension size) {
     Component myNativeComponent = getNativeComponent();
     size = new Dimension(size);
 
@@ -436,14 +478,16 @@ public class RadViewComponent extends RadVisualComponent {
       }
     }
 
+    @SuppressWarnings("UnnecessaryLocalVariable")
+    double dpiDouble = dpi;
     return new Dimension(
-      (int)(w / dpi),
-      (int)(h / dpi));
+      (int)(w / dpiDouble),
+      (int)(h / dpiDouble));
   }
 
-  public Margins fromModel(@NotNull Component target, @NotNull Margins margins) {
-    if (margins.isEmpty()) {
-      return margins;
+  public Insets fromModel(@NotNull Component target, @NotNull Insets insets) {
+    if (insets.isEmpty()) {
+      return insets;
     }
 
     Component myNativeComponent = getNativeComponent();
@@ -452,17 +496,17 @@ public class RadViewComponent extends RadVisualComponent {
       ScalableComponent scalableComponent = (ScalableComponent)myNativeComponent;
       double zoom = scalableComponent.getScale();
       if (zoom != 1) {
-        return new Margins((int)(margins.left * zoom), (int)(margins.top * zoom), (int)(margins.right * zoom),
-                           (int)(margins.bottom * zoom));
+        return new Insets((int)(insets.left * zoom), (int)(insets.top * zoom), (int)(insets.right * zoom),
+                           (int)(insets.bottom * zoom));
       }
     }
 
-    return margins;
+    return insets;
   }
 
-  public Margins toModel(@NotNull Component source, @NotNull Margins margins) {
-    if (margins.isEmpty()) {
-      return margins;
+  public Insets toModel(@NotNull Component source, @NotNull Insets insets) {
+    if (insets.isEmpty()) {
+      return insets;
     }
 
     Component myNativeComponent = getNativeComponent();
@@ -471,12 +515,47 @@ public class RadViewComponent extends RadVisualComponent {
       ScalableComponent scalableComponent = (ScalableComponent)myNativeComponent;
       double zoom = scalableComponent.getScale();
       if (zoom != 1) {
-        return new Margins((int)(margins.left / zoom), (int)(margins.top / zoom), (int)(margins.right / zoom),
-                           (int)(margins.bottom / zoom));
+        return new Insets((int)(insets.left / zoom), (int)(insets.top / zoom), (int)(insets.right / zoom),
+                           (int)(insets.bottom / zoom));
       }
     }
 
-    return margins;
+    return insets;
+  }
+
+  /**
+   * Returns the bounds of this {@linkplain RadViewComponent} in the model, minus any
+   * padding (if any).
+   * <p/>
+   * Caller should <b>not</b> modify this rectangle.
+   *
+   * @return the padded bounds of this {@linkplain RadViewComponent} in the model coordinate system
+   *         (e.g. unaffected by a view zoom for example)
+   */
+  public Rectangle getPaddedBounds() {
+    Rectangle bounds = getBounds();
+
+    Insets padding = getPadding();
+    if (padding == Insets.NONE) {
+      return bounds;
+    }
+
+    return new Rectangle(bounds.x + padding.left,
+                         bounds.y + padding.top,
+                         bounds.width - padding.left - padding.right,
+                         bounds.height - padding.top - padding.bottom);
+  }
+
+  /**
+   * Like {@link #getBounds(java.awt.Component)}, but rather than applying to the
+   * bounds of the view, it applies to the padded bounds (e.g. with insets applied).
+   *
+   * @param relativeTo the component whose coordinate system the model bounds should
+   *                   be shifted and scaled into
+   * @return the padded bounds of this {@linkplain RadComponent} in the given coordinate system
+   */
+  public Rectangle getPaddedBounds(Component relativeTo) {
+    return fromModel(relativeTo, getPaddedBounds());
   }
 
   /** Extracts the {@link RadViewComponent} elements from the list */
