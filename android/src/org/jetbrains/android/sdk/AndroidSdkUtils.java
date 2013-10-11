@@ -313,7 +313,7 @@ public final class AndroidSdkUtils {
     ProjectJdkTable table = ProjectJdkTable.getInstance();
     String tmpName = SdkConfigurationUtil.createUniqueSdkName(AndroidSdkType.SDK_NAME, Arrays.asList(table.getAllJdks()));
 
-    final Sdk sdk = table.createSdk(tmpName, SdkType.findInstance(AndroidSdkType.class));
+    final Sdk sdk = table.createSdk(tmpName, AndroidSdkType.getInstance());
 
     SdkModificator sdkModificator = sdk.getSdkModificator();
     sdkModificator.setHomePath(sdkPath);
