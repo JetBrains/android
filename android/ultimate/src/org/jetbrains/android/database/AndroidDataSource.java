@@ -134,7 +134,7 @@ class AndroidDataSource extends LocalDataSource implements DataSourceInfo, Modif
   }
 
   @Override
-  public Icon getIcon(@IconFlags int flags) {
+  public Icon getBaseIcon() {
     return AndroidIcons.Android;
   }
 
