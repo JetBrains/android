@@ -18,6 +18,7 @@ package com.android.tools.idea.sdk;
 import com.android.tools.idea.AndroidSdkTestCaseHelper;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.IdeaTestCase;
 
@@ -49,7 +50,7 @@ public class JdksTest extends IdeaTestCase {
   public void testGetBestJdkHomePathWithLangLevel1dot7() {
     List<String> jdkHomePaths = Lists.newArrayList(myJdk6HomePath, myJdk7HomePath);
     String best = Jdks.getBestJdkHomePath(jdkHomePaths, LanguageLevel.JDK_1_7);
-    assertEquals(myJdk7HomePath, best);
+    assertTrue(FileUtil.pathsEqual(myJdk7HomePath, best));
   }
 
   // These tests verify that LanguageLevel#isAtLeast does what we think it does (this is IntelliJ code.) Leaving these tests here as a way
