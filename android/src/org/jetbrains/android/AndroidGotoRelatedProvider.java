@@ -35,6 +35,8 @@ import java.util.*;
  */
 public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
 
+  public static boolean ourAddDeclarationToManifest = false;
+
   private static final String[] CONTEXT_CLASSES = {
     SdkConstants.CLASS_ACTIVITY,
     SdkConstants.CLASS_FRAGMENT,
@@ -88,7 +90,7 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
       }
 
       if (aClass != null) {
-        return getLazyItemsForClass(aClass, facet, false);
+        return getLazyItemsForClass(aClass, facet, ourAddDeclarationToManifest);
       }
     }
     else {
