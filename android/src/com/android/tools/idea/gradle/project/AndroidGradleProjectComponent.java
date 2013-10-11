@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project;
 import com.android.tools.idea.gradle.GradleImportNotificationListener;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
-import com.android.tools.idea.gradle.service.notification.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
@@ -122,7 +121,6 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     notification.showBalloon("Migrate Project to Gradle?", errMsg, NotificationType.WARNING, notificationListener);
   }
 
-
   public void configureGradleProject(boolean reImportProject) {
     if (myDisposable != null) {
       return;
@@ -139,7 +137,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     Projects.ensureExternalBuildIsEnabledForGradleProject(myProject);
 
     if (reImportProject) {
-      Projects.setProjectBuildMode(myProject, BuildMode.SOURCE_GEN);
+      Projects.setProjectBuildMode(myProject, BuildMode.CLEAN_AND_SOURCE_GEN);
       try {
         // Prevent IDEA from refreshing project. We want to do it ourselves.
         myProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);

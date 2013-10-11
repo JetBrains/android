@@ -27,6 +27,7 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.net.ConnectException;
 import java.net.UnknownHostException;
 
@@ -49,13 +50,13 @@ public class ProjectImportErrorHandler {
     "Gradle version " + GradleUtil.GRADLE_MINIMUM_VERSION + " is required";
 
   @NotNull
-  ExternalSystemException getUserFriendlyError(@NotNull Throwable error, @NotNull String projectPath, @Nullable String buildFilePath) {
+  ExternalSystemException getUserFriendlyError(@NotNull Throwable error, @NotNull File projectDir, @Nullable String buildFilePath) {
     if (error instanceof ExternalSystemException) {
       // This is already a user-friendly error.
       return (ExternalSystemException)error;
     }
 
-    LOG.info(String.format("Failed to import Gradle project at '%1$s'", projectPath), error);
+    LOG.info(String.format("Failed to import Gradle project at '%1$s'", projectDir.getPath()), error);
 
     Pair<Throwable, String> rootCauseAndLocation = getRootCauseAndLocation(error);
 
