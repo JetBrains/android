@@ -443,7 +443,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
         XmlElement xmlElement = element.getXmlElement();
         XmlTag tag = xmlElement instanceof XmlTag ? (XmlTag)xmlElement : null;
         String tagName = tag != null ? tag.getName() : null;
-        if (!"merge".equals(tagName) && (tag == null || tag.getAttribute("style") == null)) {
+        if (!"merge".equals(tagName) && !"TableRow".equals(tagName) && (tag == null || tag.getAttribute("style") == null)) {
           XmlTag parentTag = tag != null ? tag.getParentTag() : null;
           String parentTagName = parentTag != null ? parentTag.getName() : null;
           if (!"TableRow".equals(parentTagName) && !"TableLayout".equals(parentTagName) &&
