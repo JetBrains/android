@@ -83,11 +83,11 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
         public void run() {
           BuildMode buildMode = Projects.getBuildModeFrom(project);
           if (buildMode == null) {
-            // This happens when the project is imported and this is the first pass of the 2-pass import. Rebuild on second pass.
-            Projects.setProjectBuildMode(project, BuildMode.REBUILD);
+            // This happens when the project is imported and this is the first pass of the 2-pass import. Compile on second pass.
+            Projects.setProjectBuildMode(project, BuildMode.COMPILE_JAVA);
           }
           else {
-            Projects.make(project);
+            Projects.build(project);
           }
         }
       });
