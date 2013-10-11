@@ -16,6 +16,7 @@
 package org.jetbrains.android.sdk;
 
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.utils.NullLogger;
 import com.google.common.base.Strings;
 import com.intellij.openapi.application.ApplicationManager;
@@ -39,10 +40,7 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    mySdkPath = System.getProperty(AndroidTestCase.SDK_PATH_PROPERTY);
-    if (Strings.isNullOrEmpty(mySdkPath)) {
-      mySdkPath = System.getenv(AndroidTestCase.SDK_PATH_PROPERTY);
-    }
+    mySdkPath = AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable(AndroidTestCase.SDK_PATH_PROPERTY);
     if (Strings.isNullOrEmpty(mySdkPath)) {
       String format = "Please specify the path of an Android SDK (v22.0.0) in the system property or environment variable '%1$s'";
       fail(String.format(format, AndroidTestCase.SDK_PATH_PROPERTY));
@@ -81,21 +79,21 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
     assertTrue(FileUtil.pathsEqual(mySdkPath, sdk.getHomePath()));
   }
 
-  //public void testTryToCreateAndSetAndroidSdkWithPathOfModernSdk() {
-  //  boolean sdkSet = AndroidSdkUtils.tryToCreateAndSetAndroidSdk(myModule, mySdkPath, "android-17", false);
-  //  System.out.println("Trying to set sdk for module from: " + mySdkPath + " -> " + sdkSet);
-  //  assertTrue(sdkSet);
-  //  Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
-  //  assertNotNull(sdk);
-  //  assertTrue(FileUtil.pathsEqual(mySdkPath, sdk.getHomePath()));
-  //}
-  //
-  //public void testCreateNewAndroidPlatformWithPathOfModernSdkOnly() {
-  //  Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(mySdkPath, false);
-  //  System.out.println("Creating new android platform from: " + mySdkPath + " -> " + sdk);
-  //  assertNotNull(sdk);
-  //  assertTrue(FileUtil.pathsEqual(mySdkPath, sdk.getHomePath()));
-  //}
+  public void DISABLEDtestTryToCreateAndSetAndroidSdkWithPathOfModernSdk() {
+    boolean sdkSet = AndroidSdkUtils.tryToCreateAndSetAndroidSdk(myModule, mySdkPath, "android-17", false);
+    System.out.println("Trying to set sdk for module from: " + mySdkPath + " -> " + sdkSet);
+    assertTrue(sdkSet);
+    Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
+    assertNotNull(sdk);
+    assertTrue(FileUtil.pathsEqual(mySdkPath, sdk.getHomePath()));
+  }
+
+  public void DISABLEDtestCreateNewAndroidPlatformWithPathOfModernSdkOnly() {
+    Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(mySdkPath, false);
+    System.out.println("Creating new android platform from: " + mySdkPath + " -> " + sdk);
+    assertNotNull(sdk);
+    assertTrue(FileUtil.pathsEqual(mySdkPath, sdk.getHomePath()));
+  }
 
   private static void createAndroidSdk(@NotNull String androidHomePath, @NotNull String targetHashString, @NotNull Sdk javaSdk) {
     Sdk sdk = SdkConfigurationUtil.createAndAddSDK(androidHomePath, AndroidSdkType.getInstance());
