@@ -18,6 +18,8 @@ package org.jetbrains.android.sdk;
 import com.android.sdklib.IAndroidTarget;
 import com.android.utils.NullLogger;
 import com.google.common.base.Strings;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -25,6 +27,8 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 /**
  * Tests for {@link AndroidSdkUtils}.
@@ -43,14 +47,28 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
       String format = "Please specify the path of an Android SDK (v22.0.0) in the system property or environment variable '%1$s'";
       fail(String.format(format, AndroidTestCase.SDK_PATH_PROPERTY));
     }
+
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        removeExistingAndroidSdks();
+      }
+    });
   }
 
-  // TODO: disabling this test since it relies on the test order
-  // It expects that no SDK's are setup, while other tests in this class create SDKs.
-  //public void testFindSuitableAndroidSdkWhenNoSdkSet() {
-  //  Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk("android-17", mySdkPath, null, false);
-  //  assertNull(sdk);
-  //}
+  private static void removeExistingAndroidSdks() {
+    ProjectJdkTable table = ProjectJdkTable.getInstance();
+
+    List<Sdk> androidSdks = table.getSdksOfType(AndroidSdkType.getInstance());
+    for (Sdk sdk : androidSdks) {
+      table.removeJdk(sdk);
+    }
+  }
+
+  public void testFindSuitableAndroidSdkWhenNoSdkSet() {
+    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk("android-17", mySdkPath, null, false);
+    assertNull(sdk);
+  }
 
   public void testFindSuitableAndroidSdkWithPathOfExistingModernSdk() {
     String targetHashString = "android-17";
