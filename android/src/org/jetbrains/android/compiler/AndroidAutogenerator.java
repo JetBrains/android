@@ -90,7 +90,7 @@ public class AndroidAutogenerator {
 
     switch (mode) {
       case AAPT:
-        runAapt(facet, context);
+        runAapt(facet, context, force);
         break;
       case AIDL:
         runAidl(facet, context);
@@ -201,7 +201,7 @@ public class AndroidAutogenerator {
     }
   }
 
-  private static void runAapt(@NotNull final AndroidFacet facet, @NotNull final CompileContext context) {
+  private static void runAapt(@NotNull final AndroidFacet facet, @NotNull final CompileContext context, boolean force) {
     final Module module = facet.getModule();
 
     final AptAutogenerationItem item = ApplicationManager.getApplication().runReadAction(new Computable<AptAutogenerationItem>() {
@@ -263,24 +263,24 @@ public class AndroidAutogenerator {
       return;
     }
 
-    final Set<VirtualFile> filesToCheck = new HashSet<VirtualFile>();
+    if (force) {
+      final Set<VirtualFile> filesToCheck = new HashSet<VirtualFile>();
 
-    for (String genFileRelPath : item.myGenFileRelPath2package.keySet()) {
-      final String genFileFullPath = item.myOutputDirOsPath + '/' + genFileRelPath;
+      for (String genFileRelPath : item.myGenFileRelPath2package.keySet()) {
+        final String genFileFullPath = item.myOutputDirOsPath + '/' + genFileRelPath;
 
-      if (new File(genFileFullPath).exists()) {
-        final VirtualFile genFile = LocalFileSystem.getInstance().findFileByPath(genFileFullPath);
+        if (new File(genFileFullPath).exists()) {
+          final VirtualFile genFile = LocalFileSystem.getInstance().findFileByPath(genFileFullPath);
 
-        if (genFile != null) {
-          filesToCheck.add(genFile);
+          if (genFile != null) {
+            filesToCheck.add(genFile);
+          }
         }
       }
+      if (!ensureFilesWritable(module.getProject(), filesToCheck)) {
+        return;
+      }
     }
-
-    if (!ensureFilesWritable(module.getProject(), filesToCheck)) {
-      return;
-    }
-
     File tempOutDir = null;
 
     try {
@@ -298,6 +298,9 @@ public class AndroidAutogenerator {
           final File dstFile = new File(item.myOutputDirOsPath + '/' + genFileRelPath);
 
           if (dstFile.exists()) {
+            if (!force) {
+              continue;
+            }
             if (!FileUtil.delete(dstFile)) {
               ApplicationManager.getApplication().runReadAction(new Runnable() {
                 @Override
