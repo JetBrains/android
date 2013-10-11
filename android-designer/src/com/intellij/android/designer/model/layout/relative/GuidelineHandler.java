@@ -20,6 +20,7 @@ import com.intellij.android.designer.model.Insets;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.designer.designSurface.OperationContext;
 import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlTag;
 import lombok.ast.libs.org.parboiled.common.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,6 +34,9 @@ import static com.intellij.android.designer.designSurface.graphics.DrawingStyle.
 import static com.intellij.android.designer.model.layout.relative.ConstraintType.ALIGN_BASELINE;
 import static com.intellij.android.designer.model.layout.relative.DependencyGraph.Constraint;
 import static com.intellij.android.designer.model.layout.relative.DependencyGraph.ViewData;
+import static com.intellij.android.designer.model.layout.relative.MarginType.NO_MARGIN;
+import static com.intellij.android.designer.model.layout.relative.MarginType.WITHOUT_MARGIN;
+import static com.intellij.android.designer.model.layout.relative.MarginType.WITH_MARGIN;
 import static java.lang.Math.abs;
 
 /**
@@ -307,44 +311,41 @@ public class GuidelineHandler {
   protected void addBounds(RadViewComponent node, String id, boolean addHorizontal, boolean addVertical, boolean includePadding) {
     JComponent target = myContext.getArea().getFeedbackLayer();
     Rectangle b = node.getBounds(target);
-    Insets margins = node.getMargins(target);
-    Insets padding = includePadding ? node.getPadding(target) : Insets.NONE;
+    Insets m = node.getMargins(target);
+    Insets p = includePadding ? node.getPadding(target) : Insets.NONE;
 
     if (addHorizontal) {
-      if (margins.top != 0) {
-        myHorizontalEdges.add(new Segment(b.y, b.x, x2(b), node, id, SegmentType.TOP, MarginType.WITHOUT_MARGIN));
-        myHorizontalEdges.add(new Segment(b.y - margins.top, b.x, x2(b), node, id, SegmentType.TOP, MarginType.WITH_MARGIN));
+      if (m.top != 0) {
+        myHorizontalEdges.add(new Segment(b.y + p.top, b.x + p.left, x2(b) - p.right, node, id, SegmentType.TOP, WITHOUT_MARGIN));
+        myHorizontalEdges.add(new Segment(b.y - m.top + p.top, b.x + p.left, x2(b) - p.right, node, id, SegmentType.TOP, WITH_MARGIN));
       }
       else {
-        myHorizontalEdges.add(new Segment(b.y + padding.top, b.x + padding.left, x2(b) - padding.right,
-                                          node, id, SegmentType.TOP, MarginType.NO_MARGIN));
+        myHorizontalEdges.add(new Segment(b.y + p.top, b.x + p.left, x2(b) - p.right, node, id, SegmentType.TOP, NO_MARGIN));
       }
-      if (margins.bottom != 0) {
-        myHorizontalEdges.add(new Segment(y2(b), b.x, x2(b), node, id, SegmentType.BOTTOM, MarginType.WITHOUT_MARGIN));
-        myHorizontalEdges.add(new Segment(y2(b) + margins.bottom, b.x, x2(b), node, id, SegmentType.BOTTOM, MarginType.WITH_MARGIN));
+      if (m.bottom != 0) {
+        myHorizontalEdges.add(new Segment(y2(b) - p.bottom, b.x + p.left, x2(b) - p.right, node, id, SegmentType.BOTTOM, WITHOUT_MARGIN));
+        myHorizontalEdges.add(
+          new Segment(y2(b) + m.bottom - p.bottom, b.x + p.left, x2(b) - p.right, node, id, SegmentType.BOTTOM, WITH_MARGIN));
       }
       else {
-        myHorizontalEdges.add(new Segment(y2(b) - padding.bottom, b.x + padding.left, x2(b) - padding.right,
-                                          node, id, SegmentType.BOTTOM, MarginType.NO_MARGIN));
+        myHorizontalEdges.add(new Segment(y2(b) - p.bottom, b.x + p.left, x2(b) - p.right, node, id, SegmentType.BOTTOM, NO_MARGIN));
       }
     }
     if (addVertical) {
-      if (margins.left != 0) {
-        myVerticalEdges.add(new Segment(b.x, b.y, y2(b), node, id, SegmentType.LEFT, MarginType.WITHOUT_MARGIN));
-        myVerticalEdges.add(new Segment(b.x - margins.left, b.y, y2(b), node, id, SegmentType.LEFT, MarginType.WITH_MARGIN));
+      if (m.left != 0) {
+        myVerticalEdges.add(new Segment(b.x + p.left, b.y + p.top, y2(b) - p.bottom, node, id, SegmentType.LEFT, WITHOUT_MARGIN));
+        myVerticalEdges.add(new Segment(b.x - m.left + p.left, b.y + p.top, y2(b) - p.bottom, node, id, SegmentType.LEFT, WITH_MARGIN));
       }
       else {
-        myVerticalEdges.add(new Segment(b.x + padding.left, b.y + padding.top, y2(b) - padding.bottom,
-                                        node, id, SegmentType.LEFT, MarginType.NO_MARGIN));
+        myVerticalEdges.add(new Segment(b.x + p.left, b.y + p.top, y2(b) - p.bottom, node, id, SegmentType.LEFT, NO_MARGIN));
       }
-
-      if (margins.right != 0) {
-        myVerticalEdges.add(new Segment(x2(b), b.y, y2(b), node, id, SegmentType.RIGHT, MarginType.WITHOUT_MARGIN));
-        myVerticalEdges.add(new Segment(x2(b) + margins.right, b.y, y2(b), node, id, SegmentType.RIGHT, MarginType.WITH_MARGIN));
+      if (m.right != 0) {
+        myVerticalEdges.add(new Segment(x2(b) - p.right, b.y + p.top, y2(b) - p.bottom, node, id, SegmentType.RIGHT, WITHOUT_MARGIN));
+        myVerticalEdges.add(new Segment(x2(b) + m.right - p.right, b.y + p.top, y2(b) - p.bottom, node, id, SegmentType.RIGHT,
+                                        WITH_MARGIN));
       }
       else {
-        myVerticalEdges.add(new Segment(x2(b) - padding.right, b.y + padding.top, y2(b) - padding.bottom,
-                                        node, id, SegmentType.RIGHT, MarginType.NO_MARGIN));
+        myVerticalEdges.add(new Segment(x2(b) - p.right, b.y + p.top, y2(b) - p.bottom, node, id, SegmentType.RIGHT, NO_MARGIN));
       }
     }
   }
@@ -356,8 +357,8 @@ public class GuidelineHandler {
     JComponent target = myContext.getArea().getFeedbackLayer();
     Rectangle b = node.getBounds(target);
 
-    myCenterHorizEdges.add(new Segment(centerY(b), b.x, x2(b), node, id, SegmentType.CENTER_HORIZONTAL, MarginType.NO_MARGIN));
-    myCenterVertEdges.add(new Segment(centerX(b), b.y, y2(b), node, id, SegmentType.CENTER_VERTICAL, MarginType.NO_MARGIN));
+    myCenterHorizEdges.add(new Segment(centerY(b), b.x, x2(b), node, id, SegmentType.CENTER_HORIZONTAL, NO_MARGIN));
+    myCenterVertEdges.add(new Segment(centerX(b), b.y, y2(b), node, id, SegmentType.CENTER_VERTICAL, NO_MARGIN));
   }
 
   /**
@@ -369,7 +370,7 @@ public class GuidelineHandler {
       JComponent target = myContext.getArea().getFeedbackLayer();
       Rectangle b = node.getBounds(target);
       baselineY = node.fromModel(target, new Dimension(0, baselineY)).height;
-      myHorizontalEdges.add(new Segment(b.y + baselineY, b.x, x2(b), node, id, SegmentType.BASELINE, MarginType.NO_MARGIN));
+      myHorizontalEdges.add(new Segment(b.y + baselineY, b.x, x2(b), node, id, SegmentType.BASELINE, NO_MARGIN));
     }
 
     return baselineY;
@@ -463,10 +464,10 @@ public class GuidelineHandler {
       // Ensure that the edge match is compatible; for example, a "below"
       // constraint can only apply to the margin bounds and a "bottom"
       // constraint can only apply to the non-margin bounds.
-      if (type.relativeToMargin && edge.marginType == MarginType.WITHOUT_MARGIN) {
+      if (type.relativeToMargin && edge.marginType == WITHOUT_MARGIN) {
         continue;
       }
-      else if (!type.relativeToMargin && edge.marginType == MarginType.WITH_MARGIN) {
+      else if (!type.relativeToMargin && edge.marginType == WITH_MARGIN) {
         continue;
       }
 
@@ -514,6 +515,24 @@ public class GuidelineHandler {
       }
       if (myCurrentLeftMatch == null && myCurrentRightMatch == null) {
         n.getTag().setAttribute(ATTR_LAYOUT_CENTER_HORIZONTAL, ANDROID_URI, VALUE_TRUE);
+      }
+    }
+
+    if (myMoveTop || myMoveBottom || myMoveLeft || myMoveRight) {
+      // If you've set an overall margin attribute, we need to decompose it into
+      // individual left/right/top/bottom values.
+      XmlTag tag = n.getTag();
+      XmlAttribute attribute = tag.getAttribute(ATTR_LAYOUT_MARGIN, ANDROID_URI);
+      if (attribute != null) {
+        String value = attribute.getValue();
+        if (value != null) {
+          attribute.delete();
+          // These may be individually replaced later as we're applying constraints
+          tag.setAttribute(ATTR_LAYOUT_MARGIN_LEFT, ANDROID_URI, value);
+          tag.setAttribute(ATTR_LAYOUT_MARGIN_RIGHT, ANDROID_URI, value);
+          tag.setAttribute(ATTR_LAYOUT_MARGIN_TOP, ANDROID_URI, value);
+          tag.setAttribute(ATTR_LAYOUT_MARGIN_BOTTOM, ANDROID_URI, value);
+        }
       }
     }
 
