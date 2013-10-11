@@ -81,21 +81,21 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
     assertTrue(FileUtil.pathsEqual(mySdkPath, sdk.getHomePath()));
   }
 
-  public void testTryToCreateAndSetAndroidSdkWithPathOfModernSdk() {
-    boolean sdkSet = AndroidSdkUtils.tryToCreateAndSetAndroidSdk(myModule, mySdkPath, "android-17", false);
-    System.out.println("Trying to set sdk for module from: " + mySdkPath + " -> " + sdkSet);
-    assertTrue(sdkSet);
-    Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
-    assertNotNull(sdk);
-    assertTrue(FileUtil.pathsEqual(mySdkPath, sdk.getHomePath()));
-  }
-
-  public void testCreateNewAndroidPlatformWithPathOfModernSdkOnly() {
-    Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(mySdkPath, false);
-    System.out.println("Creating new android platform from: " + mySdkPath + " -> " + sdk);
-    assertNotNull(sdk);
-    assertTrue(FileUtil.pathsEqual(mySdkPath, sdk.getHomePath()));
-  }
+  //public void testTryToCreateAndSetAndroidSdkWithPathOfModernSdk() {
+  //  boolean sdkSet = AndroidSdkUtils.tryToCreateAndSetAndroidSdk(myModule, mySdkPath, "android-17", false);
+  //  System.out.println("Trying to set sdk for module from: " + mySdkPath + " -> " + sdkSet);
+  //  assertTrue(sdkSet);
+  //  Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
+  //  assertNotNull(sdk);
+  //  assertTrue(FileUtil.pathsEqual(mySdkPath, sdk.getHomePath()));
+  //}
+  //
+  //public void testCreateNewAndroidPlatformWithPathOfModernSdkOnly() {
+  //  Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(mySdkPath, false);
+  //  System.out.println("Creating new android platform from: " + mySdkPath + " -> " + sdk);
+  //  assertNotNull(sdk);
+  //  assertTrue(FileUtil.pathsEqual(mySdkPath, sdk.getHomePath()));
+  //}
 
   private static void createAndroidSdk(@NotNull String androidHomePath, @NotNull String targetHashString, @NotNull Sdk javaSdk) {
     Sdk sdk = SdkConfigurationUtil.createAndAddSDK(androidHomePath, AndroidSdkType.getInstance());
