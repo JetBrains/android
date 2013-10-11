@@ -130,6 +130,7 @@
     <lang.foldingBuilder language="XML" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
     <codeFoldingOptionsProvider instance="com.android.tools.idea.folding.AndroidCodeFoldingOptionsProvider"/>
     <console.folding implementation="com.android.tools.idea.logcat.ExceptionFolding"/>
+    <consoleActionsPostProcessor implementation="org.jetbrains.android.logcat.LogcatConsoleActionsPostProcessor" />
     <applicationService serviceInterface="com.android.tools.idea.folding.AndroidFoldingSettings"
                         serviceImplementation="com.android.tools.idea.folding.AndroidFoldingSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.GradleProjectImporter"/>
