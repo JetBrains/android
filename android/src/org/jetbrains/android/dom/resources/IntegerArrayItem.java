@@ -18,6 +18,7 @@ package org.jetbrains.android.dom.resources;
 import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.GenericDomValue;
 import org.jetbrains.android.dom.AdditionalConverter;
+import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.converters.IntegerConverter;
 import org.jetbrains.android.dom.converters.QuietResourceReferenceConverter;
 
@@ -26,5 +27,5 @@ import org.jetbrains.android.dom.converters.QuietResourceReferenceConverter;
  */
 @Convert(QuietResourceReferenceConverter.class)
 @AdditionalConverter(IntegerConverter.class)
-public interface IntegerArrayItem extends GenericDomValue {
+public interface IntegerArrayItem extends AndroidDomElement, GenericDomValue {
 }
