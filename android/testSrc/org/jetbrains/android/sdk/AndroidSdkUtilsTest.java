@@ -21,6 +21,7 @@ import com.google.common.base.Strings;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -42,9 +43,6 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
       String format = "Please specify the path of an Android SDK (v22.0.0) in the system property or environment variable '%1$s'";
       fail(String.format(format, AndroidTestCase.SDK_PATH_PROPERTY));
     }
-
-    // for debugging on the build server
-    System.out.println("Using sdk @ " + mySdkPath);
   }
 
   public void testFindSuitableAndroidSdkWhenNoSdkSet() {
@@ -60,21 +58,23 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
 
     Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk(targetHashString, mySdkPath, null, false);
     assertNotNull(sdk);
-    assertEquals(mySdkPath, sdk.getHomePath());
+    assertTrue(FileUtil.pathsEqual(mySdkPath, sdk.getHomePath()));
   }
 
   public void testTryToCreateAndSetAndroidSdkWithPathOfModernSdk() {
     boolean sdkSet = AndroidSdkUtils.tryToCreateAndSetAndroidSdk(myModule, mySdkPath, "android-17", false);
+    System.out.println("Trying to set sdk for module from: " + mySdkPath + " -> " + sdkSet);
     assertTrue(sdkSet);
     Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
     assertNotNull(sdk);
-    assertEquals(mySdkPath, sdk.getHomePath());
+    assertTrue(FileUtil.pathsEqual(mySdkPath, sdk.getHomePath()));
   }
 
   public void testCreateNewAndroidPlatformWithPathOfModernSdkOnly() {
     Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(mySdkPath);
+    System.out.println("Creating new android platform from: " + mySdkPath + " -> " + sdk);
     assertNotNull(sdk);
-    assertEquals(mySdkPath, sdk.getHomePath());
+    assertTrue(FileUtil.pathsEqual(mySdkPath, sdk.getHomePath()));
   }
 
   private static void createAndroidSdk(@NotNull String androidHomePath, @NotNull String targetHashString, @NotNull Sdk javaSdk) {
