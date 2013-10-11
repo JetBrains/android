@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sdk;
 
-import com.android.tools.idea.AndroidSdkTestCaseHelper;
+import com.android.tools.idea.AndroidTestCaseHelper;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.util.io.FileUtil;
@@ -34,25 +34,23 @@ public class JdksTest extends IdeaTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myJdk6HomePath = AndroidSdkTestCaseHelper.getSystemPropertyOrEnvironmentVariable("JAVA6_HOME");
+    myJdk6HomePath = AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable("JAVA6_HOME");
     assertNotNull("Path to JDK 1.6 not set, please set JAVA6_HOME", myJdk6HomePath);
 
-    myJdk7HomePath = AndroidSdkTestCaseHelper.getSystemPropertyOrEnvironmentVariable("JAVA7_HOME");
+    myJdk7HomePath = AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable("JAVA7_HOME");
     assertNotNull("Path to JDK 1.7 not set, please set JAVA7_HOME", myJdk7HomePath);
   }
 
   public void testGetBestJdkHomePathWithLangLevel1dot6() {
     List<String> jdkHomePaths = Lists.newArrayList(myJdk6HomePath, myJdk7HomePath);
     String best = Jdks.getBestJdkHomePath(jdkHomePaths, LanguageLevel.JDK_1_6);
-    assertTrue("Expected: " + myJdk6HomePath + ", actual: " + best,
-               FileUtil.pathsEqual(myJdk6HomePath, best));
+    assertTrue("Expected: " + myJdk6HomePath + ", actual: " + best, FileUtil.pathsEqual(myJdk6HomePath, best));
   }
 
   public void testGetBestJdkHomePathWithLangLevel1dot7() {
     List<String> jdkHomePaths = Lists.newArrayList(myJdk6HomePath, myJdk7HomePath);
     String best = Jdks.getBestJdkHomePath(jdkHomePaths, LanguageLevel.JDK_1_7);
-    assertTrue("Expected: " + myJdk7HomePath + ", Actual: " + best,
-               FileUtil.pathsEqual(myJdk7HomePath, best));
+    assertTrue("Expected: " + myJdk7HomePath + ", Actual: " + best, FileUtil.pathsEqual(myJdk7HomePath, best));
   }
 
   // These tests verify that LanguageLevel#isAtLeast does what we think it does (this is IntelliJ code.) Leaving these tests here as a way
