@@ -38,11 +38,11 @@ import java.util.List;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidRegenerateRJavaFileAction extends AnAction {
+public class AndroidRegenerateSourcesAction extends AnAction {
 
   private static final String TITLE = "Generate Sources";
 
-  public AndroidRegenerateRJavaFileAction() {
+  public AndroidRegenerateSourcesAction() {
     super(TITLE, null, AndroidIcons.Android);
   }
 
