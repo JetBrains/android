@@ -61,8 +61,7 @@ public class FrameLayoutOperation extends AbstractEditOperation {
   private void createFeedback() {
     if (myFeedback == null) {
       FeedbackLayer layer = myContext.getArea().getFeedbackLayer();
-
-      myBounds = myContainer.getBounds(layer);
+      myBounds = ((RadViewComponent)myContainer).getPaddedBounds(layer);
 
       myFeedback = new GravityFeedback();
       myFeedback.setBounds(myBounds);
@@ -94,7 +93,7 @@ public class FrameLayoutOperation extends AbstractEditOperation {
     myGravity = Gravity.getValue(horizontal, vertical);
   }
 
-  private void configureTextFeedback(Rectangle bounds, Gravity horizontal, Gravity vertical) {
+  private void configureTextFeedback(Rectangle bounds, @Nullable Gravity horizontal, @Nullable Gravity vertical) {
     myTextFeedback.clear();
 
     if (horizontal == null || vertical == null) {
@@ -121,6 +120,10 @@ public class FrameLayoutOperation extends AbstractEditOperation {
 
   @Nullable
   private static Gravity calculateHorizontal(Rectangle bounds, Point location) {
+    if (bounds.width < 10) {
+      return Gravity.left;
+    }
+
     Gravity horizontal = null;
     double left = bounds.x + bounds.width / 3.0;
     double right = bounds.x + 2 * bounds.width / 3.0;
@@ -140,6 +143,10 @@ public class FrameLayoutOperation extends AbstractEditOperation {
 
   @Nullable
   private static Gravity calculateVertical(Rectangle bounds, Point location) {
+    if (bounds.height < 10) {
+      return Gravity.top;
+    }
+
     Gravity vertical = null;
     double top = bounds.y + bounds.height / 3.0;
     double bottom = bounds.y + 2 * bounds.height / 3.0;
@@ -157,7 +164,7 @@ public class FrameLayoutOperation extends AbstractEditOperation {
     return vertical;
   }
 
-  private boolean exclude(Gravity horizontal, Gravity vertical) {
+  private boolean exclude(@Nullable Gravity horizontal, @Nullable Gravity vertical) {
     for (Pair<Gravity, Gravity> p : myExcludes) {
       if (p.first == horizontal && p.second == vertical) {
         return true;
@@ -196,13 +203,13 @@ public class FrameLayoutOperation extends AbstractEditOperation {
   private static final Gravity[] VERTICALS = {Gravity.top, Gravity.center, Gravity.bottom};
 
   private class GravityFeedback extends JComponent {
-    private Gravity myHorizontal;
-    private Gravity myVertical;
+    @Nullable private Gravity myHorizontal;
+    @Nullable private Gravity myVertical;
 
     public GravityFeedback() {
     }
 
-    public void setGravity(Gravity horizontal, Gravity vertical) {
+    public void setGravity(@Nullable Gravity horizontal, @Nullable Gravity vertical) {
       myHorizontal = horizontal;
       myVertical = vertical;
       repaint();
@@ -211,6 +218,9 @@ public class FrameLayoutOperation extends AbstractEditOperation {
     @Override
     protected void paintComponent(Graphics g) {
       super.paintComponent(g);
+
+      Rectangle bounds = ((RadViewComponent)myContainer).getPaddedBounds(this);
+      DesignerGraphics.drawRect(DrawingStyle.DROP_PREVIEW, g, bounds.x, bounds.y, bounds.width, bounds.height);
 
       for (Gravity h : HORIZONTALS) {
         for (Gravity v : VERTICALS) {
