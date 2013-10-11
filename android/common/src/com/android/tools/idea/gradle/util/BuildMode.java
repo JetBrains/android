@@ -20,7 +20,7 @@ package com.android.tools.idea.gradle.util;
  * project.
  */
 public enum BuildMode {
-  COMPILE, REBUILD, COMPILE_JAVA, SOURCE_GEN;
+  MAKE, REBUILD, COMPILE_JAVA, SOURCE_GEN;
 
-  public static final BuildMode DEFAULT_BUILD_MODE = COMPILE;
+  public static final BuildMode DEFAULT_BUILD_MODE = COMPILE_JAVA;
 }

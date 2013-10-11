@@ -53,12 +53,12 @@ public final class Projects {
    *
    * @param project the given project.
    */
-  public static void make(@NotNull Project project) {
+  public static void build(@NotNull Project project) {
     BuildMode buildMode = getBuildModeFrom(project);
     if (buildMode != null) {
       switch (buildMode) {
-        case COMPILE:
-          compile(project);
+        case MAKE:
+          make(project);
           break;
         case REBUILD:
           rebuild(project);
@@ -78,17 +78,18 @@ public final class Projects {
   }
 
   /**
-   * Compiles the given project.
+   * Makes (compile and run Android build tools) the given project.
    *
    * @param project the given project.
    */
-  public static void compile(@NotNull Project project) {
-    setProjectBuildMode(project, BuildMode.COMPILE);
+  public static void make(@NotNull Project project) {
+    setProjectBuildMode(project, BuildMode.MAKE);
     doMake(project);
   }
 
   /**
-   * Rebuilds the given project. "Rebuilding" cleans the output directories and then compiles the project.
+   * Rebuilds the given project. "Rebuilding" cleans the output directories and then "making" the project (compile and run Android build
+   * tools.)
    *
    * @param project the given project.
    */
