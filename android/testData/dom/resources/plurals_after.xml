@@ -1,5 +1,5 @@
 <resources>
   <plurals name="plural1">
-    <item
+    <item quantity=""
   </plurals>
 </resources>
