@@ -15,7 +15,6 @@
  */
 package com.intellij.android.designer.designSurface.layout;
 
-import com.android.SdkConstants;
 import com.intellij.android.designer.designSurface.feedbacks.TextFeedback;
 import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
@@ -38,6 +37,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
+import static com.android.SdkConstants.*;
 import static com.intellij.android.designer.designSurface.graphics.DrawingStyle.SHOW_STATIC_GRID;
 
 /**
@@ -109,7 +109,7 @@ public class LinearLayoutOperation extends FlowBaseOperation {
       myFeedback.setGravity(gravity);
 
       myTextFeedback.clear();
-      myTextFeedback.bold(gravity == null ? "fill_parent" : gravity.name());
+      myTextFeedback.bold(gravity == null ? VALUE_FILL_PARENT : gravity.name());
       myTextFeedback.centerTop(myBounds);
 
       // TODO: Only do this if large enough!
@@ -208,8 +208,8 @@ public class LinearLayoutOperation extends FlowBaseOperation {
     if (gravity == null) {
       for (RadViewComponent component : components) {
         XmlTag tag = component.getTag();
-        ModelParser.deleteAttribute(tag, "layout_gravity");
-        tag.setAttribute(horizontal ? "layout_height" : "layout_width", SdkConstants.NS_RESOURCES, "fill_parent");
+        ModelParser.deleteAttribute(tag, ATTR_LAYOUT_GRAVITY);
+        tag.setAttribute(horizontal ? ATTR_LAYOUT_HEIGHT : ATTR_LAYOUT_WIDTH, ANDROID_URI, VALUE_FILL_PARENT);
       }
     }
     else {
@@ -218,12 +218,19 @@ public class LinearLayoutOperation extends FlowBaseOperation {
       for (RadViewComponent component : components) {
         XmlTag tag = component.getTag();
 
-        XmlAttribute attribute = tag.getAttribute(horizontal ? "layout_height" : "layout_width", SdkConstants.NS_RESOURCES);
-        if (attribute != null && ("match_parent".equals(attribute.getValue()) || "fill_parent".equals(attribute.getValue()))) {
-          attribute.setValue("wrap_content");
+        XmlAttribute attribute = tag.getAttribute(horizontal ? ATTR_LAYOUT_HEIGHT : ATTR_LAYOUT_WIDTH, ANDROID_URI);
+        if (attribute != null && (VALUE_MATCH_PARENT.equals(attribute.getValue()) || VALUE_FILL_PARENT.equals(attribute.getValue()))) {
+          attribute.setValue(VALUE_WRAP_CONTENT);
         }
 
-        tag.setAttribute("layout_gravity", SdkConstants.NS_RESOURCES, gravityValue);
+        if (gravityValue != null) {
+          tag.setAttribute(ATTR_LAYOUT_GRAVITY, ANDROID_URI, gravityValue);
+        } else {
+          XmlAttribute a = tag.getAttribute(ATTR_LAYOUT_GRAVITY, ANDROID_URI);
+          if (a != null) {
+            a.delete();
+          }
+        }
       }
     }
   }
@@ -231,9 +238,9 @@ public class LinearLayoutOperation extends FlowBaseOperation {
   @Nullable
   public static Gravity getGravity(boolean horizontal, RadComponent component) {
     XmlTag tag = ((RadViewComponent)component).getTag();
-    String length = tag.getAttributeValue(horizontal ? "layout_height" : "layout_width", SdkConstants.NS_RESOURCES);
+    String length = tag.getAttributeValue(horizontal ? ATTR_LAYOUT_HEIGHT : ATTR_LAYOUT_WIDTH, ANDROID_URI);
 
-    if (!ResizeOperation.isFill(length)) {
+    if (length != null && !ResizeOperation.isFill(length)) {
       Pair<Gravity, Gravity> gravity = Gravity.getSides(component);
       return horizontal ? gravity.second : gravity.first;
     }
@@ -258,7 +265,7 @@ public class LinearLayoutOperation extends FlowBaseOperation {
     protected void paintComponent(Graphics g) {
       super.paintComponent(g);
 
-      Rectangle bounds = myContainer.getBounds(this);
+      Rectangle bounds = ((RadViewComponent)myContainer).getPaddedBounds(this);
       RadComponent component = myContainer;
       DesignerGraphics.drawRect(DrawingStyle.DROP_RECIPIENT, g, bounds.x, bounds.y, bounds.width, bounds.height);
 
@@ -282,9 +289,9 @@ public class LinearLayoutOperation extends FlowBaseOperation {
   }
 
   private class GravityFeedback extends JComponent {
-    private Gravity myGravity;
+    @Nullable private Gravity myGravity;
 
-    public void setGravity(Gravity gravity) {
+    public void setGravity(@Nullable Gravity gravity) {
       myGravity = gravity;
       repaint();
     }
@@ -342,11 +349,16 @@ public class LinearLayoutOperation extends FlowBaseOperation {
         x = getWidth() - b.width;
       }
 
+      int width = b.width;
       int hSpace = Math.min(5, Math.max(1, getWidth() / 30));
       if (hSpace > 1) {
         x += hSpace;
+        width -= 2 * hSpace;
+        if (width < 5) {
+          width = 5;
+        }
       }
-      return new Rectangle(x, y, b.width, b.height);
+      return new Rectangle(x, y, width, b.height);
     }
 
     private Rectangle computeHorizontalPreviewBounds(Rectangle b) {
@@ -367,11 +379,18 @@ public class LinearLayoutOperation extends FlowBaseOperation {
         y = getHeight() - b.height;
       }
 
+      // Make the box slightly smaller such that it doesn't overlap exactly
+      // with the layout bounding box
       int vSpace = Math.min(5, Math.max(1, getHeight() / 30));
+      int height = b.height;
       if (vSpace > 1) {
         y += vSpace;
+        height -= 2 * vSpace;
+        if (height < 5) {
+          height = 5;
+        }
       }
-      return new Rectangle(x, y, b.width, b.height);
+      return new Rectangle(x, y, b.width, height);
     }
 
     private void paintHorizontalCell(Graphics g) {
@@ -426,7 +445,6 @@ public class LinearLayoutOperation extends FlowBaseOperation {
       if (myContainer.getChildren().isEmpty()) {
         DesignerGraphics.drawFilledRect(DrawingStyle.GRAVITY, g, x, 0, width, thickness);
         DesignerGraphics.drawFilledRect(DrawingStyle.GRAVITY, g, x, myBounds.height - thickness, width, thickness);
-
       }
       else {
         DesignerGraphics.drawLine(DrawingStyle.GRAVITY, g, x, thickness / 2, x + width, thickness / 2);
