@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.jps.output.parser;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.jps.output.parser.aapt.AbstractAaptOutputParser;
 import com.google.common.base.Charsets;
 import com.google.common.io.Closeables;
@@ -37,6 +36,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
+import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.SdkConstants.DOT_XML;
 import static com.android.ide.common.res2.MergedResourceWriter.createPathComment;
 
@@ -1258,6 +1258,466 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "14: Info:Total time: 3.836 secs\n",
                  toString(parser.parseErrorOutput(output)));
     sourceFile.delete();
+  }
 
+  public void testDuplicateResources3() throws Exception {
+    // Duplicate resource exception: New gradle output format (using MergingException)
+    createTempXmlFile();
+    String output =
+      "Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+      ":MyApplication589:preBuild UP-TO-DATE\n" +
+      ":MyApplication589:preDebugBuild UP-TO-DATE\n" +
+      ":MyApplication589:preReleaseBuild UP-TO-DATE\n" +
+      ":MyApplication589:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+      ":MyApplication589:prepareDebugDependencies\n" +
+      ":MyApplication589:compileDebugAidl UP-TO-DATE\n" +
+      ":MyApplication589:compileDebugRenderscript UP-TO-DATE\n" +
+      ":MyApplication589:generateDebugBuildConfig UP-TO-DATE\n" +
+      ":MyApplication589:mergeDebugAssets UP-TO-DATE\n" +
+      ":MyApplication589:mergeDebugResources\n" +
+      sourceFilePath + ": Error: Duplicate resources: " + sourceFilePath + ", /some/other/path/src/main/res/values/strings.xml:string/action_settings\n" +
+      ":MyApplication589:mergeDebugResources FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':MyApplication589:mergeDebugResources'.\n" +
+      "> " + sourceFilePath + ": Error: Duplicate resources: " + sourceFilePath + ", /some/other/path/src/main/res/values/strings.xml:string/action_settings\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 4.861 secs";
+
+    assertEquals("0: Info:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+                 "1: Info::MyApplication589:preBuild UP-TO-DATE\n" +
+                 "2: Info::MyApplication589:preDebugBuild UP-TO-DATE\n" +
+                 "3: Info::MyApplication589:preReleaseBuild UP-TO-DATE\n" +
+                 "4: Info::MyApplication589:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+                 "5: Info::MyApplication589:prepareDebugDependencies\n" +
+                 "6: Info::MyApplication589:compileDebugAidl UP-TO-DATE\n" +
+                 "7: Info::MyApplication589:compileDebugRenderscript UP-TO-DATE\n" +
+                 "8: Info::MyApplication589:generateDebugBuildConfig UP-TO-DATE\n" +
+                 "9: Info::MyApplication589:mergeDebugAssets UP-TO-DATE\n" +
+                 "10: Info::MyApplication589:mergeDebugResources\n" +
+                 "11: Gradle:Error:Error: Duplicate resources: " + sourceFilePath +", /some/other/path/src/main/res/values/strings.xml:string/action_settings\n" +
+                 "\t" + sourceFilePath + ":-1:-1\n" +
+                 "12: Info::MyApplication589:mergeDebugResources FAILED\n" +
+                 "13: Gradle:Error:Execution failed for task ':MyApplication589:mergeDebugResources'.\n" +
+                 "> " + sourceFilePath + ": Error: Duplicate resources: " + sourceFilePath + ", /some/other/path/src/main/res/values/strings.xml:string/action_settings\n" +
+                 "\t" + sourceFilePath + ":-1:-1\n" +
+                 "14: Info:BUILD FAILED\n" +
+                 "15: Info:Total time: 4.861 secs\n",
+                 toString(parser.parseErrorOutput(output)));
+    sourceFile.delete();
+  }
+
+  public void testXmlError2() throws Exception {
+    // XML error; Added "<" on separate line; new gradle output format (using MergingException)
+    createTempXmlFile();
+    String output =
+      "Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+      ":MyApplication:preBuild UP-TO-DATE\n" +
+      ":MyApplication:preDebugBuild UP-TO-DATE\n" +
+      ":MyApplication:preReleaseBuild UP-TO-DATE\n" +
+      ":MyApplication:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+      ":MyApplication:prepareDebugDependencies\n" +
+      ":MyApplication:compileDebugAidl UP-TO-DATE\n" +
+      ":MyApplication:compileDebugRenderscript UP-TO-DATE\n" +
+      ":MyApplication:generateDebugBuildConfig UP-TO-DATE\n" +
+      ":MyApplication:mergeDebugAssets UP-TO-DATE\n" +
+      ":MyApplication:mergeDebugResources\n" +
+      "[Fatal Error] :5:2: The content of elements must consist of well-formed character data or markup.\n" +
+      sourceFilePath + ":4:1: Error: The content of elements must consist of well-formed character data or markup.\n" +
+      ":MyApplication:mergeDebugResources FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':MyApplication:mergeDebugResources'.\n" +
+      "> " + sourceFilePath + ":4:1: Error: The content of elements must consist of well-formed character data or markup.\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 5.187 secs";
+    assertEquals("0: Info:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+                 "1: Info::MyApplication:preBuild UP-TO-DATE\n" +
+                 "2: Info::MyApplication:preDebugBuild UP-TO-DATE\n" +
+                 "3: Info::MyApplication:preReleaseBuild UP-TO-DATE\n" +
+                 "4: Info::MyApplication:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+                 "5: Info::MyApplication:prepareDebugDependencies\n" +
+                 "6: Info::MyApplication:compileDebugAidl UP-TO-DATE\n" +
+                 "7: Info::MyApplication:compileDebugRenderscript UP-TO-DATE\n" +
+                 "8: Info::MyApplication:generateDebugBuildConfig UP-TO-DATE\n" +
+                 "9: Info::MyApplication:mergeDebugAssets UP-TO-DATE\n" +
+                 "10: Info::MyApplication:mergeDebugResources\n" +
+                 "11: Gradle:Error:The content of elements must consist of well-formed character data or markup.\n" +
+                 "12: Gradle:Error:Error: The content of elements must consist of well-formed character data or markup.\n" +
+                 "\t" + sourceFilePath + ":4:1\n" +
+                 "13: Info::MyApplication:mergeDebugResources FAILED\n" +
+                 "14: Gradle:Error:Execution failed for task ':MyApplication:mergeDebugResources'.\n" +
+                 "> " + sourceFilePath + ":4:1: Error: The content of elements must consist of well-formed character data or markup.\n" +
+                 "\t" + sourceFilePath + ":4:1\n" +
+                 "15: Info:BUILD FAILED\n" +
+                 "16: Info:Total time: 5.187 secs\n",
+                 toString(parser.parseErrorOutput(output)));
+    sourceFile.delete();
+  }
+
+  public void testXmlErrorBadLinenumbers() throws Exception {
+    // Like testXmlError2, but with tweaked line numbers to check the MergingExceptionParser parser
+    createTempXmlFile();
+    String output =
+      "[Fatal Error] :5:2: The content of elements must consist of well-formed character data or markup.\n" +
+      sourceFilePath + ":42: Error: The content of elements must consist of well-formed character data or markup.\n" +
+      sourceFilePath + ":-1: Error: The content of elements must consist of well-formed character data or markup.\n" +
+      sourceFilePath + ":-1:-1: Error: The content of elements must consist of well-formed character data or markup.";
+    assertEquals("0: Gradle:Error:The content of elements must consist of well-formed character data or markup.\n" +
+                 "1: Gradle:Error:Error: The content of elements must consist of well-formed character data or markup.\n" +
+                 "\t" + sourceFilePath + ":42:-1\n" +
+                 "2: Gradle:Error:Error: The content of elements must consist of well-formed character data or markup.\n" +
+                 "\t" + sourceFilePath + ":-1:-1\n" +
+                 "3: Gradle:Error:Error: The content of elements must consist of well-formed character data or markup.\n" +
+                 "\t" + sourceFilePath + ":-1:-1\n",
+                 toString(parser.parseErrorOutput(output)));
+    sourceFile.delete();
+  }
+
+  public void testXmlError3() throws Exception {
+    // XML error; Added <dimen name=activity_horizontal_margin">16dp</dimen> (missing quote
+    createTempXmlFile();
+    String output =
+      "Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+      ":MyApplication:preBuild UP-TO-DATE\n" +
+      ":MyApplication:preDebugBuild UP-TO-DATE\n" +
+      ":MyApplication:preReleaseBuild UP-TO-DATE\n" +
+      ":MyApplication:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+      ":MyApplication:prepareDebugDependencies\n" +
+      ":MyApplication:compileDebugAidl UP-TO-DATE\n" +
+      ":MyApplication:compileDebugRenderscript UP-TO-DATE\n" +
+      ":MyApplication:generateDebugBuildConfig UP-TO-DATE\n" +
+      ":MyApplication:mergeDebugAssets UP-TO-DATE\n" +
+      ":MyApplication:mergeDebugResources\n" +
+      "[Fatal Error] :3:17: Open quote is expected for attribute \"{1}\" associated with an  element type  \"name\".\n" +
+      sourceFilePath + ":2:16: Error: Open quote is expected for attribute \"{1}\" associated with an  element type  \"name\".\n" +
+      ":MyApplication:mergeDebugResources FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':MyApplication:mergeDebugResources'.\n" +
+      "> " + sourceFilePath + ":2:16: Error: Open quote is expected for attribute \"{1}\" associated with an  element type  \"name\".\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 4.951 secs";
+    assertEquals("0: Info:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+                 "1: Info::MyApplication:preBuild UP-TO-DATE\n" +
+                 "2: Info::MyApplication:preDebugBuild UP-TO-DATE\n" +
+                 "3: Info::MyApplication:preReleaseBuild UP-TO-DATE\n" +
+                 "4: Info::MyApplication:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+                 "5: Info::MyApplication:prepareDebugDependencies\n" +
+                 "6: Info::MyApplication:compileDebugAidl UP-TO-DATE\n" +
+                 "7: Info::MyApplication:compileDebugRenderscript UP-TO-DATE\n" +
+                 "8: Info::MyApplication:generateDebugBuildConfig UP-TO-DATE\n" +
+                 "9: Info::MyApplication:mergeDebugAssets UP-TO-DATE\n" +
+                 "10: Info::MyApplication:mergeDebugResources\n" +
+                 "11: Gradle:Error:Open quote is expected for attribute \"{1}\" associated with an  element type  \"name\".\n" +
+                 "12: Gradle:Error:Error: Open quote is expected for attribute \"{1}\" associated with an  element type  \"name\".\n" +
+                 "\t" + sourceFilePath + ":2:16\n" +
+                 "13: Info::MyApplication:mergeDebugResources FAILED\n" +
+                 "14: Gradle:Error:Execution failed for task ':MyApplication:mergeDebugResources'.\n" +
+                 "> "+ sourceFilePath + ":2:16: Error: Open quote is expected for attribute \"{1}\" associated with an  element type  \"name\".\n" +
+                 "\t" + sourceFilePath + ":2:16\n" +
+                 "15: Info:BUILD FAILED\n" +
+                 "16: Info:Total time: 4.951 secs\n",
+                 toString(parser.parseErrorOutput(output)));
+    sourceFile.delete();
+  }
+
+  public void testJavacError() throws Exception {
+    // Javac error
+    createTempXmlFile();
+    String output =
+      "Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+      ":MyApplication:preBuild UP-TO-DATE\n" +
+      ":MyApplication:preDebugBuild UP-TO-DATE\n" +
+      ":MyApplication:preReleaseBuild UP-TO-DATE\n" +
+      ":MyApplication:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+      ":MyApplication:prepareDebugDependencies\n" +
+      ":MyApplication:compileDebugAidl UP-TO-DATE\n" +
+      ":MyApplication:compileDebugRenderscript UP-TO-DATE\n" +
+      ":MyApplication:generateDebugBuildConfig UP-TO-DATE\n" +
+      ":MyApplication:mergeDebugAssets UP-TO-DATE\n" +
+      ":MyApplication:mergeDebugResources UP-TO-DATE\n" +
+      ":MyApplication:processDebugManifest UP-TO-DATE\n" +
+      ":MyApplication:processDebugResources UP-TO-DATE\n" +
+      ":MyApplication:generateDebugSources UP-TO-DATE\n" +
+      ":MyApplication:compileDebug\n" +
+      "Ignoring platform 'android-1': build.prop is missing.\n" +
+      sourceFilePath + ":12: not a statement\n" +
+      "x        super.onCreate(savedInstanceState);\n" +
+      "^\n" +
+      sourceFilePath + ":12: ';' expected\n" +
+      "x        super.onCreate(savedInstanceState);\n" +
+      " ^\n" +
+      "2 errors\n" +
+      ":MyApplication:compileDebug FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':MyApplication:compileDebug'.\n" +
+      "> Compilation failed; see the compiler error output for details.\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 6.177 secs";
+    assertEquals("0: Info:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+                 "1: Info::MyApplication:preBuild UP-TO-DATE\n" +
+                 "2: Info::MyApplication:preDebugBuild UP-TO-DATE\n" +
+                 "3: Info::MyApplication:preReleaseBuild UP-TO-DATE\n" +
+                 "4: Info::MyApplication:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+                 "5: Info::MyApplication:prepareDebugDependencies\n" +
+                 "6: Info::MyApplication:compileDebugAidl UP-TO-DATE\n" +
+                 "7: Info::MyApplication:compileDebugRenderscript UP-TO-DATE\n" +
+                 "8: Info::MyApplication:generateDebugBuildConfig UP-TO-DATE\n" +
+                 "9: Info::MyApplication:mergeDebugAssets UP-TO-DATE\n" +
+                 "10: Info::MyApplication:mergeDebugResources UP-TO-DATE\n" +
+                 "11: Info::MyApplication:processDebugManifest UP-TO-DATE\n" +
+                 "12: Info::MyApplication:processDebugResources UP-TO-DATE\n" +
+                 "13: Info::MyApplication:generateDebugSources UP-TO-DATE\n" +
+                 "14: Info::MyApplication:compileDebug\n" +
+                 "15: Info:Ignoring platform 'android-1': build.prop is missing.\n" +
+                 "16: Gradle:Error:not a statement\n" +
+                 "\t" + sourceFilePath + ":12:-1\n" +
+                 "17: Info:x        super.onCreate(savedInstanceState);\n" +
+                 "18: Info:^\n" +
+                 "19: Gradle:Error:';' expected\n" +
+                 "\t" + sourceFilePath + ":12:-1\n" +
+                 "20: Info:x        super.onCreate(savedInstanceState);\n" +
+                 "21: Info: ^\n" +
+                 "22: Info:2 errors\n" +
+                 "23: Info::MyApplication:compileDebug FAILED\n" +
+                 "24: Gradle:Error:Execution failed for task ':MyApplication:compileDebug'.\n" +
+                 "> Compilation failed; see the compiler error output for details.\n" +
+                 "25: Info:BUILD FAILED\n" +
+                 "26: Info:Total time: 6.177 secs\n",
+                 toString(parser.parseErrorOutput(output)));
+    sourceFile.delete();
+  }
+
+  public void testMissingSourceCompat() throws Exception {
+    // Wrong target (source, not target
+    // Should rewrite to suggest checking JAVA_HOME
+    createTempXmlFile();
+    String output =
+      "Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+      ":MyApplication:preBuild UP-TO-DATE\n" +
+      ":MyApplication:preFreeDebugBuild UP-TO-DATE\n" +
+      ":MyApplication:preFreeReleaseBuild UP-TO-DATE\n" +
+      ":MyApplication:preProDebugBuild UP-TO-DATE\n" +
+      ":MyApplication:preProReleaseBuild UP-TO-DATE\n" +
+      ":MyApplication:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+      ":MyApplication:prepareFreeDebugDependencies\n" +
+      ":MyApplication:compileFreeDebugAidl UP-TO-DATE\n" +
+      ":MyApplication:compileFreeDebugRenderscript UP-TO-DATE\n" +
+      ":MyApplication:generateFreeDebugBuildConfig UP-TO-DATE\n" +
+      ":MyApplication:mergeFreeDebugAssets UP-TO-DATE\n" +
+      ":MyApplication:mergeFreeDebugResources UP-TO-DATE\n" +
+      ":MyApplication:processFreeDebugManifest UP-TO-DATE\n" +
+      ":MyApplication:processFreeDebugResources UP-TO-DATE\n" +
+      ":MyApplication:generateFreeDebugSources UP-TO-DATE\n" +
+      ":MyApplication:compileFreeDebug\n" +
+      "Ignoring platform 'android-1': build.prop is missing.\n" +
+      ":MyApplication:compileFreeDebug FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':MyApplication:compileFreeDebug'.\n" +
+      "> invalid source release: 1.7\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 5.47 secs";
+    assertEquals("0: Info:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+                 "1: Info::MyApplication:preBuild UP-TO-DATE\n" +
+                 "2: Info::MyApplication:preFreeDebugBuild UP-TO-DATE\n" +
+                 "3: Info::MyApplication:preFreeReleaseBuild UP-TO-DATE\n" +
+                 "4: Info::MyApplication:preProDebugBuild UP-TO-DATE\n" +
+                 "5: Info::MyApplication:preProReleaseBuild UP-TO-DATE\n" +
+                 "6: Info::MyApplication:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+                 "7: Info::MyApplication:prepareFreeDebugDependencies\n" +
+                 "8: Info::MyApplication:compileFreeDebugAidl UP-TO-DATE\n" +
+                 "9: Info::MyApplication:compileFreeDebugRenderscript UP-TO-DATE\n" +
+                 "10: Info::MyApplication:generateFreeDebugBuildConfig UP-TO-DATE\n" +
+                 "11: Info::MyApplication:mergeFreeDebugAssets UP-TO-DATE\n" +
+                 "12: Info::MyApplication:mergeFreeDebugResources UP-TO-DATE\n" +
+                 "13: Info::MyApplication:processFreeDebugManifest UP-TO-DATE\n" +
+                 "14: Info::MyApplication:processFreeDebugResources UP-TO-DATE\n" +
+                 "15: Info::MyApplication:generateFreeDebugSources UP-TO-DATE\n" +
+                 "16: Info::MyApplication:compileFreeDebug\n" +
+                 "17: Info:Ignoring platform 'android-1': build.prop is missing.\n" +
+                 "18: Info::MyApplication:compileFreeDebug FAILED\n" +
+                 "19: Gradle:Error:Execution failed for task ':MyApplication:compileFreeDebug'.\n" +
+                 // TODO: This is all we currently get. We should find a way to trap this and point to the
+                 // right source file where the invalid source flag is set
+                 "> invalid source release: 1.7\n" +
+                 "20: Info:BUILD FAILED\n" +
+                 "21: Info:Total time: 5.47 secs\n",
+                 toString(parser.parseErrorOutput(output)));
+    sourceFile.delete();
+  }
+
+  public void testInvalidLayoutName() throws Exception {
+    // Invalid layout name
+    createTempXmlFile();
+    String output =
+      "Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+      ":MyApplication585:preBuild UP-TO-DATE\n" +
+      ":MyApplication585:preDebugBuild UP-TO-DATE\n" +
+      ":MyApplication585:preReleaseBuild UP-TO-DATE\n" +
+      ":MyApplication585:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+      ":MyApplication585:prepareDebugDependencies\n" +
+      ":MyApplication585:compileDebugAidl UP-TO-DATE\n" +
+      ":MyApplication585:compileDebugRenderscript UP-TO-DATE\n" +
+      ":MyApplication585:generateDebugBuildConfig UP-TO-DATE\n" +
+      ":MyApplication585:mergeDebugAssets UP-TO-DATE\n" +
+      ":MyApplication585:mergeDebugResources\n" +
+      sourceFilePath + ": Error: Invalid file name: must contain only lowercase letters and digits ([a-z0-9_.])\n" +
+      ":MyApplication585:mergeDebugResources FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':MyApplication585:mergeDebugResources'.\n" +
+      "> " + sourceFilePath + ": Error: Invalid file name: must contain only lowercase letters and digits ([a-z0-9_.])\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 8.91 secs";
+    assertEquals("0: Info:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+                 "1: Info::MyApplication585:preBuild UP-TO-DATE\n" +
+                 "2: Info::MyApplication585:preDebugBuild UP-TO-DATE\n" +
+                 "3: Info::MyApplication585:preReleaseBuild UP-TO-DATE\n" +
+                 "4: Info::MyApplication585:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+                 "5: Info::MyApplication585:prepareDebugDependencies\n" +
+                 "6: Info::MyApplication585:compileDebugAidl UP-TO-DATE\n" +
+                 "7: Info::MyApplication585:compileDebugRenderscript UP-TO-DATE\n" +
+                 "8: Info::MyApplication585:generateDebugBuildConfig UP-TO-DATE\n" +
+                 "9: Info::MyApplication585:mergeDebugAssets UP-TO-DATE\n" +
+                 "10: Info::MyApplication585:mergeDebugResources\n" +
+                 "11: Gradle:Error:Error: Invalid file name: must contain only lowercase letters and digits ([a-z0-9_.])\n" +
+                 "\t" + sourceFilePath + ":-1:-1\n" +
+                 "12: Info::MyApplication585:mergeDebugResources FAILED\n" +
+                 "13: Gradle:Error:Execution failed for task ':MyApplication585:mergeDebugResources'.\n" +
+                 "> " + sourceFilePath + ": Error: Invalid file name: must contain only lowercase letters and digits ([a-z0-9_.])\n" +
+                 "\t" + sourceFilePath + ":-1:-1\n" +
+                 "14: Info:BUILD FAILED\n" +
+                 "15: Info:Total time: 8.91 secs\n",
+                 toString(parser.parseErrorOutput(output)));
+    sourceFile.delete();
+  }
+
+  public void testMultipleResourcesInSameFile() throws Exception {
+    // Multiple items (repeated)
+    createTempXmlFile();
+    String output =
+      "Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+      ":MyApplication:preBuild UP-TO-DATE\n" +
+      ":MyApplication:preDebugBuild UP-TO-DATE\n" +
+      ":MyApplication:preReleaseBuild UP-TO-DATE\n" +
+      ":MyApplication:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+      ":MyApplication:prepareDebugDependencies\n" +
+      ":MyApplication:compileDebugAidl UP-TO-DATE\n" +
+      ":MyApplication:compileDebugRenderscript UP-TO-DATE\n" +
+      ":MyApplication:generateDebugBuildConfig UP-TO-DATE\n" +
+      ":MyApplication:mergeDebugAssets UP-TO-DATE\n" +
+      ":MyApplication:mergeDebugResources\n" +
+      sourceFilePath + ": Error: Found item Dimension/activity_horizontal_margin more than one time\n" +
+      ":MyApplication:mergeDebugResources FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':MyApplication:mergeDebugResources'.\n" +
+      "> " + sourceFilePath + ": Error: Found item Dimension/activity_horizontal_margin more than one time\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 5.623 secs";
+    assertEquals("0: Info:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+                 "1: Info::MyApplication:preBuild UP-TO-DATE\n" +
+                 "2: Info::MyApplication:preDebugBuild UP-TO-DATE\n" +
+                 "3: Info::MyApplication:preReleaseBuild UP-TO-DATE\n" +
+                 "4: Info::MyApplication:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+                 "5: Info::MyApplication:prepareDebugDependencies\n" +
+                 "6: Info::MyApplication:compileDebugAidl UP-TO-DATE\n" +
+                 "7: Info::MyApplication:compileDebugRenderscript UP-TO-DATE\n" +
+                 "8: Info::MyApplication:generateDebugBuildConfig UP-TO-DATE\n" +
+                 "9: Info::MyApplication:mergeDebugAssets UP-TO-DATE\n" +
+                 "10: Info::MyApplication:mergeDebugResources\n" +
+                 "11: Gradle:Error:Error: Found item Dimension/activity_horizontal_margin more than one time\n" +
+                 "\t" + sourceFilePath + ":-1:-1\n" +
+                 "12: Info::MyApplication:mergeDebugResources FAILED\n" +
+                 "13: Gradle:Error:Execution failed for task ':MyApplication:mergeDebugResources'.\n" +
+                 "> " + sourceFilePath + ": Error: Found item Dimension/activity_horizontal_margin more than one time\n" +
+                 "\t" + sourceFilePath + ":-1:-1\n" +
+                 "14: Info:BUILD FAILED\n" +
+                 "15: Info:Total time: 5.623 secs\n",
+                 toString(parser.parseErrorOutput(output)));
+    sourceFile.delete();
+  }
+
+  public void testWrongGradleVersion() throws Exception {
+    // Wrong gradle
+    createTempFile(DOT_GRADLE);
+    String output =
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* Where:\n" +
+      "Build file '" + sourceFilePath  +"' line: 24\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "A problem occurred evaluating project ':MyApplication'.\n" +
+      "> Gradle version 1.8 is required. Current version is 1.7. If using the gradle wrapper, try editing the distributionUrl in /some/path/gradle.properties to gradle-1.8-all.zip\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 4.467 secs";
+    assertEquals("0: Gradle:Error:A problem occurred evaluating project ':MyApplication'.\n" +
+                 // TODO: Link to the gradle.properties file directly!
+                 // However, we have an import hyperlink helper to do it automatically, so may not be necessary
+                 "> Gradle version 1.8 is required. Current version is 1.7. If using the gradle wrapper, try editing the distributionUrl in /some/path/gradle.properties to gradle-1.8-all.zip\n" +
+                 "\t" + sourceFilePath + ":24:0\n" +
+                 "1: Info:BUILD FAILED\n" +
+                 "2: Info:Total time: 4.467 secs\n",
+                 toString(parser.parseErrorOutput(output)));
+    sourceFile.delete();
   }
 }
