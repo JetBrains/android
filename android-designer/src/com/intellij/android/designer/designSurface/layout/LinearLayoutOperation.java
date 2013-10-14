@@ -26,11 +26,13 @@ import com.intellij.android.designer.model.layout.Gravity;
 import com.intellij.designer.designSurface.FeedbackLayer;
 import com.intellij.designer.designSurface.OperationContext;
 import com.intellij.designer.model.RadComponent;
+import com.intellij.designer.palette.PaletteItem;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.IdeBorderFactory;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -101,6 +103,9 @@ public class LinearLayoutOperation extends FlowBaseOperation {
     if (mySetGravity) {
       Point location = myContext.getLocation();
       Gravity gravity = myHorizontal ? calculateVertical(myBounds, location) : calculateHorizontal(myBounds, location);
+      if (gravity == null) {
+        gravity = myHorizontal ? Gravity.left : Gravity.top;
+      }
 
       if (!myContainer.getChildren().isEmpty()) {
         myFeedback.setBounds(myInsertFeedback.getBounds());
@@ -109,10 +114,14 @@ public class LinearLayoutOperation extends FlowBaseOperation {
       myFeedback.setGravity(gravity);
 
       myTextFeedback.clear();
-      myTextFeedback.bold(gravity == null ? VALUE_FILL_PARENT : gravity.name());
+      if (gravity == Gravity.left || gravity == Gravity.top) {
+        myTextFeedback.setVisible(false);
+      } else {
+        myTextFeedback.bold(gravity.name());
+        myTextFeedback.setVisible(true);
+      }
       myTextFeedback.centerTop(myBounds);
 
-      // TODO: Only do this if large enough!
       myGravity = gravity;
     }
 
@@ -144,45 +153,68 @@ public class LinearLayoutOperation extends FlowBaseOperation {
   }
 
   @Nullable
-  private static Gravity calculateHorizontal(Rectangle bounds, Point location) {
-    Gravity horizontal = Gravity.right;
-    double width = bounds.width / 4.0;
-    double left = bounds.x + width;
-    double center = bounds.x + 2 * width;
-    double fill = bounds.x + 3 * width;
-
-    if (location.x < left) {
-      horizontal = Gravity.left;
-    }
-    else if (left < location.x && location.x < center) {
-      horizontal = Gravity.center;
-    }
-    else if (center < location.x && location.x < fill) {
-      horizontal = null;
+  private Gravity calculateHorizontal(Rectangle bounds, Point location) {
+    // Only align to the bottom if you're within the final quarter of the width (*and* the dragged bounds are significantly
+    // smaller than the available bounds)
+    List<RadComponent> dragged = myContext.getComponents();
+    assert !dragged.isEmpty();
+    if (dragged.size() > 1) {
+      return Gravity.left;
     }
 
-    return horizontal;
+    RadComponent component = dragged.get(0);
+    if (component.getBounds(myContext.getArea().getFeedbackLayer()).width > bounds.width / 2) {
+      return Gravity.left;
+    }
+
+    if (isFilled(myHorizontal, (RadViewComponent)component)) {
+      return Gravity.left;
+    }
+
+    int thirds = bounds.width / 3;
+    int right = bounds.x + 2 * thirds;
+    if (location.x >= right) {
+      return Gravity.right;
+    }
+
+    int center = bounds.x + thirds;
+    if (location.x >= center) {
+      return Gravity.center;
+    }
+
+    return Gravity.left;
   }
 
   @Nullable
-  private static Gravity calculateVertical(Rectangle bounds, Point location) {
-    Gravity vertical = Gravity.bottom;
-    double height = bounds.height / 4.0;
-    double top = bounds.y + height;
-    double center = bounds.y + 2 * height;
-    double fill = bounds.y + 3 * height;
-
-    if (location.y < top) {
-      vertical = Gravity.top;
+  private Gravity calculateVertical(Rectangle bounds, Point location) {
+    // Only align to the bottom if you're within the final quarter of the height (*and* the dragged bounds are significantly
+    // smaller than the available bounds)
+    List<RadComponent> dragged = myContext.getComponents();
+    assert !dragged.isEmpty();
+    if (dragged.size() > 1) {
+      return Gravity.top;
     }
-    else if (top < location.y && location.y < center) {
-      vertical = Gravity.center;
-    }
-    else if (center < location.y && location.y < fill) {
-      vertical = null;
+    RadComponent component = dragged.get(0);
+    if (component.getBounds(myContext.getArea().getFeedbackLayer()).height > bounds.height / 2) {
+      return Gravity.top;
     }
 
-    return vertical;
+    if (isFilled(myHorizontal, (RadViewComponent)component)) {
+      return Gravity.top;
+    }
+
+    int thirds = bounds.height / 3;
+    int bottom = bounds.y + 2 * thirds;
+    if (location.y >= bottom) {
+      return Gravity.bottom;
+    }
+
+    int center = bounds.y + thirds;
+    if (location.y >= center) {
+      return Gravity.center;
+    }
+
+    return Gravity.top;
   }
 
   @Override
@@ -199,28 +231,27 @@ public class LinearLayoutOperation extends FlowBaseOperation {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        execute(myHorizontal, myGravity, RadViewComponent.getViewComponents(myComponents));
+        Gravity gravity = myGravity == Gravity.top || myGravity == Gravity.left ? null : myGravity;
+        applyGravity(myHorizontal, gravity, RadViewComponent.getViewComponents(myComponents));
       }
     });
   }
 
-  public static void execute(boolean horizontal, Gravity gravity, List<? extends RadViewComponent> components) {
+  public static void applyGravity(boolean horizontal, @Nullable Gravity gravity, @NotNull List<? extends RadViewComponent> components) {
     if (gravity == null) {
       for (RadViewComponent component : components) {
         XmlTag tag = component.getTag();
         ModelParser.deleteAttribute(tag, ATTR_LAYOUT_GRAVITY);
-        tag.setAttribute(horizontal ? ATTR_LAYOUT_HEIGHT : ATTR_LAYOUT_WIDTH, ANDROID_URI, VALUE_FILL_PARENT);
       }
     }
     else {
-      String gravityValue = horizontal ? Gravity.getValue(Gravity.center, gravity) : Gravity.getValue(gravity, Gravity.center);
+      String gravityValue = horizontal ? Gravity.getValue(null, gravity) : Gravity.getValue(gravity, null);
 
       for (RadViewComponent component : components) {
         XmlTag tag = component.getTag();
 
-        XmlAttribute attribute = tag.getAttribute(horizontal ? ATTR_LAYOUT_HEIGHT : ATTR_LAYOUT_WIDTH, ANDROID_URI);
-        if (attribute != null && (VALUE_MATCH_PARENT.equals(attribute.getValue()) || VALUE_FILL_PARENT.equals(attribute.getValue()))) {
-          attribute.setValue(VALUE_WRAP_CONTENT);
+        if (isFilled(horizontal, component)) {
+          tag.setAttribute(horizontal ? ATTR_LAYOUT_HEIGHT : ATTR_LAYOUT_WIDTH, ANDROID_URI, VALUE_WRAP_CONTENT);
         }
 
         if (gravityValue != null) {
@@ -246,6 +277,31 @@ public class LinearLayoutOperation extends FlowBaseOperation {
     }
 
     return null;
+  }
+
+  private static boolean isFilled(boolean horizontal, RadViewComponent component) {
+    XmlTag tag = component.getTag();
+    if (tag != null) {
+      // Dragging within canvas
+      XmlAttribute attribute = tag.getAttribute(horizontal ? ATTR_LAYOUT_HEIGHT : ATTR_LAYOUT_WIDTH, ANDROID_URI);
+      if (attribute == null) {
+        return false;
+      }
+      String value = attribute.getValue();
+      return (VALUE_MATCH_PARENT.equals(value) || VALUE_FILL_PARENT.equals(value));
+    } else {
+      // Dragging from palette: no PSI element exists yet
+      // Look at the creation XML to see whether it's a filling view
+      PaletteItem paletteItem = component.getInitialPaletteItem();
+      if (paletteItem != null) {
+        String creation = paletteItem.getCreation();
+        if (creation != null) {
+          int index = creation.indexOf(horizontal ? "layout_width=\"wrap_content\"" : "layout_height=\"wrap_content\"");
+          return index == -1;
+        }
+      }
+      return false;
+    }
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////
