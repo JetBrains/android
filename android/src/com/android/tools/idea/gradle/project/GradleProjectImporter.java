@@ -170,8 +170,6 @@ public class GradleProjectImporter {
       newProject.save();
     }
 
-    Projects.setProjectBuildMode(newProject, BuildMode.SOURCE_GEN);
-
     doImport(newProject, true /* new project */, ProgressExecutionMode.MODAL_SYNC /* synchronous import */, callback);
   }
 
