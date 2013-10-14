@@ -29,7 +29,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -101,8 +100,8 @@ class FileProjectResourceRepository extends ProjectResources {
       // This should not happen; we've subclasses ResourceSet above to a no-op in checkItems
       assert false;
     }
-    catch (IOException e) {
-      LOG.error("Failed to initialize resources", e);
+    catch (MergingException e) {
+      LOG.error(e.getMessage());
     }
     merger.addDataSet(resourceSet);
     return merger;

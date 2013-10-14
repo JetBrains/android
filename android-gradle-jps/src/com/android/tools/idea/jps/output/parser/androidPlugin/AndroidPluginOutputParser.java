@@ -29,7 +29,8 @@ import java.util.Collection;
 public class AndroidPluginOutputParser implements CompilerOutputParser {
   private static final CompilerOutputParser[] PARSERS = {
     new XmlValidationErrorParser(),
-    new GradleBuildFailureParser()
+    new GradleBuildFailureParser(),
+    new MergingExceptionParser()
   };
 
   @Override
