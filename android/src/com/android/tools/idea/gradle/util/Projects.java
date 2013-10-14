@@ -66,9 +66,6 @@ public final class Projects {
         case SOURCE_GEN:
           generateSourcesOnly(project);
           break;
-        case CLEAN_AND_SOURCE_GEN:
-          cleanAndGenerateSourceOnly(project);
-          break;
         case COMPILE_JAVA:
           compileJava(project);
           break;
@@ -100,15 +97,7 @@ public final class Projects {
    * @param project the given project.
    */
   public static void rebuild(@NotNull Project project) {
-    rebuild(project, BuildMode.REBUILD);
-  }
-
-  private static void cleanAndGenerateSourceOnly(@NotNull Project project) {
-    rebuild(project, BuildMode.CLEAN_AND_SOURCE_GEN);
-  }
-
-  private static void rebuild(@NotNull Project project, @NotNull BuildMode buildMode) {
-    setProjectBuildMode(project, buildMode);
+    setProjectBuildMode(project, BuildMode.REBUILD);
     // By calling "rebuild" we force a clean before compile.
     CompilerManager.getInstance(project).rebuild(null);
   }

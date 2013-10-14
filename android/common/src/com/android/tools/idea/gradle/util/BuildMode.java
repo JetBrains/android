@@ -30,10 +30,7 @@ public enum BuildMode {
   COMPILE_JAVA,
 
   /** Generate Java source only (e.g. R.java). */
-  SOURCE_GEN,
-
-  /** Clean project and then {@link #SOURCE_GEN}. */
-  CLEAN_AND_SOURCE_GEN;
+  SOURCE_GEN;
 
   public static final BuildMode DEFAULT_BUILD_MODE = COMPILE_JAVA;
 }
