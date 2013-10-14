@@ -23,6 +23,7 @@ public class AndroidDataSourceProjectComponent extends AbstractProjectComponent 
 
   @Override
   public void projectOpened() {
+    DataSourceConfigUtil.detectDriverAndRefresh(myProject, AndroidDataSourceStorage.getInstance(myProject).getDataSources());
   }
 
   @Override
