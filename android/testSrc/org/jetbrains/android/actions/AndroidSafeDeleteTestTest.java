@@ -20,13 +20,14 @@ import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.refactoring.BaseRefactoringProcessor;
 import com.intellij.refactoring.safeDelete.SafeDeleteHandler;
 import org.jetbrains.android.AndroidTestCase;
 
-public class AndroidCreateComponentTest extends AndroidTestCase {
+public class AndroidSafeDeleteTestTest extends AndroidTestCase {
   private static final String TEST_FOLDER = "/createComponent/";
 
-  public AndroidCreateComponentTest() {
+  public AndroidSafeDeleteTestTest() {
     super(false);
   }
 
@@ -39,5 +40,21 @@ public class AndroidCreateComponentTest extends AndroidTestCase {
     final DataContext context = DataManager.getInstance().getDataContext(myFixture.getEditor().getComponent());
     new SafeDeleteHandler().invoke(getProject(), new PsiElement[]{activityClass}, context);
     myFixture.checkResultByFile("AndroidManifest.xml", TEST_FOLDER + "f1_after.xml", true);
+  }
+
+  public void testDeleteResourceFile() throws Exception {
+    createManifest();
+    final String testName = getTestName(false);
+    myFixture.copyFileToProject(TEST_FOLDER + testName + ".java", "src/p1/p2/" + testName + ".java");
+    myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+    final VirtualFile resVFile = myFixture.copyFileToProject(TEST_FOLDER + testName + ".xml", "res/drawable/my_resource_file.xml");
+    final PsiFile resFile = PsiManager.getInstance(getProject()).findFile(resVFile);
+    try {
+      SafeDeleteHandler.invoke(getProject(), new PsiElement[]{resFile}, myModule, true, null);
+    }
+    catch (BaseRefactoringProcessor.ConflictsInTestsException e) {
+      assertEquals("field <b><code>drawable.my_resource_file</code></b> has 1 usage that is not safe to delete.\n" +
+                   "Of those 0 usages are in strings, comments, or non-code files.", e.getMessage());
+    }
   }
 }
