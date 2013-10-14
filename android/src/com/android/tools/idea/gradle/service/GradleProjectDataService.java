@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.service;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.Facets;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.collect.ImmutableList;
@@ -34,13 +33,11 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Service that stores the "Gradle project paths" of an imported Android-Gradle project.
@@ -56,8 +53,6 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
   public void importData(@NotNull final Collection<DataNode<IdeaGradleProject>> toImport,
                          @NotNull final Project project,
                          boolean synchronous) {
-    final AtomicBoolean hasUnresolvedDependenciesRef = new AtomicBoolean(false);
-
     if (!toImport.isEmpty()) {
       ModuleManager moduleManager = ModuleManager.getInstance(project);
       final List<Module> modules = ImmutableList.copyOf(moduleManager.getModules());
@@ -75,8 +70,6 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
               Facets.removeAllFacetsOfType(module, AndroidGradleFacet.TYPE_ID);
             } else {
               customizeModule(module, gradleProject);
-              boolean hasUnresolvedDependencies = hasUnresolvedDependenciesRef.get() || hasUnresolvedDependencies(module);
-              hasUnresolvedDependenciesRef.set(hasUnresolvedDependencies);
             }
           }
         }
@@ -85,20 +78,14 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
 
     Projects.ensureExternalBuildIsEnabledForGradleProject(project);
 
-    if (!hasUnresolvedDependenciesRef.get()) {
-      Application application = ApplicationManager.getApplication();
-      if (!application.isUnitTestMode()) {
-        application.invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            BuildMode buildMode = Projects.getBuildModeFrom(project);
-            if (buildMode == null) {
-              Projects.setProjectBuildMode(project, BuildMode.CLEAN_AND_SOURCE_GEN);
-            }
-            Projects.build(project);
-          }
-        });
-      }
+    Application application = ApplicationManager.getApplication();
+    if (!application.isUnitTestMode()) {
+      application.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          Projects.generateSourcesOnly(project);
+        }
+      });
     }
   }
 
@@ -140,14 +127,6 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
       model.commit();
     }
     return facet;
-  }
-
-  private static boolean hasUnresolvedDependencies(@NotNull Module module) {
-    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    if (androidFacet == null || androidFacet.getIdeaAndroidProject() == null) {
-      return false;
-    }
-    return !androidFacet.getIdeaAndroidProject().getDelegate().getUnresolvedDependencies().isEmpty();
   }
 
   @Override

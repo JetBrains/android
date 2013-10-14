@@ -137,7 +137,6 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     Projects.ensureExternalBuildIsEnabledForGradleProject(myProject);
 
     if (reImportProject) {
-      Projects.setProjectBuildMode(myProject, BuildMode.CLEAN_AND_SOURCE_GEN);
       try {
         // Prevent IDEA from refreshing project. We want to do it ourselves.
         myProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
