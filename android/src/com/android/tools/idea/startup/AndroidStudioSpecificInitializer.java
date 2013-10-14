@@ -17,11 +17,13 @@ package com.android.tools.idea.startup;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.actions.*;
+import com.android.tools.idea.run.ArrayMapRenderer;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.structure.AndroidHomeConfigurable;
 import com.google.common.io.Closeables;
 import com.intellij.compiler.actions.GenerateAntBuildAction;
 import com.intellij.compiler.actions.MakeModuleAction;
+import com.intellij.debugger.settings.NodeRendererSettings;
 import com.intellij.ide.actions.ImportModuleAction;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -87,6 +89,9 @@ public class AndroidStudioSpecificInitializer implements Runnable {
         AndroidCodeStyleSettingsModifier.modify(settings);
       }
     }
+
+    NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.util.ArrayMap"));
+    NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.support.v4.util.ArrayMap"));
   }
 
   private static void replaceIdeaActions() {
