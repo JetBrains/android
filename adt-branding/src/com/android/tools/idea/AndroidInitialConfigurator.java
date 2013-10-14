@@ -108,11 +108,31 @@ public class AndroidInitialConfigurator {
   }
 
   private static void setActivateAndroidToolWindowShortcut() {
+    // The IntelliJ keymap implementation behaves as follows:
+    //  - getting a shortcut from a keymap gets the shortcut only from that keymap, and not from its parent, unless no shortcuts
+    //    are defined in the keymap itself
+    //  - however, adding a shortcut to a keymap explicitly copies all the shortcuts for that action from the parent keymap to this keymap
+    // The upshot of all this is that to add a shortcut, we should do so in all the child keymaps first, then the parent keymap.
+    // The following code does a simplified implementation of this behavior by changing the default keymap last after all the other
+    // keymaps have been changed.
+    Keymap defaultKeymap = null;
     for (Keymap keymap: KeymapManagerEx.getInstanceEx().getAllKeymaps()) {
-      KeyboardShortcut shortcut = removeFirstKeyboardShortcut(keymap, TODO_TOOLWINDOW_ACTION_ID);
-      if (shortcut != null) {
-        keymap.addShortcut(ANDROID_TOOLWINDOW_ACTION_ID, shortcut);
+      if (KeymapManager.DEFAULT_IDEA_KEYMAP.equals(keymap.getName())) {
+        defaultKeymap = keymap;
+        continue;
       }
+      setActivateAndroidToolWindowShortcut(keymap);
+    }
+
+    if (defaultKeymap != null) {
+      setActivateAndroidToolWindowShortcut(defaultKeymap);
+    }
+  }
+
+  private static void setActivateAndroidToolWindowShortcut(Keymap keymap) {
+    KeyboardShortcut shortcut = removeFirstKeyboardShortcut(keymap, TODO_TOOLWINDOW_ACTION_ID);
+    if (shortcut != null) {
+      keymap.addShortcut(ANDROID_TOOLWINDOW_ACTION_ID, shortcut);
     }
   }
 
