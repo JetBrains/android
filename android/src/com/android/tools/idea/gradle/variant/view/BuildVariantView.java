@@ -79,12 +79,14 @@ public class BuildVariantView {
   }
 
   public void addListener(@NotNull BuildVariantSelectionChangeListener listener) {
+    //noinspection SynchronizeOnThis
     synchronized (this) {
       myBuildVariantSelectionChangeListeners.add(listener);
     }
   }
 
   public void removeListener(@NotNull BuildVariantSelectionChangeListener listener) {
+    //noinspection SynchronizeOnThis
     synchronized (this) {
       myBuildVariantSelectionChangeListeners.remove(listener);
     }
@@ -129,12 +131,13 @@ public class BuildVariantView {
         // If the module does not have an Android-Gradle facet, just skip it.
         continue;
       }
-      JpsAndroidModuleProperties facetProperties = androidFacet.getConfiguration().getState();
+      JpsAndroidModuleProperties facetProperties = androidFacet.getProperties();
       String variantName = facetProperties.SELECTED_BUILD_VARIANT;
 
       BuildVariantItem[] variantNames = getVariantNames(module);
       if (variantNames != null) {
         // If we got here IdeaAndroidProject is *not* null.
+        //noinspection ConstantConditions
         variantName = getAndroidProject(module).getSelectedVariant().getName();
         variantNamesPerRow.add(variantNames);
       }
@@ -303,6 +306,7 @@ public class BuildVariantView {
           public void itemStateChanged(ItemEvent e) {
             if (e.getStateChange() == ItemEvent.SELECTED) {
               BuildVariantItem selected = (BuildVariantItem)e.getItem();
+              //noinspection TestOnlyProblems
               buildVariantSelected(selected.myModuleName, selected.myBuildVariantName);
             }
           }
