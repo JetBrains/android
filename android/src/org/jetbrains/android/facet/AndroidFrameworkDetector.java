@@ -16,9 +16,12 @@
 package org.jetbrains.android.facet;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.facet.FacetType;
+import com.intellij.framework.detection.DetectedFrameworkDescription;
 import com.intellij.framework.detection.FacetBasedFrameworkDetector;
 import com.intellij.framework.detection.FileContentPattern;
+import com.intellij.framework.detection.FrameworkDetectionContext;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
@@ -45,6 +48,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.event.HyperlinkEvent;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author nik
@@ -55,6 +61,16 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
 
   public AndroidFrameworkDetector() {
     super("android");
+  }
+
+  @Override
+  public List<? extends DetectedFrameworkDescription> detect(@NotNull Collection<VirtualFile> newFiles,
+                                                             @NotNull FrameworkDetectionContext context) {
+    Project project = context.getProject();
+    if (project != null && Projects.isGradleProject(project)) {
+      return Collections.emptyList();
+    }
+    return super.detect(newFiles, context);
   }
 
   @Override
