@@ -86,7 +86,7 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
   }
 
   private static void configureFacet(@NotNull AndroidFacet facet, @NotNull IdeaAndroidProject ideaAndroidProject) {
-    JpsAndroidModuleProperties facetState = facet.getConfiguration().getState();
+    JpsAndroidModuleProperties facetState = facet.getProperties();
     facetState.ALLOW_USER_CONFIGURATION = false;
 
     AndroidProject delegate = ideaAndroidProject.getDelegate();

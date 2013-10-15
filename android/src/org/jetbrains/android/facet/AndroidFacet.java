@@ -47,7 +47,7 @@ import com.intellij.facet.FacetTypeRegistry;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -74,7 +74,7 @@ import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiModificationTracker;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
@@ -137,6 +137,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private IdeaSourceProvider myMainIdeaSourceSet;
 
   public AndroidFacet(@NotNull Module module, String name, @NotNull AndroidFacetConfiguration configuration) {
+    //noinspection ConstantConditions
     super(getFacetType(), module, name, configuration, null);
     configuration.setFacet(this);
   }
@@ -146,15 +147,15 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   public boolean isGradleProject() {
-    return !getConfiguration().getState().ALLOW_USER_CONFIGURATION;
+    return !getProperties().ALLOW_USER_CONFIGURATION;
   }
 
   public boolean isLibraryProject() {
-    return getConfiguration().getState().LIBRARY_PROJECT;
+    return getProperties().LIBRARY_PROJECT;
   }
 
   public void setLibraryProject(boolean library) {
-    getConfiguration().getState().LIBRARY_PROJECT = library;
+    getProperties().LIBRARY_PROJECT = library;
   }
 
   /**
@@ -328,7 +329,6 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       return null;
     }
   }
-
 
   /**
    * This returns the primary resource directory; the default location to place
@@ -520,7 +520,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return true;
   }
 
-  private boolean canRunOnDevice(IAndroidTarget projectTarget, AndroidVersion deviceVersion) {
+  private boolean canRunOnDevice(@NotNull IAndroidTarget projectTarget, @Nullable AndroidVersion deviceVersion) {
     int minSdkVersion = -1;
     int maxSdkVersion = -1;
     final Manifest manifest = getManifest();
@@ -790,7 +790,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       @Nullable
       @Override
       public Module compute() {
-        return ModuleUtil.findModuleForPsiElement(element);
+        return ModuleUtilCore.findModuleForPsiElement(element);
       }
     });
     if (module == null) return null;
@@ -809,6 +809,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return getResourceManager(resourcePackage, null);
   }
 
+  @Nullable
   public ResourceManager getResourceManager(@Nullable String resourcePackage, @Nullable PsiElement contextElement) {
     if (SYSTEM_RESOURCE_PACKAGE.equals(resourcePackage)) {
       return getSystemResourceManager();
@@ -883,8 +884,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     File manifestIoFile = getMainSourceSet().getManifestFile();
     if (manifestIoFile == null) return null;
 
-    final VirtualFile manifestFile =
-      LocalFileSystem.getInstance().findFileByIoFile(manifestIoFile);
+    final VirtualFile manifestFile = LocalFileSystem.getInstance().findFileByIoFile(manifestIoFile);
     if (manifestFile == null) return null;
     return AndroidUtils.loadDomElement(getModule(), manifestFile, Manifest.class);
   }
@@ -959,7 +959,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       return false;
     }
     final String[] tagNames = constructor.getTagNamesByClass(aClass);
-    return ArrayUtil.find(tagNames, tagName) >= 0;
+    return ArrayUtilRt.find(tagNames, tagName) >= 0;
   }
 
   @NotNull
@@ -1057,6 +1057,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @Nullable
   public ProjectResources getProjectResources(boolean includeLibraries, boolean createIfNecessary) {
+    //noinspection SynchronizeOnThis
     synchronized (this) {
       if (includeLibraries) {
         if (myProjectResourcesWithLibraries == null && createIfNecessary) {
@@ -1072,8 +1073,11 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     }
   }
 
+  @NotNull
   public JpsAndroidModuleProperties getProperties() {
-    return getConfiguration().getState();
+    JpsAndroidModuleProperties state = getConfiguration().getState();
+    assert state != null;
+    return state;
   }
 
   /**
@@ -1097,12 +1101,14 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     if (myIdeaAndroidProject != null) {
       listener.gradleProjectAvailable(myIdeaAndroidProject);
     }
+    //noinspection SynchronizeOnThis
     synchronized (this) {
       myGradleProjectAvailableListeners.add(listener);
     }
   }
 
   public void removeListener(@NotNull GradleProjectAvailableListener listener) {
+    //noinspection SynchronizeOnThis
     synchronized (this) {
       myGradleProjectAvailableListeners.remove(listener);
     }
@@ -1119,7 +1125,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public void syncSelectedVariant() {
     if (myIdeaAndroidProject != null) {
       Variant variant = myIdeaAndroidProject.getSelectedVariant();
-      JpsAndroidModuleProperties state = getConfiguration().getState();
+      JpsAndroidModuleProperties state = getProperties();
 
       ArtifactInfo mainArtifactInfo = variant.getMainArtifactInfo();
       state.ASSEMBLE_TASK_NAME = mainArtifactInfo.getAssembleTaskName();

@@ -153,7 +153,7 @@ public class ModuleSetResourceRepositoryTest extends AndroidTestCase {
 
   private void addArchiveLibraries() {
     // Add in some Android projects too
-    myFacet.getConfiguration().getState().ALLOW_USER_CONFIGURATION = false; // make it a Gradle project
+    myFacet.getProperties().ALLOW_USER_CONFIGURATION = false; // make it a Gradle project
     AndroidProjectStub androidProject = TestProjects.createFlavorsProject();
     VariantStub variant = androidProject.getFirstVariant();
     assertNotNull(variant);
