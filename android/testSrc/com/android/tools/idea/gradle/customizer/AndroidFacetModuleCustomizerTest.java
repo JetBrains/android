@@ -63,7 +63,7 @@ public class AndroidFacetModuleCustomizerTest extends IdeaTestCase {
     assertNotNull(facet);
     assertSame(project, facet.getIdeaAndroidProject());
 
-    JpsAndroidModuleProperties facetState = facet.getConfiguration().getState();
+    JpsAndroidModuleProperties facetState = facet.getProperties();
     assertFalse(facetState.ALLOW_USER_CONFIGURATION);
   }
 }
