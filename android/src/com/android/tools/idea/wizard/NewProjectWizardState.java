@@ -36,8 +36,8 @@ public class NewProjectWizardState extends NewModuleWizardState {
   public static final String ATTR_LIBRARY = "isLibrary";
   public static final String ATTR_MODULE_NAME = "projectName";
 
-  private static final String LIBRARY_TEMPLATE = "NewAndroidLibrary";
-  private static final String APPLICATION_TEMPLATE = "NewAndroidApplication";
+  static final String LIBRARY_TEMPLATE = "NewAndroidLibrary";
+  static final String APPLICATION_TEMPLATE = "NewAndroidApplication";
 
   /**
    * Tracks changes to the is-library flag so we can change our template
