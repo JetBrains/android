@@ -17,6 +17,7 @@
 package com.android.tools.idea.structure;
 
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -273,6 +274,17 @@ public class AndroidModuleStructureConfigurable extends BaseStructureConfigurabl
   @Nullable
   protected String getEmptySelectionString() {
     return ProjectBundle.message("empty.module.selection.string");
+  }
+
+  @Override
+  public void apply() throws ConfigurationException {
+    super.apply();
+    try {
+      GradleProjectImporter.getInstance().reImportProject(myProject, null);
+    } catch (ConfigurationException ex) {
+      Messages.showErrorDialog(ex.getMessage(), ex.getTitle());
+      LOG.info(ex);
+    }
   }
 
   private class AddModuleAction extends AnAction implements DumbAware {
