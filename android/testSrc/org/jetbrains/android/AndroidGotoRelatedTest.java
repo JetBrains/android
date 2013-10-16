@@ -1,5 +1,6 @@
 package org.jetbrains.android;
 
+import com.android.SdkConstants;
 import com.intellij.codeInsight.daemon.LineMarkerInfo;
 import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl;
 import com.intellij.ide.actions.GotoRelatedFileAction;
@@ -9,6 +10,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.testFramework.TestActionEvent;
 import com.intellij.util.containers.HashSet;
 
@@ -21,6 +23,10 @@ import java.util.*;
 public class AndroidGotoRelatedTest extends AndroidTestCase {
   private static final String BASE_PATH = "/gotoRelated/";
 
+  public AndroidGotoRelatedTest() {
+    super(false);
+  }
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
@@ -28,6 +34,7 @@ public class AndroidGotoRelatedTest extends AndroidTestCase {
   }
 
   public void testActivityToLayout() throws Exception {
+    createManifest();
     final VirtualFile layout = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml");
     final VirtualFile layout1 = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout1.xml");
     final VirtualFile layout2 = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout2.xml");
@@ -38,7 +45,63 @@ public class AndroidGotoRelatedTest extends AndroidTestCase {
     doCheckLineMarkers(expectedTargetFiles, PsiFile.class);
   }
 
+  public void testActivityToLayoutAndManifest() throws Exception {
+    final VirtualFile layout = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml");
+    final VirtualFile manifestFile =
+      myFixture.copyFileToProject(BASE_PATH + "Manifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    final VirtualFile activityFile = myFixture.copyFileToProject(BASE_PATH + "Activity1.java", "src/p1/p2/MyActivity.java");
+
+    AndroidGotoRelatedProvider.ourAddDeclarationToManifest = true;
+    final List<GotoRelatedItem> items;
+    try {
+      items = doGotoRelatedFile(activityFile);
+    }
+    finally {
+      AndroidGotoRelatedProvider.ourAddDeclarationToManifest = false;
+    }
+    assertEquals(2, items.size());
+    XmlAttributeValue manifestDeclarationTarget = null;
+    PsiFile psiFileTarget = null;
+
+    for (GotoRelatedItem item : items) {
+      final PsiElement element = item.getElement();
+
+      if (element instanceof PsiFile) {
+        psiFileTarget = (PsiFile)element;
+      }
+      else if (element instanceof XmlAttributeValue) {
+        manifestDeclarationTarget = (XmlAttributeValue)element;
+      }
+      else {
+        fail("Unexpected element: " + element);
+      }
+    }
+    assertEquals(layout, psiFileTarget.getVirtualFile());
+    assertEquals(manifestFile, manifestDeclarationTarget.getContainingFile().getVirtualFile());
+  }
+
+  public void testActivityToAndManifest() throws Exception {
+    final VirtualFile manifestFile =
+      myFixture.copyFileToProject(BASE_PATH + "Manifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    final VirtualFile activityFile = myFixture.copyFileToProject(BASE_PATH + "Activity1.java", "src/p1/p2/MyActivity.java");
+
+    AndroidGotoRelatedProvider.ourAddDeclarationToManifest = true;
+    final List<GotoRelatedItem> items;
+    try {
+      items = doGotoRelatedFile(activityFile);
+    }
+    finally {
+      AndroidGotoRelatedProvider.ourAddDeclarationToManifest = false;
+    }
+    assertEquals(1, items.size());
+    final GotoRelatedItem item = items.get(0);
+    final PsiElement element = item.getElement();
+    assertInstanceOf(element, XmlAttributeValue.class);
+    assertEquals(manifestFile, element.getContainingFile().getVirtualFile());
+  }
+
   public void testSimpleClassToLayout() throws Exception {
+    createManifest();
     myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml");
     final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "Class1.java", "src/p1/p2/Class1.java");
     doTestGotoRelatedFile(file, Collections.<VirtualFile>emptyList(), PsiFile.class);
@@ -47,6 +110,7 @@ public class AndroidGotoRelatedTest extends AndroidTestCase {
   }
 
   public void testFragmentToLayout() throws Exception {
+    createManifest();
     final VirtualFile layout = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml");
     final VirtualFile layoutLand = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout-land/layout.xml");
     final VirtualFile fragmentFile = myFixture.copyFileToProject(BASE_PATH + "Fragment1.java", "src/p1/p2/MyFragment.java");
@@ -56,6 +120,7 @@ public class AndroidGotoRelatedTest extends AndroidTestCase {
   }
 
   public void testLayoutToContext() throws Exception {
+    createManifest();
     final VirtualFile layout = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml");
     myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout1.xml");
     myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout2.xml");
@@ -71,6 +136,7 @@ public class AndroidGotoRelatedTest extends AndroidTestCase {
   }
 
   public void testNestedActivity() throws Exception {
+    createManifest();
     final VirtualFile layout = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml");
     myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout1.xml");
     myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout2.xml");
@@ -80,6 +146,11 @@ public class AndroidGotoRelatedTest extends AndroidTestCase {
   }
 
   private void doTestGotoRelatedFile(VirtualFile file, List<VirtualFile> expectedTargetFiles, Class<?> targetElementClass) {
+    final List<GotoRelatedItem> items = doGotoRelatedFile(file);
+    doCheckItems(expectedTargetFiles, items, targetElementClass);
+  }
+
+  private List<GotoRelatedItem> doGotoRelatedFile(VirtualFile file) {
     myFixture.configureFromExistingVirtualFile(file);
 
     final GotoRelatedFileAction action = new GotoRelatedFileAction();
@@ -87,8 +158,7 @@ public class AndroidGotoRelatedTest extends AndroidTestCase {
     action.beforeActionPerformedUpdate(e);
     final Presentation presentation = e.getPresentation();
     assertTrue(presentation.isEnabled() && presentation.isVisible());
-
-    doCheckItems(expectedTargetFiles, GotoRelatedFileAction.getItems(myFixture.getFile(), myFixture.getEditor(), null), targetElementClass);
+    return GotoRelatedFileAction.getItems(myFixture.getFile(), myFixture.getEditor(), null);
   }
 
   private void doCheckLineMarkers(List<VirtualFile> expectedTargetFiles, Class<?> targetElementClass) {
