@@ -132,7 +132,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private IdeaAndroidProject myIdeaAndroidProject;
   private final ResourceFolderManager myFolderManager = new ResourceFolderManager(this);
 
-  private final List<GradleProjectAvailableListener> myGradleProjectAvailableListeners = Lists.newArrayList();
+  private final List<GradleSyncListener> myGradleSyncListeners = Lists.newArrayList();
   private SourceProvider myMainSourceSet;
   private IdeaSourceProvider myMainIdeaSourceSet;
 
@@ -1090,30 +1090,27 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   public void projectSyncCompleted(boolean success) {
-    if (myIdeaAndroidProject != null && !myGradleProjectAvailableListeners.isEmpty()) {
+    if (myIdeaAndroidProject != null && !myGradleSyncListeners.isEmpty()) {
       // Make copy first since listeners may remove themselves as they are notified, and we
       // don't want a concurrent modification exception
-      List<GradleProjectAvailableListener> listeners = new ArrayList<GradleProjectAvailableListener>(myGradleProjectAvailableListeners);
-      for (GradleProjectAvailableListener listener : listeners) {
-        listener.gradleProjectAvailable(myIdeaAndroidProject);
+      List<GradleSyncListener> listeners = new ArrayList<GradleSyncListener>(myGradleSyncListeners);
+      for (GradleSyncListener listener : listeners) {
+        listener.performedGradleSync(this, success);
       }
     }
   }
 
-  public void addListener(@NotNull GradleProjectAvailableListener listener) {
-    if (myIdeaAndroidProject != null) {
-      listener.gradleProjectAvailable(myIdeaAndroidProject);
-    }
+  public void addListener(@NotNull GradleSyncListener listener) {
     //noinspection SynchronizeOnThis
     synchronized (this) {
-      myGradleProjectAvailableListeners.add(listener);
+      myGradleSyncListeners.add(listener);
     }
   }
 
-  public void removeListener(@NotNull GradleProjectAvailableListener listener) {
+  public void removeListener(@NotNull GradleSyncListener listener) {
     //noinspection SynchronizeOnThis
     synchronized (this) {
-      myGradleProjectAvailableListeners.remove(listener);
+      myGradleSyncListeners.remove(listener);
     }
   }
 
@@ -1215,7 +1212,4 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     }
   }
 
-  public interface GradleProjectAvailableListener {
-    void gradleProjectAvailable(@NotNull IdeaAndroidProject project);
-  }
 }
