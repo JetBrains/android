@@ -89,6 +89,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -1158,41 +1159,118 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     AndroidUtils.executeCommandOnDevice(device, command, receiver, false);
   }
 
-  private static boolean isSuccess(MyReceiver receiver) {
-    return receiver.errorType == NO_ERROR && receiver.failureMessage == null;
-  }
-
   private boolean installApp(IDevice device, String remotePath, @NotNull String packageName)
     throws IOException, AdbCommandRejectedException, TimeoutException {
     message("Installing " + packageName, STDOUT);
-    MyReceiver receiver = new MyReceiver();
-    while (true) {
-      if (myStopped) return false;
-      boolean deviceNotResponding = false;
-      try {
-        executeDeviceCommandAndWriteToConsole(device, "pm install -r \"" + remotePath + "\"", receiver);
+
+    InstallResult result = null;
+    boolean retry = true;
+    while (!myStopped && retry) {
+      result = installApp(device, remotePath);
+      if (result.installOutput != null) {
+        message(result.installOutput, result.failureCode == InstallFailureCode.NO_ERROR ? STDOUT : STDERR);
       }
-      catch (ShellCommandUnresponsiveException e) {
-        LOG.info(e);
-        deviceNotResponding = true;
+
+      switch (result.failureCode) {
+        case DEVICE_NOT_RESPONDING:
+          message("Device is not ready. Waiting for " + WAITING_TIME + " sec.", STDOUT);
+          synchronized (myLock) {
+            try {
+              myLock.wait(WAITING_TIME * 1000);
+            }
+            catch (InterruptedException e) {
+              LOG.info(e);
+            }
+          }
+          retry = true;
+          break;
+        case INCONSISTENT_CERTIFICATES:
+          retry = promptUninstallExistingApp() && uninstallPackage(device, packageName);
+          break;
+        default:
+          retry = false;
+          break;
       }
-      if (!deviceNotResponding && receiver.errorType != 1 && receiver.errorType != UNTYPED_ERROR) {
-        break;
-      }
-      message("Device is not ready. Waiting for " + WAITING_TIME + " sec.", STDOUT);
-      synchronized (myLock) {
-        try {
-          myLock.wait(WAITING_TIME * 1000);
-        }
-        catch (InterruptedException e) {
-          LOG.info(e);
-        }
-      }
-      receiver = new MyReceiver();
     }
-    boolean success = isSuccess(receiver);
-    message(receiver.output.toString(), success ? STDOUT : STDERR);
-    return success;
+
+    return result != null && result.failureCode == InstallFailureCode.NO_ERROR;
+  }
+
+  private boolean uninstallPackage(IDevice device, String packageName) {
+    message("DEVICE SHELL COMMAND: pm uninstall " + packageName, STDOUT);
+    String output;
+    try {
+      output = device.uninstallPackage(packageName);
+    }
+    catch (InstallException e) {
+      return false;
+    }
+
+    if (output != null) {
+      message(output, STDERR);
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  private boolean promptUninstallExistingApp() {
+    final AtomicBoolean uninstall = new AtomicBoolean(false);
+    ApplicationManager.getApplication().invokeAndWait(new Runnable() {
+      @Override
+      public void run() {
+        int result = Messages.showOkCancelDialog(myFacet.getModule().getProject(),
+                                                 AndroidBundle.message("deployment.failed.uninstall.prompt.text"),
+                                                 AndroidBundle.message("deployment.failed.uninstall.prompt.title"),
+                                                 Messages.getQuestionIcon());
+        uninstall.set(result == 0);
+      }
+    }, ModalityState.defaultModalityState());
+
+    return uninstall.get();
+  }
+
+  private enum InstallFailureCode { NO_ERROR, DEVICE_NOT_RESPONDING, INCONSISTENT_CERTIFICATES, UNTYPED_ERROR, };
+
+  private static class InstallResult {
+    public final InstallFailureCode failureCode;
+    @Nullable public final String failureMessage;
+    @Nullable public final String installOutput;
+
+    public InstallResult(InstallFailureCode failureCode, @Nullable String failureMessage, @Nullable String installOutput) {
+      this.failureCode = failureCode;
+      this.failureMessage = failureMessage;
+      this.installOutput = installOutput;
+    }
+  }
+
+  private InstallResult installApp(@NotNull IDevice device, @NotNull String remotePath)
+    throws AdbCommandRejectedException, TimeoutException, IOException {
+
+    MyReceiver receiver = new MyReceiver();
+    try {
+      executeDeviceCommandAndWriteToConsole(device, "pm install -r \"" + remotePath + "\"", receiver);
+    }
+    catch (ShellCommandUnresponsiveException e) {
+      LOG.info(e);
+      return new InstallResult(InstallFailureCode.DEVICE_NOT_RESPONDING, null, null);
+    }
+
+    return new InstallResult(getFailureCode(receiver),
+                             receiver.failureMessage,
+                             receiver.output.toString());
+  }
+
+  private InstallFailureCode getFailureCode(MyReceiver receiver) {
+    if (receiver.errorType == NO_ERROR && receiver.failureMessage == null) {
+      return InstallFailureCode.NO_ERROR;
+    }
+
+    if ("INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES".equals(receiver.failureMessage)) {
+      return InstallFailureCode.INCONSISTENT_CERTIFICATES;
+    }
+
+    return InstallFailureCode.UNTYPED_ERROR;
   }
 
   public void addListener(@NotNull AndroidRunningStateListener listener) {
