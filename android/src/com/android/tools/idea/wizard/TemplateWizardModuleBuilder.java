@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.sdklib.BuildToolInfo;
+import com.android.sdklib.SdkManager;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.Template;
@@ -29,10 +31,15 @@ import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.DumbAwareRunnable;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkTypeId;
 import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -119,6 +126,7 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
   @Override
   @NotNull
   public ModuleWizardStep[] createWizardSteps(@NotNull WizardContext wizardContext, @NotNull ModulesProvider modulesProvider) {
+    myConfigureAndroidModuleStep.setWizardContext(wizardContext);
     return mySteps.toArray(new ModuleWizardStep[mySteps.size()]);
   }
 
@@ -151,6 +159,12 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
                 public void run() {
                   if (myProject == null) {
                     myWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
+                    final SdkManager sdkManager = getSdkManager(ProjectRootManager.getInstance(project).getProjectSdk());
+                    final BuildToolInfo buildTool = sdkManager != null ? sdkManager.getLatestBuildTool() : null;
+
+                    if (buildTool != null) {
+                      myWizardState.put(TemplateMetadata.ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
+                    }
                     NewProjectWizard.createProject(myWizardState, project);
                   }
                   else {
@@ -163,6 +177,15 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
         }
       });
     }
+
+  @Nullable
+  static SdkManager getSdkManager(@Nullable Sdk sdk) {
+    if (sdk == null) {
+      return null;
+    }
+    final AndroidPlatform platform = AndroidPlatform.getInstance(sdk);
+    return platform != null ? platform.getSdkData().getSdkManager() : null;
+  }
 
   @Override
   @NotNull
@@ -199,5 +222,10 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
       Messages.showErrorDialog(e.getMessage(), "New Module");
       LOG.error(e);
     }
+  }
+
+  @Override
+  public boolean isSuitableSdkType(SdkTypeId sdkType) {
+    return AndroidSdkType.getInstance().equals(sdkType);
   }
 }
