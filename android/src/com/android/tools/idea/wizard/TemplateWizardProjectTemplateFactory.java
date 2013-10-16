@@ -26,6 +26,7 @@ import com.intellij.platform.ProjectTemplate;
 import com.intellij.platform.ProjectTemplatesFactory;
 import com.intellij.platform.templates.BuilderBasedTemplate;
 import icons.AndroidIcons;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,7 +55,7 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
   @Override
   public ProjectTemplate[] createTemplates(String group, WizardContext context) {
     Project project = context.getProject();
-    if (project != null && !Projects.isGradleProject(project)) {
+    if (project != null && !Projects.isGradleProject(project) || !AndroidSdkUtils.isAndroidSdkAvailable()) {
       return EMPTY_PROJECT_TEMPLATES;
     }
     TemplateManager manager = TemplateManager.getInstance();
