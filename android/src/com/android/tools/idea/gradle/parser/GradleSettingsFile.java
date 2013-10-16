@@ -49,7 +49,8 @@ public class GradleSettingsFile extends GradleGroovyFile {
 
   @Nullable
   public static GradleSettingsFile get(Project project) {
-    VirtualFile settingsFile = project.getBaseDir().findFileByRelativePath(SdkConstants.FN_SETTINGS_GRADLE);
+    VirtualFile baseDir = project.getBaseDir();
+    VirtualFile settingsFile = baseDir != null ? baseDir.findFileByRelativePath(SdkConstants.FN_SETTINGS_GRADLE) : null;
     if (settingsFile != null) {
       return new GradleSettingsFile(settingsFile, project);
     } else {
