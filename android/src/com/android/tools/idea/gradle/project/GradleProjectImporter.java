@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.customizer.ContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
-import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.Facets;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
@@ -44,12 +43,12 @@ import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
-import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -156,14 +155,17 @@ public class GradleProjectImporter {
    * @throws IOException            if any file I/O operation fails (e.g. creating the '.idea' directory.)
    * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
    */
-  public void importProject(@NotNull String projectName, @NotNull File projectRootDir, @Nullable Callback callback)
+  public void importProject(@NotNull String projectName,
+                            @NotNull File projectRootDir,
+                            @Nullable Callback callback,
+                            @Nullable Project project)
     throws IOException, ConfigurationException {
     GradleImportNotificationListener.attachToManager();
 
     createTopLevelBuildFileIfNotExisting(projectRootDir);
     createIdeaProjectDir(projectRootDir);
 
-    final Project newProject = createProject(projectName, projectRootDir.getPath());
+    final Project newProject = project == null ? createProject(projectName, projectRootDir.getPath()) : project;
     setUpProject(newProject);
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
@@ -171,6 +173,11 @@ public class GradleProjectImporter {
     }
 
     doImport(newProject, true /* new project */, ProgressExecutionMode.MODAL_SYNC /* synchronous import */, callback);
+  }
+
+  public void importProject(@NotNull String projectName, @NotNull File projectRootDir, @Nullable Callback callback)
+    throws IOException, ConfigurationException {
+    importProject(projectName, projectRootDir, callback, null);
   }
 
   private static void createTopLevelBuildFileIfNotExisting(@NotNull File projectRootDir) throws IOException {
