@@ -38,6 +38,7 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
+import icons.AndroidIcons;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
@@ -191,6 +192,16 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
   @NotNull
   public ModuleType getModuleType() {
     return StdModuleTypes.JAVA;
+  }
+
+  @Override
+  public Icon getBigIcon() {
+    return AndroidIcons.Android24;
+  }
+
+  @Override
+  public Icon getNodeIcon() {
+    return AndroidIcons.Android;
   }
 
   @Override
