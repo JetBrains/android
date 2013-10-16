@@ -47,7 +47,7 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
   private static final Logger LOG = Logger.getInstance("#" + TemplateWizardModuleBuilder.class.getName());
   private final TemplateMetadata myMetadata;
   @NotNull final List<ModuleWizardStep> mySteps;
-  private Project myProject;
+  @Nullable private Project myProject;
 
   NewModuleWizardState myWizardState;
   ConfigureAndroidModuleStep myConfigureAndroidModuleStep;
@@ -59,7 +59,7 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
 
   public TemplateWizardModuleBuilder(@Nullable File templateFile,
                                      @Nullable TemplateMetadata metadata,
-                                     @NotNull Project project,
+                                     @Nullable Project project,
                                      @Nullable Icon sidePanelIcon,
                                      @NotNull List<ModuleWizardStep> steps,
                                      boolean hideModuleName) {
@@ -97,7 +97,9 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
     mySteps.add(myChooseActivityStep);
     mySteps.add(myActivityTemplateParameterStep);
 
-    myWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
+    if (project != null) {
+      myWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
+    }
     myWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, GradleUtil.GRADLE_LATEST_VERSION);
     myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GradleUtil.GRADLE_PLUGIN_LATEST_VERSION);
     myWizardState.put(TemplateMetadata.ATTR_V4_SUPPORT_LIBRARY_VERSION, TemplateMetadata.V4_SUPPORT_LIBRARY_VERSION);
@@ -136,7 +138,9 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
 
   @Override
   public void setupRootModel(final @NotNull ModifiableRootModel rootModel) throws ConfigurationException {
-      StartupManager.getInstance(myProject).runWhenProjectIsInitialized(new DumbAwareRunnable() {
+    final Project project = rootModel.getProject();
+
+    StartupManager.getInstance(project).runWhenProjectIsInitialized(new DumbAwareRunnable() {
         @Override
         public void run() {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
@@ -145,7 +149,13 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
               ApplicationManager.getApplication().runWriteAction(new Runnable() {
                 @Override
                 public void run() {
-                  createModule();
+                  if (myProject == null) {
+                    myWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
+                    NewProjectWizard.createProject(myWizardState, project);
+                  }
+                  else {
+                    createModule();
+                  }
                 }
               });
             }

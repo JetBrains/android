@@ -54,7 +54,7 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
   @Override
   public ProjectTemplate[] createTemplates(String group, WizardContext context) {
     Project project = context.getProject();
-    if (project == null || !Projects.isGradleProject(project)) {
+    if (project != null && !Projects.isGradleProject(project)) {
       return EMPTY_PROJECT_TEMPLATES;
     }
     TemplateManager manager = TemplateManager.getInstance();

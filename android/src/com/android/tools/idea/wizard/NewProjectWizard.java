@@ -32,6 +32,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
@@ -115,78 +116,82 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        List<String> errors = Lists.newArrayList();
-        try {
-          myWizardState.populateDirectoryParameters();
-          String projectName = myWizardState.getString(NewProjectWizardState.ATTR_MODULE_NAME);
-          File projectRoot = new File(myWizardState.getString(NewModuleWizardState.ATTR_PROJECT_LOCATION));
-          File moduleRoot = new File(projectRoot, projectName);
-          if (!FileUtilRt.createDirectory(projectRoot)) {
-            errors.add(String.format(UNABLE_TO_CREATE_DIR_FORMAT, projectRoot.getPath()));
-          }
-          createGradleWrapper(projectRoot);
-          int apiLevel = myWizardState.getInt(ATTR_BUILD_API);
-          Sdk sdk = getSdk(apiLevel);
-          if (sdk == null) {
-            // This will NEVER happen. The SDK has been already set before this wizard runs.
-            errors.add(String.format("Unable to find an Android SDK with API level %d.", apiLevel));
-          }
-          else {
-            LocalProperties localProperties = new LocalProperties(projectRoot);
-            localProperties.setAndroidSdkPath(sdk);
-            localProperties.save();
-          }
-          if (myWizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS)) {
-            myWizardState.getLauncherIconState().outputImages(moduleRoot);
-          }
-          myWizardState.updateParameters();
-          myWizardState.updateDependencies();
-          myWizardState.myTemplate.render(projectRoot, moduleRoot, myWizardState.myParameters);
-          if (myWizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY)) {
-            TemplateWizardState activityTemplateState = myWizardState.getActivityTemplateState();
-            Template template = activityTemplateState.getTemplate();
-            assert template != null;
-            template.render(moduleRoot, moduleRoot, activityTemplateState.myParameters);
-            myWizardState.myTemplate.getFilesToOpen().addAll(template.getFilesToOpen());
-          }
-          else {
-            // Ensure that at least the Java source directory exists. We could create other directories but this is the most used.
-            // TODO: We should perhaps instantiate this from the Freemarker template, using the mkdir command
-            File javaSrcDir = new File(moduleRoot, JAVA_SRC_PATH);
-            File packageDir = new File(javaSrcDir, myWizardState.getString(ATTR_PACKAGE_NAME).replace('.', File.separatorChar));
-            if (!FileUtilRt.createDirectory(packageDir)) {
-              errors.add(String.format(UNABLE_TO_CREATE_DIR_FORMAT, packageDir.getPath()));
-            }
-          }
-          GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
-          projectImporter.importProject(projectName, projectRoot, new GradleProjectImporter.Callback() {
-            @Override
-            public void projectImported(@NotNull Project project) {
-              TemplateUtils.openEditors(project, myWizardState.myTemplate.getFilesToOpen(), true);
-            }
+        createProject(myWizardState, null);
+      }
+    });
+  }
 
+  public static void createProject(@NotNull final NewModuleWizardState wizardState, @Nullable Project project) {
+    List<String> errors = Lists.newArrayList();
+    try {
+      wizardState.populateDirectoryParameters();
+      String projectName = wizardState.getString(NewProjectWizardState.ATTR_MODULE_NAME);
+      File projectRoot = new File(wizardState.getString(NewModuleWizardState.ATTR_PROJECT_LOCATION));
+      File moduleRoot = new File(projectRoot, projectName);
+      if (!FileUtilRt.createDirectory(projectRoot)) {
+        errors.add(String.format(UNABLE_TO_CREATE_DIR_FORMAT, projectRoot.getPath()));
+      }
+      createGradleWrapper(projectRoot);
+      int apiLevel = wizardState.getInt(ATTR_BUILD_API);
+      Sdk sdk = getSdk(apiLevel);
+      if (sdk == null) {
+        // This will NEVER happen. The SDK has been already set before this wizard runs.
+        errors.add(String.format("Unable to find an Android SDK with API level %d.", apiLevel));
+      }
+      else {
+        LocalProperties localProperties = new LocalProperties(projectRoot);
+        localProperties.setAndroidSdkPath(sdk);
+        localProperties.save();
+      }
+      if (wizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS)) {
+        wizardState.getLauncherIconState().outputImages(moduleRoot);
+      }
+      wizardState.updateParameters();
+      wizardState.updateDependencies();
+      wizardState.myTemplate.render(projectRoot, moduleRoot, wizardState.myParameters);
+      if (wizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY)) {
+        TemplateWizardState activityTemplateState = wizardState.getActivityTemplateState();
+        Template template = activityTemplateState.getTemplate();
+        assert template != null;
+        template.render(moduleRoot, moduleRoot, activityTemplateState.myParameters);
+        wizardState.myTemplate.getFilesToOpen().addAll(template.getFilesToOpen());
+      }
+      else {
+        // Ensure that at least the Java source directory exists. We could create other directories but this is the most used.
+        // TODO: We should perhaps instantiate this from the Freemarker template, using the mkdir command
+        File javaSrcDir = new File(moduleRoot, JAVA_SRC_PATH);
+        File packageDir = new File(javaSrcDir, wizardState.getString(ATTR_PACKAGE_NAME).replace('.', File.separatorChar));
+        if (!FileUtilRt.createDirectory(packageDir)) {
+          errors.add(String.format(UNABLE_TO_CREATE_DIR_FORMAT, packageDir.getPath()));
+        }
+      }
+      GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
+      projectImporter.importProject(projectName, projectRoot, new GradleProjectImporter.Callback() {
+        @Override
+        public void projectImported(@NotNull Project project) {
+          TemplateUtils.openEditors(project, wizardState.myTemplate.getFilesToOpen(), true);
+        }
+
+        @Override
+        public void importFailed(@NotNull Project project, @NotNull final String errorMessage) {
+          ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
-            public void importFailed(@NotNull Project project, @NotNull final String errorMessage) {
-              ApplicationManager.getApplication().invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                  Messages.showErrorDialog(errorMessage, ERROR_MSG_TITLE);
-                }
-              });
+            public void run() {
+              Messages.showErrorDialog(errorMessage, ERROR_MSG_TITLE);
             }
           });
         }
-        catch (Exception e) {
-          Messages.showErrorDialog(e.getMessage(), ERROR_MSG_TITLE);
-          LOG.error(e);
-        }
-        if (!errors.isEmpty()) {
-          String msg = errors.size() == 1 ? errors.get(0) : Joiner.on('\n').join(errors);
-          Messages.showErrorDialog(msg, ERROR_MSG_TITLE);
-          LOG.error(msg);
-        }
-      }
-    });
+      }, project);
+    }
+    catch (Exception e) {
+      Messages.showErrorDialog(e.getMessage(), ERROR_MSG_TITLE);
+      LOG.error(e);
+    }
+    if (!errors.isEmpty()) {
+      String msg = errors.size() == 1 ? errors.get(0) : Joiner.on('\n').join(errors);
+      Messages.showErrorDialog(msg, ERROR_MSG_TITLE);
+      LOG.error(msg);
+    }
   }
 
   private static void createGradleWrapper(File projectRoot) throws IOException {
