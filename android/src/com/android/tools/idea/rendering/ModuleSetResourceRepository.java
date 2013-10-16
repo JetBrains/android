@@ -25,6 +25,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.GradleSyncListener;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,22 +49,18 @@ public final class ModuleSetResourceRepository extends MultiResourceRepository {
 
   @NotNull
   public static ProjectResources create(@NotNull final AndroidFacet facet) {
-    boolean refresh = facet.getIdeaAndroidProject() == null;
-
     List<ProjectResources> resources = computeRepositories(facet);
     final ModuleSetResourceRepository repository = new ModuleSetResourceRepository(facet, resources);
 
-    // If the model is not yet ready, we may get an incomplete set of resource
-    // directories, so in that case update the repository when the model is available.
-    if (refresh) {
-      facet.addListener(new AndroidFacet.GradleProjectAvailableListener() {
-        @Override
-        public void gradleProjectAvailable(@NotNull IdeaAndroidProject project) {
-          facet.removeListener(this);
+    facet.addListener(new GradleSyncListener() {
+      @Override
+      public void performedGradleSync(@NotNull AndroidFacet facet, boolean success) {
+        // Dependencies can change when we sync with Gradle
+        if (success) {
           repository.updateRoots();
         }
-      });
-    }
+      }
+    });
 
     return repository;
   }
