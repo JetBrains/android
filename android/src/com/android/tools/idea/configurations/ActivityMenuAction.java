@@ -101,11 +101,10 @@ public class ActivityMenuAction extends FlatComboAction {
         label = label.substring(innerClass + 1);
       }
 
-      // Also strip out the "Activity" or "Fragment" common suffix
-      // if this is a long name
-      if (label.endsWith("Activity") && label.length() > 8 + 12) { // 12 chars + 8 in suffix
+      // Also strip out the "Activity" or "Fragment" common suffix if this is a long name
+      if (label.endsWith("Activity") && label.length() > 12) { // 8 for name and a few others (e.g. don't make FooActivity just Foo)
         label = label.substring(0, label.length() - 8);
-      } else if (label.endsWith("Fragment") && label.length() > 8 + 12) {
+      } else if (label.endsWith("Fragment") && label.length() > 12) {
         label = label.substring(0, label.length() - 8);
       }
 
@@ -134,7 +133,7 @@ public class ActivityMenuAction extends FlatComboAction {
           currentFqcn = activity;
         }
 
-        String title = String.format("Open %1$s", activity.substring(activity.lastIndexOf('.') + 1));
+        String title = String.format("Open %1$s", activity.substring(activity.lastIndexOf('.') + 1).replace('$','.'));
         group.add(new ShowActivityAction(myRenderContext, title, activity));
         group.addSeparator();
       }
@@ -269,7 +268,7 @@ public class ActivityMenuAction extends FlatComboAction {
     @Override
     public void actionPerformed(AnActionEvent e) {
       Project project = myRenderContext.getModule().getProject();
-      PsiClass clz = JavaPsiFacade.getInstance(project).findClass(myActivity, GlobalSearchScope.allScope(project));
+      PsiClass clz = JavaPsiFacade.getInstance(project).findClass(myActivity.replace('$','.'), GlobalSearchScope.allScope(project));
       if (clz != null) {
         PsiFile containingFile = clz.getContainingFile();
         if (containingFile != null) {
