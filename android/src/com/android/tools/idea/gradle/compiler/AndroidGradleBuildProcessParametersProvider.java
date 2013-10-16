@@ -131,7 +131,6 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     if (buildMode == null) {
       buildMode = BuildMode.DEFAULT_BUILD_MODE;
     }
-    Projects.removeBuildActionFrom(myProject);
     jvmArgs.add(createJvmArg(BuildProcessJvmArgs.BUILD_ACTION, buildMode.name()));
 
     addHttpProxySettings(jvmArgs);

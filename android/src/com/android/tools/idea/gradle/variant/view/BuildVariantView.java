@@ -137,8 +137,9 @@ public class BuildVariantView {
       BuildVariantItem[] variantNames = getVariantNames(module);
       if (variantNames != null) {
         // If we got here IdeaAndroidProject is *not* null.
-        //noinspection ConstantConditions
-        variantName = getAndroidProject(module).getSelectedVariant().getName();
+        IdeaAndroidProject androidProject = getAndroidProject(module);
+        assert androidProject != null;
+        variantName = androidProject.getSelectedVariant().getName();
         variantNamesPerRow.add(variantNames);
       }
 
