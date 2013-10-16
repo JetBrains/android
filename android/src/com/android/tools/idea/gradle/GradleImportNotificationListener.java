@@ -25,6 +25,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemProgressNotificationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.AsyncResult;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -86,10 +87,12 @@ public class GradleImportNotificationListener extends ExternalSystemTaskNotifica
           if (!myProjectImportInProgress) {
             return;
           }
-          Project project = Projects.getCurrentGradleProject();
-          if (project != null) {
-            BuildVariantView.getInstance(project).projectImportStarted();
-          }
+          Projects.applyToCurrentGradleProject(new AsyncResult.Handler<Project>() {
+            @Override
+            public void run(Project project) {
+              BuildVariantView.getInstance(project).projectImportStarted();
+            }
+          });
         }
       });
     }
@@ -109,11 +112,13 @@ public class GradleImportNotificationListener extends ExternalSystemTaskNotifica
       ApplicationManager.getApplication().invokeLater(new Runnable() {
         @Override
         public void run() {
-          Project project = Projects.getCurrentGradleProject();
-          if (project != null) {
-            BuildVariantView.getInstance(project).updateContents();
-            ModuleSetResourceRepository.moduleRootsChanged(project);
-          }
+          Projects.applyToCurrentGradleProject(new AsyncResult.Handler<Project>() {
+            @Override
+            public void run(Project project) {
+              BuildVariantView.getInstance(project).updateContents();
+              ModuleSetResourceRepository.moduleRootsChanged(project);
+            }
+          });
         }
       });
     }

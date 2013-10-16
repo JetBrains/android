@@ -45,6 +45,7 @@ import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.util.AsyncResult;
 import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.Function;
@@ -150,10 +151,12 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
           return resolveProjectInfo(projectDir, buildActionExecutor);
         }
         catch (RuntimeException e) {
-          Project project = Projects.getCurrentGradleProject();
-          if (project != null) {
-            Projects.notifyProjectSyncCompleted(project, false);
-          }
+          Projects.applyToCurrentGradleProject(new AsyncResult.Handler<Project>() {
+            @Override
+            public void run(Project project) {
+              Projects.notifyProjectSyncCompleted(project, false);
+            }
+          });
           throw myErrorHandler.getUserFriendlyError(e, projectDir, null);
         }
       }

@@ -25,11 +25,13 @@ import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetTypeId;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.AsyncResult;
 import com.intellij.openapi.util.Key;
 import com.intellij.util.messages.MessageBus;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -156,15 +158,22 @@ public final class Projects {
   }
 
   /**
-   * Returns the current Gradle project. This method must be called in the event dispatch thread.
+   * Runs the given handler on the current project, when it's available
    *
-   * @return the current Gradle project, or {@code null} if the current project is not a Gradle one or if there are no projects open.
+   * @param handler the handler to run when the context is available
    */
-  @Nullable
-  public static Project getCurrentGradleProject() {
-    Project project = CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext());
-    boolean isGradleProject = project != null && isGradleProject(project);
-    return isGradleProject ? project : null;
+  public static void applyToCurrentGradleProject(@NotNull final AsyncResult.Handler<Project> handler) {
+    DataManager.getInstance().getDataContextFromFocus().doWhenDone(new AsyncResult.Handler<DataContext>() {
+      @Override
+      public void run(DataContext dataContext) {
+        if (dataContext != null) {
+          Project project = CommonDataKeys.PROJECT.getData(dataContext);
+          if (project != null && isGradleProject(project)) {
+            handler.run(project);
+          }
+        }
+      }
+    });
   }
 
   /**
