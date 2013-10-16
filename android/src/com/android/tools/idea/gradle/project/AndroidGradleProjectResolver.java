@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dependency.Dependency;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.SearchInBuildFilesHyperlink;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
+import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -41,6 +42,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.TaskData;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.StdModuleTypes;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.KeyValue;
@@ -148,6 +150,10 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
           return resolveProjectInfo(projectDir, buildActionExecutor);
         }
         catch (RuntimeException e) {
+          Project project = Projects.getCurrentGradleProject();
+          if (project != null) {
+            Projects.notifyProjectSyncCompleted(project, false);
+          }
           throw myErrorHandler.getUserFriendlyError(e, projectDir, null);
         }
       }
