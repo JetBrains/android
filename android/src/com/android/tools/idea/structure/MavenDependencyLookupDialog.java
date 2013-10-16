@@ -77,7 +77,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
     myProgressIcon.suspend();
     myCaptionLabel.setText(
       XmlStringUtil.wrapInHtml(StringUtil.escapeXml("enter keyword, pattern or class name to search by or Maven coordinates, " +
-                                                    "i.e. 'actionbarsherlock', 'com.google.code.gson:gson:2.2.4':")
+                                                    "i.e. 'guava', 'com.google.code.gson:gson:2.2.4':")
       ));
     myInfoLabel.setPreferredSize(
       new Dimension(myInfoLabel.getFontMetrics(myInfoLabel.getFont()).stringWidth("Showing: 1000"), myInfoLabel.getPreferredSize().height));
