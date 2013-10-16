@@ -12,6 +12,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.persistence.database.autoconfig.DataSourceConfigUtil;
 import com.intellij.ui.FieldPanel;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.util.ArrayUtil;
@@ -323,7 +324,6 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
     myDataSource.resetUrl();
 
     AndroidSynchronizeHandler.doSynchronize(myProject, Collections.singletonList(myDataSource));
-    AndroidDbUtil.detectDriverAndRefresh(myProject, myDataSource);
 
     setModified(false);
 

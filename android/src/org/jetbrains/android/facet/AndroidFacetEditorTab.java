@@ -108,6 +108,9 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   private JBCheckBox myEnableManifestMerging;
   private JBCheckBox myPreDexEnabledCheckBox;
   private ProGuardConfigFilesPanel myProGuardConfigFilesPanel;
+  private JBCheckBox myEnableSourcesAutogenerationCheckBox;
+  private JPanel myAptAutogenerationOptionsPanel;
+  private JPanel myAidlAutogenerationOptionsPanel;
 
   private static final String MAVEN_TAB_TITLE = "Maven";
   private final Component myMavenTabComponent;
@@ -179,6 +182,12 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
       }
     });
 
+    myEnableSourcesAutogenerationCheckBox.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        updateAutogenerationPanels();
+      }
+    });
     ActionListener listener = new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -253,6 +262,11 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     myMavenTabComponent = myTabbedPane.getComponentAt(mavenTabIndex);
   }
 
+  private void updateAutogenerationPanels() {
+    UIUtil.setEnabled(myAidlAutogenerationOptionsPanel, myEnableSourcesAutogenerationCheckBox.isSelected(), true);
+    updateAptPanel();
+  }
+
   private void buildImportedOptionsList() {
     myImportedOptionsList.setItems(Arrays.asList(AndroidImportableProperty.values()), new Function<AndroidImportableProperty, String>() {
       @Override
@@ -263,8 +277,14 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   }
 
   private void updateAptPanel() {
-    boolean enabled = !myRunProcessResourcesRadio.isVisible() || !myRunProcessResourcesRadio.isSelected();
-    UIUtil.setEnabled(myAaptCompilerPanel, enabled, true);
+    if (!myEnableSourcesAutogenerationCheckBox.isSelected()) {
+      UIUtil.setEnabled(myAptAutogenerationOptionsPanel, false, true);
+    }
+    else {
+      UIUtil.setEnabled(myAptAutogenerationOptionsPanel, true, true);
+      boolean enabled = !myRunProcessResourcesRadio.isVisible() || !myRunProcessResourcesRadio.isSelected();
+      UIUtil.setEnabled(myAaptCompilerPanel, enabled, true);
+    }
   }
 
   private static String[] getDefaultApks(@NotNull Module module) {
@@ -347,6 +367,9 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
       return true;
     }
     if (myConfiguration.getState().PACK_TEST_CODE != myIncludeTestCodeAndCheckBox.isSelected()) {
+      return true;
+    }
+    if (myConfiguration.getState().ENABLE_SOURCES_AUTOGENERATION != myEnableSourcesAutogenerationCheckBox.isSelected()) {
       return true;
     }
     if (myConfiguration.isIncludeAssetsFromLibraries() != myIncludeAssetsFromLibraries.isSelected()) {
@@ -486,6 +509,8 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
 
     myConfiguration.getState().PACK_TEST_CODE = myIncludeTestCodeAndCheckBox.isSelected();
 
+    myConfiguration.getState().ENABLE_SOURCES_AUTOGENERATION = myEnableSourcesAutogenerationCheckBox.isSelected();
+
     myConfiguration.setIncludeAssetsFromLibraries(myIncludeAssetsFromLibraries.isSelected());
 
     if (AndroidMavenUtil.isMavenizedModule(myContext.getModule())) {
@@ -613,8 +638,6 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     myIncludeTestCodeAndCheckBox.setSelected(myConfiguration.getState().PACK_TEST_CODE);
     myIncludeAssetsFromLibraries.setSelected(myConfiguration.isIncludeAssetsFromLibraries());
 
-    updateAptPanel();
-
     final boolean lib = myConfiguration.getState().LIBRARY_PROJECT;
     myIncludeAssetsFromLibraries.setEnabled(!lib);
 
@@ -623,6 +646,8 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     myCustomManifestPackageField.setText(myConfiguration.getState().CUSTOM_MANIFEST_PACKAGE);
 
     myUpdateProjectPropertiesCombo.setSelectedItem(myConfiguration.getState().UPDATE_PROPERTY_FILES);
+    myEnableSourcesAutogenerationCheckBox.setSelected(myConfiguration.getState().ENABLE_SOURCES_AUTOGENERATION);
+    updateAutogenerationPanels();
 
     final int mavenTabIndex = myTabbedPane.indexOfTab(MAVEN_TAB_TITLE);
 
@@ -679,6 +704,12 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+      Module module = myContext.getModule();
+      final VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
+
+      if (contentRoots.length == 0) {
+        return;
+      }
       VirtualFile initialFile = null;
       String path = myTextField.getText().trim();
       if (path.length() == 0) {
@@ -688,7 +719,6 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
         initialFile = LocalFileSystem.getInstance().findFileByPath(path);
       }
       if (initialFile == null) {
-        Module module = myContext.getModule();
         ModuleRootManager manager = ModuleRootManager.getInstance(module);
         VirtualFile[] sourceRoots = manager.getSourceRoots();
         if (sourceRoots.length > 0) {
@@ -705,6 +735,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
         }
       }
       final FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
+      descriptor.setRoots(contentRoots);
       VirtualFile file = FileChooser.chooseFile(descriptor, myContentPanel, myContext.getProject(), initialFile);
       if (file != null) {
         myTextField.setText(FileUtil.toSystemDependentName(file.getPath()));

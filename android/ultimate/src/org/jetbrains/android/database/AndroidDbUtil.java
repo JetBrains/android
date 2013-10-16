@@ -1,25 +1,19 @@
 package org.jetbrains.android.database;
 
-import com.android.ddmlib.*;
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.MultiLineReceiver;
+import com.android.ddmlib.SyncService;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
-import com.intellij.javaee.dataSource.LoaderContext;
-import com.intellij.javaee.module.view.dataSource.DataSourceUiUtil;
-import com.intellij.javaee.module.view.dataSource.LocalDataSource;
-import com.intellij.notification.Notifications;
-import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.persistence.database.autoconfig.DataSourceConfigUtil;
-import com.intellij.persistence.database.autoconfig.MissingDriversNotification;
 import com.intellij.util.io.URLUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.net.URL;
-import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -334,25 +328,6 @@ class AndroidDbUtil {
       return null;
     }
     return receiver.getOutput();
-  }
-
-  public static void detectDriverAndRefresh(@NotNull Project project, @NotNull AndroidDataSource dataSource) {
-    if (!DataSourceConfigUtil.detectDriverClassPath(project, dataSource.getDriverClass(), dataSource.getClasspathElements())) {
-      final String message =
-        "<html><body><font face=\"verdana\">\n" +
-        "<font size=\"3\">Android SQLite data source is updated, but some<br>\n" +
-        "additional drivers are required for " + ApplicationNamesInfo.getInstance().getProductName() + "<br>\n" +
-        "to connect to the database<br>\n" +
-        "<a href=\"create\">Download drivers</a><br>\n" +
-        "</font></font></body></html>";
-      final MissingDriversNotification notification = new MissingDriversNotification(
-        project, Collections.<LocalDataSource>singleton(dataSource),
-        AndroidDbManager.NOTIFICATION_GROUP_ID, "Database Driver  Required", message);
-      Notifications.Bus.notify(notification, project);
-    }
-    else {
-      DataSourceUiUtil.refreshDatasource(project, true, true, LoaderContext.loadAll(dataSource));
-    }
   }
 
   @Nullable

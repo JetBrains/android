@@ -48,7 +48,7 @@ public class TemplateManager {
    * templates with the application instead of waiting for SDK updates.
    */
   private static final String BUNDLED_TEMPLATE_PATH = "/plugins/android/lib/templates";
-  private static final String DEVELOPMENT_TEMPLATE_PATH = "/../../tools/base/templates";
+  private static final String[] DEVELOPMENT_TEMPLATE_PATHS = {"/../../tools/base/templates", "/android/tools-base/templates"};
 
   /**
    * Cache for {@link #getTemplate()}
@@ -118,12 +118,19 @@ public class TemplateManager {
     VirtualFile root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(homePath + BUNDLED_TEMPLATE_PATH));
     if (root == null) {
       // Development build?
-      root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(homePath + DEVELOPMENT_TEMPLATE_PATH));
+      for (String path : DEVELOPMENT_TEMPLATE_PATHS) {
+        root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(homePath + path));
+
+        if (root != null) {
+          break;
+        }
+      }
     }
 
     if (root == null) {
       // error message tailored for release build file layout
-      LOG.error("Templates not found in: " + homePath + BUNDLED_TEMPLATE_PATH + " or " + homePath + DEVELOPMENT_TEMPLATE_PATH);
+      LOG.error("Templates not found in: " + homePath + BUNDLED_TEMPLATE_PATH +
+                " or " + homePath + Arrays.toString(DEVELOPMENT_TEMPLATE_PATHS));
     } else {
       File templateDir = new File(root.getCanonicalPath()).getAbsoluteFile();
       if (templateDir.isDirectory()) {

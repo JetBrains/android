@@ -5,6 +5,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.refactoring.RefactoringSettings;
 import com.intellij.refactoring.safeDelete.NonCodeUsageSearchInfo;
@@ -14,6 +15,7 @@ import com.intellij.usageView.UsageInfo;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -30,7 +32,7 @@ public class AndroidResourceFileSafeDeleteProcessor extends SafeDeleteProcessorD
   public Collection<? extends PsiElement> getElementsToSearch(PsiElement element,
                                                               @Nullable Module module,
                                                               Collection<PsiElement> allElementsToDelete) {
-    return Collections.emptyList();
+    return Collections.singletonList(element);
   }
 
   @Override
@@ -53,6 +55,14 @@ public class AndroidResourceFileSafeDeleteProcessor extends SafeDeleteProcessorD
   @Override
   public NonCodeUsageSearchInfo findUsages(PsiElement element, PsiElement[] allElementsToDelete, List<UsageInfo> result) {
     SafeDeleteProcessor.findGenericElementUsages(element, result, allElementsToDelete);
+
+    if (element instanceof PsiFile) {
+      final PsiField[] fields = AndroidResourceUtil.findResourceFieldsForFileResource((PsiFile)element, true);
+
+      for (PsiField field : fields) {
+        SafeDeleteProcessor.findGenericElementUsages(field, result, allElementsToDelete);
+      }
+    }
     return new NonCodeUsageSearchInfo(SafeDeleteProcessor.getDefaultInsideDeletedCondition(allElementsToDelete), element);
   }
 

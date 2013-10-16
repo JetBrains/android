@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableRow xmlns:android="http://schemas.android.com/apk/res/android">
+  <TextView
+      android:layout_column="1"
+      android:padding="3dip"/>
+  <TextView
+      android:gravity="right"
+      android:padding="3dip"/>
+</TableRow>

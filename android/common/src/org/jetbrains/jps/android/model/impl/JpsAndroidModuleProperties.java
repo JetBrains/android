@@ -79,6 +79,8 @@ public class JpsAndroidModuleProperties {
 
   public boolean COMPILE_CUSTOM_GENERATED_SOURCES = true;
 
+  public boolean ENABLE_SOURCES_AUTOGENERATION = true;
+
   @Tag(AndroidCommonUtils.INCLUDE_ASSETS_FROM_LIBRARIES_ELEMENT_NAME)
   public boolean myIncludeAssetsFromLibraries = false;
 

@@ -57,6 +57,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   private boolean myWithExplicitResourceType = true;
   private boolean myQuiet = false;
   private boolean myAllowAttributeReferences = true;
+  private boolean myAllowLiterals = true;
 
   public ResourceReferenceConverter() {
     this(new ArrayList<String>());
@@ -64,6 +65,10 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
   public ResourceReferenceConverter(@NotNull Collection<String> resourceTypes) {
     myResourceTypes = new ArrayList<String>(resourceTypes);
+  }
+
+  public void setAllowLiterals(boolean allowLiterals) {
+    myAllowLiterals = allowLiterals;
   }
 
   public ResourceReferenceConverter(@NotNull String resourceType, boolean withPrefix, boolean withExplicitResourceType) {
@@ -287,12 +292,17 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     ResourceValue parsed = ResourceValue.parse(s, true, myWithPrefix);
     final ResolvingConverter<String> additionalConverter = getAdditionalConverter(context);
 
-    if ((parsed == null || !parsed.isReference()) && additionalConverter != null) {
-      String value = additionalConverter.fromString(s, context);
-      if (value != null) {
-        return ResourceValue.literal(value);
+    if (parsed == null || !parsed.isReference()) {
+      if (additionalConverter != null) {
+        String value = additionalConverter.fromString(s, context);
+        if (value != null) {
+          return ResourceValue.literal(value);
+        }
+        else if (!myAdditionalConverterSoft) {
+          return null;
+        }
       }
-      else if (!myAdditionalConverterSoft) {
+      else if (!myAllowLiterals) {
         return null;
       }
     }

@@ -16,5 +16,13 @@
       android:layout_height="wrap_content"
       android:scrollbarFadeDuration="@integer/myInt"
       />
+  <RelativeLayout
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content">
+    <TextView android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_alignLeft="<error>true</error>"
+              android:layout_alignRight="@+id/id1"/>
+  </RelativeLayout>
 
 </LinearLayout>

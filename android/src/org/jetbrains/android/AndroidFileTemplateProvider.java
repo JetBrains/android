@@ -43,6 +43,7 @@ public class AndroidFileTemplateProvider implements FileTemplateGroupDescriptorF
   @NonNls public static final String LAYOUT_RESOURCE_FILE_TEMPLATE = "layoutResourceFile.xml";
   @NonNls public static final String LAYOUT_RESOURCE_VERTICAL_FILE_TEMPLATE = "layoutResourceFile_vertical.xml";
   @NonNls public static final String ACTIVITY = "Activity.java";
+  @NonNls public static final String FRAGMENT = "Fragment.java";
   @NonNls public static final String APPLICATION = "Application.java";
   @NonNls public static final String SERVICE = "Service.java";
   @NonNls public static final String BROADCAST_RECEIVER = "Broadcast_Receiver.java";
@@ -57,6 +58,7 @@ public class AndroidFileTemplateProvider implements FileTemplateGroupDescriptorF
     group.addTemplate(new FileTemplateDescriptor(LAYOUT_RESOURCE_FILE_TEMPLATE, StdFileTypes.XML.getIcon()));
     group.addTemplate(new FileTemplateDescriptor(LAYOUT_RESOURCE_VERTICAL_FILE_TEMPLATE, StdFileTypes.XML.getIcon()));
     group.addTemplate(new FileTemplateDescriptor(ACTIVITY, StdFileTypes.JAVA.getIcon()));
+    group.addTemplate(new FileTemplateDescriptor(FRAGMENT, StdFileTypes.JAVA.getIcon()));
     group.addTemplate(new FileTemplateDescriptor(APPLICATION, StdFileTypes.JAVA.getIcon()));
     group.addTemplate(new FileTemplateDescriptor(SERVICE, StdFileTypes.JAVA.getIcon()));
     group.addTemplate(new FileTemplateDescriptor(BROADCAST_RECEIVER, StdFileTypes.JAVA.getIcon()));
