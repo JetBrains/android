@@ -17,8 +17,8 @@ package com.android.tools.idea.startup;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.actions.*;
-import com.android.tools.idea.structure.AndroidHomeConfigurable;
 import com.android.tools.idea.sdk.VersionCheck;
+import com.android.tools.idea.structure.AndroidHomeConfigurable;
 import com.google.common.io.Closeables;
 import com.intellij.compiler.actions.GenerateAntBuildAction;
 import com.intellij.compiler.actions.MakeModuleAction;
@@ -101,7 +101,16 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     replaceAction("WelcomeScreen.ImportProject", new AndroidImportProjectAction());
     replaceAction("ImportModule", new AndroidActionRemover(new ImportModuleAction(), "Import Module..."));
     replaceAction("MakeModule", new AndroidActionRemover(new MakeModuleAction(), "Make Module"));
-    replaceAction("Compile", new AndroidCompileAction());
+
+    // 'Build' > 'Make' action
+    replaceAction("CompileDirty", new AndroidMakeProjectAction());
+
+    // 'Build' > 'Rebuild' action
+    replaceAction("CompileProject", new AndroidRebuildProjectAction());
+
+    // 'Build' > 'Compile' action
+    replaceAction("Compile", new AndroidCompileProjectAction());
+
     replaceAction("GenerateAntBuild", new AndroidActionRemover(new GenerateAntBuildAction(), "Generate Ant Build..."));
   }
 

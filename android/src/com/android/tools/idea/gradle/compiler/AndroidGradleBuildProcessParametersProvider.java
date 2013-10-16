@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.compiler;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
@@ -25,7 +26,6 @@ import com.intellij.compiler.server.BuildProcessParametersProvider;
 import com.intellij.execution.configurations.CommandLineTokenizer;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
@@ -38,7 +38,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
-import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
@@ -107,23 +106,11 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     if (!Projects.isGradleProject(myProject)) {
       return Collections.emptyList();
     }
-    GradleSettings settings = (GradleSettings)ExternalSystemApiUtil.getSettings(myProject, SYSTEM_ID);
-
-    GradleSettings.MyState state = settings.getState();
-    assert state != null;
-    Set<GradleProjectSettings> allProjectsSettings = state.getLinkedExternalProjectsSettings();
-
-    GradleProjectSettings projectSettings = getFirstNotNull(allProjectsSettings);
-    if (projectSettings == null) {
-      String format = "Unable to obtain Gradle project settings for project '%1$s', located at '%2$s'";
-      String msg = String.format(format, myProject.getName(), myProject.getBasePath());
-      LOG.info(msg);
-      return Collections.emptyList();
-    }
     List<String> jvmArgs = Lists.newArrayList();
 
-    GradleExecutionSettings executionSettings =
-      ExternalSystemApiUtil.getExecutionSettings(myProject, projectSettings.getExternalProjectPath(), SYSTEM_ID);
+    GradleExecutionSettings executionSettings = GradleUtil.getGradleExecutionSettings(myProject);
+    assert executionSettings != null;
+
     //noinspection TestOnlyProblems
     populateJvmArgs(executionSettings, jvmArgs);
 
@@ -136,16 +123,6 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     addHttpProxySettings(jvmArgs);
 
     return jvmArgs;
-  }
-
-  @Nullable
-  private static GradleProjectSettings getFirstNotNull(Set<GradleProjectSettings> allProjectSettings) {
-    for (GradleProjectSettings settings : allProjectSettings) {
-      if (settings != null) {
-        return settings;
-      }
-    }
-    return null;
   }
 
   @VisibleForTesting
