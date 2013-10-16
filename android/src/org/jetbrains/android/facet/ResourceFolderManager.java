@@ -134,11 +134,13 @@ public class ResourceFolderManager implements ModificationTracker {
         // resource set, if necessary
         if (!myGradleInitListenerAdded) {
           myGradleInitListenerAdded = true; // Avoid adding multiple listeners if we invalidate and call this repeatedly around startup
-          myFacet.addListener(new AndroidFacet.GradleProjectAvailableListener() {
+          myFacet.addListener(new GradleSyncListener() {
             @Override
-            public void gradleProjectAvailable(@NotNull IdeaAndroidProject project) {
-              myFacet.removeListener(this);
-              invalidate();
+            public void performedGradleSync(@NotNull AndroidFacet facet, boolean success) {
+              // Resource folders can change on sync
+              if (success) {
+                invalidate();
+              }
             }
           });
         }
