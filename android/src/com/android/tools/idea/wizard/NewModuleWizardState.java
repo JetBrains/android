@@ -17,6 +17,7 @@
 package com.android.tools.idea.wizard;
 
 import com.android.sdklib.BuildToolInfo;
+import com.android.sdklib.SdkManager;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -65,7 +66,8 @@ public class NewModuleWizardState extends TemplateWizardState {
     put(ATTR_IS_NEW_PROJECT, true);
     put(ATTR_CREATE_ACTIVITY, true);
 
-    BuildToolInfo buildTool = AndroidSdkUtils.tryToChooseAndroidSdk().getLatestBuildTool();
+    final SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
+    BuildToolInfo buildTool = sdkManager != null ? sdkManager.getLatestBuildTool() : null;
     if (buildTool != null) {
       // If buildTool is null, the template will use buildApi instead, which might be good enough.
       put(ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
