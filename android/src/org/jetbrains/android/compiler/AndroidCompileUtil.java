@@ -25,6 +25,10 @@ import com.intellij.compiler.impl.ModuleCompileScope;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.compiler.progress.CompilerTask;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationListener;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.*;
 import com.intellij.openapi.compiler.Compiler;
@@ -36,9 +40,11 @@ import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.ModifiableModelCommitter;
+import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
@@ -65,15 +71,13 @@ import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.fileTypes.AndroidIdlFileType;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.util.AndroidCommonUtils;
-import org.jetbrains.android.util.AndroidCompilerMessageKind;
-import org.jetbrains.android.util.AndroidExecutionUtil;
-import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.android.util.*;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
+import javax.swing.event.HyperlinkEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -364,10 +368,42 @@ public class AndroidCompileUtil {
 
   public static void addSourceRoot(final ModifiableRootModel model, @NotNull final VirtualFile root) {
     ContentEntry contentEntry = findContentEntryForRoot(model, root);
+
     if (contentEntry == null) {
-      contentEntry = model.addContentEntry(root);
+      final Project project = model.getProject();
+      final String message = "Cannot mark directory '" + FileUtil.toSystemDependentName(root.getPath()) +
+                             "' as source root, because it is not located under content root of module '" +
+                             model.getModule().getName() + "'\n<a href='fix'>Open Project Structure</a>";
+      final Notification notification = new Notification(
+        AndroidBundle.message("android.autogeneration.notification.group"),
+        "Autogeneration Error", message, NotificationType.ERROR,
+        new NotificationListener.Adapter() {
+          @Override
+          protected void hyperlinkActivated(@NotNull Notification notification,
+                                            @NotNull HyperlinkEvent e) {
+            notification.expire();
+            final ProjectStructureConfigurable configurable =
+              ProjectStructureConfigurable.getInstance(project);
+
+            ShowSettingsUtil.getInstance()
+              .editConfigurable(project, configurable, new Runnable() {
+                public void run() {
+                  final Module module = model.getModule();
+                  final AndroidFacet facet = AndroidFacet.getInstance(module);
+
+                  if (facet != null) {
+                    configurable.select(facet, true);
+                  }
+                }
+              });
+          }
+        });
+      Notifications.Bus.notify(notification, project);
+      LOG.debug(message);
     }
-    contentEntry.addSourceFolder(root, false);
+    else {
+      contentEntry.addSourceFolder(root, false);
+    }
   }
 
   @Nullable
@@ -421,7 +457,7 @@ public class AndroidCompileUtil {
     if (context == null) {
       return false;
     }
-    generate(facet, mode, context);
+    generate(facet, mode, context, false);
     return context.getMessages(CompilerMessageCategory.ERROR).length == 0;
   }
 
@@ -431,11 +467,12 @@ public class AndroidCompileUtil {
 
   public static void generate(AndroidFacet facet,
                               AndroidAutogeneratorMode mode,
-                              final CompileContext context) {
+                              final CompileContext context,
+                              boolean force) {
     if (context == null) {
       return;
     }
-    AndroidAutogenerator.run(mode, facet, context);
+    AndroidAutogenerator.run(mode, facet, context, force);
   }
 
   // must be invoked in a read action!
@@ -610,7 +647,7 @@ public class AndroidCompileUtil {
   }
 
   public static boolean createGenModulesAndSourceRoots(@NotNull AndroidFacet facet, @NotNull ModifiableRootModel model) {
-    if (facet.isGradleProject()) {
+    if (facet.isGradleProject() || !facet.getProperties().ENABLE_SOURCES_AUTOGENERATION) {
       return false;
     }
     final Module module = facet.getModule();
@@ -620,29 +657,49 @@ public class AndroidCompileUtil {
     if (facet.isLibraryProject()) {
       removeGenModule(model, modelChangedFlag);
     }
-    initializeGenSourceRoot(model, AndroidRootUtil.getBuildconfigGenSourceRootPath(facet), true, true, modelChangedFlag);
+    final Set<String> genRootsToCreate = new HashSet<String>();
+    final Set<String> genRootsToInit = new HashSet<String>();
 
-    initializeGenSourceRoot(model, AndroidRootUtil.getRenderscriptGenSourceRootPath(facet),
-                            FileTypeIndex.getFiles(AndroidRenderscriptFileType.INSTANCE, moduleScope).size() > 0,
-                            true, modelChangedFlag);
+    final String buildConfigGenRootPath = AndroidRootUtil.getBuildconfigGenSourceRootPath(facet);
+
+    if (buildConfigGenRootPath != null) {
+      genRootsToCreate.add(buildConfigGenRootPath);
+    }
+    final String renderscriptGenRootPath = AndroidRootUtil.getRenderscriptGenSourceRootPath(facet);
+
+    if (renderscriptGenRootPath != null) {
+      final boolean createIfNotExist = FileTypeIndex.getFiles(AndroidRenderscriptFileType.INSTANCE, moduleScope).size() > 0;
+      (createIfNotExist ? genRootsToCreate : genRootsToInit).add(renderscriptGenRootPath);
+    }
 
     if (AndroidAptCompiler.isToCompileModule(module, facet.getConfiguration())) {
-      initializeGenSourceRoot(model, AndroidRootUtil.getAptGenSourceRootPath(facet), true, true, modelChangedFlag);
+      final String aptGenRootPath = AndroidRootUtil.getAptGenSourceRootPath(facet);
+
+      if (aptGenRootPath != null) {
+        genRootsToCreate.add(aptGenRootPath);
+      }
     }
     else {
       // we need to include generated-sources/r to compilation, because it contains R.java generated by Maven,
       // which should be used in Maven-based resource processing mode
       final VirtualFile aptSourceRoot = initializeGenSourceRoot(model, AndroidRootUtil.getAptGenSourceRootPath(facet),
                                                                 true, false, modelChangedFlag);
-
       if (aptSourceRoot != null) {
         excludeAllBuildConfigsFromCompilation(facet, aptSourceRoot);
       }
       includeAaptGenSourceRootToCompilation(facet);
     }
-    initializeGenSourceRoot(model, AndroidRootUtil.getAidlGenSourceRootPath(facet),
-                            FileTypeIndex.getFiles(AndroidIdlFileType.ourFileType, moduleScope).size() > 0,
-                            true, modelChangedFlag);
+    final String aidlGenRootPath = AndroidRootUtil.getAidlGenSourceRootPath(facet);
+
+    if (aidlGenRootPath != null) {
+      final boolean createIfNotExist = FileTypeIndex.getFiles(AndroidIdlFileType.ourFileType, moduleScope).size() > 0;
+      (createIfNotExist ? genRootsToCreate : genRootsToInit).add(aidlGenRootPath);
+    }
+    genRootsToInit.addAll(genRootsToCreate);
+
+    for (String genRootPath : genRootsToInit) {
+      initializeGenSourceRoot(model, genRootPath, genRootsToCreate.contains(genRootPath), true, modelChangedFlag);
+    }
     return modelChangedFlag.get();
   }
 

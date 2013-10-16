@@ -26,7 +26,7 @@ import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
-import org.jetbrains.android.compiler.AndroidAptCompiler;
+import org.jetbrains.android.compiler.AndroidAutogenerator;
 import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -38,9 +38,12 @@ import java.util.List;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidRegenerateRJavaFileAction extends AnAction {
-  public AndroidRegenerateRJavaFileAction() {
-    super(AndroidBundle.message("android.actions.regenerate.r.java.file.title"), null, AndroidIcons.Android);
+public class AndroidRegenerateSourcesAction extends AnAction {
+
+  private static final String TITLE = "Generate Sources";
+
+  public AndroidRegenerateSourcesAction() {
+    super(TITLE, null, AndroidIcons.Android);
   }
 
   @Override
@@ -49,25 +52,28 @@ public class AndroidRegenerateRJavaFileAction extends AnAction {
     final Project project = e.getData(DataKeys.PROJECT);
     boolean visible = project != null && ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).size() > 0;
     e.getPresentation().setVisible(visible);
-    e.getPresentation().setEnabled(visible && isAvailable(module, project));
-  }
 
-  private static boolean isAvailable(Module module, Project project) {
+    boolean enabled = false;
+    String title = TITLE;
+
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        return AndroidAptCompiler.isToCompileModule(module, facet.getConfiguration());
+        enabled = AndroidAutogenerator.supportsAutogeneration(facet);
+        title = TITLE + " for '" + module.getName() + "'";
       }
     }
     else if (project != null) {
       List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
       for (AndroidFacet facet : facets) {
-        if (AndroidAptCompiler.isToCompileModule(facet.getModule(), facet.getConfiguration())) {
-          return true;
+        if (AndroidAutogenerator.supportsAutogeneration(facet)) {
+          enabled = true;
+          break;
         }
       }
     }
-    return false;
+    e.getPresentation().setEnabled(enabled);
+    e.getPresentation().setText(title);
   }
 
   @Override
@@ -83,7 +89,7 @@ public class AndroidRegenerateRJavaFileAction extends AnAction {
     List<Module> modulesToProcess = new ArrayList<Module>();
     for (AndroidFacet facet : facets) {
       module = facet.getModule();
-      if (AndroidAptCompiler.isToCompileModule(module, facet.getConfiguration())) {
+      if (AndroidAutogenerator.supportsAutogeneration(facet)) {
         modulesToProcess.add(module);
       }
     }
@@ -102,7 +108,9 @@ public class AndroidRegenerateRJavaFileAction extends AnAction {
           final AndroidFacet facet = AndroidFacet.getInstance(module);
 
           if (facet != null) {
-            AndroidCompileUtil.generate(facet, AndroidAutogeneratorMode.AAPT, context);
+            for (AndroidAutogeneratorMode mode : AndroidAutogeneratorMode.values()) {
+              AndroidCompileUtil.generate(facet, mode, context, true);
+            }
           }
         }
         return true;

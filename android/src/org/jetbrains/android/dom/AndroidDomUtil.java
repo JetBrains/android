@@ -19,6 +19,8 @@ package org.jetbrains.android.dom;
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.xml.XmlAttribute;
@@ -35,8 +37,8 @@ import org.jetbrains.android.dom.layout.LayoutElement;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.dom.manifest.*;
 import org.jetbrains.android.dom.menu.Group;
-import org.jetbrains.android.dom.menu.MenuItem;
 import org.jetbrains.android.dom.menu.Menu;
+import org.jetbrains.android.dom.menu.MenuItem;
 import org.jetbrains.android.dom.resources.*;
 import org.jetbrains.android.dom.xml.PreferenceElement;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
@@ -126,11 +128,15 @@ public class AndroidDomUtil {
   @Nullable
   public static ResourceReferenceConverter getResourceReferenceConverter(@NotNull AttributeDefinition attr) {
     boolean containsReference = false;
+    boolean containsNotReference = false;
     Set<String> resourceTypes = new HashSet<String>();
     Set<AttributeFormat> formats = attr.getFormats();
     for (AttributeFormat format : formats) {
       if (format == AttributeFormat.Reference) {
         containsReference = true;
+      }
+      else {
+        containsNotReference = true;
       }
       String type = getResourceType(format);
       if (type != null) {
@@ -150,7 +156,9 @@ public class AndroidDomUtil {
       }
     }
     if (resourceTypes.size() > 0) {
-      return new ResourceReferenceConverter(resourceTypes);
+      final ResourceReferenceConverter converter = new ResourceReferenceConverter(resourceTypes);
+      converter.setAllowLiterals(containsNotReference);
+      return converter;
     }
     return null;
   }
@@ -393,5 +401,71 @@ public class AndroidDomUtil {
       }
     }
     return null;
+  }
+
+  @Nullable
+  public static AndroidAttributeValue<PsiClass> findComponentDeclarationInManifest(@NotNull PsiClass aClass) {
+    final AndroidFacet facet = AndroidFacet.getInstance(aClass);
+    if (facet == null) {
+      return null;
+    }
+
+    final boolean isActivity = isInheritor(aClass, AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
+    final boolean isService = isInheritor(aClass, AndroidUtils.SERVICE_CLASS_NAME);
+    final boolean isReceiver = isInheritor(aClass, AndroidUtils.RECEIVER_CLASS_NAME);
+    final boolean isProvider = isInheritor(aClass, AndroidUtils.PROVIDER_CLASS_NAME);
+
+    if (!isActivity && !isService && !isReceiver && !isProvider) {
+      return null;
+    }
+    final Manifest manifest = facet.getManifest();
+    if (manifest == null) {
+      return null;
+    }
+
+    final Application application = manifest.getApplication();
+    if (application == null) {
+      return null;
+    }
+
+    if (isActivity) {
+      for (Activity activity : application.getActivities()) {
+        final AndroidAttributeValue<PsiClass> activityClass = activity.getActivityClass();
+        if (activityClass.getValue() == aClass) {
+          return activityClass;
+        }
+      }
+    }
+    else if (isService) {
+      for (Service service : application.getServices()) {
+        final AndroidAttributeValue<PsiClass> serviceClass = service.getServiceClass();
+        if (serviceClass.getValue() == aClass) {
+          return serviceClass;
+        }
+      }
+    }
+    else if (isReceiver) {
+      for (Receiver receiver : application.getReceivers()) {
+        final AndroidAttributeValue<PsiClass> receiverClass = receiver.getReceiverClass();
+        if (receiverClass.getValue() == aClass) {
+          return receiverClass;
+        }
+      }
+    }
+    else {
+      for (Provider provider : application.getProviders()) {
+        final AndroidAttributeValue<PsiClass> providerClass = provider.getProviderClass();
+        if (providerClass.getValue() == aClass) {
+          return providerClass;
+        }
+      }
+    }
+    return null;
+  }
+
+  private static boolean isInheritor(@NotNull PsiClass aClass, @NotNull String baseClassQName) {
+    final Project project = aClass.getProject();
+    final PsiClass baseClass = JavaPsiFacade.getInstance(project).findClass(baseClassQName, aClass.getResolveScope());
+    return baseClass != null && aClass.isInheritor(baseClass, true);
   }
 }

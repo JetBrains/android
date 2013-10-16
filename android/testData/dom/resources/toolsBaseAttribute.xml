@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+  <style name="MyTheme">
+    <item name="android:text" tools:targetApi="11">aba</item>
+  </style>
+
+  <integer-array name="my_array1">
+    <item tools:targetApi="11">1</item>
+  </integer-array>
+
+  <array name="my_array2">
+    <item tools:targetApi="11">1</item>
+  </array>
+</resources>

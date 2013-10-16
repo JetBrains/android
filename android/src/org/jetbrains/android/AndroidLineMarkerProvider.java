@@ -80,8 +80,8 @@ public class AndroidLineMarkerProvider implements LineMarkerProvider {
         final PsiIdentifier nameIdentifier = aClass.getNameIdentifier();
 
         if (nameIdentifier != null) {
-          final Computable<List<GotoRelatedItem>> computable = AndroidGotoRelatedProvider.getLazyItemsForClass(aClass, facet);
-          return computable != null ? new MyMarkerInfo(nameIdentifier, computable, "Related layout file", AllIcons.FileTypes.Xml) : null;
+          final Computable<List<GotoRelatedItem>> computable = AndroidGotoRelatedProvider.getLazyItemsForClass(aClass, facet, true);
+          return computable != null ? new MyMarkerInfo(nameIdentifier, computable, "Related XML file", AllIcons.FileTypes.Xml) : null;
         }
       }
     }

@@ -104,6 +104,10 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     doTestHighlighting("hl2.xml");
   }
 
+  public void testTableRowRootTag() throws Throwable {
+    doTestHighlighting();
+  }
+
   public void testCheckLayoutAttrs() throws Throwable {
     doTestHighlighting("layoutAttrs.xml");
   }

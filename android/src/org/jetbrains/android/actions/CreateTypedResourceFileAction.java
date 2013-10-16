@@ -22,14 +22,11 @@ import com.intellij.CommonBundle;
 import com.intellij.ide.actions.CreateElementActionBase;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.InputValidator;
 import com.intellij.openapi.ui.InputValidatorEx;
@@ -43,7 +40,6 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.PsiNavigateUtil;
 import com.intellij.xml.refactoring.XmlTagInplaceRenamer;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
@@ -99,14 +95,17 @@ public class CreateTypedResourceFileAction extends CreateElementActionBase {
   @NotNull
   @Override
   protected PsiElement[] create(String newName, PsiDirectory directory) throws Exception {
-    return doCreateAndNavigate(newName, directory, myDefaultRootTag, myChooseTagName);
+    return doCreateAndNavigate(newName, directory, myDefaultRootTag, myChooseTagName, true);
   }
 
-  PsiElement[] doCreateAndNavigate(String newName, PsiDirectory directory, String rootTagName, boolean chooseTagName) throws Exception {
+  PsiElement[] doCreateAndNavigate(String newName, PsiDirectory directory, String rootTagName, boolean chooseTagName, boolean navigate)
+    throws Exception {
     final XmlFile file = AndroidResourceUtil
       .createFileResource(newName, directory, rootTagName, myResourceType.getName(), myValuesResourceFile);
-    doNavigate(file);
 
+    if (navigate) {
+      doNavigate(file);
+    }
     if (chooseTagName) {
       XmlDocument document = file.getDocument();
       if (document != null) {
