@@ -188,6 +188,18 @@ public final class Projects {
     }
   }
 
+  public static void notifyProjectSyncCompleted(@NotNull Project project, boolean success) {
+    if (isGradleProject(project)) {
+      ModuleManager moduleManager = ModuleManager.getInstance(project);
+      for (Module module : moduleManager.getModules()) {
+        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+        if (androidFacet != null) {
+          androidFacet.projectSyncCompleted(success);
+        }
+      }
+    }
+  }
+
   public static void removeBuildActionFrom(@NotNull Project project) {
     setProjectBuildMode(project, null);
   }

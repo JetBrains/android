@@ -35,6 +35,7 @@ import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
@@ -46,6 +47,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.util.Function;
 import com.intellij.util.messages.MessageBusConnection;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,17 +63,30 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
 
   public AndroidGradleProjectComponent(Project project) {
     super(project);
-    // Register a task that refreshes Studio's view of the file system after a compile.
-    // This is necessary for Studio to see generated code.
+    // Register a task that will be executed after project build (e.g. make, rebuild, generate sources.)
     CompilerManager.getInstance(project).addAfterTask(new CompileTask() {
       @Override
       public boolean execute(CompileContext context) {
         Project contextProject = context.getProject();
         if (Projects.isGradleProject(contextProject)) {
+          // Refresh Studio's view of the file system after a compile. This is necessary for Studio to see generated code.
           String rootDirPath = FileUtil.toSystemIndependentName(contextProject.getBasePath());
           VirtualFile rootDir = LocalFileSystem.getInstance().findFileByPath(rootDirPath);
           if (rootDir != null && rootDir.isDirectory()) {
             rootDir.refresh(true, true);
+          }
+
+          BuildMode buildMode = Projects.getBuildModeFrom(contextProject);
+          Projects.removeBuildActionFrom(contextProject);
+
+          if (BuildMode.SOURCE_GEN.equals(buildMode)) {
+            // Notify facets after project was synced. This only happens after importing a project.
+            // Importing a project means:
+            // * Creating a new project
+            // * Importing an existing project
+            // * Syncing with Gradle files
+            // * Opening Studio with an already imported project
+            Projects.notifyProjectSyncCompleted(contextProject, true);
           }
         }
         return true;

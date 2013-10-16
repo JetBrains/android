@@ -1087,12 +1087,15 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    */
   public void setIdeaAndroidProject(@Nullable IdeaAndroidProject project) {
     myIdeaAndroidProject = project;
-    if (project != null && !myGradleProjectAvailableListeners.isEmpty()) {
+  }
+
+  public void projectSyncCompleted(boolean success) {
+    if (myIdeaAndroidProject != null && !myGradleProjectAvailableListeners.isEmpty()) {
       // Make copy first since listeners may remove themselves as they are notified, and we
       // don't want a concurrent modification exception
       List<GradleProjectAvailableListener> listeners = new ArrayList<GradleProjectAvailableListener>(myGradleProjectAvailableListeners);
       for (GradleProjectAvailableListener listener : listeners) {
-        listener.gradleProjectAvailable(project);
+        listener.gradleProjectAvailable(myIdeaAndroidProject);
       }
     }
   }
