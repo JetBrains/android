@@ -43,16 +43,12 @@ import com.intellij.openapi.externalSystem.model.task.TaskData;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
-import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.AsyncResult;
-import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.Function;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ContainerUtilRt;
-import com.intellij.util.net.HttpConfigurable;
 import org.gradle.tooling.BuildActionExecuter;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.model.GradleProject;
@@ -61,7 +57,6 @@ import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
-import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -76,6 +71,7 @@ import java.net.URL;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_PLUGIN_MINIMUM_VERSION;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleInvocationJvmArgs;
 
 /**
  * Imports Android-Gradle projects into IDEA.
@@ -143,7 +139,10 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
       @Override
       public DataNode<ProjectData> fun(ProjectConnection connection) {
         try {
-          List<String> extraJvmArgs = getExtraJvmArgs(projectDir);
+          List<String> extraJvmArgs = getGradleInvocationJvmArgs(projectDir);
+          String arg = AndroidGradleSettings.createJvmArg(AndroidProject.BUILD_MODEL_ONLY_SYSTEM_PROPERTY, "true");
+          extraJvmArgs.add(arg);
+
           BuildActionExecuter<ProjectImportAction.AllModels> buildActionExecutor = connection.action(new ProjectImportAction());
           GradleExecutionHelper.prepare(buildActionExecutor, id, settings, listener, extraJvmArgs, connection);
 
@@ -161,29 +160,6 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
         }
       }
     });
-  }
-
-  @NotNull
-  private static List<String> getExtraJvmArgs(@NotNull File projectDir) {
-    if (ExternalSystemApiUtil.isInProcessMode(GradleConstants.SYSTEM_ID)) {
-      List<String> args = Lists.newArrayList();
-      if (!AndroidGradleSettings.isAndroidSdkDirInLocalPropertiesFile(projectDir)) {
-        String androidHome = getAndroidSdkPathFromIde();
-        if (androidHome != null) {
-          String arg = AndroidGradleSettings.createAndroidHomeJvmArg(androidHome);
-          args.add(arg);
-        }
-      }
-      List<KeyValue<String, String>> proxyProperties = HttpConfigurable.getJvmPropertiesList(false, null);
-      for (KeyValue<String, String> proxyProperty : proxyProperties) {
-        String arg = AndroidGradleSettings.createJvmArg(proxyProperty.getKey(), proxyProperty.getValue());
-        args.add(arg);
-      }
-      String arg = AndroidGradleSettings.createJvmArg(AndroidProject.BUILD_MODEL_ONLY_SYSTEM_PROPERTY, "true");
-      args.add(arg);
-      return args;
-    }
-    return Collections.emptyList();
   }
 
   @VisibleForTesting
@@ -234,19 +210,6 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
     populateUnresolvedDependencies(projectInfo, unresolvedDependencies);
     return projectInfo;
   }
-
-  @Nullable
-  private static String getAndroidSdkPathFromIde() {
-    for (Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
-      AndroidPlatform androidPlatform = AndroidPlatform.parse(sdk);
-      String sdkHomePath = sdk.getHomePath();
-      if (androidPlatform != null && sdkHomePath != null) {
-        return sdkHomePath;
-      }
-    }
-    return null;
-  }
-
 
   @NotNull
   private static DataNode<ProjectData> createProjectInfo(@NotNull File projectDir) {

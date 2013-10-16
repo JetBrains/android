@@ -88,8 +88,8 @@ public class GradleBuildFailureParser implements CompilerOutputParser {
     int pos = 0;
     String currentLine = line;
     String file = null;
-    long lineNum = -1;
-    long column = -1;
+    int lineNum = -1;
+    int column = -1;
     String lastQuotedLine = null;
     StringBuilder errorMessage = new StringBuilder();
     Matcher matcher;
