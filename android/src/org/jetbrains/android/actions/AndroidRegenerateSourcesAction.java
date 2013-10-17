@@ -25,7 +25,6 @@ import com.intellij.openapi.compiler.CompileTask;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import icons.AndroidIcons;
 import org.jetbrains.android.compiler.AndroidAutogenerator;
 import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
@@ -43,7 +42,7 @@ public class AndroidRegenerateSourcesAction extends AnAction {
   private static final String TITLE = "Generate Sources";
 
   public AndroidRegenerateSourcesAction() {
-    super(TITLE, null, AndroidIcons.Android);
+    super(TITLE);
   }
 
   @Override
