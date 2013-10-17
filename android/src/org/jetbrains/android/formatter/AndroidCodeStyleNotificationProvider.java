@@ -99,7 +99,7 @@ public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Pr
         @Override
         public void run() {
           NotificationsConfiguration.getNotificationsConfiguration()
-            .changeSettings(ANDROID_XML_CODE_STYLE_NOTIFICATION_GROUP, NotificationDisplayType.NONE, false);
+            .changeSettings(ANDROID_XML_CODE_STYLE_NOTIFICATION_GROUP, NotificationDisplayType.NONE, false, false);
           myNotifications.updateAllNotifications();
         }
       });
