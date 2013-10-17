@@ -342,7 +342,7 @@ public abstract class ProjectResources extends AbstractResourceRepository implem
   }
 
   @VisibleForTesting
-  boolean isScanPending(@NonNull PsiFile psiFile) {
+  public boolean isScanPending(@NonNull PsiFile psiFile) {
     return false;
   }
 
