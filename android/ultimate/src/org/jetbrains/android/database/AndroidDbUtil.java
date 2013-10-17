@@ -1,9 +1,6 @@
 package org.jetbrains.android.database;
 
-import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.MultiLineReceiver;
-import com.android.ddmlib.SyncService;
+import com.android.ddmlib.*;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -62,6 +59,10 @@ class AndroidDbUtil {
         errorReporter.reportError(output);
         return false;
       }
+      // recreating is needed for Genymotion emulator (IDEA-114732)
+      if (!recreateRemoteFile(device, packageName, remoteDbPath, errorReporter, progressIndicator)) {
+        return false;
+      }
       outputReceiver = new MyShellOutputReceiver(progressIndicator);
       device.executeShellCommand("run-as " + packageName + " cat " + TEMP_REMOTE_DB_PATH + " >" + remoteDbPath,
                                  outputReceiver, DB_COPYING_TIMEOUT_SEC, TimeUnit.SECONDS);
@@ -75,6 +76,32 @@ class AndroidDbUtil {
     }
     catch (Exception e) {
       errorReporter.reportError(e);
+      return false;
+    }
+    return true;
+  }
+
+  private static boolean recreateRemoteFile(IDevice device,
+                                            String packageName,
+                                            String remotePath,
+                                            AndroidDbErrorReporter errorReporter,
+                                            ProgressIndicator progressIndicator) throws Exception {
+    MyShellOutputReceiver outputReceiver = new MyShellOutputReceiver(progressIndicator);
+    device.executeShellCommand("run-as " + packageName + " rm " + remotePath,
+                               outputReceiver, DB_COPYING_TIMEOUT_SEC, TimeUnit.SECONDS);
+    String output = outputReceiver.getOutput();
+
+    if (!output.isEmpty() && !output.startsWith("rm failed")) {
+      errorReporter.reportError(output);
+      return false;
+    }
+    outputReceiver = new MyShellOutputReceiver(progressIndicator);
+    device.executeShellCommand("run-as " + packageName + " touch " + remotePath,
+                               outputReceiver, DB_COPYING_TIMEOUT_SEC, TimeUnit.SECONDS);
+    output = outputReceiver.getOutput();
+
+    if (!output.isEmpty()) {
+      errorReporter.reportError(output);
       return false;
     }
     return true;
