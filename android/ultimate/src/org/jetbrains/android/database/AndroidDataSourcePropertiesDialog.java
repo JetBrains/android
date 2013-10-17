@@ -12,9 +12,9 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.persistence.database.autoconfig.DataSourceConfigUtil;
 import com.intellij.ui.FieldPanel;
 import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.components.JBRadioButton;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
@@ -38,6 +38,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigurable<AndroidDbManager, AndroidDataSource> {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.database.AndroidDataSourcePropertiesDialog");
+  private static final String[] DEFAULT_EXTERNAL_DB_PATTERNS = new String[]{"files/"};
 
   private DefaultComboBoxModel myDeviceComboBoxModel = new DefaultComboBoxModel();
   private String myMissingDeviceIds;
@@ -48,6 +49,8 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   private JPanel myPanel;
   private FieldPanel myNameField;
   private JPanel myConfigurationPanel;
+  private JBRadioButton myExternalStorageRadioButton;
+  private JBRadioButton myInternalStorageRadioButton;
 
   private IDevice mySelectedDevice = null;
   private Map<String, List<String>> myDatabaseMap;
@@ -59,6 +62,10 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
     myConfigurationPanel.setBorder(IdeBorderFactory.createEmptyBorder(10, 0, 0, 0));
     myNameField.setLabelText("Data Source Name");
     myNameField.createComponent();
+
+    final AndroidDataSource.State state = dataSource.getState();
+    myInternalStorageRadioButton.setSelected(!state.isExternal());
+    myExternalStorageRadioButton.setSelected(state.isExternal());
 
     myDeviceComboBox.setRenderer(new DeviceComboBoxRenderer() {
       @Override
@@ -100,28 +107,33 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
     });
     updateDataBases();
 
-    myPackageNameComboBox.addActionListener(new ActionListener() {
+    final ActionListener l = new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         updateDbCombo();
       }
-    });
+    };
+    myPackageNameComboBox.addActionListener(l);
     updateDbCombo();
 
     final String name = dataSource.getName();
     myNameField.setText(name != null ? name : "");
 
-    final AndroidDataSource.State state = dataSource.getState();
     final String packageName = state.getPackageName();
     myPackageNameComboBox.getEditor().setItem(packageName != null ? packageName : "");
     final String dbName = state.getDatabaseName();
     myDataBaseComboBox.getEditor().setItem(dbName != null ? dbName : "");
     myDeviceComboBox.setPreferredSize(new Dimension(300, myDeviceComboBox.getPreferredSize().height));
 
+    myExternalStorageRadioButton.addActionListener(l);
+    myInternalStorageRadioButton.addActionListener(l);
+
     setChangeListener(myNameField);
     setChangeListener(myPackageNameComboBox);
     setChangeListener(myDataBaseComboBox);
     setChangeListener(myDeviceComboBox);
+    setChangeListener(myExternalStorageRadioButton);
+    setChangeListener(myInternalStorageRadioButton);
   }
 
   private void addDeviceToComboBoxIfNeeded(@NotNull final IDevice device) {
@@ -217,9 +229,15 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
 
   private void updateDbCombo() {
     final String selectedPackage = getSelectedPackage();
-    final List<String> dbList = myDatabaseMap.get(selectedPackage);
-    myDataBaseComboBox.setModel(new DefaultComboBoxModel(
-      dbList != null ? ArrayUtil.toStringArray(dbList) : ArrayUtil.EMPTY_STRING_ARRAY));
+
+    if (myInternalStorageRadioButton.isSelected()) {
+      final List<String> dbList = myDatabaseMap.get(selectedPackage);
+      myDataBaseComboBox.setModel(new DefaultComboBoxModel(
+        dbList != null ? ArrayUtil.toStringArray(dbList) : ArrayUtil.EMPTY_STRING_ARRAY));
+    }
+    else {
+      myDataBaseComboBox.setModel(new DefaultComboBoxModel(DEFAULT_EXTERNAL_DB_PATTERNS));
+    }
   }
 
   @NotNull
@@ -274,7 +292,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
     final List<String> result = new ArrayList<String>();
 
     try {
-      device.executeShellCommand("run-as " + packageName + " ls /data/data/" + packageName + "/databases", new MultiLineReceiver() {
+      device.executeShellCommand("run-as " + packageName + " ls " + AndroidDbUtil.getInternalDatabasesRemoteDirPath(packageName), new MultiLineReceiver() {
         @Override
         public void processNewLines(String[] lines) {
           for (String line : lines) {
@@ -321,6 +339,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
     state.setDeviceId(getSelectedDeviceId());
     state.setPackageName(getSelectedPackage());
     state.setDatabaseName(getSelectedDatabase());
+    state.setExternal(myExternalStorageRadioButton.isSelected());
     myDataSource.resetUrl();
 
     AndroidSynchronizeHandler.doSynchronize(myProject, Collections.singletonList(myDataSource));

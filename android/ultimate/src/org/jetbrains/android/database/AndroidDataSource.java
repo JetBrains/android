@@ -101,7 +101,7 @@ class AndroidDataSource extends LocalDataSource implements DataSourceInfo, Modif
   public String buildLocalDbFileOsPath() {
     final State state = getState();
     return AndroidRemoteDataBaseManager.buildLocalDbFileOsPath(
-      state.getDeviceId(), state.getPackageName(), state.getDatabaseName());
+      state.getDeviceId(), state.getPackageName(), state.getDatabaseName(), state.isExternal());
   }
 
   @Override
@@ -118,6 +118,7 @@ class AndroidDataSource extends LocalDataSource implements DataSourceInfo, Modif
     newState.setDeviceId(state.getDeviceId());
     newState.setPackageName(state.getPackageName());
     newState.setDatabaseName(state.getDatabaseName());
+    newState.setExternal(state.isExternal());
     newState.setClasspathElements(cloneElementsArray(state.getClasspathElements()));
     newSource.resetUrl();
     return newSource;
@@ -144,6 +145,7 @@ class AndroidDataSource extends LocalDataSource implements DataSourceInfo, Modif
     private String myDeviceId = "";
     private String myPackageName = "";
     private String myDatabaseName = "";
+    private boolean myExternal = false;
     private Element[] myClasspathElements = new Element[0];
 
     public String getDeviceId() {
@@ -162,6 +164,10 @@ class AndroidDataSource extends LocalDataSource implements DataSourceInfo, Modif
       return myName;
     }
 
+    public boolean isExternal() {
+      return myExternal;
+    }
+
     @Tag("classpath-elements")
     public Element[] getClasspathElements() {
       return myClasspathElements;
@@ -177,6 +183,10 @@ class AndroidDataSource extends LocalDataSource implements DataSourceInfo, Modif
 
     public void setPackageName(String packageName) {
       myPackageName = packageName;
+    }
+
+    public void setExternal(boolean external) {
+      myExternal = external;
     }
 
     public void setName(String name) {
