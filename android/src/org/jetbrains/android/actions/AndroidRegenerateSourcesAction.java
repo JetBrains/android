@@ -51,28 +51,30 @@ public class AndroidRegenerateSourcesAction extends AnAction {
     final Module module = e.getData(DataKeys.MODULE);
     final Project project = e.getData(DataKeys.PROJECT);
     boolean visible = project != null && ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).size() > 0;
-    e.getPresentation().setVisible(visible);
-
-    boolean enabled = false;
     String title = TITLE;
 
-    if (module != null) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        enabled = AndroidAutogenerator.supportsAutogeneration(facet);
-        title = TITLE + " for '" + module.getName() + "'";
+    if (visible) {
+      visible = false;
+
+      if (module != null) {
+        AndroidFacet facet = AndroidFacet.getInstance(module);
+        if (facet != null) {
+          visible = AndroidAutogenerator.supportsAutogeneration(facet);
+          title = TITLE + " for '" + module.getName() + "'";
+        }
       }
-    }
-    else if (project != null) {
-      List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
-      for (AndroidFacet facet : facets) {
-        if (AndroidAutogenerator.supportsAutogeneration(facet)) {
-          enabled = true;
-          break;
+      else {
+        List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
+        for (AndroidFacet facet : facets) {
+          if (AndroidAutogenerator.supportsAutogeneration(facet)) {
+            visible = true;
+            break;
+          }
         }
       }
     }
-    e.getPresentation().setEnabled(enabled);
+    e.getPresentation().setVisible(visible);
+    e.getPresentation().setEnabled(visible);
     e.getPresentation().setText(title);
   }
 
