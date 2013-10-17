@@ -72,6 +72,7 @@ public class ConfigurationManager implements Disposable {
   private Locale myLocale;
   private IAndroidTarget myTarget;
   private int myStateVersion;
+  private ResourceResolverCache myResolverCache;
 
   private ConfigurationManager(@NotNull Module module) {
     myModule = module;
@@ -478,5 +479,13 @@ public class ConfigurationManager implements Disposable {
 
   public int getStateVersion() {
     return myStateVersion;
+  }
+
+  public ResourceResolverCache getResolverCache() {
+    if (myResolverCache == null) {
+      myResolverCache = ResourceResolverCache.create(this);
+    }
+
+    return myResolverCache;
   }
 }
