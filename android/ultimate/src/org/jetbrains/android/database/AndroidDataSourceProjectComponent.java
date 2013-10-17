@@ -45,7 +45,7 @@ public class AndroidDataSourceProjectComponent extends AbstractProjectComponent 
 
     for (AndroidDataSource source : AndroidDataSourceStorage.getInstance(myProject).getDataSources()) {
       final AndroidDataSource.State s = source.getState();
-      result.add(new AndroidRemoteDbInfo(s.getDeviceId(), s.getPackageName(), s.getDatabaseName()));
+      result.add(new AndroidRemoteDbInfo(s.getDeviceId(), s.getPackageName(), s.getDatabaseName(), s.isExternal()));
     }
     return result;
   }
