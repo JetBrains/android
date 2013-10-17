@@ -333,13 +333,13 @@ class AndroidDbUtil {
   @Nullable
   public static String getDeviceId(@NotNull IDevice device) {
     if (device.isEmulator()) {
-      return DEVICE_ID_EMULATOR_PREFIX + device.getAvdName();
+      return DEVICE_ID_EMULATOR_PREFIX + replaceByDirAllowedName(device.getAvdName());
     }
     else {
       final String serialNumber = device.getSerialNumber();
 
       if (serialNumber != null && serialNumber.length() > 0) {
-        return DEVICE_ID_SERIAL_NUMBER_PREFIX + serialNumber;
+        return DEVICE_ID_SERIAL_NUMBER_PREFIX + replaceByDirAllowedName(serialNumber);
       }
       final String manufacturer = DevicePropertyUtil.getManufacturer(device, "");
       final String model = DevicePropertyUtil.getModel(device, "");
@@ -369,7 +369,7 @@ class AndroidDbUtil {
     for (int i = 0, n = s.length(); i < n; i++) {
       char c = s.charAt(i);
 
-      if (Character.isWhitespace(c)) {
+      if (!Character.isJavaIdentifierPart(c)) {
         c = '_';
       }
       builder.append(c);
