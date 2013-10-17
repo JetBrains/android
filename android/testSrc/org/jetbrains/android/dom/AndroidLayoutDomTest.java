@@ -357,6 +357,11 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     doTestCompletionVariants("av11.xml", "center", "center_horizontal", "center_vertical");
   }
 
+  public void testFloatAttributeValuesCompletion() throws Throwable {
+    copyFileToProject("myIntResource.xml", "res/values/myIntResource.xml");
+    doTestCompletionVariants("floatAttributeValues.xml", "@android:", "@integer/my_integer");
+  }
+
   public void testTagNameCompletion2() throws Throwable {
     VirtualFile file = copyFileToProject("tn2.xml");
     myFixture.configureFromExistingVirtualFile(file);
