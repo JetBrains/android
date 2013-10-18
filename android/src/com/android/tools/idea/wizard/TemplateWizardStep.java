@@ -254,6 +254,10 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
         // Check to see that the selection's constraints are met if this is a combo box
         if (myComboBoxValues.containsKey(param)) {
           ComboBoxItem selectedItem = myComboBoxValues.get(param);
+
+          if (selectedItem == null) {
+            return false;
+          }
           if (minApi != null && selectedItem.minApi > minApi) {
             setErrorHtml(String.format("The \"%s\" option for %s requires a minimum API level of %d", selectedItem.label, param.name,
                                        selectedItem.minApi));

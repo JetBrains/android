@@ -17,11 +17,13 @@ package com.android.tools.idea.wizard;
 
 import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.SdkManager;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
+import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
@@ -80,11 +82,15 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   private JCheckBox myGridLayoutCheckBox;
   private JCheckBox myNavigationDrawerCheckBox;
   boolean myInitializedPackageNameText = false;
+  private boolean myInitialized = false;
+  @Nullable private WizardContext myWizardContext;
 
   public ConfigureAndroidModuleStep(TemplateWizardState state, @Nullable Project project, @Nullable Icon sidePanelIcon,
                                     UpdateListener updateListener) {
     super(state, project, sidePanelIcon, updateListener);
+  }
 
+  private void initialize() {
     IAndroidTarget[] targets = getCompilationTargets();
 
     if (AndroidSdkUtils.isAndroidSdkAvailable()) {
@@ -183,6 +189,14 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   }
 
   @Override
+  public void updateStep() {
+    if (!myInitialized) {
+      myInitialized = true;
+      initialize();
+    }
+  }
+
+  @Override
   public JComponent getPreferredFocusedComponent() {
     return myAppName;
   }
@@ -196,7 +210,16 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   @NotNull
   private IAndroidTarget[] getCompilationTargets() {
-    IAndroidTarget[] targets = AndroidSdkUtils.tryToChooseAndroidSdk().getTargets();
+    SdkManager sdkManager = myWizardContext != null
+                            ? TemplateWizardModuleBuilder.getSdkManager(myWizardContext.getProjectJdk())
+                            : null;
+    if (sdkManager == null) {
+      sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
+    }
+    if (sdkManager == null) {
+      return new IAndroidTarget[0];
+    }
+    IAndroidTarget[] targets = sdkManager.getTargets();
     List<IAndroidTarget> list = new ArrayList<IAndroidTarget>();
 
     for (IAndroidTarget target : targets) {
@@ -469,6 +492,10 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   private String computeProjectLocation() {
     return new File(NewProjectWizardState.getProjectFileDirectory(), (String)myTemplateState.get(ATTR_MODULE_NAME) + "Project")
       .getAbsolutePath();
+  }
+
+  public void setWizardContext(WizardContext wizardContext) {
+    myWizardContext = wizardContext;
   }
 
   public static class AndroidTargetComboBoxItem extends ComboBoxItem {

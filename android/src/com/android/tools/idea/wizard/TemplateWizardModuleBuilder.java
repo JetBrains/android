@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.sdklib.BuildToolInfo;
+import com.android.sdklib.SdkManager;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.Template;
@@ -29,10 +31,16 @@ import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.DumbAwareRunnable;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkTypeId;
 import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
+import icons.AndroidIcons;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,7 +55,7 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
   private static final Logger LOG = Logger.getInstance("#" + TemplateWizardModuleBuilder.class.getName());
   private final TemplateMetadata myMetadata;
   @NotNull final List<ModuleWizardStep> mySteps;
-  private Project myProject;
+  @Nullable private Project myProject;
 
   NewModuleWizardState myWizardState;
   ConfigureAndroidModuleStep myConfigureAndroidModuleStep;
@@ -59,7 +67,7 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
 
   public TemplateWizardModuleBuilder(@Nullable File templateFile,
                                      @Nullable TemplateMetadata metadata,
-                                     @NotNull Project project,
+                                     @Nullable Project project,
                                      @Nullable Icon sidePanelIcon,
                                      @NotNull List<ModuleWizardStep> steps,
                                      boolean hideModuleName) {
@@ -97,7 +105,9 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
     mySteps.add(myChooseActivityStep);
     mySteps.add(myActivityTemplateParameterStep);
 
-    myWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
+    if (project != null) {
+      myWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
+    }
     myWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, GradleUtil.GRADLE_LATEST_VERSION);
     myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GradleUtil.GRADLE_PLUGIN_LATEST_VERSION);
     myWizardState.put(TemplateMetadata.ATTR_V4_SUPPORT_LIBRARY_VERSION, TemplateMetadata.V4_SUPPORT_LIBRARY_VERSION);
@@ -117,6 +127,7 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
   @Override
   @NotNull
   public ModuleWizardStep[] createWizardSteps(@NotNull WizardContext wizardContext, @NotNull ModulesProvider modulesProvider) {
+    myConfigureAndroidModuleStep.setWizardContext(wizardContext);
     return mySteps.toArray(new ModuleWizardStep[mySteps.size()]);
   }
 
@@ -136,7 +147,9 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
 
   @Override
   public void setupRootModel(final @NotNull ModifiableRootModel rootModel) throws ConfigurationException {
-      StartupManager.getInstance(myProject).runWhenProjectIsInitialized(new DumbAwareRunnable() {
+    final Project project = rootModel.getProject();
+
+    StartupManager.getInstance(project).runWhenProjectIsInitialized(new DumbAwareRunnable() {
         @Override
         public void run() {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
@@ -145,7 +158,19 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
               ApplicationManager.getApplication().runWriteAction(new Runnable() {
                 @Override
                 public void run() {
-                  createModule();
+                  if (myProject == null) {
+                    myWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
+                    final SdkManager sdkManager = getSdkManager(ProjectRootManager.getInstance(project).getProjectSdk());
+                    final BuildToolInfo buildTool = sdkManager != null ? sdkManager.getLatestBuildTool() : null;
+
+                    if (buildTool != null) {
+                      myWizardState.put(TemplateMetadata.ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
+                    }
+                    NewProjectWizard.createProject(myWizardState, project);
+                  }
+                  else {
+                    createModule();
+                  }
                 }
               });
             }
@@ -154,10 +179,29 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
       });
     }
 
+  @Nullable
+  static SdkManager getSdkManager(@Nullable Sdk sdk) {
+    if (sdk == null) {
+      return null;
+    }
+    final AndroidPlatform platform = AndroidPlatform.getInstance(sdk);
+    return platform != null ? platform.getSdkData().getSdkManager() : null;
+  }
+
   @Override
   @NotNull
   public ModuleType getModuleType() {
     return StdModuleTypes.JAVA;
+  }
+
+  @Override
+  public Icon getBigIcon() {
+    return AndroidIcons.Android24;
+  }
+
+  @Override
+  public Icon getNodeIcon() {
+    return AndroidIcons.Android;
   }
 
   @Override
@@ -189,5 +233,10 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
       Messages.showErrorDialog(e.getMessage(), "New Module");
       LOG.error(e);
     }
+  }
+
+  @Override
+  public boolean isSuitableSdkType(SdkTypeId sdkType) {
+    return AndroidSdkType.getInstance().equals(sdkType);
   }
 }
