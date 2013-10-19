@@ -105,7 +105,7 @@ public class TemplateWizard extends AbstractWizard<ModuleWizardStep> {
   }
 
   @Nullable
-  protected Sdk getSdk(int apiLevel) {
+  protected static Sdk getSdk(int apiLevel) {
     for (Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
       AndroidPlatform androidPlatform = AndroidPlatform.parse(sdk);
       if (androidPlatform != null) {

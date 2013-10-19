@@ -54,13 +54,21 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
   @Override
   public ProjectTemplate[] createTemplates(String group, WizardContext context) {
     Project project = context.getProject();
-    if (project == null || !Projects.isGradleProject(project)) {
+    if (project != null && !Projects.isGradleProject(project)) {
       return EMPTY_PROJECT_TEMPLATES;
     }
     TemplateManager manager = TemplateManager.getInstance();
     List<File> templates = manager.getTemplates(Template.CATEGORY_PROJECTS);
     List<ProjectTemplate> tt = new ArrayList<ProjectTemplate>();
     for (File template : templates) {
+      if (project == null) {
+        final String templateName = template.getName();
+
+        if (!NewProjectWizardState.APPLICATION_TEMPLATE.equals(templateName) &&
+            !NewProjectWizardState.LIBRARY_TEMPLATE.equals(templateName)) {
+          continue;
+        }
+      }
       TemplateMetadata metadata = manager.getTemplate(template);
       if (metadata == null || !metadata.isSupported()) {
         continue;
@@ -81,9 +89,9 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
     @NotNull
     @Override
     public String getName() {
-      String title = myTemplateMetadata.getTitle();
+      final String title = myTemplateMetadata.getTitle();
       assert title != null;
-      return title;
+      return "Gradle: " + title;
     }
 
     @Nullable
