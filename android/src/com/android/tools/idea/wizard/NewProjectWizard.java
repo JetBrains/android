@@ -87,6 +87,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
 
     ConfigureAndroidModuleStep configureAndroidModuleStep =
       new ConfigureAndroidModuleStep(myWizardState, myProject, NewProjectSidePanel, this);
+    configureAndroidModuleStep.updateStep();
     myLauncherIconStep = new LauncherIconStep(myWizardState.getLauncherIconState(), myProject, NewProjectSidePanel, this);
     myChooseActivityStep = new ChooseTemplateStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, myProject,
                                                   NewProjectSidePanel, this, null);
