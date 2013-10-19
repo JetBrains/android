@@ -142,6 +142,12 @@ public class AndroidLintTest extends AndroidTestCase {
                   "/res/layout/layout.xml", "xml");
   }
 
+  public void testConvertToDp1() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintPxUsageInspection(),
+                  AndroidBundle.message("android.lint.fix.convert.to.dp"),
+                  "/res/values/convertToDp.xml", "xml");
+  }
+
   public void testScrollViewSize() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintScrollViewSizeInspection(),
                   AndroidBundle.message("android.lint.fix.set.to.wrap.content"),
