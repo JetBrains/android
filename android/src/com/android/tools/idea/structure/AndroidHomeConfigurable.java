@@ -19,6 +19,7 @@ package com.android.tools.idea.structure;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.android.utils.NullLogger;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.BrowseFilesListener;
@@ -35,6 +36,7 @@ import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.projectRoots.impl.JavaSdkImpl;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.openapi.projectRoots.ui.PathEditor;
+import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.ui.DetailsComponent;
 import com.intellij.openapi.util.EmptyRunnable;
 import com.intellij.openapi.util.Pair;
@@ -45,10 +47,7 @@ import com.intellij.ui.FieldPanel;
 import com.intellij.ui.InsertPathAction;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkType;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.android.sdk.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -137,38 +136,117 @@ public class AndroidHomeConfigurable implements Configurable {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
+        // Set up a list of SDKs we don't need any more. At the end we'll delete them.
+        List<Sdk> sdksToDelete = Lists.newArrayList();
+
         if (validateAndroidHome()) {
           String path = resolvePath(myAndroidHomeLocation.getText());
-          for (Sdk sdk : AndroidSdkUtils.getAllAndroidSdks()) {
-            if (sdk.getName().startsWith(AndroidSdkUtils.SDK_NAME_PREFIX)) {
-              setSdkPath(sdk, path);
+          // Parse out the new SDK. We'll need its targets to set up IntelliJ SDKs for each.
+          AndroidSdkData sdkData = AndroidSdkData.parse(path, NullLogger.getLogger());
+          if (sdkData != null) {
+            // Iterate over all current existing IJ Android SDKs
+            for (Sdk sdk : AndroidSdkUtils.getAllAndroidSdks()) {
+              if (sdk.getName().startsWith(AndroidSdkUtils.SDK_NAME_PREFIX)) {
+                // Try to set the path in the IntelliJ SDK to this Android SDK.
+                if (!setAndroidSdkPath(sdkData, sdk, path)) {
+                  // There wasn't a target in the Android SDK for this IntelliJ SDK. Maybe it
+                  // points to an API target that doesn't exist in this Android SDK. Delete the
+                  // IntelliJ SDK.
+                  sdksToDelete.add(sdk);
+                }
+              }
             }
           }
-          // Fill in any APIs that didn't already exist.
+          // If there are any API targets that we haven't created IntelliJ SDKs for yet, fill
+          // those in.
           createSdksForAllTargets(path);
+
+          // Update the local.properties files for any open projects.
           updateLocalProperties(path);
         }
+        
         if (validateJavaHome()) {
           String canonicalPath = resolvePath(myJavaHomeLocation.getText());
-          Sdk jdk = getDefaultJdk();
-          if (jdk != null) {
-            setSdkPath(jdk, canonicalPath);
-          }
-          else {
+          // Try to set this path into the "default" JDK associated with the IntelliJ SDKs.
+          Sdk defaultJdk = getDefaultJdk();
+          if (defaultJdk != null) {
+            setJdkPath(defaultJdk, canonicalPath);
+
+            // Flip through the IntelliJ SDKs and make sure they point to this JDK.
+            updateAllSdks(defaultJdk);
+          } else {
+            // We didn't have a JDK set at all. Try to create one.
             VirtualFile path = LocalFileSystem.getInstance().findFileByPath(canonicalPath);
-            if (path != null) createJdk(path);
+            if (path != null) {
+              defaultJdk = createJdk(path);
+            }
+          }
+
+          // Now iterate through all the JDKs and delete any that aren't the default one.
+          List<Sdk> jdks = ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance());
+          if (defaultJdk != null) {
+            for (Sdk jdk : jdks) {
+              if (jdk.getName() != defaultJdk.getName()) {
+                sdksToDelete.add(defaultJdk);
+              } else {
+                // This may actually be a different copy of the SDK than what we obtained from the JDK. Set its path to be sure.
+                setJdkPath(jdk, canonicalPath);
+              }
+            }
+
           }
         }
-        deleteExtraSdks();
+        for (Sdk sdk : sdksToDelete) {
+          SdkConfigurationUtil.removeSdk(sdk);
+        }
       }
     });
   }
 
-  private static void setSdkPath(Sdk sdk, String path) {
+  /**
+   * Sets the given Android SDK's home path to the given path, and resets all of its content roots.
+   */
+  private static boolean setAndroidSdkPath(@NotNull AndroidSdkData sdkData, @NotNull Sdk sdk, @NotNull String path) {
+    String name = sdk.getName();
+    if (!name.startsWith(AndroidSdkUtils.SDK_NAME_PREFIX)|| SDK_NAME_PATTERN.matcher(name).matches()) {
+      return false;
+    }
+    AndroidSdkAdditionalData sdkAdditionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+    if (sdkAdditionalData == null) {
+      return false;
+    }
+    AndroidPlatform androidPlatform = sdkAdditionalData.getAndroidPlatform();
+    if (androidPlatform == null) {
+      return false;
+    }
+
+    IAndroidTarget target = sdkData.findTargetByApiLevel(Integer.toString(androidPlatform.getApiLevel()));
+    if (target == null) {
+      return false;
+    }
+
     SdkModificator sdkModificator = sdk.getSdkModificator();
     sdkModificator.setHomePath(path);
     sdkModificator.removeAllRoots();
+    for (OrderRoot orderRoot : AndroidSdkUtils.getLibraryRootsForTarget(target, path, true)) {
+      sdkModificator.addRoot(orderRoot.getFile(), orderRoot.getType());
+    }
+    ExternalAnnotationsSupport.attachJdkAnnotations(sdkModificator);
+
     sdkModificator.commitChanges();
+    return true;
+  }
+
+  /**
+   * Sets the given JDK's home path to the given path, and resets all of its content roots.
+   */
+  private static void setJdkPath(@NotNull Sdk sdk, @NotNull String path) {
+    SdkModificator sdkModificator = sdk.getSdkModificator();
+    sdkModificator.setHomePath(path);
+    sdkModificator.removeAllRoots();
+    ExternalAnnotationsSupport.attachJdkAnnotations(sdkModificator);
+    sdkModificator.commitChanges();
+    JavaSdk.getInstance().setupSdkPaths(sdk);
   }
 
   private void createUIComponents() {
@@ -291,25 +369,6 @@ public class AndroidHomeConfigurable implements Configurable {
     return sdks;
   }
 
-  private static void deleteExtraSdks() {
-    List<Sdk> sdksToDelete = Lists.newArrayList();
-    for (Sdk sdk : AndroidSdkUtils.getAllAndroidSdks()) {
-      String name = sdk.getName();
-      if (!name.startsWith(AndroidSdkUtils.SDK_NAME_PREFIX)|| SDK_NAME_PATTERN.matcher(name).matches()) {
-        sdksToDelete.add(sdk);
-      }
-    }
-    for (Sdk sdk : ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance())) {
-      String name = sdk.getName();
-      if (!name.equals(AndroidSdkUtils.DEFAULT_JDK_NAME) || SDK_NAME_PATTERN.matcher(name).matches()) {
-        sdksToDelete.add(sdk);
-      }
-    }
-    for (Sdk sdk : sdksToDelete) {
-      SdkConfigurationUtil.removeSdk(sdk);
-    }
-  }
-
   private static void updateLocalProperties(String path) {
     ProjectManager projectManager = ApplicationManager.getApplication().getComponent(ProjectManager.class);
     for (Project project : projectManager.getOpenProjects()) {
@@ -321,6 +380,22 @@ public class AndroidHomeConfigurable implements Configurable {
       catch (IOException e) {
         LOG.error(e);
       }
+    }
+  }
+
+  /**
+   * Iterates through all Android SDKs and makes them point to the given JDK.
+   */
+  private static void updateAllSdks(@NotNull Sdk jdk) {
+    for (Sdk sdk : AndroidSdkUtils.getAllAndroidSdks()) {
+      AndroidSdkAdditionalData oldData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+      if (oldData == null) {
+        continue;
+      }
+      oldData.setJavaSdk(jdk);
+      SdkModificator modificator = sdk.getSdkModificator();
+      modificator.setSdkAdditionalData(oldData);
+      modificator.commitChanges();
     }
   }
 
@@ -397,20 +472,23 @@ public class AndroidHomeConfigurable implements Configurable {
   @Nullable
   private static Sdk getDefaultJdk() {
     Sdk sdk = getFirstDefaultAndroidSdk(false);
-    if (sdk == null) {
-      List<Sdk> jdks = ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance());
-      if (!jdks.isEmpty()) {
-        return jdks.get(0);
+    if (sdk != null) {
+      AndroidSdkAdditionalData sdkAdditionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+      if (sdkAdditionalData != null) {
+        Sdk jdk = sdkAdditionalData.getJavaSdk();
+        if (jdk != null) {
+          return jdk;
+        }
       }
-      VirtualFile javaHome = LocalFileSystem.getInstance().findFileByPath(SystemProperties.getJavaHome());
-      if (javaHome != null) return createJdk(javaHome);
-      return null;
     }
-    AndroidSdkAdditionalData sdkAdditionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-    if (sdkAdditionalData != null) {
-      return sdkAdditionalData.getJavaSdk();
-    } else {
-      return null;
+    List<Sdk> jdks = ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance());
+    if (!jdks.isEmpty()) {
+      return jdks.get(0);
     }
+    VirtualFile javaHome = LocalFileSystem.getInstance().findFileByPath(SystemProperties.getJavaHome());
+    if (javaHome != null) {
+      return createJdk(javaHome);
+    }
+    return null;
   }
 }
