@@ -16,7 +16,9 @@
 package com.android.tools.idea.jps;
 
 import com.android.tools.idea.jps.model.JpsAndroidGradleModuleExtension;
+import com.android.tools.idea.jps.model.JpsGradleModuleExtension;
 import com.android.tools.idea.jps.model.impl.JpsAndroidGradleModuleExtensionImpl;
+import com.android.tools.idea.jps.model.impl.JpsGradleModuleExtensionImpl;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -81,6 +83,22 @@ public final class AndroidGradleJps {
   @Nullable
   public static JpsAndroidGradleModuleExtension getExtension(@NotNull JpsModule module) {
     return module.getContainer().getChild(JpsAndroidGradleModuleExtensionImpl.KIND);
+  }
+
+  @Nullable
+  public static JpsGradleModuleExtension getOrCreateGradleSystemExtension(@NotNull JpsModule module) {
+    JpsGradleModuleExtension extension = getGradleSystemExtension(module);
+
+    if (extension == null) {
+      extension = new JpsGradleModuleExtensionImpl();
+      module.getContainer().setChild(JpsGradleModuleExtensionImpl.ROLE, extension);
+    }
+    return extension;
+  }
+
+  @Nullable
+  public static JpsGradleModuleExtension getGradleSystemExtension(@NotNull JpsModule module) {
+    return module.getContainer().getChild(JpsGradleModuleExtensionImpl.ROLE);
   }
 
   /**
