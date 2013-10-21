@@ -51,11 +51,11 @@ public class AndroidFacetModuleCustomizerTest extends IdeaTestCase {
   }
 
   public void testCustomizeModule() {
-    String rootDirPath = myAndroidProject.getRootDir().getAbsolutePath();
+    File rootDir = myAndroidProject.getRootDir();
     VariantStub selectedVariant = myAndroidProject.getFirstVariant();
     assertNotNull(selectedVariant);
     String selectedVariantName = selectedVariant.getName();
-    IdeaAndroidProject project = new IdeaAndroidProject(myAndroidProject.getName(), rootDirPath, myAndroidProject, selectedVariantName);
+    IdeaAndroidProject project = new IdeaAndroidProject(myAndroidProject.getName(), rootDir, myAndroidProject, selectedVariantName);
     myCustomizer.customizeModule(myModule, myProject, project);
 
     // Verify that AndroidFacet was added and configured.
