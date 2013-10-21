@@ -1187,6 +1187,11 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
         case INCONSISTENT_CERTIFICATES:
           retry = promptUninstallExistingApp() && uninstallPackage(device, packageName);
           break;
+        case NO_CERTIFICATE:
+          message(AndroidBundle.message("deployment.failed.no.certificates.explanation"), STDERR);
+          showMessageDialog(AndroidBundle.message("deployment.failed.no.certificates.explanation"));
+          retry = false;
+          break;
         default:
           retry = false;
           break;
@@ -1221,7 +1226,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       public void run() {
         int result = Messages.showOkCancelDialog(myFacet.getModule().getProject(),
                                                  AndroidBundle.message("deployment.failed.uninstall.prompt.text"),
-                                                 AndroidBundle.message("deployment.failed.uninstall.prompt.title"),
+                                                 AndroidBundle.message("deployment.failed.title"),
                                                  Messages.getQuestionIcon());
         uninstall.set(result == 0);
       }
@@ -1230,7 +1235,16 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     return uninstall.get();
   }
 
-  private enum InstallFailureCode { NO_ERROR, DEVICE_NOT_RESPONDING, INCONSISTENT_CERTIFICATES, UNTYPED_ERROR, };
+  private void showMessageDialog(final String message) {
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        Messages.showErrorDialog(myFacet.getModule().getProject(), message, AndroidBundle.message("deployment.failed.title"));
+      }
+    });
+  }
+
+  private enum InstallFailureCode { NO_ERROR, DEVICE_NOT_RESPONDING, INCONSISTENT_CERTIFICATES, NO_CERTIFICATE, UNTYPED_ERROR, };
 
   private static class InstallResult {
     public final InstallFailureCode failureCode;
@@ -1268,6 +1282,8 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
     if ("INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES".equals(receiver.failureMessage)) {
       return InstallFailureCode.INCONSISTENT_CERTIFICATES;
+    } else if ("INSTALL_PARSE_FAILED_NO_CERTIFICATES".equals(receiver.failureMessage)) {
+      return InstallFailureCode.NO_CERTIFICATE;
     }
 
     return InstallFailureCode.UNTYPED_ERROR;
