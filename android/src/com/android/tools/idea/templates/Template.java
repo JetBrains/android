@@ -530,7 +530,7 @@ public class Template {
       // Just insert into file along with comment, using the "standard" conflict
       // syntax that many tools and editors recognize.
 
-      contents = wrapWithMergeConflict(sourceXml, targetXml);
+      contents = wrapWithMergeConflict(targetXml, sourceXml);
     }
     return contents;
   }

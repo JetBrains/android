@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.rendering.ManifestInfo;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
@@ -24,12 +25,15 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.io.File;
 
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API_LEVEL;
 
 /**
@@ -65,10 +69,31 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
   @Override
   protected void init() {
     myWizardState = new TemplateWizardState();
-    myWizardState.put(ATTR_BUILD_API, AndroidPlatform.getInstance(myModule).getTarget().getVersion().getApiLevel());
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    assert facet != null;
+    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
+    assert platform != null;
+    myWizardState.put(ATTR_BUILD_API, platform.getTarget().getVersion().getApiLevel());
+
+    // Read minSdkVersion and package from manifest and/or build.gradle files
+    int minSdkVersion = -1;
+    String minSdkName;
     ManifestInfo manifestInfo = ManifestInfo.get(myModule);
-    myWizardState.put(ATTR_MIN_API_LEVEL, manifestInfo.getMinSdkVersion());
-    myWizardState.put(TemplateMetadata.ATTR_PACKAGE_NAME, manifestInfo.getPackage());
+    String packageName = manifestInfo.getPackage();
+    IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
+    if (gradleProject != null) {
+      minSdkVersion = gradleProject.getSelectedVariant().getMergedFlavor().getMinSdkVersion();
+      packageName = IdeaAndroidProject.computePackageName(gradleProject, packageName);
+    }
+    if (minSdkVersion < 1) { // Not specified in Gradle file
+      minSdkVersion = manifestInfo.getMinSdkVersion();
+      minSdkName = manifestInfo.getMinSdkName();
+    } else {
+      minSdkName = Integer.toString(minSdkVersion);
+    }
+    myWizardState.put(ATTR_MIN_API, minSdkName);
+    myWizardState.put(ATTR_MIN_API_LEVEL, minSdkVersion);
+    myWizardState.put(TemplateMetadata.ATTR_PACKAGE_NAME, packageName);
 
     mySteps.add(new ChooseTemplateStep(myWizardState, myTemplateCategory, myProject, null, this, null));
     mySteps.add(new TemplateParameterStep(myWizardState, myProject, null, this));
@@ -87,6 +112,10 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     myWizardState.myFinal.add(TemplateMetadata.ATTR_PACKAGE_ROOT);
 
     super.init();
+
+    // Ensure that the window is large enough to accommodate the contents without clipping the validation error label
+    Dimension preferredSize = getContentPanel().getPreferredSize();
+    getContentPanel().setPreferredSize(new Dimension(Math.max(600, preferredSize.width), Math.max(700, preferredSize.height)));
   }
 
   public void createTemplateObject() {
