@@ -40,6 +40,7 @@ public class AndroidInitialConfigurator {
     ExtensionPointName.create("com.intellij.androidStudioInitializer");
 
   @NonNls private static final String CONFIG_V1 = "AndroidInitConfigurator.V1";
+  @NonNls private static final String CONFIG_V2 = "AndroidInitConfigurator.V2";
   @NonNls private static final String TODO_TOOLWINDOW_ACTION_ID = "ActivateTODOToolWindow";
   @NonNls private static final String ANDROID_TOOLWINDOW_ACTION_ID = "ActivateAndroidToolWindow";
 
@@ -85,6 +86,11 @@ public class AndroidInitialConfigurator {
       if (SystemInfo.isMac) {
         setDefaultMacKeymap();
       }
+    }
+
+    if (!propertiesComponent.getBoolean(CONFIG_V2, false)) {
+      propertiesComponent.setValue(CONFIG_V2, "true");
+      UISettings.getInstance().SHOW_MAIN_TOOLBAR = true;
     }
   }
 
