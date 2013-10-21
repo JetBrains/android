@@ -85,7 +85,8 @@ public class Template {
    *    proper Booleans. Templates which rely on this should specify format >= 2.
    * <li> 3: The wizard infrastructure passes the {@code isNewProject} boolean variable
    *    to indicate whether a wizard is created as part of a new blank project
-   * <li> 4: Constraint type app_package ({@link Constraint#APP_PACKAGE})
+   * <li> 4: Constraint type app_package ({@link Constraint#APP_PACKAGE}), provides
+   *    srcDir, resDir and manifestDir variables for locations of files
    * </ul>
    */
   static final int CURRENT_FORMAT = 4;
