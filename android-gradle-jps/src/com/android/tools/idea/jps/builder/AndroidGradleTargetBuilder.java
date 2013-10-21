@@ -134,7 +134,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
         context.processMessage(AndroidGradleJps.createCompilerMessage(
           BuildMessage.Kind.WARNING,
           "module '" + module.getName() + "' won't be compiled. " +
-          "Unfortunately you can't have Non-Gradle Java module and Android-Gradle module in one project."));
+          "Unfortunately you can't have non-Gradle Java module and Android-Gradle module in one project."));
       }
     }
   }
