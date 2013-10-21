@@ -24,17 +24,19 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
+import java.util.Set;
 
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API_LEVEL;
+import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
  * NewTemplateObjectWizard is a base class for templates that instantiate new Android objects based on templates. These aren't for
@@ -95,10 +97,53 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     myWizardState.put(ATTR_MIN_API_LEVEL, minSdkVersion);
     myWizardState.put(TemplateMetadata.ATTR_PACKAGE_NAME, packageName);
 
+    // Look up the default resource directories
+    if (gradleProject != null) {
+      IdeaSourceProvider sourceSet = facet.getMainIdeaSourceSet();
+      String rootDirPath = gradleProject.getRootDirPath();
+      VirtualFile moduleDir = LocalFileSystem.getInstance().findFileByIoFile(new File(rootDirPath));
+      if (moduleDir == null) {
+        VirtualFile moduleFile = myModule.getModuleFile();
+        if (moduleFile != null) {
+          moduleDir = moduleFile.getParent();
+        }
+      }
+
+      if (moduleDir != null) {
+        Set<VirtualFile> javaDirectories = sourceSet.getJavaDirectories();
+        if (!javaDirectories.isEmpty()) {
+          VirtualFile javaDir = javaDirectories.iterator().next();
+          String relativePath = VfsUtilCore.getRelativePath(javaDir, moduleDir, '/'); // templates use / not File.separatorChar
+          if (relativePath != null) {
+            myWizardState.put(ATTR_SRC_DIR, relativePath);
+          }
+        }
+        Set<VirtualFile> resDirectories = sourceSet.getResDirectories();
+        if (!resDirectories.isEmpty()) {
+          VirtualFile resDir = resDirectories.iterator().next();
+          String relativePath = VfsUtilCore.getRelativePath(resDir, moduleDir, '/');
+          if (relativePath != null) {
+            myWizardState.put(ATTR_RES_DIR, relativePath);
+          }
+        }
+
+        VirtualFile manifestFile = sourceSet.getManifestFile();
+        if (manifestFile != null) {
+          VirtualFile manifestDir = manifestFile.getParent();
+          if (manifestDir != null) {
+            String relativePath = VfsUtilCore.getRelativePath(manifestDir, moduleDir, '/');
+            if (relativePath != null) {
+              myWizardState.put(ATTR_MANIFEST_DIR, relativePath);
+            }
+          }
+        }
+      }
+    }
+
     mySteps.add(new ChooseTemplateStep(myWizardState, myTemplateCategory, myProject, null, this, null));
     mySteps.add(new TemplateParameterStep(myWizardState, myProject, null, this));
 
-    myWizardState.put(NewProjectWizardState.ATTR_PROJECT_LOCATION, myProject.getBasePath());
+    myWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, myProject.getBasePath());
     // We're really interested in the directory name on disk, not the module name. These will be different if you give a module the same
     // name as its containing project.
     String moduleName = new File(myModule.getModuleFilePath()).getParentFile().getName();

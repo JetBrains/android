@@ -91,6 +91,10 @@ public class TemplateWizardState {
   public TemplateWizardState() {
     put(TemplateMetadata.ATTR_IS_NEW_PROJECT, false);
     put(TemplateMetadata.ATTR_IS_GRADLE, "true");
+
+    put(ATTR_SRC_DIR, "src/main/java");
+    put(ATTR_RES_DIR, "src/main/res");
+    put(ATTR_MANIFEST_DIR, "src/main");
   }
 
   /**
