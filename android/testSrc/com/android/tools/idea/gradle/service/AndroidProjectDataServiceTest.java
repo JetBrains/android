@@ -24,6 +24,7 @@ import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.testFramework.IdeaTestCase;
 
+import java.io.File;
 import java.util.List;
 
 import static org.easymock.EasyMock.*;
@@ -47,8 +48,8 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
     myAndroidProject = new AndroidProjectStub(myModule.getName());
     myAndroidProject.addVariant(DEBUG);
     myAndroidProject.addBuildType(DEBUG);
-    String rootDirPath = myAndroidProject.getRootDir().getAbsolutePath();
-    myIdeaAndroidProject = new IdeaAndroidProject(myAndroidProject.getName(), rootDirPath, myAndroidProject, DEBUG);
+    File rootDir = myAndroidProject.getRootDir();
+    myIdeaAndroidProject = new IdeaAndroidProject(myAndroidProject.getName(), rootDir, myAndroidProject, DEBUG);
     myCustomizer1 = createMock(ModuleCustomizer.class);
     myCustomizer2 = createMock(ModuleCustomizer.class);
     service = new AndroidProjectDataService(myCustomizer1, myCustomizer2);

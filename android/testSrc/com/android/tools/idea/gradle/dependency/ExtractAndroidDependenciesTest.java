@@ -19,11 +19,13 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.stubs.android.AndroidLibraryStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
+import com.android.tools.idea.gradle.stubs.android.ArtifactInfoStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.util.containers.ContainerUtil;
 import junit.framework.TestCase;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Collection;
@@ -44,8 +46,8 @@ public class ExtractAndroidDependenciesTest extends TestCase {
     myVariant = myAndroidProject.getFirstVariant();
     assertNotNull(myVariant);
 
-    String rootDirPath = myAndroidProject.getRootDir().getAbsolutePath();
-    myIdeaAndroidProject = new IdeaAndroidProject(myAndroidProject.getName(), rootDirPath, myAndroidProject, myVariant.getName());
+    File rootDir = myAndroidProject.getRootDir();
+    myIdeaAndroidProject = new IdeaAndroidProject(myAndroidProject.getName(), rootDir, myAndroidProject, myVariant.getName());
   }
 
   @Override
@@ -60,7 +62,7 @@ public class ExtractAndroidDependenciesTest extends TestCase {
     File jarFile = new File("~/repo/guava/guava-11.0.2.jar");
 
     myVariant.getMainArtifactInfo().getDependencies().addJar(jarFile);
-    myVariant.getTestArtifactInfo().getDependencies().addJar(jarFile);
+    getArtifactInfo().getDependencies().addJar(jarFile);
 
     Collection<Dependency> dependencies = Dependency.extractFrom(myIdeaAndroidProject);
     assertEquals(1, dependencies.size());
@@ -83,7 +85,7 @@ public class ExtractAndroidDependenciesTest extends TestCase {
     AndroidLibraryStub library = new AndroidLibraryStub(libJar, gradlePath);
 
     myVariant.getMainArtifactInfo().getDependencies().addLibrary(library);
-    myVariant.getTestArtifactInfo().getDependencies().addLibrary(library);
+    getArtifactInfo().getDependencies().addLibrary(library);
 
     Collection<Dependency> dependencies = Dependency.extractFrom(myIdeaAndroidProject);
     assertEquals(1, dependencies.size());
@@ -111,7 +113,7 @@ public class ExtractAndroidDependenciesTest extends TestCase {
     AndroidLibraryStub library = new AndroidLibraryStub(libJar);
 
     myVariant.getMainArtifactInfo().getDependencies().addLibrary(library);
-    myVariant.getTestArtifactInfo().getDependencies().addLibrary(library);
+    getArtifactInfo().getDependencies().addLibrary(library);
 
     Collection<Dependency> dependencies = Dependency.extractFrom(myIdeaAndroidProject);
     assertEquals(1, dependencies.size());
@@ -136,7 +138,7 @@ public class ExtractAndroidDependenciesTest extends TestCase {
     library.addLocalJar(localJar);
 
     myVariant.getMainArtifactInfo().getDependencies().addLibrary(library);
-    myVariant.getTestArtifactInfo().getDependencies().addLibrary(library);
+    getArtifactInfo().getDependencies().addLibrary(library);
 
     List<Dependency> dependencies = Lists.newArrayList(Dependency.extractFrom(myIdeaAndroidProject));
     assertEquals(2, dependencies.size());
@@ -155,7 +157,7 @@ public class ExtractAndroidDependenciesTest extends TestCase {
   public void testExtractFromWithProject() {
     String gradlePath = "abc:xyz:library";
     myVariant.getMainArtifactInfo().getDependencies().addProject(gradlePath);
-    myVariant.getTestArtifactInfo().getDependencies().addProject(gradlePath);
+    getArtifactInfo().getDependencies().addProject(gradlePath);
     Collection<Dependency> dependencies = Dependency.extractFrom(myIdeaAndroidProject);
     assertEquals(1, dependencies.size());
 
@@ -168,5 +170,12 @@ public class ExtractAndroidDependenciesTest extends TestCase {
 
     LibraryDependency backup = dependency.getBackupDependency();
     assertNull(backup);
+  }
+
+  @NotNull
+  private ArtifactInfoStub getArtifactInfo() {
+    ArtifactInfoStub testArtifactInfo = myVariant.getTestArtifactInfo();
+    assertNotNull(testArtifactInfo);
+    return testArtifactInfo;
   }
 }
