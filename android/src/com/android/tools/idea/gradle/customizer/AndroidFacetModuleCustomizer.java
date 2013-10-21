@@ -96,15 +96,15 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
 
     syncSelectedVariant(facetState, ideaAndroidProject);
 
-    String moduleDirPath = ideaAndroidProject.getRootDirPath();
+    File moduleDir = ideaAndroidProject.getRootDir();
     File manifestFile = sourceProvider.getManifestFile();
-    facetState.MANIFEST_FILE_RELATIVE_PATH = getRelativePath(moduleDirPath, manifestFile);
+    facetState.MANIFEST_FILE_RELATIVE_PATH = getRelativePath(moduleDir, manifestFile);
 
     Set<File> resDirs = sourceProvider.getResDirectories();
-    facetState.RES_FOLDER_RELATIVE_PATH = getRelativePath(moduleDirPath, resDirs);
+    facetState.RES_FOLDER_RELATIVE_PATH = getRelativePath(moduleDir, resDirs);
 
     Set<File> assetsDirs = sourceProvider.getAssetsDirectories();
-    facetState.ASSETS_FOLDER_RELATIVE_PATH = getRelativePath(moduleDirPath, assetsDirs);
+    facetState.ASSETS_FOLDER_RELATIVE_PATH = getRelativePath(moduleDir, assetsDirs);
 
     facet.setIdeaAndroidProject(ideaAndroidProject);
     facet.syncSelectedVariant();
@@ -120,15 +120,15 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
   // We are only getting the relative path of the first file in the collection, because JpsAndroidModuleProperties only accepts one path.
   // TODO(alruiz): Change JpsAndroidModuleProperties (and callers) to use multiple paths.
   @NotNull
-  private static String getRelativePath(@NotNull String basePath, @NotNull Collection<File> dirs) {
+  private static String getRelativePath(@NotNull File basePath, @NotNull Collection<File> dirs) {
     return getRelativePath(basePath, ContainerUtil.getFirstItem(dirs));
   }
 
   @NotNull
-  private static String getRelativePath(@NotNull String basePath, @Nullable File file) {
+  private static String getRelativePath(@NotNull File basePath, @Nullable File file) {
     String relativePath = null;
     if (file != null) {
-      relativePath = FileUtilRt.getRelativePath(basePath, file.getAbsolutePath(), File.separatorChar);
+      relativePath = FileUtilRt.getRelativePath(basePath, file);
     }
     if (relativePath != null && !relativePath.startsWith(SEPARATOR)) {
       return SEPARATOR + FileUtilRt.toSystemIndependentName(relativePath);

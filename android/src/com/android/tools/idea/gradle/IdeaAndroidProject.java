@@ -26,6 +26,7 @@ import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,7 +37,7 @@ import java.util.List;
  */
 public class IdeaAndroidProject implements Serializable {
   @NotNull private final String myModuleName;
-  @NotNull private final String myRootDirPath;
+  @NotNull private final File myRootDir;
   @NotNull private final AndroidProject myDelegate;
   @NotNull private String mySelectedVariantName;
 
@@ -44,16 +45,16 @@ public class IdeaAndroidProject implements Serializable {
    * Creates a new {@link IdeaAndroidProject}.
    *
    * @param moduleName                the name of the IDEA module, created from {@code delegate}.
-   * @param rootDirPath               absolute path of the root directory of the imported Android-Gradle project.
+   * @param rootDir                   the root directory of the imported Android-Gradle project.
    * @param delegate                  imported Android-Gradle project.
    * @param selectedVariantName       name of the selected build variant.
    */
   public IdeaAndroidProject(@NotNull String moduleName,
-                            @NotNull String rootDirPath,
+                            @NotNull File rootDir,
                             @NotNull AndroidProject delegate,
                             @NotNull String selectedVariantName) {
     myModuleName = moduleName;
-    myRootDirPath = rootDirPath;
+    myRootDir = rootDir;
     myDelegate = delegate;
     setSelectedVariantName(selectedVariantName);
   }
@@ -64,11 +65,12 @@ public class IdeaAndroidProject implements Serializable {
   }
 
   /**
-   * @return the absolute path of the root directory of the imported Android-Gradle project.
+   * @return the root directory of the imported Android-Gradle project. The returned path belongs to the IDEA module containing the
+   * build.gradle file.
    */
   @NotNull
-  public String getRootDirPath() {
-    return myRootDirPath;
+  public File getRootDir() {
+    return myRootDir;
   }
 
   /**

@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project;
 import com.android.tools.idea.gradle.ContentRootSourcePaths;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.TestProjects;
-import com.android.tools.idea.gradle.project.AndroidContentRoot;
 import com.android.tools.idea.gradle.project.AndroidContentRoot.ContentRootStorage;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
@@ -93,9 +92,9 @@ public class AndroidContentRootTest extends TestCase {
     VariantStub selectedVariant = myAndroidProject.getFirstVariant();
     assertNotNull(selectedVariant);
 
-    String rootDirPath = myAndroidProject.getRootDir().getAbsolutePath();
+    File rootDir = myAndroidProject.getRootDir();
     IdeaAndroidProject project =
-      new IdeaAndroidProject(myAndroidProject.getName(), rootDirPath, myAndroidProject, selectedVariant.getName());
+      new IdeaAndroidProject(myAndroidProject.getName(), rootDir, myAndroidProject, selectedVariant.getName());
     AndroidContentRoot.storePaths(project, myStorage);
 
     myExpectedSourcePaths.storeExpectedSourcePaths(myAndroidProject);

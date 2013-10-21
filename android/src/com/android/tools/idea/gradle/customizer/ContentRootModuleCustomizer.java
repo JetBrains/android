@@ -67,10 +67,10 @@ public class ContentRootModuleCustomizer implements ModuleCustomizer {
   @Nullable
   private static ContentEntry findMatchingContentEntry(@NotNull ModifiableRootModel model, @NotNull IdeaAndroidProject ideaAndroidProject) {
     ContentEntry[] contentEntries = model.getContentEntries();
-    if (contentEntries == null || contentEntries.length == 0) {
+    if (contentEntries.length == 0) {
       return null;
     }
-    File rootDir = new File(ideaAndroidProject.getRootDirPath());
+    File rootDir = ideaAndroidProject.getRootDir();
     for (ContentEntry contentEntry : contentEntries) {
       VirtualFile contentEntryFile = contentEntry.getFile();
       if (contentEntryFile == null) {

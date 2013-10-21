@@ -206,7 +206,6 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
       }
       File buildFile = buildScript.getSourceFile();
       File moduleDir = buildFile.getParentFile();
-      String moduleDirPath = moduleDir.getPath();
 
       IdeaGradleProject gradleProject = new IdeaGradleProject(module.getName(), module.getGradleProject().getPath());
 
@@ -215,11 +214,11 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
         if (!GradleModelVersionCheck.isSupportedVersion(androidProject)) {
           throw new IllegalStateException(UNSUPPORTED_MODEL_VERSION_ERROR);
         }
-        createModuleInfo(module, androidProject, projectInfo, moduleDirPath, gradleProject);
+        createModuleInfo(module, androidProject, projectInfo, moduleDir, gradleProject);
         unresolvedDependencies.addAll(androidProject.getUnresolvedDependencies());
 
       } else if (isJavaLibrary(module.getGradleProject())) {
-        createModuleInfo(module, projectInfo, moduleDirPath, gradleProject);
+        createModuleInfo(module, projectInfo, moduleDir, gradleProject);
       }
 
       else {
@@ -227,7 +226,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
         if (gradleSettingsFile.isFile()) {
           // This is just a root folder for a group of Gradle projects. Set the Gradle project to null so the JPS builder won't try to
           // compile it using Gradle. We still need to create the module to display files inside it.
-          createModuleInfo(module, projectInfo, moduleDirPath, null);
+          createModuleInfo(module, projectInfo, moduleDir, null);
         }
       }
     }
@@ -282,15 +281,15 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   private static DataNode<ModuleData> createModuleInfo(@NotNull IdeaModule module,
                                                        @NotNull AndroidProject androidProject,
                                                        @NotNull DataNode<ProjectData> projectInfo,
-                                                       @NotNull String moduleDirPath,
+                                                       @NotNull File moduleDir,
                                                        @NotNull IdeaGradleProject gradleProject) {
     String moduleName = module.getName();
-    ModuleData moduleData = createModuleData(module, projectInfo, moduleName, moduleDirPath);
+    ModuleData moduleData = createModuleData(module, projectInfo, moduleName, moduleDir);
     DataNode<ModuleData> moduleInfo = projectInfo.createChild(ProjectKeys.MODULE, moduleData);
 
     Variant selectedVariant = getFirstVariant(androidProject);
-    IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(moduleName, moduleDirPath, androidProject, selectedVariant.getName());
-    addContentRoot(ideaAndroidProject, moduleInfo, moduleDirPath);
+    IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(moduleName, moduleDir, androidProject, selectedVariant.getName());
+    addContentRoot(ideaAndroidProject, moduleInfo, moduleDir);
 
     moduleInfo.createChild(AndroidProjectKeys.IDE_ANDROID_PROJECT, ideaAndroidProject);
     moduleInfo.createChild(AndroidProjectKeys.IDE_GRADLE_PROJECT, gradleProject);
@@ -314,8 +313,8 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
 
   private static void addContentRoot(@NotNull IdeaAndroidProject androidProject,
                                      @NotNull DataNode<ModuleData> moduleInfo,
-                                     @NotNull String moduleDirPath) {
-    final ContentRootData contentRootData = new ContentRootData(GradleConstants.SYSTEM_ID, moduleDirPath);
+                                     @NotNull File moduleDir) {
+    final ContentRootData contentRootData = new ContentRootData(GradleConstants.SYSTEM_ID, moduleDir.getPath());
     AndroidContentRoot.ContentRootStorage storage = new AndroidContentRoot.ContentRootStorage() {
       @Override
       @NotNull
@@ -335,9 +334,9 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   @NotNull
   private static DataNode<ModuleData> createModuleInfo(@NotNull IdeaModule module,
                                                        @NotNull DataNode<ProjectData> projectInfo,
-                                                       @NotNull String moduleDirPath,
+                                                       @NotNull File moduleDir,
                                                        @Nullable IdeaGradleProject gradleProject) {
-    ModuleData moduleData = createModuleData(module, projectInfo, module.getName(), moduleDirPath);
+    ModuleData moduleData = createModuleData(module, projectInfo, module.getName(), moduleDir);
     DataNode<ModuleData> moduleInfo = projectInfo.createChild(ProjectKeys.MODULE, moduleData);
 
     // Populate content roots.
@@ -362,9 +361,9 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   private static ModuleData createModuleData(@NotNull IdeaModule module,
                                              @NotNull DataNode<ProjectData> projectInfo,
                                              @NotNull String name,
-                                             @NotNull String dirPath) {
+                                             @NotNull File rootDir) {
     String moduleConfigPath = GradleUtil.getConfigPath(module.getGradleProject(), projectInfo.getData().getLinkedExternalProjectPath());
-    return new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), name, dirPath, moduleConfigPath);
+    return new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), name, rootDir.getPath(), moduleConfigPath);
   }
 
   private static void populateDependencies(@NotNull DataNode<ProjectData> projectInfo) {
