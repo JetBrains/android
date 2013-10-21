@@ -157,12 +157,11 @@ public class ModuleSetResourceRepositoryTest extends AndroidTestCase {
     AndroidProjectStub androidProject = TestProjects.createFlavorsProject();
     VariantStub variant = androidProject.getFirstVariant();
     assertNotNull(variant);
-    String rootDirPath = androidProject.getRootDir().getAbsolutePath();
-    IdeaAndroidProject ideaAndroidProject =
-      new IdeaAndroidProject(androidProject.getName(), rootDirPath, androidProject, variant.getName());
+    File rootDir = androidProject.getRootDir();
+    IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(androidProject.getName(), rootDir, androidProject, variant.getName());
     myFacet.setIdeaAndroidProject(ideaAndroidProject);
 
-    File libJar = new File(rootDirPath, "library.aar/library.jar");
+    File libJar = new File(rootDir, "library.aar/library.jar");
     AndroidLibraryStub library = new AndroidLibraryStub(libJar);
     variant.getMainArtifactInfo().getDependencies().addLibrary(library);
   }
