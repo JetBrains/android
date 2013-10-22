@@ -113,7 +113,7 @@ public class TemplateTest extends AndroidGradleTestCase {
    * quicker feedback on whether something is broken instead of waiting for
    * all the versions for each template first
    */
-  private static final boolean TEST_VARIABLE_COMBINATIONS = COMPREHENSIVE;
+  private static final boolean TEST_VARIABLE_COMBINATIONS = true;
   private static final boolean TEST_FEWER_API_VERSIONS = !COMPREHENSIVE;
   private static final boolean TEST_JUST_ONE_MIN_SDK = !COMPREHENSIVE;
   private static final boolean TEST_JUST_ONE_BUILD_TARGET = !COMPREHENSIVE;
@@ -360,7 +360,8 @@ public class TemplateTest extends AndroidGradleTestCase {
     System.out.println("Checked " + templateFile.getName() + " successfully in " + stopwatch.toString());
   }
 
-  private static File findTemplate(String category, String name) {
+  private File findTemplate(String category, String name) {
+    ensureSdkManagerAvailable();
     File templateRootFolder = TemplateManager.getTemplateRootFolder();
     assertNotNull(templateRootFolder);
     File file = new File(templateRootFolder, category + File.separator + name);
