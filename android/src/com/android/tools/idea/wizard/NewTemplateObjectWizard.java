@@ -100,8 +100,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     // Look up the default resource directories
     if (gradleProject != null) {
       IdeaSourceProvider sourceSet = facet.getMainIdeaSourceSet();
-      String rootDirPath = gradleProject.getRootDirPath();
-      VirtualFile moduleDir = LocalFileSystem.getInstance().findFileByIoFile(new File(rootDirPath));
+      VirtualFile moduleDir = LocalFileSystem.getInstance().findFileByIoFile(gradleProject.getRootDir());
       if (moduleDir == null) {
         VirtualFile moduleFile = myModule.getModuleFile();
         if (moduleFile != null) {
