@@ -39,6 +39,7 @@ import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.PopupStep;
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.*;
 import com.intellij.ui.table.JBTable;
@@ -46,6 +47,7 @@ import com.intellij.util.ActionRunner;
 import com.intellij.util.PlatformIcons;
 import icons.MavenIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -271,15 +273,14 @@ public class ModuleDependenciesPanel extends JPanel {
 
   private void addFileDependency() {
     FileChooserDescriptor descriptor = new FileChooserDescriptor(false, false, true, true, false, false);
-    VirtualFile moduleFile = myGradleBuildFile.getFile();
-    VirtualFile parent = moduleFile.getParent();
+    VirtualFile buildFile = myGradleBuildFile.getFile();
+    VirtualFile parent = buildFile.getParent();
     descriptor.setRoots(parent);
     VirtualFile virtualFile = FileChooser.chooseFile(descriptor, myProject, null);
     if (virtualFile != null) {
-      String path = virtualFile.getPath();
-      String parentPath = parent.getPath();
-      if (path.startsWith(parentPath)) {
-        path = path.substring(parentPath.length());
+      String path = VfsUtilCore.getRelativePath(virtualFile, parent, '/');
+      if (path == null) {
+        path = virtualFile.getPath();
       }
       myModel.addItem(new ModuleDependenciesTableItem(new Dependency(Dependency.Scope.COMPILE, Dependency.Type.FILES, path)));
     }
@@ -432,12 +433,12 @@ public class ModuleDependenciesPanel extends JPanel {
     private final Border NO_FOCUS_BORDER = BorderFactory.createEmptyBorder(1, 1, 1, 1);
 
     @Override
-    protected void customizeCellRenderer(JTable table, @NotNull Object value, boolean selected, boolean hasFocus,
+    protected void customizeCellRenderer(JTable table, @Nullable Object value, boolean selected, boolean hasFocus,
                                          int row, int column) {
       setPaintFocusBorder(false);
       setFocusBorderAroundIcon(true);
       setBorder(NO_FOCUS_BORDER);
-      if (value instanceof ModuleDependenciesTableItem) {
+      if (value != null && value instanceof ModuleDependenciesTableItem) {
         final ModuleDependenciesTableItem tableItem = (ModuleDependenciesTableItem)value;
         getCellAppearance(tableItem).customize(this);
         setToolTipText(tableItem.getTooltipText());
