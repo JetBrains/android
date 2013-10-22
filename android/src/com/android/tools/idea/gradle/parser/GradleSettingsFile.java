@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.parser;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.util.Facets;
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
@@ -107,14 +106,17 @@ public class GradleSettingsFile extends GradleGroovyFile {
    */
   public void removeModule(@NotNull Module module) {
     checkInitialized();
-    removeModule(getModuleGradlePath(module));
+    String moduleGradlePath = getModuleGradlePath(module);
+    if (moduleGradlePath != null) {
+      removeModule(moduleGradlePath);
+    }
   }
 
   /**
    * Removes the reference to the module from the settings file, if present. The module path must be colon separated, with a
    * leading colon, e.g. ":project:subproject". Must be run inside a write action.
    */
-  public void removeModule(String modulePath) {
+  public void removeModule(@NotNull String modulePath) {
     checkInitialized();
     commitDocumentChanges();
     for (GrMethodCall includeStatement : getMethodCalls(myGroovyFile, INCLUDE_METHOD)) {
@@ -159,7 +161,7 @@ public class GradleSettingsFile extends GradleGroovyFile {
    */
   @Nullable
   public static String getModuleGradlePath(@NotNull Module module) {
-    AndroidGradleFacet androidGradleFacet = Facets.getFirstFacetOfType(module, AndroidGradleFacet.TYPE_ID);
+    AndroidGradleFacet androidGradleFacet = AndroidGradleFacet.getInstance(module);
     if (androidGradleFacet == null) {
       return null;
     }

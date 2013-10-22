@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.customizer;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.project.AndroidContentRoot;
 import com.android.tools.idea.gradle.project.AndroidContentRoot.ContentRootStorage;
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.module.Module;
@@ -26,6 +27,7 @@ import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -70,14 +72,10 @@ public class ContentRootModuleCustomizer implements ModuleCustomizer {
     if (contentEntries.length == 0) {
       return null;
     }
-    File rootDir = ideaAndroidProject.getRootDir();
+    VirtualFile rootDir = ideaAndroidProject.getRootDir();
     for (ContentEntry contentEntry : contentEntries) {
       VirtualFile contentEntryFile = contentEntry.getFile();
-      if (contentEntryFile == null) {
-        continue;
-      }
-      File contentEntryRoot = new File(contentEntryFile.getPath());
-      if (FileUtil.filesEqual(rootDir, contentEntryRoot)) {
+      if (rootDir.equals(contentEntryFile)) {
         return contentEntry;
       }
     }

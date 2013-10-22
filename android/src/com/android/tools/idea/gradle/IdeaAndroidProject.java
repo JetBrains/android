@@ -21,6 +21,8 @@ import com.android.builder.model.JavaCompileOptions;
 import com.android.builder.model.Variant;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +39,7 @@ import java.util.List;
  */
 public class IdeaAndroidProject implements Serializable {
   @NotNull private final String myModuleName;
-  @NotNull private final File myRootDir;
+  @NotNull private final VirtualFile myRootDir;
   @NotNull private final AndroidProject myDelegate;
   @NotNull private String mySelectedVariantName;
 
@@ -54,7 +56,10 @@ public class IdeaAndroidProject implements Serializable {
                             @NotNull AndroidProject delegate,
                             @NotNull String selectedVariantName) {
     myModuleName = moduleName;
-    myRootDir = rootDir;
+    VirtualFile found = VfsUtil.findFileByIoFile(rootDir, true);
+    // the module's root directory can never be null.
+    assert found != null;
+    myRootDir = found;
     myDelegate = delegate;
     setSelectedVariantName(selectedVariantName);
   }
@@ -69,7 +74,7 @@ public class IdeaAndroidProject implements Serializable {
    * build.gradle file.
    */
   @NotNull
-  public File getRootDir() {
+  public VirtualFile getRootDir() {
     return myRootDir;
   }
 

@@ -207,7 +207,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
       File buildFile = buildScript.getSourceFile();
       File moduleDir = buildFile.getParentFile();
 
-      IdeaGradleProject gradleProject = new IdeaGradleProject(module.getName(), module.getGradleProject().getPath());
+      IdeaGradleProject gradleProject = new IdeaGradleProject(module.getName(), buildFile, module.getGradleProject().getPath());
 
       AndroidProject androidProject = allModels.getAndroidProject(module);
       if (androidProject != null) {
