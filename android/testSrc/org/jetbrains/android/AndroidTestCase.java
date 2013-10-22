@@ -17,32 +17,19 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
-import com.android.sdklib.IAndroidTarget;
-import com.android.utils.NullLogger;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
-import com.intellij.openapi.roots.OrderRootType;
-import com.intellij.openapi.vfs.JarFileSystem;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
-import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
-import com.intellij.testFramework.fixtures.*;
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
+import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
+import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
+import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -51,14 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
-public abstract class AndroidTestCase extends UsefulTestCase {
-  /** Environment variable or system property containing the full path to an SDK install */
-  public static final String SDK_PATH_PROPERTY = "ADT_TEST_SDK_PATH";
-
-  /** Environment variable or system property pointing to the directory name of the platform inside $sdk/platforms, e.g. "android-17" */
-  private static final String PLATFORM_DIR_PROPERTY = "ADT_TEST_PLATFORM";
-
-  protected JavaCodeInsightTestFixture myFixture;
+public abstract class AndroidTestCase extends AndroidTestBase {
   protected Module myModule;
   protected List<Module> myAdditionalModules;
 
@@ -67,87 +47,10 @@ public abstract class AndroidTestCase extends UsefulTestCase {
 
   public AndroidTestCase(boolean createManifest) {
     this.myCreateManifest = createManifest;
-    IdeaTestCase.initPlatformPrefix();
   }
 
   public AndroidTestCase() {
     this(true);
-  }
-
-  public static String getAbsoluteTestDataPath() {
-    // The following code doesn't work right now that the Android
-    // plugin lives in a separate place:
-    //String androidHomePath = System.getProperty("android.home.path");
-    //if (androidHomePath == null) {
-    //  androidHomePath = new File(PathManager.getHomePath(), "android/android").getPath();
-    //}
-    //return PathUtil.getCanonicalPath(androidHomePath + "/testData");
-
-    // getTestDataPath already gives the absolute path anyway:
-    String path = getTestDataPath();
-    assertTrue(new File(path).isAbsolute());
-    return path;
-  }
-
-  public static String getTestDataPath() {
-    return getAndroidPluginHome() + "/testData";
-  }
-
-  private static String getAndroidPluginHome() {
-    // Now that the Android plugin is kept in a separate place, we need to look in
-    // a relative position instead
-    String adtPath = PathManager.getHomePath() + "/../adt/idea/android";
-    if (new File(adtPath).exists()) {
-      return adtPath;
-    }
-    return new File(PathManager.getHomePath(), "android/android").getPath();
-  }
-
-  public static String getDefaultTestSdkPath() {
-    return getTestDataPath() + "/sdk1.5";
-  }
-
-  public static String getDefaultPlatformDir() {
-    return "android-1.5";
-  }
-
-  protected String getTestSdkPath() {
-    if (requireRecentSdk()) {
-      String override = System.getProperty(SDK_PATH_PROPERTY);
-      if (override != null) {
-        assertTrue("Must also define " + PLATFORM_DIR_PROPERTY, System.getProperty(PLATFORM_DIR_PROPERTY) != null);
-        assertTrue(override, new File(override).exists());
-        return override;
-      }
-      override = System.getenv(SDK_PATH_PROPERTY);
-      if (override != null) {
-        assertTrue("Must also define " + PLATFORM_DIR_PROPERTY, System.getenv(PLATFORM_DIR_PROPERTY) != null);
-        return override;
-      }
-      fail("This unit test requires " + SDK_PATH_PROPERTY + " and " + PLATFORM_DIR_PROPERTY + " to be defined.");
-    }
-
-    return getDefaultTestSdkPath();
-  }
-
-  protected String getPlatformDir() {
-    if (requireRecentSdk()) {
-      String override = System.getProperty(PLATFORM_DIR_PROPERTY);
-      if (override != null) {
-        return override;
-      }
-      override = System.getenv(PLATFORM_DIR_PROPERTY);
-      if (override != null) {
-        return override;
-      }
-      fail("This unit test requires " + SDK_PATH_PROPERTY + " and " + PLATFORM_DIR_PROPERTY + " to be defined.");
-    }
-    return getDefaultPlatformDir();
-  }
-
-  /** Is the bundled (incomplete) SDK install adequate or do we need to find a valid install? */
-  protected boolean requireRecentSdk() {
-    return false;
   }
 
   @Override
@@ -221,6 +124,7 @@ public abstract class AndroidTestCase extends UsefulTestCase {
                                            boolean library) {
     final JavaModuleFixtureBuilder moduleFixtureBuilder = projectBuilder.addModule(JavaModuleFixtureBuilder.class);
     final String moduleDirPath = myFixture.getTempDirPath() + getContentRootPath(dirName);
+    //noinspection ResultOfMethodCallIgnored
     new File(moduleDirPath).mkdirs();
     tuneModule(moduleFixtureBuilder, moduleDirPath);
     modules.add(new MyAdditionalModuleData(moduleFixtureBuilder, dirName, library));
@@ -237,9 +141,11 @@ public abstract class AndroidTestCase extends UsefulTestCase {
   public static void tuneModule(JavaModuleFixtureBuilder moduleBuilder, String moduleDirPath) {
     moduleBuilder.addContentRoot(moduleDirPath);
 
+    //noinspection ResultOfMethodCallIgnored
     new File(moduleDirPath + "/src/").mkdir();
     moduleBuilder.addSourceRoot("src");
 
+    //noinspection ResultOfMethodCallIgnored
     new File(moduleDirPath + "/gen/").mkdir();
     moduleBuilder.addSourceRoot("gen");
   }
@@ -300,64 +206,6 @@ public abstract class AndroidTestCase extends UsefulTestCase {
       }
     });
     return facet;
-  }
-
-  protected static void addAndroidSdk(Module module, String sdkPath, String platformDir) {
-    Sdk androidSdk = createAndroidSdk(sdkPath, platformDir);
-    ModuleRootModificationUtil.setModuleSdk(module, androidSdk);
-  }
-
-  protected static Sdk createAndroidSdk(String sdkPath, String platformDir) {
-    Sdk sdk = ProjectJdkTable.getInstance().createSdk("android_test_sdk", AndroidSdkType.getInstance());
-    SdkModificator sdkModificator = sdk.getSdkModificator();
-    sdkModificator.setHomePath(sdkPath);
-
-    VirtualFile androidJar;
-    if (platformDir.equals(getDefaultPlatformDir())) {
-      // Compatibility: the unit tests were using android.jar outside the sdk1.5 install;
-      // we need to use that one, rather than the real one in sdk1.5, in order for the
-      // tests to pass. Longer term, we should switch the unit tests over to all using
-      // a valid SDK.
-      String androidJarPath = sdkPath + "/../android.jar!/";
-      androidJar = JarFileSystem.getInstance().findFileByPath(androidJarPath);
-    } else {
-      androidJar = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/platforms/" + platformDir + "/android.jar");
-    }
-    sdkModificator.addRoot(androidJar, OrderRootType.CLASSES);
-
-    VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/platforms/" + platformDir + "/data/res");
-    sdkModificator.addRoot(resFolder, OrderRootType.CLASSES);
-
-    VirtualFile docsFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/docs/reference");
-    if (docsFolder != null) {
-      sdkModificator.addRoot(docsFolder, JavadocOrderRootType.getInstance());
-    }
-
-    AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(sdk);
-    AndroidSdkData sdkData = AndroidSdkData.parse(sdkPath, NullLogger.getLogger());
-    assertNotNull(sdkData);
-    IAndroidTarget target = sdkData.findTargetByName("Android 4.2"); // TODO: Get rid of this hardcoded version number
-    if (target == null) {
-      IAndroidTarget[] targets = sdkData.getTargets();
-      for (IAndroidTarget t : targets) {
-        if (t.getLocation().contains(platformDir)) {
-          target = t;
-          break;
-        }
-      }
-      if (target == null && targets.length > 0) {
-        target = targets[targets.length - 1];
-      }
-    }
-    assertNotNull(target);
-    data.setBuildTarget(target);
-    sdkModificator.setSdkAdditionalData(data);
-    sdkModificator.commitChanges();
-    return sdk;
-  }
-
-  protected Project getProject() {
-    return myFixture.getProject();
   }
 
   protected static class MyAdditionalModuleData {
