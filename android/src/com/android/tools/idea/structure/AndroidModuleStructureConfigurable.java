@@ -18,10 +18,9 @@ package com.android.tools.idea.structure;
 
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.google.common.base.Splitter;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -50,7 +49,7 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * A Project Structure {@linkplain Configurable} that lets users add/remove/configure modules.
+ * A Project Structure {@linkplain com.intellij.openapi.options.Configurable} that lets users add/remove/configure modules.
  */
 public class AndroidModuleStructureConfigurable extends BaseStructureConfigurable implements Place.Navigator {
   private static final Comparator<MyNode> NODE_COMPARATOR = new Comparator<MyNode>() {
@@ -88,12 +87,12 @@ public class AndroidModuleStructureConfigurable extends BaseStructureConfigurabl
     // tree, so we have to be careful not to create any duplicates.
     for (final String path : mySettingsFile.getModules()) {
       MyNode parentNode = myRoot;
-      List<String> leaves = Lists.newArrayList(Splitter.on(':').omitEmptyStrings().split(path));
-      String moduleName = leaves.remove(leaves.size() - 1);
-      for (String leaf : leaves) {
-        MyNode node = getNode(parentNode, leaf);
+      List<String> segments = GradleUtil.getPathSegments(path);
+      String moduleName = segments.remove(segments.size() - 1);
+      for (String segment : segments) {
+        MyNode node = getNode(parentNode, segment);
         if (node == null) {
-          node = new MyNode(new FolderConfigurable(leaf));
+          node = new MyNode(new FolderConfigurable(segment));
           addNode(node, parentNode);
         }
         parentNode = node;

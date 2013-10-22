@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.customizer.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.util.Facets;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -181,7 +182,7 @@ public class GradleProjectImporter {
   }
 
   private static void createTopLevelBuildFileIfNotExisting(@NotNull File projectRootDir) throws IOException {
-    File projectFile = new File(projectRootDir, SdkConstants.FN_BUILD_GRADLE);
+    File projectFile = GradleUtil.getGradleBuildFilePath(projectRootDir);
     if (projectFile.isFile()) {
       return;
     }

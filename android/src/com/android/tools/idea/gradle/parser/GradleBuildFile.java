@@ -22,6 +22,9 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * GradleBuildFile uses PSI to parse build.gradle files and provides high-level methods to read and mutate the file. For many things in
  * the file it uses a simple key/value interface to set and retrieve values. Since a user can potentially edit a build.gradle file by
@@ -63,6 +66,17 @@ public class GradleBuildFile extends GradleGroovyFile {
     } else {
       return key.canParseValue(getArguments(method));
     }
+  }
+
+  @NotNull
+  public List<Dependency> getDependencies() {
+    Object dependencies = getValue(BuildFileKey.DEPENDENCIES);
+    if (dependencies == null) {
+      return Collections.emptyList();
+    }
+    assert dependencies instanceof List;
+    //noinspection unchecked
+    return (List<Dependency>)dependencies;
   }
 
   /**
