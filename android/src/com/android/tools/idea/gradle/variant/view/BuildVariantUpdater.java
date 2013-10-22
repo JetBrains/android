@@ -74,7 +74,7 @@ class BuildVariantUpdater {
       logAndShowUpdateFailure(buildVariantName, reason);
       return null;
     }
-    AndroidFacet facet = Facets.getFirstFacetOfType(moduleToUpdate, AndroidFacet.ID);
+    AndroidFacet facet = AndroidFacet.getInstance(moduleToUpdate);
     if (facet == null) {
       // Reason is not capitalized because it is a sentence fragment.
       String reason = String.format("cannot find 'Android' facet in module '%1$s', project '%2$s'", moduleName, project.getName());

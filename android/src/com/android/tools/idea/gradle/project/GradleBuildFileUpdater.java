@@ -133,7 +133,7 @@ public class GradleBuildFileUpdater extends ModuleAdapter implements BulkFileLis
       // references.
       if (module != null) {
         remove(module);
-        AndroidGradleFacet androidGradleFacet = Facets.getFirstFacetOfType(module, AndroidGradleFacet.TYPE_ID);
+        AndroidGradleFacet androidGradleFacet = AndroidGradleFacet.getInstance(module);
         if (androidGradleFacet == null) {
           continue;
         }

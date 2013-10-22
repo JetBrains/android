@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.gradle;
 
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.io.Serializable;
 
 /**
@@ -24,16 +27,22 @@ import java.io.Serializable;
  */
 public class IdeaGradleProject implements Serializable {
   @NotNull private final String myModuleName;
+  @NotNull private final VirtualFile myBuildFile;
   @NotNull private final String myGradleProjectPath;
 
   /**
    * Creates a new {@link IdeaGradleProject}.
    *
    * @param moduleName        the name of the IDEA module.
+   * @param buildFile         the build.gradle file.
    * @param gradleProjectPath Gradle project path.
    */
-  public IdeaGradleProject(@NotNull String moduleName, @NotNull String gradleProjectPath) {
+  public IdeaGradleProject(@NotNull String moduleName, @NotNull File buildFile, @NotNull String gradleProjectPath) {
     myModuleName = moduleName;
+    VirtualFile found = VfsUtil.findFileByIoFile(buildFile, true);
+    // the build.gradle file can never be null.
+    assert found != null;
+    myBuildFile = found;
     myGradleProjectPath = gradleProjectPath;
   }
 
@@ -48,5 +57,10 @@ public class IdeaGradleProject implements Serializable {
   @NotNull
   public String getGradleProjectPath() {
     return myGradleProjectPath;
+  }
+
+  @NotNull
+  public VirtualFile getBuildFile() {
+    return myBuildFile;
   }
 }

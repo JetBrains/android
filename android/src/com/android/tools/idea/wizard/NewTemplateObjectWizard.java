@@ -24,7 +24,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -52,7 +51,10 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
   private String myTemplateCategory;
   private VirtualFile myTargetFolder;
 
-  public NewTemplateObjectWizard(@Nullable Project project, Module module, VirtualFile invocationTarget, String templateCategory) {
+  public NewTemplateObjectWizard(@Nullable Project project,
+                                 @Nullable Module module,
+                                 @Nullable VirtualFile invocationTarget,
+                                 String templateCategory) {
     super("New " + templateCategory, project);
     myProject = project;
     myModule = module;
@@ -100,40 +102,31 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     // Look up the default resource directories
     if (gradleProject != null) {
       IdeaSourceProvider sourceSet = facet.getMainIdeaSourceSet();
-      VirtualFile moduleDir = LocalFileSystem.getInstance().findFileByIoFile(gradleProject.getRootDir());
-      if (moduleDir == null) {
-        VirtualFile moduleFile = myModule.getModuleFile();
-        if (moduleFile != null) {
-          moduleDir = moduleFile.getParent();
+      VirtualFile moduleDir = gradleProject.getRootDir();
+      Set<VirtualFile> javaDirectories = sourceSet.getJavaDirectories();
+      if (!javaDirectories.isEmpty()) {
+        VirtualFile javaDir = javaDirectories.iterator().next();
+        String relativePath = VfsUtilCore.getRelativePath(javaDir, moduleDir, '/'); // templates use / not File.separatorChar
+        if (relativePath != null) {
+          myWizardState.put(ATTR_SRC_DIR, relativePath);
+        }
+      }
+      Set<VirtualFile> resDirectories = sourceSet.getResDirectories();
+      if (!resDirectories.isEmpty()) {
+        VirtualFile resDir = resDirectories.iterator().next();
+        String relativePath = VfsUtilCore.getRelativePath(resDir, moduleDir, '/');
+        if (relativePath != null) {
+          myWizardState.put(ATTR_RES_DIR, relativePath);
         }
       }
 
-      if (moduleDir != null) {
-        Set<VirtualFile> javaDirectories = sourceSet.getJavaDirectories();
-        if (!javaDirectories.isEmpty()) {
-          VirtualFile javaDir = javaDirectories.iterator().next();
-          String relativePath = VfsUtilCore.getRelativePath(javaDir, moduleDir, '/'); // templates use / not File.separatorChar
+      VirtualFile manifestFile = sourceSet.getManifestFile();
+      if (manifestFile != null) {
+        VirtualFile manifestDir = manifestFile.getParent();
+        if (manifestDir != null) {
+          String relativePath = VfsUtilCore.getRelativePath(manifestDir, moduleDir, '/');
           if (relativePath != null) {
-            myWizardState.put(ATTR_SRC_DIR, relativePath);
-          }
-        }
-        Set<VirtualFile> resDirectories = sourceSet.getResDirectories();
-        if (!resDirectories.isEmpty()) {
-          VirtualFile resDir = resDirectories.iterator().next();
-          String relativePath = VfsUtilCore.getRelativePath(resDir, moduleDir, '/');
-          if (relativePath != null) {
-            myWizardState.put(ATTR_RES_DIR, relativePath);
-          }
-        }
-
-        VirtualFile manifestFile = sourceSet.getManifestFile();
-        if (manifestFile != null) {
-          VirtualFile manifestDir = manifestFile.getParent();
-          if (manifestDir != null) {
-            String relativePath = VfsUtilCore.getRelativePath(manifestDir, moduleDir, '/');
-            if (relativePath != null) {
-              myWizardState.put(ATTR_MANIFEST_DIR, relativePath);
-            }
+            myWizardState.put(ATTR_MANIFEST_DIR, relativePath);
           }
         }
       }
