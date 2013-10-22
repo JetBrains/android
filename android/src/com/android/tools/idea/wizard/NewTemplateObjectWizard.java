@@ -152,7 +152,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
 
     // Ensure that the window is large enough to accommodate the contents without clipping the validation error label
     Dimension preferredSize = getContentPanel().getPreferredSize();
-    getContentPanel().setPreferredSize(new Dimension(Math.max(600, preferredSize.width), Math.max(700, preferredSize.height)));
+    getContentPanel().setPreferredSize(new Dimension(Math.max(800, preferredSize.width), Math.max(640, preferredSize.height)));
   }
 
   public void createTemplateObject() {
