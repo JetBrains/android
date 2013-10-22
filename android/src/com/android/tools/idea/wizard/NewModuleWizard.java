@@ -62,6 +62,9 @@ public class NewModuleWizard extends TemplateWizard implements ChooseTemplateSte
     }
     NewModuleWizardState wizardState = myModuleBuilder.myWizardState;
     myModuleBuilder.myConfigureAndroidModuleStep.setVisible(wizardState.myIsAndroidModule);
+    if (wizardState.myIsAndroidModule) {
+      myModuleBuilder.myConfigureAndroidModuleStep.updateStep();
+    }
     myModuleBuilder.myTemplateParameterStep.setVisible(!wizardState.myIsAndroidModule);
     myModuleBuilder.myLauncherIconStep.setVisible(wizardState.myIsAndroidModule &&
                                                   wizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS));
