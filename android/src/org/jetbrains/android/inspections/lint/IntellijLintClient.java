@@ -44,7 +44,7 @@ import java.util.Map;
 /**
  * @author Eugene.Kudelevsky
  */
-abstract class IntellijLintClient extends LintClient implements Disposable {
+public abstract class IntellijLintClient extends LintClient implements Disposable {
   protected static final Logger LOG = Logger.getInstance("#org.jetbrains.android.inspections.IntellijLintClient");
 
   @NonNull protected abstract List<Issue> getIssues();

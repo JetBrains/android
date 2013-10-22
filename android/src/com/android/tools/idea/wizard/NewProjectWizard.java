@@ -24,6 +24,7 @@ import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -166,6 +167,9 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
           errors.add(String.format(UNABLE_TO_CREATE_DIR_FORMAT, packageDir.getPath()));
         }
       }
+      if (ApplicationManager.getApplication().isUnitTestMode()) {
+        return;
+      }
       GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
       projectImporter.importProject(projectName, projectRoot, new GradleProjectImporter.Callback() {
         @Override
@@ -185,6 +189,9 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
       }, project);
     }
     catch (Exception e) {
+      if (ApplicationManager.getApplication().isUnitTestMode()) {
+        throw new RuntimeException(e);
+      }
       Messages.showErrorDialog(e.getMessage(), ERROR_MSG_TITLE);
       LOG.error(e);
     }
@@ -197,6 +204,19 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
 
   private static void createGradleWrapper(File projectRoot) throws IOException {
     File gradleWrapperSrc = new File(TemplateManager.getTemplateRootFolder(), GRADLE_WRAPPER_PATH);
+    if (!gradleWrapperSrc.exists()) {
+      for (File root : TemplateManager.getExtraTemplateRootFolders()) {
+        gradleWrapperSrc = new File(root, GRADLE_WRAPPER_PATH);
+        if (gradleWrapperSrc.exists()) {
+          break;
+        } else {
+          gradleWrapperSrc = null;
+        }
+      }
+    }
+    if (gradleWrapperSrc == null) {
+      return;
+    }
     FileUtil.copyDirContent(gradleWrapperSrc, projectRoot);
     File wrapperPropertiesFile = GradleUtil.getGradleWrapperPropertiesFilePath(projectRoot);
     GradleUtil.updateGradleDistributionUrl(GradleUtil.GRADLE_LATEST_VERSION, wrapperPropertiesFile);

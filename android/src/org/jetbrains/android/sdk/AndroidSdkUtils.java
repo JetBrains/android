@@ -844,4 +844,9 @@ public final class AndroidSdkUtils {
     }
     return ourSdkManager;
   }
+
+  @VisibleForTesting
+  public static void setSdkManager(SdkManager manager) {
+    ourSdkManager = manager;
+  }
 }
