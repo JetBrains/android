@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.parser;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Function;
-import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -173,25 +173,14 @@ public class GradleSettingsFile extends GradleGroovyFile {
    * if it can be found, or null if it cannot.
    */
   @Nullable
-  public GradleBuildFile getModuleBuildFile(@NotNull String modulePath) {
-    VirtualFile vf = myFile;
-    vf = vf.getParent();
-    if (vf == null) {
-      return null;
-    }
-    for (String leaf : Splitter.on(':').split(modulePath)) {
-      if (leaf.isEmpty()) {
-        continue;
-      }
-      vf = vf.findChild(leaf);
-      if (vf == null) {
-        return null;
+  public GradleBuildFile getModuleBuildFile(@NotNull String moduleGradlePath) {
+    Module module = GradleUtil.findModuleByGradlePath(myProject, moduleGradlePath);
+    if (module != null) {
+      AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
+      if (gradleFacet != null) {
+        return new GradleBuildFile(gradleFacet.getGradleProject().getBuildFile(), myProject);
       }
     }
-    vf = vf.findChild(SdkConstants.FN_BUILD_GRADLE);
-    if (vf == null) {
-      return null;
-    }
-    return new GradleBuildFile(vf, myProject);
+    return null;
   }
 }

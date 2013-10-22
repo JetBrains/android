@@ -29,6 +29,7 @@ import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.utils.SdkUtils;
 import com.android.utils.StdLogger;
 import com.android.utils.XmlUtils;
@@ -243,7 +244,7 @@ public class Template {
     // Handle dependencies
     List<String> dependencyList = (List<String>)paramMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
     if (dependencyList != null && dependencyList.size() > 0) {
-      mergeDependenciesIntoFile(dependencyList, TemplateUtils.getGradleBuildFile(moduleRootPath));
+      mergeDependenciesIntoFile(dependencyList, GradleUtil.getGradleBuildFilePath(moduleRootPath));
     }
   }
 
