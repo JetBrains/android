@@ -203,7 +203,11 @@ public class AndroidTestBase extends UsefulTestCase {
           assertNotNull(manager);
           AndroidSdkUtils.setSdkManager(manager);
           sdkManager = SdkManager.createManager(sdkPath, logger);
+        } else {
+          fail("No getAndroidPlatform() associated with the AndroidSdkAdditionalData: " + data);
         }
+      } else {
+        fail("Could not find data associated with the SDK: " + androidSdk.getName());
       }
     }
     assertNotNull(sdkManager);
