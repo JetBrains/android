@@ -20,6 +20,7 @@ import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
+import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.wizard.NewProjectWizardState;
 import com.android.tools.idea.wizard.TemplateWizardState;
 import com.android.tools.lint.checks.ManifestDetector;
@@ -43,6 +44,8 @@ import java.util.List;
 import java.util.Set;
 
 import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.FD_TEMPLATES;
+import static com.android.SdkConstants.FD_TOOLS;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_PLUGIN_LATEST_VERSION;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
@@ -120,6 +123,8 @@ public class TemplateTest extends AndroidGradleTestCase {
   private static final boolean TEST_JUST_ONE_TARGET_SDK_VERSION = !COMPREHENSIVE;
   private static int ourCount = 0;
 
+  private static boolean ourValidatedTemplateManager;
+
   public TemplateTest() {
   }
 
@@ -134,6 +139,33 @@ public class TemplateTest extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myApiSensitiveTemplate = true;
+
+    if (!ourValidatedTemplateManager) {
+      ourValidatedTemplateManager = true;
+      File templateRootFolder = TemplateManager.getTemplateRootFolder();
+      if (templateRootFolder == null) {
+        SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
+        if (sdkManager == null) {
+          fail("Couldn't find SDK manager");
+        } else {
+          System.out.println("recentSDK required= " + requireRecentSdk());
+          System.out.println("getTestSdkPath= " + getTestSdkPath());
+          System.out.println("getPlatformDir=" + getPlatformDir());
+          String location = sdkManager.getLocation();
+          System.out.println("Using SDK at " + location);
+          VersionCheck.VersionCheckResult result = VersionCheck.checkVersion(location);
+          System.out.println("Version check=" + result.getRevision());
+          File file = new File(location);
+          if (!file.exists()) {
+            System.out.println("SDK doesn't exist");
+          } else {
+            File folder = new File(location, FD_TOOLS + File.separator + FD_TEMPLATES);
+            boolean exists = folder.exists();
+            System.out.println("Template folder exists=" + exists + " for " + folder);
+          }
+        }
+      }
+    }
   }
 
   /**
