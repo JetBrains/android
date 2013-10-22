@@ -146,6 +146,10 @@ public class TemplateWizardState {
     return myTemplate.getMetadata();
   }
 
+  public Map<String, Object> getParameters() {
+    return myParameters;
+  }
+
   @Nullable
   public Object get(@NotNull String key) {
     return myParameters.get(key);
