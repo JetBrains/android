@@ -284,6 +284,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       }
     }
     myTemplateState.setParameterDefaults();
+    myTemplateState.convertApisToInt();
     try {
       myIgnoreUpdates = true;
       for (String paramName : myParamFields.keySet()) {
