@@ -63,6 +63,8 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
 
 /** Base class for unit tests that operate on Gradle projects */
 public abstract class AndroidGradleTestCase extends AndroidTestBase {
+  private static SdkManager ourPreviousSdkManager;
+
   public AndroidGradleTestCase() {
   }
 
@@ -120,6 +122,19 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
 
     super.tearDown();
+
+    // In case other test cases rely on the builtin (incomplete) SDK, restore
+    if (ourPreviousSdkManager != null) {
+      AndroidSdkUtils.setSdkManager(ourPreviousSdkManager);
+    }
+  }
+
+  @Override
+  protected void ensureSdkManagerAvailable() {
+    if (requireRecentSdk() && ourPreviousSdkManager == null) {
+      ourPreviousSdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
+    }
+    super.ensureSdkManagerAvailable();
   }
 
   public void createProject(String activityName, boolean syncModel) throws Exception {
