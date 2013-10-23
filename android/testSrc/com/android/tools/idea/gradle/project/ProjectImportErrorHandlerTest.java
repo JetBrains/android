@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project;
 import junit.framework.TestCase;
 import org.gradle.api.internal.LocationAwareException;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
+import org.junit.Ignore;
 
 import java.io.File;
 
@@ -27,19 +28,24 @@ import java.io.File;
 @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
 public class ProjectImportErrorHandlerTest extends TestCase {
   private ProjectImportErrorHandler myErrorHandler;
-  private File myProjectPath;
+  private String myProjectPath;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     myErrorHandler = new ProjectImportErrorHandler();
-    myProjectPath = new File("basic");
+    myProjectPath = "basic";
   }
 
-  public void testGetUserFriendlyErrorWithOldGradleVersion() {
+  /**
+   * org.gradle.api.internal.MissingMethodException can be thrown for bad gradle DSL also not only for old gradle version.
+   * It will confuse user.
+   */
+  public void ignoreTestGetUserFriendlyErrorWithOldGradleVersion() {
     ClassNotFoundException rootCause = new ClassNotFoundException(ToolingModelBuilderRegistry.class.getName());
     Throwable error = new Throwable(rootCause);
     RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
+    assertNotNull(realCause);
     assertTrue(realCause.getMessage().contains("old, unsupported version of Gradle"));
   }
 
@@ -47,6 +53,7 @@ public class ProjectImportErrorHandlerTest extends TestCase {
     RuntimeException rootCause = new RuntimeException("Could not find any version that matches com.android.support:support-v4:13.0.+");
     Throwable error = new Throwable(rootCause);
     RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
+    assertNotNull(realCause);
     assertTrue(realCause.getMessage().contains("Please install the Android Support Repository"));
   }
 
@@ -54,34 +61,7 @@ public class ProjectImportErrorHandlerTest extends TestCase {
     RuntimeException rootCause = new RuntimeException("Could not find com.android.support:support-v4:13.0.0");
     Throwable error = new Throwable(rootCause);
     RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
+    assertNotNull(realCause);
     assertTrue(realCause.getMessage().contains("Please install the Android Support Repository"));
-  }
-
-  public void testGetUserFriendlyErrorWithPlatformVersionNotFound() {
-    String causeMsg = "failed to find target current";
-    RuntimeException rootCause = new IllegalStateException(causeMsg);
-    String locationMsg = "Build file '~/project/build.gradle' line: 86";
-
-    RuntimeException locationError = new RuntimeException(locationMsg, rootCause) {
-      @Override
-      public String toString() {
-        return LocationAwareException.class.getName() + ": " + super.toString();
-      }
-    };
-
-    Throwable error = new Throwable(locationError);
-
-    RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
-    String actualMsg = realCause.getMessage();
-    assertTrue(actualMsg.contains(locationMsg));
-    assertTrue(actualMsg.contains("Cause: " + causeMsg));
-  }
-
-  public void testGetUserFriendlyErrorWithClassNotFoundException() {
-    String causeMsg = "com.mypackage.MyImaginaryClass";
-    ClassNotFoundException rootCause = new ClassNotFoundException(causeMsg);
-    Throwable error = new Throwable(rootCause);
-    RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
-    assertTrue(realCause.getMessage().contains("Unable to load class 'com.mypackage.MyImaginaryClass'."));
   }
 }
