@@ -20,6 +20,7 @@ import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
+import com.google.common.base.Objects;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -56,7 +57,9 @@ import static com.android.tools.idea.rendering.RenderErrorPanel.SIZE_ERROR_PANEL
  */
 public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
   public static final Gray DESIGNER_BACKGROUND_COLOR = Gray._150;
+  @SuppressWarnings("UseJBColor") // The designer canvas is not using light/dark themes; colors match Android theme rendering
   public static final Color SELECTION_BORDER_COLOR = new Color(0x00, 0x99, 0xFF, 255);
+  @SuppressWarnings("UseJBColor")
   public static final Color SELECTION_FILL_COLOR = new Color(0x00, 0x99, 0xFF, 32);
   /** FileEditorProvider ID for the layout editor */
   public static final String ANDROID_DESIGNER_ID = "android-designer";
@@ -73,7 +76,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
   @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
   private MyProgressPanel myProgressPanel;
   private TextEditor myEditor;
-  private RenderedView mySelectedView;
+  private List<RenderedView> mySelectedViews;
   private CaretModel myCaretModel;
   private RenderErrorPanel myErrorPanel;
   private int myErrorPanelHeight = -1;
@@ -246,35 +249,37 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
       image.paint(g, px, py);
 
       // TODO: Use layout editor's static feedback rendering
-      RenderedView selected = mySelectedView;
-      if (selected != null && !myErrorPanel.isVisible()) {
-        Rectangle r = fromModelToScreen(selected.x, selected.y, selected.w, selected.h);
-        if (r == null) {
-          return;
-        }
-        int x = r.x + px;
-        int y = r.y + py;
-        int w = r.width;
-        int h = r.height;
+      List<RenderedView> selectedViews = mySelectedViews;
+      if (selectedViews != null && !selectedViews.isEmpty() && !myErrorPanel.isVisible()) {
+        for (RenderedView selected : selectedViews) {
+          Rectangle r = fromModelToScreen(selected.x, selected.y, selected.w, selected.h);
+          if (r == null) {
+            return;
+          }
+          int x = r.x + px;
+          int y = r.y + py;
+          int w = r.width;
+          int h = r.height;
 
-        g.setColor(SELECTION_FILL_COLOR);
-        g.fillRect(x, y, w, h);
+          g.setColor(SELECTION_FILL_COLOR);
+          g.fillRect(x, y, w, h);
 
-        g.setColor(SELECTION_BORDER_COLOR);
-        x -= 1;
-        y -= 1;
-        w += 1; // +1 rather than +2: drawRect already includes end point whereas fillRect does not
-        h += 1;
-        if (x < 0) {
-          w -= x;
-          x = 0;
-        }
-        if (y < 0) {
-          h -= y;
-          y = 0;
-        }
+          g.setColor(SELECTION_BORDER_COLOR);
+          x -= 1;
+          y -= 1;
+          w += 1; // +1 rather than +2: drawRect already includes end point whereas fillRect does not
+          h += 1;
+          if (x < 0) {
+            w -= x;
+            x = 0;
+          }
+          if (y < 0) {
+            h -= y;
+            y = 0;
+          }
 
-        g.drawRect(x, y, w, h);
+          g.drawRect(x, y, w, h);
+        }
       }
     }
   }
@@ -285,12 +290,12 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
       if (hierarchy != null) {
         int offset = myCaretModel.getOffset();
         if (offset != -1) {
-          RenderedView view = hierarchy.findByOffset(offset);
-          if (view != null && view.isRoot()) {
-            view = null;
+          List<RenderedView> views = hierarchy.findByOffset(offset);
+          if (views != null && views.size() == 1 && views.get(0).isRoot()) {
+            views = null;
           }
-          if (view != mySelectedView) {
-            mySelectedView = view;
+          if (!Objects.equal(views, mySelectedViews)) {
+            mySelectedViews = views;
             repaint();
           }
         }
@@ -304,7 +309,8 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
     ScalableImage image = myRenderResult.getImage();
     if (image != null) {
       image.setDeviceFrameEnabled(myShowDeviceFrames && myRenderResult.getRenderService() != null &&
-                                  myRenderResult.getRenderService().getRenderingMode() == SessionParams.RenderingMode.NORMAL);
+                                  myRenderResult.getRenderService().getRenderingMode() == SessionParams.RenderingMode.NORMAL &&
+                                  myRenderResult.getRenderService().getShowDecorations());
       if (myPreviewManager != null && RenderPreviewMode.getCurrent() != RenderPreviewMode.NONE) {
         Dimension fixedRenderSize = myPreviewManager.getFixedRenderSize();
         if (fixedRenderSize != null) {
@@ -314,7 +320,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
       }
       image.setScale(prevScale);
     }
-    mySelectedView = null;
+    mySelectedViews = null;
 
     RenderLogger logger = myRenderResult.getLogger();
     if (logger.hasProblems()) {

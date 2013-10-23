@@ -28,6 +28,7 @@ import com.intellij.util.PathUtil;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
 import java.util.*;
@@ -239,6 +240,39 @@ public class RenderLogger extends LayoutLog {
             break;
           }
         }
+      } else if (message.startsWith("Failed to parse file ") && throwable instanceof XmlPullParserException) {
+        XmlPullParserException e = (XmlPullParserException)throwable;
+        String msg = e.getMessage();
+        if (msg.startsWith("Binary XML file ")) {
+          int index = msg.indexOf(':');
+          if (index != -1 && index < msg.length() - 1) {
+            msg = msg.substring(index + 1).trim();
+          }
+        }
+        int lineNumber = e.getLineNumber();
+        int column = e.getColumnNumber();
+
+        String path = message.substring("Failed to parse file ".length());
+
+        RenderProblem.Html problem = RenderProblem.create(WARNING);
+        problem.tag("xmlParse");
+        problem.throwable(throwable);
+        HtmlBuilder builder = problem.getHtmlBuilder();
+        if (lineNumber != -1) {
+          builder.add("Line ").add(Integer.toString(lineNumber)).add(": ");
+        }
+        builder.add(msg);
+        if (lineNumber != -1) {
+          builder.add(" (");
+          File file = new File(path);
+          String url = HtmlLinkManager.createFilePositionUrl(file, lineNumber, column);
+          if (url != null) {
+            builder.addLink("Show", url);
+            builder.add(")");
+          }
+        }
+        addMessage(problem);
+        return;
       }
 
       recordThrowable(throwable);

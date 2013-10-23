@@ -47,6 +47,7 @@ import static com.android.SdkConstants.*;
 import static com.android.resources.ResourceFolderType.*;
 import static com.android.tools.idea.rendering.PsiProjectListener.isRelevantFile;
 import static com.android.tools.idea.rendering.PsiProjectListener.isRelevantFileType;
+import static com.android.tools.idea.rendering.ResourceHelper.getFolderType;
 import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
 
 /**
@@ -964,12 +965,6 @@ public final class ResourceFolderRepository extends ProjectResources {
       if (folderType != null && isResourceFile(psiFile)) {
         rescanImmediately(psiFile, folderType);
       }
-    }
-
-    private ResourceFolderType getFolderType(PsiFile psiFile) {
-      PsiDirectory folder = psiFile.getParent();
-      assert folder != null;
-      return ResourceFolderType.getFolderType(folder.getName());
     }
 
     @Override
