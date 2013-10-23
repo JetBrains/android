@@ -36,7 +36,7 @@ public final class AndroidGradleSettings {
   private static final Logger LOG = Logger.getInstance(AndroidGradleSettings.class);
 
   @NonNls private static final String JVM_ARG_FORMAT = "-D%1$s=%2$s";
-  @NonNls private static final String ANDROID_HOME_JVM_ARG = "android.home";
+  @NonNls public static final String ANDROID_HOME_JVM_ARG = "android.home";
 
   private AndroidGradleSettings() {
   }

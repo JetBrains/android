@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.ContentRootSourcePaths;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
@@ -27,16 +28,24 @@ import com.intellij.openapi.externalSystem.model.project.ContentRootData;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.util.io.FileUtil;
 import junit.framework.TestCase;
-import org.gradle.tooling.BuildActionExecuter;
+import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.model.idea.IdeaModule;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.service.project.BaseGradleProjectResolverExtension;
+import org.jetbrains.plugins.gradle.service.project.ProjectImportAction;
+import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
-import java.io.File;
 import java.util.List;
 
-import static org.easymock.classextension.EasyMock.*;
+import static org.easymock.classextension.EasyMock.createMock;
+import static org.easymock.classextension.EasyMock.expect;
 
 /**
  * Tests for {@link AndroidGradleProjectResolver}.
@@ -45,11 +54,10 @@ public class AndroidGradleProjectResolverTest extends TestCase {
   private ContentRootSourcePaths myExpectedSourcePaths;
   private IdeaProjectStub myIdeaProject;
   private AndroidProjectStub myAndroidProject;
-  private BuildActionExecuter<ProjectImportAction.AllModels> myBuildActionExecutor;
-  private GradleExecutionHelperDouble myHelper;
   private AndroidGradleProjectResolver myProjectResolver;
   private IdeaModuleStub myUtilModule;
-  private ProjectImportAction.AllModels myAllModels;
+  private IdeaModuleStub ideaModuleWithAndroidProject;
+  private ProjectResolverContext resolverCtx;
 
   @Override
   public void setUp() throws Exception {
@@ -59,18 +67,30 @@ public class AndroidGradleProjectResolverTest extends TestCase {
     myIdeaProject = new IdeaProjectStub("multiProject");
     myAndroidProject = TestProjects.createBasicProject(myIdeaProject.getRootDir());
 
-    IdeaModuleStub ideaModuleWithAndroidProject = myIdeaProject.addModule(myAndroidProject.getName(), "androidTask");
+    ideaModuleWithAndroidProject = myIdeaProject.addModule(myAndroidProject.getName(), "androidTask");
     myUtilModule = myIdeaProject.addModule("util", "compileJava", "jar", "classes");
     myIdeaProject.addModule("notReallyAGradleProject");
 
+    ProjectImportAction.AllModels allModels = new ProjectImportAction.AllModels(myIdeaProject);
+    allModels.addExtraProject(myAndroidProject, AndroidProject.class, ideaModuleWithAndroidProject);
 
-    myAllModels = new ProjectImportAction.AllModels(myIdeaProject);
-    myAllModels.addAndroidProject(myAndroidProject, ideaModuleWithAndroidProject);
+    resolverCtx = new ProjectResolverContext(
+      ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.RESOLVE_PROJECT, myIdeaProject.getName()),
+      myIdeaProject.getBuildFile().getParentFile().getPath(),
+      null,
+      createMock(ProjectConnection.class),
+      new ExternalSystemTaskNotificationListenerAdapter() {},
+      true
+    );
 
-    //noinspection unchecked
-    myBuildActionExecutor = createMock(BuildActionExecuter.class);
-    myHelper = GradleExecutionHelperDouble.newMock();
-    myProjectResolver = new AndroidGradleProjectResolver(myHelper, createMock(ProjectImportErrorHandler.class));
+    resolverCtx.setModels(allModels);
+
+    myProjectResolver = new AndroidGradleProjectResolver(createMock(ProjectImportErrorHandler.class));
+    myProjectResolver.setProjectResolverContext(resolverCtx);
+
+    BaseGradleProjectResolverExtension baseGradleProjectResolverExtension = new BaseGradleProjectResolverExtension();
+    baseGradleProjectResolverExtension.setProjectResolverContext(resolverCtx);
+    myProjectResolver.setNext(baseGradleProjectResolverExtension);
   }
 
   @Override
@@ -88,37 +108,23 @@ public class AndroidGradleProjectResolverTest extends TestCase {
     assertTrue(AndroidGradleProjectResolver.isIdeaTask("ideaFoo"));
     assertFalse(AndroidGradleProjectResolver.isIdeaTask("ideal"));
 
-
-    // Record mock expectations.
-    expect(myBuildActionExecutor.run()).andReturn(myAllModels);
-
-    replay(myBuildActionExecutor, myHelper);
-
-    // Code under test.
-    File projectDir = myIdeaProject.getBuildFile().getParentFile();
-    DataNode<ProjectData> projectInfo = myProjectResolver.resolveProjectInfo(projectDir, myBuildActionExecutor);
-
-    // Verify mock expectations.
-    verify(myBuildActionExecutor, myHelper);
-
     // Verify project.
-    assertNotNull(projectInfo);
-    ProjectData projectData = projectInfo.getData();
+    ProjectData projectData = myProjectResolver.createProject();
+    assertNotNull(projectData);
+    DataNode<ProjectData> projectDataNode = new DataNode<ProjectData>(ProjectKeys.PROJECT, projectData, null);
     assertEquals(myIdeaProject.getName(), projectData.getName());
     assertEquals(FileUtil.toSystemIndependentName(myIdeaProject.getRootDir().getAbsolutePath()),
                  projectData.getIdeProjectFileDirectoryPath());
 
-    // Verify modules.
-    List<DataNode<ModuleData>> modules = Lists.newArrayList(ExternalSystemApiUtil.getChildren(projectInfo, ProjectKeys.MODULE));
-    assertEquals("Module count", 2, modules.size());
-
     // Verify 'basic' module.
-    DataNode<ModuleData> moduleInfo = modules.get(0);
-    ModuleData moduleData = moduleInfo.getData();
-    assertEquals(myAndroidProject.getName(), moduleData.getName());
+    ModuleData androidModuleData = myProjectResolver.createModule(ideaModuleWithAndroidProject, projectData);
+    assertEquals(ideaModuleWithAndroidProject.getName(), androidModuleData.getName());
 
     // Verify content root in 'basic' module.
-    List<DataNode<ContentRootData>> contentRoots = Lists.newArrayList(ExternalSystemApiUtil.getChildren(moduleInfo, ProjectKeys.CONTENT_ROOT));
+    DataNode<ModuleData> moduleDataNode = projectDataNode.createChild(ProjectKeys.MODULE, androidModuleData);
+    myProjectResolver.populateModuleContentRoots(ideaModuleWithAndroidProject, moduleDataNode);
+    List<DataNode<ContentRootData>> contentRoots = Lists
+      .newArrayList(ExternalSystemApiUtil.getChildren(moduleDataNode, ProjectKeys.CONTENT_ROOT));
     assertEquals(1, contentRoots.size());
 
     String projectRootDirPath = FileUtil.toSystemIndependentName(myAndroidProject.getRootDir().getAbsolutePath());
@@ -129,12 +135,14 @@ public class AndroidGradleProjectResolverTest extends TestCase {
     assertCorrectStoredDirPaths(contentRootData, ExternalSystemSourceType.TEST);
 
     // Verify 'util' module.
-    moduleInfo = modules.get(1);
-    moduleData = moduleInfo.getData();
-    assertEquals(myUtilModule.getName(), moduleData.getName());
+    ModuleData utilModuleData = myProjectResolver.createModule(myUtilModule, projectData);
+    assertEquals(myUtilModule.getName(), utilModuleData.getName());
 
     // Verify content root in 'util' module.
-    contentRoots = Lists.newArrayList(ExternalSystemApiUtil.getChildren(moduleInfo, ProjectKeys.CONTENT_ROOT));
+    DataNode<ModuleData> utilModuleDataNode = projectDataNode.createChild(ProjectKeys.MODULE, utilModuleData);
+    myProjectResolver.populateModuleContentRoots(myUtilModule, utilModuleDataNode);
+
+    contentRoots = Lists.newArrayList(ExternalSystemApiUtil.getChildren(utilModuleDataNode, ProjectKeys.CONTENT_ROOT));
     assertEquals(1, contentRoots.size());
 
     String moduleRootDirPath = FileUtil.toSystemIndependentName(myUtilModule.getRootDir().getPath());
