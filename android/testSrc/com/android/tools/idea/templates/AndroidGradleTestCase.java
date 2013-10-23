@@ -137,7 +137,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       ourPreviousSdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
       if (ourPreviousSdkManager != null) {
         VersionCheck.VersionCheckResult check = VersionCheck.checkVersion(ourPreviousSdkManager.getLocation());
-        if (!check.isCompatibleVersion()) {
+        // "The sdk1.5" version of the SDK stored in the test directory isn't really a 22.0.5 version of the SDK even
+        // though its sdk1.5/tools/source.properties says it is. We can't use this one for these tests.
+        if (!check.isCompatibleVersion() || ourPreviousSdkManager.getLocation().endsWith(File.separator + "sdk1.5")) {
           SdkManager sdkManager = createTestSdkManager();
           assertNotNull(sdkManager);
           AndroidSdkUtils.setSdkManager(sdkManager);
