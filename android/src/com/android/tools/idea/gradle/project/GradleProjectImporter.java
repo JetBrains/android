@@ -344,7 +344,7 @@ public class GradleProjectImporter {
       public void run() {
         ModuleManager moduleManager = ModuleManager.getInstance(project);
         for (Module module : moduleManager.getModules()) {
-          AndroidFacet facet = Facets.getFirstFacetOfType(module, AndroidFacet.ID);
+          AndroidFacet facet = AndroidFacet.getInstance(module);
           if (facet != null) {
             IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
             for (ModuleCustomizer customizer : myModuleCustomizers) {

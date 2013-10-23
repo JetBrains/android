@@ -101,7 +101,7 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
 
   private static void customizeModule(@NotNull Module module, @NotNull IdeaGradleProject gradleProject) {
     AndroidGradleFacet androidGradleFacet = setAndGetAndroidGradleFacet(module);
-    androidGradleFacet.getConfiguration().GRADLE_PROJECT_PATH = gradleProject.getGradleProjectPath();
+    androidGradleFacet.setGradleProject(gradleProject);
   }
 
   /**
@@ -112,7 +112,7 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
    */
   @NotNull
   private static AndroidGradleFacet setAndGetAndroidGradleFacet(Module module) {
-    AndroidGradleFacet facet = Facets.getFirstFacetOfType(module, AndroidGradleFacet.TYPE_ID);
+    AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
     if (facet != null) {
       return facet;
     }

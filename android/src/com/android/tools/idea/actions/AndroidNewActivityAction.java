@@ -18,30 +18,28 @@ package com.android.tools.idea.actions;
 
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.wizard.NewTemplateObjectWizard;
-import com.intellij.facet.FacetManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAware;
 import icons.AndroidIcons;
+import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
 
 public class AndroidNewActivityAction extends JavaSourceAction implements DumbAware {
-
   public AndroidNewActivityAction() {
     super("Activity", "Create a new Android activity", AndroidIcons.Android);
   }
 
-  protected static boolean isAvailable(DataContext dataContext) {
+  protected static boolean isAvailable(@NotNull DataContext dataContext) {
     if (!JavaSourceAction.isAvailable(dataContext)) {
       return false;
     }
     final Module module = LangDataKeys.MODULE.getData(dataContext);
-    return module != null && FacetManager.getInstance(module).getFacetByType(AndroidGradleFacet.TYPE_ID) != null;
+    return module != null && AndroidGradleFacet.getInstance(module) != null;
   }
 
   @Override
@@ -51,14 +49,14 @@ public class AndroidNewActivityAction extends JavaSourceAction implements DumbAw
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    NewTemplateObjectWizard dialog = new NewTemplateObjectWizard(CommonDataKeys.PROJECT.getData(e.getDataContext()),
-                                                                 LangDataKeys.MODULE.getData(e.getDataContext()),
-                                                                 CommonDataKeys.VIRTUAL_FILE.getData(e.getDataContext()),
+    DataContext dataContext = e.getDataContext();
+    NewTemplateObjectWizard dialog = new NewTemplateObjectWizard(CommonDataKeys.PROJECT.getData(dataContext),
+                                                                 LangDataKeys.MODULE.getData(dataContext),
+                                                                 CommonDataKeys.VIRTUAL_FILE.getData(dataContext),
                                                                  CATEGORY_ACTIVITIES);
     dialog.show();
-    if (!dialog.isOK()) {
-      return;
+    if (dialog.isOK()) {
+      dialog.createTemplateObject();
     }
-    dialog.createTemplateObject();
   }
 }
