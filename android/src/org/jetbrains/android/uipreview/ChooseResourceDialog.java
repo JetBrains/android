@@ -36,7 +36,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBTabbedPane;
-import com.intellij.ui.speedSearch.SpeedSearchUtil;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.tree.TreeUtil;
@@ -51,7 +50,6 @@ import org.jetbrains.android.resourceManagers.FileResourceProcessor;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -409,25 +407,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       selectionModel.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
       selectionModel.addTreeSelectionListener(ChooseResourceDialog.this);
 
-      myTree.setCellRenderer(new NodeRenderer() {
-        @Override
-        protected void doAppend(@NotNull @Nls String fragment,
-                                @NotNull SimpleTextAttributes attributes,
-                                boolean isMainText,
-                                boolean selected) {
-          SpeedSearchUtil.appendFragmentsForSpeedSearch(myTree, fragment, attributes, selected, this);
-        }
-
-        @Override
-        public void doAppend(@NotNull String fragment, @NotNull SimpleTextAttributes attributes, boolean selected) {
-          SpeedSearchUtil.appendFragmentsForSpeedSearch(myTree, fragment, attributes, selected, this);
-        }
-
-        @Override
-        public void doAppend(String fragment, boolean selected) {
-          SpeedSearchUtil.appendFragmentsForSpeedSearch(myTree, fragment, SimpleTextAttributes.REGULAR_ATTRIBUTES, selected, this);
-        }
-      });
+      myTree.setCellRenderer(new NodeRenderer());
       new TreeSpeedSearch(myTree, TreeSpeedSearch.NODE_DESCRIPTOR_TOSTRING, true);
 
       myComponent = new JBSplitter(true, 0.8f);
