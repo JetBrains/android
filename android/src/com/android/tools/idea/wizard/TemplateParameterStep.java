@@ -106,6 +106,7 @@ public class TemplateParameterStep extends TemplateWizardStep {
           myParamContainer.add(textField, c);
           if (myPreferredFocusComponent == null) {
             myPreferredFocusComponent = textField;
+            textField.selectAll();
           }
           break;
       }
