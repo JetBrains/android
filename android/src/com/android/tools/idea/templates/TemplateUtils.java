@@ -366,13 +366,4 @@ public class TemplateUtils {
       return null;
     }
   }
-
-  /**
-   * Get the build.gradle file for the given module root.
-   * @param moduleRoot The root directory of the module to find the build.gradle file for
-   * @return a file containing the build.gradle file for the given module root
-   */
-  public static File getGradleBuildFile(File moduleRoot) {
-    return new File(moduleRoot, SdkConstants.FN_BUILD_GRADLE);
-  }
 }
