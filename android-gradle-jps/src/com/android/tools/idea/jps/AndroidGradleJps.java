@@ -15,19 +15,16 @@
  */
 package com.android.tools.idea.jps;
 
+import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.jps.model.JpsAndroidGradleModuleExtension;
 import com.android.tools.idea.jps.model.impl.JpsAndroidGradleModuleExtensionImpl;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.ModuleChunk;
-import org.jetbrains.jps.android.model.JpsAndroidSdkProperties;
-import org.jetbrains.jps.android.model.JpsAndroidSdkType;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 import org.jetbrains.jps.model.JpsProject;
-import org.jetbrains.jps.model.JpsSimpleElement;
-import org.jetbrains.jps.model.library.sdk.JpsSdk;
 import org.jetbrains.jps.model.module.JpsModule;
 
 /**
@@ -43,7 +40,7 @@ public final class AndroidGradleJps {
    * Returns the first Android-Gradle facet in the given chunk of IDEA modules.
    *
    * @param chunk the given chunk of IDEA modules.
-   * @return the first Android-Gradle facet in the given chunk of IDEA modules, or {@code null} if none of the module contain the 
+   * @return the first Android-Gradle facet in the given chunk of IDEA modules, or {@code null} if none of the module contain the
    *         Android-Gradle facet.
    */
   @Nullable
@@ -83,34 +80,25 @@ public final class AndroidGradleJps {
     return module.getContainer().getChild(JpsAndroidGradleModuleExtensionImpl.KIND);
   }
 
-  /**
-   * Returns the first 'Android SDK' in the given chunk of IDEA modules.
-   *
-   * @param chunk the given chunk of modules.
-   * @return the first 'Android SDK' in the given chunk of IDEA modules, or {@code null} if none of the modules contain an 'Android SDK.'
-   */
-  @Nullable
-  public static JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> getFirstAndroidSdk(@NotNull ModuleChunk chunk) {
-    for (JpsModule module : chunk.getModules()) {
-      JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> sdk = module.getSdk(JpsAndroidSdkType.INSTANCE);
-      if (sdk != null) {
-        return sdk;
-      }
-    }
-    return null;
-  }
-
   @NotNull
   public static CompilerMessage createCompilerMessage(@NotNull BuildMessage.Kind kind, @NotNull String text) {
     return new CompilerMessage(COMPILER_NAME, kind, text);
   }
 
   @NotNull
-  public static CompilerMessage createCompilerMessage(@NotNull BuildMessage.Kind kind,
-                                                      @NotNull String text,
-                                                      @Nullable String sourcePath,
-                                                      long lineNumber,
-                                                      long column) {
-    return new CompilerMessage(COMPILER_NAME, kind, text.trim(), sourcePath, -1L, -1L, -1L, lineNumber, column);
+  public static CompilerMessage createCompilerMessage(@NotNull GradleMessage message) {
+    BuildMessage.Kind kind = BuildMessage.Kind.PROGRESS;
+    switch (message.getKind()) {
+      case INFO:
+        kind = BuildMessage.Kind.INFO;
+        break;
+      case WARNING:
+        kind = BuildMessage.Kind.WARNING;
+        break;
+      case ERROR:
+        kind = BuildMessage.Kind.ERROR;
+    }
+    return new CompilerMessage(COMPILER_NAME, kind, message.getText().trim(), message.getSourcePath(), -1L, -1L, -1L,
+                               message.getLineNumber(), message.getColumn());
   }
 }
