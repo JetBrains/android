@@ -35,12 +35,6 @@ public class GradleUtilTest extends TestCase {
   private File myTempDir;
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    myTempDir = Files.createTempDir();
-  }
-
-  @Override
   protected void tearDown() throws Exception {
     if (myTempDir != null) {
       FileUtil.delete(myTempDir);
@@ -49,6 +43,7 @@ public class GradleUtilTest extends TestCase {
   }
 
   public void testGetGradleWrapperPropertiesFilePath() throws IOException {
+    myTempDir = Files.createTempDir();
     File wrapper = new File(myTempDir, "gradle-wrapper.properties");
     FileUtilRt.createIfNotExists(wrapper);
     GradleUtil.updateGradleDistributionUrl("1.6", wrapper);
@@ -68,11 +63,28 @@ public class GradleUtilTest extends TestCase {
   }
 
   public void testUpdateGradleDistributionUrl() {
+    myTempDir = Files.createTempDir();
     File wrapperPath = GradleUtil.getGradleWrapperPropertiesFilePath(myTempDir);
 
     List<String> expected = Lists.newArrayList(FileUtil.splitPath(myTempDir.getPath()));
     expected.addAll(Lists.newArrayList("gradle", "wrapper", "gradle-wrapper.properties"));
 
     assertEquals(expected, FileUtil.splitPath(wrapperPath.getPath()));
+  }
+
+  public void testGetPathSegments() {
+    List<String> pathSegments = GradleUtil.getPathSegments("foo:bar:baz");
+    assertEquals(Lists.newArrayList("foo", "bar", "baz"), pathSegments);
+  }
+
+  public void testGetPathSegmentsWithEmptyString() {
+    List<String> pathSegments = GradleUtil.getPathSegments("");
+    assertEquals(0, pathSegments.size());
+  }
+
+  public void testGetGradleBuildFilePath() {
+    myTempDir = Files.createTempDir();
+    File buildFilePath = GradleUtil.getGradleBuildFilePath(myTempDir);
+    assertEquals(new File(myTempDir, "build.gradle"), buildFilePath);
   }
 }

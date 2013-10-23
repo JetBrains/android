@@ -83,11 +83,9 @@ public class ModuleDependenciesPanel extends JPanel {
     if (myGradleSettingsFile != null) {
       buildFile = myGradleSettingsFile.getModuleBuildFile(myModulePath);
       if (buildFile != null && buildFile.canParseValue(BuildFileKey.DEPENDENCIES)) {
-        List<Dependency> dependencies = (List<Dependency>)buildFile.getValue(BuildFileKey.DEPENDENCIES);
-        if (dependencies != null) {
-          for (Dependency dependency : dependencies) {
-            myModel.addItem(new ModuleDependenciesTableItem(dependency));
-          }
+        List<Dependency> dependencies = buildFile.getDependencies();
+        for (Dependency dependency : dependencies) {
+          myModel.addItem(new ModuleDependenciesTableItem(dependency));
         }
       } else {
         LOG.warn("Unable to find Gradle build file for module " + myModulePath);
@@ -291,11 +289,9 @@ public class ModuleDependenciesPanel extends JPanel {
     for (String s : myGradleSettingsFile.getModules()) {
       modules.add(s);
     }
-    List<Dependency> dependencies = (List<Dependency>)myGradleBuildFile.getValue(BuildFileKey.DEPENDENCIES);
-    if (dependencies != null) {
-      for (Dependency dependency : dependencies) {
-        modules.remove(dependency.data);
-      }
+    List<Dependency> dependencies = myGradleBuildFile.getDependencies();
+    for (Dependency dependency : dependencies) {
+      modules.remove(dependency.data);
     }
     modules.remove(myModulePath);
     final Component parent = this;

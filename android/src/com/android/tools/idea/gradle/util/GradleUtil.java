@@ -15,14 +15,25 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import com.android.SdkConstants;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -40,6 +51,47 @@ public final class GradleUtil {
   @NonNls private static final String GRADLEW_DISTRIBUTION_URL_PROPERTY_NAME = "distributionUrl";
 
   private GradleUtil() {
+  }
+
+  @Nullable
+  public static Module findModuleByGradlePath(@NotNull Project project, @NotNull String gradlePath) {
+    ModuleManager moduleManager = ModuleManager.getInstance(project);
+    for (Module module : moduleManager.getModules()) {
+      AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
+      if (gradleFacet != null) {
+        if (gradlePath.equals(gradleFacet.getConfiguration().GRADLE_PROJECT_PATH)) {
+          return module;
+        }
+      }
+    }
+    return null;
+  }
+
+  @NotNull
+  public static List<String> getPathSegments(@NotNull String gradlePath) {
+    return Lists.newArrayList(Splitter.on(SdkConstants.GRADLE_PATH_SEPARATOR).omitEmptyStrings().split(gradlePath));
+  }
+
+  @Nullable
+  public static VirtualFile getGradleBuildFile(@NotNull Module module) {
+    AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
+    if (gradleFacet != null) {
+      return gradleFacet.getGradleProject().getBuildFile();
+    }
+    // At the time we're called, module.getModuleFile() may be null, but getModuleFilePath returns the path where it will be created.
+    File moduleFilePath = new File(module.getModuleFilePath());
+    return getGradleBuildFile(moduleFilePath.getParentFile());
+  }
+
+  @Nullable
+  public static VirtualFile getGradleBuildFile(@NotNull File rootDir) {
+    File gradleBuildFilePath = getGradleBuildFilePath(rootDir);
+    return VfsUtil.findFileByIoFile(gradleBuildFilePath, true);
+  }
+
+  @NotNull
+  public static File getGradleBuildFilePath(@NotNull File rootDir) {
+    return new File(rootDir, SdkConstants.FN_BUILD_GRADLE);
   }
 
   @NotNull
