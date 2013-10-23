@@ -18,8 +18,6 @@ package com.android.tools.idea.configurations;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.api.Capability;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.FrameworkResources;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.*;
@@ -30,14 +28,10 @@ import com.android.sdklib.devices.State;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.ProjectResources;
 import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.rendering.ResourceHelper;
 import com.google.common.base.Objects;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -46,18 +40,11 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkType;
-import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.configurations.ConfigurationListener.*;
@@ -67,8 +54,6 @@ import static com.android.tools.idea.configurations.ConfigurationListener.*;
  * etc for use when rendering a layout.
  */
 public class Configuration implements Disposable {
-  private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.configurations.Configuration");
-
   /** The associated file */
   @Nullable VirtualFile myFile;
 
@@ -168,9 +153,6 @@ public class Configuration implements Disposable {
     if (editedConfig.getLanguageQualifier() != null) {
       myLocale = Locale.create(editedConfig);
     }
-    if (editedConfig.getVersionQualifier() != null) {
-      myTarget = manager.getTarget(editedConfig.getVersionQualifier().getVersion());
-    }
   }
 
   /**
@@ -254,10 +236,6 @@ public class Configuration implements Disposable {
     copy.myUiMode = original.getUiMode();
     copy.myNightMode = original.getNightMode();
     copy.myDisplayName = original.getDisplayName();
-    copy.myFrameworkResources = original.myFrameworkResources;
-    copy.myResourceResolver = original.myResourceResolver;
-    copy.myConfiguredProjectRes = original.myConfiguredProjectRes;
-    copy.myConfiguredFrameworkRes = original.myConfiguredFrameworkRes;
 
     return copy;
   }
@@ -301,10 +279,6 @@ public class Configuration implements Disposable {
     destination.myActivity = source.getActivity();
     destination.myTheme = source.getTheme();
     //destination.myDisplayName = source.getDisplayName();
-    destination.myFrameworkResources = null;
-    destination.myResourceResolver = null;
-    destination.myConfiguredProjectRes = null;
-    destination.myConfiguredFrameworkRes = null;
 
     ProjectResources resources = ProjectResources.get(source.myManager.getModule(), true);
     ConfigurationMatcher matcher = new ConfigurationMatcher(destination, resources, destination.myFile);
@@ -473,7 +447,17 @@ public class Configuration implements Disposable {
   @Nullable
   public IAndroidTarget getTarget() {
     if (myTarget == null) {
-      return myManager.getTarget();
+      IAndroidTarget target = myManager.getTarget();
+
+      // If the project-wide render target isn't a match for the version qualifier in this layout
+      // (for example, the render target is at API 11, and layout is in a -v14 folder) then pick
+      // a target which matches.
+      VersionQualifier version = myEditedConfig.getVersionQualifier();
+      if (target != null && version != null && version.getVersion() > target.getVersion().getApiLevel()) {
+        return myManager.getTarget(version.getVersion());
+      }
+
+      return target;
     }
 
     return myTarget;
@@ -487,25 +471,6 @@ public class Configuration implements Disposable {
   @Nullable
   public String getDisplayName() {
     return myDisplayName;
-  }
-
-  /**
-   * Returns whether the configuration's theme is a project theme.
-   * <p/>
-   * The returned value is meaningless if {@link #getTheme()} returns
-   * <code>null</code>.
-   *
-   * @return true for project a theme, false for a framework theme
-   */
-  public boolean isProjectTheme() {
-    String theme = getTheme();
-    if (theme != null) {
-      assert theme.startsWith(STYLE_RESOURCE_PREFIX) || theme.startsWith(ANDROID_STYLE_RESOURCE_PREFIX);
-
-      return ResourceHelper.isProjectStyle(theme);
-    }
-
-    return false;
   }
 
   /**
@@ -988,13 +953,6 @@ public class Configuration implements Disposable {
       // TODO: Update myProjectStateVersion?
     }
 
-    if ((flags & MASK_RESOLVE_RESOURCES) != 0) {
-      myFrameworkResources = null;
-      myConfiguredFrameworkRes = null;
-      myConfiguredProjectRes = null;
-      myResourceResolver = null;
-    }
-
     if (myBulkEditingCount == 0) {
       int changed = myNotifyDirty;
       if (myListeners != null) {
@@ -1035,53 +993,14 @@ public class Configuration implements Disposable {
 
   // ---- Resolving resources ----
 
-  private ResourceResolver myResourceResolver;
-  private FrameworkResources myFrameworkResources;
-  private Map<ResourceType, Map<String, ResourceValue>> myConfiguredFrameworkRes;
-  private Map<ResourceType, Map<String, ResourceValue>> myConfiguredProjectRes;
-  private long myCachedGeneration;
-
   @Nullable
   public ResourceResolver getResourceResolver() {
-    ProjectResources resources = ProjectResources.get(myManager.getModule(), true);
-    if (myCachedGeneration < resources.getModificationCount()) {
-      myResourceResolver = null;
+    String theme = getTheme();
+    if (theme != null) {
+      return myManager.getResolverCache().getResourceResolver(getTarget(), theme, getFullConfig());
     }
 
-    if (myResourceResolver == null) {
-      String themeStyle = getTheme();
-      if (themeStyle == null) {
-        LOG.error("Missing theme.");
-        return null;
-      }
-      boolean isProjectTheme = isProjectTheme();
-      String theme = ResourceHelper.styleToTheme(themeStyle);
-
-      Map<ResourceType, Map<String, ResourceValue>> configuredProjectRes = getConfiguredProjectResources();
-
-      // Get the framework resources
-      Map<ResourceType, Map<String, ResourceValue>> frameworkResources = getConfiguredFrameworkResources();
-      myResourceResolver = ResourceResolver.create(configuredProjectRes, frameworkResources, theme, isProjectTheme);
-    }
-
-    return myResourceResolver;
-  }
-
-  @NotNull
-  public Map<ResourceType, Map<String, ResourceValue>> getConfiguredFrameworkResources() {
-    if (myConfiguredFrameworkRes == null) {
-      ResourceRepository frameworkRes = getFrameworkResources();
-
-      if (frameworkRes == null) {
-        myConfiguredFrameworkRes = Collections.emptyMap();
-      }
-      else {
-        // get the framework resource values based on the current config
-        myConfiguredFrameworkRes = frameworkRes.getConfiguredResources(getFullConfig());
-      }
-    }
-
-    return myConfiguredFrameworkRes;
+    return null;
   }
 
   /**
@@ -1092,72 +1011,20 @@ public class Configuration implements Disposable {
    */
   @Nullable
   public ResourceRepository getFrameworkResources() {
-    // TODO: This should be cached elsewhere!
-    if (myFrameworkResources == null) {
-      IAndroidTarget target = getTarget();
-      if (target != null) {
-        myFrameworkResources = getFrameworkResources(target, getConfigurationManager().getModule());
-      }
-    }
-
-    return myFrameworkResources;
-  }
-
-  /**
-   * Returns a {@link ProjectResources} for the framework resources of a given
-   * target.
-   *
-   * @param target the target for which to return the framework resources.
-   * @return the framework resources or null if not found.
-   */
-  @Nullable
-  private static FrameworkResources getFrameworkResources(@NotNull IAndroidTarget target, @NotNull Module module) {
-    Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-    if (sdk == null || !(sdk.getSdkType() instanceof AndroidSdkType)) {
-      return null;
-    }
-    AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-    if (data == null) {
-      return null;
-    }
-    AndroidPlatform platform = data.getAndroidPlatform();
-    if (platform == null) {
-      return null;
-    }
-
-    AndroidTargetData targetData = platform.getSdkData().getTargetData(target);
-    try {
-      return targetData.getFrameworkResources();
-    }
-    catch (IOException e) {
-      LOG.error(e);
+    IAndroidTarget target = getTarget();
+    if (target != null) {
+      return myManager.getResolverCache().getFrameworkResources(target);
     }
 
     return null;
-  }
-
-  @NotNull
-  public Map<ResourceType, Map<String, ResourceValue>> getConfiguredProjectResources() {
-    final ProjectResources resources = ProjectResources.get(myManager.getModule(), true);
-    if (myConfiguredProjectRes == null || myCachedGeneration < resources.getModificationCount()) {
-      // get the project resource values based on the current config
-      ApplicationManager.getApplication().runReadAction(new Runnable() {
-        @Override
-        public void run() {
-          myConfiguredProjectRes = resources.getConfiguredResources(getFullConfig());
-        }
-      });
-      myCachedGeneration = resources.getModificationCount();
-    }
-
-    return myConfiguredProjectRes;
   }
 
   // For debugging only
   @SuppressWarnings("SpellCheckingInspection")
   @Override
   public String toString() {
-    return Objects.toStringHelper(this.getClass()).add("display", getDisplayName())      //$NON-NLS-1$
+    return Objects.toStringHelper(this.getClass())
+      .add("display", getDisplayName())
       .add("theme", getTheme())
       .add("activity", getActivity())
       .add("device", getDevice())
