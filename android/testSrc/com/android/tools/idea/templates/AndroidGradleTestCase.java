@@ -20,6 +20,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.wizard.NewModuleWizardState;
 import com.android.tools.idea.wizard.NewProjectWizard;
 import com.android.tools.idea.wizard.NewProjectWizardState;
@@ -133,6 +134,14 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   protected void ensureSdkManagerAvailable() {
     if (requireRecentSdk() && ourPreviousSdkManager == null) {
       ourPreviousSdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
+      if (ourPreviousSdkManager != null) {
+        VersionCheck.VersionCheckResult check = VersionCheck.checkVersion(ourPreviousSdkManager.getLocation());
+        if (!check.isCompatibleVersion()) {
+          SdkManager sdkManager = createTestSdkManager();
+          assertNotNull(sdkManager);
+          AndroidSdkUtils.setSdkManager(sdkManager);
+        }
+      }
     }
     super.ensureSdkManagerAvailable();
   }
