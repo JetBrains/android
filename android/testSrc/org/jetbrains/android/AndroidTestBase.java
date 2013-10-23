@@ -36,6 +36,7 @@ import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import org.jetbrains.android.sdk.*;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
@@ -190,26 +191,34 @@ public class AndroidTestBase extends UsefulTestCase {
   protected void ensureSdkManagerAvailable() {
     SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
     if (sdkManager == null) {
-      Sdk androidSdk = createAndroidSdk(getTestSdkPath(), getPlatformDir());
-      AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)androidSdk.getSdkAdditionalData();
-      if (data != null) {
-        AndroidPlatform androidPlatform = data.getAndroidPlatform();
-        if (androidPlatform != null) {
-          // Put default platforms in the list before non-default ones so they'll be looked at first.
-          String sdkPath = androidPlatform.getSdkData().getLocation();
-          assertNotNull(sdkPath);
-          ILogger logger = new StdLogger(StdLogger.Level.INFO);
-          SdkManager manager = SdkManager.createManager(sdkPath, logger);
-          assertNotNull(manager);
-          AndroidSdkUtils.setSdkManager(manager);
-          sdkManager = SdkManager.createManager(sdkPath, logger);
-        } else {
-          fail("No getAndroidPlatform() associated with the AndroidSdkAdditionalData: " + data);
-        }
-      } else {
-        fail("Could not find data associated with the SDK: " + androidSdk.getName());
+      sdkManager = createTestSdkManager();
+      if (sdkManager != null) {
+        AndroidSdkUtils.setSdkManager(sdkManager);
       }
     }
     assertNotNull(sdkManager);
+  }
+
+  @Nullable
+  protected SdkManager createTestSdkManager() {
+    Sdk androidSdk = createAndroidSdk(getTestSdkPath(), getPlatformDir());
+    AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)androidSdk.getSdkAdditionalData();
+    if (data != null) {
+      AndroidPlatform androidPlatform = data.getAndroidPlatform();
+      if (androidPlatform != null) {
+        // Put default platforms in the list before non-default ones so they'll be looked at first.
+        String sdkPath = androidPlatform.getSdkData().getLocation();
+        assertNotNull(sdkPath);
+        ILogger logger = new StdLogger(StdLogger.Level.INFO);
+        SdkManager sdkManager = SdkManager.createManager(sdkPath, logger);
+        assertNotNull(sdkManager);
+        return sdkManager;
+      } else {
+        fail("No getAndroidPlatform() associated with the AndroidSdkAdditionalData: " + data);
+      }
+    } else {
+      fail("Could not find data associated with the SDK: " + androidSdk.getName());
+    }
+    return null;
   }
 }
