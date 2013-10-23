@@ -39,5 +39,13 @@
       <add-to-group group-id="RefactoringMenu"/>
     </action>
 
+    <action
+        id="WelcomeScreen.RunAndroidSdkManager"
+        class="org.jetbrains.android.actions.RunAndroidSdkManagerAction"
+        icon="AndroidIcons.SdkManagerLarge" >
+      <add-to-group group-id="WelcomeScreen.Configure" anchor="first" />
+    </action>
+
+
   </actions>
 </idea-plugin>
