@@ -127,6 +127,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     // In case other test cases rely on the builtin (incomplete) SDK, restore
     if (ourPreviousSdkManager != null) {
       AndroidSdkUtils.setSdkManager(ourPreviousSdkManager);
+      ourPreviousSdkManager = null;
     }
   }
 
