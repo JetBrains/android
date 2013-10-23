@@ -36,6 +36,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.CheckBoxList;
 import com.intellij.ui.ComboboxWithBrowseButton;
 import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.RawCommandLineEditor;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
@@ -111,6 +112,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   private JBCheckBox myEnableSourcesAutogenerationCheckBox;
   private JPanel myAptAutogenerationOptionsPanel;
   private JPanel myAidlAutogenerationOptionsPanel;
+  private RawCommandLineEditor myAdditionalPackagingCommandLineParametersField;
 
   private static final String MAVEN_TAB_TITLE = "Maven";
   private final Component myMavenTabComponent;
@@ -267,6 +269,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     myIncludeAssetsFromLibraries.setEnabled(!lib);
     myUseCustomManifestPackage.setEnabled(!lib);
     myCustomManifestPackageField.setEnabled(!lib && myUseCustomManifestPackage.isSelected());
+    myAdditionalPackagingCommandLineParametersField.setEnabled(!lib);
     myRunProguardCheckBox.setEnabled(!lib);
     myProGuardConfigFilesPanel.setEnabled(!lib && myRunProguardCheckBox.isSelected());
     myApkPathLabel.setEnabled(!lib);
@@ -399,6 +402,10 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
       return true;
     }
     if (!myCustomManifestPackageField.getText().trim().equals(myConfiguration.getState().CUSTOM_MANIFEST_PACKAGE)) {
+      return true;
+    }
+    if (!myAdditionalPackagingCommandLineParametersField.getText().trim().equals(
+      myConfiguration.getState().ADDITIONAL_PACKAGING_COMMAND_LINE_PARAMETERS)) {
       return true;
     }
     if (!myUpdateProjectPropertiesCombo.getSelectedItem().equals(myConfiguration.getState().UPDATE_PROPERTY_FILES)) {
@@ -548,6 +555,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
 
     myConfiguration.getState().USE_CUSTOM_MANIFEST_PACKAGE = myUseCustomManifestPackage.isSelected();
     myConfiguration.getState().CUSTOM_MANIFEST_PACKAGE = myCustomManifestPackageField.getText().trim();
+    myConfiguration.getState().ADDITIONAL_PACKAGING_COMMAND_LINE_PARAMETERS = myAdditionalPackagingCommandLineParametersField.getText().trim();
 
     String absAptSourcePath = myCustomAptSourceDirField.getText().trim();
     if (useCustomAptSrc) {
@@ -654,6 +662,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     myUseCustomManifestPackage.setSelected(myConfiguration.getState().USE_CUSTOM_MANIFEST_PACKAGE);
     myCustomManifestPackageField.setEnabled(myConfiguration.getState().USE_CUSTOM_MANIFEST_PACKAGE);
     myCustomManifestPackageField.setText(myConfiguration.getState().CUSTOM_MANIFEST_PACKAGE);
+    myAdditionalPackagingCommandLineParametersField.setText(myConfiguration.getState().ADDITIONAL_PACKAGING_COMMAND_LINE_PARAMETERS);
 
     myUpdateProjectPropertiesCombo.setSelectedItem(myConfiguration.getState().UPDATE_PROPERTY_FILES);
     myEnableSourcesAutogenerationCheckBox.setSelected(myConfiguration.getState().ENABLE_SOURCES_AUTOGENERATION);

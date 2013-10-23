@@ -795,6 +795,28 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     checkMakeUpToDate(executor);
   }
 
+  public void testAdditionalParameters() throws Exception {
+    final MyExecutor executor = new MyExecutor("com.example.simple");
+    final JpsModule module = setUpSimpleAndroidStructure(new String[]{"src"}, executor, null, "8").getFirst();
+    rebuildAll();
+    checkMakeUpToDate(executor);
+
+    final JpsAndroidModuleExtensionImpl extension =
+      (JpsAndroidModuleExtensionImpl)AndroidJpsUtil.getExtension(module);
+    assert extension != null;
+    final JpsAndroidModuleProperties props = extension.getProperties();
+
+    props.ADDITIONAL_PACKAGING_COMMAND_LINE_PARAMETERS = "-0 xml";
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log");
+    checkMakeUpToDate(executor);
+
+    props.ADDITIONAL_PACKAGING_COMMAND_LINE_PARAMETERS = "-0 txt";
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_1");
+    checkMakeUpToDate(executor);
+  }
+
   public void testGeneratedSources() throws Exception {
     final MyExecutor executor = new MyExecutor("com.example.simple");
     final JpsModule module = setUpSimpleAndroidStructure(new String[]{"src", "gen"}, executor, null).getFirst();
