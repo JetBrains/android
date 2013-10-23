@@ -283,7 +283,7 @@ public abstract class MultiResourceRepository extends ProjectResources {
 
   @Override
   @VisibleForTesting
-  boolean isScanPending(@NonNull PsiFile psiFile) {
+  public boolean isScanPending(@NonNull PsiFile psiFile) {
     assert ApplicationManager.getApplication().isUnitTestMode();
     for (int i = myChildren.size() - 1; i >= 0; i--) {
       ProjectResources resources = myChildren.get(i);
