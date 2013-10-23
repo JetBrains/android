@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.gradle.facet;
 
+import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.intellij.ProjectTopics;
-import com.intellij.facet.Facet;
-import com.intellij.facet.FacetTypeId;
-import com.intellij.facet.FacetTypeRegistry;
+import com.intellij.facet.*;
 import com.intellij.facet.impl.FacetUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -30,6 +29,7 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Android-Gradle facet.
@@ -45,6 +45,13 @@ public class AndroidGradleFacet extends Facet<AndroidGradleFacetConfiguration> {
   @NonNls public static final String ID = "android-gradle";
   @NonNls public static final String NAME = "Android-Gradle";
 
+  private IdeaGradleProject myGradleProject;
+
+  @Nullable
+  public static AndroidGradleFacet getInstance(@NotNull Module module) {
+    return FacetManager.getInstance(module).getFacetByType(TYPE_ID);
+  }
+
   @SuppressWarnings("ConstantConditions")
   public AndroidGradleFacet(@NotNull Module module,
                             @NotNull String name,
@@ -54,7 +61,9 @@ public class AndroidGradleFacet extends Facet<AndroidGradleFacetConfiguration> {
 
   @NotNull
   public static AndroidGradleFacetType getFacetType() {
-    return (AndroidGradleFacetType)FacetTypeRegistry.getInstance().findFacetType(ID);
+    FacetType facetType = FacetTypeRegistry.getInstance().findFacetType(ID);
+    assert facetType instanceof AndroidGradleFacetType;
+    return (AndroidGradleFacetType)facetType;
   }
 
   @Override
@@ -85,5 +94,16 @@ public class AndroidGradleFacet extends Facet<AndroidGradleFacetConfiguration> {
     catch (WriteExternalException e) {
       LOG.error("Unable to save contents of 'Android-Gradle' facet", e);
     }
+  }
+
+  @NotNull
+  public IdeaGradleProject getGradleProject() {
+    assert myGradleProject != null;
+    return myGradleProject;
+  }
+
+  public void setGradleProject(@NotNull IdeaGradleProject gradleProject) {
+    myGradleProject = gradleProject;
+    getConfiguration().GRADLE_PROJECT_PATH = myGradleProject.getGradleProjectPath();
   }
 }

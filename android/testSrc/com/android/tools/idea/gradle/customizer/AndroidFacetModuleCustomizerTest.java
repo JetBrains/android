@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.android.tools.idea.gradle.util.Facets;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
@@ -36,8 +37,8 @@ public class AndroidFacetModuleCustomizerTest extends IdeaTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    File rootDirPath = new File(myProject.getBasePath());
-    myAndroidProject = TestProjects.createBasicProject(rootDirPath);
+    File rootDir = new File(FileUtil.toSystemDependentName(myProject.getBasePath()));
+    myAndroidProject = TestProjects.createBasicProject(rootDir);
     myAndroidProject.setIsLibrary(true);
     myCustomizer = new AndroidFacetModuleCustomizer();
   }
@@ -59,7 +60,7 @@ public class AndroidFacetModuleCustomizerTest extends IdeaTestCase {
     myCustomizer.customizeModule(myModule, myProject, project);
 
     // Verify that AndroidFacet was added and configured.
-    AndroidFacet facet = Facets.getFirstFacetOfType(myModule, AndroidFacet.ID);
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assertNotNull(facet);
     assertSame(project, facet.getIdeaAndroidProject());
 
