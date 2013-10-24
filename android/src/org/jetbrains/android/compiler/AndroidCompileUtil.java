@@ -44,6 +44,7 @@ import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.ModifiableModelCommitter;
+import com.intellij.openapi.roots.impl.SourceFolderImpl;
 import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Comparing;
@@ -76,6 +77,9 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
+import org.jetbrains.jps.model.java.JavaSourceRootProperties;
+import org.jetbrains.jps.model.java.JavaSourceRootType;
+import org.jetbrains.jps.model.java.JpsJavaExtensionService;
 
 import javax.swing.event.HyperlinkEvent;
 import java.io.File;
@@ -292,12 +296,32 @@ public class AndroidCompileUtil {
         }
       }
 
-      if (!markedAsSource) {
+      if (markedAsSource) {
+        markRootAsGenerated(model, root, modelChangedFlag);
+      }
+      else {
         addSourceRoot(model, root);
         modelChangedFlag.set(true);
       }
     }
     return root;
+  }
+
+  private static void markRootAsGenerated(ModifiableRootModel model, VirtualFile root, Ref<Boolean> modelChangedFlag) {
+    final ContentEntry contentEntry = findContentEntryForRoot(model, root);
+
+    if (contentEntry == null) {
+      return;
+    }
+    for (SourceFolder sourceFolder : contentEntry.getSourceFolders()) {
+      if (root.equals(sourceFolder.getFile())) {
+        final JavaSourceRootProperties props =
+          (JavaSourceRootProperties)((SourceFolderImpl)sourceFolder).getJpsElement().getProperties();
+        props.setForGeneratedSources(true);
+        modelChangedFlag.set(true);
+        break;
+      }
+    }
   }
 
   private static void excludeFromCompilation(@NotNull Project project, @NotNull VirtualFile sourceRoot, @NotNull String aPackage) {
@@ -366,7 +390,8 @@ public class AndroidCompileUtil {
     }
   }
 
-  public static void addSourceRoot(final ModifiableRootModel model, @NotNull final VirtualFile root) {
+  @Nullable
+  public static SourceFolder addSourceRoot(final ModifiableRootModel model, @NotNull final VirtualFile root) {
     ContentEntry contentEntry = findContentEntryForRoot(model, root);
 
     if (contentEntry == null) {
@@ -400,9 +425,11 @@ public class AndroidCompileUtil {
         });
       Notifications.Bus.notify(notification, project);
       LOG.debug(message);
+      return null;
     }
     else {
-      contentEntry.addSourceFolder(root, false);
+      return contentEntry.addSourceFolder(root, JavaSourceRootType.SOURCE,
+                                          JpsJavaExtensionService.getInstance().createSourceRootProperties("", true));
     }
   }
 
