@@ -18,6 +18,9 @@ package com.android.tools.idea.wizard;
 import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
+import com.android.sdklib.local.LocalPkgInfo;
+import com.android.sdklib.local.LocalSdk;
+import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
@@ -28,10 +31,12 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
+import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -81,6 +86,8 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   private JLabel myModuleNameLabel;
   private JCheckBox myGridLayoutCheckBox;
   private JCheckBox myNavigationDrawerCheckBox;
+  private JComboBox mySourceCombo;
+  private JLabel mySourceVersionLabel;
   boolean myInitializedPackageNameText = false;
   private boolean myInitialized = false;
   @Nullable private WizardContext myWizardContext;
@@ -103,14 +110,38 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       }
       myTemplateState.put(ATTR_TARGET_API, SdkVersionInfo.HIGHEST_KNOWN_API);
     }
+
+    int highestApi = -1;
     for (IAndroidTarget target : targets) {
+      highestApi = Math.max(highestApi, target.getVersion().getApiLevel());
       AndroidTargetComboBoxItem targetInfo = new AndroidTargetComboBoxItem(target);
-      myTemplateState.put(ATTR_BUILD_API, targetInfo.apiLevel);
       myCompileWith.addItem(targetInfo);
       if (target.getVersion().isPreview()) {
         myMinSdk.addItem(targetInfo);
         myTargetSdk.addItem(targetInfo);
       }
+    }
+    if (highestApi >= 1) {
+      myTemplateState.put(ATTR_BUILD_API, highestApi);
+      if (highestApi > SdkVersionInfo.HIGHEST_KNOWN_API) {
+        myTemplateState.put(ATTR_TARGET_API, highestApi);
+      }
+    }
+
+    // If using KitKat platform tools, we can support language level
+    if (isJdk7Supported(getSdkManager())) {
+      // We only support a few levels at this point, not for example 1.3 or 1.8
+      mySourceCombo.addItem(new SourceLevelComboBoxItem(LanguageLevel.JDK_1_5));
+      mySourceCombo.addItem(new SourceLevelComboBoxItem(LanguageLevel.JDK_1_6));
+      mySourceCombo.addItem(new SourceLevelComboBoxItem(LanguageLevel.JDK_1_7));
+      Object value = myTemplateState.get(ATTR_JAVA_VERSION);
+      if (value == null) {
+        LanguageLevel defaultLevel = LanguageLevel.JDK_1_6;
+        myTemplateState.put(ATTR_JAVA_VERSION, languageLevelToString( defaultLevel));
+      }
+    } else {
+      mySourceVersionLabel.setVisible(false);
+      mySourceCombo.setVisible(false);
     }
 
     registerUiElements();
@@ -172,6 +203,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     register(ATTR_NAVIGATION_DRAWER_EXTRA, myNavigationDrawerCheckBox);
     register(ATTR_ACTION_BAR_EXTRA, myActionBarCheckBox);
     register(ATTR_GRID_LAYOUT_EXTRA, myGridLayoutCheckBox);
+    register(ATTR_JAVA_VERSION, mySourceCombo);
   }
 
   @Override
@@ -210,12 +242,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   @NotNull
   private IAndroidTarget[] getCompilationTargets() {
-    SdkManager sdkManager = myWizardContext != null
-                            ? TemplateWizardModuleBuilder.getSdkManager(myWizardContext.getProjectJdk())
-                            : null;
-    if (sdkManager == null) {
-      sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
-    }
+    SdkManager sdkManager = getSdkManager();
     if (sdkManager == null) {
       return new IAndroidTarget[0];
     }
@@ -385,6 +412,18 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       return false;
     }
 
+    String sourceVersion = myTemplateState.getString(ATTR_JAVA_VERSION);
+    if ("1.7".equals(sourceVersion)) {
+      if (buildLevel < 19) {
+        setErrorHtml("Using Java language level 7 requires compiling with API 19: Android 4.4 (KitKat)");
+        return false;
+      }
+      if (minLevel < 19) {
+        setErrorHtml("Note: With minSdkVersion less than 19, you cannot use try-with-resources, but other Java 7 language " +
+                     "features are fine");
+      }
+    }
+
     toggleVisibleOnApi(myFragmentCheckBox, 10, minLevel);
     toggleVisibleOnApi(myNavigationDrawerCheckBox, 10, minLevel);
     toggleVisibleOnApi(myActionBarCheckBox, 10, minLevel);
@@ -496,6 +535,61 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   public void setWizardContext(WizardContext wizardContext) {
     myWizardContext = wizardContext;
+  }
+
+  public static boolean isJdk7Supported(@Nullable SdkManager sdkManager) {
+    if (sdkManager != null) {
+      LocalPkgInfo info = sdkManager.getLocalSdk().getPkgInfo(LocalSdk.PKG_PLATFORM_TOOLS);
+      if (info != null && info.hasFullRevision()) {
+        FullRevision fullRevision = info.getFullRevision();
+        assert fullRevision != null;
+        if (fullRevision.getMajor() >= 19) {
+          JavaSdk jdk = JavaSdk.getInstance();
+          Sdk sdk = ProjectJdkTable.getInstance().findMostRecentSdkOfType(jdk);
+          if (sdk != null) {
+            JavaSdkVersion version = jdk.getVersion(sdk);
+            if (version != null && version.isAtLeast(JavaSdkVersion.JDK_1_7)) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  @Nullable
+  private SdkManager getSdkManager() {
+    SdkManager sdkManager = myWizardContext != null
+                            ? TemplateWizardModuleBuilder.getSdkManager(myWizardContext.getProjectJdk())
+                            : null;
+    if (sdkManager == null) {
+      sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
+    }
+    return sdkManager;
+  }
+
+  public static String languageLevelToString(LanguageLevel level) { // Performs the reverse of LanguageLevel.parse()
+    switch (level) {
+      case JDK_1_5: return "1.5";
+      case JDK_1_6: return "1.6";
+      case JDK_1_7: return "1.7";
+      default: return level.name().substring(4).replace('_','.'); // JDK_1_2 => 1.2
+    }
+  }
+
+  public static class SourceLevelComboBoxItem extends ComboBoxItem {
+    public final LanguageLevel level;
+
+    public SourceLevelComboBoxItem(@NotNull LanguageLevel level) {
+      super(languageLevelToString(level), level.getPresentableText(), 1, 1);
+      this.level = level;
+    }
+
+    @Override
+    public String toString() {
+      return level.getPresentableText();
+    }
   }
 
   public static class AndroidTargetComboBoxItem extends ComboBoxItem {
