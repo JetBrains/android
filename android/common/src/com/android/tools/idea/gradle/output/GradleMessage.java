@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.output;
 
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,14 +26,14 @@ public class GradleMessage {
   @NotNull private final Kind myKind;
   @NotNull private final String myText;
   @Nullable private final String mySourcePath;
-  private final long myLineNumber;
-  private final long myColumn;
+  private final int myLineNumber;
+  private final int myColumn;
 
   public GradleMessage(@NotNull Kind kind, @NotNull String text) {
-    this(kind, text, null, -1L, -1L);
+    this(kind, text, null, -1, -1);
   }
 
-  public GradleMessage(@NotNull Kind kind, @NotNull String text, @Nullable String sourcePath, long lineNumber, long column) {
+  public GradleMessage(@NotNull Kind kind, @NotNull String text, @Nullable String sourcePath, int lineNumber, int column) {
     myKind = kind;
     myText = text;
     mySourcePath = sourcePath;
@@ -55,15 +56,26 @@ public class GradleMessage {
     return mySourcePath;
   }
 
-  public long getLineNumber() {
+  public int getLineNumber() {
     return myLineNumber;
   }
 
-  public long getColumn() {
+  public int getColumn() {
     return myColumn;
   }
 
+  @Override
+  public String toString() {
+    return getClass().getSimpleName() + "[" +
+           "kind=" + myKind +
+           ", text=" + StringUtil.wrapWithDoubleQuote(myText) +
+           ", sourcePath=" + mySourcePath +
+           ", lineNumber=" + myLineNumber +
+           ", column=" + myColumn +
+           ']';
+  }
+
   public enum Kind {
-    ERROR, WARNING, INFO
+    ERROR, WARNING, INFO, STATISTICS
   }
 }
