@@ -41,8 +41,8 @@ public class TemplateParameterStep extends TemplateWizardStep {
   private JPanel myContainer;
   private JLabel myDescription;
   private JLabel myError;
+  private JLabel myPreview;
   private JComponent myPreferredFocusComponent;
-  private ImageComponent myTemplateImage;
   private String myCurrentThumb;
 
   public TemplateParameterStep(TemplateWizardState state, @Nullable Project project, @Nullable Icon sidePanelIcon,
@@ -56,7 +56,7 @@ public class TemplateParameterStep extends TemplateWizardStep {
     myPreferredFocusComponent = null;
     int row = 0;
     Collection<Parameter> parameters = myTemplateState.getTemplateMetadata().getParameters();
-    myParamContainer.setLayout(new GridLayoutManager(parameters.size() + 2, 3));
+    myParamContainer.setLayout(new GridLayoutManager(parameters.size() + 1, 3));
     GridConstraints c = new GridConstraints();
     c.setVSizePolicy(GridConstraints.SIZEPOLICY_FIXED);
     c.setAnchor(GridConstraints.ANCHOR_WEST);
@@ -112,21 +112,6 @@ public class TemplateParameterStep extends TemplateWizardStep {
       }
     }
     if (myTemplateState.getTemplateMetadata().getThumbnailPath() != null) {
-      JLabel label = new JLabel("Preview");
-      c.setColumn(0);
-      c.setRow(row++);
-      c.setColSpan(1);
-      myParamContainer.add(label, c);
-
-      c.setColumn(1);
-      c.setColSpan(2);
-      c.setFill(GridConstraints.FILL_NONE);
-      myTemplateImage = new ImageComponent(null);
-      myParamContainer.add(myTemplateImage, c);
-
-      Dimension d = new Dimension(256, 256);
-      myTemplateImage.setPreferredSize(d);
-      myTemplateImage.setMinimumSize(d);
       deriveValues();
     }
     c.setFill(GridConstraints.FILL_HORIZONTAL);
@@ -136,7 +121,8 @@ public class TemplateParameterStep extends TemplateWizardStep {
     c.setRowSpan(1);
     c.setColSpan(1);
     c.setColumn(2);
-    myParamContainer.add(new Spacer(), c);
+    Spacer spacer = new Spacer();
+    myParamContainer.add(spacer, c);
   }
 
   @Override
@@ -148,7 +134,7 @@ public class TemplateParameterStep extends TemplateWizardStep {
       try {
         byte[] bytes = Files.toByteArray(file);
         ImageIcon previewImage = new ImageIcon(bytes);
-        myTemplateImage.setIcon(previewImage);
+        myPreview.setIcon(new ImageIcon(previewImage.getImage().getScaledInstance(256, 256, Image.SCALE_SMOOTH)));
         myCurrentThumb = thumb;
       }
       catch (IOException e) {

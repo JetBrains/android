@@ -34,7 +34,7 @@ public class NewModuleWizard extends TemplateWizard implements ChooseTemplateSte
 
   public NewModuleWizard(@Nullable Project project) {
     super("New Module", project);
-    getWindow().setMinimumSize(new Dimension(800, 640));
+    getWindow().setMinimumSize(new Dimension(1000, 640));
     init();
   }
 

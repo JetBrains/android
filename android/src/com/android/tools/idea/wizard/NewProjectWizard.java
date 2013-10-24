@@ -24,7 +24,6 @@ import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -66,7 +65,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
 
   public NewProjectWizard() {
     super("New Project", null);
-    getWindow().setMinimumSize(new Dimension(800, 640));
+    getWindow().setMinimumSize(new Dimension(1000, 640));
     init();
   }
 
