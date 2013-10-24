@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
 import com.android.sdklib.repository.FullRevision;
@@ -70,8 +69,7 @@ import java.io.File;
 import java.net.URL;
 import java.util.*;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_PLUGIN_MINIMUM_VERSION;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleInvocationJvmArgs;
+import static com.android.tools.idea.gradle.util.GradleUtil.*;
 
 /**
  * Imports Android-Gradle projects into IDEA.
@@ -198,7 +196,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
       }
 
       else {
-        File gradleSettingsFile = new File(moduleDir, SdkConstants.FN_SETTINGS_GRADLE);
+        File gradleSettingsFile = getGradleSettingsFilePath(moduleDir);
         if (gradleSettingsFile.isFile()) {
           // This is just a root folder for a group of Gradle projects. Set the Gradle project to null so the JPS builder won't try to
           // compile it using Gradle. We still need to create the module to display files inside it.
