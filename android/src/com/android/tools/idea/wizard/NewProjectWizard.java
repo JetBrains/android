@@ -173,7 +173,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
       GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
 
       LanguageLevel initialLanguageLevel = null;
-      Object version = wizardState.hasAttr(ATTR_JAVA_VERSION) ? wizardState.get(ATTR_JAVA_VERSION) : null;
+      Object version = wizardState.get(ATTR_JAVA_VERSION);
       if (version != null) {
         initialLanguageLevel = LanguageLevel.parse(version.toString());
       }

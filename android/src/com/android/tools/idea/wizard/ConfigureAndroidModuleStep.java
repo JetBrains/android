@@ -134,7 +134,8 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       mySourceCombo.addItem(new SourceLevelComboBoxItem(LanguageLevel.JDK_1_5));
       mySourceCombo.addItem(new SourceLevelComboBoxItem(LanguageLevel.JDK_1_6));
       mySourceCombo.addItem(new SourceLevelComboBoxItem(LanguageLevel.JDK_1_7));
-      if (!myTemplateState.hasAttr(ATTR_JAVA_VERSION)) {
+      Object value = myTemplateState.get(ATTR_JAVA_VERSION);
+      if (value == null) {
         LanguageLevel defaultLevel = LanguageLevel.JDK_1_6;
         myTemplateState.put(ATTR_JAVA_VERSION, languageLevelToString( defaultLevel));
       }
@@ -202,9 +203,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     register(ATTR_NAVIGATION_DRAWER_EXTRA, myNavigationDrawerCheckBox);
     register(ATTR_ACTION_BAR_EXTRA, myActionBarCheckBox);
     register(ATTR_GRID_LAYOUT_EXTRA, myGridLayoutCheckBox);
-    if (mySourceCombo.isVisible()) {
-      register(ATTR_JAVA_VERSION, mySourceCombo);
-    }
+    register(ATTR_JAVA_VERSION, mySourceCombo);
   }
 
   @Override
@@ -413,17 +412,15 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       return false;
     }
 
-    if (myTemplateState.hasAttr(ATTR_JAVA_VERSION)) {
-      String sourceVersion = myTemplateState.getString(ATTR_JAVA_VERSION);
-      if ("1.7".equals(sourceVersion)) {
-        if (buildLevel < 19) {
-          setErrorHtml("Using Java language level 7 requires compiling with API 19: Android 4.4 (KitKat)");
-          return false;
-        }
-        if (minLevel < 19) {
-          setErrorHtml("Note: With minSdkVersion less than 19, you cannot use try-with-resources, but other Java 7 language " +
-                       "features are fine");
-        }
+    String sourceVersion = myTemplateState.getString(ATTR_JAVA_VERSION);
+    if ("1.7".equals(sourceVersion)) {
+      if (buildLevel < 19) {
+        setErrorHtml("Using Java language level 7 requires compiling with API 19: Android 4.4 (KitKat)");
+        return false;
+      }
+      if (minLevel < 19) {
+        setErrorHtml("Note: With minSdkVersion less than 19, you cannot use try-with-resources, but other Java 7 language " +
+                     "features are fine");
       }
     }
 
