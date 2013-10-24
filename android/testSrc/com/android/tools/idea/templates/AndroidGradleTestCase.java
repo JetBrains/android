@@ -20,6 +20,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.wizard.NewModuleWizardState;
 import com.android.tools.idea.wizard.NewProjectWizard;
@@ -38,11 +39,13 @@ import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.project.impl.ProjectManagerImpl;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
@@ -50,6 +53,7 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.AndroidTestBase;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.lint.IntellijLintClient;
 import org.jetbrains.android.inspections.lint.IntellijLintIssueRegistry;
 import org.jetbrains.android.inspections.lint.IntellijLintRequest;
@@ -58,13 +62,18 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
 
 /** Base class for unit tests that operate on Gradle projects */
 public abstract class AndroidGradleTestCase extends AndroidTestBase {
   private static SdkManager ourPreviousSdkManager;
+
+  protected AndroidFacet myAndroidFacet;
 
   public AndroidGradleTestCase() {
   }
@@ -88,6 +97,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
         IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
       myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
       myFixture.setUp();
+      myFixture.setTestDataPath(getTestDataPath());
     }
 
     ensureSdkManagerAvailable();
@@ -147,6 +157,47 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       }
     }
     super.ensureSdkManagerAvailable();
+  }
+
+  protected void loadProject(String relativePath) throws IOException, ConfigurationException {
+    loadProject(relativePath, false);
+  }
+
+  protected void loadProject(String relativePath, boolean buildProject) throws IOException, ConfigurationException {
+    File root = new File(getTestDataPath(), relativePath.replace('/', File.separatorChar));
+    assertTrue(root.getPath(), root.exists());
+    File build = new File(root, FN_BUILD_GRADLE);
+    File settings = new File(root, FN_SETTINGS_GRADLE);
+    assertTrue("Couldn't find build.gradle or settings.gradle in " + root.getPath(), build.exists() || settings.exists());
+
+    // Sync the model
+    Project project = myFixture.getProject();
+    File projectRoot = VfsUtilCore.virtualToIoFile(project.getBaseDir());
+    FileUtil.copyDir(root, projectRoot);
+
+    // We need the wrapper for import to succeed
+    NewProjectWizard.createGradleWrapper(projectRoot);
+
+    if (buildProject) {
+      try {
+        assertBuildsCleanly(project, true);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    importProject(project, project.getName(), projectRoot);
+
+    assertTrue(Projects.isGradleProject(project));
+    assertFalse(Projects.isIdeaAndroidProject(project));
+
+    ModuleManager moduleManager = ModuleManager.getInstance(project);
+    for (Module module : moduleManager.getModules()) {
+      myAndroidFacet = AndroidFacet.getInstance(module);
+      if (myAndroidFacet != null) {
+        break;
+      }
+    }
   }
 
   public void createProject(String activityName, boolean syncModel) throws Exception {
@@ -282,7 +333,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
   }
 
-  public static void importProject(Project project, String projectName, File projectRoot) throws Exception {
+  public static void importProject(Project project, String projectName, File projectRoot) throws IOException, ConfigurationException {
     GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
     projectImporter.importProject(projectName, projectRoot, new GradleProjectImporter.Callback() {
       @Override
