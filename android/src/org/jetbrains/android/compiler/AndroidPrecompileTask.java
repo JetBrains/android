@@ -179,7 +179,7 @@ public class AndroidPrecompileTask implements CompileTask {
       final ArtifactProperties<?> properties = artifact.getProperties(AndroidArtifactPropertiesProvider.getInstance());
       if (properties instanceof AndroidApplicationArtifactProperties) {
         final AndroidArtifactSigningMode mode = ((AndroidApplicationArtifactProperties)properties).getSigningMode();
-        if (mode == AndroidArtifactSigningMode.DEBUG) {
+        if (mode == AndroidArtifactSigningMode.DEBUG || mode == AndroidArtifactSigningMode.DEBUG_WITH_CUSTOM_CERTIFICATE) {
           debugArtifacts.add(artifact);
         }
         else {

@@ -633,9 +633,13 @@ public class AndroidCompileUtil {
     if (artifacts != null) {
       for (Artifact artifact : artifacts) {
         final ArtifactProperties<?> properties = artifact.getProperties(AndroidArtifactPropertiesProvider.getInstance());
-        if (properties instanceof AndroidApplicationArtifactProperties &&
-            ((AndroidApplicationArtifactProperties)properties).getSigningMode() != AndroidArtifactSigningMode.DEBUG) {
-          return true;
+        if (properties instanceof AndroidApplicationArtifactProperties) {
+          final AndroidArtifactSigningMode signingMode = ((AndroidApplicationArtifactProperties)properties).getSigningMode();
+
+          if (signingMode != AndroidArtifactSigningMode.DEBUG &&
+              signingMode != AndroidArtifactSigningMode.DEBUG_WITH_CUSTOM_CERTIFICATE) {
+            return true;
+          }
         }
       }
     }
