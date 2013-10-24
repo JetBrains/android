@@ -44,6 +44,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import static com.android.SdkConstants.FD_RES_LAYOUT;
+
 /**
  * Produces matches for configurations.
  * <p/>
@@ -126,7 +128,7 @@ public class ConfigurationMatcher {
   */
   public boolean isCurrentFileBestMatchFor(@NotNull FolderConfiguration config) {
     if (myResources != null && myFile != null) {
-      VirtualFile match = myResources.getMatchingFile(myFile, ResourceType.LAYOUT, config);
+      VirtualFile match = myResources.getMatchingFile(myFile, getResourceType(), config);
       if (match != null) {
         return myFile.equals(match);
       }
@@ -137,6 +139,25 @@ public class ConfigurationMatcher {
     }
 
     return false;
+  }
+
+  private ResourceType getResourceType() {
+    // We're usually using the ConfigurationMatcher for layouts, but support other types too
+    ResourceType type = ResourceType.LAYOUT;
+    VirtualFile parent = myFile.getParent();
+    if (parent != null) {
+      String parentName = parent.getName();
+      if (!parentName.startsWith(FD_RES_LAYOUT)) {
+        ResourceFolderType folderType = ResourceHelper.getFolderType(myFile);
+        if (folderType != null) {
+          List<ResourceType> related = FolderTypeRelationship.getRelatedResourceTypes(folderType);
+          if (!related.isEmpty()) {
+            type = related.get(0); // the primary type is always first
+          }
+        }
+      }
+    }
+    return type;
   }
 
   @Nullable
@@ -154,7 +175,7 @@ public class ConfigurationMatcher {
   }
 
   /**
-  * Returns the layout {@link VirtualFile} which best matches the configuration
+  * Returns the file {@link VirtualFile} which best matches the configuration
   *
   * @return the file which best matches the settings
   */
@@ -162,7 +183,7 @@ public class ConfigurationMatcher {
   public VirtualFile getBestFileMatch() {
     if (myResources != null && myFile != null) {
       FolderConfiguration config = myConfiguration.getFullConfig();
-      return myResources.getMatchingFile(myFile, ResourceType.LAYOUT, config);
+      return myResources.getMatchingFile(myFile, getResourceType(), config);
     }
 
     return null;
@@ -528,7 +549,7 @@ public class ConfigurationMatcher {
         FileDocumentManager documentManager = FileDocumentManager.getInstance();
         VirtualFile file = documentManager.getFile(activeEditor.getDocument());
         if (file != null && file != myFile && file.getFileType() == StdFileTypes.XML
-            && ResourceFolderType.LAYOUT == ResourceHelper.getFolderType(file)) {
+            && ResourceHelper.getFolderType(myFile) == ResourceHelper.getFolderType(file)) {
           Configuration configuration = myManager.getConfiguration(file);
           FolderConfiguration fullConfig = configuration.getFullConfig();
           for (ConfigMatch match : matches) {
