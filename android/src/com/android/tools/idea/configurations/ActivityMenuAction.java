@@ -16,9 +16,9 @@
 package com.android.tools.idea.configurations;
 
 import com.android.resources.ResourceType;
+import com.android.tools.idea.gradle.AndroidModuleInfo;
 import com.android.tools.idea.rendering.ManifestInfo;
 import com.android.tools.idea.rendering.ResourceHelper;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -121,13 +121,18 @@ public class ActivityMenuAction extends FlatComboAction {
 
     Configuration configuration = myRenderContext.getConfiguration();
     if (configuration != null) {
+      Module module = myRenderContext.getModule();
+      assert module != null;
       String activity = configuration.getActivity();
       String currentFqcn = null;
       if (activity != null && !activity.isEmpty()) {
         int dotIndex = activity.indexOf('.');
         if (dotIndex <= 0) {
-          String pkg = ManifestInfo.get(myRenderContext.getModule()).getPackage();
-          activity = pkg + (dotIndex == -1 ? "." : "") + activity;
+          AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(module);
+          if (moduleInfo != null) {
+            String pkg = moduleInfo.getPackage();
+            activity = pkg + (dotIndex == -1 ? "." : "") + activity;
+          }
           currentFqcn = activity;
         } else {
           currentFqcn = activity;
@@ -143,9 +148,12 @@ public class ActivityMenuAction extends FlatComboAction {
       VirtualFile file = configuration.getFile();
       if (file != null) {
         String layoutName = ResourceHelper.getResourceName(file);
-        Module module = myRenderContext.getModule();
         Project project = module.getProject();
-        String pkg = ManifestInfo.get(module).getPackage();
+        String pkg = null;
+        AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(module);
+        if (moduleInfo != null) {
+          pkg = moduleInfo.getPackage();
+        }
         String rLayoutFqcn = pkg + '.' + R_CLASS + '.' + ResourceType.LAYOUT.getName();
         PsiClass layoutClass = JavaPsiFacade.getInstance(project).findClass(rLayoutFqcn, GlobalSearchScope.projectScope(project));
         if (layoutClass != null) {
@@ -201,7 +209,10 @@ public class ActivityMenuAction extends FlatComboAction {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-      Module module = myRenderContext.getModule();
+      final Module module = myRenderContext.getModule();
+      if (module == null) {
+        return;
+      }
       if (myActivity == null) {
         ChooseClassDialog dialog = new ChooseClassDialog(module, "Activities", false /*includeAll*/, CLASS_ACTIVITY);
         dialog.show();
@@ -228,9 +239,9 @@ public class ActivityMenuAction extends FlatComboAction {
           @Override
           protected void run(Result<Void> result) throws Throwable {
             String activity = myActivity;
-            ManifestInfo manifest = ManifestInfo.get(myRenderContext.getModule());
-            String pkg = manifest.getPackage();
-            if (activity.startsWith(pkg) && activity.length() > pkg.length()
+            AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(module);
+            String pkg = moduleInfo != null ? moduleInfo.getPackage() : null;
+            if (pkg != null && activity.startsWith(pkg) && activity.length() > pkg.length()
                 && activity.charAt(pkg.length()) == '.') {
               activity = activity.substring(pkg.length());
             }
@@ -267,7 +278,11 @@ public class ActivityMenuAction extends FlatComboAction {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-      Project project = myRenderContext.getModule().getProject();
+      Module module = myRenderContext.getModule();
+      if (module == null) {
+        return;
+      }
+      Project project = module.getProject();
       PsiClass clz = JavaPsiFacade.getInstance(project).findClass(myActivity.replace('$','.'), GlobalSearchScope.allScope(project));
       if (clz != null) {
         PsiFile containingFile = clz.getContainingFile();
