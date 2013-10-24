@@ -33,7 +33,11 @@ public class FileProjectResourceRepositoryTest extends TestCase {
       System.gc();
       assertNotNull(FileProjectResourceRepository.getCached(dir));
       // However, in low memory conditions we should:
-      PlatformTestUtil.tryGcSoftlyReachableObjects();
+      try {
+        PlatformTestUtil.tryGcSoftlyReachableObjects();
+      } catch (Throwable t) {
+        // The above method can throw java.lang.OutOfMemoryError; that's fine for this test
+      }
       System.gc();
       assertNull(FileProjectResourceRepository.getCached(dir));
     }
