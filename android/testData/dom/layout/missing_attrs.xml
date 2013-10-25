@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_height="fill_parent"
+        android:layout_width="fill_parent">
+
+        <<error descr="'layout_height' attribute should be defined"><error descr="'layout_width' attribute should be defined">TextView</error></error> />
+
+    </LinearLayout>
+
+    <GridLayout
+        android:layout_height="fill_parent"
+        android:layout_width="wrap_content">
+
+        <TextView />
+
+    </GridLayout>
+
+    <requestFocus />
+
+</LinearLayout>
