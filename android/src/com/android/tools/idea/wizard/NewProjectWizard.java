@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -201,7 +202,8 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
     }
   }
 
-  private static void createGradleWrapper(File projectRoot) throws IOException {
+  @VisibleForTesting
+  public static void createGradleWrapper(File projectRoot) throws IOException {
     File gradleWrapperSrc = new File(TemplateManager.getTemplateRootFolder(), GRADLE_WRAPPER_PATH);
     if (!gradleWrapperSrc.exists()) {
       for (File root : TemplateManager.getExtraTemplateRootFolders()) {

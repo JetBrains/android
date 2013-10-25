@@ -248,14 +248,13 @@ public class GradleProjectImporter {
           @Override
           public void run() {
             populateProject(project, projectInfo);
-            if (newProject) {
-              open(project);
-            }
-            else {
-              updateStructureAccordingToBuildVariants(project);
-            }
-
             if (!application.isUnitTestMode()) {
+              if (newProject) {
+                open(project);
+              }
+              else {
+                updateStructureAccordingToBuildVariants(project);
+              }
               project.save();
             }
             if (newProject) {

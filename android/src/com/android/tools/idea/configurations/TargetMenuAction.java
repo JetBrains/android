@@ -19,8 +19,10 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -75,10 +77,22 @@ public class TargetMenuAction extends FlatComboAction {
 
     boolean haveRecent = false;
 
+    Module module = myRenderContext.getModule();
+    int minSdk = -1;
+    if (module != null) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        minSdk = facet.getAndroidModuleInfo().getMinSdkVersion();
+      }
+    }
+
     for (int i = targets.size() - 1; i >= 0; i--) {
       IAndroidTarget target = targets.get(i);
 
       AndroidVersion version = target.getVersion();
+      if (version.getApiLevel() < minSdk) {
+        break;
+      }
       if (version.getApiLevel() >= 7) {
         haveRecent = true;
       }
