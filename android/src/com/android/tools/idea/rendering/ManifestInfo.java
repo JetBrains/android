@@ -240,7 +240,7 @@ public class ManifestInfo {
    *
    * @return the default package registered in the manifest
    */
-  @NotNull
+  @Nullable
   public String getPackage() {
     sync();
     return myPackage;
