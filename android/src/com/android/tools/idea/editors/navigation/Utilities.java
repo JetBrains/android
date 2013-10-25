@@ -15,12 +15,17 @@
  */
 package com.android.tools.idea.editors.navigation;
 
+import com.android.tools.idea.AndroidPsiUtils;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Condition;
+import com.intellij.psi.*;
+import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.util.ArrayList;
 
 public class Utilities {
   public static final Dimension ZERO_SIZE = new Dimension(0, 0);
@@ -189,5 +194,69 @@ public class Utilities {
 
   static Dimension notNull(@Nullable Dimension d) {
     return d == null ? ZERO_SIZE : d;
+  }
+
+  @NotNull
+  static PsiJavaCodeReferenceElement[] getReferenceElements(final @NotNull PsiClass clazz, String methodName) {
+    final java.util.List<PsiJavaCodeReferenceElement> results = new ArrayList<PsiJavaCodeReferenceElement>();
+
+    // test
+    JavaRecursiveElementVisitor visitor = new JavaRecursiveElementVisitor() {
+      private boolean debug = false;
+      private int indent = 0;
+
+      @Override
+      public void visitReferenceElement(PsiJavaCodeReferenceElement reference) {
+        super.visitReferenceElement(reference);
+        if (AndroidPsiUtils.getResourceReferenceType(reference) == AndroidPsiUtils.ResourceReferenceType.APP) {
+          if (debug) System.out.println("reference = " + reference);
+          results.add(reference);
+        }
+      }
+
+      @Override
+      public void visitElement(PsiElement element) {
+        indent++;
+        for (int i = 0; i < indent; i++) {
+          if (debug) System.out.print("  ");
+        }
+        if (debug) System.out.println(element);
+
+        //ProgressIndicatorProvider.checkCanceled();
+        element.acceptChildren(this);
+        indent--;
+      }
+    };
+
+    /*
+    Module module = myMyRenderingParams.myFacet.getModule();
+    JavaPsiFacade facade = JavaPsiFacade.getInstance(module.getProject());
+    PsiElementFactory factory = facade.getElementFactory();
+    GlobalSearchScope scope = module.getModuleWithDependenciesAndLibrariesScope(false);
+    PsiClass aClass = facade.findClass("android.os.Bundle", scope);
+    PsiMethod protoType = factory.createMethod("onCreate", factory.createType(aClass));
+    PsiMethod onCreates = clazz.findMethodBySignature(protoType, false);
+    */
+
+    PsiMethod[] methodsByName = clazz.findMethodsByName(methodName, false);
+    if (methodName != null) {
+      for (PsiMethod m : methodsByName) {
+        m.accept(visitor);
+      }
+    }
+
+    return results.toArray(new PsiJavaCodeReferenceElement[results.size()]);
+  }
+
+  @Nullable
+  public static PsiJavaCodeReferenceElement getReferenceElement(Module module, String className, String methodName) {
+    JavaPsiFacade facade = JavaPsiFacade.getInstance(module.getProject());
+    GlobalSearchScope scope = module.getModuleWithDependenciesAndLibrariesScope(false);
+    PsiClass aClass = facade.findClass(className, scope);
+    if (aClass == null) {
+      return null;
+    }
+    PsiJavaCodeReferenceElement[] referenceElement = getReferenceElements(aClass, methodName);
+    return referenceElement.length == 1 ? referenceElement[0] : null;
   }
 }
