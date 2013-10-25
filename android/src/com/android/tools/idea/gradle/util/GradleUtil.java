@@ -112,6 +112,11 @@ public final class GradleUtil {
   }
 
   @NotNull
+  public static File getGradleSettingsFilePath(@NotNull File rootDir) {
+    return new File(rootDir, SdkConstants.FN_SETTINGS_GRADLE);
+  }
+
+  @NotNull
   public static File getGradleWrapperPropertiesFilePath(@NotNull File projectRootDir) {
     return new File(projectRootDir, GRADLEW_PROPERTIES_PATH);
   }
