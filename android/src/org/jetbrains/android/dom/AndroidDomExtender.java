@@ -70,6 +70,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.*;
 
+import static com.android.SdkConstants.*;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
 /**
@@ -443,11 +444,18 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
         XmlElement xmlElement = element.getXmlElement();
         XmlTag tag = xmlElement instanceof XmlTag ? (XmlTag)xmlElement : null;
         String tagName = tag != null ? tag.getName() : null;
-        if (!"merge".equals(tagName) && !"TableRow".equals(tagName) && (tag == null || tag.getAttribute("style") == null)) {
+        if (!VIEW_MERGE.equals(tagName) &&
+            !TABLE_ROW.equals(tagName) &&
+            !VIEW_INCLUDE.equals(tagName) &&
+            !REQUEST_FOCUS.equals(tagName) &&
+            (tag == null || tag.getAttribute(ATTR_STYLE) == null)) {
           XmlTag parentTag = tag != null ? tag.getParentTag() : null;
           String parentTagName = parentTag != null ? parentTag.getName() : null;
-          if (!"TableRow".equals(parentTagName) && !"TableLayout".equals(parentTagName) &&
-              ("layout_width".equals(attrName.getLocalName()) || "layout_height".equals(attrName.getLocalName()))) {
+          if (!TABLE_ROW.equals(parentTagName) &&
+              !TABLE_LAYOUT.equals(parentTagName) &&
+              !GRID_LAYOUT.equals(parentTagName) &&
+              !FQCN_GRID_LAYOUT_V7.equals(parentTagName) &&
+              (ATTR_LAYOUT_WIDTH.equals(attrName.getLocalName()) || ATTR_LAYOUT_HEIGHT.equals(attrName.getLocalName()))) {
             extension.addCustomAnnotation(new MyRequired());
           }
         }
