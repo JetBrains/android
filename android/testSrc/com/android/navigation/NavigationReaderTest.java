@@ -24,7 +24,7 @@ import java.io.FileNotFoundException;
 
 public class NavigationReaderTest extends TestCase {
   private static State createState(String className, String xmlFileName) {
-    State s0 = new State(className);
+    ActivityState s0 = new ActivityState(className);
     s0.setXmlResourceName(xmlFileName);
     return s0;
   }

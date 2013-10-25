@@ -20,27 +20,38 @@ import com.android.annotations.Nullable;
 import com.android.annotations.Property;
 import com.android.resources.ResourceFolderType;
 
-public abstract class State {
-  private Point location = Point.ORIGIN;
+public class MenuState extends State {
+  private final String xmlResourceName;
 
-  @Nullable
-  public abstract String getClassName();
-
-  @Nullable
-  public abstract String getXmlResourceName();
-
-  @NonNull
-  public Point getLocation() {
-    return location;
+  public MenuState(@NonNull @Property("xmlResourceName") String xmlResourceName) {
+    this.xmlResourceName = xmlResourceName;
   }
 
-  public void setLocation(@NonNull Point location) {
-    this.location = location;
+  @Nullable
+  @Override
+  public String getClassName() {
+    return null;
   }
 
   @Override
-  public abstract boolean equals(Object o);
+  public String getXmlResourceName() {
+    return xmlResourceName;
+  }
 
   @Override
-  public abstract int hashCode();
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    MenuState menuState = (MenuState)o;
+
+    if (!xmlResourceName.equals(menuState.xmlResourceName)) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    return xmlResourceName.hashCode();
+  }
 }
