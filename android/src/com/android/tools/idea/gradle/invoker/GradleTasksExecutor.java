@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.invoker;
 
+import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleToolWindowFactory;
+import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
 import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.gradle.output.parser.GradleErrorOutputParser;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -26,8 +28,12 @@ import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.intellij.compiler.CompilerManagerImpl;
 import com.intellij.compiler.impl.CompilerErrorTreeView;
+import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.ide.errorTreeView.NewErrorTreeViewPanel;
 import com.intellij.ide.errorTreeView.impl.ErrorTreeViewConfiguration;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.compiler.CompilerBundle;
@@ -62,6 +68,7 @@ import com.intellij.util.Function;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.ui.MessageCategory;
 import com.intellij.util.ui.UIUtil;
+import icons.AndroidIcons;
 import org.gradle.tooling.BuildException;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ProjectConnection;
@@ -74,6 +81,7 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import javax.swing.*;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Collection;
 import java.util.List;
@@ -94,6 +102,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
   @NonNls private static final String CONTENT_NAME = "Gradle tasks";
   @NonNls private static final String APP_ICON_ID = "compiler";
   private static final Key<Key<?>> CONTENT_ID_KEY = Key.create("CONTENT_ID");
+  private static final int BUFFER_SIZE = 2048;
 
   @NotNull private final Key<Key<?>> myContentIdKey = CONTENT_ID_KEY;
   @NotNull private final Key<Key<?>> myContentId = Key.create("compile_content");
@@ -219,6 +228,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
         final Stopwatch stopwatch = new Stopwatch();
         stopwatch.start();
 
+        GradleConsoleView.getInstance(getNotNullProject()).clear();
         addMessage(new GradleMessage(GradleMessage.Kind.INFO, "Gradle tasks " + myTasks));
 
         ExternalSystemTaskId id = ExternalSystemTaskId.create(ExternalSystemTaskType.EXECUTE_TASK, project);
@@ -226,8 +236,9 @@ class GradleTasksExecutor extends Task.Backgroundable {
         ExternalSystemTaskNotificationListener listener = new ExternalSystemTaskNotificationListenerAdapter() {
         };
 
-        ByteArrayOutputStream stdout = new ByteArrayOutputStream();
-        ByteArrayOutputStream stderr = new ByteArrayOutputStream();
+        GradleConsoleView consoleView = GradleConsoleView.getInstance(getNotNullProject());
+        ByteArrayOutputStream stdout = new ConsoleAwareOutputStream(consoleView, ConsoleViewContentType.NORMAL_OUTPUT);
+        ByteArrayOutputStream stderr = new ConsoleAwareOutputStream(consoleView, ConsoleViewContentType.ERROR_OUTPUT);
 
         try {
           BuildLauncher launcher = connection.newBuild();
@@ -252,6 +263,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
           Closeables.closeQuietly(stderr);
 
           stopwatch.stop();
+
           ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -262,7 +274,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {
-              showCompilerContent();
+              showMessages();
             }
           });
           Projects.refresh(project);
@@ -297,7 +309,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
     }
     else {
       // Since we have nothing else to show, just print the stack trace of the caught exception.
-      ByteArrayOutputStream out = new ByteArrayOutputStream(2048);
+      ByteArrayOutputStream out = new ByteArrayOutputStream(BUFFER_SIZE);
       try {
         //noinspection IOResourceOpenedButNotSafelyClosed
         e.printStackTrace(new PrintStream(out));
@@ -383,7 +395,26 @@ class GradleTasksExecutor extends Task.Backgroundable {
         return;
       }
       //noinspection ConstantConditions
-      myErrorTreeView = new CompilerErrorTreeView(project, null);
+      myErrorTreeView = new CompilerErrorTreeView(project, null) {
+        @Override
+        protected void fillRightToolbarGroup(DefaultActionGroup group) {
+          super.fillRightToolbarGroup(group);
+          group.add(new AnAction("Show Console Output", null, AndroidIcons.GradleConsole) {
+            @Override
+            public void actionPerformed(AnActionEvent e) {
+              ToolWindow window = getToolWindowManager().getToolWindow(GradleConsoleToolWindowFactory.ID);
+              if (window != null) {
+                window.activate(null, false);
+              }
+            }
+
+            @Override
+            public void update(AnActionEvent e) {
+              e.getPresentation().setEnabledAndVisible(true);
+            }
+          });
+        }
+      };
 
       myErrorTreeView.setProcessController(new NewErrorTreeViewPanel.ProcessController() {
         @Override
@@ -482,11 +513,6 @@ class GradleTasksExecutor extends Task.Backgroundable {
   }
 
   @NotNull
-  private ToolWindowManager getToolWindowManager() {
-    return ToolWindowManager.getInstance(getNotNullProject());
-  }
-
-  @NotNull
   private String createStatusMessage(long durationMillis) {
     String message = "Gradle invocation completed successfully";
     if (myErrorCount > 0) {
@@ -504,7 +530,12 @@ class GradleTasksExecutor extends Task.Backgroundable {
     return message;
   }
 
-  private void showCompilerContent() {
+  @NotNull
+  private ToolWindowManager getToolWindowManager() {
+    return ToolWindowManager.getInstance(getNotNullProject());
+  }
+
+  private void showMessages() {
     synchronized (myMessageViewLock) {
       if (myErrorTreeView != null) {
         MessageView messageView = getMessageView();
@@ -660,6 +691,35 @@ class GradleTasksExecutor extends Task.Backgroundable {
     @Override
     protected void onProgressChange() {
       prepareMessageView();
+    }
+  }
+
+  private static class ConsoleAwareOutputStream extends ByteArrayOutputStream {
+    @NotNull private final GradleConsoleView myConsoleView;
+    @NotNull private final ConsoleViewContentType myContentType;
+
+    private volatile boolean myClosed;
+
+    ConsoleAwareOutputStream(@NotNull GradleConsoleView consoleView, @NotNull ConsoleViewContentType contentType) {
+      super(BUFFER_SIZE);
+      myConsoleView = consoleView;
+      myContentType = contentType;
+    }
+
+    @Override
+    public synchronized void write(byte[] b, int off, int len) {
+      if (!myClosed) {
+        // If we keep writing to the console after closing it we get NPEs pointing to native code, at least on MacOS.
+        String text = new String(b, off, len);
+        myConsoleView.print(text, myContentType);
+        super.write(b, off, len);
+      }
+    }
+
+    @Override
+    public void close() throws IOException {
+      myClosed = true;
+      super.close();
     }
   }
 }
