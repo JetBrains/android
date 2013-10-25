@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.customizer.ContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
-import com.android.tools.idea.gradle.util.Facets;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
@@ -93,6 +92,10 @@ public class GradleProjectImporter {
     {new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputPathModuleCustomizer()};
 
   private final ImporterDelegate myDelegate;
+
+  /** Flag used by unit tests to selectively disable code which requires an open project or UI updates; this is used
+   * by unit tests that do not run all of IntelliJ (e.g. do not extend the IdeaTestCase base) */
+  public static boolean ourSkipSetupFromTest;
 
   @NotNull
   public static GradleProjectImporter getInstance() {
@@ -248,14 +251,17 @@ public class GradleProjectImporter {
           @Override
           public void run() {
             populateProject(project, projectInfo);
-            if (!application.isUnitTestMode()) {
+            boolean isTest = application.isUnitTestMode();
+            if (!isTest || !ourSkipSetupFromTest) {
               if (newProject) {
                 open(project);
               }
               else {
                 updateStructureAccordingToBuildVariants(project);
               }
-              project.save();
+              if (!isTest) {
+                project.save();
+              }
             }
             if (newProject) {
               // We need to do this because AndroidGradleProjectComponent#projectOpened is being called when the project is created, instead

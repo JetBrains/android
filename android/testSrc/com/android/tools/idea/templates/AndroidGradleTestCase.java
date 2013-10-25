@@ -92,6 +92,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   public void setUp() throws Exception {
     super.setUp();
 
+    GradleProjectImporter.ourSkipSetupFromTest = true;
+
     if (createDefaultProject()) {
       final TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
         IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
@@ -109,6 +111,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       myFixture.tearDown();
       myFixture = null;
     }
+
+    GradleProjectImporter.ourSkipSetupFromTest = false;
 
     ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
     Project[] openProjects = projectManager.getOpenProjects();
