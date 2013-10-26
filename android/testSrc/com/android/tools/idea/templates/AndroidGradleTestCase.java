@@ -18,6 +18,7 @@ package com.android.tools.idea.templates;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
+import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
@@ -37,6 +38,7 @@ import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
@@ -108,6 +110,16 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   @Override
   protected void tearDown() throws Exception {
     if (myFixture != null) {
+      Project project = myFixture.getProject();
+
+      // Since we don't really open the project, but we manually register listeners in the gradle importer
+      // by explicitly calling AndroidGradleProjectComponent#configureGradleProject, we need to counteract
+      // that here, otherwise the testsuite will leak
+      if (Projects.isGradleProject(project)) {
+        AndroidGradleProjectComponent projectComponent = ServiceManager.getService(project, AndroidGradleProjectComponent.class);
+        projectComponent.projectClosed();
+      }
+
       myFixture.tearDown();
       myFixture = null;
     }
