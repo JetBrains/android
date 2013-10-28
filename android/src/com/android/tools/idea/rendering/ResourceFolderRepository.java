@@ -32,6 +32,7 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -111,12 +112,15 @@ public final class ResourceFolderRepository extends ProjectResources {
 
   @Nullable
   private PsiFile ensureValid(@NotNull PsiFile psiFile) {
-    if (psiFile. isValid()) {
+    if (psiFile.isValid()) {
       return psiFile;
     } else {
       VirtualFile virtualFile = psiFile.getVirtualFile();
       if (virtualFile != null) {
-        return PsiManager.getInstance(myModule.getProject()).findFile(virtualFile);
+        Project project = myModule.getProject();
+        if (!project.isDisposed()) {
+          return PsiManager.getInstance(project).findFile(virtualFile);
+        }
       }
     }
 
