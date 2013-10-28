@@ -642,7 +642,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
 
   public void testViewClassReference1() throws Throwable {
     VirtualFile file = myFixture.copyFileToProject(testFolder + "/vcr1.xml", getPathToCopy("vcr1.xml"));
-    myFixture.testHighlighting(true, true, true, file);
+    myFixture.testHighlighting(true, false, true, file);
   }
 
   public void testViewClassReference2() throws Throwable {
