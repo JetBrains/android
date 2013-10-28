@@ -73,6 +73,10 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
 
 /** Base class for unit tests that operate on Gradle projects */
 public abstract class AndroidGradleTestCase extends AndroidTestBase {
+  /** Investigate _LastInSuiteTest.testProjectLeak: something about the way we're simulating project
+   * creation leads to project leak for unknown reasons */
+  protected static final boolean CAN_SYNC_PROJECTS = false;
+
   private static SdkManager ourPreviousSdkManager;
 
   protected AndroidFacet myAndroidFacet;
@@ -94,7 +98,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   public void setUp() throws Exception {
     super.setUp();
 
-    GradleProjectImporter.ourSkipSetupFromTest = true;
+    if (CAN_SYNC_PROJECTS) {
+      GradleProjectImporter.ourSkipSetupFromTest = true;
+    }
 
     if (createDefaultProject()) {
       final TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
@@ -112,19 +118,23 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     if (myFixture != null) {
       Project project = myFixture.getProject();
 
-      // Since we don't really open the project, but we manually register listeners in the gradle importer
-      // by explicitly calling AndroidGradleProjectComponent#configureGradleProject, we need to counteract
-      // that here, otherwise the testsuite will leak
-      if (Projects.isGradleProject(project)) {
-        AndroidGradleProjectComponent projectComponent = ServiceManager.getService(project, AndroidGradleProjectComponent.class);
-        projectComponent.projectClosed();
+      if (CAN_SYNC_PROJECTS) {
+        // Since we don't really open the project, but we manually register listeners in the gradle importer
+        // by explicitly calling AndroidGradleProjectComponent#configureGradleProject, we need to counteract
+        // that here, otherwise the testsuite will leak
+        if (Projects.isGradleProject(project)) {
+          AndroidGradleProjectComponent projectComponent = ServiceManager.getService(project, AndroidGradleProjectComponent.class);
+          projectComponent.projectClosed();
+        }
       }
 
       myFixture.tearDown();
       myFixture = null;
     }
 
-    GradleProjectImporter.ourSkipSetupFromTest = false;
+    if (CAN_SYNC_PROJECTS) {
+      GradleProjectImporter.ourSkipSetupFromTest = false;
+    }
 
     ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
     Project[] openProjects = projectManager.getOpenProjects();

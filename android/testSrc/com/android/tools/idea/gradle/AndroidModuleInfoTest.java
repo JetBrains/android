@@ -18,16 +18,26 @@ package com.android.tools.idea.gradle;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 
 public class AndroidModuleInfoTest extends AndroidGradleTestCase {
-
   public void testManifestOnly() throws Exception {
+    //noinspection ConstantConditions
+    if (!CAN_SYNC_PROJECTS ) {
+      System.err.println("AndroidModuleInfoTest.testManifestOnly temporarily disabled");
+      return;
+    }
     loadProject("projects/moduleInfo/manifestOnly");
     assertNotNull(myAndroidFacet);
     assertEquals(7, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion());
     assertEquals(18, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion());
+    //noinspection SpellCheckingInspection
     assertEquals("com.example.unittest", myAndroidFacet.getAndroidModuleInfo().getPackage());
   }
 
   public void testGradleOnly() throws Exception {
+    //noinspection ConstantConditions
+    if (!CAN_SYNC_PROJECTS ) {
+      System.err.println("AndroidModuleInfoTest.testGradleOnly temporarily disabled");
+      return;
+    }
     loadProject("projects/moduleInfo/gradleOnly");
     assertNotNull(myAndroidFacet);
     assertEquals(9, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion());
@@ -36,6 +46,11 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
   }
 
   public void testBoth() throws Exception {
+    //noinspection ConstantConditions
+    if (!CAN_SYNC_PROJECTS ) {
+      System.err.println("AndroidModuleInfoTest.testBoth temporarily disabled");
+      return;
+    }
     loadProject("projects/moduleInfo/both");
     assertNotNull(myAndroidFacet);
     assertEquals(9, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion());
@@ -44,6 +59,11 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
   }
 
   public void testFlavors() throws Exception {
+    //noinspection ConstantConditions
+    if (!CAN_SYNC_PROJECTS ) {
+      System.err.println("AndroidModuleInfoTest.testFlavors temporarily disabled");
+      return;
+    }
     loadProject("projects/moduleInfo/flavors");
     assertNotNull(myAndroidFacet);
     IdeaAndroidProject gradleProject = myAndroidFacet.getIdeaAndroidProject();
