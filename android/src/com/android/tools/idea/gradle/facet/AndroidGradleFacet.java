@@ -96,9 +96,8 @@ public class AndroidGradleFacet extends Facet<AndroidGradleFacetConfiguration> {
     }
   }
 
-  @NotNull
+  @Nullable
   public IdeaGradleProject getGradleProject() {
-    assert myGradleProject != null;
     return myGradleProject;
   }
 
