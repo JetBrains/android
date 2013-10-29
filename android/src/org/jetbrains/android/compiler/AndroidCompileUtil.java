@@ -231,15 +231,7 @@ public class AndroidCompileUtil {
     collectChildrenRecursively(excludedRoot, root, rootsToExclude);
     ContentEntry contentEntry = findContentEntryForRoot(model, excludedRoot);
     if (contentEntry != null) {
-      ExcludeFolder excludedFolder = null;
-      for (ExcludeFolder folder : contentEntry.getExcludeFolders()) {
-        if (Comparing.equal(folder.getFile(), excludedRoot)) {
-          excludedFolder = folder;
-          break;
-        }
-      }
-      if (excludedFolder != null) {
-        contentEntry.removeExcludeFolder(excludedFolder);
+      if (contentEntry.removeExcludeFolder(excludedRoot.getUrl())) {
         modelChangedFlag.set(true);
       }
       for (VirtualFile rootToExclude : rootsToExclude) {
