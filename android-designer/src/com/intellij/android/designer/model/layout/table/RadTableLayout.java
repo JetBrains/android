@@ -15,11 +15,11 @@
  */
 package com.intellij.android.designer.model.layout.table;
 
+import com.android.tools.idea.designer.ResizeOperation;
 import com.intellij.android.designer.designSurface.TreeDropToOperation;
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.designSurface.graphics.ResizeSelectionDecorator;
 import com.intellij.android.designer.designSurface.layout.TableLayoutOperation;
-import com.intellij.android.designer.designSurface.layout.actions.ResizeOperation;
 import com.intellij.android.designer.designSurface.layout.caption.TableHorizontalCaptionOperation;
 import com.intellij.android.designer.designSurface.layout.caption.TableVerticalCaptionOperation;
 import com.intellij.android.designer.designSurface.layout.grid.GridDecorator;
@@ -102,7 +102,7 @@ public class RadTableLayout extends RadViewLayoutWithData implements ILayoutDeco
 
     if (mySelectionDecorator == null) {
       mySelectionDecorator = new ResizeSelectionDecorator(DrawingStyle.SELECTION);
-      ResizeOperation.height(mySelectionDecorator);
+      ResizeOperation.addResizePoints(mySelectionDecorator);
     }
     return mySelectionDecorator;
   }

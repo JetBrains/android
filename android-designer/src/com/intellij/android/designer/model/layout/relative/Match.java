@@ -15,6 +15,7 @@
  */
 package com.intellij.android.designer.model.layout.relative;
 
+import com.android.tools.idea.designer.Segment;
 import com.intellij.android.designer.designSurface.feedbacks.TextFeedback;
 import com.intellij.ui.SimpleTextAttributes;
 
