@@ -97,7 +97,11 @@ public class LayoutPsiPullParser extends LayoutPullParser {
 
   /** Use one of the {@link #create} factory methods instead */
   protected LayoutPsiPullParser(@NotNull XmlFile file, @NotNull RenderLogger logger) {
-    myRoot = file.getRootTag();
+    this(file.getRootTag(), logger);
+  }
+
+  protected LayoutPsiPullParser(@Nullable XmlTag root, @NotNull RenderLogger logger) {
+    myRoot = root;
     myLogger = logger;
 
     if (myRoot != null) {
