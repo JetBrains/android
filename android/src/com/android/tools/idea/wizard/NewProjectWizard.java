@@ -32,6 +32,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,8 +43,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME;
+import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static icons.AndroidIcons.Wizards.NewProjectSidePanel;
 
 /**
@@ -171,6 +171,12 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
         return;
       }
       GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
+
+      LanguageLevel initialLanguageLevel = null;
+      Object version = wizardState.get(ATTR_JAVA_VERSION);
+      if (version != null) {
+        initialLanguageLevel = LanguageLevel.parse(version.toString());
+      }
       projectImporter.importProject(projectName, projectRoot, new GradleProjectImporter.Callback() {
         @Override
         public void projectImported(@NotNull Project project) {
@@ -186,7 +192,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
             }
           });
         }
-      }, project);
+      }, project, initialLanguageLevel);
     }
     catch (Exception e) {
       if (ApplicationManager.getApplication().isUnitTestMode()) {
