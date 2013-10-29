@@ -16,7 +16,6 @@
 package com.android.tools.idea.ddms.screenshot;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ninepatch.NinePatch;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
@@ -35,7 +34,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import static com.android.SdkConstants.DOT_PNG;
@@ -264,6 +262,13 @@ public class DeviceArtPainter {
     if (data == null || scaledHeight == 0) {
       return scaledImage;
     }
+
+    // Tweak the scale down slightly; without this, rounding errors can lead to the frame image
+    // being one or two pixels larger than the screen, such that the underlying theme background
+    // shines through, which is quite visible on a black phone frame with a black navigation bar
+    // for example
+    scale = (scaledHeight - 1) / (double)image.getHeight();
+
     int scaledWidth = (int)(image.getWidth() * scale);
 
     boolean portrait = orientation != ScreenOrientation.LANDSCAPE;
@@ -489,8 +494,8 @@ public class DeviceArtPainter {
           myCropY1 = crop.y;
           myCropX2 = crop.x + crop.width;
           myCropY2 = crop.y + crop.height;
-          frameWidth = myCropX2 - myCropX1;
-          frameHeight = myCropY2 - myCropY1;
+          frameWidth = crop.width;
+          frameHeight = crop.height;
         } else {
           myCropX1 = 0;
           myCropY1 = 0;
@@ -604,7 +609,7 @@ public class DeviceArtPainter {
     private static File getThumbnailCacheDir() {
       final String path = ourSystemPath != null ? ourSystemPath : (ourSystemPath = PathUtil.getCanonicalPath(PathManager.getSystemPath()));
       //noinspection HardCodedStringLiteral
-      return new File(path, "android-devices");
+      return new File(path, "android-devices" + File.separator + "v2");
     }
 
     @NotNull
@@ -746,7 +751,7 @@ public class DeviceArtPainter {
       }
 
       @SuppressWarnings("UndesirableClassUsage") // Don't need Retina image here, and it's more expensive
-      BufferedImage composite = new BufferedImage(background.getWidth(), background.getHeight(), BufferedImage.TYPE_INT_ARGB);
+      BufferedImage composite = new BufferedImage(myFrameWidth, myFrameHeight, BufferedImage.TYPE_INT_ARGB);
       Graphics g = composite.createGraphics();
       g.setColor(new Color(0, 0, 0, 0));
       g.fillRect(0, 0, composite.getWidth(), composite.getHeight());

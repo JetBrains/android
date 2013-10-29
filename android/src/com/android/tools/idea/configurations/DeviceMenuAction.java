@@ -179,6 +179,11 @@ public class DeviceMenuAction extends FlatComboAction {
       if (!nexus.isEmpty()) {
         sortNexusList(nexus);
         for (final Device device : nexus) {
+          if (device.getId().equals("Nexus 5")) {
+            // Some layoutlib rendering issues (action bar font is way too large), so
+            // hide for now.
+            continue;
+          }
           group.add(new SetDeviceAction(myRenderContext, getNexusLabel(device), device, current == device));
         }
 
