@@ -25,7 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static com.intellij.persistence.database.view.DatabaseViewActionsHelper.getSelectedElementsByType;
+import static com.intellij.persistence.database.view.DatabaseView.getSelectedElements;
 
 /**
  * @author Eugene.Kudelevsky
@@ -68,7 +68,7 @@ public class AndroidUploadDatabaseAction extends AnAction {
 
   @NotNull
   private static List<AndroidDataSource> getSelectedAndroidDataSources(AnActionEvent e) {
-    final Set<DbDataSourceElement> dataSourceElements = getSelectedElementsByType(e.getDataContext(), DbDataSourceElement.class);
+    final Set<DbDataSourceElement> dataSourceElements = getSelectedElements(e.getDataContext(), DbDataSourceElement.class);
 
     if (dataSourceElements.isEmpty()) {
       return Collections.emptyList();
