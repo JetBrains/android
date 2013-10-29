@@ -54,7 +54,7 @@ class AndroidDataSource extends LocalDataSource implements DataSourceInfo, Modif
   private Element[] serializeClasspathElements() {
     final List<SimpleClasspathElement> elements = getClasspathElements();
 
-    if (elements == null || elements.isEmpty()) {
+    if (elements.isEmpty()) {
       return new Element[0];
     }
     final Element[] serializedElements = new Element[elements.size()];
@@ -66,7 +66,7 @@ class AndroidDataSource extends LocalDataSource implements DataSourceInfo, Modif
         element.serialize(serializedElement);
       }
       catch (IOException e) {
-        LOG.error(e);
+        LOG.warn(e);
       }
       serializedElements[i++] = serializedElement;
     }
