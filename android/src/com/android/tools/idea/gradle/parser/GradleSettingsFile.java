@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Function;
+import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -180,9 +181,9 @@ public class GradleSettingsFile extends GradleGroovyFile {
   public GradleBuildFile getModuleBuildFile(@NotNull String moduleGradlePath) {
     Module module = GradleUtil.findModuleByGradlePath(myProject, moduleGradlePath);
     if (module != null) {
-      AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
-      if (gradleFacet != null) {
-        return new GradleBuildFile(gradleFacet.getGradleProject().getBuildFile(), myProject);
+      VirtualFile buildFile = GradleUtil.getGradleBuildFile(module);
+      if (buildFile != null) {
+        return new GradleBuildFile(buildFile, myProject);
       }
     }
     return null;
