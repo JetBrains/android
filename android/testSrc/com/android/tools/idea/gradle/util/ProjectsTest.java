@@ -15,27 +15,38 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.testFramework.IdeaTestCase;
+
+import java.io.File;
 
 /**
  * Tests for {@link Projects}.
  */
 public class ProjectsTest extends IdeaTestCase {
+  public void testGetJavaHome() {
+    Sdk jdk = AndroidTestCaseHelper.createAndSetJdk(myProject);
+    File javaHome = Projects.getJavaHome(myProject);
+    assertNotNull(javaHome);
+    assertEquals(jdk.getHomePath(), javaHome.getPath());
+  }
+
   public void testIsGradleProjectWithNonGradleProject() {
     assertFalse(Projects.isGradleProject(myProject));
   }
 
   public void testIsGradleProjectWithGradleProject() {
     FacetManager facetManager = FacetManager.getInstance(myModule);
-    ModifiableFacetModel model = facetManager.createModifiableModel();
+    ModifiableFacetModel facetModel = facetManager.createModifiableModel();
     try {
       AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
-      model.addFacet(facet);
+      facetModel.addFacet(facet);
     } finally {
-      model.commit();
+      facetModel.commit();
     }
     assertTrue(Projects.isGradleProject(myProject));
   }
