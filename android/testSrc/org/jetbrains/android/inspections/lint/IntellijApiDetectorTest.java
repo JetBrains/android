@@ -15,11 +15,14 @@
  */
 package org.jetbrains.android.inspections.lint;
 
+import com.android.sdklib.SdkManager;
+import com.android.tools.idea.wizard.ConfigureAndroidModuleStep;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Ignore;
@@ -64,6 +67,12 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
   @Ignore
   public void testTryWithResources() throws Exception {
     // TODO: Allow setting a custom minSdkVersion in the manifest so I can test both with and without
+
+    SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
+    if (sdkManager == null || !ConfigureAndroidModuleStep.isJdk7Supported(sdkManager)) {
+      System.out.println("Skipping IntellijApiDetectorTest#testTryWithResources: Test JDK must be JDK 7 or higher");
+      return;
+    }
 
     // Try to allow JDK 7 features on this project; without it, we get a warning that try-with-resources
     // is not valid for this project. However this isn't enough; I need to have the right classes on
