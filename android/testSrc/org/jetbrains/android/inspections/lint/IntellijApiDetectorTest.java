@@ -16,10 +16,13 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Ignore;
 
 import static org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider.AndroidLintNewApiInspection;
 
@@ -54,6 +57,22 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
   }
 
   public void testVersionConditional() throws Exception {
+    AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
+    doTest(inspection, null);
+  }
+
+  @Ignore
+  public void testTryWithResources() throws Exception {
+    // TODO: Allow setting a custom minSdkVersion in the manifest so I can test both with and without
+
+    // Try to allow JDK 7 features on this project; without it, we get a warning that try-with-resources
+    // is not valid for this project. However this isn't enough; I need to have the right classes on
+    // the class path too, otherwise we get
+    //  Incompatible types. Found: 'java.io.BufferedReader', required: 'java.lang.AutoCloseable'
+    LanguageLevelProjectExtension extension = LanguageLevelProjectExtension.getInstance(getProject());
+    assertNotNull(extension);
+    extension.setLanguageLevel(LanguageLevel.JDK_1_7);
+
     AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
     doTest(inspection, null);
   }
