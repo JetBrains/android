@@ -16,6 +16,7 @@
 package org.jetbrains.android;
 
 import com.android.sdklib.IAndroidTarget;
+import com.intellij.facet.FacetTypeId;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
@@ -30,13 +31,10 @@ import com.intellij.testFramework.IdeaTestUtil;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.compiler.AndroidDexCompilerConfiguration;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidFacetType;
-import org.jetbrains.android.maven.AndroidFacetImporter2;
 import org.jetbrains.android.maven.AndroidFacetImporterBase;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
-import org.jetbrains.idea.maven.importing.FacetImporter;
 import org.jetbrains.idea.maven.importing.FacetImporterTestCase;
 import org.jetbrains.jps.android.model.impl.AndroidImportableProperty;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
@@ -47,13 +45,13 @@ import java.util.Arrays;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet, AndroidFacetType> {
+public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet> {
 
   private Sdk myJdk;
 
   @Override
-  protected FacetImporter<AndroidFacet, ?, AndroidFacetType> createImporter() {
-    return new AndroidFacetImporter2();
+  protected FacetTypeId<AndroidFacet> getFacetTypeId() {
+    return AndroidFacet.ID;
   }
 
   @Override
