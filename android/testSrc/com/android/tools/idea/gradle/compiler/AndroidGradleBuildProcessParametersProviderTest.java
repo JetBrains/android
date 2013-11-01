@@ -42,20 +42,8 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
   @Override
   public void setUp() throws Exception {
     super.setUp();
-
-    String[] names = {"JAVA6_HOME", "JAVA_HOME"};
-    String jdkHomePath = AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable(names);
-    assertNotNull("Please set one of the following env vars (or system properties) to point to the JDK: " + Joiner.on(",").join(names),
-                  jdkHomePath);
-    myJdk = SdkConfigurationUtil.createAndAddSDK(jdkHomePath, JavaSdk.getInstance());
-
+    myJdk = AndroidTestCaseHelper.createAndSetJdk(myProject);
     myParametersProvider = new AndroidGradleBuildProcessParametersProvider(myProject);
-    ExternalSystemApiUtil.executeProjectChangeAction(true, new Runnable() {
-      @Override
-      public void run() {
-        NewProjectUtil.applyJdkToProject(myProject, myJdk);
-      }
-    });
   }
 
   public void testPopulateJvmArgsWithGradleExecutionSettings() {

@@ -28,6 +28,11 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.JavaSdk;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkAdditionalData;
+import com.intellij.openapi.projectRoots.SdkTypeId;
+import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.util.AsyncResult;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
@@ -35,8 +40,12 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBus;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
+import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
 
 /**
  * Utility methods for {@link Project}s.
@@ -47,6 +56,29 @@ public final class Projects {
   private static final Logger LOG = Logger.getInstance(Projects.class);
 
   private Projects() {
+  }
+
+  @Nullable
+  public static File getJavaHome(@NotNull Project project) {
+    String javaHome = null;
+    ProjectRootManagerEx rootManager = ProjectRootManagerEx.getInstanceEx(project);
+    Sdk projectSdk = rootManager.getProjectSdk();
+    if (projectSdk != null) {
+      SdkTypeId sdkType = projectSdk.getSdkType();
+      if (sdkType instanceof JavaSdk) {
+        javaHome = projectSdk.getHomePath();
+      }
+      else if (sdkType instanceof AndroidSdkType) {
+        SdkAdditionalData additionalData = projectSdk.getSdkAdditionalData();
+        if (additionalData instanceof AndroidSdkAdditionalData) {
+          Sdk javaSdk = ((AndroidSdkAdditionalData)additionalData).getJavaSdk();
+          if (javaSdk != null) {
+            javaHome = javaSdk.getHomePath();
+          }
+        }
+      }
+    }
+    return javaHome != null ? new File(FileUtil.toSystemDependentName(javaHome)) : null;
   }
 
   /**
