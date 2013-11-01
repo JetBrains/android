@@ -15,6 +15,7 @@
  */
 package com.intellij.android.designer.designSurface.layout;
 
+import com.intellij.android.designer.AndroidDesignerUtils;
 import com.intellij.android.designer.designSurface.feedbacks.TextFeedback;
 import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
@@ -358,18 +359,14 @@ public class LinearLayoutOperation extends FlowBaseOperation {
 
       // Paint outline of inserted component, if there's just one:
       if (myComponents.size() == 1) {
-        RadComponent first = myComponents.get(0);
-        Rectangle b = first.getBounds(this);
-        if (b.isEmpty()) {
-          b.width = 100;
-          b.height = 30;
-        }
+        RadViewComponent first = (RadViewComponent)myComponents.get(0);
+        Dimension size = AndroidDesignerUtils.computePreferredSize(myContext.getArea(), first, myContainer);
         Rectangle bounds;
         if (myHorizontal) {
-          bounds = computeHorizontalPreviewBounds(b);
+          bounds = computeHorizontalPreviewBounds(size);
         }
         else {
-          bounds = computeVerticalPreviewBounds(b);
+          bounds = computeVerticalPreviewBounds(size);
         }
 
         Shape clip = g.getClip();
@@ -386,8 +383,7 @@ public class LinearLayoutOperation extends FlowBaseOperation {
         }
       }
     }
-
-    private Rectangle computeVerticalPreviewBounds(Rectangle b) {
+    private Rectangle computeVerticalPreviewBounds(Dimension b) {
       int x = 0;
       int y = 0;
       if (!myContainer.getChildren().isEmpty()) {
@@ -417,7 +413,7 @@ public class LinearLayoutOperation extends FlowBaseOperation {
       return new Rectangle(x, y, width, b.height);
     }
 
-    private Rectangle computeHorizontalPreviewBounds(Rectangle b) {
+    private Rectangle computeHorizontalPreviewBounds(Dimension b) {
       int x = 0;
       int y = 0;
       if (!myContainer.getChildren().isEmpty()) {
