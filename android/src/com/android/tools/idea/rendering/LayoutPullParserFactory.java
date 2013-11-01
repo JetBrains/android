@@ -74,8 +74,7 @@ public class LayoutPullParserFactory {
   @Nullable
   public static ILayoutPullParser create(@NotNull RenderService renderService) {
     XmlFile file = renderService.getPsiFile();
-    ApplicationManager.getApplication().assertReadAccessAllowed();
-    ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+    ResourceFolderType folderType = renderService.getFolderType();
     if (folderType == null) {
       return null;
     }
