@@ -233,6 +233,11 @@ class GradleTasksExecutor extends Task.Backgroundable {
           BuildLauncher launcher = connection.newBuild();
           GradleExecutionHelper.prepare(launcher, id, executionSettings, listener, extraJvmArgs, connection);
 
+          File javaHome = Projects.getJavaHome(getNotNullProject());
+          if (javaHome != null) {
+            launcher.setJavaHome(javaHome);
+          }
+
           launcher.forTasks(myTasks.toArray(new String[myTasks.size()]));
 
           launcher.setStandardOutput(stdout);
