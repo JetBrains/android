@@ -18,10 +18,9 @@ package com.android.tools.idea.ddms;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
-import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.Client;
-import com.android.ddmlib.ClientData;
-import com.android.ddmlib.IDevice;
+import com.android.ddmlib.*;
+import com.android.tools.idea.ddms.screenrecord.ScreenRecorderAction;
+import com.android.tools.idea.ddms.screenrecord.ScreenRecorderOptionsDialog;
 import com.android.tools.idea.ddms.screenshot.ScreenshotTask;
 import com.android.tools.idea.ddms.screenshot.ScreenshotViewer;
 import com.android.utils.Pair;
@@ -320,6 +319,7 @@ public class DevicePanel implements Disposable,
     DefaultActionGroup group = new DefaultActionGroup();
 
     group.add(new MyScreenshotAction());
+    group.add(new MyScreenRecorderAction());
     //group.add(new MyFileExplorerAction());
     //group.add(new Separator());
 
@@ -434,6 +434,30 @@ public class DevicePanel implements Disposable,
           }
         }
       }.queue();
+    }
+  }
+
+  private class MyScreenRecorderAction extends AnAction {
+    public MyScreenRecorderAction() {
+      super(AndroidBundle.message("android.ddms.actions.screenrecord"),
+            AndroidBundle.message("android.ddms.actions.screenrecord.description"),
+            AndroidIcons.Views.VideoView);
+    }
+
+    @Override
+    public void update(AnActionEvent e) {
+      IDevice selectedDevice = myDeviceContext.getSelectedDevice();
+      e.getPresentation().setEnabled(selectedDevice != null && selectedDevice.supportsFeature(IDevice.Feature.SCREEN_RECORD));
+    }
+
+    @Override
+    public void actionPerformed(AnActionEvent e) {
+      final IDevice d = myDeviceContext.getSelectedDevice();
+      if (d == null) {
+        return;
+      }
+
+      new ScreenRecorderAction(myProject, d).performAction();
     }
   }
 
