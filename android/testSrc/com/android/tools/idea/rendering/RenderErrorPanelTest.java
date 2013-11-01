@@ -46,8 +46,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     return true;
   }
 
-  public void testPanel() {
-    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout1.xml");
+  private String getRenderOutput(VirtualFile file) {
     assertNotNull(file);
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
@@ -66,7 +65,11 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     String html = panel.showErrors(render);
     assert html != null;
     html = stripImages(html);
+    return html;
+  }
 
+  public void testPanel() {
+    String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout1.xml"));
     assertEquals(
       "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
       "<B>NOTE: One or more layouts are missing the layout_width or layout_height attributes. These are required in most layouts.</B><BR/>\n" +
@@ -78,8 +81,24 @@ public class RenderErrorPanelTest extends AndroidTestCase {
       "Or: <A HREF=\"command:4\">Automatically add all missing attributes</A><BR/>\n" +
       "<BR/>\n" +
       "<BR/>\n" +
+      "The following classes could not be found:<DL>\n" +
+      "<DD>-&NBSP;LinerLayout (<A HREF=\"action:classpath\">Fix Build Path</A>)\n" +
+      "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>\n" +
+      "<BR/>\n" +
       "</body></html>",
      html);
+  }
+
+  public void testTypo() {
+    String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout3.xml", "res/layout/layout3.xml"));
+    assertEquals(
+      "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
+      "The following classes could not be found:<DL>\n" +
+      "<DD>-&NBSP;Bitton (<A HREF=\"action:classpath\">Fix Build Path</A>)\n" +
+      "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>\n" +
+      "<BR/>\n" +
+      "</body></html>",
+      html);
   }
 
   public void testBrokenLayoutLib() {
