@@ -29,10 +29,10 @@ public class DeviceArtDescriptorTest extends TestCase {
   public void test1() throws FileNotFoundException {
     List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
 
-    // Currently there are 8 devices for which we have device art, plus 2 generic/stretchable
-    assertEquals(10, specs.size());
+    // Currently there are 9 devices for which we have device art, plus 2 generic/stretchable
+    assertEquals(11, specs.size());
 
-    DeviceArtDescriptor nexus4 = specs.get(0);
+    DeviceArtDescriptor nexus4 = specs.get(1);
     assertEquals("nexus_4", nexus4.getId());
 
     Point offsets = nexus4.getScreenPos(ScreenOrientation.PORTRAIT);
@@ -58,6 +58,7 @@ public class DeviceArtDescriptorTest extends TestCase {
         assertNotNull(id, descriptor.getFrameSize(orientation));
         assertNotNull(id, descriptor.getScreenPos(orientation));
         assertNotNull(id, descriptor.getScreenSize(orientation));
+        //noinspection StatementWithEmptyBody
         if (id.equals("phone") || id.equals("tablet")) {
           // No crop for these
         } else {
