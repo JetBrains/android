@@ -92,7 +92,7 @@ public final class GradleUtil {
   @Nullable
   public static VirtualFile getGradleBuildFile(@NotNull Module module) {
     AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
-    if (gradleFacet != null) {
+    if (gradleFacet != null && gradleFacet.getGradleProject() != null) {
       return gradleFacet.getGradleProject().getBuildFile();
     }
     // At the time we're called, module.getModuleFile() may be null, but getModuleFilePath returns the path where it will be created.
