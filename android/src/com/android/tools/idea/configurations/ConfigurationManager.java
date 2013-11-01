@@ -188,7 +188,7 @@ public class ConfigurationManager implements Disposable {
         final AndroidSdkData sdkData = platform.getSdkData();
         devices = new ArrayList<Device>();
         DeviceManager deviceManager = sdkData.getDeviceManager();
-        devices.addAll(deviceManager.getDevices((DEFAULT_DEVICES | VENDOR_DEVICES)));
+        devices.addAll(deviceManager.getDevices(DEFAULT_DEVICES | VENDOR_DEVICES));
         devices.addAll(myUserDeviceManager.parseUserDevices(new MessageBuildingSdkLog()));
       }
 
