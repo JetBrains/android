@@ -18,10 +18,12 @@ package com.android.tools.idea.gradle.parser;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+import com.intellij.codeInsight.actions.ReformatCodeProcessor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
@@ -29,8 +31,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
@@ -57,6 +61,82 @@ class GradleGroovyFile {
     myProject = project;
     myFile = file;
     reload();
+  }
+
+  /**
+   * Automatically reformats all the Groovy code inside the given closure.
+   */
+  static void reformatClosure(@NotNull GrStatementOwner closure) {
+    new ReformatCodeProcessor(closure.getProject(), closure.getContainingFile(), closure.getTextRange(), false).run();
+
+    // Now strip out any blank lines. They tend to accumulate otherwise. To do this, we iterate through our elements and find those that
+    // consist only of whitespace, and eliminate all double-newline occurrences.
+    for (PsiElement psiElement : closure.getChildren()) {
+      if (psiElement instanceof LeafPsiElement) {
+        String text = psiElement.getText();
+        if (StringUtil.isEmptyOrSpaces(text)) {
+          String newText = text;
+          while (newText.contains("\n\n")) {
+            newText = newText.replaceAll("\n\n", "\n");
+          }
+          if (!newText.equals(text)) {
+            ((LeafPsiElement)psiElement).replaceWithText(newText);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Creates a new, blank-valued property at the given path.
+   */
+  @Nullable
+  static GrMethodCall createNewValue(@NotNull GrStatementOwner root, @NotNull BuildFileKey key) {
+    // First iterate through the components of the path and make sure all of the nested closures are in place.
+    GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(root.getProject());
+    String path = key.getPath();
+    String[] parts = path.split("/");
+    GrStatementOwner parent = root;
+    for (int i = 0; i < parts.length - 1; i++) {
+      String part = parts[i];
+      GrStatementOwner closure = getMethodClosureArgument(parent, part);
+      if (closure == null) {
+        parent.addStatementBefore(factory.createStatementFromText(part + " {}"), null);
+        reformatClosure(parent);
+        closure = getMethodClosureArgument(parent, part);
+        if (closure == null) {
+          return null;
+        }
+      }
+      parent = closure;
+    }
+    String name = parts[parts.length - 1];
+    String text;
+    switch(key.getType()) {
+      case BOOLEAN:
+        text = name + " false";
+        break;
+      case INTEGER:
+        text = name + " 0";
+        break;
+      case REFERENCE:
+        text = name + " reference";
+        break;
+      case CLOSURE:
+        text = name + " {}";
+        break;
+      case FILE:
+        text = name + " file('')";
+        break;
+      case STRING:
+      case FILE_AS_STRING:
+      default:
+        text = name + "''";
+        break;
+    }
+    parent.addStatementBefore(factory.createStatementFromText(text), null);
+    reformatClosure(parent);
+    return getMethodCall(parent, name);
   }
 
   /**
@@ -216,14 +296,15 @@ class GradleGroovyFile {
    * Returns the name of the given method call
    */
   protected static @NotNull String getMethodCallName(@NotNull GrMethodCall gmc) {
-    return (gmc.getInvokedExpression() != null && gmc.getInvokedExpression().getText() != null) ? gmc.getInvokedExpression().getText() : "";
+    GrExpression expression = gmc.getInvokedExpression();
+    return (expression != null && expression.getText() != null) ? expression.getText() : "";
   }
 
   /**
-   * Returns all arguments in the given argument list that are literals.
+   * Returns all arguments in the given argument list that are of the given type.
    */
-  protected static @NotNull Iterable<GrLiteral> getLiteralArguments(@NotNull GrArgumentList args) {
-    return Iterables.filter(Arrays.asList(args.getAllArguments()), GrLiteral.class);
+  protected static @NotNull <E> Iterable<E> getTypedArguments(@NotNull GrArgumentList args, @NotNull Class<E> clazz) {
+    return Iterables.filter(Arrays.asList(args.getAllArguments()), clazz);
   }
 
   /**
@@ -234,7 +315,7 @@ class GradleGroovyFile {
     if (argumentList == null) {
       return EMPTY_LITERAL_ITERABLE;
     }
-    return getLiteralArguments(argumentList);
+    return getTypedArguments(argumentList, GrLiteral.class);
   }
 
   /**
@@ -281,6 +362,46 @@ class GradleGroovyFile {
    */
   protected static GrClosableBlock getMethodClosureArgument(@NotNull GrMethodCall methodCall) {
     return Iterables.getFirst(Arrays.asList(methodCall.getClosureArguments()), null);
+  }
+
+  /**
+   * Returns the value in the file for the given key, or null if not present.
+   */
+  static @Nullable Object getValueStatic(@NotNull GrStatementOwner root, @NotNull BuildFileKey key) {
+    GrMethodCall method = getMethodCallByPath(root, key.getPath()/*, false*/);
+    if (method == null) {
+      return null;
+    }
+    if (key.isArgumentIsClosure()) {
+      return key.getValue(getMethodClosureArgument(method));
+    } else {
+      return key.getValue(getArguments(method));
+    }
+  }
+
+  /**
+   * Returns the value in the file for the given key, converted to string, or null if not present.
+   */
+  static @Nullable String getStringValueStatic(@NotNull GrStatementOwner root, @NotNull BuildFileKey key) {
+    Object value = getValueStatic(root, key);
+    return value != null ? value.toString() : null;
+  }
+
+  /**
+   * Sets the value for the given key
+   */
+  static void setValueStatic(@NotNull GrStatementOwner root, @NotNull BuildFileKey key, @NotNull Object value) {
+    GrMethodCall method = getMethodCallByPath(root, key.getPath());
+    if (method == null) {
+      method = createNewValue(root, key);
+    }
+    if (method != null) {
+      if (key.isArgumentIsClosure()) {
+        key.setValue(getMethodClosureArgument(method), value);
+      } else {
+        key.setValue(root.getProject(), getArguments(method), value);
+      }
+    }
   }
 
   /**
