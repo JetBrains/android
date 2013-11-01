@@ -15,35 +15,40 @@
  */
 package com.android.tools.idea.structure;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.ModuleConfigurationEditor;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectBundle;
+import com.intellij.util.ActionRunner;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.concurrent.Callable;
 
 /**
  * A project structure pane that lets you add and remove dependencies for individual modules. It is largely a wrapper for
  * {@linkplain ModuleDependenciesPanel}
  */
-public class ModuleDependenciesEditor implements ModuleConfigurationEditor {
-  private static final String NAME = ProjectBundle.message("modules.classpath.title");
+public class GenericEditor<E extends EditorPanel> implements ModuleConfigurationEditor {
+  private static final Logger LOG = Logger.getInstance(GenericEditor.class);
 
-  private ModuleDependenciesPanel myPanel;
-  private final String myModulePath;
-  private final Project myProject;
+  private final String myName;
+  private E myPanel;
+  private final Callable<E> myPanelFactory;
 
-  public ModuleDependenciesEditor(Project project, String modulePath) {
-    myModulePath = modulePath;
-    myProject = project;
+  public GenericEditor(String name, Callable<E> panelFactory) {
+    myName = name;
+    myPanelFactory = panelFactory;
   }
 
   @Nullable
   @Override
   public JComponent createComponent() {
-    myPanel = new ModuleDependenciesPanel(myProject, myModulePath);
+    try {
+      myPanel = myPanelFactory.call();
+    } catch (Exception e) {
+      LOG.error("Error while creating dialog", e);
+    }
     return myPanel;
   }
 
@@ -61,7 +66,7 @@ public class ModuleDependenciesEditor implements ModuleConfigurationEditor {
   @Override
   @NotNull
   public String getDisplayName() {
-    return NAME;
+    return myName;
   }
 
   @Override
@@ -74,7 +79,16 @@ public class ModuleDependenciesEditor implements ModuleConfigurationEditor {
 
   @Override
   public void apply() throws ConfigurationException {
-    myPanel.apply();
+    try {
+      ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+        @Override
+        public void run() throws Exception {
+            myPanel.apply();
+          }
+      });
+    } catch (Exception e) {
+      LOG.error("Error while applying changes", e);
+    }
   }
 
   @Override
