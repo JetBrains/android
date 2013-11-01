@@ -24,26 +24,18 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.server.BuildProcessParametersProvider;
 import com.intellij.execution.configurations.CommandLineTokenizer;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.PathUtil;
 import com.intellij.util.net.HttpConfigurable;
 import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createJvmArg;
 
@@ -51,9 +43,6 @@ import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createJvm
  * Adds Gradle jars to the build process' classpath and adds extra Gradle-related configuration options.
  */
 public class AndroidGradleBuildProcessParametersProvider extends BuildProcessParametersProvider {
-  private static final Logger LOG = Logger.getInstance(AndroidGradleBuildProcessParametersProvider.class);
-  private static final ProjectSystemId SYSTEM_ID = GradleConstants.SYSTEM_ID;
-
   @NotNull private final Project myProject;
 
   private List<String> myClasspath;
@@ -142,15 +131,10 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
       jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_SERVICE_DIR_PATH, serviceDirectory));
     }
 
-    ProjectRootManagerEx rootManager = ProjectRootManagerEx.getInstanceEx(myProject);
-    Sdk projectSdk = rootManager.getProjectSdk();
 
-    if (projectSdk != null) {
-      String javaHome = projectSdk.getHomePath();
-      if (javaHome != null && !javaHome.isEmpty()) {
-        javaHome = FileUtil.toSystemDependentName(javaHome);
-        jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_JAVA_HOME_DIR_PATH, javaHome));
-      }
+    File javaHome = Projects.getJavaHome(myProject);
+    if (javaHome != null) {
+      jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_JAVA_HOME_DIR_PATH, javaHome.getPath()));
     }
 
     String basePath = FileUtil.toSystemDependentName(myProject.getBasePath());
