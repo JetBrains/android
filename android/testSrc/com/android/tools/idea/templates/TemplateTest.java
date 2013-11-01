@@ -21,11 +21,13 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
 import com.android.tools.idea.sdk.VersionCheck;
+import com.android.tools.idea.wizard.ConfigureAndroidModuleStep;
 import com.android.tools.idea.wizard.NewProjectWizardState;
 import com.android.tools.idea.wizard.TemplateWizardState;
 import com.android.tools.lint.checks.ManifestDetector;
 import com.android.tools.lint.detector.api.Severity;
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -41,6 +43,7 @@ import org.w3c.dom.Element;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.android.SdkConstants.ATTR_ID;
@@ -332,6 +335,48 @@ public class TemplateTest extends AndroidGradleTestCase {
                        + ((end - begin) / (1000 * 60)) + " minutes");
   }
 
+  public void testJdk7() throws Exception {
+    SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
+    assertNotNull(sdkManager);
+
+    if (ConfigureAndroidModuleStep.isJdk7Supported(sdkManager)) {
+      IAndroidTarget[] targets = sdkManager.getTargets();
+      IAndroidTarget target = targets[targets.length - 1];
+      Map<String,Object> overrides = Maps.newHashMap();
+      overrides.put(ATTR_JAVA_VERSION, "1.7");
+      NewProjectWizardState state = createNewProjectState(true, sdkManager);
+
+      // TODO: Allow null activity state!
+      File activity = findTemplate("activities", "BlankActivity");
+      TemplateWizardState activityState = state.getActivityTemplateState();
+      assertNotNull(activity);
+      activityState.setTemplateLocation(activity);
+
+      checkApiTarget(19, 19, target, state, "Test17", null, overrides);
+    } else {
+      System.out.println("JDK 7 not supported by current SDK manager: not testing");
+    }
+  }
+
+  public void testJdk5() throws Exception {
+    SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
+    assertNotNull(sdkManager);
+
+    IAndroidTarget[] targets = sdkManager.getTargets();
+    IAndroidTarget target = targets[targets.length - 1];
+    Map<String,Object> overrides = Maps.newHashMap();
+    overrides.put(ATTR_JAVA_VERSION, "1.5");
+    NewProjectWizardState state = createNewProjectState(true, sdkManager);
+
+    // TODO: Allow null activity state!
+    File activity = findTemplate("activities", "BlankActivity");
+    TemplateWizardState activityState = state.getActivityTemplateState();
+    assertNotNull(activity);
+    activityState.setTemplateLocation(activity);
+
+    checkApiTarget(8, 18, target, state, "Test15", null, overrides);
+  }
+
   // ---- Test support code below ----
 
   /** Checks whether we've already checked the given template in a new project or existing project context */
@@ -401,14 +446,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     return file;
   }
 
-  private void checkTemplate(File templateFile, boolean createWithProject) throws Exception {
-    if (KNOWN_BROKEN.contains(templateFile.getName())) {
-      return;
-    }
-
-    SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
-    assertNotNull(sdkManager);
-
+  private static NewProjectWizardState createNewProjectState(boolean createWithProject, SdkManager sdkManager) {
     final NewProjectWizardState values = new NewProjectWizardState();
     assertNotNull(values);
     values.convertApisToInt();
@@ -426,6 +464,18 @@ public class TemplateTest extends AndroidGradleTestCase {
     if (buildTool != null) {
       values.put(ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
     }
+    return values;
+  }
+
+  private void checkTemplate(File templateFile, boolean createWithProject) throws Exception {
+    if (KNOWN_BROKEN.contains(templateFile.getName())) {
+      return;
+    }
+
+    SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
+    assertNotNull(sdkManager);
+
+    final NewProjectWizardState values = createNewProjectState(createWithProject, sdkManager);
 
     String projectNameBase = "TestProject" + templateFile.getName();
 
@@ -509,7 +559,7 @@ public class TemplateTest extends AndroidGradleTestCase {
                                   + "_target_" + targetSdk
                                   + "_build_" + target.getVersion().getApiLevel()
                                   + "_theme_" + optionId;
-                    checkApiTarget(minSdk, targetSdk, target, values, base, state);
+                    checkApiTarget(minSdk, targetSdk, target, values, base, state, null);
                     if (!TEST_VARIABLE_COMBINATIONS) {
                       break projectParameters;
                     }
@@ -542,7 +592,8 @@ public class TemplateTest extends AndroidGradleTestCase {
     @NonNull IAndroidTarget target,
     @NonNull NewProjectWizardState projectValues,
     @NonNull String projectNameBase,
-    @Nullable TemplateWizardState templateValues) throws Exception {
+    @Nullable TemplateWizardState templateValues,
+    @Nullable Map<String,Object> overrides) throws Exception {
     Boolean createActivity = (Boolean)projectValues.get(ATTR_CREATE_ACTIVITY);
     if (createActivity == null) {
       createActivity = true;
@@ -568,6 +619,12 @@ public class TemplateTest extends AndroidGradleTestCase {
         if (parameter.id != null) {
           values.put(parameter.id, parameter.initial);
         }
+      }
+    }
+
+    if (overrides != null) {
+      for (Map.Entry<String, Object> entry : overrides.entrySet()) {
+        values.put(entry.getKey(), entry.getValue());
       }
     }
 
