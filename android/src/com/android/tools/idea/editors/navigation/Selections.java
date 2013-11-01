@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.navigation;
 
+import com.android.navigation.Dimension;
 import com.android.navigation.NavigationModel;
 import com.android.navigation.State;
 import com.android.navigation.Transition;
@@ -131,7 +132,7 @@ class Selections {
     private void moveTo(Point location, boolean snap) {
       Point newLocation = Utilities.add(diff(location, myMouseDownLocation), myOrigComponentLocation);
       if (snap) {
-        newLocation = Utilities.snap(newLocation, myComponent.transform.modelToView(NavigationEditorPanel.MIDDLE_SNAP_GRID));
+        newLocation = Utilities.snap(newLocation, myComponent.transform.modelToView(Dimension.create(NavigationEditorPanel.MIDDLE_SNAP_GRID)));
       }
       myComponent.setLocation(newLocation);
       myState.setLocation(myComponent.transform.viewToModel(newLocation));
