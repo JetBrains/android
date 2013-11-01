@@ -24,7 +24,10 @@ import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.image.BufferedImage;
 import java.util.List;
+
+import static com.android.tools.idea.rendering.ScalableImage.ShadowType;
 
 public class RenderResult {
   @NotNull private final PsiFile myFile;
@@ -46,7 +49,13 @@ public class RenderResult {
     if (session != null && session.getResult().isSuccess() && renderService != null) {
       myRootViews = session.getRootViews();
       Configuration configuration = renderService.getConfiguration();
-      myImage = new ScalableImage(session, configuration);
+      BufferedImage image = session.getImage();
+      boolean alphaChannelImage = session.isAlphaChannelImage() || renderService.requiresTransparency();
+      ShadowType shadowType = alphaChannelImage ? ShadowType.NONE : ShadowType.RECTANGULAR;
+      if (shadowType == ShadowType.NONE && renderService.isNonRectangular()) {
+        shadowType = ShadowType.ARBITRARY;
+      }
+      myImage = new ScalableImage(configuration, image, alphaChannelImage, shadowType);
     } else {
       myRootViews = null;
       myImage = null;
