@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.gradle.compiler;
 
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.compiler.impl.BuildTargetScopeProvider;
+import com.intellij.compiler.impl.CompositeScope;
+import com.intellij.compiler.impl.ModuleCompileScope;
+import com.intellij.compiler.impl.ProjectCompileScope;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerFilter;
 import com.intellij.openapi.project.Project;
@@ -43,6 +47,24 @@ public class AndroidGradleBuildTargetScopeProvider extends BuildTargetScopeProvi
     if (!Projects.isGradleProject(project)) {
       return Collections.emptyList();
     }
+    if (baseScope instanceof ProjectCompileScope) {
+      // Make or Rebuild project
+      BuildMode buildMode = forceBuild ? BuildMode.REBUILD : BuildMode.MAKE;
+      if (Projects.getBuildModeFrom(project) == null) {
+        Projects.setProjectBuildMode(project, buildMode);
+      }
+    }
+    else if (baseScope instanceof ModuleCompileScope) {
+      // Make selected modules
+      Projects.setModulesToBuild(project, Projects.getSelectedModules(project, null));
+      Projects.setProjectBuildMode(project, BuildMode.MAKE);
+    }
+    else if (baseScope instanceof CompositeScope) {
+      // Compile selected modules
+      Projects.setModulesToBuild(project, Projects.getSelectedModules(project, null));
+      Projects.setProjectBuildMode(project, BuildMode.COMPILE_JAVA);
+    }
+
     TargetTypeBuildScope scope = CmdlineProtoUtil.createTargetsScope(TARGET_TYPE_ID, Collections.singletonList(TARGET_ID), forceBuild);
     return Collections.singletonList(scope);
   }

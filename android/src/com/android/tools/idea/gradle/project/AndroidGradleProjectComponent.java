@@ -68,7 +68,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
           Projects.refresh(contextProject);
 
           BuildMode buildMode = Projects.getBuildModeFrom(contextProject);
-          Projects.removeBuildActionFrom(contextProject);
+          Projects.removeBuildDataFrom(contextProject);
 
           if (BuildMode.SOURCE_GEN.equals(buildMode)) {
             // Notify facets after project was synced. This only happens after importing a project.

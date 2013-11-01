@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.intellij.compiler.actions.CompileProjectAction;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,7 +27,7 @@ public class AndroidRebuildProjectAction extends AndroidBuildProjectAction {
   }
 
   @Override
-  protected void buildGradleProject(@NotNull Project project) {
-    Projects.rebuild(project);
+  protected void buildGradleProject(@NotNull Project project, @NotNull DataContext dataContext) {
+    GradleInvoker.getInstance(project).rebuild();
   }
 }
