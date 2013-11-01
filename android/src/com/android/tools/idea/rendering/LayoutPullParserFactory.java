@@ -62,7 +62,7 @@ public class LayoutPullParserFactory {
           XmlTag rootTag = ((XmlFile)file).getRootTag();
           if (rootTag != null) {
             String tag = rootTag.getName();
-            return tag.equals(TAG_APPWIDGET_PROVIDER) || tag.equals(TAG_PREFERENCE_SCREEN);
+            return tag.equals(TAG_APPWIDGET_PROVIDER);
           }
         }
         return false;
