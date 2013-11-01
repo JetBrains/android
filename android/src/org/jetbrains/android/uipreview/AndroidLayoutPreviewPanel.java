@@ -504,7 +504,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
   // RenderContext helpers
 
   public boolean hasAlphaChannel() {
-    return myRenderResult.getImage() != null && !myRenderResult.getImage().getShowDropShadow();
+    return myRenderResult.getImage() != null && !myRenderResult.getImage().hasAlphaChannel();
   }
 
   @NotNull
@@ -631,7 +631,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
           ScalableImage image = myRenderResult.getImage();
           // If there's a drop shadow
           if (image != null) {
-            if (image.getShowDropShadow()) {
+            if (image.hasDropShadow()) {
               point.x += ShadowPainter.SHADOW_SIZE / 3;
             }
           }
@@ -640,7 +640,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
           ScalableImage image = myRenderResult.getImage();
           // If there's a drop shadow
           if (image != null) {
-            if (image.getShowDropShadow()) {
+            if (image.hasDropShadow()) {
               point.y += ShadowPainter.SHADOW_SIZE / 3;
             }
           }

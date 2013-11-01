@@ -32,7 +32,6 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -50,7 +49,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xmlpull.v1.XmlPullParserException;
 
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -63,9 +61,7 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
  * The {@link RenderService} provides rendering and layout information for
  * Android layouts. This is a wrapper around the layout library.
  */
-public class RenderService {
-  //private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.RenderService");
-
+public class RenderService implements IImageFactory {
   @NotNull
   private final Module myModule;
 
@@ -84,9 +80,6 @@ public class RenderService {
 
   @NotNull
   private final LayoutLibrary myLayoutLib;
-
-  @Nullable
-  private IImageFactory myImageFactory;
 
   @NotNull
   private final HardwareConfigHelper myHardwareConfigHelper;
@@ -249,6 +242,11 @@ public class RenderService {
   @NotNull
   public Configuration getConfiguration() {
     return myConfiguration;
+  }
+
+  @Nullable
+  public ResourceFolderType getFolderType() {
+    return ResourceHelper.getFolderType(myPsiFile);
   }
 
   @NotNull
@@ -518,11 +516,11 @@ public class RenderService {
 
     if (myOverrideBgColor != null) {
       params.setOverrideBgColor(myOverrideBgColor.intValue());
+    } else if (requiresTransparency()) {
+      params.setOverrideBgColor(0);
     }
 
-    if (myImageFactory != null) {
-      params.setImageFactory(myImageFactory);
-    }
+    params.setImageFactory(this);
 
     if (myTimeout > 0) {
       params.setTimeout(myTimeout);
@@ -704,6 +702,29 @@ public class RenderService {
       }
     }
     return null;
+  }
+
+  /** Returns true if this service can render a non-rectangular shape */
+  public boolean isNonRectangular() {
+    // Drawable images can have non-rectangular shapes; we need to ensure that we blank out the
+    // background with full alpha
+    return getFolderType() == ResourceFolderType.DRAWABLE;
+  }
+
+  /** Returns true if this service requires rendering into a transparent/alpha channel image */
+  public boolean requiresTransparency() {
+    // Drawable images can have non-rectangular shapes; we need to ensure that we blank out the
+    // background with full alpha
+    return isNonRectangular();
+  }
+
+  // ---- Implements IImageFactory ----
+
+  /** TODO: reuse image across subsequent render operations if the size is the same */
+  @SuppressWarnings("UndesirableClassUsage") // Don't need Retina for layoutlib rendering; will scale down anyway
+  @Override
+  public BufferedImage getImage(int width, int height) {
+    return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
   }
 
   /**
