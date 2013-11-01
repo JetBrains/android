@@ -13,6 +13,7 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.HashSet;
+import com.intellij.util.lang.UrlClassLoader;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -22,7 +23,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -36,7 +36,7 @@ public final class ProjectClassLoader extends ClassLoader {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.uipreview.ProjectClassLoader");
 
   private final Module myModule;
-  private URLClassLoader mJarClassLoader;
+  private ClassLoader mJarClassLoader;
   private boolean mInsideJarClassLoader = false;
 
   public ProjectClassLoader(@Nullable ClassLoader parentClassLoader, Module module) {
@@ -252,7 +252,7 @@ public final class ProjectClassLoader extends ClassLoader {
   private Class<?> loadClassFromJar(String name) {
     if (mJarClassLoader == null) {
       final URL[] externalJars = getExternalJars();
-      mJarClassLoader = new URLClassLoader(externalJars, this);
+      mJarClassLoader = UrlClassLoader.build().parent(this).urls(externalJars).allowUnescaped().noPreload().get();
     }
 
     try {
