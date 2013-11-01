@@ -1339,6 +1339,14 @@ public final class ResourceFolderRepository extends ProjectResources {
                 String newDirName = newParent.getName();
                 resourceFile.setPsiFile(psiFile, getQualifiers(newDirName));
                 myGeneration++; // qualifiers may have changed: can affect configuration matching
+                // We need to recompute resource values too, since some of these can point to
+                // the old file (e.g. a drawable resource could have a DensityBasedResourceValue
+                // pointing to the old file
+                for (ResourceItem item : resourceFile.getItemMap().values()) { // usually just 1
+                  if (item instanceof PsiResourceItem) {
+                    ((PsiResourceItem)item).recomputeValue();
+                  }
+                }
                 invalidateItemCaches();
               }
             } else {
