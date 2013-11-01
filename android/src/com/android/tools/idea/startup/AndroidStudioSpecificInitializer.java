@@ -22,11 +22,11 @@ import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.structure.AndroidHomeConfigurable;
 import com.google.common.io.Closeables;
 import com.intellij.compiler.actions.GenerateAntBuildAction;
-import com.intellij.compiler.actions.MakeModuleAction;
 import com.intellij.debugger.settings.NodeRendererSettings;
 import com.intellij.ide.actions.ImportModuleAction;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -105,18 +105,20 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     replaceAction("ImportProject", new AndroidImportProjectAction());
     replaceAction("WelcomeScreen.ImportProject", new AndroidImportProjectAction());
     replaceAction("ImportModule", new AndroidActionRemover(new ImportModuleAction(), "Import Module..."));
-    replaceAction("MakeModule", new AndroidActionRemover(new MakeModuleAction(), "Make Module"));
 
-    // 'Build' > 'Make' action
+    // 'Build' > 'Make Project' action
     replaceAction("CompileDirty", new AndroidMakeProjectAction());
 
+    // 'Build' > 'Make Modules' action
+    replaceAction(IdeActions.ACTION_MAKE_MODULE, new AndroidMakeModuleAction());
+
     // 'Build' > 'Rebuild' action
-    replaceAction("CompileProject", new AndroidRebuildProjectAction());
+    replaceAction(IdeActions.ACTION_COMPILE_PROJECT, new AndroidRebuildProjectAction());
 
-    // 'Build' > 'Compile' action
-    replaceAction("Compile", new AndroidCompileProjectAction());
+    // 'Build' > 'Compile Modules' action
+    replaceAction(IdeActions.ACTION_COMPILE, new AndroidCompileModuleAction());
 
-    replaceAction("GenerateAntBuild", new AndroidActionRemover(new GenerateAntBuildAction(), "Generate Ant Build..."));
+    replaceAction(IdeActions.ACTION_GENERATE_ANT_BUILD, new AndroidActionRemover(new GenerateAntBuildAction(), "Generate Ant Build..."));
   }
 
   private static void replaceAction(String actionId, AnAction newAction) {

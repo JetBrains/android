@@ -16,13 +16,10 @@
 package com.android.tools.idea.gradle.compiler;
 
 import com.android.tools.idea.AndroidTestCaseHelper;
-import com.google.common.base.Joiner;
+import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.collect.Lists;
-import com.intellij.ide.impl.NewProjectUtil;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
-import com.intellij.openapi.projectRoots.JavaSdk;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
@@ -89,5 +86,14 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.proxy.property.count=2"));
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.proxy.property.0=http.proxyHost:proxy.android.com"));
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.proxy.property.1=http.proxyPort:8080"));
+  }
+
+  public void testPopulateModulesToBuildWithModuleNames() {
+    Projects.setModulesToBuild(myProject, new Module[] {myModule});
+    List<String> jvmArgs= Lists.newArrayList();
+    myParametersProvider.populateModulesToBuild(jvmArgs);
+    assertEquals(2, jvmArgs.size());
+    assertEquals("-Dcom.android.studio.gradle.modules.count=1", jvmArgs.get(0));
+    assertEquals("-Dcom.android.studio.gradle.modules.0=" + myModule.getName(), jvmArgs.get(1));
   }
 }
