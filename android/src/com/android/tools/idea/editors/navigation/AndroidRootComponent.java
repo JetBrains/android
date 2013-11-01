@@ -27,7 +27,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
@@ -36,15 +35,20 @@ public class AndroidRootComponent extends JComponent {
 
   private final RenderingParameters myRenderingParameters;
   private final PsiFile myPsiFile;
+  private final boolean myIsMenu;
 
-  @NotNull
-  Transform transform = new Transform(1);
+  @NotNull Transform transform = createTransform(1);
   private Image myScaledImage;
   private RenderResult myRenderResult = null;
 
-  public AndroidRootComponent(@NotNull final RenderingParameters renderingParameters, @Nullable final PsiFile psiFile) {
+  public AndroidRootComponent(@NotNull final RenderingParameters renderingParameters, @Nullable final PsiFile psiFile, boolean isMenu) {
     this.myRenderingParameters = renderingParameters;
     this.myPsiFile = psiFile;
+    this.myIsMenu = isMenu;
+  }
+
+  public AndroidRootComponent(@NotNull final RenderingParameters renderingParameters, @Nullable final PsiFile psiFile) {
+    this(renderingParameters, psiFile, false);
   }
 
   @Nullable
@@ -67,13 +71,42 @@ public class AndroidRootComponent extends JComponent {
   }
 
   public void setScale(float scale) {
-    transform = new Transform(scale);
+    transform = createTransform(scale);
     invalidate2();
+  }
+
+  private Transform createTransform(float scale) {
+    if (myIsMenu) {
+      return new Transform(scale) {
+        @Override
+        public int modelToViewX(int d) {
+          RenderedView menu = getMenu(myRenderResult);
+          return super.modelToViewX(d - (menu == null ? 0 : menu.x));
+        }
+      };
+    }
+    return new Transform(scale);
+  }
+
+  private static RenderedView getMenu(RenderResult renderResult) {
+    RenderedView root = getRoot(renderResult);
+    if (root == null) {
+      return null;
+    }
+    return root.getChildren().get(0);
+  }
+
+  private com.android.navigation.Dimension size(RenderedView view) {
+    if (view == null) {
+      //return com.android.navigation.Dimension.ZERO;
+      return new com.android.navigation.Dimension(100, 100); // width/height 0 and 1 is too small to cause an invalidate, for some reason
+    }
+    return new com.android.navigation.Dimension(view.w, view.h);
   }
 
   @Override
   public Dimension getPreferredSize() {
-    return myRenderingParameters.getDeviceScreenSizeFor(transform);
+    return transform.modelToView(myIsMenu ? size(getMenu(myRenderResult)) : myRenderingParameters.getDeviceScreenSize());
   }
 
   //ScalableImage image = myRenderResult.getImage();
@@ -111,7 +144,13 @@ public class AndroidRootComponent extends JComponent {
   public void paintComponent(Graphics g) {
     Image scaledImage = getScaledImage();
     if (scaledImage != null) {
-      g.drawImage(scaledImage, 0, 0, null);
+      if (myIsMenu) {
+        Point point = transform.modelToView(com.android.navigation.Point.ORIGIN);
+        g.drawImage(scaledImage, point.x, point.y, null);
+      }
+      else {
+        g.drawImage(scaledImage, 0, 0, null);
+      }
     }
     else {
       g.setColor(Color.WHITE);
@@ -142,7 +181,7 @@ public class AndroidRootComponent extends JComponent {
     //synchronized (RENDERING_LOCK) {
     final RenderService service = RenderService.create(facet, module, myPsiFile, configuration, logger, null);
     // The rendering service takes long enough to initialise that we don't want to do this from the EDT.
-    // Further, IntellJ's helper classes don't not allow read access from outside EDT, so we need nested runnables.
+    // Further, IntelliJ's helper classes don't not allow read access from outside EDT, so we need nested runnables.
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
@@ -157,13 +196,20 @@ public class AndroidRootComponent extends JComponent {
           }
         });
       }
-    }
-    );
+    });
   }
 
   @Nullable
   public RenderedView getRootView() {
     RenderResult renderResult = getRenderResult();
+    if (renderResult == null) {
+      return null;
+    }
+    return getRoot(renderResult);
+  }
+
+  @Nullable
+  private static RenderedView getRoot(@Nullable RenderResult renderResult) {
     if (renderResult == null) {
       return null;
     }
