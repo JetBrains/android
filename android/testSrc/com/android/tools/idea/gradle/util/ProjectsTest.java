@@ -19,10 +19,16 @@ import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
 
 import java.io.File;
+
+import static org.easymock.EasyMock.*;
 
 /**
  * Tests for {@link Projects}.
@@ -40,6 +46,26 @@ public class ProjectsTest extends IdeaTestCase {
   }
 
   public void testIsGradleProjectWithGradleProject() {
+    addAndroidGradleFacet();
+    assertTrue(Projects.isGradleProject(myProject));
+  }
+
+  public void testGetSelectedModules() {
+    addAndroidGradleFacet();
+
+    DataContext dataContext = createMock(DataContext.class);
+    Module[] data = {myModule};
+    expect(dataContext.getData(LangDataKeys.MODULE_CONTEXT_ARRAY.getName())).andReturn(data);
+
+    replay(dataContext);
+
+    Module[] selectedModules = Projects.getSelectedModules(myProject, dataContext);
+    assertSame(data, selectedModules);
+
+    verify(dataContext);
+  }
+
+  private void addAndroidGradleFacet() {
     FacetManager facetManager = FacetManager.getInstance(myModule);
     ModifiableFacetModel facetModel = facetManager.createModifiableModel();
     try {
@@ -48,6 +74,20 @@ public class ProjectsTest extends IdeaTestCase {
     } finally {
       facetModel.commit();
     }
-    assertTrue(Projects.isGradleProject(myProject));
+  }
+
+  public void testGetSelectedModulesWithModuleWithoutAndroidGradleFacet() {
+    DataContext dataContext = createMock(DataContext.class);
+    Module[] data = {myModule};
+    expect(dataContext.getData(LangDataKeys.MODULE_CONTEXT_ARRAY.getName())).andReturn(data);
+
+    replay(dataContext);
+
+    Module[] selectedModules = Projects.getSelectedModules(myProject, dataContext);
+    assertNotSame(data, selectedModules);
+    assertEquals(1, selectedModules.length);
+    assertSame(myModule, selectedModules[0]);
+
+    verify(dataContext);
   }
 }
