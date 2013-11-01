@@ -47,11 +47,13 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
@@ -748,6 +750,93 @@ public class RenderService implements IImageFactory {
         setRenderingMode(RenderingMode.H_SCROLL);
         setDecorations(false);
       }
+    }
+  }
+
+  /**
+   * Measure the children of the given parent element.
+   *
+   * @param parent the parent element whose children should be measured
+   * @return a list of root view infos
+   */
+  @Nullable
+  public List<ViewInfo> measure(Element parent) {
+    ILayoutPullParser modelParser = new DomPullParser(parent);
+    RenderSession session = measure(modelParser);
+    if (session != null) {
+      Result result = session.getResult();
+      if (result != null && result.isSuccess()) {
+        assert session.getRootViews().size() == 1;
+        return session.getRootViews();
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  private RenderSession measure(ILayoutPullParser parser) {
+    ResourceResolver resolver = getResourceResolver();
+    if (resolver == null) {
+      // Abort the rendering if the resources are not found.
+      return null;
+    }
+
+    myProjectCallback.reset();
+
+    HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
+    final SessionParams params = new SessionParams(
+      parser,
+      RenderingMode.FULL_EXPAND,
+      myModule /* projectKey */,
+      hardwareConfig,
+      resolver,
+      myProjectCallback,
+      myMinSdkVersion,
+      myTargetSdkVersion,
+      myLogger);
+    params.setLayoutOnly();
+    params.setForceNoDecor();
+    params.setExtendedViewInfoMode(true);
+    params.setLocale(myLocale.toLocaleId());
+    ManifestInfo manifestInfo = ManifestInfo.get(myModule);
+    try {
+      params.setRtlSupport(manifestInfo.isRtlSupported());
+    } catch (Exception e) {
+      // ignore.
+    }
+
+    try {
+      myProjectCallback.setLogger(myLogger);
+      myProjectCallback.setResourceResolver(resolver);
+
+      return ApplicationManager.getApplication().runReadAction(new Computable<RenderSession>() {
+        @Nullable
+        @Override
+        public RenderSession compute() {
+          int retries = 0;
+          while (retries < 10) {
+            RenderSession session = myLayoutLib.createSession(params);
+            Result result = session.getResult();
+            if (result.getStatus() != Result.Status.ERROR_TIMEOUT) {
+              // Sometimes happens at startup; treat it as a timeout; typically a retry fixes it
+              if (!result.isSuccess() && "The main Looper has already been prepared.".equals(result.getErrorMessage())) {
+                retries++;
+                continue;
+              }
+              return session;
+            }
+            retries++;
+          }
+
+          return null;
+        }
+      });
+    }
+    catch (RuntimeException t) {
+      // Exceptions from the bridge
+      myLogger.error(null, t.getLocalizedMessage(), t, null);
+      throw t;
     }
   }
 }
