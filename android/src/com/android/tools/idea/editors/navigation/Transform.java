@@ -26,12 +26,20 @@ public class Transform {
     myScale = scale;
   }
 
-  public Dimension modelToView(Dimension size) {
-    return Utilities.scale(size, myScale);
+  public Dimension modelToView(com.android.navigation.Dimension size) {
+    return new Dimension(modelToView(size.width), modelToView(size.height));
   }
 
   public int modelToView(int d) {
     return ((int)(d * myScale));
+  }
+
+  public int modelToViewX(int x) {
+    return modelToView(x);
+  }
+
+  public int modelToViewY(int y) {
+    return modelToView(y);
   }
 
   public int viewToModel(int d) {
@@ -39,7 +47,7 @@ public class Transform {
   }
 
   public Point modelToView(com.android.navigation.Point loc) {
-    return new Point(modelToView(loc.x), modelToView(loc.y));
+    return new Point(modelToViewX(loc.x), modelToViewY(loc.y));
   }
 
   public com.android.navigation.Point viewToModel(Point loc) {
@@ -47,6 +55,6 @@ public class Transform {
   }
 
   public Rectangle getBounds(RenderedView v) {
-    return new Rectangle(modelToView(v.x), modelToView(v.y), modelToView(v.w), modelToView(v.h));
+    return new Rectangle(modelToViewX(v.x), modelToViewY(v.y), modelToView(v.w), modelToView(v.h));
   }
 }

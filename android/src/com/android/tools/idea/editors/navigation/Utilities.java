@@ -26,9 +26,11 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Utilities {
   public static final Dimension ZERO_SIZE = new Dimension(0, 0);
+  public static final PsiMethod[] EMPTY_PSI_METHOD_ARRAY = new PsiMethod[0];
 
   public static Point add(Point p1, Point p2) {
     return new Point(p1.x + p2.x, p1.y + p2.y);
@@ -198,7 +200,7 @@ public class Utilities {
 
   @NotNull
   static PsiJavaCodeReferenceElement[] getReferenceElements(final @NotNull PsiClass clazz, String methodName) {
-    final java.util.List<PsiJavaCodeReferenceElement> results = new ArrayList<PsiJavaCodeReferenceElement>();
+    final List<PsiJavaCodeReferenceElement> results = new ArrayList<PsiJavaCodeReferenceElement>();
 
     // test
     JavaRecursiveElementVisitor visitor = new JavaRecursiveElementVisitor() {
@@ -249,14 +251,24 @@ public class Utilities {
   }
 
   @Nullable
-  public static PsiJavaCodeReferenceElement getReferenceElement(Module module, String className, String methodName) {
+  public static PsiClass getPsiClass(Module module, String className) {
     JavaPsiFacade facade = JavaPsiFacade.getInstance(module.getProject());
     GlobalSearchScope scope = module.getModuleWithDependenciesAndLibrariesScope(false);
-    PsiClass aClass = facade.findClass(className, scope);
+    return facade.findClass(className, scope);
+  }
+
+  @Nullable
+  public static PsiJavaCodeReferenceElement getReferenceElement(Module module, String className, String methodName) {
+    PsiClass aClass = getPsiClass(module, className);
     if (aClass == null) {
       return null;
     }
     PsiJavaCodeReferenceElement[] referenceElement = getReferenceElements(aClass, methodName);
     return referenceElement.length == 1 ? referenceElement[0] : null;
+  }
+
+  public static PsiMethod[] getMethodsByName(Module module, String className, String methodName) {
+    PsiClass psiClass = getPsiClass(module, className);
+    return psiClass == null ? EMPTY_PSI_METHOD_ARRAY : psiClass.findMethodsByName(methodName, false);
   }
 }
