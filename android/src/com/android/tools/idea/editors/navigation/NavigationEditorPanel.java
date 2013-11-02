@@ -100,7 +100,7 @@ public class NavigationEditorPanel extends JComponent {
   private boolean showRollover = false;
 
   @Nullable
-  private static RenderingParameters getRenderingParams(Project project, VirtualFile file) {
+  public static RenderingParameters getRenderingParams(Project project, VirtualFile file) {
     if (file != null) {
       PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
       if (psiFile != null) {
@@ -190,13 +190,6 @@ public class NavigationEditorPanel extends JComponent {
       PsiMethod candidate =
         getMethodsByName(myMyRenderingParams.myConfiguration.getModule(), "com.example.simplemail.fragment.MessageListFragment",
                          "installListeners")[0];
-      new Unifier().unify(template, candidate.getBody());
-    }
-    */
-    /*
-    {
-      PsiMethod template = getMethodsByName(myMyRenderingParams.myConfiguration.getModule(), "com.android.templates.Test", "foo")[0];
-      PsiMethod candidate = getMethodsByName(myMyRenderingParams.myConfiguration.getModule(), "com.android.templates.Test", "bar")[0];
       new Unifier().unify(template, candidate.getBody());
     }
     */
