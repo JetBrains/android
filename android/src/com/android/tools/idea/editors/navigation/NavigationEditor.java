@@ -16,20 +16,23 @@
 
 package com.android.tools.idea.editors.navigation;
 
-import com.android.navigation.Listener;
-import com.android.navigation.NavigationModel;
-import com.android.navigation.XMLReader;
-import com.android.navigation.XMLWriter;
+import com.android.navigation.*;
+import com.android.tools.idea.editors.navigation.macros.Unifier;
 import com.intellij.AppTopics;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.*;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiJavaCodeReferenceElement;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiStatement;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBScrollPane;
@@ -42,6 +45,11 @@ import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.android.tools.idea.editors.navigation.Utilities.getMethodsByName;
 
 public class NavigationEditor implements FileEditor {
   public static final String TOOLBAR = "NavigationEditorToolbar";
@@ -74,7 +82,7 @@ public class NavigationEditor implements FileEditor {
 
     myFile = file;
     try {
-      myNavigationModel = read(file);
+      myNavigationModel = processModel(read(file), NavigationEditorPanel.getRenderingParams(project, file).myConfiguration.getModule());
       // component = new NavigationModelEditorPanel1(project, file, read(file));
       NavigationEditorPanel editor = new NavigationEditorPanel(project, file, myNavigationModel);
       JBScrollPane scrollPane = new JBScrollPane(editor);
@@ -106,6 +114,86 @@ public class NavigationEditor implements FileEditor {
     };
     myNavigationModel.getListeners().add(myNavigationModelListener);
   }
+
+  private static NavigationModel processModel(NavigationModel model, Module module) {
+    Map<String, ActivityState> activities = getActivities(model);
+    Map<String, MenuState> menus = getMenus(model);
+
+    for (ActivityState state : activities.values()) {
+      String className = state.getClassName();
+
+      // Look for menu inflation
+      {
+        PsiJavaCodeReferenceElement menu = Utilities.getReferenceElement(module, className, "onCreateOptionsMenu");
+        if (menu != null) {
+          MenuState menuState = menus.get(menu.getLastChild().getText());
+          model.add(new Transition("click", new Locator(state), new Locator(menuState)));
+
+          // Look for menu bindings
+          {
+            PsiMethod[] methods = getMethodsByName(module, className, "onPrepareOptionsMenu");
+            if (methods.length == 1) {
+              PsiMethod onPrepareOptionsMenuMethod = methods[0];
+              PsiStatement[] statements = onPrepareOptionsMenuMethod.getBody().getStatements();
+              for (PsiStatement s : statements) {
+                Map<String, PsiElement> bindings = match(getMethodsByName(module, "com.android.templates.InstallListenerTemplates", "installMenuItemClick")[0], s.getFirstChild());
+                if (bindings != null) {
+                  Map<String, PsiElement> bindings2 = match(getMethodsByName(module, "com.android.templates.MenuAccessTemplates", "getMenuItem")[0], bindings.get("$menuItem"));
+                  if (bindings2 != null) {
+                    Map<String, PsiElement> bindings3 = match(getMethodsByName(module, "com.android.templates.LaunchActivityTemplates", "launchActivity")[0], bindings.get("$f"));
+                    if (bindings3 != null) {
+                      ActivityState activityState = getState(activities.values(), bindings3.get("activityClass").getFirstChild().getText());
+                      String menuItemName = bindings2.get("$id").getLastChild().getText();// e.g. $id=PsiReferenceExpression:R.id.action_account
+                      model.add(new Transition("click", Locator.of(menuState, menuItemName), new Locator(activityState)));
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+    }
+    return model;
+  }
+
+  private static Map<String, PsiElement> match(PsiMethod method, PsiElement element) {
+    return new Unifier().unify(method.getParameterList(), method.getBody().getStatements()[0].getFirstChild(), element);
+  }
+
+  // todo remove this
+  private static ActivityState getState(Collection<ActivityState> states, String simpleClassName) {
+    for (ActivityState state : states) {
+      if (state.getClassName().endsWith(simpleClassName)) {
+        return state;
+      }
+    }
+    return null;
+  }
+
+  private static Map<String, MenuState> getMenus(NavigationModel model) {
+    Map<String, MenuState> menus = new HashMap<String, MenuState>();
+    for (State state : model.getStates()) {
+      if (state instanceof MenuState) {
+        MenuState menuState = (MenuState)state;
+        menus.put(state.getXmlResourceName(), menuState);
+      }
+    }
+    return menus;
+  }
+
+  private static Map<String, ActivityState> getActivities(NavigationModel model) {
+    Map<String, ActivityState> activities = new HashMap<String, ActivityState>();
+    for (State state : model.getStates()) {
+      if (state instanceof ActivityState) {
+        ActivityState activityState = (ActivityState)state;
+        activities.put(state.getClassName(), activityState);
+      }
+    }
+    return activities;
+  }
+
 
   // See  AndroidDesignerActionPanel
   protected JComponent createToolbar(NavigationEditorPanel myDesigner) {
