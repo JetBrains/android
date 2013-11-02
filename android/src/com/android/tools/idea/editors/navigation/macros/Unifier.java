@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.navigation.macros;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.source.tree.java.PsiIdentifierImpl;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -24,6 +25,7 @@ import java.util.Map;
 
 public class Unifier {
   private static final Logger LOG = Logger.getInstance("#" + Unifier.class.getName());
+  public static final PsiElement UNBOUND = new PsiIdentifierImpl("<Unbound>");
   private static boolean DEBUG = true;
   private int indent = 0;
 
@@ -36,11 +38,16 @@ public class Unifier {
   }
 
   @Nullable
-  public Map<String, PsiElement> unify(PsiElement template, PsiElement candidate) {
+  public Map<String, PsiElement> unify(PsiMethod macro, PsiElement candidate) {
     Matcher myMatcher = new Matcher(candidate);
-    template.accept(myMatcher);
+    PsiParameterList parameterList = macro.getParameterList();
+    PsiParameter[] parameters = parameterList.getParameters();
+    for (PsiParameter parameter: parameters) {
+      myMatcher.bindings.put(parameter.getName(), UNBOUND);
+    }
+    macro.getBody().accept(myMatcher);
     Map<String, PsiElement> bindings = myMatcher.getBindings();
-    if (DEBUG) LOG.debug("bindings = " + bindings);
+    if (DEBUG) System.out.println("bindings = " + bindings);
     return bindings;
   }
 
@@ -52,6 +59,7 @@ public class Unifier {
 
     private Matcher(PsiElement candidate) {
       this.candidate = candidate;
+      bindings.put("$of", UNBOUND);
     }
 
     private boolean equals(PsiIdentifier identifier1, PsiElement identifier2) {
@@ -67,14 +75,14 @@ public class Unifier {
       parameterBindings.put(name, ((PsiParameter) candidate).getName());
     }
 
-    private boolean isBound(String text) {
-      return text.startsWith("$") || parameterBindings.containsKey(text);
+    private boolean isBindable(String text) {
+      return bindings.containsKey(text) || parameterBindings.containsKey(text);
     }
 
     @Override
     public void visitIdentifier(PsiIdentifier identifier) {
       String text = identifier.getText();
-      if (isBound(text)) {
+      if (isBindable(text)) {
         bindings.put(text, candidate);
       }
       else {
@@ -88,25 +96,25 @@ public class Unifier {
     @Override
     public void visitReferenceExpression(PsiReferenceExpression expression) {
       String text = expression.getText();
-      if (isBound(text) && !text.contains(".")) {
+      if (isBindable(text)) {
         bindings.put(text, candidate);
       }
       else {
-        visitElement(expression);
+        visitReferenceElement(expression);
       }
     }
 
     @Override
     public void visitElement(PsiElement template) {
       if (template.getClass() != candidate.getClass()) {
-        if (DEBUG) LOG.debug(indent() + template + " != " + candidate);
+        if (DEBUG) System.out.println(indent() + template + " != " + candidate);
         valid = false;
         return;
       }
       indent++;
       PsiElement tmp = candidate;
 
-      if (DEBUG) LOG.debug(indent() + template + " : " + candidate);
+      if (DEBUG) LOG.info(indent() + template + " : " + candidate);
 
       PsiElement child = template.getFirstChild();
       candidate = candidate.getFirstChild();
