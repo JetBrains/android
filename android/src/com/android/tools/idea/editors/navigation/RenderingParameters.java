@@ -38,7 +38,11 @@ class RenderingParameters {
     this.myFacet = facet;
   }
 
-  Dimension getDeviceScreenSize() {
+  com.android.navigation.Dimension getDeviceScreenSize() {
+    return com.android.navigation.Dimension.create(getDeviceScreenSize1());
+  }
+
+  private Dimension getDeviceScreenSize1() {
     Configuration configuration = myConfiguration;
     Device device = configuration.getDevice();
     if (device == null) {
