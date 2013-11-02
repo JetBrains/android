@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.navigation.*;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.navigation.macros.Unifier;
 import com.android.tools.idea.rendering.RenderedView;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.ShadowPainter;
@@ -26,6 +27,7 @@ import com.intellij.ide.dnd.DnDEvent;
 import com.intellij.ide.dnd.DnDManager;
 import com.intellij.ide.dnd.DnDTarget;
 import com.intellij.ide.dnd.TransferableWrapper;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
@@ -51,6 +53,7 @@ import java.util.*;
 import static com.android.tools.idea.editors.navigation.Utilities.*;
 
 public class NavigationEditorPanel extends JComponent {
+  private static final Logger LOG = Logger.getInstance("#" + NavigationEditorPanel.class.getName());
   private static final Dimension GAP = new Dimension(150, 50);
   private static final Color BACKGROUND_COLOR = Gray.get(192);
   private static final Color SNAP_GRID_LINE_COLOR_MINOR = Gray.get(180);
@@ -180,22 +183,22 @@ public class NavigationEditorPanel extends JComponent {
     }
 
     /*
-    PsiMethod[] templates;
-    PsiMethod[] candidate;
-    if (true) {
-      templates =
+    {
+      PsiMethod template =
         getMethodsByName(myMyRenderingParams.myConfiguration.getModule(), "com.android.templates.InstallListenerTemplates",
-                         "installItemClickListener");
-      candidate =
+                         "installItemClickListener")[0];
+      PsiMethod candidate =
         getMethodsByName(myMyRenderingParams.myConfiguration.getModule(), "com.example.simplemail.fragment.MessageListFragment",
-                         "installListeners");
+                         "installListeners")[0];
+      new Unifier().unify(template, candidate.getBody());
     }
-    else {
-      templates = getMethodsByName(myMyRenderingParams.myConfiguration.getModule(), "com.android.templates.Test", "foo");
-      candidate = getMethodsByName(myMyRenderingParams.myConfiguration.getModule(), "com.android.templates.Test", "bar");
+    */
+    /*
+    {
+      PsiMethod template = getMethodsByName(myMyRenderingParams.myConfiguration.getModule(), "com.android.templates.Test", "foo")[0];
+      PsiMethod candidate = getMethodsByName(myMyRenderingParams.myConfiguration.getModule(), "com.android.templates.Test", "bar")[0];
+      new Unifier().unify(template, candidate.getBody());
     }
-    Map<String, PsiElement> bindings = new Unifier().unify(templates[0].getBody(), candidate[0].getBody());
-    System.out.println("bindings = " + bindings);
     */
   }
 
