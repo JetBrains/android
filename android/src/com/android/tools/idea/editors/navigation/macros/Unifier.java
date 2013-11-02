@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.navigation.macros;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.*;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,7 +23,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Unifier {
-  private boolean debug = true;
+  private static final Logger LOG = Logger.getInstance("#" + Unifier.class.getName());
+  private static boolean DEBUG = true;
   private int indent = 0;
 
   private String indent() {
@@ -37,7 +39,9 @@ public class Unifier {
   public Map<String, PsiElement> unify(PsiElement template, PsiElement candidate) {
     Matcher myMatcher = new Matcher(candidate);
     template.accept(myMatcher);
-    return myMatcher.getBindings();
+    Map<String, PsiElement> bindings = myMatcher.getBindings();
+    if (DEBUG) LOG.debug("bindings = " + bindings);
+    return bindings;
   }
 
   private class Matcher extends JavaElementVisitor {
@@ -95,14 +99,14 @@ public class Unifier {
     @Override
     public void visitElement(PsiElement template) {
       if (template.getClass() != candidate.getClass()) {
-        if (debug) System.out.println(indent() + template + " != " + candidate);
+        if (DEBUG) LOG.debug(indent() + template + " != " + candidate);
         valid = false;
         return;
       }
       indent++;
       PsiElement tmp = candidate;
 
-      if (debug) System.out.println(indent() + template + " : " + candidate);
+      if (DEBUG) LOG.debug(indent() + template + " : " + candidate);
 
       PsiElement child = template.getFirstChild();
       candidate = candidate.getFirstChild();
