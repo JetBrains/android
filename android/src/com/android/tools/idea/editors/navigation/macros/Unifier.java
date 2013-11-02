@@ -26,7 +26,8 @@ import java.util.Map;
 public class Unifier {
   private static final Logger LOG = Logger.getInstance("#" + Unifier.class.getName());
   public static final PsiElement UNBOUND = new PsiIdentifierImpl("<Unbound>");
-  private static boolean DEBUG = true;
+  public static final String STATEMENT_SENTINEL = "$"; // A stand-in method name used so that wild cards can form statements as well as expressions - e.g. $f.$()
+  private static boolean DEBUG = false;
   private int indent = 0;
 
   private String indent() {
@@ -39,13 +40,16 @@ public class Unifier {
 
   @Nullable
   public Map<String, PsiElement> unify(PsiMethod macro, PsiElement candidate) {
+    return unify(macro.getParameterList(), macro.getBody(), candidate);
+  }
+
+  @Nullable
+  public Map<String, PsiElement> unify(PsiParameterList parameterList, PsiElement body, PsiElement candidate) {
     Matcher myMatcher = new Matcher(candidate);
-    PsiParameterList parameterList = macro.getParameterList();
-    PsiParameter[] parameters = parameterList.getParameters();
-    for (PsiParameter parameter: parameters) {
+    for (PsiParameter parameter : parameterList.getParameters()) {
       myMatcher.bindings.put(parameter.getName(), UNBOUND);
     }
-    macro.getBody().accept(myMatcher);
+    body.accept(myMatcher);
     Map<String, PsiElement> bindings = myMatcher.getBindings();
     if (DEBUG) System.out.println("bindings = " + bindings);
     return bindings;
@@ -59,7 +63,6 @@ public class Unifier {
 
     private Matcher(PsiElement candidate) {
       this.candidate = candidate;
-      bindings.put("$of", UNBOUND);
     }
 
     private boolean equals(PsiIdentifier identifier1, PsiElement identifier2) {
@@ -72,7 +75,7 @@ public class Unifier {
       if (parameterBindings.get(name) != null) {
         assert false;
       }
-      parameterBindings.put(name, ((PsiParameter) candidate).getName());
+      parameterBindings.put(name, ((PsiParameter)candidate).getName());
     }
 
     private boolean isBindable(String text) {
@@ -92,7 +95,19 @@ public class Unifier {
       }
     }
 
-    /** @see JavaElementVisitor#visitReferenceExpression(PsiReferenceExpression) */
+    @Override
+    public void visitMethodCallExpression(PsiMethodCallExpression expression) {
+      if (expression.getFirstChild().getLastChild().getText().equals(STATEMENT_SENTINEL)) {
+        bindings.put(expression.getFirstChild().getFirstChild().getText(), candidate);
+      }
+      else {
+        super.visitMethodCallExpression(expression);
+      }
+    }
+
+    /**
+     * @see JavaElementVisitor#visitReferenceExpression(PsiReferenceExpression)
+     */
     @Override
     public void visitReferenceExpression(PsiReferenceExpression expression) {
       String text = expression.getText();
@@ -114,7 +129,7 @@ public class Unifier {
       indent++;
       PsiElement tmp = candidate;
 
-      if (DEBUG) LOG.info(indent() + template + " : " + candidate);
+      if (DEBUG) System.out.println(indent() + template + " : " + candidate);
 
       PsiElement child = template.getFirstChild();
       candidate = candidate.getFirstChild();
