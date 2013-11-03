@@ -25,7 +25,7 @@ public enum BuildMode {
   /** Clean project and then {@link #MAKE}. */
   REBUILD,
 
-  /** Compiles Java code without invoking Android build tools. */
+  /** Compiles Java code, in selected modules, without invoking Android build tools. */
   COMPILE_JAVA,
 
   /** Generate Java source only (e.g. R.java). */

@@ -15,23 +15,19 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.gradle.util.Projects;
-import com.intellij.compiler.actions.CompileAction;
+import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.intellij.compiler.actions.MakeModuleAction;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * This action compiles Java code only if the Android/Gradle model provides the appropriate Java task. If the task is not provided, this
- * action will be invisible for Gradle-based Android projects. For non-Gradle projects, this action will simply delegate to the original
- * "Compile" action in IDEA.
- */
-public class AndroidCompileProjectAction extends AndroidBuildProjectAction {
-  public AndroidCompileProjectAction() {
-    super(new CompileAction(), "Compile Project");
+public class AndroidMakeModuleAction extends AndroidBuildModuleAction {
+  public AndroidMakeModuleAction() {
+    super(new MakeModuleAction(), "Make Module(s)", "Make");
   }
 
   @Override
-  protected void buildGradleProject(@NotNull Project project) {
-    Projects.compileJava(project);
+  protected void buildGradleProject(@NotNull Project project, @NotNull DataContext dataContext) {
+    GradleInvoker.getInstance(project).make(dataContext);
   }
 }
