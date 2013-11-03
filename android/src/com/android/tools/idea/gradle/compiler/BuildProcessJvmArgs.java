@@ -39,4 +39,6 @@ public final class BuildProcessJvmArgs {
   @NonNls public static final String HTTP_PROXY_PROPERTY_PREFIX = JVM_ARG_PREFIX + "proxy.property.";
   @NonNls public static final String HTTP_PROXY_PROPERTY_COUNT = HTTP_PROXY_PROPERTY_PREFIX  + "count";
   @NonNls public static final String HTTP_PROXY_PROPERTY_SEPARATOR = ":";
+  @NonNls public static final String MODULES_TO_BUILD_PROPERTY_PREFIX = JVM_ARG_PREFIX + "modules.";
+  @NonNls public static final String MODULES_TO_BUILD_PROPERTY_COUNT = MODULES_TO_BUILD_PROPERTY_PREFIX + "count";
 }

@@ -18,39 +18,29 @@ package com.android.tools.idea.actions;
 import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.compiler.actions.CompileActionBase;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AndroidBuildProjectAction extends AndroidActionRemover {
-  @NotNull private final String myText;
-
-  protected AndroidBuildProjectAction(@NotNull CompileActionBase delegate, @NotNull String text) {
-    super(delegate, text);
-    myText = text;
+  protected AndroidBuildProjectAction(@NotNull CompileActionBase delegate, @NotNull String backupText) {
+    super(delegate, backupText);
   }
 
   @Override
   public final void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
-    if (project != null && Projects.isGradleProject(project)) {
-      buildGradleProject(project);
+    if (project != null && Projects.isGradleProject(project) && Projects.isExperimentalBuildEnabled(project)) {
+      buildGradleProject(project, e.getDataContext());
       return;
     }
     super.actionPerformed(e);
   }
 
-  protected abstract void buildGradleProject(@NotNull Project project);
+  protected abstract void buildGradleProject(@NotNull Project project, @NotNull DataContext dataContext);
 
   @Override
-  public final void update(AnActionEvent e) {
-    Presentation presentation = e.getPresentation();
-    Project project = e.getProject();
-    if (project != null && Projects.isGradleProject(project)) {
-      presentation.setEnabledAndVisible(true);
-      presentation.setText(myText);
-      return;
-    }
-    super.update(e);
+  public void update(AnActionEvent e) {
+    myDelegate.update(e);
   }
 }

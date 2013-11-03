@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Tests for {@link BuilderExecutionSettings}.
@@ -62,6 +63,7 @@ public class BuilderExecutionSettingsTest extends TestCase {
 
   private static void delete(@Nullable File dir) {
     if (dir != null) {
+      //noinspection ResultOfMethodCallIgnored
       dir.delete();
     }
   }
@@ -104,6 +106,10 @@ public class BuilderExecutionSettingsTest extends TestCase {
     System.setProperty(BuildProcessJvmArgs.HTTP_PROXY_PROPERTY_PREFIX + 2, "randomText");
     System.setProperty(BuildProcessJvmArgs.HTTP_PROXY_PROPERTY_PREFIX + 3, "randomText:");
 
+    System.setProperty(BuildProcessJvmArgs.MODULES_TO_BUILD_PROPERTY_COUNT, "2");
+    System.setProperty(BuildProcessJvmArgs.MODULES_TO_BUILD_PROPERTY_PREFIX + 0, "main");
+    System.setProperty(BuildProcessJvmArgs.MODULES_TO_BUILD_PROPERTY_PREFIX + 1, "lib");
+
     BuilderExecutionSettings settings = new BuilderExecutionSettings();
     assertEquals(55, settings.getGradleDaemonMaxIdleTimeInMs());
     assertEquals(gradleHomeDirPath, pathOf(settings.getGradleHomeDir()));
@@ -119,6 +125,11 @@ public class BuilderExecutionSettingsTest extends TestCase {
     assertEquals(maxPermSize, vmOptions.get(1));
     assertEquals("-Dhttp.proxyHost=" + httpProxyHost, vmOptions.get(2));
     assertEquals("-Dhttp.proxyPort=" + httpProxyPort, vmOptions.get(3));
+
+    Set<String> modulesToBuildNames = settings.getModulesToBuildNames();
+    assertEquals(2, modulesToBuildNames.size());
+    assertTrue(modulesToBuildNames.contains("main"));
+    assertTrue(modulesToBuildNames.contains("lib"));
   }
 
   private static String pathOf(@Nullable File dir) {
