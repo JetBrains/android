@@ -767,6 +767,13 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
   }
 
   @Override
+  public ModuleWizardStep[] createWizardSteps(@NotNull WizardContext wizardContext,
+                                              @NotNull ModulesProvider modulesProvider,
+                                              boolean forNewWizard) {
+    return createWizardSteps(wizardContext, modulesProvider);
+  }
+
+  @Override
   public Icon getBigIcon() {
     return AndroidIcons.Android24;
   }
