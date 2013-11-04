@@ -110,6 +110,7 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     jvmArgs.add(createJvmArg(BuildProcessJvmArgs.BUILD_ACTION, buildMode.name()));
 
     addHttpProxySettings(jvmArgs);
+    populateModulesToBuild(jvmArgs);
 
     return jvmArgs;
   }
@@ -172,6 +173,17 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
       String name = BuildProcessJvmArgs.HTTP_PROXY_PROPERTY_PREFIX + i;
       String value = property.getKey() + BuildProcessJvmArgs.HTTP_PROXY_PROPERTY_SEPARATOR + property.getValue();
       jvmArgs.add(createJvmArg(name, value));
+    }
+  }
+
+  @VisibleForTesting
+  void populateModulesToBuild(@NotNull List<String> jvmArgs) {
+    String[] modulesToBuild = Projects.getModulesToBuildNames(myProject);
+    int moduleCount = modulesToBuild == null ? 0 : modulesToBuild.length;
+    jvmArgs.add(createJvmArg(BuildProcessJvmArgs.MODULES_TO_BUILD_PROPERTY_COUNT, moduleCount));
+    for (int i = 0; i < moduleCount; i++) {
+      String name = BuildProcessJvmArgs.MODULES_TO_BUILD_PROPERTY_PREFIX + i;
+      jvmArgs.add(createJvmArg(name, modulesToBuild[i]));
     }
   }
 }
