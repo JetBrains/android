@@ -114,8 +114,10 @@ public class AndroidResourcePackagingBuilder extends AndroidTargetBuilder<BuildR
     final String customManifestPackage = extension.isUseCustomManifestPackage()
                                          ? extension.getCustomManifestPackage()
                                          : null;
+    final String additionalParameters = extension.getAdditionalPackagingCommandLineParameters();
+
     return doPackageResources(context, manifestFile, androidTarget, resourceDirPaths, ArrayUtil.toStringArray(assetsDirPaths),
-                              outputFilePath, releaseBuild, module.getName(), outputConsumer, customManifestPackage);
+                              outputFilePath, releaseBuild, module.getName(), outputConsumer, customManifestPackage, additionalParameters);
   }
 
   private static boolean doPackageResources(@NotNull final CompileContext context,
@@ -127,13 +129,14 @@ public class AndroidResourcePackagingBuilder extends AndroidTargetBuilder<BuildR
                                             boolean releasePackage,
                                             @NotNull String moduleName,
                                             @NotNull BuildOutputConsumer outputConsumer,
-                                            @Nullable String customManifestPackage) {
+                                            @Nullable String customManifestPackage,
+                                            @Nullable String additionalParameters) {
     try {
       final IgnoredFileIndex ignoredFileIndex = context.getProjectDescriptor().getIgnoredFileIndex();
 
       final Map<AndroidCompilerMessageKind, List<String>> messages = AndroidApt
         .packageResources(target, -1, manifestFile.getPath(), resourceDirPaths, assetsDirPaths, outputPath, null,
-                          !releasePackage, 0, customManifestPackage, new FileFilter() {
+                          !releasePackage, 0, customManifestPackage, additionalParameters, new FileFilter() {
           @Override
           public boolean accept(File pathname) {
             return !ignoredFileIndex.isIgnored(PathUtilRt.getFileName(pathname.getPath()));

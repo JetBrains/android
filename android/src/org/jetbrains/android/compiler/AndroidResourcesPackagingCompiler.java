@@ -186,7 +186,7 @@ public class AndroidResourcesPackagingCompiler implements ClassPostProcessingCom
                                     preprocessedManifestFile.getPath(),
                                     item.myResourceDirPaths,
                                     item.myAssetsDirPaths,
-                                    outputPath, null, !releasePackage, 0, null, new FileFilter() {
+                                    outputPath, null, !releasePackage, 0, null, "", new FileFilter() {
           @Override
           public boolean accept(File file) {
             final VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);

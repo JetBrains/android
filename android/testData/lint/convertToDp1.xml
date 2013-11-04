@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <style name="Icon_Image">
+    <item name="android:layout_width"><warning>100p<caret>x</warning></item>
+  </style>
+</resources>

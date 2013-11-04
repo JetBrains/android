@@ -50,6 +50,14 @@ public class AndroidXmlPolicy extends XmlPolicy {
     return attribute.getParent().getAttributes().length > 1;
   }
 
+  @Override
+  public boolean insertLineBreakAfterLastAttribute(XmlAttribute attribute) {
+    if (!myCustomSettings.INSERT_LINE_BREAK_AFTER_LAST_ATTRIBUTE) {
+      return false;
+    }
+    return attribute.getParent().getAttributes().length > 1;
+  }
+
   @Nullable
   protected static PsiElement getPrevSiblingElement(@NotNull PsiElement element) {
     final PsiElement prev = element.getPrevSibling();

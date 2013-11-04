@@ -38,6 +38,7 @@ public class AndroidResourcePackagingBuildTarget extends AndroidBuildTarget {
     if (extension.isUseCustomManifestPackage()) {
       out.println(extension.getCustomManifestPackage());
     }
+    out.println(extension.getAdditionalPackagingCommandLineParameters());
   }
 
   @NotNull
