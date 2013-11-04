@@ -92,6 +92,18 @@ public final class Projects {
     return project.getUserData(PROJECT_BUILD_MODE_KEY);
   }
 
+  public static void clean(@NotNull Project project) {
+    if (!isGradleProject(project)) {
+      return;
+    }
+    if (isExperimentalBuildEnabled(project)) {
+      GradleInvoker.getInstance(project).cleanProject();
+      return;
+    }
+    setProjectBuildMode(project, BuildMode.CLEAN);
+    CompilerManager.getInstance(project).make(null);
+  }
+
   /**
    * Generates source code instead of a full compilation. This method does nothing if the Gradle model does not specify the name of the
    * Gradle task to invoke.
@@ -99,6 +111,9 @@ public final class Projects {
    * @param project the given project.
    */
   public static void generateSourcesOnly(@NotNull Project project) {
+    if (!isGradleProject(project)) {
+      return;
+    }
     if (isExperimentalBuildEnabled(project)) {
       GradleInvoker.getInstance(project).generateSources();
       return;
