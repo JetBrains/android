@@ -40,7 +40,7 @@ public class AndroidSdkResolveScopeProvider extends SdkResolveScopeProvider {
 
     @Nullable
     @Override
-    protected VirtualFile getFileRoot(VirtualFile file) {
+    protected VirtualFile getFileRoot(@NotNull VirtualFile file) {
       final VirtualFile resultFromSuper = super.getFileRoot(file);
 
       if (resultFromSuper != null) {
@@ -57,7 +57,7 @@ public class AndroidSdkResolveScopeProvider extends SdkResolveScopeProvider {
     }
 
     @Override
-    public int compare(VirtualFile file1, VirtualFile file2) {
+    public int compare(@NotNull VirtualFile file1, @NotNull VirtualFile file2) {
       final boolean inSources1 = myIndex.isInLibrarySource(file1);
 
       if (inSources1 != myIndex.isInLibrarySource(file2)) {

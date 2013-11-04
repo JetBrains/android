@@ -71,6 +71,8 @@ public class JpsAndroidModuleProperties {
   public boolean USE_CUSTOM_MANIFEST_PACKAGE = false;
   public String CUSTOM_MANIFEST_PACKAGE = "";
 
+  public String ADDITIONAL_PACKAGING_COMMAND_LINE_PARAMETERS = "";
+
   public String UPDATE_PROPERTY_FILES = "";
 
   public boolean ENABLE_MANIFEST_MERGING = false;

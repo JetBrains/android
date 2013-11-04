@@ -10,11 +10,13 @@ class AndroidDbConnectionInfo {
   private final IDevice myDevice;
   private final String myPackageName;
   private final String myDbName;
+  private final boolean myExternal;
 
-  public AndroidDbConnectionInfo(@NotNull IDevice device, @NotNull String packageName, @NotNull String dbName) {
+  public AndroidDbConnectionInfo(@NotNull IDevice device, @NotNull String packageName, @NotNull String dbName, boolean external) {
     myDevice = device;
     myPackageName = packageName;
     myDbName = dbName;
+    myExternal = external;
   }
 
   @NotNull
@@ -30,5 +32,9 @@ class AndroidDbConnectionInfo {
   @NotNull
   public String getDbName() {
     return myDbName;
+  }
+
+  public boolean isExternal() {
+    return myExternal;
   }
 }

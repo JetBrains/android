@@ -1,9 +1,6 @@
 package org.jetbrains.android.database;
 
-import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.MultiLineReceiver;
-import com.android.ddmlib.SyncService;
+import com.android.ddmlib.*;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -38,6 +35,7 @@ class AndroidDbUtil {
   public static boolean uploadDatabase(@NotNull IDevice device,
                                        @NotNull String packageName,
                                        @NotNull String dbName,
+                                       boolean external,
                                        @NotNull String localDbPath,
                                        @NotNull final ProgressIndicator progressIndicator,
                                        @NotNull AndroidDbErrorReporter errorReporter) {
@@ -50,11 +48,12 @@ class AndroidDbUtil {
       finally {
         syncService.close();
       }
-      final String remoteDbPath = "/data/data/" + packageName + "/databases/" + dbName;
+      final String remoteDbPath = getDatabaseRemoteFilePath(packageName, dbName, external);
       final String remoteDbDirPath = remoteDbPath.substring(0, remoteDbPath.lastIndexOf('/'));
 
       MyShellOutputReceiver outputReceiver = new MyShellOutputReceiver(progressIndicator);
-      device.executeShellCommand("run-as " + packageName + " mkdir " + remoteDbDirPath, outputReceiver,
+      device.executeShellCommand(getRunAsPrefix(packageName, external) +
+                                 "mkdir " + remoteDbDirPath, outputReceiver,
                                  DB_COPYING_TIMEOUT_SEC, TimeUnit.SECONDS);
       String output = outputReceiver.getOutput();
 
@@ -62,8 +61,12 @@ class AndroidDbUtil {
         errorReporter.reportError(output);
         return false;
       }
+      // recreating is needed for Genymotion emulator (IDEA-114732)
+      if (!external && !recreateRemoteFile(device, packageName, remoteDbPath, errorReporter, progressIndicator)) {
+        return false;
+      }
       outputReceiver = new MyShellOutputReceiver(progressIndicator);
-      device.executeShellCommand("run-as " + packageName + " cat " + TEMP_REMOTE_DB_PATH + " >" + remoteDbPath,
+      device.executeShellCommand(getRunAsPrefix(packageName, external) + "cat " + TEMP_REMOTE_DB_PATH + " >" + remoteDbPath,
                                  outputReceiver, DB_COPYING_TIMEOUT_SEC, TimeUnit.SECONDS);
       output = outputReceiver.getOutput();
 
@@ -80,15 +83,48 @@ class AndroidDbUtil {
     return true;
   }
 
+  @NotNull
+  private static String getRunAsPrefix(@NotNull String packageName, boolean external) {
+    return external ? "" : "run-as " + packageName + " ";
+  }
+
+  private static boolean recreateRemoteFile(IDevice device,
+                                            String packageName,
+                                            String remotePath,
+                                            AndroidDbErrorReporter errorReporter,
+                                            ProgressIndicator progressIndicator) throws Exception {
+    MyShellOutputReceiver outputReceiver = new MyShellOutputReceiver(progressIndicator);
+    device.executeShellCommand("run-as " + packageName + " rm " + remotePath,
+                               outputReceiver, DB_COPYING_TIMEOUT_SEC, TimeUnit.SECONDS);
+    String output = outputReceiver.getOutput();
+
+    if (!output.isEmpty() && !output.startsWith("rm failed")) {
+      errorReporter.reportError(output);
+      return false;
+    }
+    outputReceiver = new MyShellOutputReceiver(progressIndicator);
+    device.executeShellCommand("run-as " + packageName + " touch " + remotePath,
+                               outputReceiver, DB_COPYING_TIMEOUT_SEC, TimeUnit.SECONDS);
+    output = outputReceiver.getOutput();
+
+    if (!output.isEmpty()) {
+      errorReporter.reportError(output);
+      return false;
+    }
+    return true;
+  }
+
   public static boolean downloadDatabase(@NotNull IDevice device,
                                          @NotNull String packageName,
                                          @NotNull String dbName,
+                                         boolean external,
                                          @NotNull File localDbFile,
                                          @NotNull final ProgressIndicator progressIndicator,
                                          @NotNull AndroidDbErrorReporter errorReporter) {
     try {
       final MyShellOutputReceiver receiver = new MyShellOutputReceiver(progressIndicator);
-      device.executeShellCommand("run-as " + packageName + " cat /data/data/" + packageName + "/databases/" + dbName + " >" +
+      device.executeShellCommand(getRunAsPrefix(packageName, external) + "cat " +
+                                 getDatabaseRemoteFilePath(packageName, dbName, external) + " >" +
                                  TEMP_REMOTE_DB_PATH, receiver,
                                  DB_COPYING_TIMEOUT_SEC, TimeUnit.SECONDS);
       final String output = receiver.getOutput();
@@ -155,7 +191,7 @@ class AndroidDbUtil {
       errorReporter.reportError("database name is not specified");
       return null;
     }
-    return new AndroidDbConnectionInfo(device, packageName, dbName);
+    return new AndroidDbConnectionInfo(device, packageName, dbName, dataSource.getState().isExternal());
   }
 
   @Nullable
@@ -185,7 +221,7 @@ class AndroidDbUtil {
       return false;
     }
     final String remoteToolPath = TEMP_REMOTE_GET_MODIFICATION_TIME_TOOL_PATH;
-    
+
     if (!pushGetModificationTimeTool(device, url, reporter, progressIndicator, remoteToolPath)) {
       return false;
     }
@@ -265,6 +301,7 @@ class AndroidDbUtil {
   public static Long getModificationTime(@NotNull IDevice device,
                                          @NotNull final String packageName,
                                          @NotNull String dbName,
+                                         boolean external,
                                          @NotNull AndroidDbErrorReporter errorReporter,
                                          @NotNull ProgressIndicator progressIndicator) {
     final String path = TEMP_REMOTE_GET_MODIFICATION_TIME_TOOL_PATH;
@@ -281,7 +318,7 @@ class AndroidDbUtil {
       }
       reinstalled = true;
     }
-    Long l = doGetModificationTime(device, packageName, dbName, errorReporter);
+    Long l = doGetModificationTime(device, packageName, dbName, external, errorReporter);
 
     if (l != null) {
       return l;
@@ -297,9 +334,10 @@ class AndroidDbUtil {
   private static Long doGetModificationTime(@NotNull IDevice device,
                                             @NotNull String packageName,
                                             @NotNull String dbName,
+                                            boolean external,
                                             @NotNull AndroidDbErrorReporter errorReporter) {
-    final String command = "run-as " + packageName + " " + TEMP_REMOTE_GET_MODIFICATION_TIME_TOOL_PATH +
-                           " /data/data/" + packageName + "/databases/" + dbName;
+    final String command = getRunAsPrefix(packageName, external) + TEMP_REMOTE_GET_MODIFICATION_TIME_TOOL_PATH +
+                           " " + getDatabaseRemoteFilePath(packageName, dbName, external);
     final String s = executeSingleCommand(device, errorReporter, command);
 
     if (s == null) {
@@ -333,13 +371,13 @@ class AndroidDbUtil {
   @Nullable
   public static String getDeviceId(@NotNull IDevice device) {
     if (device.isEmulator()) {
-      return DEVICE_ID_EMULATOR_PREFIX + device.getAvdName();
+      return DEVICE_ID_EMULATOR_PREFIX + replaceByDirAllowedName(device.getAvdName());
     }
     else {
       final String serialNumber = device.getSerialNumber();
 
       if (serialNumber != null && serialNumber.length() > 0) {
-        return DEVICE_ID_SERIAL_NUMBER_PREFIX + serialNumber;
+        return DEVICE_ID_SERIAL_NUMBER_PREFIX + replaceByDirAllowedName(serialNumber);
       }
       final String manufacturer = DevicePropertyUtil.getManufacturer(device, "");
       final String model = DevicePropertyUtil.getModel(device, "");
@@ -369,12 +407,28 @@ class AndroidDbUtil {
     for (int i = 0, n = s.length(); i < n; i++) {
       char c = s.charAt(i);
 
-      if (Character.isWhitespace(c)) {
+      if (!Character.isJavaIdentifierPart(c)) {
         c = '_';
       }
       builder.append(c);
     }
     return builder.toString();
+  }
+
+  @NotNull
+  public static String getInternalDatabasesRemoteDirPath(@NotNull String packageName) {
+    return "/data/data/" + packageName + "/databases";
+  }
+
+  @NotNull
+  public static String getDatabaseRemoteFilePath(@NotNull String packageName, @NotNull String dbName, boolean external) {
+    if (dbName.startsWith("/")) {
+      dbName = dbName.substring(1);
+    }
+    if (!external) {
+      return getInternalDatabasesRemoteDirPath(packageName) + "/" + dbName;
+    }
+    return "$EXTERNAL_STORAGE/Android/data/" + packageName + "/" + dbName;
   }
 
   private static class MyShellOutputReceiver extends MultiLineReceiver {

@@ -24,9 +24,10 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.containers.*;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
+import com.intellij.util.containers.MultiMap;
+import com.intellij.util.execution.ParametersListUtil;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
 import org.jetbrains.android.util.AndroidExecutionUtil;
@@ -310,6 +311,7 @@ public final class AndroidApt {
                                                                                boolean debugMode,
                                                                                int versionCode,
                                                                                @Nullable String customManifestPackage,
+                                                                               @Nullable String additionalParameters,
                                                                                FileFilter assetsFilter) throws IOException {
     for (String resDirPath : resPaths) {
       if (FileUtil.isAncestor(resDirPath, outputPath, false)) {
@@ -400,9 +402,11 @@ public final class AndroidApt {
         args.add("--rename-manifest-package");
         args.add(customManifestPackage);
       }
+      if (additionalParameters != null && additionalParameters.length() > 0) {
+        args.addAll(ParametersListUtil.parse(additionalParameters));
+      }
       args.add("-F");
       args.add(outputPath);
-
       LOG.info(AndroidCommonUtils.command2string(args));
       return AndroidExecutionUtil.doExecute(ArrayUtil.toStringArray(args));
     }

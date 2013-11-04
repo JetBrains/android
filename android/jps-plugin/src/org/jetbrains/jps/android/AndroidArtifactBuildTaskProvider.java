@@ -49,8 +49,13 @@ public class AndroidArtifactBuildTaskProvider extends ArtifactBuildTaskProvider 
 
     final JpsAndroidApplicationArtifactProperties androidProps = (JpsAndroidApplicationArtifactProperties)props;
 
-    if (!(artifact.getArtifactType() instanceof AndroidApplicationArtifactType) ||
-        androidProps.getSigningMode() != AndroidArtifactSigningMode.RELEASE_SIGNED) {
+    if (!(artifact.getArtifactType() instanceof AndroidApplicationArtifactType)) {
+      return Collections.emptyList();
+    }
+    final AndroidArtifactSigningMode signingMode = androidProps.getSigningMode();
+
+    if (signingMode != AndroidArtifactSigningMode.RELEASE_SIGNED &&
+        signingMode != AndroidArtifactSigningMode.DEBUG_WITH_CUSTOM_CERTIFICATE) {
       return Collections.emptyList();
     }
     final JpsAndroidModuleExtension extension = AndroidJpsUtil.getPackagedFacet(artifact);

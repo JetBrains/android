@@ -77,6 +77,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import javax.swing.*;
 import java.io.ByteArrayOutputStream;
@@ -231,7 +232,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
         GradleConsoleView.getInstance(getNotNullProject()).clear();
         addMessage(new GradleMessage(GradleMessage.Kind.INFO, "Gradle tasks " + myTasks));
 
-        ExternalSystemTaskId id = ExternalSystemTaskId.create(ExternalSystemTaskType.EXECUTE_TASK, project);
+        ExternalSystemTaskId id = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project);
         List<String> extraJvmArgs = getGradleInvocationJvmArgs(new File(projectPath));
         ExternalSystemTaskNotificationListener listener = new ExternalSystemTaskNotificationListenerAdapter() {
         };
