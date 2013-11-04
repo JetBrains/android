@@ -28,6 +28,7 @@ import java.util.List;
 public final class GradleBuilds {
   private static final Logger LOG = Logger.getInstance(GradleBuilds.class);
 
+  @NonNls public static final String CLEAN_TASK_NAME = "clean";
   @NonNls private static final String DEFAULT_ASSEMBLE_TASK_NAME = "assemble";
 
   private GradleBuilds() {
