@@ -21,6 +21,7 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This action fixes the "update" mechanism of the "Make Module(s)" and "Compile Module(s)" actions.
@@ -46,8 +47,8 @@ public abstract class AndroidBuildModuleAction extends AndroidBuildProjectAction
     if (project != null && Projects.isGradleProject(project)) {
       DataContext dataContext = e.getDataContext();
 
-      Module[] modules = Projects.getSelectedModules(project, dataContext);
-      int moduleCount = modules.length;
+      Module[] modules = getSelectedModules(dataContext);
+      int moduleCount = modules == null ? 0 : modules.length;
       boolean hasModules = moduleCount > 0;
 
       Presentation presentation = e.getPresentation();
@@ -78,5 +79,20 @@ public abstract class AndroidBuildModuleAction extends AndroidBuildProjectAction
     else {
       super.update(e);
     }
+  }
+
+  @Nullable
+  private static Module[] getSelectedModules(@NotNull DataContext dataContext) {
+    Module[] modules = LangDataKeys.MODULE_CONTEXT_ARRAY.getData(dataContext);
+    if (modules != null) {
+      return modules;
+    }
+
+    Module module = LangDataKeys.MODULE.getData(dataContext);
+    if (module != null) {
+      return new Module[] { module };
+    }
+
+    return null;
   }
 }
