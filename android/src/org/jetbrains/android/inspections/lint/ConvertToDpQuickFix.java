@@ -8,6 +8,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.psi.xml.XmlTagValue;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
@@ -89,22 +90,41 @@ class ConvertToDpQuickFix implements AndroidLintQuickFix {
     for (XmlAttribute attribute : tag.getAttributes()) {
       final String value = attribute.getValue();
 
-      if (value.endsWith("px")) {
-        final Matcher matcher = PX_ATTR_VALUE_PATTERN.matcher(value);
-
-        if (matcher.matches()) {
-          final String numberString = matcher.group(1);
-          try {
-            final int px = Integer.parseInt(numberString);
-            final int dp = px * 160 / dpi;
-            attribute.setValue(Integer.toString(dp) + "dp");
-          }
-          catch (NumberFormatException nufe) {
-            LOG.error(nufe);
-          }
+      if (value != null && value.endsWith("px")) {
+        final String newValue = convertToDp(value, dpi);
+        if (newValue != null) {
+          attribute.setValue(newValue);
         }
       }
     }
+    final XmlTagValue tagValueElement = tag.getValue();
+    final String tagValue = tagValueElement.getText();
+
+    if (tagValue.endsWith("px")) {
+      final String newValue = convertToDp(tagValue, dpi);
+
+      if (newValue != null) {
+        tagValueElement.setText(newValue);
+      }
+    }
+  }
+
+  private static String convertToDp(String value, int dpi) {
+    String newValue = null;
+    final Matcher matcher = PX_ATTR_VALUE_PATTERN.matcher(value);
+
+    if (matcher.matches()) {
+      final String numberString = matcher.group(1);
+      try {
+        final int px = Integer.parseInt(numberString);
+        final int dp = px * 160 / dpi;
+        newValue = Integer.toString(dp) + "dp";
+      }
+      catch (NumberFormatException nufe) {
+        LOG.error(nufe);
+      }
+    }
+    return newValue;
   }
 
   @NotNull

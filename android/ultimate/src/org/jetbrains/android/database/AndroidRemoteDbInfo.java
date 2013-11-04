@@ -9,11 +9,13 @@ class AndroidRemoteDbInfo {
   private final String myDeviceId;
   private final String myPackageName;
   private final String myDatabaseName;
+  private final boolean myExternal;
 
-  public AndroidRemoteDbInfo(@NotNull String deviceId, @NotNull String packageName, @NotNull String databaseName) {
+  public AndroidRemoteDbInfo(@NotNull String deviceId, @NotNull String packageName, @NotNull String databaseName, boolean external) {
     myDeviceId = deviceId;
     myPackageName = packageName;
     myDatabaseName = databaseName;
+    myExternal = external;
   }
 
   @NotNull
@@ -31,6 +33,10 @@ class AndroidRemoteDbInfo {
     return myDatabaseName;
   }
 
+  public boolean isExternal() {
+    return myExternal;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -38,6 +44,7 @@ class AndroidRemoteDbInfo {
 
     AndroidRemoteDbInfo info = (AndroidRemoteDbInfo)o;
 
+    if (myExternal != info.myExternal) return false;
     if (!myDatabaseName.equals(info.myDatabaseName)) return false;
     if (!myDeviceId.equals(info.myDeviceId)) return false;
     if (!myPackageName.equals(info.myPackageName)) return false;
@@ -50,6 +57,7 @@ class AndroidRemoteDbInfo {
     int result = myDeviceId.hashCode();
     result = 31 * result + myPackageName.hashCode();
     result = 31 * result + myDatabaseName.hashCode();
+    result = 31 * result + (myExternal ? 1 : 0);
     return result;
   }
 }

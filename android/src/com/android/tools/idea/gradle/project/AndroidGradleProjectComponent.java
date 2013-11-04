@@ -34,19 +34,26 @@ import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
+import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
+import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.util.Function;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class AndroidGradleProjectComponent extends AbstractProjectComponent {
@@ -90,6 +97,8 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
    */
   @Override
   public void projectOpened() {
+    checkForSupportedModules(myProject, ModuleManager.getInstance(myProject).getModules());
+
     if (shouldShowMigrateToGradleNotification()
         && AndroidStudioSpecificInitializer.isAndroidStudio()
         && Projects.isIdeaAndroidProject(myProject)) {
@@ -174,12 +183,48 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     }
   }
 
+  private static void checkForSupportedModules(@NotNull Project project, @NotNull Module[] modules) {
+    if (modules.length == 0 || !Projects.isGradleProject(project)) {
+      return;
+    }
+    final List<Module> unsupportedModules = new ArrayList<Module>();
+
+    for (Module module : modules) {
+      final ModuleType moduleType = ModuleType.get(module);
+
+      if (moduleType instanceof JavaModuleType) {
+        final String externalSystemId = module.getOptionValue(ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY);
+
+        if (!GradleConstants.SYSTEM_ID.getId().equals(externalSystemId)) {
+          unsupportedModules.add(module);
+        }
+      }
+    }
+
+    if (unsupportedModules.size() == 0) {
+      return;
+    }
+    final String s = StringUtil.join(modules, new Function<Module, String>() {
+      @Override
+      public String fun(Module module) {
+        return module.getName();
+      }
+    }, ", ");
+    AndroidGradleNotification.getInstance(project).showBalloon(
+      "Unsupported Modules Detected",
+      "Compilation is not supported for following modules: " + s +
+      ". Unfortunately you can't have non-Gradle Java modules and Android-Gradle modules in one project.",
+      NotificationType.ERROR);
+  }
+
   private static class GradleModuleListener implements ModuleListener {
     @NotNull private final List<ModuleListener> additionalListeners = Lists.newArrayList();
 
     @Override
     public void moduleAdded(Project project, Module module) {
       updateBuildVariantView(project);
+      checkForSupportedModules(project, new Module[]{module});
+
       for (ModuleListener listener : additionalListeners) {
         listener.moduleAdded(project, module);
       }
