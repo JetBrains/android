@@ -40,7 +40,6 @@ import java.util.List;
  */
 public class GradleInvoker {
   private static final Logger LOG = Logger.getInstance(GradleInvoker.class);
-  @NotNull private static final String CLEAN_TASK_NAME = "clean";
 
   @NotNull private final Project myProject;
 
@@ -50,6 +49,11 @@ public class GradleInvoker {
 
   public GradleInvoker(@NotNull Project project) {
     myProject = project;
+  }
+
+  public void cleanProject() {
+    List<String> tasks = Lists.newArrayList(GradleBuilds.CLEAN_TASK_NAME);
+    executeTasks(tasks, null);
   }
 
   public void generateSources() {
@@ -85,7 +89,7 @@ public class GradleInvoker {
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     List<String> tasks = findTasksToExecute(moduleManager.getModules(), BuildMode.REBUILD, false);
     if (!tasks.isEmpty()) {
-      tasks.add(0, CLEAN_TASK_NAME);
+      tasks.add(0, GradleBuilds.CLEAN_TASK_NAME);
     }
     executeTasks(tasks, null);
   }
