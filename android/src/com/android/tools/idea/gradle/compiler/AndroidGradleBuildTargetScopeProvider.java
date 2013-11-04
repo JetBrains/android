@@ -56,12 +56,12 @@ public class AndroidGradleBuildTargetScopeProvider extends BuildTargetScopeProvi
     }
     else if (baseScope instanceof ModuleCompileScope) {
       // Make selected modules
-      Projects.setModulesToBuild(project, Projects.getSelectedModules(project, null));
+      Projects.setModulesToBuild(project, Projects.getModulesToBuildFromSelection(project, null));
       Projects.setProjectBuildMode(project, BuildMode.MAKE);
     }
     else if (baseScope instanceof CompositeScope) {
       // Compile selected modules
-      Projects.setModulesToBuild(project, Projects.getSelectedModules(project, null));
+      Projects.setModulesToBuild(project, Projects.getModulesToBuildFromSelection(project, null));
       Projects.setProjectBuildMode(project, BuildMode.COMPILE_JAVA);
     }
 
