@@ -144,7 +144,7 @@ public class AndroidLibraryProjectTest extends UsefulTestCase {
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + ".xml", to);
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.doHighlighting();
-    myFixture.checkHighlighting(true, true, true);
+    myFixture.checkHighlighting(true, false, true);
   }
 
   public void testHighlighting1() {
@@ -153,7 +153,7 @@ public class AndroidLibraryProjectTest extends UsefulTestCase {
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + ".xml", to);
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.doHighlighting();
-    myFixture.checkHighlighting(true, true, true);
+    myFixture.checkHighlighting(true, false, true);
   }
 
   public void testHighlighting2() {
@@ -163,7 +163,7 @@ public class AndroidLibraryProjectTest extends UsefulTestCase {
     myFixture.copyDirectoryToProject(BASE_PATH + "res", "lib/res");
     myFixture.configureFromExistingVirtualFile(manifestFile);
     myFixture.doHighlighting();
-    myFixture.checkHighlighting(true, true, true);
+    myFixture.checkHighlighting(true, false, true);
   }
 
   public void testJavaHighlighting() {

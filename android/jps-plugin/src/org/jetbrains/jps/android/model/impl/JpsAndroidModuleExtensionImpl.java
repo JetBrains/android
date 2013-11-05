@@ -94,6 +94,11 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
   }
 
   @Override
+  public String getAdditionalPackagingCommandLineParameters() {
+    return myProperties.ADDITIONAL_PACKAGING_COMMAND_LINE_PARAMETERS;
+  }
+
+  @Override
   public boolean isManifestMergingEnabled() {
     return myProperties.ENABLE_MANIFEST_MERGING;
   }

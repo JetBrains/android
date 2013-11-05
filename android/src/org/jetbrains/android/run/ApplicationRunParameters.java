@@ -18,17 +18,28 @@ package org.jetbrains.android.run;
 
 import com.android.annotations.Nullable;
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
+import com.intellij.compiler.options.CompileStepBeforeRun;
+import com.intellij.compiler.options.CompileStepBeforeRunNoErrorCheck;
+import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.ExecutionBundle;
+import com.intellij.execution.impl.ConfigurationSettingsEditorWrapper;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
+import com.intellij.ide.DataManager;
 import com.intellij.ide.util.TreeClassChooser;
 import com.intellij.ide.util.TreeClassChooserFactory;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.fileTypes.PlainTextLanguage;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.ComponentWithBrowseButton;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
+import com.intellij.packaging.artifacts.Artifact;
+import com.intellij.packaging.artifacts.ArtifactManager;
+import com.intellij.packaging.impl.run.BuildArtifactsBeforeRunTaskProvider;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDocumentManager;
@@ -36,6 +47,10 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.LanguageTextField;
+import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.components.JBRadioButton;
+import org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactType;
+import org.jetbrains.android.compiler.artifact.AndroidArtifactUtil;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 
@@ -43,6 +58,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -59,9 +78,13 @@ class ApplicationRunParameters implements ConfigurationSpecificEditor<AndroidRun
   private JRadioButton myLaunchCustomButton;
   private JPanel myPanel;
   private JRadioButton myDoNothingButton;
-  private JCheckBox myDeployAndInstallCheckBox;
+  private JBRadioButton myDeployDefaultApkRadio;
+  private JBRadioButton myDeployArtifactRadio;
+  private JBRadioButton myDoNotDeployRadio;
+  private ComboBox myArtifactCombo;
   private final Project myProject;
   private final ConfigurationModuleSelector myModuleSelector;
+  private Artifact myLastSelectedArtifact;
 
   ApplicationRunParameters(final Project project, final ConfigurationModuleSelector moduleSelector) {
     myProject = project;
@@ -104,6 +127,82 @@ class ApplicationRunParameters implements ConfigurationSpecificEditor<AndroidRun
     myLaunchCustomButton.addActionListener(listener);
     myLaunchDefaultButton.addActionListener(listener);
     myDoNothingButton.addActionListener(listener);
+
+    final ActionListener listener1 = new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        myArtifactCombo.setEnabled(myDeployArtifactRadio.isSelected());
+        updateBuildArtifactBeforeRunSetting();
+      }
+    };
+    myDeployDefaultApkRadio.addActionListener(listener1);
+    myDoNotDeployRadio.addActionListener(listener1);
+    myDeployArtifactRadio.addActionListener(listener1);
+
+    myArtifactCombo.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        updateBuildArtifactBeforeRunSetting();
+      }
+    });
+  }
+
+  private void updateBuildArtifactBeforeRunSetting() {
+    Artifact newArtifact = null;
+
+    if (myDeployArtifactRadio.isSelected()) {
+      final Object item = myArtifactCombo.getSelectedItem();
+
+      if (item instanceof Artifact) {
+        newArtifact = (Artifact)item;
+      }
+    }
+    if (Comparing.equal(newArtifact, myLastSelectedArtifact)) {
+      return;
+    }
+    if (myLastSelectedArtifact != null) {
+      BuildArtifactsBeforeRunTaskProvider.setBuildArtifactBeforeRunOption(myPanel, myProject, myLastSelectedArtifact, false);
+    }
+    if (newArtifact != null) {
+      BuildArtifactsBeforeRunTaskProvider.setBuildArtifactBeforeRunOption(myPanel, myProject, newArtifact, true);
+    }
+
+    if (myLastSelectedArtifact == null || newArtifact == null) {
+      addOrRemoveMakeTask(newArtifact == null);
+    }
+    myLastSelectedArtifact = newArtifact;
+  }
+
+  private void addOrRemoveMakeTask(boolean add) {
+    final DataContext dataContext = DataManager.getInstance().getDataContext(myPanel);
+    final ConfigurationSettingsEditorWrapper editor = ConfigurationSettingsEditorWrapper.CONFIGURATION_EDITOR_KEY.getData(dataContext);
+
+    if (editor == null) {
+      return;
+    }
+    final List<BeforeRunTask> makeTasks = new ArrayList<BeforeRunTask>();
+
+    for (BeforeRunTask task : editor.getStepsBeforeLaunch()) {
+      if (task instanceof CompileStepBeforeRun.MakeBeforeRunTask ||
+          task instanceof CompileStepBeforeRunNoErrorCheck.MakeBeforeRunTaskNoErrorCheck) {
+        makeTasks.add(task);
+      }
+    }
+    if (add) {
+      if (makeTasks.size() == 0) {
+        editor.addBeforeLaunchStep(new CompileStepBeforeRun.MakeBeforeRunTask());
+      }
+      else {
+        for (BeforeRunTask task : makeTasks) {
+          task.setEnabled(true);
+        }
+      }
+    }
+    else {
+      for (BeforeRunTask task : makeTasks) {
+        task.setEnabled(false);
+      }
+    }
   }
 
   @Nullable
@@ -125,7 +224,69 @@ class ApplicationRunParameters implements ConfigurationSpecificEditor<AndroidRun
     }
     myActivityField.setEnabled(launchSpecificActivity);
     myActivityField.getChildComponent().setText(configuration.ACTIVITY_CLASS);
-    myDeployAndInstallCheckBox.setSelected(configuration.DEPLOY);
+
+    final Collection<? extends Artifact> artifacts = ArtifactManager.getInstance(myProject).
+      getArtifactsByType(AndroidApplicationArtifactType.getInstance());
+    final String artifactName = configuration.ARTIFACT_NAME;
+    Artifact artifactToSelect = null;
+
+    if (configuration.DEPLOY) {
+      myDoNotDeployRadio.setSelected(false);
+
+      if (artifactName.length() > 0) {
+        final Module module = getModule();
+
+        for (Artifact artifact : artifacts) {
+          if (artifactName.equals(artifact.getName()) &&
+              AndroidArtifactUtil.isRelatedArtifact(artifact, module)) {
+            artifactToSelect = artifact;
+            break;
+          }
+        }
+        myDeployArtifactRadio.setSelected(true);
+        myDeployDefaultApkRadio.setSelected(false);
+      }
+      else {
+        myDeployArtifactRadio.setSelected(false);
+        myDeployDefaultApkRadio.setSelected(true);
+      }
+    }
+    else {
+      myDeployArtifactRadio.setSelected(false);
+      myDeployDefaultApkRadio.setSelected(false);
+      myDoNotDeployRadio.setSelected(true);
+    }
+    myArtifactCombo.setEnabled(myDeployArtifactRadio.isSelected());
+
+    if (artifactToSelect != null || artifactName.length() == 0) {
+      myArtifactCombo.setModel(new DefaultComboBoxModel(artifacts.toArray()));
+
+      if (artifactToSelect != null) {
+        myArtifactCombo.setSelectedItem(artifactToSelect);
+      }
+    }
+    else {
+      final List<Object> list = new ArrayList<Object>();
+      list.add(artifactName);
+      list.addAll(Arrays.asList(artifacts));
+      myArtifactCombo.setModel(new DefaultComboBoxModel(list.toArray()));
+      myArtifactCombo.setSelectedItem(artifactName);
+    }
+    myArtifactCombo.setRenderer(new ListCellRendererWrapper() {
+      @Override
+      public void customize(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+        if (value instanceof Artifact) {
+          final Artifact artifact = (Artifact)value;
+          setText(artifact.getName());
+          setIcon(artifact.getArtifactType().getIcon());
+        }
+        else if (value instanceof String) {
+          setText("<html><font color='red'>" + value + "</font></html>");
+        }
+      }
+    });
+    final Object item = myDeployArtifactRadio.isSelected() ? myArtifactCombo.getSelectedItem() : null;
+    myLastSelectedArtifact = item instanceof Artifact ? (Artifact)item : null;
   }
 
   @Override
@@ -145,7 +306,22 @@ class ApplicationRunParameters implements ConfigurationSpecificEditor<AndroidRun
     else {
       configuration.MODE = AndroidRunConfiguration.DO_NOTHING;
     }
-    configuration.DEPLOY = myDeployAndInstallCheckBox.isSelected();
+    configuration.DEPLOY = !myDoNotDeployRadio.isSelected();
+
+    if (myDeployArtifactRadio.isSelected()) {
+      final Object item = myArtifactCombo.getSelectedItem();
+
+      if (item instanceof Artifact) {
+        final Artifact artifact = (Artifact)item;
+        configuration.ARTIFACT_NAME = artifact.getName();
+      }
+      else {
+        configuration.ARTIFACT_NAME = item != null ? item.toString() : "";
+      }
+    }
+    else {
+      configuration.ARTIFACT_NAME = "";
+    }
   }
 
   @Override

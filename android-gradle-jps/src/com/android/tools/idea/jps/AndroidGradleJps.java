@@ -17,14 +17,20 @@ package com.android.tools.idea.jps;
 
 import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.jps.model.JpsAndroidGradleModuleExtension;
+import com.android.tools.idea.jps.model.JpsGradleModuleExtension;
 import com.android.tools.idea.jps.model.impl.JpsAndroidGradleModuleExtensionImpl;
+import com.android.tools.idea.jps.model.impl.JpsGradleModuleExtensionImpl;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.ModuleChunk;
+import org.jetbrains.jps.android.model.JpsAndroidSdkProperties;
+import org.jetbrains.jps.android.model.JpsAndroidSdkType;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 import org.jetbrains.jps.model.JpsProject;
+import org.jetbrains.jps.model.JpsSimpleElement;
+import org.jetbrains.jps.model.library.sdk.JpsSdk;
 import org.jetbrains.jps.model.module.JpsModule;
 
 /**
@@ -78,6 +84,39 @@ public final class AndroidGradleJps {
   @Nullable
   public static JpsAndroidGradleModuleExtension getExtension(@NotNull JpsModule module) {
     return module.getContainer().getChild(JpsAndroidGradleModuleExtensionImpl.KIND);
+  }
+
+  @Nullable
+  public static JpsGradleModuleExtension getOrCreateGradleSystemExtension(@NotNull JpsModule module) {
+    JpsGradleModuleExtension extension = getGradleSystemExtension(module);
+
+    if (extension == null) {
+      extension = new JpsGradleModuleExtensionImpl();
+      module.getContainer().setChild(JpsGradleModuleExtensionImpl.ROLE, extension);
+    }
+    return extension;
+  }
+
+  @Nullable
+  public static JpsGradleModuleExtension getGradleSystemExtension(@NotNull JpsModule module) {
+    return module.getContainer().getChild(JpsGradleModuleExtensionImpl.ROLE);
+  }
+
+  /**
+   * Returns the first 'Android SDK' in the given chunk of IDEA modules.
+   *
+   * @param chunk the given chunk of modules.
+   * @return the first 'Android SDK' in the given chunk of IDEA modules, or {@code null} if none of the modules contain an 'Android SDK.'
+   */
+  @Nullable
+  public static JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> getFirstAndroidSdk(@NotNull ModuleChunk chunk) {
+    for (JpsModule module : chunk.getModules()) {
+      JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> sdk = module.getSdk(JpsAndroidSdkType.INSTANCE);
+      if (sdk != null) {
+        return sdk;
+      }
+    }
+    return null;
   }
 
   @NotNull
