@@ -44,8 +44,11 @@ public class AndroidApplicationArtifactProperties extends ArtifactProperties<And
 
   @Override
   public void onBuildFinished(@NotNull Artifact artifact, @NotNull CompileContext context) {
-    if (!(artifact.getArtifactType() instanceof AndroidApplicationArtifactType) ||
-        mySigningMode != AndroidArtifactSigningMode.RELEASE_SIGNED) {
+    if (!(artifact.getArtifactType() instanceof AndroidApplicationArtifactType)) {
+      return;
+    }
+    if (mySigningMode != AndroidArtifactSigningMode.RELEASE_SIGNED &&
+        mySigningMode != AndroidArtifactSigningMode.DEBUG_WITH_CUSTOM_CERTIFICATE) {
       return;
     }
 

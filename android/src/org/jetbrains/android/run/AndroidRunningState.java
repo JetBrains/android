@@ -68,6 +68,8 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.packaging.artifacts.Artifact;
+import com.intellij.packaging.artifacts.ArtifactManager;
 import com.intellij.ui.content.Content;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.PathUtil;
@@ -77,6 +79,7 @@ import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import com.intellij.util.xml.GenericAttributeValue;
 import com.intellij.xdebugger.DefaultDebugProcessHandler;
+import org.jetbrains.android.compiler.artifact.AndroidArtifactUtil;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -158,6 +161,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   private final Object myLock = new Object();
 
   private volatile boolean myDeploy = true;
+  private volatile String myArtifactName;
 
   private volatile boolean myApplicationDeployed = false;
 
@@ -498,6 +502,10 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
   public void setDeploy(boolean deploy) {
     myDeploy = deploy;
+  }
+
+  public void setArtifactName(@Nullable String artifactName) {
+    myArtifactName = artifactName;
   }
 
   public void setTargetPackageName(String targetPackageName) {
@@ -1087,9 +1095,33 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
   private boolean uploadAndInstall(@NotNull IDevice device, @NotNull String packageName, AndroidFacet facet)
     throws IOException, AdbCommandRejectedException, TimeoutException {
-    String localPath = AndroidRootUtil.getApkPath(facet);
+    final Module module = facet.getModule();
+    String localPath;
+
+    if (myArtifactName != null && myArtifactName.length() > 0) {
+      final Artifact artifact = ArtifactManager.getInstance(myEnv.getProject()).findArtifact(myArtifactName);
+
+      if (artifact == null) {
+        message("ERROR: cannot find artifact \"" + myArtifactName + '"', STDERR);
+        return false;
+      }
+      if (!AndroidArtifactUtil.isRelatedArtifact(artifact, module)) {
+        message("ERROR: artifact \"" + myArtifactName + "\" doesn't contain packaged module \"" + module.getName() + '"', STDERR);
+        return false;
+      }
+      final String artifactOutPath = artifact.getOutputFilePath();
+
+      if (artifactOutPath == null || artifactOutPath.length() == 0) {
+        message("ERROR: output path is not specified for artifact \"" + myArtifactName + '"', STDERR);
+        return false;
+      }
+      localPath = FileUtil.toSystemDependentName(artifactOutPath);
+    }
+    else {
+      localPath = AndroidRootUtil.getApkPath(facet);
+    }
     if (localPath == null) {
-      message("ERROR: APK path is not specified for module \"" + facet.getModule().getName() + '"', STDERR);
+      message("ERROR: APK path is not specified for module \"" + module.getName() + '"', STDERR);
       return false;
     }
     return uploadAndInstallApk(device, packageName, localPath);

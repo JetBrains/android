@@ -68,6 +68,15 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
     doTestLayout("layout1.xml");
   }
 
+  public void testLayout7() throws Exception {
+    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
+    final XmlCodeStyleSettings xmlSettings = mySettings.getCustomSettings(XmlCodeStyleSettings.class);
+    xmlSettings.XML_ALIGN_ATTRIBUTES = true;
+    final AndroidXmlCodeStyleSettings androidSettings = mySettings.getCustomSettings(AndroidXmlCodeStyleSettings.class);
+    androidSettings.LAYOUT_SETTINGS.INSERT_LINE_BREAK_AFTER_LAST_ATTRIBUTE = true;
+    doTestLayout("layout1.xml");
+  }
+
   public void testManifest1() throws Exception {
     deleteManifest();
     new AndroidXmlPredefinedCodeStyle().apply(mySettings);

@@ -8,6 +8,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.packaging.ui.ArtifactPropertiesEditor;
 import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.components.JBRadioButton;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUiUtil;
@@ -28,7 +29,7 @@ public class AndroidArtifactPropertiesEditor extends ArtifactPropertiesEditor im
   private JRadioButton myDebugRadio;
   private JRadioButton myReleaseSignedRadio;
   private JRadioButton myReleaseUnsignedRadio;
-  private JPanel myReleaseKeyPanel;
+  private JPanel myCertificatePanel;
   private JPasswordField myKeyStorePasswordField;
   private JTextField myKeyStorePathField;
   private JPasswordField myKeyPasswordField;
@@ -40,6 +41,7 @@ public class AndroidArtifactPropertiesEditor extends ArtifactPropertiesEditor im
   private JPanel myKeyStoreButtonsPanel;
   private JPanel myProGuardPanel;
   private ProGuardConfigFilesPanel myProGuardConfigFilesPanel;
+  private JBRadioButton myDebugWithCustomCertificateRadio;
 
   private final Artifact myArtifact;
   private final Project myProject;
@@ -57,10 +59,11 @@ public class AndroidArtifactPropertiesEditor extends ArtifactPropertiesEditor im
     final ActionListener listener = new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        UIUtil.setEnabled(myReleaseKeyPanel, myReleaseSignedRadio.isSelected(), true);
+        UIUtil.setEnabled(myCertificatePanel, myReleaseSignedRadio.isSelected() || myDebugWithCustomCertificateRadio.isSelected(), true);
       }
     };
     myDebugRadio.addActionListener(listener);
+    myDebugWithCustomCertificateRadio.addActionListener(listener);
     myReleaseUnsignedRadio.addActionListener(listener);
     myReleaseSignedRadio.addActionListener(listener);
 
@@ -117,17 +120,25 @@ public class AndroidArtifactPropertiesEditor extends ArtifactPropertiesEditor im
         myReleaseUnsignedRadio.setSelected(true);
         myDebugRadio.setSelected(false);
         myReleaseSignedRadio.setSelected(false);
+        myDebugWithCustomCertificateRadio.setSelected(false);
         break;
       case DEBUG:
         myReleaseUnsignedRadio.setSelected(false);
         myDebugRadio.setSelected(true);
         myReleaseSignedRadio.setSelected(false);
+        myDebugWithCustomCertificateRadio.setSelected(false);
         break;
       case RELEASE_SIGNED:
         myReleaseUnsignedRadio.setSelected(false);
         myDebugRadio.setSelected(false);
         myReleaseSignedRadio.setSelected(true);
+        myDebugWithCustomCertificateRadio.setSelected(false);
         break;
+      case DEBUG_WITH_CUSTOM_CERTIFICATE:
+        myReleaseUnsignedRadio.setSelected(false);
+        myDebugRadio.setSelected(false);
+        myReleaseSignedRadio.setSelected(false);
+        myDebugWithCustomCertificateRadio.setSelected(true);
     }
     final String keyStoreUrl = myProperties.getKeyStoreUrl();
     myKeyStorePathField.setText(keyStoreUrl != null ? FileUtil.toSystemDependentName(VfsUtilCore.urlToPath(keyStoreUrl)) : "");
@@ -140,7 +151,7 @@ public class AndroidArtifactPropertiesEditor extends ArtifactPropertiesEditor im
     myProGuardCheckBox.setSelected(myProperties.isRunProGuard());
     myProGuardConfigFilesPanel.setUrls(myProperties.getProGuardCfgFiles());
 
-    UIUtil.setEnabled(myReleaseKeyPanel, myProperties.getSigningMode() == AndroidArtifactSigningMode.RELEASE_SIGNED, true);
+    UIUtil.setEnabled(myCertificatePanel, myProperties.getSigningMode() == AndroidArtifactSigningMode.RELEASE_SIGNED, true);
     UIUtil.setEnabled(myProGuardConfigPanel, myProperties.isRunProGuard(), true);
   }
 
@@ -152,6 +163,9 @@ public class AndroidArtifactPropertiesEditor extends ArtifactPropertiesEditor im
   private AndroidArtifactSigningMode getSigningMode() {
     if (myDebugRadio.isSelected()) {
       return AndroidArtifactSigningMode.DEBUG;
+    }
+    else if (myDebugWithCustomCertificateRadio.isSelected()) {
+      return AndroidArtifactSigningMode.DEBUG_WITH_CUSTOM_CERTIFICATE;
     }
     else if (myReleaseSignedRadio.isSelected()) {
       return AndroidArtifactSigningMode.RELEASE_SIGNED;

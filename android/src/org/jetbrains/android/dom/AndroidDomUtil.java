@@ -98,6 +98,7 @@ public class AndroidDomUtil {
         return ResourceType.DIMEN.getName();
       case String:
         return ResourceType.STRING.getName();
+      case Float:
       case Integer:
         return ResourceType.INTEGER.getName();
       case Fraction:

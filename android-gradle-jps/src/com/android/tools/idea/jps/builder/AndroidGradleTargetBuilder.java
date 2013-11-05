@@ -50,10 +50,13 @@ import org.jetbrains.jps.incremental.TargetBuilder;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 import org.jetbrains.jps.incremental.messages.ProgressMessage;
+import org.jetbrains.jps.model.JpsDummyElement;
 import org.jetbrains.jps.model.JpsProject;
 import org.jetbrains.jps.model.JpsSimpleElement;
+import org.jetbrains.jps.model.java.JpsJavaModuleType;
 import org.jetbrains.jps.model.library.sdk.JpsSdk;
 import org.jetbrains.jps.model.module.JpsModule;
+import org.jetbrains.jps.model.module.JpsTypedModule;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -90,6 +93,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
                     @NotNull BuildOutputConsumer outputConsumer,
                     @NotNull CompileContext context) throws ProjectBuildException, IOException {
     JpsProject project = target.getProject();
+    checkUnsupportedModules(project, context);
 
     BuilderExecutionSettings executionSettings;
     try {
@@ -123,6 +127,17 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
     LOG.info(String.format(format, project.getName(), executionSettings.getProjectDir().getAbsolutePath()));
 
     doBuild(context, buildTasks, executionSettings, androidHome);
+  }
+
+  private static void checkUnsupportedModules(JpsProject project, CompileContext context) {
+    for (JpsTypedModule<JpsDummyElement> module : project.getModules(JpsJavaModuleType.INSTANCE)) {
+      if (AndroidGradleJps.getGradleSystemExtension(module) == null) {
+        context.processMessage(AndroidGradleJps.createCompilerMessage(
+          BuildMessage.Kind.WARNING,
+          "module '" + module.getName() + "' won't be compiled. " +
+          "Unfortunately you can't have non-Gradle Java module and Android-Gradle module in one project."));
+      }
+    }
   }
 
   @NotNull
