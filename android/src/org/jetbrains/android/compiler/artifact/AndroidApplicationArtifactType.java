@@ -16,6 +16,7 @@ import com.intellij.packaging.elements.PackagingElementOutputKind;
 import com.intellij.packaging.elements.PackagingElementResolvingContext;
 import com.intellij.packaging.impl.artifacts.ArtifactUtil;
 import com.intellij.packaging.ui.PackagingSourceItem;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -73,6 +74,10 @@ public class AndroidApplicationArtifactType extends ArtifactType {
       return Collections.emptyList();
     }
     return Collections.singletonList(new MyTemplate(context.getProject(), facets));
+  }
+
+  public static ArtifactType getInstance() {
+    return ContainerUtil.findInstance(getAllTypes(), AndroidApplicationArtifactType.class);
   }
 
   private class MyTemplate extends ArtifactTemplate {

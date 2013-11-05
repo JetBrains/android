@@ -135,6 +135,7 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
     private JComboBox myWrapAttributesCombo;
 
     protected JBCheckBox myInsertLineBreakBeforeFirstAttributeCheckBox;
+    protected JBCheckBox myInsertLineBreakAfterLastAttributeCheckbox;
 
     private final String myTitle;
     private final ContextSpecificSettingsProviders.Provider<T> mySettingsProvider;
@@ -171,6 +172,7 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
     protected void apply(T s) {
       s.WRAP_ATTRIBUTES = ourWrappings[myWrapAttributesCombo.getSelectedIndex()];
       s.INSERT_LINE_BREAK_BEFORE_FIRST_ATTRIBUTE = myInsertLineBreakBeforeFirstAttributeCheckBox.isSelected();
+      s.INSERT_LINE_BREAK_AFTER_LAST_ATTRIBUTE = myInsertLineBreakAfterLastAttributeCheckbox.isSelected();
     }
 
     public final boolean isModified(AndroidXmlCodeStyleSettings settings) {
@@ -184,6 +186,9 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
       if (s.INSERT_LINE_BREAK_BEFORE_FIRST_ATTRIBUTE != myInsertLineBreakBeforeFirstAttributeCheckBox.isSelected()) {
         return true;
       }
+      if (s.INSERT_LINE_BREAK_AFTER_LAST_ATTRIBUTE != myInsertLineBreakAfterLastAttributeCheckbox.isSelected()) {
+        return true;
+      }
       return false;
     }
 
@@ -194,6 +199,7 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
     protected void resetImpl(T s) {
       myWrapAttributesCombo.setSelectedIndex(getIndexForWrapping(s.WRAP_ATTRIBUTES));
       myInsertLineBreakBeforeFirstAttributeCheckBox.setSelected(s.INSERT_LINE_BREAK_BEFORE_FIRST_ATTRIBUTE);
+      myInsertLineBreakAfterLastAttributeCheckbox.setSelected(s.INSERT_LINE_BREAK_AFTER_LAST_ATTRIBUTE);
     }
 
     @NotNull
@@ -291,6 +297,7 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
 
       init();
       myInsertLineBreakBeforeFirstAttributeCheckBox.setVisible(false);
+      myInsertLineBreakAfterLastAttributeCheckbox.setVisible(false);
     }
 
     @Nullable
@@ -325,6 +332,7 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
       super("Other XML resource files", ContextSpecificSettingsProviders.OTHER);
       init();
       myInsertLineBreakBeforeFirstAttributeCheckBox.setVisible(false);
+      myInsertLineBreakAfterLastAttributeCheckbox.setVisible(false);
     }
   }
 }

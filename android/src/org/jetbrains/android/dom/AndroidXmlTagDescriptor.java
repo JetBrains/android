@@ -37,6 +37,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.Arrays;
+import java.util.Comparator;
 
 /**
  * Created by IntelliJ IDEA.
@@ -113,7 +115,36 @@ public class AndroidXmlTagDescriptor implements XmlElementDescriptor, PsiPresent
 
   @Override
   public XmlAttributeDescriptor[] getAttributesDescriptors(@Nullable XmlTag context) {
-    return myParentDescriptor.getAttributesDescriptors(context);
+    final XmlAttributeDescriptor[] descriptors = myParentDescriptor.getAttributesDescriptors(context);
+
+    Arrays.sort(descriptors, new Comparator<XmlAttributeDescriptor>() {
+      @Override
+      public int compare(XmlAttributeDescriptor a1, XmlAttributeDescriptor a2) {
+        final String name1 = a1.getName();
+        final String name2 = a2.getName();
+
+        if (name1.equals(name2)) {
+          return 0;
+        }
+        if (!name1.startsWith("layout_") || !name2.startsWith("layout_")) {
+          return name1.compareTo(name2);
+        }
+        if (name1.equals("layout_width")) {
+          return -1;
+        }
+        if (name2.equals("layout_width")) {
+          return 1;
+        }
+        if (name1.equals("layout_height")) {
+          return -1;
+        }
+        if (name2.equals("layout_height")) {
+          return 1;
+        }
+        return name1.compareTo(name2);
+      }
+    });
+    return descriptors;
   }
 
   @Override
