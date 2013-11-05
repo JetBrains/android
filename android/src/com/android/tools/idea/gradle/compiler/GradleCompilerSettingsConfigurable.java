@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.compiler;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
+import com.intellij.ide.PowerSaveMode;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
@@ -111,6 +112,9 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     String vmOptions = Strings.nullToEmpty(myGradleSettings.getGradleVmOptions());
     myVmOptionsEditor.setText(vmOptions);
     myAutoMakeCheckBox.setSelected(myCompilerConfiguration.MAKE_PROJECT_ON_SAVE);
+    myAutoMakeCheckBox.setText("Make project automatically (only works while not running / debugging" +
+                               (PowerSaveMode.isEnabled() ? ", disabled in Power Save mode" : "") +
+                               ")");
   }
 
   @Override
