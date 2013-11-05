@@ -19,6 +19,7 @@ import com.android.builder.model.*;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.util.io.FileUtil;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,7 +30,7 @@ import java.util.Map;
  * Configures a module's content root from an {@link AndroidProject}.
  */
 public final class AndroidContentRoot {
-  public static final String BUILD_DIR = "build";
+  @NonNls public static final String BUILD_DIR = "build";
 
   // TODO: Retrieve this information from Gradle.
   private static final String[] EXCLUDED_OUTPUT_DIR_NAMES =
@@ -42,8 +43,8 @@ public final class AndroidContentRoot {
   /**
    * Stores the paths of 'source'/'test'/'excluded' directories, according to the project structure in the given Android-Gradle project.
    *
-   * @param androidProject    structure of the Android-Gradle project.
-   * @param storage           persists the configuration of a content root.
+   * @param androidProject structure of the Android-Gradle project.
+   * @param storage        persists the configuration of a content root.
    */
   public static void storePaths(@NotNull IdeaAndroidProject androidProject, @NotNull ContentRootStorage storage) {
     Variant selectedVariant = androidProject.getSelectedVariant();
@@ -62,7 +63,7 @@ public final class AndroidContentRoot {
     String buildTypeName = selectedVariant.getBuildType();
     BuildTypeContainer buildTypeContainer = delegate.getBuildTypes().get(buildTypeName);
     if (buildTypeContainer != null) {
-      storePaths(ExternalSystemSourceType.SOURCE, buildTypeContainer.getSourceProvider(), storage);
+      storePaths(ExternalSystemSourceType.GENERATED, buildTypeContainer.getSourceProvider(), storage);
     }
 
     ProductFlavorContainer defaultConfig = delegate.getDefaultConfig();
@@ -73,7 +74,7 @@ public final class AndroidContentRoot {
 
   private static void storePaths(@NotNull Variant variant, @NotNull ContentRootStorage storage) {
     ArtifactInfo mainArtifactInfo = variant.getMainArtifactInfo();
-    storePaths(ExternalSystemSourceType.SOURCE, mainArtifactInfo, storage);
+    storePaths(ExternalSystemSourceType.GENERATED, mainArtifactInfo, storage);
 
     ArtifactInfo testArtifactInfo = variant.getTestArtifactInfo();
     if (testArtifactInfo != null) {
@@ -89,7 +90,7 @@ public final class AndroidContentRoot {
   }
 
   private static void storePaths(@NotNull ProductFlavorContainer flavor, @NotNull ContentRootStorage storage) {
-    storePaths(ExternalSystemSourceType.SOURCE, flavor.getSourceProvider(), storage);
+    storePaths(ExternalSystemSourceType.GENERATED, flavor.getSourceProvider(), storage);
     storePaths(ExternalSystemSourceType.TEST, flavor.getTestSourceProvider(), storage);
   }
 
