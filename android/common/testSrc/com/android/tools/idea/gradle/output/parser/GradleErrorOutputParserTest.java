@@ -64,6 +64,21 @@ public class GradleErrorOutputParserTest extends TestCase {
     super.tearDown();
   }
 
+  public void testParseDisplayingUnhandledMessages() {
+    String output = " **--- HELLO WORLD ---**";
+    List<GradleMessage> gradleMessages = parser.parseErrorOutput(output, true);
+    assertEquals(1, gradleMessages.size());
+    GradleMessage message = gradleMessages.get(0);
+    assertEquals(output, message.getText());
+    assertEquals(GradleMessage.Kind.INFO, message.getKind());
+  }
+
+  public void testParseNotDisplayingUnhandledMessages() {
+    String output = " **--- HELLO WORLD ---**";
+    List<GradleMessage> gradleMessages = parser.parseErrorOutput(output, false);
+    assertEquals(0, gradleMessages.size());
+  }
+
   public void testParseAaptOutputWithRange1() throws IOException {
     createTempXmlFile();
     writeToFile("<manifest xmlns:android='http://schemas.android.com/apk/res/android'",
@@ -72,7 +87,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "  <application android:icon='@drawable/icon' android:label='@string/app_name2'>");
     String messageText = "No resource found that matches the given name (at 'label' with value " + "'@string/app_name2').";
     String err = sourceFilePath + ":4: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseErrorOutput(err, true);
     assertHasCorrectErrorMessage(messages, messageText, 4, 61);
   }
 
@@ -87,7 +102,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "  <application android:icon='@drawable/icon' android:label=", "      '@string/app_name2'>");
     String messageText = "No resource found that matches the given name (at 'label' with value " + "'@string/app_name2').";
     String err = sourceFilePath + ":4: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseErrorOutput(err, true);
     assertHasCorrectErrorMessage(messages, messageText, 5, 8);
   }
 
@@ -104,7 +119,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "    <item name='android:gravity'>left</item>");
     String messageText = "Resource entry repeatedStyle1 already has bag item android:gravity.";
     String err = sourceFilePath + ":6: error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseErrorOutput(err, true);
     assertHasCorrectErrorMessage(messages, messageText, 6, 17);
   }
 
@@ -119,7 +134,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "    <item name='android:gravity'>left</item>");
     String messageText = "Originally defined here.";
     String err = sourceFilePath + ":3: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseErrorOutput(err, true);
     assertHasCorrectErrorMessage(messages, messageText, 3, 5);
   }
 
@@ -132,7 +147,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "    <item name='nonexistent'>left</item>");
     String messageText = "No resource found that matches the given name: attr 'nonexistent'.";
     String err = sourceFilePath + ":3: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseErrorOutput(err, true);
     assertHasCorrectErrorMessage(messages, messageText, 3, 17);
   }
 
@@ -143,7 +158,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "  <style>");
     String messageText = "A 'name' attribute is required for <style>";
     String err = sourceFilePath + ":2: error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseErrorOutput(err, true);
     assertHasCorrectErrorMessage(messages, messageText, 2, 3);
   }
 
@@ -153,7 +168,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "  <item>");
     String messageText = "A 'type' attribute is required for <item>";
     String err = sourceFilePath + ":2: error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseErrorOutput(err, true);
     assertHasCorrectErrorMessage(messages, messageText, 2, 3);
   }
 
@@ -163,7 +178,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "  <item>");
     String messageText = "A 'name' attribute is required for <item>";
     String err = sourceFilePath + ":2: error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseErrorOutput(err, true);
     assertHasCorrectErrorMessage(messages, messageText, 2, 3);
   }
 
@@ -174,7 +189,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "        <item name='android:layout_width'></item>");
     String messageText = "String types not allowed (at 'android:layout_width' with value '').";
     String err = sourceFilePath + ":3: error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseErrorOutput(err, true);
     assertHasCorrectErrorMessage(messages, messageText, 3, 21);
   }
 
@@ -190,7 +205,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "        android:layout_marginLeft=''");
     String messageText = "String types not allowed (at 'layout_marginTop' with value '').";
     String err = sourceFilePath + ":5: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseErrorOutput(err, true);
     assertHasCorrectErrorMessage(messages, messageText, 8, 34);
   }
 
@@ -207,7 +222,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "        android:layout_marginLeft=''");
     String messageText = "String types not allowed (at 'layout_marginLeft' with value '').";
     String err = sourceFilePath + ":5: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseErrorOutput(err, true);
     assertHasCorrectErrorMessage(messages, messageText, 9, 35);
   }
 
@@ -221,7 +236,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "        android:id=''");
     String messageText = "String types not allowed (at 'id' with value '').";
     String err = sourceFilePath + ":5: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseErrorOutput(err, true);
     assertHasCorrectErrorMessage(messages, messageText, 6, 20);
   }
 
@@ -240,7 +255,7 @@ public class GradleErrorOutputParserTest extends TestCase {
        .append("location: Test").append(NEWLINE)
        .append("    int v2 = v4").append(NEWLINE)
        .append("             ^");
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err.toString());
+    Collection<GradleMessage> messages = parser.parseErrorOutput(err.toString(), true);
     assertHasCorrectErrorMessage(messages, "error: cannot find symbol variable v4", 3, 14);
   }
 
@@ -253,7 +268,7 @@ public class GradleErrorOutputParserTest extends TestCase {
     err.append(sourceFilePath).append(":3: error: ").append("not a statement").append(NEWLINE)
        .append("    System.out.println();asd").append(NEWLINE)
        .append("                         ^").append(NEWLINE);
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err.toString());
+    Collection<GradleMessage> messages = parser.parseErrorOutput(err.toString(), true);
     assertHasCorrectErrorMessage(messages, "error: not a statement", 3, 26);
   }
 
@@ -280,7 +295,7 @@ public class GradleErrorOutputParserTest extends TestCase {
       NEWLINE).append(NEWLINE);
     err.append("BUILD FAILED").append(NEWLINE).append(NEWLINE);
     err.append("Total time: 18.303 secs\n");
-    List<GradleMessage> messages = parser.parseErrorOutput(err.toString());
+    List<GradleMessage> messages = parser.parseErrorOutput(err.toString(), true);
 
     assertEquals("0: Error:A problem occurred evaluating project ':project'.\n" +
                  "> Could not find method ERROR() for arguments [{plugin=android}] on project ':project'.\n" +
@@ -294,7 +309,7 @@ public class GradleErrorOutputParserTest extends TestCase {
     StringBuilder err = new StringBuilder();
     err.append("[Fatal Error] :5:7: The element type \"error\" must be terminated by the matching end-tag \"</error>\".").append(NEWLINE);
     err.append("FAILURE: Build failed with an exception.").append(NEWLINE);
-    List<GradleMessage> messages = parser.parseErrorOutput(err.toString());
+    List<GradleMessage> messages = parser.parseErrorOutput(err.toString(), true);
 
     assertEquals("0: Error:The element type \"error\" must be terminated by the matching end-tag \"</error>\".\n" +
                  "1: Info:FAILURE: Build failed with an exception.\n",
@@ -446,7 +461,7 @@ public class GradleErrorOutputParserTest extends TestCase {
 
     String messageText = "String types not allowed (at 'drawable_ref' with value '@drawable/stat_notify_sync_anim0').";
     String err = sourceFilePath + ":46: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseErrorOutput(err, true);
     assertEquals(1, messages.size());
 
     assertEquals("[message count]", 1, messages.size());
@@ -495,7 +510,7 @@ public class GradleErrorOutputParserTest extends TestCase {
 
     String messageText = "Random error message here";
     String err = sourceFilePath + ":4: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseErrorOutput(err, true);
     assertEquals(1, messages.size());
 
     assertEquals("[message count]", 1, messages.size());
@@ -545,7 +560,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "\t" + sourceFilePath + ":5:27\n" +
                  "2: Error:Execution failed for task ':five:processDebugResources'.\n" +
                  "3: Info:BUILD FAILED\n",
-                 toString(parser.parseErrorOutput(err)));
+                 toString(parser.parseErrorOutput(err, true)));
   }
 
   public void testLockOwner() throws Exception {
@@ -572,7 +587,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "      > Problems pinging owner of lock '-7513739537696464924' at port: 55416\n" +
                  "2: Info:BUILD FAILED\n" +
                  "3: Info:Total time: 24.154 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 toString(parser.parseErrorOutput(output, true)));
   }
 
   public void testDuplicateResources() throws Exception {
@@ -606,7 +621,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "1: Error:Execution failed for task ':MyApp:mergeDebugResources'.\n" +
                  "> Found item String/drawer_open more than one time\n" +
                  "\t" + sourceFilePath + ":-1:-1\n",
-                 toString(parser.parseErrorOutput(output)));
+                 toString(parser.parseErrorOutput(output, true)));
 
     // Also test CRLF handling:
     output = output.replace("\n", "\r\n");
@@ -615,7 +630,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "1: Error:Execution failed for task ':MyApp:mergeDebugResources'.\n" +
                  "> Found item String/drawer_open more than one time\n" +
                  "\t" + sourceFilePath + ":-1:-1\n",
-                 toString(parser.parseErrorOutput(output)));
+                 toString(parser.parseErrorOutput(output, true)));
   }
 
   public void testDuplicateResources2() throws Exception {
@@ -672,7 +687,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "\t" + path1 + ":4:-1\n" +
                  "8: Info:BUILD FAILED\n" +
                  "9: Info:Total time: 6.462 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 toString(parser.parseErrorOutput(output, true)));
 
     file1.delete();
     file2.delete();
@@ -710,7 +725,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "7: Info:More unexpected output.\n" +
                  "8: Error:Execution failed for task ':MyApp:mergeDebugResources'.\n" +
                  "> I was surprised\n",
-                 toString(parser.parseErrorOutput(output)));
+                 toString(parser.parseErrorOutput(output, true)));
   }
 
   public void testXmlError() throws Exception {
@@ -766,7 +781,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "\t" + sourceFilePath + ":7:18\n" +
                  "15: Info:BUILD FAILED\n" +
                  "16: Info:Total time: 7.245 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 toString(parser.parseErrorOutput(output, true)));
   }
 
   public void testJavac() throws Exception {
@@ -804,7 +819,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "> Compilation failed; see the compiler error output for details.\n" +
                  "5: Info:BUILD FAILED\n" +
                  "6: Info:Total time: 12.42 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 toString(parser.parseErrorOutput(output, true)));
   }
 
   public void testOom() throws Exception {
@@ -833,7 +848,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "         > java.lang.OutOfMemoryError: PermGen space\n" +
                  "1: Info:BUILD FAILED\n" +
                  "2: Info:Total time: 24.154 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 toString(parser.parseErrorOutput(output, true)));
 
     String output2 =
       "To honour the JVM settings for this build a new JVM will be forked. Please consider using the daemon: http://gradle.org/docs/1.7/userguide/gradle_daemon.html.\n" +
@@ -858,7 +873,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "   > java.lang.OutOfMemoryError: Java heap space\n" +
                  "2: Info:BUILD FAILED\n" +
                  "3: Info:Total time: 24.154 secs\n",
-                 toString(parser.parseErrorOutput(output2)));
+                 toString(parser.parseErrorOutput(output2, true)));
   }
 
   public void test() throws Exception {
@@ -938,7 +953,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "12: Error:Execution failed for task ':BlankProject1:processDebugResources'.\n" +
                  "13: Info:BUILD FAILED\n" +
                  "14: Info:Total time: 5.435 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 toString(parser.parseErrorOutput(output, true)));
 
     sourceFile.delete();
     source.delete();
@@ -1026,7 +1041,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "12: Error:Execution failed for task ':BlankProject1:processDebugResources'.\n" +
                  "13: Info:BUILD FAILED\n" +
                  "14: Info:Total time: 5.435 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 toString(parser.parseErrorOutput(output, true)));
 
     sourceFile.delete();
     source.delete();
@@ -1137,7 +1152,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "\t" +  FileUtil.toSystemIndependentName(source.getPath()) + ":12:-1\n" +
                  "17: Error:Execution failed for task ':BlankProject1:processDebugResources'.\n" +
                  "18: Info:BUILD FAILED\n",
-                 toString(parser.parseErrorOutput(output)));
+                 toString(parser.parseErrorOutput(output, true)));
 
     sourceFile.delete();
     source.delete();
@@ -1169,7 +1184,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "> In DataSet 'main', no data file for changedFile '" + sourceFilePath + "'\n" +
                  "\t" + sourceFilePath + ":-1:-1\n" +
                  "3: Info:BUILD FAILED\n" +
-                 "4: Info:Total time: 15.612 secs\n", toString(parser.parseErrorOutput(output)));
+                 "4: Info:Total time: 15.612 secs\n", toString(parser.parseErrorOutput(output, true)));
     sourceFile.delete();
   }
 
@@ -1198,7 +1213,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "> In DataSet 'main', no data file for changedFile '" + sourceFilePath + "'. This is an internal error in the incremental builds code; to work around it, try doing a full clean build.\n" +
                  "\t" + sourceFilePath + ":-1:-1\n" +
                  "3: Info:BUILD FAILED\n" +
-                 "4: Info:Total time: 15.612 secs\n", toString(parser.parseErrorOutput(output)));
+                 "4: Info:Total time: 15.612 secs\n", toString(parser.parseErrorOutput(output, true)));
     sourceFile.delete();
   }
 
@@ -1252,7 +1267,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "12: Error:Execution failed for task ':AudioPlayer:processDebugResources'.\n" +
                  "13: Info:BUILD FAILED\n" +
                  "14: Info:Total time: 3.836 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 toString(parser.parseErrorOutput(output, true)));
     sourceFile.delete();
   }
 
@@ -1306,7 +1321,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "\t" + sourceFilePath + ":-1:-1\n" +
                  "14: Info:BUILD FAILED\n" +
                  "15: Info:Total time: 4.861 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 toString(parser.parseErrorOutput(output, true)));
     sourceFile.delete();
   }
 
@@ -1361,7 +1376,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "\t" + sourceFilePath + ":4:1\n" +
                  "15: Info:BUILD FAILED\n" +
                  "16: Info:Total time: 5.187 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 toString(parser.parseErrorOutput(output, true)));
     sourceFile.delete();
   }
 
@@ -1380,7 +1395,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "\t" + sourceFilePath + ":-1:-1\n" +
                  "3: Error:Error: The content of elements must consist of well-formed character data or markup.\n" +
                  "\t" + sourceFilePath + ":-1:-1\n",
-                 toString(parser.parseErrorOutput(output)));
+                 toString(parser.parseErrorOutput(output, true)));
     sourceFile.delete();
   }
 
@@ -1435,7 +1450,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "\t" + sourceFilePath + ":2:16\n" +
                  "15: Info:BUILD FAILED\n" +
                  "16: Info:Total time: 4.951 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 toString(parser.parseErrorOutput(output, true)));
     sourceFile.delete();
   }
 
@@ -1510,7 +1525,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "> Compilation failed; see the compiler error output for details.\n" +
                  "25: Info:BUILD FAILED\n" +
                  "26: Info:Total time: 6.177 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 toString(parser.parseErrorOutput(output, true)));
     sourceFile.delete();
   }
 
@@ -1576,7 +1591,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "> invalid source release: 1.7\n" +
                  "20: Info:BUILD FAILED\n" +
                  "21: Info:Total time: 5.47 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 toString(parser.parseErrorOutput(output, true)));
     sourceFile.delete();
   }
 
@@ -1629,7 +1644,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "\t" + sourceFilePath + ":-1:-1\n" +
                  "14: Info:BUILD FAILED\n" +
                  "15: Info:Total time: 8.91 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 toString(parser.parseErrorOutput(output, true)));
     sourceFile.delete();
   }
 
@@ -1682,7 +1697,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "\t" + sourceFilePath + ":-1:-1\n" +
                  "14: Info:BUILD FAILED\n" +
                  "15: Info:Total time: 5.623 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 toString(parser.parseErrorOutput(output, true)));
     sourceFile.delete();
   }
 
@@ -1713,7 +1728,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "\t" + sourceFilePath + ":24:0\n" +
                  "1: Info:BUILD FAILED\n" +
                  "2: Info:Total time: 4.467 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 toString(parser.parseErrorOutput(output, true)));
     sourceFile.delete();
   }
 }
