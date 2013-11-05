@@ -64,7 +64,7 @@ public class GradleInvoker {
   }
 
   public void compileJava(@NotNull DataContext dataContext) {
-    Module[] modules = Projects.getSelectedModules(myProject, dataContext);
+    Module[] modules = Projects.getModulesToBuildFromSelection(myProject, dataContext);
     List<String> tasks = findTasksToExecute(modules, BuildMode.COMPILE_JAVA, false);
     executeTasks(tasks, null);
   }
@@ -76,7 +76,7 @@ public class GradleInvoker {
   }
 
   public void make(@NotNull DataContext dataContext) {
-    Module[] modules = Projects.getSelectedModules(myProject, dataContext);
+    Module[] modules = Projects.getModulesToBuildFromSelection(myProject, dataContext);
     List<String> tasks = findTasksToExecute(modules, BuildMode.MAKE, false);
     executeTasks(tasks, null);
   }

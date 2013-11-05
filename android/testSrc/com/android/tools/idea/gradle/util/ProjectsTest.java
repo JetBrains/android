@@ -24,7 +24,6 @@ import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.testFramework.IdeaTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
 
 import java.io.File;
 
@@ -59,7 +58,7 @@ public class ProjectsTest extends IdeaTestCase {
 
     replay(dataContext);
 
-    Module[] selectedModules = Projects.getSelectedModules(myProject, dataContext);
+    Module[] selectedModules = Projects.getModulesToBuildFromSelection(myProject, dataContext);
     assertSame(data, selectedModules);
 
     verify(dataContext);
@@ -83,7 +82,7 @@ public class ProjectsTest extends IdeaTestCase {
 
     replay(dataContext);
 
-    Module[] selectedModules = Projects.getSelectedModules(myProject, dataContext);
+    Module[] selectedModules = Projects.getModulesToBuildFromSelection(myProject, dataContext);
     assertNotSame(data, selectedModules);
     assertEquals(1, selectedModules.length);
     assertSame(myModule, selectedModules[0]);

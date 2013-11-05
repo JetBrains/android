@@ -219,8 +219,17 @@ public final class Projects {
     return project.getUserData(SELECTED_MODULE_NAMES_KEY);
   }
 
+  /**
+   * Returns the modules to build based on the current selection in the 'Project' tool window. If the module that corresponds to the project
+   * is selected, all the modules in such projects are returned. If there is no selection, an empty array is returned.
+   *
+   * @param project     the given project.
+   * @param dataContext knows the modules that are selected. If {@code null}, this method gets the {@code DataContext} from the 'Project'
+   *                    tool window directly.
+   * @return the modules to build based on the current selection in the 'Project' tool window.
+   */
   @NotNull
-  public static Module[] getSelectedModules(@NotNull Project project, @Nullable DataContext dataContext) {
+  public static Module[] getModulesToBuildFromSelection(@NotNull Project project, @Nullable DataContext dataContext) {
     if (dataContext == null) {
       ProjectView projectView = ProjectView.getInstance(project);
       JComponent treeComponent = projectView.getCurrentProjectViewPane().getComponentToFocus();
