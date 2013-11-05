@@ -57,6 +57,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.roots.CompilerProjectExtension;
+import com.intellij.openapi.roots.LanguageLevelModuleExtension;
+import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.io.FileUtil;
@@ -68,6 +70,7 @@ import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.IdeFrameEx;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
+import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -164,13 +167,35 @@ public class GradleProjectImporter {
                             @Nullable Callback callback,
                             @Nullable Project project)
     throws IOException, ConfigurationException {
+    importProject(projectName, projectRootDir, callback, project, null);
+  }
+
+  /**
+   * Imports and opens the newly created Android project.
+   *
+   * @param projectName          name of the project.
+   * @param projectRootDir       root directory of the project.
+   * @param callback             called after the project has been imported.
+   * @param initialLanguageLevel when creating a new project, sets the language level to the given version
+   *                             early on (this is because you cannot set a language level later on in the process
+   *                             without telling the user that the language level has changed and to re-open the
+   *                             project)
+   * @throws IOException            if any file I/O operation fails (e.g. creating the '.idea' directory.)
+   * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
+   */
+  public void importProject(@NotNull String projectName,
+                            @NotNull File projectRootDir,
+                            @Nullable Callback callback,
+                            @Nullable Project project,
+                            @Nullable LanguageLevel initialLanguageLevel)
+    throws IOException, ConfigurationException {
     GradleImportNotificationListener.attachToManager();
 
     createTopLevelBuildFileIfNotExisting(projectRootDir);
     createIdeaProjectDir(projectRootDir);
 
     final Project newProject = project == null ? createProject(projectName, projectRootDir.getPath()) : project;
-    setUpProject(newProject);
+    setUpProject(newProject, initialLanguageLevel);
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       newProject.save();
@@ -210,13 +235,20 @@ public class GradleProjectImporter {
     return newProject;
   }
 
-  private static void setUpProject(@NotNull final Project newProject) {
+  private static void setUpProject(@NotNull final Project newProject, @Nullable final LanguageLevel initialLanguageLevel) {
     CommandProcessor.getInstance().executeCommand(newProject, new Runnable() {
       @Override
       public void run() {
         ApplicationManager.getApplication().runWriteAction(new Runnable() {
           @Override
           public void run() {
+            if (initialLanguageLevel != null) {
+              final LanguageLevelProjectExtension extension = LanguageLevelProjectExtension.getInstance(newProject);
+              if (extension != null) {
+                extension.setLanguageLevel(initialLanguageLevel);
+              }
+            }
+
             // In practice, it really does not matter where the compiler output folder is. Gradle handles that. This is done just to please
             // IDEA.
             String compileOutputUrl = VfsUtilCore.pathToUrl(newProject.getBasePath() + "/build/classes");
