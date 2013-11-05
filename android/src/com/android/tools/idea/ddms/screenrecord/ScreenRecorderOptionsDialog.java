@@ -103,7 +103,7 @@ public class ScreenRecorderOptionsDialog extends DialogWrapper {
   }
 
   @Nullable
-  private ValidationInfo validateIntegerMultipleOf(JTextField textField, int multiple, String errorMessage) {
+  private static ValidationInfo validateIntegerMultipleOf(JTextField textField, int multiple, String errorMessage) {
     String s = getText(textField);
     if (s.isEmpty()) {
       return null;
@@ -129,7 +129,7 @@ public class ScreenRecorderOptionsDialog extends DialogWrapper {
     super.doOKAction();
   }
 
-  private int getIntegerValue(JTextField textField) {
+  private static int getIntegerValue(JTextField textField) {
     String s = getText(textField);
     return s.isEmpty() ? 0 : Integer.parseInt(s);
   }
