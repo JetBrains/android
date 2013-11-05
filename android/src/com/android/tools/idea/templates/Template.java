@@ -842,9 +842,8 @@ public class Template {
   @NotNull
   private File getFullPath(@NotNull String fromPath) {
     if (fromPath.startsWith(VALUE_TEMPLATE_DIR)) {
-      return new File(getTemplateRootFolder(), RESOURCE_ROOT +
-                                               File.separator +
-                                               fromPath.substring(VALUE_TEMPLATE_DIR.length() + 1).replace('/', File.separatorChar));
+      return new File(getTemplateRootFolder(),
+                      fromPath.substring(VALUE_TEMPLATE_DIR.length() + 1).replace('/', File.separatorChar));
     }
     return new File(myTemplateRoot, DATA_ROOT + File.separator + fromPath);
   }
