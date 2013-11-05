@@ -85,15 +85,18 @@ public class AndroidSynchronizeHandler extends SynchronizeHandler {
     }
     final String packageName = dbConnectionInfo.getPackageName();
     final String dbName = dbConnectionInfo.getDbName();
+    final boolean external = dbConnectionInfo.isExternal();
 
-    final Long modificationTime = AndroidDbUtil.getModificationTime(device, packageName, dbName, errorReporter, progressIndicator);
+    final Long modificationTime = AndroidDbUtil.getModificationTime(
+      device, packageName, dbName, external, errorReporter, progressIndicator);
     progressIndicator.checkCanceled();
 
     if (modificationTime == null) {
       return;
     }
     final AndroidRemoteDataBaseManager remoteDbManager = AndroidRemoteDataBaseManager.getInstance();
-    AndroidRemoteDataBaseManager.MyDatabaseInfo info = remoteDbManager.getDatabaseInfo(deviceId, packageName, dbName);
+    AndroidRemoteDataBaseManager.MyDatabaseInfo info =
+      remoteDbManager.getDatabaseInfo(deviceId, packageName, dbName, external);
 
     if (info == null) {
       info = new AndroidRemoteDataBaseManager.MyDatabaseInfo();
@@ -104,9 +107,9 @@ public class AndroidSynchronizeHandler extends SynchronizeHandler {
     info.referringProjects.add(FileUtil.toCanonicalPath(project.getBasePath()));
 
     if (!localDbFile.exists() || !modificationTime.equals(info.modificationTime)) {
-      if (AndroidDbUtil.downloadDatabase(device, packageName, dbName, localDbFile, progressIndicator, errorReporter)) {
+      if (AndroidDbUtil.downloadDatabase(device, packageName, dbName, external, localDbFile, progressIndicator, errorReporter)) {
         info.modificationTime = modificationTime;
-        remoteDbManager.setDatabaseInfo(deviceId, packageName, dbName, info);
+        remoteDbManager.setDatabaseInfo(deviceId, packageName, dbName, info, external);
       }
     }
   }

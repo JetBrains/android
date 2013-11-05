@@ -43,7 +43,6 @@ class AndroidLightField extends LightElement implements PsiField, PsiVariableEx,
     super(context.getManager(), JavaLanguage.INSTANCE);
     myName = name;
     myType = type;
-    setNavigationElement(context);
     myContext = context;
     myConstantValue = constantValue;
 
@@ -60,6 +59,11 @@ class AndroidLightField extends LightElement implements PsiField, PsiVariableEx,
   @Override
   public boolean isEquivalentTo(PsiElement another) {
     return PsiClassImplUtil.isFieldEquivalentTo(this, another);
+  }
+
+  @Override
+  public PsiElement getParent() {
+    return myContext;
   }
 
   @Nullable

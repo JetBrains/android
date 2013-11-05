@@ -53,6 +53,7 @@ public class AndroidXmlCodeStyleSettings extends CustomCodeStyleSettings {
   public static class MySettings implements JDOMExternalizable, Cloneable {
     public int WRAP_ATTRIBUTES;
     public boolean INSERT_LINE_BREAK_BEFORE_FIRST_ATTRIBUTE;
+    public boolean INSERT_LINE_BREAK_AFTER_LAST_ATTRIBUTE;
 
     @Override
     public void readExternal(Element element) throws InvalidDataException {
@@ -85,6 +86,7 @@ public class AndroidXmlCodeStyleSettings extends CustomCodeStyleSettings {
       final MySettings s = (MySettings)o;
 
       return INSERT_LINE_BREAK_BEFORE_FIRST_ATTRIBUTE == s.INSERT_LINE_BREAK_BEFORE_FIRST_ATTRIBUTE &&
+             INSERT_LINE_BREAK_AFTER_LAST_ATTRIBUTE == s.INSERT_LINE_BREAK_AFTER_LAST_ATTRIBUTE &&
              WRAP_ATTRIBUTES == s.WRAP_ATTRIBUTES;
     }
 
@@ -92,6 +94,7 @@ public class AndroidXmlCodeStyleSettings extends CustomCodeStyleSettings {
     public int hashCode() {
       int result = WRAP_ATTRIBUTES;
       result = 31 * result + (INSERT_LINE_BREAK_BEFORE_FIRST_ATTRIBUTE ? 1 : 0);
+      result = 31 * result + (INSERT_LINE_BREAK_AFTER_LAST_ATTRIBUTE ? 1 : 0);
       return result;
     }
   }

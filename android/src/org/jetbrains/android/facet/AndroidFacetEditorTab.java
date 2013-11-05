@@ -36,6 +36,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.CheckBoxList;
 import com.intellij.ui.ComboboxWithBrowseButton;
 import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.RawCommandLineEditor;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
@@ -111,6 +112,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   private JBCheckBox myEnableSourcesAutogenerationCheckBox;
   private JPanel myAptAutogenerationOptionsPanel;
   private JPanel myAidlAutogenerationOptionsPanel;
+  private RawCommandLineEditor myAdditionalPackagingCommandLineParametersField;
 
   private static final String MAVEN_TAB_TITLE = "Maven";
   private final Component myMavenTabComponent;
@@ -200,9 +202,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     myIsLibraryProjectCheckbox.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        boolean lib = myIsLibraryProjectCheckbox.isSelected();
-        myAssetsFolderField.setEnabled(!lib);
-        myEnableManifestMerging.setEnabled(!lib);
+        updateLibAndAppSpecificFields();
       }
     });
 
@@ -260,6 +260,23 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     final int mavenTabIndex = myTabbedPane.indexOfTab(MAVEN_TAB_TITLE);
     assert mavenTabIndex >= 0;
     myMavenTabComponent = myTabbedPane.getComponentAt(mavenTabIndex);
+  }
+
+  private void updateLibAndAppSpecificFields() {
+    boolean lib = myIsLibraryProjectCheckbox.isSelected();
+    myAssetsFolderField.setEnabled(!lib);
+    myEnableManifestMerging.setEnabled(!lib);
+    myIncludeAssetsFromLibraries.setEnabled(!lib);
+    myUseCustomManifestPackage.setEnabled(!lib);
+    myCustomManifestPackageField.setEnabled(!lib && myUseCustomManifestPackage.isSelected());
+    myAdditionalPackagingCommandLineParametersField.setEnabled(!lib);
+    myRunProguardCheckBox.setEnabled(!lib);
+    myProGuardConfigFilesPanel.setEnabled(!lib && myRunProguardCheckBox.isSelected());
+    myApkPathLabel.setEnabled(!lib);
+    myApkPathCombo.setEnabled(!lib);
+    myCustomKeystoreLabel.setEnabled(!lib);
+    myCustomDebugKeystoreField.setEnabled(!lib);
+    myPreDexEnabledCheckBox.setEnabled(!lib);
   }
 
   private void updateAutogenerationPanels() {
@@ -385,6 +402,10 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
       return true;
     }
     if (!myCustomManifestPackageField.getText().trim().equals(myConfiguration.getState().CUSTOM_MANIFEST_PACKAGE)) {
+      return true;
+    }
+    if (!myAdditionalPackagingCommandLineParametersField.getText().trim().equals(
+      myConfiguration.getState().ADDITIONAL_PACKAGING_COMMAND_LINE_PARAMETERS)) {
       return true;
     }
     if (!myUpdateProjectPropertiesCombo.getSelectedItem().equals(myConfiguration.getState().UPDATE_PROPERTY_FILES)) {
@@ -534,6 +555,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
 
     myConfiguration.getState().USE_CUSTOM_MANIFEST_PACKAGE = myUseCustomManifestPackage.isSelected();
     myConfiguration.getState().CUSTOM_MANIFEST_PACKAGE = myCustomManifestPackageField.getText().trim();
+    myConfiguration.getState().ADDITIONAL_PACKAGING_COMMAND_LINE_PARAMETERS = myAdditionalPackagingCommandLineParametersField.getText().trim();
 
     String absAptSourcePath = myCustomAptSourceDirField.getText().trim();
     if (useCustomAptSrc) {
@@ -578,8 +600,8 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
 
   @Override
   public void reset() {
-    resetOptions(myConfiguration);
     myIsLibraryProjectCheckbox.setSelected(myConfiguration.getState().LIBRARY_PROJECT);
+    resetOptions(myConfiguration);
   }
 
   private void resetOptions(AndroidFacetConfiguration configuration) {
@@ -612,7 +634,6 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
 
     final boolean runProguard = configuration.getState().RUN_PROGUARD;
     myRunProguardCheckBox.setSelected(runProguard);
-    myProGuardConfigFilesPanel.setEnabled(runProguard);
     myProGuardConfigFilesPanel.setUrls(configuration.getState().myProGuardCfgFiles);
 
     myUseCustomSourceDirectoryRadio.setSelected(configuration.getState().USE_CUSTOM_APK_RESOURCE_FOLDER);
@@ -638,12 +659,10 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     myIncludeTestCodeAndCheckBox.setSelected(myConfiguration.getState().PACK_TEST_CODE);
     myIncludeAssetsFromLibraries.setSelected(myConfiguration.isIncludeAssetsFromLibraries());
 
-    final boolean lib = myConfiguration.getState().LIBRARY_PROJECT;
-    myIncludeAssetsFromLibraries.setEnabled(!lib);
-
     myUseCustomManifestPackage.setSelected(myConfiguration.getState().USE_CUSTOM_MANIFEST_PACKAGE);
     myCustomManifestPackageField.setEnabled(myConfiguration.getState().USE_CUSTOM_MANIFEST_PACKAGE);
     myCustomManifestPackageField.setText(myConfiguration.getState().CUSTOM_MANIFEST_PACKAGE);
+    myAdditionalPackagingCommandLineParametersField.setText(myConfiguration.getState().ADDITIONAL_PACKAGING_COMMAND_LINE_PARAMETERS);
 
     myUpdateProjectPropertiesCombo.setSelectedItem(myConfiguration.getState().UPDATE_PROPERTY_FILES);
     myEnableSourcesAutogenerationCheckBox.setSelected(myConfiguration.getState().ENABLE_SOURCES_AUTOGENERATION);
@@ -663,6 +682,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
         myImportedOptionsList.setItemSelected(property, configuration.isImportedProperty(property));
       }
     }
+    updateLibAndAppSpecificFields();
   }
 
   @Nullable

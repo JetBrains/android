@@ -1468,7 +1468,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
 
       final AndroidArtifactSigningMode mode = ((JpsAndroidApplicationArtifactProperties)properties).getSigningMode();
 
-      if (mode == AndroidArtifactSigningMode.DEBUG) {
+      if (mode == AndroidArtifactSigningMode.DEBUG || mode == AndroidArtifactSigningMode.DEBUG_WITH_CUSTOM_CERTIFICATE) {
         debugArtifacts.add(artifact);
       }
       else {
