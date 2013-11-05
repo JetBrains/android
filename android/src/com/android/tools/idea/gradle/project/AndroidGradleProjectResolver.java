@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project;
 import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
+import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.*;
 import com.android.tools.idea.gradle.dependency.Dependency;
@@ -41,11 +42,8 @@ import com.intellij.openapi.externalSystem.model.task.TaskData;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
-import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.io.FileUtil;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleInvocationJvmArgs;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ContainerUtilRt;
@@ -53,7 +51,7 @@ import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.util.GradleVersion;
-import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,7 +59,6 @@ import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHa
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension;
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
-import org.jetbrains.plugins.gradle.util.GradleUtil;
 
 import java.io.File;
 import java.net.URL;
@@ -249,21 +246,18 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   @NotNull
   @Override
   public List<KeyValue<String, String>> getExtraJvmArgs() {
-    //List<String> extraJvmArgs = getGradleInvocationJvmArgs(projectDir);
-    //String arg = AndroidGradleSettings.createJvmArg(AndroidProject.BUILD_MODEL_ONLY_SYSTEM_PROPERTY, "true");
-    //extraJvmArgs.add(arg);
-    //return extraJvmArgs;
-    //
     if (ExternalSystemApiUtil.isInProcessMode(GradleConstants.SYSTEM_ID)) {
       List<KeyValue<String, String>> args = Lists.newArrayList();
-      if (!AndroidGradleSettings.isAndroidSdkDirInLocalPropertiesFile(new File(resolverCtx.getProjectPath()))) {
-        String androidHome = getAndroidSdkPathFromIde();
-        if (androidHome != null) {
+      File projectDir = new File(FileUtil.toSystemDependentName(resolverCtx.getProjectPath()));
+      if (!AndroidGradleSettings.isAndroidSdkDirInLocalPropertiesFile(projectDir)) {
+        SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
+        if (sdkManager != null) {
+          String androidHome = FileUtil.toSystemDependentName(sdkManager.getLocation());
           args.add(KeyValue.create(AndroidGradleSettings.ANDROID_HOME_JVM_ARG, androidHome));
         }
       }
 
-      args.add(KeyValue.create(AndroidProject.BUILD_MODEL_ONLY_SYSTEM_PROPERTY, String.valueOf(resolverCtx.isPreviewMode())));
+      args.add(KeyValue.create(AndroidProject.BUILD_MODEL_ONLY_SYSTEM_PROPERTY, String.valueOf(this.resolverCtx.isPreviewMode())));
       return args;
     }
     return Collections.emptyList();
@@ -278,18 +272,6 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
                                                       @Nullable String buildFilePath) {
     ExternalSystemException userFriendlyError = myErrorHandler.getUserFriendlyError(error, projectPath, buildFilePath);
     return userFriendlyError != null ? userFriendlyError : nextResolver.getUserFriendlyError(error, projectPath, buildFilePath);
-  }
-
-  @Nullable
-  private static String getAndroidSdkPathFromIde() {
-    for (Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
-      AndroidPlatform androidPlatform = AndroidPlatform.parse(sdk);
-      String sdkHomePath = sdk.getHomePath();
-      if (androidPlatform != null && sdkHomePath != null) {
-        return sdkHomePath;
-      }
-    }
-    return null;
   }
 
   @NotNull
