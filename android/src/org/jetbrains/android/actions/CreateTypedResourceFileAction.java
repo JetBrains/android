@@ -223,7 +223,10 @@ public class CreateTypedResourceFileAction extends CreateElementActionBase {
     private final ResourceNameValidator myNameValidator;
     public MyValidator(Project project, PsiDirectory directory) {
       super(project, directory);
-      myNameValidator = ResourceNameValidator.create(true, myResourceType);
+
+      // No validator for value files -- you can call them anything you want (e.g. "public.xml" is a valid
+      // name even though public is a Java keyword, etc.)
+      myNameValidator = myResourceType == ResourceFolderType.VALUES ? null : ResourceNameValidator.create(true, myResourceType);
     }
 
     @Override
@@ -233,7 +236,7 @@ public class CreateTypedResourceFileAction extends CreateElementActionBase {
 
     @Override
     public String getErrorText(String inputString) {
-      return myNameValidator.getErrorText(inputString);
+      return myNameValidator == null ? null : myNameValidator.getErrorText(inputString);
     }
   }
 }
