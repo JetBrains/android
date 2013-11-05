@@ -18,9 +18,11 @@ package com.android.tools.idea.ddms;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
-import com.android.ddmlib.*;
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.Client;
+import com.android.ddmlib.ClientData;
+import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.screenrecord.ScreenRecorderAction;
-import com.android.tools.idea.ddms.screenrecord.ScreenRecorderOptionsDialog;
 import com.android.tools.idea.ddms.screenshot.ScreenshotTask;
 import com.android.tools.idea.ddms.screenshot.ScreenshotViewer;
 import com.android.utils.Pair;
@@ -320,8 +322,9 @@ public class DevicePanel implements Disposable,
 
     group.add(new MyScreenshotAction());
     group.add(new MyScreenRecorderAction());
+    group.add(createDumpSysActions());
     //group.add(new MyFileExplorerAction());
-    //group.add(new Separator());
+    group.add(new Separator());
 
     group.add(new MyTerminateVMAction());
     group.add(new MyGcAction());
@@ -334,6 +337,28 @@ public class DevicePanel implements Disposable,
     return group;
   }
 
+  private DefaultActionGroup createDumpSysActions() {
+    DefaultActionGroup group = new DefaultActionGroup("System Information", true) {
+      @Override
+      public void update(AnActionEvent e) {
+        e.getPresentation().setText("System Information");
+        e.getPresentation().setIcon(AndroidIcons.Ddms.SysInfo);
+        e.getPresentation().setEnabled(myDeviceContext.getSelectedDevice() != null);
+      }
+
+      @Override
+      public boolean isDumbAware() {
+        return true;
+      }
+    };
+    group.add(new MyDumpSysAction("activity all", "Activity Manager State"));
+    group.add(new MyDumpSysAction("package", "Package Information"));
+    group.add(new MyDumpSysAction("meminfo", "Memory Usage"));
+    group.add(new MyDumpProcStatsAction("procstats", "Memory use over time"));
+    group.add(new MyDumpSysAction("gfxinfo", "Graphics State"));
+    return group;
+  }
+
   private abstract class MyClientAction extends AnAction {
     public MyClientAction(@Nullable String text,
                           @Nullable String description,
@@ -343,7 +368,11 @@ public class DevicePanel implements Disposable,
 
     @Override
     public void update(AnActionEvent e) {
-      e.getPresentation().setEnabled(myDeviceContext.getSelectedClient() != null);
+      e.getPresentation().setEnabled(isEnabled());
+    }
+
+    protected boolean isEnabled() {
+      return myDeviceContext.getSelectedClient() != null;
     }
 
     @Override
@@ -380,6 +409,34 @@ public class DevicePanel implements Disposable,
     @Override
     void performAction(@NotNull Client c) {
       c.executeGarbageCollector();
+    }
+  }
+
+  private class MyDumpSysAction extends MyClientAction {
+    private final String myService;
+
+    public MyDumpSysAction(@NotNull String service, @NotNull String description) {
+      super(description, null, null);
+
+      myService = service;
+    }
+
+    @Override
+    void performAction(@NotNull Client c) {
+      new DumpSysAction(myProject, myDeviceContext.getSelectedDevice(), myService, c).performAction();
+    }
+  }
+
+  private class MyDumpProcStatsAction extends MyDumpSysAction {
+    public MyDumpProcStatsAction(@NotNull String service, @NotNull String description) {
+      super(service, description);
+    }
+
+    @Override
+    protected boolean isEnabled() {
+      return super.isEnabled() &&
+             myDeviceContext.getSelectedDevice() != null &&
+             myDeviceContext.getSelectedDevice().supportsFeature(IDevice.Feature.PROCSTATS);
     }
   }
 
