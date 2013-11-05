@@ -63,6 +63,7 @@ import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
@@ -1007,18 +1008,48 @@ public class RenderErrorPanel extends JPanel {
   }
 
   private void reportInstantiationProblems(@NotNull final RenderLogger logger, @NotNull HtmlBuilder builder) {
-    Set<String> classesWithIncorrectFormat = logger.getClassesWithIncorrectFormat();
+    Map<String, Throwable> classesWithIncorrectFormat = logger.getClassesWithIncorrectFormat();
     if (classesWithIncorrectFormat != null && !classesWithIncorrectFormat.isEmpty()) {
       builder.add("Preview might be incorrect: unsupported class version.").newline();
+      builder.addIcon(HtmlBuilderHelper.getTipIconPath());
+      builder.add("Tip: ");
+
+      builder.add("You need to run the IDE with the highest JDK version that you are compiling custom views with. ");
+
+      int highest = ClassConverter.findHighestMajorVersion(classesWithIncorrectFormat.values());
+      if (highest > 0 && highest > ClassConverter.getCurrentClassVersion()) {
+        builder.add("One or more views have been compiled with JDK ");
+        String required = ClassConverter.classVersionToJdk(highest);
+        builder.add(required);
+        builder.add(", but you are running the IDE on JDK ");
+        builder.add(ClassConverter.getCurrentJdkVersion());
+        builder.add(". ");
+      } else {
+        builder.add("For example, if you are compiling with sourceCompatibility 1.7, you must run the IDE with JDK 1.7. ");
+      }
+      builder.add("Running on a higher JDK is necessary such that these classes can be run in the layout renderer. " +
+                  "(Or, extract your custom views into a library which you compile with a lower JDK version.)");
+      builder.newline().newline();
+      builder.addLink("If you have just accidentally built your code with a later JDK, try to ", "build", " the project.",
+                      myLinkManager.createCompileModuleUrl());
+      builder.newline().newline();
       builder.add("Classes with incompatible format:");
 
       builder.beginList();
-      for (String className : classesWithIncorrectFormat) {
+      List<String> names = Lists.newArrayList(classesWithIncorrectFormat.keySet());
+      Collections.sort(names);
+      for (String className : names) {
         builder.listItem();
         builder.add(className);
+        Throwable throwable = classesWithIncorrectFormat.get(className);
+        if (throwable instanceof InconvertibleClassError) {
+          InconvertibleClassError error = (InconvertibleClassError)throwable;
+          builder.add(" (Compiled with ");
+          builder.add(ClassConverter.classVersionToJdk(error.getMajor()));
+          builder.add(")");
+        }
       }
       builder.endList();
-
 
       Module module = logger.getModule();
       final List<Module> problemModules = getProblemModules(module);
@@ -1034,13 +1065,16 @@ public class RenderErrorPanel extends JPanel {
         builder.newline();
       }
 
-      Project project = logger.getModule().getProject();
-      builder.addLink("Rebuild project with '-target 1.6'", myLinkManager.createRunnableLink(new RebuildWith16Fix(project)));
-      builder.newline();
-
-      if (!problemModules.isEmpty()) {
-        builder.addLink("Change Java SDK to 1.5/1.6", myLinkManager.createRunnableLink(new SwitchTo16Fix(project, problemModules)));
+      AndroidFacet facet = AndroidFacet.getInstance(logger.getModule());
+      if (facet != null && !facet.isGradleProject()) {
+        Project project = logger.getModule().getProject();
+        builder.addLink("Rebuild project with '-target 1.6'", myLinkManager.createRunnableLink(new RebuildWith16Fix(project)));
         builder.newline();
+
+        if (!problemModules.isEmpty()) {
+          builder.addLink("Change Java SDK to 1.5/1.6", myLinkManager.createRunnableLink(new SwitchTo16Fix(project, problemModules)));
+          builder.newline();
+        }
       }
     }
   }
