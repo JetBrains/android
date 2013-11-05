@@ -72,7 +72,7 @@ public class RenderLogger extends LayoutLog {
   private List<RenderProblem> myFidelityWarnings;
   private Set<String> myMissingClasses;
   private Map<String, Throwable> myBrokenClasses;
-  private Set<String> myClassesWithIncorrectFormat;
+  private Map<String, Throwable> myClassesWithIncorrectFormat;
   private String myResourceClass;
   private boolean myMissingResourceClass;
   private boolean myHasLoadedClasses;
@@ -514,7 +514,7 @@ public class RenderLogger extends LayoutLog {
   }
 
   @Nullable
-  public Set<String> getClassesWithIncorrectFormat() {
+  public Map<String, Throwable> getClassesWithIncorrectFormat() {
     return myClassesWithIncorrectFormat;
   }
 
@@ -537,11 +537,12 @@ public class RenderLogger extends LayoutLog {
     }
   }
 
-  public void addIncorrectFormatClass(@NotNull String className) {
+  @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+  public void addIncorrectFormatClass(@NotNull String className, @NotNull Throwable exception) {
     if (myClassesWithIncorrectFormat == null) {
-      myClassesWithIncorrectFormat = new HashSet<String>();
+      myClassesWithIncorrectFormat = new HashMap<String, Throwable>();
     }
-    myClassesWithIncorrectFormat.add(className);
+    myClassesWithIncorrectFormat.put(className, exception);
   }
 
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
