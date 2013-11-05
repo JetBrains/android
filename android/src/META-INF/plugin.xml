@@ -34,6 +34,9 @@
     </component>
   </project-components>
   <actions>
+    <action id="CleanGradleProject" class="com.android.tools.idea.gradle.actions.CleanProjectAction">
+      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
+    </action>
     <action id="NewActivity" class="com.android.tools.idea.actions.AndroidNewActivityAction">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewDir"/>
     </action>

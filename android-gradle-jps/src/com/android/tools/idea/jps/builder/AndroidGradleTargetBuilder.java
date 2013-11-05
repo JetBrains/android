@@ -18,6 +18,7 @@ package com.android.tools.idea.jps.builder;
 import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.gradle.output.parser.GradleErrorOutputParser;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.jps.AndroidGradleJps;
 import com.android.tools.idea.jps.model.JpsAndroidGradleModuleExtension;
@@ -67,8 +68,6 @@ import java.util.concurrent.TimeUnit;
 public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuildTarget.RootDescriptor, AndroidGradleBuildTarget> {
   private static final Logger LOG = Logger.getInstance(AndroidGradleTargetBuilder.class);
   private static final GradleErrorOutputParser ERROR_OUTPUT_PARSER = new GradleErrorOutputParser();
-
-  @NonNls private static final String CLEAN_TASK_NAME = "clean";
 
   @NonNls private static final String BUILDER_NAME = "Android Gradle Target Builder";
 
@@ -128,13 +127,20 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
                                         @NotNull BuilderExecutionSettings executionSettings) {
     boolean buildTests = AndroidJpsUtil.isInstrumentationTestContext(context);
     List<String> tasks = Lists.newArrayList();
-    for (JpsModule module : getModulesToBuild(project, executionSettings)) {
-      populateBuildTasks(module, executionSettings, tasks, buildTests);
+
+    BuildMode buildMode = executionSettings.getBuildMode();
+    if (buildMode.equals(BuildMode.CLEAN)) {
+      tasks.add(GradleBuilds.CLEAN_TASK_NAME);
     }
-    if (!tasks.isEmpty()) {
-      boolean rebuild = JavaBuilderUtil.isForcedRecompilationAllJavaModules(context);
-      if (rebuild) {
-        tasks.add(0, CLEAN_TASK_NAME);
+    else {
+      for (JpsModule module : getModulesToBuild(project, executionSettings)) {
+        populateBuildTasks(module, executionSettings, tasks, buildTests);
+      }
+      if (!tasks.isEmpty()) {
+        boolean rebuild = JavaBuilderUtil.isForcedRecompilationAllJavaModules(context);
+        if (rebuild) {
+          tasks.add(0, GradleBuilds.CLEAN_TASK_NAME);
+        }
       }
     }
     return tasks.toArray(new String[tasks.size()]);
