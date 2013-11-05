@@ -69,6 +69,8 @@ public interface JpsAndroidModuleExtension extends JpsElement {
 
   String getCustomManifestPackage();
 
+  String getAdditionalPackagingCommandLineParameters();
+
   boolean isManifestMergingEnabled();
 
   boolean isPreDexingEnabled();

@@ -72,6 +72,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   public String ACTIVITY_CLASS = "";
   public String MODE = LAUNCH_DEFAULT_ACTIVITY;
   public boolean DEPLOY = true;
+  public String ARTIFACT_NAME = "";
 
   public AndroidRunConfiguration(Project project, ConfigurationFactory factory) {
     super(project, factory);
@@ -191,6 +192,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     AndroidRunningState state = super.getState(executor, env);
     if (state != null) {
       state.setDeploy(DEPLOY);
+      state.setArtifactName(ARTIFACT_NAME);
       state.setOpenLogcatAutomatically(SHOW_LOGCAT_AUTOMATICALLY);
     }
     return state;

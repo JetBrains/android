@@ -38,6 +38,14 @@ public class AndroidArtifactUtil {
       }, editorContext, true);
   }
 
+  public static boolean isRelatedArtifact(@NotNull Artifact artifact, @NotNull Module module) {
+    if (!(artifact.getArtifactType() instanceof AndroidApplicationArtifactType)) {
+      return false;
+    }
+    final AndroidFacet facet = getPackagedFacet(module.getProject(), artifact);
+    return facet != null && module.equals(facet.getModule());
+  }
+
   @Nullable
   public static AndroidFacet getPackagedFacet(Project project, Artifact artifact) {
     final Ref<AndroidFinalPackageElement> elementRef = Ref.create(null);

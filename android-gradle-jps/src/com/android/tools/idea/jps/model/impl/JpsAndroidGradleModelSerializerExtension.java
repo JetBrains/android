@@ -16,6 +16,7 @@
 package com.android.tools.idea.jps.model.impl;
 
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.jps.AndroidGradleJps;
 import com.android.tools.idea.jps.model.JpsAndroidGradleModuleExtension;
 import com.google.common.collect.ImmutableList;
 import com.intellij.util.xmlb.XmlSerializer;
@@ -41,10 +42,28 @@ public class JpsAndroidGradleModelSerializerExtension extends JpsModelSerializer
 
   private static final JpsAndroidSdkPropertiesSerializer SDK_PROPERTY_LOADER = new JpsAndroidSdkPropertiesSerializer();
 
+  private static final String EXTERNAL_SYSTEM_ID_ATTRIBUTE = "external.system.id";
+  private static final String GRADLE_EXTERNAL_SYSTEM_ID = "GRADLE";
+
   @NotNull
   @Override
   public List<? extends JpsFacetConfigurationSerializer<?>> getFacetConfigurationSerializers() {
     return FACET_PROPERTY_LOADERS;
+  }
+
+  @Override
+  public void loadModuleOptions(@NotNull JpsModule module, @NotNull Element rootElement) {
+    final String externalSystemId = rootElement.getAttributeValue(EXTERNAL_SYSTEM_ID_ATTRIBUTE);
+    if (GRADLE_EXTERNAL_SYSTEM_ID.equals(externalSystemId)) {
+      AndroidGradleJps.getOrCreateGradleSystemExtension(module);
+    }
+  }
+
+  @Override
+  public void saveModuleOptions(@NotNull JpsModule module, @NotNull Element rootElement) {
+    if (AndroidGradleJps.getGradleSystemExtension(module) != null) {
+      rootElement.setAttribute(EXTERNAL_SYSTEM_ID_ATTRIBUTE, GRADLE_EXTERNAL_SYSTEM_ID);
+    }
   }
 
   @NotNull

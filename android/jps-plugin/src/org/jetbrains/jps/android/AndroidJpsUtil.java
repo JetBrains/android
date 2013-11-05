@@ -535,9 +535,12 @@ public class AndroidJpsUtil {
     for (JpsArtifact artifact : getAndroidArtifactsToBuild(context)) {
       final JpsElement props = artifact.getProperties();
 
-      if (props instanceof JpsAndroidApplicationArtifactProperties &&
-          ((JpsAndroidApplicationArtifactProperties)props).getSigningMode() != AndroidArtifactSigningMode.DEBUG) {
-        return true;
+      if (props instanceof JpsAndroidApplicationArtifactProperties) {
+        final AndroidArtifactSigningMode signingMode = ((JpsAndroidApplicationArtifactProperties)props).getSigningMode();
+
+        if (signingMode != AndroidArtifactSigningMode.DEBUG && signingMode != AndroidArtifactSigningMode.DEBUG_WITH_CUSTOM_CERTIFICATE) {
+          return true;
+        }
       }
     }
     return false;
