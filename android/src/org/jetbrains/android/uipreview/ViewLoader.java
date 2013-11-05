@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.rendering.InconvertibleClassError;
 import com.android.tools.idea.rendering.ProjectResources;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.util.Pair;
@@ -99,6 +100,9 @@ public class ViewLoader {
         return viewObject;
       }
     }
+    catch (InconvertibleClassError e) {
+      myLogger.addIncorrectFormatClass(e.getClassName(), e);
+    }
     catch (LinkageError e) {
       myLogger.addBrokenClass(className, e);
     }
@@ -107,8 +111,9 @@ public class ViewLoader {
     }
     catch (InvocationTargetException e) {
       final Throwable cause = e.getCause();
-      if (cause instanceof IncompatibleClassFileFormatException) {
-        myLogger.addIncorrectFormatClass(((IncompatibleClassFileFormatException)cause).getClassName());
+      if (cause instanceof InconvertibleClassError) {
+        InconvertibleClassError error = (InconvertibleClassError)cause;
+        myLogger.addIncorrectFormatClass(error.getClassName(), error);
       }
       else {
         myLogger.addBrokenClass(className, cause);
@@ -122,9 +127,6 @@ public class ViewLoader {
     }
     catch (NoSuchMethodException e) {
       myLogger.addBrokenClass(className, e);
-    }
-    catch (IncompatibleClassFileFormatException e) {
-      myLogger.addIncorrectFormatClass(e.getClassName());
     }
 
     try {
@@ -156,7 +158,7 @@ public class ViewLoader {
   }
 
   @Nullable
-  private Class<?> loadClass(String className) throws IncompatibleClassFileFormatException {
+  private Class<?> loadClass(String className) throws InconvertibleClassError {
     try {
       if (myProjectClassLoader == null) {
         myProjectClassLoader = new ProjectClassLoader(myParentClassLoader, myModule);
@@ -404,13 +406,13 @@ public class ViewLoader {
     catch (ClassNotFoundException e) {
       myLogger.setMissingResourceClass(true);
     }
-    catch (IncompatibleClassFileFormatException e) {
+    catch (InconvertibleClassError e) {
       assert rClassName != null;
-      myLogger.addIncorrectFormatClass(rClassName);
+      myLogger.addIncorrectFormatClass(rClassName, e);
     }
   }
 
-  public void loadAndParseRClass(@NotNull String className) throws ClassNotFoundException, IncompatibleClassFileFormatException {
+  public void loadAndParseRClass(@NotNull String className) throws ClassNotFoundException, InconvertibleClassError {
     Class<?> aClass = myLoadedClasses.get(className);
     if (aClass == null) {
       ProjectClassLoader loader = new ProjectClassLoader(null, myModule);
