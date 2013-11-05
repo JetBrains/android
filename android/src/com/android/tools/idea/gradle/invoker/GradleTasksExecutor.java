@@ -62,6 +62,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
+import com.intellij.pom.Navigatable;
 import com.intellij.ui.AppIcon;
 import com.intellij.ui.content.*;
 import com.intellij.util.Function;
@@ -205,13 +206,14 @@ class GradleTasksExecutor extends Task.Backgroundable {
           if (myErrorTreeView != null) {
             addStatisticsMessage(CompilerBundle.message("statistics.error.count", myErrorCount));
             addStatisticsMessage(CompilerBundle.message("statistics.warnings.count", myWarningCount));
+            addMessage(new GradleMessage(GradleMessage.Kind.INFO, "See complete output in console"), new OpenGradleConsole());
             myErrorTreeView.selectFirstMessage();
           }
         }
       }
 
       private void addStatisticsMessage(@NotNull String text) {
-        addMessage(new GradleMessage(GradleMessage.Kind.STATISTICS, text));
+        addMessage(new GradleMessage(GradleMessage.Kind.STATISTICS, text), null);
       }
     }, ModalityState.NON_MODAL);
   }
@@ -230,7 +232,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
         stopwatch.start();
 
         GradleConsoleView.getInstance(getNotNullProject()).clear();
-        addMessage(new GradleMessage(GradleMessage.Kind.INFO, "Gradle tasks " + myTasks));
+        addMessage(new GradleMessage(GradleMessage.Kind.INFO, "Gradle tasks " + myTasks), null);
 
         ExternalSystemTaskId id = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project);
         List<String> extraJvmArgs = getGradleInvocationJvmArgs(new File(projectPath));
@@ -238,6 +240,11 @@ class GradleTasksExecutor extends Task.Backgroundable {
         };
 
         GradleConsoleView consoleView = GradleConsoleView.getInstance(getNotNullProject());
+
+        String executingTasksText =
+          "Executing tasks: " + myTasks + SystemProperties.getLineSeparator() + SystemProperties.getLineSeparator();
+        consoleView.print(executingTasksText, ConsoleViewContentType.NORMAL_OUTPUT);
+
         ByteArrayOutputStream stdout = new ConsoleAwareOutputStream(consoleView, ConsoleViewContentType.NORMAL_OUTPUT);
         ByteArrayOutputStream stderr = new ConsoleAwareOutputStream(consoleView, ConsoleViewContentType.ERROR_OUTPUT);
 
@@ -296,17 +303,17 @@ class GradleTasksExecutor extends Task.Backgroundable {
    * "Problems" view. The idea is that we need to somehow inform the user that something went wrong.
    */
   private void handleBuildException(BuildException e, String stdErr) {
-    Collection<GradleMessage> compilerMessages = new GradleErrorOutputParser().parseErrorOutput(stdErr);
+    Collection<GradleMessage> compilerMessages = new GradleErrorOutputParser().parseErrorOutput(stdErr, false);
     if (!compilerMessages.isEmpty()) {
       for (GradleMessage msg : compilerMessages) {
-        addMessage(msg);
+        addMessage(msg, null);
       }
       return;
     }
     // There are no error messages to present. Show some feedback indicating that something went wrong.
     if (!stdErr.isEmpty()) {
       // Show the contents of stderr as a compiler error.
-      addMessage(new GradleMessage(GradleMessage.Kind.ERROR, stdErr));
+      addMessage(new GradleMessage(GradleMessage.Kind.ERROR, stdErr), null);
     }
     else {
       // Since we have nothing else to show, just print the stack trace of the caught exception.
@@ -315,7 +322,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
         //noinspection IOResourceOpenedButNotSafelyClosed
         e.printStackTrace(new PrintStream(out));
         String message = "Internal error:" + SystemProperties.getLineSeparator() + out.toString();
-        addMessage(new GradleMessage(GradleMessage.Kind.ERROR, message));
+        addMessage(new GradleMessage(GradleMessage.Kind.ERROR, message), null);
       }
       finally {
         Closeables.closeQuietly(out);
@@ -323,7 +330,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
     }
   }
 
-  private void addMessage(@NotNull final GradleMessage message) {
+  private void addMessage(@NotNull final GradleMessage message, @Nullable final Navigatable navigatable) {
     prepareMessageView();
     switch (message.getKind()) {
       case WARNING:
@@ -336,7 +343,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
     }
     if (ApplicationManager.getApplication().isDispatchThread()) {
       openMessageView();
-      add(message);
+      add(message, navigatable);
     }
     else {
       ApplicationManager.getApplication().invokeLater(new Runnable() {
@@ -344,7 +351,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
         public void run() {
           if (!getNotNullProject().isDisposed()) {
             openMessageView();
-            add(message);
+            add(message, navigatable);
           }
         }
       }, ModalityState.NON_MODAL);
@@ -403,10 +410,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
           group.add(new AnAction("Show Console Output", null, AndroidIcons.GradleConsole) {
             @Override
             public void actionPerformed(AnActionEvent e) {
-              ToolWindow window = getToolWindowManager().getToolWindow(GradleConsoleToolWindowFactory.ID);
-              if (window != null) {
-                window.activate(null, false);
-              }
+              activateGradleConsole();
             }
 
             @Override
@@ -442,14 +446,26 @@ class GradleTasksExecutor extends Task.Backgroundable {
     messageView.getContentManager().setSelectedContent(content);
   }
 
-  private void add(@NotNull GradleMessage message) {
+  private void activateGradleConsole() {
+    ToolWindow window = getToolWindowManager().getToolWindow(GradleConsoleToolWindowFactory.ID);
+    if (window != null) {
+      window.activate(null, false);
+    }
+  }
+
+  private void add(@NotNull GradleMessage message, @Nullable Navigatable navigatable) {
     synchronized (myMessageViewLock) {
       if (myErrorTreeView != null) {
         GradleMessage.Kind messageKind = message.getKind();
         int type = translateMessageKind(messageKind);
         String[] text = getTextOf(message);
-        VirtualFile file = findFileFrom(message);
-        myErrorTreeView.addMessage(type, text, file, message.getLineNumber() - 1, message.getColumn(), null);
+        if (navigatable == null) {
+          VirtualFile file = findFileFrom(message);
+          myErrorTreeView.addMessage(type, text, file, message.getLineNumber() - 1, message.getColumn() - 1, null);
+        }
+        else {
+          myErrorTreeView.addMessage(type, text, null, navigatable, null, null, null);
+        }
 
         boolean autoActivate =
           !myMessagesAutoActivated && (type == MessageCategory.ERROR || (type == MessageCategory.WARNING && !shouldHideWarnings()));
@@ -721,6 +737,23 @@ class GradleTasksExecutor extends Task.Backgroundable {
     public void close() throws IOException {
       myClosed = true;
       super.close();
+    }
+  }
+
+  private class OpenGradleConsole implements Navigatable {
+    @Override
+    public void navigate(boolean requestFocus) {
+      activateGradleConsole();
+    }
+
+    @Override
+    public boolean canNavigate() {
+      return true;
+    }
+
+    @Override
+    public boolean canNavigateToSource() {
+      return false;
     }
   }
 }
