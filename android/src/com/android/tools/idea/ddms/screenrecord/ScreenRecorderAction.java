@@ -197,7 +197,7 @@ public class ScreenRecorderAction {
         }
       }
     }
-  };
+  }
 
   private static void showError(@Nullable final Project project, @NotNull final String message, @Nullable final Throwable throwable) {
     ApplicationManager.getApplication().invokeLater(new Runnable() {

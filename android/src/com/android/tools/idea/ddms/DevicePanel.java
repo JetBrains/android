@@ -16,27 +16,19 @@
 
 package com.android.tools.idea.ddms;
 
-import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.ddms.screenrecord.ScreenRecorderAction;
-import com.android.tools.idea.ddms.screenshot.ScreenshotTask;
-import com.android.tools.idea.ddms.screenshot.ScreenshotViewer;
+import com.android.tools.idea.ddms.actions.*;
 import com.android.utils.Pair;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.SimpleTextAttributes;
@@ -49,13 +41,11 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -320,261 +310,20 @@ public class DevicePanel implements Disposable,
   public ActionGroup getToolbarActions() {
     DefaultActionGroup group = new DefaultActionGroup();
 
-    group.add(new MyScreenshotAction());
-    group.add(new MyScreenRecorderAction());
-    group.add(createDumpSysActions());
+    group.add(new ScreenshotAction(myProject, myDeviceContext));
+    group.add(new ScreenRecorderAction(myProject, myDeviceContext));
+    group.add(DumpSysActions.create(myProject, myDeviceContext));
     //group.add(new MyFileExplorerAction());
     group.add(new Separator());
 
-    group.add(new MyTerminateVMAction());
-    group.add(new MyGcAction());
+    group.add(new TerminateVMAction(myDeviceContext));
+    group.add(new GcAction(myDeviceContext));
     //group.add(new MyDumpHprofAction());
     //group.add(new MyAllocationTrackerAction());
     //group.add(new Separator());
 
-    group.add(new MyToggleMethodProfilingAction());
+    group.add(new ToggleMethodProfilingAction(myProject, myDeviceContext));
     //group.add(new MyThreadDumpAction()); // thread dump -> systrace
     return group;
-  }
-
-  private DefaultActionGroup createDumpSysActions() {
-    DefaultActionGroup group = new DefaultActionGroup("System Information", true) {
-      @Override
-      public void update(AnActionEvent e) {
-        e.getPresentation().setText("System Information");
-        e.getPresentation().setIcon(AndroidIcons.Ddms.SysInfo);
-        e.getPresentation().setEnabled(myDeviceContext.getSelectedDevice() != null);
-      }
-
-      @Override
-      public boolean isDumbAware() {
-        return true;
-      }
-    };
-    group.add(new MyDumpSysAction("activity all", "Activity Manager State"));
-    group.add(new MyDumpSysAction("package", "Package Information"));
-    group.add(new MyDumpSysAction("meminfo", "Memory Usage"));
-    group.add(new MyDumpProcStatsAction("procstats", "Memory use over time"));
-    group.add(new MyDumpSysAction("gfxinfo", "Graphics State"));
-    return group;
-  }
-
-  private abstract class MyClientAction extends AnAction {
-    public MyClientAction(@Nullable String text,
-                          @Nullable String description,
-                          @Nullable Icon icon) {
-      super(text, description, icon);
-    }
-
-    @Override
-    public void update(AnActionEvent e) {
-      e.getPresentation().setEnabled(isEnabled());
-    }
-
-    protected boolean isEnabled() {
-      return myDeviceContext.getSelectedClient() != null;
-    }
-
-    @Override
-    public void actionPerformed(AnActionEvent e) {
-      Client c = myDeviceContext.getSelectedClient();
-      if (c != null) {
-        performAction(c);
-      }
-    }
-
-    abstract void performAction(@NotNull Client c);
-  }
-
-  private class MyTerminateVMAction extends MyClientAction {
-    public MyTerminateVMAction() {
-      super(AndroidBundle.message("android.ddms.actions.terminate.vm"),
-            AndroidBundle.message("android.ddms.actions.terminate.vm.description"),
-            AllIcons.Process.Stop);
-    }
-
-    @Override
-    void performAction(@NotNull Client c) {
-      c.kill();
-    }
-  }
-
-  private class MyGcAction extends MyClientAction {
-    public MyGcAction() {
-      super(AndroidBundle.message("android.ddms.actions.initiate.gc"),
-            AndroidBundle.message("android.ddms.actions.initiate.gc.description"),
-            AndroidIcons.Ddms.Gc); // Alternate: AllIcons.Actions.GC
-    }
-
-    @Override
-    void performAction(@NotNull Client c) {
-      c.executeGarbageCollector();
-    }
-  }
-
-  private class MyDumpSysAction extends MyClientAction {
-    private final String myService;
-
-    public MyDumpSysAction(@NotNull String service, @NotNull String description) {
-      super(description, null, null);
-
-      myService = service;
-    }
-
-    @Override
-    void performAction(@NotNull Client c) {
-      new DumpSysAction(myProject, myDeviceContext.getSelectedDevice(), myService, c).performAction();
-    }
-  }
-
-  private class MyDumpProcStatsAction extends MyDumpSysAction {
-    public MyDumpProcStatsAction(@NotNull String service, @NotNull String description) {
-      super(service, description);
-    }
-
-    @Override
-    protected boolean isEnabled() {
-      return super.isEnabled() &&
-             myDeviceContext.getSelectedDevice() != null &&
-             myDeviceContext.getSelectedDevice().supportsFeature(IDevice.Feature.PROCSTATS);
-    }
-  }
-
-  private class MyScreenshotAction extends AnAction {
-    public MyScreenshotAction() {
-      super(AndroidBundle.message("android.ddms.actions.screenshot"),
-            AndroidBundle.message("android.ddms.actions.screenshot.description"),
-            AndroidIcons.Ddms.ScreenCapture); // Alternate: AllIcons.Actions.Dump looks like a camera
-    }
-
-    @Override
-    public void update(AnActionEvent e) {
-      e.getPresentation().setEnabled(myDeviceContext.getSelectedDevice() != null);
-    }
-
-    @Override
-    public void actionPerformed(AnActionEvent e) {
-      final IDevice d = myDeviceContext.getSelectedDevice();
-      if (d == null) {
-        return;
-      }
-
-      final Project project = myProject;
-
-      new ScreenshotTask(project, d) {
-        @Override
-        public void onSuccess() {
-          String msg = getError();
-          if (msg != null) {
-            Messages.showErrorDialog(project, msg, AndroidBundle.message("android.ddms.actions.screenshot"));
-            return;
-          }
-
-          try {
-            File backingFile = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG, true);
-            ImageIO.write(getScreenshot(), SdkConstants.EXT_PNG, backingFile);
-
-            ScreenshotViewer viewer = new ScreenshotViewer(project, getScreenshot(), backingFile, d,
-                                                           d.getPropertyCacheOrSync(IDevice.PROP_DEVICE_MODEL));
-            if (viewer.showAndGet()) {
-              File screenshot = viewer.getScreenshot();
-              VirtualFile vf = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(screenshot);
-              if (vf != null) {
-                FileEditorManager.getInstance(project).openFile(vf, true);
-              }
-            }
-          }
-          catch (Exception e) {
-            Messages.showErrorDialog(project,
-                                     AndroidBundle.message("android.ddms.screenshot.generic.error", e),
-                                     AndroidBundle.message("android.ddms.actions.screenshot"));
-          }
-        }
-      }.queue();
-    }
-  }
-
-  private class MyScreenRecorderAction extends AnAction {
-    public MyScreenRecorderAction() {
-      super(AndroidBundle.message("android.ddms.actions.screenrecord"),
-            AndroidBundle.message("android.ddms.actions.screenrecord.description"),
-            AndroidIcons.Views.VideoView);
-    }
-
-    @Override
-    public void update(AnActionEvent e) {
-      IDevice selectedDevice = myDeviceContext.getSelectedDevice();
-      e.getPresentation().setEnabled(selectedDevice != null && selectedDevice.supportsFeature(IDevice.Feature.SCREEN_RECORD));
-    }
-
-    @Override
-    public void actionPerformed(AnActionEvent e) {
-      final IDevice d = myDeviceContext.getSelectedDevice();
-      if (d == null) {
-        return;
-      }
-
-      new ScreenRecorderAction(myProject, d).performAction();
-    }
-  }
-
-  private class MyToggleMethodProfilingAction extends ToggleAction {
-    public MyToggleMethodProfilingAction() {
-      super(AndroidBundle.message("android.ddms.actions.methodprofile.start"),
-            null,
-            AndroidIcons.Ddms.StartMethodProfiling);
-    }
-
-    @Override
-    public boolean isSelected(AnActionEvent e) {
-      Client c = myDeviceContext.getSelectedClient();
-      if (c == null) {
-        return false;
-      }
-
-      ClientData cd = c.getClientData();
-      return cd.getMethodProfilingStatus() == ClientData.MethodProfilingStatus.TRACER_ON ||
-             cd.getMethodProfilingStatus() == ClientData.MethodProfilingStatus.SAMPLER_ON;
-    }
-
-    @Override
-    public void setSelected(AnActionEvent e, boolean state) {
-      Client c = myDeviceContext.getSelectedClient();
-      if (c == null) {
-        return;
-      }
-
-      ClientData cd = c.getClientData();
-      try {
-        if (cd.getMethodProfilingStatus() == ClientData.MethodProfilingStatus.TRACER_ON) {
-          c.stopMethodTracer();
-        }
-        else {
-          c.startMethodTracer();
-        }
-      }
-      catch (IOException e1) {
-        Messages.showErrorDialog(myProject,
-                                 "Unexpected error while toggling method profiling: " + e1,
-                                 "Method Profiling");
-      }
-    }
-
-    @Override
-    public void update(AnActionEvent e) {
-      super.update(e);
-
-      Client c = myDeviceContext.getSelectedClient();
-      if (c == null) {
-        e.getPresentation().setEnabled(false);
-        return;
-      }
-
-      String text = c.getClientData().getMethodProfilingStatus() == ClientData.MethodProfilingStatus.TRACER_ON ?
-                    AndroidBundle.message("android.ddms.actions.methodprofile.stop") :
-                    AndroidBundle.message("android.ddms.actions.methodprofile.start");
-      e.getPresentation().setText(text);
-      e.getPresentation().setEnabled(true);
-    }
   }
 }
