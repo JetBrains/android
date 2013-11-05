@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.customizer;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.project.AndroidContentRoot;
 import com.android.tools.idea.gradle.project.AndroidContentRoot.ContentRootStorage;
-import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.module.Module;
@@ -26,12 +25,15 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.roots.SourceFolder;
+import com.intellij.openapi.roots.impl.SourceFolderImpl;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jps.model.JpsElement;
+import org.jetbrains.jps.model.java.JavaSourceRootProperties;
+import org.jetbrains.jps.model.module.JpsModuleSourceRoot;
 
 import java.io.File;
 
@@ -41,6 +43,7 @@ import java.io.File;
 public class ContentRootModuleCustomizer implements ModuleCustomizer {
   /**
    * Sets the content roots of the given IDEA module based on the settings of the given Android-Gradle project.
+   *
    * @param module             module to customize.
    * @param project            project that owns the module to customize.
    * @param ideaAndroidProject the imported Android-Gradle project.
@@ -61,7 +64,8 @@ public class ContentRootModuleCustomizer implements ModuleCustomizer {
     try {
       contentEntry.clearSourceFolders();
       storePaths(contentEntry, ideaAndroidProject);
-    } finally {
+    }
+    finally {
       model.commit();
     }
   }
@@ -98,7 +102,14 @@ public class ContentRootModuleCustomizer implements ModuleCustomizer {
         }
         boolean isTestSource = sourceType.equals(ExternalSystemSourceType.TEST);
         String url = VfsUtilCore.pathToUrl(dir.getAbsolutePath());
-        contentEntry.addSourceFolder(url, isTestSource);
+        SourceFolder sourceFolder = contentEntry.addSourceFolder(url, isTestSource);
+        if (sourceType.equals(ExternalSystemSourceType.GENERATED) && sourceFolder instanceof SourceFolderImpl) {
+          JpsModuleSourceRoot sourceRoot = ((SourceFolderImpl)sourceFolder).getJpsElement();
+          JpsElement properties = sourceRoot.getProperties();
+          if (properties instanceof JavaSourceRootProperties) {
+            ((JavaSourceRootProperties)properties).setForGeneratedSources(true);
+          }
+        }
       }
     };
     AndroidContentRoot.storePaths(ideaAndroidProject, storage);
