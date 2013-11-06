@@ -60,7 +60,7 @@ import java.util.List;
 /**
  * A GUI object that displays and modifies dependencies for an Android-Gradle module.
  */
-public class ModuleDependenciesPanel extends JPanel {
+public class ModuleDependenciesPanel extends EditorPanel {
   private static final Logger LOG = Logger.getInstance(ModuleDependenciesPanel.class);
   private static final int SCOPE_COLUMN_WIDTH = 120;
   private final JBTable myEntryTable;
@@ -71,7 +71,7 @@ public class ModuleDependenciesPanel extends JPanel {
   private final GradleSettingsFile myGradleSettingsFile;
   private AnActionButton myRemoveButton;
 
-  public ModuleDependenciesPanel(Project project, String modulePath) {
+  public ModuleDependenciesPanel(@NotNull Project project, @NotNull String modulePath) {
     super(new BorderLayout());
 
     myModulePath = modulePath;
@@ -401,6 +401,7 @@ public class ModuleDependenciesPanel extends JPanel {
     return SimpleTextCellAppearance.regular(data, icon);
   }
 
+  @Override
   public void apply() {
     List<ModuleDependenciesTableItem> items = myModel.getItems();
     final List<Dependency> dependencies = Lists.newArrayListWithExpectedSize(items.size());
@@ -421,6 +422,7 @@ public class ModuleDependenciesPanel extends JPanel {
     myModel.resetModified();
   }
 
+  @Override
   public boolean isModified() {
     return myModel.isModified();
   }
