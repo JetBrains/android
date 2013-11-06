@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.templates;
 
-import static com.android.tools.idea.wizard.TemplateWizardState.ACTIVITY_NAME_SUFFIX;
-
 import freemarker.template.SimpleScalar;
 import freemarker.template.TemplateMethodModel;
 import freemarker.template.TemplateModel;
 import freemarker.template.TemplateModelException;
 
 import java.util.List;
+
+import static com.android.tools.idea.templates.FmUtil.stripSuffix;
+import static com.android.tools.idea.wizard.TemplateWizardState.ACTIVITY_NAME_SUFFIX;
 
 /**
  * Similar to {@link FmCamelCaseToUnderscoreMethod}, but strips off common class
@@ -41,25 +42,12 @@ public class FmClassNameToResourceMethod implements TemplateMethodModel {
             return new SimpleScalar("");
         }
 
-        name = stripSuffix(name, ACTIVITY_NAME_SUFFIX);
-        name = stripSuffix(name, "Fragment");              //$NON-NLS-1$
-        name = stripSuffix(name, "Service");               //$NON-NLS-1$
-        name = stripSuffix(name, "Provider");              //$NON-NLS-1$
+        // Use recursive stripping
+        name = stripSuffix(name, ACTIVITY_NAME_SUFFIX, true);
+        name = stripSuffix(name, "Fragment", true);              //$NON-NLS-1$
+        name = stripSuffix(name, "Service", true);               //$NON-NLS-1$
+        name = stripSuffix(name, "Provider", true);              //$NON-NLS-1$
 
         return new SimpleScalar(TemplateUtils.camelCaseToUnderlines(name));
-    }
-
-    // Strip off the end portion of the activity name. The user might be typing
-    // the activity name such that only a portion has been entered so far (e.g.
-    // "MainActivi") and we want to chop off that portion too such that we don't
-    private static String stripSuffix(String name, String suffix) {
-        int suffixStart = name.lastIndexOf(suffix.charAt(0));
-        if (suffixStart != -1 && name.regionMatches(suffixStart, suffix, 0,
-                name.length() - suffixStart)) {
-            name = name.substring(0, suffixStart);
-        }
-        assert !name.endsWith(suffix) : name;
-
-        return name;
     }
 }
