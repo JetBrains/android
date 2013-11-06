@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.rendering.ResourceNameValidator;
 import com.google.common.base.Splitter;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
@@ -32,9 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 import static com.android.tools.idea.templates.Template.*;
 
@@ -73,7 +72,7 @@ public class Parameter {
    * validator etc for user input. These are typically combined into a set
    * of constraints via an EnumSet.
    */
-  enum Constraint {
+  public enum Constraint {
     /**
      * This value must be unique. This constraint usually only makes sense
      * when other constraints are specified, such as {@link #LAYOUT}, which
@@ -237,7 +236,7 @@ public class Parameter {
   public String validate(@Nullable Project project, @Nullable String packageName, @Nullable Object value) {
     switch (type) {
       case STRING:
-        return validateStringType(project, packageName, value.toString());
+        return getErrorMessageForStringType(project, packageName, value.toString());
       case BOOLEAN:
       case ENUM:
       case SEPARATOR:
@@ -246,21 +245,90 @@ public class Parameter {
     }
   }
 
+  /**
+   * Validate the given value for this parameter and list any reasons why the given value is invalid.
+   * @param project
+   * @param packageName
+   * @param value
+   * @return An error message detailing why the given value is invalid.
+   */
   @Nullable
-  protected String validateStringType(@Nullable Project project, @Nullable String packageName, @Nullable String value) {
+  protected String getErrorMessageForStringType(@Nullable Project project, @Nullable String packageName, @Nullable String value) {
+    Collection<Constraint> violations = validateStringType(project, packageName, value);
+
+    if (violations.contains(Constraint.NONEMPTY)) {
+      return "Please specify " + name;
+
+    } else if (violations.contains(Constraint.ACTIVITY)) {
+      return name + " is not a valid activity name";
+
+    } else if (violations.contains(Constraint.APILEVEL)) {
+      // TODO: validity check
+    } else if (violations.contains(Constraint.CLASS)) {
+      return name + " is not a valid class name";
+
+    } else if (violations.contains(Constraint.PACKAGE)) {
+      return name + " is not a valid package name";
+
+    } else if (violations.contains(Constraint.APP_PACKAGE) && value != null) {
+      String message = AndroidUtils.validateAndroidPackageName(value);
+      if (message != null) {
+        return  message;
+
+      }
+    } else if (violations.contains(Constraint.LAYOUT) && value != null) {
+      String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.LAYOUT).getErrorText(value);
+      if (resourceNameError != null) {
+        return name + " is not a valid resource name. " + resourceNameError;
+
+      }
+    } else if (violations.contains(Constraint.DRAWABLE)) {
+      String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.DRAWABLE).getErrorText(value);
+      if (resourceNameError != null) {
+        return name + " is not a valid resource name. " + resourceNameError;
+
+      }
+    } else if (violations.contains(Constraint.ID)) {
+      return name + " is not a valid id.";
+
+    } else if (violations.contains(Constraint.STRING)) {
+      String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.VALUES).getErrorText(value);
+      if (resourceNameError != null) {
+        return name + " is not a valid resource name. " + resourceNameError;
+
+      }
+    }
+
+    if (violations.contains(Constraint.UNIQUE)) {
+      return  name + " must be unique";
+
+    } else if (violations.contains(Constraint.EXISTS)) {
+      return  name + " must already exist";
+
+    }
+
+    return null;
+  }
+
+  /**
+   * Validate the given value for this parameter and list the constraints that the given value violates.
+   * @return All constraints of this parameter that are violated by the proposed value.
+   */
+  @NotNull
+  protected Collection<Constraint> validateStringType(@Nullable Project project, @Nullable String packageName, @Nullable String value) {
+    Set<Constraint> violations = Sets.newHashSet();
     if (value == null || value.isEmpty()) {
       if (constraints.contains(Constraint.NONEMPTY)) {
-        return "Please specify " + name;
-      } else {
-        return null;
+        violations.add(Constraint.NONEMPTY);
       }
+      return violations;
     }
     boolean exists = false;
     String fqName = (packageName != null && value.indexOf('.') == -1 ? packageName + "." : "") + value;
 
     if (constraints.contains(Constraint.ACTIVITY)) {
       if (!isValidFullyQualifiedJavaIdentifier(fqName)) {
-        return name + " is not a valid activity name";
+        violations.add(Constraint.ACTIVITY);
       }
       if (project != null) {
         PsiClass aClass = JavaPsiFacade.getInstance(project).findClass(fqName, GlobalSearchScope.projectScope(project));
@@ -268,58 +336,73 @@ public class Parameter {
                                                                               GlobalSearchScope.allScope(project));
         exists = aClass != null && activityClass != null && aClass.isInheritor(activityClass, true);
       }
-    } else if (constraints.contains(Constraint.APILEVEL)) {
+    }
+    if (constraints.contains(Constraint.APILEVEL)) {
       // TODO: validity check
-    } else if (constraints.contains(Constraint.CLASS)) {
+    }
+    if (constraints.contains(Constraint.CLASS)) {
       if (!isValidFullyQualifiedJavaIdentifier(fqName)) {
-        return name + " is not a valid class name";
+        violations.add(Constraint.CLASS);
       }
       if (project != null) {
         exists = JavaPsiFacade.getInstance(project).findClass(fqName, GlobalSearchScope.projectScope(project)) != null;
       }
-    } else if (constraints.contains(Constraint.PACKAGE)) {
+    }
+    if (constraints.contains(Constraint.PACKAGE)) {
       if (!isValidFullyQualifiedJavaIdentifier(value)) {
-        return name + " is not a valid package name";
+        violations.add(Constraint.PACKAGE);
       }
       if (project != null) {
         exists = JavaPsiFacade.getInstance(project).findPackage(value) != null;
       }
-    } else if (constraints.contains(Constraint.APP_PACKAGE)) {
+    }
+    if (constraints.contains(Constraint.APP_PACKAGE)) {
       String message = AndroidUtils.validateAndroidPackageName(value);
       if (message != null) {
-        return message;
+        violations.add(Constraint.APP_PACKAGE);
       }
       if (project != null) {
         exists = JavaPsiFacade.getInstance(project).findPackage(value) != null;
       }
-    } else if (constraints.contains(Constraint.LAYOUT)) {
+    }
+    if (constraints.contains(Constraint.LAYOUT)) {
       String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.LAYOUT).getErrorText(value);
       if (resourceNameError != null) {
-        return name + " is not a valid resource name. " + resourceNameError;
+        violations.add(Constraint.LAYOUT);
       }
       exists = existsResourceFile(project, SdkConstants.FD_RES_LAYOUT, value + SdkConstants.DOT_XML);
-    } else if (constraints.contains(Constraint.DRAWABLE)) {
+    }
+    if (constraints.contains(Constraint.DRAWABLE)) {
       String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.DRAWABLE).getErrorText(value);
       if (resourceNameError != null) {
-        return name + " is not a valid resource name. " + resourceNameError;
+        violations.add(Constraint.DRAWABLE);
       }
       exists = existsResourceFile(project, "drawable", value + ".xml");
-    } else if (constraints.contains(Constraint.ID)) {
+    }
+    if (constraints.contains(Constraint.ID)) {
       // TODO: validity and existence check
-    } else if (constraints.contains(Constraint.STRING)) {
+    }
+    if (constraints.contains(Constraint.STRING)) {
       String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.VALUES).getErrorText(value);
       if (resourceNameError != null) {
-        return name + " is not a valid resource name. " + resourceNameError;
+        violations.add(Constraint.STRING);
       }
       // TODO: Existence check
     }
 
     if (constraints.contains(Constraint.UNIQUE) && exists) {
-      return name + " must be unique";
+      violations.add(Constraint.UNIQUE);
     } else if (constraints.contains(Constraint.EXISTS) && !exists) {
-      return name + " must already exist";
+      violations.add(Constraint.EXISTS);
     }
-    return null;
+    return violations;
+  }
+
+  /**
+   * Returns true if the given stringType is non-unique when it should be.
+   */
+  public boolean uniquenessSatisfied(@Nullable Project project, @Nullable String packageName, @Nullable String value) {
+    return !validateStringType(project, packageName, value).contains(Constraint.UNIQUE);
   }
 
   private static boolean isValidFullyQualifiedJavaIdentifier(String value) {

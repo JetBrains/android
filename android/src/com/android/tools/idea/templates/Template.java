@@ -268,7 +268,7 @@ public class Template {
   }
 
   @NotNull
-  private Map<String, Object> createParameterMap(@NotNull Map<String, Object> args) {
+  public static Map<String, Object> createParameterMap(@NotNull Map<String, Object> args) {
     // Create the data model.
     final Map<String, Object> paramMap = new HashMap<String, Object>();
 
