@@ -42,29 +42,27 @@ import com.intellij.openapi.externalSystem.model.task.TaskData;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
+import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ContainerUtilRt;
-import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
-import org.gradle.util.GradleVersion;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension;
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
+import org.jetbrains.plugins.gradle.util.GradleUtil;
 
 import java.io.File;
 import java.net.URL;
 import java.util.*;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_MINIMUM_VERSION;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_PLUGIN_MINIMUM_VERSION;
 
 /**
@@ -134,22 +132,13 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
       if (!GradleModelVersionCheck.isSupportedVersion(androidProject)) {
         throw new IllegalStateException(UNSUPPORTED_MODEL_VERSION_ERROR);
       }
-
-      // check for Gradle version
-      BuildEnvironment buildEnvironment = resolverCtx.getModels().getBuildEnvironment();
-      if (buildEnvironment != null) {
-        GradleVersion gradleVersion = GradleVersion.version(buildEnvironment.getGradle().getGradleVersion());
-        GradleVersion minimumGradleVersion = GradleVersion.version(GRADLE_MINIMUM_VERSION);
-        if (gradleVersion.compareTo(minimumGradleVersion) < 0) {
-          String msg = String.format(
-            "You are using Gradle of %1$s version. Please use version %2$s or greater for gradle android plugin.",
-            gradleVersion.getVersion(), GRADLE_MINIMUM_VERSION);
-          msg += ('\n' + AbstractProjectImportErrorHandler.FIX_GRADLE_VERSION);
-          throw new IllegalStateException(msg);
-        }
-      }
     }
-    return nextResolver.createModule(gradleModule, projectData);
+    String moduleName = gradleModule.getName();
+    if (moduleName == null) {
+      throw new IllegalStateException("Module with undefined name detected: " + gradleModule);
+    }
+    String moduleConfigPath = GradleUtil.getConfigPath(gradleModule.getGradleProject(), projectData.getLinkedExternalProjectPath());
+    return new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), moduleName, moduleConfigPath, moduleConfigPath);
   }
 
   @Override
