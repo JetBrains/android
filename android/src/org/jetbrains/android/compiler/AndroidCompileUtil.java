@@ -231,20 +231,7 @@ public class AndroidCompileUtil {
     collectChildrenRecursively(excludedRoot, root, rootsToExclude);
     ContentEntry contentEntry = findContentEntryForRoot(model, excludedRoot);
     if (contentEntry != null) {
-      // The next 9 lines after this comment should be just
-      //  if (contentEntry.removeExcludeFolder(excludedRoot.getUrl())) {
-      // but due to a slight mismatch between our EAP and our android plugin
-      // snapshot we need to back out eba5a000cee029507fbd8f088ce1cefc5d9fb2cf;
-      // we'll restore it ASAP
-      ExcludeFolder excludedFolder = null;
-      for (ExcludeFolder folder : contentEntry.getExcludeFolders()) {
-        if (Comparing.equal(folder.getFile(), excludedRoot)) {
-          excludedFolder = folder;
-          break;
-        }
-      }
-      if (excludedFolder != null) {
-        contentEntry.removeExcludeFolder(excludedFolder);
+      if (contentEntry.removeExcludeFolder(excludedRoot.getUrl())) {
         modelChangedFlag.set(true);
       }
       for (VirtualFile rootToExclude : rootsToExclude) {

@@ -37,8 +37,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -116,35 +118,26 @@ public class AndroidXmlTagDescriptor implements XmlElementDescriptor, PsiPresent
   @Override
   public XmlAttributeDescriptor[] getAttributesDescriptors(@Nullable XmlTag context) {
     final XmlAttributeDescriptor[] descriptors = myParentDescriptor.getAttributesDescriptors(context);
+    int layoutWidthIndex = -1;
+    int layoutHeightIndex = -1;
 
-    Arrays.sort(descriptors, new Comparator<XmlAttributeDescriptor>() {
-      @Override
-      public int compare(XmlAttributeDescriptor a1, XmlAttributeDescriptor a2) {
-        final String name1 = a1.getName();
-        final String name2 = a2.getName();
+    for (int i = 0; i < descriptors.length; i++) {
+      final String name = descriptors[i].getName();
 
-        if (name1.equals(name2)) {
-          return 0;
-        }
-        if (!name1.startsWith("layout_") || !name2.startsWith("layout_")) {
-          return name1.compareTo(name2);
-        }
-        if (name1.equals("layout_width")) {
-          return -1;
-        }
-        if (name2.equals("layout_width")) {
-          return 1;
-        }
-        if (name1.equals("layout_height")) {
-          return -1;
-        }
-        if (name2.equals("layout_height")) {
-          return 1;
-        }
-        return name1.compareTo(name2);
+      if ("layout_width".equals(name)) {
+        layoutWidthIndex = i;
       }
-    });
-    return descriptors;
+      else if ("layout_height".equals(name)) {
+        layoutHeightIndex = i;
+      }
+    }
+    if (layoutWidthIndex < 0 ||layoutHeightIndex < 0 || layoutWidthIndex < layoutHeightIndex) {
+      return descriptors;
+    }
+    final List<XmlAttributeDescriptor> newDescriptors = new ArrayList<XmlAttributeDescriptor>(Arrays.asList(descriptors));
+    final XmlAttributeDescriptor layoutWidthDescriptor = newDescriptors.remove(layoutWidthIndex);
+    newDescriptors.add(layoutHeightIndex, layoutWidthDescriptor);
+    return newDescriptors.toArray(new XmlAttributeDescriptor[newDescriptors.size()]);
   }
 
   @Override
