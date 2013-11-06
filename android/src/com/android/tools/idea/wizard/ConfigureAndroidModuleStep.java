@@ -31,7 +31,10 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.*;
+import com.intellij.openapi.projectRoots.JavaSdk;
+import com.intellij.openapi.projectRoots.JavaSdkVersion;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -142,6 +145,23 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       mySourceVersionLabel.setVisible(false);
       mySourceCombo.setVisible(false);
     }
+
+    // Find a unique project location
+    String projectLocation = myTemplateState.getString(ATTR_PROJECT_LOCATION);
+    if (projectLocation != null && !projectLocation.isEmpty()) {
+      File file = new File(projectLocation);
+      if (!file.exists()) {
+        String appName = myTemplateState.getString(ATTR_APP_TITLE);
+        int i = 2;
+        while (file.exists()) {
+          myTemplateState.put(ATTR_APP_TITLE, appName + Integer.toString(i));
+          deriveValues();
+          file = new File(myTemplateState.getString(ATTR_PROJECT_LOCATION));
+          i++;
+        }
+      }
+    }
+
 
     registerUiElements();
 
@@ -348,7 +368,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
     if (!myInitializedPackageNameText) {
       myInitializedPackageNameText = true;
-      if (((String)myTemplateState.get(ATTR_PACKAGE_NAME)).startsWith(SAMPLE_PACKAGE_PREFIX)) {
+      if ((myTemplateState.getString(ATTR_PACKAGE_NAME)).startsWith(SAMPLE_PACKAGE_PREFIX)) {
         int length = SAMPLE_PACKAGE_PREFIX.length();
         if (SAMPLE_PACKAGE_PREFIX.endsWith(".")) {
           length--;
@@ -372,7 +392,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     }
 
     setErrorHtml("");
-    String applicationName = (String)myTemplateState.get(ATTR_APP_TITLE);
+    String applicationName = myTemplateState.getString(ATTR_APP_TITLE);
     if (applicationName == null || applicationName.isEmpty()) {
       setErrorHtml("Enter an application name (shown in launcher)");
       return false;
@@ -380,13 +400,13 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     if (Character.isLowerCase(applicationName.charAt(0))) {
       setErrorHtml("The application name for most apps begins with an uppercase letter");
     }
-    String packageName = (String)myTemplateState.get(ATTR_PACKAGE_NAME);
+    String packageName = myTemplateState.getString(ATTR_PACKAGE_NAME);
     if (packageName.startsWith(SAMPLE_PACKAGE_PREFIX)) {
       setErrorHtml(String.format("The prefix '%1$s' is meant as a placeholder and should " +
                                     "not be used", SAMPLE_PACKAGE_PREFIX));
     }
 
-    String moduleName = (String)myTemplateState.get(ATTR_MODULE_NAME);
+    String moduleName = myTemplateState.getString(ATTR_MODULE_NAME);
     if (moduleName == null || moduleName.isEmpty()) {
       setErrorHtml("Please specify a module name.");
       return false;
@@ -433,7 +453,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     toggleVisibleOnApi(myGridLayoutCheckBox, 13, minLevel);
 
     if (!myTemplateState.myHidden.contains(ATTR_PROJECT_LOCATION)) {
-      String projectLocation = (String)myTemplateState.get(ATTR_PROJECT_LOCATION);
+      String projectLocation = myTemplateState.getString(ATTR_PROJECT_LOCATION);
       if (projectLocation == null || projectLocation.isEmpty()) {
         setErrorHtml("Please specify a project location");
         return false;
@@ -471,7 +491,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   @NotNull
   private String computePackageName() {
-    String moduleName = (String)myTemplateState.get(ATTR_MODULE_NAME);
+    String moduleName = myTemplateState.getString(ATTR_MODULE_NAME);
     if (moduleName != null && !moduleName.isEmpty()) {
       moduleName = moduleName.replaceAll("[^a-zA-Z0-9_\\-]", "");
       moduleName = moduleName.toLowerCase();
@@ -483,7 +503,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   @NotNull
   private String computeModuleName() {
-    String name = (String)myTemplateState.get(ATTR_APP_TITLE);
+    String name = myTemplateState.getString(ATTR_APP_TITLE);
     if (name == null) {
       return "";
     }
@@ -505,12 +525,12 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   @NotNull
   private String computeAppName() {
-    return (String)myTemplateState.get(ATTR_MODULE_NAME);
+    return myTemplateState.getString(ATTR_MODULE_NAME);
   }
 
   @NotNull
   private String computeProjectLocation() {
-    return new File(NewProjectWizardState.getProjectFileDirectory(), (String)myTemplateState.get(ATTR_MODULE_NAME) + "Project")
+    return new File(NewProjectWizardState.getProjectFileDirectory(), myTemplateState.getString(ATTR_MODULE_NAME) + "Project")
       .getAbsolutePath();
   }
 
