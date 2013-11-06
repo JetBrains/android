@@ -19,6 +19,7 @@ import com.android.tools.idea.AndroidTestCaseHelper;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.intellij.ide.impl.NewProjectUtil;
+import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -50,9 +51,9 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
     myJdk = SdkConfigurationUtil.createAndAddSDK(jdkHomePath, JavaSdk.getInstance());
 
     myParametersProvider = new AndroidGradleBuildProcessParametersProvider(myProject);
-    ExternalSystemApiUtil.executeProjectChangeAction(true, new Runnable() {
+    ExternalSystemApiUtil.executeProjectChangeAction(true, new DisposeAwareProjectChange(myProject) {
       @Override
-      public void run() {
+      public void execute() {
         NewProjectUtil.applyJdkToProject(myProject, myJdk);
       }
     });
