@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.parser;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
@@ -90,17 +91,23 @@ public class GradleBuildFile extends GradleGroovyFile {
   /**
    * Returns the value in the file for the given key, or null if not present.
    */
-  public @Nullable Object getValue(@NotNull GrStatementOwner root, @NotNull BuildFileKey key) {
+  public @Nullable Object getValue(@Nullable GrStatementOwner root, @NotNull BuildFileKey key) {
     checkInitialized();
-    GrMethodCall method = getMethodCallByPath(root, key.getPath());
-    if (method == null) {
-      return null;
+    if (root == null) {
+      root = myGroovyFile;
     }
-    if (key.isArgumentIsClosure()) {
-      return key.getValue(getMethodClosureArgument(method));
-    } else {
-      return key.getValue(getArguments(method));
+    return getValueStatic(root, key);
+  }
+
+  /**
+   * Returns the value in the file for the given key, typecasting it to String. Returns null if no value is present.
+   */
+  public @Nullable String getStringValue(@Nullable GrStatementOwner root, @NotNull BuildFileKey key) {
+    checkInitialized();
+    if (root == null) {
+      root = myGroovyFile;
     }
+    return getStringValueStatic(root, key);
   }
 
   /**
@@ -127,16 +134,31 @@ public class GradleBuildFile extends GradleGroovyFile {
   /**
    * Modifies the value in the file. Must be run inside a write action.
    */
-  public void setValue(@NotNull GrStatementOwner root, @NotNull BuildFileKey key, @NotNull Object value) {
+  public void setValue(@Nullable GrStatementOwner root, @NotNull BuildFileKey key, @NotNull Object value) {
     checkInitialized();
     commitDocumentChanges();
+    if (root == null) {
+      root = myGroovyFile;
+    }
+    setValueStatic(root, key, value);
+  }
+
+  /**
+   * If the given key has a value at the given root, removes it and returns true. Returns false if there is no value for that key.
+   */
+  public boolean removeValue(@Nullable GrStatementOwner root, @NotNull BuildFileKey key) {
+    checkInitialized();
+    commitDocumentChanges();
+    if (root == null) {
+      root = myGroovyFile;
+    }
     GrMethodCall method = getMethodCallByPath(root, key.getPath());
     if (method != null) {
-      if (key.isArgumentIsClosure()) {
-        key.setValue(myProject, getMethodClosureArgument(method), value);
-      } else {
-        key.setValue(myProject, getArguments(method), value);
-      }
+      GrStatementOwner parent = (GrStatementOwner)method.getParent();
+      parent.removeElements(new PsiElement[]{method});
+      reformatClosure(parent);
+      return true;
     }
+    return false;
   }
 }
