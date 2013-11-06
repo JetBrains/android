@@ -44,7 +44,6 @@ import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.ModifiableModelCommitter;
-import com.intellij.openapi.roots.impl.SourceFolderImpl;
 import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Comparing;
@@ -77,6 +76,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
+import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
 import org.jetbrains.jps.model.java.JavaSourceRootProperties;
 import org.jetbrains.jps.model.java.JavaSourceRootType;
 import org.jetbrains.jps.model.java.JpsJavaExtensionService;
@@ -307,11 +307,12 @@ public class AndroidCompileUtil {
     }
     for (SourceFolder sourceFolder : contentEntry.getSourceFolders()) {
       if (root.equals(sourceFolder.getFile())) {
-        final JavaSourceRootProperties props =
-          (JavaSourceRootProperties)((SourceFolderImpl)sourceFolder).getJpsElement().getProperties();
-        props.setForGeneratedSources(true);
-        modelChangedFlag.set(true);
-        break;
+        final JavaSourceRootProperties props = sourceFolder.getJpsElement().getProperties(JavaModuleSourceRootTypes.SOURCES);
+        if (props != null) {
+          props.setForGeneratedSources(true);
+          modelChangedFlag.set(true);
+          break;
+        }
       }
     }
   }
