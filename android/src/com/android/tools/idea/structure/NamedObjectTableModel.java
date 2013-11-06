@@ -78,6 +78,7 @@ public class NamedObjectTableModel extends AbstractTableModel implements ItemRem
         return File.class;
       case STRING:
       case CLOSURE:
+      case REFERENCE:
         return String.class;
       default:
         assert false : getKey(i).getType();
