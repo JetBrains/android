@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.service;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.util.Facets;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.collect.ImmutableList;
@@ -77,6 +78,7 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
     }
 
     Projects.ensureExternalBuildIsEnabledForGradleProject(project);
+    AndroidGradleProjectComponent.getInstance(project).checkForSupportedModules();
 
     Application application = ApplicationManager.getApplication();
     if (!application.isUnitTestMode()) {
