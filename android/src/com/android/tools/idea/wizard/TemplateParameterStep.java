@@ -16,6 +16,7 @@
 package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.templates.Parameter;
+import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -57,6 +58,7 @@ public class TemplateParameterStep extends TemplateWizardStep {
     int row = 0;
     Collection<Parameter> parameters = myTemplateState.getTemplateMetadata().getParameters();
     myParamContainer.setLayout(new GridLayoutManager(parameters.size() + 1, 3));
+    String packageName = myTemplateState.getString(TemplateMetadata.ATTR_PACKAGE_NAME);
     GridConstraints c = new GridConstraints();
     c.setVSizePolicy(GridConstraints.SIZEPOLICY_FIXED);
     c.setAnchor(GridConstraints.ANCHOR_WEST);
@@ -102,7 +104,20 @@ public class TemplateParameterStep extends TemplateWizardStep {
           JTextField textField = new JTextField();
           c.setColumn(1);
           c.setColSpan(2);
+
+          if (parameter.constraints.contains(Parameter.Constraint.UNIQUE) &&
+              !parameter.uniquenessSatisfied(myProject, packageName, myTemplateState.getString(parameter.id))) {
+            // While uniqueness isn't satisfied, increment number and add to end
+            int i = 2;
+            String originalValue = myTemplateState.getString(parameter.id);
+            while (!parameter.uniquenessSatisfied(myProject, packageName, originalValue + Integer.toString(i))) {
+              i++;
+            }
+            myTemplateState.put(parameter.id, String.format("%s%d", originalValue, i));
+          }
+
           register(parameter.id, textField);
+
           myParamContainer.add(textField, c);
           if (myPreferredFocusComponent == null) {
             myPreferredFocusComponent = textField;
@@ -112,7 +127,7 @@ public class TemplateParameterStep extends TemplateWizardStep {
       }
     }
     if (myTemplateState.getTemplateMetadata().getThumbnailPath() != null) {
-      deriveValues();
+      update();
     }
     c.setFill(GridConstraints.FILL_HORIZONTAL);
     c.setHSizePolicy(GridConstraints.SIZEPOLICY_WANT_GROW);
@@ -127,6 +142,8 @@ public class TemplateParameterStep extends TemplateWizardStep {
 
   @Override
   protected void deriveValues() {
+    super.deriveValues();
+
     String thumb = myTemplateState.getTemplateMetadata().getThumbnailPath(myTemplateState);
     // Only show new image if we have something to show (and skip decoding if it's the same image we already have)
     if (thumb != null && !thumb.isEmpty() && !thumb.equals(myCurrentThumb)) {

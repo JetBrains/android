@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.templates;
 
-import static com.android.tools.idea.wizard.TemplateWizardState.ACTIVITY_NAME_SUFFIX;
-import static com.android.tools.idea.wizard.TemplateWizardState.LAYOUT_NAME_PREFIX;
-
 import freemarker.template.SimpleScalar;
 import freemarker.template.TemplateMethodModel;
 import freemarker.template.TemplateModel;
 import freemarker.template.TemplateModelException;
 
 import java.util.List;
+
+import static com.android.tools.idea.templates.FmUtil.stripSuffix;
+import static com.android.tools.idea.wizard.TemplateWizardState.ACTIVITY_NAME_SUFFIX;
+import static com.android.tools.idea.wizard.TemplateWizardState.LAYOUT_NAME_PREFIX;
 
 /**
  * Method invoked by FreeMarker to convert an Activity class name into
@@ -42,15 +43,7 @@ public class FmActivityToLayoutMethod implements TemplateMethodModel {
       return new SimpleScalar("");
     }
 
-    // Strip off the end portion of the activity name. The user might be typing
-    // the activity name such that only a portion has been entered so far (e.g.
-    // "MainActivi") and we want to chop off that portion too such that we don't
-    // offer a layout name partially containing the activity suffix (e.g. "main_activi").
-    int suffixStart = activityName.lastIndexOf(ACTIVITY_NAME_SUFFIX.charAt(0));
-    if (suffixStart != -1 && activityName.regionMatches(suffixStart, ACTIVITY_NAME_SUFFIX, 0, activityName.length() - suffixStart)) {
-      activityName = activityName.substring(0, suffixStart);
-    }
-    assert !activityName.endsWith(ACTIVITY_NAME_SUFFIX) : activityName;
+    activityName = stripSuffix(activityName, ACTIVITY_NAME_SUFFIX, true /* recursive strip */);
 
     // Convert CamelCase convention used in activity class names to underlined convention
     // used in layout name:
