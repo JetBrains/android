@@ -74,7 +74,9 @@ public class ContentRootSourcePaths {
     addSourceDirectoryPaths(ExternalSystemSourceType.SOURCE, mainArtifactInfo);
 
     ArtifactInfoStub testArtifactInfo = variant.getTestArtifactInfo();
-    addSourceDirectoryPaths(ExternalSystemSourceType.TEST, testArtifactInfo);
+    if (testArtifactInfo != null) {
+      addSourceDirectoryPaths(ExternalSystemSourceType.TEST, testArtifactInfo);
+    }
   }
 
   private void addSourceDirectoryPaths(@NotNull ExternalSystemSourceType sourceType, @NotNull ArtifactInfoStub artifactInfo) {
