@@ -456,28 +456,6 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     return true;
   }
 
-  private boolean updateDerivedValue(@NotNull String attrName, @NotNull JTextField textField, @NotNull Callable<String> valueDeriver) {
-    boolean updated = false;
-    try {
-      myIgnoreUpdates = true;
-      if (!myTemplateState.myModified.contains(attrName)) {
-        String s = valueDeriver.call();
-        if (s != null && !s.equals(myTemplateState.get(attrName))) {
-          myTemplateState.put(attrName, s);
-          textField.setText(s);
-          myTemplateState.myModified.remove(attrName);
-          updated = true;
-        }
-      }
-    }
-    catch (Exception e) {
-    }
-    finally {
-      myIgnoreUpdates = false;
-    }
-    return updated;
-  }
-
   /**
    * Shows or hides a checkbox based on a given API level and the max API level for which it should be shown
    * @param component The component to hide
