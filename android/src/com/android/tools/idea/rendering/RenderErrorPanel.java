@@ -23,6 +23,7 @@ import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.utils.HtmlBuilder;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.compiler.impl.javaCompiler.javac.JavacConfiguration;
@@ -35,6 +36,7 @@ import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.fileTypes.StdFileTypes;
+import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
@@ -82,9 +84,8 @@ import javax.swing.text.StyledDocument;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLFrameHyperlinkEvent;
 import java.awt.*;
-import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
+import java.awt.datatransfer.StringSelection;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -822,7 +823,7 @@ public class RenderErrorPanel extends JPanel {
   }
 
   /** Display the problem list encountered during a render */
-  private void reportThrowable(@NotNull HtmlBuilder builder, @NotNull Throwable throwable, boolean hideIfIrrelevant) {
+  private void reportThrowable(@NotNull HtmlBuilder builder, @NotNull final Throwable throwable, boolean hideIfIrrelevant) {
     StackTraceElement[] frames = throwable.getStackTrace();
     int end = -1;
     boolean haveInterestingFrame = false;
@@ -929,6 +930,18 @@ public class RenderErrorPanel extends JPanel {
         builder.newline();
       }
     }
+
+    builder.addLink("Copy stack to clipboard", myLinkManager.createRunnableLink(new Runnable() {
+      @Override
+      public void run() {
+        String text = Throwables.getStackTraceAsString(throwable);
+        try {
+          CopyPasteManager.getInstance().setContents(new StringSelection(text));
+        }
+        catch (Exception ignore) {
+        }
+      }
+    }));
   }
 
   /** Finds the root source code folder for the given android target, if any */
