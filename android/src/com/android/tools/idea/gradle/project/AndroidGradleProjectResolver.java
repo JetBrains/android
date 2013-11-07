@@ -289,7 +289,7 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
 
       @Override
       public void storePath(@NotNull ExternalSystemSourceType sourceType, @NotNull File directory) {
-        contentRootData.storePath(sourceType, directory.getAbsolutePath());
+        contentRootData.storePath(sourceType, directory.getPath());
       }
     };
     AndroidContentRoot.storePaths(androidProject, storage);
