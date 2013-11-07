@@ -32,6 +32,7 @@ import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileTask;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.AbstractProjectComponent;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
@@ -62,6 +63,11 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
   @NonNls private static final String SHOW_MIGRATE_TO_GRADLE_POPUP = "show.migrate.to.gradle.popup";
 
   @Nullable private Disposable myDisposable;
+
+  @NotNull
+  public static AndroidGradleProjectComponent getInstance(@NotNull Project project) {
+    return ServiceManager.getService(project, AndroidGradleProjectComponent.class);
+  }
 
   public AndroidGradleProjectComponent(Project project) {
     super(project);
@@ -97,7 +103,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
    */
   @Override
   public void projectOpened() {
-    checkForSupportedModules(myProject, ModuleManager.getInstance(myProject).getModules());
+    checkForSupportedModules();
 
     if (shouldShowMigrateToGradleNotification()
         && AndroidStudioSpecificInitializer.isAndroidStudio()
@@ -183,8 +189,15 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     }
   }
 
-  private static void checkForSupportedModules(@NotNull Project project, @NotNull Module[] modules) {
-    if (modules.length == 0 || !Projects.isGradleProject(project)) {
+  /**
+   * Verifies that the project, if it is an Android Gradle project, does not have any modules that are not known by Gradle. For example,
+   * when adding a plain IDEA Java module.
+   * Do not call this method from {@link ModuleListener#moduleAdded(Project, Module)} because the settings that this method look for are
+   * not present when importing a valid Gradle-aware module, resulting in false positives.
+   */
+  public void checkForSupportedModules() {
+    Module[] modules = ModuleManager.getInstance(myProject).getModules();
+    if (modules.length == 0 || !Projects.isGradleProject(myProject)) {
       return;
     }
     final List<Module> unsupportedModules = new ArrayList<Module>();
@@ -210,7 +223,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
         return module.getName();
       }
     }, ", ");
-    AndroidGradleNotification.getInstance(project).showBalloon(
+    AndroidGradleNotification.getInstance(myProject).showBalloon(
       "Unsupported Modules Detected",
       "Compilation is not supported for following modules: " + s +
       ". Unfortunately you can't have non-Gradle Java modules and Android-Gradle modules in one project.",
@@ -223,8 +236,6 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     @Override
     public void moduleAdded(Project project, Module module) {
       updateBuildVariantView(project);
-      checkForSupportedModules(project, new Module[]{module});
-
       for (ModuleListener listener : additionalListeners) {
         listener.moduleAdded(project, module);
       }
