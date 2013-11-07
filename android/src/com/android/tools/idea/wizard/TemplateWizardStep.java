@@ -45,8 +45,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.tools.idea.templates.Template.ATTR_DEFAULT;
@@ -63,12 +67,16 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
   protected final BiMap<String, JComponent> myParamFields = HashBiMap.create();
   protected final Map<JRadioButton, Pair<String, Object>> myRadioButtonValues = Maps.newHashMap();
   protected final Map<Parameter, ComboBoxItem> myComboBoxValues = Maps.newHashMap();
-  private final Project myProject;
+  protected final Project myProject;
   private final Icon mySidePanelIcon;
   protected boolean myIgnoreUpdates = false;
   protected boolean myIsValid = true;
   protected boolean myVisible = true;
   protected final UpdateListener myUpdateListener;
+  private final StringEvaluator myStringEvaluator = new StringEvaluator();
+
+  // Ids for params that have been edited in this round of updating/validation
+  protected Queue<String> myIdsWithNewValues = new ConcurrentLinkedQueue<String>();
 
   public interface UpdateListener {
     public void update();
@@ -194,38 +202,60 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
         String help = param != null && param.help != null && param.help.length() > 0 ? param.help : getHelpText(paramName);
         setDescriptionHtml(help);
       }
-      Object newValue = null;
-      if (component instanceof JCheckBox) {
-        newValue = ((JCheckBox)component).isSelected();
-      }
-      else if (component instanceof JComboBox) {
-        ComboBoxItem selectedItem = (ComboBoxItem)((JComboBox)component).getSelectedItem();
-        myComboBoxValues.put(param, selectedItem);
+      Object newValue = getComponentValue(param, component);
 
-        if (selectedItem != null) {
-          newValue = selectedItem.id;
-        }
-      }
-      else if (component instanceof JTextField) {
-        newValue = ((JTextField)component).getText();
-      } else if (component instanceof TextFieldWithBrowseButton) {
-        newValue = ((TextFieldWithBrowseButton)component).getText();
-      } else if (component instanceof JSlider) {
-        newValue = ((JSlider)component).getValue();
-      } else if (component instanceof JSpinner) {
-        newValue = ((JSpinner)component).getValue();
-      } else if (component instanceof ColorPanel) {
-        newValue = ((ColorPanel)component).getSelectedColor();
-      }
       if (newValue != null && !newValue.equals(oldValue)) {
         myTemplateState.put(paramName, newValue);
-        myTemplateState.myModified.add(paramName);
+        if (oldValue != null) {
+          myTemplateState.myModified.add(paramName);
+        }
+        if (!myIdsWithNewValues.contains(paramName)) {
+          myIdsWithNewValues.add(paramName);
+        }
       }
     }
     for (Map.Entry<JRadioButton, Pair<String, Object>> entry : myRadioButtonValues.entrySet()) {
       if (entry.getKey().isSelected()) {
         Pair<String, Object> value = entry.getValue();
         myTemplateState.put(value.getFirst(), value.getSecond());
+      }
+    }
+  }
+
+  /**
+   * Called by update() to write derived values to the template model.
+   */
+  protected void deriveValues() {
+    Iterator<String> iter = myIdsWithNewValues.iterator();
+    while(iter.hasNext()) {
+      String changedParamId = iter.next();
+      for (String paramName : myParamFields.keySet()) {
+        // Don't process hidden fields or ones which have been manually edited
+        if (myTemplateState.myHidden.contains(paramName) ) {
+          continue;
+        }
+
+        Parameter param = myTemplateState.hasTemplate() ? myTemplateState.getTemplateMetadata().getParameter(paramName) : null;
+
+        if (param == null || param.suggest == null || param.suggest.isEmpty()) {
+          continue;
+        }
+
+        // If this parameter has a suggestion depending on the changed parameter, calculate it, record the new value
+        // and add it for consideration so that things dependent on it can be updated
+        if (param.suggest.contains(changedParamId)) {
+          final String updated = myStringEvaluator.evaluate(param.suggest, myTemplateState.getParameters());
+          if (updated != null && !updated.equals(myTemplateState.get(param.id))) {
+            myIdsWithNewValues.add(param.id);
+
+            updateDerivedValue(param.id, (JTextField)myParamFields.get(param.id), new Callable<String>() {
+              @Override
+              public String call() throws Exception {
+                return updated;
+              }
+            });
+          }
+        }
       }
     }
   }
@@ -278,6 +308,10 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
   public void refreshUiFromParameters() {
     myTemplateState.myModified.clear();
 
+    if (myTemplateState.myTemplate == null) {
+      return;
+    }
+
     for (Parameter param : myTemplateState.myTemplate.getMetadata().getParameters()) {
       if (param.initial != null) {
         myTemplateState.myParameters.remove(param.id);
@@ -285,6 +319,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     }
     myTemplateState.setParameterDefaults();
     myTemplateState.convertApisToInt();
+    boolean oldIgnoreUpdates = myIgnoreUpdates;
     try {
       myIgnoreUpdates = true;
       for (String paramName : myParamFields.keySet()) {
@@ -320,9 +355,39 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
         }
       }
     } finally {
-      myIgnoreUpdates = false;
+      myIgnoreUpdates = oldIgnoreUpdates;
     }
-    update();
+  }
+
+  /**
+   * Retrieve a value from the given JComponent
+   */
+  @Nullable
+  protected Object getComponentValue(Parameter param, JComponent component) {
+    Object newValue = null;
+    if (component instanceof JCheckBox) {
+      newValue = ((JCheckBox)component).isSelected();
+    }
+    else if (component instanceof JComboBox) {
+      ComboBoxItem selectedItem = (ComboBoxItem)((JComboBox)component).getSelectedItem();
+      myComboBoxValues.put(param, selectedItem);
+
+      if (selectedItem != null) {
+        newValue = selectedItem.id;
+      }
+    }
+    else if (component instanceof JTextField) {
+      newValue = ((JTextField)component).getText();
+    } else if (component instanceof TextFieldWithBrowseButton) {
+      newValue = ((TextFieldWithBrowseButton)component).getText();
+    } else if (component instanceof JSlider) {
+      newValue = ((JSlider)component).getValue();
+    } else if (component instanceof JSpinner) {
+      newValue = ((JSpinner)component).getValue();
+    } else if (component instanceof ColorPanel) {
+      newValue = ((ColorPanel)component).getSelectedColor();
+    }
+    return newValue;
   }
 
   /**
@@ -471,6 +536,11 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       return;
     }
 
+    myIgnoreUpdates = true;
+
+    // Create a list of parameters that have been modified this round
+    myIdsWithNewValues = new ConcurrentLinkedQueue<String>();
+
     // First we load the updated values into our model
     updateParams();
     // Then we calculate any values that we need to
@@ -480,12 +550,31 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     if (myUpdateListener != null) {
       myUpdateListener.update();
     }
+
+
+    myIgnoreUpdates = false;
   }
 
-  /**
-   * Called by update() to write derived values to the template model.
-   */
-  protected void deriveValues() {
+  protected boolean updateDerivedValue(@NotNull String attrName, @NotNull JTextField textField, @NotNull Callable<String> valueDeriver) {
+    boolean updated = false;
+    try {
+      myIgnoreUpdates = true;
+      if (!myTemplateState.myModified.contains(attrName)) {
+        String s = valueDeriver.call();
+        if (s != null && !s.equals(myTemplateState.get(attrName))) {
+          myTemplateState.put(attrName, s);
+          textField.setText(s);
+          myTemplateState.myModified.remove(attrName);
+          updated = true;
+        }
+      }
+    }
+    catch (Exception e) {
+    }
+    finally {
+      myIgnoreUpdates = false;
+    }
+    return updated;
   }
 
   @Override
