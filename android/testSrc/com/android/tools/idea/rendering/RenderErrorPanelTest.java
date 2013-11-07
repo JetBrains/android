@@ -302,7 +302,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
         "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate(LayoutInflater.java:727)<BR/>\n" +
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:492)<BR/>\n" +
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:373)<BR/>\n" +
-        "<BR/>\n" +
+        "<A HREF=\"runnable:0\">Copy stack to clipboard</A><BR/>\n" +
         "</body></html>",
         html);
     }
