@@ -28,7 +28,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.execution.configurations.SimpleJavaParameters;
-import com.intellij.externalSystem.JavaProjectData;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.Key;
@@ -37,7 +36,6 @@ import com.intellij.openapi.externalSystem.model.project.ContentRootData;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
-import com.intellij.openapi.externalSystem.model.task.TaskData;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
@@ -55,8 +53,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler;
-import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension;
-import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext;
+import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 import org.jetbrains.plugins.gradle.util.GradleUtil;
 
@@ -71,7 +68,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_PLUGIN_MINIMU
  * Imports Android-Gradle projects into IDEA.
  */
 @Order(ExternalSystemConstants.UNORDERED)
-public class AndroidGradleProjectResolver implements GradleProjectResolverExtension {
+public class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
 
   @NonNls private static final String UNSUPPORTED_MODEL_VERSION_ERROR = String.format(
     "Project is using an old version of the Android Gradle plug-in. The minimum supported version is %1$s.\n\n" +
@@ -79,9 +76,6 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
     GRADLE_PLUGIN_MINIMUM_VERSION);
 
   @NotNull private final ProjectImportErrorHandler myErrorHandler;
-
-  @NotNull private ProjectResolverContext resolverCtx;
-  @NotNull private GradleProjectResolverExtension nextResolver;
 
   // This constructor is called by the IDE. See this module's plugin.xml file, implementation of extension 'projectResolve'.
   @SuppressWarnings("UnusedDeclaration")
@@ -93,37 +87,6 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   @VisibleForTesting
   AndroidGradleProjectResolver(@NotNull ProjectImportErrorHandler errorHandler) {
     myErrorHandler = errorHandler;
-  }
-
-  @Override
-  public void setProjectResolverContext(@NotNull ProjectResolverContext projectResolverContext) {
-    resolverCtx = projectResolverContext;
-  }
-
-  @Override
-  public void setNext(@Nullable GradleProjectResolverExtension next) {
-    // there always should be at least gradle basic resolver further in the chain
-    //noinspection ConstantConditions
-    assert next != null;
-    nextResolver = next;
-  }
-
-  @Nullable
-  @Override
-  public GradleProjectResolverExtension getNext() {
-    return nextResolver;
-  }
-
-  @NotNull
-  @Override
-  public ProjectData createProject() {
-    return nextResolver.createProject();
-  }
-
-  @NotNull
-  @Override
-  public JavaProjectData createJavaProjectData() {
-    return nextResolver.createJavaProjectData();
   }
 
   @NotNull
@@ -216,20 +179,6 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
     else {
       nextResolver.populateModuleDependencies(gradleModule, ideModule, ideProject);
     }
-  }
-
-  @NotNull
-  @Override
-  public Collection<TaskData> populateModuleTasks(@NotNull IdeaModule gradleModule,
-                                                  @NotNull DataNode<ModuleData> ideModule,
-                                                  @NotNull DataNode<ProjectData> ideProject) {
-    return nextResolver.populateModuleTasks(gradleModule, ideModule, ideProject);
-  }
-
-  @NotNull
-  @Override
-  public Collection<TaskData> filterRootProjectTasks(@NotNull List<TaskData> allTasks) {
-    return nextResolver.filterRootProjectTasks(allTasks);
   }
 
   @NotNull
