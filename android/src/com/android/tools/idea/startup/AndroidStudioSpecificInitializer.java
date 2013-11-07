@@ -20,14 +20,16 @@ import com.android.tools.idea.actions.*;
 import com.android.tools.idea.run.ArrayMapRenderer;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.structure.AndroidHomeConfigurable;
+import com.android.utils.Pair;
 import com.google.common.io.Closeables;
 import com.intellij.compiler.actions.GenerateAntBuildAction;
 import com.intellij.compiler.actions.MakeModuleAction;
 import com.intellij.debugger.settings.NodeRendererSettings;
 import com.intellij.ide.actions.ImportModuleAction;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.IdeActions;
+import com.intellij.ide.projectView.actions.MarkRootGroup;
+import com.intellij.ide.projectView.impl.MoveModuleToGroupTopLevel;
+import com.intellij.ide.util.frameworkSupport.AddFrameworkSupportAction;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -48,6 +50,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Properties;
 
 /** Initialization performed only in the context of the Android IDE. */
@@ -120,6 +124,10 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     replaceAction(IdeActions.ACTION_COMPILE, new AndroidCompileModuleAction());
 
     replaceAction(IdeActions.ACTION_GENERATE_ANT_BUILD, new AndroidActionRemover(new GenerateAntBuildAction(), "Generate Ant Build..."));
+
+    replaceAction("AddFrameworkSupport", new AndroidActionRemover(new AddFrameworkSupportAction(), "Add Framework Support..."));
+
+    replaceProjectPopupActions();
   }
 
   private static void replaceAction(String actionId, AnAction newAction) {
@@ -128,6 +136,31 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     newAction.getTemplatePresentation().setIcon(oldAction.getTemplatePresentation().getIcon());
     am.unregisterAction(actionId);
     am.registerAction(actionId, newAction);
+  }
+
+  private static void replaceProjectPopupActions() {
+    Deque<Pair<DefaultActionGroup, AnAction>> stack = new ArrayDeque<Pair<DefaultActionGroup, AnAction>>();
+    stack.add(Pair.of((DefaultActionGroup)null, ActionManager.getInstance().getAction("ProjectViewPopupMenu")));
+    while (!stack.isEmpty()) {
+      Pair<DefaultActionGroup, AnAction> entry = stack.pop();
+      DefaultActionGroup parent = entry.getFirst();
+      AnAction action = entry.getSecond();
+      if (action instanceof DefaultActionGroup) {
+        for (AnAction child : ((DefaultActionGroup)action).getChildActionsOrStubs()) {
+          stack.push(Pair.of((DefaultActionGroup)action, child));
+        }
+      }
+
+      if (action instanceof MoveModuleToGroupTopLevel) {
+        parent.remove(action);
+        parent.add(new AndroidActionGroupRemover((ActionGroup)action, "Move Module to Group"),
+                   new Constraints(Anchor.AFTER, "OpenModuleSettings"));
+      } else if (action instanceof MarkRootGroup) {
+        parent.remove(action);
+        parent.add(new AndroidActionGroupRemover((ActionGroup)action, "Mark Directory As"),
+                   new Constraints(Anchor.AFTER, "OpenModuleSettings"));
+      }
+    }
   }
 
   private static void setupSdks() {
