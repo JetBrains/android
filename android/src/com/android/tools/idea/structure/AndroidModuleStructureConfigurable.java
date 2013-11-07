@@ -26,14 +26,21 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
+import com.intellij.openapi.roots.ui.configuration.ModuleEditor;
+import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable;
 import com.intellij.openapi.roots.ui.configuration.projectRoot.BaseStructureConfigurable;
 import com.intellij.openapi.roots.ui.configuration.projectRoot.daemon.ProjectStructureElement;
+import com.intellij.openapi.ui.MasterDetailsComponent;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.NamedConfigurable;
+import com.intellij.openapi.util.ActionCallback;
 import com.intellij.ui.navigation.Place;
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.Nls;
@@ -58,6 +65,8 @@ public class AndroidModuleStructureConfigurable extends BaseStructureConfigurabl
       return o1.getConfigurable().getDisplayName().compareToIgnoreCase(o2.getConfigurable().getDisplayName());
     }
   };
+
+  @NonNls public static final String CATEGORY = "category";
 
   private final GradleSettingsFile mySettingsFile;
 
@@ -220,6 +229,29 @@ public class AndroidModuleStructureConfigurable extends BaseStructureConfigurabl
 
   public static AndroidModuleStructureConfigurable getInstance(final Project project) {
     return ServiceManager.getService(project, AndroidModuleStructureConfigurable.class);
+  }
+
+  /**
+   * Opens a Project Settings dialog and selects the Gradle module editor, with the given module and editor pane active.
+   */
+  public static boolean showDialog(final Project project, @Nullable final String moduleToSelect, @Nullable final String editorToSelect) {
+    final ProjectStructureConfigurable config = ProjectStructureConfigurable.getInstance(project);
+    return ShowSettingsUtil.getInstance().editConfigurable(project, config, new Runnable() {
+      @Override
+      public void run() {
+        getInstance(project).select(moduleToSelect, editorToSelect, true);
+      }
+    });
+  }
+
+  private ActionCallback select(@Nullable final String moduleToSelect, @Nullable String editorNameToSelect, final boolean requestFocus) {
+    Place place = new Place().putPath(CATEGORY, this);
+    if (moduleToSelect != null) {
+      final Module module = ModuleManager.getInstance(myProject).findModuleByName(moduleToSelect);
+      assert module != null;
+      place = place.putPath(MasterDetailsComponent.TREE_OBJECT, module).putPath(ModuleEditor.SELECTED_EDITOR_NAME, editorNameToSelect);
+    }
+    return navigateTo(place, requestFocus);
   }
 
   private void addModule() {
