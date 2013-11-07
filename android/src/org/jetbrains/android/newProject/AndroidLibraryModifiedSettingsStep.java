@@ -1,6 +1,5 @@
 package org.jetbrains.android.newProject;
 
-import com.intellij.ide.util.newProjectWizard.SelectTemplateStep;
 import com.intellij.ide.util.projectWizard.SettingsStep;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.ui.DocumentAdapter;
@@ -17,11 +16,10 @@ class AndroidLibraryModifiedSettingsStep extends AndroidModifiedSettingsStep {
   private final JTextField myPackageNameField;
   private boolean myPackageNameFieldChangedByUser;
 
-  public AndroidLibraryModifiedSettingsStep(@NotNull AndroidModuleBuilder builder, @NotNull SettingsStep settingsStep) {
+  public AndroidLibraryModifiedSettingsStep(@NotNull AndroidModuleBuilder builder, @NotNull final SettingsStep settingsStep) {
     super(builder, settingsStep);
     myPackageNameField = new JTextField();
-    final SelectTemplateStep step = (SelectTemplateStep)settingsStep;
-    updatePackageNameField(step);
+    updatePackageNameField(settingsStep);
     settingsStep.addSettingsField("Pa\u001Bckage name: ", myPackageNameField);
 
     myPackageNameField.getDocument().addDocumentListener(new DocumentAdapter() {
@@ -31,18 +29,18 @@ class AndroidLibraryModifiedSettingsStep extends AndroidModifiedSettingsStep {
       }
     });
 
-    step.getModuleNameField().getDocument().addDocumentListener(new DocumentAdapter() {
+    settingsStep.getModuleNameField().getDocument().addDocumentListener(new DocumentAdapter() {
       @Override
       protected void textChanged(DocumentEvent e) {
         if (!myPackageNameFieldChangedByUser) {
-          updatePackageNameField(step);
+          updatePackageNameField(settingsStep);
           myPackageNameFieldChangedByUser = false;
         }
       }
     });
   }
 
-  private void updatePackageNameField(SelectTemplateStep settingsStep) {
+  private void updatePackageNameField(SettingsStep settingsStep) {
     final String moduleName = settingsStep.getModuleNameField().getText().trim();
 
     if (moduleName.length() > 0) {
