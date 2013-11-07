@@ -16,13 +16,17 @@
 package com.android.tools.idea.structure;
 
 import com.android.tools.idea.gradle.parser.BuildFileKey;
+import com.android.tools.idea.gradle.parser.GradleSettingsFile;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleConfigurationEditor;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
 import com.intellij.openapi.util.ActionCallback;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.TabbedPaneWrapper;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
@@ -50,6 +54,11 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
 
   @NotNull
   public JComponent getPanel() {
+    Module module = GradleUtil.findModuleByGradlePath(myProject, myName);
+    if (module == null || GradleUtil.getGradleBuildFile(module) == null) {
+      return new JPanel();
+    }
+
     if (myGenericSettingsPanel == null) {
       myEditors.clear();
       myEditors.add(new GenericEditor<SingleObjectPanel>("Properties", new Callable<SingleObjectPanel>() {
