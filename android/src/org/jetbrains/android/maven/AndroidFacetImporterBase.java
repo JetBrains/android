@@ -85,7 +85,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
   public static volatile String ANDROID_SDK_PATH_TEST = null;
 
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.maven.AndroidFacetImporterBase");
-  
+
   private static final Key<Boolean> MODULE_IMPORTED = Key.create("ANDROID_NEWLY_CREATED_KEY");
   @NonNls private static final String DEFAULT_NATIVE_ARCHITECTURE = "armeabi";
 
@@ -323,7 +323,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     if (MavenConstants.SCOPE_COMPILE.equals(scope)) {
       return DependencyScope.COMPILE;
     }
-    else if (MavenConstants.SCOPE_PROVIDEED.equals(scope)) {
+    else if (MavenConstants.SCOPE_PROVIDED.equals(scope)) {
       return DependencyScope.PROVIDED;
     }
     else if (MavenConstants.SCOPE_TEST.equals(scope)) {
@@ -377,7 +377,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     }
 
     final Module module = modelsProvider.getModuleModel().findModuleByName(moduleName);
-    
+
     final ModuleOrderEntry entry = module != null
                                    ? rootModel.addModuleOrderEntry(module)
                                    : rootModel.addInvalidModuleEntry(moduleName);
@@ -505,7 +505,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     }
 
     final AndroidFacet facet = AndroidUtils.addAndroidFacet(apklibModuleModel.getModule(), vApklibDir, true);
-    
+
     final AndroidFacetConfiguration configuration = facet.getConfiguration();
     String s = AndroidRootUtil.getPathRelativeToModuleDir(apklibModule, vApklibDir.getPath());
     if (s != null) {
@@ -702,7 +702,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
 
     final List<AndroidExternalApklibDependenciesManager.MavenDependencyInfo> dependencies =
       new ArrayList<AndroidExternalApklibDependenciesManager.MavenDependencyInfo>();
-    
+
     for (MavenArtifact depArtifact : projectForExternalApklib.getDependencies()) {
       dependencies.add(AndroidExternalApklibDependenciesManager.MavenDependencyInfo.create(depArtifact));
     }
@@ -871,7 +871,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     }
     return null;
   }
-  
+
   @Nullable
   private String getSdkPathFromConfig(MavenProject project) {
     Element sdkRoot = getConfig(project, "sdk");
