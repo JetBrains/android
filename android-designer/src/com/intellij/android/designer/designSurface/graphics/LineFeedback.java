@@ -15,7 +15,6 @@
  */
 package com.intellij.android.designer.designSurface.graphics;
 
-import javax.swing.*;
 import java.awt.*;
 
 public class LineFeedback extends com.intellij.designer.designSurface.feedbacks.LineFeedback {

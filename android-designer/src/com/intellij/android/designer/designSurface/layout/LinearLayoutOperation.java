@@ -15,14 +15,15 @@
  */
 package com.intellij.android.designer.designSurface.layout;
 
+import com.android.tools.idea.designer.FillPolicy;
 import com.intellij.android.designer.AndroidDesignerUtils;
+import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
 import com.intellij.android.designer.designSurface.feedbacks.TextFeedback;
 import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.designSurface.layout.actions.ResizeOperation;
 import com.intellij.android.designer.designSurface.layout.flow.FlowBaseOperation;
-import com.intellij.android.designer.model.ModelParser;
-import com.intellij.android.designer.model.RadViewComponent;
+import com.intellij.android.designer.model.*;
 import com.intellij.android.designer.model.layout.Gravity;
 import com.intellij.designer.designSurface.FeedbackLayer;
 import com.intellij.designer.designSurface.OperationContext;
@@ -33,6 +34,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.IdeBorderFactory;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -233,7 +235,7 @@ public class LinearLayoutOperation extends FlowBaseOperation {
       @Override
       public void run() {
         Gravity gravity = myGravity == Gravity.top || myGravity == Gravity.left ? null : myGravity;
-        applyGravity(myHorizontal, gravity, RadViewComponent.getViewComponents(myComponents));
+        execute(myHorizontal, gravity, RadViewComponent.getViewComponents(myComponents));
       }
     });
   }
@@ -262,6 +264,123 @@ public class LinearLayoutOperation extends FlowBaseOperation {
           if (a != null) {
             a.delete();
           }
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns fill_parent or match_parent, depending on whether the minimum supported
+   * platform supports match_parent or not
+   *
+   * @return match_parent or fill_parent depending on which is supported by the project
+   */
+  protected final String getFillParentValueName() {
+    return supportsMatchParent() ? VALUE_MATCH_PARENT : VALUE_FILL_PARENT;
+  }
+
+  /**
+   * Returns true if the project supports match_parent instead of just fill_parent
+   *
+   * @return true if the project supports match_parent instead of just fill_parent
+   */
+  @SuppressWarnings("MethodMayBeStatic")
+  protected final boolean supportsMatchParent() {
+    // fill_parent was renamed match_parent in API level 8
+    // Note that we check this on the build SDK, not the minSdkVersion; the constants
+    // have the same value, so as long as you compile on 8 or later (very likely)
+    // it will work on any version of the platform
+    AndroidDesignerEditorPanel panel = AndroidDesignerUtils.getPanel(myContext.getArea());
+    if (panel != null) {
+      AndroidPlatform platform = AndroidPlatform.getPlatform(panel.getModule());
+      if (platform != null) {
+        return platform.getApiLevel() >= 8;
+      }
+    }
+
+    return true;
+  }
+
+  public void execute(boolean horizontal, @Nullable Gravity gravity, @NotNull List<? extends RadViewComponent> components) {
+    applyGravity(horizontal, gravity, components);
+
+    if (myContext.isMove()) {
+      // Don't adjust widths/heights/weights when just moving within a single
+      // LinearLayout
+      // TODO: If it's a move from one widget to another, track that differently!
+      return;
+    }
+
+    // Attempt to set fill-properties on newly added views such that for example,
+    // in a vertical layout, a text field defaults to filling horizontally, but not
+    // vertically.
+    if (components.size() == 1) {
+      RadViewComponent node = components.get(0);
+      boolean vertical = !horizontal;
+
+      FillPolicy fill = FillPolicy.getFillPreference(node);
+      String fillParent = getFillParentValueName();
+      XmlTag tag = node.getTag();
+      if (fill.fillHorizontally(vertical)) {
+        tag.setAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI, fillParent);
+      }
+      else {
+        tag.setAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI, VALUE_WRAP_CONTENT);
+        if (!vertical && fill == FillPolicy.WIDTH_IN_VERTICAL) {
+          // In a horizontal layout, make views that would fill horizontally in a
+          // vertical layout have a non-zero weight instead. This will make the item
+          // fill but only enough to allow other views to be shown as well.
+          // (However, for drags within the same layout we do not touch
+          // the weight, since it might already have been tweaked to a particular
+          // value)
+          tag.setAttribute(ATTR_LAYOUT_WEIGHT, ANDROID_URI, VALUE_1);
+        }
+      }
+      if (fill.fillVertically(vertical)) {
+        tag.setAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI, fillParent);
+      } else {
+        tag.setAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI, VALUE_WRAP_CONTENT);
+      }
+
+      // TODO: How does my measure-render handle drop customizations? I need to put it into the
+      // metadata!
+    }
+
+    // If you insert into a layout that already is using layout weights,
+    // and all the layout weights are the same (nonzero) value, then use
+    // the same weight for this new layout as well. Also duplicate the 0dip/0px/0dp
+    // sizes, if used.
+    boolean duplicateWeight = true;
+    boolean duplicate0dip = true;
+    String sameWeight = null;
+    String sizeAttribute = horizontal ? ATTR_LAYOUT_WIDTH : ATTR_LAYOUT_HEIGHT;
+    List<RadViewComponent> siblings = RadViewComponent.getViewComponents(myContainer.getChildren());
+    for (RadViewComponent target : siblings) {
+      if (components.contains(target)) {
+        continue;
+      }
+      XmlTag tag = target.getTag();
+      String weight = tag.getAttributeValue(ATTR_LAYOUT_WEIGHT, ANDROID_URI);
+      if (weight == null || weight.length() == 0) {
+        duplicateWeight = false;
+        break;
+      } else if (sameWeight != null && !sameWeight.equals(weight)) {
+        duplicateWeight = false;
+      } else {
+        sameWeight = weight;
+      }
+      String size = tag.getAttributeValue(sizeAttribute, ANDROID_URI);
+      if (size != null && !size.startsWith("0")) {
+        duplicate0dip = false;
+        break;
+      }
+    }
+    if (duplicateWeight && sameWeight != null) {
+      for (RadViewComponent component : components) {
+        XmlTag tag = component.getTag();
+        tag.setAttribute(ATTR_LAYOUT_WEIGHT, ANDROID_URI, sameWeight);
+        if (duplicate0dip) {
+          tag.setAttribute(sizeAttribute, ANDROID_URI, VALUE_ZERO_DP);
         }
       }
     }

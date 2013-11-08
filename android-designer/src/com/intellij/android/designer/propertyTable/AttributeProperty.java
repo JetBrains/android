@@ -15,8 +15,8 @@
  */
 package com.intellij.android.designer.propertyTable;
 
-import com.android.resources.ResourceType;
 import com.android.SdkConstants;
+import com.android.resources.ResourceType;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.propertyTable.editors.EventHandlerEditor;
 import com.intellij.android.designer.propertyTable.editors.ResourceEditor;
