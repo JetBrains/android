@@ -143,32 +143,33 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
 
   @Override
   public void populateModuleContentRoots(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
+    GradleScript buildScript = gradleModule.getGradleProject().getBuildScript();
+    if (buildScript == null || buildScript.getSourceFile() == null) {
+      nextResolver.populateModuleContentRoots(gradleModule, ideModule);
+      return;
+    }
+    File buildFile = buildScript.getSourceFile();
+    File moduleRootDir = buildFile.getParentFile();
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
     if (androidProject != null) {
       Variant selectedVariant = getFirstVariant(androidProject);
-      GradleScript buildScript = gradleModule.getGradleProject().getBuildScript();
-      if (buildScript == null || buildScript.getSourceFile() == null) {
-        nextResolver.populateModuleContentRoots(gradleModule, ideModule);
-        return;
-      }
-      File buildFile = buildScript.getSourceFile();
-      File moduleDir = buildFile.getParentFile();
       IdeaAndroidProject ideaAndroidProject =
-        new IdeaAndroidProject(gradleModule.getName(), moduleDir, androidProject, selectedVariant.getName());
-      addContentRoot(ideaAndroidProject, ideModule, moduleDir);
+        new IdeaAndroidProject(gradleModule.getName(), moduleRootDir, androidProject, selectedVariant.getName());
+      addContentRoot(ideaAndroidProject, ideModule, moduleRootDir);
 
       ideModule.createChild(AndroidProjectKeys.IDE_ANDROID_PROJECT, ideaAndroidProject);
-
-      // TODO non android code? move it and IdeaGradleProject class to core gradle plugin?
-      File gradleSettingsFile = new File(moduleDir, SdkConstants.FN_SETTINGS_GRADLE);
-      if (!gradleSettingsFile.isFile()) {
-        IdeaGradleProject ideaGradleProject = new IdeaGradleProject(gradleModule.getName(), buildFile, gradleModule.getGradleProject().getPath());
-        ideModule.createChild(AndroidProjectKeys.IDE_GRADLE_PROJECT, ideaGradleProject);
-      }
     }
     else {
       nextResolver.populateModuleContentRoots(gradleModule, ideModule);
     }
+    File gradleSettingsFile = new File(moduleRootDir, SdkConstants.FN_SETTINGS_GRADLE);
+    if (gradleSettingsFile.isFile() && androidProject == null) {
+      // This is just a root folder for a group of Gradle projects. We don't set an IdeaGradleProject so the JPS builder won't try to
+      // compile it using Gradle. We still need to create the module to display files inside it.
+      return;
+    }
+    IdeaGradleProject ideaGradleProject = new IdeaGradleProject(gradleModule.getName(), buildFile, gradleModule.getGradleProject().getPath());
+    ideModule.createChild(AndroidProjectKeys.IDE_GRADLE_PROJECT, ideaGradleProject);
   }
 
   @Override
