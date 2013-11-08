@@ -26,7 +26,7 @@ import com.intellij.designer.ModuleProvider;
 import com.intellij.designer.componentTree.AttributeWrapper;
 import com.intellij.designer.componentTree.TreeComponentDecorator;
 import com.intellij.designer.model.*;
-import com.intellij.designer.palette.DefaultPaletteItem;
+import com.intellij.designer.palette.PaletteItem;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlAttribute;
@@ -80,7 +80,7 @@ public final class AndroidTreeDecorator implements TreeComponentDecorator {
     id = LintUtils.stripIdPrefix(id);
     id = StringUtil.nullize(id);
 
-    DefaultPaletteItem item = metaModel.getPaletteItem();
+    PaletteItem item = metaModel.getPaletteItem();
     String type = null;
     String tagName = metaModel.getTag();
     if (item != null) {
