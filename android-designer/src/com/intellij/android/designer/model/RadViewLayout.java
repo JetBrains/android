@@ -16,17 +16,16 @@
 package com.intellij.android.designer.model;
 
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
+import com.intellij.android.designer.designSurface.graphics.NonResizeSelectionDecorator;
 import com.intellij.android.designer.model.layout.actions.ToggleSizeAction;
 import com.intellij.designer.designSurface.ComponentDecorator;
 import com.intellij.designer.designSurface.DesignerEditorPanel;
-import com.intellij.android.designer.designSurface.graphics.NonResizeSelectionDecorator;
 import com.intellij.designer.designSurface.EmptyComponentDecorator;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.model.RadLayout;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import icons.AndroidDesignerIcons;
 
-import javax.swing.*;
 import java.util.List;
 
 import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
