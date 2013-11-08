@@ -119,6 +119,10 @@ public class NavigationEditor implements FileEditor {
     Map<String, ActivityState> activities = getActivities(model);
     Map<String, MenuState> menus = getMenus(model);
 
+    PsiMethod installMenuItemClickMacro = getMethodsByName(module, "com.android.templates.InstallListenerTemplates", "installMenuItemClick")[0];
+    PsiMethod getMenuItemMacro = getMethodsByName(module, "com.android.templates.MenuAccessTemplates", "getMenuItem")[0];
+    PsiMethod launchActivityMacro = getMethodsByName(module, "com.android.templates.LaunchActivityTemplates", "launchActivity")[0];
+
     for (ActivityState state : activities.values()) {
       String className = state.getClassName();
 
@@ -136,11 +140,11 @@ public class NavigationEditor implements FileEditor {
               PsiMethod onPrepareOptionsMenuMethod = methods[0];
               PsiStatement[] statements = onPrepareOptionsMenuMethod.getBody().getStatements();
               for (PsiStatement s : statements) {
-                Map<String, PsiElement> bindings = match(getMethodsByName(module, "com.android.templates.InstallListenerTemplates", "installMenuItemClick")[0], s.getFirstChild());
+                Map<String, PsiElement> bindings = match(installMenuItemClickMacro, s.getFirstChild());
                 if (bindings != null) {
-                  Map<String, PsiElement> bindings2 = match(getMethodsByName(module, "com.android.templates.MenuAccessTemplates", "getMenuItem")[0], bindings.get("$menuItem"));
+                  Map<String, PsiElement> bindings2 = match(getMenuItemMacro, bindings.get("$menuItem"));
                   if (bindings2 != null) {
-                    Map<String, PsiElement> bindings3 = match(getMethodsByName(module, "com.android.templates.LaunchActivityTemplates", "launchActivity")[0], bindings.get("$f"));
+                    Map<String, PsiElement> bindings3 = match(launchActivityMacro, bindings.get("$f"));
                     if (bindings3 != null) {
                       ActivityState activityState = getState(activities.values(), bindings3.get("activityClass").getFirstChild().getText());
                       String menuItemName = bindings2.get("$id").getLastChild().getText();// e.g. $id=PsiReferenceExpression:R.id.action_account
