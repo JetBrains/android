@@ -58,6 +58,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.startup.AndroidStudioSpecificInitializer");
 
   @NonNls private static final String USE_IDEA_NEW_PROJECT_WIZARDS = "use.idea.newProjectWizard";
+  @NonNls private static final String USE_JPS_MAKE_ACTIONS = "use.idea.jpsMakeActions";
 
   @NonNls private static final String ANDROID_SDK_FOLDER_NAME = "sdk";
 
@@ -71,10 +72,15 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
   @Override
   public void run() {
-    // Fix New Project actions
     //noinspection UseOfArchaicSystemPropertyAccessors
     if (!Boolean.getBoolean(USE_IDEA_NEW_PROJECT_WIZARDS)) {
-      replaceIdeaActions();
+      // Fix New Project actions
+      replaceIdeaNewProjectActions();
+    }
+
+    //noinspection UseOfArchaicSystemPropertyAccessors
+    if (!Boolean.getBoolean(USE_JPS_MAKE_ACTIONS)) {
+      replaceIdeaMakeActions();
     }
 
     try {
@@ -98,7 +104,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.support.v4.util.ArrayMap"));
   }
 
-  private static void replaceIdeaActions() {
+  private static void replaceIdeaNewProjectActions() {
     // TODO: This is temporary code. We should build out our own menu set and welcome screen exactly how we want. In the meantime,
     // unregister IntelliJ's version of the project actions and manually register our own.
 
@@ -110,6 +116,14 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     replaceAction("WelcomeScreen.ImportProject", new AndroidImportProjectAction());
     replaceAction("ImportModule", new AndroidActionRemover(new ImportModuleAction(), "Import Module..."));
 
+    replaceAction(IdeActions.ACTION_GENERATE_ANT_BUILD, new AndroidActionRemover(new GenerateAntBuildAction(), "Generate Ant Build..."));
+
+    replaceAction("AddFrameworkSupport", new AndroidActionRemover(new AddFrameworkSupportAction(), "Add Framework Support..."));
+
+    replaceProjectPopupActions();
+  }
+
+  private static void replaceIdeaMakeActions() {
     // 'Build' > 'Make Project' action
     replaceAction("CompileDirty", new AndroidMakeProjectAction());
 
@@ -121,12 +135,6 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
     // 'Build' > 'Compile Modules' action
     replaceAction(IdeActions.ACTION_COMPILE, new AndroidCompileModuleAction());
-
-    replaceAction(IdeActions.ACTION_GENERATE_ANT_BUILD, new AndroidActionRemover(new GenerateAntBuildAction(), "Generate Ant Build..."));
-
-    replaceAction("AddFrameworkSupport", new AndroidActionRemover(new AddFrameworkSupportAction(), "Add Framework Support..."));
-
-    replaceProjectPopupActions();
   }
 
   private static void replaceAction(String actionId, AnAction newAction) {
