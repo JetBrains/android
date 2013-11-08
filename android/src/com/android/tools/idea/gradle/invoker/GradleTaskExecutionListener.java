@@ -13,21 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.actions;
+package com.android.tools.idea.gradle.invoker;
 
-import com.android.tools.idea.gradle.invoker.GradleInvoker;
-import com.intellij.compiler.actions.CompileDirtyAction;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-public class AndroidMakeProjectAction extends AndroidBuildProjectAction {
-  public AndroidMakeProjectAction() {
-    super(new CompileDirtyAction(), "Make Project");
-  }
+import java.util.List;
 
-  @Override
-  protected void buildGradleProject(@NotNull Project project, @NotNull DataContext dataContext) {
-    GradleInvoker.getInstance(project).make(null, null);
-  }
+/**
+ * Listener that is notified when one or more Gradle tasks have been executed.
+ */
+public interface GradleTaskExecutionListener {
+  void executionFinished(@NotNull List<String> tasks, int errorCount, int warningCount);
 }
