@@ -16,6 +16,7 @@
 package com.android.tools.idea.structure;
 
 import com.android.SdkConstants;
+import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -56,6 +57,9 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MavenDependencyLookupDialog extends DialogWrapper {
+  private static final String AAR_PACKAGING = "@" + SdkConstants.EXT_AAR;
+  private static final String JAR_PACKAGING = "@" + SdkConstants.EXT_JAR;
+
   private JBLabel myInfoLabel;
   private final Project myProject;
   private AsyncProcessIcon myProgressIcon;
@@ -200,6 +204,15 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
         return score;
       }
     });
+
+    // If there are both @aar and @jar versions of the same artifact, hide the @jar one.
+    Set<String> itemsToRemove = Sets.newHashSet();
+    for (String item : myShownItems) {
+      if (item.endsWith(AAR_PACKAGING)) {
+        itemsToRemove.add(item.replace(AAR_PACKAGING, JAR_PACKAGING));
+      }
+    }
+    myShownItems.removeAll(itemsToRemove);
 
     ((CollectionComboBoxModel)myCombobox.getModel()).update();
     myInUpdate = false;
