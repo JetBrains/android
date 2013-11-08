@@ -128,10 +128,8 @@ public class AndroidGradleProjectResolver implements GradleProjectResolverExtens
   @Override
   public ModuleData createModule(@NotNull IdeaModule gradleModule, @NotNull ProjectData projectData) {
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
-    if (androidProject != null) {
-      if (!GradleModelVersionCheck.isSupportedVersion(androidProject)) {
-        throw new IllegalStateException(UNSUPPORTED_MODEL_VERSION_ERROR);
-      }
+    if (androidProject != null && !GradleModelVersionCheck.isSupportedVersion(androidProject)) {
+      throw new IllegalStateException(UNSUPPORTED_MODEL_VERSION_ERROR);
     }
     String moduleName = gradleModule.getName();
     if (moduleName == null) {
