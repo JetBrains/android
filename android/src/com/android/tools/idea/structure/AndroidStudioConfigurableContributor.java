@@ -16,6 +16,7 @@
 package com.android.tools.idea.structure;
 
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
+import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.project.Project;
@@ -40,7 +41,7 @@ public class AndroidStudioConfigurableContributor extends ProjectStructureConfig
   @Override
   public List<? extends Configurable> getExtraProjectConfigurables(@NotNull Project project,
                                                                    @NotNull StructureConfigurableContext context) {
-    if (GradleSettingsFile.get(project) != null) {
+    if (Projects.isGradleProject(project) && GradleSettingsFile.get(project) != null) {
       AndroidModuleStructureConfigurable androidModuleStructureConfigurable = AndroidModuleStructureConfigurable.getInstance(project);
       androidModuleStructureConfigurable.init(context);
       return ImmutableList.of(androidModuleStructureConfigurable);
