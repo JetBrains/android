@@ -20,6 +20,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
 
@@ -62,11 +63,11 @@ public class GradleBuildFile extends GradleGroovyFile {
     if (method == null) {
       return false;
     }
-    if (key.isArgumentIsClosure()) {
-      return key.canParseValue(getMethodClosureArgument(method));
-    } else {
-      return key.canParseValue(getArguments(method));
+    GroovyPsiElement arg = key.getType() == BuildFileKeyType.CLOSURE ? getMethodClosureArgument(method) : getFirstArgument(method);
+    if (arg == null) {
+      return false;
     }
+    return key.canParseValue(arg);
   }
 
   @NotNull
@@ -97,17 +98,6 @@ public class GradleBuildFile extends GradleGroovyFile {
       root = myGroovyFile;
     }
     return getValueStatic(root, key);
-  }
-
-  /**
-   * Returns the value in the file for the given key, typecasting it to String. Returns null if no value is present.
-   */
-  public @Nullable String getStringValue(@Nullable GrStatementOwner root, @NotNull BuildFileKey key) {
-    checkInitialized();
-    if (root == null) {
-      root = myGroovyFile;
-    }
-    return getStringValueStatic(root, key);
   }
 
   /**
