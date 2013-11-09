@@ -53,6 +53,7 @@ public class AndroidIcons {
   public static final Icon GradleSync = load("/icons/gradlesync.png"); // 16x16
 
   public static final Icon GradleConsole = load("/icons/gradle_console.png"); // 16x16
+  public static final Icon GradleConsoleToolWindow = load("/icons/gradle_console_tool_window.png"); // 13x13
 
   public static class Configs {
     public static final Icon Dock = load("/icons/dockmode.png");
