@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.testFramework.IdeaTestCase;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,7 +36,7 @@ import java.util.Map;
 /**
  * Tests for {@link com.android.tools.idea.gradle.project.AndroidContentRoot}.
  */
-public class AndroidContentRootTest extends TestCase {
+public class AndroidContentRootTest extends IdeaTestCase {
   private ContentRootSourcePaths myExpectedSourcePaths;
   private AndroidProjectStub myAndroidProject;
   private Map<ExternalSystemSourceType, List<String>> myStoredPaths;
@@ -50,6 +51,7 @@ public class AndroidContentRootTest extends TestCase {
     setUpStoredPaths(ExternalSystemSourceType.SOURCE);
     setUpStoredPaths(ExternalSystemSourceType.TEST);
     setUpStoredPaths(ExternalSystemSourceType.EXCLUDED);
+    setUpStoredPaths(ExternalSystemSourceType.GENERATED);
 
     myStorage = new ContentRootStorage() {
       @Override
@@ -98,7 +100,7 @@ public class AndroidContentRootTest extends TestCase {
     AndroidContentRoot.storePaths(project, myStorage);
 
     myExpectedSourcePaths.storeExpectedSourcePaths(myAndroidProject);
-    assertCorrectStoredDirPaths(ExternalSystemSourceType.SOURCE);
+    assertCorrectStoredDirPaths(ExternalSystemSourceType.GENERATED);
     assertCorrectStoredDirPaths(ExternalSystemSourceType.TEST);
   }
 

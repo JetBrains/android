@@ -40,10 +40,11 @@ public class ContentRootSourcePaths {
   @NotNull private final Map<ExternalSystemSourceType, List<String>> myDirectoryPathsBySourceType = Maps.newHashMap();
 
   public ContentRootSourcePaths() {
-    add(ExternalSystemSourceType.SOURCE, ExternalSystemSourceType.TEST, ExternalSystemSourceType.EXCLUDED);
+    add(ExternalSystemSourceType.SOURCE, ExternalSystemSourceType.TEST, ExternalSystemSourceType.EXCLUDED,
+        ExternalSystemSourceType.GENERATED);
   }
 
-  private void add(@NotNull ExternalSystemSourceType...sourceTypes) {
+  private void add(@NotNull ExternalSystemSourceType... sourceTypes) {
     for (ExternalSystemSourceType sourceType : sourceTypes) {
       myDirectoryPathsBySourceType.put(sourceType, new ArrayList<String>());
     }
@@ -65,13 +66,13 @@ public class ContentRootSourcePaths {
     String buildTypeName = selectedVariant.getBuildType();
     BuildTypeContainer buildType = androidProject.getBuildTypes().get(buildTypeName);
     if (buildType != null) {
-      addSourceDirectoryPaths(ExternalSystemSourceType.SOURCE, buildType.getSourceProvider());
+      addSourceDirectoryPaths(ExternalSystemSourceType.GENERATED, buildType.getSourceProvider());
     }
   }
 
   private void addSourceDirectoryPaths(@NotNull VariantStub variant) {
     ArtifactInfoStub mainArtifactInfo = variant.getMainArtifactInfo();
-    addSourceDirectoryPaths(ExternalSystemSourceType.SOURCE, mainArtifactInfo);
+    addSourceDirectoryPaths(ExternalSystemSourceType.GENERATED, mainArtifactInfo);
 
     ArtifactInfoStub testArtifactInfo = variant.getTestArtifactInfo();
     if (testArtifactInfo != null) {
@@ -85,7 +86,7 @@ public class ContentRootSourcePaths {
   }
 
   private void addSourceDirectoryPaths(@NotNull ProductFlavorContainer productFlavor) {
-    addSourceDirectoryPaths(ExternalSystemSourceType.SOURCE, productFlavor.getSourceProvider());
+    addSourceDirectoryPaths(ExternalSystemSourceType.GENERATED, productFlavor.getSourceProvider());
     addSourceDirectoryPaths(ExternalSystemSourceType.TEST, productFlavor.getTestSourceProvider());
   }
 
