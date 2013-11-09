@@ -103,6 +103,6 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
 
     ContentRootSourcePaths expectedPaths = new ContentRootSourcePaths();
     expectedPaths.storeExpectedSourcePaths(myAndroidProject);
-    expectedPaths.assertCorrectStoredDirPaths(sourcePaths, ExternalSystemSourceType.SOURCE);
+    expectedPaths.assertCorrectStoredDirPaths(sourcePaths, ExternalSystemSourceType.GENERATED);
   }
 }
