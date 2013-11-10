@@ -66,7 +66,7 @@ public class ContentRootSourcePaths {
     String buildTypeName = selectedVariant.getBuildType();
     BuildTypeContainer buildType = androidProject.getBuildTypes().get(buildTypeName);
     if (buildType != null) {
-      addSourceDirectoryPaths(ExternalSystemSourceType.GENERATED, buildType.getSourceProvider());
+      addSourceDirectoryPaths(ExternalSystemSourceType.SOURCE, buildType.getSourceProvider());
     }
   }
 
@@ -86,7 +86,7 @@ public class ContentRootSourcePaths {
   }
 
   private void addSourceDirectoryPaths(@NotNull ProductFlavorContainer productFlavor) {
-    addSourceDirectoryPaths(ExternalSystemSourceType.GENERATED, productFlavor.getSourceProvider());
+    addSourceDirectoryPaths(ExternalSystemSourceType.SOURCE, productFlavor.getSourceProvider());
     addSourceDirectoryPaths(ExternalSystemSourceType.TEST, productFlavor.getTestSourceProvider());
   }
 
@@ -104,7 +104,7 @@ public class ContentRootSourcePaths {
     if (sourceDirectories == null) {
       return;
     }
-    List<String> paths = myDirectoryPathsBySourceType.get(sourceType);
+    List<String> paths = getPaths(sourceType);
     for (File directory : sourceDirectories) {
       paths.add(FileUtil.toSystemIndependentName(directory.getAbsolutePath()));
     }
@@ -114,8 +114,13 @@ public class ContentRootSourcePaths {
   public void assertCorrectStoredDirPaths(@NotNull Collection<String> paths, @NotNull ExternalSystemSourceType sourceType) {
     List<String> sortedPaths = Lists.newArrayList(paths);
     Collections.sort(sortedPaths);
-    List<String> expectedPaths = myDirectoryPathsBySourceType.get(sourceType);
+    List<String> expectedPaths = getPaths(sourceType);
     String msg = String.format("Source paths (%s)", sourceType.toString().toLowerCase());
     Assert.assertEquals(msg, expectedPaths, sortedPaths);
+  }
+
+  @NotNull
+  public List<String> getPaths(@NotNull ExternalSystemSourceType sourceType) {
+    return myDirectoryPathsBySourceType.get(sourceType);
   }
 }
