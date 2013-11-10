@@ -103,6 +103,7 @@ public class ContentRootModuleCustomizer implements ModuleCustomizer {
         boolean isTestSource = sourceType.equals(ExternalSystemSourceType.TEST);
         String url = VfsUtilCore.pathToUrl(dir.getAbsolutePath());
         SourceFolder sourceFolder = contentEntry.addSourceFolder(url, isTestSource);
+
         if (sourceType.equals(ExternalSystemSourceType.GENERATED) && sourceFolder instanceof SourceFolderImpl) {
           JpsModuleSourceRoot sourceRoot = ((SourceFolderImpl)sourceFolder).getJpsElement();
           JpsElement properties = sourceRoot.getProperties();

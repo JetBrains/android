@@ -34,6 +34,7 @@ import com.intellij.util.containers.ContainerUtil;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -103,6 +104,15 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
 
     ContentRootSourcePaths expectedPaths = new ContentRootSourcePaths();
     expectedPaths.storeExpectedSourcePaths(myAndroidProject);
-    expectedPaths.assertCorrectStoredDirPaths(sourcePaths, ExternalSystemSourceType.GENERATED);
+
+
+    List<String> allExpectedPaths = Lists.newArrayList();
+    allExpectedPaths.addAll(expectedPaths.getPaths(ExternalSystemSourceType.SOURCE));
+    allExpectedPaths.addAll(expectedPaths.getPaths(ExternalSystemSourceType.GENERATED));
+    Collections.sort(allExpectedPaths);
+
+    Collections.sort(sourcePaths);
+
+    assertEquals(allExpectedPaths, sourcePaths);
   }
 }
