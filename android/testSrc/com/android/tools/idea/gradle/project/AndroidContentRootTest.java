@@ -25,7 +25,6 @@ import com.google.common.collect.Maps;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
-import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -100,6 +99,7 @@ public class AndroidContentRootTest extends IdeaTestCase {
     AndroidContentRoot.storePaths(project, myStorage);
 
     myExpectedSourcePaths.storeExpectedSourcePaths(myAndroidProject);
+    assertCorrectStoredDirPaths(ExternalSystemSourceType.SOURCE);
     assertCorrectStoredDirPaths(ExternalSystemSourceType.GENERATED);
     assertCorrectStoredDirPaths(ExternalSystemSourceType.TEST);
   }
