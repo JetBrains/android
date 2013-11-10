@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.ProjectImportEventMessage;
-import com.android.tools.idea.gradle.dependency.*;
+import com.android.tools.idea.gradle.dependency.DependencyUpdater;
 import com.android.tools.idea.gradle.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.dependency.ModuleDependency;
 import com.google.common.base.Objects;
@@ -31,7 +31,6 @@ import com.intellij.util.BooleanFunction;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -47,7 +46,7 @@ class ImportedDependencyUpdater extends DependencyUpdater<DataNode<ModuleData>> 
 
   @Override
   protected void updateDependency(@NotNull DataNode<ModuleData> moduleInfo, @NotNull LibraryDependency dependency) {
-    final LibraryData library = createLibraryData(dependency);
+    final LibraryData library = createLibraryData(moduleInfo, dependency);
     DataNode<LibraryData> libraryInfo =
       ExternalSystemApiUtil.find(myProjectInfo, ProjectKeys.LIBRARY, new BooleanFunction<DataNode<LibraryData>>() {
         @Override
@@ -68,8 +67,8 @@ class ImportedDependencyUpdater extends DependencyUpdater<DataNode<ModuleData>> 
   }
 
   @NotNull
-  private static LibraryData createLibraryData(@NotNull LibraryDependency dependency) {
-    LibraryData data = new LibraryData(GradleConstants.SYSTEM_ID, dependency.getName());
+  private static LibraryData createLibraryData(@NotNull DataNode<ModuleData> moduleInfo, @NotNull LibraryDependency dependency) {
+    LibraryData data = new LibraryData(moduleInfo.getData().getOwner(), dependency.getName());
     for (LibraryDependency.PathType type : LibraryDependency.PathType.values()) {
       LibraryPathType newPathType = convertPathType(type);
       for (String path : dependency.getPaths(type)) {
@@ -80,7 +79,7 @@ class ImportedDependencyUpdater extends DependencyUpdater<DataNode<ModuleData>> 
   }
 
   @NotNull
-  private static LibraryPathType convertPathType(@NotNull com.android.tools.idea.gradle.dependency.LibraryDependency.PathType pathType) {
+  private static LibraryPathType convertPathType(@NotNull LibraryDependency.PathType pathType) {
     String pathTypeAsString = pathType.toString();
     LibraryPathType[] allTypes = LibraryPathType.values();
     for (LibraryPathType type : allTypes) {
