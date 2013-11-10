@@ -48,7 +48,7 @@ public final class AndroidContentRoot {
    */
   public static void storePaths(@NotNull IdeaAndroidProject androidProject, @NotNull ContentRootStorage storage) {
     Variant selectedVariant = androidProject.getSelectedVariant();
-    storePaths(selectedVariant, storage);
+    storeGeneratedDirPaths(selectedVariant, storage);
 
     AndroidProject delegate = androidProject.getDelegate();
 
@@ -56,52 +56,60 @@ public final class AndroidContentRoot {
     for (String flavorName : selectedVariant.getProductFlavors()) {
       ProductFlavorContainer flavor = productFlavors.get(flavorName);
       if (flavor != null) {
-        storePaths(flavor, storage);
+        storeSourcePaths(flavor, storage);
       }
     }
 
     String buildTypeName = selectedVariant.getBuildType();
     BuildTypeContainer buildTypeContainer = delegate.getBuildTypes().get(buildTypeName);
     if (buildTypeContainer != null) {
-      storePaths(ExternalSystemSourceType.GENERATED, buildTypeContainer.getSourceProvider(), storage);
+      storeSourcePaths(buildTypeContainer.getSourceProvider(), storage, false);
     }
 
     ProductFlavorContainer defaultConfig = delegate.getDefaultConfig();
-    storePaths(defaultConfig, storage);
+    // this should be sources as well.
+    storeSourcePaths(defaultConfig, storage);
 
     excludeOutputDirs(storage);
   }
 
-  private static void storePaths(@NotNull Variant variant, @NotNull ContentRootStorage storage) {
+  private static void storeGeneratedDirPaths(@NotNull Variant variant, @NotNull ContentRootStorage storage) {
     ArtifactInfo mainArtifactInfo = variant.getMainArtifactInfo();
-    storePaths(ExternalSystemSourceType.GENERATED, mainArtifactInfo, storage);
+    storeGeneratedDirPaths(mainArtifactInfo, storage, false);
 
     ArtifactInfo testArtifactInfo = variant.getTestArtifactInfo();
     if (testArtifactInfo != null) {
-      storePaths(ExternalSystemSourceType.TEST, testArtifactInfo, storage);
+      storeGeneratedDirPaths(testArtifactInfo, storage, true);
     }
   }
 
-  private static void storePaths(@NotNull ExternalSystemSourceType sourceType,
-                                 @NotNull ArtifactInfo artifactInfo,
-                                 @NotNull ContentRootStorage storage) {
+  private static void storeGeneratedDirPaths(@NotNull ArtifactInfo artifactInfo, @NotNull ContentRootStorage storage, boolean isTest) {
+    // TODO replace TEST with TEST_GENERATED.
+    ExternalSystemSourceType sourceType = isTest ? ExternalSystemSourceType.TEST : ExternalSystemSourceType.GENERATED;
     storePaths(sourceType, artifactInfo.getGeneratedSourceFolders(), storage);
+
+    // sourceType = isTest ? ExternalSystemSourceType.RESOURCE : ExternalSystemSourceType.TEST_RESOURCE;
     storePaths(sourceType, artifactInfo.getGeneratedResourceFolders(), storage);
   }
 
-  private static void storePaths(@NotNull ProductFlavorContainer flavor, @NotNull ContentRootStorage storage) {
-    storePaths(ExternalSystemSourceType.GENERATED, flavor.getSourceProvider(), storage);
-    storePaths(ExternalSystemSourceType.TEST, flavor.getTestSourceProvider(), storage);
+  private static void storeSourcePaths(@NotNull ProductFlavorContainer flavor, @NotNull ContentRootStorage storage) {
+    storeSourcePaths(flavor.getSourceProvider(), storage, false);
+    storeSourcePaths(flavor.getTestSourceProvider(), storage, true);
   }
 
-  private static void storePaths(@NotNull ExternalSystemSourceType sourceType,
-                                 @NotNull SourceProvider sourceProvider,
-                                 @NotNull ContentRootStorage storage) {
+  private static void storeSourcePaths(@NotNull SourceProvider sourceProvider,
+                                       @NotNull ContentRootStorage storage,
+                                       boolean isTest) {
+    ExternalSystemSourceType sourceType = isTest ? ExternalSystemSourceType.TEST : ExternalSystemSourceType.SOURCE;
+
     storePaths(sourceType, sourceProvider.getAidlDirectories(), storage);
     storePaths(sourceType, sourceProvider.getAssetsDirectories(), storage);
     storePaths(sourceType, sourceProvider.getJavaDirectories(), storage);
     storePaths(sourceType, sourceProvider.getJniDirectories(), storage);
     storePaths(sourceType, sourceProvider.getRenderscriptDirectories(), storage);
+
+    // sourceType = isTest ? ExternalSystemSourceType.RESOURCE : ExternalSystemSourceType.TEST_RESOURCE;
+
     storePaths(sourceType, sourceProvider.getResDirectories(), storage);
     storePaths(sourceType, sourceProvider.getResourcesDirectories(), storage);
   }
