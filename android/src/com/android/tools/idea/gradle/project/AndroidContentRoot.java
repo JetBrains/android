@@ -67,7 +67,6 @@ public final class AndroidContentRoot {
     }
 
     ProductFlavorContainer defaultConfig = delegate.getDefaultConfig();
-    // this should be sources as well.
     storeSourcePaths(defaultConfig, storage);
 
     excludeOutputDirs(storage);
@@ -88,7 +87,7 @@ public final class AndroidContentRoot {
     ExternalSystemSourceType sourceType = isTest ? ExternalSystemSourceType.TEST : ExternalSystemSourceType.GENERATED;
     storePaths(sourceType, artifactInfo.getGeneratedSourceFolders(), storage);
 
-    // sourceType = isTest ? ExternalSystemSourceType.RESOURCE : ExternalSystemSourceType.TEST_RESOURCE;
+    sourceType = getResourceSourceType(isTest);
     storePaths(sourceType, artifactInfo.getGeneratedResourceFolders(), storage);
   }
 
@@ -101,17 +100,19 @@ public final class AndroidContentRoot {
                                        @NotNull ContentRootStorage storage,
                                        boolean isTest) {
     ExternalSystemSourceType sourceType = isTest ? ExternalSystemSourceType.TEST : ExternalSystemSourceType.SOURCE;
-
     storePaths(sourceType, sourceProvider.getAidlDirectories(), storage);
     storePaths(sourceType, sourceProvider.getAssetsDirectories(), storage);
     storePaths(sourceType, sourceProvider.getJavaDirectories(), storage);
     storePaths(sourceType, sourceProvider.getJniDirectories(), storage);
     storePaths(sourceType, sourceProvider.getRenderscriptDirectories(), storage);
 
-    // sourceType = isTest ? ExternalSystemSourceType.RESOURCE : ExternalSystemSourceType.TEST_RESOURCE;
-
+    sourceType = getResourceSourceType(isTest);
     storePaths(sourceType, sourceProvider.getResDirectories(), storage);
     storePaths(sourceType, sourceProvider.getResourcesDirectories(), storage);
+  }
+
+  private static ExternalSystemSourceType getResourceSourceType(boolean isTest) {
+    return isTest ? ExternalSystemSourceType.TEST_RESOURCE : ExternalSystemSourceType.RESOURCE;
   }
 
   private static void storePaths(@NotNull ExternalSystemSourceType sourceType,
