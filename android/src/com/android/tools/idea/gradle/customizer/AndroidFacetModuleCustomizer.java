@@ -27,6 +27,7 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -96,7 +97,7 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
 
     syncSelectedVariant(facetState, ideaAndroidProject);
 
-    String moduleDirPath = ideaAndroidProject.getRootDirPath();
+    String moduleDirPath = FileUtil.toSystemDependentName(ideaAndroidProject.getRootDirPath());
     File manifestFile = sourceProvider.getManifestFile();
     facetState.MANIFEST_FILE_RELATIVE_PATH = getRelativePath(moduleDirPath, manifestFile);
 
