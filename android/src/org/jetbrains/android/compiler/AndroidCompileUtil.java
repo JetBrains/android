@@ -438,18 +438,6 @@ public class AndroidCompileUtil {
     return contentEntry;
   }
 
-  public static void generate(final Module module, final AndroidAutogeneratorMode mode, boolean withDependentModules) {
-    if (withDependentModules) {
-      Set<Module> modules = AndroidUtils.getBackwardDependencies(module);
-      for (Module module1 : modules) {
-        generate(module1, mode);
-      }
-    }
-    else {
-      generate(module, mode);
-    }
-  }
-
   public static void generate(final Module module, final AndroidAutogeneratorMode mode) {
     final AndroidFacet facet = AndroidFacet.getInstance(module);
 
