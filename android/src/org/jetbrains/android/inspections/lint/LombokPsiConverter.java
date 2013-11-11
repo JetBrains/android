@@ -1652,7 +1652,7 @@ public class LombokPsiConverter {
   }
 
   @NonNull
-  private static VariableDefinition toVariableDefinition(@NonNull PsiVariable variable) {
+  static VariableDefinition toVariableDefinition(@NonNull PsiVariable variable) {
     VariableDefinition definition = new VariableDefinition();
     bind(definition, variable);
     PsiModifierList modifierList = variable.getModifierList();
