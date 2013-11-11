@@ -162,11 +162,6 @@ class AndroidLightField extends LightElement implements PsiField, PsiVariableEx,
   }
 
   @Override
-  public PsiType getTypeNoResolve() {
-    return getType();
-  }
-
-  @Override
   protected boolean isVisibilitySupported() {
     return true;
   }
