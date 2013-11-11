@@ -1,13 +1,15 @@
 package org.jetbrains.android.formatter;
 
-import com.intellij.formatting.CustomFormattingModelBuilder;
-import com.intellij.formatting.FormattingModel;
+import com.intellij.formatting.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.xml.XmlFormattingModelBuilder;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
+import com.intellij.psi.formatter.xml.XmlBlock;
+import com.intellij.psi.formatter.xml.XmlPolicy;
+import com.intellij.psi.formatter.xml.XmlTagBlock;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.xml.DomFileDescription;
 import com.intellij.util.xml.DomManager;
@@ -43,7 +45,29 @@ public class AndroidXmlFormattingModelBuilder implements CustomFormattingModelBu
     }
     final ContextSpecificSettingsProviders.Provider provider = getContextSpecificSettings(element);
     final AndroidXmlCodeStyleSettings.MySettings s = provider != null ? provider.getSettings(baseSettings) : null;
-    return s != null ? new AndroidXmlFormattingModel(baseModel, settings, s) : baseModel;
+    return s != null ? new DelegatingFormattingModel(baseModel, createDelegatingBlock(baseModel, s, settings)) : baseModel;
+  }
+
+  private static Block createDelegatingBlock(FormattingModel model,
+                                     AndroidXmlCodeStyleSettings.MySettings customSettings,
+                                     CodeStyleSettings settings) {
+    final Block block = model.getRootBlock();
+
+    if (block instanceof XmlBlock) {
+      final XmlBlock b = (XmlBlock)block;
+      final XmlPolicy policy = customSettings.createXmlPolicy(settings, model.getDocumentModel());
+      return new XmlBlock(b.getNode(), b.getWrap(), b.getAlignment(), policy, b.getIndent(), b.getTextRange()) {
+        @Override
+        protected XmlTagBlock createTagBlock(ASTNode child, Indent indent, Wrap wrap, Alignment alignment) {
+          return new XmlTagBlock(child, wrap, alignment, myXmlFormattingPolicy,
+                                 indent != null ? indent : Indent.getNoneIndent(),
+                                 isPreserveSpace());
+        }
+      };
+    }
+    else {
+      return block;
+    }
   }
 
   @Nullable
