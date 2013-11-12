@@ -16,6 +16,7 @@
 package com.android.navigation;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.Transient;
 
 import java.util.ArrayList;
 
@@ -58,6 +59,7 @@ public class NavigationModel {
     return states;
   }
 
+  @Transient
   public ArrayList<Transition> getTransitions() {
     return transitions;
   }
@@ -98,6 +100,7 @@ public class NavigationModel {
     return result;
   }
 
+  @Transient
   public EventDispatcher<Event> getListeners() {
     return listeners;
   }

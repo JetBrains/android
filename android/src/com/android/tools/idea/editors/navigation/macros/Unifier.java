@@ -26,7 +26,7 @@ import java.util.Map;
 public class Unifier {
   private static final Logger LOG = Logger.getInstance("#" + Unifier.class.getName());
   public static final PsiElement UNBOUND = new PsiIdentifierImpl("<Unbound>");
-  public static final String STATEMENT_SENTINEL = "$"; // A stand-in method name used so that wild cards can form statements as well as expressions - e.g. $f.$()
+  public static final String STATEMENT_SENTINEL = "$"; // A stand-in method name used to make statement wildcards: wild cards that match statements - e.g. $f.$()
   private static boolean DEBUG = false;
   private int indent = 0;
 
