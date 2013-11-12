@@ -250,10 +250,12 @@ public class GradleProjectImporter {
 
             // In practice, it really does not matter where the compiler output folder is. Gradle handles that. This is done just to please
             // IDEA.
-            String compileOutputUrl = VfsUtilCore.pathToUrl(newProject.getBasePath() + "/build/classes");
+            File compilerOutputDir = new File(newProject.getBasePath(), FileUtil.join("build", "classes"));
+            String compilerOutputDirPath = FileUtil.toSystemIndependentName(compilerOutputDir.getPath());
+            String compilerOutputDirUrl = VfsUtilCore.pathToUrl(compilerOutputDirPath);
             CompilerProjectExtension compilerProjectExt = CompilerProjectExtension.getInstance(newProject);
             assert compilerProjectExt != null;
-            compilerProjectExt.setCompilerOutputUrl(compileOutputUrl);
+            compilerProjectExt.setCompilerOutputUrl(compilerOutputDirUrl);
             setUpGradleSettings(newProject);
           }
         });
