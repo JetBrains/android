@@ -12,12 +12,15 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.persistence.database.DbImplUtil;
 import com.intellij.ui.FieldPanel;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBRadioButton;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
+import com.intellij.util.ui.update.Activatable;
+import com.intellij.util.ui.update.UiNotifyConnector;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -329,6 +332,18 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   @Nullable
   @Override
   public JComponent createComponent() {
+
+    new UiNotifyConnector(myPanel, new Activatable() {
+      @Override
+      public void showNotify() {
+        checkDriverPresence();
+      }
+
+      @Override
+      public void hideNotify() {
+      }
+    });
+
     return myPanel;
   }
 
@@ -377,5 +392,28 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   @Override
   public String getHelpTopic() {
     return null;
+  }
+
+  private void checkDriverPresence() {
+    if (!DbImplUtil.canConnectTo(myDataSource) && myDataSource.getDatabaseDriver() != null) {
+      myEditController.showErrorNotification(
+        "SQLite driver missing",
+        "<font size=\"3\"><a href=\"create\">Download</a> SQLite driver files</font>",
+        new Runnable() {
+          @Override
+          public void run() {
+            myDataSource.getDatabaseDriver().downloadDriver(myPanel, new Runnable() {
+              @Override
+              public void run() {
+                fireStateChanged();
+                myEditController.showErrorNotification(null);
+              }
+            });
+          }
+        });
+    }
+    else {
+      myEditController.showErrorNotification(null);
+    }
   }
 }
