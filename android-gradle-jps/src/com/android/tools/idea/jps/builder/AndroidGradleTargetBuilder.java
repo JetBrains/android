@@ -27,6 +27,7 @@ import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.SystemProperties;
 import org.gradle.tooling.BuildException;
 import org.gradle.tooling.BuildLauncher;
@@ -140,25 +141,25 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
   private static String[] getBuildTasks(@NotNull JpsProject project,
                                         @NotNull CompileContext context,
                                         @NotNull BuilderExecutionSettings executionSettings) {
-    boolean buildTests = AndroidJpsUtil.isInstrumentationTestContext(context);
-    List<String> tasks = Lists.newArrayList();
-
     BuildMode buildMode = executionSettings.getBuildMode();
     if (buildMode.equals(BuildMode.CLEAN)) {
-      tasks.add(GradleBuilds.CLEAN_TASK_NAME);
+      return new String[] { GradleBuilds.CLEAN_TASK_NAME };
     }
-    else {
-      for (JpsModule module : getModulesToBuild(project, executionSettings)) {
-        populateBuildTasks(module, executionSettings, tasks, buildTests);
-      }
-      if (!tasks.isEmpty()) {
-        boolean rebuild = JavaBuilderUtil.isForcedRecompilationAllJavaModules(context);
-        if (rebuild) {
-          tasks.add(0, GradleBuilds.CLEAN_TASK_NAME);
-        }
+
+    List<String> tasks = Lists.newArrayList();
+
+    for (JpsModule module : getModulesToBuild(project, executionSettings)) {
+      populateBuildTasks(module, executionSettings, tasks, context);
+    }
+
+    if (!tasks.isEmpty()) {
+      boolean rebuild = JavaBuilderUtil.isForcedRecompilationAllJavaModules(context);
+      if (rebuild) {
+        tasks.add(0, GradleBuilds.CLEAN_TASK_NAME);
       }
     }
-    return tasks.toArray(new String[tasks.size()]);
+
+    return ArrayUtil.toStringArray(tasks);
   }
 
   @NotNull
@@ -180,7 +181,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
   private static void populateBuildTasks(@NotNull JpsModule module,
                                          @NotNull BuilderExecutionSettings executionSettings,
                                          @NotNull List<String> tasks,
-                                         boolean buildTests) {
+                                         CompileContext context) {
     JpsAndroidGradleModuleExtension androidGradleFacet = AndroidGradleJps.getExtension(module);
     if (androidGradleFacet == null) {
       return;
@@ -189,7 +190,21 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
     JpsAndroidModuleExtensionImpl androidFacet = (JpsAndroidModuleExtensionImpl)AndroidJpsUtil.getExtension(module);
     JpsAndroidModuleProperties properties = androidFacet != null ? androidFacet.getProperties() : null;
 
-    GradleBuilds.findAndAddBuildTask(module.getName(), executionSettings.getBuildMode(), gradleProjectPath, properties, tasks, buildTests);
+    GradleBuilds.TestCompileContext testCompileContext;
+    if (AndroidJpsUtil.isInstrumentationTestContext(context)) {
+      testCompileContext = GradleBuilds.TestCompileContext.ANDROID_TESTS;
+    } else if (AndroidJpsUtil.isJunitTestContext(context)) {
+      testCompileContext = GradleBuilds.TestCompileContext.JAVA_TESTS;
+    } else {
+      testCompileContext = GradleBuilds.TestCompileContext.NONE;
+    }
+
+    GradleBuilds.findAndAddBuildTask(module.getName(),
+                                     executionSettings.getBuildMode(),
+                                     gradleProjectPath,
+                                     properties,
+                                     tasks,
+                                     testCompileContext);
   }
 
   private static void ensureTempDirExists() {
