@@ -282,6 +282,9 @@ public abstract class AndroidLogcatView implements Disposable {
         } else {
           selectFilter(myCurrentFilterName);
         }
+
+        // If users explicitly select a filter they want to use, then disable auto filter
+        PropertiesComponent.getInstance().setValue(FILTER_LOGCAT_WHEN_SELECTION_CHANGES, Boolean.FALSE.toString());
       }
     });
     final String configuredFilter = AndroidLogcatFiltersPreferences.
