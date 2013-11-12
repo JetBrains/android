@@ -284,8 +284,11 @@ public abstract class AndroidLogcatView implements Disposable {
         }
       }
     });
-    updateConfiguredFilters(NO_FILTERS);
-
+    final String configuredFilter = AndroidLogcatFiltersPreferences.
+      getInstance(myProject).TOOL_WINDOW_CONFIGURED_FILTER;
+    updateConfiguredFilters(configuredFilter != null && configuredFilter.length() > 0
+                            ? configuredFilter
+                            : NO_FILTERS);
     panel.add(editFiltersCombo);
 
     final JPanel searchComponent = new JPanel();
