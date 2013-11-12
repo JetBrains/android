@@ -15,10 +15,9 @@
  */
 package com.android.navigation;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import com.android.annotations.Transient;
+
+import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -101,10 +100,7 @@ public class Properties {
   private static Method[] findGetters(Class c) {
     List<Method> methods = new ArrayList<Method>();
     for (Method m : c.getMethods()) {
-      if (!Modifier.isStatic(m.getModifiers()) && m.getParameterTypes().length == 0 && m.getName().startsWith("get")) { // todo or "is"
-        if (m.getName().equals("getListeners")) { // todo remove
-          continue;
-        }
+      if (!Modifier.isStatic(m.getModifiers()) && m.getParameterTypes().length == 0 && m.getName().startsWith("get") && !isTransient(m)) { // todo or "is"
         methods.add(m);
       }
     }
@@ -131,10 +127,14 @@ public class Properties {
     return methods.toArray(new Method[methods.size()]);
   }
 
+  private static boolean isTransient(AnnotatedElement e) {
+    return e.getAnnotation(Transient.class) != null;
+  }
+
   static Property[] computeProperties(Class c) {
     List<Property> result = new ArrayList<Property>();
     for (Field f : c.getFields()) {
-      if (!Modifier.isStatic(f.getModifiers())) {
+      if (!Modifier.isStatic(f.getModifiers()) && !isTransient(f)) {
         result.add(new FieldProperty(f));
       }
     }
