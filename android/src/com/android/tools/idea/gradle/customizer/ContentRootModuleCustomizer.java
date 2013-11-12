@@ -27,6 +27,7 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.roots.impl.SourceFolderImpl;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -104,7 +105,8 @@ public class ContentRootModuleCustomizer implements ModuleCustomizer {
           return;
         }
 
-        String url = VfsUtilCore.pathToUrl(dir.getAbsolutePath());
+        String dirPath = FileUtil.toSystemIndependentName(dir.getPath());
+        String url = VfsUtilCore.pathToUrl(dirPath);
         if (sourceType.equals(ExternalSystemSourceType.SOURCE)) {
           storePath(url, JavaSourceRootType.SOURCE, false);
         }
