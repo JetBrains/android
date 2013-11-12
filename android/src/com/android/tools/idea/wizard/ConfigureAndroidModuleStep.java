@@ -217,7 +217,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     register(ATTR_BUILD_API, myCompileWith);
     register(ATTR_CREATE_ACTIVITY, myCreateActivityCheckBox);
     register(ATTR_CREATE_ICONS, myCreateCustomLauncherIconCheckBox);
-    register(ATTR_LIBRARY, myLibraryCheckBox);
+    register(ATTR_IS_LIBRARY_MODULE, myLibraryCheckBox);
     register(ATTR_FRAGMENTS_EXTRA, myFragmentCheckBox);
     register(ATTR_NAVIGATION_DRAWER_EXTRA, myNavigationDrawerCheckBox);
     register(ATTR_ACTION_BAR_EXTRA, myActionBarCheckBox);
