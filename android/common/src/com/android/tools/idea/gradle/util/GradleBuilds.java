@@ -31,6 +31,15 @@ public final class GradleBuilds {
   @NonNls public static final String CLEAN_TASK_NAME = "clean";
   @NonNls private static final String DEFAULT_ASSEMBLE_TASK_NAME = "assemble";
 
+  /** Task for compiling a Java module's test classes. */
+  @NonNls private static final String TEST_CLASSES_TASK_NAME = "testClasses";
+
+  public enum TestCompileContext {
+    NONE,            // don't compile any tests
+    ANDROID_TESTS,   // compile tests that are part of an Android Module
+    JAVA_TESTS       // compile tests that are part of a Java module
+  };
+
   private GradleBuilds() {
   }
 
@@ -39,7 +48,7 @@ public final class GradleBuilds {
                                          @Nullable String gradleProjectPath,
                                          @Nullable JpsAndroidModuleProperties androidFacetProperties,
                                          @NotNull List<String> tasks,
-                                         boolean buildTests) {
+                                         TestCompileContext testCompileContext) {
     if (gradleProjectPath == null) {
       // Gradle project path is never, ever null. If the path is empty, it shows as ":". We had reports of this happening. It is likely that
       // users manually added the Android-Gradle facet to a project. After all it is likely not to be a Gradle module. Better quit and not
@@ -72,11 +81,17 @@ public final class GradleBuilds {
       tasks.add(createBuildTask(gradleProjectPath, assembleTaskName));
     }
 
-    if (buildTests && androidFacetProperties != null) {
-      String assembleTestTaskName = androidFacetProperties.ASSEMBLE_TEST_TASK_NAME;
-      if (!Strings.isNullOrEmpty(assembleTestTaskName)) {
-        tasks.add(createBuildTask(gradleProjectPath, assembleTestTaskName));
-      }
+    switch (testCompileContext) {
+      case ANDROID_TESTS:
+        if (androidFacetProperties != null && !Strings.isNullOrEmpty(androidFacetProperties.ASSEMBLE_TEST_TASK_NAME)) {
+          tasks.add(createBuildTask(gradleProjectPath, androidFacetProperties.ASSEMBLE_TEST_TASK_NAME));
+        }
+        break;
+      case JAVA_TESTS:
+        tasks.add(createBuildTask(gradleProjectPath, TEST_CLASSES_TASK_NAME));
+        break;
+      default:
+        break;
     }
   }
 
