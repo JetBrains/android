@@ -50,7 +50,7 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
   private int myPreviousSelection = -1;
 
   public interface TemplateChangeListener {
-    void templateChanged();
+    void templateChanged(String templateName);
   }
 
   public ChooseTemplateStep(TemplateWizardState state, String templateCategory, @Nullable Project project, @Nullable Icon sidePanelIcon,
@@ -58,9 +58,19 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
     super(state, project, sidePanelIcon, updateListener);
     myTemplateChangeListener = templateChangeListener;
 
-    myTemplateList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    if (templateCategory != null) {
+      List<MetadataListItem> templates = getTemplateList(state, templateCategory);
+      setListData(templates);
+      validate();
+    }
+  }
+
+  /**
+   * Search the given folder for a list of templates and populate the display list.
+   */
+  protected List<MetadataListItem> getTemplateList(TemplateWizardState state, String templateFolder) {
     TemplateManager manager = TemplateManager.getInstance();
-    List<File> templates = manager.getTemplates(templateCategory);
+    List<File> templates = manager.getTemplates(templateFolder);
     List<MetadataListItem> metadataList = new ArrayList<MetadataListItem>(templates.size());
     for (File template : templates) {
       TemplateMetadata metadata = manager.getTemplate(template);
@@ -73,15 +83,23 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
       if (isLauncher != null && isLauncher && metadata.getParameter(TemplateMetadata.ATTR_IS_LAUNCHER) == null) {
         continue;
       }
+
       metadataList.add(new MetadataListItem(template, metadata));
     }
 
+    return metadataList;
+  }
+
+  /**
+   * Populate the JBList of templates from the given list of metadata.
+   */
+  protected void setListData(List<MetadataListItem> metadataList) {
+    myTemplateList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myTemplateList.setModel(JBList.createDefaultListModel(ArrayUtil.toObjectArray(metadataList)));
     if (!metadataList.isEmpty()) {
       myTemplateList.setSelectedIndex(0);
     }
     myTemplateList.addListSelectionListener(this);
-    validate();
   }
 
   @Override
@@ -140,7 +158,7 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
         }
         if (myTemplateChangeListener != null && myPreviousSelection != index) {
           myPreviousSelection = index;
-          myTemplateChangeListener.templateChanged();
+          myTemplateChangeListener.templateChanged(template.toString());
         }
       }
     }
@@ -159,7 +177,7 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
     return myError;
   }
 
-  private static class MetadataListItem {
+  protected static class MetadataListItem {
     private TemplateMetadata myMetadata;
     private final File myTemplate;
 
