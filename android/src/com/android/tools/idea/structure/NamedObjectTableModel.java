@@ -16,6 +16,7 @@
 package com.android.tools.idea.structure;
 
 import com.android.tools.idea.gradle.parser.BuildFileKey;
+import com.android.tools.idea.gradle.parser.BuildFileKeyType;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.NamedObject;
 import com.google.common.base.Objects;
@@ -68,27 +69,17 @@ public class NamedObjectTableModel extends AbstractTableModel implements ItemRem
     if (i == NAME_COLUMN) {
       return String.class;
     }
-    switch (getKey(i).getType()) {
-      case INTEGER:
-        return Integer.class;
-      case BOOLEAN:
-        return NamedObjectPanel.ThreeStateBoolean.class;
-      case FILE:
-      case FILE_AS_STRING:
-        return File.class;
-      case STRING:
-      case CLOSURE:
-      case REFERENCE:
-        return String.class;
-      default:
-        assert false : getKey(i).getType();
-        return String.class;
+    Class<?> clazz = getKey(i).getType().getNativeType();
+    if (clazz == Boolean.class) {
+      return NamedObjectPanel.ThreeStateBoolean.class;
+    } else {
+      return clazz;
     }
   }
 
   @Override
   public boolean isCellEditable(int row, int col) {
-    return col == NAME_COLUMN || getKey(col).getType() != BuildFileKey.Type.CLOSURE;
+    return col == NAME_COLUMN || getKey(col).getType() != BuildFileKeyType.CLOSURE;
   }
 
   @Override
@@ -100,28 +91,20 @@ public class NamedObjectTableModel extends AbstractTableModel implements ItemRem
       myItems.get(row).setName((String)o);
     } else {
       BuildFileKey key = getKey(col);
-      BuildFileKey.Type type = key.getType();
-      switch(type) {
-        case BOOLEAN:
+      Class<?> type = key.getType().getNativeType();
+      if (type == Boolean.class) {
           NamedObjectPanel.ThreeStateBoolean b = (NamedObjectPanel.ThreeStateBoolean)o;
           o = b != null ? b.getValue() : null;
-          break;
-        case FILE:
-        case FILE_AS_STRING:
+      } else if (type == File.class) {
           if (o != null && !StringUtil.isEmptyOrSpaces(o.toString())) {
             o = new File(FileUtil.toSystemIndependentName(o.toString()));
           } else {
             o = null;
           }
-          break;
-        case REFERENCE:
-        case STRING:
+      } else if (type == String.class) {
           if ("".equals(o)) {
             o = null;
           }
-          break;
-        default:
-          break;
       }
       Object oldValue = myItems.get(row).getValue(key);
       if (!Objects.equal(oldValue, o)) {
@@ -149,10 +132,10 @@ public class NamedObjectTableModel extends AbstractTableModel implements ItemRem
       return item.getName();
     } else {
       Object o = item.getValue(getKey(col));
-      BuildFileKey.Type type = getKey(col).getType();
-      if (type == BuildFileKey.Type.BOOLEAN) {
+      Class<?> type = getKey(col).getType().getNativeType();
+      if (type == Boolean.class) {
         return NamedObjectPanel.ThreeStateBoolean.forValue((Boolean)o);
-      } else if (type == BuildFileKey.Type.FILE || type == BuildFileKey.Type.FILE_AS_STRING) {
+      } else if (type == File.class) {
         return o != null ? o.toString() : null;
       } else {
         return o;
