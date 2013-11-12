@@ -151,7 +151,15 @@ public class GradleSettingsFile extends GradleGroovyFile {
           return Iterables.transform(getLiteralArgumentValues(input), new Function<Object, String>() {
             @Override
             public String apply(@Nullable Object input) {
-              return input != null ? input.toString() : null;
+              if (input == null) {
+                return null;
+              }
+              String value = input.toString();
+              // We treat all paths in settings.gradle as being absolute.
+              if (!value.startsWith(SdkConstants.GRADLE_PATH_SEPARATOR)) {
+                value = SdkConstants.GRADLE_PATH_SEPARATOR + value;
+              }
+              return value;
             }
           });
         } else {
