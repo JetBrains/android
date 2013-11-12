@@ -20,7 +20,6 @@ import org.jetbrains.jps.builders.DirtyFilesHolder;
 import org.jetbrains.jps.incremental.CompileContext;
 import org.jetbrains.jps.incremental.ProjectBuildException;
 import org.jetbrains.jps.incremental.StopBuildException;
-import org.jetbrains.jps.incremental.TargetBuilder;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 import org.jetbrains.jps.model.module.JpsModule;
@@ -29,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.IllegalFormatException;
 import java.util.List;
 
 /**
@@ -154,8 +154,8 @@ public class AndroidManifestMergingBuilder
                         @NonNull FileAndLine location,
                         @NonNull String message,
                         Object... msgParams) {
-        context.processMessage(new CompilerMessage(BUILDER_NAME, toBuildMessageKind(severity),
-                                                   message, location.getFileName(), -1L, -1L, -1L, location.getLine(), -1L));
+        context.processMessage(new CompilerMessage(BUILDER_NAME, toBuildMessageKind(severity), formatMessage(message, msgParams),
+                                                   location.getFileName(), -1L, -1L, -1L, location.getLine(), -1L));
       }
 
       @Override
@@ -182,9 +182,19 @@ public class AndroidManifestMergingBuilder
         else {
           builder.append("unknown");
         }
-        builder.append('\n').append(message);
+        builder.append('\n').append(formatMessage(message, msgParams));
         context.processMessage(new CompilerMessage(BUILDER_NAME, toBuildMessageKind(severity),
                                                    builder.toString(), filePath1, -1L, -1L, -1L, location1.getLine(), -1L));
+      }
+
+      private String formatMessage(String message, Object... msgParams) {
+        try {
+          return String.format(message, msgParams);
+        }
+        catch (IllegalFormatException e) {
+          LOG.debug(e);
+          return message;
+        }
       }
     }, new ICallback() {
       @Override

@@ -954,10 +954,13 @@ public class AndroidUtils {
   }
 
   @NotNull
-  public static Set<Module> getBackwardDependencies(@NotNull Module module) {
-    final Set<Module> modules = new HashSet<Module>();
-    collectModules(module, modules, ModuleManager.getInstance(module.getProject()).getModules());
-    return modules;
+  public static Set<Module> getSetWithBackwardDependencies(@NotNull Collection<Module> modules) {
+    final Set<Module> set = new HashSet<Module>();
+
+    for (Module module : modules) {
+      collectModules(module, set, ModuleManager.getInstance(module.getProject()).getModules());
+    }
+    return set;
   }
 
   private static void collectModules(Module module, Set<Module> result, Module[] allModules) {
