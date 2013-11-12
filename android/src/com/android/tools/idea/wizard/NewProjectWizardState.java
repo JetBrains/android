@@ -36,7 +36,7 @@ public class NewProjectWizardState extends NewModuleWizardState {
 
   static final String MODULE_TEMPLATE_NAME = "NewAndroidModule";
   static final String PROJECT_TEMPLATE_NAME = "NewAndroidProject";
-  static final String APP_NAME = "My Application";
+  static final String APPLICATION_NAME = "My Application";
 
   protected Template myProjectTemplate;
 
@@ -47,7 +47,7 @@ public class NewProjectWizardState extends NewModuleWizardState {
     put(ATTR_IS_LIBRARY_MODULE, false);
     put(ATTR_IS_LAUNCHER, true);
     put(ATTR_PROJECT_LOCATION, getProjectFileDirectory());
-    put(ATTR_APP_TITLE, APP_NAME);
+    put(ATTR_APP_TITLE, APPLICATION_NAME);
     myProjectTemplate = Template.createFromName(CATEGORY_PROJECTS, PROJECT_TEMPLATE_NAME);
     myTemplate = Template.createFromName(CATEGORY_PROJECTS, MODULE_TEMPLATE_NAME);
     setParameterDefaults();
