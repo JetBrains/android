@@ -83,8 +83,7 @@ public final class AndroidContentRoot {
   }
 
   private static void storeGeneratedDirPaths(@NotNull ArtifactInfo artifactInfo, @NotNull ContentRootStorage storage, boolean isTest) {
-    // TODO replace TEST with TEST_GENERATED.
-    ExternalSystemSourceType sourceType = isTest ? ExternalSystemSourceType.TEST : ExternalSystemSourceType.GENERATED;
+    ExternalSystemSourceType sourceType = isTest ? ExternalSystemSourceType.TEST_GENERATED : ExternalSystemSourceType.SOURCE_GENERATED;
     storePaths(sourceType, artifactInfo.getGeneratedSourceFolders(), storage);
 
     sourceType = getResourceSourceType(isTest);
