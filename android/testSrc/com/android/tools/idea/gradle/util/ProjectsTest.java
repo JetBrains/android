@@ -24,6 +24,7 @@ import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
 
 import java.io.File;
 
@@ -45,7 +46,16 @@ public class ProjectsTest extends IdeaTestCase {
   }
 
   public void testIsGradleProjectWithGradleProject() {
-    addAndroidGradleFacet();
+    FacetManager facetManager = FacetManager.getInstance(myModule);
+    ModifiableFacetModel facetModel = facetManager.createModifiableModel();
+    try {
+      AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
+      facet.getProperties().ALLOW_USER_CONFIGURATION = false;
+      facetModel.addFacet(facet);
+    } finally {
+      facetModel.commit();
+    }
+
     assertTrue(Projects.isGradleProject(myProject));
   }
 
