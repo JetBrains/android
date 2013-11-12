@@ -110,13 +110,16 @@ public class ContentRootModuleCustomizer implements ModuleCustomizer {
         if (sourceType.equals(ExternalSystemSourceType.SOURCE)) {
           storePath(url, JavaSourceRootType.SOURCE, false);
         }
-        else if (sourceType.equals(ExternalSystemSourceType.GENERATED)) {
+        else if (sourceType.equals(ExternalSystemSourceType.SOURCE_GENERATED)) {
           storePath(url, JavaSourceRootType.SOURCE, true);
         }
         else if (sourceType.equals(ExternalSystemSourceType.RESOURCE)) {
           storePath(url, JavaResourceRootType.RESOURCE, false);
         }
         else if (sourceType.equals(ExternalSystemSourceType.TEST)) {
+          storePath(url, JavaSourceRootType.TEST_SOURCE, false);
+        }
+        else if (sourceType.equals(ExternalSystemSourceType.TEST_GENERATED)) {
           storePath(url, JavaSourceRootType.TEST_SOURCE, false);
         }
         else if (sourceType.equals(ExternalSystemSourceType.TEST_RESOURCE)) {

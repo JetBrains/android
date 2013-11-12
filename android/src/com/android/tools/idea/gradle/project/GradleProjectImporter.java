@@ -46,6 +46,7 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
+import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
@@ -336,9 +337,9 @@ public class GradleProjectImporter {
     StartupManager.getInstance(newProject).runWhenProjectIsInitialized(new Runnable() {
       @Override
       public void run() {
-        ExternalSystemApiUtil.executeProjectChangeAction(new Runnable() {
+        ExternalSystemApiUtil.executeProjectChangeAction(new DisposeAwareProjectChange(newProject) {
           @Override
-          public void run() {
+          public void execute() {
             ProjectRootManagerEx.getInstanceEx(newProject).mergeRootsChangesDuring(new Runnable() {
               @Override
               public void run() {
@@ -378,9 +379,9 @@ public class GradleProjectImporter {
   private void updateStructureAccordingToBuildVariants(final Project project) {
     // Update module dependencies, content roots and output paths. This needs to be done in case the selected variant is not
     // the same one as the default (an by "default" we mean the first in the drop-down.)
-    ExternalSystemApiUtil.executeProjectChangeAction(true, new Runnable() {
+    ExternalSystemApiUtil.executeProjectChangeAction(true, new DisposeAwareProjectChange(project) {
       @Override
-      public void run() {
+      public void execute() {
         ModuleManager moduleManager = ModuleManager.getInstance(project);
         for (Module module : moduleManager.getModules()) {
           AndroidFacet facet = AndroidFacet.getInstance(module);
