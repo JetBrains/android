@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.stubs.android.ArtifactInfoStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.roots.DependencyScope;
+import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.containers.ContainerUtil;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +35,7 @@ import java.util.List;
 /**
  * Tests for {@link Dependency#extractFrom(com.android.tools.idea.gradle.IdeaAndroidProject)}.
  */
-public class ExtractAndroidDependenciesTest extends TestCase {
+public class ExtractAndroidDependenciesTest extends IdeaTestCase {
   private IdeaAndroidProject myIdeaAndroidProject;
   private AndroidProjectStub myAndroidProject;
   private VariantStub myVariant;
@@ -79,7 +80,7 @@ public class ExtractAndroidDependenciesTest extends TestCase {
   }
 
   public void testExtractFromWithLibraryProject() {
-    String rootDirPath = myAndroidProject.getRootDir().getAbsolutePath();
+    String rootDirPath = myAndroidProject.getRootDir().getPath();
     File libJar = new File(rootDirPath, "library.aar/library.jar");
     String gradlePath = "abc:xyz:library";
     AndroidLibraryStub library = new AndroidLibraryStub(libJar, gradlePath);
@@ -108,7 +109,7 @@ public class ExtractAndroidDependenciesTest extends TestCase {
   }
 
   public void testExtractFromWithLibraryAar() {
-    String rootDirPath = myAndroidProject.getRootDir().getAbsolutePath();
+    String rootDirPath = myAndroidProject.getRootDir().getPath();
     File libJar = new File(rootDirPath, "library.aar/library.jar");
     AndroidLibraryStub library = new AndroidLibraryStub(libJar);
 
@@ -130,7 +131,7 @@ public class ExtractAndroidDependenciesTest extends TestCase {
   }
 
   public void testExtractFromWithLibraryLocalJar() {
-    String rootDirPath = myAndroidProject.getRootDir().getAbsolutePath();
+    String rootDirPath = myAndroidProject.getRootDir().getPath();
     File libJar = new File(rootDirPath, "library.aar/library.jar");
     AndroidLibraryStub library = new AndroidLibraryStub(libJar);
 

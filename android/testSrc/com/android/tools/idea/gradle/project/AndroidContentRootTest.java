@@ -55,13 +55,13 @@ public class AndroidContentRootTest extends IdeaTestCase {
       @Override
       @NotNull
       public String getRootDirPath() {
-        return myAndroidProject.getRootDir().getAbsolutePath();
+        return myAndroidProject.getRootDir().getPath();
       }
 
       @Override
       public void storePath(@NotNull ExternalSystemSourceType sourceType, @NotNull File dir) {
         List<String> paths = myStoredPaths.get(sourceType);
-        paths.add(FileUtil.toSystemIndependentName(dir.getAbsolutePath()));
+        paths.add(FileUtil.toSystemIndependentName(dir.getPath()));
       }
     };
   }
