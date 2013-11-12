@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 
@@ -55,20 +56,27 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
 
   public ChooseTemplateStep(TemplateWizardState state, String templateCategory, @Nullable Project project, @Nullable Icon sidePanelIcon,
                             UpdateListener updateListener, @Nullable TemplateChangeListener templateChangeListener) {
+    this(state, templateCategory, project, sidePanelIcon, updateListener, templateChangeListener, null);
+  }
+
+  public ChooseTemplateStep(TemplateWizardState state, String templateCategory, @Nullable Project project, @Nullable Icon sidePanelIcon,
+                            UpdateListener updateListener, @Nullable TemplateChangeListener templateChangeListener,
+                            @Nullable Set<String> excluded) {
     super(state, project, sidePanelIcon, updateListener);
     myTemplateChangeListener = templateChangeListener;
 
     if (templateCategory != null) {
-      List<MetadataListItem> templates = getTemplateList(state, templateCategory);
+      List<MetadataListItem> templates = getTemplateList(state, templateCategory, excluded);
       setListData(templates);
       validate();
     }
   }
 
+
   /**
    * Search the given folder for a list of templates and populate the display list.
    */
-  protected List<MetadataListItem> getTemplateList(TemplateWizardState state, String templateFolder) {
+  protected List<MetadataListItem> getTemplateList(TemplateWizardState state, String templateFolder, @Nullable Set<String> excluded) {
     TemplateManager manager = TemplateManager.getInstance();
     List<File> templates = manager.getTemplates(templateFolder);
     List<MetadataListItem> metadataList = new ArrayList<MetadataListItem>(templates.size());
@@ -81,6 +89,11 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
       // lack the isLauncher parameter.
       Boolean isLauncher = (Boolean)state.get(ATTR_IS_LAUNCHER);
       if (isLauncher != null && isLauncher && metadata.getParameter(TemplateMetadata.ATTR_IS_LAUNCHER) == null) {
+        continue;
+      }
+
+      // Don't include this template if it's been excluded
+      if (excluded != null && excluded.contains(metadata.getTitle())) {
         continue;
       }
 
