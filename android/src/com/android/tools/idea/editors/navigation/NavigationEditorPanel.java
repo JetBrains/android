@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.navigation.*;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.navigation.macros.Unifier;
 import com.android.tools.idea.rendering.RenderedView;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.ShadowPainter;
@@ -774,9 +773,16 @@ public class NavigationEditorPanel extends JComponent {
   }
 
   @Nullable
-  private static String getXMLFileName(Module module, String controllerClassName) {
+  public static String getXMLFileName(Module module, String controllerClassName) {
     PsiJavaCodeReferenceElement referenceElement = Utilities.getReferenceElement(module, controllerClassName, "onCreate");
     return referenceElement != null ? referenceElement.getLastChild().getText() : null;
+  }
+
+  @Nullable
+  public static String getXMLFileName(Module module, State state) {
+    String controllerClassName = state.getClassName();
+    String definedXmlFileName = state.getXmlResourceName();
+    return definedXmlFileName != null ? definedXmlFileName : getXMLFileName(module, controllerClassName);
   }
 
   @Nullable
@@ -784,21 +790,23 @@ public class NavigationEditorPanel extends JComponent {
     return xmlResourceName == null ? null : fileSystem.findFileByPath(path + dir + xmlResourceName + ".xml");
   }
 
-  private AndroidRootComponent createRootComponentFor(State state) {
-    VirtualFileSystem fileSystem = myFile.getFileSystem();
-    Module module = myMyRenderingParams.myFacet.getModule();
-    String path = myFile.getParent().getParent().getPath();
-    String directoryName = myFile.getParent().getName();
+  public static PsiFile getPsiFile(boolean menu, String xmlFileName, VirtualFile navFile, Project project) {
+    String dir = menu ? ResourceType.MENU.getName() : ResourceType.LAYOUT.getName();
+    VirtualFileSystem fileSystem = navFile.getFileSystem();
+    String path = navFile.getParent().getParent().getPath();
+    String directoryName = navFile.getParent().getName();
     int index = directoryName.indexOf('-');
     String qualifier = index == -1 ? "" : directoryName.substring(index);
-    String controllerClassName = state.getClassName();
-    String definedXmlFileName = state.getXmlResourceName();
-    boolean isMenu = state instanceof MenuState;
-    String dir = isMenu ? ResourceType.MENU.getName() : ResourceType.LAYOUT.getName();
-    String xmlFileName = definedXmlFileName != null ? definedXmlFileName : getXMLFileName(module, controllerClassName);
     VirtualFile qualifiedFile = getFile(fileSystem, path, "/" + dir + qualifier + "/", xmlFileName);
     VirtualFile file = qualifiedFile != null ? qualifiedFile : getFile(fileSystem, path, "/" + dir + "/", xmlFileName);
-    PsiFile psiFile = file == null ? null : PsiManager.getInstance(myMyRenderingParams.myProject).findFile(file);
+    return file == null ? null : PsiManager.getInstance(project).findFile(file);
+  }
+
+  private AndroidRootComponent createRootComponentFor(State state) {
+    boolean isMenu = state instanceof MenuState;
+    Module module = myMyRenderingParams.myFacet.getModule();
+    String xmlFileName = getXMLFileName(module, state);
+    PsiFile psiFile = getPsiFile(isMenu, xmlFileName, myFile, myMyRenderingParams.myProject);
     AndroidRootComponent result = new AndroidRootComponent(myMyRenderingParams, psiFile, isMenu);
     result.setScale(myTransform.myScale);
     return result;
