@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.util.Facets;
 import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -55,9 +56,9 @@ class BuildVariantUpdater {
   @Nullable
   AndroidFacet updateModule(@NotNull final Project project, @NotNull final String moduleName, @NotNull final String buildVariantName) {
     final Ref<AndroidFacet> facetRef = new Ref<AndroidFacet>();
-    ExternalSystemApiUtil.executeProjectChangeAction(true /*synchronous*/, new Runnable() {
+    ExternalSystemApiUtil.executeProjectChangeAction(true /*synchronous*/, new DisposeAwareProjectChange(project) {
       @Override
-      public void run() {
+      public void execute() {
         AndroidFacet updatedFacet = doUpdate(project, moduleName, buildVariantName);
         facetRef.set(updatedFacet);
       }

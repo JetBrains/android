@@ -20,10 +20,12 @@ import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.ConfigurationTypeUtil;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.LayeredIcon;
 import icons.AndroidIcons;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
@@ -56,6 +58,11 @@ public class AndroidTestRunConfigurationType implements ConfigurationType {
     @Override
     public boolean canConfigurationBeSingleton() {
       return false;
+    }
+
+    @Override
+    public boolean isApplicable(@NotNull Project project) {
+      return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID);
     }
   };
 

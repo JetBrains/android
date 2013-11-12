@@ -108,7 +108,7 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
 
     List<String> allExpectedPaths = Lists.newArrayList();
     allExpectedPaths.addAll(expectedPaths.getPaths(ExternalSystemSourceType.SOURCE));
-    allExpectedPaths.addAll(expectedPaths.getPaths(ExternalSystemSourceType.GENERATED));
+    allExpectedPaths.addAll(expectedPaths.getPaths(ExternalSystemSourceType.SOURCE_GENERATED));
     allExpectedPaths.addAll(expectedPaths.getPaths(ExternalSystemSourceType.RESOURCE));
     Collections.sort(allExpectedPaths);
 
