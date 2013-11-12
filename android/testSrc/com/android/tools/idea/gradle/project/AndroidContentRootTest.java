@@ -47,10 +47,9 @@ public class AndroidContentRootTest extends IdeaTestCase {
     myExpectedSourcePaths = new ContentRootSourcePaths();
 
     myStoredPaths = Maps.newHashMap();
-    setUpStoredPaths(ExternalSystemSourceType.SOURCE);
-    setUpStoredPaths(ExternalSystemSourceType.TEST);
-    setUpStoredPaths(ExternalSystemSourceType.EXCLUDED);
-    setUpStoredPaths(ExternalSystemSourceType.GENERATED);
+    for (ExternalSystemSourceType sourceType : ContentRootSourcePaths.ALL_SOURCE_TYPES) {
+      setUpStoredPaths(sourceType);
+    }
 
     myStorage = new ContentRootStorage() {
       @Override
@@ -99,12 +98,12 @@ public class AndroidContentRootTest extends IdeaTestCase {
     AndroidContentRoot.storePaths(project, myStorage);
 
     myExpectedSourcePaths.storeExpectedSourcePaths(myAndroidProject);
-    assertCorrectStoredDirPaths(ExternalSystemSourceType.SOURCE);
-    assertCorrectStoredDirPaths(ExternalSystemSourceType.GENERATED);
-    assertCorrectStoredDirPaths(ExternalSystemSourceType.TEST);
-  }
 
-  private void assertCorrectStoredDirPaths(ExternalSystemSourceType sourceType) {
-    myExpectedSourcePaths.assertCorrectStoredDirPaths(myStoredPaths.get(sourceType), sourceType);
+    for (ExternalSystemSourceType sourceType : ContentRootSourcePaths.ALL_SOURCE_TYPES) {
+      if (sourceType.equals(ExternalSystemSourceType.EXCLUDED)) {
+        continue;
+      }
+      myExpectedSourcePaths.assertCorrectStoredDirPaths(myStoredPaths.get(sourceType), sourceType);
+    }
   }
 }

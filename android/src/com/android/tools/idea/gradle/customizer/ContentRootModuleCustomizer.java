@@ -32,8 +32,11 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.JpsElement;
+import org.jetbrains.jps.model.java.JavaResourceRootType;
 import org.jetbrains.jps.model.java.JavaSourceRootProperties;
+import org.jetbrains.jps.model.java.JavaSourceRootType;
 import org.jetbrains.jps.model.module.JpsModuleSourceRoot;
+import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 
 import java.io.File;
 
@@ -100,11 +103,29 @@ public class ContentRootModuleCustomizer implements ModuleCustomizer {
         if (sourceType.equals(ExternalSystemSourceType.EXCLUDED)) {
           return;
         }
-        boolean isTestSource = sourceType.equals(ExternalSystemSourceType.TEST);
-        String url = VfsUtilCore.pathToUrl(dir.getAbsolutePath());
-        SourceFolder sourceFolder = contentEntry.addSourceFolder(url, isTestSource);
 
-        if (sourceType.equals(ExternalSystemSourceType.GENERATED) && sourceFolder instanceof SourceFolderImpl) {
+        String url = VfsUtilCore.pathToUrl(dir.getAbsolutePath());
+        if (sourceType.equals(ExternalSystemSourceType.SOURCE)) {
+          storePath(url, JavaSourceRootType.SOURCE, false);
+        }
+        else if (sourceType.equals(ExternalSystemSourceType.GENERATED)) {
+          storePath(url, JavaSourceRootType.SOURCE, true);
+        }
+        else if (sourceType.equals(ExternalSystemSourceType.RESOURCE)) {
+          storePath(url, JavaResourceRootType.RESOURCE, false);
+        }
+        else if (sourceType.equals(ExternalSystemSourceType.TEST)) {
+          storePath(url, JavaSourceRootType.TEST_SOURCE, false);
+        }
+        else if (sourceType.equals(ExternalSystemSourceType.TEST_RESOURCE)) {
+          storePath(url, JavaResourceRootType.TEST_RESOURCE, false);
+        }
+      }
+
+      private void storePath(@NotNull String url, @NotNull JpsModuleSourceRootType sourceRootType, boolean isGenerated) {
+        SourceFolder sourceFolder = contentEntry.addSourceFolder(url, sourceRootType);
+
+        if (isGenerated && sourceFolder instanceof SourceFolderImpl) {
           JpsModuleSourceRoot sourceRoot = ((SourceFolderImpl)sourceFolder).getJpsElement();
           JpsElement properties = sourceRoot.getProperties();
           if (properties instanceof JavaSourceRootProperties) {
