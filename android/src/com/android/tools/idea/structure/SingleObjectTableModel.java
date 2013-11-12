@@ -100,20 +100,13 @@ public class SingleObjectTableModel extends AbstractTableModel {
       return null;
     }
     BuildFileKey key = myProperties.get(row);
-    switch (key.getType()) {
-      case INTEGER:
-        return new IntegerCellEditor();
-
-      // TODO: Implement custom editors for these as needed.
-      case BOOLEAN:
-      case FILE:
-      case FILE_AS_STRING:
-      case REFERENCE:
-      case STRING:
-      case CLOSURE:
-      default:
-        return null;
+    Class<?> type = key.getType().getNativeType();
+    if (type == Integer.class) {
+      return new IntegerCellEditor();
     }
+
+    // TODO: Implement custom editors for other types as needed.
+    return null;
   }
 
   public boolean isModified() {
