@@ -22,7 +22,9 @@ import com.android.tools.idea.gradle.parser.NamedObject;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.util.ui.ItemRemovable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -97,7 +99,14 @@ public class NamedObjectTableModel extends AbstractTableModel implements ItemRem
           o = b != null ? b.getValue() : null;
       } else if (type == File.class) {
           if (o != null && !StringUtil.isEmptyOrSpaces(o.toString())) {
-            o = new File(FileUtil.toSystemIndependentName(o.toString()));
+            // If the file lives under the project root, use a relative path.
+            File file = new File(FileUtil.toSystemDependentName(o.toString()));
+            if (FileUtil.isAncestor(new File(myBuildFile.getProject().getBasePath()), file, false)) {
+              File parent = VfsUtilCore.virtualToIoFile(myBuildFile.getFile().getParent());
+              o = new File(FileUtilRt.getRelativePath(parent, file));
+            } else {
+              o = file;
+            }
           } else {
             o = null;
           }
