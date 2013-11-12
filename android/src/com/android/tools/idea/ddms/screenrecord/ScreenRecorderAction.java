@@ -68,23 +68,18 @@ public class ScreenRecorderAction {
     final CountDownLatch latch = new CountDownLatch(1);
     final CollectingOutputReceiver receiver = new CollectingOutputReceiver(latch);
 
-    ApplicationManager.getApplication().invokeAndWait(new Runnable() {
+    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
-        ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-          @Override
-          public void run() {
-            try {
-              myDevice.startScreenRecorder(REMOTE_PATH, options, receiver);
-            }
-            catch (Exception e) {
-              showError(myProject, "Unexpected error while launching screen recorder", e);
-              latch.countDown();
-            }
-          }
-        });
+        try {
+          myDevice.startScreenRecorder(REMOTE_PATH, options, receiver);
+        }
+        catch (Exception e) {
+          showError(myProject, "Unexpected error while launching screen recorder", e);
+          latch.countDown();
+        }
       }
-    }, ModalityState.defaultModalityState());
+    });
 
     Task.Modal screenRecorderShellTask = new ScreenRecorderTask(myProject, myDevice, latch, receiver);
     screenRecorderShellTask.setCancelText("Stop Recording");
