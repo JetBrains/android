@@ -111,29 +111,7 @@ class GradleGroovyFile {
       parent = closure;
     }
     String name = parts[parts.length - 1];
-    String text;
-    switch(key.getType()) {
-      case BOOLEAN:
-        text = name + " false";
-        break;
-      case INTEGER:
-        text = name + " 0";
-        break;
-      case REFERENCE:
-        text = name + " reference";
-        break;
-      case CLOSURE:
-        text = name + " {}";
-        break;
-      case FILE:
-        text = name + " file('')";
-        break;
-      case STRING:
-      case FILE_AS_STRING:
-      default:
-        text = name + "''";
-        break;
-    }
+    String text = name + " " + key.getType().getDefaultValue();
     parent.addStatementBefore(factory.createStatementFromText(text), null);
     reformatClosure(parent);
     return getMethodCall(parent, name);
@@ -267,6 +245,15 @@ class GradleGroovyFile {
   }
 
   /**
+   * Returns the first argument for the given method call (which can be a literal, expression, or closure), or null if the method has
+   * no arguments.
+   */
+  protected static @Nullable GroovyPsiElement getFirstArgument(@NotNull GrMethodCall gmc) {
+    GroovyPsiElement[] arguments = getArguments(gmc);
+    return arguments.length > 0 ? arguments[0] : null;
+  }
+
+  /**
    * Returns the first method call of the given method name in the given parent statement block, or null if one could not be found.
    */
   protected static @Nullable GrMethodCall getMethodCall(@NotNull GrStatementOwner parent, @NotNull String methodName) {
@@ -360,7 +347,7 @@ class GradleGroovyFile {
   /**
    * Returns the first argument of the given method call that is a closure, or null if the closure could not be found.
    */
-  protected static GrClosableBlock getMethodClosureArgument(@NotNull GrMethodCall methodCall) {
+  protected static @Nullable GrClosableBlock getMethodClosureArgument(@NotNull GrMethodCall methodCall) {
     return Iterables.getFirst(Arrays.asList(methodCall.getClosureArguments()), null);
   }
 
@@ -372,19 +359,11 @@ class GradleGroovyFile {
     if (method == null) {
       return null;
     }
-    if (key.isArgumentIsClosure()) {
-      return key.getValue(getMethodClosureArgument(method));
-    } else {
-      return key.getValue(getArguments(method));
+    GroovyPsiElement arg = key.getType() == BuildFileKeyType.CLOSURE ? getMethodClosureArgument(method) : getFirstArgument(method);
+    if (arg == null) {
+      return null;
     }
-  }
-
-  /**
-   * Returns the value in the file for the given key, converted to string, or null if not present.
-   */
-  static @Nullable String getStringValueStatic(@NotNull GrStatementOwner root, @NotNull BuildFileKey key) {
-    Object value = getValueStatic(root, key);
-    return value != null ? value.toString() : null;
+    return key.getValue(arg);
   }
 
   /**
@@ -396,11 +375,11 @@ class GradleGroovyFile {
       method = createNewValue(root, key);
     }
     if (method != null) {
-      if (key.isArgumentIsClosure()) {
-        key.setValue(getMethodClosureArgument(method), value);
-      } else {
-        key.setValue(root.getProject(), getArguments(method), value);
+      GroovyPsiElement arg = key.getType() == BuildFileKeyType.CLOSURE  ? getMethodClosureArgument(method) : getFirstArgument(method);
+      if (arg == null) {
+        return;
       }
+      key.setValue(arg, value);
     }
   }
 
