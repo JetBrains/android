@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.*;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.ide.impl.NewProjectUtil;
 import com.intellij.notification.NotificationType;
@@ -29,6 +28,7 @@ import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemIdeNotificationManager;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataService;
+import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -41,7 +41,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -83,15 +82,13 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
       return;
     }
 
-    final List<Module> modules = ImmutableList.copyOf(ModuleManager.getInstance(project).getModules());
-
-    ExternalSystemApiUtil.executeProjectChangeAction(synchronous, new Runnable() {
+    ExternalSystemApiUtil.executeProjectChangeAction(synchronous, new DisposeAwareProjectChange(project) {
       @Override
-      public void run() {
+      public void execute() {
         LanguageLevel javaLangVersion = null;
 
         Map<String, IdeaAndroidProject> androidProjectsByModuleName = indexByModuleName(toImport);
-        for (Module module : modules) {
+        for (Module module : ModuleManager.getInstance(project).getModules()) {
           IdeaAndroidProject androidProject = androidProjectsByModuleName.get(module.getName());
           customizeModule(module, project, androidProject);
           if (androidProject != null && javaLangVersion == null) {

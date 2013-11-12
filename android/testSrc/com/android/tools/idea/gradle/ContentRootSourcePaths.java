@@ -38,8 +38,9 @@ import java.util.*;
  */
 public class ContentRootSourcePaths {
   @NotNull public static final ExternalSystemSourceType[] ALL_SOURCE_TYPES =
-    {ExternalSystemSourceType.EXCLUDED, ExternalSystemSourceType.GENERATED, ExternalSystemSourceType.RESOURCE,
-      ExternalSystemSourceType.SOURCE, ExternalSystemSourceType.TEST, ExternalSystemSourceType.TEST_RESOURCE};
+    {ExternalSystemSourceType.EXCLUDED, ExternalSystemSourceType.SOURCE_GENERATED, ExternalSystemSourceType.RESOURCE,
+      ExternalSystemSourceType.SOURCE, ExternalSystemSourceType.TEST, ExternalSystemSourceType.TEST_RESOURCE,
+      ExternalSystemSourceType.TEST_GENERATED};
 
   @NotNull private final Map<ExternalSystemSourceType, List<String>> myDirectoryPathsBySourceType = Maps.newHashMap();
 
@@ -87,7 +88,7 @@ public class ContentRootSourcePaths {
   }
 
   private void addGeneratedDirPaths(@NotNull ArtifactInfoStub artifactInfo, boolean isTest) {
-    ExternalSystemSourceType sourceType = isTest ? ExternalSystemSourceType.TEST : ExternalSystemSourceType.GENERATED;
+    ExternalSystemSourceType sourceType = isTest ? ExternalSystemSourceType.TEST_GENERATED : ExternalSystemSourceType.SOURCE_GENERATED;
     addSourceDirPaths(sourceType, artifactInfo.getGeneratedSourceFolders());
 
     sourceType = isTest ? ExternalSystemSourceType.TEST_RESOURCE : ExternalSystemSourceType.RESOURCE;
