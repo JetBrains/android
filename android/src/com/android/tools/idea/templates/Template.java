@@ -42,6 +42,7 @@ import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -458,6 +459,8 @@ public class Template {
 
     if (to.exists()) {
       targetText = Files.toString(to, Charsets.UTF_8);
+    } else if (to.getParentFile() != null) {
+      to.getParentFile().mkdirs();
     }
 
     if (targetText == null) {
@@ -699,8 +702,10 @@ public class Template {
    * @param gradleBuildFile the build.gradle file which will be written with the merged dependencies
    */
   private void mergeDependenciesIntoFile(List<String> dependencyList, File gradleBuildFile) {
+    Multimap<String, GradleCoordinate> dependencies = LinkedListMultimap.create();
+
     // First, get the contents of the gradle file.
-    String contents = readTextFile(gradleBuildFile);
+    String contents = StringUtil.notNullize(readTextFile(gradleBuildFile));
 
     // Now, look for a (top-level) dependency block
     int braceCount = 0;
@@ -726,8 +731,6 @@ public class Template {
     }
 
     String dependencyBlock = contents.substring(dependencyBlockStart, dependencyBlockEnd);
-
-    Multimap<String, GradleCoordinate> dependencies = LinkedListMultimap.create();
 
     // If we have dependencies already in the file, load those up
     if (!dependencyBlock.isEmpty()) {
@@ -968,6 +971,9 @@ public class Template {
     VirtualFile vf = LocalFileSystem.getInstance().findFileByIoFile(to);
     if (vf == null) {
       try {
+        if (to.getParentFile() != null && !to.getParentFile().exists()) {
+          to.getParentFile().mkdirs();
+        }
         vf = LocalFileSystem.getInstance().findFileByIoFile(to.getParentFile()).createChildData(this, to.getName());
       } catch (NullPointerException e) {
         throw new IOException("Unable to create file " + to.getAbsolutePath());
