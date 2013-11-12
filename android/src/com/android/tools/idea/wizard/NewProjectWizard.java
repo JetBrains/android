@@ -54,9 +54,10 @@ import static icons.AndroidIcons.Wizards.NewProjectSidePanel;
  */
 public class NewProjectWizard extends TemplateWizard implements TemplateParameterStep.UpdateListener {
   private static final Logger LOG = Logger.getInstance("#" + NewProjectWizard.class.getName());
-  private static final String JAVA_SRC_PATH = FD_SOURCES + File.separator + FD_MAIN + File.separator + FD_JAVA;
   private static final String ERROR_MSG_TITLE = "New Project Wizard";
   private static final String UNABLE_TO_CREATE_DIR_FORMAT = "Unable to create directory '%s1$s'.";
+  private static final String PROJECT_CATEGORY = "Projects";
+  private static final String PROJECT_TEMPLATE = "Android Project";
 
   private NewProjectWizardState myWizardState;
   private LauncherIconStep myLauncherIconStep;
@@ -133,23 +134,17 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
       if (!FileUtilRt.createDirectory(projectRoot)) {
         errors.add(String.format(UNABLE_TO_CREATE_DIR_FORMAT, projectRoot.getPath()));
       }
-      createGradleWrapper(projectRoot);
-      int apiLevel = wizardState.getInt(ATTR_BUILD_API);
-      Sdk sdk = getSdk(apiLevel);
-      if (sdk == null) {
-        // This will NEVER happen. The SDK has been already set before this wizard runs.
-        errors.add(String.format("Unable to find an Android SDK with API level %d.", apiLevel));
-      }
-      else {
-        LocalProperties localProperties = new LocalProperties(projectRoot);
-        localProperties.setAndroidSdkPath(sdk);
-        localProperties.save();
-      }
       if (wizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS)) {
         wizardState.getLauncherIconState().outputImages(moduleRoot);
       }
       wizardState.updateParameters();
       wizardState.updateDependencies();
+
+      // If this is a new project, instantiate the project-level files
+      if (wizardState instanceof NewProjectWizardState) {
+        ((NewProjectWizardState)wizardState).myProjectTemplate.render(projectRoot, moduleRoot, wizardState.myParameters);
+      }
+
       wizardState.myTemplate.render(projectRoot, moduleRoot, wizardState.myParameters);
       if (wizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY)) {
         TemplateWizardState activityTemplateState = wizardState.getActivityTemplateState();
@@ -157,15 +152,6 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
         assert template != null;
         template.render(moduleRoot, moduleRoot, activityTemplateState.myParameters);
         wizardState.myTemplate.getFilesToOpen().addAll(template.getFilesToOpen());
-      }
-      else {
-        // Ensure that at least the Java source directory exists. We could create other directories but this is the most used.
-        // TODO: We should perhaps instantiate this from the Freemarker template, using the mkdir command
-        File javaSrcDir = new File(moduleRoot, JAVA_SRC_PATH);
-        File packageDir = new File(javaSrcDir, wizardState.getString(ATTR_PACKAGE_NAME).replace('.', File.separatorChar));
-        if (!FileUtilRt.createDirectory(packageDir)) {
-          errors.add(String.format(UNABLE_TO_CREATE_DIR_FORMAT, packageDir.getPath()));
-        }
       }
       if (ApplicationManager.getApplication().isUnitTestMode()) {
         return;
