@@ -22,12 +22,9 @@ import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.structure.AndroidHomeConfigurable;
 import com.android.utils.Pair;
 import com.google.common.io.Closeables;
-import com.intellij.compiler.actions.GenerateAntBuildAction;
 import com.intellij.debugger.settings.NodeRendererSettings;
-import com.intellij.ide.actions.ImportModuleAction;
 import com.intellij.ide.projectView.actions.MarkRootGroup;
 import com.intellij.ide.projectView.impl.MoveModuleToGroupTopLevel;
-import com.intellij.ide.util.frameworkSupport.AddFrameworkSupportAction;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
@@ -114,11 +111,15 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     replaceAction("NewModuleInGroup", new AndroidNewModuleInGroupAction());
     replaceAction("ImportProject", new AndroidImportProjectAction());
     replaceAction("WelcomeScreen.ImportProject", new AndroidImportProjectAction());
-    replaceAction("ImportModule", new AndroidActionRemover(new ImportModuleAction(), "Import Module..."));
+    hideActionForAndroidGradle("ImportModule", "Import Module...");
 
-    replaceAction(IdeActions.ACTION_GENERATE_ANT_BUILD, new AndroidActionRemover(new GenerateAntBuildAction(), "Generate Ant Build..."));
+    hideActionForAndroidGradle(IdeActions.ACTION_GENERATE_ANT_BUILD, "Generate Ant Build...");
 
-    replaceAction("AddFrameworkSupport", new AndroidActionRemover(new AddFrameworkSupportAction(), "Add Framework Support..."));
+    hideActionForAndroidGradle("AddFrameworkSupport", "Add Framework Support...");
+
+    hideActionForAndroidGradle("BuildArtifact", "Build Artifacts...");
+
+    hideActionForAndroidGradle("RunTargetAction", "Run Ant Target");
 
     replaceProjectPopupActions();
   }
@@ -143,6 +144,12 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     newAction.getTemplatePresentation().setIcon(oldAction.getTemplatePresentation().getIcon());
     am.unregisterAction(actionId);
     am.registerAction(actionId, newAction);
+  }
+
+  private static void hideActionForAndroidGradle(String actionId, String backupText) {
+    AnAction oldAction = ActionManager.getInstance().getAction(actionId);
+    AnAction newAction = new AndroidActionRemover(oldAction, backupText);
+    replaceAction(actionId, newAction);
   }
 
   private static void replaceProjectPopupActions() {
