@@ -70,9 +70,11 @@ public class CompilerOutputPathModuleCustomizer implements ModuleCustomizer {
     CompilerModuleExtension compilerSettings = moduleSettings.getModuleExtension(CompilerModuleExtension.class);
     try {
       compilerSettings.inheritCompilerOutputPath(false);
-      compilerSettings.setCompilerOutputPath(VfsUtilCore.pathToUrl(classesFolder.getAbsolutePath()));
+      String dirPath = FileUtil.toSystemIndependentName(classesFolder.getPath());
+      compilerSettings.setCompilerOutputPath(VfsUtilCore.pathToUrl(dirPath));
       if (testClassesFolder != null) {
-        compilerSettings.setCompilerOutputPathForTests(VfsUtilCore.pathToUrl(testClassesFolder.getAbsolutePath()));
+        dirPath = FileUtil.toSystemIndependentName(testClassesFolder.getPath());
+        compilerSettings.setCompilerOutputPathForTests(VfsUtilCore.pathToUrl(dirPath));
       }
     } finally {
       compilerSettings.commit();

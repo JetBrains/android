@@ -119,7 +119,7 @@ public class ContentRootSourcePaths {
     }
     List<String> paths = getPaths(sourceType);
     for (File directory : sourceDirectories) {
-      paths.add(FileUtil.toSystemIndependentName(directory.getAbsolutePath()));
+      paths.add(FileUtil.toSystemIndependentName(directory.getPath()));
     }
     Collections.sort(paths);
   }
