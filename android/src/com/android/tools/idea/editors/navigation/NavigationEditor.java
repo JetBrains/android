@@ -29,10 +29,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiJavaCodeReferenceElement;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiStatement;
+import com.intellij.psi.*;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBScrollPane;
@@ -45,6 +44,7 @@ import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -54,6 +54,7 @@ import static com.android.tools.idea.editors.navigation.Utilities.getMethodsByNa
 public class NavigationEditor implements FileEditor {
   public static final String TOOLBAR = "NavigationEditorToolbar";
   private static final Logger LOG = Logger.getInstance("#" + NavigationEditor.class.getName());
+  private static final boolean DEBUG = false;
   private static final String NAME = "Navigation";
   private static final int INITIAL_FILE_BUFFER_SIZE = 1000;
   private static final int SCROLL_UNIT_INCREMENT = 20;
@@ -82,7 +83,8 @@ public class NavigationEditor implements FileEditor {
 
     myFile = file;
     try {
-      myNavigationModel = processModel(read(file), NavigationEditorPanel.getRenderingParams(project, file).myConfiguration.getModule());
+      myNavigationModel =
+        processModel(read(file), NavigationEditorPanel.getRenderingParams(project, file).myConfiguration.getModule(), project, file);
       // component = new NavigationModelEditorPanel1(project, file, read(file));
       NavigationEditorPanel editor = new NavigationEditorPanel(project, file, myNavigationModel);
       JBScrollPane scrollPane = new JBScrollPane(editor);
@@ -115,16 +117,58 @@ public class NavigationEditor implements FileEditor {
     myNavigationModel.getListeners().add(myNavigationModelListener);
   }
 
-  private static NavigationModel processModel(NavigationModel model, Module module) {
-    Map<String, ActivityState> activities = getActivities(model);
-    Map<String, MenuState> menus = getMenus(model);
+  @Nullable
+  public static String getInnerText(String s) {
+    if (s.startsWith("\"") && s.endsWith("\"")) {
+      return s.substring(1, s.length() - 1);
+    }
+    assert false;
+    return null;
+  }
 
-    PsiMethod installMenuItemClickMacro = getMethodsByName(module, "com.android.templates.InstallListenerTemplates", "installMenuItemClick")[0];
-    PsiMethod getMenuItemMacro = getMethodsByName(module, "com.android.templates.MenuAccessTemplates", "getMenuItem")[0];
-    PsiMethod launchActivityMacro = getMethodsByName(module, "com.android.templates.LaunchActivityTemplates", "launchActivity")[0];
+  private static class FragmentEntry {
+    public final String tag;
+    public final String className;
+
+    private FragmentEntry(String tag, String className) {
+      this.tag = tag;
+      this.className = className;
+    }
+  }
+
+  private static FragmentEntry findFragmentByTag(Collection<FragmentEntry> l, String tag) {
+    for(FragmentEntry fragment: l) {
+      if (tag.equals(fragment.tag)) {
+        return fragment;
+      }
+    }
+    return null;
+  }
+
+  private static NavigationModel processModel(final NavigationModel model, final Module module, Project project, VirtualFile file) {
+    final Map<String, ActivityState> activities = getActivities(model);
+    final Map<String, MenuState> menus = getMenus(model);
+
+    final PsiMethod methodCallMacro = getMethodsByName(module, "com.android.templates.GeneralTemplates", "call")[0];
+    final PsiMethod defineAssignment = getMethodsByName(module, "com.android.templates.GeneralTemplates", "defineAssignment")[0];
+    final PsiMethod defineInnerClassMacro = getMethodsByName(module, "com.android.templates.GeneralTemplates", "defineInnerClass")[0];
+
+    final PsiMethod installMenuItemClickMacro =
+      getMethodsByName(module, "com.android.templates.InstallListenerTemplates", "installMenuItemClick")[0];
+    final PsiMethod installItemClickMacro =
+      getMethodsByName(module, "com.android.templates.InstallListenerTemplates", "installItemClickListener")[0];
+
+    final PsiMethod getMenuItemMacro = getMethodsByName(module, "com.android.templates.MenuAccessTemplates", "getMenuItem")[0];
+    final PsiMethod launchActivityMacro = getMethodsByName(module, "com.android.templates.LaunchActivityTemplates", "launchActivity")[0];
+    final PsiMethod launchActivityMacro2 = getMethodsByName(module, "com.android.templates.LaunchActivityTemplates", "launchActivity")[1];
+
+    //model.getTransitions().clear();
 
     for (ActivityState state : activities.values()) {
       String className = state.getClassName();
+      final ActivityState finalState = state;
+
+      if (DEBUG) System.out.println("className = " + className);
 
       // Look for menu inflation
       {
@@ -147,7 +191,8 @@ public class NavigationEditor implements FileEditor {
                     Map<String, PsiElement> bindings3 = match(launchActivityMacro, bindings.get("$f"));
                     if (bindings3 != null) {
                       ActivityState activityState = getState(activities.values(), bindings3.get("activityClass").getFirstChild().getText());
-                      String menuItemName = bindings2.get("$id").getLastChild().getText();// e.g. $id=PsiReferenceExpression:R.id.action_account
+                      String menuItemName =
+                        bindings2.get("$id").getLastChild().getText();// e.g. $id=PsiReferenceExpression:R.id.action_account
                       model.add(new Transition("click", Locator.of(menuState, menuItemName), new Locator(activityState)));
                     }
                   }
@@ -158,7 +203,85 @@ public class NavigationEditor implements FileEditor {
         }
       }
 
+      // Examine fragments associated with this activity
+      String xmlFileName = NavigationEditorPanel.getXMLFileName(module, state);
+      XmlFile psiFile = (XmlFile)NavigationEditorPanel.getPsiFile(false, xmlFileName, file, project);
+      final java.util.List<FragmentEntry> fragments = new ArrayList<FragmentEntry>();
+      psiFile.accept(new XmlRecursiveElementVisitor() {
+        @Override
+        public void visitXmlTag(XmlTag tag) {
+          super.visitXmlTag(tag);
+          if (tag.getName().equals("fragment")) {
+            String fragmentTag = tag.getAttributeValue("android:tag");
+            String fragmentClassName = tag.getAttributeValue("android:name");
+            if (DEBUG) System.out.println("fragmentClassName = " + fragmentClassName);
+            fragments.add(new FragmentEntry(fragmentTag, fragmentClassName));
+          }
+        }
+      });
+
+      for (FragmentEntry fragment : fragments) {
+        PsiClass fragmentClass = Utilities.getPsiClass(module, fragment.className);
+        PsiMethod[] methods = getMethodsByName(module, fragment.className, "installListeners");
+        if (methods.length == 1) {
+          PsiMethod installListenersMethod = methods[0];
+          PsiStatement[] statements = installListenersMethod.getBody().getStatements();
+          for (PsiStatement s : statements) {
+            Map<String, PsiElement> bindings = match(installItemClickMacro, s.getFirstChild());
+
+            if (bindings != null) {
+              Map<String, PsiElement> bindings2 = match(methodCallMacro, bindings.get("$f"));
+              //if (DEBUG) System.out.println("bindings2 = " + bindings2);
+              final PsiElement $target = bindings2.get("$target");
+              if (bindings2 != null) {
+                final PsiElement $listView = bindings2.get("$listView");
+                fragmentClass.accept(new JavaRecursiveElementVisitor() {
+                  @Override
+                  public void visitAssignmentExpression(PsiAssignmentExpression expression) {
+                    //if (DEBUG) System.out.println("$target = " + $target);
+                    //if (DEBUG) System.out.println("expression = " + expression);
+                    if (expression.getLExpression().getText().equals($target.getText())) {
+                      PsiExpression rExpression = expression.getRExpression();
+                      if (DEBUG) System.out.println("expression.getRExpression() = " + rExpression);
+                      Map<String, PsiElement> bindings3 = match(defineAssignment, rExpression);
+                      if (bindings3 != null) {
+                        if (DEBUG) System.out.println("bindings3 = " + bindings3);
+                        PsiElement fragmentLiteral = bindings3.get("$fragmentName");
+                        if (fragmentLiteral instanceof PsiLiteralExpression) {
+                          String fragmentTag = getInnerText(fragmentLiteral.getText());
+                          FragmentEntry fragment = findFragmentByTag(fragments, fragmentTag);
+                          if (fragment != null) {
+                            model.add(new Transition("click", Locator.of(finalState, null), Locator.of(finalState, fragment.tag))); // e.g. "messageFragment"
+                            return;
+                          }
+                        }
+                      } Map<String, PsiElement> bindings4 = match(defineInnerClassMacro, rExpression);
+                      if (bindings4 != null) {
+                        if (DEBUG) System.out.println("bindings4 = " + bindings4);
+                        Map<String, PsiElement> bindings5 = match(launchActivityMacro2, bindings4.get("$f"));
+                        if (bindings5 != null) {
+                          if (DEBUG) System.out.println("bindings5 = " + bindings5);
+                          State toState = getState(activities.values(), bindings5.get("activityClass").getFirstChild().getText());
+                          if (DEBUG) System.out.println("toState = " + toState);
+                          if (toState != null) {
+                            String viewName = /*$listView.getText()*/ null; // todo convert to property name - also check for null
+                            model.add(new Transition("click", Locator.of(finalState, viewName), new Locator(toState)));
+                            if (DEBUG) System.out.println("Added binding for click listener: " + finalState + " " + viewName + " " + toState);
+                          }
+                        }
+                      }
+                    }
+                  }
+                });
+              }
+            }
+          }
+        }
+
+      }
+
     }
+
     return model;
   }
 
