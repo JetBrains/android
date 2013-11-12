@@ -63,6 +63,10 @@ class GradleGroovyFile {
     reload();
   }
 
+  public Project getProject() {
+    return myProject;
+  }
+
   /**
    * Automatically reformats all the Groovy code inside the given closure.
    */
