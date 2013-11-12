@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.util.Facets;
 import com.android.tools.idea.gradle.util.Projects;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
@@ -30,6 +29,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataService;
+import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -37,7 +37,6 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -55,14 +54,13 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
                          @NotNull final Project project,
                          boolean synchronous) {
     if (!toImport.isEmpty()) {
-      ModuleManager moduleManager = ModuleManager.getInstance(project);
-      final List<Module> modules = ImmutableList.copyOf(moduleManager.getModules());
 
-      ExternalSystemApiUtil.executeProjectChangeAction(synchronous, new Runnable() {
+      ExternalSystemApiUtil.executeProjectChangeAction(synchronous, new DisposeAwareProjectChange(project) {
         @Override
-        public void run() {
+        public void execute() {
+          ModuleManager moduleManager = ModuleManager.getInstance(project);
           Map<String, IdeaGradleProject> gradleProjectsByName = indexByModuleName(toImport);
-          for (Module module : modules) {
+          for (Module module : moduleManager.getModules()) {
             IdeaGradleProject gradleProject = gradleProjectsByName.get(module.getName());
             if (gradleProject == null) {
               // This happens when there is an orphan IDEA module that does not map to a Gradle project. One way for this to happen is when

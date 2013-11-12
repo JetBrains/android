@@ -171,6 +171,7 @@ public class AndroidResourceFilesListener extends BulkFileListener.Adapter imple
         return MultiMap.emptyInstance();
       }
       final MultiMap<Module, AndroidAutogeneratorMode> result = MultiMap.create();
+      final Set<Module> modulesToInvalidateAttributeDefs = new HashSet<Module>();
 
       for (VirtualFile file : myFiles) {
         final Module module = ModuleUtilCore.findModuleForFile(file, myProject);
@@ -183,12 +184,22 @@ public class AndroidResourceFilesListener extends BulkFileListener.Adapter imple
         if (facet == null) {
           continue;
         }
+        final VirtualFile parent = file.getParent();
+        final VirtualFile gp = parent != null ? parent.getParent() : null;
+        final VirtualFile resourceDir = AndroidRootUtil.getResourceDir(facet);
+
+        if (gp != null &&
+            Comparing.equal(gp, resourceDir) &&
+            ResourceFolderType.VALUES.getName().equals(AndroidCommonUtils.getResourceTypeByDirName(parent.getName()))) {
+          modulesToInvalidateAttributeDefs.add(module);
+        }
         final List<AndroidAutogeneratorMode> modes = computeCompilersToRunAndInvalidateLocalAttributesMap(facet, file);
 
         if (modes.size() > 0) {
           result.putValues(module, modes);
         }
       }
+      invalidateAttributeDefinitions(modulesToInvalidateAttributeDefs);
       return result;
     }
 
@@ -198,13 +209,6 @@ public class AndroidResourceFilesListener extends BulkFileListener.Adapter imple
 
       if (parent == null) {
         return Collections.emptyList();
-      }
-      final VirtualFile gp = parent.getParent();
-      final VirtualFile resourceDir = AndroidRootUtil.getResourceDir(facet);
-
-      if (Comparing.equal(gp, resourceDir) &&
-          ResourceFolderType.VALUES.getName().equals(AndroidCommonUtils.getResourceTypeByDirName(parent.getName()))) {
-        invalidateAttributeDefinitions(facet);
       }
       final Module module = facet.getModule();
       final VirtualFile manifestFile = AndroidRootUtil.getManifestFile(facet);
@@ -240,14 +244,12 @@ public class AndroidResourceFilesListener extends BulkFileListener.Adapter imple
       return modes;
     }
 
-    private void invalidateAttributeDefinitions(AndroidFacet facet) {
-      facet.getLocalResourceManager().invalidateAttributeDefinitions();
+    private void invalidateAttributeDefinitions(@NotNull Collection<Module> modules) {
+      for (Module module : AndroidUtils.getSetWithBackwardDependencies(modules)) {
+        final AndroidFacet facet = AndroidFacet.getInstance(module);
 
-      for (Module depModule : AndroidUtils.getBackwardDependencies(facet.getModule())) {
-        final AndroidFacet depFacet = AndroidFacet.getInstance(depModule);
-
-        if (depFacet != null) {
-          depFacet.getLocalResourceManager().invalidateAttributeDefinitions();
+        if (facet != null) {
+          facet.getLocalResourceManager().invalidateAttributeDefinitions();
         }
       }
     }

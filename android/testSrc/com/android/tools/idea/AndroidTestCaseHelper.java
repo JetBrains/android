@@ -19,6 +19,7 @@ package com.android.tools.idea;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.intellij.ide.impl.NewProjectUtil;
+import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdk;
@@ -39,9 +40,9 @@ public class AndroidTestCaseHelper {
     final Sdk jdk = SdkConfigurationUtil.createAndAddSDK(jdkHomePath, JavaSdk.getInstance());
     assertNotNull(jdk);
 
-    ExternalSystemApiUtil.executeProjectChangeAction(true, new Runnable() {
+    ExternalSystemApiUtil.executeProjectChangeAction(true, new DisposeAwareProjectChange(project) {
       @Override
-      public void run() {
+      public void execute() {
         NewProjectUtil.applyJdkToProject(project, jdk);
       }
     });
