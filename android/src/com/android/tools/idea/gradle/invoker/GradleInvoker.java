@@ -58,7 +58,7 @@ public class GradleInvoker {
 
   public void generateSources() {
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    List<String> tasks = findTasksToExecute(moduleManager.getModules(), BuildMode.SOURCE_GEN, false);
+    List<String> tasks = findTasksToExecute(moduleManager.getModules(), BuildMode.SOURCE_GEN, GradleBuilds.TestCompileContext.NONE);
     executeTasks(tasks, new Runnable() {
       @Override
       public void run() {
@@ -69,32 +69,33 @@ public class GradleInvoker {
 
   public void compileJava(@NotNull DataContext dataContext) {
     Module[] modules = Projects.getModulesToBuildFromSelection(myProject, dataContext);
-    List<String> tasks = findTasksToExecute(modules, BuildMode.COMPILE_JAVA, false);
+    List<String> tasks = findTasksToExecute(modules, BuildMode.COMPILE_JAVA, GradleBuilds.TestCompileContext.NONE);
     executeTasks(tasks, null);
   }
 
   public void make() {
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    List<String> tasks = findTasksToExecute(moduleManager.getModules(), BuildMode.MAKE, false);
+    List<String> tasks = findTasksToExecute(moduleManager.getModules(), BuildMode.MAKE, GradleBuilds.TestCompileContext.NONE);
     executeTasks(tasks, null);
   }
 
   public void make(@NotNull DataContext dataContext) {
     Module[] modules = Projects.getModulesToBuildFromSelection(myProject, dataContext);
-    List<String> tasks = findTasksToExecute(modules, BuildMode.MAKE, false);
+    List<String> tasks = findTasksToExecute(modules, BuildMode.MAKE, GradleBuilds.TestCompileContext.NONE);
     executeTasks(tasks, null);
   }
 
   public void rebuild() {
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    List<String> tasks = findTasksToExecute(moduleManager.getModules(), BuildMode.REBUILD, false);
+    List<String> tasks = findTasksToExecute(moduleManager.getModules(), BuildMode.REBUILD, GradleBuilds.TestCompileContext.NONE);
     if (!tasks.isEmpty()) {
       tasks.add(0, GradleBuilds.CLEAN_TASK_NAME);
     }
     executeTasks(tasks, null);
   }
 
-  private List<String> findTasksToExecute(@NotNull Module[] modules, @NotNull BuildMode buildMode, boolean buildTests) {
+  private List<String> findTasksToExecute(@NotNull Module[] modules, @NotNull BuildMode buildMode,
+                                          GradleBuilds.TestCompileContext testCompileContext) {
     List<String> tasks = Lists.newArrayList();
     for (Module module: modules) {
       AndroidGradleFacet androidGradleFacet = AndroidGradleFacet.getInstance(module);
@@ -104,7 +105,7 @@ public class GradleInvoker {
       String gradleProjectPath = androidGradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       JpsAndroidModuleProperties properties = androidFacet != null ? androidFacet.getProperties() : null;
-      GradleBuilds.findAndAddBuildTask(module.getName(), buildMode, gradleProjectPath, properties, tasks, buildTests);
+      GradleBuilds.findAndAddBuildTask(module.getName(), buildMode, gradleProjectPath, properties, tasks, testCompileContext);
     }
 
     if (tasks.isEmpty()) {
