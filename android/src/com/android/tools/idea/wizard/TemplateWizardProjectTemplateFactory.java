@@ -64,8 +64,7 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
       if (project == null) {
         final String templateName = template.getName();
 
-        if (!NewProjectWizardState.APPLICATION_TEMPLATE.equals(templateName) &&
-            !NewProjectWizardState.LIBRARY_TEMPLATE.equals(templateName)) {
+        if (!NewProjectWizardState.MODULE_TEMPLATE_NAME.equals(templateName)) {
           continue;
         }
       }
