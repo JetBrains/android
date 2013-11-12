@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.variant.view;
 
 import com.android.tools.idea.gradle.GradleImportNotificationListener;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -123,11 +122,7 @@ public class BuildVariantView {
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     for (Module module : moduleManager.getModules()) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      if (androidFacet == null) {
-        continue;
-      }
-      if (AndroidGradleFacet.getInstance(module) == null) {
-        // If the module does not have an Android-Gradle facet, just skip it.
+      if (androidFacet == null || !androidFacet.isGradleProject()) {
         continue;
       }
       JpsAndroidModuleProperties facetProperties = androidFacet.getProperties();
