@@ -31,7 +31,8 @@ import java.awt.image.BufferedImage;
 import java.util.List;
 
 public class AndroidRootComponent extends JComponent {
-  //private static final Object RENDERING_LOCK = new Object();
+  public static final boolean DEBUG = false;
+  private static final Object RENDERING_LOCK = new Object();
 
   private final RenderingParameters myRenderingParameters;
   private final PsiFile myPsiFile;
@@ -40,6 +41,7 @@ public class AndroidRootComponent extends JComponent {
   @NotNull Transform transform = createTransform(1);
   private Image myScaledImage;
   private RenderResult myRenderResult = null;
+  private boolean myRenderPending = false;
 
   public AndroidRootComponent(@NotNull final RenderingParameters renderingParameters, @Nullable final PsiFile psiFile, boolean isMenu) {
     this.myRenderingParameters = renderingParameters;
@@ -57,8 +59,9 @@ public class AndroidRootComponent extends JComponent {
   }
 
   private void setRenderResult(@Nullable RenderResult renderResult) {
+    if (DEBUG) System.out.println("setRenderResult " + renderResult);
     myRenderResult = renderResult;
-    revalidate(); // once we have finished rendering we will know where our internal views are, need to relayout otherwise
+    revalidate(); // once we have finished rendering we will know where our internal views are, need to re-layout (external dependencies on our size)
     repaint();
   }
 
@@ -88,6 +91,7 @@ public class AndroidRootComponent extends JComponent {
     return new Transform(scale);
   }
 
+  @Nullable
   private static RenderedView getMenu(RenderResult renderResult) {
     RenderedView root = getRoot(renderResult);
     if (root == null) {
@@ -96,7 +100,7 @@ public class AndroidRootComponent extends JComponent {
     return root.getChildren().get(0);
   }
 
-  private com.android.navigation.Dimension size(RenderedView view) {
+  private static com.android.navigation.Dimension size(@Nullable RenderedView view) {
     if (view == null) {
       //return com.android.navigation.Dimension.ZERO;
       return new com.android.navigation.Dimension(100, 100); // width/height 0 and 1 is too small to cause an invalidate, for some reason
@@ -126,16 +130,12 @@ public class AndroidRootComponent extends JComponent {
         g.drawImage(image, 0, 0, getWidth(), getHeight(), null);
       }
       */
-
+  @Nullable
   private Image getScaledImage() {
-    if (myScaledImage == null ||
-        myScaledImage.getWidth(null) != getWidth() ||
-        myScaledImage.getHeight(null) != getHeight()) {
-      ScalableImage scalableImage = myRenderResult == null ? null : myRenderResult.getImage();
-      BufferedImage image = scalableImage == null ? null : scalableImage.getOriginalImage();
-      if (image != null) {
-        myScaledImage = ImageUtils.scale(image, transform.myScale, transform.myScale, 0, 0);
-      }
+    if (myScaledImage == null || myScaledImage.getWidth(null) != getWidth() || myScaledImage.getHeight(null) != getHeight()) {
+      ScalableImage scalableImage = (myRenderResult == null) ? null : myRenderResult.getImage();
+      BufferedImage image = (scalableImage == null) ? null : scalableImage.getOriginalImage();
+      myScaledImage = (image == null) ? null : ImageUtils.scale(image, transform.myScale, transform.myScale, 0, 0);
     }
     return myScaledImage;
   }
@@ -156,7 +156,7 @@ public class AndroidRootComponent extends JComponent {
       g.setColor(Color.WHITE);
       g.fillRect(0, 0, getWidth(), getHeight());
       g.setColor(Color.GRAY);
-      String message = "Initialising...";
+      String message = "Initialising... ";
       Font font = g.getFont();
       int messageWidth = getFontMetrics(font).stringWidth(message);
       g.drawString(message, (getWidth() - messageWidth) / 2, getHeight() / 2);
@@ -169,17 +169,17 @@ public class AndroidRootComponent extends JComponent {
       return;
     }
     Project project = myRenderingParameters.myProject;
-    AndroidFacet facet = myRenderingParameters.myFacet;
-    Configuration configuration = myRenderingParameters.myConfiguration;
+    final AndroidFacet facet = myRenderingParameters.myFacet;
+    final Configuration configuration = myRenderingParameters.myConfiguration;
 
     if (project.isDisposed()) {
       return;
     }
+    if (myRenderPending) { // already rendering
+      return;
+    }
+    myRenderPending = true;
 
-    Module module = facet.getModule();
-    RenderLogger logger = new RenderLogger(myPsiFile.getName(), module);
-    //synchronized (RENDERING_LOCK) {
-    final RenderService service = RenderService.create(facet, module, myPsiFile, configuration, logger, null);
     // The rendering service takes long enough to initialise that we don't want to do this from the EDT.
     // Further, IntelliJ's helper classes don't not allow read access from outside EDT, so we need nested runnables.
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
@@ -188,11 +188,15 @@ public class AndroidRootComponent extends JComponent {
         ApplicationManager.getApplication().runReadAction(new Runnable() {
           @Override
           public void run() {
-            if (service != null) {
-              setRenderResult(service.render());
-              service.dispose();
+            synchronized (RENDERING_LOCK) {
+              Module module = facet.getModule();
+              RenderLogger logger = new RenderLogger(myPsiFile.getName(), module);
+              final RenderService service = RenderService.create(facet, module, myPsiFile, configuration, logger, null);
+              if (service != null) {
+                setRenderResult(service.render());
+                service.dispose();
+              }
             }
-            //}
           }
         });
       }
