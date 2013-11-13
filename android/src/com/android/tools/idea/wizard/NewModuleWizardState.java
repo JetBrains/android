@@ -18,7 +18,6 @@ package com.android.tools.idea.wizard;
 
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.SdkManager;
-import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -75,7 +74,9 @@ public class NewModuleWizardState extends TemplateWizardState {
       put(ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
     }
 
-    put(ATTR_SDK_DIR, sdkManager.getLocation());
+    if (sdkManager != null) {
+      put(ATTR_SDK_DIR, sdkManager.getLocation());
+    }
 
     myActivityTemplateState.myHidden.add(ATTR_PACKAGE_NAME);
     myActivityTemplateState.myHidden.add(ATTR_APP_TITLE);
