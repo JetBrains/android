@@ -30,6 +30,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.IdeBorderFactory;
@@ -134,7 +135,7 @@ public class NavigationEditor implements FileEditor {
   }
 
   private static FragmentEntry findFragmentByTag(Collection<FragmentEntry> l, String tag) {
-    for(FragmentEntry fragment: l) {
+    for (FragmentEntry fragment : l) {
       if (tag.equals(fragment.tag)) {
         return fragment;
       }
@@ -143,8 +144,8 @@ public class NavigationEditor implements FileEditor {
   }
 
   private static NavigationModel processModel(final NavigationModel model, final Module module, Project project, VirtualFile file) {
-    Map<String, ActivityState> activities = getActivities(model);
-    Map<String, MenuState> menus = getMenus(model);
+    final Map<String, ActivityState> activities = getActivities(model);
+    final Map<String, MenuState> menus = getMenus(model);
 
     final PsiMethod methodCallMacro = getMethodsByName(module, "com.android.templates.GeneralTemplates", "call")[0];
     final PsiMethod defineAssignment = getMethodsByName(module, "com.android.templates.GeneralTemplates", "defineAssignment")[0];
@@ -195,7 +196,7 @@ public class NavigationEditor implements FileEditor {
                     Map<String, PsiElement> bindings3 = match(launchActivityMacro, bindings.get("$f"));
                     if (DEBUG) System.out.println("bindings3 = " + bindings3);
                     if (bindings3 != null) {
-                      ActivityState activityState = getState(activityStates, bindings3.get("activityClass").getFirstChild().getText());
+                      ActivityState activityState = getState(activities, bindings3.get("activityClass").getFirstChild());
                       String menuItemName =
                         bindings2.get("$id").getLastChild().getText();// e.g. $id=PsiReferenceExpression:R.id.action_account
                       if (DEBUG) System.out.println("Adding binding for = " + bindings3);
@@ -234,7 +235,6 @@ public class NavigationEditor implements FileEditor {
           PsiStatement[] statements = installListenersMethod.getBody().getStatements();
           for (PsiStatement s : statements) {
             Map<String, PsiElement> bindings = match(installItemClickMacro, s.getFirstChild());
-
             if (bindings != null) {
               Map<String, PsiElement> bindings2 = match(methodCallMacro, bindings.get("$f"));
               //if (DEBUG) System.out.println("bindings2 = " + bindings2);
@@ -257,23 +257,24 @@ public class NavigationEditor implements FileEditor {
                           String fragmentTag = getInnerText(fragmentLiteral.getText());
                           FragmentEntry fragment = findFragmentByTag(fragments, fragmentTag);
                           if (fragment != null) {
-                            addTransition(model,
-                                          new Transition("click", Locator.of(finalState, null), Locator.of(finalState, fragment.tag))); // e.g. "messageFragment"
+                            addTransition(model, new Transition("click", Locator.of(finalState, null),
+                                                                Locator.of(finalState, fragment.tag))); // e.g. "messageFragment"
                             return;
                           }
                         }
-                      } Map<String, PsiElement> bindings4 = match(defineInnerClassMacro, rExpression);
+                      }
+                      Map<String, PsiElement> bindings4 = match(defineInnerClassMacro, rExpression);
                       if (bindings4 != null) {
                         if (DEBUG) System.out.println("bindings4 = " + bindings4);
                         Map<String, PsiElement> bindings5 = match(launchActivityMacro2, bindings4.get("$f"));
                         if (bindings5 != null) {
                           if (DEBUG) System.out.println("bindings5 = " + bindings5);
-                          State toState = getState(activityStates, bindings5.get("activityClass").getFirstChild().getText());
+                          PsiElement activityClass = bindings5.get("activityClass").getFirstChild();
+                          State toState = getState(activities, activityClass);
                           if (DEBUG) System.out.println("toState = " + toState);
                           if (toState != null) {
                             String viewName = /*$listView.getText()*/ null; // todo convert to property name - also check for null
-                            Transition t = new Transition("click", Locator.of(finalState, viewName), new Locator(toState));
-                            addTransition(model, t);
+                            addTransition(model, new Transition("click", Locator.of(finalState, viewName), new Locator(toState)));
                           }
                         }
                       }
@@ -298,11 +299,17 @@ public class NavigationEditor implements FileEditor {
     return new Unifier().unify(method.getParameterList(), method.getBody().getStatements()[0].getFirstChild(), element);
   }
 
-  // todo remove this
-  private static ActivityState getState(Collection<ActivityState> states, String simpleClassName) {
-    for (ActivityState state : states) {
-      if (state.getClassName().endsWith(simpleClassName)) {
-        return state;
+@Nullable
+private static ActivityState getState(Map<String, ActivityState> activities, PsiElement element) {
+    if (element instanceof PsiTypeElement) {
+      PsiTypeElement psiTypeElement = (PsiTypeElement)element;
+      PsiType type1 = psiTypeElement.getType();
+      if (type1 instanceof PsiClassReferenceType) {
+        PsiClassReferenceType type = (PsiClassReferenceType)type1;
+        PsiClass resolve = type.resolve();
+        if (resolve != null) {
+          return activities.get(resolve.getQualifiedName());
+        }
       }
     }
     return null;
