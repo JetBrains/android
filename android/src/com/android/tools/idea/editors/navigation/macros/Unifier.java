@@ -27,7 +27,7 @@ public class Unifier {
   private static final Logger LOG = Logger.getInstance("#" + Unifier.class.getName());
   public static final PsiElement UNBOUND = new PsiIdentifierImpl("<Unbound>");
   public static final String STATEMENT_SENTINEL = "$"; // A stand-in method name used to make statement wildcards: wild cards that match statements - e.g. $f.$()
-  private static boolean DEBUG = false;
+  private static final boolean DEBUG = false;
   private int indent = 0;
 
   private String indent() {
@@ -51,7 +51,7 @@ public class Unifier {
     }
     body.accept(myMatcher);
     Map<String, PsiElement> bindings = myMatcher.getBindings();
-    if (DEBUG) System.out.println("bindings = " + bindings);
+    if (DEBUG) System.out.println("Unifier: bindings = " + bindings);
     return bindings;
   }
 
@@ -90,9 +90,38 @@ public class Unifier {
       }
       else {
         if (!equals(identifier, candidate)) {
+          if (DEBUG) System.out.println(indent() + identifier + " != " + candidate);
           valid = false;
         }
       }
+    }
+
+/*
+    PSI trees seem to have some minor non-deterministic behaviors when applied to annotations.
+    Specifically, the AnnotationParamListElement and PsiAnnotationParamListImpl to be exchanged
+    in certain cases. So the output below for an example. For now, ignore annotations.
+
+              PsiAnnotation : PsiAnnotation
+                PsiJavaToken:AT : PsiJavaToken:AT
+                PsiJavaCodeReferenceElement:Override : PsiJavaCodeReferenceElement:Override
+                  PsiReferenceParameterList : PsiReferenceParameterList
+              PsiAnnotationParameterList (class) != PsiAnnotationParameterList: (class)
+              class com.intellij.psi.impl.source.tree.java.AnnotationParamListElement != class com.intellij.psi.impl.source.tree.java.PsiAnnotationParamListImpl
+            *** annotation matching failed ***
+            @Override (class) != @Override (class)
+            class com.intellij.psi.impl.source.tree.java.PsiAnnotationImpl != class com.intellij.psi.impl.source.tree.java.PsiAnnotationImpl
+*/
+    @Override
+    public void visitAnnotation(PsiAnnotation annotation) {
+      /*
+      super.visitAnnotation(annotation);
+      if (!valid) {
+        System.out.println(indent() + "*** annotation matching failed ***");
+        System.out.println(indent() + annotation.getText() + " (class) != " + candidate.getText() + " (class)");
+        System.out.println(indent() + annotation.getClass() + " != " + candidate.getClass());
+        //valid = true;
+      }
+      */
     }
 
     @Override
@@ -122,7 +151,8 @@ public class Unifier {
     @Override
     public void visitElement(PsiElement template) {
       if (template.getClass() != candidate.getClass()) {
-        if (DEBUG) System.out.println(indent() + template + " != " + candidate);
+        if (DEBUG) System.out.println(indent() + template + ".getClass() != " + candidate + ".getClass()");
+        if (DEBUG) System.out.println(indent() + template.getClass() + " != " + candidate.getClass());
         valid = false;
         return;
       }

@@ -56,4 +56,9 @@ public class ActivityState extends State {
   public int hashCode() {
     return className.hashCode();
   }
+
+  @Override
+  public String toString() {
+    return "ActivityState{" + className + '}';
+  }
 }
