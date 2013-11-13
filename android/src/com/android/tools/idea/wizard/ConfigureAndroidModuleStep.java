@@ -30,6 +30,8 @@ import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
@@ -50,10 +52,12 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
+import static com.android.tools.idea.wizard.NewModuleWizardState.APP_NAME;
 import static com.android.tools.idea.wizard.NewProjectWizardState.*;
 
 /**
@@ -91,6 +95,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   private JCheckBox myNavigationDrawerCheckBox;
   private JComboBox mySourceCombo;
   private JLabel mySourceVersionLabel;
+  private JLabel myAppNameLabel;
   boolean myInitializedPackageNameText = false;
   private boolean myInitialized = false;
   @Nullable private WizardContext myWizardContext;
@@ -148,7 +153,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
     // Find a unique project location
     String projectLocation = myTemplateState.getString(ATTR_PROJECT_LOCATION);
-    if (projectLocation != null && !projectLocation.isEmpty()) {
+    if (projectLocation != null && !projectLocation.isEmpty() && myProject != null && !myProject.isInitialized()) {
       File file = new File(projectLocation);
       if (file.exists()) {
         String appName = myTemplateState.getString(ATTR_APP_TITLE);
@@ -195,6 +200,10 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     if (myTemplateState.myHidden.contains(ATTR_MODULE_NAME)) {
       myModuleName.setVisible(false);
       myModuleNameLabel.setVisible(false);
+    }
+    if (myTemplateState.myHidden.contains(ATTR_APP_TITLE)) {
+      myAppNameLabel.setVisible(false);
+      myAppName.setVisible(false);
     }
   }
 
@@ -337,14 +346,6 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   @Override
   protected void deriveValues() {
-    if (myTemplateState.myModified.contains(ATTR_MODULE_NAME)) {
-      updateDerivedValue(ATTR_APP_TITLE, myAppName, new Callable<String>() {
-        @Override
-        public String call() {
-          return computeAppName();
-        }
-      });
-    }
     updateDerivedValue(ATTR_MODULE_NAME, myModuleName, new Callable<String>() {
       @Override
       public String call() {
@@ -365,7 +366,6 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
         }
       });
     }
-
     if (!myInitializedPackageNameText) {
       myInitializedPackageNameText = true;
       if ((myTemplateState.getString(ATTR_PACKAGE_NAME)).startsWith(SAMPLE_PACKAGE_PREFIX)) {
@@ -392,13 +392,16 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     }
 
     setErrorHtml("");
-    String applicationName = myTemplateState.getString(ATTR_APP_TITLE);
-    if (applicationName == null || applicationName.isEmpty()) {
-      setErrorHtml("Enter an application name (shown in launcher)");
-      return false;
-    }
-    if (Character.isLowerCase(applicationName.charAt(0))) {
-      setErrorHtml("The application name for most apps begins with an uppercase letter");
+
+    if (!myTemplateState.myHidden.contains(ATTR_APP_TITLE)) {
+      String applicationName = myTemplateState.getString(ATTR_APP_TITLE);
+      if (applicationName == null || applicationName.isEmpty()) {
+        setErrorHtml("Enter an application name (shown in launcher)");
+        return false;
+      }
+      if (Character.isLowerCase(applicationName.charAt(0))) {
+        setErrorHtml("The application name for most apps begins with an uppercase letter");
+      }
     }
     String packageName = myTemplateState.getString(ATTR_PACKAGE_NAME);
     if (packageName.startsWith(SAMPLE_PACKAGE_PREFIX)) {
@@ -471,6 +474,9 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
         setErrorHtml("The project location's parent directory must be a directory, not a plain file");
         return false;
       }
+    } else if (!isUniqueModuleName(moduleName)) {
+      // In this state, we've got a pre-existing project. Let's make sure we're not trying to overwrite an existing module
+      setErrorHtml(String.format(Locale.getDefault(), "Module %1$s already exists", moduleName));
     }
 
     return true;
@@ -503,11 +509,11 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   @NotNull
   private String computeModuleName() {
-    String name = myTemplateState.getString(ATTR_APP_TITLE);
-    if (name == null) {
-      return "";
+    String name = myTemplateState.getBoolean(ATTR_IS_LIBRARY_MODULE) ? LIB_NAME : APP_NAME;
+    int i = 2;
+    while (!isUniqueModuleName(name)) {
+      name = name + Integer.toString(i);
     }
-    name = name.replaceAll("[^a-zA-Z0-9_\\-.]", "");
     return name;
   }
 
@@ -524,13 +530,28 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   }
 
   @NotNull
-  private String computeAppName() {
-    return myTemplateState.getString(ATTR_MODULE_NAME);
+  private boolean isUniqueModuleName(@NotNull String moduleName) {
+    if (myProject == null) {
+      return true;
+    }
+    // Check our modules
+    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+    for (Module m : moduleManager.getModules()) {
+      if (m.getName().equals(moduleName)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @NotNull
   private String computeProjectLocation() {
-    return new File(NewProjectWizardState.getProjectFileDirectory(), myTemplateState.getString(ATTR_MODULE_NAME) + "Project")
+    String name = myTemplateState.getString(ATTR_APP_TITLE);
+    if (name == null) {
+      name = "";
+    }
+    name = name.replaceAll("[^a-zA-Z0-9_\\-.]", "");
+    return new File(NewProjectWizardState.getProjectFileDirectory(), name)
       .getAbsolutePath();
   }
 

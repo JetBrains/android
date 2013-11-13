@@ -38,6 +38,8 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
 public class NewModuleWizardState extends TemplateWizardState {
   public static final String ATTR_CREATE_ACTIVITY = "createActivity";
   public static final String ATTR_PROJECT_LOCATION = "projectLocation";
+  public static final String APP_NAME = "App";
+  public static final String LIB_NAME = "Lib";
 
   /**
    * State for the template wizard, used to embed an activity template
@@ -60,6 +62,7 @@ public class NewModuleWizardState extends TemplateWizardState {
 
     myHidden.add(ATTR_PROJECT_LOCATION);
     myHidden.remove(ATTR_IS_LIBRARY_MODULE);
+    myHidden.add(ATTR_APP_TITLE);
 
     put(ATTR_IS_LAUNCHER, false);
     put(ATTR_CREATE_ICONS, true);
