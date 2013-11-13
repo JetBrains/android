@@ -70,4 +70,12 @@ public class Locator {
     result = 31 * result + (viewName != null ? viewName.hashCode() : 0);
     return result;
   }
+
+  @Override
+  public String toString() {
+    return "Locator{" +
+           "state=" + state +
+           ", viewName='" + viewName + '\'' +
+           '}';
+  }
 }
