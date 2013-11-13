@@ -44,10 +44,7 @@ import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static com.android.tools.idea.editors.navigation.Utilities.getMethodsByName;
 
@@ -146,8 +143,8 @@ public class NavigationEditor implements FileEditor {
   }
 
   private static NavigationModel processModel(final NavigationModel model, final Module module, Project project, VirtualFile file) {
-    final Map<String, ActivityState> activities = getActivities(model);
-    final Map<String, MenuState> menus = getMenus(model);
+    Map<String, ActivityState> activities = getActivities(model);
+    Map<String, MenuState> menus = getMenus(model);
 
     final PsiMethod methodCallMacro = getMethodsByName(module, "com.android.templates.GeneralTemplates", "call")[0];
     final PsiMethod defineAssignment = getMethodsByName(module, "com.android.templates.GeneralTemplates", "defineAssignment")[0];
@@ -164,7 +161,11 @@ public class NavigationEditor implements FileEditor {
 
     //model.getTransitions().clear();
 
-    for (ActivityState state : activities.values()) {
+    final Collection<ActivityState> activityStates = activities.values();
+
+    if (DEBUG) System.out.println("activityStates = " + activityStates);
+
+    for (ActivityState state : activityStates) {
       String className = state.getClassName();
       final ActivityState finalState = state;
 
@@ -175,7 +176,7 @@ public class NavigationEditor implements FileEditor {
         PsiJavaCodeReferenceElement menu = Utilities.getReferenceElement(module, className, "onCreateOptionsMenu");
         if (menu != null) {
           MenuState menuState = menus.get(menu.getLastChild().getText());
-          model.add(new Transition("click", new Locator(state), new Locator(menuState)));
+          addTransition(model, new Transition("click", new Locator(state), new Locator(menuState)));
 
           // Look for menu bindings
           {
@@ -183,17 +184,22 @@ public class NavigationEditor implements FileEditor {
             if (methods.length == 1) {
               PsiMethod onPrepareOptionsMenuMethod = methods[0];
               PsiStatement[] statements = onPrepareOptionsMenuMethod.getBody().getStatements();
+              if (DEBUG) System.out.println("statements = " + Arrays.toString(statements));
               for (PsiStatement s : statements) {
                 Map<String, PsiElement> bindings = match(installMenuItemClickMacro, s.getFirstChild());
+                if (DEBUG) System.out.println("bindings = " + bindings);
                 if (bindings != null) {
                   Map<String, PsiElement> bindings2 = match(getMenuItemMacro, bindings.get("$menuItem"));
+                  if (DEBUG) System.out.println("bindings2 = " + bindings2);
                   if (bindings2 != null) {
                     Map<String, PsiElement> bindings3 = match(launchActivityMacro, bindings.get("$f"));
+                    if (DEBUG) System.out.println("bindings3 = " + bindings3);
                     if (bindings3 != null) {
-                      ActivityState activityState = getState(activities.values(), bindings3.get("activityClass").getFirstChild().getText());
+                      ActivityState activityState = getState(activityStates, bindings3.get("activityClass").getFirstChild().getText());
                       String menuItemName =
                         bindings2.get("$id").getLastChild().getText();// e.g. $id=PsiReferenceExpression:R.id.action_account
-                      model.add(new Transition("click", Locator.of(menuState, menuItemName), new Locator(activityState)));
+                      if (DEBUG) System.out.println("Adding binding for = " + bindings3);
+                      addTransition(model, new Transition("click", Locator.of(menuState, menuItemName), new Locator(activityState)));
                     }
                   }
                 }
@@ -251,7 +257,8 @@ public class NavigationEditor implements FileEditor {
                           String fragmentTag = getInnerText(fragmentLiteral.getText());
                           FragmentEntry fragment = findFragmentByTag(fragments, fragmentTag);
                           if (fragment != null) {
-                            model.add(new Transition("click", Locator.of(finalState, null), Locator.of(finalState, fragment.tag))); // e.g. "messageFragment"
+                            addTransition(model,
+                                          new Transition("click", Locator.of(finalState, null), Locator.of(finalState, fragment.tag))); // e.g. "messageFragment"
                             return;
                           }
                         }
@@ -261,12 +268,12 @@ public class NavigationEditor implements FileEditor {
                         Map<String, PsiElement> bindings5 = match(launchActivityMacro2, bindings4.get("$f"));
                         if (bindings5 != null) {
                           if (DEBUG) System.out.println("bindings5 = " + bindings5);
-                          State toState = getState(activities.values(), bindings5.get("activityClass").getFirstChild().getText());
+                          State toState = getState(activityStates, bindings5.get("activityClass").getFirstChild().getText());
                           if (DEBUG) System.out.println("toState = " + toState);
                           if (toState != null) {
                             String viewName = /*$listView.getText()*/ null; // todo convert to property name - also check for null
-                            model.add(new Transition("click", Locator.of(finalState, viewName), new Locator(toState)));
-                            if (DEBUG) System.out.println("Added binding for click listener: " + finalState + " " + viewName + " " + toState);
+                            Transition t = new Transition("click", Locator.of(finalState, viewName), new Locator(toState));
+                            addTransition(model, t);
                           }
                         }
                       }
@@ -277,12 +284,14 @@ public class NavigationEditor implements FileEditor {
             }
           }
         }
-
       }
-
     }
-
     return model;
+  }
+
+  private static boolean addTransition(NavigationModel model, Transition transition) {
+    if (DEBUG) System.out.println("Adding transition: " + transition);
+    return model.add(transition);
   }
 
   private static Map<String, PsiElement> match(PsiMethod method, PsiElement element) {
