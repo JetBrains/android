@@ -54,4 +54,10 @@ public class MenuState extends State {
   public int hashCode() {
     return xmlResourceName.hashCode();
   }
+
+  @Override
+  public String toString() {
+    return "MenuState{" + xmlResourceName + '}';
+  }
+
 }

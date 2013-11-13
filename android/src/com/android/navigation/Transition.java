@@ -49,4 +49,13 @@ public class Transition {
   public Locator getDestination() {
     return destination;
   }
+
+  @Override
+  public String toString() {
+    return "Transition{" +
+           "type='" + type + '\'' +
+           ", source=" + source +
+           ", destination=" + destination +
+           '}';
+  }
 }
