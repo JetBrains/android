@@ -23,6 +23,7 @@ import com.intellij.compiler.impl.ModuleCompileScope;
 import com.intellij.compiler.impl.ProjectCompileScope;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerFilter;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.api.CmdlineProtoUtil;
@@ -55,8 +56,18 @@ public class AndroidGradleBuildTargetScopeProvider extends BuildTargetScopeProvi
       }
     }
     else if (baseScope instanceof ModuleCompileScope) {
-      // Make selected modules
-      Projects.setModulesToBuild(project, Projects.getModulesToBuildFromSelection(project, null));
+      String userDataString = ((ModuleCompileScope)baseScope).getUserDataString();
+      Module[] modulesToBuild;
+      if (userDataString.contains("RUN_CONFIGURATION")) {
+        // Triggered by a "Run Configuration"
+        modulesToBuild = baseScope.getAffectedModules();
+      }
+      else {
+        // Triggered by menu item
+        // Make selected modules
+        modulesToBuild = Projects.getModulesToBuildFromSelection(project, null);
+      }
+      Projects.setModulesToBuild(project, modulesToBuild);
       Projects.setProjectBuildMode(project, BuildMode.MAKE);
     }
     else if (baseScope instanceof CompositeScope) {
