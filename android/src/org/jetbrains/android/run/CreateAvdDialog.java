@@ -351,7 +351,7 @@ public class CreateAvdDialog extends DialogWrapper {
       boolean replace = Messages
                           .showYesNoDialog(myPanel, AndroidBundle.message("replace.avd.question", avdName),
                                            AndroidBundle.message("create.avd.dialog.title"),
-                                           Messages.getQuestionIcon()) == 0;
+                                           Messages.getQuestionIcon()) == Messages.YES;
       if (!replace) return;
     }
     File avdFolder;
