@@ -61,8 +61,12 @@ public class AndroidRootComponent extends JComponent {
   private void setRenderResult(@Nullable RenderResult renderResult) {
     if (DEBUG) System.out.println("setRenderResult " + renderResult);
     myRenderResult = renderResult;
-    revalidate(); // once we have finished rendering we will know where our internal views are, need to re-layout (external dependencies on our size)
-    repaint();
+    if (myIsMenu) {
+      revalidate();
+    }
+    // once we have finished rendering we know where our internal views are and our parent needs to repaint (arrows etc.)
+    //repaint();
+    getParent().repaint();
   }
 
   public float getScale() {
