@@ -148,8 +148,10 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
   private static void hideActionForAndroidGradle(String actionId, String backupText) {
     AnAction oldAction = ActionManager.getInstance().getAction(actionId);
-    AnAction newAction = new AndroidActionRemover(oldAction, backupText);
-    replaceAction(actionId, newAction);
+    if (oldAction != null) {
+      AnAction newAction = new AndroidActionRemover(oldAction, backupText);
+      replaceAction(actionId, newAction);
+    }
   }
 
   private static void replaceProjectPopupActions() {
