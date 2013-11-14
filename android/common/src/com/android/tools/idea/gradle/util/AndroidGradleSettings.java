@@ -58,7 +58,7 @@ public final class AndroidGradleSettings {
   }
 
   @Nullable
-  private static String getAndroidHomeFromLocalPropertiesFile(@NotNull File projectDir) {
+  public static String getAndroidHomeFromLocalPropertiesFile(@NotNull File projectDir) {
     File filePath = new File(projectDir, SdkConstants.FN_LOCAL_PROPERTIES);
     if (!filePath.isFile()) {
       return null;
