@@ -43,6 +43,7 @@ public class NewProjectWizardState extends NewModuleWizardState {
   public NewProjectWizardState() {
     myHidden.remove(ATTR_PROJECT_LOCATION);
     myHidden.remove(ATTR_IS_LIBRARY_MODULE);
+    myHidden.remove(ATTR_APP_TITLE);
 
     put(ATTR_IS_LIBRARY_MODULE, false);
     put(ATTR_IS_LAUNCHER, true);
