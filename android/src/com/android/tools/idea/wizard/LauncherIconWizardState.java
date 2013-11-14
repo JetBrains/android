@@ -175,7 +175,7 @@ public class LauncherIconWizardState extends TemplateWizardState implements Grap
     put(ATTR_SOURCE_TYPE, LauncherIconWizardState.SourceType.IMAGE);
     put(ATTR_IMAGE_PATH,
         new File(TemplateManager.getTemplateRootFolder(),
-                 "projects/NewAndroidApplication/root/res/drawable-xhdpi/ic_launcher.png".replace('/', File.separatorChar))
+                 "gradle-projects/NewAndroidModule/root/res/drawable-xhdpi/ic_launcher.png".replace('/', File.separatorChar))
           .getAbsolutePath());
     put(ATTR_CLIPART_NAME, "android.png");
     put(ATTR_FOREGROUND_COLOR, Color.BLUE);
