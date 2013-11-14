@@ -46,9 +46,12 @@ import java.beans.PropertyChangeListener;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.List;
 
+import static com.android.navigation.Utilities.getPropertyName;
 import static com.android.tools.idea.editors.navigation.Utilities.getMethodsByName;
 
+@SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class NavigationEditor implements FileEditor {
   public static final String TOOLBAR = "NavigationEditorToolbar";
   private static final Logger LOG = Logger.getInstance("#" + NavigationEditor.class.getName());
@@ -134,6 +137,7 @@ public class NavigationEditor implements FileEditor {
     }
   }
 
+  @Nullable
   private static FragmentEntry findFragmentByTag(Collection<FragmentEntry> l, String tag) {
     for (FragmentEntry fragment : l) {
       if (tag.equals(fragment.tag)) {
@@ -196,7 +200,7 @@ public class NavigationEditor implements FileEditor {
                     Map<String, PsiElement> bindings3 = match(launchActivityMacro, bindings.get("$f"));
                     if (DEBUG) System.out.println("bindings3 = " + bindings3);
                     if (bindings3 != null) {
-                      ActivityState activityState = getState(activities, bindings3.get("activityClass").getFirstChild());
+                      ActivityState activityState = activities.get(getQualifiedName(bindings3.get("activityClass").getFirstChild()));
                       String menuItemName =
                         bindings2.get("$id").getLastChild().getText();// e.g. $id=PsiReferenceExpression:R.id.action_account
                       if (DEBUG) System.out.println("Adding binding for = " + bindings3);
@@ -213,7 +217,7 @@ public class NavigationEditor implements FileEditor {
       // Examine fragments associated with this activity
       String xmlFileName = NavigationEditorPanel.getXMLFileName(module, state);
       XmlFile psiFile = (XmlFile)NavigationEditorPanel.getPsiFile(false, xmlFileName, file, project);
-      final java.util.List<FragmentEntry> fragments = new ArrayList<FragmentEntry>();
+      final List<FragmentEntry> fragments = new ArrayList<FragmentEntry>();
       psiFile.accept(new XmlRecursiveElementVisitor() {
         @Override
         public void visitXmlTag(XmlTag tag) {
@@ -234,13 +238,12 @@ public class NavigationEditor implements FileEditor {
           PsiMethod installListenersMethod = methods[0];
           PsiStatement[] statements = installListenersMethod.getBody().getStatements();
           for (PsiStatement s : statements) {
-            Map<String, PsiElement> bindings = match(installItemClickMacro, s.getFirstChild());
+            final Map<String, PsiElement> bindings = match(installItemClickMacro, s.getFirstChild());
             if (bindings != null) {
-              Map<String, PsiElement> bindings2 = match(methodCallMacro, bindings.get("$f"));
+              final Map<String, PsiElement> bindings2 = match(methodCallMacro, bindings.get("$f"));
               //if (DEBUG) System.out.println("bindings2 = " + bindings2);
               final PsiElement $target = bindings2.get("$target");
               if (bindings2 != null) {
-                final PsiElement $listView = bindings2.get("$listView");
                 fragmentClass.accept(new JavaRecursiveElementVisitor() {
                   @Override
                   public void visitAssignmentExpression(PsiAssignmentExpression expression) {
@@ -270,10 +273,11 @@ public class NavigationEditor implements FileEditor {
                         if (bindings5 != null) {
                           if (DEBUG) System.out.println("bindings5 = " + bindings5);
                           PsiElement activityClass = bindings5.get("activityClass").getFirstChild();
-                          State toState = getState(activities, activityClass);
+                          State toState = activities.get(getQualifiedName(activityClass));
                           if (DEBUG) System.out.println("toState = " + toState);
                           if (toState != null) {
-                            String viewName = /*$listView.getText()*/ null; // todo convert to property name - also check for null
+                            final PsiElement $listView = bindings.get("$listView");
+                            String viewName = $listView == null ? null : getPropertyName(removeTrailingParens($listView.getText()));
                             addTransition(model, new Transition("click", Locator.of(finalState, viewName), new Locator(toState)));
                           }
                         }
@@ -290,17 +294,22 @@ public class NavigationEditor implements FileEditor {
     return model;
   }
 
+  private static String removeTrailingParens(String text) {
+    return text.endsWith("()") ? text.substring(0, text.length() - 2) : text;
+  }
+
   private static boolean addTransition(NavigationModel model, Transition transition) {
     if (DEBUG) System.out.println("Adding transition: " + transition);
     return model.add(transition);
   }
 
+  @Nullable
   private static Map<String, PsiElement> match(PsiMethod method, PsiElement element) {
     return new Unifier().unify(method.getParameterList(), method.getBody().getStatements()[0].getFirstChild(), element);
   }
 
-@Nullable
-private static ActivityState getState(Map<String, ActivityState> activities, PsiElement element) {
+  @Nullable
+  private static String getQualifiedName(PsiElement element) {
     if (element instanceof PsiTypeElement) {
       PsiTypeElement psiTypeElement = (PsiTypeElement)element;
       PsiType type1 = psiTypeElement.getType();
@@ -308,7 +317,7 @@ private static ActivityState getState(Map<String, ActivityState> activities, Psi
         PsiClassReferenceType type = (PsiClassReferenceType)type1;
         PsiClass resolve = type.resolve();
         if (resolve != null) {
-          return activities.get(resolve.getQualifiedName());
+          return resolve.getQualifiedName();
         }
       }
     }
