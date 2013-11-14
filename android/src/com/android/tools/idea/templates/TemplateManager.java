@@ -84,7 +84,10 @@ public class TemplateManager {
       }
     }
     if (root != null) {
-      return VfsUtilCore.virtualToIoFile(root);
+      File rootFile = VfsUtilCore.virtualToIoFile(root);
+      if (templateRootIsValid(rootFile)) {
+        return rootFile;
+      }
     }
 
     // Fall back to SDK template root
@@ -287,10 +290,14 @@ public class TemplateManager {
       if (templateRootFolder == null) {
         return false;
       }
-      return new File(templateRootFolder, FileUtil.join("gradle", "wrapper", "gradlew")).exists();
+      return templateRootIsValid(templateRootFolder);
     }
     catch (Exception e) {
       return false;
     }
+  }
+
+  public static boolean templateRootIsValid(File templateRootFolder) {
+    return new File(templateRootFolder, FileUtil.join("gradle", "wrapper", "gradlew")).exists();
   }
 }
