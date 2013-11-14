@@ -18,14 +18,17 @@ package com.android.tools.idea.gradle.project;
 import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
-import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.*;
 import com.android.tools.idea.gradle.dependency.Dependency;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.SearchInBuildFilesHyperlink;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
+import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.android.tools.idea.structure.AndroidHomeConfigurable;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.execution.configurations.SimpleJavaParameters;
@@ -40,14 +43,15 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ContainerUtilRt;
+import com.intellij.util.ui.UIUtil;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,6 +59,7 @@ import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExten
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 
@@ -173,24 +178,97 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     return ContainerUtil.<Class>set(AndroidProject.class);
   }
 
+  /**
+   * This method is meant to be used just to return any extra JVM args we'd like to pass to Gradle. Given that we need to do some checks
+   * (e.g. ensure that we only use one Android SDK) before the actual project import, and the IDEA's Gradle 'project import' framework does
+   * not currently provide a place for such checks, we need to perform them here.
+   * This method has a side effect: it checks that Android Studio and the project (local.properties) point to the same Android SDK home. If
+   * they are not the same, it asks the user to choose one and updates either the IDE's default SDK or project's SDK based on the user's
+   * choice.
+   * TODO: Ask JetBrains to provide a method in GradleProjectResolverExtension where we can perform this check.
+   */
   @NotNull
   @Override
   public List<KeyValue<String, String>> getExtraJvmArgs() {
     if (ExternalSystemApiUtil.isInProcessMode(GradleConstants.SYSTEM_ID)) {
       List<KeyValue<String, String>> args = Lists.newArrayList();
+
       File projectDir = new File(FileUtil.toSystemDependentName(resolverCtx.getProjectPath()));
-      if (!AndroidGradleSettings.isAndroidSdkDirInLocalPropertiesFile(projectDir)) {
-        SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
-        if (sdkManager != null) {
-          String androidHome = FileUtil.toSystemDependentName(sdkManager.getLocation());
-          args.add(KeyValue.create(AndroidGradleSettings.ANDROID_HOME_JVM_ARG, androidHome));
-        }
+      LocalProperties localProperties = getLocalProperties(projectDir);
+
+      if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+        syncIdeAndProjectAndroidHomes(localProperties);
+      }
+      else if (Strings.isNullOrEmpty(localProperties.getAndroidSdkPath())) {
+        String androidHome = AndroidHomeConfigurable.getDefaultAndroidHome();
+        args.add(KeyValue.create(AndroidGradleSettings.ANDROID_HOME_JVM_ARG, androidHome));
       }
 
       args.add(KeyValue.create(AndroidProject.BUILD_MODEL_ONLY_SYSTEM_PROPERTY, String.valueOf(this.resolverCtx.isPreviewMode())));
       return args;
     }
     return Collections.emptyList();
+  }
+
+  @NotNull
+  private static LocalProperties getLocalProperties(@NotNull File projectDir) {
+    try {
+      return new LocalProperties(projectDir);
+    }
+    catch (IOException e) {
+      String msg = String.format("Unable to read local.properties file in project '%1$s'", projectDir.getPath());
+      throw new ExternalSystemException(msg, e);
+    }
+  }
+
+  private static void syncIdeAndProjectAndroidHomes(@NotNull final LocalProperties localProperties) {
+    final String ideAndroidHome = AndroidHomeConfigurable.getDefaultAndroidHome();
+    final String projectAndroidHome = localProperties.getAndroidSdkPath();
+
+    if (projectAndroidHome == null || projectAndroidHome.isEmpty()) {
+      setProjectSdk(localProperties, ideAndroidHome);
+      return;
+    }
+    if (!AndroidHomeConfigurable.validateAndroidHome(projectAndroidHome)) {
+      // The SDK path is not valid. It may be pointing to an SDK that does not exist. Just use Android Studio's.
+      UIUtil.invokeAndWaitIfNeeded(new Runnable() {
+        @Override
+        public void run() {
+          String format = "The path '%1$s' does not belong to an Android SDK. Using Android Studio's SDK instead.";
+          Messages.showErrorDialog(String.format(format, projectAndroidHome), "Sync Android SDKs");
+          setProjectSdk(localProperties, ideAndroidHome);
+        }
+      });
+      return;
+    }
+    if (!FileUtil.pathsEqual(projectAndroidHome, ideAndroidHome)) {
+      UIUtil.invokeAndWaitIfNeeded(new Runnable() {
+        @Override
+        public void run() {
+          // Prompt the user to choose between the SDK in the Studio and the one in local.properties.
+          ChooseSdkPathDialog dialog = new ChooseSdkPathDialog(ideAndroidHome, projectAndroidHome);
+          dialog.show();
+          switch (dialog.getExitCode()) {
+            case ChooseSdkPathDialog.USE_IDE_SDK_PATH:
+              setProjectSdk(localProperties, ideAndroidHome);
+              break;
+            case ChooseSdkPathDialog.USE_PROJECT_SDK_PATH:
+              AndroidHomeConfigurable.setDefaultAndroidHome(projectAndroidHome);
+          }
+        }
+      });
+    }
+  }
+
+  private static void setProjectSdk(@NotNull LocalProperties localProperties, @NotNull String androidHome) {
+    localProperties.setAndroidSdkPath(androidHome);
+    try {
+      localProperties.save();
+    }
+    catch (IOException e) {
+      String msg = String.format("Unable to save '%1$s'", localProperties.getFilePath().getPath());
+      throw new ExternalSystemException(msg, e);
+    }
   }
 
   // this exception will be thrown by org.jetbrains.plugins.gradle.service.project.GradleProjectResolver
