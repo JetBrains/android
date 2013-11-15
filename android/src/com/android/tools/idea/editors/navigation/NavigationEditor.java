@@ -85,8 +85,7 @@ public class NavigationEditor implements FileEditor {
     myProject = project;
     myFile = file;
     try {
-      myNavigationModel =
-        deriveAndAddTransitions(read(file), project, file);
+      myNavigationModel = deriveAndAddTransitions(read(file), project, file);
       // component = new NavigationModelEditorPanel1(project, file, read(file));
       NavigationEditorPanel editor = new NavigationEditorPanel(project, file, myNavigationModel);
       JBScrollPane scrollPane = new JBScrollPane(editor);
@@ -210,9 +209,11 @@ public class NavigationEditor implements FileEditor {
                   Map<String, Map<String, PsiElement>> subBindings = multiMatchResult.subBindings;
                   ActivityState activityState =
                     activities.get(getQualifiedName(subBindings.get("$f").get("activityClass").getFirstChild()));
-                  String menuItemName =
-                    subBindings.get("$menuItem").get("$id").getLastChild().getText(); // e.g. $id=PsiReferenceExpression:R.id.action_account
-                  addTransition(model, new Transition("click", Locator.of(menuState, menuItemName), new Locator(activityState)));
+                  if (activityState != null) {
+                    String menuItemName = subBindings.get("$menuItem").get("$id").getLastChild()
+                      .getText(); // e.g. $id=PsiReferenceExpression:R.id.action_account
+                    addTransition(model, new Transition("click", Locator.of(menuState, menuItemName), new Locator(activityState)));
+                  }
                 }
               }
             }

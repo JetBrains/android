@@ -186,7 +186,7 @@ class Selections {
 
     @Override
     protected void paintOver(Graphics g) {
-      int lineWidth = mySourceComponent.transform.modelToView(NavigationEditorPanel.LINE_WIDTH);
+      int lineWidth = mySourceComponent.transform.modelToViewW(NavigationEditorPanel.LINE_WIDTH);
       Graphics2D lineGraphics = NavigationEditorPanel.createLineGraphics(g, lineWidth);
       Rectangle sourceBounds = NavigationEditorPanel.getBounds(mySourceComponent, myNamedLeaf);
       Rectangle destBounds = myNavigationEditor.getNamedLeafBoundsAt(mySourceComponent, myMouseLocation);
