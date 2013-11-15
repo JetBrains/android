@@ -571,6 +571,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintUseCheckPermissionInspection extends AndroidLintInspectionBase {
+    public AndroidLintUseCheckPermissionInspection() {
+      super(AndroidBundle.message("android.lint.inspections.use.check.permission"), CheckPermissionDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintUseCompoundDrawablesInspection extends AndroidLintInspectionBase {
     public AndroidLintUseCompoundDrawablesInspection() {
       super(AndroidBundle.message("android.lint.inspections.use.compound.drawables"), UseCompoundDrawableDetector.ISSUE);
