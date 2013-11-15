@@ -16,10 +16,10 @@
 package com.intellij.android.designer.designSurface.layout.actions;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.designer.Insets;
 import com.intellij.android.designer.AndroidDesignerUtils;
-import com.intellij.android.designer.designSurface.graphics.*;
-import com.intellij.android.designer.model.Insets;
 import com.intellij.android.designer.designSurface.feedbacks.TextFeedback;
+import com.intellij.android.designer.designSurface.graphics.*;
 import com.intellij.android.designer.model.ModelParser;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.designer.designSurface.*;

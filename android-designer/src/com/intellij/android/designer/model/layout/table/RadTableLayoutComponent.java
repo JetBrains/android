@@ -15,8 +15,8 @@
  */
 package com.intellij.android.designer.model.layout.table;
 
-import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.intellij.android.designer.model.ModelParser;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.RadViewContainer;

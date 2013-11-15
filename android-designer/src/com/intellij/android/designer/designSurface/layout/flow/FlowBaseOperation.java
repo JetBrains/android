@@ -15,12 +15,12 @@
  */
 package com.intellij.android.designer.designSurface.layout.flow;
 
+import com.android.tools.idea.designer.Insets;
 import com.intellij.android.designer.designSurface.AbstractEditOperation;
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.designSurface.graphics.LineInsertFeedback;
 import com.intellij.android.designer.designSurface.graphics.RectangleFeedback;
 import com.intellij.android.designer.designSurface.layout.AbstractFlowBaseOperation;
-import com.intellij.android.designer.model.Insets;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.designer.designSurface.FeedbackLayer;
 import com.intellij.designer.designSurface.OperationContext;
