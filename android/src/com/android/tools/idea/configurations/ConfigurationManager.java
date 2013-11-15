@@ -23,6 +23,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.gradle.AndroidModuleInfo;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.ManifestInfo;
 import com.android.tools.idea.rendering.ProjectResources;
@@ -258,6 +259,21 @@ public class ConfigurationManager implements Disposable {
       String theme = activityThemes.get(activity);
       if (theme != null) {
         return theme;
+      }
+
+      if (activity.startsWith(".")) {
+        AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(myModule);
+        if (moduleInfo != null) {
+          theme = activityThemes.get(moduleInfo.getPackage() + activity);
+          if (theme != null) {
+            return theme;
+          }
+        }
+
+        theme = activityThemes.get(manifest.getPackage() + activity);
+        if (theme != null) {
+          return theme;
+        }
       }
     }
 
