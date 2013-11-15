@@ -28,6 +28,7 @@ import com.intellij.util.PathUtil;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
 import java.util.*;
@@ -71,7 +72,7 @@ public class RenderLogger extends LayoutLog {
   private List<RenderProblem> myFidelityWarnings;
   private Set<String> myMissingClasses;
   private Map<String, Throwable> myBrokenClasses;
-  private Set<String> myClassesWithIncorrectFormat;
+  private Map<String, Throwable> myClassesWithIncorrectFormat;
   private String myResourceClass;
   private boolean myMissingResourceClass;
   private boolean myHasLoadedClasses;
@@ -239,6 +240,39 @@ public class RenderLogger extends LayoutLog {
             break;
           }
         }
+      } else if (message.startsWith("Failed to parse file ") && throwable instanceof XmlPullParserException) {
+        XmlPullParserException e = (XmlPullParserException)throwable;
+        String msg = e.getMessage();
+        if (msg.startsWith("Binary XML file ")) {
+          int index = msg.indexOf(':');
+          if (index != -1 && index < msg.length() - 1) {
+            msg = msg.substring(index + 1).trim();
+          }
+        }
+        int lineNumber = e.getLineNumber();
+        int column = e.getColumnNumber();
+
+        String path = message.substring("Failed to parse file ".length());
+
+        RenderProblem.Html problem = RenderProblem.create(WARNING);
+        problem.tag("xmlParse");
+        problem.throwable(throwable);
+        HtmlBuilder builder = problem.getHtmlBuilder();
+        if (lineNumber != -1) {
+          builder.add("Line ").add(Integer.toString(lineNumber)).add(": ");
+        }
+        builder.add(msg);
+        if (lineNumber != -1) {
+          builder.add(" (");
+          File file = new File(path);
+          String url = HtmlLinkManager.createFilePositionUrl(file, lineNumber, column);
+          if (url != null) {
+            builder.addLink("Show", url);
+            builder.add(")");
+          }
+        }
+        addMessage(problem);
+        return;
       }
 
       recordThrowable(throwable);
@@ -480,7 +514,7 @@ public class RenderLogger extends LayoutLog {
   }
 
   @Nullable
-  public Set<String> getClassesWithIncorrectFormat() {
+  public Map<String, Throwable> getClassesWithIncorrectFormat() {
     return myClassesWithIncorrectFormat;
   }
 
@@ -503,11 +537,12 @@ public class RenderLogger extends LayoutLog {
     }
   }
 
-  public void addIncorrectFormatClass(@NotNull String className) {
+  @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+  public void addIncorrectFormatClass(@NotNull String className, @NotNull Throwable exception) {
     if (myClassesWithIncorrectFormat == null) {
-      myClassesWithIncorrectFormat = new HashSet<String>();
+      myClassesWithIncorrectFormat = new HashMap<String, Throwable>();
     }
-    myClassesWithIncorrectFormat.add(className);
+    myClassesWithIncorrectFormat.put(className, exception);
   }
 
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")

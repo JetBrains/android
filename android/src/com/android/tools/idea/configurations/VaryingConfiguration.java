@@ -24,8 +24,8 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
+import com.android.tools.idea.gradle.AndroidModuleInfo;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.ManifestInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -199,12 +199,14 @@ public class VaryingConfiguration extends NestedConfiguration {
         IAndroidTarget mostRecent = targets.get(targets.size() - 1);
         if (target.equals(mostRecent)) {
           // Find oldest supported
-          ManifestInfo info = ManifestInfo.get(getConfigurationManager().getModule());
-          int minSdkVersion = info.getMinSdkVersion();
-          for (IAndroidTarget t : targets) {
-            if (t.getVersion().getApiLevel() >= minSdkVersion) {
-              target = t;
-              break;
+          AndroidModuleInfo info = AndroidModuleInfo.get(getConfigurationManager().getModule());
+          if (info != null) {
+            int minSdkVersion = info.getMinSdkVersion();
+            for (IAndroidTarget t : targets) {
+              if (t.getVersion().getApiLevel() >= minSdkVersion) {
+                target = t;
+                break;
+              }
             }
           }
         }

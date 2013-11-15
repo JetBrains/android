@@ -16,11 +16,39 @@
 
 package com.android.tools.idea;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
+import com.intellij.ide.impl.NewProjectUtil;
+import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.JavaSdk;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static org.junit.Assert.assertNotNull;
+
 public class AndroidTestCaseHelper {
+  @NotNull
+  public static Sdk createAndSetJdk(@NotNull final Project project) {
+    String[] names = {"JAVA6_HOME", "JAVA_HOME"};
+    String jdkHomePath = AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable(names);
+    assertNotNull("Please set one of the following env vars (or system properties) to point to the JDK: " + Joiner.on(",").join(names),
+                  jdkHomePath);
+    final Sdk jdk = SdkConfigurationUtil.createAndAddSDK(jdkHomePath, JavaSdk.getInstance());
+    assertNotNull(jdk);
+
+    ExternalSystemApiUtil.executeProjectChangeAction(true, new DisposeAwareProjectChange(project) {
+      @Override
+      public void execute() {
+        NewProjectUtil.applyJdkToProject(project, jdk);
+      }
+    });
+    return jdk;
+  }
+
   @Nullable
   public static String getSystemPropertyOrEnvironmentVariable(String... names) {
     for (String name : names) {

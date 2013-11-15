@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.RenderContext;
+import com.android.tools.idea.gradle.AndroidModuleInfo;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.SdkUtils;
 import com.android.utils.SparseArray;
@@ -40,7 +41,6 @@ import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -134,10 +134,14 @@ public class HtmlLinkManager {
       handleIgnoreFragments(url, result);
     } else if (url.startsWith(URL_EDIT_ATTRIBUTE)) {
       assert result != null;
-      handleEditAttribute(url, module, file);
+      if (module != null && file != null) {
+        handleEditAttribute(url, module, file);
+      }
     } else if (url.startsWith(URL_REPLACE_ATTRIBUTE_VALUE)) {
       assert result != null;
-      handleReplaceAttributeValue(url, module, file);
+      if (module != null && file != null) {
+        handleReplaceAttributeValue(url, module, file);
+      }
     } else if (url.startsWith(URL_RUNNABLE)) {
       Runnable linkRunnable = getLinkRunnable(url);
       if (linkRunnable != null) {
@@ -366,7 +370,14 @@ public class HtmlLinkManager {
     int index = s.lastIndexOf('.');
     if (index == -1) {
       className = s;
-      packageName = ManifestInfo.get(module).getPackage();
+      AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(module);
+      if (moduleInfo == null) {
+        return;
+      }
+      packageName = moduleInfo.getPackage();
+      if (packageName == null) {
+        return;
+      }
     } else {
       packageName = s.substring(0, index);
       className = s.substring(index + 1);
@@ -670,7 +681,7 @@ public class HtmlLinkManager {
     return URL_ACTION_IGNORE_FRAGMENTS;
   }
 
-  private void handleIgnoreFragments(@NotNull String url, @NotNull RenderResult result) {
+  private static void handleIgnoreFragments(@NotNull String url, @NotNull RenderResult result) {
     assert url.equals(URL_ACTION_IGNORE_FRAGMENTS);
     RenderLogger.ignoreFragments();
     RenderService renderService = result.getRenderService();

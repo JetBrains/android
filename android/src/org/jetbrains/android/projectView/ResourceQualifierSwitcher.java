@@ -1,6 +1,7 @@
 package org.jetbrains.android.projectView;
 
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -73,7 +74,7 @@ public class ResourceQualifierSwitcher extends EditorNotifications.Provider<Reso
 
   private static BidirectionalMap<String, VirtualFile> collectQualifiers(VirtualFile resDirectory, VirtualFile file) {
     BidirectionalMap<String, VirtualFile> result = new BidirectionalMap<String, VirtualFile>();
-    ResourceFolderType type = ResourceFolderType.getFolderType(file.getParent().getName());
+    ResourceFolderType type = ResourceHelper.getFolderType(file);
     for (VirtualFile dir : resDirectory.getChildren()) {
       ResourceFolderType otherType = ResourceFolderType.getFolderType(dir.getName());
       if (otherType == type) {

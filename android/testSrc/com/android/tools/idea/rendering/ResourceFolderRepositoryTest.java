@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
@@ -34,6 +35,7 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -55,6 +57,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   private static final String VALUES_EMPTY = "resourceRepository/empty.xml";
   private static final String XLIFF = "resourceRepository/xliff.xml";
   private static final String STRINGS = "resourceRepository/strings.xml";
+  private static final String DRAWABLE = "resourceRepository/logo.png";
 
   private static void resetScanCounter() {
     ourFullRescans = 0;
@@ -445,6 +448,53 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals("no", item.getConfiguration().getLanguageQualifier().getValue());
     //noinspection ConstantConditions
     assertEquals("Animations Demo", item.getResourceValue(false).getValue());
+  }
+
+  public void testMoveResourceFileBetweenDensityFolders() throws Exception {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=61648
+    // Make sure we flush resource values when reusing resource items incrementally
+
+    // Move a file-based resource file from one configuration to another; verify that
+    // items are preserved, generation changed (since it can affect config matching),
+    // and resource files updated.
+    final VirtualFile file1 = myFixture.copyFileToProject(DRAWABLE, "res/drawable-mdpi/picture.png");
+    final VirtualFile file2 = myFixture.copyFileToProject(DRAWABLE, "res/drawable-hdpi/dummy.ignore");
+    PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
+    assertNotNull(psiFile1);
+    ResourceFolderRepository resources = createRepository();
+    assertNotNull(resources);
+    ResourceItem item = getOnlyItem(resources, ResourceType.DRAWABLE, "picture");
+    ResourceFile source = item.getSource();
+    assertNotNull(source);
+    assertEquals("mdpi", source.getQualifiers());
+    ResourceValue resourceValue = item.getResourceValue(false);
+    assertNotNull(resourceValue);
+    String valuePath = resourceValue.getValue().replace(File.separatorChar, '/');
+    assertTrue(valuePath, valuePath.endsWith("res/drawable-mdpi/picture.png"));
+
+    long generation = resources.getModificationCount();
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          // Move file from one location to another
+          file1.move(this, file2.getParent());
+        }
+        catch (IOException e) {
+          fail(e.toString());
+        }
+      }
+    });
+    assertTrue(generation < resources.getModificationCount());
+    assertTrue(resources.hasResourceItem(ResourceType.DRAWABLE, "picture"));
+    item = getOnlyItem(resources, ResourceType.DRAWABLE, "picture");
+    source = item.getSource();
+    assertNotNull(source);
+    assertEquals("hdpi", source.getQualifiers());
+    resourceValue = item.getResourceValue(false);
+    assertNotNull(resourceValue);
+    valuePath = resourceValue.getValue().replace(File.separatorChar, '/');
+    assertTrue(valuePath, valuePath.endsWith("res/drawable-hdpi/picture.png"));
   }
 
   public void testMoveFileResourceFileToNewType() throws Exception {

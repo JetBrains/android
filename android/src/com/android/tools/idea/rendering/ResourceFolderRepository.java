@@ -32,6 +32,7 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -47,6 +48,7 @@ import static com.android.SdkConstants.*;
 import static com.android.resources.ResourceFolderType.*;
 import static com.android.tools.idea.rendering.PsiProjectListener.isRelevantFile;
 import static com.android.tools.idea.rendering.PsiProjectListener.isRelevantFileType;
+import static com.android.tools.idea.rendering.ResourceHelper.getFolderType;
 import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
 
 /**
@@ -110,12 +112,15 @@ public final class ResourceFolderRepository extends ProjectResources {
 
   @Nullable
   private PsiFile ensureValid(@NotNull PsiFile psiFile) {
-    if (psiFile. isValid()) {
+    if (psiFile.isValid()) {
       return psiFile;
     } else {
       VirtualFile virtualFile = psiFile.getVirtualFile();
       if (virtualFile != null) {
-        return PsiManager.getInstance(myModule.getProject()).findFile(virtualFile);
+        Project project = myModule.getProject();
+        if (!project.isDisposed()) {
+          return PsiManager.getInstance(project).findFile(virtualFile);
+        }
       }
     }
 
@@ -376,7 +381,7 @@ public final class ResourceFolderRepository extends ProjectResources {
   }
 
   @Override
-  boolean isScanPending(@NonNull PsiFile psiFile) {
+  public boolean isScanPending(@NonNull PsiFile psiFile) {
     synchronized (SCAN_LOCK) {
       return myPendingScans != null && myPendingScans.contains(psiFile);
     }
@@ -966,12 +971,6 @@ public final class ResourceFolderRepository extends ProjectResources {
       }
     }
 
-    private ResourceFolderType getFolderType(PsiFile psiFile) {
-      PsiDirectory folder = psiFile.getParent();
-      assert folder != null;
-      return ResourceFolderType.getFolderType(folder.getName());
-    }
-
     @Override
     public void childReplaced(@NotNull PsiTreeChangeEvent event) {
       PsiFile psiFile = event.getFile();
@@ -1340,6 +1339,14 @@ public final class ResourceFolderRepository extends ProjectResources {
                 String newDirName = newParent.getName();
                 resourceFile.setPsiFile(psiFile, getQualifiers(newDirName));
                 myGeneration++; // qualifiers may have changed: can affect configuration matching
+                // We need to recompute resource values too, since some of these can point to
+                // the old file (e.g. a drawable resource could have a DensityBasedResourceValue
+                // pointing to the old file
+                for (ResourceItem item : resourceFile.getItemMap().values()) { // usually just 1
+                  if (item instanceof PsiResourceItem) {
+                    ((PsiResourceItem)item).recomputeValue();
+                  }
+                }
                 invalidateItemCaches();
               }
             } else {

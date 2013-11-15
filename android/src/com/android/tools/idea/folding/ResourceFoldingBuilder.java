@@ -233,7 +233,7 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
   private static InlinedResource createdInlinedResource(@NotNull ResourceType type, @NotNull String name, @NotNull PsiElement foldElement) {
     // Not part of a call: just fold the R.string reference itself
     ProjectResources projectResources = getProjectResources(foldElement);
-    if (projectResources != null) {
+    if (projectResources != null && projectResources.hasResourceItem(type, name)) {
       ASTNode node = foldElement.getNode();
       if (node != null) {
         TextRange textRange = foldElement.getTextRange();

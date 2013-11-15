@@ -38,7 +38,6 @@ import com.intellij.designer.model.RadLayout;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -170,7 +169,6 @@ public class RadGridLayout extends RadViewLayoutWithData implements ILayoutDecor
   @Override
   public List<RadComponent> getCaptionChildren(EditableArea mainArea, boolean horizontal) {
     RadGridLayoutComponent container = getGridComponent();
-    JComponent target = mainArea.getNativeComponent();
     GridInfo gridInfo = container.getGridInfo();
     List<RadComponent> components = new ArrayList<RadComponent>();
 

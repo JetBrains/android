@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.ide.common.rendering.api.RenderSession;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
@@ -35,11 +34,22 @@ import static java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR;
 
 /** A rendered image from layoutlib, which can be zoomed */
 public class ScalableImage {
+  /** Type of shadow to paint into the image, if any */
+  enum ShadowType {
+    /** Don't draw a drop shadow */
+    NONE,
+    /** Draw a rectangular shadow. This is faster than {@link #ARBITRARY} */
+    RECTANGULAR,
+    /** Draw an arbitrarily shaped drop shadow */
+    ARBITRARY
+  }
+
   @NotNull private final BufferedImage myImage;
   @Nullable private BufferedImage myScaledImage;
   @NotNull private Configuration myConfiguration;
   @Nullable private Rectangle myImageBounds;
   private final boolean myAlphaChannelImage;
+  private final ShadowType myShadowType;
   private double myScale = 1;
   private int myMaxWidth;
   private int myMaxHeight;
@@ -48,10 +58,16 @@ public class ScalableImage {
   /** Whether current thumbnail actually has a device frame */
   private boolean myThumbnailHasFrame;
 
-  public ScalableImage(RenderSession session, @NotNull Configuration configuration) {
-    myImage = session.getImage();
+  public ScalableImage(@NotNull Configuration configuration, @NotNull BufferedImage image, boolean alphaChannelImage,
+                       @NotNull ShadowType shadowType) {
     myConfiguration = configuration;
-    myAlphaChannelImage = session.isAlphaChannelImage();
+    myImage = image;
+    myAlphaChannelImage = alphaChannelImage;
+    myShadowType = shadowType;
+  }
+
+  public boolean hasAlphaChannel() {
+    return myAlphaChannelImage;
   }
 
   /**
@@ -61,8 +77,8 @@ public class ScalableImage {
    *
    * @return true if the image overlay should be shown with a drop shadow.
    */
-  public boolean getShowDropShadow() {
-    return !myAlphaChannelImage;
+  public boolean hasDropShadow() {
+    return myShadowType != ShadowType.NONE;
   }
 
   public double getScale() {
@@ -121,7 +137,7 @@ public class ScalableImage {
     int sceneWidth = myImage.getWidth();
     int sceneHeight = myImage.getHeight();
 
-    int shadowSize = getShowDropShadow() ? myUseLargeShadows ? SHADOW_SIZE : SMALL_SHADOW_SIZE : 0;
+    int shadowSize = hasDropShadow() ? myUseLargeShadows ? SHADOW_SIZE : SMALL_SHADOW_SIZE : 0;
     availableWidth -= shadowSize;
     availableHeight -= shadowSize;
 
@@ -212,7 +228,7 @@ public class ScalableImage {
       }
     }
 
-    if (getShowDropShadow()) {
+    if (hasDropShadow()) {
       width += myUseLargeShadows ? SHADOW_SIZE : SMALL_SHADOW_SIZE;
     }
 
@@ -235,7 +251,7 @@ public class ScalableImage {
       }
     }
 
-    if (getShowDropShadow()) {
+    if (hasDropShadow()) {
       height += myUseLargeShadows ? SHADOW_SIZE : SMALL_SHADOW_SIZE;
     }
 
@@ -281,24 +297,36 @@ public class ScalableImage {
         // Scaling to 100% is easy!
         myScaledImage = myImage;
 
-        if (getShowDropShadow()) {
+        if (myShadowType == ShadowType.RECTANGULAR) {
           // Just need to draw drop shadows
-          myScaledImage = ShadowPainter.createRectangularDropShadow(myImage);
+          if (myUseLargeShadows) {
+            myScaledImage = ShadowPainter.createRectangularDropShadow(myImage);
+          } else {
+            myScaledImage = ShadowPainter.createSmallRectangularDropShadow(myImage);
+          }
+        } else if (myShadowType == ShadowType.ARBITRARY) {
+          int shadowSize = myUseLargeShadows ? SHADOW_SIZE : SMALL_SHADOW_SIZE;
+          myScaledImage = ShadowPainter.createDropShadow(myImage, shadowSize);
         }
         g.drawImage(myScaledImage, x, y, null);
       } else if (myScale < 1) {
         // When scaling down we need to do an expensive scaling to ensure that
         // the thumbnails look good
-        if (getShowDropShadow()) {
+        if (myShadowType != ShadowType.NONE) {
           int shadowSize = myUseLargeShadows ? SHADOW_SIZE : SMALL_SHADOW_SIZE;
-          myScaledImage = ImageUtils.scale(myImage, myScale, myScale,
-                                           shadowSize, shadowSize);
-          if (myUseLargeShadows) {
-            ShadowPainter.drawRectangleShadow(myScaledImage, 0, 0, myScaledImage.getWidth() - shadowSize,
-                                            myScaledImage.getHeight() - shadowSize);
+          if (myShadowType == ShadowType.ARBITRARY) {
+            myScaledImage = ImageUtils.scale(myImage, myScale, myScale);
+            myScaledImage = ShadowPainter.createDropShadow(myScaledImage, shadowSize);
           } else {
-            ShadowPainter.drawSmallRectangleShadow(myScaledImage, 0, 0, myScaledImage.getWidth() - shadowSize,
-                                                   myScaledImage.getHeight() - shadowSize);
+            // Reserve room for the shadow; then paint directly into the target image
+            myScaledImage = ImageUtils.scale(myImage, myScale, myScale, shadowSize, shadowSize);
+            if (myUseLargeShadows) {
+              ShadowPainter.drawRectangleShadow(myScaledImage, 0, 0, myScaledImage.getWidth() - shadowSize,
+                                              myScaledImage.getHeight() - shadowSize);
+            } else {
+              ShadowPainter.drawSmallRectangleShadow(myScaledImage, 0, 0, myScaledImage.getWidth() - shadowSize,
+                                                     myScaledImage.getHeight() - shadowSize);
+            }
           }
         } else {
           myScaledImage = ImageUtils.scale(myImage, myScale, myScale);
@@ -342,7 +370,8 @@ public class ScalableImage {
           }
         }
 
-        if (getShowDropShadow()) {
+        if (hasDropShadow()) {
+          // We don't draw arbitrary drop shadows in up-scale mode; hopefully the visual artifacts aren't too noticeable
           ShadowPainter.drawRectangleShadow(g, x, y, scaledWidth, scaledHeight);
         }
       }

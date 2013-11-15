@@ -17,8 +17,6 @@ package com.android.tools.idea.gradle.variant.view;
 
 import com.android.tools.idea.gradle.GradleImportNotificationListener;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.util.Facets;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -123,12 +121,8 @@ public class BuildVariantView {
 
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     for (Module module : moduleManager.getModules()) {
-      AndroidFacet androidFacet = Facets.getFirstFacetOfType(module, AndroidFacet.ID);
-      if (androidFacet == null) {
-        continue;
-      }
-      if (Facets.getFirstFacetOfType(module, AndroidGradleFacet.TYPE_ID) == null) {
-        // If the module does not have an Android-Gradle facet, just skip it.
+      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+      if (androidFacet == null || !androidFacet.isGradleProject()) {
         continue;
       }
       JpsAndroidModuleProperties facetProperties = androidFacet.getProperties();
@@ -137,8 +131,9 @@ public class BuildVariantView {
       BuildVariantItem[] variantNames = getVariantNames(module);
       if (variantNames != null) {
         // If we got here IdeaAndroidProject is *not* null.
-        //noinspection ConstantConditions
-        variantName = getAndroidProject(module).getSelectedVariant().getName();
+        IdeaAndroidProject androidProject = getAndroidProject(module);
+        assert androidProject != null;
+        variantName = androidProject.getSelectedVariant().getName();
         variantNamesPerRow.add(variantNames);
       }
 
@@ -184,7 +179,7 @@ public class BuildVariantView {
 
   @Nullable
   private static IdeaAndroidProject getAndroidProject(@NotNull Module module) {
-    AndroidFacet androidFacet = Facets.getFirstFacetOfType(module, AndroidFacet.ID);
+    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
     return androidFacet != null ? androidFacet.getIdeaAndroidProject() : null;
   }
 

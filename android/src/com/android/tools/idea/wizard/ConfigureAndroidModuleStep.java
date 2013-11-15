@@ -18,6 +18,9 @@ package com.android.tools.idea.wizard;
 import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
+import com.android.sdklib.local.LocalPkgInfo;
+import com.android.sdklib.local.LocalSdk;
+import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
@@ -27,11 +30,18 @@ import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.JavaSdk;
+import com.intellij.openapi.projectRoots.JavaSdkVersion;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
+import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,10 +52,12 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
+import static com.android.tools.idea.wizard.NewModuleWizardState.APP_NAME;
 import static com.android.tools.idea.wizard.NewProjectWizardState.*;
 
 /**
@@ -81,6 +93,9 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   private JLabel myModuleNameLabel;
   private JCheckBox myGridLayoutCheckBox;
   private JCheckBox myNavigationDrawerCheckBox;
+  private JComboBox mySourceCombo;
+  private JLabel mySourceVersionLabel;
+  private JLabel myAppNameLabel;
   boolean myInitializedPackageNameText = false;
   private boolean myInitialized = false;
   @Nullable private WizardContext myWizardContext;
@@ -103,15 +118,55 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       }
       myTemplateState.put(ATTR_TARGET_API, SdkVersionInfo.HIGHEST_KNOWN_API);
     }
+
+    int highestApi = -1;
     for (IAndroidTarget target : targets) {
+      highestApi = Math.max(highestApi, target.getVersion().getApiLevel());
       AndroidTargetComboBoxItem targetInfo = new AndroidTargetComboBoxItem(target);
-      myTemplateState.put(ATTR_BUILD_API, targetInfo.apiLevel);
       myCompileWith.addItem(targetInfo);
       if (target.getVersion().isPreview()) {
         myMinSdk.addItem(targetInfo);
         myTargetSdk.addItem(targetInfo);
       }
     }
+    if (highestApi >= 1) {
+      myTemplateState.put(ATTR_BUILD_API, highestApi);
+      if (highestApi > SdkVersionInfo.HIGHEST_KNOWN_API) {
+        myTemplateState.put(ATTR_TARGET_API, highestApi);
+      }
+    }
+
+    // If using KitKat platform tools, we can support language level
+    if (isJdk7Supported(getSdkManager())) {
+      // We only support a few levels at this point, not for example 1.3 or 1.8
+      mySourceCombo.addItem(new SourceLevelComboBoxItem(LanguageLevel.JDK_1_5));
+      mySourceCombo.addItem(new SourceLevelComboBoxItem(LanguageLevel.JDK_1_6));
+      mySourceCombo.addItem(new SourceLevelComboBoxItem(LanguageLevel.JDK_1_7));
+      if (!myTemplateState.hasAttr(ATTR_JAVA_VERSION)) {
+        LanguageLevel defaultLevel = LanguageLevel.JDK_1_6;
+        myTemplateState.put(ATTR_JAVA_VERSION, languageLevelToString( defaultLevel));
+      }
+    } else {
+      mySourceVersionLabel.setVisible(false);
+      mySourceCombo.setVisible(false);
+    }
+
+    // Find a unique project location
+    String projectLocation = myTemplateState.getString(ATTR_PROJECT_LOCATION);
+    if (projectLocation != null && !projectLocation.isEmpty() && myProject != null && !myProject.isInitialized()) {
+      File file = new File(projectLocation);
+      if (file.exists()) {
+        String appName = myTemplateState.getString(ATTR_APP_TITLE);
+        int i = 2;
+        while (file.exists()) {
+          myTemplateState.put(ATTR_APP_TITLE, appName + Integer.toString(i));
+          deriveValues();
+          file = new File(myTemplateState.getString(ATTR_PROJECT_LOCATION));
+          i++;
+        }
+      }
+    }
+
 
     registerUiElements();
 
@@ -146,6 +201,10 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       myModuleName.setVisible(false);
       myModuleNameLabel.setVisible(false);
     }
+    if (myTemplateState.myHidden.contains(ATTR_APP_TITLE)) {
+      myAppNameLabel.setVisible(false);
+      myAppName.setVisible(false);
+    }
   }
 
   private void registerUiElements() {
@@ -167,11 +226,14 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     register(ATTR_BUILD_API, myCompileWith);
     register(ATTR_CREATE_ACTIVITY, myCreateActivityCheckBox);
     register(ATTR_CREATE_ICONS, myCreateCustomLauncherIconCheckBox);
-    register(ATTR_LIBRARY, myLibraryCheckBox);
+    register(ATTR_IS_LIBRARY_MODULE, myLibraryCheckBox);
     register(ATTR_FRAGMENTS_EXTRA, myFragmentCheckBox);
     register(ATTR_NAVIGATION_DRAWER_EXTRA, myNavigationDrawerCheckBox);
     register(ATTR_ACTION_BAR_EXTRA, myActionBarCheckBox);
     register(ATTR_GRID_LAYOUT_EXTRA, myGridLayoutCheckBox);
+    if (mySourceCombo.isVisible()) {
+      register(ATTR_JAVA_VERSION, mySourceCombo);
+    }
   }
 
   @Override
@@ -210,12 +272,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   @NotNull
   private IAndroidTarget[] getCompilationTargets() {
-    SdkManager sdkManager = myWizardContext != null
-                            ? TemplateWizardModuleBuilder.getSdkManager(myWizardContext.getProjectJdk())
-                            : null;
-    if (sdkManager == null) {
-      sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
-    }
+    SdkManager sdkManager = getSdkManager();
     if (sdkManager == null) {
       return new IAndroidTarget[0];
     }
@@ -289,14 +346,6 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   @Override
   protected void deriveValues() {
-    if (myTemplateState.myModified.contains(ATTR_MODULE_NAME)) {
-      updateDerivedValue(ATTR_APP_TITLE, myAppName, new Callable<String>() {
-        @Override
-        public String call() {
-          return computeAppName();
-        }
-      });
-    }
     updateDerivedValue(ATTR_MODULE_NAME, myModuleName, new Callable<String>() {
       @Override
       public String call() {
@@ -317,10 +366,9 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
         }
       });
     }
-
     if (!myInitializedPackageNameText) {
       myInitializedPackageNameText = true;
-      if (((String)myTemplateState.get(ATTR_PACKAGE_NAME)).startsWith(SAMPLE_PACKAGE_PREFIX)) {
+      if ((myTemplateState.getString(ATTR_PACKAGE_NAME)).startsWith(SAMPLE_PACKAGE_PREFIX)) {
         int length = SAMPLE_PACKAGE_PREFIX.length();
         if (SAMPLE_PACKAGE_PREFIX.endsWith(".")) {
           length--;
@@ -344,21 +392,24 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     }
 
     setErrorHtml("");
-    String applicationName = (String)myTemplateState.get(ATTR_APP_TITLE);
-    if (applicationName == null || applicationName.isEmpty()) {
-      setErrorHtml("Enter an application name (shown in launcher)");
-      return false;
+
+    if (!myTemplateState.myHidden.contains(ATTR_APP_TITLE)) {
+      String applicationName = myTemplateState.getString(ATTR_APP_TITLE);
+      if (applicationName == null || applicationName.isEmpty()) {
+        setErrorHtml("Enter an application name (shown in launcher)");
+        return false;
+      }
+      if (Character.isLowerCase(applicationName.charAt(0))) {
+        setErrorHtml("The application name for most apps begins with an uppercase letter");
+      }
     }
-    if (Character.isLowerCase(applicationName.charAt(0))) {
-      setErrorHtml("The application name for most apps begins with an uppercase letter");
-    }
-    String packageName = (String)myTemplateState.get(ATTR_PACKAGE_NAME);
+    String packageName = myTemplateState.getString(ATTR_PACKAGE_NAME);
     if (packageName.startsWith(SAMPLE_PACKAGE_PREFIX)) {
       setErrorHtml(String.format("The prefix '%1$s' is meant as a placeholder and should " +
                                     "not be used", SAMPLE_PACKAGE_PREFIX));
     }
 
-    String moduleName = (String)myTemplateState.get(ATTR_MODULE_NAME);
+    String moduleName = myTemplateState.getString(ATTR_MODULE_NAME);
     if (moduleName == null || moduleName.isEmpty()) {
       setErrorHtml("Please specify a module name.");
       return false;
@@ -385,13 +436,27 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       return false;
     }
 
+    if (myTemplateState.hasAttr(ATTR_JAVA_VERSION)) {
+      String sourceVersion = myTemplateState.getString(ATTR_JAVA_VERSION);
+      if ("1.7".equals(sourceVersion)) {
+        if (buildLevel < 19) {
+          setErrorHtml("Using Java language level 7 requires compiling with API 19: Android 4.4 (KitKat)");
+          return false;
+        }
+        if (minLevel < 19) {
+          setErrorHtml("Note: With minSdkVersion less than 19, you cannot use try-with-resources, but other Java 7 language " +
+                       "features are fine");
+        }
+      }
+    }
+
     toggleVisibleOnApi(myFragmentCheckBox, 10, minLevel);
     toggleVisibleOnApi(myNavigationDrawerCheckBox, 10, minLevel);
     toggleVisibleOnApi(myActionBarCheckBox, 10, minLevel);
     toggleVisibleOnApi(myGridLayoutCheckBox, 13, minLevel);
 
     if (!myTemplateState.myHidden.contains(ATTR_PROJECT_LOCATION)) {
-      String projectLocation = (String)myTemplateState.get(ATTR_PROJECT_LOCATION);
+      String projectLocation = myTemplateState.getString(ATTR_PROJECT_LOCATION);
       if (projectLocation == null || projectLocation.isEmpty()) {
         setErrorHtml("Please specify a project location");
         return false;
@@ -409,31 +474,12 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
         setErrorHtml("The project location's parent directory must be a directory, not a plain file");
         return false;
       }
+    } else if (!isUniqueModuleName(moduleName)) {
+      // In this state, we've got a pre-existing project. Let's make sure we're not trying to overwrite an existing module
+      setErrorHtml(String.format(Locale.getDefault(), "Module %1$s already exists", moduleName));
     }
 
     return true;
-  }
-
-  private boolean updateDerivedValue(@NotNull String attrName, @NotNull JTextField textField, @NotNull Callable<String> valueDeriver) {
-    boolean updated = false;
-    try {
-      myIgnoreUpdates = true;
-      if (!myTemplateState.myModified.contains(attrName)) {
-        String s = valueDeriver.call();
-        if (s != null && !s.equals(myTemplateState.get(attrName))) {
-          myTemplateState.put(attrName, s);
-          textField.setText(s);
-          myTemplateState.myModified.remove(attrName);
-          updated = true;
-        }
-      }
-    }
-    catch (Exception e) {
-    }
-    finally {
-      myIgnoreUpdates = false;
-    }
-    return updated;
   }
 
   /**
@@ -451,7 +497,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   @NotNull
   private String computePackageName() {
-    String moduleName = (String)myTemplateState.get(ATTR_MODULE_NAME);
+    String moduleName = myTemplateState.getString(ATTR_MODULE_NAME);
     if (moduleName != null && !moduleName.isEmpty()) {
       moduleName = moduleName.replaceAll("[^a-zA-Z0-9_\\-]", "");
       moduleName = moduleName.toLowerCase();
@@ -463,11 +509,11 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   @NotNull
   private String computeModuleName() {
-    String name = (String)myTemplateState.get(ATTR_APP_TITLE);
-    if (name == null) {
-      return "";
+    String name = myTemplateState.getBoolean(ATTR_IS_LIBRARY_MODULE) ? LIB_NAME : APP_NAME;
+    int i = 2;
+    while (!isUniqueModuleName(name)) {
+      name = name + Integer.toString(i);
     }
-    name = name.replaceAll("[^a-zA-Z0-9_\\-.]", "");
     return name;
   }
 
@@ -484,18 +530,88 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   }
 
   @NotNull
-  private String computeAppName() {
-    return (String)myTemplateState.get(ATTR_MODULE_NAME);
+  private boolean isUniqueModuleName(@NotNull String moduleName) {
+    if (myProject == null) {
+      return true;
+    }
+    // Check our modules
+    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+    for (Module m : moduleManager.getModules()) {
+      if (m.getName().equals(moduleName)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @NotNull
   private String computeProjectLocation() {
-    return new File(NewProjectWizardState.getProjectFileDirectory(), (String)myTemplateState.get(ATTR_MODULE_NAME) + "Project")
+    String name = myTemplateState.getString(ATTR_APP_TITLE);
+    if (name == null) {
+      name = "";
+    }
+    name = name.replaceAll("[^a-zA-Z0-9_\\-.]", "");
+    return new File(NewProjectWizardState.getProjectFileDirectory(), name)
       .getAbsolutePath();
   }
 
   public void setWizardContext(WizardContext wizardContext) {
     myWizardContext = wizardContext;
+  }
+
+  public static boolean isJdk7Supported(@Nullable SdkManager sdkManager) {
+    if (sdkManager != null) {
+      LocalPkgInfo info = sdkManager.getLocalSdk().getPkgInfo(LocalSdk.PKG_PLATFORM_TOOLS);
+      if (info != null && info.hasFullRevision()) {
+        FullRevision fullRevision = info.getFullRevision();
+        assert fullRevision != null;
+        if (fullRevision.getMajor() >= 19) {
+          JavaSdk jdk = JavaSdk.getInstance();
+          Sdk sdk = ProjectJdkTable.getInstance().findMostRecentSdkOfType(jdk);
+          if (sdk != null) {
+            JavaSdkVersion version = jdk.getVersion(sdk);
+            if (version != null && version.isAtLeast(JavaSdkVersion.JDK_1_7)) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  @Nullable
+  private SdkManager getSdkManager() {
+    SdkManager sdkManager = myWizardContext != null
+                            ? TemplateWizardModuleBuilder.getSdkManager(myWizardContext.getProjectJdk())
+                            : null;
+    if (sdkManager == null) {
+      sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
+    }
+    return sdkManager;
+  }
+
+  public static String languageLevelToString(LanguageLevel level) { // Performs the reverse of LanguageLevel.parse()
+    switch (level) {
+      case JDK_1_5: return "1.5";
+      case JDK_1_6: return "1.6";
+      case JDK_1_7: return "1.7";
+      default: return level.name().substring(4).replace('_','.'); // JDK_1_2 => 1.2
+    }
+  }
+
+  public static class SourceLevelComboBoxItem extends ComboBoxItem {
+    public final LanguageLevel level;
+
+    public SourceLevelComboBoxItem(@NotNull LanguageLevel level) {
+      super(languageLevelToString(level), level.getPresentableText(), 1, 1);
+      this.level = level;
+    }
+
+    @Override
+    public String toString() {
+      return level.getPresentableText();
+    }
   }
 
   public static class AndroidTargetComboBoxItem extends ComboBoxItem {

@@ -18,7 +18,6 @@ package com.android.tools.idea.refactoring.rtl;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.rendering.ManifestInfo;
 import com.android.xml.AndroidManifest;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
@@ -115,6 +114,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
 
     if (myProperties.updateAndroidManifest) {
       addManifestRefactoring(list);
+      // TODO: Update build.gradle as well
     }
 
     if (myProperties.updateLayouts) {
@@ -289,7 +289,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null && !facet.isLibraryProject()) {
-        final int minSdk = ManifestInfo.get(module).getMinSdkVersion();
+        int minSdk = facet.getAndroidModuleInfo().getMinSdkVersion();
 
         if (myProperties.generateV17resourcesOption) {
           // First get all the "res" directories

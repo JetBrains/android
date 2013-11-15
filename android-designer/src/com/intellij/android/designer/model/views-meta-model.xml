@@ -48,7 +48,8 @@
 
   <meta model="com.intellij.android.designer.model.RadFragment"
         class="java.lang.Object"
-        tag="fragment">
+        tag="fragment"
+        fill="opposite">
 
     <presentation title=" - %name%"/>
 
@@ -255,7 +256,9 @@
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="android.widget.EditText"
-        tag="EditText">
+        tag="EditText"
+        resize="full"
+        fill="width_in_vertical">
 
     <presentation title=" - &quot;%text%&quot;"/>
 
@@ -278,7 +281,8 @@
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="android.widget.AutoCompleteTextView"
-        tag="AutoCompleteTextView">
+        tag="AutoCompleteTextView"
+        fill="width_in_vertical">
 
     <presentation title=" - &quot;%text%&quot;"/>
 
@@ -302,7 +306,8 @@
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="android.widget.MultiAutoCompleteTextView"
-        tag="MultiAutoCompleteTextView">
+        tag="MultiAutoCompleteTextView"
+        fill="width_in_vertical">
 
     <presentation title=" - &quot;%text%&quot;"/>
 
@@ -466,7 +471,8 @@
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="android.widget.VideoView"
-        tag="VideoView">
+        tag="VideoView"
+        fill="opposite">
 
     <palette title="VideoView" icon="AndroidIcons.Views.VideoView"
              tooltip="Displays a video file. The VideoView class can load images from various sources (such as resources or content providers), takes care of computing its measurement from the video so that it can be used in any layout manager, and provides various display options such as scaling and tinting."/>
@@ -483,7 +489,8 @@
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="android.widget.ProgressBar"
-        tag="ProgressBar">
+        tag="ProgressBar"
+        resize="scaled">
 
     <palette title="ProgressBar" icon="AndroidIcons.Views.ProgressBar"
              tooltip="Visual indicator of progress in some operation."/>
@@ -505,7 +512,9 @@
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="android.widget.SeekBar"
-        tag="SeekBar">
+        tag="SeekBar"
+        resize="horizontal"
+        fill="width_in_vertical">
 
     <palette title="SeekBar" icon="AndroidIcons.Views.SeekBar"
              tooltip="A SeekBar is an extension of ProgressBar that adds a draggable thumb."/>
@@ -526,7 +535,8 @@
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="android.widget.RatingBar"
-        tag="RatingBar">
+        tag="RatingBar"
+        resize="horizontal">
 
     <palette title="RatingBar" icon="AndroidIcons.Views.RatingBar"
              tooltip="A RatingBar is an extension of SeekBar and ProgressBar that shows a rating in stars."/>
@@ -549,7 +559,8 @@
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="android.widget.ImageView"
-        tag="ImageView">
+        tag="ImageView"
+        resize="scaled">
 
     <presentation title=" - &quot;%src%&quot;"/>
 
@@ -573,7 +584,8 @@
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="android.widget.ImageButton"
-        tag="ImageButton">
+        tag="ImageButton"
+        resize="scaled">
 
     <presentation title=" - &quot;%src%&quot;"/>
 
@@ -612,7 +624,8 @@
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="android.widget.QuickContactBadge"
-        tag="QuickContactBadge">
+        tag="QuickContactBadge"
+        resize="scaled">
 
     <palette title="QuickContactBadge" icon="AndroidIcons.Views.QuickContactBadge"
              version="5"
@@ -632,7 +645,8 @@
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="android.widget.Space"
-        tag="Space">
+        tag="Space"
+        fill="opposite">
 
     <palette title="Space" icon="AndroidIcons.Views.Space"
              version="14"
@@ -731,7 +745,8 @@
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="android.widget.CalendarView"
-        tag="CalendarView">
+        tag="CalendarView"
+        fill="both">
 
     <palette title="CalendarView" icon="AndroidIcons.Views.CalendarView"
              version="11"
@@ -796,7 +811,8 @@
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="android.widget.ZoomControls"
-        tag="ZoomControls">
+        tag="ZoomControls"
+        resize="none">
 
     <palette title="ZoomControls" icon="AndroidIcons.Views.ZoomControls"
              tooltip="The ZoomControls class displays a simple set of controls used for zooming and provides callbacks to register for events."/>
@@ -839,7 +855,8 @@
 
   <meta model="com.intellij.android.designer.model.RadAbsListView"
         class="android.widget.ListView"
-        tag="ListView">
+        tag="ListView"
+        fill="width_in_vertical">
 
     <palette title="ListView" icon="AndroidIcons.Views.ListView"
              tooltip="A view that shows items in a vertically scrolling list. The items come from the ListAdapter associated with this view."/>
@@ -860,7 +877,8 @@
 
   <meta model="com.intellij.android.designer.model.RadAbsListView"
         class="android.widget.ExpandableListView"
-        tag="ExpandableListView">
+        tag="ExpandableListView"
+        fill="width_in_vertical">
 
     <palette title="ExpandableListView" icon="AndroidIcons.Views.ExpandableListView"
              tooltip="A view that shows items in a vertically scrolling two-level list. This differs from the ListView by allowing two levels: groups which can individually be expanded to show its children."/>
@@ -881,7 +899,8 @@
 
   <meta model="com.intellij.android.designer.model.RadAbsListView"
         class="android.widget.GridView"
-        tag="GridView">
+        tag="GridView"
+        fill="opposite">
 
     <palette title="GridView" icon="AndroidIcons.Views.GridView"
              tooltip="A view that shows items in two-dimensional scrolling grid. The items in the grid come from the ListAdapter associated with this view."/>
@@ -903,7 +922,8 @@
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="android.webkit.WebView"
-        tag="WebView">
+        tag="WebView"
+        fill="opposite">
 
     <palette title="WebView" icon="AndroidIcons.Views.WebView"
              tooltip="A View that displays web pages. This class is the basis upon which you can roll your own web browser or simply display some online content within your Activity."/>
@@ -921,7 +941,8 @@
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         layout="com.intellij.android.designer.model.RadScrollViewLayout"
         class="android.widget.ScrollView"
-        tag="ScrollView">
+        tag="ScrollView"
+        fill="both">
 
     <palette title="ScrollView" icon="AndroidIcons.Views.ScrollView"
              tooltip="Layout container for a view hierarchy that can be scrolled by the user, allowing it to be larger than the physical display. ScrollView only supports vertical scrolling."/>
@@ -944,7 +965,8 @@
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         layout="com.intellij.android.designer.model.RadScrollViewLayout"
         class="android.widget.HorizontalScrollView"
-        tag="HorizontalScrollView">
+        tag="HorizontalScrollView"
+        fill="both">
 
     <palette title="HorizontalScrollView" icon="AndroidIcons.Views.HorizontalScrollView"
              version="3"
@@ -991,7 +1013,8 @@
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="android.widget.Spinner"
-        tag="Spinner">
+        tag="Spinner"
+        fill="width_in_vertical">
 
     <palette title="Spinner" icon="AndroidIcons.Views.Spinner"
              tooltip="A view that displays one child at a time and lets the user pick among them."/>
@@ -1028,7 +1051,8 @@
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="android.widget.StackView"
-        tag="StackView">
+        tag="StackView"
+        fill="opposite">
 
     <palette title="StackView" icon="AndroidIcons.Views.StackView"
              version="11"
@@ -1069,7 +1093,8 @@
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         layout="com.intellij.android.designer.model.viewAnimator.RadViewAnimatorLayout"
         class="android.widget.ViewAnimator"
-        tag="ViewAnimator">
+        tag="ViewAnimator"
+        fill="opposite">
 
     <palette title="ViewAnimator" icon="AndroidIcons.Views.ViewAnimator"
              tooltip="Container that will perform animations when switching between its views."/>
@@ -1089,7 +1114,8 @@
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         layout="com.intellij.android.designer.model.viewAnimator.RadViewAnimatorLayout"
         class="android.widget.ViewFlipper"
-        tag="ViewFlipper">
+        tag="ViewFlipper"
+        fill="opposite">
 
     <palette title="ViewFlipper" icon="AndroidIcons.Views.ViewFlipper"
              tooltip="Simple ViewAnimator that will animate between two or more views that have been added to it. Only one child is shown at a time. If requested, can automatically flip between each child at a regular interval."/>
@@ -1109,7 +1135,8 @@
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         layout="com.intellij.android.designer.model.viewAnimator.RadViewSwitcherLayout"
         class="android.widget.ViewSwitcher"
-        tag="ViewSwitcher">
+        tag="ViewSwitcher"
+        fill="opposite">
 
     <palette title="ViewSwitcher" icon="AndroidIcons.Views.ViewSwitcher"
              tooltip="ViewAnimator that switches between two views, and has a factory from which these views are created. You can either use the factory to create the views, or add them yourself. A ViewSwitcher can only have two child views, of which only one is shown at a time."/>
@@ -1144,7 +1171,8 @@
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         layout="com.intellij.android.designer.model.viewAnimator.RadTextSwitcherLayout"
         class="android.widget.TextSwitcher"
-        tag="TextSwitcher">
+        tag="TextSwitcher"
+        fill="opposite">
 
     <palette title="TextSwitcher" icon="AndroidIcons.Views.TextSwitcher"
              tooltip="Specialized ViewSwitcher that contains only children of type TextView. A TextSwitcher is useful to animate a label on screen."/>
@@ -1212,7 +1240,8 @@
   <meta model="com.intellij.android.designer.model.layout.relative.RadRelativeLayoutComponent"
         layout="com.intellij.android.designer.model.layout.relative.RadRelativeLayout"
         class="android.widget.DialerFilter"
-        tag="DialerFilter">
+        tag="DialerFilter"
+        fill="width_in_vertical">
 
     <palette title="DialerFilter" icon="AndroidIcons.Views.DialerFilter"/>
 
@@ -1242,7 +1271,8 @@
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         layout="com.intellij.android.designer.model.RadViewLayout"
         class="android.widget.TabHost"
-        tag="TabHost">
+        tag="TabHost"
+        fill="width_in_vertical">
 
     <palette title="TabHost" icon="AndroidIcons.Views.TabHost"
              tooltip="Container for a tabbed window view. This object holds two children: a set of tab labels that the user clicks to select a specific tab, and a FrameLayout object that displays the contents of that page. The individual elements are typically controlled using this container object, rather than setting values on the child elements themselves."/>
@@ -1338,7 +1368,8 @@
   <meta model="com.intellij.android.designer.model.RadViewContainer"
         layout="com.intellij.android.designer.model.layout.RadLinearLayout"
         class="android.widget.LinearLayout"
-        tag="LinearLayout">
+        tag="LinearLayout"
+        fill="opposite">
 
     <presentation title=" (%orientation%)"/>
 
@@ -1356,6 +1387,7 @@
     <creation>
       <![CDATA[
           <LinearLayout
+            android:orientation="horizontal"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent">
           </LinearLayout>
@@ -1366,7 +1398,8 @@
   <meta model="com.intellij.android.designer.model.RadViewContainer"
         layout="com.intellij.android.designer.model.layout.RadFrameLayout"
         class="android.widget.FrameLayout"
-        tag="FrameLayout">
+        tag="FrameLayout"
+        fill="opposite">
 
     <palette title="FrameLayout" icon="AndroidIcons.Views.FrameLayout"
              tooltip="FrameLayout is designed to block out an area on the screen to display a single item."/>
@@ -1390,7 +1423,8 @@
   <meta model="com.intellij.android.designer.model.RadViewContainer"
         layout="com.intellij.android.designer.model.layout.RadAbsoluteLayout"
         class="android.widget.AbsoluteLayout"
-        tag="AbsoluteLayout">
+        tag="AbsoluteLayout"
+        fill="opposite">
 
     <palette title="AbsoluteLayout" icon="AndroidIcons.Views.AbsoluteLayout"
              tooltip="A layout that lets you specify exact locations (x/y coordinates) of its children. Absolute layouts are less flexible and harder to maintain than other types of layouts without absolute positioning."
@@ -1413,7 +1447,8 @@
   <meta model="com.intellij.android.designer.model.layout.table.RadTableLayoutComponent"
         layout="com.intellij.android.designer.model.layout.table.RadTableLayout"
         class="android.widget.TableLayout"
-        tag="TableLayout">
+        tag="TableLayout"
+        fill="opposite">
 
     <properties important="stretchColumns shrinkColumns collapseColumns"/>
 
@@ -1435,7 +1470,9 @@
   <meta model="com.intellij.android.designer.model.RadViewContainer"
         layout="com.intellij.android.designer.model.layout.table.RadTableRowLayout"
         class="android.widget.TableRow"
-        tag="TableRow">
+        tag="TableRow"
+        resize="vertical"
+        fill="opposite">
 
     <palette title="TableRow" icon="AndroidIcons.Views.TableRow"
              tooltip="A layout that arranges its children horizontally. A TableRow should always be used as a child of a TableLayout. If a TableRow's parent is not a TableLayout, the TableRow will behave as an horizontal LinearLayout."/>
@@ -1453,7 +1490,8 @@
   <meta model="com.intellij.android.designer.model.layout.grid.RadGridLayoutComponent"
         layout="com.intellij.android.designer.model.layout.grid.RadGridLayout"
         class="android.widget.GridLayout"
-        tag="GridLayout">
+        tag="GridLayout"
+        fill="both">
 
     <properties inplace="rowCount columnCount orientation "
                 important="orientation rowCount columnCount useDefaultMargins alignmentMode rowOrderPreserved columnOrderPreserved"
@@ -1480,7 +1518,8 @@
   <meta model="com.intellij.android.designer.model.layout.grid.RadGridLayoutComponent"
         layout="com.intellij.android.designer.model.layout.grid.RadGridLayout"
         class="android.support.v7.widget.GridLayout"
-        tag="android.support.v7.widget.GridLayout">
+        tag="android.support.v7.widget.GridLayout"
+        fill="both">
 
     <properties inplace="rowCount columnCount orientation "
                 important="orientation rowCount columnCount useDefaultMargins alignmentMode rowOrderPreserved columnOrderPreserved"
@@ -1508,7 +1547,8 @@
   <meta model="com.intellij.android.designer.model.layout.relative.RadRelativeLayoutComponent"
         layout="com.intellij.android.designer.model.layout.relative.RadRelativeLayout"
         class="android.widget.RelativeLayout"
-        tag="RelativeLayout">
+        tag="RelativeLayout"
+        fill="both">
 
     <properties important="gravity ignoreGravity"/>
 
@@ -1654,7 +1694,8 @@
             ]]>
           </creation>
         </item>
-        <item title="ProgressBar (Horizontal)">
+        <item title="ProgressBar (Horizontal)"
+              resize="horizontal">
           <creation>
             <![CDATA[
               <ProgressBar
@@ -1675,7 +1716,7 @@
     <group name="Text Fields">
       <item tag="EditText"
             title="Plain Text">
-        <item title="Person Name">
+        <item title="Person Name" resize="horizontal">
           <!-- TODO: Do a drop handler which sets <requestFocus>! -->
           <creation>
             <![CDATA[
@@ -1689,7 +1730,7 @@
             ]]>
           </creation>
         </item>
-        <item title="Password">
+        <item title="Password" resize="horizontal">
           <creation>
             <![CDATA[
               <EditText
@@ -1701,7 +1742,7 @@
             ]]>
           </creation>
         </item>
-        <item title="Password (Numeric)">
+        <item title="Password (Numeric)" resize="horizontal">
           <creation>
             <![CDATA[
               <EditText
@@ -1713,7 +1754,7 @@
             ]]>
           </creation>
         </item>
-        <item title="E-mail">
+        <item title="E-mail" resize="horizontal">
           <creation>
             <![CDATA[
               <EditText
@@ -1725,7 +1766,7 @@
             ]]>
           </creation>
         </item>
-        <item title="Phone">
+        <item title="Phone" resize="horizontal">
           <creation>
             <![CDATA[
               <EditText
@@ -1761,7 +1802,7 @@
             ]]>
           </creation>
         </item>
-        <item title="Time">
+        <item title="Time" resize="horizontal">
           <creation>
             <![CDATA[
               <EditText
@@ -1773,7 +1814,7 @@
             ]]>
           </creation>
         </item>
-        <item title="Date">
+        <item title="Date" resize="horizontal">
           <creation>
             <![CDATA[
               <EditText
@@ -1785,7 +1826,7 @@
             ]]>
           </creation>
         </item>
-        <item title="Number">
+        <item title="Number" resize="horizontal">
           <creation>
             <![CDATA[
               <EditText
@@ -1797,7 +1838,7 @@
             ]]>
           </creation>
         </item>
-        <item title="Number (Signed)">
+        <item title="Number (Signed)" resize="horizontal">
           <creation>
             <![CDATA[
               <EditText
@@ -1809,7 +1850,7 @@
             ]]>
           </creation>
         </item>
-        <item title="Number (Decimal)">
+        <item title="Number (Decimal)" resize="horizontal">
           <creation>
             <![CDATA[
               <EditText

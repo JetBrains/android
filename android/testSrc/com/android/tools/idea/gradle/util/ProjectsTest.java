@@ -15,28 +15,88 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
+
+import java.io.File;
+
+import static org.easymock.EasyMock.*;
 
 /**
  * Tests for {@link Projects}.
  */
 public class ProjectsTest extends IdeaTestCase {
+  public void testGetJavaHome() {
+    Sdk jdk = AndroidTestCaseHelper.createAndSetJdk(myProject);
+    File javaHome = Projects.getJavaHome(myProject);
+    assertNotNull(javaHome);
+    assertEquals(jdk.getHomePath(), javaHome.getPath());
+  }
+
   public void testIsGradleProjectWithNonGradleProject() {
     assertFalse(Projects.isGradleProject(myProject));
   }
 
   public void testIsGradleProjectWithGradleProject() {
     FacetManager facetManager = FacetManager.getInstance(myModule);
-    ModifiableFacetModel model = facetManager.createModifiableModel();
+    ModifiableFacetModel facetModel = facetManager.createModifiableModel();
+    try {
+      AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
+      facet.getProperties().ALLOW_USER_CONFIGURATION = false;
+      facetModel.addFacet(facet);
+    } finally {
+      facetModel.commit();
+    }
+
+    assertTrue(Projects.isGradleProject(myProject));
+  }
+
+  public void testGetSelectedModules() {
+    addAndroidGradleFacet();
+
+    DataContext dataContext = createMock(DataContext.class);
+    Module[] data = {myModule};
+    expect(dataContext.getData(LangDataKeys.MODULE_CONTEXT_ARRAY.getName())).andReturn(data);
+
+    replay(dataContext);
+
+    Module[] selectedModules = Projects.getModulesToBuildFromSelection(myProject, dataContext);
+    assertSame(data, selectedModules);
+
+    verify(dataContext);
+  }
+
+  private void addAndroidGradleFacet() {
+    FacetManager facetManager = FacetManager.getInstance(myModule);
+    ModifiableFacetModel facetModel = facetManager.createModifiableModel();
     try {
       AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
-      model.addFacet(facet);
+      facetModel.addFacet(facet);
     } finally {
-      model.commit();
+      facetModel.commit();
     }
-    assertTrue(Projects.isGradleProject(myProject));
+  }
+
+  public void testGetSelectedModulesWithModuleWithoutAndroidGradleFacet() {
+    DataContext dataContext = createMock(DataContext.class);
+    Module[] data = {myModule};
+    expect(dataContext.getData(LangDataKeys.MODULE_CONTEXT_ARRAY.getName())).andReturn(data);
+
+    replay(dataContext);
+
+    Module[] selectedModules = Projects.getModulesToBuildFromSelection(myProject, dataContext);
+    assertNotSame(data, selectedModules);
+    assertEquals(1, selectedModules.length);
+    assertSame(myModule, selectedModules[0]);
+
+    verify(dataContext);
   }
 }

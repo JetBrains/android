@@ -17,7 +17,6 @@ package com.android.tools.idea.rendering;
 
 import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
-import com.android.ide.common.rendering.legacy.ILegacyPullParser;
 import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.resources.Density;
 import com.intellij.psi.PsiElement;
@@ -25,11 +24,8 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
-import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.InputStream;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -46,9 +42,7 @@ import static com.android.SdkConstants.*;
  * This pull parser generates {@link com.android.ide.common.rendering.api.ViewInfo}s whose keys
  * are of type {@link XmlTag}.
  */
-public class LayoutPsiPullParser implements ILegacyPullParser {
-  private int myParsingState = START_DOCUMENT;
-
+public class LayoutPsiPullParser extends LayoutPullParser {
   @NotNull
   private final RenderLogger myLogger;
 
@@ -103,7 +97,11 @@ public class LayoutPsiPullParser implements ILegacyPullParser {
 
   /** Use one of the {@link #create} factory methods instead */
   protected LayoutPsiPullParser(@NotNull XmlFile file, @NotNull RenderLogger logger) {
-    myRoot = file.getRootTag();
+    this(file.getRootTag(), logger);
+  }
+
+  protected LayoutPsiPullParser(@Nullable XmlTag root, @NotNull RenderLogger logger) {
+    myRoot = root;
     myLogger = logger;
 
     if (myRoot != null) {
@@ -239,7 +237,11 @@ public class LayoutPsiPullParser implements ILegacyPullParser {
   public String getAttributePrefix(int i) {
     XmlAttribute attribute = getAttribute(i);
     if (attribute != null) {
-      return attribute.getNamespacePrefix();
+      String prefix = attribute.getNamespacePrefix();
+      if (prefix.isEmpty()) {
+        prefix = null;
+      }
+      return prefix;
     }
     return null;
   }
@@ -392,7 +394,11 @@ public class LayoutPsiPullParser implements ILegacyPullParser {
     if (myParsingState == START_TAG || myParsingState == END_TAG) {
       XmlTag currentNode = getCurrentNode();
       assert currentNode != null;  // Should only be called when START_TAG
-      currentNode.getNamespacePrefix();
+      String prefix = currentNode.getNamespacePrefix();
+      if (prefix.isEmpty()) {
+        prefix = null;
+      }
+      return prefix;
     }
 
     return null;
@@ -409,7 +415,8 @@ public class LayoutPsiPullParser implements ILegacyPullParser {
     throw new XmlPullParserException("Call to isEmptyElementTag while not in START_TAG", this, null);
   }
 
-  private void onNextFromStartDocument() {
+  @Override
+  protected void onNextFromStartDocument() {
     if (myRoot != null) {
       push(myRoot);
       myParsingState = START_TAG;
@@ -418,7 +425,8 @@ public class LayoutPsiPullParser implements ILegacyPullParser {
     }
   }
 
-  private void onNextFromStartTag() {
+  @Override
+  protected void onNextFromStartTag() {
     // get the current node, and look for text or children (children first)
     XmlTag node = getCurrentNode();
     assert node != null;  // Should only be called when START_TAG
@@ -441,7 +449,8 @@ public class LayoutPsiPullParser implements ILegacyPullParser {
     }
   }
 
-  private void onNextFromEndTag() {
+  @Override
+  protected void onNextFromEndTag() {
     // look for a sibling. if no sibling, go back to the parent
     XmlTag node = getCurrentNode();
     assert node != null;  // Should only be called when END_TAG
@@ -469,206 +478,6 @@ public class LayoutPsiPullParser implements ILegacyPullParser {
       else {
         myParsingState = END_TAG;
       }
-    }
-  }
-
-  // --- basic implementation of IXmlPullParser ---
-
-  @Override
-  public void setFeature(String name, boolean state) throws XmlPullParserException {
-    if (FEATURE_PROCESS_NAMESPACES.equals(name) && state) {
-      return;
-    }
-    if (FEATURE_REPORT_NAMESPACE_ATTRIBUTES.equals(name) && state) {
-      return;
-    }
-    throw new XmlPullParserException("Unsupported feature: " + name);
-  }
-
-  @Override
-  public boolean getFeature(String name) {
-    if (FEATURE_PROCESS_NAMESPACES.equals(name)) {
-      return true;
-    }
-    if (FEATURE_REPORT_NAMESPACE_ATTRIBUTES.equals(name)) {
-      return true;
-    }
-    return false;
-  }
-
-  @Override
-  public void setProperty(String name, Object value) throws XmlPullParserException {
-    throw new XmlPullParserException("setProperty() not supported");
-  }
-
-  @Nullable
-  @Override
-  public Object getProperty(String name) {
-    return null;
-  }
-
-  @Override
-  public void setInput(Reader in) throws XmlPullParserException {
-    throw new XmlPullParserException("setInput() not supported");
-  }
-
-  @Override
-  public void setInput(InputStream inputStream, String inputEncoding) throws XmlPullParserException {
-    throw new XmlPullParserException("setInput() not supported");
-  }
-
-  @Override
-  public void defineEntityReplacementText(String entityName, String replacementText) throws XmlPullParserException {
-    throw new XmlPullParserException("defineEntityReplacementText() not supported");
-  }
-
-  @Override
-  public String getNamespacePrefix(int pos) throws XmlPullParserException {
-    throw new XmlPullParserException("getNamespacePrefix() not supported");
-  }
-
-  @Override
-  public String getInputEncoding() {
-    return "UTF-8";
-  }
-
-  @Override
-  public String getNamespace(String prefix) {
-    throw new RuntimeException("getNamespace() not supported");
-  }
-
-  @Override
-  public int getNamespaceCount(int depth) throws XmlPullParserException {
-    throw new XmlPullParserException("getNamespaceCount() not supported");
-  }
-
-  @Override
-  public String getNamespaceUri(int pos) throws XmlPullParserException {
-    throw new XmlPullParserException("getNamespaceUri() not supported");
-  }
-
-  @Override
-  public int getColumnNumber() {
-    return -1;
-  }
-
-  @Override
-  public int getLineNumber() {
-    return -1;
-  }
-
-  @Override
-  public String getAttributeType(int arg0) {
-    return "CDATA";
-  }
-
-  @Override
-  public int getEventType() {
-    return myParsingState;
-  }
-
-  @Override
-  public String getText() {
-    return "";
-  }
-
-  @Nullable
-  @Override
-  public char[] getTextCharacters(int[] arg0) {
-    return null;
-  }
-
-  @Override
-  public boolean isAttributeDefault(int arg0) {
-    return false;
-  }
-
-  @Override
-  public boolean isWhitespace() {
-    return false;
-  }
-
-  @Override
-  public int next() throws XmlPullParserException {
-    switch (myParsingState) {
-      case END_DOCUMENT:
-        throw new XmlPullParserException("Nothing after the end");
-      case START_DOCUMENT:
-        onNextFromStartDocument();
-        break;
-      case START_TAG:
-        onNextFromStartTag();
-        break;
-      case END_TAG:
-        onNextFromEndTag();
-        break;
-      case TEXT:
-        // not used
-        break;
-      case CDSECT:
-        // not used
-        break;
-      case ENTITY_REF:
-        // not used
-        break;
-      case IGNORABLE_WHITESPACE:
-        // not used
-        break;
-      case PROCESSING_INSTRUCTION:
-        // not used
-        break;
-      case COMMENT:
-        // not used
-        break;
-      case DOCDECL:
-        // not used
-        break;
-    }
-
-    return myParsingState;
-  }
-
-  @Override
-  public int nextTag() throws XmlPullParserException {
-    int eventType = next();
-    if (eventType != START_TAG && eventType != END_TAG && eventType != END_DOCUMENT) {
-      throw new XmlPullParserException("expected start or end tag: " + XmlPullParser.TYPES[eventType], this, null);
-    }
-    return eventType;
-  }
-
-  @Override
-  public String nextText() throws XmlPullParserException {
-    if (getEventType() != START_TAG) {
-      throw new XmlPullParserException("parser must be on START_TAG to read next text", this, null);
-    }
-    int eventType = next();
-    if (eventType == TEXT) {
-      String result = getText();
-      eventType = next();
-      if (eventType != END_TAG) {
-        throw new XmlPullParserException("event TEXT it must be immediately followed by END_TAG", this, null);
-      }
-      return result;
-    }
-    else if (eventType == END_TAG) {
-      return "";
-    }
-    else {
-      throw new XmlPullParserException("parser must be on START_TAG or TEXT to read text", this, null);
-    }
-  }
-
-  @Override
-  public int nextToken() throws XmlPullParserException {
-    return next();
-  }
-
-  @Override
-  public void require(int type, String namespace, String name) throws XmlPullParserException {
-    if (type != getEventType() || (namespace != null &&
-                                   !namespace.equals(getNamespace())) || (name != null && !name.equals(getName()))) {
-      throw new XmlPullParserException("expected " + TYPES[type] + getPositionDescription());
     }
   }
 }

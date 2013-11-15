@@ -15,6 +15,7 @@
  */
 package com.intellij.android.designer.model.layout.relative;
 
+import com.intellij.android.designer.AndroidDesignerUtils;
 import com.intellij.android.designer.designSurface.AbstractEditOperation;
 import com.intellij.android.designer.designSurface.feedbacks.TextFeedback;
 import com.intellij.android.designer.model.RadViewComponent;
@@ -66,9 +67,11 @@ public class RelativeLayoutDropOperation extends AbstractEditOperation {
 
     Point moveDelta = myContext.getMoveDelta();
     Rectangle newBounds = myPrimary.getBounds(layer);
+
     if (newBounds.width == 0 || newBounds.height == 0) {
       // Pasting, etc
-      newBounds = new Rectangle(0, 0, 100, 50);
+      Dimension size = AndroidDesignerUtils.computePreferredSize(myContext.getArea(), myPrimary, myContainer);
+      newBounds = new Rectangle(0, 0, size.width, size.height);
     }
     if (moveDelta != null) {
       newBounds.x += moveDelta.x;
@@ -121,6 +124,7 @@ public class RelativeLayoutDropOperation extends AbstractEditOperation {
   public void execute() throws Exception {
     if (myContext.isCreate() || myContext.isPaste() || myContext.isAdd()) {
       super.execute();
+      // TODO: Return here?
     }
 
     ApplicationManager.getApplication().runWriteAction(new Runnable() {

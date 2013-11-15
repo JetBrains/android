@@ -392,16 +392,20 @@ public abstract class FlatComboAction extends AnAction implements CustomComponen
       final Dimension size = getSize();
       {
         final Graphics2D g2 = (Graphics2D)g;
-        g2.setColor(UIUtil.getControlColor());
+        Color controlColor = UIUtil.getControlColor();
+        if (UIUtil.isUnderIntelliJLaF()) {
+          controlColor = getParent().getBackground();
+        }
+        g2.setColor(controlColor);
         final int w = getWidth();
         final int h = getHeight();
         if (getModel().isArmed() && getModel().isPressed()) {
-          g2.setPaint(new GradientPaint(0, 0, UIUtil.getControlColor(), 0, h, ColorUtil.shift(UIUtil.getControlColor(), 0.8)));
+          g2.setPaint(new GradientPaint(0, 0, controlColor, 0, h, ColorUtil.shift(controlColor, 0.8)));
         }
         else {
           if (myMouseInside) {
-            g2.setPaint(new GradientPaint(0, 0, ColorUtil.shift(UIUtil.getControlColor(), 1.1), 0, h,
-                                          ColorUtil.shift(UIUtil.getControlColor(), 0.9)));
+            g2.setPaint(new GradientPaint(0, 0, ColorUtil.shift(controlColor, 1.1), 0, h,
+                                          ColorUtil.shift(controlColor, 0.9)));
           }
         }
         g2.fillRect(1, 1, w - 2, h - 2);
@@ -411,8 +415,8 @@ public abstract class FlatComboAction extends AnAction implements CustomComponen
             g2.setPaint(new GradientPaint(0, 0, UIUtil.getBorderColor().darker(), 0, h, UIUtil.getBorderColor().darker().darker()));
           }
           else {
-            g2.setPaint(new GradientPaint(0, 0, ColorUtil.shift(UIUtil.getControlColor(), 1.4), 0, h,
-                                          ColorUtil.shift(UIUtil.getControlColor(), 1.5)));
+            g2.setPaint(new GradientPaint(0, 0, ColorUtil.shift(controlColor, 1.4), 0, h,
+                                          ColorUtil.shift(controlColor, 1.5)));
           }
 
           g2.drawRect(0, 0, w - 1, h - 1);

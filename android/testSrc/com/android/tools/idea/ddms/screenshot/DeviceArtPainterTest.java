@@ -53,8 +53,9 @@ public class DeviceArtPainterTest extends TestCase {
       FrameData landscapeData = data.getFrameData(ScreenOrientation.LANDSCAPE, Integer.MAX_VALUE);
       // Must use computeImage rather than getImage here since we want to get the
       // full size images, not the already cropped images
-      BufferedImage effectsImage = landscapeData.computeImage(true, 0, 0, landscapeData.getFrameWidth(), landscapeData.getFrameHeight());
-      assertNotNull(effectsImage);
+
+      BufferedImage effectsImage;
+      Rectangle crop;
       ImageUtils.CropFilter filter = new ImageUtils.CropFilter() {
         @Override
         public boolean crop(BufferedImage bufferedImage, int x, int y) {
@@ -62,35 +63,40 @@ public class DeviceArtPainterTest extends TestCase {
           return ((rgb & 0xFF000000) >>> 24) < 2;
         }
       };
-      Rectangle crop = ImageUtils.getCropBounds(effectsImage, filter, null);
-      assertNotNull(crop);
-      System.out.print("      landCrop: [");
-      System.out.print(crop.x);
-      System.out.print(",");
-      System.out.print(crop.y);
-      System.out.print(",");
-      System.out.print(crop.x + crop.width);
-      System.out.print(",");
-      System.out.print(crop.y+crop.height);
-      System.out.println("],");
 
       FrameData portraitData = data.getFrameData(ScreenOrientation.PORTRAIT, Integer.MAX_VALUE);
       effectsImage = portraitData.computeImage(true, 0, 0, portraitData.getFrameWidth(), portraitData.getFrameHeight());
       assertNotNull(effectsImage);
       crop = ImageUtils.getCropBounds(effectsImage, filter, null);
       assertNotNull(crop);
-      System.out.print("      portCrop: [");
+      System.out.print("      port crop=\"");
       System.out.print(crop.x);
       System.out.print(",");
       System.out.print(crop.y);
       System.out.print(",");
-      System.out.print(crop.x+crop.width);
+      System.out.print(crop.width);
       System.out.print(",");
-      System.out.print(crop.y+crop.height);
-      System.out.println("],");
+      System.out.print(crop.height);
+      System.out.println("\"");
+
+
+      effectsImage = landscapeData.computeImage(true, 0, 0, landscapeData.getFrameWidth(), landscapeData.getFrameHeight());
+      assertNotNull(effectsImage);
+      crop = ImageUtils.getCropBounds(effectsImage, filter, null);
+      assertNotNull(crop);
+      System.out.print("      landscape crop=\"");
+      System.out.print(crop.x);
+      System.out.print(",");
+      System.out.print(crop.y);
+      System.out.print(",");
+      System.out.print(crop.width);
+      System.out.print(",");
+      System.out.print(crop.height);
+      System.out.println("\"");
     }
   }
 
+  @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
   private static Device newDevice() throws Exception {
     java.util.List<Device> devices;
     InputStream stream = null;

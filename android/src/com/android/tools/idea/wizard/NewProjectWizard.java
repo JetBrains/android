@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -31,6 +32,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,8 +43,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME;
+import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static icons.AndroidIcons.Wizards.NewProjectSidePanel;
 
 /**
@@ -53,9 +54,10 @@ import static icons.AndroidIcons.Wizards.NewProjectSidePanel;
  */
 public class NewProjectWizard extends TemplateWizard implements TemplateParameterStep.UpdateListener {
   private static final Logger LOG = Logger.getInstance("#" + NewProjectWizard.class.getName());
-  private static final String JAVA_SRC_PATH = FD_SOURCES + File.separator + FD_MAIN + File.separator + FD_JAVA;
   private static final String ERROR_MSG_TITLE = "New Project Wizard";
   private static final String UNABLE_TO_CREATE_DIR_FORMAT = "Unable to create directory '%s1$s'.";
+  private static final String PROJECT_CATEGORY = "Projects";
+  private static final String PROJECT_TEMPLATE = "Android Project";
 
   private NewProjectWizardState myWizardState;
   private LauncherIconStep myLauncherIconStep;
@@ -65,7 +67,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
 
   public NewProjectWizard() {
     super("New Project", null);
-    getWindow().setMinimumSize(new Dimension(800, 640));
+    getWindow().setMinimumSize(new Dimension(1000, 640));
     init();
   }
 
@@ -87,6 +89,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
 
     ConfigureAndroidModuleStep configureAndroidModuleStep =
       new ConfigureAndroidModuleStep(myWizardState, myProject, NewProjectSidePanel, this);
+    configureAndroidModuleStep.updateStep();
     myLauncherIconStep = new LauncherIconStep(myWizardState.getLauncherIconState(), myProject, NewProjectSidePanel, this);
     myChooseActivityStep = new ChooseTemplateStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, myProject,
                                                   NewProjectSidePanel, this, null);
@@ -131,23 +134,17 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
       if (!FileUtilRt.createDirectory(projectRoot)) {
         errors.add(String.format(UNABLE_TO_CREATE_DIR_FORMAT, projectRoot.getPath()));
       }
-      createGradleWrapper(projectRoot);
-      int apiLevel = wizardState.getInt(ATTR_BUILD_API);
-      Sdk sdk = getSdk(apiLevel);
-      if (sdk == null) {
-        // This will NEVER happen. The SDK has been already set before this wizard runs.
-        errors.add(String.format("Unable to find an Android SDK with API level %d.", apiLevel));
-      }
-      else {
-        LocalProperties localProperties = new LocalProperties(projectRoot);
-        localProperties.setAndroidSdkPath(sdk);
-        localProperties.save();
-      }
       if (wizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS)) {
         wizardState.getLauncherIconState().outputImages(moduleRoot);
       }
       wizardState.updateParameters();
       wizardState.updateDependencies();
+
+      // If this is a new project, instantiate the project-level files
+      if (wizardState instanceof NewProjectWizardState) {
+        ((NewProjectWizardState)wizardState).myProjectTemplate.render(projectRoot, moduleRoot, wizardState.myParameters);
+      }
+
       wizardState.myTemplate.render(projectRoot, moduleRoot, wizardState.myParameters);
       if (wizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY)) {
         TemplateWizardState activityTemplateState = wizardState.getActivityTemplateState();
@@ -156,16 +153,16 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
         template.render(moduleRoot, moduleRoot, activityTemplateState.myParameters);
         wizardState.myTemplate.getFilesToOpen().addAll(template.getFilesToOpen());
       }
-      else {
-        // Ensure that at least the Java source directory exists. We could create other directories but this is the most used.
-        // TODO: We should perhaps instantiate this from the Freemarker template, using the mkdir command
-        File javaSrcDir = new File(moduleRoot, JAVA_SRC_PATH);
-        File packageDir = new File(javaSrcDir, wizardState.getString(ATTR_PACKAGE_NAME).replace('.', File.separatorChar));
-        if (!FileUtilRt.createDirectory(packageDir)) {
-          errors.add(String.format(UNABLE_TO_CREATE_DIR_FORMAT, packageDir.getPath()));
-        }
+      if (ApplicationManager.getApplication().isUnitTestMode()) {
+        return;
       }
       GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
+
+      LanguageLevel initialLanguageLevel = null;
+      Object version = wizardState.hasAttr(ATTR_JAVA_VERSION) ? wizardState.get(ATTR_JAVA_VERSION) : null;
+      if (version != null) {
+        initialLanguageLevel = LanguageLevel.parse(version.toString());
+      }
       projectImporter.importProject(projectName, projectRoot, new GradleProjectImporter.Callback() {
         @Override
         public void projectImported(@NotNull Project project) {
@@ -181,9 +178,12 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
             }
           });
         }
-      }, project);
+      }, project, initialLanguageLevel);
     }
     catch (Exception e) {
+      if (ApplicationManager.getApplication().isUnitTestMode()) {
+        throw new RuntimeException(e);
+      }
       Messages.showErrorDialog(e.getMessage(), ERROR_MSG_TITLE);
       LOG.error(e);
     }
@@ -194,8 +194,22 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
     }
   }
 
-  private static void createGradleWrapper(File projectRoot) throws IOException {
+  @VisibleForTesting
+  public static void createGradleWrapper(File projectRoot) throws IOException {
     File gradleWrapperSrc = new File(TemplateManager.getTemplateRootFolder(), GRADLE_WRAPPER_PATH);
+    if (!gradleWrapperSrc.exists()) {
+      for (File root : TemplateManager.getExtraTemplateRootFolders()) {
+        gradleWrapperSrc = new File(root, GRADLE_WRAPPER_PATH);
+        if (gradleWrapperSrc.exists()) {
+          break;
+        } else {
+          gradleWrapperSrc = null;
+        }
+      }
+    }
+    if (gradleWrapperSrc == null) {
+      return;
+    }
     FileUtil.copyDirContent(gradleWrapperSrc, projectRoot);
     File wrapperPropertiesFile = GradleUtil.getGradleWrapperPropertiesFilePath(projectRoot);
     GradleUtil.updateGradleDistributionUrl(GradleUtil.GRADLE_LATEST_VERSION, wrapperPropertiesFile);

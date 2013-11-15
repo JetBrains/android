@@ -15,17 +15,19 @@
  */
 package com.android.tools.idea.jps.builder;
 
-import com.android.SdkConstants;
+import com.android.tools.idea.gradle.output.GradleMessage;
+import com.android.tools.idea.gradle.output.parser.GradleErrorOutputParser;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.jps.AndroidGradleJps;
 import com.android.tools.idea.jps.model.JpsAndroidGradleModuleExtension;
-import com.android.tools.idea.jps.output.parser.GradleErrorOutputParser;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.SystemProperties;
 import org.gradle.tooling.BuildException;
 import org.gradle.tooling.BuildLauncher;
@@ -61,10 +63,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -74,10 +73,9 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
   private static final Logger LOG = Logger.getInstance(AndroidGradleTargetBuilder.class);
   private static final GradleErrorOutputParser ERROR_OUTPUT_PARSER = new GradleErrorOutputParser();
 
-  @NonNls private static final String CLEAN_TASK_NAME = "clean";
-  @NonNls private static final String DEFAULT_ASSEMBLE_TASK_NAME = "assemble";
-
   @NonNls private static final String BUILDER_NAME = "Android Gradle Target Builder";
+
+  private static final int BUFFER_SIZE = 2048;
 
   public AndroidGradleTargetBuilder() {
     super(Collections.singletonList(AndroidGradleBuildTarget.TargetType.INSTANCE));
@@ -143,72 +141,70 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
   private static String[] getBuildTasks(@NotNull JpsProject project,
                                         @NotNull CompileContext context,
                                         @NotNull BuilderExecutionSettings executionSettings) {
-    boolean buildTests = AndroidJpsUtil.isInstrumentationTestContext(context);
-    List<String> tasks = Lists.newArrayList();
-    for (JpsModule module : project.getModules()) {
-      populateBuildTasks(module, executionSettings, tasks, buildTests);
+    BuildMode buildMode = executionSettings.getBuildMode();
+    if (buildMode.equals(BuildMode.CLEAN)) {
+      return new String[] { GradleBuilds.CLEAN_TASK_NAME };
     }
+
+    List<String> tasks = Lists.newArrayList();
+
+    for (JpsModule module : getModulesToBuild(project, executionSettings)) {
+      populateBuildTasks(module, executionSettings, tasks, context);
+    }
+
     if (!tasks.isEmpty()) {
       boolean rebuild = JavaBuilderUtil.isForcedRecompilationAllJavaModules(context);
       if (rebuild) {
-        tasks.add(0, CLEAN_TASK_NAME);
+        tasks.add(0, GradleBuilds.CLEAN_TASK_NAME);
       }
     }
-    return tasks.toArray(new String[tasks.size()]);
+
+    return ArrayUtil.toStringArray(tasks);
+  }
+
+  @NotNull
+  private static List<JpsModule> getModulesToBuild(@NotNull JpsProject project, @NotNull BuilderExecutionSettings executionSettings) {
+    List<JpsModule> modules = project.getModules();
+    Set<String> moduleNames = executionSettings.getModulesToBuildNames();
+    if (moduleNames.isEmpty()) {
+      return modules;
+    }
+    List<JpsModule> modulesToBuild = Lists.newArrayList();
+    for (JpsModule module : modules) {
+      if (moduleNames.contains(module.getName())) {
+        modulesToBuild.add(module);
+      }
+    }
+    return modulesToBuild;
   }
 
   private static void populateBuildTasks(@NotNull JpsModule module,
                                          @NotNull BuilderExecutionSettings executionSettings,
                                          @NotNull List<String> tasks,
-                                         boolean buildTests) {
+                                         CompileContext context) {
     JpsAndroidGradleModuleExtension androidGradleFacet = AndroidGradleJps.getExtension(module);
     if (androidGradleFacet == null) {
       return;
     }
     String gradleProjectPath = androidGradleFacet.getProperties().GRADLE_PROJECT_PATH;
-    if (gradleProjectPath == null) {
-      // Gradle project path is never, ever null. If the path is empty, it shows as ":". We had reports of this happening. It is likely that
-      // users manually added the Android-Gradle facet to a project. After all it is likely not to be a Gradle module. Better quit and not
-      // build the module.
-      String format = "Module '%1$s' does not have a Gradle path. It is likely that this module was manually added by the user.";
-      String msg = String.format(format, module.getName());
-      LOG.warn(msg);
-      return;
-    }
-    String assembleTaskName = null;
     JpsAndroidModuleExtensionImpl androidFacet = (JpsAndroidModuleExtensionImpl)AndroidJpsUtil.getExtension(module);
-    if (androidFacet != null) {
-      JpsAndroidModuleProperties properties = androidFacet.getProperties();
-      BuildMode buildMode = executionSettings.getBuildMode();
-      switch (buildMode) {
-        case SOURCE_GEN:
-          assembleTaskName = properties.SOURCE_GEN_TASK_NAME;
-          break;
-        case COMPILE_JAVA:
-          assembleTaskName = properties.COMPILE_JAVA_TASK_NAME;
-          break;
-        default:
-          assembleTaskName = properties.ASSEMBLE_TASK_NAME;
-      }
-    }
-    if (Strings.isNullOrEmpty(assembleTaskName)) {
-      assembleTaskName = DEFAULT_ASSEMBLE_TASK_NAME;
-    }
-    assert assembleTaskName != null;
-    tasks.add(createBuildTask(gradleProjectPath, assembleTaskName));
+    JpsAndroidModuleProperties properties = androidFacet != null ? androidFacet.getProperties() : null;
 
-    if (buildTests && androidFacet != null) {
-      JpsAndroidModuleProperties properties = androidFacet.getProperties();
-      String assembleTestTaskName = properties.ASSEMBLE_TEST_TASK_NAME;
-      if (!Strings.isNullOrEmpty(assembleTestTaskName)) {
-        tasks.add(createBuildTask(gradleProjectPath, assembleTestTaskName));
-      }
+    GradleBuilds.TestCompileContext testCompileContext;
+    if (AndroidJpsUtil.isInstrumentationTestContext(context)) {
+      testCompileContext = GradleBuilds.TestCompileContext.ANDROID_TESTS;
+    } else if (AndroidJpsUtil.isJunitTestContext(context)) {
+      testCompileContext = GradleBuilds.TestCompileContext.JAVA_TESTS;
+    } else {
+      testCompileContext = GradleBuilds.TestCompileContext.NONE;
     }
-  }
 
-  @NotNull
-  private static String createBuildTask(@NotNull String gradleProjectPath, @NotNull String taskName) {
-    return gradleProjectPath + SdkConstants.GRADLE_PATH_SEPARATOR + taskName;
+    GradleBuilds.findAndAddBuildTask(module.getName(),
+                                     executionSettings.getBuildMode(),
+                                     gradleProjectPath,
+                                     properties,
+                                     tasks,
+                                     testCompileContext);
   }
 
   private static void ensureTempDirExists() {
@@ -261,8 +257,8 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
     GradleConnector connector = getGradleConnector(executionSettings);
 
     ProjectConnection connection = connector.connect();
-    ByteArrayOutputStream stdout = new ByteArrayOutputStream();
-    ByteArrayOutputStream stderr = new ByteArrayOutputStream();
+    ByteArrayOutputStream stdout = new ByteArrayOutputStream(BUFFER_SIZE);
+    ByteArrayOutputStream stderr = new ByteArrayOutputStream(BUFFER_SIZE);
 
     try {
       BuildLauncher launcher = connection.newBuild();
@@ -348,10 +344,10 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
    * "Problems" view. The idea is that we need to somehow inform the user that something went wrong.
    */
   private static void handleBuildException(BuildException e, CompileContext context, String stdErr) throws ProjectBuildException {
-    Collection<CompilerMessage> compilerMessages = ERROR_OUTPUT_PARSER.parseErrorOutput(stdErr);
+    Collection<GradleMessage> compilerMessages = ERROR_OUTPUT_PARSER.parseErrorOutput(stdErr, true);
     if (!compilerMessages.isEmpty()) {
-      for (CompilerMessage message : compilerMessages) {
-        context.processMessage(message);
+      for (GradleMessage message : compilerMessages) {
+        context.processMessage(AndroidGradleJps.createCompilerMessage(message));
       }
       return;
     }
@@ -362,7 +358,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
     }
     else {
       // Since we have nothing else to show, just print the stack trace of the caught exception.
-      ByteArrayOutputStream out = new ByteArrayOutputStream();
+      ByteArrayOutputStream out = new ByteArrayOutputStream(BUFFER_SIZE);
       try {
         //noinspection IOResourceOpenedButNotSafelyClosed
         e.printStackTrace(new PrintStream(out));

@@ -36,16 +36,19 @@ import javax.swing.*;
  */
 public class GradleCompilerSettingsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
   private final CompilerWorkspaceConfiguration myCompilerConfiguration;
+  private final ExperimentalAndroidStudioConfiguration myExperimentalConfiguration;
   private final GradleSettings myGradleSettings;
 
   private JCheckBox myParallelBuildCheckBox;
   private HyperlinkLabel myParallelBuildDocHyperlinkLabel;
   private RawCommandLineEditor myVmOptionsEditor;
   private JCheckBox myAutoMakeCheckBox;
+  private JCheckBox myUseExperimentalBuildCheckBox;
   private JPanel myContentPanel;
 
   public GradleCompilerSettingsConfigurable(@NotNull Project project) {
     myCompilerConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
+    myExperimentalConfiguration = ExperimentalAndroidStudioConfiguration.getInstance(project);
     myGradleSettings = GradleSettings.getInstance(project);
   }
 
@@ -83,7 +86,8 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   public boolean isModified() {
     return myCompilerConfiguration.PARALLEL_COMPILATION != isParallelBuildsEnabled() ||
            !Objects.equal(getVmOptions(), myGradleSettings.getGradleVmOptions()) ||
-           myCompilerConfiguration.MAKE_PROJECT_ON_SAVE != isAutoMakeEnabled();
+           myCompilerConfiguration.MAKE_PROJECT_ON_SAVE != isAutoMakeEnabled() ||
+           myExperimentalConfiguration.USE_EXPERIMENTAL_FASTER_BUILD != isExperimentalBuildEnabled();
   }
 
   @Override
@@ -91,6 +95,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     myCompilerConfiguration.PARALLEL_COMPILATION = isParallelBuildsEnabled();
     myGradleSettings.setGradleVmOptions(getVmOptions());
     myCompilerConfiguration.MAKE_PROJECT_ON_SAVE = isAutoMakeEnabled();
+    myExperimentalConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = isExperimentalBuildEnabled();
   }
 
   private boolean isParallelBuildsEnabled() {
@@ -99,6 +104,10 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
 
   private boolean isAutoMakeEnabled() {
     return myAutoMakeCheckBox.isSelected();
+  }
+
+  private boolean isExperimentalBuildEnabled() {
+    return myUseExperimentalBuildCheckBox.isSelected();
   }
 
   @Nullable
@@ -112,6 +121,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     String vmOptions = Strings.nullToEmpty(myGradleSettings.getGradleVmOptions());
     myVmOptionsEditor.setText(vmOptions);
     myAutoMakeCheckBox.setSelected(myCompilerConfiguration.MAKE_PROJECT_ON_SAVE);
+    myUseExperimentalBuildCheckBox.setSelected(myExperimentalConfiguration.USE_EXPERIMENTAL_FASTER_BUILD);
     myAutoMakeCheckBox.setText("Make project automatically (only works while not running / debugging" +
                                (PowerSaveMode.isEnabled() ? ", disabled in Power Save mode" : "") +
                                ")");

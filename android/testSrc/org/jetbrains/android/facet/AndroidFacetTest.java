@@ -32,14 +32,14 @@ public class AndroidFacetTest extends AndroidTestCase {
     myAndroidProject = createMock(IdeaAndroidProject.class);
   }
 
-  public void testSetIdeaAndroidProject() {
-    AndroidFacet.GradleProjectAvailableListener listener1 = createMock(AndroidFacet.GradleProjectAvailableListener.class);
-    listener1.gradleProjectAvailable(myAndroidProject);
+  public void testProjectSyncCompletedNotification() {
+    GradleSyncListener listener1 = createMock(GradleSyncListener.class);
+    listener1.performedGradleSync(myFacet, true);
     expectLastCall().once();
 
-    AndroidFacet.GradleProjectAvailableListener listener2 = createMock(AndroidFacet.GradleProjectAvailableListener.class);
-    listener2.gradleProjectAvailable(myAndroidProject);
-    expectLastCall().times(2);
+    GradleSyncListener listener2 = createMock(GradleSyncListener.class);
+    listener2.performedGradleSync(myFacet, true);
+    expectLastCall().once();
 
     replay(listener1, listener2);
 
@@ -47,14 +47,14 @@ public class AndroidFacetTest extends AndroidTestCase {
 
     // This should notify listener1.
     myFacet.setIdeaAndroidProject(myAndroidProject);
+    myFacet.projectSyncCompleted(true);
 
-    // This should notify listener2.
     myFacet.addListener(listener2);
-
     myFacet.removeListener(listener1);
 
     // This should notify listener2.
     myFacet.setIdeaAndroidProject(myAndroidProject);
+    myFacet.projectSyncCompleted(true);
 
     verify(listener1, listener2);
   }

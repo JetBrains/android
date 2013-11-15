@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.dependency;
 
-import com.android.SdkConstants;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.roots.DependencyScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * An IDEA module's dependency on another IDEA module.
@@ -38,13 +40,14 @@ public class ModuleDependency extends Dependency {
    */
   @VisibleForTesting
   public ModuleDependency(@NotNull String gradlePath, @NotNull DependencyScope scope) {
-    this(extractModuleName(gradlePath), gradlePath, scope);
+    this(getModuleName(gradlePath), gradlePath, scope);
   }
 
   @NotNull
-  private static String extractModuleName(@NotNull String gradlePath) {
-    String[] pathSegments = gradlePath.split(SdkConstants.GRADLE_PATH_SEPARATOR);
-    return pathSegments[pathSegments.length - 1];
+  private static String getModuleName(String gradlePath) {
+    List<String> segments = GradleUtil.getPathSegments(gradlePath);
+    assert !segments.isEmpty();
+    return segments.get(segments.size() - 1);
   }
 
   /**

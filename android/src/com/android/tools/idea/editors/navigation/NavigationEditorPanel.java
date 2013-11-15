@@ -15,22 +15,25 @@
  */
 package com.android.tools.idea.editors.navigation;
 
+import com.android.SdkConstants;
 import com.android.navigation.*;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderedView;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.ShadowPainter;
 import com.intellij.ide.dnd.DnDEvent;
 import com.intellij.ide.dnd.DnDManager;
 import com.intellij.ide.dnd.DnDTarget;
 import com.intellij.ide.dnd.TransferableWrapper;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiQualifiedNamedElement;
+import com.intellij.psi.*;
+import com.intellij.psi.impl.source.xml.XmlFileImpl;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.Gray;
 import com.intellij.util.ui.UIUtil;
@@ -40,6 +43,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -48,6 +52,7 @@ import java.util.*;
 import static com.android.tools.idea.editors.navigation.Utilities.*;
 
 public class NavigationEditorPanel extends JComponent {
+  private static final Logger LOG = Logger.getInstance("#" + NavigationEditorPanel.class.getName());
   private static final Dimension GAP = new Dimension(150, 50);
   private static final Color BACKGROUND_COLOR = Gray.get(192);
   private static final Color SNAP_GRID_LINE_COLOR_MINOR = Gray.get(180);
@@ -72,6 +77,7 @@ public class NavigationEditorPanel extends JComponent {
   private static final Color TRANSITION_LINE_COLOR = new Color(80, 80, 255);
   private static final Condition<Component> SCREENS = instanceOf(AndroidRootComponent.class);
   private static final Condition<Component> EDITORS = not(SCREENS);
+  private static final boolean DRAW_DESTINATION_RECTANGLES = false;
 
   private final RenderingParameters myMyRenderingParams;
   private final VirtualFile myFile;
@@ -93,7 +99,7 @@ public class NavigationEditorPanel extends JComponent {
   private boolean showRollover = false;
 
   @Nullable
-  private static RenderingParameters getRenderingParams(Project project, VirtualFile file) {
+  public static RenderingParameters getRenderingParams(Project project, VirtualFile file) {
     if (file != null) {
       PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
       if (psiFile != null) {
@@ -174,6 +180,18 @@ public class NavigationEditorPanel extends JComponent {
         }
       });
     }
+
+    /*
+    {
+      PsiMethod template =
+        getMethodsByName(myMyRenderingParams.myConfiguration.getModule(), "com.android.templates.InstallListenerTemplates",
+                         "installItemClickListener")[0];
+      PsiMethod candidate =
+        getMethodsByName(myMyRenderingParams.myConfiguration.getModule(), "com.example.simplemail.fragment.MessageListFragment",
+                         "installListeners")[0];
+      new Unifier().unify(template, candidate.getBody());
+    }
+    */
   }
 
   @Nullable
@@ -368,7 +386,7 @@ public class NavigationEditorPanel extends JComponent {
 
   private void drawGrid(Graphics g, Color c, Dimension modelSize, int width, int height) {
     g.setColor(c);
-    Dimension viewSize = myTransform.modelToView(modelSize);
+    Dimension viewSize = myTransform.modelToView(com.android.navigation.Dimension.create(modelSize));
     if (viewSize.width < MIN_GRID_LINE_SEPARATION || viewSize.height < MIN_GRID_LINE_SEPARATION) {
       return;
     }
@@ -467,6 +485,10 @@ public class NavigationEditorPanel extends JComponent {
 
     Point project(Point p) {
       boolean horizontal = a.x == b.x;
+      boolean vertical = a.y == b.y;
+      if (!horizontal && !vertical) {
+        throw new UnsupportedOperationException();
+      }
       return horizontal ? new Point(a.x, p.y) : new Point(p.x, a.y);
     }
   }
@@ -557,10 +579,12 @@ public class NavigationEditorPanel extends JComponent {
     drawCurve(g, controlPoints, myTransform.myScale);
 
     // draw destination rect
-    Color oldColor = g.getColor();
-    g.setColor(Color.CYAN);
-    drawRectangle(g, dst);
-    g.setColor(oldColor);
+    if (DRAW_DESTINATION_RECTANGLES) {
+      Color oldColor = g.getColor();
+      g.setColor(Color.CYAN);
+      drawRectangle(g, dst);
+      g.setColor(oldColor);
+    }
   }
 
   private void drawTransition(Graphics g, Transition t) {
@@ -749,20 +773,41 @@ public class NavigationEditorPanel extends JComponent {
   }
 
   @Nullable
-  private static VirtualFile getFile(State state, VirtualFileSystem fileSystem, String path, String dir) {
-    return fileSystem.findFileByPath(path + dir + state.getXmlResourceName() + ".xml");
+  public static String getXMLFileName(Module module, String controllerClassName) {
+    PsiJavaCodeReferenceElement referenceElement = Utilities.getReferenceElement(module, controllerClassName, "onCreate");
+    return referenceElement != null ? referenceElement.getLastChild().getText() : null;
+  }
+
+  @Nullable
+  public static String getXMLFileName(Module module, State state) {
+    String controllerClassName = state.getClassName();
+    String definedXmlFileName = state.getXmlResourceName();
+    return definedXmlFileName != null ? definedXmlFileName : getXMLFileName(module, controllerClassName);
+  }
+
+  @Nullable
+  private static VirtualFile getFile(VirtualFileSystem fileSystem, String path, String dir, @Nullable String xmlResourceName) {
+    return xmlResourceName == null ? null : fileSystem.findFileByPath(path + dir + xmlResourceName + ".xml");
+  }
+
+  public static PsiFile getPsiFile(boolean menu, String xmlFileName, VirtualFile navFile, Project project) {
+    String dir = menu ? ResourceType.MENU.getName() : ResourceType.LAYOUT.getName();
+    VirtualFileSystem fileSystem = navFile.getFileSystem();
+    String path = navFile.getParent().getParent().getPath();
+    String directoryName = navFile.getParent().getName();
+    int index = directoryName.indexOf('-');
+    String qualifier = index == -1 ? "" : directoryName.substring(index);
+    VirtualFile qualifiedFile = getFile(fileSystem, path, "/" + dir + qualifier + "/", xmlFileName);
+    VirtualFile file = qualifiedFile != null ? qualifiedFile : getFile(fileSystem, path, "/" + dir + "/", xmlFileName);
+    return file == null ? null : PsiManager.getInstance(project).findFile(file);
   }
 
   private AndroidRootComponent createRootComponentFor(State state) {
-    VirtualFileSystem fileSystem = myFile.getFileSystem();
-    String path = myFile.getParent().getParent().getPath();
-    String directoryName = myFile.getParent().getName();
-    int index = directoryName.indexOf('-');
-    String qualifier = index == -1 ? "" : directoryName.substring(index + 1);
-    VirtualFile qualifiedFile = getFile(state, fileSystem, path, "/layout" + qualifier + "/");
-    VirtualFile file = qualifiedFile != null ? qualifiedFile : getFile(state, fileSystem, path, "/layout/");
-    PsiFile psiFile = file == null ? null : PsiManager.getInstance(myMyRenderingParams.myProject).findFile(file);
-    AndroidRootComponent result = new AndroidRootComponent(myMyRenderingParams, psiFile);
+    boolean isMenu = state instanceof MenuState;
+    Module module = myMyRenderingParams.myFacet.getModule();
+    String xmlFileName = getXMLFileName(module, state);
+    PsiFile psiFile = getPsiFile(isMenu, xmlFileName, myFile, myMyRenderingParams.myProject);
+    AndroidRootComponent result = new AndroidRootComponent(myMyRenderingParams, psiFile, isMenu);
     result.setScale(myTransform.myScale);
     return result;
   }
@@ -794,11 +839,11 @@ public class NavigationEditorPanel extends JComponent {
   }
 
   private void setPreferredSize() {
-    Dimension size = myMyRenderingParams.getDeviceScreenSize();
-    Dimension gridSize = new Dimension(size.width + GAP.width, size.height + GAP.height);
+    com.android.navigation.Dimension size = myMyRenderingParams.getDeviceScreenSize();
+    com.android.navigation.Dimension gridSize = new com.android.navigation.Dimension(size.width + GAP.width, size.height + GAP.height);
     com.android.navigation.Point maxLoc = getMaxLoc(myNavigationModel.getStates());
-    Point max = myTransform.modelToView(new com.android.navigation.Point(maxLoc.x + gridSize.width, maxLoc.y + gridSize.height));
-    setPreferredSize(new Dimension(max.x, max.y));
+    Dimension max = myTransform.modelToView(new com.android.navigation.Dimension(maxLoc.x + gridSize.width, maxLoc.y + gridSize.height));
+    setPreferredSize(max);
   }
 
   private Selections.Selection createSelection(Point mouseDownLocation, boolean shiftDown) {
@@ -856,21 +901,16 @@ public class NavigationEditorPanel extends JComponent {
       if (attachedObject instanceof TransferableWrapper) {
         TransferableWrapper wrapper = (TransferableWrapper)attachedObject;
         PsiElement[] psiElements = wrapper.getPsiElements();
-        Point dropLocation = diff(anEvent.getPointOn(NavigationEditorPanel.this),
-                                  midPoint(myMyRenderingParams.getDeviceScreenSizeFor(myTransform)));
+        Point dropLoc = anEvent.getPointOn(NavigationEditorPanel.this);
 
         if (psiElements != null) {
           for (PsiElement element : psiElements) {
-            if (element instanceof PsiQualifiedNamedElement) {
-              PsiQualifiedNamedElement namedElement = (PsiQualifiedNamedElement)element;
-              String qualifiedName = namedElement.getQualifiedName();
-              if (qualifiedName != null) {
-                State state = new State(qualifiedName);
-                state.setLocation(myTransform.viewToModel(snap(dropLocation, MIDDLE_SNAP_GRID)));
-                String name = namedElement.getName();
-                if (name != null) {
-                  state.setXmlResourceName(getXmlFileNameFromJavaFileName(name));
-                }
+            if (element instanceof XmlFileImpl) {
+              PsiFile containingFile = element.getContainingFile();
+              PsiDirectory dir = containingFile.getParent();
+              if (dir != null && dir.getName().equals(SdkConstants.FD_RES_MENU)) {
+                String resourceName = ResourceHelper.getResourceName(containingFile);
+                State state = new MenuState(resourceName);
                 if (!getStateComponentAssociation().keyToValue.containsKey(state)) {
                   if (execute) {
                     myNavigationModel.addState(state);
@@ -879,7 +919,25 @@ public class NavigationEditorPanel extends JComponent {
                     applicableDropCount++;
                   }
                 }
-                dropLocation = Utilities.add(dropLocation, MULTIPLE_DROP_STRIDE);
+              }
+            }
+            if (element instanceof PsiQualifiedNamedElement) {
+              PsiQualifiedNamedElement namedElement = (PsiQualifiedNamedElement)element;
+              String qualifiedName = namedElement.getQualifiedName();
+              if (qualifiedName != null) {
+                State state = new ActivityState(qualifiedName);
+                Dimension size = myMyRenderingParams.getDeviceScreenSizeFor(myTransform);
+                Point dropLocation = diff(dropLoc, midPoint(size));
+                state.setLocation(myTransform.viewToModel(snap(dropLocation, MIDDLE_SNAP_GRID)));
+                if (!getStateComponentAssociation().keyToValue.containsKey(state)) {
+                  if (execute) {
+                    myNavigationModel.addState(state);
+                  }
+                  else {
+                    applicableDropCount++;
+                  }
+                }
+                dropLoc = Utilities.add(dropLocation, MULTIPLE_DROP_STRIDE);
               }
             }
           }
@@ -912,11 +970,5 @@ public class NavigationEditorPanel extends JComponent {
     @Override
     public void updateDraggedImage(Image image, Point dropPoint, Point imageOffset) {
     }
-
   }
-
-  private static String getXmlFileNameFromJavaFileName(String name) {
-    return Utilities.getXmlFileNameFromJavaFileName(name);
-  }
-
 }
