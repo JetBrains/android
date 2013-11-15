@@ -265,7 +265,7 @@ public class AndroidUtils {
           final String moduleName = facet.getModule().getName();
           final int result = Messages.showYesNoDialog(project, AndroidBundle.message("create.run.configuration.question", moduleName),
                                                       AndroidBundle.message("create.run.configuration.title"), Messages.getQuestionIcon());
-          if (result == 0) {
+          if (result == Messages.YES) {
             r.run();
           }
         }
