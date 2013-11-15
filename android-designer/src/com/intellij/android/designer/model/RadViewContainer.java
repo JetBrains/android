@@ -15,15 +15,12 @@
  */
 package com.intellij.android.designer.model;
 
-import com.intellij.designer.designSurface.DesignerEditorPanel;
 import com.intellij.designer.designSurface.ICaption;
 import com.intellij.designer.designSurface.StaticDecorator;
 import com.intellij.designer.model.MetaModel;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.model.RadLayout;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
 
-import javax.swing.*;
 import java.util.List;
 
 /**

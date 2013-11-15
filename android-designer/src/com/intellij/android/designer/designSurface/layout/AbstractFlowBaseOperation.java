@@ -18,12 +18,14 @@ public abstract class AbstractFlowBaseOperation extends com.intellij.designer.de
 
   @Override
   protected void createInsertFeedback() {
+    // TODO: Replace this with a proper DrawingStyle-based feedback
     myInsertFeedback = new LineInsertFeedback(Color.green, !myHorizontal);
     myInsertFeedback.size(myBounds.width, myBounds.height);
   }
 
   @Override
   protected void createFirstInsertFeedback() {
+    // TODO: Replace this with a proper DrawingStyle feedback
     myFirstInsertFeedback = new RectangleFeedback(Color.green, 2);
     myFirstInsertFeedback.setBounds(myBounds);
   }
