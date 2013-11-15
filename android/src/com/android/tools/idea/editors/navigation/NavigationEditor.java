@@ -63,6 +63,7 @@ public class NavigationEditor implements FileEditor {
   private final UserDataHolderBase myUserDataHolder = new UserDataHolderBase();
   private NavigationModel myNavigationModel;
   private final Listener<NavigationModel.Event> myNavigationModelListener;
+  private Project myProject;
   private VirtualFile myFile;
   private JComponent myComponent;
   private boolean myDirty;
@@ -81,11 +82,11 @@ public class NavigationEditor implements FileEditor {
       }
     };
     project.getMessageBus().connect(this).subscribe(AppTopics.FILE_DOCUMENT_SYNC, saveListener);
-
+    myProject = project;
     myFile = file;
     try {
       myNavigationModel =
-        processModel(read(file), NavigationEditorPanel.getRenderingParams(project, file).myConfiguration.getModule(), project, file);
+        deriveAndAddTransitions(read(file), project, file);
       // component = new NavigationModelEditorPanel1(project, file, read(file));
       NavigationEditorPanel editor = new NavigationEditorPanel(project, file, myNavigationModel);
       JBScrollPane scrollPane = new JBScrollPane(editor);
@@ -118,6 +119,10 @@ public class NavigationEditor implements FileEditor {
     myNavigationModel.getListeners().add(myNavigationModelListener);
   }
 
+  private static Module getModule(Project project, VirtualFile file) {
+    return NavigationEditorPanel.getRenderingParams(project, file).myConfiguration.getModule();
+  }
+
   @Nullable
   public static String getInnerText(String s) {
     if (s.startsWith("\"") && s.endsWith("\"")) {
@@ -147,7 +152,8 @@ public class NavigationEditor implements FileEditor {
     return null;
   }
 
-  private static NavigationModel processModel(final NavigationModel model, final Module module, Project project, VirtualFile file) {
+  private static NavigationModel deriveAndAddTransitions(final NavigationModel model, Project project, VirtualFile file) {
+    final Module module = getModule(project, file);
     final Map<String, ActivityState> activities = getActivities(model);
     final Map<String, MenuState> menus = getMenus(model);
 
@@ -484,6 +490,8 @@ public class NavigationEditor implements FileEditor {
 
   @Override
   public void selectNotify() {
+    myNavigationModel.getTransitions().clear();
+    deriveAndAddTransitions(myNavigationModel, myProject, myFile);
   }
 
   @Override
