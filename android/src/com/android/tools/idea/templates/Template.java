@@ -283,6 +283,7 @@ public class Template {
     paramMap.put("escapeXmlAttribute", new FmEscapeXmlStringMethod());
     paramMap.put("escapeXmlText", new FmEscapeXmlStringMethod());
     paramMap.put("escapeXmlString", new FmEscapeXmlStringMethod());
+    paramMap.put("escapePropertyValue", new FmEscapePropertyValueMethod());
     paramMap.put("extractLetters", new FmExtractLettersMethod());
 
     // Dependency list
