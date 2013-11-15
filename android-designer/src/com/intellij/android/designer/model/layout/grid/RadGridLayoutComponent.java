@@ -81,7 +81,15 @@ public class RadGridLayoutComponent extends RadViewContainer implements ICompone
         myGridInfo.rowCount = (Integer)viewClass.getMethod("getRowCount").invoke(viewObject);
         myGridInfo.columnCount = (Integer)viewClass.getMethod("getColumnCount").invoke(viewObject);
 
-        Field field_horizontalAxis = viewClass.getDeclaredField("horizontalAxis");
+        // Field names changed in KitKat
+        String verticalAxisName = "verticalAxis";
+        Field field_horizontalAxis;
+        try {
+          field_horizontalAxis = viewClass.getDeclaredField("horizontalAxis");
+        } catch (NoSuchFieldException e) {
+          field_horizontalAxis = viewClass.getDeclaredField("mHorizontalAxis");
+          verticalAxisName = "mVerticalAxis";
+        }
         field_horizontalAxis.setAccessible(true);
         Object horizontalAxis = field_horizontalAxis.get(viewObject);
 
@@ -93,7 +101,7 @@ public class RadGridLayoutComponent extends RadViewContainer implements ICompone
         myGridInfo.vLines = (int[])field_locations.get(horizontalAxis);
         myGridInfo.emptyColumns = configureEmptyLines(myGridInfo.vLines);
 
-        Field field_verticalAxis = viewClass.getDeclaredField("verticalAxis");
+        Field field_verticalAxis = viewClass.getDeclaredField(verticalAxisName);
         field_verticalAxis.setAccessible(true);
         Object verticalAxis = field_verticalAxis.get(viewObject);
 
