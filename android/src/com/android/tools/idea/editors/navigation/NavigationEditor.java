@@ -191,22 +191,17 @@ public class NavigationEditor implements FileEditor {
               PsiStatement[] statements = onPrepareOptionsMenuMethod.getBody().getStatements();
               if (DEBUG) System.out.println("statements = " + Arrays.toString(statements));
               for (PsiStatement s : statements) {
-                Map<String, PsiElement> bindings = match(installMenuItemClickMacro, s.getFirstChild());
-                if (DEBUG) System.out.println("bindings = " + bindings);
-                if (bindings != null) {
-                  Map<String, PsiElement> bindings2 = match(getMenuItemMacro, bindings.get("$menuItem"));
-                  if (DEBUG) System.out.println("bindings2 = " + bindings2);
-                  if (bindings2 != null) {
-                    Map<String, PsiElement> bindings3 = match(launchActivityMacro, bindings.get("$f"));
-                    if (DEBUG) System.out.println("bindings3 = " + bindings3);
-                    if (bindings3 != null) {
-                      ActivityState activityState = activities.get(getQualifiedName(bindings3.get("activityClass").getFirstChild()));
-                      String menuItemName =
-                        bindings2.get("$id").getLastChild().getText();// e.g. $id=PsiReferenceExpression:R.id.action_account
-                      if (DEBUG) System.out.println("Adding binding for = " + bindings3);
-                      addTransition(model, new Transition("click", Locator.of(menuState, menuItemName), new Locator(activityState)));
-                    }
-                  }
+                Map<String, PsiMethod> constraints = new HashMap<String, PsiMethod>();
+                constraints.put("$menuItem", getMenuItemMacro);
+                constraints.put("$f", launchActivityMacro);
+                MultiMatchResult multiMatchResult = multiMatch(installMenuItemClickMacro, constraints, s.getFirstChild());
+                if (multiMatchResult != null) {
+                  Map<String, Map<String, PsiElement>> subBindings = multiMatchResult.subBindings;
+                  ActivityState activityState =
+                    activities.get(getQualifiedName(subBindings.get("$f").get("activityClass").getFirstChild()));
+                  String menuItemName =
+                    subBindings.get("$menuItem").get("$id").getLastChild().getText(); // e.g. $id=PsiReferenceExpression:R.id.action_account
+                  addTransition(model, new Transition("click", Locator.of(menuState, menuItemName), new Locator(activityState)));
                 }
               }
             }
@@ -217,19 +212,7 @@ public class NavigationEditor implements FileEditor {
       // Examine fragments associated with this activity
       String xmlFileName = NavigationEditorPanel.getXMLFileName(module, state);
       XmlFile psiFile = (XmlFile)NavigationEditorPanel.getPsiFile(false, xmlFileName, file, project);
-      final List<FragmentEntry> fragments = new ArrayList<FragmentEntry>();
-      psiFile.accept(new XmlRecursiveElementVisitor() {
-        @Override
-        public void visitXmlTag(XmlTag tag) {
-          super.visitXmlTag(tag);
-          if (tag.getName().equals("fragment")) {
-            String fragmentTag = tag.getAttributeValue("android:tag");
-            String fragmentClassName = tag.getAttributeValue("android:name");
-            if (DEBUG) System.out.println("fragmentClassName = " + fragmentClassName);
-            fragments.add(new FragmentEntry(fragmentTag, fragmentClassName));
-          }
-        }
-      });
+      final List<FragmentEntry> fragments = getFragmentEntries(psiFile);
 
       for (FragmentEntry fragment : fragments) {
         PsiClass fragmentClass = Utilities.getPsiClass(module, fragment.className);
@@ -238,60 +221,104 @@ public class NavigationEditor implements FileEditor {
           PsiMethod installListenersMethod = methods[0];
           PsiStatement[] statements = installListenersMethod.getBody().getStatements();
           for (PsiStatement s : statements) {
-            final Map<String, PsiElement> bindings = match(installItemClickMacro, s.getFirstChild());
-            if (bindings != null) {
-              final Map<String, PsiElement> bindings2 = match(methodCallMacro, bindings.get("$f"));
-              //if (DEBUG) System.out.println("bindings2 = " + bindings2);
-              final PsiElement $target = bindings2.get("$target");
-              if (bindings2 != null) {
-                fragmentClass.accept(new JavaRecursiveElementVisitor() {
-                  @Override
-                  public void visitAssignmentExpression(PsiAssignmentExpression expression) {
-                    //if (DEBUG) System.out.println("$target = " + $target);
-                    //if (DEBUG) System.out.println("expression = " + expression);
-                    if (expression.getLExpression().getText().equals($target.getText())) {
-                      PsiExpression rExpression = expression.getRExpression();
-                      if (DEBUG) System.out.println("expression.getRExpression() = " + rExpression);
-                      Map<String, PsiElement> bindings3 = match(defineAssignment, rExpression);
-                      if (bindings3 != null) {
-                        if (DEBUG) System.out.println("bindings3 = " + bindings3);
-                        PsiElement fragmentLiteral = bindings3.get("$fragmentName");
-                        if (fragmentLiteral instanceof PsiLiteralExpression) {
-                          String fragmentTag = getInnerText(fragmentLiteral.getText());
-                          FragmentEntry fragment = findFragmentByTag(fragments, fragmentTag);
-                          if (fragment != null) {
-                            addTransition(model, new Transition("click", Locator.of(finalState, null),
-                                                                Locator.of(finalState, fragment.tag))); // e.g. "messageFragment"
-                            return;
-                          }
-                        }
-                      }
-                      Map<String, PsiElement> bindings4 = match(defineInnerClassMacro, rExpression);
-                      if (bindings4 != null) {
-                        if (DEBUG) System.out.println("bindings4 = " + bindings4);
-                        Map<String, PsiElement> bindings5 = match(launchActivityMacro2, bindings4.get("$f"));
-                        if (bindings5 != null) {
-                          if (DEBUG) System.out.println("bindings5 = " + bindings5);
-                          PsiElement activityClass = bindings5.get("activityClass").getFirstChild();
-                          State toState = activities.get(getQualifiedName(activityClass));
-                          if (DEBUG) System.out.println("toState = " + toState);
-                          if (toState != null) {
-                            final PsiElement $listView = bindings.get("$listView");
-                            String viewName = $listView == null ? null : getPropertyName(removeTrailingParens($listView.getText()));
-                            addTransition(model, new Transition("click", Locator.of(finalState, viewName), new Locator(toState)));
-                          }
+            Map<String, PsiMethod> constraints = new HashMap<String, PsiMethod>();
+            constraints.put("$f", methodCallMacro);
+            MultiMatchResult multiMatchResult = multiMatch(installItemClickMacro, constraints, s.getFirstChild());
+            if (multiMatchResult != null) {
+              final Map<String, PsiElement> bindings = multiMatchResult.bindings;
+              final Map<String, Map<String, PsiElement>> subBindings = multiMatchResult.subBindings;
+              final PsiElement $target = subBindings.get("$f").get("$target");
+              fragmentClass.accept(new JavaRecursiveElementVisitor() {
+                @Override
+                public void visitAssignmentExpression(PsiAssignmentExpression expression) {
+                  //if (DEBUG) System.out.println("$target = " + $target);
+                  //if (DEBUG) System.out.println("expression = " + expression);
+                  if (expression.getLExpression().getText().equals($target.getText())) {
+                    PsiExpression rExpression = expression.getRExpression();
+                    if (DEBUG) System.out.println("expression.getRExpression() = " + rExpression);
+                    Map<String, PsiElement> bindings3 = match(defineAssignment, rExpression);
+                    if (bindings3 != null) {
+                      if (DEBUG) System.out.println("bindings3 = " + bindings3);
+                      PsiElement fragmentLiteral = bindings3.get("$fragmentName");
+                      if (fragmentLiteral instanceof PsiLiteralExpression) {
+                        String fragmentTag = getInnerText(fragmentLiteral.getText());
+                        FragmentEntry fragment = findFragmentByTag(fragments, fragmentTag);
+                        if (fragment != null) {
+                          addTransition(model, new Transition("click", Locator.of(finalState, null),
+                                                              Locator.of(finalState, fragment.tag))); // e.g. "messageFragment"
+                          return;
                         }
                       }
                     }
+                    Map<String, PsiMethod> constraints = new HashMap<String, PsiMethod>();
+                    constraints.put("$f", launchActivityMacro2);
+                    MultiMatchResult multiMatchResult1 = multiMatch(defineInnerClassMacro, constraints, rExpression);
+                    if (multiMatchResult1 != null) {
+                      PsiElement activityClass = multiMatchResult1.subBindings.get("$f").get("activityClass").getFirstChild();
+                      State toState = activities.get(getQualifiedName(activityClass));
+                      if (DEBUG) System.out.println("toState = " + toState);
+                      if (toState != null) {
+                        PsiElement $listView = bindings.get("$listView");
+                        String viewName = $listView == null ? null : getPropertyName(removeTrailingParens($listView.getText()));
+                        addTransition(model, new Transition("click", Locator.of(finalState, viewName), new Locator(toState)));
+                      }
+                    }
                   }
-                });
-              }
+                }
+              });
             }
           }
         }
       }
     }
     return model;
+  }
+
+  static class MultiMatchResult {
+    final Map<String, PsiElement> bindings;
+    final Map<String, Map<String, PsiElement>> subBindings;
+
+    MultiMatchResult(Map<String, PsiElement> bindings, Map<String, Map<String, PsiElement>> subBindings) {
+      this.bindings = bindings;
+      this.subBindings = subBindings;
+    }
+  }
+
+  @Nullable
+  private static MultiMatchResult multiMatch(PsiMethod macro, Map<String, PsiMethod> subMacros, PsiElement element) {
+    Map<String, PsiElement> bindings = match(macro, element);
+    if (DEBUG) System.out.println("bindings = " + bindings);
+    if (bindings == null) {
+      return null;
+    }
+    Map<String, Map<String, PsiElement>> subBindings = new HashMap<String, Map<String, PsiElement>>();
+    for (Map.Entry<String, PsiMethod> entry : subMacros.entrySet()) {
+      String name = entry.getKey();
+      PsiMethod template = entry.getValue();
+      Map<String, PsiElement> subBinding = match(template, bindings.get(name));
+      if (subBinding == null) {
+        return null;
+      }
+      subBindings.put(name, subBinding);
+    }
+    return new MultiMatchResult(bindings, subBindings);
+  }
+
+  private static List<FragmentEntry> getFragmentEntries(XmlFile psiFile) {
+    final List<FragmentEntry> fragments = new ArrayList<FragmentEntry>();
+    psiFile.accept(new XmlRecursiveElementVisitor() {
+      @Override
+      public void visitXmlTag(XmlTag tag) {
+        super.visitXmlTag(tag);
+        if (tag.getName().equals("fragment")) {
+          String fragmentTag = tag.getAttributeValue("android:tag");
+          String fragmentClassName = tag.getAttributeValue("android:name");
+          if (DEBUG) System.out.println("fragmentClassName = " + fragmentClassName);
+          fragments.add(new FragmentEntry(fragmentTag, fragmentClassName));
+        }
+      }
+    });
+    return fragments;
   }
 
   private static String removeTrailingParens(String text) {
