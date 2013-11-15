@@ -94,12 +94,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     if (androidProject != null && !GradleModelVersionCheck.isSupportedVersion(androidProject)) {
       throw new IllegalStateException(UNSUPPORTED_MODEL_VERSION_ERROR);
     }
-    String moduleName = gradleModule.getName();
-    if (moduleName == null) {
-      throw new IllegalStateException("Module with undefined name detected: " + gradleModule);
-    }
-    String moduleConfigPath = GradleUtil.getConfigPath(gradleModule.getGradleProject(), projectData.getLinkedExternalProjectPath());
-    return new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), moduleName, moduleConfigPath, moduleConfigPath);
+    return nextResolver.createModule(gradleModule, projectData);
   }
 
   @Override
@@ -267,16 +262,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   private static <T> T getFirstNodeData(Collection<DataNode<T>> nodes) {
     DataNode<T> node = ContainerUtil.getFirstItem(nodes);
     return node != null ? node.getData() : null;
-  }
-
-  @VisibleForTesting
-  static boolean isIdeaTask(@NotNull String taskName) {
-    return taskName.equals("idea") ||
-           (taskName.startsWith("idea") && taskName.length() > 5 && Character.isUpperCase(taskName.charAt(4))) ||
-           taskName.endsWith("Idea") ||
-           taskName.endsWith("IdeaModule") ||
-           taskName.endsWith("IdeaProject") ||
-           taskName.endsWith("IdeaWorkspace");
   }
 
   private static void populateUnresolvedDependencies(@NotNull DataNode<ProjectData> projectInfo,
