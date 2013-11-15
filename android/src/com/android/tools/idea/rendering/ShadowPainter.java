@@ -24,6 +24,24 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 
 public class ShadowPainter {
+
+  /**
+   * Adds a drop shadow to a semi-transparent image (of an arbitrary shape) and returns it as a new image.
+   * This method attempts to mimic the same visual characteristics as the rectangular shadow painting
+   * methods in this class, {@link #createRectangularDropShadow(java.awt.image.BufferedImage)} and
+   * {@link #createSmallRectangularDropShadow(java.awt.image.BufferedImage)}.
+   *
+   * @param source the source image
+   * @param shadowSize the size of the shadow, normally {@link #SHADOW_SIZE or {@link #SMALL_SHADOW_SIZE}}
+   * @return a new image with the shadow painted in
+   */
+  @NotNull
+  public static BufferedImage createDropShadow(BufferedImage source, int shadowSize) {
+    shadowSize /= 2; // make shadow size have the same meaning as in the other shadow paint methods in this class
+
+    return createDropShadow(source, shadowSize, 0.7f, 0);
+  }
+
   /**
    * Creates a drop shadow of a given image and returns a new image which shows the
    * input image on top of its drop shadow.

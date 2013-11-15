@@ -18,17 +18,22 @@ package com.android.tools.idea.wizard;
 
 import com.android.assetstudiolib.*;
 import com.android.tools.idea.rendering.ImageUtils;
+import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -174,7 +179,9 @@ public class LauncherIconWizardState extends TemplateWizardState implements Grap
     put(ATTR_FONT_SIZE, 144);
     put(ATTR_SOURCE_TYPE, LauncherIconWizardState.SourceType.IMAGE);
     put(ATTR_IMAGE_PATH,
-        new File(TemplateManager.getTemplateRootFolder(), "projects/NewAndroidApplication/root/res/drawable-xhdpi/ic_launcher.png")
+        new File(TemplateManager.getTemplateRootFolder(),
+                 FileUtil.join(Template.CATEGORY_PROJECTS, NewProjectWizardState.MODULE_TEMPLATE_NAME,
+                 "root", "res", "drawable-xhdpi", "ic_launcher.png"))
           .getAbsolutePath());
     put(ATTR_CLIPART_NAME, "android.png");
     put(ATTR_FOREGROUND_COLOR, Color.BLUE);

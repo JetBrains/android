@@ -19,6 +19,7 @@ import com.android.builder.model.*;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.util.io.FileUtil;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,12 +30,13 @@ import java.util.Map;
  * Configures a module's content root from an {@link AndroidProject}.
  */
 public final class AndroidContentRoot {
-  public static final String BUILD_DIR = "build";
+  @NonNls public static final String BUILD_DIR = "build";
 
   // TODO: Retrieve this information from Gradle.
   private static final String[] EXCLUDED_OUTPUT_DIR_NAMES =
     // Note that build/exploded-bundles should *not* be excluded
-    {"apk", "assets", "bundles", "classes", "dependency-cache", "incremental", "libs", "manifests", "symbols", "tmp"};
+    {"apk", "assets", "bundles", "classes", "dependency-cache", "incremental", "libs", "manifests", "symbols", "tmp",
+     "res"};
 
   private AndroidContentRoot() {
   }
@@ -42,12 +44,12 @@ public final class AndroidContentRoot {
   /**
    * Stores the paths of 'source'/'test'/'excluded' directories, according to the project structure in the given Android-Gradle project.
    *
-   * @param androidProject    structure of the Android-Gradle project.
-   * @param storage           persists the configuration of a content root.
+   * @param androidProject structure of the Android-Gradle project.
+   * @param storage        persists the configuration of a content root.
    */
   public static void storePaths(@NotNull IdeaAndroidProject androidProject, @NotNull ContentRootStorage storage) {
     Variant selectedVariant = androidProject.getSelectedVariant();
-    storePaths(selectedVariant, storage);
+    storeGeneratedDirPaths(selectedVariant, storage);
 
     AndroidProject delegate = androidProject.getDelegate();
 
@@ -55,54 +57,62 @@ public final class AndroidContentRoot {
     for (String flavorName : selectedVariant.getProductFlavors()) {
       ProductFlavorContainer flavor = productFlavors.get(flavorName);
       if (flavor != null) {
-        storePaths(flavor, storage);
+        storeSourcePaths(flavor, storage);
       }
     }
 
     String buildTypeName = selectedVariant.getBuildType();
     BuildTypeContainer buildTypeContainer = delegate.getBuildTypes().get(buildTypeName);
     if (buildTypeContainer != null) {
-      storePaths(ExternalSystemSourceType.SOURCE, buildTypeContainer.getSourceProvider(), storage);
+      storeSourcePaths(buildTypeContainer.getSourceProvider(), storage, false);
     }
 
     ProductFlavorContainer defaultConfig = delegate.getDefaultConfig();
-    storePaths(defaultConfig, storage);
+    storeSourcePaths(defaultConfig, storage);
 
     excludeOutputDirs(storage);
   }
 
-  private static void storePaths(@NotNull Variant variant, @NotNull ContentRootStorage storage) {
+  private static void storeGeneratedDirPaths(@NotNull Variant variant, @NotNull ContentRootStorage storage) {
     ArtifactInfo mainArtifactInfo = variant.getMainArtifactInfo();
-    storePaths(ExternalSystemSourceType.SOURCE, mainArtifactInfo, storage);
+    storeGeneratedDirPaths(mainArtifactInfo, storage, false);
 
     ArtifactInfo testArtifactInfo = variant.getTestArtifactInfo();
     if (testArtifactInfo != null) {
-      storePaths(ExternalSystemSourceType.TEST, testArtifactInfo, storage);
+      storeGeneratedDirPaths(testArtifactInfo, storage, true);
     }
   }
 
-  private static void storePaths(@NotNull ExternalSystemSourceType sourceType,
-                                 @NotNull ArtifactInfo artifactInfo,
-                                 @NotNull ContentRootStorage storage) {
+  private static void storeGeneratedDirPaths(@NotNull ArtifactInfo artifactInfo, @NotNull ContentRootStorage storage, boolean isTest) {
+    ExternalSystemSourceType sourceType = isTest ? ExternalSystemSourceType.TEST_GENERATED : ExternalSystemSourceType.SOURCE_GENERATED;
     storePaths(sourceType, artifactInfo.getGeneratedSourceFolders(), storage);
+
+    sourceType = getResourceSourceType(isTest);
     storePaths(sourceType, artifactInfo.getGeneratedResourceFolders(), storage);
   }
 
-  private static void storePaths(@NotNull ProductFlavorContainer flavor, @NotNull ContentRootStorage storage) {
-    storePaths(ExternalSystemSourceType.SOURCE, flavor.getSourceProvider(), storage);
-    storePaths(ExternalSystemSourceType.TEST, flavor.getTestSourceProvider(), storage);
+  private static void storeSourcePaths(@NotNull ProductFlavorContainer flavor, @NotNull ContentRootStorage storage) {
+    storeSourcePaths(flavor.getSourceProvider(), storage, false);
+    storeSourcePaths(flavor.getTestSourceProvider(), storage, true);
   }
 
-  private static void storePaths(@NotNull ExternalSystemSourceType sourceType,
-                                 @NotNull SourceProvider sourceProvider,
-                                 @NotNull ContentRootStorage storage) {
+  private static void storeSourcePaths(@NotNull SourceProvider sourceProvider,
+                                       @NotNull ContentRootStorage storage,
+                                       boolean isTest) {
+    ExternalSystemSourceType sourceType = isTest ? ExternalSystemSourceType.TEST : ExternalSystemSourceType.SOURCE;
     storePaths(sourceType, sourceProvider.getAidlDirectories(), storage);
     storePaths(sourceType, sourceProvider.getAssetsDirectories(), storage);
     storePaths(sourceType, sourceProvider.getJavaDirectories(), storage);
     storePaths(sourceType, sourceProvider.getJniDirectories(), storage);
     storePaths(sourceType, sourceProvider.getRenderscriptDirectories(), storage);
+
+    sourceType = getResourceSourceType(isTest);
     storePaths(sourceType, sourceProvider.getResDirectories(), storage);
     storePaths(sourceType, sourceProvider.getResourcesDirectories(), storage);
+  }
+
+  private static ExternalSystemSourceType getResourceSourceType(boolean isTest) {
+    return isTest ? ExternalSystemSourceType.TEST_RESOURCE : ExternalSystemSourceType.RESOURCE;
   }
 
   private static void storePaths(@NotNull ExternalSystemSourceType sourceType,

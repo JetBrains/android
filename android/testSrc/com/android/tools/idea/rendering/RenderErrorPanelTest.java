@@ -46,8 +46,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     return true;
   }
 
-  public void testPanel() {
-    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout1.xml");
+  private String getRenderOutput(VirtualFile file) {
     assertNotNull(file);
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
@@ -56,7 +55,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     ConfigurationManager configurationManager = facet.getConfigurationManager();
     assertNotNull(configurationManager);
     Configuration configuration = configurationManager.getConfiguration(file);
-    RenderLogger logger = new RenderLogger("mylogger", myModule);
+    RenderLogger logger = new RenderLogger("myLogger", myModule);
     RenderService service = RenderService.create(facet, myModule, psiFile, configuration, logger, null);
     assertNotNull(service);
     RenderResult render = service.render();
@@ -66,7 +65,11 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     String html = panel.showErrors(render);
     assert html != null;
     html = stripImages(html);
+    return html;
+  }
 
+  public void testPanel() {
+    String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout1.xml"));
     assertEquals(
       "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
       "<B>NOTE: One or more layouts are missing the layout_width or layout_height attributes. These are required in most layouts.</B><BR/>\n" +
@@ -78,8 +81,24 @@ public class RenderErrorPanelTest extends AndroidTestCase {
       "Or: <A HREF=\"command:4\">Automatically add all missing attributes</A><BR/>\n" +
       "<BR/>\n" +
       "<BR/>\n" +
+      "The following classes could not be found:<DL>\n" +
+      "<DD>-&NBSP;LinerLayout (<A HREF=\"action:classpath\">Fix Build Path</A>)\n" +
+      "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>\n" +
+      "<BR/>\n" +
       "</body></html>",
      html);
+  }
+
+  public void testTypo() {
+    String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout3.xml", "res/layout/layout3.xml"));
+    assertEquals(
+      "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
+      "The following classes could not be found:<DL>\n" +
+      "<DD>-&NBSP;Bitton (<A HREF=\"action:classpath\">Fix Build Path</A>)\n" +
+      "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>\n" +
+      "<BR/>\n" +
+      "</body></html>",
+      html);
   }
 
   public void testBrokenLayoutLib() {
@@ -256,6 +275,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     html = stripImages(html);
     html = stripSdkHome(html);
 
+    assertNotNull(configuration);
     boolean havePlatformSources = RenderErrorPanel.findPlatformSources(configuration.getTarget()) != null;
     if (havePlatformSources) {
       assertEquals(
@@ -282,7 +302,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
         "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate(LayoutInflater.java:727)<BR/>\n" +
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:492)<BR/>\n" +
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:373)<BR/>\n" +
-        "<BR/>\n" +
+        "<A HREF=\"runnable:0\">Copy stack to clipboard</A><BR/>\n" +
         "</body></html>",
         html);
     }
@@ -388,6 +408,54 @@ public class RenderErrorPanelTest extends AndroidTestCase {
       "The relevant image is " + path + "<BR/>\n" +
       "<BR/>\n" +
       "Widgets possibly involved: Button, TextView<BR/>\n" +
+      "</body></html>",
+      html);
+  }
+
+  public void testWrongClassFormat() {
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml");
+    assertNotNull(file);
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
+    assertNotNull(psiFile);
+    assertNotNull(facet);
+    ConfigurationManager configurationManager = facet.getConfigurationManager();
+    assertNotNull(configurationManager);
+    Configuration configuration = configurationManager.getConfiguration(file);
+    RenderLogger logger = new RenderLogger("mylogger", myModule);
+    RenderService service = RenderService.create(facet, myModule, psiFile, configuration, logger, null);
+    assertNotNull(service);
+    RenderResult render = service.render();
+    assertNotNull(render);
+
+    // MANUALLY register errors
+    logger.addIncorrectFormatClass("com.example.unit.test.R",
+                                   new InconvertibleClassError(null, "com.example.unit.test.R", 51, 0));
+    logger.addIncorrectFormatClass("com.example.unit.test.MyButton",
+                                   new InconvertibleClassError(null, "com.example.unit.test.MyButton", 52, 0));
+
+    assertTrue(logger.hasProblems());
+    RenderErrorPanel panel = new RenderErrorPanel();
+    String html = panel.showErrors(render);
+    assert html != null;
+    html = stripImages(html);
+
+    String current = ClassConverter.getCurrentJdkVersion();
+
+    assertEquals(
+      "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
+      "Preview might be incorrect: unsupported class version.<BR/>\n" +
+      "Tip: You need to run the IDE with the highest JDK version that you are compiling custom views with. " +
+      "One or more views have been compiled with JDK 1.8, but you are running the IDE on JDK " + current + ". Running on a higher " +
+      "JDK is necessary such that these classes can be run in the layout renderer. (Or, extract your custom views into a " +
+      "library which you compile with a lower JDK version.)<BR/>\n" +
+      "<BR/>\n" +
+      "If you have just accidentally built your code with a later JDK, try to <A HREF=\"action:build\">build</A> the project.<BR/>\n" +
+      "<BR/>\n" +
+      "Classes with incompatible format:<DL>\n" +
+      "<DD>-&NBSP;com.example.unit.test.MyButton (Compiled with 1.8)\n" +
+      "<DD>-&NBSP;com.example.unit.test.R (Compiled with 1.7)\n" +
+      "</DL><A HREF=\"runnable:0\">Rebuild project with '-target 1.6'</A><BR/>\n" +
       "</body></html>",
       html);
   }

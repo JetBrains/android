@@ -34,6 +34,9 @@
     </component>
   </project-components>
   <actions>
+    <action id="CleanGradleProject" class="com.android.tools.idea.gradle.actions.CleanProjectAction">
+      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
+    </action>
     <action id="NewActivity" class="com.android.tools.idea.actions.AndroidNewActivityAction">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewDir"/>
     </action>
@@ -374,6 +377,7 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintUnusedIds" displayName="Unused id" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="false"  level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintUnusedIdsInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintUnusedQuantity" displayName="Unused quantity translations" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true"  level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintUnusedQuantityInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintUnusedResources" displayName="Unused resources" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true"  level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintUnusedResourcesInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintUseCheckPermission" displayName="Using the result of check permission calls" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true"  level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintUseCheckPermissionInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintUseCompoundDrawables" displayName="Node can be replaced by a TextView with compound drawables" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true"  level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintUseCompoundDrawablesInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintUseSparseArrays" displayName="HashMap can be replaced with SparseArray" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true"  level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintUseSparseArraysInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintUseValueOf" displayName="Should use valueOf instead of new" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true"  level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintUseValueOfInspection"/>
@@ -409,7 +413,17 @@
                       secondary="true"
                       icon="AndroidIcons.AndroidToolWindow"
                       factoryClass="com.android.tools.idea.gradle.variant.view.BuildVariantToolWindowFactory"/>
+    <facet.toolWindow id="Gradle Console"
+                      facetIdList="android-gradle"
+                      anchor="bottom"
+                      secondary="true"
+                      icon="AndroidIcons.GradleConsoleToolWindow"
+                      factoryClass="com.android.tools.idea.gradle.invoker.console.view.GradleConsoleToolWindowFactory"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantView"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.invoker.GradleInvoker"/>
+    <projectService serviceInterface="com.android.tools.idea.gradle.compiler.ExperimentalAndroidStudioConfiguration"
+                    serviceImplementation="com.android.tools.idea.gradle.compiler.ExperimentalAndroidStudioConfiguration"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleNotification"/>
     <projectService serviceInterface="org.jetbrains.android.logcat.AndroidLogcatFiltersPreferences"
                     serviceImplementation="org.jetbrains.android.logcat.AndroidLogcatFiltersPreferences"/>
@@ -432,6 +446,10 @@
                     serviceImplementation="org.jetbrains.android.compiler.AndroidDexCompilerConfiguration"/>
     <projectService serviceInterface="org.jetbrains.android.exportSignedPackage.GenerateSignedApkSettings"
                     serviceImplementation="org.jetbrains.android.exportSignedPackage.GenerateSignedApkSettings"/>
+    <projectService serviceInterface="com.intellij.openapi.roots.ui.configuration.ProjectSettingsService"
+                    serviceImplementation="com.android.tools.idea.structure.AndroidProjectSettingsService"
+                    overrides="true"/>
+
 
     <projectConfigurable instance="org.jetbrains.android.compiler.AndroidDexCompilerSettingsConfigurable" id="android.dex.compiler"
                          key="android.dex.compiler.configurable.display.name" bundle="messages.AndroidBundle" parentId="project.propCompiler"/>

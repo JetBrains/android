@@ -27,12 +27,14 @@ import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.SourceFolder;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.containers.ContainerUtil;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -48,14 +50,13 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
   public void setUp() throws Exception {
     super.setUp();
 
-    String basePath = myProject.getBasePath();
-    File baseDir = new File(basePath);
+    File baseDir = new File(FileUtil.toSystemDependentName(myProject.getBasePath()));
     myAndroidProject = TestProjects.createBasicProject(baseDir, myProject.getName());
 
     Collection<Variant> variants = myAndroidProject.getVariants().values();
     Variant selectedVariant = ContainerUtil.getFirstItem(variants);
     assertNotNull(selectedVariant);
-    myIdeaAndroidProject = new IdeaAndroidProject(myAndroidProject.getName(), basePath, myAndroidProject, selectedVariant.getName());
+    myIdeaAndroidProject = new IdeaAndroidProject(myAndroidProject.getName(), baseDir, myAndroidProject, selectedVariant.getName());
 
     addContentEntry();
     myCustomizer = new ContentRootModuleCustomizer();
@@ -103,6 +104,16 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
 
     ContentRootSourcePaths expectedPaths = new ContentRootSourcePaths();
     expectedPaths.storeExpectedSourcePaths(myAndroidProject);
-    expectedPaths.assertCorrectStoredDirPaths(sourcePaths, ExternalSystemSourceType.SOURCE);
+
+
+    List<String> allExpectedPaths = Lists.newArrayList();
+    allExpectedPaths.addAll(expectedPaths.getPaths(ExternalSystemSourceType.SOURCE));
+    allExpectedPaths.addAll(expectedPaths.getPaths(ExternalSystemSourceType.SOURCE_GENERATED));
+    allExpectedPaths.addAll(expectedPaths.getPaths(ExternalSystemSourceType.RESOURCE));
+    Collections.sort(allExpectedPaths);
+
+    Collections.sort(sourcePaths);
+
+    assertEquals(allExpectedPaths, sourcePaths);
   }
 }

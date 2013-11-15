@@ -17,14 +17,15 @@ package com.android.tools.idea.startup;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.actions.*;
-import com.android.tools.idea.structure.AndroidHomeConfigurable;
+import com.android.tools.idea.run.ArrayMapRenderer;
 import com.android.tools.idea.sdk.VersionCheck;
+import com.android.tools.idea.structure.AndroidHomeConfigurable;
+import com.android.utils.Pair;
 import com.google.common.io.Closeables;
-import com.intellij.compiler.actions.GenerateAntBuildAction;
-import com.intellij.compiler.actions.MakeModuleAction;
-import com.intellij.ide.actions.ImportModuleAction;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.debugger.settings.NodeRendererSettings;
+import com.intellij.ide.projectView.actions.MarkRootGroup;
+import com.intellij.ide.projectView.impl.MoveModuleToGroupTopLevel;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -45,6 +46,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Properties;
 
 /** Initialization performed only in the context of the Android IDE. */
@@ -52,6 +55,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.startup.AndroidStudioSpecificInitializer");
 
   @NonNls private static final String USE_IDEA_NEW_PROJECT_WIZARDS = "use.idea.newProjectWizard";
+  @NonNls private static final String USE_JPS_MAKE_ACTIONS = "use.idea.jpsMakeActions";
 
   @NonNls private static final String ANDROID_SDK_FOLDER_NAME = "sdk";
 
@@ -65,10 +69,15 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
   @Override
   public void run() {
-    // Fix New Project actions
     //noinspection UseOfArchaicSystemPropertyAccessors
     if (!Boolean.getBoolean(USE_IDEA_NEW_PROJECT_WIZARDS)) {
-      replaceIdeaActions();
+      // Fix New Project actions
+      replaceIdeaNewProjectActions();
+    }
+
+    //noinspection UseOfArchaicSystemPropertyAccessors
+    if (!Boolean.getBoolean(USE_JPS_MAKE_ACTIONS)) {
+      replaceIdeaMakeActions();
     }
 
     try {
@@ -87,9 +96,12 @@ public class AndroidStudioSpecificInitializer implements Runnable {
         AndroidCodeStyleSettingsModifier.modify(settings);
       }
     }
+
+    NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.util.ArrayMap"));
+    NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.support.v4.util.ArrayMap"));
   }
 
-  private static void replaceIdeaActions() {
+  private static void replaceIdeaNewProjectActions() {
     // TODO: This is temporary code. We should build out our own menu set and welcome screen exactly how we want. In the meantime,
     // unregister IntelliJ's version of the project actions and manually register our own.
 
@@ -99,10 +111,31 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     replaceAction("NewModuleInGroup", new AndroidNewModuleInGroupAction());
     replaceAction("ImportProject", new AndroidImportProjectAction());
     replaceAction("WelcomeScreen.ImportProject", new AndroidImportProjectAction());
-    replaceAction("ImportModule", new AndroidActionRemover(new ImportModuleAction(), "Import Module..."));
-    replaceAction("MakeModule", new AndroidActionRemover(new MakeModuleAction(), "Make Module"));
-    replaceAction("Compile", new AndroidCompileAction());
-    replaceAction("GenerateAntBuild", new AndroidActionRemover(new GenerateAntBuildAction(), "Generate Ant Build..."));
+    hideActionForAndroidGradle("ImportModule", "Import Module...");
+
+    hideActionForAndroidGradle(IdeActions.ACTION_GENERATE_ANT_BUILD, "Generate Ant Build...");
+
+    hideActionForAndroidGradle("AddFrameworkSupport", "Add Framework Support...");
+
+    hideActionForAndroidGradle("BuildArtifact", "Build Artifacts...");
+
+    hideActionForAndroidGradle("RunTargetAction", "Run Ant Target");
+
+    replaceProjectPopupActions();
+  }
+
+  private static void replaceIdeaMakeActions() {
+    // 'Build' > 'Make Project' action
+    replaceAction("CompileDirty", new AndroidMakeProjectAction());
+
+    // 'Build' > 'Make Modules' action
+    replaceAction(IdeActions.ACTION_MAKE_MODULE, new AndroidMakeModuleAction());
+
+    // 'Build' > 'Rebuild' action
+    replaceAction(IdeActions.ACTION_COMPILE_PROJECT, new AndroidRebuildProjectAction());
+
+    // 'Build' > 'Compile Modules' action
+    replaceAction(IdeActions.ACTION_COMPILE, new AndroidCompileModuleAction());
   }
 
   private static void replaceAction(String actionId, AnAction newAction) {
@@ -111,6 +144,39 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     newAction.getTemplatePresentation().setIcon(oldAction.getTemplatePresentation().getIcon());
     am.unregisterAction(actionId);
     am.registerAction(actionId, newAction);
+  }
+
+  private static void hideActionForAndroidGradle(String actionId, String backupText) {
+    AnAction oldAction = ActionManager.getInstance().getAction(actionId);
+    if (oldAction != null) {
+      AnAction newAction = new AndroidActionRemover(oldAction, backupText);
+      replaceAction(actionId, newAction);
+    }
+  }
+
+  private static void replaceProjectPopupActions() {
+    Deque<Pair<DefaultActionGroup, AnAction>> stack = new ArrayDeque<Pair<DefaultActionGroup, AnAction>>();
+    stack.add(Pair.of((DefaultActionGroup)null, ActionManager.getInstance().getAction("ProjectViewPopupMenu")));
+    while (!stack.isEmpty()) {
+      Pair<DefaultActionGroup, AnAction> entry = stack.pop();
+      DefaultActionGroup parent = entry.getFirst();
+      AnAction action = entry.getSecond();
+      if (action instanceof DefaultActionGroup) {
+        for (AnAction child : ((DefaultActionGroup)action).getChildActionsOrStubs()) {
+          stack.push(Pair.of((DefaultActionGroup)action, child));
+        }
+      }
+
+      if (action instanceof MoveModuleToGroupTopLevel) {
+        parent.remove(action);
+        parent.add(new AndroidActionGroupRemover((ActionGroup)action, "Move Module to Group"),
+                   new Constraints(Anchor.AFTER, "OpenModuleSettings"));
+      } else if (action instanceof MarkRootGroup) {
+        parent.remove(action);
+        parent.add(new AndroidActionGroupRemover((ActionGroup)action, "Mark Directory As"),
+                   new Constraints(Anchor.AFTER, "OpenModuleSettings"));
+      }
+    }
   }
 
   private static void setupSdks() {

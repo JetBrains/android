@@ -91,6 +91,10 @@ public class TemplateWizardState {
   public TemplateWizardState() {
     put(TemplateMetadata.ATTR_IS_NEW_PROJECT, false);
     put(TemplateMetadata.ATTR_IS_GRADLE, "true");
+
+    put(ATTR_SRC_DIR, "src/main/java");
+    put(ATTR_RES_DIR, "src/main/res");
+    put(ATTR_MANIFEST_DIR, "src/main");
   }
 
   /**
@@ -111,7 +115,7 @@ public class TemplateWizardState {
       String javaPackage = relativePath != null ? FileUtil.toSystemIndependentName(relativePath).replace('/', '.') : null;
       put(TemplateMetadata.ATTR_PACKAGE_NAME, javaPackage);
     } else {
-      javaSourcePackageRoot = new File(javaSourceRoot, getString(TemplateMetadata.ATTR_PACKAGE_NAME).replace('.', '/'));
+      javaSourcePackageRoot = new File(javaSourceRoot, getString(TemplateMetadata.ATTR_PACKAGE_NAME).replace('.', File.separatorChar));
     }
     File resourceSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.RESOURCE_SOURCE_PATH);
     String mavenUrl = System.getProperty(TemplateWizard.MAVEN_URL_PROPERTY);
@@ -140,6 +144,10 @@ public class TemplateWizardState {
       return null;
     }
     return myTemplate.getMetadata();
+  }
+
+  public Map<String, Object> getParameters() {
+    return myParameters;
   }
 
   @Nullable

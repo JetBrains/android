@@ -16,28 +16,18 @@
 package com.android.navigation;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.annotations.Property;
+import com.android.resources.ResourceFolderType;
 
-public class State {
-  private final String controllerClassName;
-  private String xmlResourceName;
+public abstract class State {
   private Point location = Point.ORIGIN;
 
-  public State(@Property("controllerClassName") String controllerClassName) {
-    this.controllerClassName = controllerClassName;
-  }
+  @Nullable
+  public abstract String getClassName();
 
-  public String getControllerClassName() {
-    return controllerClassName;
-  }
-
-  public String getXmlResourceName() {
-    return xmlResourceName;
-  }
-
-  public void setXmlResourceName(String xmlResourceName) {
-    this.xmlResourceName = xmlResourceName;
-  }
+  @Nullable
+  public abstract String getXmlResourceName();
 
   @NonNull
   public Point getLocation() {
@@ -49,19 +39,8 @@ public class State {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    State state = (State)o;
-
-    if (!controllerClassName.equals(state.controllerClassName)) return false;
-
-    return true;
-  }
+  public abstract boolean equals(Object o);
 
   @Override
-  public int hashCode() {
-    return controllerClassName.hashCode();
-  }
+  public abstract int hashCode();
 }

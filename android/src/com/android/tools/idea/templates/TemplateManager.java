@@ -24,6 +24,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -69,6 +70,27 @@ public class TemplateManager {
    */
   @Nullable
   public static File getTemplateRootFolder() {
+    String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
+    // Release build?
+    VirtualFile root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(homePath + BUNDLED_TEMPLATE_PATH));
+    if (root == null) {
+      // Development build?
+      for (String path : DEVELOPMENT_TEMPLATE_PATHS) {
+        root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(homePath + path));
+
+        if (root != null) {
+          break;
+        }
+      }
+    }
+    if (root != null) {
+      File rootFile = VfsUtilCore.virtualToIoFile(root);
+      if (templateRootIsValid(rootFile)) {
+        return rootFile;
+      }
+    }
+
+    // Fall back to SDK template root
     SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
     if (sdkManager != null) {
       String location = sdkManager.getLocation();
@@ -268,10 +290,14 @@ public class TemplateManager {
       if (templateRootFolder == null) {
         return false;
       }
-      return new File(templateRootFolder, FileUtil.join("gradle", "wrapper", "gradlew")).exists();
+      return templateRootIsValid(templateRootFolder);
     }
     catch (Exception e) {
       return false;
     }
+  }
+
+  public static boolean templateRootIsValid(File templateRootFolder) {
+    return new File(templateRootFolder, FileUtil.join("gradle", "wrapper", "gradlew")).exists();
   }
 }

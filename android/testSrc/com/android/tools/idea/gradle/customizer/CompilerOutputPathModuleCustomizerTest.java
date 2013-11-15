@@ -22,6 +22,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.testFramework.IdeaTestCase;
 
@@ -50,8 +51,8 @@ public class CompilerOutputPathModuleCustomizerTest extends IdeaTestCase {
   }
 
   public void testCustomizeModule() {
-    String rootDirPath = androidProject.getRootDir().getAbsolutePath();
-    IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(myModule.getName(), rootDirPath, androidProject, "debug");
+    File rootDir = androidProject.getRootDir();
+    IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(myModule.getName(), rootDir, androidProject, "debug");
     customizer.customizeModule(myModule, myProject, ideaAndroidProject);
 
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
@@ -61,7 +62,8 @@ public class CompilerOutputPathModuleCustomizerTest extends IdeaTestCase {
     moduleSettings.commit();
 
     File classesFolder = ideaAndroidProject.getSelectedVariant().getMainArtifactInfo().getClassesFolder();
-    String expected = VfsUtilCore.pathToUrl(ExternalSystemApiUtil.toCanonicalPath(classesFolder.getAbsolutePath()));
+    String path = FileUtil.toSystemIndependentName(classesFolder.getPath());
+    String expected = VfsUtilCore.pathToUrl(ExternalSystemApiUtil.toCanonicalPath(path));
     assertEquals(expected, compilerOutputPath);
   }
 }

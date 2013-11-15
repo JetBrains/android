@@ -70,6 +70,17 @@
     <orderEntry type="module" module-name="jetgroovy" />
     <orderEntry type="module" module-name="perflib" />
     <orderEntry type="library" name="swingx" level="project" />
+    <orderEntry type="module-library" scope="TEST">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib/mockito-all-1.9.5.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MODULE_DIR$/lib/mockito-all-1.9.5.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
   </component>
 </module>
 

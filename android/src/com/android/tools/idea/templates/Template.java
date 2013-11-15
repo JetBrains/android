@@ -29,6 +29,7 @@ import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.utils.SdkUtils;
 import com.android.utils.StdLogger;
 import com.android.utils.XmlUtils;
@@ -41,6 +42,7 @@ import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -85,7 +87,8 @@ public class Template {
    *    proper Booleans. Templates which rely on this should specify format >= 2.
    * <li> 3: The wizard infrastructure passes the {@code isNewProject} boolean variable
    *    to indicate whether a wizard is created as part of a new blank project
-   * <li> 4: Constraint type app_package ({@link Constraint#APP_PACKAGE})
+   * <li> 4: Constraint type app_package ({@link Constraint#APP_PACKAGE}), provides
+   *    srcDir, resDir and manifestDir variables for locations of files
    * </ul>
    */
   static final int CURRENT_FORMAT = 4;
@@ -242,7 +245,7 @@ public class Template {
     // Handle dependencies
     List<String> dependencyList = (List<String>)paramMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
     if (dependencyList != null && dependencyList.size() > 0) {
-      mergeDependenciesIntoFile(dependencyList, TemplateUtils.getGradleBuildFile(moduleRootPath));
+      mergeDependenciesIntoFile(dependencyList, GradleUtil.getGradleBuildFilePath(moduleRootPath));
     }
   }
 
@@ -266,7 +269,7 @@ public class Template {
   }
 
   @NotNull
-  private Map<String, Object> createParameterMap(@NotNull Map<String, Object> args) {
+  public static Map<String, Object> createParameterMap(@NotNull Map<String, Object> args) {
     // Create the data model.
     final Map<String, Object> paramMap = new HashMap<String, Object>();
 
@@ -456,6 +459,8 @@ public class Template {
 
     if (to.exists()) {
       targetText = Files.toString(to, Charsets.UTF_8);
+    } else if (to.getParentFile() != null) {
+      to.getParentFile().mkdirs();
     }
 
     if (targetText == null) {
@@ -530,7 +535,7 @@ public class Template {
       // Just insert into file along with comment, using the "standard" conflict
       // syntax that many tools and editors recognize.
 
-      contents = wrapWithMergeConflict(sourceXml, targetXml);
+      contents = wrapWithMergeConflict(targetXml, sourceXml);
     }
     return contents;
   }
@@ -697,8 +702,10 @@ public class Template {
    * @param gradleBuildFile the build.gradle file which will be written with the merged dependencies
    */
   private void mergeDependenciesIntoFile(List<String> dependencyList, File gradleBuildFile) {
+    Multimap<String, GradleCoordinate> dependencies = LinkedListMultimap.create();
+
     // First, get the contents of the gradle file.
-    String contents = readTextFile(gradleBuildFile);
+    String contents = StringUtil.notNullize(readTextFile(gradleBuildFile));
 
     // Now, look for a (top-level) dependency block
     int braceCount = 0;
@@ -724,8 +731,6 @@ public class Template {
     }
 
     String dependencyBlock = contents.substring(dependencyBlockStart, dependencyBlockEnd);
-
-    Multimap<String, GradleCoordinate> dependencies = LinkedListMultimap.create();
 
     // If we have dependencies already in the file, load those up
     if (!dependencyBlock.isEmpty()) {
@@ -840,9 +845,8 @@ public class Template {
   @NotNull
   private File getFullPath(@NotNull String fromPath) {
     if (fromPath.startsWith(VALUE_TEMPLATE_DIR)) {
-      return new File(getTemplateRootFolder(), RESOURCE_ROOT +
-                                               File.separator +
-                                               fromPath.substring(VALUE_TEMPLATE_DIR.length() + 1).replace('/', File.separatorChar));
+      return new File(getTemplateRootFolder(),
+                      fromPath.substring(VALUE_TEMPLATE_DIR.length() + 1).replace('/', File.separatorChar));
     }
     return new File(myTemplateRoot, DATA_ROOT + File.separator + fromPath);
   }
@@ -967,6 +971,9 @@ public class Template {
     VirtualFile vf = LocalFileSystem.getInstance().findFileByIoFile(to);
     if (vf == null) {
       try {
+        if (to.getParentFile() != null && !to.getParentFile().exists()) {
+          to.getParentFile().mkdirs();
+        }
         vf = LocalFileSystem.getInstance().findFileByIoFile(to.getParentFile()).createChildData(this, to.getName());
       } catch (NullPointerException e) {
         throw new IOException("Unable to create file " + to.getAbsolutePath());

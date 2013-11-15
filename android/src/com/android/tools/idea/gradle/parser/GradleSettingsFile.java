@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.parser;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.util.Facets;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Function;
-import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -49,7 +49,12 @@ public class GradleSettingsFile extends GradleGroovyFile {
 
   @Nullable
   public static GradleSettingsFile get(Project project) {
-    VirtualFile settingsFile = project.getBaseDir().findFileByRelativePath(SdkConstants.FN_SETTINGS_GRADLE);
+    if (project.isDefault()) {
+      return null;
+    }
+    VirtualFile baseDir = project.getBaseDir();
+    assert baseDir != null;
+    VirtualFile settingsFile = baseDir.findFileByRelativePath(SdkConstants.FN_SETTINGS_GRADLE);
     if (settingsFile != null) {
       return new GradleSettingsFile(settingsFile, project);
     } else {
@@ -106,14 +111,17 @@ public class GradleSettingsFile extends GradleGroovyFile {
    */
   public void removeModule(@NotNull Module module) {
     checkInitialized();
-    removeModule(getModuleGradlePath(module));
+    String moduleGradlePath = getModuleGradlePath(module);
+    if (moduleGradlePath != null) {
+      removeModule(moduleGradlePath);
+    }
   }
 
   /**
    * Removes the reference to the module from the settings file, if present. The module path must be colon separated, with a
    * leading colon, e.g. ":project:subproject". Must be run inside a write action.
    */
-  public void removeModule(String modulePath) {
+  public void removeModule(@NotNull String modulePath) {
     checkInitialized();
     commitDocumentChanges();
     for (GrMethodCall includeStatement : getMethodCalls(myGroovyFile, INCLUDE_METHOD)) {
@@ -143,7 +151,15 @@ public class GradleSettingsFile extends GradleGroovyFile {
           return Iterables.transform(getLiteralArgumentValues(input), new Function<Object, String>() {
             @Override
             public String apply(@Nullable Object input) {
-              return input != null ? input.toString() : null;
+              if (input == null) {
+                return null;
+              }
+              String value = input.toString();
+              // We treat all paths in settings.gradle as being absolute.
+              if (!value.startsWith(SdkConstants.GRADLE_PATH_SEPARATOR)) {
+                value = SdkConstants.GRADLE_PATH_SEPARATOR + value;
+              }
+              return value;
             }
           });
         } else {
@@ -158,7 +174,7 @@ public class GradleSettingsFile extends GradleGroovyFile {
    */
   @Nullable
   public static String getModuleGradlePath(@NotNull Module module) {
-    AndroidGradleFacet androidGradleFacet = Facets.getFirstFacetOfType(module, AndroidGradleFacet.TYPE_ID);
+    AndroidGradleFacet androidGradleFacet = AndroidGradleFacet.getInstance(module);
     if (androidGradleFacet == null) {
       return null;
     }
@@ -170,25 +186,14 @@ public class GradleSettingsFile extends GradleGroovyFile {
    * if it can be found, or null if it cannot.
    */
   @Nullable
-  public GradleBuildFile getModuleBuildFile(@NotNull String modulePath) {
-    VirtualFile vf = myFile;
-    vf = vf.getParent();
-    if (vf == null) {
-      return null;
-    }
-    for (String leaf : Splitter.on(':').split(modulePath)) {
-      if (leaf.isEmpty()) {
-        continue;
-      }
-      vf = vf.findChild(leaf);
-      if (vf == null) {
-        return null;
+  public GradleBuildFile getModuleBuildFile(@NotNull String moduleGradlePath) {
+    Module module = GradleUtil.findModuleByGradlePath(myProject, moduleGradlePath);
+    if (module != null) {
+      VirtualFile buildFile = GradleUtil.getGradleBuildFile(module);
+      if (buildFile != null) {
+        return new GradleBuildFile(buildFile, myProject);
       }
     }
-    vf = vf.findChild(SdkConstants.FN_BUILD_GRADLE);
-    if (vf == null) {
-      return null;
-    }
-    return new GradleBuildFile(vf, myProject);
+    return null;
   }
 }

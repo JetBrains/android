@@ -90,6 +90,9 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
     final Module module = facet.getModule();
     final GlobalSearchScope scope = module.getModuleScope(false);
     final PsiClass activityClass = findActivityClass(module);
+    if (activityClass == null) {
+      return Collections.emptySet();
+    }
     final Set<PsiClass> result = new HashSet<PsiClass>();
 
     ReferencesSearch.search(fields[0], scope).forEach(new Processor<PsiReference>() {

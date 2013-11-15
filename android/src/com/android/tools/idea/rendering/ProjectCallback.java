@@ -37,6 +37,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.dom.layout.AndroidLayoutUtil;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ViewLoader;
@@ -139,8 +140,16 @@ public final class ProjectCallback extends LegacyCallback {
       throws Exception {
     if (className.indexOf('.') == -1 && !VIEW_FRAGMENT.equals(className) && !VIEW_INCLUDE.equals(className)) {
       // When something is *really* wrong we get asked to load core Android classes.
-      // Ignore these; custom views should always have fully qualified names.
-      throw new ClassNotFoundException(className);
+      // Ignore these; custom views should always have fully qualified names. However,
+      // we *do* want to warn when you have a tag which looks like a core class (e.g.
+      // no package name) but isn't recognized.
+      AndroidFacet facet = AndroidFacet.getInstance(myModule);
+      if (facet != null) {
+        List<String> known = AndroidLayoutUtil.getPossibleRoots(facet);
+        if (known.contains(className)) {
+          throw new ClassNotFoundException(className);
+        }
+      }
     }
 
     myUsed = true;

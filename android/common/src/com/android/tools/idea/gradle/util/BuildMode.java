@@ -16,21 +16,27 @@
 package com.android.tools.idea.gradle.util;
 
 /**
- * Indicates whether a project should be built or not after a Gradle model refresh. "Building" means either compiling or rebuilding a
- * project.
+ * Available project build modes used when building a project using the JPS framework.
  */
 public enum BuildMode {
+  /** Cleans the project.*/
+  CLEAN,
+
   /** Compiles Java code and invokes Android build tools. */
   MAKE,
 
   /** Clean project and then {@link #MAKE}. */
   REBUILD,
 
-  /** Compiles Java code without invoking Android build tools. */
+  /** Compiles Java code, in selected modules, without invoking Android build tools. */
   COMPILE_JAVA,
 
   /** Generate Java source only (e.g. R.java). */
   SOURCE_GEN;
 
-  public static final BuildMode DEFAULT_BUILD_MODE = COMPILE_JAVA;
+  /**
+   * This build mode is used when user invokes "Build" > "Make" or "Build" > "Rebuild". For these cases, Studio does not have a chance to
+   * set the build mode in the project (unlike "Build" > "Compile") so when JPS is called there is no build mode specified.
+   */
+  public static final BuildMode DEFAULT_BUILD_MODE = MAKE;
 }

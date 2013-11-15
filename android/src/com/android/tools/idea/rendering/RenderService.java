@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.rendering.api.SessionParams.RenderingMode;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.resources.ResourceFolderType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
@@ -46,11 +47,13 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
@@ -60,9 +63,7 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
  * The {@link RenderService} provides rendering and layout information for
  * Android layouts. This is a wrapper around the layout library.
  */
-public class RenderService {
-  //private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.RenderService");
-
+public class RenderService implements IImageFactory {
   @NotNull
   private final Module myModule;
 
@@ -81,9 +82,6 @@ public class RenderService {
 
   @NotNull
   private final LayoutLibrary myLayoutLib;
-
-  @Nullable
-  private IImageFactory myImageFactory;
 
   @NotNull
   private final HardwareConfigHelper myHardwareConfigHelper;
@@ -248,6 +246,34 @@ public class RenderService {
     return myConfiguration;
   }
 
+  @Nullable
+  public ResourceFolderType getFolderType() {
+    return ResourceHelper.getFolderType(myPsiFile);
+  }
+
+  @NotNull
+  public Module getModule() {
+    return myModule;
+  }
+
+  @NotNull
+  public RenderLogger getLogger() {
+    return myLogger;
+  }
+
+  @Nullable
+  public Set<XmlTag> getExpandNodes() {
+    return myExpandNodes;
+  }
+
+  @NotNull
+  public HardwareConfigHelper getHardwareConfigHelper() {
+    return myHardwareConfigHelper;
+  }
+
+  public boolean getShowDecorations() {
+    return myShowDecorations;
+  }
 
   public void dispose() {
     myProjectCallback.setLogger(null);
@@ -425,11 +451,7 @@ public class RenderService {
       return null;
     }
 
-    HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
-
-    ApplicationManager.getApplication().assertReadAccessAllowed();
-    LayoutPsiPullParser modelParser;
-    modelParser = LayoutPsiPullParser.create(myPsiFile, myLogger, myExpandNodes, hardwareConfig.getDensity());
+    ILayoutPullParser modelParser = LayoutPullParserFactory.create(this);
     ILayoutPullParser topParser = modelParser;
 
     myProjectCallback.reset();
@@ -461,6 +483,7 @@ public class RenderService {
       }
     }
 
+    HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
     final SessionParams params =
       new SessionParams(topParser, myRenderingMode, myModule /* projectKey */, hardwareConfig, resolver, myProjectCallback,
                         myMinSdkVersion, myTargetSdkVersion, myLogger);
@@ -495,11 +518,11 @@ public class RenderService {
 
     if (myOverrideBgColor != null) {
       params.setOverrideBgColor(myOverrideBgColor.intValue());
+    } else if (requiresTransparency()) {
+      params.setOverrideBgColor(0);
     }
 
-    if (myImageFactory != null) {
-      params.setImageFactory(myImageFactory);
-    }
+    params.setImageFactory(this);
 
     if (myTimeout > 0) {
       params.setTimeout(myTimeout);
@@ -538,6 +561,11 @@ public class RenderService {
       myLogger.error(null, t.getLocalizedMessage(), t, null);
       throw t;
     }
+  }
+
+  /** Returns true if the given file can be rendered */
+  public static boolean canRender(@Nullable PsiFile file) {
+    return LayoutPullParserFactory.isSupported(file);
   }
 
   @Nullable
@@ -678,6 +706,29 @@ public class RenderService {
     return null;
   }
 
+  /** Returns true if this service can render a non-rectangular shape */
+  public boolean isNonRectangular() {
+    // Drawable images can have non-rectangular shapes; we need to ensure that we blank out the
+    // background with full alpha
+    return getFolderType() == ResourceFolderType.DRAWABLE;
+  }
+
+  /** Returns true if this service requires rendering into a transparent/alpha channel image */
+  public boolean requiresTransparency() {
+    // Drawable images can have non-rectangular shapes; we need to ensure that we blank out the
+    // background with full alpha
+    return isNonRectangular();
+  }
+
+  // ---- Implements IImageFactory ----
+
+  /** TODO: reuse image across subsequent render operations if the size is the same */
+  @SuppressWarnings("UndesirableClassUsage") // Don't need Retina for layoutlib rendering; will scale down anyway
+  @Override
+  public BufferedImage getImage(int width, int height) {
+    return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+  }
+
   /**
    * Notifies the render service that it is being used in design mode for this layout.
    * For example, that means that when rendering a ScrollView, it should measure the necessary
@@ -699,6 +750,93 @@ public class RenderService {
         setRenderingMode(RenderingMode.H_SCROLL);
         setDecorations(false);
       }
+    }
+  }
+
+  /**
+   * Measure the children of the given parent element.
+   *
+   * @param parent the parent element whose children should be measured
+   * @return a list of root view infos
+   */
+  @Nullable
+  public List<ViewInfo> measure(Element parent) {
+    ILayoutPullParser modelParser = new DomPullParser(parent);
+    RenderSession session = measure(modelParser);
+    if (session != null) {
+      Result result = session.getResult();
+      if (result != null && result.isSuccess()) {
+        assert session.getRootViews().size() == 1;
+        return session.getRootViews();
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  private RenderSession measure(ILayoutPullParser parser) {
+    ResourceResolver resolver = getResourceResolver();
+    if (resolver == null) {
+      // Abort the rendering if the resources are not found.
+      return null;
+    }
+
+    myProjectCallback.reset();
+
+    HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
+    final SessionParams params = new SessionParams(
+      parser,
+      RenderingMode.FULL_EXPAND,
+      myModule /* projectKey */,
+      hardwareConfig,
+      resolver,
+      myProjectCallback,
+      myMinSdkVersion,
+      myTargetSdkVersion,
+      myLogger);
+    params.setLayoutOnly();
+    params.setForceNoDecor();
+    params.setExtendedViewInfoMode(true);
+    params.setLocale(myLocale.toLocaleId());
+    ManifestInfo manifestInfo = ManifestInfo.get(myModule);
+    try {
+      params.setRtlSupport(manifestInfo.isRtlSupported());
+    } catch (Exception e) {
+      // ignore.
+    }
+
+    try {
+      myProjectCallback.setLogger(myLogger);
+      myProjectCallback.setResourceResolver(resolver);
+
+      return ApplicationManager.getApplication().runReadAction(new Computable<RenderSession>() {
+        @Nullable
+        @Override
+        public RenderSession compute() {
+          int retries = 0;
+          while (retries < 10) {
+            RenderSession session = myLayoutLib.createSession(params);
+            Result result = session.getResult();
+            if (result.getStatus() != Result.Status.ERROR_TIMEOUT) {
+              // Sometimes happens at startup; treat it as a timeout; typically a retry fixes it
+              if (!result.isSuccess() && "The main Looper has already been prepared.".equals(result.getErrorMessage())) {
+                retries++;
+                continue;
+              }
+              return session;
+            }
+            retries++;
+          }
+
+          return null;
+        }
+      });
+    }
+    catch (RuntimeException t) {
+      // Exceptions from the bridge
+      myLogger.error(null, t.getLocalizedMessage(), t, null);
+      throw t;
     }
   }
 }

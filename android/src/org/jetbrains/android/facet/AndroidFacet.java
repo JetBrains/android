@@ -29,6 +29,7 @@ import com.android.sdklib.SdkManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.gradle.AndroidModuleInfo;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.rendering.ProjectResources;
 import com.android.utils.ILogger;
@@ -132,9 +133,10 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private IdeaAndroidProject myIdeaAndroidProject;
   private final ResourceFolderManager myFolderManager = new ResourceFolderManager(this);
 
-  private final List<GradleProjectAvailableListener> myGradleProjectAvailableListeners = Lists.newArrayList();
+  private final List<GradleSyncListener> myGradleSyncListeners = Lists.newArrayList();
   private SourceProvider myMainSourceSet;
   private IdeaSourceProvider myMainIdeaSourceSet;
+  private final AndroidModuleInfo myAndroidModuleInfo = AndroidModuleInfo.create(this);
 
   public AndroidFacet(@NotNull Module module, String name, @NotNull AndroidFacetConfiguration configuration) {
     //noinspection ConstantConditions
@@ -1087,30 +1089,30 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    */
   public void setIdeaAndroidProject(@Nullable IdeaAndroidProject project) {
     myIdeaAndroidProject = project;
-    if (project != null && !myGradleProjectAvailableListeners.isEmpty()) {
+  }
+
+  public void projectSyncCompleted(boolean success) {
+    if (myIdeaAndroidProject != null && !myGradleSyncListeners.isEmpty()) {
       // Make copy first since listeners may remove themselves as they are notified, and we
       // don't want a concurrent modification exception
-      List<GradleProjectAvailableListener> listeners = new ArrayList<GradleProjectAvailableListener>(myGradleProjectAvailableListeners);
-      for (GradleProjectAvailableListener listener : listeners) {
-        listener.gradleProjectAvailable(project);
+      List<GradleSyncListener> listeners = new ArrayList<GradleSyncListener>(myGradleSyncListeners);
+      for (GradleSyncListener listener : listeners) {
+        listener.performedGradleSync(this, success);
       }
     }
   }
 
-  public void addListener(@NotNull GradleProjectAvailableListener listener) {
-    if (myIdeaAndroidProject != null) {
-      listener.gradleProjectAvailable(myIdeaAndroidProject);
-    }
+  public void addListener(@NotNull GradleSyncListener listener) {
     //noinspection SynchronizeOnThis
     synchronized (this) {
-      myGradleProjectAvailableListeners.add(listener);
+      myGradleSyncListeners.add(listener);
     }
   }
 
-  public void removeListener(@NotNull GradleProjectAvailableListener listener) {
+  public void removeListener(@NotNull GradleSyncListener listener) {
     //noinspection SynchronizeOnThis
     synchronized (this) {
-      myGradleProjectAvailableListeners.remove(listener);
+      myGradleSyncListeners.remove(listener);
     }
   }
 
@@ -1137,6 +1139,11 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       state.SOURCE_GEN_TASK_NAME = mainArtifactInfo.getSourceGenTaskName();
       state.SELECTED_BUILD_VARIANT = variant.getName();
     }
+  }
+
+  @NotNull
+  public AndroidModuleInfo getAndroidModuleInfo() {
+    return myAndroidModuleInfo;
   }
 
   // Compatibility bridge for old (non-Gradle) projects
@@ -1212,7 +1219,4 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     }
   }
 
-  public interface GradleProjectAvailableListener {
-    void gradleProjectAvailable(@NotNull IdeaAndroidProject project);
-  }
 }

@@ -20,7 +20,7 @@ import org.xml.sax.Attributes;
 import java.lang.reflect.Method;
 import java.util.*;
 
-class Utilities {
+public class Utilities {
   public static final String NAME_SPACE_ATRIBUTE_NAME = "ns";
   public static final String ID_ATTRIBUTE_NAME = "id";
   public static final String IDREF_ATTRIBUTE_NAME = "idref";
@@ -42,7 +42,10 @@ class Utilities {
   }
 
   public static String getPropertyName(Method getter) {
-    String getterName = getter.getName();
+    return getPropertyName(getter.getName());
+  }
+
+  public static String getPropertyName(String getterName) {
     assert getterName.startsWith("get"); // todo check for "is"
     return decapitalize(getterName.substring(3));
   }

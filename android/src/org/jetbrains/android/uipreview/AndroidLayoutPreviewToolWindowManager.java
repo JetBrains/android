@@ -16,11 +16,11 @@
 package org.jetbrains.android.uipreview;
 
 import com.android.ide.common.resources.ResourceUrl;
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.rendering.RenderLogger;
-import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.intellij.ProjectTopics;
@@ -553,6 +553,12 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
     if (configuration == null) {
       return;
     }
+
+    // Some types of files must be saved to disk first, because layoutlib doesn't
+    // delegate XML parsers for non-layout files (meaning layoutlib will read the
+    // disk contents, so we have to push any edits to disk before rendering)
+    LayoutPullParserFactory.saveFileIfNecessary(psiFile);
+
     RenderResult result = null;
     synchronized (RENDERING_LOCK) {
       final RenderLogger logger = new RenderLogger(layoutXmlFile.getName(), module);
@@ -618,25 +624,18 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
   private boolean isApplicableEditor(TextEditor textEditor) {
     final Document document = textEditor.getEditor().getDocument();
     final PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(document);
+
     // In theory, we should just check
     //   LayoutDomFileDescription.isLayoutFile((XmlFile)psiFile);
     // here, but there are problems where files don't show up with layout preview
     // at startup, presumably because the resource directories haven't been properly
     // initialized yet.
-    return isInResourceFolder(psiFile, ResourceType.LAYOUT);
+    return isInResourceFolder(psiFile);
   }
 
-  private static boolean isInResourceFolder(@Nullable PsiFile psiFile, @NotNull ResourceType type) {
+  private static boolean isInResourceFolder(@Nullable PsiFile psiFile) {
     if (psiFile instanceof XmlFile && AndroidFacet.getInstance(psiFile) != null) {
-      PsiDirectory parent = psiFile.getParent();
-      if (parent != null) {
-        String parentName = parent.getName();
-        String typeName = type.getName();
-        if (parentName.startsWith(typeName) &&
-            (typeName.equals(parentName) || parentName.charAt(typeName.length()) == '-')) {
-          return true;
-        }
-      }
+      return RenderService.canRender(psiFile);
     }
     return false;
   }

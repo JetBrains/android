@@ -21,6 +21,7 @@ public class AndroidIcons {
 
   public static final Icon AvdManager = load("/icons/avd_manager.png"); // 16x16
   public static final Icon SdkManager = load("/icons/sdk_manager.png"); // 16x16
+  public static final Icon SdkManagerLarge = load("/icons/sdk_manager_large.png"); // 32x32
 
   public static final Icon ZoomActual = load("/icons/zoomActual.png"); // 16x16
   public static final Icon ZoomFit = load("/icons/zoomFit.png"); // 16x16
@@ -50,6 +51,9 @@ public class AndroidIcons {
   public static final Icon EmptyFlag = load("/icons/flags/flag_empty.png"); // 16x16
 
   public static final Icon GradleSync = load("/icons/gradlesync.png"); // 16x16
+
+  public static final Icon GradleConsole = load("/icons/gradle_console.png"); // 16x16
+  public static final Icon GradleConsoleToolWindow = load("/icons/gradle_console_tool_window.png"); // 13x13
 
   public static class Configs {
     public static final Icon Dock = load("/icons/dockmode.png");
@@ -90,6 +94,7 @@ public class AndroidIcons {
     public static final Icon ScreenCapture = load("/icons/ddms/screen_capture.png"); // 16x16
     public static final Icon StartMethodProfiling = load("/icons/ddms/start_method_profiling.png"); // 16x16
     public static final Icon Threads = load("/icons/ddms/threads.png"); // 16x16
+    public static final Icon SysInfo = load("/icons/ddms/sysinfo.png"); // 16x16 - this is a copy of AllIcons.Actions.Preview
   }
 
   public static class Wizards {

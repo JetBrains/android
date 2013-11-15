@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
-import com.android.tools.idea.gradle.util.Facets;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
@@ -29,7 +29,6 @@ import com.intellij.openapi.project.ModuleAdapter;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
@@ -60,10 +59,7 @@ public class GradleBuildFileUpdater extends ModuleAdapter implements BulkFileLis
 
   @Override
   public void moduleAdded(@NotNull final Project project, @NotNull final Module module) {
-    // At the time we're called, module.getModuleFile() is null, but getModuleFilePath returns the path where it will be created.
-    File moduleFile = new File(module.getModuleFilePath());
-    File buildFile = new File(moduleFile.getParentFile(), SdkConstants.FN_BUILD_GRADLE);
-    VirtualFile vBuildFile = LocalFileSystem.getInstance().findFileByIoFile(buildFile);
+    VirtualFile vBuildFile = GradleUtil.getGradleBuildFile(module);
     if (vBuildFile != null) {
       put(module, new GradleBuildFile(vBuildFile, project));
     }
@@ -133,7 +129,7 @@ public class GradleBuildFileUpdater extends ModuleAdapter implements BulkFileLis
       // references.
       if (module != null) {
         remove(module);
-        AndroidGradleFacet androidGradleFacet = Facets.getFirstFacetOfType(module, AndroidGradleFacet.TYPE_ID);
+        AndroidGradleFacet androidGradleFacet = AndroidGradleFacet.getInstance(module);
         if (androidGradleFacet == null) {
           continue;
         }
@@ -147,8 +143,7 @@ public class GradleBuildFileUpdater extends ModuleAdapter implements BulkFileLis
         mySettingsFile.removeModule(oldPath);
 
         File modulePath = new File(newPath);
-        File buildFile = new File(modulePath, SdkConstants.FN_BUILD_GRADLE);
-        VirtualFile vBuildFile = LocalFileSystem.getInstance().findFileByIoFile(buildFile);
+        VirtualFile vBuildFile = GradleUtil.getGradleBuildFile(modulePath);
         if (vBuildFile != null) {
           put(module, new GradleBuildFile(vBuildFile, myProject));
         }
@@ -179,7 +174,7 @@ public class GradleBuildFileUpdater extends ModuleAdapter implements BulkFileLis
       // This is root project, renaming folder does not affect it since the path is just ":".
       return gradlePath;
     }
-    List<String> pathSegments = Lists.newArrayList(gradlePath.split(SdkConstants.GRADLE_PATH_SEPARATOR));
+    List<String> pathSegments = GradleUtil.getPathSegments(gradlePath);
     pathSegments.remove(pathSegments.size() - 1);
     pathSegments.add(moduleDir.getName());
 

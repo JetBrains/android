@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project;
 import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
+import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.*;
 import com.android.tools.idea.gradle.dependency.Dependency;
@@ -39,20 +40,18 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
-import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.util.KeyValue;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ContainerUtilRt;
-import org.gradle.tooling.model.build.BuildEnvironment;
+import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
-import org.gradle.util.GradleVersion;
-import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 import org.jetbrains.plugins.gradle.util.GradleUtil;
@@ -61,7 +60,6 @@ import java.io.File;
 import java.net.URL;
 import java.util.*;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_MINIMUM_VERSION;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_PLUGIN_MINIMUM_VERSION;
 
 /**
@@ -93,51 +91,46 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @Override
   public ModuleData createModule(@NotNull IdeaModule gradleModule, @NotNull ProjectData projectData) {
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
-    if (androidProject != null) {
-      if (!GradleModelVersionCheck.isSupportedVersion(androidProject)) {
-        throw new IllegalStateException(UNSUPPORTED_MODEL_VERSION_ERROR);
-      }
-
-      // check for Gradle version
-      BuildEnvironment buildEnvironment = resolverCtx.getModels().getBuildEnvironment();
-      if (buildEnvironment != null) {
-        GradleVersion gradleVersion = GradleVersion.version(buildEnvironment.getGradle().getGradleVersion());
-        GradleVersion minimumGradleVersion = GradleVersion.version(GRADLE_MINIMUM_VERSION);
-        if (gradleVersion.compareTo(minimumGradleVersion) < 0) {
-          String msg = String.format(
-            "You are using Gradle of %1$s version. Please use version %2$s or greater for gradle android plugin.",
-            gradleVersion.getVersion(), GRADLE_MINIMUM_VERSION);
-          msg += ('\n' + AbstractProjectImportErrorHandler.FIX_GRADLE_VERSION);
-          throw new IllegalStateException(msg);
-        }
-      }
+    if (androidProject != null && !GradleModelVersionCheck.isSupportedVersion(androidProject)) {
+      throw new IllegalStateException(UNSUPPORTED_MODEL_VERSION_ERROR);
     }
-    return nextResolver.createModule(gradleModule, projectData);
+    String moduleName = gradleModule.getName();
+    if (moduleName == null) {
+      throw new IllegalStateException("Module with undefined name detected: " + gradleModule);
+    }
+    String moduleConfigPath = GradleUtil.getConfigPath(gradleModule.getGradleProject(), projectData.getLinkedExternalProjectPath());
+    return new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), moduleName, moduleConfigPath, moduleConfigPath);
   }
 
   @Override
   public void populateModuleContentRoots(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
+    GradleScript buildScript = gradleModule.getGradleProject().getBuildScript();
+    if (buildScript == null || buildScript.getSourceFile() == null) {
+      nextResolver.populateModuleContentRoots(gradleModule, ideModule);
+      return;
+    }
+    File buildFile = buildScript.getSourceFile();
+    File moduleRootDir = buildFile.getParentFile();
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
     if (androidProject != null) {
-      final String moduleDirPath =
-        GradleUtil.getConfigPath(gradleModule.getGradleProject(), ideModule.getData().getLinkedExternalProjectPath());
       Variant selectedVariant = getFirstVariant(androidProject);
       IdeaAndroidProject ideaAndroidProject =
-        new IdeaAndroidProject(gradleModule.getName(), moduleDirPath, androidProject, selectedVariant.getName());
-      addContentRoot(ideaAndroidProject, ideModule, moduleDirPath);
+        new IdeaAndroidProject(gradleModule.getName(), moduleRootDir, androidProject, selectedVariant.getName());
+      addContentRoot(ideaAndroidProject, ideModule, moduleRootDir);
 
       ideModule.createChild(AndroidProjectKeys.IDE_ANDROID_PROJECT, ideaAndroidProject);
-
-      // TODO non android code? move it and IdeaGradleProject class to core gradle plugin?
-      File gradleSettingsFile = new File(moduleDirPath, SdkConstants.FN_SETTINGS_GRADLE);
-      if (!gradleSettingsFile.isFile()) {
-        IdeaGradleProject ideaGradleProject = new IdeaGradleProject(gradleModule.getName(), gradleModule.getGradleProject().getPath());
-        ideModule.createChild(AndroidProjectKeys.IDE_GRADLE_PROJECT, ideaGradleProject);
-      }
     }
     else {
       nextResolver.populateModuleContentRoots(gradleModule, ideModule);
     }
+    File gradleSettingsFile = new File(moduleRootDir, SdkConstants.FN_SETTINGS_GRADLE);
+    if (gradleSettingsFile.isFile() && androidProject == null) {
+      // This is just a root folder for a group of Gradle projects. We don't set an IdeaGradleProject so the JPS builder won't try to
+      // compile it using Gradle. We still need to create the module to display files inside it.
+      return;
+    }
+    IdeaGradleProject ideaGradleProject = new IdeaGradleProject(gradleModule.getName(), buildFile, gradleModule.getGradleProject().getPath());
+    ideModule.createChild(AndroidProjectKeys.IDE_GRADLE_PROJECT, ideaGradleProject);
   }
 
   @Override
@@ -192,14 +185,16 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   public List<KeyValue<String, String>> getExtraJvmArgs() {
     if (ExternalSystemApiUtil.isInProcessMode(GradleConstants.SYSTEM_ID)) {
       List<KeyValue<String, String>> args = Lists.newArrayList();
-      if (!AndroidGradleSettings.isAndroidSdkDirInLocalPropertiesFile(new File(resolverCtx.getProjectPath()))) {
-        String androidHome = getAndroidSdkPathFromIde();
-        if (androidHome != null) {
+      File projectDir = new File(FileUtil.toSystemDependentName(resolverCtx.getProjectPath()));
+      if (!AndroidGradleSettings.isAndroidSdkDirInLocalPropertiesFile(projectDir)) {
+        SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
+        if (sdkManager != null) {
+          String androidHome = FileUtil.toSystemDependentName(sdkManager.getLocation());
           args.add(KeyValue.create(AndroidGradleSettings.ANDROID_HOME_JVM_ARG, androidHome));
         }
       }
 
-      args.add(KeyValue.create(AndroidProject.BUILD_MODEL_ONLY_SYSTEM_PROPERTY, String.valueOf(resolverCtx.isPreviewMode())));
+      args.add(KeyValue.create(AndroidProject.BUILD_MODEL_ONLY_SYSTEM_PROPERTY, String.valueOf(this.resolverCtx.isPreviewMode())));
       return args;
     }
     return Collections.emptyList();
@@ -214,18 +209,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
                                                       @Nullable String buildFilePath) {
     ExternalSystemException userFriendlyError = myErrorHandler.getUserFriendlyError(error, projectPath, buildFilePath);
     return userFriendlyError != null ? userFriendlyError : nextResolver.getUserFriendlyError(error, projectPath, buildFilePath);
-  }
-
-  @Nullable
-  private static String getAndroidSdkPathFromIde() {
-    for (Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
-      AndroidPlatform androidPlatform = AndroidPlatform.parse(sdk);
-      String sdkHomePath = sdk.getHomePath();
-      if (androidPlatform != null && sdkHomePath != null) {
-        return sdkHomePath;
-      }
-    }
-    return null;
   }
 
   @NotNull
@@ -243,8 +226,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   private static void addContentRoot(@NotNull IdeaAndroidProject androidProject,
                                      @NotNull DataNode<ModuleData> moduleInfo,
-                                     @NotNull String moduleDirPath) {
-    final ContentRootData contentRootData = new ContentRootData(GradleConstants.SYSTEM_ID, moduleDirPath);
+                                     @NotNull File moduleDir) {
+    final ContentRootData contentRootData = new ContentRootData(GradleConstants.SYSTEM_ID, moduleDir.getPath());
     AndroidContentRoot.ContentRootStorage storage = new AndroidContentRoot.ContentRootStorage() {
       @Override
       @NotNull
@@ -254,7 +237,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
       @Override
       public void storePath(@NotNull ExternalSystemSourceType sourceType, @NotNull File directory) {
-        contentRootData.storePath(sourceType, directory.getAbsolutePath());
+        contentRootData.storePath(sourceType, directory.getPath());
       }
     };
     AndroidContentRoot.storePaths(androidProject, storage);

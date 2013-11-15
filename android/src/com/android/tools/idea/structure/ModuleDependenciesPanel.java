@@ -39,6 +39,7 @@ import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.PopupStep;
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.*;
 import com.intellij.ui.table.JBTable;
@@ -46,6 +47,7 @@ import com.intellij.util.ActionRunner;
 import com.intellij.util.PlatformIcons;
 import icons.MavenIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -58,7 +60,7 @@ import java.util.List;
 /**
  * A GUI object that displays and modifies dependencies for an Android-Gradle module.
  */
-public class ModuleDependenciesPanel extends JPanel {
+public class ModuleDependenciesPanel extends EditorPanel {
   private static final Logger LOG = Logger.getInstance(ModuleDependenciesPanel.class);
   private static final int SCOPE_COLUMN_WIDTH = 120;
   private final JBTable myEntryTable;
@@ -69,7 +71,7 @@ public class ModuleDependenciesPanel extends JPanel {
   private final GradleSettingsFile myGradleSettingsFile;
   private AnActionButton myRemoveButton;
 
-  public ModuleDependenciesPanel(Project project, String modulePath) {
+  public ModuleDependenciesPanel(@NotNull Project project, @NotNull String modulePath) {
     super(new BorderLayout());
 
     myModulePath = modulePath;
@@ -81,11 +83,9 @@ public class ModuleDependenciesPanel extends JPanel {
     if (myGradleSettingsFile != null) {
       buildFile = myGradleSettingsFile.getModuleBuildFile(myModulePath);
       if (buildFile != null && buildFile.canParseValue(BuildFileKey.DEPENDENCIES)) {
-        List<Dependency> dependencies = (List<Dependency>)buildFile.getValue(BuildFileKey.DEPENDENCIES);
-        if (dependencies != null) {
-          for (Dependency dependency : dependencies) {
-            myModel.addItem(new ModuleDependenciesTableItem(dependency));
-          }
+        List<Dependency> dependencies = buildFile.getDependencies();
+        for (Dependency dependency : dependencies) {
+          myModel.addItem(new ModuleDependenciesTableItem(dependency));
         }
       } else {
         LOG.warn("Unable to find Gradle build file for module " + myModulePath);
@@ -271,15 +271,14 @@ public class ModuleDependenciesPanel extends JPanel {
 
   private void addFileDependency() {
     FileChooserDescriptor descriptor = new FileChooserDescriptor(false, false, true, true, false, false);
-    VirtualFile moduleFile = myGradleBuildFile.getFile();
-    VirtualFile parent = moduleFile.getParent();
+    VirtualFile buildFile = myGradleBuildFile.getFile();
+    VirtualFile parent = buildFile.getParent();
     descriptor.setRoots(parent);
     VirtualFile virtualFile = FileChooser.chooseFile(descriptor, myProject, null);
     if (virtualFile != null) {
-      String path = virtualFile.getPath();
-      String parentPath = parent.getPath();
-      if (path.startsWith(parentPath)) {
-        path = path.substring(parentPath.length());
+      String path = VfsUtilCore.getRelativePath(virtualFile, parent, '/');
+      if (path == null) {
+        path = virtualFile.getPath();
       }
       myModel.addItem(new ModuleDependenciesTableItem(new Dependency(Dependency.Scope.COMPILE, Dependency.Type.FILES, path)));
     }
@@ -290,11 +289,9 @@ public class ModuleDependenciesPanel extends JPanel {
     for (String s : myGradleSettingsFile.getModules()) {
       modules.add(s);
     }
-    List<Dependency> dependencies = (List<Dependency>)myGradleBuildFile.getValue(BuildFileKey.DEPENDENCIES);
-    if (dependencies != null) {
-      for (Dependency dependency : dependencies) {
-        modules.remove(dependency.data);
-      }
+    List<Dependency> dependencies = myGradleBuildFile.getDependencies();
+    for (Dependency dependency : dependencies) {
+      modules.remove(dependency.data);
     }
     modules.remove(myModulePath);
     final Component parent = this;
@@ -404,6 +401,7 @@ public class ModuleDependenciesPanel extends JPanel {
     return SimpleTextCellAppearance.regular(data, icon);
   }
 
+  @Override
   public void apply() {
     List<ModuleDependenciesTableItem> items = myModel.getItems();
     final List<Dependency> dependencies = Lists.newArrayListWithExpectedSize(items.size());
@@ -424,6 +422,7 @@ public class ModuleDependenciesPanel extends JPanel {
     myModel.resetModified();
   }
 
+  @Override
   public boolean isModified() {
     return myModel.isModified();
   }
@@ -432,12 +431,12 @@ public class ModuleDependenciesPanel extends JPanel {
     private final Border NO_FOCUS_BORDER = BorderFactory.createEmptyBorder(1, 1, 1, 1);
 
     @Override
-    protected void customizeCellRenderer(JTable table, @NotNull Object value, boolean selected, boolean hasFocus,
+    protected void customizeCellRenderer(JTable table, @Nullable Object value, boolean selected, boolean hasFocus,
                                          int row, int column) {
       setPaintFocusBorder(false);
       setFocusBorderAroundIcon(true);
       setBorder(NO_FOCUS_BORDER);
-      if (value instanceof ModuleDependenciesTableItem) {
+      if (value != null && value instanceof ModuleDependenciesTableItem) {
         final ModuleDependenciesTableItem tableItem = (ModuleDependenciesTableItem)value;
         getCellAppearance(tableItem).customize(this);
         setToolTipText(tableItem.getTooltipText());

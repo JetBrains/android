@@ -17,6 +17,7 @@ package com.intellij.android.designer.model;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.idea.designer.AndroidMetaModel;
 import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
 import com.intellij.designer.designSurface.ScalableComponent;
 import com.intellij.designer.model.*;
@@ -44,8 +45,8 @@ import java.util.Map;
 public class RadViewComponent extends RadVisualComponent {
   private final List<RadComponent> myChildren = new ArrayList<RadComponent>();
   protected ViewInfo myViewInfo;
-  private Insets myMargins;
-  private Insets myPadding;
+  private com.android.tools.idea.designer.Insets myMargins;
+  private com.android.tools.idea.designer.Insets myPadding;
   private XmlTag myTag;
   private List<Property> myProperties;
   private PaletteItem myPaletteItem;
@@ -90,6 +91,11 @@ public class RadViewComponent extends RadVisualComponent {
     return 1;
   }
 
+  @Override
+  public AndroidMetaModel getMetaModel() {
+    return (AndroidMetaModel)super.getMetaModel();
+  }
+
   //////////////////////////////////////////////////////////////////////////////////////////
   //
   //
@@ -127,7 +133,7 @@ public class RadViewComponent extends RadVisualComponent {
   }
 
   @NotNull
-  public Insets getMargins() {
+  public com.android.tools.idea.designer.Insets getMargins() {
     if (myMargins == null) {
       try {
         Object layoutParams = myViewInfo.getLayoutParamsObject();
@@ -138,20 +144,20 @@ public class RadViewComponent extends RadVisualComponent {
         int right = fixDefault(layoutClass.getField("rightMargin").getInt(layoutParams));
         int bottom = fixDefault(layoutClass.getField("bottomMargin").getInt(layoutParams));
         if (left == 0 && top == 0 && right == 0 && bottom == 0) {
-          myMargins = Insets.NONE;
+          myMargins = com.android.tools.idea.designer.Insets.NONE;
         } else {
-          myMargins = new Insets(left, top, right, bottom);
+          myMargins = new com.android.tools.idea.designer.Insets(left, top, right, bottom);
         }
       }
       catch (Throwable e) {
-        myMargins = Insets.NONE;
+        myMargins = com.android.tools.idea.designer.Insets.NONE;
       }
     }
     return myMargins;
   }
 
   @NotNull
-  public Insets getPadding() {
+  public com.android.tools.idea.designer.Insets getPadding() {
     if (myPadding == null) {
       try {
         Object layoutParams = myViewInfo.getViewObject();
@@ -162,28 +168,28 @@ public class RadViewComponent extends RadVisualComponent {
         int right = fixDefault((Integer)layoutClass.getMethod("getPaddingRight").invoke(layoutParams));
         int bottom = fixDefault((Integer)layoutClass.getMethod("getPaddingBottom").invoke(layoutParams));
         if (left == 0 && top == 0 && right == 0 && bottom == 0) {
-          myPadding = Insets.NONE;
+          myPadding = com.android.tools.idea.designer.Insets.NONE;
         } else {
-          myPadding = new Insets(left, top, right, bottom);
+          myPadding = new com.android.tools.idea.designer.Insets(left, top, right, bottom);
         }
       }
       catch (Throwable e) {
-        myPadding = Insets.NONE;
+        myPadding = com.android.tools.idea.designer.Insets.NONE;
       }
     }
     return myPadding;
   }
 
-  public Insets getMargins(Component relativeTo) {
-    Insets margins = getMargins();
+  public com.android.tools.idea.designer.Insets getMargins(Component relativeTo) {
+    com.android.tools.idea.designer.Insets margins = getMargins();
     if (margins.isEmpty()) {
       return margins;
     }
     return fromModel(relativeTo, margins);
   }
 
-  public Insets getPadding(Component relativeTo) {
-    Insets padding = getPadding();
+  public com.android.tools.idea.designer.Insets getPadding(Component relativeTo) {
+    com.android.tools.idea.designer.Insets padding = getPadding();
     if (padding.isEmpty()) {
       return padding;
     }
@@ -485,7 +491,7 @@ public class RadViewComponent extends RadVisualComponent {
       (int)(h / dpiDouble));
   }
 
-  public Insets fromModel(@NotNull Component target, @NotNull Insets insets) {
+  public com.android.tools.idea.designer.Insets fromModel(@NotNull Component target, @NotNull com.android.tools.idea.designer.Insets insets) {
     if (insets.isEmpty()) {
       return insets;
     }
@@ -496,7 +502,7 @@ public class RadViewComponent extends RadVisualComponent {
       ScalableComponent scalableComponent = (ScalableComponent)myNativeComponent;
       double zoom = scalableComponent.getScale();
       if (zoom != 1) {
-        return new Insets((int)(insets.left * zoom), (int)(insets.top * zoom), (int)(insets.right * zoom),
+        return new com.android.tools.idea.designer.Insets((int)(insets.left * zoom), (int)(insets.top * zoom), (int)(insets.right * zoom),
                            (int)(insets.bottom * zoom));
       }
     }
@@ -504,7 +510,7 @@ public class RadViewComponent extends RadVisualComponent {
     return insets;
   }
 
-  public Insets toModel(@NotNull Component source, @NotNull Insets insets) {
+  public com.android.tools.idea.designer.Insets toModel(@NotNull Component source, @NotNull com.android.tools.idea.designer.Insets insets) {
     if (insets.isEmpty()) {
       return insets;
     }
@@ -515,7 +521,7 @@ public class RadViewComponent extends RadVisualComponent {
       ScalableComponent scalableComponent = (ScalableComponent)myNativeComponent;
       double zoom = scalableComponent.getScale();
       if (zoom != 1) {
-        return new Insets((int)(insets.left / zoom), (int)(insets.top / zoom), (int)(insets.right / zoom),
+        return new com.android.tools.idea.designer.Insets((int)(insets.left / zoom), (int)(insets.top / zoom), (int)(insets.right / zoom),
                            (int)(insets.bottom / zoom));
       }
     }
@@ -535,8 +541,8 @@ public class RadViewComponent extends RadVisualComponent {
   public Rectangle getPaddedBounds() {
     Rectangle bounds = getBounds();
 
-    Insets padding = getPadding();
-    if (padding == Insets.NONE) {
+    com.android.tools.idea.designer.Insets padding = getPadding();
+    if (padding == com.android.tools.idea.designer.Insets.NONE) {
       return bounds;
     }
 

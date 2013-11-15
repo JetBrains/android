@@ -27,6 +27,7 @@ import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -188,6 +189,30 @@ public class ResourceHelper {
     }
 
     return false;
+  }
+
+  @Nullable
+  public static ResourceFolderType getFolderType(@Nullable PsiFile file) {
+    if (file != null) {
+      PsiDirectory parent = file.getParent();
+      if (parent != null) {
+        return ResourceFolderType.getFolderType(parent.getName());
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  public static ResourceFolderType getFolderType(@Nullable VirtualFile file) {
+    if (file != null) {
+      VirtualFile parent = file.getParent();
+      if (parent != null) {
+        return ResourceFolderType.getFolderType(parent.getName());
+      }
+    }
+
+    return null;
   }
 
   /**

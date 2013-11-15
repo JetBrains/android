@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.jps;
 
+import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.jps.model.JpsAndroidGradleModuleExtension;
 import com.android.tools.idea.jps.model.JpsGradleModuleExtension;
 import com.android.tools.idea.jps.model.impl.JpsAndroidGradleModuleExtensionImpl;
@@ -45,7 +46,7 @@ public final class AndroidGradleJps {
    * Returns the first Android-Gradle facet in the given chunk of IDEA modules.
    *
    * @param chunk the given chunk of IDEA modules.
-   * @return the first Android-Gradle facet in the given chunk of IDEA modules, or {@code null} if none of the module contain the 
+   * @return the first Android-Gradle facet in the given chunk of IDEA modules, or {@code null} if none of the module contain the
    *         Android-Gradle facet.
    */
   @Nullable
@@ -124,11 +125,19 @@ public final class AndroidGradleJps {
   }
 
   @NotNull
-  public static CompilerMessage createCompilerMessage(@NotNull BuildMessage.Kind kind,
-                                                      @NotNull String text,
-                                                      @Nullable String sourcePath,
-                                                      long lineNumber,
-                                                      long column) {
-    return new CompilerMessage(COMPILER_NAME, kind, text.trim(), sourcePath, -1L, -1L, -1L, lineNumber, column);
+  public static CompilerMessage createCompilerMessage(@NotNull GradleMessage message) {
+    BuildMessage.Kind kind = BuildMessage.Kind.PROGRESS;
+    switch (message.getKind()) {
+      case INFO:
+        kind = BuildMessage.Kind.INFO;
+        break;
+      case WARNING:
+        kind = BuildMessage.Kind.WARNING;
+        break;
+      case ERROR:
+        kind = BuildMessage.Kind.ERROR;
+    }
+    return new CompilerMessage(COMPILER_NAME, kind, message.getText().trim(), message.getSourcePath(), -1L, -1L, -1L,
+                               message.getLineNumber(), message.getColumn());
   }
 }

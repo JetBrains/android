@@ -17,10 +17,15 @@ package com.android.tools.idea.gradle.parser;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * GradleBuildFile uses PSI to parse build.gradle files and provides high-level methods to read and mutate the file. For many things in
@@ -58,11 +63,22 @@ public class GradleBuildFile extends GradleGroovyFile {
     if (method == null) {
       return false;
     }
-    if (key.isArgumentIsClosure()) {
-      return key.canParseValue(getMethodClosureArgument(method));
-    } else {
-      return key.canParseValue(getArguments(method));
+    GroovyPsiElement arg = key.getType() == BuildFileKeyType.CLOSURE ? getMethodClosureArgument(method) : getFirstArgument(method);
+    if (arg == null) {
+      return false;
     }
+    return key.canParseValue(arg);
+  }
+
+  @NotNull
+  public List<Dependency> getDependencies() {
+    Object dependencies = getValue(BuildFileKey.DEPENDENCIES);
+    if (dependencies == null) {
+      return Collections.emptyList();
+    }
+    assert dependencies instanceof List;
+    //noinspection unchecked
+    return (List<Dependency>)dependencies;
   }
 
   /**
@@ -76,17 +92,12 @@ public class GradleBuildFile extends GradleGroovyFile {
   /**
    * Returns the value in the file for the given key, or null if not present.
    */
-  public @Nullable Object getValue(@NotNull GrStatementOwner root, @NotNull BuildFileKey key) {
+  public @Nullable Object getValue(@Nullable GrStatementOwner root, @NotNull BuildFileKey key) {
     checkInitialized();
-    GrMethodCall method = getMethodCallByPath(root, key.getPath());
-    if (method == null) {
-      return null;
+    if (root == null) {
+      root = myGroovyFile;
     }
-    if (key.isArgumentIsClosure()) {
-      return key.getValue(getMethodClosureArgument(method));
-    } else {
-      return key.getValue(getArguments(method));
-    }
+    return getValueStatic(root, key);
   }
 
   /**
@@ -113,16 +124,31 @@ public class GradleBuildFile extends GradleGroovyFile {
   /**
    * Modifies the value in the file. Must be run inside a write action.
    */
-  public void setValue(@NotNull GrStatementOwner root, @NotNull BuildFileKey key, @NotNull Object value) {
+  public void setValue(@Nullable GrStatementOwner root, @NotNull BuildFileKey key, @NotNull Object value) {
     checkInitialized();
     commitDocumentChanges();
+    if (root == null) {
+      root = myGroovyFile;
+    }
+    setValueStatic(root, key, value);
+  }
+
+  /**
+   * If the given key has a value at the given root, removes it and returns true. Returns false if there is no value for that key.
+   */
+  public boolean removeValue(@Nullable GrStatementOwner root, @NotNull BuildFileKey key) {
+    checkInitialized();
+    commitDocumentChanges();
+    if (root == null) {
+      root = myGroovyFile;
+    }
     GrMethodCall method = getMethodCallByPath(root, key.getPath());
     if (method != null) {
-      if (key.isArgumentIsClosure()) {
-        key.setValue(myProject, getMethodClosureArgument(method), value);
-      } else {
-        key.setValue(myProject, getArguments(method), value);
-      }
+      GrStatementOwner parent = (GrStatementOwner)method.getParent();
+      parent.removeElements(new PsiElement[]{method});
+      reformatClosure(parent);
+      return true;
     }
+    return false;
   }
 }
