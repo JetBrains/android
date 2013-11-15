@@ -15,8 +15,8 @@
  */
 package com.intellij.android.designer.model.layout.relative;
 
+import com.android.tools.idea.designer.Insets;
 import com.intellij.android.designer.AndroidDesignerUtils;
-import com.intellij.android.designer.model.Insets;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.designer.designSurface.OperationContext;
 import com.intellij.psi.xml.XmlAttribute;
@@ -34,9 +34,7 @@ import static com.intellij.android.designer.designSurface.graphics.DrawingStyle.
 import static com.intellij.android.designer.model.layout.relative.ConstraintType.ALIGN_BASELINE;
 import static com.intellij.android.designer.model.layout.relative.DependencyGraph.Constraint;
 import static com.intellij.android.designer.model.layout.relative.DependencyGraph.ViewData;
-import static com.intellij.android.designer.model.layout.relative.MarginType.NO_MARGIN;
-import static com.intellij.android.designer.model.layout.relative.MarginType.WITHOUT_MARGIN;
-import static com.intellij.android.designer.model.layout.relative.MarginType.WITH_MARGIN;
+import static com.intellij.android.designer.model.layout.relative.MarginType.*;
 import static java.lang.Math.abs;
 
 /**
