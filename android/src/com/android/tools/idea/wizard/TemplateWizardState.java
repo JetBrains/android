@@ -115,7 +115,7 @@ public class TemplateWizardState {
       String javaPackage = relativePath != null ? FileUtil.toSystemIndependentName(relativePath).replace('/', '.') : null;
       put(TemplateMetadata.ATTR_PACKAGE_NAME, javaPackage);
     } else {
-      javaSourcePackageRoot = new File(javaSourceRoot, getString(TemplateMetadata.ATTR_PACKAGE_NAME).replace('.', '/'));
+      javaSourcePackageRoot = new File(javaSourceRoot, getString(TemplateMetadata.ATTR_PACKAGE_NAME).replace('.', File.separatorChar));
     }
     File resourceSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.RESOURCE_SOURCE_PATH);
     String mavenUrl = System.getProperty(TemplateWizard.MAVEN_URL_PROPERTY);
