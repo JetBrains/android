@@ -20,6 +20,8 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.collect.Lists;
+import com.intellij.execution.configurations.ModuleBasedConfiguration;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -28,6 +30,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
@@ -59,10 +62,10 @@ public class GradleInvoker {
   public void generateSources() {
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     List<String> tasks = findTasksToExecute(moduleManager.getModules(), BuildMode.SOURCE_GEN, GradleBuilds.TestCompileContext.NONE);
-    executeTasks(tasks, new Runnable() {
+    executeTasks(tasks, new GradleTaskExecutionListener() {
       @Override
-      public void run() {
-        Projects.notifyProjectSyncCompleted(myProject, true);
+      public void executionFinished(@NotNull List<String> tasks, int errorCount, int warningCount) {
+        Projects.notifyProjectSyncCompleted(myProject, errorCount == 0);
       }
     });
   }
@@ -73,16 +76,43 @@ public class GradleInvoker {
     executeTasks(tasks, null);
   }
 
-  public void make() {
+  public void make(@Nullable RunConfiguration runConfiguration, @Nullable GradleTaskExecutionListener listener) {
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    List<String> tasks = findTasksToExecute(moduleManager.getModules(), BuildMode.MAKE, GradleBuilds.TestCompileContext.NONE);
-    executeTasks(tasks, null);
+    GradleBuilds.TestCompileContext testCompileContext = getTestCompileContext(runConfiguration);
+    List<String> tasks = findTasksToExecute(moduleManager.getModules(), BuildMode.MAKE, testCompileContext);
+    executeTasks(tasks, listener);
   }
 
-  public void make(@NotNull DataContext dataContext) {
-    Module[] modules = Projects.getModulesToBuildFromSelection(myProject, dataContext);
-    List<String> tasks = findTasksToExecute(modules, BuildMode.MAKE, GradleBuilds.TestCompileContext.NONE);
-    executeTasks(tasks, null);
+  public void make(@NotNull DataContext dataContext,
+                   @Nullable GradleTaskExecutionListener listener,
+                   @Nullable RunConfiguration runConfiguration) {
+
+    Module[] modules;
+    if (runConfiguration instanceof ModuleBasedConfiguration) {
+      // ModuleBasedConfiguration includes Android and JUnit run configurations.
+      modules = ((ModuleBasedConfiguration)runConfiguration).getModules();
+    }
+    else {
+      modules = Projects.getModulesToBuildFromSelection(myProject, dataContext);
+    }
+
+    GradleBuilds.TestCompileContext testCompileContext = getTestCompileContext(runConfiguration);
+    List<String> tasks = findTasksToExecute(modules, BuildMode.MAKE, testCompileContext);
+    executeTasks(tasks, listener);
+  }
+
+  @NotNull
+  private static GradleBuilds.TestCompileContext getTestCompileContext(@Nullable RunConfiguration runConfiguration) {
+    if (runConfiguration != null) {
+      String id = runConfiguration.getType().getId();
+      if (AndroidCommonUtils.isInstrumentationTestConfiguration(id)) {
+        return GradleBuilds.TestCompileContext.ANDROID_TESTS;
+      }
+      if (AndroidCommonUtils.isTestConfiguration(id)) {
+        return GradleBuilds.TestCompileContext.JAVA_TESTS;
+      }
+    }
+    return GradleBuilds.TestCompileContext.NONE;
   }
 
   public void rebuild() {
@@ -94,10 +124,11 @@ public class GradleInvoker {
     executeTasks(tasks, null);
   }
 
-  private List<String> findTasksToExecute(@NotNull Module[] modules, @NotNull BuildMode buildMode,
-                                          GradleBuilds.TestCompileContext testCompileContext) {
+  private List<String> findTasksToExecute(@NotNull Module[] modules,
+                                          @NotNull BuildMode buildMode,
+                                          @NotNull GradleBuilds.TestCompileContext testCompileContext) {
     List<String> tasks = Lists.newArrayList();
-    for (Module module: modules) {
+    for (Module module : modules) {
       AndroidGradleFacet androidGradleFacet = AndroidGradleFacet.getInstance(module);
       if (androidGradleFacet == null) {
         continue;
@@ -116,14 +147,14 @@ public class GradleInvoker {
     return tasks;
   }
 
-  public void executeTasks(final List<String> tasks, final @Nullable Runnable afterInvocationTask) {
+  public void executeTasks(@NotNull final List<String> tasks, @Nullable final GradleTaskExecutionListener listener) {
     if (tasks.isEmpty()) {
       return;
     }
     UIUtil.invokeAndWaitIfNeeded(new Runnable() {
       @Override
       public void run() {
-        GradleTasksExecutor executor = new GradleTasksExecutor(myProject, tasks, afterInvocationTask);
+        GradleTasksExecutor executor = new GradleTasksExecutor(myProject, tasks, listener);
         executor.queue();
       }
     });

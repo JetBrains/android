@@ -114,7 +114,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
   @NotNull private final GradleExecutionHelper myHelper = new GradleExecutionHelper();
   @NotNull private final List<String> myTasks;
-  @Nullable private final Runnable myAfterInvocationTask;
+  @Nullable private final GradleTaskExecutionListener myListener;
 
   private volatile int myErrorCount;
   private volatile int myWarningCount;
@@ -125,10 +125,10 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
   private CloseListener myCloseListener;
 
-  GradleTasksExecutor(@NotNull Project project, @NotNull List<String> tasks, @Nullable Runnable afterInvocationTask) {
+  GradleTasksExecutor(@NotNull Project project, @NotNull List<String> tasks, @Nullable GradleTaskExecutionListener listener) {
     super(project, String.format("Gradle: Executing Tasks %1$s", tasks.toString()), false /* Gradle does not support cancellation of task execution */);
     myTasks = tasks;
-    myAfterInvocationTask = afterInvocationTask;
+    myListener = listener;
   }
 
   @Override
@@ -286,8 +286,8 @@ class GradleTasksExecutor extends Task.Backgroundable {
             }
           });
           Projects.refresh(project);
-          if (myAfterInvocationTask != null) {
-            myAfterInvocationTask.run();
+          if (myListener != null) {
+            myListener.executionFinished(myTasks, myErrorCount, myWarningCount);
           }
         }
         return null;
