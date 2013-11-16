@@ -126,9 +126,10 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
     List<String> errors = Lists.newArrayList();
     try {
       wizardState.populateDirectoryParameters();
-      String projectName = wizardState.getString(NewProjectWizardState.ATTR_MODULE_NAME);
+      String moduleName = wizardState.getString(NewProjectWizardState.ATTR_MODULE_NAME);
+      String projectName = wizardState.getString(TemplateMetadata.ATTR_APP_TITLE);
       File projectRoot = new File(wizardState.getString(NewModuleWizardState.ATTR_PROJECT_LOCATION));
-      File moduleRoot = new File(projectRoot, projectName);
+      File moduleRoot = new File(projectRoot, moduleName);
       if (!FileUtilRt.createDirectory(projectRoot)) {
         errors.add(String.format(UNABLE_TO_CREATE_DIR_FORMAT, projectRoot.getPath()));
       }
