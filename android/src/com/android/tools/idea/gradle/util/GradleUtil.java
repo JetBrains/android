@@ -57,7 +57,7 @@ public final class GradleUtil {
   @NonNls public static final String GRADLE_MINIMUM_VERSION = "1.8";
   @NonNls public static final String GRADLE_LATEST_VERSION = GRADLE_MINIMUM_VERSION;
 
-  @NonNls public static final String GRADLE_PLUGIN_MINIMUM_VERSION = "0.6.1";
+  @NonNls public static final String GRADLE_PLUGIN_MINIMUM_VERSION = "0.6.3";
   @NonNls public static final String GRADLE_PLUGIN_LATEST_VERSION = "0.6.+";
 
   @NonNls private static final String GRADLEW_PROPERTIES_PATH =
