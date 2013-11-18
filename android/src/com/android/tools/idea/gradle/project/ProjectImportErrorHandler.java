@@ -16,9 +16,11 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.intellij.openapi.diagnostic.Logger;
+import com.google.common.base.Strings;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.util.Pair;
+import org.gradle.tooling.UnsupportedVersionException;
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler;
@@ -29,12 +31,12 @@ import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHa
 public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler {
   public static final String FAILED_TO_PARSE_SDK = "failed to parse SDK";
   public static final String INSTALL_ANDROID_SUPPORT_REPO = "Please install the Android Support Repository from the Android SDK Manager.";
-  private static final Logger LOG = Logger.getInstance(ProjectImportErrorHandler.class);
 
   private static final String EMPTY_LINE = "\n\n";
   private static final String UNSUPPORTED_GRADLE_VERSION_ERROR =
     "Gradle version " + GradleUtil.GRADLE_MINIMUM_VERSION + " is required";
 
+  @Override
   @Nullable
   public ExternalSystemException getUserFriendlyError(@NotNull Throwable error,
                                                       @NotNull String projectPath,
@@ -47,8 +49,46 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
     Pair<Throwable, String> rootCauseAndLocation = getRootCauseAndLocation(error);
     Throwable rootCause = rootCauseAndLocation.getFirst();
 
+    String location = rootCauseAndLocation.getSecond();
+    if (location == null && !Strings.isNullOrEmpty(buildFilePath)) {
+      location = String.format("Build file: '%1$s'", buildFilePath);
+    }
+
+    if (isOldGradleVersion(rootCause)) {
+      String msg = String.format("You are using an old, unsupported version of Gradle. Please use version %1$s or greater.",
+                                 GradleUtil.GRADLE_MINIMUM_VERSION);
+      msg += ('\n' + FIX_GRADLE_VERSION);
+      // Location of build.gradle is useless for this error. Omitting it.
+      return createUserFriendlyError(msg, null);
+    }
+
+    if (rootCause instanceof OutOfMemoryError) {
+      // The OutOfMemoryError happens in the Gradle daemon process.
+      String originalMessage = rootCause.getMessage();
+      String msg = "Out of memory";
+      if (originalMessage != null && !originalMessage.isEmpty()) {
+        msg = msg + ": " + originalMessage;
+      }
+      if (msg.endsWith("Java heap space")) {
+        msg += ". Configure Gradle memory settings using '-Xmx' JVM option (e.g. '-Xmx2048m'.)";
+      } else if (!msg.endsWith(".")) {
+        msg += ".";
+      }
+      msg += EMPTY_LINE + OPEN_GRADLE_SETTINGS;
+      // Location of build.gradle is useless for this error. Omitting it.
+      return createUserFriendlyError(msg, null);
+    }
+
+    if (rootCause instanceof ClassNotFoundException) {
+      String msg = String.format("Unable to load class '%1$s'.", rootCause.getMessage()) + EMPTY_LINE +
+                   UNEXPECTED_ERROR_FILE_BUG;
+      // Location of build.gradle is useless for this error. Omitting it.
+      return createUserFriendlyError(msg, null);
+    }
+
     if (rootCause instanceof RuntimeException) {
       String msg = rootCause.getMessage();
+
       // With this condition we cover 2 similar messages about the same problem.
       if (msg != null && msg.contains("Could not find") && msg.contains("com.android.support:support")) {
         // We keep the original error message and we append a hint about how to fix the missing dependency.
@@ -64,6 +104,26 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
       }
     }
 
-    return null;
+    return createUserFriendlyError(rootCause.getMessage(), location);
+  }
+
+  private static boolean isOldGradleVersion(@NotNull Throwable error) {
+    if (error instanceof UnsupportedVersionException) {
+      return true;
+    }
+    if (error instanceof ClassNotFoundException) {
+      String msg = error.getMessage();
+      if (msg != null && msg.contains(ToolingModelBuilderRegistry.class.getName())) {
+        return true;
+      }
+    }
+    if (error instanceof RuntimeException) {
+      String msg = error.getMessage();
+      if (msg != null && msg.startsWith(UNSUPPORTED_GRADLE_VERSION_ERROR)) {
+        return true;
+      }
+    }
+    String errorToString = error.toString();
+    return errorToString != null && errorToString.startsWith("org.gradle.api.internal.MissingMethodException");
   }
 }
