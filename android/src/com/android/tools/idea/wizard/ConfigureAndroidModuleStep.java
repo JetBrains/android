@@ -151,6 +151,9 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       mySourceCombo.setVisible(false);
     }
 
+    if (!myTemplateState.hasAttr(ATTR_PROJECT_LOCATION) && myWizardContext != null && myProject == null) {
+      myTemplateState.put(ATTR_PROJECT_LOCATION, myWizardContext.getProjectFileDirectory());
+    }
     // Find a unique project location
     String projectLocation = myTemplateState.getString(ATTR_PROJECT_LOCATION);
     if (projectLocation != null && !projectLocation.isEmpty() && myProject != null && !myProject.isInitialized()) {
