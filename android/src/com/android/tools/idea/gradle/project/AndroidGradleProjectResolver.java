@@ -94,12 +94,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     if (androidProject != null && !GradleModelVersionCheck.isSupportedVersion(androidProject)) {
       throw new IllegalStateException(UNSUPPORTED_MODEL_VERSION_ERROR);
     }
-    String moduleName = gradleModule.getName();
-    if (moduleName == null) {
-      throw new IllegalStateException("Module with undefined name detected: " + gradleModule);
-    }
-    String moduleConfigPath = GradleUtil.getConfigPath(gradleModule.getGradleProject(), projectData.getLinkedExternalProjectPath());
-    return new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), moduleName, moduleConfigPath, moduleConfigPath);
+    return nextResolver.createModule(gradleModule, projectData);
   }
 
   @Override
@@ -298,6 +293,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     ContainerUtil.addIfNotNull(PathUtil.getJarPathForClass(FullRevision.class), classPath);
     // Android common jar
     ContainerUtil.addIfNotNull(PathUtil.getJarPathForClass(AndroidGradleSettings.class), classPath);
+    // Android gradle model jar
+    ContainerUtil.addIfNotNull(PathUtil.getJarPathForClass(AndroidProject.class), classPath);
     parameters.getClassPath().addAll(classPath);
   }
 
