@@ -50,11 +50,20 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
   private Module myModule;
   private String myTemplateCategory;
   private VirtualFile myTargetFolder;
+  private Set<String> myExcluded;
 
   public NewTemplateObjectWizard(@Nullable Project project,
                                  @Nullable Module module,
                                  @Nullable VirtualFile invocationTarget,
                                  String templateCategory) {
+   this(project, module, invocationTarget, templateCategory, null);
+  }
+
+  public NewTemplateObjectWizard(@Nullable Project project,
+                                 @Nullable Module module,
+                                 @Nullable VirtualFile invocationTarget,
+                                 String templateCategory,
+                                 @Nullable Set<String> excluded) {
     super("New " + templateCategory, project);
     myProject = project;
     myModule = module;
@@ -66,6 +75,8 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     } else {
       myTargetFolder = invocationTarget.getParent();
     }
+
+    myExcluded = excluded;
 
     init();
   }
@@ -132,7 +143,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
       }
     }
 
-    mySteps.add(new ChooseTemplateStep(myWizardState, myTemplateCategory, myProject, null, this, null));
+    mySteps.add(new ChooseTemplateStep(myWizardState, myTemplateCategory, myProject, null, this, null, myExcluded));
     mySteps.add(new TemplateParameterStep(myWizardState, myProject, null, this));
 
     myWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, myProject.getBasePath());
@@ -148,11 +159,20 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
 
     myWizardState.myFinal.add(TemplateMetadata.ATTR_PACKAGE_ROOT);
 
+    myWizardState.put(TemplateMetadata.ATTR_IS_LIBRARY_MODULE, facet.isLibraryProject());
+
     super.init();
 
     // Ensure that the window is large enough to accommodate the contents without clipping the validation error label
     Dimension preferredSize = getContentPanel().getPreferredSize();
     getContentPanel().setPreferredSize(new Dimension(Math.max(800, preferredSize.width), Math.max(640, preferredSize.height)));
+  }
+
+  /**
+   * Exclude the given template name from the selection presented to the user
+   */
+  public void exclude(String templateName) {
+     myExcluded.add(templateName);
   }
 
   public void createTemplateObject() {
