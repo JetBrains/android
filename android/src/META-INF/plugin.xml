@@ -40,7 +40,7 @@
     <action id="NewActivity" class="com.android.tools.idea.actions.AndroidNewActivityAction">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewDir"/>
     </action>
-    <action id="NewAndroidComponent" class="org.jetbrains.android.actions.NewAndroidComponentAction">
+    <action id="NewAndroidComponent" class="com.android.tools.idea.actions.NewAndroidComponentAction">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewActivity"/>
     </action>
     <action id="Android.CreateResourcesActionGroup" class="org.jetbrains.android.actions.CreateResourceFileActionGroup">
