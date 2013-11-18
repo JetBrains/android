@@ -349,7 +349,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
 
   @Override
   public void apply() {
-    myDataSource.setName(myNameField.getText());
+    myDataSource.setName(getNameValue());
     final AndroidDataSource.State state = myDataSource.getState();
     state.setDeviceId(getSelectedDeviceId());
     state.setPackageName(getSelectedPackage());
@@ -385,7 +385,11 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   @Nls
   @Override
   public String getDisplayName() {
-    return myNameField.getText();
+    return getNameValue();
+  }
+
+  private String getNameValue() {
+    return myNameField.getText().trim();
   }
 
   @Nullable
