@@ -162,13 +162,7 @@ public final class GradleUtil {
 
   @Nullable
   public static GradleExecutionSettings getGradleExecutionSettings(@NotNull Project project) {
-    GradleSettings settings = (GradleSettings)ExternalSystemApiUtil.getSettings(project, SYSTEM_ID);
-
-    GradleSettings.MyState state = settings.getState();
-    assert state != null;
-    Set<GradleProjectSettings> allProjectsSettings = state.getLinkedExternalProjectsSettings();
-
-    GradleProjectSettings projectSettings = getFirstNotNull(allProjectsSettings);
+    GradleProjectSettings projectSettings = getGradleProjectSettings(project);
     if (projectSettings == null) {
       String format = "Unable to obtain Gradle project settings for project '%1$s', located at '%2$s'";
       String msg = String.format(format, project.getName(), FileUtil.toSystemDependentName(project.getBasePath()));
@@ -176,6 +170,17 @@ public final class GradleUtil {
       return null;
     }
     return ExternalSystemApiUtil.getExecutionSettings(project, projectSettings.getExternalProjectPath(), SYSTEM_ID);
+  }
+
+  @Nullable
+  public static GradleProjectSettings getGradleProjectSettings(@NotNull Project project) {
+    GradleSettings settings = (GradleSettings)ExternalSystemApiUtil.getSettings(project, SYSTEM_ID);
+
+    GradleSettings.MyState state = settings.getState();
+    assert state != null;
+    Set<GradleProjectSettings> allProjectsSettings = state.getLinkedExternalProjectsSettings();
+
+    return getFirstNotNull(allProjectsSettings);
   }
 
   @Nullable
