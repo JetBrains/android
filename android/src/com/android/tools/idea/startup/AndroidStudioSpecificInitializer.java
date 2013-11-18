@@ -317,13 +317,11 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   private static void hideIdeaNewFilePopupActions() {
     ActionManager am = ActionManager.getInstance();
 
-    am.getActionOrStub("NewXml").getTemplatePresentation().setEnabledAndVisible(false);
-    am.getActionOrStub("GuiDesigner.NewActions").getTemplatePresentation().setEnabledAndVisible(false);
+    // Hide groups of actions which aren't useful to Android Studio
+    am.getActionOrStub("NewXml").getTemplatePresentation().setEnabledAndVisible(false); // Not used by our XML. Offers HTML files
+    am.getActionOrStub("GuiDesigner.NewActions").getTemplatePresentation().setEnabledAndVisible(false); // Swing GUI templates
 
-
-    DefaultActionGroup ag = (DefaultActionGroup)am.getAction("NewGroup");
-
-    replaceAction("NewAndroidComponent", new EmptyAction());
+    // Hide individual actions that aren't part of a group
     replaceAction("Groovy.NewClass", new EmptyAction());
     replaceAction("Groovy.NewScript", new EmptyAction());
 
