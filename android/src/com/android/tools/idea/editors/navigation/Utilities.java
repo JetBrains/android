@@ -17,7 +17,9 @@ package com.android.tools.idea.editors.navigation;
 
 import com.android.tools.idea.AndroidPsiUtils;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
@@ -270,5 +272,9 @@ public class Utilities {
   public static PsiMethod[] getMethodsByName(Module module, String className, String methodName) {
     PsiClass psiClass = getPsiClass(module, className);
     return psiClass == null ? EMPTY_PSI_METHOD_ARRAY : psiClass.findMethodsByName(methodName, false);
+  }
+
+  public static Module getModule(Project project, VirtualFile file) {
+    return NavigationEditorPanel.getRenderingParams(project, file).myConfiguration.getModule();
   }
 }
