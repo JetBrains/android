@@ -20,6 +20,7 @@ import com.google.common.base.Strings;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.util.Pair;
 import org.gradle.tooling.UnsupportedVersionException;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -110,6 +111,12 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
   private static boolean isOldGradleVersion(@NotNull Throwable error) {
     if (error instanceof UnsupportedVersionException) {
       return true;
+    }
+    if (error instanceof UnsupportedMethodException) {
+      String msg = error.getMessage();
+      if (msg != null && msg.contains("GradleProject.getBuildScript")) {
+        return true;
+      }
     }
     if (error instanceof ClassNotFoundException) {
       String msg = error.getMessage();
