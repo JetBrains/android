@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.rendering.RenderSecurityException;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.google.common.base.Splitter;
@@ -29,6 +30,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
 import java.util.Iterator;
@@ -193,9 +195,11 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     assertEquals(
       "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
       "This is an error with entities: &amp; &lt; \"<BR/>\n" +
+      "<BR/>\n" +
       "&lt;CalendarView> and &lt;DatePicker> are broken in this version of the rendering library. " +
       "Try updating your SDK in the SDK Manager when issue 59732 is fixed. " +
       "(<A HREF=\"http://b.android.com/59732\">Open Issue 59732</A>, <A HREF=\"runnable:0\">Show Exception</A>)<BR/>\n" +
+      "<BR/>\n" +
       "</body></html>",
       html);
   }
@@ -408,6 +412,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
       "The relevant image is " + path + "<BR/>\n" +
       "<BR/>\n" +
       "Widgets possibly involved: Button, TextView<BR/>\n" +
+      "<BR/>\n" +
       "</body></html>",
       html);
   }
@@ -460,6 +465,117 @@ public class RenderErrorPanelTest extends AndroidTestCase {
       html);
   }
 
+  public void testSecurity() throws Exception {
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml");
+    assertNotNull(file);
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
+    assertNotNull(psiFile);
+    assertNotNull(facet);
+    ConfigurationManager configurationManager = facet.getConfigurationManager();
+    assertNotNull(configurationManager);
+    Configuration configuration = configurationManager.getConfiguration(file);
+    RenderLogger logger = new RenderLogger("mylogger", myModule);
+    RenderService service = RenderService.create(facet, myModule, psiFile, configuration, logger, null);
+    assertNotNull(service);
+    RenderResult render = service.render();
+    assertNotNull(render);
+
+    Throwable throwable = createExceptionFromDesc(
+      "Read access not allowed during rendering (/)\n" +
+      "\tat com.android.ide.common.rendering.RenderSecurityException.create(RenderSecurityException.java:52)\n" +
+      "\tat com.android.ide.common.rendering.RenderSecurityManager.checkRead(RenderSecurityManager.java:204)\n" +
+      "\tat java.io.File.list(File.java:971)\n" +
+      "\tat java.io.File.listFiles(File.java:1051)\n" +
+      "\tat com.example.app.MyButton.onDraw(MyButton.java:70)\n" +
+      "\tat android.view.View.draw(View.java:14433)\n" +
+      "\tat android.view.View.draw(View.java:14318)\n" +
+      "\tat android.view.ViewGroup.drawChild(ViewGroup.java:3103)\n" +
+      "\tat android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)\n" +
+      "\tat android.view.View.draw(View.java:14316)\n" +
+      "\tat android.view.ViewGroup.drawChild(ViewGroup.java:3103)\n" +
+      "\tat android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)\n" +
+      "\tat android.view.View.draw(View.java:14316)\n" +
+      "\tat android.view.ViewGroup.drawChild(ViewGroup.java:3103)\n" +
+      "\tat android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)\n" +
+      "\tat android.view.View.draw(View.java:14436)\n" +
+      "\tat android.view.View.draw(View.java:14318)\n" +
+      "\tat android.view.ViewGroup.drawChild(ViewGroup.java:3103)\n" +
+      "\tat android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)\n" +
+      "\tat android.view.View.draw(View.java:14436)\n" +
+      "\tat com.android.layoutlib.bridge.impl.RenderSessionImpl.render(RenderSessionImpl.java:584)\n" +
+      "\tat com.android.layoutlib.bridge.Bridge.createSession(Bridge.java:338)\n" +
+      "\tat com.android.ide.common.rendering.LayoutLibrary.createSession(LayoutLibrary.java:332)\n" +
+      "\tat com.android.tools.idea.rendering.RenderService$3.compute(RenderService.java:546)\n" +
+      "\tat com.android.tools.idea.rendering.RenderService$3.compute(RenderService.java:536)\n" +
+      "\tat com.intellij.openapi.application.impl.ApplicationImpl.runReadAction(ApplicationImpl.java:934)\n" +
+      "\tat com.android.tools.idea.rendering.RenderService.createRenderSession(RenderService.java:536)\n" +
+      "\tat com.android.tools.idea.rendering.RenderService.render(RenderService.java:599)\n" +
+      "\tat org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager$7.compute(AndroidLayoutPreviewToolWindowManager.java:577)\n" +
+      "\tat org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager$7.compute(AndroidLayoutPreviewToolWindowManager.java:570)\n" +
+      "\tat com.intellij.openapi.application.impl.ApplicationImpl.runReadAction(ApplicationImpl.java:945)\n" +
+      "\tat org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager.doRender(AndroidLayoutPreviewToolWindowManager.java:570)\n" +
+      "\tat org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager.access$1700(AndroidLayoutPreviewToolWindowManager.java:83)\n" +
+      "\tat org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager$6$1.run(AndroidLayoutPreviewToolWindowManager.java:518)\n" +
+      "\tat com.intellij.openapi.progress.impl.ProgressManagerImpl$2.run(ProgressManagerImpl.java:178)\n" +
+      "\tat com.intellij.openapi.progress.ProgressManager.executeProcessUnderProgress(ProgressManager.java:209)\n" +
+      "\tat com.intellij.openapi.progress.impl.ProgressManagerImpl.executeProcessUnderProgress(ProgressManagerImpl.java:212)\n" +
+      "\tat com.intellij.openapi.progress.impl.ProgressManagerImpl.runProcess(ProgressManagerImpl.java:171)\n" +
+      "\tat org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager$6.run(AndroidLayoutPreviewToolWindowManager.java:513)\n" +
+      "\tat com.intellij.util.ui.update.MergingUpdateQueue.execute(MergingUpdateQueue.java:320)\n" +
+      "\tat com.intellij.util.ui.update.MergingUpdateQueue.execute(MergingUpdateQueue.java:310)\n" +
+      "\tat com.intellij.util.ui.update.MergingUpdateQueue$2.run(MergingUpdateQueue.java:254)\n" +
+      "\tat com.intellij.util.ui.update.MergingUpdateQueue.flush(MergingUpdateQueue.java:269)\n" +
+      "\tat com.intellij.util.ui.update.MergingUpdateQueue.flush(MergingUpdateQueue.java:227)\n" +
+      "\tat com.intellij.util.ui.update.MergingUpdateQueue.run(MergingUpdateQueue.java:217)\n" +
+      "\tat com.intellij.util.concurrency.QueueProcessor.runSafely(QueueProcessor.java:238)\n" +
+      "\tat com.intellij.util.Alarm$Request$1.run(Alarm.java:297)\n" +
+      "\tat java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:439)\n" +
+      "\tat java.util.concurrent.FutureTask$Sync.innerRun(FutureTask.java:303)\n" +
+      "\tat java.util.concurrent.FutureTask.run(FutureTask.java:138)\n" +
+      "\tat java.util.concurrent.ThreadPoolExecutor$Worker.runTask(ThreadPoolExecutor.java:895)\n" +
+      "\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:918)\n" +
+      "\tat java.lang.Thread.run(Thread.java:695)\n",
+      RenderSecurityException.create("Read access not allowed during rendering (/)"));
+
+    logger.error(null, null, throwable, null);
+
+    assertTrue(logger.hasProblems());
+    RenderErrorPanel panel = new RenderErrorPanel();
+    String html = panel.showErrors(render);
+    assert html != null;
+    html = stripImages(html);
+
+    assertEquals(
+      "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
+      "<A HREF=\"disableSandbox:\">Turn off custom view rendering sandbox</A><BR/>\n" +
+      "<BR/>\n" +
+      "Read access not allowed during rendering (/)<BR/>\n" +
+      "&nbsp;&nbsp;at com.android.ide.common.rendering.RenderSecurityException.create(RenderSecurityException.java:52)<BR/>\n" +
+      "&nbsp;&nbsp;at com.android.ide.common.rendering.RenderSecurityManager.checkRead(RenderSecurityManager.java:204)<BR/>\n" +
+      "&nbsp;&nbsp;at java.io.File.list(File.java:971)<BR/>\n" +
+      "&nbsp;&nbsp;at java.io.File.listFiles(File.java:1051)<BR/>\n" +
+      "&nbsp;&nbsp;at com.example.app.MyButton.onDraw(<A HREF=\"open:com.example.app.MyButton#onDraw;MyButton.java:70\">MyButton.java:70</A>)<BR/>\n" +
+      "&nbsp;&nbsp;at android.view.View.draw(View.java:14433)<BR/>\n" +
+      "&nbsp;&nbsp;at android.view.View.draw(View.java:14318)<BR/>\n" +
+      "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>\n" +
+      "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>\n" +
+      "&nbsp;&nbsp;at android.view.View.draw(View.java:14316)<BR/>\n" +
+      "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>\n" +
+      "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>\n" +
+      "&nbsp;&nbsp;at android.view.View.draw(View.java:14316)<BR/>\n" +
+      "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>\n" +
+      "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>\n" +
+      "&nbsp;&nbsp;at android.view.View.draw(View.java:14436)<BR/>\n" +
+      "&nbsp;&nbsp;at android.view.View.draw(View.java:14318)<BR/>\n" +
+      "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>\n" +
+      "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>\n" +
+      "&nbsp;&nbsp;at android.view.View.draw(View.java:14436)<BR/>\n" +
+      "<A HREF=\"runnable:0\">Copy stack to clipboard</A><BR/>\n" +
+      "</body></html>",
+      html);
+  }
+
   // Image paths will include full resource urls which depends on the test environment
   private static String stripImages(@NotNull String html) {
     while (true) {
@@ -491,12 +607,16 @@ public class RenderErrorPanelTest extends AndroidTestCase {
    * @param desc the description of an exception
    * @return a corresponding exception if possible
    */
-  @SuppressWarnings("ThrowableInstanceNeverThrown")
   private static Throwable createExceptionFromDesc(String desc) {
+    return createExceptionFromDesc(desc, null);
+  }
+
+  @SuppressWarnings("ThrowableInstanceNeverThrown")
+  private static Throwable createExceptionFromDesc(String desc, @Nullable Throwable throwable) {
     // First line: description and type
     Iterator<String> iterator = Splitter.on('\n').split(desc).iterator();
     assertTrue(iterator.hasNext());
-    String first = iterator.next();
+    final String first = iterator.next();
     assertTrue(iterator.hasNext());
     String message = null;
     String exceptionClass;
@@ -508,18 +628,33 @@ public class RenderErrorPanelTest extends AndroidTestCase {
       exceptionClass = first.trim();
     }
 
-    Throwable throwable;
-    try {
-      @SuppressWarnings("unchecked")
-      Class<Throwable> clz = (Class<Throwable>)Class.forName(exceptionClass);
-      if (message == null) {
-        throwable = clz.newInstance();
-      } else {
-        Constructor<Throwable> constructor = clz.getConstructor(String.class);
-        throwable = constructor.newInstance(message);
+    if (throwable == null) {
+      try {
+        @SuppressWarnings("unchecked")
+        Class<Throwable> clz = (Class<Throwable>)Class.forName(exceptionClass);
+        if (message == null) {
+          throwable = clz.newInstance();
+        } else {
+          Constructor<Throwable> constructor = clz.getConstructor(String.class);
+          throwable = constructor.newInstance(message);
+        }
+      } catch (Throwable t) {
+        if (message == null) {
+          throwable = new Throwable() {
+            @Override
+            public String getMessage() {
+              return first;
+            }
+
+            @Override
+            public String toString() {
+              return first;
+            }
+          };
+        } else {
+          throwable = new Throwable(message);
+        }
       }
-    } catch (Throwable t) {
-      throwable = message != null ? new Throwable(message) : new Throwable();
     }
 
     List<StackTraceElement> frames = Lists.newArrayList();

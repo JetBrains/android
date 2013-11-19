@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.gradle.AndroidModuleInfo;
@@ -39,6 +40,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -82,6 +84,7 @@ public class HtmlLinkManager {
   private static final String URL_ASSIGN_LAYOUT_URL = "assignLayoutUrl:";
   private static final String URL_EDIT_ATTRIBUTE = "editAttribute:";
   private static final String URL_REPLACE_ATTRIBUTE_VALUE = "replaceAttributeValue:";
+  private static final String URL_DISABLE_SANDBOX = "disableSandbox:";
   static final String URL_ACTION_CLOSE = "action:close";
 
   private SparseArray<Runnable> myLinkRunnables;
@@ -142,6 +145,9 @@ public class HtmlLinkManager {
       if (module != null && file != null) {
         handleReplaceAttributeValue(url, module, file);
       }
+    } else if (url.startsWith(URL_DISABLE_SANDBOX)) {
+      assert module != null;
+      handleDisableSandboxUrl(module, result);
     } else if (url.startsWith(URL_RUNNABLE)) {
       Runnable linkRunnable = getLinkRunnable(url);
       if (linkRunnable != null) {
@@ -768,5 +774,29 @@ public class HtmlLinkManager {
       }
     };
     action.execute();
+  }
+
+  public String createDisableSandboxUrl() {
+    return URL_DISABLE_SANDBOX;
+  }
+
+  private static void handleDisableSandboxUrl(@NotNull Module module, @Nullable RenderResult result) {
+    RenderSecurityManager.sEnabled = false;
+    if (result != null) {
+      RenderService renderService = result.getRenderService();
+      if (renderService != null) {
+        RenderContext renderContext = renderService.getRenderContext();
+        if (renderContext != null) {
+          renderContext.requestRender();
+        }
+      }
+    }
+
+    Messages.showInfoMessage(module.getProject(),
+         "The custom view rendering sandbox was disabled for this session.\n\n" +
+         "You can turn it off permanently by adding\n" +
+         RenderSecurityManager.ENABLED_PROPERTY + "=" + VALUE_FALSE + "\n" +
+         "to {install}/bin/idea.properties.",
+         "Disabled Rendering Sandbox");
   }
 }
