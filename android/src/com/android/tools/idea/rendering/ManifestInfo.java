@@ -35,9 +35,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX;
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.VALUE_TRUE;
+import static com.android.SdkConstants.*;
 import static com.android.xml.AndroidManifest.*;
 
 /**
