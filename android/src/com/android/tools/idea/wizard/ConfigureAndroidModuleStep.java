@@ -153,7 +153,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
     // Find a unique project location
     String projectLocation = myTemplateState.getString(ATTR_PROJECT_LOCATION);
-    if (projectLocation != null && !projectLocation.isEmpty() && myProject != null && !myProject.isInitialized()) {
+    if (projectLocation != null && !projectLocation.isEmpty() && (myProject == null || !myProject.isInitialized())) {
       File file = new File(projectLocation);
       if (file.exists()) {
         String appName = myTemplateState.getString(ATTR_APP_TITLE);
