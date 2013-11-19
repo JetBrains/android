@@ -32,7 +32,6 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -53,7 +52,10 @@ import java.util.Map;
 
 /**
  * Repository for Android application resources, e.g. those that show up in {@code R}, not {@code android.R}
- * (which are referred to as framework resources.)
+ * (which are referred to as framework resources.). Note that this includes resources from Gradle libraries
+ * too, even though you may not think of these as "local" (they do however (a) end up in the application
+ * namespace, and (b) get extracted by Gradle into the project's build folder where they are merged with
+ * the other resources.)
  * <p>
  * For a given Android module, you can obtain either the resources for the module itself, or for a module and all
  * its libraries. Most clients should use the module with all its dependencies included; when a user is
@@ -62,17 +64,20 @@ import java.util.Map;
  * </p>
  * <p>
  * The module repository is implemented using several layers. Consider a Gradle project where the main module has
- * two flavors, and depends on a library module. In this case, the {@linkplain ProjectResources} for the
+ * two flavors, and depends on a library module. In this case, the {@linkplain LocalResourceRepository} for the
  * module with dependencies will contain these components:
  * <ul>
- *   <li> A {@link ModuleSetResourceRepository} representing the collection of module repositories</li>
+ *   <li> A {@link com.android.tools.idea.rendering.AppResourceRepository} which contains a
+ *          {@link FileResourceRepository} wrapping each AAR library dependency, and merges this with
+ *          the project resource repository </li>
+ *   <li> A {@link ProjectResourceRepository} representing the collection of module repositories</li>
  *   <li> For each module (e.g. the main module and library module}, a {@link ModuleResourceRepository}</li>
  *   <li> For each resource directory in each module, a {@link ResourceFolderRepository}</li>
  * </ul>
  * These different repositories are merged together by the {@link MultiResourceRepository} class,
  * which represents a repository that just combines the resources from each of its children.
- * Both {@linkplain ModuleResourceRepository} and {@linkplain ModuleSetResourceRepository} are instances
- * of a {@linkplain MultiResourceRepository}.
+ * All of {@linkplain AppResourceRepository}, {@linkplain ModuleResourceRepository} and
+ * {@linkplain ProjectResourceRepository} are instances of a {@linkplain MultiResourceRepository}.
  * </p>
  * <p>
  * The {@link ResourceFolderRepository} is the lowest level of repository. It is associated with just
@@ -112,7 +117,7 @@ import java.util.Map;
  * previous implementation.
  * </p>
  * <p>
- * The {@linkplain ModuleSetResourceRepository} is similar, but it combines {@link ModuleResourceRepository}
+ * The {@linkplain ProjectResourceRepository} is similar, but it combines {@link ModuleResourceRepository}
  * instances rather than {@link ResourceFolderRepository} instances. Note also that the way these
  * resource repositories work is slightly different from the way the resource items are used by
  * the builder: The builder will bail if it encounters duplicate declarations unless they are in alternative
@@ -130,11 +135,10 @@ import java.util.Map;
  * the current module's current flavor. This will allow us to for example preview the string translations
  * for a given resource name not just for the current flavor but for all other flavors as well.
  * </p>
- * TODO: Rename this class to ModuleResources, or maybe LocalResources or ApplicationResources
  */
 @SuppressWarnings("deprecation") // Deprecated com.android.util.Pair is required by ProjectCallback interface
-public abstract class ProjectResources extends AbstractResourceRepository implements Disposable, ModificationTracker {
-  protected static final Logger LOG = Logger.getInstance(ProjectResources.class);
+public abstract class LocalResourceRepository extends AbstractResourceRepository implements Disposable, ModificationTracker {
+  protected static final Logger LOG = Logger.getInstance(LocalResourceRepository.class);
   private final String myDisplayName;
 
   @Nullable private List<MultiResourceRepository> myParents;
@@ -159,7 +163,7 @@ public abstract class ProjectResources extends AbstractResourceRepository implem
 
   protected long myGeneration;
 
-  protected ProjectResources(@NotNull String displayName) {
+  protected LocalResourceRepository(@NotNull String displayName) {
     super(false);
     myDisplayName = displayName;
   }
@@ -167,32 +171,6 @@ public abstract class ProjectResources extends AbstractResourceRepository implem
   @NotNull
   public String getDisplayName() {
     return myDisplayName;
-  }
-
-  @NotNull
-  public static ProjectResources get(@NotNull Module module, boolean includeLibraries) {
-    ProjectResources projectResources = get(module, includeLibraries, true);
-    assert projectResources != null;
-    return projectResources;
-  }
-
-  @Nullable
-  public static ProjectResources get(@NotNull Module module, boolean includeLibraries, boolean createIfNecessary) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null) {
-      return facet.getProjectResources(includeLibraries, createIfNecessary);
-    }
-
-    return null;
-  }
-
-  @NotNull
-  public static ProjectResources create(@NotNull AndroidFacet facet, boolean includeLibraries) {
-    if (includeLibraries) {
-      return ModuleSetResourceRepository.create(facet);
-    } else {
-      return ModuleResourceRepository.create(facet);
-    }
   }
 
   @Override
@@ -297,9 +275,9 @@ public abstract class ProjectResources extends AbstractResourceRepository implem
   // ---- Implements ModificationCount ----
 
   /**
-   * Returns the current generation of the project resources. Any time the project resources are updated,
+   * Returns the current generation of the app resources. Any time the app resources are updated,
    * the generation increases. This can be used to force refreshing of layouts etc (which will cache
-   * configured project resources) when the project resources have changed since last render.
+   * configured app resources) when the project resources have changed since last render.
    * <p>
    * Note that the generation is not a simple change count. If you change the contents of a layout drawable XML file,
    * that will not affect the {@link ResourceItem} and {@link ResourceValue} results returned from

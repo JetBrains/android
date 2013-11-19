@@ -916,7 +916,7 @@ public class RenderPreviewManager implements Disposable {
         state = device.getAllStates().get(0);
       }
 
-      if (device.getId().contains("Nexus")) {
+      if (HardwareConfigHelper.isNexus(device) && !HardwareConfigHelper.isGeneric(device)) {
         interesting = true;
       }
 

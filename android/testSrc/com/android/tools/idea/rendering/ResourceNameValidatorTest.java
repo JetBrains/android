@@ -29,7 +29,6 @@ import java.util.Set;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
-import junit.framework.TestCase;
 import org.jetbrains.android.AndroidTestCase;
 
 @SuppressWarnings("javadoc")
@@ -81,7 +80,7 @@ public class ResourceNameValidatorTest extends AndroidTestCase {
   }
 
   public void testIds() throws Exception {
-    ResourceNameValidator validator = ResourceNameValidator.create(false, (ProjectResources)null, ResourceType.ID);
+    ResourceNameValidator validator = ResourceNameValidator.create(false, (LocalResourceRepository)null, ResourceType.ID);
     assertEquals(null, validator.getErrorText("foo"));
     assertEquals("The resource name must begin with a character", validator.getErrorText(" foo"));
     assertEquals("' ' is not a valid resource name character", validator.getErrorText("foo "));
@@ -94,7 +93,7 @@ public class ResourceNameValidatorTest extends AndroidTestCase {
     map.put(ResourceType.ID, multimap);
     multimap.put("foo1", new ResourceItem("foo1", ResourceType.ID, null));
     multimap.put("foo3", new ResourceItem("foo3", ResourceType.ID, null));
-    ProjectResources resources = new ProjectResources("unit test") {
+    LocalResourceRepository resources = new LocalResourceRepository("unit test") {
       @NonNull
       @Override
       protected Map<ResourceType, ListMultimap<String, ResourceItem>> getMap() {

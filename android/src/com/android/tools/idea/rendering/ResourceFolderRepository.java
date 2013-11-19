@@ -64,7 +64,7 @@ import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
  *   <li>Register the psi project listener as a project service instead</li>
  * </ul>
  */
-public final class ResourceFolderRepository extends ProjectResources {
+public final class ResourceFolderRepository extends LocalResourceRepository {
   private static final Logger LOG = Logger.getInstance(ResourceFolderRepository.class);
   private final Module myModule;
   private final AndroidFacet myFacet;

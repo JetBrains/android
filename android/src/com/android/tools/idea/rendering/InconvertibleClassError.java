@@ -18,9 +18,7 @@ package com.android.tools.idea.rendering;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.rendering.ClassConverter.getMajorVersion;
-import static com.android.tools.idea.rendering.ClassConverter.getMinorVersion;
-import static com.android.tools.idea.rendering.ClassConverter.isValidClassFile;
+import static com.android.tools.idea.rendering.ClassConverter.*;
 
 /**
  * Exception thrown when we attempt to load a class that cannot be converted by
