@@ -104,4 +104,46 @@ public class AndroidModuleInfo {
 
     return -1;
   }
+
+  public static int getBuildSdkVersion(@Nullable Module module) {
+    if (module != null) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        AndroidModuleInfo moduleInfo = get(facet.getModule());
+        if (moduleInfo != null) {
+          return moduleInfo.getBuildSdkVersion();
+        }
+      }
+    }
+
+    return -1;
+  }
+
+  public static int getTargetSdkVersion(@Nullable Module module) {
+    if (module != null) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        AndroidModuleInfo moduleInfo = get(facet.getModule());
+        if (moduleInfo != null) {
+          return moduleInfo.getTargetSdkVersion();
+        }
+      }
+    }
+
+    return -1;
+  }
+
+  public static int getMinSdkVersion(@Nullable Module module) {
+    if (module != null) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        AndroidModuleInfo moduleInfo = get(facet.getModule());
+        if (moduleInfo != null) {
+          return moduleInfo.getMinSdkVersion();
+        }
+      }
+    }
+
+    return -1;
+  }
 }

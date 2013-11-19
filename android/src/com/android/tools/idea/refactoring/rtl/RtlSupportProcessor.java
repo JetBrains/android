@@ -66,7 +66,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
   final private Project myProject;
 
   // This is the API level corresponding to the first public release for RTL support
-  final static int RTL_TARGET_SDK_START = 17;
+  public static final int RTL_TARGET_SDK_START = 17;
 
   private static Map<String, String> ourMapMirroredAttributeName = Maps.newHashMapWithExpectedSize(12);
 
