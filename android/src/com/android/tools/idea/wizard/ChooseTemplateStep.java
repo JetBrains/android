@@ -22,6 +22,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ArrayUtil;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -155,6 +156,8 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
           catch (IOException e) {
             LOG.warn(e);
           }
+        } else {
+          myTemplateImage.setIcon(AndroidIcons.Wizards.DefaultTemplate);
         }
         setDescriptionHtml(template.myMetadata.getDescription());
         int minSdk = template.myMetadata.getMinSdk();
