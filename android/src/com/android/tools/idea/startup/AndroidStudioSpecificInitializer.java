@@ -117,6 +117,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     replaceAction("NewModuleInGroup", new AndroidNewModuleInGroupAction());
     replaceAction("ImportProject", new AndroidImportProjectAction());
     replaceAction("WelcomeScreen.ImportProject", new AndroidImportProjectAction());
+    replaceAction("CreateLibraryFromFile", new CreateLibraryFromFilesAction());
     hideActionForAndroidGradle("ImportModule", "Import Module...");
 
     hideActionForAndroidGradle(IdeActions.ACTION_GENERATE_ANT_BUILD, "Generate Ant Build...");
