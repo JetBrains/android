@@ -19,8 +19,8 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.annotations.NotNull;
 
-class OpenAndroidSdkManagerHyperlink extends NotificationHyperlink {
-  OpenAndroidSdkManagerHyperlink() {
+public class OpenAndroidSdkManagerHyperlink extends NotificationHyperlink {
+  public OpenAndroidSdkManagerHyperlink() {
     super("openAndroidSdkManager", "Open Android SDK Manager");
   }
 
