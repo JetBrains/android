@@ -37,7 +37,7 @@ public class MultiMatch {
   }
 
   @Nullable
-  public Result match(PsiElement element) {
+  public Bindings match(PsiElement element) {
     Map<String, PsiElement> bindings = Unifier.match(macro, element);
     if (NavigationEditor.DEBUG) System.out.println("bindings = " + bindings);
     if (bindings == null) {
@@ -53,16 +53,54 @@ public class MultiMatch {
       }
       subBindings.put(name, subBinding);
     }
-    return new Result(bindings, subBindings);
+    return new Bindings(bindings, subBindings);
   }
 
-  public static class Result {
+  public String instantiate(Bindings2 bindings) {
+    Map<String, String> bb = bindings.bindings;
+
+    for (Map.Entry<String, PsiMethod> entry : subMacros.entrySet()) {
+      String name = entry.getKey();
+      PsiMethod template = entry.getValue();
+      bb.put(name, Instantiation.instantiate2(template, bindings.subBindings.get(name)));
+    }
+
+    return Instantiation.instantiate2(macro, bb);
+  }
+
+  public static class Bindings {
     public final Map<String, PsiElement> bindings;
     public final Map<String, Map<String, PsiElement>> subBindings;
 
-    Result(Map<String, PsiElement> bindings, Map<String, Map<String, PsiElement>> subBindings) {
+    Bindings(Map<String, PsiElement> bindings, Map<String, Map<String, PsiElement>> subBindings) {
       this.bindings = bindings;
       this.subBindings = subBindings;
+    }
+  }
+
+  public static class Bindings2 {
+    public final Map<String, String> bindings;
+    public final Map<String, Map<String, String>> subBindings;
+
+    Bindings2(Map<String, String> bindings, Map<String, Map<String, String>> subBindings) {
+      this.bindings = bindings;
+      this.subBindings = subBindings;
+    }
+
+    Bindings2() {
+      this(new HashMap<String, String>(), new HashMap<String, Map<String, String>>());
+    }
+
+    public void put(String key, String value) {
+      bindings.put(key, value);
+    }
+
+    public void put(String key1, String key2, String value) {
+      Map<String, String> subBinding = subBindings.get(key1);
+      if (subBinding == null) {
+        subBindings.put(key1, subBinding = new HashMap<String, String>());
+      }
+      subBinding.put(key2, value);
     }
   }
 }
