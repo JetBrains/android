@@ -57,29 +57,7 @@ public class Analysis {
     final Module module = Utilities.getModule(project, file);
     final Map<String, ActivityState> activities = getActivities(model);
     final Map<String, MenuState> menus = getMenus(model);
-
-    PsiMethod methodCallMacro = getMethodsByName(module, "com.android.templates.GeneralTemplates", "call")[0];
-    final PsiMethod defineAssignment = getMethodsByName(module, "com.android.templates.GeneralTemplates", "defineAssignment")[0];
-    PsiMethod defineInnerClassMacro = getMethodsByName(module, "com.android.templates.GeneralTemplates", "defineInnerClass")[0];
-
-    PsiMethod installMenuItemClickMacro =
-      getMethodsByName(module, "com.android.templates.InstallListenerTemplates", "installMenuItemClick")[0];
-    PsiMethod installItemClickMacro =
-      getMethodsByName(module, "com.android.templates.InstallListenerTemplates", "installItemClickListener")[0];
-
-    PsiMethod getMenuItemMacro = getMethodsByName(module, "com.android.templates.MenuAccessTemplates", "getMenuItem")[0];
-    PsiMethod launchActivityMacro = getMethodsByName(module, "com.android.templates.LaunchActivityTemplates", "launchActivity")[0];
-    PsiMethod launchActivityMacro2 = getMethodsByName(module, "com.android.templates.LaunchActivityTemplates", "launchActivity")[1];
-
-    final MultiMatch installItemClickAndCallMacro = new MultiMatch(installItemClickMacro);
-    installItemClickAndCallMacro.addSubMacro("$f", methodCallMacro);
-
-    final MultiMatch installMenuItemOnGetMenuItemAndLaunchActivityMacro = new MultiMatch(installMenuItemClickMacro);
-    installMenuItemOnGetMenuItemAndLaunchActivityMacro.addSubMacro("$menuItem", getMenuItemMacro);
-    installMenuItemOnGetMenuItemAndLaunchActivityMacro.addSubMacro("$f", launchActivityMacro);
-
-    final MultiMatch defineInnerClassToLaunchActivityMacro = new MultiMatch(defineInnerClassMacro);
-    defineInnerClassToLaunchActivityMacro.addSubMacro("$f", launchActivityMacro2);
+    final Macros macros = new Macros(module);
 
     final Collection<ActivityState> activityStates = activities.values();
 
@@ -106,7 +84,7 @@ public class Analysis {
               PsiStatement[] statements = onPrepareOptionsMenuMethod.getBody().getStatements();
               if (NavigationEditor.DEBUG) System.out.println("statements = " + Arrays.toString(statements));
               for (PsiStatement s : statements) {
-                MultiMatch.Result multiMatchResult = installMenuItemOnGetMenuItemAndLaunchActivityMacro.match(s.getFirstChild());
+                MultiMatch.Bindings multiMatchResult = macros.installMenuItemOnGetMenuItemAndLaunchActivityMacro.match(s.getFirstChild());
                 if (multiMatchResult != null) {
                   Map<String, Map<String, PsiElement>> subBindings = multiMatchResult.subBindings;
                   ActivityState activityState =
@@ -135,7 +113,7 @@ public class Analysis {
           PsiMethod installListenersMethod = methods[0];
           PsiStatement[] statements = installListenersMethod.getBody().getStatements();
           for (PsiStatement s : statements) {
-            MultiMatch.Result multiMatchResult = installItemClickAndCallMacro.match(s.getFirstChild());
+            MultiMatch.Bindings multiMatchResult = macros.installItemClickAndCallMacro.match(s.getFirstChild());
             if (multiMatchResult != null) {
               final Map<String, PsiElement> bindings = multiMatchResult.bindings;
               final Map<String, Map<String, PsiElement>> subBindings = multiMatchResult.subBindings;
@@ -148,7 +126,7 @@ public class Analysis {
                   if (expression.getLExpression().getText().equals($target.getText())) {
                     PsiExpression rExpression = expression.getRExpression();
                     if (NavigationEditor.DEBUG) System.out.println("expression.getRExpression() = " + rExpression);
-                    Map<String, PsiElement> bindings3 = Unifier.match(defineAssignment, rExpression);
+                    Map<String, PsiElement> bindings3 = Unifier.match(macros.defineAssignment, rExpression);
                     if (bindings3 != null) {
                       if (NavigationEditor.DEBUG) System.out.println("bindings3 = " + bindings3);
                       PsiElement fragmentLiteral = bindings3.get("$fragmentName");
@@ -162,7 +140,7 @@ public class Analysis {
                         }
                       }
                     }
-                    MultiMatch.Result multiMatchResult1 = defineInnerClassToLaunchActivityMacro.match(rExpression);
+                    MultiMatch.Bindings multiMatchResult1 = macros.defineInnerClassToLaunchActivityMacro.match(rExpression);
                     if (multiMatchResult1 != null) {
                       PsiElement activityClass = multiMatchResult1.subBindings.get("$f").get("activityClass").getFirstChild();
                       State toState = activities.get(getQualifiedName(activityClass));
