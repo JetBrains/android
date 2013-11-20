@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.parser;
 
 import com.android.SdkConstants;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -388,6 +389,34 @@ public class GradleBuildFileTest extends IdeaTestCase {
     assertEquals("17.0.0", file.getValue(BuildFileKey.BUILD_TOOLS_VERSION));
   }
 
+  public void testGetsMavenRepositories() throws Exception {
+    final GradleBuildFile file = getTestFile(getSimpleTestFile());
+    List<Repository> expectedRepositories = Lists.newArrayList(
+        new Repository(Repository.Type.MAVEN_CENTRAL, null),
+        new Repository(Repository.Type.URL, "www.foo1.com"),
+        new Repository(Repository.Type.URL, "www.foo2.com"),
+        new Repository(Repository.Type.URL, "www.foo3.com"),
+        new Repository(Repository.Type.URL, "www.foo4.com"));
+    assertEquals(expectedRepositories, file.getValue(BuildFileKey.LIBRARY_REPOSITORY));
+  }
+
+  public void testSetsMavenRepositories() throws Exception {
+    GradleBuildFile file = getTestFile("");
+    List<Repository> newRepositories = Lists.newArrayList(
+      new Repository(Repository.Type.MAVEN_CENTRAL, null),
+      new Repository(Repository.Type.MAVEN_LOCAL, null),
+      new Repository(Repository.Type.URL, "www.foo.com"));
+    file.setValue(BuildFileKey.LIBRARY_REPOSITORY, newRepositories);
+
+    String expected =
+      "repositories {\n" +
+      "    mavenCentral()\n" +
+      "    mavenLocal()\n" +
+      "    maven { url 'www.foo.com' }\n" +
+      "}";
+    assertContents(file, expected);
+  }
+
   private static String getSimpleTestFile() throws IOException {
     return
       "buildscript {\n" +
@@ -401,6 +430,11 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "apply plugin: 'android'\n" +
       "repositories {\n" +
       "    mavenCentral()\n" +
+      "    maven('www.foo1.com', 'www.foo2.com')\n" +
+      "    maven {\n" +
+      "        url 'www.foo3.com'\n" +
+      "        url 'www.foo4.com'\n" +
+      "    }\n" +
       "}\n" +
       "dependencies {\n" +
       "    compile 'com.android.support:support-v4:13.0.+'\n" +

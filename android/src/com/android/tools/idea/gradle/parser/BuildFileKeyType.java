@@ -23,6 +23,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethod
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Enumerates the type information for build file parameters located by {@linkplain BuildFileKey}. The individual types have code to
@@ -37,7 +38,7 @@ public enum BuildFileKeyType {
   },
   INTEGER(Integer.class, "0"),
   BOOLEAN(Boolean.class, "false"),
-  CLOSURE(Object.class, "{}"),
+  CLOSURE(List.class, "{}"),
   FILE(File.class, Constants.FILE_METHOD_CALL + "('')") { // Represented in Groovy as file('/path/to/file')
     @Override
     public boolean canParseValue(@NotNull GroovyPsiElement arg) {
