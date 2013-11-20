@@ -25,6 +25,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -50,10 +51,12 @@ import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 import org.xmlpull.v1.XmlPullParserException;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
@@ -774,6 +777,64 @@ public class RenderService implements IImageFactory {
     return null;
   }
 
+  /**
+   * Measure the children of the given parent tag, applying the given filter to the
+   * pull parser's attribute values.
+   *
+   * @param parent the parent tag to measure children for
+   * @param filter the filter to apply to the attribute values
+   * @return a map from the children of the parent to new bounds of the children
+   */
+  @Nullable
+  public Map<XmlTag, ViewInfo> measureChildren(XmlTag parent, final AttributeFilter filter) {
+    ILayoutPullParser modelParser = LayoutPsiPullParser.create(filter, parent, myLogger);
+    Map<XmlTag, ViewInfo> map = Maps.newHashMap();
+    RenderSession session = measure(modelParser);
+    if (session != null) {
+      Result result = session.getResult();
+      if (result != null && result.isSuccess()) {
+        assert session.getRootViews().size() == 1;
+        ViewInfo root = session.getRootViews().get(0);
+        List<ViewInfo> children = root.getChildren();
+        for (ViewInfo info : children) {
+          Object cookie = info.getCookie();
+          if (cookie instanceof XmlTag) {
+            map.put((XmlTag)cookie, info);
+          }
+        }
+      }
+
+      return map;
+    }
+
+    return null;
+  }
+
+  /**
+   * Measure the given child in context, applying the given filter to the
+   * pull parser's attribute values.
+   *
+   * @param tag the child to measure
+   * @param filter the filter to apply to the attribute values
+   * @return a view info, if found
+   */
+  @Nullable
+  public ViewInfo measureChild(XmlTag tag, final AttributeFilter filter) {
+    XmlTag parent = tag.getParentTag();
+    if (parent != null) {
+      Map<XmlTag, ViewInfo> map = measureChildren(parent, filter);
+      if (map != null) {
+        for (Map.Entry<XmlTag, ViewInfo> entry : map.entrySet()) {
+          if (entry.getKey() == tag) {
+            return entry.getValue();
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
   @Nullable
   private RenderSession measure(ILayoutPullParser parser) {
     ResourceResolver resolver = getResourceResolver();
@@ -838,5 +899,27 @@ public class RenderService implements IImageFactory {
       myLogger.error(null, t.getLocalizedMessage(), t, null);
       throw t;
     }
+  }
+
+  /**
+   * The {@link AttributeFilter} allows a client of {@link #measureChildren} to modify the actual
+   * XML values of the nodes being rendered, for example to force width and height values to
+   * wrap_content when measuring preferred size.
+   */
+  public interface AttributeFilter {
+    /**
+     * Returns the attribute value for the given node and attribute name. This filter
+     * allows a client to adjust the attribute values that a node presents to the
+     * layout library.
+     * <p/>
+     * Returns "" to unset an attribute. Returns null to return the unfiltered value.
+     *
+     * @param node      the node for which the attribute value should be returned
+     * @param namespace the attribute namespace
+     * @param localName the attribute local name
+     * @return an override value, or null to return the unfiltered value
+     */
+    @Nullable
+    String getAttribute(@NotNull XmlTag node, @Nullable String namespace, @NotNull String localName);
   }
 }

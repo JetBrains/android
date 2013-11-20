@@ -16,14 +16,15 @@
 package com.intellij.android.designer.designSurface.layout;
 
 import com.android.tools.idea.designer.FillPolicy;
+import com.android.tools.idea.designer.ResizeContext;
 import com.intellij.android.designer.AndroidDesignerUtils;
 import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
 import com.intellij.android.designer.designSurface.feedbacks.TextFeedback;
 import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
-import com.intellij.android.designer.designSurface.layout.actions.ResizeOperation;
 import com.intellij.android.designer.designSurface.layout.flow.FlowBaseOperation;
-import com.intellij.android.designer.model.*;
+import com.intellij.android.designer.model.ModelParser;
+import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.layout.Gravity;
 import com.intellij.designer.designSurface.FeedbackLayer;
 import com.intellij.designer.designSurface.OperationContext;
@@ -391,7 +392,7 @@ public class LinearLayoutOperation extends FlowBaseOperation {
     XmlTag tag = ((RadViewComponent)component).getTag();
     String length = tag.getAttributeValue(horizontal ? ATTR_LAYOUT_HEIGHT : ATTR_LAYOUT_WIDTH, ANDROID_URI);
 
-    if (length != null && !ResizeOperation.isFill(length)) {
+    if (length != null && !ResizeContext.isFill(length)) {
       Pair<Gravity, Gravity> gravity = Gravity.getSides(component);
       return horizontal ? gravity.second : gravity.first;
     }
