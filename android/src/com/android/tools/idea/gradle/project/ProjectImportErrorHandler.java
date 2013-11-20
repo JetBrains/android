@@ -32,6 +32,7 @@ import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHa
 public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler {
   public static final String FAILED_TO_PARSE_SDK = "failed to parse SDK";
   public static final String INSTALL_ANDROID_SUPPORT_REPO = "Please install the Android Support Repository from the Android SDK Manager.";
+  public static final String INSTALL_MISSING_PLATFORM = "Please install the missing platform from the Android SDK Manager.";
 
   private static final String EMPTY_LINE = "\n\n";
   private static final String UNSUPPORTED_GRADLE_VERSION_ERROR =
@@ -61,6 +62,15 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
       msg += ('\n' + FIX_GRADLE_VERSION);
       // Location of build.gradle is useless for this error. Omitting it.
       return createUserFriendlyError(msg, null);
+    }
+
+    if (rootCause instanceof IllegalStateException) {
+      String msg = rootCause.getMessage();
+      if (msg != null && msg.startsWith("failed to find target android-")) {
+        String newMsg = msg + EMPTY_LINE + INSTALL_MISSING_PLATFORM;
+        // Location of build.gradle is useless for this error. Omitting it.
+        return createUserFriendlyError(newMsg, null);
+      }
     }
 
     if (rootCause instanceof OutOfMemoryError) {
