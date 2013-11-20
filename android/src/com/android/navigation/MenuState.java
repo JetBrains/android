@@ -33,6 +33,7 @@ public class MenuState extends State {
     return null;
   }
 
+  @NonNull
   @Override
   public String getXmlResourceName() {
     return xmlResourceName;
