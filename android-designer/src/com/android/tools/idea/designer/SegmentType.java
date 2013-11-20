@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.android.designer.model.layout.relative;
+package com.android.tools.idea.designer;
 
 import com.intellij.android.designer.model.RadViewComponent;
+import com.intellij.designer.utils.Position;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -126,5 +127,70 @@ public enum SegmentType {
   @Override
   public String toString() {
     return name();
+  }
+
+  @Nullable
+  public static SegmentType getHorizontalResizeEdge(int direction) {
+    switch (direction) {
+      case Position.SOUTH: {
+        return BOTTOM;
+      }
+      case Position.NORTH: {
+        return TOP;
+      }
+
+      case Position.NORTH_EAST: {
+        return TOP;
+      }
+      case Position.SOUTH_EAST: {
+        return BOTTOM;
+      }
+      case Position.NORTH_WEST: {
+        return TOP;
+      }
+      case Position.SOUTH_WEST: {
+        return BOTTOM;
+      }
+      case Position.NORTH_SOUTH:
+      case Position.EAST_WEST:
+        // Shouldn't be used in resizing operations
+        assert false : direction;
+        return null;
+      default:
+        return null;
+    }
+  }
+
+  @Nullable
+  public static SegmentType getVerticalResizeEdge(int direction) {
+    switch (direction) {
+      case Position.EAST: {
+        return RIGHT;
+      }
+
+      case Position.WEST: {
+        return LEFT;
+      }
+
+      case Position.NORTH_EAST: {
+        return RIGHT;
+      }
+      case Position.SOUTH_EAST: {
+        return RIGHT;
+      }
+      case Position.NORTH_WEST: {
+        return LEFT;
+      }
+      case Position.SOUTH_WEST: {
+        return LEFT;
+      }
+      case Position.NORTH_SOUTH:
+      case Position.EAST_WEST:
+        // Shouldn't be used in resizing operations
+        assert false : direction;
+        return null;
+      default:
+        return null;
+    }
   }
 }

@@ -16,14 +16,14 @@
 package com.intellij.android.designer.model.layout;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.designer.ResizeOperation;
 import com.intellij.android.designer.designSurface.TreeDropToOperation;
 import com.intellij.android.designer.designSurface.graphics.DirectionResizePoint;
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.designSurface.graphics.ResizeSelectionDecorator;
 import com.intellij.android.designer.designSurface.layout.LinearLayoutOperation;
 import com.intellij.android.designer.designSurface.layout.actions.LayoutMarginOperation;
-import com.intellij.android.designer.designSurface.layout.actions.LayoutWeightOperation;
-import com.intellij.android.designer.designSurface.layout.actions.ResizeOperation;
+import com.android.tools.idea.designer.LinearLayoutResizeOperation;
 import com.intellij.android.designer.designSurface.layout.flow.FlowStaticDecorator;
 import com.intellij.android.designer.model.ModelParser;
 import com.intellij.android.designer.model.RadViewComponent;
@@ -46,6 +46,9 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ORIENTATION;
+import static com.android.SdkConstants.VALUE_VERTICAL;
 import static com.intellij.android.designer.designSurface.graphics.DrawingStyle.SHOW_STATIC_GRID;
 
 /**
@@ -65,7 +68,7 @@ public class RadLinearLayout extends RadViewLayoutWithData implements ILayoutDec
   }
 
   public boolean isHorizontal() {
-    return !"vertical".equals(((RadViewComponent)myContainer).getTag().getAttributeValue("orientation", SdkConstants.NS_RESOURCES));
+    return !VALUE_VERTICAL.equals(((RadViewComponent)myContainer).getTag().getAttributeValue(ATTR_ORIENTATION, ANDROID_URI));
   }
 
   @Override
@@ -80,13 +83,10 @@ public class RadLinearLayout extends RadViewLayoutWithData implements ILayoutDec
       return new LinearLayoutOperation(myContainer, context, isHorizontal());
     }
     if (context.is(ResizeOperation.TYPE)) {
-      return new ResizeOperation(context);
+      return new LinearLayoutResizeOperation(context);
     }
     if (context.is(LayoutMarginOperation.TYPE)) {
       return new LayoutMarginOperation(context);
-    }
-    if (context.is(LayoutWeightOperation.TYPE)) {
-      return new LayoutWeightOperation(context);
     }
     return null;
   }
@@ -155,16 +155,6 @@ public class RadLinearLayout extends RadViewLayoutWithData implements ILayoutDec
               return (!horizontal || gravity.second != Gravity.top) && goodWidth;
             }
           }
-          if (point.getType() == LayoutWeightOperation.TYPE) {
-            int direction = ((DirectionResizePoint)point).getDirection();
-
-            if (direction == Position.EAST) { // right
-              return isHorizontal() && component.getBounds().height >= POINTS_SIZE;
-            }
-            if (direction == Position.SOUTH) { // bottom
-              return !isHorizontal() && component.getBounds().width >= POINTS_SIZE;
-            }
-          }
           return true;
         }
       };
@@ -172,10 +162,10 @@ public class RadLinearLayout extends RadViewLayoutWithData implements ILayoutDec
 
     mySelectionDecorator.clear();
     if (selection.size() == 1) {
-      LayoutMarginOperation.points(mySelectionDecorator);
-      LayoutWeightOperation.point(mySelectionDecorator);
+      ResizeOperation.addResizePoints(mySelectionDecorator, (RadViewComponent)selection.get(0));
+    } else {
+      ResizeOperation.addResizePoints(mySelectionDecorator);
     }
-    ResizeOperation.points(mySelectionDecorator);
 
     return mySelectionDecorator;
   }
