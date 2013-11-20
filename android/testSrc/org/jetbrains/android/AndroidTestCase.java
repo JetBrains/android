@@ -17,6 +17,7 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.RenderSecurityManager;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
@@ -104,6 +105,9 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     if (!myCreateManifest) {
       deleteManifest();
     }
+
+    // Unit test class loader includes disk directories which security manager does not allow access to
+    RenderSecurityManager.sEnabled = false;
   }
 
   protected boolean isToAddSdk() {
@@ -183,6 +187,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     myFixture.tearDown();
     myFixture = null;
     myFacet = null;
+    RenderSecurityManager.sEnabled = true;
     super.tearDown();
   }
 
