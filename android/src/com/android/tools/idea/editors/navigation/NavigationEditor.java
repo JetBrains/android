@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.navigation;
 
 import com.android.navigation.*;
 import com.android.tools.idea.editors.navigation.macros.Analysis;
+import com.android.tools.idea.editors.navigation.macros.CodeGenerator;
 import com.intellij.AppTopics;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
@@ -40,8 +41,7 @@ import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-
-import static com.android.navigation.Utilities.getPropertyName;
+import java.util.ArrayList;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class NavigationEditor implements FileEditor {
@@ -59,6 +59,8 @@ public class NavigationEditor implements FileEditor {
   private VirtualFile myFile;
   private JComponent myComponent;
   private boolean myDirty;
+  private boolean myNotificationsDisabled;
+  private final CodeGenerator myCodeGenerator;
 
   public NavigationEditor(Project project, VirtualFile file) {
     // Listen for 'Save All' events
@@ -77,7 +79,7 @@ public class NavigationEditor implements FileEditor {
     myProject = project;
     myFile = file;
     try {
-      myNavigationModel = Analysis.deriveAndAddTransitions(read(file), project, file);
+      myNavigationModel = read(file);
       // component = new NavigationModelEditorPanel1(project, file, read(file));
       NavigationEditorPanel editor = new NavigationEditorPanel(project, file, myNavigationModel);
       JBScrollPane scrollPane = new JBScrollPane(editor);
@@ -101,9 +103,15 @@ public class NavigationEditor implements FileEditor {
         myComponent = new JBScrollPane(panel);
       }
     }
+    myCodeGenerator = new CodeGenerator(myNavigationModel, Utilities.getModule(project, file));
     myNavigationModelListener = new Listener<NavigationModel.Event>() {
       @Override
       public void notify(@NotNull NavigationModel.Event event) {
+        if (!myNotificationsDisabled && event.operation == NavigationModel.Event.Operation.INSERT && event.operandType == Transition.class) {
+          ArrayList<Transition> transitions = myNavigationModel.getTransitions();
+          Transition transition = transitions.get(transitions.size() - 1); // todo don't rely on this being the last
+          myCodeGenerator.implementTransition(transition);
+        }
         myDirty = true;
       }
     };
@@ -207,8 +215,10 @@ public class NavigationEditor implements FileEditor {
 
   @Override
   public void selectNotify() {
+    myNotificationsDisabled = true;
     myNavigationModel.getTransitions().clear();
     Analysis.deriveAndAddTransitions(myNavigationModel, myProject, myFile);
+    myNotificationsDisabled = false;
   }
 
   @Override
