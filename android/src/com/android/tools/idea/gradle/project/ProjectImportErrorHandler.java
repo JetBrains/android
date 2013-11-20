@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Strings;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -26,6 +27,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler;
 
+import java.io.File;
+import java.util.regex.Pattern;
+
 /**
  * Provides better error messages for project import failures.
  */
@@ -33,10 +37,14 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
   public static final String FAILED_TO_PARSE_SDK = "failed to parse SDK";
   public static final String INSTALL_ANDROID_SUPPORT_REPO = "Please install the Android Support Repository from the Android SDK Manager.";
   public static final String INSTALL_MISSING_PLATFORM = "Please install the missing platform from the Android SDK Manager.";
+  public static final String FIX_SDK_DIR_PROPERTY = "Please fix the 'sdk.dir' property in the local.properties file.";
+
+  private static final Pattern SDK_NOT_FOUND = Pattern.compile("The SDK directory '(.*?)' does not exist.");
 
   private static final String EMPTY_LINE = "\n\n";
   private static final String UNSUPPORTED_GRADLE_VERSION_ERROR =
     "Gradle version " + GradleUtil.GRADLE_MINIMUM_VERSION + " is required";
+  private static final String SDK_DIR_PROPERTY_MISSING = "No sdk.dir property defined in local.properties file.";
 
   @Override
   @Nullable
@@ -111,6 +119,15 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
       if (msg != null && msg.contains(FAILED_TO_PARSE_SDK)) {
         String newMsg = msg + EMPTY_LINE + "The Android SDK may be missing the directory 'add-ons'.";
         // Location of build.gradle is useless for this error. Omitting it.
+        return createUserFriendlyError(newMsg, null);
+      }
+
+      if (msg != null && (msg.equals(SDK_DIR_PROPERTY_MISSING) || SDK_NOT_FOUND.matcher(msg).matches())) {
+        String newMsg = msg;
+        File buildProperties = new File(projectPath, SdkConstants.FN_LOCAL_PROPERTIES);
+        if (buildProperties.isFile()) {
+          newMsg += EMPTY_LINE + FIX_SDK_DIR_PROPERTY;
+        }
         return createUserFriendlyError(newMsg, null);
       }
     }
