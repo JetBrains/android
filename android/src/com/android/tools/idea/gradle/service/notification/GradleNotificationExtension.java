@@ -20,9 +20,11 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.io.Closeables;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationExtension;
@@ -40,7 +42,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.List;
@@ -50,6 +55,8 @@ import java.util.regex.Pattern;
 import static com.android.tools.idea.gradle.project.ProjectImportErrorHandler.*;
 
 public class GradleNotificationExtension implements ExternalSystemNotificationExtension {
+  private static final Logger LOG = Logger.getInstance(GradleNotificationExtension.class);
+
   private static final Pattern ERROR_LOCATION_IN_FILE_PATTERN = Pattern.compile("Build file '(.*)' line: ([\\d]+)");
   private static final Pattern ERROR_IN_FILE_PATTERN = Pattern.compile("Build file '(.*)'");
   private static final Pattern MISSING_DEPENDENCY_PATTERN = Pattern.compile("Could not find (.*)\\.");
@@ -95,7 +102,8 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
                                  pathOfBrokenSdk);
           File sdkHomeDir = new File(pathOfBrokenSdk);
           if (!sdkHomeDir.canWrite()) {
-            newMsg += String.format("\n\nCurrent user (%1$s) does not have write access to the SDK directory.", SystemProperties.getUserName());
+            String format = "\n\nCurrent user (%1$s) does not have write access to the SDK directory.";
+            newMsg += String.format(format, SystemProperties.getUserName());
           }
         }
         else {
@@ -112,6 +120,37 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
       if (lastLine != null && lastLine.equals(OPEN_GRADLE_SETTINGS)) {
         //noinspection TestOnlyProblems
         return createNotification(project, msg, new OpenGradleSettingsHyperlink());
+      }
+
+      if (lastLine != null && lastLine.equals(FIX_SDK_DIR_PROPERTY)) {
+        File file = new File(project.getBasePath(), SdkConstants.FN_LOCAL_PROPERTIES);
+        if (file.isFile()) {
+          // If we got this far, local.properties exists.
+          BufferedReader reader = null;
+          try {
+            //noinspection IOResourceOpenedButNotSafelyClosed
+            reader = new BufferedReader(new FileReader(file));
+            int counter = 0;
+            String line;
+            while ((line = reader.readLine()) != null) {
+              if (line.startsWith(SdkConstants.SDK_DIR_PROPERTY)) {
+                //noinspection TestOnlyProblems
+                return createNotification(project, msg, new OpenFileHyperlink(file.getPath(), counter));
+              }
+              counter++;
+            }
+          }
+          catch (IOException e) {
+            LOG.info("Unable to read file: " + file.getPath(), e);
+          }
+          finally {
+            Closeables.closeQuietly(reader);
+          }
+          //noinspection TestOnlyProblems
+          return createNotification(project, msg, new OpenFileHyperlink(file.getPath(), 0));
+        }
+        // Unlikely that we get here.
+        return null;
       }
 
       if (lastLine != null && (lastLine.contains(INSTALL_ANDROID_SUPPORT_REPO) || lastLine.contains(INSTALL_MISSING_PLATFORM))) {
