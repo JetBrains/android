@@ -100,7 +100,7 @@ public class NamedObjectPanel extends BuildFilePanel {
     myTable.setShowGrid(false);
     myTable.setDragEnabled(false);
     myTable.setIntercellSpacing(new Dimension(0, 0));
-    myTable.getSelectionModel().setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+    myTable.setCellSelectionEnabled(false);
     LocalPathCellEditor editor = new FileCellEditor();
     myTable.setDefaultEditor(File.class, editor);
 

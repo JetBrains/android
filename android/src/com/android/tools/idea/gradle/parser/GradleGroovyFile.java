@@ -359,7 +359,7 @@ class GradleGroovyFile {
    * Returns the value in the file for the given key, or null if not present.
    */
   static @Nullable Object getValueStatic(@NotNull GrStatementOwner root, @NotNull BuildFileKey key) {
-    GrMethodCall method = getMethodCallByPath(root, key.getPath()/*, false*/);
+    GrMethodCall method = getMethodCallByPath(root, key.getPath());
     if (method == null) {
       return null;
     }
