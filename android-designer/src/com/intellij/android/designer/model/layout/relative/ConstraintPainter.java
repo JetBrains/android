@@ -16,6 +16,7 @@
 package com.intellij.android.designer.model.layout.relative;
 
 import com.android.tools.idea.designer.Insets;
+import com.android.tools.idea.designer.SegmentType;
 import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;
 import com.intellij.android.designer.model.RadViewComponent;
 import org.jetbrains.annotations.Nullable;

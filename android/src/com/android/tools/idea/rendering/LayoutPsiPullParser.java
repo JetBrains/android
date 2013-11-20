@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.rendering.RenderService.AttributeFilter;
 
 /**
  * {@link com.android.ide.common.rendering.api.ILayoutPullParser} implementation on top of
@@ -93,6 +94,33 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     } else {
       return new LayoutPsiPullParser(file, logger);
     }
+  }
+
+  @NotNull
+  public static LayoutPsiPullParser create(@Nullable final AttributeFilter filter,
+                                           @NotNull XmlTag root,
+                                           @NotNull RenderLogger logger) {
+    return new LayoutPsiPullParser(root, logger) {
+      @Override
+      public String getAttributeValue(String namespace, String localName) {
+        if (filter != null) {
+          Object cookie = getViewCookie();
+          if (cookie instanceof XmlTag) {
+            XmlTag tag = (XmlTag)cookie;
+            String value = filter.getAttribute(tag, namespace, localName);
+            if (value != null) {
+              if (value.isEmpty()) { // empty means unset
+                return null;
+              }
+              return value;
+            }
+            // null means no preference, not "unset".
+          }
+        }
+
+        return super.getAttributeValue(namespace, localName);
+      }
+    };
   }
 
   /** Use one of the {@link #create} factory methods instead */
