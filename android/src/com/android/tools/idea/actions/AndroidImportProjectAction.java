@@ -180,7 +180,7 @@ public class AndroidImportProjectAction extends AnAction {
   @Nullable
   private static VirtualFile findMatchingChild(@NotNull VirtualFile parent, @NotNull String...validNames) {
     if (parent.isDirectory()) {
-      for (VirtualFile child : getChildrenOf(parent)) {
+      for (VirtualFile child : parent.getChildren()) {
         for (String name : validNames) {
           if (name.equals(child.getName())) {
             return child;
@@ -189,14 +189,6 @@ public class AndroidImportProjectAction extends AnAction {
       }
     }
     return null;
-  }
-
-  @NotNull
-  private static Collection<VirtualFile> getChildrenOf(@NotNull VirtualFile file) {
-    if (file instanceof NewVirtualFile) {
-      return ((NewVirtualFile)file).getCachedChildren();
-    }
-    return Lists.newArrayList(file.getChildren());
   }
 
   private static boolean hasAndroidNature(@NotNull VirtualFile projectFile) {
