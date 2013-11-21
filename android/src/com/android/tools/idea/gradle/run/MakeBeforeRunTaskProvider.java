@@ -29,6 +29,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.util.concurrency.Semaphore;
 import icons.AndroidIcons;
+import org.jetbrains.android.run.AndroidRunConfigurationBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -92,7 +93,11 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   @Override
   public MakeBeforeRunTask createTask(RunConfiguration runConfiguration) {
     // "Gradle-aware Make" is only available in Android Studio.
-    return AndroidStudioSpecificInitializer.isAndroidStudio() ? new MakeBeforeRunTask() : null;
+    if (AndroidStudioSpecificInitializer.isAndroidStudio() && runConfiguration instanceof AndroidRunConfigurationBase) {
+      return new MakeBeforeRunTask();
+    } else {
+      return null;
+    }
   }
 
   @Override
