@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.base.Predicate;
@@ -27,14 +26,12 @@ import com.intellij.openapi.util.io.FileUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.Nullable;
 
-
-import java.awt.Dimension;
+import java.awt.*;
 import java.io.File;
 import java.util.List;
-import java.util.Locale;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
-import static com.android.tools.idea.templates.TemplateMetadata.*;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE;
 
 /**
  * {@linkplain NewModuleWizard} guides the user through adding a new module to an existing project. It has a template-based flow and as the
@@ -119,7 +116,7 @@ public class NewModuleWizard extends TemplateWizard implements ChooseTemplateSte
       new ChooseTemplateStep(myModuleBuilder.myWizardState, null, myProject, AndroidIcons.Wizards.NewModuleSidePanel,
                              myModuleBuilder, this);
     List<ChooseTemplateStep.MetadataListItem> templateList =
-      chooseModuleStep.getTemplateList(myModuleBuilder.myWizardState, CATEGORY_PROJECTS);
+      chooseModuleStep.getTemplateList(myModuleBuilder.myWizardState, CATEGORY_PROJECTS, null);
     // First, filter out the NewProject template and the NewModuleTemplate
     templateList = Lists.newArrayList(Iterables.filter(templateList, new Predicate<ChooseTemplateStep.MetadataListItem>() {
       @Override
