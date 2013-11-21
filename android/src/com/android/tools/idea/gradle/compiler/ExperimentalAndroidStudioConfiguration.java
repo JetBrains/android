@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
     )}
 )
 public class ExperimentalAndroidStudioConfiguration implements PersistentStateComponent<ExperimentalAndroidStudioConfiguration> {
-  public boolean USE_EXPERIMENTAL_FASTER_BUILD;
+  public boolean USE_EXPERIMENTAL_FASTER_BUILD = true;
 
   public static ExperimentalAndroidStudioConfiguration getInstance(Project project) {
     return ServiceManager.getService(project, ExperimentalAndroidStudioConfiguration.class);
