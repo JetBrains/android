@@ -56,6 +56,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
   @NonNls private static final String USE_IDEA_NEW_PROJECT_WIZARDS = "use.idea.newProjectWizard";
   @NonNls private static final String USE_JPS_MAKE_ACTIONS = "use.idea.jpsMakeActions";
+  @NonNls private static final String USE_IDEA_NEW_FILE_POPUPS = "use.idea.newFilePopupActions";
 
   @NonNls private static final String ANDROID_SDK_FOLDER_NAME = "sdk";
 
@@ -78,6 +79,11 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     //noinspection UseOfArchaicSystemPropertyAccessors
     if (!Boolean.getBoolean(USE_JPS_MAKE_ACTIONS)) {
       replaceIdeaMakeActions();
+    }
+
+    //noinspection UseOfArchaicSystemPropertyAccessors
+    if (!Boolean.getBoolean(USE_IDEA_NEW_FILE_POPUPS)) {
+      hideIdeaNewFilePopupActions();
     }
 
     try {
@@ -303,5 +309,23 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       Closeables.closeQuietly(fis);
     }
     return properties.getProperty("lastSdkPath");
+  }
+
+  /**
+   * Remove popup actions that we don't use
+   */
+  private static void hideIdeaNewFilePopupActions() {
+    ActionManager am = ActionManager.getInstance();
+
+    am.getActionOrStub("NewXml").getTemplatePresentation().setEnabledAndVisible(false);
+    am.getActionOrStub("GuiDesigner.NewActions").getTemplatePresentation().setEnabledAndVisible(false);
+
+
+    DefaultActionGroup ag = (DefaultActionGroup)am.getAction("NewGroup");
+
+    replaceAction("NewAndroidComponent", new EmptyAction());
+    replaceAction("Groovy.NewClass", new EmptyAction());
+    replaceAction("Groovy.NewScript", new EmptyAction());
+
   }
 }
