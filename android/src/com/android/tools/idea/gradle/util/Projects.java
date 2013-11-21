@@ -127,12 +127,6 @@ public final class Projects {
     return workspaceConfiguration.USE_EXPERIMENTAL_FASTER_BUILD;
   }
 
-  /**
-   * Indicates whether the given project has at least one module that has the {@link AndroidGradleFacet}.
-   *
-   * @param project the given project.
-   * @return {@code true} if the given project has at least one module that has the Android-Gradle facet, {@code false} otherwise.
-   */
   public static boolean isGradleProject(@NotNull Project project) {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
@@ -144,12 +138,16 @@ public final class Projects {
     return false;
   }
 
+  /**
+   * Indicates whether the give project is a legacy IDEA Android project (which is deprecated in Android Studio.)
+   *
+   * @param project the given project.
+   * @return {@code true} if the given project is a legacy IDEA Android project; {@code false} otherwise.
+   */
   public static boolean isIdeaAndroidProject(@NotNull Project project) {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
-      boolean hasAndroidFacet = AndroidFacet.getInstance(module) != null;
-      boolean hasAndroidGradleFacet = AndroidGradleFacet.getInstance(module) != null;
-      if (hasAndroidFacet && !hasAndroidGradleFacet) {
+      if (AndroidFacet.getInstance(module) != null && AndroidGradleFacet.getInstance(module) == null) {
         return true;
       }
     }

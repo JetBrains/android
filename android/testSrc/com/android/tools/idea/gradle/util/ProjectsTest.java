@@ -41,11 +41,11 @@ public class ProjectsTest extends IdeaTestCase {
     assertEquals(jdk.getHomePath(), javaHome.getPath());
   }
 
-  public void testIsGradleProjectWithNonGradleProject() {
+  public void testIsGradleProjectWithRegularProject() {
     assertFalse(Projects.isGradleProject(myProject));
   }
 
-  public void testIsGradleProjectWithGradleProject() {
+  public void testIsGradleProject() {
     FacetManager facetManager = FacetManager.getInstance(myModule);
     ModifiableFacetModel facetModel = facetManager.createModifiableModel();
     try {
