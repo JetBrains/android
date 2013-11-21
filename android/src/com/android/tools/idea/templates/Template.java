@@ -122,7 +122,9 @@ public class Template {
   private static final Pattern INCLUDE_PATTERN = Pattern.compile("include +(':[^']+', *)*':[^']+'");
 
   /** Finds compile '<maven coordinates' in build.gradle files */
-  private static final Pattern COMPILE_PATTERN = Pattern.compile("compile\\s*'([^']+)'");
+  private static final Pattern COMPILE_PATTERN = Pattern.compile("compile[ \\t]*'([^'\\n]+)'");
+
+  private static final String INDENT = "    ";
 
   /**
    * Most recent thrown exception during template instantiation. This should
@@ -737,11 +739,19 @@ public class Template {
     if (!dependencyBlock.isEmpty()) {
       // Load up dependency URLs which are already present.
       Matcher matcher = COMPILE_PATTERN.matcher(dependencyBlock);
+      StringBuffer blockSb = new StringBuffer();
       while (matcher.find()) {
         GradleCoordinate coord = GradleCoordinate.parseCoordinateString(matcher.group(1));
         if (coord != null) {
           dependencies.put(coord.getId(), coord);
+          matcher.appendReplacement(blockSb, "");
         }
+      }
+      matcher.appendTail(blockSb);
+      dependencyBlock = blockSb.toString().trim();
+      // If it's non-empty, we want to put the leading spaces back
+      if (!dependencyBlock.isEmpty()) {
+        dependencyBlock = INDENT + dependencyBlock;
       }
     }
 
@@ -765,7 +775,7 @@ public class Template {
       boolean isOurRepository = RepositoryUrls.supports(highest.getArtifactId());
 
       if (!isOurRepository) {
-        sb.append(String.format("\n\tcompile '%1$s'", highest));
+        sb.append(String.format("\n%1$scompile '%2$s'", INDENT, highest));
       } else {
         GradleCoordinate available = GradleCoordinate.parseCoordinateString(
           RepositoryUrls.getLibraryCoordinate(highest.getArtifactId()));
@@ -774,20 +784,25 @@ public class Template {
 
         if (archiveFile.exists() ||
             (available != null && highest.acceptsGreaterRevisions() && available.compareTo(highest) > 0)) {
-          sb.append(String.format("\n\tcompile '%1$s'", highest));
+          sb.append(String.format("\n%1$scompile '%2$s'", INDENT, highest));
         } else {
           // Get the name of the repository necessary for this package
           repositoryName = highest.getArtifactId().equals(RepositoryUrls.PLAY_SERVICES_ID) ? "Google" : "Support";
           // Add in a commented-out dependency with instructions.
           sb.append(String.format(
-            "\n\n\t// You must install or update the %1$s Repository through the SDK manager to use this dependency." +
-            "\n\t// The %1$s Repository (separate from the corresponding library) can be found in the Extras category.\n\t// compile '%2$s'",
-            repositoryName, highest));
+            "\n\n%3$s// You must install or update the %1$s Repository through the SDK manager to use this dependency." +
+            "\n%3$s// The %1$s Repository (separate from the corresponding library) can be found in the Extras category.\n%3$s// compile '%2$s'",
+            repositoryName, highest, INDENT));
           unresolvedDependencies.add(highest.toString());
         }
       }
     }
     sb.append('\n');
+    if (!dependencyBlock.isEmpty()) {
+      // Add back in any dependencies we didn't understand
+      sb.append(dependencyBlock);
+      sb.append('\n');
+    }
     sb.append(contents.substring(dependencyBlockEnd));
 
     try {
