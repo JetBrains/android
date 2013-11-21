@@ -575,14 +575,21 @@ public class RenderService implements IImageFactory {
   }
 
   private RenderSecurityManager createSecurityManager() {
-    String projectPath = myModule.getProject().getBasePath();
+    String projectPath = null;
     String sdkPath = null;
-    AndroidPlatform platform = getPlatform();
-    if (platform != null) {
-      sdkPath = platform.getSdkData().getSdkManager().getLocation();
+    if (RenderSecurityManager.RESTRICT_READS) {
+      projectPath = myModule.getProject().getBasePath();
+      AndroidPlatform platform = getPlatform();
+      if (platform != null) {
+        sdkPath = platform.getSdkData().getSdkManager().getLocation();
+      }
     }
 
-    return new RenderSecurityManager(sdkPath, projectPath);
+    @SuppressWarnings("ConstantConditions")
+    RenderSecurityManager securityManager = new RenderSecurityManager(sdkPath, projectPath);
+    securityManager.setLogger(new LogWrapper(RenderLogger.LOG));
+
+    return securityManager;
   }
 
   /** Returns true if the given file can be rendered */
