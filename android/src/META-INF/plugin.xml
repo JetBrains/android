@@ -118,6 +118,7 @@
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
     <projectResolve implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectResolver"/>
+    <taskManager implementation="com.android.tools.idea.gradle.task.AndroidGradleTaskManager"/>
   </extensions>
 
   <depends optional="true" config-file="maven-support.xml">org.jetbrains.idea.maven</depends>
