@@ -27,6 +27,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
@@ -85,10 +87,19 @@ public class AndroidRootComponent extends JComponent {
   private Transform createTransform(float scale) {
     if (myIsMenu) {
       return new Transform(scale) {
+        private int getDx() {
+          RenderedView menu = getMenu(myRenderResult);
+          return (menu == null) ? 0 : menu.x;
+        }
+
         @Override
         public int modelToViewX(int d) {
-          RenderedView menu = getMenu(myRenderResult);
-          return super.modelToViewX(d - (menu == null ? 0 : menu.x));
+          return super.modelToViewX(d - getDx());
+        }
+
+        @Override
+        public int viewToModelX(int x) {
+          return super.viewToModelX(x) + getDx();
         }
       };
     }
@@ -242,6 +253,6 @@ public class AndroidRootComponent extends JComponent {
     if (hierarchy == null) {
       return null;
     }
-    return hierarchy.findLeafAt(transform.viewToModel(p.x), transform.viewToModel(p.y));
+    return hierarchy.findLeafAt(transform.viewToModelX(p.x), transform.viewToModelY(p.y));
   }
 }
