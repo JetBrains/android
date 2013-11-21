@@ -1,11 +1,11 @@
 /*
- * Copyright 2000-2010 JetBrains s.r.o.
+ * Copyright (C) 2013 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,29 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.actions;
+package com.android.tools.idea.actions;
 
+import com.android.tools.idea.wizard.NewTemplateObjectWizard;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.ide.IdeView;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.psi.JavaDirectoryService;
 import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiElement;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
 
+import java.util.Set;
+
+import static com.android.tools.idea.templates.Template.CATEGORY_OTHER;
+
 /**
- * @author Eugene.Kudelevsky
+ *
  */
 public class NewAndroidComponentAction extends AnAction {
+
+  // The new notification template relies on support for invoking the asset studio. This is not currently supported
+  // in AS.
+  private static final Set<String> EXCLUDED = ImmutableSet.of("New Notification");
 
   protected NewAndroidComponentAction() {
     super(AndroidBundle.message("android.new.component.action.title"), AndroidBundle.message("android.new.component.action.description"),
@@ -85,15 +90,23 @@ public class NewAndroidComponentAction extends AnAction {
     final PsiDirectory dir = view.getOrChooseDirectory();
     if (dir == null) return;
 
-    NewAndroidComponentDialog dialog = new NewAndroidComponentDialog(module, dir);
+    NewTemplateObjectWizard dialog = new NewTemplateObjectWizard(CommonDataKeys.PROJECT.getData(dataContext),
+                                                                 LangDataKeys.MODULE.getData(dataContext),
+                                                                 CommonDataKeys.VIRTUAL_FILE.getData(dataContext),
+                                                                 CATEGORY_OTHER, EXCLUDED);
+
     dialog.show();
-    if (dialog.getExitCode() != DialogWrapper.OK_EXIT_CODE) {
-      return;
+    if (dialog.isOK()) {
+      dialog.createTemplateObject();
     }
+
+    /*
+    // TODO: Implement the getCreatedElements call for the wizard
     final PsiElement[] createdElements = dialog.getCreatedElements();
 
     for (PsiElement createdElement : createdElements) {
       view.selectElement(createdElement);
     }
+    */
   }
 }
