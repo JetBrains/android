@@ -390,12 +390,12 @@ public class NavigationEditorPanel extends JComponent {
     if (viewSize.width < MIN_GRID_LINE_SEPARATION || viewSize.height < MIN_GRID_LINE_SEPARATION) {
       return;
     }
-    for (int x = 0; x < myTransform.viewToModel(width); x += modelSize.width) {
-      int vx = myTransform.modelToView(x);
+    for (int x = 0; x < myTransform.viewToModelW(width); x += modelSize.width) {
+      int vx = myTransform.modelToViewX(x);
       g.drawLine(vx, 0, vx, getHeight());
     }
-    for (int y = 0; y < myTransform.viewToModel(height); y += modelSize.height) {
-      int vy = myTransform.modelToView(y);
+    for (int y = 0; y < myTransform.viewToModelH(height); y += modelSize.height) {
+      int vy = myTransform.modelToViewY(y);
       g.drawLine(0, vy, getWidth(), vy);
     }
   }
@@ -656,7 +656,7 @@ public class NavigationEditorPanel extends JComponent {
   @Override
   protected void paintChildren(Graphics g) {
     paintChildren(g, SCREENS);
-    Graphics2D lineGraphics = createLineGraphics(g, myTransform.modelToView(LINE_WIDTH));
+    Graphics2D lineGraphics = createLineGraphics(g, myTransform.modelToViewW(LINE_WIDTH));
     paintTransitions(lineGraphics);
     paintRollover(lineGraphics);
     paintSelection(g);
