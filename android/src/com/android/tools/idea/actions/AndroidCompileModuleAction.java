@@ -16,7 +16,9 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.compiler.actions.CompileAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -29,6 +31,19 @@ import org.jetbrains.annotations.NotNull;
 public class AndroidCompileModuleAction extends AndroidBuildModuleAction {
   public AndroidCompileModuleAction() {
     super(new CompileAction(), "Compile Module(s)", "Compile");
+  }
+
+  @Override
+  public void update(AnActionEvent e) {
+    Project project = e.getProject();
+    if (project != null && Projects.isGradleProject(project)) {
+      updatePresentation(e);
+    }
+    else {
+      // For non-Gradle projects, the "Compile" action offers to compile individual files, something that we don't support for Gradle
+      // projects.
+      super.update(e);
+    }
   }
 
   @Override
