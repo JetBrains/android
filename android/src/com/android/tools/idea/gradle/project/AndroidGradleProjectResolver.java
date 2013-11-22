@@ -22,6 +22,7 @@ import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.*;
 import com.android.tools.idea.gradle.dependency.Dependency;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
+import com.android.tools.idea.gradle.service.notification.OpenAndroidSdkManagerHyperlink;
 import com.android.tools.idea.gradle.service.notification.SearchInBuildFilesHyperlink;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -52,7 +53,6 @@ import com.intellij.util.containers.ContainerUtilRt;
 import com.intellij.util.ui.UIUtil;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
@@ -63,6 +63,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 
+import static com.android.tools.idea.gradle.service.ProjectImportEventMessageDataService.RECOMMENDED_ACTIONS_CATEGORY;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_PLUGIN_MINIMUM_VERSION;
 
 /**
@@ -71,7 +72,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_PLUGIN_MINIMU
 @Order(ExternalSystemConstants.UNORDERED)
 public class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
 
-  @NonNls private static final String UNSUPPORTED_MODEL_VERSION_ERROR = String.format(
+  private static final String UNSUPPORTED_MODEL_VERSION_ERROR = String.format(
     "Project is using an old version of the Android Gradle plug-in. The minimum supported version is %1$s.\n\n" +
     "Please update the version of the dependency 'com.android.tools.build:gradle' in your build.gradle files.",
     GRADLE_PLUGIN_MINIMUM_VERSION);
@@ -127,7 +128,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       // compile it using Gradle. We still need to create the module to display files inside it.
       return;
     }
-    IdeaGradleProject ideaGradleProject = new IdeaGradleProject(gradleModule.getName(), buildFile, gradleModule.getGradleProject().getPath());
+    IdeaGradleProject ideaGradleProject =
+      new IdeaGradleProject(gradleModule.getName(), buildFile, gradleModule.getGradleProject().getPath());
     ideModule.createChild(AndroidProjectKeys.IDE_GRADLE_PROJECT, ideaGradleProject);
   }
 
@@ -342,12 +344,27 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   private static void populateUnresolvedDependencies(@NotNull DataNode<ProjectData> projectInfo,
                                                      @NotNull Set<String> unresolvedDependencies) {
-    String category = "Unresolved dependencies:";
+    boolean promptToInstallSupportRepository = false;
     for (String dep : unresolvedDependencies) {
-      String url = "search:" + dep;
-      NotificationHyperlink hyperlink = new SearchInBuildFilesHyperlink(url, "Search", dep);
-      projectInfo.createChild(AndroidProjectKeys.IMPORT_EVENT_MSG, new ProjectImportEventMessage(category, dep, hyperlink));
+      if (dep.startsWith("com.android.support:")) {
+        promptToInstallSupportRepository = true;
+      }
+      NotificationHyperlink hyperlink = createSearchInBuildFileHyperlink(dep);
+      ProjectImportEventMessage msg = new ProjectImportEventMessage("Unresolved dependencies:", dep, hyperlink);
+      projectInfo.createChild(AndroidProjectKeys.IMPORT_EVENT_MSG, msg);
     }
+    if (promptToInstallSupportRepository) {
+      NotificationHyperlink hyperlink = new OpenAndroidSdkManagerHyperlink();
+      ProjectImportEventMessage msg =
+        new ProjectImportEventMessage(RECOMMENDED_ACTIONS_CATEGORY, "Install the Android Support Repository.", hyperlink);
+      projectInfo.createChild(AndroidProjectKeys.IMPORT_EVENT_MSG, msg);
+    }
+  }
+
+  @NotNull
+  private static NotificationHyperlink createSearchInBuildFileHyperlink(@NotNull String dependency) {
+    String url = "search:" + dependency;
+    return new SearchInBuildFilesHyperlink(url, "Search", dependency);
   }
 
   @Override
