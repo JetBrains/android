@@ -16,7 +16,6 @@
 package com.android.tools.idea.structure;
 
 import com.android.tools.idea.gradle.parser.BuildFileKey;
-import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
@@ -26,7 +25,6 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
 import com.intellij.openapi.util.ActionCallback;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.TabbedPaneWrapper;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
@@ -42,6 +40,9 @@ import java.util.concurrent.Callable;
  * Provides a Project Structure editor for an individual module. Can load a number of sub-editors in a tabbed pane.
  */
 public class AndroidModuleEditor implements Place.Navigator, Disposable {
+  public static final ImmutableList<BuildFileKey> BUILDFILE_GENERIC_PROPERTIES =
+    ImmutableList.of(BuildFileKey.PLUGIN_VERSION, BuildFileKey.COMPILE_SDK_VERSION, BuildFileKey.BUILD_TOOLS_VERSION,
+                     BuildFileKey.PLUGIN_REPOSITORY, BuildFileKey.LIBRARY_REPOSITORY);
   private final Project myProject;
   private final String myName;
   private final List<ModuleConfigurationEditor> myEditors = new ArrayList<ModuleConfigurationEditor>();
@@ -64,8 +65,7 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
       myEditors.add(new GenericEditor<SingleObjectPanel>("Properties", new Callable<SingleObjectPanel>() {
         @Override
         public SingleObjectPanel call() {
-          SingleObjectPanel panel = new SingleObjectPanel(myProject, myName, null,
-              ImmutableList.of(BuildFileKey.PLUGIN_VERSION, BuildFileKey.COMPILE_SDK_VERSION, BuildFileKey.BUILD_TOOLS_VERSION));
+          SingleObjectPanel panel = new SingleObjectPanel(myProject, myName, null, BUILDFILE_GENERIC_PROPERTIES);
           panel.init();
           return panel;
         }

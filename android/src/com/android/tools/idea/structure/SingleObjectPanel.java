@@ -25,7 +25,6 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlo
 import javax.swing.*;
 import javax.swing.table.TableCellEditor;
 import java.awt.*;
-import java.io.File;
 import java.util.List;
 
 public class SingleObjectPanel extends BuildFilePanel {
@@ -55,8 +54,7 @@ public class SingleObjectPanel extends BuildFilePanel {
     myTable.setShowGrid(false);
     myTable.setDragEnabled(false);
     myTable.setIntercellSpacing(new Dimension(0, 0));
-    myTable.getSelectionModel().setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-    myTable.setDefaultRenderer(File.class, new FileItemRenderer(project));
+    myTable.setCellSelectionEnabled(false);
   }
 
   @Override

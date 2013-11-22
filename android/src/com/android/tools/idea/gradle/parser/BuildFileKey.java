@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.parser;
 
+import com.android.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,8 +43,8 @@ import static com.android.tools.idea.gradle.parser.BuildFileKeyType.*;
 public enum BuildFileKey {
   // Buildscript block
   PLUGIN_CLASSPATH("buildscript/dependencies/classpath", STRING),
-  PLUGIN_REPOSITORY("buildscript/repositories", CLOSURE), // TODO: Build Repository class to handle these
-  PLUGIN_VERSION("buildscript/dependencies/classpath", STRING) {
+  PLUGIN_REPOSITORY("buildscript/repositories", "Android Plugin Repository", CLOSURE, Repository.getFactory()),
+  PLUGIN_VERSION("buildscript/dependencies/classpath", "Android Plugin Version", STRING, null) {
     @Override
     public Object getValue(@NotNull GroovyPsiElement arg) {
       // PLUGIN_CLASSPATH is STRING type; we're guaranteed the getValue result can be cast to String.
@@ -61,10 +62,10 @@ public enum BuildFileKey {
     }
   },
 
-  LIBRARY_REPOSITORIES("repositories", CLOSURE), // TODO: Build Repository class to handle these
+  LIBRARY_REPOSITORY("repositories", "Library Repository", CLOSURE, Repository.getFactory()),
 
   // Dependencies block
-  DEPENDENCIES("dependencies", CLOSURE, Dependency.getFactory()),
+  DEPENDENCIES("dependencies", null, CLOSURE, Dependency.getFactory()),
 
   // defaultConfig or build flavor
   MIN_SDK_VERSION("minSdkVersion", INTEGER),
@@ -106,12 +107,12 @@ public enum BuildFileKey {
   // We can use a generic container class to deal with them.
 
   // It would be nice if these lists of sub-parameters were static constants, but that results in unresolvable circular references.
-  SIGNING_CONFIGS("android/signingConfigs", CLOSURE,
+  SIGNING_CONFIGS("android/signingConfigs", null, CLOSURE,
                   NamedObject.getFactory(ImmutableList.of(KEY_ALIAS, KEY_PASSWORD, STORE_FILE, STORE_PASSWORD))),
-  FLAVORS("android/productFlavors", CLOSURE,
+  FLAVORS("android/productFlavors", null, CLOSURE,
           NamedObject.getFactory(ImmutableList.of(MIN_SDK_VERSION, PACKAGE_NAME, PROGUARD_FILE, SIGNING_CONFIG, TARGET_SDK_VERSION,
                                                   TEST_INSTRUMENTATION_RUNNER, TEST_PACKAGE_NAME, VERSION_CODE, VERSION_NAME))),
-  BUILD_TYPES("android/buildTypes", CLOSURE,
+  BUILD_TYPES("android/buildTypes", null, CLOSURE,
               NamedObject.getFactory(ImmutableList
                                        .of(DEBUGGABLE, JNI_DEBUG_BUILD, SIGNING_CONFIG, RENDERSCRIPT_DEBUG_BUILD, RENDERSCRIPT_OPTIM_LEVEL,
                                            RUN_PROGUARD, PROGUARD_FILE, PACKAGE_NAME_SUFFIX, VERSION_NAME_SUFFIX, ZIP_ALIGN)));
@@ -125,25 +126,59 @@ public enum BuildFileKey {
   private final String myPath;
   private final BuildFileKeyType myType;
   private final ValueFactory<?> myValueFactory;
+  private final String myDisplayName;
 
   BuildFileKey(@NotNull String path, @NotNull BuildFileKeyType type) {
-    this(path, type, null);
+    this(path, null, type, null);
   }
 
   /**
    * @param path an XPath-like identifier to a method call which may be inside nested closures. For example, "a/b/c" will identify
    *             <code>a { b { c("value") } }</code>
    */
-  BuildFileKey(@NotNull String path, @NotNull BuildFileKeyType type, @Nullable ValueFactory<?> factory) {
+  BuildFileKey(@NotNull String path, @Nullable String displayName, @NotNull BuildFileKeyType type, @Nullable ValueFactory<?> factory) {
     myPath = path;
     myType = type;
     myValueFactory = factory;
+
+    if (displayName != null) {
+      myDisplayName = displayName;
+    } else {
+      int lastSlash = myPath.lastIndexOf('/');
+      myDisplayName = splitCamelCase(lastSlash >= 0 ? myPath.substring(lastSlash + 1) : myPath);
+    }
   }
 
   @NotNull
+  @VisibleForTesting
+  static String splitCamelCase(@NotNull String string) {
+    StringBuilder sb = new StringBuilder(2 * string.length());
+    int n = string.length();
+    boolean lastWasUpperCase = Character.isUpperCase(string.charAt(0));
+    boolean capitalizeNext = true;
+    for (int i = 0; i < n; i++) {
+      char c = string.charAt(i);
+      boolean isUpperCase = Character.isUpperCase(c);
+      if (isUpperCase && !lastWasUpperCase) {
+        sb.append(' ');
+        capitalizeNext = true;
+      }
+      lastWasUpperCase = isUpperCase;
+      if (capitalizeNext) {
+        c = Character.toUpperCase(c);
+        capitalizeNext = false;
+      } else {
+        c = Character.toLowerCase(c);
+      }
+      sb.append(c);
+    }
+
+  return sb.toString();
+}
+
+  @NotNull
   public String getDisplayName() {
-    int lastSlash = myPath.lastIndexOf('/');
-    return lastSlash >= 0 ? myPath.substring(lastSlash) : myPath;
+    return myDisplayName;
   }
 
   @NotNull
