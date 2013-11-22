@@ -50,6 +50,19 @@ public class AndroidDesignerUtils {
   }
 
   @Nullable
+  public static AndroidFacet getFacet(@NotNull EditableArea area) {
+    AndroidDesignerEditorPanel panel = getPanel(area);
+    if (panel != null) {
+      Configuration configuration = panel.getConfiguration();
+      assert configuration != null;
+      Module module = panel.getModule();
+      return AndroidFacet.getInstance(module);
+    }
+
+    return null;
+  }
+
+  @Nullable
   public static RenderService getRenderService(@NotNull EditableArea area) {
     AndroidDesignerEditorPanel panel = getPanel(area);
     if (panel != null) {
