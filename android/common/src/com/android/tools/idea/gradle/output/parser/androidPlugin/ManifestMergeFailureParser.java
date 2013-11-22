@@ -16,31 +16,35 @@
 package com.android.tools.idea.gradle.output.parser.androidPlugin;
 
 import com.android.tools.idea.gradle.output.GradleMessage;
-import com.android.tools.idea.gradle.output.parser.OutputLineReader;
 import com.android.tools.idea.gradle.output.parser.CompilerOutputParser;
+import com.android.tools.idea.gradle.output.parser.OutputLineReader;
 import com.android.tools.idea.gradle.output.parser.ParsingFailedException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * Parses output from the Android Gradle plugin.
+ * A parser for errors that happen during manifest merging
+ * <p>
+ * The error will be in one of these formats:
+ * <pre>
+ * [path:line] message
+ * </pre>
  */
-public class AndroidPluginOutputParser implements CompilerOutputParser {
-  private static final CompilerOutputParser[] PARSERS =
-    {new XmlValidationErrorParser(), new GradleBuildFailureParser(), new MergingExceptionParser(), new ManifestMergeFailureParser()};
-
+public class ManifestMergeFailureParser implements CompilerOutputParser {
+  private static final Pattern ERROR = Pattern.compile("\\[([^:]+):(\\d+)\\] (.+)");
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull Collection<GradleMessage> messages) {
-    for (CompilerOutputParser parser : PARSERS) {
-      try {
-        if (parser.parse(line, reader, messages)) {
-          return true;
-        }
-      }
-      catch (ParsingFailedException e) {
-        // If there's an exception, it means a parser didn't like the input, so just ignore and let other parsers have a crack at it.
-      }
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull Collection<GradleMessage> messages)
+    throws ParsingFailedException {
+    Matcher m = ERROR.matcher(line);
+    if (m.matches()) {
+      String sourcePath = m.group(1);
+      int lineNumber = Integer.parseInt(m.group(2));
+      String message = m.group(3);
+      messages.add(new GradleMessage(GradleMessage.Kind.ERROR, message, sourcePath, lineNumber, -1));
+      return true;
     }
     return false;
   }
