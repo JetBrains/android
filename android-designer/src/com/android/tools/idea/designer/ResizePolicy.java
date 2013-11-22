@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.designer;
 
+import com.intellij.android.designer.designSurface.graphics.DirectionResizePoint;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.designer.palette.PaletteItem;
+import com.intellij.designer.utils.Position;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -232,5 +234,32 @@ public class ResizePolicy {
     }
 
     return component.getMetaModel().getResizePolicy();
+  }
+
+  public boolean applies(@NotNull DirectionResizePoint point) {
+    return applies(point.getDirection());
+  }
+
+  protected boolean applies(int direction) {
+    switch (direction) {
+      case Position.EAST:
+        return rightAllowed();
+      case Position.WEST:
+        return leftAllowed();
+      case Position.NORTH:
+        return topAllowed();
+      case Position.SOUTH:
+        return bottomAllowed();
+      case Position.NORTH_EAST:
+        return rightAllowed() && topAllowed();
+      case Position.SOUTH_EAST:
+        return rightAllowed() && bottomAllowed();
+      case Position.SOUTH_WEST:
+        return rightAllowed() && bottomAllowed();
+      case Position.NORTH_WEST:
+        return rightAllowed() && topAllowed();
+      default:
+        return false;
+    }
   }
 }

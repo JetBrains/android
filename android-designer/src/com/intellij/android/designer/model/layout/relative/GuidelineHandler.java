@@ -16,6 +16,8 @@
 package com.intellij.android.designer.model.layout.relative;
 
 import com.android.tools.idea.designer.Insets;
+import com.android.tools.idea.designer.Segment;
+import com.android.tools.idea.designer.SegmentType;
 import com.intellij.android.designer.AndroidDesignerUtils;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.designer.designSurface.OperationContext;
@@ -30,11 +32,11 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.designer.MarginType.*;
 import static com.intellij.android.designer.designSurface.graphics.DrawingStyle.MAX_MATCH_DISTANCE;
 import static com.intellij.android.designer.model.layout.relative.ConstraintType.ALIGN_BASELINE;
 import static com.intellij.android.designer.model.layout.relative.DependencyGraph.Constraint;
 import static com.intellij.android.designer.model.layout.relative.DependencyGraph.ViewData;
-import static com.intellij.android.designer.model.layout.relative.MarginType.*;
 import static java.lang.Math.abs;
 
 /**

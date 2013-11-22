@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.android.designer.model.layout.relative;
+package com.android.tools.idea.designer;
 
 /**
  * A {@link MarginType} indicates whether a {@link Segment} corresponds to the visual edge
