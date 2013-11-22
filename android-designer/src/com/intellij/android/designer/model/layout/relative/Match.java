@@ -18,6 +18,7 @@ package com.intellij.android.designer.model.layout.relative;
 import com.android.tools.idea.designer.Segment;
 import com.intellij.android.designer.designSurface.feedbacks.TextFeedback;
 import com.intellij.ui.SimpleTextAttributes;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
@@ -132,5 +133,25 @@ class Match {
     if (margin > 0) {
       feedback.append(String.format(", margin=%1$d dp", margin));
     }
+  }
+
+  @Nullable
+  public String getRtlConstraint(boolean generateId) {
+    switch (type) {
+      case ALIGN_LEFT:
+        return replaceAttribute(getConstraint(generateId), ATTR_LAYOUT_ALIGN_LEFT, ATTR_LAYOUT_ALIGN_START);
+      case ALIGN_RIGHT:
+        return replaceAttribute(getConstraint(generateId), ATTR_LAYOUT_ALIGN_RIGHT, ATTR_LAYOUT_ALIGN_END);
+      case ALIGN_PARENT_LEFT:
+        return replaceAttribute(getConstraint(generateId), ATTR_LAYOUT_ALIGN_PARENT_LEFT, ATTR_LAYOUT_ALIGN_PARENT_START);
+      case ALIGN_PARENT_RIGHT:
+        return replaceAttribute(getConstraint(generateId), ATTR_LAYOUT_ALIGN_PARENT_RIGHT, ATTR_LAYOUT_ALIGN_PARENT_END);
+    }
+    return null;
+  }
+
+  private static String replaceAttribute(String s, String oldName, String newName) {
+    assert s.startsWith(oldName) : s;
+    return newName + s.substring(oldName.length());
   }
 }

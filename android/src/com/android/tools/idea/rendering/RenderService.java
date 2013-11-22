@@ -21,11 +21,14 @@ import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.rendering.api.SessionParams.RenderingMode;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
+import com.android.resources.LayoutDirection;
 import com.android.resources.ResourceFolderType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
+import com.android.tools.idea.gradle.AndroidModuleInfo;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -33,11 +36,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.Pair;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -46,13 +47,11 @@ import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.uipreview.RenderingException;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 import org.xmlpull.v1.XmlPullParserException;
 
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -210,9 +209,9 @@ public class RenderService implements IImageFactory {
     ProjectResources projectResources = ProjectResources.get(myModule, true);
     myProjectCallback = new ProjectCallback(myLayoutLib, projectResources, myModule, myLogger);
     myProjectCallback.loadAndParseRClass();
-    Pair<Integer, Integer> sdkVersions = getSdkVersions(facet);
-    myMinSdkVersion = sdkVersions.getFirst();
-    myTargetSdkVersion = sdkVersions.getSecond();
+    AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
+    myMinSdkVersion = moduleInfo.getMinSdkVersion();
+    myTargetSdkVersion = moduleInfo.getTargetSdkVersion();
     myLocale = configuration.getLocale();
   }
 
@@ -284,37 +283,10 @@ public class RenderService implements IImageFactory {
     myProjectCallback.setResourceResolver(null);
   }
 
-  @NotNull
-  private static Pair<Integer, Integer> getSdkVersions(@NotNull final AndroidFacet facet) {
-    final XmlTag manifestTag = ApplicationManager.getApplication().runReadAction(new Computable<XmlTag>() {
-      @Nullable
-      @Override
-      public XmlTag compute() {
-        final Manifest manifest = facet.getManifest();
-        return manifest != null ? manifest.getXmlTag() : null;
-      }
-    });
-    int minSdkVersion = 1;
-    int targetSdkVersion = 1;
-    if (manifestTag != null) {
-      for (XmlTag usesSdkTag : manifestTag.findSubTags(TAG_USES_SDK)) {
-        int candidate = AndroidUtils.getIntAttrValue(usesSdkTag, ATTR_MIN_SDK_VERSION);
-        if (candidate >= 0) {
-          minSdkVersion = candidate;
-        }
-        candidate = AndroidUtils.getIntAttrValue(usesSdkTag, ATTR_TARGET_SDK_VERSION);
-        if (candidate >= 0) {
-          targetSdkVersion = candidate;
-        }
-      }
-    }
-    return Pair.create(minSdkVersion, targetSdkVersion);
-  }
-
-
   /**
    * Overrides the width and height to be used during rendering (which might be adjusted if
-   * the {@link #setRenderingMode(com.android.ide.common.rendering.api.SessionParams.RenderingMode)} is {@link com.android.ide.common.rendering.api.SessionParams.RenderingMode#FULL_EXPAND}.
+   * the {@link #setRenderingMode(com.android.ide.common.rendering.api.SessionParams.RenderingMode)} is
+   * {@link com.android.ide.common.rendering.api.SessionParams.RenderingMode#FULL_EXPAND}.
    * <p/>
    * A value of -1 will make the rendering use the normal width and height coming from the
    * {@link Configuration#getDevice()} object.
@@ -330,7 +302,8 @@ public class RenderService implements IImageFactory {
 
   /**
    * Sets the max width and height to be used during rendering (which might be adjusted if
-   * the {@link #setRenderingMode(com.android.ide.common.rendering.api.SessionParams.RenderingMode)} is {@link com.android.ide.common.rendering.api.SessionParams.RenderingMode#FULL_EXPAND}.
+   * the {@link #setRenderingMode(com.android.ide.common.rendering.api.SessionParams.RenderingMode)} is
+   * {@link com.android.ide.common.rendering.api.SessionParams.RenderingMode#FULL_EXPAND}.
    * <p/>
    * A value of -1 will make the rendering use the normal width and height coming from the
    * {@link Configuration#getDevice()} object.
@@ -499,13 +472,21 @@ public class RenderService implements IImageFactory {
     // same session
     params.setExtendedViewInfoMode(true);
 
-    params.setLocale(myLocale.toLocaleId());
-
     ManifestInfo manifestInfo = ManifestInfo.get(myModule);
-    try {
-      params.setRtlSupport(manifestInfo.isRtlSupported());
-    } catch (Exception e) {
-      // ignore.
+
+    LayoutDirectionQualifier qualifier = myConfiguration.getFullConfig().getLayoutDirectionQualifier();
+    if (qualifier != null && qualifier.getValue() == LayoutDirection.RTL) {
+      params.setRtlSupport(true);
+      // We don't have a flag to force RTL regardless of locale, so just pick a RTL locale (note that
+      // this is decoupled from resource lookup)
+      params.setLocale("ur");
+    } else {
+      params.setLocale(myLocale.toLocaleId());
+      try {
+        params.setRtlSupport(manifestInfo.isRtlSupported());
+      } catch (Exception e) {
+        // ignore.
+      }
     }
     if (!myShowDecorations) {
       params.setForceNoDecor();

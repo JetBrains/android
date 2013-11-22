@@ -78,13 +78,15 @@ public class LocaleMenuAction extends FlatComboAction {
 
     group.add(new AddTranslationAction());
 
-    if (locales.size() > 1) {
-      group.addSeparator();
-      if (RenderPreviewMode.getCurrent() != RenderPreviewMode.LOCALES) {
+    group.addSeparator();
+    RenderPreviewMode currentMode = RenderPreviewMode.getCurrent();
+    if (currentMode != RenderPreviewMode.LOCALES && currentMode != RenderPreviewMode.RTL) {
+      if (locales.size() >= 1) {
         ConfigurationMenuAction.addLocalePreviewAction(myRenderContext, group, true);
-      } else {
-        ConfigurationMenuAction.addRemovePreviewsAction(myRenderContext, group);
       }
+      ConfigurationMenuAction.addRtlPreviewAction(myRenderContext, group);
+    } else {
+      ConfigurationMenuAction.addRemovePreviewsAction(myRenderContext, group);
     }
 
     return group;

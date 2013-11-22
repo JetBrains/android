@@ -48,6 +48,11 @@ public enum RenderPreviewMode {
   VARIATIONS,
 
   /**
+   * Show bi-directional (e.g. left to right and right to left) layouts
+   */
+  RTL,
+
+  /**
    * Show a manually configured set of previews
    */
   CUSTOM,
