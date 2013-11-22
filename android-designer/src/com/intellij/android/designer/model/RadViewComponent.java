@@ -18,7 +18,10 @@ package com.intellij.android.designer.model;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.designer.AndroidMetaModel;
+import com.android.tools.idea.rendering.RenderService;
+import com.intellij.android.designer.AndroidDesignerUtils;
 import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
+import com.intellij.designer.designSurface.EditableArea;
 import com.intellij.designer.designSurface.ScalableComponent;
 import com.intellij.designer.model.*;
 import com.intellij.designer.palette.PaletteItem;
@@ -38,6 +41,8 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static com.android.SdkConstants.*;
 
 /**
  * @author Alexander Lobas
@@ -60,6 +65,25 @@ public class RadViewComponent extends RadVisualComponent {
 
   public void setTag(XmlTag tag) {
     myTag = tag;
+  }
+
+  @Nullable
+  public String getAttribute(@NotNull String name, @Nullable String namespace) {
+    if (namespace != null) {
+      return myTag.getAttributeValue(name, namespace);
+    } else {
+      return myTag.getAttributeValue(name);
+    }
+  }
+
+  public void setAttribute(@NotNull String name, @Nullable String namespace, @Nullable String value) {
+    if (namespace != null) {
+      //noinspection ConstantConditions
+      myTag.setAttribute(name, namespace, value);
+    } else {
+      //noinspection ConstantConditions
+      myTag.setAttribute(name, value);
+    }
   }
 
   public void updateTag(XmlTag tag) {
@@ -202,7 +226,7 @@ public class RadViewComponent extends RadVisualComponent {
 
   private static final int WRAP_CONTENT = 0 << 30;
 
-  public void calculateWrapSize(Dimension wrapSize, Rectangle bounds) {
+  public boolean calculateWrapSize(@NotNull Dimension wrapSize, @Nullable Rectangle bounds) {
     if (wrapSize.width == -1 || wrapSize.height == -1) {
       try {
         Object viewObject = myViewInfo.getViewObject();
@@ -217,16 +241,62 @@ public class RadViewComponent extends RadVisualComponent {
         if (wrapSize.height == -1) {
           wrapSize.height = (Integer)viewClass.getMethod("getMeasuredHeight").invoke(viewObject);
         }
+
+        return true;
       }
       catch (Throwable e) {
-        if (wrapSize.width == -1) {
-          wrapSize.width = bounds.width;
-        }
-        if (wrapSize.height == -1) {
-          wrapSize.height = bounds.height;
+        if (bounds != null) {
+          if (wrapSize.width == -1) {
+            wrapSize.width = bounds.width;
+          }
+          if (wrapSize.height == -1) {
+            wrapSize.height = bounds.height;
+          }
         }
       }
     }
+
+    return false;
+  }
+
+  @Nullable
+  public Dimension calculateWrapSize(EditableArea area) {
+    if (myViewInfo != null) {
+      Dimension dimension = new Dimension(-1, -1);
+      boolean measured = calculateWrapSize(dimension, null);
+      if (measured) {
+        return dimension;
+      }
+    }
+    RadComponent parent = getParent();
+    if (!(parent instanceof RadViewComponent)) {
+      return null;
+    }
+    XmlTag parentTag = ((RadViewComponent)parent).getTag();
+    if (parentTag != null) {
+      RenderService service = AndroidDesignerUtils.getRenderService(area);
+      if (service == null) {
+        return null;
+      }
+
+      ViewInfo viewInfo = service.measureChild(getTag(), new RenderService.AttributeFilter() {
+        @Override
+        public String getAttribute(@NotNull XmlTag n, @Nullable String namespace, @NotNull String localName) {
+          if ((ATTR_LAYOUT_WIDTH.equals(localName) || ATTR_LAYOUT_HEIGHT.equals(localName)) && ANDROID_URI.equals(namespace)) {
+            return VALUE_WRAP_CONTENT;
+          } else if (ATTR_LAYOUT_WEIGHT.equals(localName) && ANDROID_URI.equals(namespace)) {
+            return ""; // unset
+          }
+
+          return null; // use default
+        }
+      });
+      if (viewInfo != null) {
+        return new Dimension(viewInfo.getRight() - viewInfo.getLeft(), viewInfo.getBottom() - viewInfo.getTop());
+      }
+    }
+
+    return null;
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////
