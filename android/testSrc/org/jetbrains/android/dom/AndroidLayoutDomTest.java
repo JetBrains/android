@@ -279,7 +279,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     doTestCompletionVariants("cav.xml", "@color/color0", "@color/color1", "@color/color2");
   }
 
-  public void testIdea64993() throws  Throwable {
+  public void testIdea64993() throws Throwable {
     copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
     doTestHighlighting();
   }
@@ -459,7 +459,8 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
   }
 
   public void testIdCompletion2() throws Throwable {
-    doTestCompletionVariants("idcompl2.xml", "@android:id/text1", "@android:id/text2", "@android:id/inputExtractEditText", "@android:id/startSelectingText", "@android:id/stopSelectingText");
+    doTestCompletionVariants("idcompl2.xml", "@android:id/text1", "@android:id/text2", "@android:id/inputExtractEditText",
+                             "@android:id/startSelectingText", "@android:id/stopSelectingText");
   }
 
   public void testNewIdCompletion1() throws Throwable {
@@ -519,6 +520,14 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
 
   public void testMerge() throws Throwable {
     doTestHighlighting("merge.xml");
+  }
+
+  public void testMerge1() throws Throwable {
+    doTestCompletion();
+  }
+
+  public void testMerge2() throws Throwable {
+    doTestCompletion();
   }
 
   public void testFragmentHighlighting() throws Throwable {
