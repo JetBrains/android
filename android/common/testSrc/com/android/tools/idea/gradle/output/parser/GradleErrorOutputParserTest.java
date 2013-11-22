@@ -1731,4 +1731,28 @@ public class GradleErrorOutputParserTest extends TestCase {
                  toString(parser.parseErrorOutput(output, true)));
     sourceFile.delete();
   }
+
+  public void testManifestMergeError() throws Exception {
+    createTempFile(DOT_XML);
+    String output =
+      ":processFlavor1DebugManifest\n" +
+      "[" + sourceFilePath + ":1] Could not find element /manifest/application.\n" +
+      ":processFlavor1DebugManifest FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':processFlavor1DebugManifest'.\n" +
+      "> Manifest merging failed. See console for more info.\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --info or --debug option to get more log output.\n";
+    assertEquals("0: Info::processFlavor1DebugManifest\n" +
+                 "1: Error:Could not find element /manifest/application.\n" +
+                 "\t" + sourceFilePath + ":1:-1\n" +
+                 "2: Info::processFlavor1DebugManifest FAILED\n" +
+                 "3: Info:FAILURE: Build failed with an exception.\n",
+                 toString(parser.parseErrorOutput(output, true)));
+    sourceFile.delete();
+  }
 }
