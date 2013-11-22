@@ -19,13 +19,11 @@ import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.ProjectImportEventMessage;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
-import com.google.common.base.Joiner;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -45,6 +43,9 @@ import java.util.List;
  */
 public class ProjectImportEventMessageDataService implements ProjectDataService<ProjectImportEventMessage, Void> {
   private static final Logger LOG = Logger.getInstance(ProjectImportEventMessageDataService.class);
+
+  public static final String NO_CATEGORY = "";
+  public static final String RECOMMENDED_ACTIONS_CATEGORY = "Recommended actions:";
 
   @NotNull
   @Override
@@ -76,27 +77,36 @@ public class ProjectImportEventMessageDataService implements ProjectDataService<
       return;
     }
 
+    Collection<ProjectImportEventMessage.Content> individualMessages = messagesByCategory.removeAll(NO_CATEGORY);
+    Collection<ProjectImportEventMessage.Content> recommendedActions = messagesByCategory.removeAll(RECOMMENDED_ACTIONS_CATEGORY);
+
     final StringBuilder builder = new StringBuilder();
+
     for (String category : messagesByCategory.keySet()) {
       Collection<ProjectImportEventMessage.Content> messages = messagesByCategory.get(category);
-      if (category.isEmpty()) {
-        Joiner.on('\n').join(messages);
+      builder.append(category).append('\n');
+      // We show the category and each message as a list.
+      for (ProjectImportEventMessage.Content message : messages) {
+        appendMessage(message, builder, hyperlinks);
       }
-      else {
-        // If the category is not an empty String, we show the category and each message as a list.
-        builder.append(category).append('\n');
-        for (ProjectImportEventMessage.Content message : messages) {
-          String text = StringUtil.escapeXml(message.getText());
-          builder.append("- ").append(text);
-          NotificationHyperlink hyperlink = message.getHyperlink();
-          if (hyperlink != null) {
-            hyperlinks.add(hyperlink);
-            builder.append(" ").append(hyperlink.toString());
-          }
-          builder.append('\n');
-        }
-        builder.append("\n\n");
+      builder.append("\n");
+    }
+
+    // Show individual messages (without a category).
+    if (individualMessages != null && !individualMessages.isEmpty()) {
+      for (ProjectImportEventMessage.Content message : individualMessages) {
+        appendMessage(message, builder, hyperlinks);
       }
+      builder.append("\n");
+    }
+
+    // At the end, show "Recommended Actions"
+    if (recommendedActions != null && !recommendedActions.isEmpty()) {
+      builder.append(RECOMMENDED_ACTIONS_CATEGORY).append('\n');
+      for (ProjectImportEventMessage.Content message : recommendedActions) {
+        appendMessage(message, builder, hyperlinks);
+      }
+      builder.append("\n");
     }
 
     String title = String.format("Problems importing/refreshing Gradle project '%1$s':\n", project.getName());
@@ -106,6 +116,19 @@ public class ProjectImportEventMessageDataService implements ProjectDataService<
       listener = new CustomNotificationListener(project, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
     }
     notificationManager.showNotification(title, messageToShow, NotificationType.ERROR, project, GradleConstants.SYSTEM_ID, listener);
+  }
+
+  private static void appendMessage(@NotNull ProjectImportEventMessage.Content message,
+                                    @NotNull StringBuilder builder,
+                                    @NotNull List<NotificationHyperlink> hyperlinks) {
+    String text = StringUtil.escapeXml(message.getText());
+    builder.append("- ").append(text);
+    NotificationHyperlink hyperlink = message.getHyperlink();
+    if (hyperlink != null) {
+      hyperlinks.add(hyperlink);
+      builder.append(" ").append(hyperlink.toString());
+    }
+    builder.append('\n');
   }
 
   @Override
