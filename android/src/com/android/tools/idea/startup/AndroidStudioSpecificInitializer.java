@@ -18,8 +18,8 @@ package com.android.tools.idea.startup;
 import com.android.SdkConstants;
 import com.android.tools.idea.actions.*;
 import com.android.tools.idea.run.ArrayMapRenderer;
+import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.VersionCheck;
-import com.android.tools.idea.structure.AndroidHomeConfigurable;
 import com.android.utils.Pair;
 import com.google.common.io.Closeables;
 import com.intellij.debugger.settings.NodeRendererSettings;
@@ -31,6 +31,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.codeStyle.CodeStyleScheme;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
@@ -195,11 +196,11 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
-        String androidSdkPath = getAndroidSdkPath();
+        File androidSdkPath = getAndroidSdkPath();
         if (androidSdkPath == null) {
           return;
         }
-        Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(androidSdkPath, true);
+        Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(androidSdkPath.getPath(), true);
         if (sdk != null) {
           // Rename the SDK to fit our default naming convention.
           if (sdk.getName().startsWith(AndroidSdkUtils.SDK_NAME_PREFIX)) {
@@ -220,7 +221,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
             }
 
             // Fill out any missing build APIs for this new SDK.
-            AndroidHomeConfigurable.createSdksForAllTargets(androidSdkPath);
+            DefaultSdks.createAndroidSdksForAllTargets(androidSdkPath);
           }
         }
       }
@@ -239,7 +240,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   }
 
   @Nullable
-  private static String getAndroidSdkPath() {
+  private static File getAndroidSdkPath() {
     String studioHome = PathManager.getHomePath();
     if (studioHome == null) {
       LOG.info("Unable to find Studio home directory");
@@ -252,7 +253,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
         LOG.info(String.format("Looking for Android SDK at '1$%s'", absolutePath));
         if (AndroidSdkType.getInstance().isValidSdkHome(absolutePath) && VersionCheck.isCompatibleVersion(dir)) {
           LOG.info(String.format("Found Android SDK at '1$%s'", absolutePath));
-          return absolutePath;
+          return new File(absolutePath);
         }
       }
     }
@@ -266,7 +267,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
         AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue) &&
         VersionCheck.isCompatibleVersion(androidHomeValue)) {
       LOG.info("Using Android SDK specified by the environment variable.");
-      return androidHomeValue;
+      return new File(FileUtil.toSystemDependentName(androidHomeValue));
     }
 
     String sdkPath = getLastSdkPathUsedByAndroidTools();
@@ -278,7 +279,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       msg = "Unable to locate last SDK used by Android tools";
     }
     LOG.info(msg);
-    return sdkPath;
+    return sdkPath == null ? null : new File(FileUtil.toSystemDependentName(sdkPath));
   }
 
   /**
