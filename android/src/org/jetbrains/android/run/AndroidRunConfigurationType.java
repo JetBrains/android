@@ -15,12 +15,17 @@
  */
 package org.jetbrains.android.run;
 
+import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
+import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.ConfigurationTypeUtil;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
@@ -46,6 +51,13 @@ public class AndroidRunConfigurationType implements ConfigurationType {
     @Override
     public boolean isApplicable(@NotNull Project project) {
       return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID);
+    }
+
+    @Override
+    public void configureBeforeRunTaskDefaults(Key<? extends BeforeRunTask> providerID, BeforeRunTask task) {
+      if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+        task.setEnabled(MakeBeforeRunTaskProvider.ID.equals(providerID));
+      }
     }
   };
 

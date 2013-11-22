@@ -23,5 +23,6 @@ import com.intellij.execution.BeforeRunTask;
 public class MakeBeforeRunTask extends BeforeRunTask<MakeBeforeRunTask> {
   protected MakeBeforeRunTask() {
     super(MakeBeforeRunTaskProvider.ID);
+    setEnabled(true);
   }
 }
