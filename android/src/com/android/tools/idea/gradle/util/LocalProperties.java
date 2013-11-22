@@ -20,6 +20,7 @@ import com.google.common.base.Joiner;
 import com.google.common.io.Closeables;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
@@ -105,7 +106,11 @@ public final class LocalProperties {
    */
   @Nullable
   public String getAndroidSdkPath() {
-    return myProperties.getProperty(SdkConstants.SDK_DIR_PROPERTY);
+    String path = myProperties.getProperty(SdkConstants.SDK_DIR_PROPERTY);
+    if (path != null) {
+      path = FileUtil.toSystemDependentName(path);
+    }
+    return path;
   }
 
   public void setAndroidSdkPath(@NotNull Sdk androidSdk) {
@@ -115,7 +120,8 @@ public final class LocalProperties {
   }
 
   public void setAndroidSdkPath(@NotNull String androidSdkPath) {
-    myProperties.setProperty(SdkConstants.SDK_DIR_PROPERTY, androidSdkPath);
+    String path = FileUtil.toSystemIndependentName(androidSdkPath);
+    myProperties.setProperty(SdkConstants.SDK_DIR_PROPERTY, path);
   }
 
   public void save() throws IOException {
@@ -128,5 +134,10 @@ public final class LocalProperties {
     } finally {
       Closeables.closeQuietly(out);
     }
+  }
+
+  @NotNull
+  public File getFilePath() {
+    return myFilePath;
   }
 }
