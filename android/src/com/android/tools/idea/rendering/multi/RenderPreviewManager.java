@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.Capability;
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.*;
 import com.android.resources.Density;
+import com.android.resources.LayoutDirection;
 import com.android.resources.ScreenSize;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
@@ -748,6 +749,9 @@ public class RenderPreviewManager implements Disposable {
       case LOCALES:
         addLocalePreviews();
         break;
+      case RTL:
+        addRtlPreviews();
+        break;
       case SCREENS:
         addScreenSizePreviews();
         break;
@@ -851,6 +855,31 @@ public class RenderPreviewManager implements Disposable {
       }
       return String.format("%1$s/%2$s", languageCode, regionCode);
     }
+  }
+
+  /**
+   * Similar to {@link #addDefaultPreviews()} but for right-to-left previews
+   */
+  public void addRtlPreviews() {
+    Configuration parent = myRenderContext.getConfiguration();
+    if (parent == null) {
+      return;
+    }
+    LayoutDirectionQualifier layoutDirectionQualifier = parent.getFullConfig().getLayoutDirectionQualifier();
+    boolean isRtl = layoutDirectionQualifier != null && layoutDirectionQualifier.getValue() == LayoutDirection.RTL;
+    NestedConfiguration configuration = NestedConfiguration.create(parent);
+    configuration.getFullConfig().setLayoutDirectionQualifier(new LayoutDirectionQualifier(isRtl ? LayoutDirection.LTR : LayoutDirection.RTL));
+    String displayName = isRtl ? "LTR" : "RTL";
+    configuration.setDisplayName(displayName);
+    addPreview(RenderPreview.create(this, configuration, false));
+
+    // Make a placeholder preview for the current screen, in case we switch from it
+    String label = isRtl ? "RTL" : "LTR";
+    parent.setDisplayName(label);
+    RenderPreview preview = RenderPreview.create(this, parent, false);
+    setStashedPreview(preview);
+
+    // No need to sort: they should all identical size
   }
 
   /**
