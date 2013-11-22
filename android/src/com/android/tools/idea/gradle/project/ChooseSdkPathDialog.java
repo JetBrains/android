@@ -32,18 +32,15 @@ public class ChooseSdkPathDialog extends DialogWrapper {
 
   public ChooseSdkPathDialog(@NotNull String ideSdkPath, @NotNull String localPropertiesSdkPath) {
     super(null);
-    init();
-
     setTitle("Android SDK Manager");
     setCrossClosesWindow(false);
-    setResizable(false);
 
     String description = String.format("The project and Android Studio point to different Android SDKs.\n\n" +
                                        "Android Studio's default SDK is in:\n" +
                                        "%1$s\n\n" +
                                        "The project's SDK (specified in local.properties) is in:\n" +
                                        "%2$s\n\n" +
-                                       "To keep results consistent between IDE and command line builds, only one path can be used.\n" +
+                                       "To keep results consistent between IDE and command line builds, only one path can be used. " +
                                        "Do you want to:\n\n" +
                                        "[1] Use Android Studio's default SDK (modifies the project's local.properties file.)\n\n" +
                                        "[2] Use the project's SDK (modifies Android Studio's default.)\n\n" +
@@ -51,6 +48,10 @@ public class ChooseSdkPathDialog extends DialogWrapper {
                                        "necessary Android platforms or build tools.",
                                        ideSdkPath, localPropertiesSdkPath);
     myDescriptionLabel.setText(description);
+
+    init();
+    // This prevents the weird sizing in Linux.
+    getPeer().getWindow().pack();
   }
 
   @Nullable
