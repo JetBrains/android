@@ -21,9 +21,11 @@ import com.android.tools.idea.designer.SegmentType;
 import com.intellij.android.designer.AndroidDesignerUtils;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.designer.designSurface.OperationContext;
+import com.intellij.openapi.module.Module;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
 import lombok.ast.libs.org.parboiled.common.StringUtils;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -33,6 +35,8 @@ import java.util.List;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.designer.MarginType.*;
+import static com.android.tools.idea.gradle.AndroidModuleInfo.*;
+import static com.android.tools.idea.refactoring.rtl.RtlSupportProcessor.RTL_TARGET_SDK_START;
 import static com.intellij.android.designer.designSurface.graphics.DrawingStyle.MAX_MATCH_DISTANCE;
 import static com.intellij.android.designer.model.layout.relative.ConstraintType.ALIGN_BASELINE;
 import static com.intellij.android.designer.model.layout.relative.DependencyGraph.Constraint;
@@ -291,14 +295,18 @@ public class GuidelineHandler {
    * @return an error message, or null if there are no errors
    */
   protected String checkCycles() {
-    // Deliberate short circuit evaluation -- only list the first cycle
+
     myErrorMessage = null;
     myHorizontalCycle = null;
     myVerticalCycle = null;
 
+    // Deliberate short circuit evaluation -- only list the first cycle
+    //noinspection StatementWithEmptyBody
     if (checkCycle(myCurrentTopMatch, true /* vertical */) || checkCycle(myCurrentBottomMatch, true)) {
     }
 
+    // Deliberate short circuit evaluation -- only list the first cycle
+    //noinspection StatementWithEmptyBody
     if (checkCycle(myCurrentLeftMatch, false) || checkCycle(myCurrentRightMatch, false)) {
     }
 
@@ -560,6 +568,8 @@ public class GuidelineHandler {
       // Remove left attachments
       clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_ALIGN_PARENT_LEFT);
       clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_ALIGN_LEFT);
+      clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_ALIGN_PARENT_START);
+      clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_ALIGN_START);
       clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF);
       clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_CENTER_HORIZONTAL);
     }
@@ -568,6 +578,8 @@ public class GuidelineHandler {
       // Remove right attachments
       clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_ALIGN_PARENT_RIGHT);
       clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_ALIGN_RIGHT);
+      clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_ALIGN_PARENT_END);
+      clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_ALIGN_END);
       clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_TO_LEFT_OF);
       clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_CENTER_HORIZONTAL);
     }
@@ -587,11 +599,29 @@ public class GuidelineHandler {
     }
 
     if (myMoveLeft && myCurrentLeftMatch != null) {
-      applyConstraint(n, myCurrentLeftMatch.getConstraint(true));
+      String constraint = myCurrentLeftMatch.getConstraint(true);
+      String rtlConstraint = myCurrentLeftMatch.getRtlConstraint(true);
+      if (rtlConstraint != null && supportsStartEnd()) {
+        if (requiresRightLeft()) {
+          applyConstraint(n, constraint);
+        }
+        applyConstraint(n, rtlConstraint);
+      } else {
+        applyConstraint(n, constraint);
+      }
     }
 
     if (myMoveRight && myCurrentRightMatch != null) {
-      applyConstraint(n, myCurrentRightMatch.getConstraint(true));
+      String constraint = myCurrentRightMatch.getConstraint(true);
+      String rtlConstraint = myCurrentRightMatch.getRtlConstraint(true);
+      if (rtlConstraint != null && supportsStartEnd()) {
+        if (requiresRightLeft()) {
+          applyConstraint(n, constraint);
+        }
+        applyConstraint(n, rtlConstraint);
+      } else {
+        applyConstraint(n, constraint);
+      }
     }
 
     if (myMoveLeft) {
@@ -606,6 +636,26 @@ public class GuidelineHandler {
     if (myMoveBottom) {
       applyMargin(n, ATTR_LAYOUT_MARGIN_BOTTOM, getBottomMarginDp());
     }
+  }
+
+  private boolean supportsStartEnd() {
+    AndroidFacet facet = AndroidDesignerUtils.getFacet(myContext.getArea());
+    if (facet != null) {
+      Module module = facet.getModule();
+      return getBuildSdkVersion(module) >= RTL_TARGET_SDK_START && getTargetSdkVersion(module) >= RTL_TARGET_SDK_START;
+    }
+
+    return false;
+  }
+
+  private boolean requiresRightLeft() {
+    AndroidFacet facet = AndroidDesignerUtils.getFacet(myContext.getArea());
+    if (facet != null) {
+      Module module = facet.getModule();
+      return getMinSdkVersion(module) < RTL_TARGET_SDK_START;
+    }
+
+    return true;
   }
 
   private static void clearAttribute(RadViewComponent view, String uri, String attributeName) {

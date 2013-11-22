@@ -35,7 +35,7 @@
     </group>
 
     <action id="AndroidAddRTLSupport" class="com.android.tools.idea.actions.AndroidAddRtlSupportAction"
-            text="Add right-to-left (RTL) support where possible..." description="Add right-to-left (RTL) support where possible">
+            text="Add RTL Support Where Possible..." description="Add right-to-left (RTL) support where possible">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
 
