@@ -15,8 +15,9 @@
  */
 package com.android.navigation;
 
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.annotations.Property;
-import com.android.resources.ResourceFolderType;
 
 public class ActivityState extends State {
   private final String className;
@@ -26,11 +27,13 @@ public class ActivityState extends State {
     this.className = className;
   }
 
+  @NonNull
   @Override
   public String getClassName() {
     return className;
   }
 
+  @Nullable
   @Override
   public String getXmlResourceName() {
     return xmlResourceName;
