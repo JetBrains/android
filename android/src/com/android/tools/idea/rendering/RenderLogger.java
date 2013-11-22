@@ -44,7 +44,7 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
  * single summary at the end
  */
 public class RenderLogger extends LayoutLog {
-  private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.RenderLogger");
+  static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.RenderLogger");
   /**
    * Whether render errors should be sent to the IDE log. We generally don't want this, since if for
    * example a custom view generates an error, it will go to the IDE log, which will interpret it as an
