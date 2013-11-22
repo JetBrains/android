@@ -196,4 +196,16 @@ public class GradleSettingsFile extends GradleGroovyFile {
     }
     return null;
   }
+
+  /**
+   * Returns true if there exists a build.gradle file for a module identified by the given module path.
+   */
+  public boolean hasBuildFile(@NotNull String moduleGradlePath) {
+    Module module = GradleUtil.findModuleByGradlePath(myProject, moduleGradlePath);
+    if (module == null) {
+      return false;
+    }
+    VirtualFile gradleBuildFile = GradleUtil.getGradleBuildFile(module);
+    return gradleBuildFile != null && gradleBuildFile.exists();
+  }
 }

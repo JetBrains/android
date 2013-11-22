@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.parser;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
@@ -90,6 +91,25 @@ public class Dependency {
     this.scope = scope;
     this.type = type;
     this.data = data;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) { return true; }
+    if (o == null || getClass() != o.getClass()) { return false; }
+
+    Dependency that = (Dependency)o;
+
+    if (data != null ? !data.equals(that.data) : that.data != null) { return false; }
+    if (scope != that.scope) { return false; }
+    if (type != that.type) { return false; }
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(scope, type, data);
   }
 
   @Override
