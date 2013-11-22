@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.LayoutLibrary;
+import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.rendering.api.SessionParams.RenderingMode;
 import com.android.ide.common.resources.ResourceResolver;
@@ -447,7 +448,7 @@ public class RenderService implements IImageFactory {
    * @return the {@link com.android.ide.common.rendering.api.RenderSession} resulting from rendering the current model
    */
   @Nullable
-  public RenderSession createRenderSession() {
+  private RenderSession createRenderSession() {
     ResourceResolver resolver = getResourceResolver();
     if (resolver == null) {
       // Abort the rendering if the resources are not found.
@@ -539,23 +540,30 @@ public class RenderService implements IImageFactory {
         @Nullable
         @Override
         public RenderSession compute() {
-          int retries = 0;
-          RenderSession session = null;
-          while (retries < 10) {
-            session = myLayoutLib.createSession(params);
-            Result result = session.getResult();
-            if (result.getStatus() != Result.Status.ERROR_TIMEOUT) {
-              // Sometimes happens at startup; treat it as a timeout; typically a retry fixes it
-              if (!result.isSuccess() && "The main Looper has already been prepared.".equals(result.getErrorMessage())) {
-                retries++;
-                continue;
+          RenderSecurityManager securityManager = createSecurityManager();
+          securityManager.setActive(true);
+          try {
+            int retries = 0;
+            RenderSession session = null;
+            while (retries < 10) {
+              session = myLayoutLib.createSession(params);
+              Result result = session.getResult();
+              if (result.getStatus() != Result.Status.ERROR_TIMEOUT) {
+                // Sometimes happens at startup; treat it as a timeout; typically a retry fixes it
+                if (!result.isSuccess() && "The main Looper has already been prepared.".equals(result.getErrorMessage())) {
+                  retries++;
+                  continue;
+                }
+                break;
               }
-              break;
+              retries++;
             }
-            retries++;
-          }
 
-          return session;
+            return session;
+          }
+          finally {
+            securityManager.dispose();
+          }
         }
       });
     }
@@ -566,32 +574,47 @@ public class RenderService implements IImageFactory {
     }
   }
 
+  private RenderSecurityManager createSecurityManager() {
+    String projectPath = myModule.getProject().getBasePath();
+    String sdkPath = null;
+    AndroidPlatform platform = getPlatform();
+    if (platform != null) {
+      sdkPath = platform.getSdkData().getSdkManager().getLocation();
+    }
+
+    return new RenderSecurityManager(sdkPath, projectPath);
+  }
+
   /** Returns true if the given file can be rendered */
   public static boolean canRender(@Nullable PsiFile file) {
     return LayoutPullParserFactory.isSupported(file);
   }
 
+  private static final Object RENDERING_LOCK = new Object();
+
   @Nullable
   public RenderResult render() {
     ApplicationManager.getApplication().assertReadAccessAllowed();
 
-    RenderResult renderResult;
-    try {
-      RenderSession session = createRenderSession();
-      renderResult = new RenderResult(this, session, myPsiFile, myLogger);
-      if (session != null) {
-        addDiagnostics(session);
+    synchronized (RENDERING_LOCK) {
+      RenderResult renderResult;
+      try {
+        RenderSession session = createRenderSession();
+        renderResult = new RenderResult(this, session, myPsiFile, myLogger);
+        if (session != null) {
+          addDiagnostics(session);
+        }
+      } catch (final Exception e) {
+        String message = e.getMessage();
+        if (message == null) {
+          message = e.toString();
+        }
+        myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myModule.getProject(), myLogger.getLinkManager(), e));
+        renderResult = new RenderResult(this, null, myPsiFile, myLogger);
       }
-    } catch (final Exception e) {
-      String message = e.getMessage();
-      if (message == null) {
-        message = e.toString();
-      }
-      myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myModule.getProject(), myLogger.getLinkManager(), e));
-      renderResult = new RenderResult(this, null, myPsiFile, myLogger);
-    }
 
-    return renderResult;
+      return renderResult;
+    }
   }
 
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
