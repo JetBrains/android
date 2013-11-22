@@ -655,6 +655,20 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     }
   }
 
+  @Override
+  protected void restoreState() {
+    // Work around NPE in ui-designer-core
+    //    java.lang.NullPointerException
+    //      at com.intellij.designer.AbstractToolWindowManager.getContent(AbstractToolWindowManager.java:232)
+    //      at com.intellij.designer.DesignerToolWindowManager.getInstance(DesignerToolWindowManager.java:52)
+    //      at com.intellij.designer.designSurface.DesignerEditorPanel.restoreState(DesignerEditorPanel.java:606)
+    // Only restore state, if we can find the tool window
+    DesignerToolWindow toolWindow = getToolWindow();
+    if (toolWindow != null) {
+      super.restoreState();
+    }
+  }
+
   /**
    * Auto fits the scene, if requested. This will be the case the first time
    * the layout is opened, and after orientation or device changes.
