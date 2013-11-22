@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.compiler.actions.CompileActionBase;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,44 +39,37 @@ public abstract class AndroidBuildModuleAction extends AndroidBuildProjectAction
     myActionName = actionName;
   }
 
-  @Override
-  public void update(AnActionEvent e) {
-    Project project = e.getProject();
-    if (project != null && Projects.isGradleProject(project)) {
-      DataContext dataContext = e.getDataContext();
+  protected void updatePresentation(@NotNull AnActionEvent e) {
+    DataContext dataContext = e.getDataContext();
 
-      Module[] modules = getSelectedModules(dataContext);
-      int moduleCount = modules == null ? 0 : modules.length;
-      boolean hasModules = moduleCount > 0;
+    Module[] modules = getSelectedModules(dataContext);
+    int moduleCount = modules == null ? 0 : modules.length;
+    boolean hasModules = moduleCount > 0;
 
-      Presentation presentation = e.getPresentation();
-      presentation.setEnabled(hasModules);
+    Presentation presentation = e.getPresentation();
+    presentation.setEnabled(hasModules);
 
-      String presentationText;
-      if (hasModules) {
-        String text = myActionName + (moduleCount == 1 ? " Module" : " Modules");
-        for (int i = 0; i < moduleCount; i++) {
-          if (text.length() > 30) {
-            text = myActionName + " Selected Modules";
-            break;
-          }
-          Module toMake = modules[i];
-          if (i != 0) {
-            text += ",";
-          }
-          text += " '" + toMake.getName() + "'";
+    String presentationText;
+    if (hasModules) {
+      String text = myActionName + (moduleCount == 1 ? " Module" : " Modules");
+      for (int i = 0; i < moduleCount; i++) {
+        if (text.length() > 30) {
+          text = myActionName + " Selected Modules";
+          break;
         }
-        presentationText = text;
+        Module toMake = modules[i];
+        if (i != 0) {
+          text += ",";
+        }
+        text += " '" + toMake.getName() + "'";
       }
-      else {
-        presentationText = myActionName;
-      }
-      presentation.setText(presentationText);
-      presentation.setVisible(hasModules || !ActionPlaces.PROJECT_VIEW_POPUP.equals(e.getPlace()));
+      presentationText = text;
     }
     else {
-      super.update(e);
+      presentationText = myActionName;
     }
+    presentation.setText(presentationText);
+    presentation.setVisible(hasModules || !ActionPlaces.PROJECT_VIEW_POPUP.equals(e.getPlace()));
   }
 
   @Nullable
