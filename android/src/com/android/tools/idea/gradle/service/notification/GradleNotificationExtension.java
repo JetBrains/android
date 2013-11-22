@@ -114,7 +114,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
         return createNotification(project, msg, new OpenGradleSettingsHyperlink());
       }
 
-      if (lastLine != null && lastLine.contains(INSTALL_ANDROID_SUPPORT_REPO)) {
+      if (lastLine != null && (lastLine.contains(INSTALL_ANDROID_SUPPORT_REPO) || lastLine.contains(INSTALL_MISSING_PLATFORM))) {
         List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
         if (!facets.isEmpty()) {
           // We can only open SDK manager if the project has an Android facet. Android facet has a reference to the Android SDK manager.
