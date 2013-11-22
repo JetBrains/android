@@ -408,17 +408,20 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     XmlTag parentTag = tag.getParentTag();
     Map<String, PsiClass> map = getViewClassMap(facet);
     if (parentTag != null) {
-      PsiClass c = map.get(parentTag.getName());
-      while (c != null) {
-        registerLayoutAttributes(facet, element, c, callback, processor, skipAttrNames);
-        c = getSuperclass(c);
+      final String parentTagName = parentTag.getName();
+
+      if (!VIEW_MERGE.equals(parentTagName)) {
+        PsiClass c = map.get(parentTagName);
+        while (c != null) {
+          registerLayoutAttributes(facet, element, c, callback, processor, skipAttrNames);
+          c = getSuperclass(c);
+        }
+        return;
       }
     }
-    else {
-      for (String className : map.keySet()) {
-        PsiClass c = map.get(className);
-        registerLayoutAttributes(facet, element, c, callback, processor, skipAttrNames);
-      }
+    for (String className : map.keySet()) {
+      PsiClass c = map.get(className);
+      registerLayoutAttributes(facet, element, c, callback, processor, skipAttrNames);
     }
   }
 
@@ -452,6 +455,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
           XmlTag parentTag = tag != null ? tag.getParentTag() : null;
           String parentTagName = parentTag != null ? parentTag.getName() : null;
           if (!TABLE_ROW.equals(parentTagName) &&
+              !VIEW_MERGE.equals(parentTagName) &&
               !TABLE_LAYOUT.equals(parentTagName) &&
               !GRID_LAYOUT.equals(parentTagName) &&
               !FQCN_GRID_LAYOUT_V7.equals(parentTagName) &&
