@@ -17,6 +17,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.RenderSecurityException;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.Density;
@@ -747,9 +748,14 @@ public class RenderErrorPanel extends JPanel {
 
         String html = message.getHtml();
         builder.getStringBuilder().append(html);
+        builder.newlineIfNecessary();
 
         Throwable throwable = message.getThrowable();
         if (throwable != null) {
+          if (throwable instanceof RenderSecurityException) {
+            builder.addLink("Turn off custom view rendering sandbox", myLinkManager.createDisableSandboxUrl());
+            builder.newline().newline();
+          }
           reportThrowable(builder, throwable, !html.isEmpty());
         }
 

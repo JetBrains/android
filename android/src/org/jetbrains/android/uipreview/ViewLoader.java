@@ -18,6 +18,7 @@ package org.jetbrains.android.uipreview;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.LayoutLibrary;
+import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
@@ -161,7 +162,19 @@ public class ViewLoader {
   private Class<?> loadClass(String className) throws InconvertibleClassError {
     try {
       if (myProjectClassLoader == null) {
-        myProjectClassLoader = new ProjectClassLoader(myParentClassLoader, myModule);
+        // Allow creating class loaders during rendering; may be prevented by the RenderSecurityManager
+        RenderSecurityManager renderSecurityManager = RenderSecurityManager.getCurrent();
+        if (renderSecurityManager != null) {
+          renderSecurityManager.setActive(false);
+        }
+        try {
+          System.setSecurityManager(null);
+          myProjectClassLoader = new ProjectClassLoader(myParentClassLoader, myModule);
+        } finally {
+          if (renderSecurityManager != null) {
+            renderSecurityManager.setActive(true);
+          }
+        }
       }
       return myProjectClassLoader.loadClass(className);
     }
