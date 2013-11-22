@@ -15,15 +15,19 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.ide.common.rendering.LayoutLibrary;
+import com.android.ide.common.rendering.api.Capability;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.ScreenOrientationQualifier;
 import com.android.ide.common.resources.configuration.ScreenSizeQualifier;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenSize;
+import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
-import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.utils.Pair;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.actions.ElementCreator;
@@ -166,13 +170,12 @@ public class ConfigurationMenuAction extends FlatComboAction {
 
     boolean haveMultipleLocales = configurationManager.getLocales().size() > 1;
     addLocalePreviewAction(myRenderContext, group, haveMultipleLocales);
+    addRtlPreviewAction(myRenderContext, group);
 
-    boolean canPreviewIncluded = false;
     // TODO: Support included layouts
-    //canPreviewIncluded = includedBy != null && !includedBy.isEmpty();
-    //if (!graphicalEditor.renderingSupports(Capability.EMBEDDED_LAYOUT)) {
-    //    canPreviewIncluded = false;
-    //}
+    boolean DISABLE_RENDER_INCLUDED = true;
+
+    boolean canPreviewIncluded = !DISABLE_RENDER_INCLUDED && hasCapability(myRenderContext, Capability.EMBEDDED_LAYOUT);
     group.add(new PreviewAction(myRenderContext, "Preview Included", ACTION_PREVIEW_MODE, RenderPreviewMode.INCLUDES, canPreviewIncluded));
     List<VirtualFile> variations = ResourceHelper.getResourceVariations(file, true);
     group.add(new PreviewAction(myRenderContext, "Preview Layout Versions", ACTION_PREVIEW_MODE, RenderPreviewMode.VARIATIONS,
@@ -198,6 +201,26 @@ public class ConfigurationMenuAction extends FlatComboAction {
     group.add(new PreviewAction(context, "Preview All Locales", ACTION_PREVIEW_MODE, RenderPreviewMode.LOCALES, enabled));
   }
 
+  static void addRtlPreviewAction(@NotNull RenderContext context, @NotNull DefaultActionGroup group) {
+    boolean enabled = hasCapability(context, Capability.RTL);
+    group.add(new PreviewAction(context, "Preview Right-to-Left Layout", ACTION_RTL_MODE, RenderPreviewMode.RTL, enabled));
+  }
+
+  private static boolean hasCapability(RenderContext context, Capability capability) {
+    boolean enabled = false;
+    Configuration configuration = context.getConfiguration();
+    Module module = context.getModule();
+    if (configuration != null && module != null) {
+      ConfigurationManager configurationManager = configuration.getConfigurationManager();
+      IAndroidTarget target = configurationManager.getTarget();
+      if (target != null) {
+        LayoutLibrary library = RenderService.getLayoutLibrary(module, target);
+        enabled = library != null && library.supports(capability);
+      }
+    }
+    return enabled;
+  }
+
   static void addScreenSizeAction(@NotNull RenderContext context, @NotNull DefaultActionGroup group) {
     group.add(new PreviewAction(context, "Preview All Screen Sizes", ACTION_PREVIEW_MODE, RenderPreviewMode.SCREENS, true));
   }
@@ -209,6 +232,7 @@ public class ConfigurationMenuAction extends FlatComboAction {
   private static final int ACTION_ADD = 1;
   private static final int ACTION_DELETE_ALL = 2;
   private static final int ACTION_PREVIEW_MODE = 3;
+  private static final int ACTION_RTL_MODE = 4;
 
   private static class PreviewAction extends AnAction {
     private final int myAction;
@@ -244,6 +268,11 @@ public class ConfigurationMenuAction extends FlatComboAction {
           break;
         }
         case ACTION_PREVIEW_MODE: {
+          assert myMode != null;
+          previewManager.selectMode(myMode);
+          break;
+        }
+        case ACTION_RTL_MODE: {
           assert myMode != null;
           previewManager.selectMode(myMode);
           break;
