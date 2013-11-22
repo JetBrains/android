@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.output.parser.OutputLineReader;
 import com.android.tools.idea.gradle.output.parser.CompilerOutputParser;
 import com.android.tools.idea.gradle.output.parser.ParsingFailedException;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
@@ -54,7 +53,7 @@ public class XmlValidationErrorParser implements CompilerOutputParser {
         if (new File(sourcePath).exists()) {
           String message = line;
           // Eat the entire stacktrace
-          String exceptionMessage = digestStackTrace(reader);
+          String exceptionMessage = AndroidPluginOutputParser.digestStackTrace(reader);
           if (exceptionMessage != null) {
             message = exceptionMessage + ": " + message;
           }
@@ -84,34 +83,4 @@ public class XmlValidationErrorParser implements CompilerOutputParser {
     return true;
   }
 
-  @Nullable
-  private static String digestStackTrace(OutputLineReader reader) {
-    String message = null;
-    String next = reader.peek(0);
-    if (next == null) {
-      return null;
-    }
-    int index = next.indexOf(':');
-    if (index == -1) {
-      return null;
-    }
-
-    String exceptionName = next.substring(0, index);
-    if (exceptionName.endsWith("Exception") || exceptionName.endsWith("Error")) {
-      message = next.substring(index + 1).trim();
-      reader.readLine();
-
-      // Digest stack frames below it
-      while (true) {
-        String peek = reader.peek(0);
-        if (peek != null && peek.startsWith("\t")) {
-          reader.readLine();
-        } else {
-          break;
-        }
-      }
-    }
-
-    return message;
-  }
 }
