@@ -236,8 +236,10 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       UIUtil.invokeAndWaitIfNeeded(new Runnable() {
         @Override
         public void run() {
-          String format = "The path '%1$s' does not belong to an Android SDK. Using Android Studio's SDK instead.";
-          Messages.showErrorDialog(String.format(format, projectAndroidHome), "Sync Android SDKs");
+          String format =
+            "The path '%1$s' does not belong to an Android SDK.\n\nAndroid Studio will use its default SDK instead ('%2$s') " +
+            "and will modify the project's local.properties file.";
+          Messages.showErrorDialog(String.format(format, projectAndroidHome, ideAndroidHome), "Sync Android SDKs");
           setProjectSdk(localProperties, ideAndroidHome);
         }
       });
