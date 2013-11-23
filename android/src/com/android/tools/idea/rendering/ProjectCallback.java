@@ -69,7 +69,7 @@ public final class ProjectCallback extends LegacyCallback {
   private static final int MAX_PARSER_INCLUDES = 50;
 
   @NotNull private final Module myModule;
-  @NotNull private final ProjectResources myProjectRes;
+  @NotNull private final LocalResourceRepository myProjectRes;
   @NotNull final private LayoutLibrary myLayoutLib;
   @Nullable private String myNamespace;
   @Nullable private RenderLogger myLogger;
@@ -85,10 +85,10 @@ public final class ProjectCallback extends LegacyCallback {
    * Creates a new {@link ProjectCallback} to be used with the layout lib.
    *
    * @param layoutLib  The layout library this callback is going to be invoked from
-   * @param projectRes the {@link ProjectResources} for the project.
+   * @param projectRes the {@link LocalResourceRepository} for the project.
    * @param project    the project.
    */
-  public ProjectCallback(@NotNull LayoutLibrary layoutLib, @NotNull ProjectResources projectRes, @NotNull Module project,
+  public ProjectCallback(@NotNull LayoutLibrary layoutLib, @NotNull LocalResourceRepository projectRes, @NotNull Module project,
                          @NotNull RenderLogger logger) {
     myLayoutLib = layoutLib;
     myProjectRes = projectRes;
@@ -96,7 +96,7 @@ public final class ProjectCallback extends LegacyCallback {
 
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assert facet != null;
-    myClassLoader = new ViewLoader(myLayoutLib, facet, myProjectRes, logger);
+    myClassLoader = new ViewLoader(myLayoutLib, facet, logger);
   }
 
   /** Resets the callback state for another render */

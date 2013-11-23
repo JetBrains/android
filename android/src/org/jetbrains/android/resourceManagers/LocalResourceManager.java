@@ -17,7 +17,6 @@
 package org.jetbrains.android.resourceManagers;
 
 import com.android.resources.ResourceType;
-import com.android.tools.idea.rendering.ModuleSetResourceRepository;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;

@@ -29,7 +29,8 @@ import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.rendering.ProjectResources;
+import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
@@ -348,14 +349,14 @@ public class AndroidColorAnnotator implements Annotator {
       ResourceItem item = frameworkResources.getResourceItem(type, name);
       return item.getResourceValue(type, configuration.getFullConfig(), false);
     } else {
-      ProjectResources projectResources = ProjectResources.get(module, true, true);
-      if (projectResources == null) {
+      LocalResourceRepository appResources = AppResourceRepository.getAppResources(module, true);
+      if (appResources == null) {
         return null;
       }
-      if (!projectResources.hasResourceItem(type, name)) {
+      if (!appResources.hasResourceItem(type, name)) {
         return null;
       }
-      return projectResources.getConfiguredValue(type, name, configuration.getFullConfig());
+      return appResources.getConfiguredValue(type, name, configuration.getFullConfig());
     }
   }
 
@@ -432,7 +433,7 @@ public class AndroidColorAnnotator implements Annotator {
       if (o == null || getClass() != o.getClass()) return false;
 
       MyRenderer that = (MyRenderer)o;
-      // TODO: Compare with modification count in project resources (if not framework)
+      // TODO: Compare with modification count in app resources (if not framework)
       if (myColor != null ? !myColor.equals(that.myColor) : that.myColor != null) return false;
       if (!myElement.equals(that.myElement)) return false;
 

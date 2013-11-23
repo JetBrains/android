@@ -19,8 +19,9 @@ import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LanguageQualifier;
 import com.android.ide.common.resources.configuration.RegionQualifier;
+import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.ProjectResources;
+import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
@@ -107,7 +108,7 @@ public class LocaleMenuAction extends FlatComboAction {
       return Collections.emptyList();
     }
     Module module = configuration.getConfigurationManager().getModule();
-    ProjectResources projectResources = ProjectResources.get(module, true);
+    LocalResourceRepository projectResources = ProjectResourceRepository.getProjectResources(module, true);
     SortedSet<String> languages = projectResources.getLanguages();
 
     LanguageQualifier specificLanguage = configuration.getEditedConfig().getLanguageQualifier();
@@ -346,8 +347,7 @@ public class LocaleMenuAction extends FlatComboAction {
       if (module == null) {
         return;
       }
-      ProjectResources projectResources = ProjectResources.get(module, true);
-      TranslationDialog dialog = new TranslationDialog(module, projectResources, myLocale);
+      TranslationDialog dialog = new TranslationDialog(module, myLocale);
       dialog.show();
       if (dialog.isOK()) {
         if (dialog.createTranslation()) {
