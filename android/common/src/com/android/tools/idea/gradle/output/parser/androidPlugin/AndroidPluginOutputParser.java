@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.output.parser.OutputLineReader;
 import com.android.tools.idea.gradle.output.parser.CompilerOutputParser;
 import com.android.tools.idea.gradle.output.parser.ParsingFailedException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -28,7 +29,7 @@ import java.util.Collection;
  */
 public class AndroidPluginOutputParser implements CompilerOutputParser {
   private static final CompilerOutputParser[] PARSERS =
-    {new XmlValidationErrorParser(), new GradleBuildFailureParser(), new MergingExceptionParser(), new ManifestMergeFailureParser()};
+    {new XmlValidationErrorParser(), new GradleBuildFailureParser(), new MergingExceptionParser(), new ManifestMergeFailureParser(), new DexExceptionParser()};
 
   @Override
   public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull Collection<GradleMessage> messages) {
@@ -43,5 +44,36 @@ public class AndroidPluginOutputParser implements CompilerOutputParser {
       }
     }
     return false;
+  }
+
+  @Nullable
+  public static String digestStackTrace(OutputLineReader reader) {
+    String message = null;
+    String next = reader.peek(0);
+    if (next == null) {
+      return null;
+    }
+    int index = next.indexOf(':');
+    if (index == -1) {
+      return null;
+    }
+
+    String exceptionName = next.substring(0, index);
+    if (exceptionName.endsWith("Exception") || exceptionName.endsWith("Error")) {
+      message = next.substring(index + 1).trim();
+      reader.readLine();
+
+      // Digest stack frames below it
+      while (true) {
+        String peek = reader.peek(0);
+        if (peek != null && peek.startsWith("\tat")) {
+          reader.readLine();
+        } else {
+          break;
+        }
+      }
+    }
+
+    return message;
   }
 }
