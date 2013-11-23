@@ -5,6 +5,8 @@ import com.android.builder.model.Variant;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.rendering.AarResourceClassRegistry;
+import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.RenderClassLoader;
 import com.android.utils.SdkUtils;
 import com.intellij.openapi.diagnostic.Logger;
@@ -29,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import static com.android.SdkConstants.DOT_AAR;
 import static com.android.SdkConstants.EXT_JAR;
 
 /**
@@ -42,6 +45,24 @@ public final class ProjectClassLoader extends RenderClassLoader {
   public ProjectClassLoader(@Nullable ClassLoader parentClassLoader, Module module) {
     super(parentClassLoader);
     myModule = module;
+  }
+
+  @Override
+  protected Class<?> findClass(String name) throws ClassNotFoundException {
+    try {
+      return super.findClass(name);
+    } catch (ClassNotFoundException e) {
+      if (!myInsideJarClassLoader) {
+        int index = name.lastIndexOf('.');
+        if (index != -1 && name.charAt(index + 1) == 'R' && (index == name.length() - 2 || name.charAt(index + 2) == '$') && index > 1) {
+          byte[] data = AarResourceClassRegistry.get().findClassDefinition(name);
+          if (data != null) {
+            return defineClass(null, data, 0, data.length);
+          }
+        }
+      }
+      throw e;
+    }
   }
 
   @Nullable
@@ -154,6 +175,11 @@ public final class ProjectClassLoader extends RenderClassLoader {
         if (file.exists()) {
           try {
             result.add(SdkUtils.fileToUrl(file));
+
+            File parentFile = file.getParentFile();
+            if (parentFile != null && parentFile.getPath().endsWith(DOT_AAR)) {
+              AarResourceClassRegistry.get().addLibrary(AppResourceRepository.getAppResources(myModule, true), parentFile);
+            }
           }
           catch (MalformedURLException e) {
             LOG.error(e);
