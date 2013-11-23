@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.customizer;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.google.common.base.Strings;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
@@ -37,6 +38,8 @@ import java.io.File;
  * Sets the compiler output folder to a module imported from an {@link com.android.builder.model.AndroidProject}.
  */
 public class CompilerOutputPathModuleCustomizer implements ModuleCustomizer {
+  private static final Logger LOG = Logger.getInstance(CompilerOutputPathModuleCustomizer.class);
+
   @Override
   public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
     if (ideaAndroidProject != null) {
@@ -54,31 +57,40 @@ public class CompilerOutputPathModuleCustomizer implements ModuleCustomizer {
       // TODO: This really should come from Gradle. https://code.google.com/p/android/issues/detail?id=61946
       VirtualFile moduleFile = module.getModuleFile();
       if (moduleFile != null) {
-        VirtualFile moduleRoot = moduleFile.getParent();
-        if (moduleRoot != null) {
-          File classes = new File(VfsUtilCore.virtualToIoFile(moduleRoot), FileUtil.join("build", "classes", "main"));
-          File tests = new File(VfsUtilCore.virtualToIoFile(moduleRoot), FileUtil.join("build", "classes", "test"));
-          setOutputPaths(module, classes, tests);
+        VirtualFile moduleRootDir = moduleFile.getParent();
+        if (moduleRootDir != null) {
+          File moduleRootDirPath = VfsUtilCore.virtualToIoFile(moduleRootDir);
+          File mainDirPath = new File(moduleRootDirPath, FileUtil.join("build", "classes", "main"));
+          File testDirPath = new File(moduleRootDirPath, FileUtil.join("build", "classes", "test"));
+          setOutputPaths(module, mainDirPath, testDirPath);
         }
       }
     }
   }
 
-  private void setOutputPaths(@NotNull Module module, @NotNull File classesFolder, @Nullable File testClassesFolder) {
+  private static void setOutputPaths(@NotNull Module module, @NotNull File mainDirPath, @Nullable File testDirPath) {
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
     ModifiableRootModel moduleSettings = moduleRootManager.getModifiableModel();
     CompilerModuleExtension compilerSettings = moduleSettings.getModuleExtension(CompilerModuleExtension.class);
+    if (compilerSettings == null) {
+      moduleSettings.dispose();
+      LOG.warn(String.format("No compiler extension is found for module '%1$s'", module.getName()));
+      return;
+    }
     try {
       compilerSettings.inheritCompilerOutputPath(false);
-      String dirPath = FileUtil.toSystemIndependentName(classesFolder.getPath());
-      compilerSettings.setCompilerOutputPath(VfsUtilCore.pathToUrl(dirPath));
-      if (testClassesFolder != null) {
-        dirPath = FileUtil.toSystemIndependentName(testClassesFolder.getPath());
-        compilerSettings.setCompilerOutputPathForTests(VfsUtilCore.pathToUrl(dirPath));
+      compilerSettings.setCompilerOutputPath(toUrl(mainDirPath));
+      if (testDirPath != null) {
+        compilerSettings.setCompilerOutputPathForTests(toUrl(testDirPath));
       }
     } finally {
-      compilerSettings.commit();
       moduleSettings.commit();
     }
+  }
+
+  @NotNull
+  private static String toUrl(@NotNull File path) {
+    String s = FileUtil.toSystemIndependentName(path.getPath());
+    return VfsUtilCore.pathToUrl(s);
   }
 }
