@@ -17,7 +17,6 @@ package com.android.tools.idea.rendering;
 
 import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.legacy.ILegacyPullParser;
-import com.intellij.psi.xml.XmlTag;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 

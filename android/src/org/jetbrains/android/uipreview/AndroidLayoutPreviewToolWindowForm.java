@@ -400,7 +400,7 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
                                      @NotNull List<VirtualFile> folders,
                                      @NotNull Collection<VirtualFile> added,
                                      @NotNull Collection<VirtualFile> removed) {
-    // The project resources should already have been refreshed by their own variant listener
+    // The project app should already have been refreshed by their own variant listener
     myToolWindowManager.render();
   }
 

@@ -29,8 +29,10 @@ import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.gradle.AndroidModuleInfo;
+import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -67,6 +69,8 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
  * Android layouts. This is a wrapper around the layout library.
  */
 public class RenderService implements IImageFactory {
+  private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.RenderService");
+
   @NotNull
   private final Module myModule;
 
@@ -206,8 +210,8 @@ public class RenderService implements IImageFactory {
 
     myHardwareConfigHelper.setOrientation(configuration.getFullConfig().getScreenOrientationQualifier().getValue());
     myLayoutLib = layoutLib;
-    ProjectResources projectResources = ProjectResources.get(myModule, true);
-    myProjectCallback = new ProjectCallback(myLayoutLib, projectResources, myModule, myLogger);
+    LocalResourceRepository appResources = AppResourceRepository.getAppResources(myModule, true);
+    myProjectCallback = new ProjectCallback(myLayoutLib, appResources, myModule, myLogger);
     myProjectCallback.loadAndParseRClass();
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
     myMinSdkVersion = moduleInfo.getMinSdkVersion();
@@ -756,6 +760,11 @@ public class RenderService implements IImageFactory {
    */
   public void useDesignMode(@Nullable XmlTag rootTag) {
     if (rootTag != null) {
+      // In multi configuration rendering, clip to screen bounds
+      RenderPreviewMode currentMode = RenderPreviewMode.getCurrent();
+      if (currentMode != RenderPreviewMode.NONE) {
+        return;
+      }
       String tagName = rootTag.getName();
       if (SCROLL_VIEW.equals(tagName)) {
         setRenderingMode(RenderingMode.V_SCROLL);
