@@ -18,10 +18,12 @@ package com.android.tools.idea.configurations;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.resources.configuration.LanguageQualifier;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.ProjectResources;
+import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.utils.Pair;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
@@ -41,7 +43,6 @@ import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.EditableModel;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,13 +56,11 @@ import java.util.Map;
 public class TranslationDialog extends DialogWrapper {
   private final Module myModule;
   private Locale myLocale;
-  private ProjectResources myProjectResources;
   private TranslationModel myModel;
 
-  TranslationDialog(@NotNull Module module, @NotNull ProjectResources resources, @NotNull Locale locale) {
+  TranslationDialog(@NotNull Module module, @NotNull Locale locale) {
     super(module.getProject());
     myModule = module;
-    myProjectResources = resources;
     myLocale = locale;
 
     String localeLabel = LocaleMenuAction.getLocaleLabel(myLocale, false);
@@ -73,7 +72,7 @@ public class TranslationDialog extends DialogWrapper {
   @Nullable
   @Override
   protected JComponent createCenterPanel() {
-    myModel = new TranslationModel(myProjectResources);
+    myModel = new TranslationModel();
     JBTable table = new JBTable(myModel);
     table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
@@ -102,7 +101,10 @@ public class TranslationDialog extends DialogWrapper {
     private String[] myKeys;
     private final FolderConfiguration myFolderConfig = new FolderConfiguration();
 
-    public TranslationModel(@NotNull ProjectResources resources) {
+    public TranslationModel() {
+      LocalResourceRepository resources = ProjectResourceRepository.getProjectResources(myModule, true);
+      // Nonexistent language qualifier: trick it to fall back to the default locale
+      myFolderConfig.setLanguageQualifier(new LanguageQualifier("xx"));
       myValues = resources.getConfiguredResources(ResourceType.STRING, myFolderConfig);
 
       myKeys = myValues.keySet().toArray(new String[myValues.size()]);

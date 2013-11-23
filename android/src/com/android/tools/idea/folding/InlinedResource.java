@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LanguageQualifier;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.rendering.ProjectResources;
+import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.intellij.lang.folding.FoldingDescriptor;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
@@ -55,17 +55,17 @@ class InlinedResource implements ModificationTracker {
   /** The associated folding descriptor */
   @Nullable private FoldingDescriptor myDescriptor;
 
-  /** The project resources for looking up resource strings lazily */
-  @Nullable private ProjectResources myProjectResources;
+  /** The app resources for looking up resource strings lazily */
+  @Nullable private LocalResourceRepository myResourceRepository;
 
   InlinedResource(@NotNull ResourceType type,
                   @NotNull String key,
-                  @Nullable ProjectResources projectResources,
+                  @Nullable LocalResourceRepository resources,
                   @Nullable FoldingDescriptor descriptor,
                   @Nullable PsiElement element) {
     myType = type;
     myKey = key;
-    myProjectResources = projectResources;
+    myResourceRepository = resources;
     myDescriptor = descriptor;
     myElement = element;
   }
@@ -79,17 +79,17 @@ class InlinedResource implements ModificationTracker {
   public long getModificationCount() {
     // Return the project resource generation count; this ensures that when the project
     // resources are updated, the folding text is refreshed
-    return myProjectResources != null ? myProjectResources.getModificationCount() : 0;
+    return myResourceRepository != null ? myResourceRepository.getModificationCount() : 0;
   }
 
   @Nullable
   public String getResolvedString() {
-    if (myProjectResources != null) {
-      if (myProjectResources.hasResourceItem(myType, myKey)) {
+    if (myResourceRepository != null) {
+      if (myResourceRepository.hasResourceItem(myType, myKey)) {
         FolderConfiguration referenceConfig = new FolderConfiguration();
         // Nonexistent language qualifier: trick it to fall back to the default locale
         referenceConfig.setLanguageQualifier(new LanguageQualifier("xx"));
-        ResourceValue value = myProjectResources.getConfiguredValue(myType, myKey, referenceConfig);
+        ResourceValue value = myResourceRepository.getConfiguredValue(myType, myKey, referenceConfig);
         if (value != null) {
           String text = value.getValue();
           if (text != null) {

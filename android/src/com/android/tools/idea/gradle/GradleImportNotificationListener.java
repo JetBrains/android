@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle;
 
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
-import com.android.tools.idea.rendering.ModuleSetResourceRepository;
+import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -116,7 +116,7 @@ public class GradleImportNotificationListener extends ExternalSystemTaskNotifica
             @Override
             public void run(Project project) {
               BuildVariantView.getInstance(project).updateContents();
-              ModuleSetResourceRepository.moduleRootsChanged(project);
+              ProjectResourceRepository.moduleRootsChanged(project);
             }
           });
         }

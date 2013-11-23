@@ -24,10 +24,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.gradle.AndroidModuleInfo;
-import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.ManifestInfo;
-import com.android.tools.idea.rendering.ProjectResources;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.rendering.*;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -74,6 +71,7 @@ public class ConfigurationManager implements Disposable {
   private IAndroidTarget myTarget;
   private int myStateVersion;
   private ResourceResolverCache myResolverCache;
+  private long myLocaleCacheStamp;
 
   private ConfigurationManager(@NotNull Module module) {
     myModule = module;
@@ -122,8 +120,8 @@ public class ConfigurationManager implements Disposable {
       config = new FolderConfiguration();
     }
     Configuration configuration = Configuration.create(this, file, fileState, config);
-    ProjectResources projectResources = ProjectResources.get(myModule, true);
-    ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, projectResources, file);
+    LocalResourceRepository resources = AppResourceRepository.getAppResources(myModule, true);
+    ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, resources, file);
     if (fileState != null) {
       matcher.adaptConfigSelection(true);
     } else {
@@ -154,8 +152,8 @@ public class ConfigurationManager implements Disposable {
       config = new FolderConfiguration();
     }
     Configuration configuration = Configuration.create(this, file, fileState, config);
-    ProjectResources projectResources = ProjectResources.get(myModule, true);
-    ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, projectResources, file);
+    LocalResourceRepository resources = AppResourceRepository.getAppResources(myModule, true);
+    ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, resources, file);
     matcher.adaptConfigSelection(true /*needBestMatch*/);
     myCache.put(file, configuration);
 
@@ -342,9 +340,13 @@ public class ConfigurationManager implements Disposable {
 
   @NotNull
   public List<Locale> getLocales() {
+    // Get locales from modules, but not libraries!
+    LocalResourceRepository projectResources = ProjectResourceRepository.getProjectResources(myModule, true);
+    if (projectResources.getModificationCount() > myLocaleCacheStamp) {
+      myLocales = null;
+    }
     if (myLocales == null) {
       List<Locale> locales = new ArrayList<Locale>();
-      ProjectResources projectResources = ProjectResources.get(myModule, true);
       for (String language : projectResources.getLanguages()) {
         LanguageQualifier languageQualifier = new LanguageQualifier(language);
         locales.add(Locale.create(languageQualifier));
@@ -353,6 +355,7 @@ public class ConfigurationManager implements Disposable {
         }
       }
       myLocales = locales;
+      myLocaleCacheStamp = projectResources.getModificationCount();
     }
 
     return myLocales;
