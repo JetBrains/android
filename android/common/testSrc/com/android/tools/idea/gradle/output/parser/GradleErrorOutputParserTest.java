@@ -1755,4 +1755,51 @@ public class GradleErrorOutputParserTest extends TestCase {
                  toString(parser.parseErrorOutput(output, true)));
     sourceFile.delete();
   }
+
+
+  public void testDexDuplicateClassException() throws Exception {
+    String output =
+      ":two:dexDebug\n" +
+      "UNEXPECTED TOP-LEVEL EXCEPTION:\n" +
+      "java.lang.IllegalArgumentException: already added: Lcom/example/two/MainActivity;\n" +
+      "\tat com.android.dx.dex.file.ClassDefsSection.add(ClassDefsSection.java:122)\n" +
+      "\tat com.android.dx.dex.file.DexFile.add(DexFile.java:161)\n" +
+      "\tat com.android.dx.command.dexer.Main.processClass(Main.java:685)\n" +
+      "\tat com.android.dx.command.dexer.Main.processFileBytes(Main.java:634)\n" +
+      "\tat com.android.dx.command.dexer.Main.access$600(Main.java:78)\n" +
+      "\tat com.android.dx.command.dexer.Main$1.processFileBytes(Main.java:572)\n" +
+      "\tat com.android.dx.cf.direct.ClassPathOpener.processArchive(ClassPathOpener.java:284)\n" +
+      "\tat com.android.dx.cf.direct.ClassPathOpener.processOne(ClassPathOpener.java:166)\n" +
+      "\tat com.android.dx.cf.direct.ClassPathOpener.process(ClassPathOpener.java:144)\n" +
+      "\tat com.android.dx.command.dexer.Main.processOne(Main.java:596)\n" +
+      "\tat com.android.dx.command.dexer.Main.processAllFiles(Main.java:498)\n" +
+      "\tat com.android.dx.command.dexer.Main.runMonoDex(Main.java:264)\n" +
+      "\tat com.android.dx.command.dexer.Main.run(Main.java:230)\n" +
+      "\tat com.android.dx.command.dexer.Main.main(Main.java:199)\n" +
+      "\tat com.android.dx.command.Main.main(Main.java:103)\n" +
+      "1 error; aborting\n" +
+      " FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':two:dexDebug'.\n" +
+      "> Could not call IncrementalTask.taskAction() on task ':two:dexDebug'\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 9.491 secs";
+    assertEquals("0: Info::two:dexDebug\n" +
+                 "1: Error:Class com.example.two.MainActivity has already been added to output. Please remove duplicate copies.\n" +
+                 "2: Info:1 error; aborting\n" +
+                 "3: Info: FAILED\n" +
+                 "4: Error:Execution failed for task ':two:dexDebug'.\n" +
+                 "> Could not call IncrementalTask.taskAction() on task ':two:dexDebug'\n" +
+                 "5: Info:BUILD FAILED\n" +
+                 "6: Info:Total time: 9.491 secs\n",
+                 toString(parser.parseErrorOutput(output, true)));
+  }
 }
