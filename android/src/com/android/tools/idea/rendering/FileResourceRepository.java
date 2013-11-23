@@ -37,22 +37,22 @@ import java.util.Map;
  * as a result cannot use the normal {@link ResourceFolderRepository}. This is the case
  * for example for the expanded {@code .aar} directories.
  */
-class FileProjectResourceRepository extends ProjectResources {
-  private static final Logger LOG = Logger.getInstance(FileProjectResourceRepository.class);
+class FileResourceRepository extends LocalResourceRepository {
+  private static final Logger LOG = Logger.getInstance(FileResourceRepository.class);
   protected final Map<ResourceType, ListMultimap<String, ResourceItem>> mItems = Maps.newEnumMap(ResourceType.class);
   private final File myFile;
 
-  private final static SoftValueHashMap<File, FileProjectResourceRepository> ourCache =
-    new SoftValueHashMap<File, FileProjectResourceRepository>();
+  private final static SoftValueHashMap<File, FileResourceRepository> ourCache =
+    new SoftValueHashMap<File, FileResourceRepository>();
 
-  private FileProjectResourceRepository(@NotNull File file) {
+  private FileResourceRepository(@NotNull File file) {
     super(file.getName());
     myFile = file;
   }
 
   @NotNull
-  static FileProjectResourceRepository get(@NotNull final File file) {
-    FileProjectResourceRepository repository = ourCache.get(file);
+  static FileResourceRepository get(@NotNull final File file) {
+    FileResourceRepository repository = ourCache.get(file);
     if (repository == null) {
       repository = create(file);
       ourCache.put(file, repository);
@@ -63,13 +63,13 @@ class FileProjectResourceRepository extends ProjectResources {
 
   @Nullable
   @VisibleForTesting
-  static FileProjectResourceRepository getCached(@NotNull final File file) {
+  static FileResourceRepository getCached(@NotNull final File file) {
     return ourCache.get(file);
   }
 
   @NotNull
-  private static FileProjectResourceRepository create(@NotNull final File file) {
-    final FileProjectResourceRepository repository = new FileProjectResourceRepository(file);
+  private static FileResourceRepository create(@NotNull final File file) {
+    final FileResourceRepository repository = new FileResourceRepository(file);
     try {
       ResourceMerger resourceMerger = createResourceMerger(file);
       resourceMerger.mergeData(repository.createMergeConsumer(), true /*doCleanUp*/);

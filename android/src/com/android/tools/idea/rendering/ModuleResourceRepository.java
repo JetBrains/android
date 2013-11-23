@@ -20,17 +20,20 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 /**
  * Resource repository for a single module (which can possibly have multiple resource folders)
  */
-final class ModuleResourceRepository extends MultiResourceRepository {
+public final class ModuleResourceRepository extends MultiResourceRepository {
   private final AndroidFacet myFacet;
 
   private ModuleResourceRepository(@NotNull AndroidFacet facet,
@@ -40,13 +43,45 @@ final class ModuleResourceRepository extends MultiResourceRepository {
   }
 
   /**
+   * Returns the Android resources specific to this module, not including resources in any
+   * dependent modules or any AAR libraries
+   *
+   * @param module the module to look up resources for
+   * @param createIfNecessary if true, create the app resources if necessary, otherwise only return if already computed
+   * @return the resource repository
+   */
+  @Nullable
+  public static LocalResourceRepository getModuleResources(@NotNull Module module, boolean createIfNecessary) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet != null) {
+      return facet.getModuleResources(createIfNecessary);
+    }
+
+    return null;
+  }
+
+  /**
+   * Returns the Android resources specific to this module, not including resources in any
+   * dependent modules or any AAR libraries
+   *
+   * @param facet the module facet to look up resources for
+   * @param createIfNecessary if true, create the app resources if necessary, otherwise only return if already computed
+   * @return the resource repository
+   */
+  @Contract("!null, true -> !null")
+  @Nullable
+  public static LocalResourceRepository getModuleResources(@NotNull AndroidFacet facet, boolean createIfNecessary) {
+    return facet.getModuleResources(createIfNecessary);
+  }
+
+  /**
    * Creates a new resource repository for the given module, <b>not</b> including its dependent modules.
    *
    * @param facet the facet for the module
    * @return the resource repository
    */
   @NotNull
-  public static ProjectResources create(@NotNull final AndroidFacet facet) {
+  public static LocalResourceRepository create(@NotNull final AndroidFacet facet) {
     boolean gradleProject = facet.isGradleProject();
     if (!gradleProject) {
       // Always just a single resource folder: simple
@@ -91,7 +126,7 @@ final class ModuleResourceRepository extends MultiResourceRepository {
   void updateRoots(List<VirtualFile> resourceDirectories) {
     // Compute current roots
     Map<VirtualFile, ResourceFolderRepository> map = Maps.newHashMap();
-    for (ProjectResources resources : myChildren) {
+    for (LocalResourceRepository resources : myChildren) {
       ResourceFolderRepository repository = (ResourceFolderRepository)resources;
       VirtualFile resourceDir = repository.getResourceDir();
       map.put(resourceDir, repository);
@@ -144,11 +179,11 @@ final class ModuleResourceRepository extends MultiResourceRepository {
 
   private static class EmptyRepository extends MultiResourceRepository {
     public EmptyRepository() {
-      super("", Collections.<ProjectResources>emptyList());
+      super("", Collections.<LocalResourceRepository>emptyList());
     }
 
     @Override
-    protected void setChildren(@NotNull List<? extends ProjectResources> children) {
+    protected void setChildren(@NotNull List<? extends LocalResourceRepository> children) {
       myChildren = children;
     }
   }

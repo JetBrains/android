@@ -43,8 +43,13 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
   private static final String VALUES_OVERLAY2 = "resourceRepository/valuesOverlay2.xml";
   private static final String VALUES_OVERLAY2_NO = "resourceRepository/valuesOverlay2No.xml";
 
+  public void testStable() {
+    assertSame(ModuleResourceRepository.getModuleResources(myFacet, true), ModuleResourceRepository.getModuleResources(myFacet, true));
+    assertSame(ModuleResourceRepository.getModuleResources(myFacet, true), ModuleResourceRepository.getModuleResources(myModule, true));
+  }
+
   public void testSingleResourceFolder() {
-    ProjectResources repository = ModuleResourceRepository.create(myFacet);
+    LocalResourceRepository repository = ModuleResourceRepository.create(myFacet);
     assertTrue(repository instanceof ResourceFolderRepository);
   }
 
@@ -330,12 +335,12 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertSame(dir, parent.getParent().getParent());
   }
 
-  static void assertStringIs(ProjectResources repository, String key, String expected) {
+  static void assertStringIs(LocalResourceRepository repository, String key, String expected) {
     assertStringIs(repository, key, expected, true);
   }
 
   @NotNull
-  private static PsiResourceItem getSingleItem(ProjectResources repository, ResourceType type, String key) {
+  private static PsiResourceItem getSingleItem(LocalResourceRepository repository, ResourceType type, String key) {
     List<ResourceItem> list = repository.getResourceItem(type, key);
     assertNotNull(list);
     assertSize(1, list);
@@ -346,7 +351,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
   }
 
   @NotNull
-  static PsiResourceItem getFirstItem(ProjectResources repository, ResourceType type, String key) {
+  static PsiResourceItem getFirstItem(LocalResourceRepository repository, ResourceType type, String key) {
     List<ResourceItem> list = repository.getResourceItem(type, key);
     assertNotNull(list);
     ResourceItem item = list.get(0);
@@ -355,7 +360,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     return (PsiResourceItem)item;
   }
 
-  static void assertStringIs(ProjectResources repository, String key, String expected, boolean mustBeUnique) {
+  static void assertStringIs(LocalResourceRepository repository, String key, String expected, boolean mustBeUnique) {
     assertTrue(repository.hasResourceItem(ResourceType.STRING, key));
     List<ResourceItem> list = repository.getResourceItem(ResourceType.STRING, key);
     assertNotNull(list);
@@ -375,7 +380,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
 
   public void testAllowEmpty() {
     assertTrue(LintUtils.assertionsEnabled()); // this test should be run with assertions enabled!
-    ProjectResources repository = ModuleResourceRepository.createForTest(myFacet, Collections.<VirtualFile>emptyList());
+    LocalResourceRepository repository = ModuleResourceRepository.createForTest(myFacet, Collections.<VirtualFile>emptyList());
     assertNotNull(repository);
     repository.getModificationCount();
     assertEmpty(repository.getItemsOfType(ResourceType.ID));

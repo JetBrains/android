@@ -40,6 +40,7 @@ import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,8 +63,8 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
   public static final String RES_V_QUALIFIER = "-v";
   public static final String RES_V17_QUALIFIER = "-v17";
 
-  final private RtlSupportProperties myProperties;
-  final private Project myProject;
+  private final RtlSupportProperties myProperties;
+  private final Project myProject;
 
   // This is the API level corresponding to the first public release for RTL support
   public static final int RTL_TARGET_SDK_START = 17;
@@ -158,12 +159,17 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null && !facet.isLibraryProject()) {
         final VirtualFile manifestFile = AndroidRootUtil.getManifestFile(facet);
-
-        XmlFile myManifestFile = (XmlFile)PsiManager.getInstance(myProject).findFile(manifestFile);
+        if (manifestFile == null) {
+          continue;
+        }
+        XmlFile manifestPsiFile = (XmlFile)PsiManager.getInstance(myProject).findFile(manifestFile);
         try {
-          XmlTag root = myManifestFile.getRootTag();
+          if (manifestPsiFile == null) {
+            continue;
+          }
+          XmlTag root = manifestPsiFile.getRootTag();
           if (root == null) {
-            return;
+            continue;
           }
 
           // First, deal with "supportsRtl" into the <application> tag
@@ -173,7 +179,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
 
             XmlTag applicationTag = applicationNodes[0];
             XmlAttribute supportsRtlAttribute = applicationTag.getAttribute(AndroidManifest.ATTRIBUTE_SUPPORTS_RTL, ANDROID_URI);
-            if (supportsRtlAttribute == null || supportsRtlAttribute.getValue().equals(SdkConstants.VALUE_FALSE)) {
+            if (supportsRtlAttribute == null || VALUE_FALSE.equals(supportsRtlAttribute.getValue())) {
               final int startOffset;
               final int endOffset;
               if (supportsRtlAttribute == null) {
@@ -299,6 +305,9 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
           final List<VirtualFile> allLayoutDir = new ArrayList<VirtualFile>();
 
           for (VirtualFile oneRes : allRes) {
+            if (ResourceFolderManager.isLibraryResourceRoot(oneRes)) {
+              continue;
+            }
             final VirtualFile[] children = oneRes.getChildren();
             // Check every children if they are a layout dir but not a "-v17" one
             for (VirtualFile oneChild : children) {
@@ -332,8 +341,10 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
         }
         else {
           final List<PsiFile> files = facet.getLocalResourceManager().findResourceFiles(ResourceFolderType.LAYOUT.getName());
-
           for (PsiFile psiFile : files) {
+            if (ResourceFolderManager.isLibraryResourceFile(psiFile.getVirtualFile())) {
+              continue;
+            }
             list.addAll(getLayoutRefactoringForFile(psiFile, false /* do not create the v17 version */, minSdk));
           }
         }

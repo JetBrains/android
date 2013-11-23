@@ -23,15 +23,15 @@ import junit.framework.TestCase;
 import java.io.File;
 import java.io.IOException;
 
-public class FileProjectResourceRepositoryTest extends TestCase {
+public class FileResourceRepositoryTest extends TestCase {
   public void test() throws IOException {
 
     File dir = Files.createTempDir();
     try {
-      assertNotNull(FileProjectResourceRepository.get(dir));
+      assertNotNull(FileResourceRepository.get(dir));
       // We shouldn't clear it out immediately on GC *eligibility*:
       System.gc();
-      assertNotNull(FileProjectResourceRepository.getCached(dir));
+      assertNotNull(FileResourceRepository.getCached(dir));
       // However, in low memory conditions we should:
       try {
         PlatformTestUtil.tryGcSoftlyReachableObjects();
@@ -39,7 +39,7 @@ public class FileProjectResourceRepositoryTest extends TestCase {
         // The above method can throw java.lang.OutOfMemoryError; that's fine for this test
       }
       System.gc();
-      assertNull(FileProjectResourceRepository.getCached(dir));
+      assertNull(FileResourceRepository.getCached(dir));
     }
     finally {
       FileUtil.delete(dir);
