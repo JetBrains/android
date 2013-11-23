@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Locale;
 
 import static com.android.SdkConstants.DOT_GRADLE;
+import static com.android.SdkConstants.DOT_JAVA;
 import static com.android.SdkConstants.DOT_XML;
 import static com.android.ide.common.res2.MergedResourceWriter.createPathComment;
 
@@ -1756,7 +1757,6 @@ public class GradleErrorOutputParserTest extends TestCase {
     sourceFile.delete();
   }
 
-
   public void testDexDuplicateClassException() throws Exception {
     String output =
       ":two:dexDebug\n" +
@@ -1801,5 +1801,44 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "5: Info:BUILD FAILED\n" +
                  "6: Info:Total time: 9.491 secs\n",
                  toString(parser.parseErrorOutput(output, true)));
+  }
+
+  public void testMultilineCompileError() throws Exception {
+    createTempFile(DOT_JAVA);
+    String output =
+      ":two:compileDebug\n" +
+      sourceFilePath + ":20: incompatible types\n" +
+      "found   : java.util.ArrayList<java.lang.String>\n" +
+      "required: java.util.Set<java.lang.String>\n" +
+      "        Set<String> checkedList = new ArrayList<String>();\n" +
+      "                                  ^\n" +
+      "1 error\n" +
+      ":two:compileDebug FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':two:compileDebug'.\n" +
+      "> Compilation failed; see the compiler error output for details.\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 5.354 secs\n";
+    assertEquals("0: Info::two:compileDebug\n" +
+                 "1: Error:incompatible types\n" +
+                 "found   : java.util.ArrayList<java.lang.String>\n" +
+                 "required: java.util.Set<java.lang.String>\n" +
+                 "\t" + sourceFilePath + ":20:35\n" +
+                 "2: Info:1 error\n" +
+                 "3: Info::two:compileDebug FAILED\n" +
+                 "4: Error:Execution failed for task ':two:compileDebug'.\n" +
+                 "> Compilation failed; see the compiler error output for details.\n" +
+                 "5: Info:BUILD FAILED\n" +
+                 "6: Info:Total time: 5.354 secs\n",
+                 toString(parser.parseErrorOutput(output, true)));
+    sourceFile.delete();
   }
 }
