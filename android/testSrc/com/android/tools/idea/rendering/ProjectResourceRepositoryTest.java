@@ -45,12 +45,17 @@ import java.util.*;
 
 import static com.android.tools.idea.rendering.ModuleResourceRepositoryTest.getFirstItem;
 
-public class ModuleSetResourceRepositoryTest extends AndroidTestCase {
+public class ProjectResourceRepositoryTest extends AndroidTestCase {
   private static final String LAYOUT = "resourceRepository/layout.xml";
   private static final String VALUES = "resourceRepository/values.xml";
   private static final String VALUES_OVERLAY1 = "resourceRepository/valuesOverlay1.xml";
   private static final String VALUES_OVERLAY2 = "resourceRepository/valuesOverlay2.xml";
   private static final String VALUES_OVERLAY2_NO = "resourceRepository/valuesOverlay2No.xml";
+
+  public void testStable() {
+    assertSame(ProjectResourceRepository.getProjectResources(myFacet, true), ProjectResourceRepository.getProjectResources(myFacet, true));
+    assertSame(ProjectResourceRepository.getProjectResources(myFacet, true), ProjectResourceRepository.getProjectResources(myModule, true));
+  }
 
   // Ensure that we invalidate the id cache when the file is rescanned but ids don't change
   // (this was broken)
@@ -71,7 +76,7 @@ public class ModuleSetResourceRepositoryTest extends AndroidTestCase {
 
     // Just need an empty repository to make it a real module -set-; otherwise with a single
     // module we just get a module repository, not a module set repository
-    ProjectResources other = new ProjectResources("unit test") {
+    LocalResourceRepository other = new LocalResourceRepository("unit test") {
       @NonNull
       @Override
       protected Map<ResourceType, ListMultimap<String, ResourceItem>> getMap() {
@@ -86,9 +91,7 @@ public class ModuleSetResourceRepositoryTest extends AndroidTestCase {
     };
 
     ModuleResourceRepository module = ModuleResourceRepository.createForTest(myFacet, Arrays.asList(res1, res2, res3));
-    final ProjectResources r = ModuleSetResourceRepository.create(myFacet, Arrays.asList(module, other));
-    assertTrue(r instanceof ModuleSetResourceRepository);
-    final ModuleSetResourceRepository resources = (ModuleSetResourceRepository)r;
+    final ProjectResourceRepository resources = ProjectResourceRepository.createForTest(myFacet, Arrays.asList(module, other));
 
     PsiFile layoutPsiFile = PsiManager.getInstance(getProject()).findFile(layoutFile);
     assertNotNull(layoutPsiFile);
@@ -131,24 +134,24 @@ public class ModuleSetResourceRepositoryTest extends AndroidTestCase {
     assertEquals(2, libraries.size());
     ModuleRootModificationUtil.addDependency(libraries.get(0).getModule(), libraries.get(1).getModule());
 
-
     addArchiveLibraries();
 
-    ProjectResources r = ModuleSetResourceRepository.create(myFacet);
-    assertTrue(r instanceof ModuleSetResourceRepository);
-    ModuleSetResourceRepository repository = (ModuleSetResourceRepository)r;
+    ProjectResourceRepository repository = ProjectResourceRepository.create(myFacet);
     assertEquals(3, repository.getChildCount());
     Collection<String> items = repository.getItemsOfType(ResourceType.STRING);
     assertTrue(items.isEmpty());
 
     for (AndroidFacet facet : libraries) {
-      ProjectResources moduleRepository = facet.getProjectResources(false, true);
+      LocalResourceRepository moduleRepository = facet.getModuleResources(true);
       assertNotNull(moduleRepository);
-      ProjectResources moduleSetRepository = facet.getProjectResources(true, true);
+      LocalResourceRepository moduleSetRepository = facet.getProjectResources(true);
       assertNotNull(moduleSetRepository);
+      LocalResourceRepository librarySetRepository = facet.getAppResources(true);
+      assertNotNull(librarySetRepository);
     }
-    myFacet.getProjectResources(false, true);
-    myFacet.getProjectResources(true, true);
+    myFacet.getModuleResources(true);
+    myFacet.getProjectResources(true);
+    myFacet.getAppResources(true);
   }
 
   private void addArchiveLibraries() {
@@ -175,4 +178,7 @@ public class ModuleSetResourceRepositoryTest extends AndroidTestCase {
       addModuleWithAndroidFacet(projectBuilder, modules, "lib2", true);
     }
   }
+
+  // Note that the project resource repository is also tested in the app resource repository test, which of course merges
+  // project resources with libraries
 }

@@ -36,28 +36,28 @@ import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("deprecation") // Deprecated com.android.util.Pair is required by ProjectCallback interface
-public abstract class MultiResourceRepository extends ProjectResources {
-  protected List<? extends ProjectResources> myChildren;
+public abstract class MultiResourceRepository extends LocalResourceRepository {
+  protected List<? extends LocalResourceRepository> myChildren;
   private long[] myModificationCounts;
   private Map<ResourceType, ListMultimap<String, ResourceItem>> myItems = Maps.newEnumMap(ResourceType.class);
   private final Map<ResourceType, ListMultimap<String, ResourceItem>> myCachedTypeMaps = Maps.newEnumMap(ResourceType.class);
 
-  MultiResourceRepository(@NotNull String displayName, @NotNull List<? extends ProjectResources> children) {
+  MultiResourceRepository(@NotNull String displayName, @NotNull List<? extends LocalResourceRepository> children) {
     super(displayName);
     setChildren(children);
   }
 
-  protected void setChildren(@NotNull List<? extends ProjectResources> children) {
+  protected void setChildren(@NotNull List<? extends LocalResourceRepository> children) {
     if (myChildren != null) {
       for (int i = myChildren.size() - 1; i >= 0; i--) {
-        ProjectResources resources = myChildren.get(i);
+        LocalResourceRepository resources = myChildren.get(i);
         resources.removeParent(this);
       }
     }
     myChildren = children;
     myModificationCounts = new long[children.size()];
     for (int i = myChildren.size() - 1; i >= 0; i--) {
-      ProjectResources resources = myChildren.get(i);
+      LocalResourceRepository resources = myChildren.get(i);
       resources.addParent(this);
       myModificationCounts[i] = resources.getModificationCount();
     }
@@ -71,7 +71,7 @@ public abstract class MultiResourceRepository extends ProjectResources {
     myCachedTypeMaps.clear();
   }
 
-  public List<? extends ProjectResources> getChildren() {
+  public List<? extends LocalResourceRepository> getChildren() {
     return myChildren;
   }
 
@@ -84,7 +84,7 @@ public abstract class MultiResourceRepository extends ProjectResources {
     }
 
     for (int i = myChildren.size() - 1; i >= 0; i--) {
-      ProjectResources resources = myChildren.get(i);
+      LocalResourceRepository resources = myChildren.get(i);
       Pair<ResourceType, String> resolved = resources.resolveResourceId(id);
       if (resolved != null) {
         return resolved;
@@ -102,7 +102,7 @@ public abstract class MultiResourceRepository extends ProjectResources {
     }
 
     for (int i = myChildren.size() - 1; i >= 0; i--) {
-      ProjectResources resources = myChildren.get(i);
+      LocalResourceRepository resources = myChildren.get(i);
       String resolved = resources.resolveStyleable(id);
       if (resolved != null) {
         return resolved;
@@ -120,7 +120,7 @@ public abstract class MultiResourceRepository extends ProjectResources {
     }
 
     for (int i = myChildren.size() - 1; i >= 0; i--) {
-      ProjectResources resources = myChildren.get(i);
+      LocalResourceRepository resources = myChildren.get(i);
       Integer resolved = resources.getResourceId(type, name);
       if (resolved != null) {
         return resolved;
@@ -135,7 +135,7 @@ public abstract class MultiResourceRepository extends ProjectResources {
                                    Map<ResourceType, TObjectIntHashMap<String>> res2id) {
     super.setCompiledResources(id2res, styleableId2name, res2id);
     for (int i = myChildren.size() - 1; i >= 0; i--) {
-      ProjectResources resources = myChildren.get(i);
+      LocalResourceRepository resources = myChildren.get(i);
       resources.setCompiledResources(id2res, styleableId2name, res2id);
     }
   }
@@ -149,7 +149,7 @@ public abstract class MultiResourceRepository extends ProjectResources {
     // See if any of the delegates have changed
     boolean changed = false;
     for (int i = myChildren.size() - 1; i >= 0; i--) {
-      ProjectResources resources = myChildren.get(i);
+      LocalResourceRepository resources = myChildren.get(i);
       long rev = resources.getModificationCount();
       if (rev != myModificationCounts[i]) {
         myModificationCounts[i] = rev;
@@ -200,7 +200,7 @@ public abstract class MultiResourceRepository extends ProjectResources {
 
     // Merge all items of the given type
     for (int i = myChildren.size() - 1; i >= 0; i--) {
-      ProjectResources resources = myChildren.get(i);
+      LocalResourceRepository resources = myChildren.get(i);
       Map<ResourceType, ListMultimap<String, ResourceItem>> items = resources.getItems();
       ListMultimap<String, ResourceItem> m = items.get(type);
       if (m == null) {
@@ -254,7 +254,7 @@ public abstract class MultiResourceRepository extends ProjectResources {
   @Override
   public void dispose() {
     for (int i = myChildren.size() - 1; i >= 0; i--) {
-      ProjectResources resources = myChildren.get(i);
+      LocalResourceRepository resources = myChildren.get(i);
       resources.removeParent(this);
       resources.dispose();
     }
@@ -264,7 +264,7 @@ public abstract class MultiResourceRepository extends ProjectResources {
    * Notifies this delegating repository that the given dependent repository has invalidated
    * resources of the given types (empty means all)
    */
-  public void invalidateCache(@NotNull ProjectResources repository, @Nullable ResourceType... types) {
+  public void invalidateCache(@NotNull LocalResourceRepository repository, @Nullable ResourceType... types) {
     assert myChildren.contains(repository) : repository;
 
     if (types == null || types.length == 0) {
@@ -286,7 +286,7 @@ public abstract class MultiResourceRepository extends ProjectResources {
   public boolean isScanPending(@NonNull PsiFile psiFile) {
     assert ApplicationManager.getApplication().isUnitTestMode();
     for (int i = myChildren.size() - 1; i >= 0; i--) {
-      ProjectResources resources = myChildren.get(i);
+      LocalResourceRepository resources = myChildren.get(i);
       if (resources.isScanPending(psiFile)) {
         return true;
       }

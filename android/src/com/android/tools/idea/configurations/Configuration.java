@@ -25,8 +25,9 @@ import com.android.resources.*;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
+import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.ProjectResources;
 import com.android.tools.idea.rendering.RenderService;
 import com.google.common.base.Objects;
 import com.intellij.openapi.Disposable;
@@ -183,7 +184,7 @@ public class Configuration implements Disposable {
     // TODO: Figure out whether we need this, or if it should be replaced by
     // a call to ConfigurationManager#createSimilar()
     Configuration configuration = base.clone();
-    ProjectResources resources = ProjectResources.get(base.getModule(), true);
+    LocalResourceRepository resources = AppResourceRepository.getAppResources(base.getModule(), true);
     ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, resources, file);
     configuration.getEditedConfig().set(FolderConfiguration.getConfigForFolder(file.getParent().getName()));
     matcher.adaptConfigSelection(true /*needBestMatch*/);
@@ -280,7 +281,7 @@ public class Configuration implements Disposable {
     destination.myTheme = source.getTheme();
     //destination.myDisplayName = source.getDisplayName();
 
-    ProjectResources resources = ProjectResources.get(source.myManager.getModule(), true);
+    LocalResourceRepository resources = AppResourceRepository.getAppResources(source.myManager.getModule(), true);
     ConfigurationMatcher matcher = new ConfigurationMatcher(destination, resources, destination.myFile);
     //if (!matcher.isCurrentFileBestMatchFor(editedConfig)) {
       matcher.adaptConfigSelection(true /*needBestMatch*/);
@@ -1004,7 +1005,7 @@ public class Configuration implements Disposable {
   }
 
   /**
-   * Returns a {@link ProjectResources} for the framework resources based on the current
+   * Returns a {@link com.android.tools.idea.rendering.LocalResourceRepository} for the framework resources based on the current
    * configuration selection.
    *
    * @return the framework resources or null if not found.
@@ -1041,7 +1042,7 @@ public class Configuration implements Disposable {
   }
 
   public boolean isBestMatchFor(VirtualFile file, FolderConfiguration config) {
-    ProjectResources resources = ProjectResources.get(getModule(), true);
+    LocalResourceRepository resources = AppResourceRepository.getAppResources(getModule(), true);
     return new ConfigurationMatcher(this, resources, file).isCurrentFileBestMatchFor(config);
   }
 

@@ -121,7 +121,7 @@ public class AndroidJavaDocRenderer {
   private static abstract class ResourceValueRenderer implements ResourceItemResolver.ResourceProvider {
     protected final Module myModule;
     protected FrameworkResources myFrameworkResources;
-    protected ProjectResources myAppResources;
+    protected AppResourceRepository myAppResources;
     protected ResourceResolver myResourceResolver;
 
     protected ResourceValueRenderer(Module module) {
@@ -201,7 +201,7 @@ public class AndroidJavaDocRenderer {
 
       List<ItemInfo> results = Lists.newArrayList();
 
-      AbstractResourceRepository resources = getAppResources();
+      AppResourceRepository resources = getAppResources();
       IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
       if (ideaAndroidProject != null) {
         assert facet.isGradleProject();
@@ -250,13 +250,9 @@ public class AndroidJavaDocRenderer {
 
         // Also pull in items from libraries; this will include items from the current module as well,
         // so add them to a temporary list so we can only add the items that are missing
-        if (resources instanceof MultiResourceRepository) {
-          ProjectResources primary = ProjectResources.get(myModule, false);
-          MultiResourceRepository multi = (MultiResourceRepository)resources;
-          for (ProjectResources dependency : multi.getChildren()) {
-            if (dependency != primary) {
+        if (resources != null) {
+          for (LocalResourceRepository dependency : resources.getLibraries()) {
               addItemsFromRepository(dependency.getDisplayName(), MASK_NORMAL, rank++, dependency, type, name, results);
-            }
           }
         }
       } else if (resources != null) {
@@ -483,9 +479,9 @@ public class AndroidJavaDocRenderer {
 
     @Override
     @Nullable
-    public ProjectResources getAppResources() {
+    public AppResourceRepository getAppResources() {
       if (myAppResources == null) {
-        myAppResources = ProjectResources.get(myModule, true, true);
+        myAppResources = AppResourceRepository.getAppResources(myModule, true);
       }
 
       return myAppResources;

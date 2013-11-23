@@ -2,7 +2,8 @@ package org.jetbrains.android.dom.converters;
 
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.rendering.ProjectResources;
+import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
@@ -97,14 +98,14 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
 
     if (elements.isEmpty() && myResourceValue.getResourceName() != null) {
       // Temporary workaround: AAR libraries may not have been picked up properly.
-      // Use project resources to find these missing references, if applicable.
-      ProjectResources resources = ProjectResources.get(myFacet.getModule(), true);
+      // Use app resources to find these missing references, if applicable.
+      LocalResourceRepository resources = AppResourceRepository.getAppResources(myFacet.getModule(), true);
       ResourceType resourceType = ResourceType.getEnum(myResourceValue.getResourceType());
       if (resourceType != null && (resourceType != ResourceType.ATTR || attrReference)) { // If not, it could be some broken source, such as @android/test
         List<ResourceItem> items = resources.getResourceItem(resourceType, myResourceValue.getResourceName());
         if (items != null) {
           for (ResourceItem item : items) {
-            XmlTag tag = ProjectResources.getItemTag(myFacet, item);
+            XmlTag tag = LocalResourceRepository.getItemTag(myFacet, item);
             if (tag != null) {
               elements.add(tag);
             }

@@ -23,7 +23,6 @@ import com.android.resources.ResourceFolderType;
 import com.google.common.base.Splitter;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 
 import java.io.File;
