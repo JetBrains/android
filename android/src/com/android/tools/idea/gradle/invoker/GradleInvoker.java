@@ -25,6 +25,7 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -151,6 +152,7 @@ public class GradleInvoker {
     if (tasks.isEmpty()) {
       return;
     }
+    FileDocumentManager.getInstance().saveAllDocuments();
     UIUtil.invokeAndWaitIfNeeded(new Runnable() {
       @Override
       public void run() {
