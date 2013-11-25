@@ -27,14 +27,12 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.Dimension;
-import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
+@SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class AndroidRootComponent extends JComponent {
   public static final boolean DEBUG = false;
-  private static final Object RENDERING_LOCK = new Object();
 
   private final RenderingParameters myRenderingParameters;
   private final PsiFile myPsiFile;
@@ -49,10 +47,6 @@ public class AndroidRootComponent extends JComponent {
     this.myRenderingParameters = renderingParameters;
     this.myPsiFile = psiFile;
     this.myIsMenu = isMenu;
-  }
-
-  public AndroidRootComponent(@NotNull final RenderingParameters renderingParameters, @Nullable final PsiFile psiFile) {
-    this(renderingParameters, psiFile, false);
   }
 
   @Nullable
@@ -203,14 +197,12 @@ public class AndroidRootComponent extends JComponent {
         ApplicationManager.getApplication().runReadAction(new Runnable() {
           @Override
           public void run() {
-            synchronized (RENDERING_LOCK) {
-              Module module = facet.getModule();
-              RenderLogger logger = new RenderLogger(myPsiFile.getName(), module);
-              final RenderService service = RenderService.create(facet, module, myPsiFile, configuration, logger, null);
-              if (service != null) {
-                setRenderResult(service.render());
-                service.dispose();
-              }
+            Module module = facet.getModule();
+            RenderLogger logger = new RenderLogger(myPsiFile.getName(), module);
+            final RenderService service = RenderService.create(facet, module, myPsiFile, configuration, logger, null);
+            if (service != null) {
+              setRenderResult(service.render());
+              service.dispose();
             }
           }
         });
