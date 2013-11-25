@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.customizer;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.structure.AndroidHomeConfigurable;
+import com.android.tools.idea.sdk.DefaultSdks;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -26,6 +26,8 @@ import com.intellij.openapi.ui.Messages;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
 
 /**
  * Sets an Android SDK to a module imported from an {@link com.android.builder.model.AndroidProject}.
@@ -49,7 +51,10 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer {
     if (ideaAndroidProject == null) {
       return;
     }
-    String androidHome = AndroidHomeConfigurable.getDefaultAndroidHome();
+    File androidSdkHomePath = DefaultSdks.getDefaultAndroidHome();
+    assert androidSdkHomePath != null;
+
+    String androidHome = androidSdkHomePath.getPath();
     String compileTarget = ideaAndroidProject.getDelegate().getCompileTarget();
 
     boolean sdkSet =
