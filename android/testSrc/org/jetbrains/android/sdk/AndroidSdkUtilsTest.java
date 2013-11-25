@@ -18,7 +18,6 @@ package org.jetbrains.android.sdk;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.utils.NullLogger;
-import com.google.common.base.Strings;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -26,7 +25,6 @@ import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
-import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -40,11 +38,7 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    mySdkPath = AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable(AndroidTestCase.SDK_PATH_PROPERTY);
-    if (Strings.isNullOrEmpty(mySdkPath)) {
-      String format = "Please specify the path of an Android SDK (v22.0.0) in the system property or environment variable '%1$s'";
-      fail(String.format(format, AndroidTestCase.SDK_PATH_PROPERTY));
-    }
+    mySdkPath = AndroidTestCaseHelper.getAndroidSdkPath();
 
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
