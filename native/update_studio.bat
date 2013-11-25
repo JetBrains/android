@@ -51,6 +51,14 @@ SET TO=
 
 IF "x%TO%" == "x" CALL :compute_to
 
+IF "x%TO%" == "x%FROM%" (
+    ECHO You already have the latest Android Studio version %FROM%.
+    ECHO There is nothing to update.
+    ECHO .
+    PAUSE
+    GOTO :EOF
+)
+
 ECHO This script will download the Studio updater from %FROM% to %TO%.
 PAUSE
 ECHO .
