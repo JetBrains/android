@@ -23,6 +23,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -58,7 +59,10 @@ public class TemplateParameterStep extends TemplateWizardStep {
     int row = 0;
     Collection<Parameter> parameters = myTemplateState.getTemplateMetadata().getParameters();
     myParamContainer.setLayout(new GridLayoutManager(parameters.size() + 1, 3));
-    String packageName = myTemplateState.getString(TemplateMetadata.ATTR_PACKAGE_NAME);
+    String packageName = null;
+    if (myTemplateState.hasAttr(TemplateMetadata.ATTR_PACKAGE_NAME)) {
+      packageName = myTemplateState.getString(TemplateMetadata.ATTR_PACKAGE_NAME);
+    }
     GridConstraints c = new GridConstraints();
     c.setVSizePolicy(GridConstraints.SIZEPOLICY_FIXED);
     c.setAnchor(GridConstraints.ANCHOR_WEST);
@@ -100,7 +104,7 @@ public class TemplateParameterStep extends TemplateWizardStep {
           break;
         case STRING:
           myParamContainer.add(label, c);
-          c.setHSizePolicy(GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW);
+          c.setHSizePolicy(GridConstraints.SIZEPOLICY_WANT_GROW);
           JTextField textField = new JTextField();
           c.setColumn(1);
           c.setColSpan(2);
@@ -126,9 +130,8 @@ public class TemplateParameterStep extends TemplateWizardStep {
           break;
       }
     }
-    if (myTemplateState.getTemplateMetadata().getThumbnailPath() != null) {
-      update();
-    }
+    update();
+
     c.setFill(GridConstraints.FILL_HORIZONTAL);
     c.setHSizePolicy(GridConstraints.SIZEPOLICY_WANT_GROW);
     c.setVSizePolicy(GridConstraints.SIZEPOLICY_WANT_GROW);
@@ -146,7 +149,9 @@ public class TemplateParameterStep extends TemplateWizardStep {
 
     String thumb = myTemplateState.getTemplateMetadata().getThumbnailPath(myTemplateState);
     // Only show new image if we have something to show (and skip decoding if it's the same image we already have)
-    if (thumb != null && !thumb.isEmpty() && !thumb.equals(myCurrentThumb)) {
+    if (thumb == null) {
+      myPreview.setIcon(AndroidIcons.Wizards.DefaultTemplate256);
+    } else if (!thumb.isEmpty() && !thumb.equals(myCurrentThumb)) {
       File file = new File(myTemplateState.myTemplate.getRootPath(), thumb.replace('/', File.separatorChar));
       try {
         byte[] bytes = Files.toByteArray(file);
