@@ -466,6 +466,8 @@ public class IntellijApiDetector extends ApiDetector {
 
     @Override
     public void visitCallExpression(PsiCallExpression expression) {
+      super.visitCallExpression(expression);
+
       if (!myCheckAccess) {
         return;
       }
