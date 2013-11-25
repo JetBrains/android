@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.tools.idea.gradle.AndroidModuleInfo;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.rendering.ManifestInfo;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.intellij.openapi.application.ApplicationManager;
@@ -24,11 +24,14 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
@@ -93,30 +96,18 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     // Read minSdkVersion and package from manifest and/or build.gradle files
     int minSdkVersion = -1;
     String minSdkName;
-    ManifestInfo manifestInfo = ManifestInfo.get(myModule);
-    String packageName = manifestInfo.getPackage();
+    AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
+    String packageName = null;
     IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
-    if (gradleProject != null) {
-      minSdkVersion = gradleProject.getSelectedVariant().getMergedFlavor().getMinSdkVersion();
-      packageName = IdeaAndroidProject.computePackageName(gradleProject, packageName);
-    }
-    if (minSdkVersion < 1) { // Not specified in Gradle file
-      minSdkVersion = manifestInfo.getMinSdkVersion();
-      minSdkName = manifestInfo.getMinSdkName();
-    } else {
-      minSdkName = Integer.toString(minSdkVersion);
-    }
-    myWizardState.put(ATTR_MIN_API, minSdkName);
-    myWizardState.put(ATTR_MIN_API_LEVEL, minSdkVersion);
-    myWizardState.put(TemplateMetadata.ATTR_PACKAGE_NAME, packageName);
 
     // Look up the default resource directories
+    VirtualFile javaDir = null;
     if (gradleProject != null) {
       IdeaSourceProvider sourceSet = facet.getMainIdeaSourceSet();
       VirtualFile moduleDir = gradleProject.getRootDir();
       Set<VirtualFile> javaDirectories = sourceSet.getJavaDirectories();
       if (!javaDirectories.isEmpty()) {
-        VirtualFile javaDir = javaDirectories.iterator().next();
+        javaDir = javaDirectories.iterator().next();
         String relativePath = VfsUtilCore.getRelativePath(javaDir, moduleDir, '/'); // templates use / not File.separatorChar
         if (relativePath != null) {
           myWizardState.put(ATTR_SRC_DIR, relativePath);
@@ -143,6 +134,33 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
       }
     }
 
+    if (myTargetFolder != null) {
+      File javaSourceRoot;
+      if (javaDir == null) {
+        javaSourceRoot = new File(AndroidRootUtil.getModuleDirPath(myModule),
+                                  FileUtil.toSystemDependentName(myWizardState.getString(ATTR_SRC_DIR)));
+      } else {
+        javaSourceRoot = new File(javaDir.getPath());
+      }
+      File javaSourcePackageRoot = new File(myTargetFolder.getPath());
+      String relativePath = FileUtil.getRelativePath(javaSourceRoot, javaSourcePackageRoot);
+      packageName = relativePath != null ? FileUtil.toSystemIndependentName(relativePath).replace('/', '.') : null;
+      if (!AndroidUtils.isValidJavaPackageName(packageName)) {
+        packageName = null;
+        myTargetFolder = null;
+      }
+    }
+    if (packageName == null) {
+      packageName = moduleInfo.getPackage();
+    }
+
+    minSdkVersion = moduleInfo.getMinSdkVersion();
+    minSdkName = moduleInfo.getMinSdkName();
+
+    myWizardState.put(TemplateMetadata.ATTR_PACKAGE_NAME, packageName);
+    myWizardState.put(ATTR_MIN_API, minSdkName);
+    myWizardState.put(ATTR_MIN_API_LEVEL, minSdkVersion);
+
     mySteps.add(new ChooseTemplateStep(myWizardState, myTemplateCategory, myProject, null, this, null, myExcluded));
     mySteps.add(new TemplateParameterStep(myWizardState, myProject, null, this));
 
@@ -154,6 +172,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
 
     if (myTargetFolder != null) {
       myWizardState.myHidden.add(TemplateMetadata.ATTR_PACKAGE_NAME);
+      myWizardState.myFinal.add(TemplateMetadata.ATTR_PACKAGE_NAME);
       myWizardState.put(TemplateMetadata.ATTR_PACKAGE_ROOT, myTargetFolder.getPath());
     }
 
