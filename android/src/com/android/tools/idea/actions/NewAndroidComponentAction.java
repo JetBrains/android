@@ -20,14 +20,10 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.ide.IdeView;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.psi.JavaDirectoryService;
-import com.intellij.psi.PsiDirectory;
+import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
 
 import java.util.Set;
 
@@ -62,16 +58,7 @@ public class NewAndroidComponentAction extends AnAction {
         AndroidFacet.getInstance(module) == null) {
       return false;
     }
-    final ProjectFileIndex projectIndex = ProjectRootManager.getInstance(module.getProject()).getFileIndex();
-    final JavaDirectoryService dirService = JavaDirectoryService.getInstance();
-
-    for (PsiDirectory dir : view.getDirectories()) {
-      if (projectIndex.isUnderSourceRootOfType(dir.getVirtualFile(), JavaModuleSourceRootTypes.SOURCES) &&
-          dirService.getPackage(dir) != null) {
-        return true;
-      }
-    }
-    return false;
+    return true;
   }
 
   @Override
@@ -87,12 +74,14 @@ public class NewAndroidComponentAction extends AnAction {
 
     if (module == null) return;
 
-    final PsiDirectory dir = view.getOrChooseDirectory();
-    if (dir == null) return;
+    VirtualFile targetFile = null;
+    if (JavaSourceAction.isAvailable(dataContext)) {
+      targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
+    }
 
     NewTemplateObjectWizard dialog = new NewTemplateObjectWizard(CommonDataKeys.PROJECT.getData(dataContext),
                                                                  LangDataKeys.MODULE.getData(dataContext),
-                                                                 CommonDataKeys.VIRTUAL_FILE.getData(dataContext),
+                                                                 targetFile,
                                                                  CATEGORY_OTHER, EXCLUDED);
 
     dialog.show();

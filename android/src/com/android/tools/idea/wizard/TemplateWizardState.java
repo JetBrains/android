@@ -90,7 +90,7 @@ public class TemplateWizardState {
 
   public TemplateWizardState() {
     put(TemplateMetadata.ATTR_IS_NEW_PROJECT, false);
-    put(TemplateMetadata.ATTR_IS_GRADLE, "true");
+    put(TemplateMetadata.ATTR_IS_GRADLE, true);
 
     put(ATTR_SRC_DIR, "src/main/java");
     put(ATTR_RES_DIR, "src/main/res");
@@ -110,10 +110,12 @@ public class TemplateWizardState {
     File javaSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.JAVA_SOURCE_PATH);
     File javaSourcePackageRoot;
     if (myParameters.containsKey(TemplateMetadata.ATTR_PACKAGE_ROOT)) {
-      javaSourcePackageRoot = new File((String)get(TemplateMetadata.ATTR_PACKAGE_ROOT));
-      String relativePath = FileUtil.getRelativePath(javaSourceRoot, javaSourcePackageRoot);
-      String javaPackage = relativePath != null ? FileUtil.toSystemIndependentName(relativePath).replace('/', '.') : null;
-      put(TemplateMetadata.ATTR_PACKAGE_NAME, javaPackage);
+      javaSourcePackageRoot = new File(getString(TemplateMetadata.ATTR_PACKAGE_ROOT));
+      if (myParameters.containsKey(TemplateMetadata.ATTR_PACKAGE_NAME)) {
+        String relativePath = FileUtil.getRelativePath(javaSourceRoot, javaSourcePackageRoot);
+        String javaPackage = relativePath != null ? FileUtil.toSystemIndependentName(relativePath).replace('/', '.') : null;
+        put(TemplateMetadata.ATTR_PACKAGE_NAME, javaPackage);
+      }
     } else {
       javaSourcePackageRoot = new File(javaSourceRoot, getString(TemplateMetadata.ATTR_PACKAGE_NAME).replace('.', File.separatorChar));
     }
