@@ -80,6 +80,11 @@ public class AndroidModuleInfo {
     return ManifestInfo.get(myFacet.getModule()).getMinSdkVersion();
   }
 
+  public String getMinSdkName() {
+    // TODO: Do something other than falling through to the manifest
+    return ManifestInfo.get(myFacet.getModule()).getMinSdkName();
+  }
+
   public int getTargetSdkVersion() {
     IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
     if (project != null) {

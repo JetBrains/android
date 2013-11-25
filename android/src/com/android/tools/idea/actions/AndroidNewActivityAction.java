@@ -24,6 +24,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAware;
+import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,9 +36,6 @@ public class AndroidNewActivityAction extends JavaSourceAction implements DumbAw
   }
 
   protected static boolean isAvailable(@NotNull DataContext dataContext) {
-    if (!JavaSourceAction.isAvailable(dataContext)) {
-      return false;
-    }
     final Module module = LangDataKeys.MODULE.getData(dataContext);
     return module != null && AndroidGradleFacet.getInstance(module) != null;
   }
@@ -50,9 +48,14 @@ public class AndroidNewActivityAction extends JavaSourceAction implements DumbAw
   @Override
   public void actionPerformed(AnActionEvent e) {
     DataContext dataContext = e.getDataContext();
+
+    VirtualFile targetFile = null;
+    if (JavaSourceAction.isAvailable(dataContext)) {
+      targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
+    }
     NewTemplateObjectWizard dialog = new NewTemplateObjectWizard(CommonDataKeys.PROJECT.getData(dataContext),
                                                                  LangDataKeys.MODULE.getData(dataContext),
-                                                                 CommonDataKeys.VIRTUAL_FILE.getData(dataContext),
+                                                                 targetFile,
                                                                  CATEGORY_ACTIVITIES);
     dialog.show();
     if (dialog.isOK()) {
