@@ -30,10 +30,13 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.lang.reflect.Field;
 import java.util.Arrays;
+
+import static com.android.SdkConstants.*;
 
 /**
  * @author Alexander Lobas
@@ -42,24 +45,53 @@ public class RadGridLayoutComponent extends RadViewContainer implements ICompone
   private GridInfo myGridInfo;
   private GridInfo myVirtualGridInfo;
 
+  /**
+   * Returns the namespace URI to use for GridLayout-specific attributes, such
+   * as columnCount, layout_column, layout_column_span, layout_gravity etc.
+   *
+   * @param component the component instance to look up the namespace for; typically
+   *                  the grid layout itself (to look up attributes like columnCount)
+   *                  or one of its children (to look up the layout parameters)
+   * @return the namespace, never null
+   */
+  @NotNull
+  public static String getGridLayoutNamespace(@NotNull RadViewComponent component) {
+    RadComponent parent = component.getParent();
+    if (parent instanceof RadViewComponent) {
+      String fqcn = ((RadViewComponent)parent).getTag().getName();
+      if (fqcn.equals(FQCN_GRID_LAYOUT_V7)) {
+        return AUTO_URI;
+      }
+    }
+
+    String fqcn = component.getTag().getName();
+    if (fqcn.equals(FQCN_GRID_LAYOUT_V7)) {
+      return AUTO_URI;
+    }
+
+    return ANDROID_URI;
+  }
+
   @Override
   public void decorateTree(SimpleColoredComponent renderer, AttributeWrapper wrapper) {
     XmlTag tag = getTag();
     StringBuilder value = new StringBuilder(" (");
 
-    String rowCount = tag.getAttributeValue("rowCount", SdkConstants.NS_RESOURCES);
+    String namespace = getGridLayoutNamespace(this);
+
+    String rowCount = tag.getAttributeValue(ATTR_ROW_COUNT, namespace);
     value.append(StringUtil.isEmpty(rowCount) ? "?" : rowCount).append(", ");
 
-    String columnCount = tag.getAttributeValue("columnCount", SdkConstants.NS_RESOURCES);
+    String columnCount = tag.getAttributeValue(ATTR_COLUMN_COUNT, namespace);
     value.append(StringUtil.isEmpty(columnCount) ? "?" : columnCount).append(", ");
 
-    value.append(isHorizontal() ? "horizontal" : "vertical");
+    value.append(isHorizontal() ? VALUE_HORIZONTAL : VALUE_VERTICAL);
 
     renderer.append(value.append(")").toString(), wrapper.getAttribute(SimpleTextAttributes.REGULAR_ATTRIBUTES));
   }
 
   public boolean isHorizontal() {
-    return !"vertical".equals(getTag().getAttributeValue("orientation", SdkConstants.NS_RESOURCES));
+    return !"vertical".equals(getTag().getAttributeValue(ATTR_ORIENTATION, getGridLayoutNamespace(this)));
   }
 
   @Override
@@ -260,13 +292,32 @@ public class RadGridLayoutComponent extends RadViewContainer implements ICompone
       @Override
       public void run() {
         XmlTag tag = ((RadViewComponent)component).getTag();
-        tag.setAttribute("layout_row", SdkConstants.NS_RESOURCES, Integer.toString(row));
-        tag.setAttribute("layout_column", SdkConstants.NS_RESOURCES, Integer.toString(column));
+        String namespace = getGridLayoutNamespace((RadViewComponent)component);
+        tag.setAttribute(ATTR_LAYOUT_ROW, namespace, Integer.toString(row));
+        tag.setAttribute(ATTR_LAYOUT_COLUMN, namespace, Integer.toString(column));
         if (clearRowSpan) {
-          ModelParser.deleteAttribute(tag, "layout_rowSpan");
+          ModelParser.deleteAttribute(tag, ATTR_LAYOUT_ROW_SPAN, namespace);
         }
         if (clearColumnSpan) {
-          ModelParser.deleteAttribute(tag, "layout_columnSpan");
+          ModelParser.deleteAttribute(tag, ATTR_LAYOUT_COLUMN_SPAN, namespace);
+        }
+
+        XmlTag layoutTag = ((RadViewComponent)component.getParent()).getTag();
+        String columnCount = layoutTag.getAttributeValue(ATTR_COLUMN_COUNT, namespace);
+        if (columnCount != null) {
+          int columns = Integer.parseInt(columnCount);
+          int requiredColumns = column + (clearColumnSpan ? 1 : getSpan(component, false));
+          if (requiredColumns > columns) {
+            layoutTag.setAttribute(ATTR_COLUMN_COUNT, namespace, Integer.toString(requiredColumns));
+          }
+        }
+        String rowCount = layoutTag.getAttributeValue(ATTR_ROW_COUNT, namespace);
+        if (rowCount != null) {
+          int rows = Integer.parseInt(rowCount);
+          int requiredRows = row + (clearRowSpan ? 1 : getSpan(component, true));
+          if (requiredRows > rows) {
+            layoutTag.setAttribute(ATTR_ROW_COUNT, namespace, Integer.toString(requiredRows));
+          }
         }
       }
     });
@@ -274,8 +325,9 @@ public class RadGridLayoutComponent extends RadViewContainer implements ICompone
 
   public static int getSpan(RadComponent component, boolean row) {
     try {
+      String namespace = getGridLayoutNamespace((RadViewComponent)component);
       String span =
-        ((RadViewComponent)component).getTag().getAttributeValue(row ? "layout_rowSpan" : "layout_columnSpan", SdkConstants.NS_RESOURCES);
+        ((RadViewComponent)component).getTag().getAttributeValue(row ? ATTR_LAYOUT_ROW_SPAN : ATTR_LAYOUT_COLUMN_SPAN, namespace);
       return Integer.parseInt(span);
     }
     catch (Throwable e) {
@@ -287,8 +339,9 @@ public class RadGridLayoutComponent extends RadViewContainer implements ICompone
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
+        String namespace = getGridLayoutNamespace((RadViewComponent)component);
         XmlTag tag = ((RadViewComponent)component).getTag();
-        tag.setAttribute(row ? "layout_rowSpan" : "layout_columnSpan", SdkConstants.NS_RESOURCES, Integer.toString(span));
+        tag.setAttribute(row ? ATTR_LAYOUT_ROW_SPAN : ATTR_LAYOUT_COLUMN_SPAN, namespace, Integer.toString(span));
       }
     });
   }
@@ -297,9 +350,10 @@ public class RadGridLayoutComponent extends RadViewContainer implements ICompone
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
+        String namespace = getGridLayoutNamespace((RadViewComponent)component);
         XmlTag tag = ((RadViewComponent)component).getTag();
-        ModelParser.deleteAttribute(tag, "layout_rowSpan");
-        ModelParser.deleteAttribute(tag, "layout_columnSpan");
+        ModelParser.deleteAttribute(tag, ATTR_LAYOUT_ROW_SPAN, namespace);
+        ModelParser.deleteAttribute(tag, ATTR_LAYOUT_COLUMN_SPAN, namespace);
       }
     });
   }
