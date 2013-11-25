@@ -26,7 +26,6 @@ import com.intellij.ide.dnd.DnDEvent;
 import com.intellij.ide.dnd.DnDManager;
 import com.intellij.ide.dnd.DnDTarget;
 import com.intellij.ide.dnd.TransferableWrapper;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
@@ -52,7 +51,7 @@ import java.util.*;
 import static com.android.tools.idea.editors.navigation.Utilities.*;
 
 public class NavigationEditorPanel extends JComponent {
-  private static final Logger LOG = Logger.getInstance("#" + NavigationEditorPanel.class.getName());
+  //private static final Logger LOG = Logger.getInstance("#" + NavigationEditorPanel.class.getName());
   private static final Dimension GAP = new Dimension(150, 50);
   private static final Color BACKGROUND_COLOR = Gray.get(192);
   private static final Color SNAP_GRID_LINE_COLOR_MINOR = Gray.get(180);
@@ -180,18 +179,6 @@ public class NavigationEditorPanel extends JComponent {
         }
       });
     }
-
-    /*
-    {
-      PsiMethod template =
-        getMethodsByName(myMyRenderingParams.myConfiguration.getModule(), "com.android.templates.InstallListenerTemplates",
-                         "installItemClickListener")[0];
-      PsiMethod candidate =
-        getMethodsByName(myMyRenderingParams.myConfiguration.getModule(), "com.example.simplemail.fragment.MessageListFragment",
-                         "installListeners")[0];
-      new Unifier().unify(template, candidate.getBody());
-    }
-    */
   }
 
   @Nullable
@@ -790,6 +777,7 @@ public class NavigationEditorPanel extends JComponent {
     return xmlResourceName == null ? null : fileSystem.findFileByPath(path + dir + xmlResourceName + ".xml");
   }
 
+  @Nullable
   public static PsiFile getPsiFile(boolean menu, String xmlFileName, VirtualFile navFile, Project project) {
     String dir = menu ? ResourceType.MENU.getName() : ResourceType.LAYOUT.getName();
     VirtualFileSystem fileSystem = navFile.getFileSystem();
@@ -806,7 +794,7 @@ public class NavigationEditorPanel extends JComponent {
     boolean isMenu = state instanceof MenuState;
     Module module = myMyRenderingParams.myFacet.getModule();
     String xmlFileName = getXMLFileName(module, state);
-    PsiFile psiFile = getPsiFile(isMenu, xmlFileName, myFile, myMyRenderingParams.myProject);
+    PsiFile psiFile = xmlFileName == null ? null : getPsiFile(isMenu, xmlFileName, myFile, myMyRenderingParams.myProject);
     AndroidRootComponent result = new AndroidRootComponent(myMyRenderingParams, psiFile, isMenu);
     result.setScale(myTransform.myScale);
     return result;
@@ -896,6 +884,17 @@ public class NavigationEditorPanel extends JComponent {
   private class MyDnDTarget implements DnDTarget {
     private int applicableDropCount = 0;
 
+    private void execute(State state, boolean execute) {
+      if (!getStateComponentAssociation().keyToValue.containsKey(state)) {
+        if (execute) {
+          myNavigationModel.addState(state);
+        }
+        else {
+          applicableDropCount++;
+        }
+      }
+    }
+
     private void dropOrPrepareToDrop(DnDEvent anEvent, boolean execute) {
       Object attachedObject = anEvent.getAttachedObject();
       if (attachedObject instanceof TransferableWrapper) {
@@ -911,14 +910,7 @@ public class NavigationEditorPanel extends JComponent {
               if (dir != null && dir.getName().equals(SdkConstants.FD_RES_MENU)) {
                 String resourceName = ResourceHelper.getResourceName(containingFile);
                 State state = new MenuState(resourceName);
-                if (!getStateComponentAssociation().keyToValue.containsKey(state)) {
-                  if (execute) {
-                    myNavigationModel.addState(state);
-                  }
-                  else {
-                    applicableDropCount++;
-                  }
-                }
+                execute(state, execute);
               }
             }
             if (element instanceof PsiQualifiedNamedElement) {
@@ -929,14 +921,7 @@ public class NavigationEditorPanel extends JComponent {
                 Dimension size = myMyRenderingParams.getDeviceScreenSizeFor(myTransform);
                 Point dropLocation = diff(dropLoc, midPoint(size));
                 state.setLocation(myTransform.viewToModel(snap(dropLocation, MIDDLE_SNAP_GRID)));
-                if (!getStateComponentAssociation().keyToValue.containsKey(state)) {
-                  if (execute) {
-                    myNavigationModel.addState(state);
-                  }
-                  else {
-                    applicableDropCount++;
-                  }
-                }
+                execute(state, execute);
                 dropLoc = Utilities.add(dropLocation, MULTIPLE_DROP_STRIDE);
               }
             }
