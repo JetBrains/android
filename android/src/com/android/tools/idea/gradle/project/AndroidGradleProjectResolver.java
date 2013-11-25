@@ -26,13 +26,14 @@ import com.android.tools.idea.gradle.service.notification.OpenAndroidSdkManagerH
 import com.android.tools.idea.gradle.service.notification.SearchInBuildFilesHyperlink;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
-import com.android.tools.idea.structure.AndroidHomeConfigurable;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.execution.configurations.SimpleJavaParameters;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.Key;
@@ -202,8 +203,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         syncIdeAndProjectAndroidHomes(localProperties);
       }
       else if (Strings.isNullOrEmpty(localProperties.getAndroidSdkPath())) {
-        String androidHome = AndroidHomeConfigurable.getDefaultAndroidHome();
-        args.add(KeyValue.create(AndroidGradleSettings.ANDROID_HOME_JVM_ARG, androidHome));
+        File androidHomePath = DefaultSdks.getDefaultAndroidHome();
+        assert androidHomePath != null;
+        args.add(KeyValue.create(AndroidGradleSettings.ANDROID_HOME_JVM_ARG, androidHomePath.getPath()));
       }
 
       args.add(KeyValue.create(AndroidProject.BUILD_MODEL_ONLY_SYSTEM_PROPERTY, String.valueOf(this.resolverCtx.isPreviewMode())));
@@ -224,14 +226,18 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   }
 
   private static void syncIdeAndProjectAndroidHomes(@NotNull final LocalProperties localProperties) {
-    final String ideAndroidHome = AndroidHomeConfigurable.getDefaultAndroidHome();
+    File androidHomePath = DefaultSdks.getDefaultAndroidHome();
+    assert androidHomePath != null;
+
+    final String ideAndroidHome = androidHomePath.getPath();
     final String projectAndroidHome = localProperties.getAndroidSdkPath();
 
     if (projectAndroidHome == null || projectAndroidHome.isEmpty()) {
       setProjectSdk(localProperties, ideAndroidHome);
       return;
     }
-    if (!AndroidHomeConfigurable.validateAndroidHome(projectAndroidHome)) {
+    final File projectAndroidHomePath = new File(projectAndroidHome);
+    if (!DefaultSdks.validateAndroidSdkPath(projectAndroidHomePath)) {
       // The SDK path is not valid. It may be pointing to an SDK that does not exist. Just use Android Studio's.
       UIUtil.invokeAndWaitIfNeeded(new Runnable() {
         @Override
@@ -257,7 +263,12 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
               setProjectSdk(localProperties, ideAndroidHome);
               break;
             case ChooseSdkPathDialog.USE_PROJECT_SDK_PATH:
-              AndroidHomeConfigurable.setDefaultAndroidHome(projectAndroidHome);
+              ApplicationManager.getApplication().runWriteAction(new Runnable() {
+                @Override
+                public void run() {
+                  DefaultSdks.setDefaultAndroidHome(projectAndroidHomePath, false);
+                }
+              });
           }
         }
       });
