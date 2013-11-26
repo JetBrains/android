@@ -709,7 +709,7 @@ public class Template {
     Multimap<String, GradleCoordinate> dependencies = LinkedListMultimap.create();
 
     // First, get the contents of the gradle file.
-    String contents = StringUtil.notNullize(readTextFile(gradleBuildFile));
+    String contents = StringUtil.notNullize(readTextFile(gradleBuildFile, false /* Don't log if not exists */));
 
     // Now, look for a (top-level) dependency block
     int braceCount = 0;
@@ -807,6 +807,7 @@ public class Template {
     sb.append(contents.substring(dependencyBlockEnd));
 
     try {
+      FileUtil.createParentDirs(gradleBuildFile);
       writeFile(sb.toString(), gradleBuildFile);
     }
     catch (IOException e) {
