@@ -63,7 +63,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
     super(manager, dataSource, project);
 
     myConfigurationPanel.setBorder(IdeBorderFactory.createEmptyBorder(10, 0, 0, 0));
-    myNameField.setLabelText("Data Source Name");
+    myNameField.setLabelText("Name:");
     myNameField.createComponent();
 
     final AndroidDataSource.State state = dataSource.getState();
