@@ -20,6 +20,8 @@ import com.android.tools.idea.editors.navigation.Utilities;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.*;
+import com.intellij.psi.codeStyle.CodeStyleManager;
+import org.jetbrains.annotations.NotNull;
 
 public class CodeGenerator {
   public final Module module;
@@ -32,55 +34,15 @@ public class CodeGenerator {
     this.macros = new Macros(module); // todo - share this with the analysis implementation
   }
 
-  public void implementTransition(final Transition transition) {
-    JavaPsiFacade facade = JavaPsiFacade.getInstance(module.getProject());
-    final PsiElementFactory factory = facade.getElementFactory();
 
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        State sourceState = transition.getSource().getState();
-        State destinationState = transition.getDestination().getState();
-        if (sourceState instanceof MenuState && destinationState instanceof ActivityState) {
-          MenuState menuState = (MenuState)sourceState;
-          ActivityState activityState = (ActivityState)destinationState;
-          ActivityState originatingActivity = getAssociatedActivityState(menuState);
-          PsiClass psiClass = Utilities.getPsiClass(module, originatingActivity.getClassName());
-          PsiMethod[] onPrepareOptionsMenuMethods = psiClass.findMethodsByName("onPrepareOptionsMenu", false);
-          if (onPrepareOptionsMenuMethods.length == 1) {
-            PsiMethod onPrepareOptionsMenuMethod = onPrepareOptionsMenuMethods[0];
-            PsiParameter[] parameters = onPrepareOptionsMenuMethod.getParameterList().getParameters();
-            if (parameters.length == 1) {
-              PsiCodeBlock body = onPrepareOptionsMenuMethod.getBody();
-              PsiStatement[] statements = body.getStatements();
-              PsiStatement lastStatement = statements[statements.length - 1];
-              MultiMatch installMenuItemOnGetMenuItemAndLaunchActivityMacro = macros.installMenuItemOnGetMenuItemAndLaunchActivityMacro;
+  /*
+  Map<String, PsiElement> bindings = new HashMap<String, PsiElement>();
+  bindings.put("$menuItem", factory.createIdentifier("hello"));
+  bindings.put("$f", factory.createIdentifier("goodbye"));
+  bindings.put("$consume", factory.createExpressionFromText("true", body));
+  PsiElement newCode = Instantiation.instantiate(installMenuItemClick, bindings);
+  */
 
-            /*
-            Map<String, PsiElement> bindings = new HashMap<String, PsiElement>();
-            bindings.put("$menuItem", factory.createIdentifier("hello"));
-            bindings.put("$f", factory.createIdentifier("goodbye"));
-            bindings.put("$consume", factory.createExpressionFromText("true", body));
-            PsiElement newCode = Instantiation.instantiate(installMenuItemClick, bindings);
-            */
-
-              MultiMatch.Bindings2 bindings = new MultiMatch.Bindings2();
-              bindings.put("$consume", "true");
-              bindings.put("$menuItem", "$menu", parameters[0].getName());
-              bindings.put("$menuItem", "$id", "R.id." + transition.getSource().getViewName());
-              bindings.put("$f", "context", originatingActivity.getClassName() + ".this");
-              bindings.put("$f", "activityClass", activityState.getClassName() + ".class");
-
-              String newCode = installMenuItemOnGetMenuItemAndLaunchActivityMacro.instantiate(bindings);
-              PsiStatement newStatement = factory.createStatementFromText(newCode + ";", body);
-
-              body.addBefore(newStatement, lastStatement);
-            }
-          }
-        }
-      }
-    });
-  }
 
   private ActivityState getAssociatedActivityState(MenuState menuState) {
     for (Transition t : navigationModel.getTransitions()) {
@@ -94,5 +56,59 @@ public class CodeGenerator {
     }
     assert false;
     return null;
+  }
+
+  public void implementTransition(final Transition transition) {
+    JavaPsiFacade facade = JavaPsiFacade.getInstance(module.getProject());
+    final PsiElementFactory factory = facade.getElementFactory();
+    final CodeStyleManager codeStyleManager = CodeStyleManager.getInstance(module.getProject());
+
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        State sourceState = transition.getSource().getState();
+        State destinationState = transition.getDestination().getState();
+        if (sourceState instanceof MenuState && destinationState instanceof ActivityState) {
+          MenuState menuState = (MenuState)sourceState;
+          ActivityState activityState = (ActivityState)destinationState;
+          ActivityState originatingActivity = getAssociatedActivityState(menuState);
+          PsiClass psiClass = Utilities.getPsiClass(module, originatingActivity.getClassName()); // todo what if no class is defined?
+          @NotNull PsiMethod template = factory.createMethodFromText("public boolean onPrepareOptionsMenu(Menu menu){}", psiClass);
+          PsiMethod method = psiClass.findMethodBySignature(template, false); // todo generate if it's not already there
+          String parameterName = method.getParameterList().getParameters()[0].getName();
+          PsiCodeBlock body = method.getBody();
+          PsiStatement[] statements = body.getStatements();
+          PsiStatement lastStatement = statements[statements.length - 1];
+          MultiMatch macro = macros.installMenuItemOnGetMenuItemAndLaunchActivityMacro;
+          MultiMatch.Bindings<String> bindings = new MultiMatch.Bindings<String>();
+          bindings.put("$consume", "true");
+          bindings.put("$menuItem", "$menu", parameterName);
+          bindings.put("$menuItem", "$id", "R.id." + transition.getSource().getViewName());
+          bindings.put("$f", "context", originatingActivity.getClassName() + ".this");
+          bindings.put("$f", "activityClass", activityState.getClassName() + ".class");
+          String newCode = macro.instantiate(bindings);
+          PsiStatement newStatement = factory.createStatementFromText(newCode + ";", body);
+          body.addBefore(newStatement, lastStatement);
+          codeStyleManager.reformat(method);
+        }
+        if (sourceState instanceof ActivityState && destinationState instanceof MenuState) {
+          ActivityState activityState = (ActivityState)sourceState;
+          MenuState menuState = (MenuState)destinationState;
+          PsiClass psiClass = Utilities.getPsiClass(module, activityState.getClassName()); // todo what if no class is defined?
+          PsiMethod template = factory.createMethodFromText("public boolean onCreateOptionsMenu(Menu menu){}", psiClass);
+          PsiMethod method = psiClass.findMethodBySignature(template, false); // todo generate if it's not already there
+          String parameterName = method.getParameterList().getParameters()[0].getName();
+          PsiCodeBlock body = method.getBody();
+          PsiStatement[] statements = body.getStatements();
+          PsiStatement lastStatement = statements[statements.length - 1];
+          String newStatementText = "getMenuInflater().inflate(R.menu.$XmlResourceName, $parameterName);";
+          newStatementText = newStatementText.replace("$XmlResourceName", menuState.getXmlResourceName());
+          newStatementText = newStatementText.replace("$parameterName", parameterName);
+          PsiStatement newStatement = factory.createStatementFromText(newStatementText, body);
+          body.addBefore(newStatement, lastStatement);
+          codeStyleManager.reformat(method);
+        }
+      }
+    });
   }
 }

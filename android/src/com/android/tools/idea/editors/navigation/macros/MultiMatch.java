@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.navigation.macros;
 
-import com.android.tools.idea.editors.navigation.NavigationEditor;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import org.jetbrains.annotations.Nullable;
@@ -37,9 +36,8 @@ public class MultiMatch {
   }
 
   @Nullable
-  public Bindings match(PsiElement element) {
+  public Bindings<PsiElement> match(PsiElement element) {
     Map<String, PsiElement> bindings = Unifier.match(macro, element);
-    if (NavigationEditor.DEBUG) System.out.println("bindings = " + bindings);
     if (bindings == null) {
       return null;
     }
@@ -53,10 +51,10 @@ public class MultiMatch {
       }
       subBindings.put(name, subBinding);
     }
-    return new Bindings(bindings, subBindings);
+    return new Bindings<PsiElement>(bindings, subBindings);
   }
 
-  public String instantiate(Bindings2 bindings) {
+  public String instantiate(Bindings<String> bindings) {
     Map<String, String> bb = bindings.bindings;
 
     for (Map.Entry<String, PsiMethod> entry : subMacros.entrySet()) {
@@ -68,37 +66,27 @@ public class MultiMatch {
     return Instantiation.instantiate2(macro, bb);
   }
 
-  public static class Bindings {
-    public final Map<String, PsiElement> bindings;
-    public final Map<String, Map<String, PsiElement>> subBindings;
+  public static class Bindings<T> {
+    public final Map<String, T> bindings;
+    public final Map<String, Map<String, T>> subBindings;
 
-    Bindings(Map<String, PsiElement> bindings, Map<String, Map<String, PsiElement>> subBindings) {
-      this.bindings = bindings;
-      this.subBindings = subBindings;
-    }
-  }
-
-  public static class Bindings2 {
-    public final Map<String, String> bindings;
-    public final Map<String, Map<String, String>> subBindings;
-
-    Bindings2(Map<String, String> bindings, Map<String, Map<String, String>> subBindings) {
+    Bindings(Map<String, T> bindings, Map<String, Map<String, T>> subBindings) {
       this.bindings = bindings;
       this.subBindings = subBindings;
     }
 
-    Bindings2() {
-      this(new HashMap<String, String>(), new HashMap<String, Map<String, String>>());
+    Bindings() {
+      this(new HashMap<String, T>(), new HashMap<String, Map<String, T>>());
     }
 
-    public void put(String key, String value) {
+    public void put(String key, T value) {
       bindings.put(key, value);
     }
 
-    public void put(String key1, String key2, String value) {
-      Map<String, String> subBinding = subBindings.get(key1);
+    public void put(String key1, String key2, T value) {
+      Map<String, T> subBinding = subBindings.get(key1);
       if (subBinding == null) {
-        subBindings.put(key1, subBinding = new HashMap<String, String>());
+        subBindings.put(key1, subBinding = new HashMap<String, T>());
       }
       subBinding.put(key2, value);
     }
