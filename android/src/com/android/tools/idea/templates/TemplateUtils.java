@@ -354,16 +354,29 @@ public class TemplateUtils {
   /**
    * Reads the given file as text.
    * @param file The file to read. Must be an absolute reference.
+   * @param warnIfNotExists if true, logs a warning if the file does not exist.
    * @return the contents of the file as text
    */
   @Nullable
-  public static String readTextFile(@NotNull File file) {
+  public static String readTextFile(@NotNull File file, boolean warnIfNotExists) {
     assert file.isAbsolute();
     try {
       return Files.toString(file, Charsets.UTF_8);
     } catch (IOException e) {
-      LOG.warn(e);
+      if (warnIfNotExists) {
+        LOG.warn(e);
+      }
       return null;
     }
+  }
+
+  /**
+   * Reads the given file as text.
+   * @param file The file to read. Must be an absolute reference.
+   * @return the contents of the file as text
+   */
+  @Nullable
+  public static String readTextFile(@NotNull File file) {
+    return readTextFile(file, true);
   }
 }
