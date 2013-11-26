@@ -125,8 +125,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       return;
     }
 
-    // create Android Facet only for Android modules
-    if (androidProject != null) {
+    // create Android Facet (for android JPS builder) only if there is at least one Android module exist in the project
+    if (!resolverCtx.findModulesWithModel(AndroidProject.class).isEmpty()) {
       IdeaGradleProject ideaGradleProject = new IdeaGradleProject(gradleModule.getName(), buildFile, gradleModule.getGradleProject().getPath());
       ideModule.createChild(AndroidProjectKeys.IDE_GRADLE_PROJECT, ideaGradleProject);
     }
