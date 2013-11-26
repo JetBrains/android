@@ -33,6 +33,7 @@ import java.util.*;
 import static com.android.navigation.Utilities.getPropertyName;
 import static com.android.tools.idea.editors.navigation.Utilities.getMethodsByName;
 
+@SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class Analysis {
   @Nullable
   public static String getInnerText(String s) {
@@ -84,7 +85,7 @@ public class Analysis {
               PsiStatement[] statements = onPrepareOptionsMenuMethod.getBody().getStatements();
               if (NavigationEditor.DEBUG) System.out.println("statements = " + Arrays.toString(statements));
               for (PsiStatement s : statements) {
-                MultiMatch.Bindings multiMatchResult = macros.installMenuItemOnGetMenuItemAndLaunchActivityMacro.match(s.getFirstChild());
+                MultiMatch.Bindings<PsiElement> multiMatchResult = macros.installMenuItemOnGetMenuItemAndLaunchActivityMacro.match(s.getFirstChild());
                 if (multiMatchResult != null) {
                   Map<String, Map<String, PsiElement>> subBindings = multiMatchResult.subBindings;
                   ActivityState activityState =
@@ -113,7 +114,7 @@ public class Analysis {
           PsiMethod installListenersMethod = methods[0];
           PsiStatement[] statements = installListenersMethod.getBody().getStatements();
           for (PsiStatement s : statements) {
-            MultiMatch.Bindings multiMatchResult = macros.installItemClickAndCallMacro.match(s.getFirstChild());
+            MultiMatch.Bindings<PsiElement> multiMatchResult = macros.installItemClickAndCallMacro.match(s.getFirstChild());
             if (multiMatchResult != null) {
               final Map<String, PsiElement> bindings = multiMatchResult.bindings;
               final Map<String, Map<String, PsiElement>> subBindings = multiMatchResult.subBindings;
@@ -140,7 +141,7 @@ public class Analysis {
                         }
                       }
                     }
-                    MultiMatch.Bindings multiMatchResult1 = macros.defineInnerClassToLaunchActivityMacro.match(rExpression);
+                    MultiMatch.Bindings<PsiElement> multiMatchResult1 = macros.defineInnerClassToLaunchActivityMacro.match(rExpression);
                     if (multiMatchResult1 != null) {
                       PsiElement activityClass = multiMatchResult1.subBindings.get("$f").get("activityClass").getFirstChild();
                       State toState = activities.get(getQualifiedName(activityClass));
