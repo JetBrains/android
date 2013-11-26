@@ -191,7 +191,7 @@ public class AndroidDbManager extends DbPsiManagerSpi {
     @NotNull
     @Override
     public String getName() {
-      return "Android SQLite Connection";
+      return "Android SQLite";
     }
 
     @NotNull
@@ -216,7 +216,7 @@ public class AndroidDbManager extends DbPsiManagerSpi {
       else {
         result = new AndroidDataSource("");
       }
-      result.setName(StringUtil.notNullize(newName, "Android connection"));
+      result.setName(StringUtil.notNullize(newName, getName()));
       result.init();
       return result;
     }
