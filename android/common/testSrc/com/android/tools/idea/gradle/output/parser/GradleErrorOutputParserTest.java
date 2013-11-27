@@ -365,7 +365,7 @@ public class GradleErrorOutputParserTest extends TestCase {
     File valueDir = new File(tempDir, "values-en");
     valueDir.mkdirs();
     sourceFile = new File(valueDir, "values.xml"); // Keep in sync with MergedResourceWriter.FN_VALUES_XML
-    sourceFilePath = FileUtil.toSystemIndependentName(sourceFile.getAbsolutePath());
+    sourceFilePath = sourceFile.getAbsolutePath();
 
     writeToFile(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -626,8 +626,8 @@ public class GradleErrorOutputParserTest extends TestCase {
   public void testDuplicateResources2() throws Exception {
     File file1 = File.createTempFile(GradleErrorOutputParserTest.class.getName(), DOT_XML);
     File file2 = File.createTempFile(GradleErrorOutputParserTest.class.getName(), DOT_XML);
-    String path1 = FileUtil.toSystemIndependentName(file1.getPath());
-    String path2 = FileUtil.toSystemIndependentName(file2.getPath());
+    String path1 = file1.getPath();
+    String path2 = file2.getPath();
 
     Files.write(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -869,7 +869,7 @@ public class GradleErrorOutputParserTest extends TestCase {
   public void test() throws Exception {
     File tempDir = Files.createTempDir();
     sourceFile = new File(tempDir, "values.xml"); // Name matters for position search
-    sourceFilePath = FileUtil.toSystemIndependentName(sourceFile.getAbsolutePath());
+    sourceFilePath = sourceFile.getAbsolutePath();
     File source = new File(tempDir, "dimens.xml");
     Files.write("<resources>\n" +
                 "    <!-- Default screen margins, per the Android Design guidelines. -->\n" +
@@ -883,7 +883,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "    <!-- From: file:/Users/unittest/AndroidStudioProjects/BlankProject1Project/BlankProject1/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values/values.xml -->\n" +
                 "    <dimen name=\"abc_action_bar_default_height\">48dip</dimen>\n" +
                 "    <dimen name=\"abc_action_bar_icon_vertical_padding\">8dip</dimen>\n" +
-                "    <!-- From: file:" + FileUtil.toSystemIndependentName(source.getPath()) + " -->\n" +
+                "    <!-- From: file:" + source.getPath() + " -->\n" +
                 "    <dimen name=\"activity_horizontal_margin\">16dp</dimen>\n" +
                 "    <dimen name=\"activity_vertical_margin\">16dp</dimen>\n" +
                 "    <dimen name=\"ok\">50dp</dimen>\n" +
@@ -1043,7 +1043,7 @@ public class GradleErrorOutputParserTest extends TestCase {
   public void testLayoutFileSuffix() throws Exception {
     File tempDir = Files.createTempDir();
     sourceFile = new File(tempDir, "layout.xml");
-    sourceFilePath = FileUtil.toSystemIndependentName(sourceFile.getAbsolutePath());
+    sourceFilePath = sourceFile.getAbsolutePath();
     File source = new File(tempDir, "layout.xml");
     Files.write("<RelativeLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                 "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
