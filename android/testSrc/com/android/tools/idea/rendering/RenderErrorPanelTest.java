@@ -56,6 +56,9 @@ public class RenderErrorPanelTest extends AndroidTestCase {
   private IAndroidTarget getTestTarget(@NotNull ConfigurationManager configurationManager) {
     String platformDir = getPlatformDir();
     for (IAndroidTarget target : configurationManager.getTargets()) {
+      if (!ConfigurationManager.isLayoutLibTarget(target)) {
+        continue;
+      }
       String path = target.getPath(IAndroidTarget.ANDROID_JAR);
       if (path == null) {
         continue;
