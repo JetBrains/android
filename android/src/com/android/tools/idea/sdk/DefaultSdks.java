@@ -89,6 +89,8 @@ public final class DefaultSdks {
    */
   public static List<Sdk> setDefaultAndroidHome(@NotNull File path, boolean updateLocalPropertiesFile) {
     if (validateAndroidSdkPath(path)) {
+      AndroidSdkUtils.clearSdkManager();
+
       // Set up a list of SDKs we don't need any more. At the end we'll delete them.
       List<Sdk> sdksToDelete = Lists.newArrayList();
 

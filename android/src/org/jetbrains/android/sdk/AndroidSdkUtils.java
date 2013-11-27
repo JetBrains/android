@@ -849,4 +849,8 @@ public final class AndroidSdkUtils {
   public static void setSdkManager(SdkManager manager) {
     ourSdkManager = manager;
   }
+
+  public static void clearSdkManager() {
+    ourSdkManager = null;
+  }
 }
