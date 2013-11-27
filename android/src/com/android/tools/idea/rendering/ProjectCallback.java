@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.LayoutLibrary;
+import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.rendering.legacy.LegacyCallback;
 import com.android.ide.common.resources.ResourceResolver;
@@ -71,6 +72,7 @@ public final class ProjectCallback extends LegacyCallback {
   @NotNull private final Module myModule;
   @NotNull private final LocalResourceRepository myProjectRes;
   @NotNull final private LayoutLibrary myLayoutLib;
+  @Nullable private final Object myCredential;
   @Nullable private String myNamespace;
   @Nullable private RenderLogger myLogger;
   @NotNull private ViewLoader myClassLoader;
@@ -86,17 +88,18 @@ public final class ProjectCallback extends LegacyCallback {
    *
    * @param layoutLib  The layout library this callback is going to be invoked from
    * @param projectRes the {@link LocalResourceRepository} for the project.
-   * @param project    the project.
+   * @param module     the module
+   * @param facet      the facet
+   * @param logger     the render logger
+   * @param credential the sandbox credential
    */
-  public ProjectCallback(@NotNull LayoutLibrary layoutLib, @NotNull LocalResourceRepository projectRes, @NotNull Module project,
-                         @NotNull RenderLogger logger) {
+  public ProjectCallback(@NotNull LayoutLibrary layoutLib, @NotNull LocalResourceRepository projectRes, @NotNull Module module,
+                         @NotNull AndroidFacet facet, @NotNull RenderLogger logger, @Nullable Object credential) {
     myLayoutLib = layoutLib;
     myProjectRes = projectRes;
-    myModule = project;
-
-    AndroidFacet facet = AndroidFacet.getInstance(myModule);
-    assert facet != null;
-    myClassLoader = new ViewLoader(myLayoutLib, facet, logger);
+    myModule = module;
+    myCredential = credential;
+    myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential);
   }
 
   /** Resets the callback state for another render */
@@ -143,12 +146,17 @@ public final class ProjectCallback extends LegacyCallback {
       // Ignore these; custom views should always have fully qualified names. However,
       // we *do* want to warn when you have a tag which looks like a core class (e.g.
       // no package name) but isn't recognized.
-      AndroidFacet facet = AndroidFacet.getInstance(myModule);
-      if (facet != null) {
-        List<String> known = AndroidLayoutUtil.getPossibleRoots(facet);
-        if (known.contains(className)) {
-          throw new ClassNotFoundException(className);
+      boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
+      try {
+        AndroidFacet facet = AndroidFacet.getInstance(myModule);
+        if (facet != null) {
+          List<String> known = AndroidLayoutUtil.getPossibleRoots(facet);
+          if (known.contains(className)) {
+            throw new ClassNotFoundException(className);
+          }
         }
+      } finally {
+        RenderSecurityManager.exitSafeRegion(token);
       }
     }
 
