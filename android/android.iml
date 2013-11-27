@@ -52,17 +52,6 @@
     </orderEntry>
     <orderEntry type="module" module-name="external-system-api" />
     <orderEntry type="module" module-name="gradle" />
-    <orderEntry type="module-library">
-      <library name="android-gradle-model">
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/builder-0.6.1.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/lib/src/builder-0.6.1-sources.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
     <orderEntry type="module" module-name="external-system-impl" />
     <orderEntry type="library" name="gson" level="project" />
     <orderEntry type="module" module-name="jetgroovy" />
@@ -79,6 +68,7 @@
         </SOURCES>
       </library>
     </orderEntry>
+    <orderEntry type="library" name="android-builder" level="project" />
   </component>
 </module>
 
