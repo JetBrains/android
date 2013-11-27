@@ -61,14 +61,17 @@ public class ViewLoader {
 
   @NotNull private final Module myModule;
   @NotNull private final Map<String, Class<?>> myLoadedClasses = new HashMap<String, Class<?>>();
+  @Nullable private final Object myCredential;
   @NotNull private RenderLogger myLogger;
   @Nullable private final ClassLoader myParentClassLoader;
   @Nullable private ProjectClassLoader myProjectClassLoader;
 
-  public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull AndroidFacet facet, @NotNull RenderLogger logger) {
+  public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull AndroidFacet facet, @NotNull RenderLogger logger,
+                    @Nullable Object credential) {
     myParentClassLoader = layoutLib.getClassLoader();
     myModule = facet.getModule();
     myLogger = logger;
+    myCredential = credential;
   }
 
   /**
@@ -161,17 +164,11 @@ public class ViewLoader {
     try {
       if (myProjectClassLoader == null) {
         // Allow creating class loaders during rendering; may be prevented by the RenderSecurityManager
-        RenderSecurityManager renderSecurityManager = RenderSecurityManager.getCurrent();
-        if (renderSecurityManager != null) {
-          renderSecurityManager.setActive(false);
-        }
+        boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
         try {
-          System.setSecurityManager(null);
           myProjectClassLoader = new ProjectClassLoader(myParentClassLoader, myModule);
         } finally {
-          if (renderSecurityManager != null) {
-            renderSecurityManager.setActive(true);
-          }
+          RenderSecurityManager.exitSafeRegion(token);
         }
       }
       return myProjectClassLoader.loadClass(className);

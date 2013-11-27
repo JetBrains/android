@@ -78,6 +78,7 @@ public class RenderLogger extends LayoutLog {
   private HtmlLinkManager myLinkManager;
   private boolean myMissingSize;
   private List<String> myMissingFragments;
+  private Object myCredential;
 
   /**
    * Construct a logger for the given named layout
@@ -559,5 +560,9 @@ public class RenderLogger extends LayoutLog {
   @Nullable
   public List<String> getMissingFragments() {
     return myMissingFragments;
+  }
+
+  void setCredential(@Nullable Object credential) {
+    myCredential = credential;
   }
 }
