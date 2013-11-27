@@ -1262,7 +1262,7 @@ public class GradleErrorOutputParserTest extends TestCase {
     sourceFile.delete();
   }
 
-  public void DISABLEDtestDuplicateResources3() throws Exception {
+  public void testDuplicateResources3() throws Exception {
     // Duplicate resource exception: New gradle output format (using MergingException)
     createTempXmlFile();
     String output =
@@ -1371,7 +1371,7 @@ public class GradleErrorOutputParserTest extends TestCase {
     sourceFile.delete();
   }
 
-  public void DISABLEDtestXmlErrorBadLinenumbers() throws Exception {
+  public void testXmlErrorBadLinenumbers() throws Exception {
     // Like testXmlError2, but with tweaked line numbers to check the MergingExceptionParser parser
     createTempXmlFile();
     String output =
@@ -1586,7 +1586,7 @@ public class GradleErrorOutputParserTest extends TestCase {
     sourceFile.delete();
   }
 
-  public void DISABLEDtestInvalidLayoutName() throws Exception {
+  public void testInvalidLayoutName() throws Exception {
     // Invalid layout name
     createTempXmlFile();
     String output =
@@ -1638,8 +1638,60 @@ public class GradleErrorOutputParserTest extends TestCase {
                  toString(parser.parseErrorOutput(output, true)));
     sourceFile.delete();
   }
+  public void testInvalidLayoutName2() throws Exception {
+    // Like testInvalidLayoutName, but with line numbers in the error pattern
+    createTempXmlFile();
+    String output =
+      "Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+      ":MyApplication585:preBuild UP-TO-DATE\n" +
+      ":MyApplication585:preDebugBuild UP-TO-DATE\n" +
+      ":MyApplication585:preReleaseBuild UP-TO-DATE\n" +
+      ":MyApplication585:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+      ":MyApplication585:prepareDebugDependencies\n" +
+      ":MyApplication585:compileDebugAidl UP-TO-DATE\n" +
+      ":MyApplication585:compileDebugRenderscript UP-TO-DATE\n" +
+      ":MyApplication585:generateDebugBuildConfig UP-TO-DATE\n" +
+      ":MyApplication585:mergeDebugAssets UP-TO-DATE\n" +
+      ":MyApplication585:mergeDebugResources\n" +
+      sourceFilePath + ":4: Error: Invalid file name: must contain only lowercase letters and digits ([a-z0-9_.])\n" +
+      ":MyApplication585:mergeDebugResources FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':MyApplication585:mergeDebugResources'.\n" +
+      "> " + sourceFilePath + ":4: Error: Invalid file name: must contain only lowercase letters and digits ([a-z0-9_.])\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 8.91 secs";
+    assertEquals("0: Info:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+                 "1: Info::MyApplication585:preBuild UP-TO-DATE\n" +
+                 "2: Info::MyApplication585:preDebugBuild UP-TO-DATE\n" +
+                 "3: Info::MyApplication585:preReleaseBuild UP-TO-DATE\n" +
+                 "4: Info::MyApplication585:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+                 "5: Info::MyApplication585:prepareDebugDependencies\n" +
+                 "6: Info::MyApplication585:compileDebugAidl UP-TO-DATE\n" +
+                 "7: Info::MyApplication585:compileDebugRenderscript UP-TO-DATE\n" +
+                 "8: Info::MyApplication585:generateDebugBuildConfig UP-TO-DATE\n" +
+                 "9: Info::MyApplication585:mergeDebugAssets UP-TO-DATE\n" +
+                 "10: Info::MyApplication585:mergeDebugResources\n" +
+                 "11: Error:Error: Invalid file name: must contain only lowercase letters and digits ([a-z0-9_.])\n" +
+                 "\t" + sourceFilePath + ":4:-1\n" +
+                 "12: Info::MyApplication585:mergeDebugResources FAILED\n" +
+                 "13: Error:Execution failed for task ':MyApplication585:mergeDebugResources'.\n" +
+                 "> " + sourceFilePath + ":4: Error: Invalid file name: must contain only lowercase letters and digits ([a-z0-9_.])\n" +
+                 "\t" + sourceFilePath + ":4:-1\n" +
+                 "14: Info:BUILD FAILED\n" +
+                 "15: Info:Total time: 8.91 secs\n",
+                 toString(parser.parseErrorOutput(output, true)));
+    sourceFile.delete();
+  }
 
-  public void DISABLEDtestMultipleResourcesInSameFile() throws Exception {
+  public void testMultipleResourcesInSameFile() throws Exception {
     // Multiple items (repeated)
     createTempXmlFile();
     String output =
@@ -1723,7 +1775,7 @@ public class GradleErrorOutputParserTest extends TestCase {
     sourceFile.delete();
   }
 
-  public void DISABLEDtestManifestMergeError() throws Exception {
+  public void testManifestMergeError() throws Exception {
     createTempFile(DOT_XML);
     String output =
       ":processFlavor1DebugManifest\n" +
@@ -1741,6 +1793,30 @@ public class GradleErrorOutputParserTest extends TestCase {
     assertEquals("0: Info::processFlavor1DebugManifest\n" +
                  "1: Error:Could not find element /manifest/application.\n" +
                  "\t" + sourceFilePath + ":1:-1\n" +
+                 "2: Info::processFlavor1DebugManifest FAILED\n" +
+                 "3: Info:FAILURE: Build failed with an exception.\n",
+                 toString(parser.parseErrorOutput(output, true)));
+    sourceFile.delete();
+  }
+
+  public void testManifestMergeWindowsError() throws Exception {
+    createTempFile(DOT_XML);
+    String output =
+      ":processFlavor1DebugManifest\n" +
+      "[C:\\Users\\Android\\AppData\\Local\\Temp\\com.android.tools.idea.gradle.output.parser.GradleErrorOutputParserTest4437574780178007978.xml:1] Could not find element /manifest/application.\n" +
+      ":processFlavor1DebugManifest FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':processFlavor1DebugManifest'.\n" +
+      "> Manifest merging failed. See console for more info.\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --info or --debug option to get more log output.\n";
+    assertEquals("0: Info::processFlavor1DebugManifest\n" +
+                 "1: Error:Could not find element /manifest/application.\n" +
+                 "\tC:\\Users\\Android\\AppData\\Local\\Temp\\com.android.tools.idea.gradle.output.parser.GradleErrorOutputParserTest4437574780178007978.xml:1:-1\n" +
                  "2: Info::processFlavor1DebugManifest FAILED\n" +
                  "3: Info:FAILURE: Build failed with an exception.\n",
                  toString(parser.parseErrorOutput(output, true)));
@@ -1793,7 +1869,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  toString(parser.parseErrorOutput(output, true)));
   }
 
-  public void DISABLEDtestMultilineCompileError() throws Exception {
+  public void testMultilineCompileError() throws Exception {
     createTempFile(DOT_JAVA);
     String output =
       ":two:compileDebug\n" +
@@ -1828,7 +1904,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "> Compilation failed; see the compiler error output for details.\n" +
                  "5: Info:BUILD FAILED\n" +
                  "6: Info:Total time: 5.354 secs\n",
-                 toString(parser.parseErrorOutput(output, true)));
+                 toString(parser.parseErrorOutput(output, true)).replaceAll("\r\n","\n"));
     sourceFile.delete();
   }
 
