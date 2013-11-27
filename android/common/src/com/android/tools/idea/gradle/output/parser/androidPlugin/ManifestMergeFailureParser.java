@@ -34,7 +34,8 @@ import java.util.regex.Pattern;
  * </pre>
  */
 public class ManifestMergeFailureParser implements CompilerOutputParser {
-  private static final Pattern ERROR = Pattern.compile("\\[([^:]+):(\\d+)\\] (.+)");
+  // Only allow : in the second position (Windows drive letter)
+  private static final Pattern ERROR = Pattern.compile("\\[([^:].[^:]+):(\\d+)\\] (.+)");
   @Override
   public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull Collection<GradleMessage> messages)
     throws ParsingFailedException {
