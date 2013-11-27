@@ -118,6 +118,8 @@ public class RenderService implements IImageFactory {
   @NotNull
   private final Locale myLocale;
 
+  private final Object myCredential = new Object();
+
   /**
    * Creates a new {@link RenderService} associated with the given editor.
    *
@@ -198,6 +200,7 @@ public class RenderService implements IImageFactory {
                         @NotNull LayoutLibrary layoutLib) {
     myModule = module;
     myLogger = logger;
+    myLogger.setCredential(myCredential);
     if (!(psiFile instanceof XmlFile)) {
       throw new IllegalArgumentException("Can only render XML files: " + psiFile.getClass().getName());
     }
@@ -210,8 +213,8 @@ public class RenderService implements IImageFactory {
 
     myHardwareConfigHelper.setOrientation(configuration.getFullConfig().getScreenOrientationQualifier().getValue());
     myLayoutLib = layoutLib;
-    LocalResourceRepository appResources = AppResourceRepository.getAppResources(myModule, true);
-    myProjectCallback = new ProjectCallback(myLayoutLib, appResources, myModule, myLogger);
+    LocalResourceRepository appResources = AppResourceRepository.getAppResources(facet, true);
+    myProjectCallback = new ProjectCallback(myLayoutLib, appResources, myModule, facet, myLogger, myCredential);
     myProjectCallback.loadAndParseRClass();
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
     myMinSdkVersion = moduleInfo.getMinSdkVersion();
@@ -526,7 +529,8 @@ public class RenderService implements IImageFactory {
         @Override
         public RenderSession compute() {
           RenderSecurityManager securityManager = createSecurityManager();
-          securityManager.setActive(true);
+          securityManager.setActive(true, myCredential);
+
           try {
             int retries = 0;
             RenderSession session = null;
@@ -547,7 +551,7 @@ public class RenderService implements IImageFactory {
             return session;
           }
           finally {
-            securityManager.dispose();
+            securityManager.dispose(myCredential);
           }
         }
       });
