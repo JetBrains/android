@@ -403,6 +403,18 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintMockLocationInspection extends AndroidLintInspectionBase {
+    public AndroidLintMockLocationInspection() {
+      super(AndroidBundle.message("android.lint.inspections.mock.location"), ManifestDetector.MOCK_LOCATION);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      return new AndroidLintQuickFix[]{new MoveToDebugManifestQuickFix()};
+    }
+  }
+
   public static class AndroidLintMultipleUsesSdkInspection extends AndroidLintInspectionBase {
     public AndroidLintMultipleUsesSdkInspection() {
       super(AndroidBundle.message("android.lint.inspections.multiple.uses.sdk"), ManifestDetector.MULTIPLE_USES_SDK);
