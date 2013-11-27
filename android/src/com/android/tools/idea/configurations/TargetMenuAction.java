@@ -27,7 +27,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.List;
 
 public class TargetMenuAction extends FlatComboAction {
   private final RenderContext myRenderContext;
@@ -73,7 +72,7 @@ public class TargetMenuAction extends FlatComboAction {
     group.addSeparator();
 
     IAndroidTarget current = configuration.getTarget();
-    List<IAndroidTarget> targets = configuration.getConfigurationManager().getTargets();
+    IAndroidTarget[] targets = configuration.getConfigurationManager().getTargets();
 
     boolean haveRecent = false;
 
@@ -86,8 +85,11 @@ public class TargetMenuAction extends FlatComboAction {
       }
     }
 
-    for (int i = targets.size() - 1; i >= 0; i--) {
-      IAndroidTarget target = targets.get(i);
+    for (int i = targets.length - 1; i >= 0; i--) {
+      IAndroidTarget target = targets[i];
+      if (!ConfigurationManager.isLayoutLibTarget(target)) {
+        continue;
+      }
 
       AndroidVersion version = target.getVersion();
       if (version.getApiLevel() < minSdk) {

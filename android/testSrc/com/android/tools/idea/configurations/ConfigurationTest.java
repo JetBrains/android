@@ -247,7 +247,12 @@ public class ConfigurationTest extends AndroidTestCase {
     assertNotNull(manager);
     assertSame(manager, facet.getConfigurationManager());
 
-    manager.setTarget(manager.getTargets().get(0));
+    for (IAndroidTarget target : manager.getTargets()) {
+      if (ConfigurationManager.isLayoutLibTarget(target)) {
+        manager.setTarget(target);
+        break;
+      }
+    }
     FolderConfiguration folderConfig = new FolderConfiguration();
     folderConfig.setVersionQualifier(new VersionQualifier(11));
     Configuration configuration = Configuration.create(manager, null, folderConfig);
