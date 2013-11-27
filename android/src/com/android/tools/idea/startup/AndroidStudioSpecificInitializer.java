@@ -149,8 +149,10 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   private static void replaceAction(String actionId, AnAction newAction) {
     ActionManager am = ActionManager.getInstance();
     AnAction oldAction = am.getAction(actionId);
-    newAction.getTemplatePresentation().setIcon(oldAction.getTemplatePresentation().getIcon());
-    am.unregisterAction(actionId);
+    if (oldAction != null) {
+      newAction.getTemplatePresentation().setIcon(oldAction.getTemplatePresentation().getIcon());
+      am.unregisterAction(actionId);
+    }
     am.registerAction(actionId, newAction);
   }
 
@@ -321,11 +323,13 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
     // Hide groups of actions which aren't useful to Android Studio
     am.getActionOrStub("NewXml").getTemplatePresentation().setEnabledAndVisible(false); // Not used by our XML. Offers HTML files
-    am.getActionOrStub("GuiDesigner.NewActions").getTemplatePresentation().setEnabledAndVisible(false); // Swing GUI templates
+    AnAction guiNewActions = am.getActionOrStub("GuiDesigner.NewActions");
+    if (guiNewActions != null) {
+      guiNewActions.getTemplatePresentation().setEnabledAndVisible(false); // Swing GUI templates
+    }
 
     // Hide individual actions that aren't part of a group
     replaceAction("Groovy.NewClass", new EmptyAction());
     replaceAction("Groovy.NewScript", new EmptyAction());
-
   }
 }
