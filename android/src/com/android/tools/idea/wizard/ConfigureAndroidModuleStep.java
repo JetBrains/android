@@ -23,15 +23,20 @@ import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
+import com.intellij.ide.util.projectWizard.ModuleBuilder;
+import com.intellij.ide.util.projectWizard.ProjectBuilder;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -113,6 +118,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       }
     }
 
+    preselectTargetAndBuildApi();
     registerUiElements();
 
     myProjectLocation.addActionListener(new ActionListener() {
@@ -145,6 +151,36 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     if (myTemplateState.myHidden.contains(ATTR_MODULE_NAME)) {
       myModuleName.setVisible(false);
       myModuleNameLabel.setVisible(false);
+    }
+  }
+
+  private void preselectTargetAndBuildApi() {
+    // In IntelliJ user chooses SDK entry, which also contains api level, in the first step,
+    // so we preselect "compile with" and "target api" options.
+    // This code shouldn't be executed in Android Studio: myWizardContext should be null.
+    if (myWizardContext != null) {
+      final ProjectBuilder builder = myWizardContext.getProjectBuilder();
+
+      if (builder instanceof ModuleBuilder) {
+        Sdk sdk = ((ModuleBuilder)builder).getModuleJdk();
+
+        if (sdk == null) {
+          sdk = myWizardContext.getProjectJdk();
+        }
+        if (sdk != null && sdk.getSdkType() instanceof AndroidSdkType) {
+          final AndroidPlatform platform = AndroidPlatform.getInstance(sdk);
+
+          if (platform != null) {
+            final int apiLevel = platform.getTarget().getVersion().getApiLevel();
+
+            if (apiLevel != 0) {
+              myTemplateState.put(ATTR_TARGET_API, apiLevel);
+              myTemplateState.put(ATTR_BUILD_API, apiLevel);
+              myCompileWith.setEnabled(false);
+            }
+          }
+        }
+      }
     }
   }
 
