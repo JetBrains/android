@@ -59,6 +59,8 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   @Nullable
   private String myAndroidPrefix;
 
+  private boolean myProvideViewCookies = true;
+
   /**
    * Constructs a new {@link LayoutPsiPullParser}, a parser dedicated to the special case of
    * parsing a layout resource files.
@@ -183,7 +185,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   @Nullable
   @Override
   public Object getViewCookie() {
-    return getCurrentNode();
+    return myProvideViewCookies ? getCurrentNode() : null;
   }
 
   /**
@@ -507,5 +509,10 @@ public class LayoutPsiPullParser extends LayoutPullParser {
         myParsingState = END_TAG;
       }
     }
+  }
+
+  /** Sets whether this parser will provide view cookies */
+  public void setProvideViewCookies(boolean provideViewCookies) {
+    myProvideViewCookies = provideViewCookies;
   }
 }

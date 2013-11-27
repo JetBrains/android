@@ -298,7 +298,10 @@ public final class ProjectCallback extends LegacyCallback {
           PsiFile psiFile = psiManager.findFile(file);
           if (psiFile instanceof XmlFile) {
             assert myLogger != null;
-            return LayoutPsiPullParser.create((XmlFile)psiFile, myLogger);
+            LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger);
+            // For included layouts, don't see view cookies; we want the leaf to point back to the include tag
+            parser.setProvideViewCookies(false);
+            return parser;
           }
         }
       }
