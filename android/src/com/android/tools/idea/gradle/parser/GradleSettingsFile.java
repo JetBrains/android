@@ -114,6 +114,9 @@ public class GradleSettingsFile extends GradleGroovyFile {
    * leading colon, e.g. ":project:subproject". Must be run inside a write action.
    */
   public void removeModule(String modulePath) {
+    if (modulePath == null) {
+      return;
+    }
     checkInitialized();
     commitDocumentChanges();
     for (GrMethodCall includeStatement : getMethodCalls(myGroovyFile, INCLUDE_METHOD)) {
