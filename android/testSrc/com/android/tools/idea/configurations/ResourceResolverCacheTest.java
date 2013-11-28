@@ -71,7 +71,7 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
     final ProjectResources resources = myFacet.getProjectResources(false, true);
     assertNotNull(resources); final long generation = resources.getModificationCount();
     assertEquals("Cancel", configuration1.getResourceResolver().findResValue("@string/cancel", false).getValue());
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         //noinspection ConstantConditions

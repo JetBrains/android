@@ -47,7 +47,7 @@ public class GradleSettingsFileTest extends IdeaTestCase {
 
   public void testAddModuleToEmptyFile() throws Exception {
     final GradleSettingsFile file = getEmptyTestFile();
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
           @Override
           public void run() {
         file.addModule(":one");
@@ -59,7 +59,7 @@ public class GradleSettingsFileTest extends IdeaTestCase {
 
   public void testAddModuleToExistingFile() throws Exception {
     final GradleSettingsFile file = getSimpleTestFile();
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         file.addModule(":four");
@@ -75,7 +75,7 @@ public class GradleSettingsFileTest extends IdeaTestCase {
 
   public void testAddModuleToLineContainingMethodCall() throws Exception {
     final GradleSettingsFile file = getMethodCallTestFile();
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         file.addModule(":one");
@@ -89,7 +89,7 @@ public class GradleSettingsFileTest extends IdeaTestCase {
 
   public void testRemovesFromLineWithMultipleModules() throws Exception {
     final GradleSettingsFile file = getSimpleTestFile();
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         file.removeModule(":two");
@@ -105,7 +105,7 @@ public class GradleSettingsFileTest extends IdeaTestCase {
 
   public void testRemovesEntireLine() throws Exception {
     final GradleSettingsFile file = getSimpleTestFile();
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         file.removeModule(":three");
@@ -123,7 +123,7 @@ public class GradleSettingsFileTest extends IdeaTestCase {
       "include ':one'\n" +
       "include ':one', ':two'"
     );
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         file.removeModule(":one");

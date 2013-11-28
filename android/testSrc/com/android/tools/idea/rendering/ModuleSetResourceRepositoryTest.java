@@ -100,7 +100,7 @@ public class ModuleSetResourceRepositoryTest extends AndroidTestCase {
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
     final Document document = documentManager.getDocument(layoutPsiFile);
     assertNotNull(document);
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         String string = "<ImageView style=\"@style/TitleBarSeparator\" />";

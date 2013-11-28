@@ -75,7 +75,7 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
     assertNotNull(moduleFile);
     final VirtualFile moduleDir = moduleFile.getParent();
 
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);

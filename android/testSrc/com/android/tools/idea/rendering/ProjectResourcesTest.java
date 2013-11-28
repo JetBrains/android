@@ -60,7 +60,7 @@ public class ProjectResourcesTest extends AndroidTestCase {
     assertEquals(1, drawables.size());
     assertEquals("foo", drawables.iterator().next());
 
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         psiFile4.delete();
