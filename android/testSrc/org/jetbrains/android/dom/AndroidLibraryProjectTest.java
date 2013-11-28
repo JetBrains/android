@@ -101,7 +101,7 @@ public class AndroidLibraryProjectTest extends UsefulTestCase {
 
     // Manifest files will be recreated using createInitialStructure or other custom code in each test case
 
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         try {

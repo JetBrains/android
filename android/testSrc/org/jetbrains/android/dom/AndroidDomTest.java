@@ -191,7 +191,7 @@ abstract class AndroidDomTest extends AndroidTestCase {
     assertEquals(1, actions.size());
     final IntentionAction action = actions.get(0);
     assertInstanceOf(action, AndroidMissingOnClickHandlerInspection.MyQuickFix.class);
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         ((AndroidMissingOnClickHandlerInspection.MyQuickFix)action).doApplyFix(getProject());

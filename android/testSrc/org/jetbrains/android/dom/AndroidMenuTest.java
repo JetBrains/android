@@ -91,7 +91,7 @@ public class AndroidMenuTest extends AndroidDomTest {
     myFixture.configureFromExistingVirtualFile(file);
     final AndroidCreateOnClickHandlerAction action = new AndroidCreateOnClickHandlerAction();
     assertTrue(action.isAvailable(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile()));
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
           @Override
           public void run() {
             action.invoke(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile());
@@ -109,7 +109,7 @@ public class AndroidMenuTest extends AndroidDomTest {
     myFixture.configureFromExistingVirtualFile(file);
     final AndroidCreateOnClickHandlerAction action = new AndroidCreateOnClickHandlerAction();
     assertTrue(action.isAvailable(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile()));
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
           @Override
           public void run() {
             action.invoke(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile());
@@ -138,7 +138,7 @@ public class AndroidMenuTest extends AndroidDomTest {
     assertEquals(1, actions.size());
 
     final IntentionAction action = actions.get(0);
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
           @Override
           public void run() {
             action.invoke(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile());

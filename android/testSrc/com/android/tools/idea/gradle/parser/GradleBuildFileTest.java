@@ -63,7 +63,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testSetTopLevelValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         file.setValue(BuildFileKey.BUILD_TOOLS_VERSION, "18.0.0");
@@ -75,7 +75,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testSetNestedValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         GrStatementOwner closure = file.getClosure("android/defaultConfig");
@@ -88,7 +88,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testSetStringValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         file.setValue(BuildFileKey.BUILD_TOOLS_VERSION, "99.0.0");
@@ -101,7 +101,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testSetIntegerValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         file.setValue(BuildFileKey.COMPILE_SDK_VERSION, 99);
@@ -115,7 +115,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
   public void testSetBooleanValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/buildTypes/debug");
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         file.setValue(closure, BuildFileKey.DEBUGGABLE, false);
@@ -130,7 +130,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/signingConfigs/debug");
     final File replacementFile = new File("foo.keystore");
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         file.setValue(closure, BuildFileKey.STORE_FILE, replacementFile);
@@ -145,7 +145,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/productFlavors/flavor1");
     final File replacementFile = new File("foo.txt");
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         file.setValue(closure, BuildFileKey.PROGUARD_FILE, replacementFile);
@@ -172,7 +172,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     NamedObject flavor3 = new NamedObject("flavor3");
     flavor3.setValue(BuildFileKey.PACKAGE_NAME, "flavor3.packagename");
     flavors.add(flavor3);
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         file.setValue(BuildFileKey.FLAVORS, flavors);
@@ -196,7 +196,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testCreateStringValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         file.setValue(BuildFileKey.IGNORE_ASSETS_PATTERN, "foo");
@@ -215,7 +215,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
   public void testCreateIntegerValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/productFlavors/flavor1");
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         file.setValue(closure, BuildFileKey.VERSION_CODE, 199);
@@ -233,7 +233,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testCreateBooleanValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         file.setValue(BuildFileKey.INCREMENTAL, true);
@@ -253,7 +253,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/signingConfigs/config2");
     final File newFile = new File("foo.keystore");
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         file.setValue(closure, BuildFileKey.STORE_FILE, newFile);
@@ -273,7 +273,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/productFlavors/flavor2");
     final File newFile = new File("foo.txt");
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         file.setValue(closure, BuildFileKey.PROGUARD_FILE, newFile);
@@ -291,7 +291,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testRemoveValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         file.removeValue(null, BuildFileKey.COMPILE_SDK_VERSION);

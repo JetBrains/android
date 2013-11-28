@@ -150,7 +150,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertItemIsInDir(res2, layout1);
 
     long generation = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         try {
@@ -175,7 +175,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
 
     // Now rename layout1 to layout2 to hide it again
     generation = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         try {
@@ -240,7 +240,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
     final Document document = documentManager.getDocument(psiValues3);
     assertNotNull(document);
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         int offset = document.getText().indexOf("Very Different App Name");
@@ -256,7 +256,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertStringIs(resources, "app_name", "Not Very Different App Name", false);
 
     generation = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         int offset = document.getText().indexOf("app_name");
@@ -274,7 +274,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
 
     // Delete that file:
     generation = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         try {
@@ -295,7 +295,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     // Check that editing an overridden attribute does not count as a change
     final Document document2 = documentManager.getDocument(psiValues1);
     assertNotNull(document2);
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         int offset = document2.getText().indexOf("Animations Demo");
@@ -308,7 +308,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
 
     // Finally check that editing an non-overridden attribute also gets picked up as a change
     generation = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         int offset = document2.getText().indexOf("Layout Changes");

@@ -159,7 +159,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     assertFalse(variants.contains("p1.p2.LabelView"));
     assertTrue(variants.contains("p1.p2.LabelView1"));
 
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         try {
@@ -974,7 +974,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     myFixture.configureFromExistingVirtualFile(file);
     final AndroidCreateOnClickHandlerAction action = new AndroidCreateOnClickHandlerAction();
     assertTrue(action.isAvailable(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile()));
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         action.invoke(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile());
@@ -1008,7 +1008,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     myFixture.configureFromExistingVirtualFile(file);
     final List<IntentionAction> actions = highlightAndFindQuickFixes(AndroidMissingOnClickHandlerInspection.MyQuickFix.class);
     assertEquals(1, actions.size());
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         actions.get(0).invoke(getProject(), myFixture.getEditor(), myFixture.getFile());

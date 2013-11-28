@@ -224,7 +224,7 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
     final VirtualFile f = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + ".xml", dst);
     myFixture.configureFromExistingVirtualFile(f);
     final ArrangementEngine engine = ServiceManager.getService(getProject(), ArrangementEngine.class);
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         engine.arrange(myFixture.getEditor(), myFixture.getFile(), Arrays.asList(new TextRange(0, myFixture.getFile().getTextLength())));
@@ -250,7 +250,7 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
     final VirtualFile f = myFixture.copyFileToProject(BASE_PATH + fileName, dstFileName);
     myFixture.configureFromExistingVirtualFile(f);
 
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         CodeStyleManager.getInstance(getProject()).reformat(myFixture.getFile());

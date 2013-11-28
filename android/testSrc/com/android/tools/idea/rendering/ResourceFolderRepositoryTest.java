@@ -206,7 +206,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals(1, drawables.size());
     generation = resources.getModificationCount();
     assertEquals("foo", drawables.iterator().next());
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         psiFile4.delete();
@@ -233,7 +233,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals(3, layouts.size());
     final PsiDirectory directory = psiFile3.getContainingDirectory();
     assertNotNull(directory);
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         directory.delete();
@@ -256,7 +256,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.LAYOUT, "layout2"));
     assertFalse(resources.hasResourceItem(ResourceType.LAYOUT, "layout2b"));
 
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         try {
@@ -287,7 +287,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertSame(Density.XHIGH, rv.getResourceDensity());
 
     long generation = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         try {
@@ -320,7 +320,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     // Renaming a value file should have no visible effect
 
     long generation = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         try {
@@ -355,7 +355,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.STRING, "title_template_step"));
 
     long generation = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         try {
@@ -394,7 +394,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals("layout-land", idItem.getSource().getFile().getParentFile().getName());
 
     long generation = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         try {
@@ -431,7 +431,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals("Animations Demo", item.getResourceValue(false).getValue());
 
     long generation = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         try {
@@ -474,7 +474,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(valuePath, valuePath.endsWith("res/drawable-mdpi/picture.png"));
 
     long generation = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         try {
@@ -510,7 +510,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.LAYOUT, "layout1"));
 
     long generation = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         try {
@@ -539,7 +539,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.STRING, "title_template_step"));
 
     long generation = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         try {
@@ -565,7 +565,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertFalse(resources.hasResourceItem(ResourceType.STRING, "title_template_step"));
 
     final long generation = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         try {
@@ -592,7 +592,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertFalse(resources.hasResourceItem(ResourceType.ID, "btn_title_refresh2"));
 
     long generation = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         try {
@@ -635,7 +635,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals(2, raw.size());
 
     generation = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         try {
@@ -673,7 +673,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(document);
 
     // Insert a comment at the beginning
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         XmlTag rootTag = xmlFile.getRootTag();
@@ -696,7 +696,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(tag);
 
     // Now insert some whitespace before a tag
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         int indentAreaBeforeTag = tag.getTextOffset() - 1;
@@ -710,7 +710,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals(initial, resources.getModificationCount());
 
     // Edit text inside an element tag. No effect in value files!
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         final XmlTag header = findTagById(xmlFile, "header");
@@ -724,7 +724,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals(initial, resources.getModificationCount());
 
     // Insert tag (without id) in layout file: ignored (only ids and file item matters)
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         final XmlTag header = findTagById(xmlFile, "text2");
@@ -744,7 +744,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     // that document edits actually *do* fire PSI events that are digested by
     // this repository
     final String elementDeclaration = "<Button android:id=\"@+id/newid\" />\n";
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         final XmlTag tag = findTagById(psiFile1, "noteArea");
@@ -762,7 +762,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         assertTrue(resources.getModificationCount() > initial);
 
         final long generation = resources.getModificationCount();
-        WriteCommandAction.runWriteCommandAction(new Runnable() {
+        WriteCommandAction.runWriteCommandAction(null, new Runnable() {
           @Override
           public void run() {
             int startOffset = document.getText().indexOf(elementDeclaration);
@@ -806,7 +806,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(document);
 
     // Edit comment header; should be a no-op
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         int offset = document.getText().indexOf("Licensed under the");
@@ -817,7 +817,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals(initial, resources.getModificationCount());
 
     // Test edit text NOT under an item: no-op
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         int offset = document.getText().indexOf(" <item type=\"id\""); // insert BEFORE this
@@ -853,7 +853,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(document);
 
     // Insert tag (with an id) in layout file: should incrementally update set of ids
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         final XmlTag header = findTagById(xmlFile, "text2");
@@ -897,7 +897,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     long generation = resources.getModificationCount();
     final XmlTag tag = findTagById(psiFile1, "noteArea");
     assertNotNull(tag);
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         tag.setAttribute(ATTR_ID, ANDROID_URI, "@+id/note2Area");
@@ -937,7 +937,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Edit value should cause update
     long generation = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         final int offset = document.getText().indexOf("noteArea");
@@ -974,7 +974,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Edit value should cause update
     final int screenSlideOffset = document.getText().indexOf("Screen Slide");
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         document.replaceString(screenSlideOffset + 3, screenSlideOffset + 3, "e");
@@ -993,7 +993,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(resourceValue);
     assertEquals("Screeen Slide", resourceValue.getValue());
 
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         document.deleteString(screenSlideOffset + 3, screenSlideOffset + 6);
@@ -1034,7 +1034,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Edit value should cause update
     final int textOffset = document.getText().indexOf("Lorem");
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         document.insertString(textOffset + 1, "l");
@@ -1070,7 +1070,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(document);
 
     final int offset = document.getText().indexOf("app_name");
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         document.replaceString(offset, offset + 3, "rap");
@@ -1105,7 +1105,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(document);
 
     final int offset = document.getText().indexOf("    <item type");
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         String firstHalf = "<string name=\"new_s";
@@ -1152,7 +1152,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(document);
 
     final String textToRemove = "<string name=\"app_name\">Animations Demo</string>";
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         int offset = document.getText().indexOf(textToRemove);
@@ -1183,7 +1183,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(document);
 
     final int offset = document.getText().indexOf("\"id\" name=\"action_next\" />") + 1;
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         document.replaceString(offset, offset + 2, "dimen");
@@ -1217,7 +1217,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(document);
 
     final int offset = document.getText().indexOf("name=\"app_name\">");
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         document.replaceString(offset + 2, offset + 3, "o"); // name => nome
@@ -1249,7 +1249,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final XmlTag tag = findTagByName(psiFile1, "card_flip_time_half");
     assertNotNull(tag);
 
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         tag.setName("dimen"); // Change <integer> to <dimen>
@@ -1285,7 +1285,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         final int offset = document.getText().indexOf("DarkTheme");
@@ -1302,7 +1302,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Change style parent
     generation = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         final int offset = document.getText().indexOf("android:Theme.Holo");
@@ -1355,7 +1355,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         final int offset = document.getText().indexOf("@style/DarkActionBar");
@@ -1399,7 +1399,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         final int offset = document.getText().indexOf("android:actionBarStyle");
@@ -1456,7 +1456,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         final int offset = document.getText().indexOf("MyCustomView");
@@ -1513,7 +1513,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         final int offset = document.getText().indexOf("watchType");
@@ -1540,7 +1540,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Now insert a new item and delete one and make sure we're still okay
     resetScanCounter();
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         String crashAttr = "<attr name=\"crash\" format=\"boolean\" />";
@@ -1608,7 +1608,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         final int offset = document.getText().indexOf("flag1");
@@ -1637,7 +1637,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         // Now insert a new enum and delete one and make sure we're still okay
         resetScanCounter();
         long nextGeneration = resources.getModificationCount();
-        WriteCommandAction.runWriteCommandAction(new Runnable() {
+        WriteCommandAction.runWriteCommandAction(null, new Runnable() {
           @Override
           public void run() {
             String enumAttr = "<enum name=\"type_stopwatch\" value=\"1\"/>";
@@ -1696,7 +1696,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         final int offset = document.getText().indexOf("@string/hello_two");
@@ -1741,7 +1741,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         final int offset = document.getText().indexOf("Question 4");
@@ -1772,7 +1772,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         final int offset = document.getText().indexOf("<item>Question 3</item>");
@@ -1809,7 +1809,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         String elementString = "<item>Question 3</item>";
@@ -1846,7 +1846,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         document.deleteString(0, document.getTextLength());
@@ -1886,7 +1886,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     for (int i = 0; i < contents.length(); i++) {
       final int offset = i;
       final char character = contents.charAt(i);
-      WriteCommandAction.runWriteCommandAction(new Runnable() {
+      WriteCommandAction.runWriteCommandAction(null, new Runnable() {
         @Override
         public void run() {
           document.insertString(offset, String.valueOf(character));
@@ -1935,7 +1935,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         String string = "    <string name=\"hello_world\">Hello world!</string>";
