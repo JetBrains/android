@@ -26,6 +26,7 @@ import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.options.ConfigurationException;
@@ -156,6 +157,9 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
       rootModel.setSdk(myJdk);
     } else {
       rootModel.inheritSdk();
+    }
+    if (myProject == null) {
+      project.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
     }
     StartupManager.getInstance(project).runWhenProjectIsInitialized(new DumbAwareRunnable() {
         @Override
