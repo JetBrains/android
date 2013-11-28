@@ -70,8 +70,8 @@ public class ImportedDependencyUpdaterTest extends TestCase {
 
   @NotNull
   private DataNode<ModuleData> addModule(@NotNull String moduleName) {
-    ModuleData moduleData = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), moduleName,
-                                           myProjectInfo.getData().getIdeProjectFileDirectoryPath(), "");
+    ModuleData moduleData = new ModuleData(moduleName, GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(),
+                                           moduleName, myProjectInfo.getData().getIdeProjectFileDirectoryPath(), "");
     return myProjectInfo.createChild(ProjectKeys.MODULE, moduleData);
   }
 
