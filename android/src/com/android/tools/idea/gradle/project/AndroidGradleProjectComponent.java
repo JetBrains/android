@@ -216,7 +216,6 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     @Override
     public void moduleAdded(Project project, Module module) {
       updateBuildVariantView(project);
-      checkForSupportedModules(project, new Module[]{module});
 
       for (ModuleListener listener : additionalListeners) {
         listener.moduleAdded(project, module);
