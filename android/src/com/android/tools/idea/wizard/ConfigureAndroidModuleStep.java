@@ -158,22 +158,24 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     if (!myTemplateState.hasAttr(ATTR_PROJECT_LOCATION) && myWizardContext != null && myProject == null) {
       myTemplateState.put(ATTR_PROJECT_LOCATION, myWizardContext.getProjectFileDirectory());
     }
-    // Find a unique project location
-    String projectLocation = myTemplateState.getString(ATTR_PROJECT_LOCATION);
-    if (projectLocation != null && !projectLocation.isEmpty() && (myProject == null || !myProject.isInitialized())) {
-      File file = new File(projectLocation);
-      if (file.exists()) {
-        String appName = myTemplateState.getString(ATTR_APP_TITLE);
-        int i = 2;
-        while (file.exists()) {
-          myTemplateState.put(ATTR_APP_TITLE, appName + Integer.toString(i));
-          deriveValues();
-          file = new File(myTemplateState.getString(ATTR_PROJECT_LOCATION));
-          i++;
+
+    if (myWizardContext == null) {
+      // Find a unique project location
+      String projectLocation = myTemplateState.getString(ATTR_PROJECT_LOCATION);
+      if (projectLocation != null && !projectLocation.isEmpty() && (myProject == null || !myProject.isInitialized())) {
+        File file = new File(projectLocation);
+        if (file.exists()) {
+          String appName = myTemplateState.getString(ATTR_APP_TITLE);
+          int i = 2;
+          while (file.exists()) {
+            myTemplateState.put(ATTR_APP_TITLE, appName + Integer.toString(i));
+            deriveValues();
+            file = new File(myTemplateState.getString(ATTR_PROJECT_LOCATION));
+            i++;
+          }
         }
       }
     }
-
     preselectTargetAndBuildApi();
     registerUiElements();
 
