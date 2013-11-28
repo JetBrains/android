@@ -31,6 +31,7 @@ import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.DumbAwareRunnable;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.JavaSdkType;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkTypeId;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -127,6 +128,7 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
   @Override
   @NotNull
   public ModuleWizardStep[] createWizardSteps(@NotNull WizardContext wizardContext, @NotNull ModulesProvider modulesProvider) {
+    update();
     myConfigureAndroidModuleStep.setWizardContext(wizardContext);
     return mySteps.toArray(new ModuleWizardStep[mySteps.size()]);
   }
@@ -149,6 +151,12 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
   public void setupRootModel(final @NotNull ModifiableRootModel rootModel) throws ConfigurationException {
     final Project project = rootModel.getProject();
 
+    // in IntelliJ wizard user is able to choose SDK (i.e. for "java library" module), so set it
+    if (myJdk != null){
+      rootModel.setSdk(myJdk);
+    } else {
+      rootModel.inheritSdk();
+    }
     StartupManager.getInstance(project).runWhenProjectIsInitialized(new DumbAwareRunnable() {
         @Override
         public void run() {
@@ -237,6 +245,8 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
 
   @Override
   public boolean isSuitableSdkType(SdkTypeId sdkType) {
-    return AndroidSdkType.getInstance().equals(sdkType);
+    return myWizardState.myIsAndroidModule
+           ? AndroidSdkType.getInstance().equals(sdkType)
+           : sdkType instanceof JavaSdkType;
   }
 }
