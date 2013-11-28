@@ -16,7 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.resources.ResourceType;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -60,7 +60,7 @@ public class ProjectResourcesTest extends AndroidTestCase {
     assertEquals(1, drawables.size());
     assertEquals("foo", drawables.iterator().next());
 
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(new Runnable() {
       @Override
       public void run() {
         psiFile4.delete();

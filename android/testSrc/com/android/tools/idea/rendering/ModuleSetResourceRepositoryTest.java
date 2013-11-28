@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -99,7 +100,7 @@ public class ModuleSetResourceRepositoryTest extends AndroidTestCase {
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
     final Document document = documentManager.getDocument(layoutPsiFile);
     assertNotNull(document);
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(new Runnable() {
       @Override
       public void run() {
         String string = "<ImageView style=\"@style/TitleBarSeparator\" />";

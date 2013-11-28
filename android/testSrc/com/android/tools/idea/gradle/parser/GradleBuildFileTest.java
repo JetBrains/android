@@ -16,13 +16,13 @@
 package com.android.tools.idea.gradle.parser;
 
 import com.android.SdkConstants;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.testFramework.IdeaTestCase;
-import com.intellij.util.ActionRunner;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
 
@@ -63,9 +63,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testSetTopLevelValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(BuildFileKey.BUILD_TOOLS_VERSION, "18.0.0");
       }
     });
@@ -75,9 +75,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testSetNestedValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         GrStatementOwner closure = file.getClosure("android/defaultConfig");
         file.setValue(closure, BuildFileKey.TARGET_SDK_VERSION, 2);
       }
@@ -88,9 +88,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testSetStringValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(BuildFileKey.BUILD_TOOLS_VERSION, "99.0.0");
       }
     });
@@ -101,9 +101,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testSetIntegerValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(BuildFileKey.COMPILE_SDK_VERSION, 99);
       }
     });
@@ -115,9 +115,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
   public void testSetBooleanValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/buildTypes/debug");
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(closure, BuildFileKey.DEBUGGABLE, false);
       }
     });
@@ -130,9 +130,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/signingConfigs/debug");
     final File replacementFile = new File("foo.keystore");
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(closure, BuildFileKey.STORE_FILE, replacementFile);
       }
     });
@@ -145,9 +145,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/productFlavors/flavor1");
     final File replacementFile = new File("foo.txt");
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(closure, BuildFileKey.PROGUARD_FILE, replacementFile);
       }
     });
@@ -172,9 +172,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
     NamedObject flavor3 = new NamedObject("flavor3");
     flavor3.setValue(BuildFileKey.PACKAGE_NAME, "flavor3.packagename");
     flavors.add(flavor3);
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(BuildFileKey.FLAVORS, flavors);
       }
     });
@@ -196,9 +196,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testCreateStringValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(BuildFileKey.IGNORE_ASSETS_PATTERN, "foo");
       }
     });
@@ -215,9 +215,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
   public void testCreateIntegerValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/productFlavors/flavor1");
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(closure, BuildFileKey.VERSION_CODE, 199);
       }
     });
@@ -233,9 +233,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testCreateBooleanValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(BuildFileKey.INCREMENTAL, true);
       }
     });
@@ -253,9 +253,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/signingConfigs/config2");
     final File newFile = new File("foo.keystore");
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(closure, BuildFileKey.STORE_FILE, newFile);
       }
     });
@@ -273,9 +273,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/productFlavors/flavor2");
     final File newFile = new File("foo.txt");
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(closure, BuildFileKey.PROGUARD_FILE, newFile);
       }
     });
@@ -291,7 +291,12 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testRemoveValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    file.removeValue(null, BuildFileKey.COMPILE_SDK_VERSION);
+    WriteCommandAction.runWriteCommandAction(new Runnable() {
+      @Override
+      public void run() {
+        file.removeValue(null, BuildFileKey.COMPILE_SDK_VERSION);
+      }
+    });
 
     String expected = getSimpleTestFile().replace("    compileSdkVersion 17\n", "");
     assertContents(file, expected.toString());

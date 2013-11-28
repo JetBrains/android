@@ -2,6 +2,7 @@ package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
 import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
 
@@ -90,7 +91,13 @@ public class AndroidMenuTest extends AndroidDomTest {
     myFixture.configureFromExistingVirtualFile(file);
     final AndroidCreateOnClickHandlerAction action = new AndroidCreateOnClickHandlerAction();
     assertTrue(action.isAvailable(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile()));
-    action.invoke(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile());
+    WriteCommandAction.runWriteCommandAction(new Runnable() {
+          @Override
+          public void run() {
+            action.invoke(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile());
+          }
+        });
+
     myFixture.checkResultByFile(testFolder + "/onClickIntention.xml");
     myFixture.checkResultByFile("src/p1/p2/Activity1.java", testFolder + "/OnClickActivity_after.java", false);
   }
@@ -102,7 +109,13 @@ public class AndroidMenuTest extends AndroidDomTest {
     myFixture.configureFromExistingVirtualFile(file);
     final AndroidCreateOnClickHandlerAction action = new AndroidCreateOnClickHandlerAction();
     assertTrue(action.isAvailable(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile()));
-    action.invoke(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile());
+    WriteCommandAction.runWriteCommandAction(new Runnable() {
+          @Override
+          public void run() {
+            action.invoke(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile());
+          }
+        });
+
     myFixture.checkResultByFile(testFolder + "/onClickIntention.xml");
     myFixture.checkResultByFile("src/p1/p2/Activity1.java", testFolder + "/OnClickActivityAbs_after.java", false);
   }
@@ -123,7 +136,15 @@ public class AndroidMenuTest extends AndroidDomTest {
     myFixture.configureFromExistingVirtualFile(file);
     final List<IntentionAction> actions = highlightAndFindQuickFixes(AndroidMissingOnClickHandlerInspection.MyQuickFix.class);
     assertEquals(1, actions.size());
-    actions.get(0).invoke(getProject(), myFixture.getEditor(), myFixture.getFile());
+
+    final IntentionAction action = actions.get(0);
+    WriteCommandAction.runWriteCommandAction(new Runnable() {
+          @Override
+          public void run() {
+            action.invoke(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile());
+          }
+        });
+
     myFixture.checkResultByFile(testFolder + "/onClickIntention.xml");
     myFixture.checkResultByFile("src/p1/p2/Activity1.java", testFolder + "/OnClickActivity1_after.java", false);
   }

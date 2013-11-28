@@ -17,15 +17,13 @@ package com.android.tools.idea.gradle.parser;
 
 import com.android.SdkConstants;
 import com.google.common.collect.Iterables;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.testFramework.IdeaTestCase;
-import com.intellij.util.ActionRunner;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
-import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -49,9 +47,9 @@ public class GradleSettingsFileTest extends IdeaTestCase {
 
   public void testAddModuleToEmptyFile() throws Exception {
     final GradleSettingsFile file = getEmptyTestFile();
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
-      @Override
-      public void run() throws Exception {
+    WriteCommandAction.runWriteCommandAction(new Runnable() {
+          @Override
+          public void run() {
         file.addModule(":one");
       }
     });
@@ -61,9 +59,9 @@ public class GradleSettingsFileTest extends IdeaTestCase {
 
   public void testAddModuleToExistingFile() throws Exception {
     final GradleSettingsFile file = getSimpleTestFile();
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.addModule(":four");
       }
     });
@@ -77,9 +75,9 @@ public class GradleSettingsFileTest extends IdeaTestCase {
 
   public void testAddModuleToLineContainingMethodCall() throws Exception {
     final GradleSettingsFile file = getMethodCallTestFile();
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.addModule(":one");
       }
     });
@@ -91,9 +89,9 @@ public class GradleSettingsFileTest extends IdeaTestCase {
 
   public void testRemovesFromLineWithMultipleModules() throws Exception {
     final GradleSettingsFile file = getSimpleTestFile();
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.removeModule(":two");
       }
     });
@@ -107,9 +105,9 @@ public class GradleSettingsFileTest extends IdeaTestCase {
 
   public void testRemovesEntireLine() throws Exception {
     final GradleSettingsFile file = getSimpleTestFile();
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.removeModule(":three");
       }
     });
@@ -121,11 +119,16 @@ public class GradleSettingsFileTest extends IdeaTestCase {
   }
 
   public void testRemovesMultipleEntries() throws Exception {
-    GradleSettingsFile file = getTestFile(
+    final GradleSettingsFile file = getTestFile(
       "include ':one'\n" +
       "include ':one', ':two'"
     );
-    file.removeModule(":one");
+    WriteCommandAction.runWriteCommandAction(new Runnable() {
+      @Override
+      public void run() {
+        file.removeModule(":one");
+      }
+    });
     assertContents(file, "include ':two'");
   }
 
