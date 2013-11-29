@@ -59,7 +59,7 @@ public class ImportedDependencyUpdaterTest extends TestCase {
     FileUtil.createDirectory(projectDir);
     File buildFile = new File(projectDir, SdkConstants.FN_BUILD_GRADLE);
     FileUtil.createIfDoesntExist(buildFile);
-    ProjectData projectData = new ProjectData(GradleConstants.SYSTEM_ID, projectDir.getPath(), buildFile.getPath());
+    ProjectData projectData = new ProjectData(GradleConstants.SYSTEM_ID, "project1", projectDir.getPath(), buildFile.getPath());
 
     myProjectInfo = new DataNode<ProjectData>(ProjectKeys.PROJECT, projectData, null);
     myModuleInfo = addModule("module1");
@@ -97,7 +97,7 @@ public class ImportedDependencyUpdaterTest extends TestCase {
         @Override
         public boolean fun(DataNode<LibraryData> node) {
           LibraryData other = node.getData();
-          return dependency.getName().equals(other.getName());
+          return dependency.getName().equals(other.getExternalName());
         }
       });
     assertNotNull(libraryInfo);
@@ -129,7 +129,7 @@ public class ImportedDependencyUpdaterTest extends TestCase {
         @Override
         public boolean fun(DataNode<ModuleDependencyData> node) {
           ModuleDependencyData data = node.getData();
-          return dependency.getName().equals(data.getName());
+          return dependency.getName().equals(data.getExternalName());
         }
       });
     assertNotNull(dependencyInfo);
@@ -164,7 +164,7 @@ public class ImportedDependencyUpdaterTest extends TestCase {
       public boolean fun(DataNode<LibraryDependencyData> node) {
         LibraryDependencyData data = node.getData();
         LibraryData other = data.getTarget();
-        return source.getName().equals(other.getName());
+        return source.getName().equals(other.getExternalName());
       }
     });
   }

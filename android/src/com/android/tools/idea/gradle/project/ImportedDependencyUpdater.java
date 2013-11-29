@@ -53,7 +53,7 @@ class ImportedDependencyUpdater extends DependencyUpdater<DataNode<ModuleData>> 
         public boolean fun(DataNode<LibraryData> node) {
           // Match only by name and binary path. Source and Javadoc paths are not relevant for comparison.
           LibraryData other = node.getData();
-          return library.getName().equals(other.getName()) &&
+          return library.getExternalName().equals(other.getExternalName()) &&
                  library.getPaths(LibraryPathType.BINARY).equals(other.getPaths(LibraryPathType.BINARY));
         }
       });
@@ -141,7 +141,7 @@ class ImportedDependencyUpdater extends DependencyUpdater<DataNode<ModuleData>> 
   @NotNull
   @Override
   protected String getNameOf(@NotNull DataNode<ModuleData> moduleInfo) {
-    return moduleInfo.getData().getName();
+    return moduleInfo.getData().getExternalName();
   }
 
   @Override
