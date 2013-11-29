@@ -100,7 +100,7 @@ public class AndroidGradleProjectResolverTest extends IdeaTestCase {
   public void testCreateModule() throws IOException {
     ProjectData project = myProjectResolver.createProject();
     ModuleData module = myProjectResolver.createModule(myAndroidModule, project);
-    assertEquals(myAndroidModule.getName(), module.getName());
+    assertEquals(myAndroidModule.getName(), module.getExternalName());
     assertEquals(StdModuleTypes.JAVA.getId(), module.getModuleTypeId());
     assertEquals(ExternalSystemApiUtil.toCanonicalPath(myAndroidModule.getRootDir().getCanonicalPath()), module.getLinkedExternalProjectPath());
   }
