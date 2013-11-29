@@ -36,6 +36,7 @@ import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +46,7 @@ import java.util.List;
  */
 public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
   @Override
-  public PsiElement[] getGotoDeclarationTargets(PsiElement sourceElement, int offset, Editor editor) {
+  public PsiElement[] getGotoDeclarationTargets(@Nullable PsiElement sourceElement, int offset, Editor editor) {
     if (!(sourceElement instanceof PsiIdentifier)) {
       return null;
     }
