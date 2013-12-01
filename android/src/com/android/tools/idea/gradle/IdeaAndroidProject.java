@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.gradle;
 
-import com.android.builder.model.AndroidProject;
-import com.android.builder.model.BuildTypeContainer;
-import com.android.builder.model.JavaCompileOptions;
-import com.android.builder.model.Variant;
-import com.google.common.base.Preconditions;
+import com.android.builder.model.*;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
@@ -33,6 +30,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
@@ -42,6 +40,10 @@ public class IdeaAndroidProject implements Serializable {
   @NotNull private final VirtualFile myRootDir;
   @NotNull private final AndroidProject myDelegate;
   @NotNull private String mySelectedVariantName;
+
+  @NotNull private Map<String, BuildTypeContainer> myBuildTypesByName = Maps.newHashMap();
+  @NotNull private Map<String, ProductFlavorContainer> myProductFlavorsByName = Maps.newHashMap();
+  @NotNull private Map<String, Variant> myVariantsByName = Maps.newHashMap();
 
   /**
    * Creates a new {@link IdeaAndroidProject}.
@@ -61,7 +63,59 @@ public class IdeaAndroidProject implements Serializable {
     assert found != null;
     myRootDir = found;
     myDelegate = delegate;
+
+    populateBuildTypesByName();
+    populateProductFlavorsByName();
+    populateVariantsByName();
+
     setSelectedVariantName(selectedVariantName);
+  }
+
+  private void populateBuildTypesByName() {
+    for (BuildTypeContainer container : myDelegate.getBuildTypes()) {
+      String name = container.getBuildType().getName();
+      myBuildTypesByName.put(name, container);
+    }
+  }
+
+  private void populateProductFlavorsByName() {
+    for (ProductFlavorContainer container : myDelegate.getProductFlavors()) {
+      String name = container.getProductFlavor().getName();
+      myProductFlavorsByName.put(name, container);
+    }
+  }
+
+  private void populateVariantsByName() {
+    for (Variant variant : myDelegate.getVariants()) {
+      myVariantsByName.put(variant.getName(), variant);
+    }
+  }
+
+  @Nullable
+  public BuildTypeContainer findBuildType(@NotNull String name) {
+    return myBuildTypesByName.get(name);
+  }
+
+  @Nullable
+  public ProductFlavorContainer findProductFlavor(@NotNull String name) {
+    return myProductFlavorsByName.get(name);
+  }
+
+  @Nullable
+  public AndroidArtifact findInstrumentationTestArtifactInSelectedVariant() {
+    Variant variant = getSelectedVariant();
+    return findInstrumentationTestArtifact(variant);
+  }
+
+  @Nullable
+  private static AndroidArtifact findInstrumentationTestArtifact(@NotNull Variant variant) {
+    Collection<AndroidArtifact> extraAndroidArtifacts = variant.getExtraAndroidArtifacts();
+    for (AndroidArtifact extraArtifact : extraAndroidArtifacts) {
+      if (extraArtifact.getName().equals(AndroidProject.ARTIFACT_INSTRUMENT_TEST)) {
+        return extraArtifact;
+      }
+    }
+    return null;
   }
 
   @NotNull
@@ -91,8 +145,9 @@ public class IdeaAndroidProject implements Serializable {
    */
   @NotNull
   public Variant getSelectedVariant() {
-    Variant selected = myDelegate.getVariants().get(mySelectedVariantName);
-    return Preconditions.checkNotNull(selected);
+    Variant selected = myVariantsByName.get(mySelectedVariantName);
+    assert selected != null;
+    return selected;
   }
 
   /**
@@ -109,6 +164,7 @@ public class IdeaAndroidProject implements Serializable {
     } else {
       List<String> sorted = Lists.newArrayList(variantNames);
       Collections.sort(sorted);
+      // AndroidProject has always at least 2 variants (debug and release.)
       newVariantName = sorted.get(0);
     }
     mySelectedVariantName = newVariantName;
@@ -116,7 +172,7 @@ public class IdeaAndroidProject implements Serializable {
 
   @NotNull
   public Collection<String> getVariantNames() {
-    return myDelegate.getVariants().keySet();
+    return myVariantsByName.keySet();
   }
 
   @Nullable
@@ -135,34 +191,31 @@ public class IdeaAndroidProject implements Serializable {
   /**
    * Computes the package name to be used for the current variant in the given project.
    *
-   * @param project the project
    * @param manifestPackage the manifest package, if known
    * @return the package for the current variant (and is only null if the user's project is configured incorrectly)
    */
   @Nullable
-  public static String computePackageName(@NotNull IdeaAndroidProject project, @Nullable String manifestPackage) {
-    return computePackageName(project, project.getSelectedVariant(), manifestPackage);
+  public String computePackageName(@Nullable String manifestPackage) {
+    return computePackageName(getSelectedVariant(), manifestPackage);
   }
 
   /**
    * Computes the package name to be used for the given project, if specified in the Gradle files.
    *
-   * @param project the project
    * @param variant the variant to compute the package name for
    * @param manifestPackage the manifest package, if known
    * @return the package for the given variant (and is only null if the user's project is configured incorrectly)
    */
   @Nullable
-  public static String computePackageName(@NotNull IdeaAndroidProject project,
-                                          @NotNull Variant variant,
-                                          @Nullable String manifestPackage) {
+  private String computePackageName(@NotNull Variant variant, @Nullable String manifestPackage) {
     String packageName = variant.getMergedFlavor().getPackageName();
     if (packageName == null) {
       packageName = manifestPackage;
     }
     if (packageName != null) {
       String buildTypeName = variant.getBuildType();
-      BuildTypeContainer buildTypeContainer = project.getDelegate().getBuildTypes().get(buildTypeName);
+      BuildTypeContainer buildTypeContainer = findBuildType(buildTypeName);
+      assert buildTypeContainer != null;
       String packageNameSuffix = buildTypeContainer.getBuildType().getPackageNameSuffix();
       if (packageNameSuffix != null && !packageNameSuffix.isEmpty()) {
         packageName += packageNameSuffix;

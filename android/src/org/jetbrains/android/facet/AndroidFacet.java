@@ -17,9 +17,7 @@ package org.jetbrains.android.facet;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
-import com.android.builder.model.ArtifactInfo;
-import com.android.builder.model.SourceProvider;
-import com.android.builder.model.Variant;
+import com.android.builder.model.*;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.prefs.AndroidLocation;
@@ -205,7 +203,9 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public SourceProvider getBuildTypeSourceSet() {
     if (myIdeaAndroidProject != null) {
       Variant selectedVariant = myIdeaAndroidProject.getSelectedVariant();
-      return myIdeaAndroidProject.getDelegate().getBuildTypes().get(selectedVariant.getBuildType()).getSourceProvider();
+      BuildTypeContainer buildType = myIdeaAndroidProject.findBuildType(selectedVariant.getBuildType());
+      assert buildType != null;
+      return buildType.getSourceProvider();
     } else {
       return null;
     }
@@ -262,7 +262,9 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       List<String> productFlavors = selectedVariant.getProductFlavors();
       List<SourceProvider> providers = Lists.newArrayList();
       for (String flavor : productFlavors) {
-        providers.add(myIdeaAndroidProject.getDelegate().getProductFlavors().get(flavor).getSourceProvider());
+        ProductFlavorContainer productFlavor = myIdeaAndroidProject.findProductFlavor(flavor);
+        assert productFlavor != null;
+        providers.add(productFlavor.getSourceProvider());
       }
 
       return providers;
@@ -304,7 +306,9 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       List<String> productFlavors = selectedVariant.getProductFlavors();
       List<Pair<String, SourceProvider>> providers = Lists.newArrayList();
       for (String flavor : productFlavors) {
-        providers.add(Pair.create(flavor, myIdeaAndroidProject.getDelegate().getProductFlavors().get(flavor).getSourceProvider()));
+        ProductFlavorContainer productFlavor = myIdeaAndroidProject.findProductFlavor(flavor);
+        assert productFlavor != null;
+        providers.add(Pair.create(flavor, productFlavor.getSourceProvider()));
       }
 
       return providers;
@@ -1149,14 +1153,14 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       Variant variant = myIdeaAndroidProject.getSelectedVariant();
       JpsAndroidModuleProperties state = getProperties();
 
-      ArtifactInfo mainArtifactInfo = variant.getMainArtifactInfo();
-      state.ASSEMBLE_TASK_NAME = mainArtifactInfo.getAssembleTaskName();
-      state.COMPILE_JAVA_TASK_NAME = mainArtifactInfo.getJavaCompileTaskName();
+      AndroidArtifact mainArtifact = variant.getMainArtifact();
+      state.ASSEMBLE_TASK_NAME = mainArtifact.getAssembleTaskName();
+      state.COMPILE_JAVA_TASK_NAME = mainArtifact.getJavaCompileTaskName();
 
-      ArtifactInfo testArtifactInfo = variant.getTestArtifactInfo();
-      state.ASSEMBLE_TEST_TASK_NAME = testArtifactInfo != null ? testArtifactInfo.getAssembleTaskName() : "";
+      AndroidArtifact testArtifact = myIdeaAndroidProject.findInstrumentationTestArtifactInSelectedVariant();
+      state.ASSEMBLE_TEST_TASK_NAME = testArtifact != null ? testArtifact.getAssembleTaskName() : "";
 
-      state.SOURCE_GEN_TASK_NAME = mainArtifactInfo.getSourceGenTaskName();
+      state.SOURCE_GEN_TASK_NAME = mainArtifact.getSourceGenTaskName();
       state.SELECTED_BUILD_VARIANT = variant.getName();
     }
   }

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle;
 
+import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
-import com.android.tools.idea.gradle.stubs.android.ArtifactInfoStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,15 +55,14 @@ public final class TestProjects {
     androidProject.addBuildType("debug");
     VariantStub debugVariant = androidProject.addVariant("debug");
 
-    ArtifactInfoStub mainArtifactInfo = debugVariant.getMainArtifactInfo();
+    AndroidArtifactStub mainArtifactInfo = debugVariant.getMainArtifact();
     mainArtifactInfo.addGeneratedSourceFolder("build/source/aidl/debug");
     mainArtifactInfo.addGeneratedSourceFolder("build/source/buildConfig/debug");
     mainArtifactInfo.addGeneratedSourceFolder("build/source/r/debug");
     mainArtifactInfo.addGeneratedSourceFolder("build/source/rs/debug");
     mainArtifactInfo.addGeneratedResourceFolder("build/res/rs/debug");
 
-    ArtifactInfoStub testArtifactInfo = debugVariant.getTestArtifactInfo();
-    assert testArtifactInfo != null;
+    AndroidArtifactStub testArtifactInfo = debugVariant.getInstrumentTestArtifact();
     testArtifactInfo.addGeneratedSourceFolder("build/source/aidl/test");
     testArtifactInfo.addGeneratedSourceFolder("build/source/buildConfig/test");
     testArtifactInfo.addGeneratedSourceFolder("build/source/r/test");
@@ -78,15 +77,14 @@ public final class TestProjects {
     project.addBuildType("debug");
     VariantStub f1faDebugVariant = project.addVariant("f1fa-debug", "debug");
 
-    ArtifactInfoStub mainArtifactInfo = f1faDebugVariant.getMainArtifactInfo();
+    AndroidArtifactStub mainArtifactInfo = f1faDebugVariant.getMainArtifact();
     mainArtifactInfo.addGeneratedSourceFolder("build/source/aidl/f1fa/debug");
     mainArtifactInfo.addGeneratedSourceFolder("build/source/buildConfig/f1fa/debug");
     mainArtifactInfo.addGeneratedSourceFolder("build/source/r/f1fa/debug");
     mainArtifactInfo.addGeneratedSourceFolder("build/source/rs/f1fa/debug");
     mainArtifactInfo.addGeneratedResourceFolder("build/res/rs/f1fa/debug");
 
-    ArtifactInfoStub testArtifactInfo = f1faDebugVariant.getTestArtifactInfo();
-    assert testArtifactInfo != null;
+    AndroidArtifactStub testArtifactInfo = f1faDebugVariant.getInstrumentTestArtifact();
     testArtifactInfo.addGeneratedSourceFolder("build/source/aidl/f1fa/test");
     testArtifactInfo.addGeneratedSourceFolder("build/source/buildConfig/f1fa/test");
     testArtifactInfo.addGeneratedSourceFolder("build/source/r/f1fa/test");
