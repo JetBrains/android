@@ -29,10 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.SdkConstants.DOT_AAR;
 import static org.jetbrains.android.facet.ResourceFolderManager.addAarsFromModuleLibraries;
@@ -224,7 +221,7 @@ public final class AppResourceRepository extends MultiResourceRepository {
   private static void addGradleLibraries(List<AndroidLibrary> list, AndroidFacet facet) {
     IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
     if (gradleProject != null) {
-      List<AndroidLibrary> libraries = gradleProject.getSelectedVariant().getMainArtifactInfo().getDependencies().getLibraries();
+      List<AndroidLibrary> libraries = gradleProject.getSelectedVariant().getMainArtifact().getDependencies().getLibraries();
       Set<File> unique = Sets.newHashSet();
       for (AndroidLibrary library : libraries) {
         addGradleLibrary(list, library, unique);

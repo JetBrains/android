@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle;
 
 import com.android.builder.model.BuildTypeContainer;
-import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProvider;
+import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
-import com.android.tools.idea.gradle.stubs.android.ArtifactInfoStub;
+import com.android.tools.idea.gradle.stubs.android.ProductFlavorContainerStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -60,16 +60,15 @@ public class ContentRootSourcePaths {
     Assert.assertNotNull(selectedVariant);
     addGeneratedDirPaths(selectedVariant);
 
-    Map<String, ProductFlavorContainer> productFlavors = androidProject.getProductFlavors();
     for (String flavorName : selectedVariant.getProductFlavors()) {
-      ProductFlavorContainer flavor = productFlavors.get(flavorName);
+      ProductFlavorContainerStub flavor = androidProject.findProductFlavor(flavorName);
       if (flavor != null) {
         addSourceDirPaths(flavor);
       }
     }
 
     String buildTypeName = selectedVariant.getBuildType();
-    BuildTypeContainer buildType = androidProject.getBuildTypes().get(buildTypeName);
+    BuildTypeContainer buildType = androidProject.findBuildType(buildTypeName);
     if (buildType != null) {
       addSourceDirPaths(buildType.getSourceProvider(), false);
     }
@@ -78,26 +77,24 @@ public class ContentRootSourcePaths {
   }
 
   private void addGeneratedDirPaths(@NotNull VariantStub variant) {
-    ArtifactInfoStub mainArtifactInfo = variant.getMainArtifactInfo();
-    addGeneratedDirPaths(mainArtifactInfo, false);
+    AndroidArtifactStub mainArtifact = variant.getMainArtifact();
+    addGeneratedDirPaths(mainArtifact, false);
 
-    ArtifactInfoStub testArtifactInfo = variant.getTestArtifactInfo();
-    if (testArtifactInfo != null) {
-      addGeneratedDirPaths(testArtifactInfo, true);
-    }
+    AndroidArtifactStub testArtifact = variant.getInstrumentTestArtifact();
+    addGeneratedDirPaths(testArtifact, true);
   }
 
-  private void addGeneratedDirPaths(@NotNull ArtifactInfoStub artifactInfo, boolean isTest) {
+  private void addGeneratedDirPaths(@NotNull AndroidArtifactStub androidArtifact, boolean isTest) {
     ExternalSystemSourceType sourceType = isTest ? ExternalSystemSourceType.TEST_GENERATED : ExternalSystemSourceType.SOURCE_GENERATED;
-    addSourceDirPaths(sourceType, artifactInfo.getGeneratedSourceFolders());
+    addSourceDirPaths(sourceType, androidArtifact.getGeneratedSourceFolders());
 
     sourceType = isTest ? ExternalSystemSourceType.TEST_RESOURCE : ExternalSystemSourceType.RESOURCE;
-    addSourceDirPaths(sourceType, artifactInfo.getGeneratedResourceFolders());
+    addSourceDirPaths(sourceType, androidArtifact.getGeneratedResourceFolders());
   }
 
-  private void addSourceDirPaths(@NotNull ProductFlavorContainer productFlavor) {
+  private void addSourceDirPaths(@NotNull ProductFlavorContainerStub productFlavor) {
     addSourceDirPaths(productFlavor.getSourceProvider(), false);
-    addSourceDirPaths(productFlavor.getTestSourceProvider(), true);
+    addSourceDirPaths(productFlavor.getInstrumentationTestSourceProvider(), true);
   }
 
   private void addSourceDirPaths(@NotNull SourceProvider sourceProvider, boolean isTest) {

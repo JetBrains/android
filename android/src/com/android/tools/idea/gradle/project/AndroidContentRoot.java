@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Map;
+import java.util.Collection;
 
 /**
  * Configures a module's content root from an {@link AndroidProject}.
@@ -35,8 +35,7 @@ public final class AndroidContentRoot {
   // TODO: Retrieve this information from Gradle.
   private static final String[] EXCLUDED_OUTPUT_DIR_NAMES =
     // Note that build/exploded-bundles should *not* be excluded
-    {"apk", "assets", "bundles", "classes", "dependency-cache", "incremental", "libs", "manifests", "symbols", "tmp",
-     "res"};
+    {"apk", "assets", "bundles", "classes", "dependency-cache", "incremental", "libs", "manifests", "symbols", "tmp", "res"};
 
   private AndroidContentRoot() {
   }
@@ -49,20 +48,26 @@ public final class AndroidContentRoot {
    */
   public static void storePaths(@NotNull IdeaAndroidProject androidProject, @NotNull ContentRootStorage storage) {
     Variant selectedVariant = androidProject.getSelectedVariant();
-    storeGeneratedDirPaths(selectedVariant, storage);
+
+    AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
+    storeSourcePaths(mainArtifact, storage, false);
+
+    AndroidArtifact testArtifact = androidProject.findInstrumentationTestArtifactInSelectedVariant();
+    if (testArtifact != null) {
+      storeSourcePaths(testArtifact, storage, true);
+    }
 
     AndroidProject delegate = androidProject.getDelegate();
 
-    Map<String, ProductFlavorContainer> productFlavors = delegate.getProductFlavors();
     for (String flavorName : selectedVariant.getProductFlavors()) {
-      ProductFlavorContainer flavor = productFlavors.get(flavorName);
+      ProductFlavorContainer flavor = androidProject.findProductFlavor(flavorName);
       if (flavor != null) {
         storeSourcePaths(flavor, storage);
       }
     }
 
     String buildTypeName = selectedVariant.getBuildType();
-    BuildTypeContainer buildTypeContainer = delegate.getBuildTypes().get(buildTypeName);
+    BuildTypeContainer buildTypeContainer = androidProject.findBuildType(buildTypeName);
     if (buildTypeContainer != null) {
       storeSourcePaths(buildTypeContainer.getSourceProvider(), storage, false);
     }
@@ -73,32 +78,46 @@ public final class AndroidContentRoot {
     excludeOutputDirs(storage);
   }
 
-  private static void storeGeneratedDirPaths(@NotNull Variant variant, @NotNull ContentRootStorage storage) {
-    ArtifactInfo mainArtifactInfo = variant.getMainArtifactInfo();
-    storeGeneratedDirPaths(mainArtifactInfo, storage, false);
+  private static void storeSourcePaths(@NotNull AndroidArtifact androidArtifact,
+                                       @NotNull ContentRootStorage storage,
+                                       boolean isTest) {
+    storeGeneratedDirPaths(androidArtifact, storage, isTest);
 
-    ArtifactInfo testArtifactInfo = variant.getTestArtifactInfo();
-    if (testArtifactInfo != null) {
-      storeGeneratedDirPaths(testArtifactInfo, storage, true);
+    SourceProvider variantSourceProvider = androidArtifact.getVariantSourceProvider();
+    if (variantSourceProvider != null) {
+      storeSourcePaths(variantSourceProvider, storage, isTest);
+    }
+
+    SourceProvider multiFlavorSourceProvider = androidArtifact.getMultiFlavorSourceProvider();
+    if (multiFlavorSourceProvider != null) {
+      storeSourcePaths(multiFlavorSourceProvider, storage, isTest);
     }
   }
 
-  private static void storeGeneratedDirPaths(@NotNull ArtifactInfo artifactInfo, @NotNull ContentRootStorage storage, boolean isTest) {
+  private static void storeGeneratedDirPaths(@NotNull AndroidArtifact androidArtifact,
+                                             @NotNull ContentRootStorage storage,
+                                             boolean isTest) {
     ExternalSystemSourceType sourceType = isTest ? ExternalSystemSourceType.TEST_GENERATED : ExternalSystemSourceType.SOURCE_GENERATED;
-    storePaths(sourceType, artifactInfo.getGeneratedSourceFolders(), storage);
+    storePaths(sourceType, androidArtifact.getGeneratedSourceFolders(), storage);
 
     sourceType = getResourceSourceType(isTest);
-    storePaths(sourceType, artifactInfo.getGeneratedResourceFolders(), storage);
+    storePaths(sourceType, androidArtifact.getGeneratedResourceFolders(), storage);
   }
 
   private static void storeSourcePaths(@NotNull ProductFlavorContainer flavor, @NotNull ContentRootStorage storage) {
     storeSourcePaths(flavor.getSourceProvider(), storage, false);
-    storeSourcePaths(flavor.getTestSourceProvider(), storage, true);
+
+    Collection<SourceProviderContainer> extraArtifactSourceProviders = flavor.getExtraSourceProviders();
+    for (SourceProviderContainer sourceProviders : extraArtifactSourceProviders) {
+      String artifactName = sourceProviders.getArtifactName();
+      if (AndroidProject.ARTIFACT_INSTRUMENT_TEST.equals(artifactName)) {
+        storeSourcePaths(sourceProviders.getSourceProvider(), storage, true);
+        break;
+      }
+    }
   }
 
-  private static void storeSourcePaths(@NotNull SourceProvider sourceProvider,
-                                       @NotNull ContentRootStorage storage,
-                                       boolean isTest) {
+  private static void storeSourcePaths(@NotNull SourceProvider sourceProvider, @NotNull ContentRootStorage storage, boolean isTest) {
     ExternalSystemSourceType sourceType = isTest ? ExternalSystemSourceType.TEST : ExternalSystemSourceType.SOURCE;
     storePaths(sourceType, sourceProvider.getAidlDirectories(), storage);
     storePaths(sourceType, sourceProvider.getAssetsDirectories(), storage);
@@ -165,6 +184,7 @@ public final class AndroidContentRoot {
 
     /**
      * Stores the path of the given directory as a directory of the given type.
+     *
      * @param sourceType the type of source directory (e.g. 'source', 'test,' etc.)
      * @param dir        the given directory.
      */
