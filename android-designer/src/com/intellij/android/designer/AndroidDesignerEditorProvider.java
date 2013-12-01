@@ -16,7 +16,10 @@
 package com.intellij.android.designer;
 
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.fileEditor.*;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorPolicy;
+import com.intellij.openapi.fileEditor.FileEditorProvider;
+import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
@@ -28,7 +31,6 @@ import com.intellij.psi.xml.XmlFile;
 import org.jdom.Element;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.AndroidLayoutPreviewPanel;
 import org.jetbrains.annotations.NotNull;
 
 import static org.jetbrains.android.uipreview.AndroidLayoutPreviewPanel.ANDROID_DESIGNER_ID;
@@ -69,12 +71,7 @@ public final class AndroidDesignerEditorProvider implements FileEditorProvider, 
   @Override
   public FileEditorState readState(@NotNull Element sourceElement, @NotNull Project project, @NotNull VirtualFile file) {
     // TODO: Auto-generated method stub
-    return new FileEditorState() {
-      @Override
-      public boolean canBeMergedWith(FileEditorState otherState, FileEditorStateLevel level) {
-        return false;
-      }
-    };
+    return new NullFileEditorState();
   }
 
   @Override
