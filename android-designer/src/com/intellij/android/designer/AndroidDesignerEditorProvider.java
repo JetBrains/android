@@ -68,12 +68,7 @@ public final class AndroidDesignerEditorProvider implements FileEditorProvider, 
   @Override
   public FileEditorState readState(@NotNull Element sourceElement, @NotNull Project project, @NotNull VirtualFile file) {
     // TODO: Auto-generated method stub
-    return new FileEditorState() {
-      @Override
-      public boolean canBeMergedWith(FileEditorState otherState, FileEditorStateLevel level) {
-        return false;
-      }
-    };
+    return new NullFileEditorState();
   }
 
   @Override
