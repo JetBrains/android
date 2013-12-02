@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.output.parser.aapt;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.res2.MergedResourceWriter;
 import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.gradle.output.parser.CompilerOutputParser;
 import com.android.tools.idea.gradle.output.parser.OutputLineReader;
@@ -264,7 +265,7 @@ public abstract class AbstractAaptOutputParser implements CompilerOutputParser {
   private static ReadOnlyDocument getDocument(@NotNull File file) {
     String filePath = file.getAbsolutePath();
     ReadOnlyDocument document = ourDocumentsByPathCache.get(filePath);
-    if (document == null) {
+    if (document == null || document.isStale()) {
       try {
         if (!file.exists()) {
           if (ourRootDir != null && ourRootDir.isAbsolute() && !file.isAbsolute()) {
@@ -300,8 +301,9 @@ public abstract class AbstractAaptOutputParser implements CompilerOutputParser {
 
     int searchStart;
     String fileName = file.getName();
-    boolean isValueFile = fileName.equals("values.xml"); // Keep in sync with MergedResourceWriter.FN_VALUES_XML
-    if (isValueFile) {
+    boolean isManifest = fileName.equals(ANDROID_MANIFEST_XML);
+    boolean isValueFile = fileName.equals(MergedResourceWriter.FN_VALUES_XML);
+    if (isValueFile || isManifest) {
       searchStart = document.lineOffset(locationLine);
     }
     else {
@@ -313,6 +315,16 @@ public abstract class AbstractAaptOutputParser implements CompilerOutputParser {
 
     int start = document.findTextBackwards(START_MARKER, searchStart);
     assert start < searchStart;
+
+    if (start == -1 && isManifest && searchStart < document.length()) {
+      // If the manifest file didn't need to merge, it will place the source reference at the end instead
+      searchStart = document.length();
+      if (searchStart != -1L) {
+        start = document.findTextBackwards(START_MARKER, searchStart);
+        assert start < searchStart;
+      }
+    }
+
     if (start == -1) {
       return null;
     }
