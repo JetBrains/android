@@ -24,14 +24,14 @@ import org.jetbrains.android.AndroidTestCase;
 
 import java.util.Collection;
 
-public class ProjectResourcesTest extends AndroidTestCase {
+public class LocalResourceRepositoryTest extends AndroidTestCase {
   private static final String TEST_FILE = "xmlpull/layout.xml";
 
   public void test1() {
     myFixture.copyFileToProject(TEST_FILE, "res/layout/layout1.xml");
     myFixture.copyFileToProject(TEST_FILE, "res/layout/layout2.xml");
 
-    ProjectResources resources = ProjectResources.get(myModule, false);
+    LocalResourceRepository resources = ModuleResourceRepository.getModuleResources(myModule, true);
     assertNotNull(resources);
 
     Collection<String> layouts = resources.getItemsOfType(ResourceType.LAYOUT);

@@ -25,8 +25,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Assert;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -47,6 +49,16 @@ public class AndroidTestCaseHelper {
       }
     });
     return jdk;
+  }
+
+  @Nullable
+  public static String getAndroidSdkPath() {
+    String path = AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable(AndroidTestCase.SDK_PATH_PROPERTY);
+    if (Strings.isNullOrEmpty(path)) {
+      String format = "Please specify the path of an Android SDK (v22.0.0) in the system property or environment variable '%1$s'";
+      Assert.fail(String.format(format, AndroidTestCase.SDK_PATH_PROPERTY));
+    }
+    return path;
   }
 
   @Nullable

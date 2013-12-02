@@ -1,5 +1,6 @@
 package org.jetbrains.android.inspections.lint;
 
+import com.android.SdkConstants;
 import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
@@ -31,7 +32,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
@@ -72,7 +72,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
 
     if (fileType == StdFileTypes.XML) {
       if (facet.getLocalResourceManager().getFileResourceType(file) == null &&
-          !Comparing.equal(AndroidRootUtil.getManifestFile(facet), vFile)) {
+          !SdkConstants.ANDROID_MANIFEST_XML.equals(vFile.getName())) {
         return null;
       }
     }

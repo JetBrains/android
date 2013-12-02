@@ -28,6 +28,6 @@ public class AndroidMakeProjectAction extends AndroidBuildProjectAction {
 
   @Override
   protected void buildGradleProject(@NotNull Project project, @NotNull DataContext dataContext) {
-    GradleInvoker.getInstance(project).make();
+    GradleInvoker.getInstance(project).make(null, null);
   }
 }

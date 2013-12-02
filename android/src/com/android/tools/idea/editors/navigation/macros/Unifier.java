@@ -30,6 +30,11 @@ public class Unifier {
   private static final boolean DEBUG = false;
   private int indent = 0;
 
+  @Nullable
+  public static Map<String, PsiElement> match(PsiMethod method, PsiElement element) {
+    return new Unifier().unify(method.getParameterList(), method.getBody().getStatements()[0].getFirstChild(), element);
+  }
+
   private String indent() {
     StringBuilder b = new StringBuilder();
     for (int i = 0; i < indent; i++) {

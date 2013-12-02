@@ -147,11 +147,11 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     assert facet != null;
     myFacet = facet;
     if (facet.isGradleProject()) {
-      // Ensure that the project resources have been initialized first, since
+      // Ensure that the app resources have been initialized first, since
       // we want it to add its own variant listeners before ours (such that
       // when the variant changes, the project resources get notified and updated
       // before our own update listener attempts a re-render)
-      facet.getProjectResources(false /*libraries*/, true /*createIfNecessary*/);
+      ModuleResourceRepository.getModuleResources(facet, true /*createIfNecessary*/);
       myFacet.getResourceFolderManager().addListener(this);
     }
     myConfigListener = new LayoutConfigurationListener();
@@ -652,6 +652,20 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       return DesignerToolWindowManager.getInstance(this);
     } catch (Exception ex) {
       return null;
+    }
+  }
+
+  @Override
+  protected void restoreState() {
+    // Work around NPE in ui-designer-core
+    //    java.lang.NullPointerException
+    //      at com.intellij.designer.AbstractToolWindowManager.getContent(AbstractToolWindowManager.java:232)
+    //      at com.intellij.designer.DesignerToolWindowManager.getInstance(DesignerToolWindowManager.java:52)
+    //      at com.intellij.designer.designSurface.DesignerEditorPanel.restoreState(DesignerEditorPanel.java:606)
+    // Only restore state, if we can find the tool window
+    DesignerToolWindow toolWindow = getToolWindow();
+    if (toolWindow != null) {
+      super.restoreState();
     }
   }
 
@@ -1487,7 +1501,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
                                      @NotNull Collection<VirtualFile> removed) {
     if (facet == myFacet) {
       if (myActive) {
-        // The project resources should already have been refreshed by their own variant listener
+        // The app resources should already have been refreshed by their own variant listener
         updateRenderer(true);
       } else {
         myVariantChanged = true;

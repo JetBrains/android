@@ -31,7 +31,10 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.AndroidModuleInfo;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.rendering.ProjectResources;
+import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.rendering.LocalResourceRepository;
+import com.android.tools.idea.rendering.ModuleResourceRepository;
+import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
@@ -128,8 +131,9 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private volatile boolean myAutogenerationEnabled = false;
 
   private ConfigurationManager myConfigurationManager;
-  private ProjectResources myProjectResources;
-  private ProjectResources myProjectResourcesWithLibraries;
+  private LocalResourceRepository myModuleResources;
+  private AppResourceRepository myAppResources;
+  private ProjectResourceRepository myProjectResources;
   private IdeaAndroidProject myIdeaAndroidProject;
   private final ResourceFolderManager myFolderManager = new ResourceFolderManager(this);
 
@@ -1058,20 +1062,36 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   @Nullable
-  public ProjectResources getProjectResources(boolean includeLibraries, boolean createIfNecessary) {
+  public AppResourceRepository getAppResources(boolean createIfNecessary) {
     //noinspection SynchronizeOnThis
     synchronized (this) {
-      if (includeLibraries) {
-        if (myProjectResourcesWithLibraries == null && createIfNecessary) {
-          myProjectResourcesWithLibraries = ProjectResources.create(this, true /*libraries*/);
-        }
-        return myProjectResourcesWithLibraries;
-      } else {
-        if (myProjectResources == null && createIfNecessary) {
-          myProjectResources = ProjectResources.create(this, false /*libraries*/);
-        }
-        return myProjectResources;
+      if (myAppResources == null && createIfNecessary) {
+        myAppResources = AppResourceRepository.create(this);
       }
+      return myAppResources;
+    }
+  }
+
+  @Nullable
+  public ProjectResourceRepository getProjectResources(boolean createIfNecessary) {
+    //noinspection SynchronizeOnThis
+    synchronized (this) {
+      if (myProjectResources == null && createIfNecessary) {
+        myProjectResources = ProjectResourceRepository.create(this);
+      }
+      return myProjectResources;
+    }
+  }
+
+
+  @Nullable
+  public LocalResourceRepository getModuleResources(boolean createIfNecessary) {
+    //noinspection SynchronizeOnThis
+    synchronized (this) {
+      if (myModuleResources == null && createIfNecessary) {
+        myModuleResources = ModuleResourceRepository.create(this);
+      }
+      return myModuleResources;
     }
   }
 

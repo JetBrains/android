@@ -100,6 +100,8 @@ public class AndroidIcons {
   public static class Wizards {
     public static final Icon NewModuleSidePanel = load("/icons/wizards/newModule.png"); // 143x627
     public static final Icon NewProjectSidePanel = load("/icons/wizards/newProject.png"); // 143x627
+    public static final Icon DefaultTemplate = load("/icons/wizards/defaultTemplate.png"); //512x512
+    public static final Icon DefaultTemplate256 = load("/icons/wizards/defaultTemplate256.png"); // 256x256
   }
 
   public static class Views {

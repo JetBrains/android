@@ -116,9 +116,9 @@ public class JavacOutputParser implements CompilerOutputParser {
                   buf.append(SystemProperties.getLineSeparator()) ;
                 }
                 buf.append(m);
-                GradleMessage msg = new GradleMessage(kind, buf.toString(), file.getAbsolutePath(), lineNumber, column + 1);
-                messages.add(msg);
               }
+              GradleMessage msg = new GradleMessage(kind, buf.toString(), file.getAbsolutePath(), lineNumber, column + 1);
+              messages.add(msg);
             } finally {
               StringBuilderSpinAllocator.dispose(buf);
             }

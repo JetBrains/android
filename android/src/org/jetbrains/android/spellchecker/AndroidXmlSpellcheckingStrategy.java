@@ -16,6 +16,7 @@
 package org.jetbrains.android.spellchecker;
 
 import com.android.tools.lint.detector.api.LintUtils;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
@@ -204,7 +205,33 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
         }
         return;
       }
+
+      // The super implementation already filters out hex color definitions like #001122, but it's limited to RGB colors, not ARGB.
+      if (isColorString(element.getValue())) {
+        return;
+      }
+
       super.tokenize(element, consumer);
     }
+  }
+
+  private static boolean isColorString(@NotNull String s) {
+    int length = s.length();
+    // #rgb to #aarrggbb
+    if (length < 4 || length > 9) {
+      return false;
+    }
+
+    int i = 0;
+    if (s.charAt(i++) != '#') {
+      return false;
+    }
+
+    for (; i < length; i++) {
+      if (!StringUtil.isHexDigit(s.charAt(i))) {
+        return false;
+      }
+    }
+    return true;
   }
 }

@@ -20,8 +20,9 @@ import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.ManifestInfo;
-import com.android.tools.idea.rendering.ProjectResources;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
@@ -355,7 +356,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
 
   private List<String> getProjectThemes() {
     if (myProjectThemes == null) {
-      ProjectResources repository = ProjectResources.get(myConfiguration.getModule(), true);
+      LocalResourceRepository repository = AppResourceRepository.getAppResources(myConfiguration.getModule(), true);
       Map<ResourceType, Map<String, ResourceValue>> resources = repository.getConfiguredResources(myConfiguration.getFullConfig());
       myProjectThemes = getThemes(myConfiguration, resources, false /*isFramework*/);
     }

@@ -21,8 +21,8 @@ import com.android.resources.*;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
+import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.ProjectResources;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.utils.SparseIntArray;
 import com.intellij.openapi.application.ApplicationManager;
@@ -60,10 +60,10 @@ public class ConfigurationMatcher {
   private final Configuration myConfiguration;
   private final ConfigurationManager myManager;
   private final VirtualFile myFile;
-  private final ProjectResources myResources;
+  private final LocalResourceRepository myResources;
 
   public ConfigurationMatcher(@NotNull Configuration configuration,
-                       @Nullable ProjectResources resources,
+                       @Nullable LocalResourceRepository resources,
                        @Nullable VirtualFile file) {
     myConfiguration = configuration;
     myFile = file;
