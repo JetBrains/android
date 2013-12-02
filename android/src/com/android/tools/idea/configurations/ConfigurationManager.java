@@ -62,7 +62,6 @@ import static com.android.tools.idea.configurations.ConfigurationListener.CFG_TA
 public class ConfigurationManager implements Disposable {
   @NotNull private final Module myModule;
   private List<Device> myDevices;
-  private List<IAndroidTarget> myTargets;
   private final UserDeviceManager myUserDeviceManager;
   private final SoftValueHashMap<VirtualFile, Configuration> myCache = new SoftValueHashMap<VirtualFile, Configuration>();
   private List<Locale> myLocales;
@@ -219,26 +218,39 @@ public class ConfigurationManager implements Disposable {
     return null;
   }
 
+  /**
+   * Returns all the {@link IAndroidTarget} instances applicable for the current module.
+   * Note that this may include non-rendering targets, so for layout rendering contexts,
+   * check individual members by calling {@link #isLayoutLibTarget(IAndroidTarget)} first.
+   */
   @NotNull
-  public List<IAndroidTarget> getTargets() {
-    if (myTargets == null) {
-      List<IAndroidTarget> targets = new ArrayList<IAndroidTarget>();
+  public IAndroidTarget[] getTargets() {
+    AndroidPlatform platform = AndroidPlatform.getPlatform(myModule);
+    if (platform != null) {
+      final AndroidSdkData sdkData = platform.getSdkData();
 
-      AndroidPlatform platform = AndroidPlatform.getPlatform(myModule);
-      if (platform != null) {
-        final AndroidSdkData sdkData = platform.getSdkData();
-
-        for (IAndroidTarget target : sdkData.getTargets()) {
-          if (target.isPlatform() && target.hasRenderingLibrary()) {
-            targets.add(target);
-          }
-        }
-      }
-
-      myTargets = targets;
+      return sdkData.getTargets();
     }
 
-    return myTargets;
+    return new IAndroidTarget[0];
+  }
+
+  public static boolean isLayoutLibTarget(@NotNull IAndroidTarget target) {
+    return target.isPlatform() && target.hasRenderingLibrary();
+  }
+
+  @Nullable
+  public IAndroidTarget getHighestApiTarget() {
+    // Note: The target list is already sorted in ascending API order.
+    IAndroidTarget[] targetList = getTargets();
+    for (int i = targetList.length - 1; i >= 0; i--) {
+      IAndroidTarget target = targetList[i];
+      if (isLayoutLibTarget(target)) {
+        return target;
+      }
+    }
+
+    return null;
   }
 
   /**
@@ -327,15 +339,7 @@ public class ConfigurationManager implements Disposable {
   @Nullable
   public IAndroidTarget getDefaultTarget() {
     // Use the most recent target
-    List<IAndroidTarget> targetList = getTargets();
-    for (int i = targetList.size() - 1; i >= 0; i--) {
-      IAndroidTarget target = targetList.get(i);
-      if (target.hasRenderingLibrary()) {
-        return target;
-      }
-    }
-
-    return null;
+    return getHighestApiTarget();
   }
 
   @NotNull
@@ -419,10 +423,10 @@ public class ConfigurationManager implements Disposable {
       return target;
     }
 
-    List<IAndroidTarget> targetList = getTargets();
-    for (int i = targetList.size() - 1; i >= 0; i--) {
-      target = targetList.get(i);
-      if (target.hasRenderingLibrary() && target.getVersion().getApiLevel() >= min) {
+    IAndroidTarget[] targetList = getTargets();
+    for (int i = targetList.length - 1; i >= 0; i--) {
+      target = targetList[i];
+      if (isLayoutLibTarget(target) && target.getVersion().getApiLevel() >= min) {
         return target;
       }
     }
