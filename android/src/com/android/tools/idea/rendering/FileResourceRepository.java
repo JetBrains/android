@@ -37,7 +37,7 @@ import java.util.Map;
  * as a result cannot use the normal {@link ResourceFolderRepository}. This is the case
  * for example for the expanded {@code .aar} directories.
  */
-class FileResourceRepository extends LocalResourceRepository {
+public class FileResourceRepository extends LocalResourceRepository {
   private static final Logger LOG = Logger.getInstance(FileResourceRepository.class);
   protected final Map<ResourceType, ListMultimap<String, ResourceItem>> mItems = Maps.newEnumMap(ResourceType.class);
   private final File myFile;
@@ -79,6 +79,10 @@ class FileResourceRepository extends LocalResourceRepository {
     }
 
     return repository;
+  }
+
+  public File getResourceDirectory() {
+    return myFile;
   }
 
   private static ResourceMerger createResourceMerger(File file) {
