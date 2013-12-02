@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.util;
 
 import com.android.SdkConstants;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
 
 import java.io.File;
@@ -42,7 +43,7 @@ public class LocalPropertiesTest extends IdeaTestCase {
   }
 
   public void testSetAndroidSdkPathWithString() throws Exception {
-    String androidSdkPath = "/home/sdk2";
+    String androidSdkPath = FileUtil.toSystemDependentName("/home/sdk2");
     myLocalProperties.setAndroidSdkPath(androidSdkPath);
     myLocalProperties.save();
 
@@ -50,7 +51,7 @@ public class LocalPropertiesTest extends IdeaTestCase {
   }
 
   public void testSetAndroidSdkPathWithSdk() throws Exception {
-    String androidSdkPath = "/home/sdk2";
+    String androidSdkPath = FileUtil.toSystemDependentName("/home/sdk2");
 
     Sdk sdk = createMock(Sdk.class);
     expect(sdk.getHomePath()).andReturn(androidSdkPath);

@@ -406,13 +406,17 @@ public class GradleBuildFileTest extends IdeaTestCase {
   }
 
   public void testSetsMavenRepositories() throws Exception {
-    GradleBuildFile file = getTestFile("");
-    List<Repository> newRepositories = Lists.newArrayList(
+    final GradleBuildFile file = getTestFile("");
+    final List<Repository> newRepositories = Lists.newArrayList(
       new Repository(Repository.Type.MAVEN_CENTRAL, null),
       new Repository(Repository.Type.MAVEN_LOCAL, null),
       new Repository(Repository.Type.URL, "www.foo.com"));
-    file.setValue(BuildFileKey.LIBRARY_REPOSITORY, newRepositories);
-
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.LIBRARY_REPOSITORY, newRepositories);
+      }
+    });
     String expected =
       "repositories {\n" +
       "    mavenCentral()\n" +

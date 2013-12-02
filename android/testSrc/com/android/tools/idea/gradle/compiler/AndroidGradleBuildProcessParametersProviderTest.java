@@ -25,6 +25,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
+import java.io.File;
 import java.util.List;
 
 import static org.easymock.classextension.EasyMock.*;
@@ -62,9 +63,9 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
     String projectDirPath = FileUtil.toSystemDependentName(myProject.getBasePath());
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.project.path=" + projectDirPath));
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.daemon.max.idle.time=55"));
-    assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.home.path=~/gradle-1.6"));
+    assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.home.path=~" + File.separatorChar + "gradle-1.6"));
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.use.verbose.logging=true"));
-    assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.service.dir.path=~./gradle"));
+    assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.service.dir.path=~." + File.separatorChar + "gradle"));
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.daemon.jvm.option.count=2"));
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.daemon.jvm.option.0=-Xmx2048m"));
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.daemon.jvm.option.1=-XX:MaxPermSize=512m"));
