@@ -569,6 +569,10 @@ public class RenderErrorPanel extends JPanel {
         builder.newline().newline();
         builder.addHeading("Exception Details", HtmlBuilderHelper.getHeaderFontColor()).newline();
         reportThrowable(builder, firstThrowable, false);
+        if (firstThrowable instanceof RenderSecurityException) {
+          builder.newline();
+          builder.addLink("Turn off custom view rendering sandbox", myLinkManager.createDisableSandboxUrl());
+        }
       }
       builder.newline().newline();
     }
