@@ -275,4 +275,21 @@ public final class AppResourceRepository extends MultiResourceRepository {
     assert modules.size() == libraries.size() + 1; // should only combine with the module set repository
     return new AppResourceRepository(facet, modules, libraries);
   }
+
+  @Nullable
+  public FileResourceRepository findRepositoryFor(@NotNull File aarDirectory) {
+    String aarPath = aarDirectory.getPath();
+    assert aarPath.endsWith(DOT_AAR) : aarPath;
+    for (LocalResourceRepository r : myLibraries) {
+      if (r instanceof FileResourceRepository) {
+        FileResourceRepository repository = (FileResourceRepository)r;
+        if (repository.getResourceDirectory().getPath().startsWith(aarPath)) {
+          return repository;
+        }
+      } else {
+        assert false : r.getClass();
+      }
+    }
+    return null;
+  }
 }
