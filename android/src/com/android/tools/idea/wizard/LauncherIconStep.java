@@ -17,6 +17,7 @@
 package com.android.tools.idea.wizard;
 
 import com.android.assetstudiolib.GraphicGenerator;
+import com.android.tools.idea.templates.TemplateManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
@@ -30,6 +31,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
@@ -77,6 +79,7 @@ public class LauncherIconStep extends TemplateWizardStep {
   private JLabel myChooseClipartLabel;
   private JLabel myBackgroundColorLabel;
   private JLabel myForegroundColorLabel;
+  private boolean myInitialized;
 
   public LauncherIconStep(LauncherIconWizardState state, @Nullable Project project, @Nullable Icon sidePanelIcon,
                           UpdateListener updateListener) {
@@ -95,7 +98,6 @@ public class LauncherIconStep extends TemplateWizardStep {
     register(ATTR_SOURCE_TYPE, myImageRadioButton, LauncherIconWizardState.SourceType.IMAGE);
     register(ATTR_SOURCE_TYPE, myClipartRadioButton, LauncherIconWizardState.SourceType.CLIPART);
     register(ATTR_SOURCE_TYPE, myTextRadioButton, LauncherIconWizardState.SourceType.TEXT);
-    register(ATTR_IMAGE_PATH, myImageFile);
     register(ATTR_FOREGROUND_COLOR, myForegroundColor);
     register(ATTR_BACKGROUND_COLOR, myBackgroundColor);
 
@@ -217,6 +219,23 @@ public class LauncherIconStep extends TemplateWizardStep {
   @Override
   public JComponent getComponent() {
     return myPanel;
+  }
+
+  @Override
+  public void updateStep() {
+    super.updateStep();
+
+    if (!myInitialized) {
+      myInitialized = true;
+      initialize();
+    }
+  }
+
+  private void initialize() {
+    myWizardState.put(ATTR_IMAGE_PATH, new File(
+      TemplateManager.getTemplateRootFolder(),"projects/NewAndroidApplication/root/res/drawable-xhdpi/ic_launcher.png").
+      getAbsolutePath());
+    register(ATTR_IMAGE_PATH, myImageFile);
   }
 
   @Override
