@@ -71,7 +71,7 @@ public final class AndroidDesignerEditorProvider implements FileEditorProvider, 
   @Override
   public FileEditorState readState(@NotNull Element sourceElement, @NotNull Project project, @NotNull VirtualFile file) {
     // TODO: Auto-generated method stub
-    return new NullFileEditorState();
+    return FileEditorState.INSTANCE;
   }
 
   @Override
