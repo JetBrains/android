@@ -22,7 +22,8 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.rendering.ProjectResources;
+import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.Application;
@@ -57,12 +58,12 @@ public class ResourceResolverCache {
   private final Map<String, ResourceResolver> myResolverMap;
 
   /**
-   * Map of configured project resources. These are cached separately from the final resource
+   * Map of configured app resources. These are cached separately from the final resource
    * resolver since they can be shared between different layouts that only vary by theme.
    * Note that they key here is only the full configuration, whereas the map for the
    * resolvers also includes the theme.
    */
-  private final Map<String, Map<ResourceType, Map<String, ResourceValue>>> myProjectResourceMap;
+  private final Map<String, Map<ResourceType, Map<String, ResourceValue>>> myAppResourceMap;
 
   /**
    * Map of configured framework resources. These are cached separately from the final resource
@@ -70,7 +71,7 @@ public class ResourceResolverCache {
    */
   private final Map<String, Map<ResourceType, Map<String, ResourceValue>>> myFrameworkResourceMap;
 
-  /** The generation timestamp of our most recently cached project resources, used to invalidate on edits */
+  /** The generation timestamp of our most recently cached app resources, used to invalidate on edits */
   private long myCachedGeneration;
 
   /** Current framework resources in the module which corresponds to the target {@link #myTarget} */
@@ -82,7 +83,7 @@ public class ResourceResolverCache {
   public ResourceResolverCache(ConfigurationManager manager) {
     myManager = manager;
     myResolverMap = Maps.newHashMap();
-    myProjectResourceMap = Maps.newHashMap();
+    myAppResourceMap = Maps.newHashMap();
     myFrameworkResourceMap = Maps.newHashMap();
   }
 
@@ -97,10 +98,10 @@ public class ResourceResolverCache {
     assert !fullConfiguration.isDefault(); // Should be a fully configured configuration
 
     // Are caches up to date?
-    final ProjectResources resources = ProjectResources.get(myManager.getModule(), true);
+    final LocalResourceRepository resources = AppResourceRepository.getAppResources(myManager.getModule(), true);
     if (myCachedGeneration < resources.getModificationCount()) {
       myResolverMap.clear();
-      myProjectResourceMap.clear();
+      myAppResourceMap.clear();
     }
     if (myTarget != target) {
       myResolverMap.clear();
@@ -119,7 +120,7 @@ public class ResourceResolverCache {
     String resolverKey = themeStyle + configurationKey;
     ResourceResolver resolver = myResolverMap.get(resolverKey);
     if (resolver == null) {
-      Map<ResourceType, Map<String, ResourceValue>> configuredProjectRes;
+      Map<ResourceType, Map<String, ResourceValue>> configuredAppRes;
       Map<ResourceType, Map<String, ResourceValue>> frameworkResources;
 
       // Framework resources
@@ -143,25 +144,25 @@ public class ResourceResolverCache {
         }
       }
 
-      // Project resources
-      configuredProjectRes = myProjectResourceMap.get(configurationKey);
-      if (configuredProjectRes == null) {
+      // App resources
+      configuredAppRes = myAppResourceMap.get(configurationKey);
+      if (configuredAppRes == null) {
         // get the project resource values based on the current config
         Application application = ApplicationManager.getApplication();
-        configuredProjectRes = application.runReadAction(new Computable<Map<ResourceType, Map<String, ResourceValue>>>() {
+        configuredAppRes = application.runReadAction(new Computable<Map<ResourceType, Map<String, ResourceValue>>>() {
           @Override
           public Map<ResourceType, Map<String, ResourceValue>> compute() {
             return resources.getConfiguredResources(fullConfiguration);
           }
         });
-        myProjectResourceMap.put(configurationKey, configuredProjectRes);
+        myAppResourceMap.put(configurationKey, configuredAppRes);
       }
 
       // Resource Resolver
       assert themeStyle.startsWith(STYLE_RESOURCE_PREFIX) || themeStyle.startsWith(ANDROID_STYLE_RESOURCE_PREFIX) : themeStyle;
       boolean isProjectTheme = ResourceHelper.isProjectStyle(themeStyle);
       String themeName = ResourceHelper.styleToTheme(themeStyle);
-      resolver = ResourceResolver.create(configuredProjectRes, frameworkResources, themeName, isProjectTheme);
+      resolver = ResourceResolver.create(configuredAppRes, frameworkResources, themeName, isProjectTheme);
 
       myResolverMap.put(resolverKey, resolver);
       myCachedGeneration = resources.getModificationCount();
@@ -171,7 +172,7 @@ public class ResourceResolverCache {
   }
 
   /**
-   * Returns a {@link ProjectResources} for the framework resources based on the current
+   * Returns a {@link com.android.tools.idea.rendering.LocalResourceRepository} for the framework resources based on the current
    * configuration selection.
    *
    * @return the framework resources or null if not found.
@@ -192,7 +193,7 @@ public class ResourceResolverCache {
   }
 
   /**
-   * Returns a {@link ProjectResources} for the framework resources of a given
+   * Returns a {@link com.android.tools.idea.rendering.LocalResourceRepository} for the framework resources of a given
    * target.
    *
    * @param target the target for which to return the framework resources.

@@ -80,6 +80,11 @@ public class AndroidModuleInfo {
     return ManifestInfo.get(myFacet.getModule()).getMinSdkVersion();
   }
 
+  public String getMinSdkName() {
+    // TODO: Do something other than falling through to the manifest
+    return ManifestInfo.get(myFacet.getModule()).getMinSdkName();
+  }
+
   public int getTargetSdkVersion() {
     IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
     if (project != null) {
@@ -100,6 +105,48 @@ public class AndroidModuleInfo {
     AndroidPlatform platform = AndroidPlatform.getPlatform(myFacet.getModule());
     if (platform != null) {
       return platform.getApiLevel();
+    }
+
+    return -1;
+  }
+
+  public static int getBuildSdkVersion(@Nullable Module module) {
+    if (module != null) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        AndroidModuleInfo moduleInfo = get(facet.getModule());
+        if (moduleInfo != null) {
+          return moduleInfo.getBuildSdkVersion();
+        }
+      }
+    }
+
+    return -1;
+  }
+
+  public static int getTargetSdkVersion(@Nullable Module module) {
+    if (module != null) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        AndroidModuleInfo moduleInfo = get(facet.getModule());
+        if (moduleInfo != null) {
+          return moduleInfo.getTargetSdkVersion();
+        }
+      }
+    }
+
+    return -1;
+  }
+
+  public static int getMinSdkVersion(@Nullable Module module) {
+    if (module != null) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        AndroidModuleInfo moduleInfo = get(facet.getModule());
+        if (moduleInfo != null) {
+          return moduleInfo.getMinSdkVersion();
+        }
+      }
     }
 
     return -1;

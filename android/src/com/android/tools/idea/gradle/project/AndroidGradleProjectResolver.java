@@ -18,17 +18,22 @@ package com.android.tools.idea.gradle.project;
 import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
-import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.*;
 import com.android.tools.idea.gradle.dependency.Dependency;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
+import com.android.tools.idea.gradle.service.notification.OpenAndroidSdkManagerHyperlink;
 import com.android.tools.idea.gradle.service.notification.SearchInBuildFilesHyperlink;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
+import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.execution.configurations.SimpleJavaParameters;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.Key;
@@ -40,26 +45,26 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
-import com.intellij.openapi.module.StdModuleTypes;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ContainerUtilRt;
+import com.intellij.util.ui.UIUtil;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
-import org.jetbrains.plugins.gradle.util.GradleUtil;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 
+import static com.android.tools.idea.gradle.service.ProjectImportEventMessageDataService.RECOMMENDED_ACTIONS_CATEGORY;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_PLUGIN_MINIMUM_VERSION;
 
 /**
@@ -68,7 +73,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_PLUGIN_MINIMU
 @Order(ExternalSystemConstants.UNORDERED)
 public class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
 
-  @NonNls private static final String UNSUPPORTED_MODEL_VERSION_ERROR = String.format(
+  private static final String UNSUPPORTED_MODEL_VERSION_ERROR = String.format(
     "Project is using an old version of the Android Gradle plug-in. The minimum supported version is %1$s.\n\n" +
     "Please update the version of the dependency 'com.android.tools.build:gradle' in your build.gradle files.",
     GRADLE_PLUGIN_MINIMUM_VERSION);
@@ -124,10 +129,10 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       // compile it using Gradle. We still need to create the module to display files inside it.
       return;
     }
-
     // create Android Facet (for android JPS builder) only if there is at least one Android module exist in the project
     if (!resolverCtx.findModulesWithModel(AndroidProject.class).isEmpty()) {
-      IdeaGradleProject ideaGradleProject = new IdeaGradleProject(gradleModule.getName(), buildFile, gradleModule.getGradleProject().getPath());
+      IdeaGradleProject ideaGradleProject =
+        new IdeaGradleProject(gradleModule.getName(), buildFile, gradleModule.getGradleProject().getPath());
       ideModule.createChild(AndroidProjectKeys.IDE_GRADLE_PROJECT, ideaGradleProject);
     }
   }
@@ -179,24 +184,109 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     return ContainerUtil.<Class>set(AndroidProject.class);
   }
 
+  /**
+   * This method is meant to be used just to return any extra JVM args we'd like to pass to Gradle. Given that we need to do some checks
+   * (e.g. ensure that we only use one Android SDK) before the actual project import, and the IDEA's Gradle 'project import' framework does
+   * not currently provide a place for such checks, we need to perform them here.
+   * This method has a side effect: it checks that Android Studio and the project (local.properties) point to the same Android SDK home. If
+   * they are not the same, it asks the user to choose one and updates either the IDE's default SDK or project's SDK based on the user's
+   * choice.
+   * TODO: Ask JetBrains to provide a method in GradleProjectResolverExtension where we can perform this check.
+   */
   @NotNull
   @Override
   public List<KeyValue<String, String>> getExtraJvmArgs() {
     if (ExternalSystemApiUtil.isInProcessMode(GradleConstants.SYSTEM_ID)) {
       List<KeyValue<String, String>> args = Lists.newArrayList();
+
       File projectDir = new File(FileUtil.toSystemDependentName(resolverCtx.getProjectPath()));
-      if (!AndroidGradleSettings.isAndroidSdkDirInLocalPropertiesFile(projectDir)) {
-        SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
-        if (sdkManager != null) {
-          String androidHome = FileUtil.toSystemDependentName(sdkManager.getLocation());
-          args.add(KeyValue.create(AndroidGradleSettings.ANDROID_HOME_JVM_ARG, androidHome));
-        }
+      LocalProperties localProperties = getLocalProperties(projectDir);
+
+      if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+        syncIdeAndProjectAndroidHomes(localProperties);
+      }
+      else if (Strings.isNullOrEmpty(localProperties.getAndroidSdkPath())) {
+        File androidHomePath = DefaultSdks.getDefaultAndroidHome();
+        assert androidHomePath != null;
+        args.add(KeyValue.create(AndroidGradleSettings.ANDROID_HOME_JVM_ARG, androidHomePath.getPath()));
       }
 
       args.add(KeyValue.create(AndroidProject.BUILD_MODEL_ONLY_SYSTEM_PROPERTY, String.valueOf(this.resolverCtx.isPreviewMode())));
       return args;
     }
     return Collections.emptyList();
+  }
+
+  @NotNull
+  private static LocalProperties getLocalProperties(@NotNull File projectDir) {
+    try {
+      return new LocalProperties(projectDir);
+    }
+    catch (IOException e) {
+      String msg = String.format("Unable to read local.properties file in project '%1$s'", projectDir.getPath());
+      throw new ExternalSystemException(msg, e);
+    }
+  }
+
+  private static void syncIdeAndProjectAndroidHomes(@NotNull final LocalProperties localProperties) {
+    File androidHomePath = DefaultSdks.getDefaultAndroidHome();
+    assert androidHomePath != null;
+
+    final String ideAndroidHome = androidHomePath.getPath();
+    final String projectAndroidHome = localProperties.getAndroidSdkPath();
+
+    if (projectAndroidHome == null || projectAndroidHome.isEmpty()) {
+      setProjectSdk(localProperties, ideAndroidHome);
+      return;
+    }
+    final File projectAndroidHomePath = new File(projectAndroidHome);
+    if (!DefaultSdks.validateAndroidSdkPath(projectAndroidHomePath)) {
+      // The SDK path is not valid. It may be pointing to an SDK that does not exist. Just use Android Studio's.
+      UIUtil.invokeAndWaitIfNeeded(new Runnable() {
+        @Override
+        public void run() {
+          String format =
+            "The path '%1$s' does not belong to an Android SDK.\n\nAndroid Studio will use its default SDK instead ('%2$s') " +
+            "and will modify the project's local.properties file.";
+          Messages.showErrorDialog(String.format(format, projectAndroidHome, ideAndroidHome), "Sync Android SDKs");
+          setProjectSdk(localProperties, ideAndroidHome);
+        }
+      });
+      return;
+    }
+    if (!FileUtil.pathsEqual(projectAndroidHome, ideAndroidHome)) {
+      UIUtil.invokeAndWaitIfNeeded(new Runnable() {
+        @Override
+        public void run() {
+          // Prompt the user to choose between the SDK in the Studio and the one in local.properties.
+          ChooseSdkPathDialog dialog = new ChooseSdkPathDialog(ideAndroidHome, projectAndroidHome);
+          dialog.show();
+          switch (dialog.getExitCode()) {
+            case ChooseSdkPathDialog.USE_IDE_SDK_PATH:
+              setProjectSdk(localProperties, ideAndroidHome);
+              break;
+            case ChooseSdkPathDialog.USE_PROJECT_SDK_PATH:
+              ApplicationManager.getApplication().runWriteAction(new Runnable() {
+                @Override
+                public void run() {
+                  DefaultSdks.setDefaultAndroidHome(projectAndroidHomePath, false);
+                }
+              });
+          }
+        }
+      });
+    }
+  }
+
+  private static void setProjectSdk(@NotNull LocalProperties localProperties, @NotNull String androidHome) {
+    localProperties.setAndroidSdkPath(androidHome);
+    try {
+      localProperties.save();
+    }
+    catch (IOException e) {
+      String msg = String.format("Unable to save '%1$s'", localProperties.getFilePath().getPath());
+      throw new ExternalSystemException(msg, e);
+    }
   }
 
   // this exception will be thrown by org.jetbrains.plugins.gradle.service.project.GradleProjectResolver
@@ -268,24 +358,29 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     return node != null ? node.getData() : null;
   }
 
-  @VisibleForTesting
-  static boolean isIdeaTask(@NotNull String taskName) {
-    return taskName.equals("idea") ||
-           (taskName.startsWith("idea") && taskName.length() > 5 && Character.isUpperCase(taskName.charAt(4))) ||
-           taskName.endsWith("Idea") ||
-           taskName.endsWith("IdeaModule") ||
-           taskName.endsWith("IdeaProject") ||
-           taskName.endsWith("IdeaWorkspace");
-  }
-
   private static void populateUnresolvedDependencies(@NotNull DataNode<ProjectData> projectInfo,
                                                      @NotNull Set<String> unresolvedDependencies) {
-    String category = "Unresolved dependencies:";
+    boolean promptToInstallSupportRepository = false;
     for (String dep : unresolvedDependencies) {
-      String url = "search:" + dep;
-      NotificationHyperlink hyperlink = new SearchInBuildFilesHyperlink(url, "Search", dep);
-      projectInfo.createChild(AndroidProjectKeys.IMPORT_EVENT_MSG, new ProjectImportEventMessage(category, dep, hyperlink));
+      if (dep.startsWith("com.android.support:")) {
+        promptToInstallSupportRepository = true;
+      }
+      NotificationHyperlink hyperlink = createSearchInBuildFileHyperlink(dep);
+      ProjectImportEventMessage msg = new ProjectImportEventMessage("Unresolved dependencies:", dep, hyperlink);
+      projectInfo.createChild(AndroidProjectKeys.IMPORT_EVENT_MSG, msg);
     }
+    if (promptToInstallSupportRepository) {
+      NotificationHyperlink hyperlink = new OpenAndroidSdkManagerHyperlink();
+      ProjectImportEventMessage msg =
+        new ProjectImportEventMessage(RECOMMENDED_ACTIONS_CATEGORY, "Install the Android Support Repository.", hyperlink);
+      projectInfo.createChild(AndroidProjectKeys.IMPORT_EVENT_MSG, msg);
+    }
+  }
+
+  @NotNull
+  private static NotificationHyperlink createSearchInBuildFileHyperlink(@NotNull String dependency) {
+    String url = "search:" + dependency;
+    return new SearchInBuildFilesHyperlink(url, "Search", dependency);
   }
 
   @Override

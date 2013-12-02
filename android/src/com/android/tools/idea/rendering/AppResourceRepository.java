@@ -21,13 +21,12 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.GradleSyncListener;
 import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -38,24 +37,64 @@ import java.util.Set;
 import static com.android.SdkConstants.DOT_AAR;
 import static org.jetbrains.android.facet.ResourceFolderManager.addAarsFromModuleLibraries;
 
-/** Resource repository for a module along with all its library dependencies */
-public final class ModuleSetResourceRepository extends MultiResourceRepository {
+/**
+ * Resource repository which merges in resources from all the libraries and all the modules
+ * in a project
+ */
+public final class AppResourceRepository extends MultiResourceRepository {
   private final AndroidFacet myFacet;
+  private List<LocalResourceRepository> myLibraries;
 
-  private ModuleSetResourceRepository(@NotNull AndroidFacet facet, @NotNull List<? extends ProjectResources> delegates) {
-    super(facet.getModule().getName() + " with libraries", delegates);
+  private AppResourceRepository(@NotNull AndroidFacet facet,
+                                @NotNull List<? extends LocalResourceRepository> delegates,
+                                @NotNull List<LocalResourceRepository> libraries) {
+    super(facet.getModule().getName() + " with modules and libraries", delegates);
     myFacet = facet;
+    myLibraries = libraries;
+  }
+
+  /**
+   * Returns the Android merge resource repository for the resources in this module, any other modules in this project,
+   * and any libraries this project depends on.
+   *
+   * @param module the module to look up resources for
+   * @param createIfNecessary if true, create the app resources if necessary, otherwise only return if already computed
+   * @return the resource repository
+   */
+  @Nullable
+  public static AppResourceRepository getAppResources(@NotNull Module module, boolean createIfNecessary) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet != null) {
+      return facet.getAppResources(createIfNecessary);
+    }
+
+    return null;
+  }
+
+  /**
+   * Returns the Android merge resource repository for the resources in this module, any other modules in this project,
+   * and any libraries this project depends on.
+   *
+   * @param facet the module facet to look up resources for
+   * @param createIfNecessary if true, create the app resources if necessary, otherwise only return if already computed
+   * @return the resource repository
+   */
+  @Contract("!null, true -> !null")
+  @Nullable
+  public static AppResourceRepository getAppResources(@NotNull AndroidFacet facet, boolean createIfNecessary) {
+    return facet.getAppResources(createIfNecessary);
   }
 
   @NotNull
-  public static ProjectResources create(@NotNull final AndroidFacet facet) {
-    List<ProjectResources> resources = computeRepositories(facet);
-    final ModuleSetResourceRepository repository = new ModuleSetResourceRepository(facet, resources);
+  public static AppResourceRepository create(@NotNull final AndroidFacet facet) {
+    List<LocalResourceRepository> libraries = computeLibraries(facet);
+    List<LocalResourceRepository> delegates = computeRepositories(facet, libraries);
+    final AppResourceRepository repository = new AppResourceRepository(facet, delegates, libraries);
 
     facet.addListener(new GradleSyncListener() {
       @Override
       public void performedGradleSync(@NotNull AndroidFacet facet, boolean success) {
-        // Dependencies can change when we sync with Gradle
+        // Libraries can change when we sync with Gradle
         if (success) {
           repository.updateRoots();
         }
@@ -65,29 +104,26 @@ public final class ModuleSetResourceRepository extends MultiResourceRepository {
     return repository;
   }
 
-  private static List<ProjectResources> computeRepositories(@NotNull final AndroidFacet facet) {
-    ProjectResources main = get(facet.getModule(), false /*includeLibraries */);
+  private static List<LocalResourceRepository> computeRepositories(@NotNull final AndroidFacet facet,
+                                                                 List<LocalResourceRepository> libraries) {
+    List<LocalResourceRepository> repositories = Lists.newArrayListWithExpectedSize(10);
+    LocalResourceRepository resources = ProjectResourceRepository.getProjectResources(facet, true);
+    repositories.add(resources);
+    repositories.addAll(libraries);
+    return repositories;
+  }
 
-    // List of module facets the given module depends on
+  private static List<LocalResourceRepository> computeLibraries(@NotNull final AndroidFacet facet) {
     List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
     List<File> aarDirs = findAarLibraries(facet, dependentFacets);
-    if (dependentFacets.isEmpty() && aarDirs.isEmpty()) {
-      return Collections.singletonList(main);
+    if (aarDirs.isEmpty()) {
+      return Collections.emptyList();
     }
 
-    List<ProjectResources> resources = Lists.newArrayListWithExpectedSize(dependentFacets.size() + aarDirs.size());
-
+    List<LocalResourceRepository> resources = Lists.newArrayListWithExpectedSize(aarDirs.size());
     for (File root : aarDirs) {
-      resources.add(FileProjectResourceRepository.get(root));
+      resources.add(FileResourceRepository.get(root));
     }
-
-    for (AndroidFacet f : dependentFacets) {
-      ProjectResources r = get(f.getModule(), false /*includeLibraries */);
-      resources.add(r);
-    }
-
-    resources.add(main);
-
     return resources;
   }
 
@@ -112,7 +148,7 @@ public final class ModuleSetResourceRepository extends MultiResourceRepository {
   }
 
   /**
-   *  Reads IntelliJ library definitions ({@link LibraryOrSdkOrderEntry}) and if possible, finds a corresponding
+   *  Reads IntelliJ library definitions ({@link com.intellij.openapi.roots.LibraryOrSdkOrderEntry}) and if possible, finds a corresponding
    * {@code .aar} resource library to include. This works before the Gradle project has been initialized.
    */
   private static List<File> findAarLibrariesFromIntelliJ(AndroidFacet facet, List<AndroidFacet> dependentFacets) {
@@ -207,67 +243,36 @@ public final class ModuleSetResourceRepository extends MultiResourceRepository {
     }
   }
 
+  /** Returns the libraries among the app resources, if any */
+  @NotNull
+  public List<LocalResourceRepository> getLibraries() {
+    return myLibraries;
+  }
+
   void updateRoots() {
-    List<ProjectResources> repositories = computeRepositories(myFacet);
-    updateRoots(repositories);
+    List<LocalResourceRepository> libraries = computeLibraries(myFacet);
+    List<LocalResourceRepository> repositories = computeRepositories(myFacet, libraries);
+    updateRoots(repositories, libraries);
   }
 
   @VisibleForTesting
-  void updateRoots(List<ProjectResources> resourceDirectories) {
-    if (resourceDirectories.equals(myChildren)) {
+  void updateRoots(List<LocalResourceRepository> resources, List<LocalResourceRepository> libraries) {
+    if (resources.equals(myChildren)) {
       // Nothing changed (including order); nothing to do
       return;
     }
 
-    setChildren(resourceDirectories);
-  }
-
-  /**
-   * Called when module roots have changed in the given project. Locates all
-   * the {@linkplain ModuleSetResourceRepository} instances (but only those that
-   * have already been initialized) and updates the roots, if necessary.
-   *
-   * @param project the project whose module roots changed.
-   */
-  public static void moduleRootsChanged(@NotNull Project project) {
-    ModuleManager moduleManager = ModuleManager.getInstance(project);
-    for (Module module : moduleManager.getModules()) {
-      moduleRootsChanged(module);
-    }
-  }
-
-  /**
-   * Called when module roots have changed in the given module. Locates the
-   * {@linkplain ModuleSetResourceRepository} instance (but only if it has
-   * already been initialized) and updates its roots, if necessary.
-   * <p>
-   * TODO: Currently, this method is only called during a Gradle project import.
-   * We should call it for non-Gradle projects after modules are changed in the
-   * project structure dialog etc. with
-   *   project.getMessageBus().connect().subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() { ... }
-   *
-   *
-   * @param module the module whose roots changed
-   */
-  public static void moduleRootsChanged(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null) {
-      if (facet.isGradleProject() && facet.getIdeaAndroidProject() == null) {
-        // Project not yet fully initialized; no need to do a sync now because our
-        // GradleProjectAvailableListener will be called as soon as it is and do a proper sync
-        return;
-      }
-      ProjectResources resources = facet.getProjectResources(true, false);
-      if (resources instanceof ModuleSetResourceRepository) {
-        ModuleSetResourceRepository moduleSetRepository = (ModuleSetResourceRepository)resources;
-        moduleSetRepository.updateRoots();
-      }
-    }
+    myLibraries = libraries;
+    setChildren(resources);
   }
 
   @VisibleForTesting
   @NotNull
-  static ProjectResources create(AndroidFacet facet, List<ProjectResources> modules) {
-    return new ModuleSetResourceRepository(facet, modules);
+  static AppResourceRepository createForTest(AndroidFacet facet,
+                                             List<LocalResourceRepository> modules,
+                                             List<LocalResourceRepository> libraries) {
+    assert modules.containsAll(libraries);
+    assert modules.size() == libraries.size() + 1; // should only combine with the module set repository
+    return new AppResourceRepository(facet, modules, libraries);
   }
 }

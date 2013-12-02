@@ -17,7 +17,10 @@ package com.android.tools.idea.structure;
 
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
+import com.android.tools.idea.gradle.parser.Repository;
+import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,12 +64,20 @@ public class SingleObjectTableModel extends AbstractTableModel {
   }
 
   @Override
-  public void setValueAt(Object o, int row, int col) {
+  public void setValueAt(@NotNull Object value, int row, int col) {
     if (col == NAME_COLUMN) {
       return;
     }
-    if (!Objects.equal(o, myCurrentValues.get(row))) {
-      myCurrentValues.set(row, o);
+    if (!Objects.equal(value, myCurrentValues.get(row))) {
+      BuildFileKey key = myProperties.get(row);
+      if (key == BuildFileKey.LIBRARY_REPOSITORY || key == BuildFileKey.PLUGIN_REPOSITORY) {
+        List<Repository> list = Lists.newArrayList();
+        for (String s : Splitter.on(',').trimResults().split(value.toString())) {
+          list.add(new Repository(s));
+        }
+        value = list;
+      }
+      myCurrentValues.set(row, value);
       myModified = true;
     }
   }
@@ -84,10 +95,17 @@ public class SingleObjectTableModel extends AbstractTableModel {
   @Override
   @Nullable
   public Object getValueAt(int row, int col) {
+    BuildFileKey key = myProperties.get(row);
     if (col == NAME_COLUMN) {
-      return myProperties.get(row).name();
+      return key.getDisplayName();
     }
-    return myCurrentValues.get(row);
+    Object value = myCurrentValues.get(row);
+    if (key == BuildFileKey.LIBRARY_REPOSITORY || key == BuildFileKey.PLUGIN_REPOSITORY) {
+      if (value instanceof List) {
+        value = Joiner.on(", ").join((List)value);
+      }
+    }
+    return value;
   }
 
   /**

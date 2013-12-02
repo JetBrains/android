@@ -57,7 +57,7 @@ public final class GradleUtil {
   @NonNls public static final String GRADLE_MINIMUM_VERSION = "1.8";
   @NonNls public static final String GRADLE_LATEST_VERSION = GRADLE_MINIMUM_VERSION;
 
-  @NonNls public static final String GRADLE_PLUGIN_MINIMUM_VERSION = "0.6.1";
+  @NonNls public static final String GRADLE_PLUGIN_MINIMUM_VERSION = "0.6.3";
   @NonNls public static final String GRADLE_PLUGIN_LATEST_VERSION = "0.6.+";
 
   @NonNls private static final String GRADLEW_PROPERTIES_PATH =
@@ -162,13 +162,7 @@ public final class GradleUtil {
 
   @Nullable
   public static GradleExecutionSettings getGradleExecutionSettings(@NotNull Project project) {
-    GradleSettings settings = (GradleSettings)ExternalSystemApiUtil.getSettings(project, SYSTEM_ID);
-
-    GradleSettings.MyState state = settings.getState();
-    assert state != null;
-    Set<GradleProjectSettings> allProjectsSettings = state.getLinkedExternalProjectsSettings();
-
-    GradleProjectSettings projectSettings = getFirstNotNull(allProjectsSettings);
+    GradleProjectSettings projectSettings = getGradleProjectSettings(project);
     if (projectSettings == null) {
       String format = "Unable to obtain Gradle project settings for project '%1$s', located at '%2$s'";
       String msg = String.format(format, project.getName(), FileUtil.toSystemDependentName(project.getBasePath()));
@@ -176,6 +170,17 @@ public final class GradleUtil {
       return null;
     }
     return ExternalSystemApiUtil.getExecutionSettings(project, projectSettings.getExternalProjectPath(), SYSTEM_ID);
+  }
+
+  @Nullable
+  public static GradleProjectSettings getGradleProjectSettings(@NotNull Project project) {
+    GradleSettings settings = (GradleSettings)ExternalSystemApiUtil.getSettings(project, SYSTEM_ID);
+
+    GradleSettings.MyState state = settings.getState();
+    assert state != null;
+    Set<GradleProjectSettings> allProjectsSettings = state.getLinkedExternalProjectsSettings();
+
+    return getFirstNotNull(allProjectsSettings);
   }
 
   @Nullable

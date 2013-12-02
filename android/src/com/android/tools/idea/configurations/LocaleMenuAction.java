@@ -19,8 +19,9 @@ import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LanguageQualifier;
 import com.android.ide.common.resources.configuration.RegionQualifier;
+import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.ProjectResources;
+import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
@@ -78,13 +79,15 @@ public class LocaleMenuAction extends FlatComboAction {
 
     group.add(new AddTranslationAction());
 
-    if (locales.size() > 1) {
-      group.addSeparator();
-      if (RenderPreviewMode.getCurrent() != RenderPreviewMode.LOCALES) {
+    group.addSeparator();
+    RenderPreviewMode currentMode = RenderPreviewMode.getCurrent();
+    if (currentMode != RenderPreviewMode.LOCALES && currentMode != RenderPreviewMode.RTL) {
+      if (locales.size() >= 1) {
         ConfigurationMenuAction.addLocalePreviewAction(myRenderContext, group, true);
-      } else {
-        ConfigurationMenuAction.addRemovePreviewsAction(myRenderContext, group);
       }
+      ConfigurationMenuAction.addRtlPreviewAction(myRenderContext, group);
+    } else {
+      ConfigurationMenuAction.addRemovePreviewsAction(myRenderContext, group);
     }
 
     return group;
@@ -105,7 +108,7 @@ public class LocaleMenuAction extends FlatComboAction {
       return Collections.emptyList();
     }
     Module module = configuration.getConfigurationManager().getModule();
-    ProjectResources projectResources = ProjectResources.get(module, true);
+    LocalResourceRepository projectResources = ProjectResourceRepository.getProjectResources(module, true);
     SortedSet<String> languages = projectResources.getLanguages();
 
     LanguageQualifier specificLanguage = configuration.getEditedConfig().getLanguageQualifier();
@@ -344,8 +347,7 @@ public class LocaleMenuAction extends FlatComboAction {
       if (module == null) {
         return;
       }
-      ProjectResources projectResources = ProjectResources.get(module, true);
-      TranslationDialog dialog = new TranslationDialog(module, projectResources, myLocale);
+      TranslationDialog dialog = new TranslationDialog(module, myLocale);
       dialog.show();
       if (dialog.isOK()) {
         if (dialog.createTranslation()) {

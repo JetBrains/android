@@ -17,6 +17,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.RenderSecurityException;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.Density;
@@ -85,7 +86,9 @@ import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLFrameHyperlinkEvent;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -747,9 +750,14 @@ public class RenderErrorPanel extends JPanel {
 
         String html = message.getHtml();
         builder.getStringBuilder().append(html);
+        builder.newlineIfNecessary();
 
         Throwable throwable = message.getThrowable();
         if (throwable != null) {
+          if (throwable instanceof RenderSecurityException) {
+            builder.addLink("Turn off custom view rendering sandbox", myLinkManager.createDisableSandboxUrl());
+            builder.newline().newline();
+          }
           reportThrowable(builder, throwable, !html.isEmpty());
         }
 

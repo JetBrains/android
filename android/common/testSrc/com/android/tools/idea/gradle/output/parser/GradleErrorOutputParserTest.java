@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.output.parser;
 
+import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.gradle.output.parser.aapt.AbstractAaptOutputParser;
 import com.google.common.base.Charsets;
@@ -26,6 +27,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.ContainerUtil;
 import junit.framework.TestCase;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -35,12 +37,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
-import static com.android.SdkConstants.DOT_GRADLE;
-import static com.android.SdkConstants.DOT_XML;
+import static com.android.SdkConstants.*;
 import static com.android.ide.common.res2.MergedResourceWriter.createPathComment;
 
 /**
  * Tests for {@link com.android.tools.idea.gradle.output.parser.GradleErrorOutputParser}.
+ *
+ * These tests MUST be executed on Windows too.
  */
 @SuppressWarnings({"ResultOfMethodCallIgnored", "StringBufferReplaceableByString"})
 public class GradleErrorOutputParserTest extends TestCase {
@@ -59,7 +62,7 @@ public class GradleErrorOutputParserTest extends TestCase {
   @Override
   public void tearDown() throws Exception {
     if (sourceFile != null) {
-      FileUtil.delete(sourceFile);
+      sourceFile.delete();
     }
     super.tearDown();
   }
@@ -318,7 +321,7 @@ public class GradleErrorOutputParserTest extends TestCase {
 
   private void createTempFile(String fileExtension) throws IOException {
     sourceFile = File.createTempFile(GradleErrorOutputParserTest.class.getName(), fileExtension);
-    sourceFilePath = FileUtil.toSystemIndependentName(sourceFile.getAbsolutePath());
+    sourceFilePath = sourceFile.getAbsolutePath();
   }
 
   @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
@@ -350,26 +353,6 @@ public class GradleErrorOutputParserTest extends TestCase {
     assertEquals("[position column]", expectedColumn, message.getColumn());
   }
 
-  private static String toString(List<GradleMessage> messages) {
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0, n = messages.size(); i < n; i++) {
-      GradleMessage message = messages.get(i);
-      sb.append(Integer.toString(i)).append(':').append(' ');
-      sb.append(StringUtil.capitalize(message.getKind().toString().toLowerCase(Locale.US))).append(':'); // INFO => Info
-      sb.append(message.getText());
-      if (message.getSourcePath() != null) {
-        sb.append('\n');
-        sb.append('\t');
-        sb.append(message.getSourcePath());
-        sb.append(':').append(Long.toString(message.getLineNumber()));
-        sb.append(':').append(Long.toString(message.getColumn()));
-      }
-      sb.append('\n');
-    }
-
-    return sb.toString();
-  }
-
   public void testRedirectValueLinksOutput() throws Exception {
     String homePath = PathManager.getHomePath();
     assertNotNull(homePath);
@@ -382,7 +365,7 @@ public class GradleErrorOutputParserTest extends TestCase {
     File valueDir = new File(tempDir, "values-en");
     valueDir.mkdirs();
     sourceFile = new File(valueDir, "values.xml"); // Keep in sync with MergedResourceWriter.FN_VALUES_XML
-    sourceFilePath = FileUtil.toSystemIndependentName(sourceFile.getAbsolutePath());
+    sourceFilePath = sourceFile.getAbsolutePath();
 
     writeToFile(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -469,12 +452,18 @@ public class GradleErrorOutputParserTest extends TestCase {
     assertNotNull(message);
 
     // NOT sourceFilePath; should be translated back from source comment
-    assertEquals("[file path]", "src/test/resources/testData/resources/baseSet/values/values.xml", message.getSourcePath());
+    assertEquals("[file path]", "src/test/resources/testData/resources/baseSet/values/values.xml", getSystemIndependentSourcePath(message));
 
     assertEquals("[message severity]", GradleMessage.Kind.ERROR, message.getKind());
     assertEquals("[message text]", messageText, message.getText());
     assertEquals("[position line]", 9, message.getLineNumber());
     assertEquals("[position column]", 35, message.getColumn());
+  }
+
+  @Nullable
+  private static String getSystemIndependentSourcePath(@NotNull GradleMessage message) {
+    String sourcePath = message.getSourcePath();
+    return sourcePath == null ? null : FileUtil.toSystemIndependentName(sourcePath);
   }
 
   public void testRedirectFileLinksOutput() throws Exception {
@@ -518,7 +507,8 @@ public class GradleErrorOutputParserTest extends TestCase {
     assertNotNull(message);
 
     // NOT sourceFilePath; should be translated back from source comment
-    assertEquals("[file path]", "src/test/resources/testData/resources/incMergeData/filesVsValues/main/layout/main.xml", message.getSourcePath());
+    String expected = "src/test/resources/testData/resources/incMergeData/filesVsValues/main/layout/main.xml";
+    assertEquals("[file path]", expected, getSystemIndependentSourcePath(message));
 
     assertEquals("[message severity]", GradleMessage.Kind.ERROR, message.getKind());
     assertEquals("[message text]", messageText, message.getText());
@@ -636,8 +626,8 @@ public class GradleErrorOutputParserTest extends TestCase {
   public void testDuplicateResources2() throws Exception {
     File file1 = File.createTempFile(GradleErrorOutputParserTest.class.getName(), DOT_XML);
     File file2 = File.createTempFile(GradleErrorOutputParserTest.class.getName(), DOT_XML);
-    String path1 = FileUtil.toSystemIndependentName(file1.getPath());
-    String path2 = FileUtil.toSystemIndependentName(file2.getPath());
+    String path1 = file1.getPath();
+    String path2 = file2.getPath();
 
     Files.write(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -879,7 +869,7 @@ public class GradleErrorOutputParserTest extends TestCase {
   public void test() throws Exception {
     File tempDir = Files.createTempDir();
     sourceFile = new File(tempDir, "values.xml"); // Name matters for position search
-    sourceFilePath = FileUtil.toSystemIndependentName(sourceFile.getAbsolutePath());
+    sourceFilePath = sourceFile.getAbsolutePath();
     File source = new File(tempDir, "dimens.xml");
     Files.write("<resources>\n" +
                 "    <!-- Default screen margins, per the Android Design guidelines. -->\n" +
@@ -893,7 +883,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "    <!-- From: file:/Users/unittest/AndroidStudioProjects/BlankProject1Project/BlankProject1/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values/values.xml -->\n" +
                 "    <dimen name=\"abc_action_bar_default_height\">48dip</dimen>\n" +
                 "    <dimen name=\"abc_action_bar_icon_vertical_padding\">8dip</dimen>\n" +
-                "    <!-- From: file:" + FileUtil.toSystemIndependentName(source.getPath()) + " -->\n" +
+                "    <!-- From: file:" + source.getPath() + " -->\n" +
                 "    <dimen name=\"activity_horizontal_margin\">16dp</dimen>\n" +
                 "    <dimen name=\"activity_vertical_margin\">16dp</dimen>\n" +
                 "    <dimen name=\"ok\">50dp</dimen>\n" +
@@ -945,11 +935,11 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "6: Info::BlankProject1:processDebugManifest UP-TO-DATE\n" +
                  "7: Info::BlankProject1:processDebugResources\n" +
                  "8: Error:Integer types not allowed (at 'new_name' with value '50').\n" +
-                 "\t" + FileUtil.toSystemIndependentName(source.getPath()) + ":5:28\n" +
+                 "\t" + source.getPath() + ":5:28\n" +
                  "9: Info::BlankProject1:processDebugResources FAILED\n" +
                  "10: Error:Error while executing aapt command\n" +
                  "11: Error:Integer types not allowed (at 'new_name' with value '50').\n" +
-                 "\t" + FileUtil.toSystemIndependentName(source.getPath()) + ":5:28\n" +
+                 "\t" + source.getPath() + ":5:28\n" +
                  "12: Error:Execution failed for task ':BlankProject1:processDebugResources'.\n" +
                  "13: Info:BUILD FAILED\n" +
                  "14: Info:Total time: 5.435 secs\n",
@@ -962,10 +952,11 @@ public class GradleErrorOutputParserTest extends TestCase {
 
   public void testDashes() throws Exception {
     File tempDir = Files.createTempDir();
-    File dir = new File(tempDir, "My -- Q&A< Dir"); // path which should force encoding of path chars, see for example issue 60050
+    String dirName = currentPlatform() == PLATFORM_WINDOWS ? "My -- Q&A Dir" : "My -- Q&A< Dir";
+    File dir = new File(tempDir, dirName); // path which should force encoding of path chars, see for example issue 60050
     dir.mkdirs();
     sourceFile = new File(dir, "values.xml"); // Name matters for position search
-    sourceFilePath = FileUtil.toSystemIndependentName(sourceFile.getAbsolutePath());
+    sourceFilePath = sourceFile.getAbsolutePath();
     File source = new File(dir, "dimens.xml");
     Files.write("<resources>\n" +
                 "    <!-- Default screen margins, per the Android Design guidelines. -->\n" +
@@ -1033,11 +1024,11 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "6: Info::BlankProject1:processDebugManifest UP-TO-DATE\n" +
                  "7: Info::BlankProject1:processDebugResources\n" +
                  "8: Error:Integer types not allowed (at 'new_name' with value '50').\n" +
-                 "\t" + FileUtil.toSystemIndependentName(source.getPath()) + ":5:28\n" +
+                 "\t" + source.getPath() + ":5:28\n" +
                  "9: Info::BlankProject1:processDebugResources FAILED\n" +
                  "10: Error:Error while executing aapt command\n" +
                  "11: Error:Integer types not allowed (at 'new_name' with value '50').\n" +
-                 "\t" + FileUtil.toSystemIndependentName(source.getPath()) + ":5:28\n" +
+                 "\t" + source.getPath() + ":5:28\n" +
                  "12: Error:Execution failed for task ':BlankProject1:processDebugResources'.\n" +
                  "13: Info:BUILD FAILED\n" +
                  "14: Info:Total time: 5.435 secs\n",
@@ -1052,7 +1043,7 @@ public class GradleErrorOutputParserTest extends TestCase {
   public void testLayoutFileSuffix() throws Exception {
     File tempDir = Files.createTempDir();
     sourceFile = new File(tempDir, "layout.xml");
-    sourceFilePath = FileUtil.toSystemIndependentName(sourceFile.getAbsolutePath());
+    sourceFilePath = sourceFile.getAbsolutePath();
     File source = new File(tempDir, "layout.xml");
     Files.write("<RelativeLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                 "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
@@ -1145,11 +1136,11 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "11: Info::BlankProject1:processDebugManifest UP-TO-DATE\n" +
                  "12: Info::BlankProject1:processDebugResources\n" +
                  "13: Error:No resource identifier found for attribute 'slayout_alignParentTop' in package 'android'\n" +
-                 "\t" + FileUtil.toSystemIndependentName(source.getPath()) + ":12:-1\n" +
+                 "\t" + source.getPath() + ":12:-1\n" +
                  "14: Info::BlankProject1:processDebugResources FAILED\n" +
                  "15: Error:Error while executing aapt command\n" +
                  "16: Error:No resource identifier found for attribute 'slayout_alignParentTop' in package 'android'\n" +
-                 "\t" +  FileUtil.toSystemIndependentName(source.getPath()) + ":12:-1\n" +
+                 "\t" + source.getPath() + ":12:-1\n" +
                  "17: Error:Execution failed for task ':BlankProject1:processDebugResources'.\n" +
                  "18: Info:BUILD FAILED\n",
                  toString(parser.parseErrorOutput(output, true)));
@@ -1647,6 +1638,58 @@ public class GradleErrorOutputParserTest extends TestCase {
                  toString(parser.parseErrorOutput(output, true)));
     sourceFile.delete();
   }
+  public void testInvalidLayoutName2() throws Exception {
+    // Like testInvalidLayoutName, but with line numbers in the error pattern
+    createTempXmlFile();
+    String output =
+      "Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+      ":MyApplication585:preBuild UP-TO-DATE\n" +
+      ":MyApplication585:preDebugBuild UP-TO-DATE\n" +
+      ":MyApplication585:preReleaseBuild UP-TO-DATE\n" +
+      ":MyApplication585:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+      ":MyApplication585:prepareDebugDependencies\n" +
+      ":MyApplication585:compileDebugAidl UP-TO-DATE\n" +
+      ":MyApplication585:compileDebugRenderscript UP-TO-DATE\n" +
+      ":MyApplication585:generateDebugBuildConfig UP-TO-DATE\n" +
+      ":MyApplication585:mergeDebugAssets UP-TO-DATE\n" +
+      ":MyApplication585:mergeDebugResources\n" +
+      sourceFilePath + ":4: Error: Invalid file name: must contain only lowercase letters and digits ([a-z0-9_.])\n" +
+      ":MyApplication585:mergeDebugResources FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':MyApplication585:mergeDebugResources'.\n" +
+      "> " + sourceFilePath + ":4: Error: Invalid file name: must contain only lowercase letters and digits ([a-z0-9_.])\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 8.91 secs";
+    assertEquals("0: Info:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+                 "1: Info::MyApplication585:preBuild UP-TO-DATE\n" +
+                 "2: Info::MyApplication585:preDebugBuild UP-TO-DATE\n" +
+                 "3: Info::MyApplication585:preReleaseBuild UP-TO-DATE\n" +
+                 "4: Info::MyApplication585:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+                 "5: Info::MyApplication585:prepareDebugDependencies\n" +
+                 "6: Info::MyApplication585:compileDebugAidl UP-TO-DATE\n" +
+                 "7: Info::MyApplication585:compileDebugRenderscript UP-TO-DATE\n" +
+                 "8: Info::MyApplication585:generateDebugBuildConfig UP-TO-DATE\n" +
+                 "9: Info::MyApplication585:mergeDebugAssets UP-TO-DATE\n" +
+                 "10: Info::MyApplication585:mergeDebugResources\n" +
+                 "11: Error:Error: Invalid file name: must contain only lowercase letters and digits ([a-z0-9_.])\n" +
+                 "\t" + sourceFilePath + ":4:-1\n" +
+                 "12: Info::MyApplication585:mergeDebugResources FAILED\n" +
+                 "13: Error:Execution failed for task ':MyApplication585:mergeDebugResources'.\n" +
+                 "> " + sourceFilePath + ":4: Error: Invalid file name: must contain only lowercase letters and digits ([a-z0-9_.])\n" +
+                 "\t" + sourceFilePath + ":4:-1\n" +
+                 "14: Info:BUILD FAILED\n" +
+                 "15: Info:Total time: 8.91 secs\n",
+                 toString(parser.parseErrorOutput(output, true)));
+    sourceFile.delete();
+  }
 
   public void testMultipleResourcesInSameFile() throws Exception {
     // Multiple items (repeated)
@@ -1730,5 +1773,159 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "2: Info:Total time: 4.467 secs\n",
                  toString(parser.parseErrorOutput(output, true)));
     sourceFile.delete();
+  }
+
+  public void testManifestMergeError() throws Exception {
+    createTempFile(DOT_XML);
+    String output =
+      ":processFlavor1DebugManifest\n" +
+      "[" + sourceFilePath + ":1] Could not find element /manifest/application.\n" +
+      ":processFlavor1DebugManifest FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':processFlavor1DebugManifest'.\n" +
+      "> Manifest merging failed. See console for more info.\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --info or --debug option to get more log output.\n";
+    assertEquals("0: Info::processFlavor1DebugManifest\n" +
+                 "1: Error:Could not find element /manifest/application.\n" +
+                 "\t" + sourceFilePath + ":1:-1\n" +
+                 "2: Info::processFlavor1DebugManifest FAILED\n" +
+                 "3: Info:FAILURE: Build failed with an exception.\n",
+                 toString(parser.parseErrorOutput(output, true)));
+    sourceFile.delete();
+  }
+
+  public void testManifestMergeWindowsError() throws Exception {
+    createTempFile(DOT_XML);
+    String output =
+      ":processFlavor1DebugManifest\n" +
+      "[C:\\Users\\Android\\AppData\\Local\\Temp\\com.android.tools.idea.gradle.output.parser.GradleErrorOutputParserTest4437574780178007978.xml:1] Could not find element /manifest/application.\n" +
+      ":processFlavor1DebugManifest FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':processFlavor1DebugManifest'.\n" +
+      "> Manifest merging failed. See console for more info.\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --info or --debug option to get more log output.\n";
+    assertEquals("0: Info::processFlavor1DebugManifest\n" +
+                 "1: Error:Could not find element /manifest/application.\n" +
+                 "\tC:\\Users\\Android\\AppData\\Local\\Temp\\com.android.tools.idea.gradle.output.parser.GradleErrorOutputParserTest4437574780178007978.xml:1:-1\n" +
+                 "2: Info::processFlavor1DebugManifest FAILED\n" +
+                 "3: Info:FAILURE: Build failed with an exception.\n",
+                 toString(parser.parseErrorOutput(output, true)));
+    sourceFile.delete();
+  }
+
+  public void testDexDuplicateClassException() throws Exception {
+    String output =
+      ":two:dexDebug\n" +
+      "UNEXPECTED TOP-LEVEL EXCEPTION:\n" +
+      "java.lang.IllegalArgumentException: already added: Lcom/example/two/MainActivity;\n" +
+      "\tat com.android.dx.dex.file.ClassDefsSection.add(ClassDefsSection.java:122)\n" +
+      "\tat com.android.dx.dex.file.DexFile.add(DexFile.java:161)\n" +
+      "\tat com.android.dx.command.dexer.Main.processClass(Main.java:685)\n" +
+      "\tat com.android.dx.command.dexer.Main.processFileBytes(Main.java:634)\n" +
+      "\tat com.android.dx.command.dexer.Main.access$600(Main.java:78)\n" +
+      "\tat com.android.dx.command.dexer.Main$1.processFileBytes(Main.java:572)\n" +
+      "\tat com.android.dx.cf.direct.ClassPathOpener.processArchive(ClassPathOpener.java:284)\n" +
+      "\tat com.android.dx.cf.direct.ClassPathOpener.processOne(ClassPathOpener.java:166)\n" +
+      "\tat com.android.dx.cf.direct.ClassPathOpener.process(ClassPathOpener.java:144)\n" +
+      "\tat com.android.dx.command.dexer.Main.processOne(Main.java:596)\n" +
+      "\tat com.android.dx.command.dexer.Main.processAllFiles(Main.java:498)\n" +
+      "\tat com.android.dx.command.dexer.Main.runMonoDex(Main.java:264)\n" +
+      "\tat com.android.dx.command.dexer.Main.run(Main.java:230)\n" +
+      "\tat com.android.dx.command.dexer.Main.main(Main.java:199)\n" +
+      "\tat com.android.dx.command.Main.main(Main.java:103)\n" +
+      "1 error; aborting\n" +
+      " FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':two:dexDebug'.\n" +
+      "> Could not call IncrementalTask.taskAction() on task ':two:dexDebug'\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 9.491 secs";
+    assertEquals("0: Info::two:dexDebug\n" +
+                 "1: Error:Class com.example.two.MainActivity has already been added to output. Please remove duplicate copies.\n" +
+                 "2: Info:1 error; aborting\n" +
+                 "3: Info: FAILED\n" +
+                 "4: Error:Execution failed for task ':two:dexDebug'.\n" +
+                 "> Could not call IncrementalTask.taskAction() on task ':two:dexDebug'\n" +
+                 "5: Info:BUILD FAILED\n" +
+                 "6: Info:Total time: 9.491 secs\n",
+                 toString(parser.parseErrorOutput(output, true)));
+  }
+
+  public void testMultilineCompileError() throws Exception {
+    createTempFile(DOT_JAVA);
+    String output =
+      ":two:compileDebug\n" +
+      sourceFilePath + ":20: incompatible types\n" +
+      "found   : java.util.ArrayList<java.lang.String>\n" +
+      "required: java.util.Set<java.lang.String>\n" +
+      "        Set<String> checkedList = new ArrayList<String>();\n" +
+      "                                  ^\n" +
+      "1 error\n" +
+      ":two:compileDebug FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':two:compileDebug'.\n" +
+      "> Compilation failed; see the compiler error output for details.\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 5.354 secs\n";
+    assertEquals("0: Info::two:compileDebug\n" +
+                 "1: Error:incompatible types\n" +
+                 "found   : java.util.ArrayList<java.lang.String>\n" +
+                 "required: java.util.Set<java.lang.String>\n" +
+                 "\t" + sourceFilePath + ":20:35\n" +
+                 "2: Info:1 error\n" +
+                 "3: Info::two:compileDebug FAILED\n" +
+                 "4: Error:Execution failed for task ':two:compileDebug'.\n" +
+                 "> Compilation failed; see the compiler error output for details.\n" +
+                 "5: Info:BUILD FAILED\n" +
+                 "6: Info:Total time: 5.354 secs\n",
+                 toString(parser.parseErrorOutput(output, true)).replaceAll("\r\n","\n"));
+    sourceFile.delete();
+  }
+
+  @NotNull
+  private static String toString(@NotNull List<GradleMessage> messages) {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0, n = messages.size(); i < n; i++) {
+      GradleMessage message = messages.get(i);
+      sb.append(Integer.toString(i)).append(':').append(' ');
+      sb.append(StringUtil.capitalize(message.getKind().toString().toLowerCase(Locale.US))).append(':'); // INFO => Info
+      sb.append(message.getText());
+      if (message.getSourcePath() != null) {
+        sb.append('\n');
+        sb.append('\t');
+        sb.append(message.getSourcePath());
+        sb.append(':').append(Long.toString(message.getLineNumber()));
+        sb.append(':').append(Long.toString(message.getColumn()));
+      }
+      sb.append('\n');
+    }
+
+    return sb.toString();
   }
 }

@@ -40,7 +40,7 @@
     <action id="NewActivity" class="com.android.tools.idea.actions.AndroidNewActivityAction">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewDir"/>
     </action>
-    <action id="NewAndroidComponent" class="org.jetbrains.android.actions.NewAndroidComponentAction">
+    <action id="NewAndroidComponent" class="com.android.tools.idea.actions.NewAndroidComponentAction">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewActivity"/>
     </action>
     <action id="Android.CreateResourcesActionGroup" class="org.jetbrains.android.actions.CreateResourceFileActionGroup">
@@ -103,7 +103,7 @@
     <action id="AndroidInlineIncludeAction" class="org.jetbrains.android.refactoring.AndroidInlineIncludeAction"
             text="Inline _Layout..." description="Inlines included Android layout"/>
     <action id="AndroidFindStyleApplicationsAction" class="org.jetbrains.android.refactoring.AndroidFindStyleApplicationsAction"
-            text="Use style _where possible..." description="Replaces attributes by Android style reference where possible">
+            text="Use Style _Where Possible..." description="Replaces attributes by Android style reference where possible">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
     <action id="Android.TraceViewSearch" class="com.android.tools.idea.editors.vmtrace.VmTraceEditorSearchAction" use-shortcut-of="Find" />
@@ -118,6 +118,7 @@
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
     <projectResolve implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectResolver"/>
+    <taskManager implementation="com.android.tools.idea.gradle.task.AndroidGradleTaskManager"/>
   </extensions>
 
   <depends optional="true" config-file="maven-support.xml">org.jetbrains.idea.maven</depends>
@@ -143,6 +144,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.GradleProjectImporter"/>
     <exportable serviceInterface="com.android.tools.idea.folding.AndroidFoldingSettings"/>
 
+    <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider" />
     <projectConfigurable instance="com.android.tools.idea.gradle.compiler.GradleCompilerSettingsConfigurable" id="gradle.compiler"
                          displayName="Gradle" parentId="project.propCompiler"/>
     <compiler.optionsManager implementation="com.android.tools.idea.gradle.compiler.HideCompilerOptions" />
@@ -320,6 +322,7 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintMissingSuperCall" displayName="Missing Super Call" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true"  level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMissingSuperCallInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintMissingTranslation" displayName="Incomplete translation" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true"  level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMissingTranslationInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintMissingVersion" displayName="Missing application name/version" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true"  level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMissingVersionInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintMockLocation" displayName="Using mock location provider in production" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true"  level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMockLocationInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintMultipleUsesSdk" displayName="Multiple &lt;uses-sdk> elements in the manifest" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true"  level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMultipleUsesSdkInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintNestedScrolling" displayName="Nested scrolling widgets" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true"  level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintNestedScrollingInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintNestedWeights" displayName="Nested layout weights" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true"  level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintNestedWeightsInspection"/>
@@ -483,6 +486,7 @@
     <packaging.artifactType implementation="org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactType"/>
 
     <editorNotificationProvider implementation="com.android.tools.idea.editors.GeneratedFileNotificationProvider"/>
+    <editorNotificationProvider implementation="com.android.tools.idea.editors.AutoImportNotificationProvider"/>
 
     <compileServer.plugin classpath="jps/android-jps-plugin.jar;jps/android-gradle-jps.jar;android-common.jar;android-rt.jar"/>
     <compileServer.plugin classpath="sdklib.jar;guava-13.0.1.jar;common.jar;jarutils.jar;layoutlib-api.jar;manifest-merger.jar"/>

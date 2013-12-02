@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.rendering.RenderService.AttributeFilter;
 
 /**
  * {@link com.android.ide.common.rendering.api.ILayoutPullParser} implementation on top of
@@ -57,6 +58,8 @@ public class LayoutPsiPullParser extends LayoutPullParser {
 
   @Nullable
   private String myAndroidPrefix;
+
+  private boolean myProvideViewCookies = true;
 
   /**
    * Constructs a new {@link LayoutPsiPullParser}, a parser dedicated to the special case of
@@ -93,6 +96,33 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     } else {
       return new LayoutPsiPullParser(file, logger);
     }
+  }
+
+  @NotNull
+  public static LayoutPsiPullParser create(@Nullable final AttributeFilter filter,
+                                           @NotNull XmlTag root,
+                                           @NotNull RenderLogger logger) {
+    return new LayoutPsiPullParser(root, logger) {
+      @Override
+      public String getAttributeValue(String namespace, String localName) {
+        if (filter != null) {
+          Object cookie = getViewCookie();
+          if (cookie instanceof XmlTag) {
+            XmlTag tag = (XmlTag)cookie;
+            String value = filter.getAttribute(tag, namespace, localName);
+            if (value != null) {
+              if (value.isEmpty()) { // empty means unset
+                return null;
+              }
+              return value;
+            }
+            // null means no preference, not "unset".
+          }
+        }
+
+        return super.getAttributeValue(namespace, localName);
+      }
+    };
   }
 
   /** Use one of the {@link #create} factory methods instead */
@@ -155,7 +185,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   @Nullable
   @Override
   public Object getViewCookie() {
-    return getCurrentNode();
+    return myProvideViewCookies ? getCurrentNode() : null;
   }
 
   /**
@@ -479,5 +509,10 @@ public class LayoutPsiPullParser extends LayoutPullParser {
         myParsingState = END_TAG;
       }
     }
+  }
+
+  /** Sets whether this parser will provide view cookies */
+  public void setProvideViewCookies(boolean provideViewCookies) {
+    myProvideViewCookies = provideViewCookies;
   }
 }

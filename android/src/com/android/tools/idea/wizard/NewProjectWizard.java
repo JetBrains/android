@@ -18,17 +18,16 @@ package com.android.tools.idea.wizard;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.intellij.ide.startup.StartupManagerEx;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
@@ -41,9 +40,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import static com.android.SdkConstants.*;
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
-import static com.android.tools.idea.templates.TemplateMetadata.*;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_JAVA_VERSION;
 import static icons.AndroidIcons.Wizards.NewProjectSidePanel;
 
 /**
@@ -128,9 +126,10 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
     List<String> errors = Lists.newArrayList();
     try {
       wizardState.populateDirectoryParameters();
-      String projectName = wizardState.getString(NewProjectWizardState.ATTR_MODULE_NAME);
+      String moduleName = wizardState.getString(NewProjectWizardState.ATTR_MODULE_NAME);
+      String projectName = wizardState.getString(TemplateMetadata.ATTR_APP_TITLE);
       File projectRoot = new File(wizardState.getString(NewModuleWizardState.ATTR_PROJECT_LOCATION));
-      File moduleRoot = new File(projectRoot, projectName);
+      File moduleRoot = new File(projectRoot, moduleName);
       if (!FileUtilRt.createDirectory(projectRoot)) {
         errors.add(String.format(UNABLE_TO_CREATE_DIR_FORMAT, projectRoot.getPath()));
       }
@@ -165,8 +164,24 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
       }
       projectImporter.importProject(projectName, projectRoot, new GradleProjectImporter.Callback() {
         @Override
-        public void projectImported(@NotNull Project project) {
-          TemplateUtils.openEditors(project, wizardState.myTemplate.getFilesToOpen(), true);
+        public void projectImported(@NotNull final Project project) {
+          // Open files -- but wait until the Android facets are available, otherwise for example
+          // the layout editor won't add Design tabs to the file
+          StartupManagerEx manager = StartupManagerEx.getInstanceEx(project);
+          if (!manager.postStartupActivityPassed()) {
+            manager.registerPostStartupActivity(new Runnable() {
+              @Override
+              public void run() {
+                openTemplateFiles(project);
+              }
+            });
+          } else {
+            openTemplateFiles(project);
+          }
+        }
+
+        private boolean openTemplateFiles(Project project) {
+          return TemplateUtils.openEditors(project, wizardState.myTemplate.getFilesToOpen(), true);
         }
 
         @Override

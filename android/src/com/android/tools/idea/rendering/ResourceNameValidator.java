@@ -215,16 +215,16 @@ public class ResourceNameValidator implements InputValidatorEx {
    *
    * @param allowXmlExtension if true, allow .xml to be entered as a suffix for the
    *                          resource name
-   * @param projectResources  the project resources to validate new resource names for
+   * @param appResources      the app resources to validate new resource names for
    * @param type              the resource type of the resource name being validated
    * @return a new {@link ResourceNameValidator}
    */
-  public static ResourceNameValidator create(boolean allowXmlExtension, @Nullable ProjectResources projectResources,
+  public static ResourceNameValidator create(boolean allowXmlExtension, @Nullable LocalResourceRepository appResources,
                                              @NotNull ResourceType type) {
     Set<String> existing = null;
-    if (projectResources != null) {
+    if (appResources != null) {
       existing = new HashSet<String>();
-      Collection<String> items = projectResources.getItemsOfType(type);
+      Collection<String> items = appResources.getItemsOfType(type);
       existing.addAll(items);
     }
 

@@ -17,6 +17,7 @@ package org.jetbrains.android.inspections.lint;
 
 import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.AndroidProject;
 import com.android.builder.model.ProductFlavor;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
@@ -554,6 +555,35 @@ class IntellijLintProject extends Project {
 
       return super.getBuildSdk();
     }
+
+    @Nullable
+    @Override
+    public AndroidProject getGradleProjectModel() {
+      IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
+      if (project != null) {
+        project.getSelectedVariant();
+        return project.getDelegate();
+      }
+
+      return null;
+    }
+
+    @Nullable
+    @Override
+    public Variant getCurrentVariant() {
+      IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
+      if (project != null) {
+        return project.getSelectedVariant();
+      }
+
+      return null;
+    }
+
+    @Nullable
+    @Override
+    public AndroidLibrary getGradleLibraryModel() {
+      return null;
+    }
   }
 
   private static class LintGradleLibraryProject extends IntellijLintProject {
@@ -634,6 +664,18 @@ class IntellijLintProject extends Project {
       }
 
       return Collections.emptyList();
+    }
+
+    @Nullable
+    @Override
+    public AndroidProject getGradleProjectModel() {
+      return null;
+    }
+
+    @Nullable
+    @Override
+    public AndroidLibrary getGradleLibraryModel() {
+      return myLibrary;
     }
   }
 }

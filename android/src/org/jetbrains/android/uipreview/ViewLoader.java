@@ -18,11 +18,13 @@ package org.jetbrains.android.uipreview;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.LayoutLibrary;
+import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.InconvertibleClassError;
-import com.android.tools.idea.rendering.ProjectResources;
+import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.util.Pair;
 import com.intellij.openapi.application.ApplicationManager;
@@ -58,18 +60,18 @@ public class ViewLoader {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.uipreview.ViewLoader");
 
   @NotNull private final Module myModule;
-  @NotNull private final ProjectResources myProjectResources;
   @NotNull private final Map<String, Class<?>> myLoadedClasses = new HashMap<String, Class<?>>();
+  @Nullable private final Object myCredential;
   @NotNull private RenderLogger myLogger;
   @Nullable private final ClassLoader myParentClassLoader;
   @Nullable private ProjectClassLoader myProjectClassLoader;
 
-  public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull AndroidFacet facet, @NotNull ProjectResources projectResources,
-                    @NotNull RenderLogger logger) {
+  public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull AndroidFacet facet, @NotNull RenderLogger logger,
+                    @Nullable Object credential) {
     myParentClassLoader = layoutLib.getClassLoader();
     myModule = facet.getModule();
-    myProjectResources = projectResources;
     myLogger = logger;
+    myCredential = credential;
   }
 
   /**
@@ -161,7 +163,13 @@ public class ViewLoader {
   private Class<?> loadClass(String className) throws InconvertibleClassError {
     try {
       if (myProjectClassLoader == null) {
-        myProjectClassLoader = new ProjectClassLoader(myParentClassLoader, myModule);
+        // Allow creating class loaders during rendering; may be prevented by the RenderSecurityManager
+        boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
+        try {
+          myProjectClassLoader = new ProjectClassLoader(myParentClassLoader, myModule);
+        } finally {
+          RenderSecurityManager.exitSafeRegion(token);
+        }
       }
       return myProjectClassLoader.loadClass(className);
     }
@@ -431,8 +439,8 @@ public class ViewLoader {
       final Map<IntArrayWrapper, String> styleableId2res = new HashMap<IntArrayWrapper, String>();
 
       if (parseClass(aClass, id2res, styleableId2res, res2id)) {
-        ProjectResources projectResources = ProjectResources.get(myModule, true);
-        projectResources.setCompiledResources(id2res, styleableId2res, res2id);
+        LocalResourceRepository appResources = AppResourceRepository.getAppResources(myModule, true);
+        appResources.setCompiledResources(id2res, styleableId2res, res2id);
       }
     }
   }

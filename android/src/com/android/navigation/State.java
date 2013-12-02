@@ -16,17 +16,12 @@
 package com.android.navigation;
 
 import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
-import com.android.annotations.Property;
-import com.android.resources.ResourceFolderType;
 
 public abstract class State {
   private Point location = Point.ORIGIN;
 
-  @Nullable
   public abstract String getClassName();
 
-  @Nullable
   public abstract String getXmlResourceName();
 
   @NonNull

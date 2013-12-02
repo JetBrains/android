@@ -17,7 +17,8 @@ package com.android.tools.idea.folding;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.rendering.ProjectResources;
+import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.folding.FoldingBuilderEx;
@@ -221,26 +222,27 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
   }
 
   @Nullable
-  private static ProjectResources getProjectResources(PsiElement element) {
+  private static LocalResourceRepository getAppResources(PsiElement element) {
     Module module = ModuleUtilCore.findModuleForPsiElement(element);
     if (module == null) {
       return null;
     }
 
-    return ProjectResources.get(module, true, FORCE_PROJECT_RESOURCE_LOADING);
+    return AppResourceRepository.getAppResources(module, FORCE_PROJECT_RESOURCE_LOADING);
   }
 
-  private static InlinedResource createdInlinedResource(@NotNull ResourceType type, @NotNull String name, @NotNull PsiElement foldElement) {
+  private static InlinedResource createdInlinedResource(@NotNull ResourceType type, @NotNull String name,
+                                                        @NotNull PsiElement foldElement) {
     // Not part of a call: just fold the R.string reference itself
-    ProjectResources projectResources = getProjectResources(foldElement);
-    if (projectResources != null && projectResources.hasResourceItem(type, name)) {
+    LocalResourceRepository appResources = getAppResources(foldElement);
+    if (appResources != null && appResources.hasResourceItem(type, name)) {
       ASTNode node = foldElement.getNode();
       if (node != null) {
         TextRange textRange = foldElement.getTextRange();
         HashSet<Object> dependencies = new HashSet<Object>();
         dependencies.add(foldElement);
         FoldingDescriptor descriptor = new FoldingDescriptor(node, textRange, null, dependencies);
-        InlinedResource inlinedResource = new InlinedResource(type, name, projectResources, descriptor, foldElement);
+        InlinedResource inlinedResource = new InlinedResource(type, name, appResources, descriptor, foldElement);
         dependencies.add(inlinedResource);
         return inlinedResource;
       }

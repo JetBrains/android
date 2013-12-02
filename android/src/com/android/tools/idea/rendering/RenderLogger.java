@@ -24,7 +24,6 @@ import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.util.PathUtil;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,7 +43,7 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
  * single summary at the end
  */
 public class RenderLogger extends LayoutLog {
-  private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.RenderLogger");
+  static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.RenderLogger");
   /**
    * Whether render errors should be sent to the IDE log. We generally don't want this, since if for
    * example a custom view generates an error, it will go to the IDE log, which will interpret it as an
@@ -79,6 +78,7 @@ public class RenderLogger extends LayoutLog {
   private HtmlLinkManager myLinkManager;
   private boolean myMissingSize;
   private List<String> myMissingFragments;
+  private Object myCredential;
 
   /**
    * Construct a logger for the given named layout
@@ -560,5 +560,9 @@ public class RenderLogger extends LayoutLog {
   @Nullable
   public List<String> getMissingFragments() {
     return myMissingFragments;
+  }
+
+  void setCredential(@Nullable Object credential) {
+    myCredential = credential;
   }
 }

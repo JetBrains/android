@@ -73,7 +73,7 @@ public class GridLayoutSpanOperation extends LayoutSpanOperation {
     decorator.addPoint(new SpanPoint(Position.WEST,
                                      TYPE,
                                      "Change layout:column x layout:columnSpan",
-                                     decorator)); // left
+                                     decorator).move(0, 0.25)); // left
 
     decorator.addPoint(new SpanPoint(Position.EAST,
                                      TYPE,
@@ -83,7 +83,7 @@ public class GridLayoutSpanOperation extends LayoutSpanOperation {
     decorator.addPoint(new SpanPoint(Position.NORTH,
                                      TYPE,
                                      "Change layout:row x layout:rowSpan",
-                                     decorator)); // top
+                                     decorator).move(0.25, 0)); // top
 
     decorator.addPoint(new SpanPoint(Position.SOUTH,
                                      TYPE,
