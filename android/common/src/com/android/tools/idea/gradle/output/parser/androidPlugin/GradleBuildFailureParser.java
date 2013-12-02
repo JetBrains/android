@@ -212,6 +212,8 @@ public class GradleBuildFailureParser implements CompilerOutputParser {
           }
           else if (++pos >= ENDING_PATTERNS.length) {
             if (errorMessage.length() > 0) {
+              String text = errorMessage.toString();
+
               // Sometimes Gradle exits with an error message that doesn't have an associated
               // file. This will show up first in the output, for errors without file associations.
               // However, in some cases we can guess what the error is by looking at the other error
@@ -221,6 +223,21 @@ public class GradleBuildFailureParser implements CompilerOutputParser {
               if (file == null && lastQuotedLine != null) {
                 String msg = unquoteGradleLine(lastQuotedLine);
                 GradleMessage rootCause = findRootCause(msg, messages);
+
+                if (rootCause == null) {
+                  // For AAPT execution errors, the real cause is the last line (the AAPT output).
+                  // Try searching there instead.
+                  if (msg.endsWith("Failed to run command:")) {
+                    String[] lines = text.split("\n");
+                    if (lines.length > 2 && lines[lines.length - 2].contains("Output:")) {
+                      String lastLine = lines[lines.length - 1];
+                      if (!lastLine.isEmpty()) {
+                        rootCause = findRootCause(lastLine.trim(), messages);
+                      }
+                    }
+                  }
+                }
+
                 if (rootCause != null) {
                   file = rootCause.getSourcePath();
                   lineNum = rootCause.getLineNumber();
@@ -229,10 +246,10 @@ public class GradleBuildFailureParser implements CompilerOutputParser {
               }
               if (file != null) {
                 messages
-                  .add(new GradleMessage(GradleMessage.Kind.ERROR, errorMessage.toString(), file, lineNum, column));
+                  .add(new GradleMessage(GradleMessage.Kind.ERROR, text, file, lineNum, column));
               }
               else {
-                messages.add(new GradleMessage(GradleMessage.Kind.ERROR, errorMessage.toString()));
+                messages.add(new GradleMessage(GradleMessage.Kind.ERROR, text));
               }
             }
             return true;
