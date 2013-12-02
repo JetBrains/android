@@ -23,6 +23,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
@@ -38,7 +39,7 @@ public class ProjectsTest extends IdeaTestCase {
     Sdk jdk = AndroidTestCaseHelper.createAndSetJdk(myProject);
     File javaHome = Projects.getJavaHome(myProject);
     assertNotNull(javaHome);
-    assertEquals(jdk.getHomePath(), javaHome.getPath());
+    FileUtil.pathsEqual(jdk.getHomePath(), javaHome.getPath());
   }
 
   public void testIsGradleProjectWithRegularProject() {
