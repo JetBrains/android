@@ -31,6 +31,8 @@ import java.util.List;
 class ReadOnlyDocument {
   @NotNull private final String myContents;
   @NotNull private final List<Integer> myOffsets;
+  private File myFile;
+  private long myLastModified;
 
   /**
    * Creates a new {@link ReadOnlyDocument} for the given file.
@@ -41,6 +43,8 @@ class ReadOnlyDocument {
   @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
   ReadOnlyDocument(@NotNull File file) throws IOException {
     myContents = Files.toString(file, Charsets.UTF_8);
+    myFile = file;
+    myLastModified = file.lastModified();
     myOffsets = Lists.newArrayListWithExpectedSize(myContents.length() / 30);
     myOffsets.add(0);
     for (int i = 0; i < myContents.length(); i++) {
@@ -49,6 +53,12 @@ class ReadOnlyDocument {
         myOffsets.add(i + 1);
       }
     }
+  }
+
+  /** Returns true if the document contents are stale (e.g. no longer current) */
+  public boolean isStale() {
+    long now = myFile.lastModified();
+    return now == 0L || myLastModified < now;
   }
 
   /**
