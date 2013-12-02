@@ -13,15 +13,16 @@ REM available on the server. It downloads the windows patch and tries to
 REM apply it.
 REM
 REM Variables you might want to modify:
-REM - FROM: the build-number to update from (in the form 123-456789, no quotes)
-REM - TO  : the build-number to update to   (in the form 123-456789, no quotes)
+REM - FROM: the build-number to update from (in the form 123.456789, no quotes)
+REM - TO  : the build-number to update to   (in the form 123.456789, no quotes)
 REM - java_exe: The path to your java executable.
 REM
 REM IMPORTANT: to execute this, copy the BAT into the android-studio\bin directory
-REM (the bin directory where studio.exe is located)  and execute it from a cmd.exe:
+REM (the bin directory where studio.exe is located) and execute it from a cmd.exe
+REM from the android-studio directory, like this:
 REM   Start Menu > cmd.exe
-REM   > cd path\to\android-studio\bin
-REM   > update_studio.bat
+REM   > cd path\to\android-studio
+REM   > bin\update_studio.bat
 
 
 SETLOCAL enableextensions enabledelayedexpansion
