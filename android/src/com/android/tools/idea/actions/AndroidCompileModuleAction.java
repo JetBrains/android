@@ -48,6 +48,6 @@ public class AndroidCompileModuleAction extends AndroidBuildModuleAction {
 
   @Override
   protected void buildGradleProject(@NotNull Project project, @NotNull DataContext dataContext) {
-    GradleInvoker.getInstance(project).compileJava(dataContext);
+    GradleInvoker.getInstance(project).compileJava(dataContext, null);
   }
 }
