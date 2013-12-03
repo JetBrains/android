@@ -287,7 +287,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
           });
           Projects.refresh(project);
           if (myListener != null) {
-            myListener.executionFinished(myTasks, myErrorCount, myWarningCount);
+            myListener.executionEnded(myTasks, myErrorCount, myWarningCount);
           }
         }
         return null;
