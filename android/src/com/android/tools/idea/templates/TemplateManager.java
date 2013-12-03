@@ -177,7 +177,7 @@ public class TemplateManager {
       File[] files = new File(root, folder).listFiles();
       if (files != null) {
         for (File file : files) {
-          if (file.isDirectory()) { // Avoid .DS_Store etc
+          if (file.isDirectory() && (new File(file, TEMPLATE_XML)).exists()) { // Avoid .DS_Store etc, & non Freemarker templates
             templates.add(file);
             templateNames.put(file.getName(), file);
           }
@@ -190,7 +190,7 @@ public class TemplateManager {
       File[] files = new File(extra, folder).listFiles();
       if (files != null) {
         for (File file : files) {
-          if (file.isDirectory()) {
+          if (file.isDirectory() && (new File(file, TEMPLATE_XML)).exists()) {
             File replaces = templateNames.get(file.getName());
             if (replaces != null) {
               int compare = compareTemplates(replaces, file);
