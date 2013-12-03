@@ -97,7 +97,7 @@ public final class Projects {
       return;
     }
     if (isExperimentalBuildEnabled(project)) {
-      GradleInvoker.getInstance(project).cleanProject();
+      GradleInvoker.getInstance(project).cleanProject(null);
       return;
     }
     setProjectBuildMode(project, BuildMode.CLEAN);
@@ -115,7 +115,7 @@ public final class Projects {
       return;
     }
     if (isExperimentalBuildEnabled(project)) {
-      GradleInvoker.getInstance(project).generateSources();
+      GradleInvoker.getInstance(project).generateSources(null);
       return;
     }
     setProjectBuildMode(project, BuildMode.SOURCE_GEN);
