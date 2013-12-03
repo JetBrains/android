@@ -126,7 +126,11 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       done.down();
       final GradleTaskExecutionListener listener = new GradleTaskExecutionListener() {
         @Override
-        public void executionFinished(@NotNull List<String> tasks, int errorCount, int warningCount) {
+        public void executionStarted(@NotNull List<String> tasks) {
+        }
+
+        @Override
+        public void executionEnded(@NotNull List<String> tasks, int errorCount, int warningCount) {
           result.set(errorCount == 0);
           done.up();
         }
