@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -55,39 +56,49 @@ public class GradleInvoker {
     myProject = project;
   }
 
-  public void cleanProject() {
+  public void cleanProject(@Nullable GradleTaskExecutionListener listener) {
+    setProjectBuildMode(BuildMode.CLEAN);
     List<String> tasks = Lists.newArrayList(GradleBuilds.CLEAN_TASK_NAME);
-    executeTasks(tasks, null);
+    executeTasks(tasks, createExecutionListener(listener));
   }
 
-  public void generateSources() {
+  public void generateSources(@Nullable final GradleTaskExecutionListener listener) {
+    BuildMode buildMode = BuildMode.SOURCE_GEN;
+    setProjectBuildMode(buildMode);
+
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    List<String> tasks = findTasksToExecute(moduleManager.getModules(), BuildMode.SOURCE_GEN, GradleBuilds.TestCompileContext.NONE);
-    executeTasks(tasks, new GradleTaskExecutionListener() {
+    List<String> tasks = findTasksToExecute(moduleManager.getModules(), buildMode, GradleBuilds.TestCompileContext.NONE);
+
+    executeTasks(tasks, createExecutionListener(new GradleTaskExecutionListener() {
       @Override
-      public void executionFinished(@NotNull List<String> tasks, int errorCount, int warningCount) {
+      public void executionStarted(@NotNull List<String> tasks) {
+      }
+
+      @Override
+      public void executionEnded(@NotNull List<String> tasks, int errorCount, int warningCount) {
         Projects.notifyProjectSyncCompleted(myProject, errorCount == 0);
       }
-    });
+    }, listener));
   }
 
-  public void compileJava(@NotNull DataContext dataContext) {
+  public void compileJava(@NotNull DataContext dataContext, @Nullable GradleTaskExecutionListener listener) {
+    BuildMode buildMode = BuildMode.COMPILE_JAVA;
+    setProjectBuildMode(buildMode);
+
     Module[] modules = Projects.getModulesToBuildFromSelection(myProject, dataContext);
-    List<String> tasks = findTasksToExecute(modules, BuildMode.COMPILE_JAVA, GradleBuilds.TestCompileContext.NONE);
-    executeTasks(tasks, null);
+    List<String> tasks = findTasksToExecute(modules, buildMode, GradleBuilds.TestCompileContext.NONE);
+
+    executeTasks(tasks, createExecutionListener(listener));
   }
 
-  public void make(@Nullable RunConfiguration runConfiguration, @Nullable GradleTaskExecutionListener listener) {
+  public void make(@Nullable GradleTaskExecutionListener listener, @Nullable RunConfiguration runConfiguration) {
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    GradleBuilds.TestCompileContext testCompileContext = getTestCompileContext(runConfiguration);
-    List<String> tasks = findTasksToExecute(moduleManager.getModules(), BuildMode.MAKE, testCompileContext);
-    executeTasks(tasks, listener);
+    make(moduleManager.getModules(), listener, runConfiguration);
   }
 
   public void make(@NotNull DataContext dataContext,
                    @Nullable GradleTaskExecutionListener listener,
                    @Nullable RunConfiguration runConfiguration) {
-
     Module[] modules;
     if (runConfiguration instanceof ModuleBasedConfiguration) {
       // ModuleBasedConfiguration includes Android and JUnit run configurations.
@@ -97,9 +108,18 @@ public class GradleInvoker {
       modules = Projects.getModulesToBuildFromSelection(myProject, dataContext);
     }
 
+    make(modules, listener, runConfiguration);
+  }
+
+  private void make(@NotNull Module[] modules,
+                    @Nullable GradleTaskExecutionListener listener,
+                    @Nullable RunConfiguration runConfiguration) {
+    BuildMode buildMode = BuildMode.MAKE;
+    setProjectBuildMode(buildMode);
+
     GradleBuilds.TestCompileContext testCompileContext = getTestCompileContext(runConfiguration);
-    List<String> tasks = findTasksToExecute(modules, BuildMode.MAKE, testCompileContext);
-    executeTasks(tasks, listener);
+    List<String> tasks = findTasksToExecute(modules, buildMode, testCompileContext);
+    executeTasks(tasks, createExecutionListener(listener));
   }
 
   @NotNull
@@ -116,13 +136,45 @@ public class GradleInvoker {
     return GradleBuilds.TestCompileContext.NONE;
   }
 
-  public void rebuild() {
+  public void rebuild(GradleTaskExecutionListener listener) {
+    BuildMode buildMode = BuildMode.REBUILD;
+    setProjectBuildMode(buildMode);
+
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    List<String> tasks = findTasksToExecute(moduleManager.getModules(), BuildMode.REBUILD, GradleBuilds.TestCompileContext.NONE);
+    List<String> tasks = findTasksToExecute(moduleManager.getModules(), buildMode, GradleBuilds.TestCompileContext.NONE);
     if (!tasks.isEmpty()) {
       tasks.add(0, GradleBuilds.CLEAN_TASK_NAME);
     }
-    executeTasks(tasks, null);
+
+    executeTasks(tasks, createExecutionListener(listener));
+  }
+
+  private void setProjectBuildMode(@NotNull BuildMode buildMode) {
+    Projects.setProjectBuildMode(myProject, buildMode);
+  }
+
+  @NotNull
+  private GradleTaskExecutionListener createExecutionListener(@NotNull final GradleTaskExecutionListener... original) {
+    return new GradleTaskExecutionListener() {
+      @Override
+      public void executionStarted(@NotNull List<String> tasks) {
+        for (GradleTaskExecutionListener listener : original) {
+          if (listener != null) {
+            listener.executionStarted(tasks);
+          }
+        }
+      }
+
+      @Override
+      public void executionEnded(@NotNull List<String> tasks, int errorCount, int warningCount) {
+        Projects.removeBuildDataFrom(myProject);
+        for (GradleTaskExecutionListener listener : original) {
+          if (listener != null) {
+            listener.executionEnded(tasks, errorCount, warningCount);
+          }
+        }
+      }
+    };
   }
 
   private List<String> findTasksToExecute(@NotNull Module[] modules,
@@ -152,10 +204,20 @@ public class GradleInvoker {
     if (tasks.isEmpty()) {
       return;
     }
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      if (listener != null) {
+        listener.executionStarted(tasks);
+        listener.executionEnded(tasks, 0, 0);
+      }
+      return;
+    }
     FileDocumentManager.getInstance().saveAllDocuments();
     UIUtil.invokeAndWaitIfNeeded(new Runnable() {
       @Override
       public void run() {
+        if (listener != null) {
+          listener.executionStarted(tasks);
+        }
         GradleTasksExecutor executor = new GradleTasksExecutor(myProject, tasks, listener);
         executor.queue();
       }

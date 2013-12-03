@@ -23,5 +23,7 @@ import java.util.List;
  * Listener that is notified when one or more Gradle tasks have been executed.
  */
 public interface GradleTaskExecutionListener {
-  void executionFinished(@NotNull List<String> tasks, int errorCount, int warningCount);
+  void executionStarted(@NotNull List<String> tasks);
+
+  void executionEnded(@NotNull List<String> tasks, int errorCount, int warningCount);
 }
