@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
@@ -93,7 +94,7 @@ public abstract class IdeaSourceProvider {
     }
 
     /** Convert a set of IO files into a set of equivalent virtual files */
-    private static Set<VirtualFile> convertFileSet(@NotNull Set<File> fileSet) {
+    private static Set<VirtualFile> convertFileSet(@NotNull Collection<File> fileSet) {
       Set<VirtualFile> result = Sets.newHashSetWithExpectedSize(fileSet.size());
       LocalFileSystem fileSystem = LocalFileSystem.getInstance();
       for (File file : fileSet) {

@@ -299,15 +299,20 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @NotNull
   private static Variant getFirstVariant(@NotNull AndroidProject androidProject) {
-    Map<String, Variant> variants = androidProject.getVariants();
+    Collection<Variant> variants = androidProject.getVariants();
     if (variants.size() == 1) {
-      Variant variant = ContainerUtil.getFirstItem(variants.values());
+      Variant variant = ContainerUtil.getFirstItem(variants);
       assert variant != null;
       return variant;
     }
-    List<String> variantNames = Lists.newArrayList(variants.keySet());
-    Collections.sort(variantNames);
-    return variants.get(variantNames.get(0));
+    List<Variant> sortedVariants = Lists.newArrayList(variants);
+    Collections.sort(sortedVariants, new Comparator<Variant>() {
+      @Override
+      public int compare(Variant o1, Variant o2) {
+        return o1.getName().compareTo(o2.getName());
+      }
+    });
+    return sortedVariants.get(0);
   }
 
   private static void addContentRoot(@NotNull IdeaAndroidProject androidProject,
