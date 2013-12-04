@@ -58,7 +58,7 @@ public class AndroidModuleInfo {
 
     IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
     if (project != null) {
-      return IdeaAndroidProject.computePackageName(project, manifestPackage);
+      return project.computePackageName(manifestPackage);
     }
 
     // Read from the manifest: Not overridden in the configuration

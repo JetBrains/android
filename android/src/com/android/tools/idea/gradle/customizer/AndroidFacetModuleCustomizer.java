@@ -37,7 +37,6 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Set;
 
 /**
  * Adds the Android facet to modules imported from {@link com.android.builder.model.AndroidProject}s.
@@ -102,10 +101,10 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
     File manifestFile = sourceProvider.getManifestFile();
     facetState.MANIFEST_FILE_RELATIVE_PATH = getRelativePath(moduleDir, manifestFile);
 
-    Set<File> resDirs = sourceProvider.getResDirectories();
+    Collection<File> resDirs = sourceProvider.getResDirectories();
     facetState.RES_FOLDER_RELATIVE_PATH = getRelativePath(moduleDir, resDirs);
 
-    Set<File> assetsDirs = sourceProvider.getAssetsDirectories();
+    Collection<File> assetsDirs = sourceProvider.getAssetsDirectories();
     facetState.ASSETS_FOLDER_RELATIVE_PATH = getRelativePath(moduleDir, assetsDirs);
 
     facet.setIdeaAndroidProject(ideaAndroidProject);

@@ -19,14 +19,11 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.stubs.android.AndroidLibraryStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
-import com.android.tools.idea.gradle.stubs.android.ArtifactInfoStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.containers.ContainerUtil;
-import junit.framework.TestCase;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Collection;
@@ -62,8 +59,8 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
   public void testExtractFromWithJar() {
     File jarFile = new File("~/repo/guava/guava-11.0.2.jar");
 
-    myVariant.getMainArtifactInfo().getDependencies().addJar(jarFile);
-    getArtifactInfo().getDependencies().addJar(jarFile);
+    myVariant.getMainArtifact().getDependencies().addJar(jarFile);
+    myVariant.getInstrumentTestArtifact().getDependencies().addJar(jarFile);
 
     Collection<Dependency> dependencies = Dependency.extractFrom(myIdeaAndroidProject);
     assertEquals(1, dependencies.size());
@@ -85,8 +82,8 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
     String gradlePath = "abc:xyz:library";
     AndroidLibraryStub library = new AndroidLibraryStub(libJar, gradlePath);
 
-    myVariant.getMainArtifactInfo().getDependencies().addLibrary(library);
-    getArtifactInfo().getDependencies().addLibrary(library);
+    myVariant.getMainArtifact().getDependencies().addLibrary(library);
+    myVariant.getInstrumentTestArtifact().getDependencies().addLibrary(library);
 
     Collection<Dependency> dependencies = Dependency.extractFrom(myIdeaAndroidProject);
     assertEquals(1, dependencies.size());
@@ -113,8 +110,8 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
     File libJar = new File(rootDirPath, "library.aar/library.jar");
     AndroidLibraryStub library = new AndroidLibraryStub(libJar);
 
-    myVariant.getMainArtifactInfo().getDependencies().addLibrary(library);
-    getArtifactInfo().getDependencies().addLibrary(library);
+    myVariant.getMainArtifact().getDependencies().addLibrary(library);
+    myVariant.getInstrumentTestArtifact().getDependencies().addLibrary(library);
 
     Collection<Dependency> dependencies = Dependency.extractFrom(myIdeaAndroidProject);
     assertEquals(1, dependencies.size());
@@ -138,8 +135,8 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
     File localJar = new File(rootDirPath, "local.jar");
     library.addLocalJar(localJar);
 
-    myVariant.getMainArtifactInfo().getDependencies().addLibrary(library);
-    getArtifactInfo().getDependencies().addLibrary(library);
+    myVariant.getMainArtifact().getDependencies().addLibrary(library);
+    myVariant.getInstrumentTestArtifact().getDependencies().addLibrary(library);
 
     List<Dependency> dependencies = Lists.newArrayList(Dependency.extractFrom(myIdeaAndroidProject));
     assertEquals(2, dependencies.size());
@@ -157,8 +154,8 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
 
   public void testExtractFromWithProject() {
     String gradlePath = "abc:xyz:library";
-    myVariant.getMainArtifactInfo().getDependencies().addProject(gradlePath);
-    getArtifactInfo().getDependencies().addProject(gradlePath);
+    myVariant.getMainArtifact().getDependencies().addProject(gradlePath);
+    myVariant.getInstrumentTestArtifact().getDependencies().addProject(gradlePath);
     Collection<Dependency> dependencies = Dependency.extractFrom(myIdeaAndroidProject);
     assertEquals(1, dependencies.size());
 
@@ -173,10 +170,4 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
     assertNull(backup);
   }
 
-  @NotNull
-  private ArtifactInfoStub getArtifactInfo() {
-    ArtifactInfoStub testArtifactInfo = myVariant.getTestArtifactInfo();
-    assertNotNull(testArtifactInfo);
-    return testArtifactInfo;
-  }
 }

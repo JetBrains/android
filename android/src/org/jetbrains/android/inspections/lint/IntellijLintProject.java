@@ -209,7 +209,7 @@ class IntellijLintProject extends Project {
                                                @NonNull List<Project> dependencies) {
     File dir;IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
     if (gradleProject != null) {
-      List<AndroidLibrary> libraries = gradleProject.getSelectedVariant().getMainArtifactInfo().getDependencies().getLibraries();
+      Collection<AndroidLibrary> libraries = gradleProject.getSelectedVariant().getMainArtifact().getDependencies().getLibraries();
       for (AndroidLibrary library : libraries) {
         Project p = libraryMap.get(library);
         if (p == null) {
@@ -486,7 +486,7 @@ class IntellijLintProject extends Project {
             IdeaAndroidProject gradleProject = myFacet.getIdeaAndroidProject();
             if (gradleProject != null) {
               Variant variant = gradleProject.getSelectedVariant();
-              dir = variant.getMainArtifactInfo().getClassesFolder();
+              dir = variant.getMainArtifact().getClassesFolder();
             }
           }
           if (dir != null) {
@@ -509,7 +509,7 @@ class IntellijLintProject extends Project {
 
       IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
       if (project != null) {
-        return IdeaAndroidProject.computePackageName(project, manifestPackage);
+        return project.computePackageName(manifestPackage);
       }
 
       // Read from the manifest: Not overridden in the configuration
