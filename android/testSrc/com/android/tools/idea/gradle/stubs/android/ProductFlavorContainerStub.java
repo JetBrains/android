@@ -15,15 +15,22 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import com.android.builder.model.AndroidProject;
 import com.android.builder.model.ProductFlavorContainer;
+import com.android.builder.model.SourceProviderContainer;
 import com.android.tools.idea.gradle.stubs.FileStructure;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
 
 public class ProductFlavorContainerStub implements ProductFlavorContainer {
   @NotNull private final ProductFlavorStub myFlavor;
   @NotNull private final SourceProviderStub mySourceProvider;
-  @NotNull private final SourceProviderStub myTestSourceProvider;
+  @NotNull private final SourceProviderStub myInstrumentationTestSourceProvider;
+
+  @NotNull private final Collection<SourceProviderContainer> myExtraArtifactSourceProviders = Lists.newArrayList();
 
   /**
    * Creates a new {@clink ProductFlavorContainerStub}.
@@ -35,7 +42,9 @@ public class ProductFlavorContainerStub implements ProductFlavorContainer {
   ProductFlavorContainerStub(@NotNull String flavorName, @NotNull FileStructure fileStructure) {
     myFlavor = new ProductFlavorStub(flavorName);
     mySourceProvider = new SourceProviderStub(fileStructure);
-    myTestSourceProvider = new SourceProviderStub(fileStructure);
+    myInstrumentationTestSourceProvider = new SourceProviderStub(fileStructure);
+    myExtraArtifactSourceProviders.add(
+      new SourceProviderContainerStub(AndroidProject.ARTIFACT_INSTRUMENT_TEST, myInstrumentationTestSourceProvider));
     setUpPaths(flavorName);
   }
 
@@ -51,30 +60,35 @@ public class ProductFlavorContainerStub implements ProductFlavorContainer {
 
     String nameSuffix = flavorName.equals("main") ? "" : StringUtil.capitalize(flavorName);
 
-    myTestSourceProvider.addAidlDirectory("src/instrumentTest" + nameSuffix + "/aidl");
-    myTestSourceProvider.addAssetsDirectory("src/instrumentTest" + nameSuffix + "/assets");
-    myTestSourceProvider.addJavaDirectory("src/instrumentTest" + nameSuffix + "/java");
-    myTestSourceProvider.addJniDirectory("src/instrumentTest" + nameSuffix + "/jni");
-    myTestSourceProvider.addRenderscriptDirectory("src/instrumentTest" + nameSuffix + "/renderscript");
-    myTestSourceProvider.addResDirectory("src/instrumentTest" + nameSuffix + "/rs");
-    myTestSourceProvider.addResourcesDirectory("src/instrumentTest" + nameSuffix + "/resources");
+    myInstrumentationTestSourceProvider.addAidlDirectory("src/instrumentTest" + nameSuffix + "/aidl");
+    myInstrumentationTestSourceProvider.addAssetsDirectory("src/instrumentTest" + nameSuffix + "/assets");
+    myInstrumentationTestSourceProvider.addJavaDirectory("src/instrumentTest" + nameSuffix + "/java");
+    myInstrumentationTestSourceProvider.addJniDirectory("src/instrumentTest" + nameSuffix + "/jni");
+    myInstrumentationTestSourceProvider.addRenderscriptDirectory("src/instrumentTest" + nameSuffix + "/renderscript");
+    myInstrumentationTestSourceProvider.addResDirectory("src/instrumentTest" + nameSuffix + "/rs");
+    myInstrumentationTestSourceProvider.addResourcesDirectory("src/instrumentTest" + nameSuffix + "/resources");
   }
 
-  @NotNull
   @Override
+  @NotNull
   public ProductFlavorStub getProductFlavor() {
     return myFlavor;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public SourceProviderStub getSourceProvider() {
     return mySourceProvider;
   }
 
-  @NotNull
   @Override
-  public SourceProviderStub getTestSourceProvider() {
-    return myTestSourceProvider;
+  @NotNull
+  public Collection<SourceProviderContainer> getExtraSourceProviders() {
+    return myExtraArtifactSourceProviders;
+  }
+
+  @NotNull
+  public SourceProviderStub getInstrumentationTestSourceProvider() {
+    return myInstrumentationTestSourceProvider;
   }
 }

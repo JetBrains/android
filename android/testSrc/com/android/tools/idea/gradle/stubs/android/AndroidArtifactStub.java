@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
-import com.android.builder.model.ArtifactInfo;
+import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.text.StringUtil;
@@ -25,15 +26,17 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.List;
 
-public class ArtifactInfoStub implements ArtifactInfo {
+public class AndroidArtifactStub implements AndroidArtifact {
   @NotNull private final List<File> myGeneratedResourceFolders = Lists.newArrayList();
   @NotNull private final List<File> myGeneratedSourceFolders = Lists.newArrayList();
 
+  @NotNull private final String myName;
   @NotNull private final DependenciesStub myDependencies;
   @NotNull private final String myBuildType;
   @NotNull private final FileStructure myFileStructure;
 
-  ArtifactInfoStub(@NotNull String buildType, @NotNull FileStructure fileStructure) {
+  AndroidArtifactStub(@NotNull String name, @NotNull String buildType, @NotNull FileStructure fileStructure) {
+    myName = name;
     myDependencies = new DependenciesStub();
     myBuildType = buildType;
     myFileStructure = fileStructure;
@@ -66,6 +69,12 @@ public class ArtifactInfoStub implements ArtifactInfo {
   @NotNull
   public String getSourceGenTaskName() {
     return "generate" + StringUtil.capitalize(myBuildType) + "Sources";
+  }
+
+  @Override
+  @NotNull
+  public String getName() {
+    return myName;
   }
 
   @Override
@@ -109,6 +118,18 @@ public class ArtifactInfoStub implements ArtifactInfo {
   @NotNull
   public DependenciesStub getDependencies() {
     return myDependencies;
+  }
+
+  @Override
+  @Nullable
+  public SourceProvider getVariantSourceProvider() {
+    return null;
+  }
+
+  @Override
+  @Nullable
+  public SourceProvider getMultiFlavorSourceProvider() {
+    return null;
   }
 
   /**

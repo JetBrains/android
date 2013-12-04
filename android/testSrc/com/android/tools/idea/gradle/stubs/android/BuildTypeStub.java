@@ -15,27 +15,22 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import com.android.builder.model.BuildType;
 import com.android.builder.model.ClassField;
 import com.android.builder.model.NdkConfig;
-import com.android.builder.model.ProductFlavor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.List;
 
-public class ProductFlavorStub implements ProductFlavor {
+public class BuildTypeStub implements BuildType {
   @NotNull private final String myName;
 
-  /**
-   * Creates a new {@code ProductFlavorStub}.
-   *
-   * @param name the name of the product flavor.
-   */
-  ProductFlavorStub(@NotNull String name) {
-    this.myName = name;
+  BuildTypeStub(@NotNull String name) {
+    myName = name;
   }
+
 
   @Override
   @NotNull
@@ -44,68 +39,44 @@ public class ProductFlavorStub implements ProductFlavor {
   }
 
   @Override
-  @Nullable
-  public String getPackageName() {
+  public boolean isDebuggable() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public int getVersionCode() {
+  public boolean isJniDebugBuild() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  @Nullable
-  public String getVersionName() {
+  public boolean isRenderscriptDebugBuild() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public int getMinSdkVersion() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public int getTargetSdkVersion() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public int getRenderscriptTargetApi() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public boolean getRenderscriptSupportMode() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public boolean getRenderscriptNdkMode() {
+  public int getRenderscriptOptimLevel() {
     throw new UnsupportedOperationException();
   }
 
   @Override
   @Nullable
-  public String getTestPackageName() {
+  public String getPackageNameSuffix() {
     throw new UnsupportedOperationException();
   }
 
   @Override
   @Nullable
-  public String getTestInstrumentationRunner() {
+  public String getVersionNameSuffix() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  @Nullable
-  public Boolean getTestHandleProfiling() {
+  public boolean isRunProguard() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  @Nullable
-  public Boolean getTestFunctionalTest() {
+  public boolean isZipAlign() {
     throw new UnsupportedOperationException();
   }
 
@@ -123,13 +94,13 @@ public class ProductFlavorStub implements ProductFlavor {
 
   @Override
   @NotNull
-  public List<File> getProguardFiles() {
+  public Collection<File> getProguardFiles() {
     throw new UnsupportedOperationException();
   }
 
   @Override
   @NotNull
-  public List<File> getConsumerProguardFiles() {
+  public Collection<File> getConsumerProguardFiles() {
     throw new UnsupportedOperationException();
   }
 }
