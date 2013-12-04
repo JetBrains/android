@@ -27,6 +27,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.intellij.compiler.CompilerManagerImpl;
+import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.compiler.impl.CompilerErrorTreeView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.ide.errorTreeView.NewErrorTreeViewPanel;
@@ -65,6 +66,7 @@ import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
 import com.intellij.pom.Navigatable;
 import com.intellij.ui.AppIcon;
 import com.intellij.ui.content.*;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.Function;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.ui.MessageCategory;
@@ -257,7 +259,17 @@ class GradleTasksExecutor extends Task.Backgroundable {
             launcher.setJavaHome(javaHome);
           }
 
-          launcher.forTasks(myTasks.toArray(new String[myTasks.size()]));
+          launcher.forTasks(ArrayUtil.toStringArray(myTasks));
+
+          List<String> args = Lists.newArrayList();
+          CompilerWorkspaceConfiguration compilerConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
+          if (compilerConfiguration.PARALLEL_COMPILATION) {
+            args.add("--parallel");
+          }
+
+          if (!args.isEmpty()) {
+            launcher.withArguments(ArrayUtil.toStringArray(args));
+          }
 
           launcher.setStandardOutput(stdout);
           launcher.setStandardError(stderr);
