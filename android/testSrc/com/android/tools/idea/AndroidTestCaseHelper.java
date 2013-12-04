@@ -19,13 +19,15 @@ package com.android.tools.idea;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.intellij.ide.impl.NewProjectUtil;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdk;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
@@ -53,10 +55,10 @@ public class AndroidTestCaseHelper {
 
   @Nullable
   public static String getAndroidSdkPath() {
-    String path = AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable(AndroidTestCase.SDK_PATH_PROPERTY);
+    String path = AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable(AndroidTestBase.SDK_PATH_PROPERTY);
     if (Strings.isNullOrEmpty(path)) {
       String format = "Please specify the path of an Android SDK (v22.0.0) in the system property or environment variable '%1$s'";
-      Assert.fail(String.format(format, AndroidTestCase.SDK_PATH_PROPERTY));
+      Assert.fail(String.format(format, AndroidTestBase.SDK_PATH_PROPERTY));
     }
     return path;
   }
@@ -77,5 +79,17 @@ public class AndroidTestCaseHelper {
   public static String getSystemPropertyOrEnvironmentVariable(@NotNull String name) {
     String s = System.getProperty(name);
     return s == null ? System.getenv(name) : s;
+  }
+
+  public static void removeExistingAndroidSdks() {
+    final ProjectJdkTable table = ProjectJdkTable.getInstance();
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        for (Sdk sdk : table.getAllJdks()) {
+          table.removeJdk(sdk);
+        }
+      }
+    });
   }
 }
