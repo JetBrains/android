@@ -33,7 +33,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.execution.configurations.SimpleJavaParameters;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.Key;
@@ -45,13 +44,11 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ContainerUtilRt;
-import com.intellij.util.ui.UIUtil;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.jetbrains.annotations.NotNull;
@@ -200,9 +197,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       LocalProperties localProperties = getLocalProperties(projectDir);
 
       if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
-        syncIdeAndProjectAndroidHomes(localProperties);
+        SdkSync.syncIdeAndProjectAndroidHomes(localProperties);
       }
-      else if (Strings.isNullOrEmpty(localProperties.getAndroidSdkPath())) {
+      else if (localProperties.getAndroidSdkPath() == null) {
         File androidHomePath = DefaultSdks.getDefaultAndroidHome();
         assert androidHomePath != null;
         args.add(KeyValue.create(AndroidGradleSettings.ANDROID_HOME_JVM_ARG, androidHomePath.getPath()));
@@ -225,66 +222,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }
   }
 
-  private static void syncIdeAndProjectAndroidHomes(@NotNull final LocalProperties localProperties) {
-    File androidHomePath = DefaultSdks.getDefaultAndroidHome();
-    assert androidHomePath != null;
-
-    final String ideAndroidHome = androidHomePath.getPath();
-    final String projectAndroidHome = localProperties.getAndroidSdkPath();
-
-    if (projectAndroidHome == null || projectAndroidHome.isEmpty()) {
-      setProjectSdk(localProperties, ideAndroidHome);
-      return;
-    }
-    final File projectAndroidHomePath = new File(projectAndroidHome);
-    if (!DefaultSdks.validateAndroidSdkPath(projectAndroidHomePath)) {
-      // The SDK path is not valid. It may be pointing to an SDK that does not exist. Just use Android Studio's.
-      UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          String format =
-            "The path '%1$s' does not belong to an Android SDK.\n\nAndroid Studio will use its default SDK instead ('%2$s') " +
-            "and will modify the project's local.properties file.";
-          Messages.showErrorDialog(String.format(format, projectAndroidHome, ideAndroidHome), "Sync Android SDKs");
-          setProjectSdk(localProperties, ideAndroidHome);
-        }
-      });
-      return;
-    }
-    if (!FileUtil.pathsEqual(projectAndroidHome, ideAndroidHome)) {
-      UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          // Prompt the user to choose between the SDK in the Studio and the one in local.properties.
-          ChooseSdkPathDialog dialog = new ChooseSdkPathDialog(ideAndroidHome, projectAndroidHome);
-          dialog.show();
-          switch (dialog.getExitCode()) {
-            case ChooseSdkPathDialog.USE_IDE_SDK_PATH:
-              setProjectSdk(localProperties, ideAndroidHome);
-              break;
-            case ChooseSdkPathDialog.USE_PROJECT_SDK_PATH:
-              ApplicationManager.getApplication().runWriteAction(new Runnable() {
-                @Override
-                public void run() {
-                  DefaultSdks.setDefaultAndroidHome(projectAndroidHomePath, false);
-                }
-              });
-          }
-        }
-      });
-    }
-  }
-
-  private static void setProjectSdk(@NotNull LocalProperties localProperties, @NotNull String androidHome) {
-    localProperties.setAndroidSdkPath(androidHome);
-    try {
-      localProperties.save();
-    }
-    catch (IOException e) {
-      String msg = String.format("Unable to save '%1$s'", localProperties.getFilePath().getPath());
-      throw new ExternalSystemException(msg, e);
-    }
-  }
 
   // this exception will be thrown by org.jetbrains.plugins.gradle.service.project.GradleProjectResolver
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")

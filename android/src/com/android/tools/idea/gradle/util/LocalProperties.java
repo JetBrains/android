@@ -105,12 +105,12 @@ public final class LocalProperties {
    * @return the path of the Android SDK specified in this local.properties file; or {@code null} if such property is not specified.
    */
   @Nullable
-  public String getAndroidSdkPath() {
+  public File getAndroidSdkPath() {
     String path = myProperties.getProperty(SdkConstants.SDK_DIR_PROPERTY);
-    if (path != null) {
-      path = FileUtil.toSystemDependentName(path);
+    if (path != null && !path.isEmpty()) {
+     return new File(FileUtil.toSystemDependentName(path));
     }
-    return path;
+    return null;
   }
 
   public void setAndroidSdkPath(@NotNull Sdk androidSdk) {
@@ -122,6 +122,10 @@ public final class LocalProperties {
   public void setAndroidSdkPath(@NotNull String androidSdkPath) {
     String path = FileUtil.toSystemIndependentName(androidSdkPath);
     myProperties.setProperty(SdkConstants.SDK_DIR_PROPERTY, path);
+  }
+
+  public void setAndroidSdkPath(@NotNull File androidSdkPath) {
+    myProperties.setProperty(SdkConstants.SDK_DIR_PROPERTY, androidSdkPath.getPath());
   }
 
   public void save() throws IOException {
