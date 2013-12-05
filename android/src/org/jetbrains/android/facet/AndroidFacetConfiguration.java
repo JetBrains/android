@@ -100,13 +100,19 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
       final Project project = module.getProject();
       for (final Sdk sdk : sdks) {
         if (sdk.getSdkType() == type) {
+          if (ProjectRootManager.getInstance(project).getProjectSdk() == sdk) {
+            // Already set
+            return sdk;
+          }
           ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() { // Write action can only be run from dispatch thread
               ApplicationManager.getApplication().runWriteAction(new Runnable() {
                 @Override
                 public void run() {
-                  ProjectRootManager.getInstance(project).setProjectSdk(sdk);
+                  if (!project.isDisposed()) {
+                    ProjectRootManager.getInstance(project).setProjectSdk(sdk);
+                  }
                 }
               });
             }
