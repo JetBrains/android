@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.sdk;
 
+import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.android.utils.NullLogger;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.*;
@@ -46,6 +51,8 @@ import java.util.regex.Pattern;
 public final class DefaultSdks {
   private static final Logger LOG = Logger.getInstance(DefaultSdks.class);
   private static final Pattern SDK_NAME_PATTERN = Pattern.compile(".*\\(\\d+\\)");
+
+  private static final String ERROR_DIALOG_TITLE = "Project SDK Update";
 
   private DefaultSdks() {
   }
@@ -118,7 +125,7 @@ public final class DefaultSdks {
       List<Sdk> sdks = createAndroidSdksForAllTargets(resolved);
 
       // Update the local.properties files for any open projects.
-      updateLocalProperties(resolved);
+      updateLocalPropertiesAndSync(resolved);
       deleteSdks(sdksToDelete);
       return sdks;
     }
@@ -179,7 +186,7 @@ public final class DefaultSdks {
     return androidPlatform.getTarget();
   }
 
-  private static void updateLocalProperties(final File path) {
+  private static void updateLocalPropertiesAndSync(final File sdkHomePath) {
     ProjectManager projectManager = ApplicationManager.getApplication().getComponent(ProjectManager.class);
     Project[] openProjects = projectManager.getOpenProjects();
     if (openProjects.length == 0) {
@@ -194,23 +201,54 @@ public final class DefaultSdks {
         @Override
         public void run() {
           String format =
-            "The local.properties files in projects %1$s will be modified with the path of Android Studio's default Android SDK ('%2$s')";
-          Messages.showErrorDialog(String.format(format, projectNames, path), "Sync Android SDKs");
+            "The local.properties files in projects %1$s will be modified with the path of Android Studio's default Android SDK:\n" +
+            "'%2$s'";
+          Messages.showErrorDialog(String.format(format, projectNames, sdkHomePath), "Sync Android SDKs");
         }
       });
     }
+    GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
     for (Project project : openProjects) {
-      try {
-        LocalProperties localProperties = new LocalProperties(project);
-        if (!FileUtil.filesEqual(path, localProperties.getAndroidSdkPath())) {
-          localProperties.setAndroidSdkPath(path);
-          localProperties.save();
+      if (Projects.isGradleProject(project)) {
+        try {
+          LocalProperties localProperties = new LocalProperties(project);
+          if (!FileUtil.filesEqual(sdkHomePath, localProperties.getAndroidSdkPath())) {
+            localProperties.setAndroidSdkPath(sdkHomePath);
+            localProperties.save();
+          }
+        }
+        catch (IOException e) {
+          LOG.info(e);
+          String format = "Unable to update local.properties file in project '%1$s'.\n\n" +
+                          "Cause: %2$s\n\n" +
+                          "Please manually update the file's '%3$s' property value to \n" +
+                          "'%4$s'\nand sync the project with Gradle files.";
+          String msg = String.format(format, project.getName(), getMessage(e), SdkConstants.SDK_DIR_PROPERTY, sdkHomePath.getPath());
+          Messages.showErrorDialog(project, msg, ERROR_DIALOG_TITLE);
+          // No point in syncing project if local.properties is pointing to the wrong SDK.
+          continue;
+        }
+        try {
+          projectImporter.reImportProject(project, null);
+        }
+        catch (ConfigurationException e) {
+          LOG.info(e);
+          String format = "Unable to sync project '%1$s' with Gradle files.\n\n" +
+                          "Cause: '%2s'";
+          String msg = String.format(format, project.getName(), getMessage(e));
+          Messages.showErrorDialog(project, msg, ERROR_DIALOG_TITLE);
         }
       }
-      catch (IOException e) {
-        LOG.info(e);
-      }
     }
+  }
+
+  @NotNull
+  private static String getMessage(@NotNull Exception e) {
+    String cause = e.getMessage();
+    if (Strings.isNullOrEmpty(cause)) {
+      cause = "[Unknown]";
+    }
+    return cause;
   }
 
   private static void deleteSdks(@NotNull List<Sdk> sdksToDelete) {
