@@ -82,6 +82,11 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     public void update();
   }
 
+  public static final UpdateListener NONE = new UpdateListener() {
+    @Override
+    public void update() {}
+  };
+
   public TemplateWizardStep(@NotNull TemplateWizardState state, @Nullable Project project, @Nullable Icon sidePanelIcon,
                             UpdateListener updateListener) {
     myTemplateState = state;
@@ -414,6 +419,27 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       if (isDefault != null && !isDefault.isEmpty() && Boolean.valueOf(isDefault)) {
         comboBox.setSelectedIndex(comboBox.getItemCount() - 1);
       }
+    }
+  }
+
+  /**
+   * Takes a {@link JComboBox} instance and a {@Enum} and
+   * populates the combo box with all possible values of the enumerated type.
+   */
+  protected static <E extends Enum<E>> void populateComboBox(@NotNull JComboBox comboBox, @NotNull Class<E> enumClass) {
+    for (Enum<E> e : enumClass.getEnumConstants()) {
+      comboBox.addItem(new ComboBoxItem(e.name(), e.toString(), 1, 1));
+    }
+  }
+
+  /**
+   * Takes a {@link JComboBox} instance and an array and
+   * populates the combo box with the values in the array.
+   * Similar to the {@link DefaultComboBoxModel}, but uses our ComboBoxItem.
+   */
+  protected static void populateComboBox(@NotNull JComboBox comboBox, @NotNull Object[] array) {
+    for (int i = 0; i < array.length; ++i) {
+      comboBox.addItem(new ComboBoxItem(i, array[i].toString(), 1, 1));
     }
   }
 
