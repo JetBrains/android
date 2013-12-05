@@ -44,7 +44,7 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
     Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
     if (openProjects.length == 1 && !openProjects[0].isDefault()) {
       Project project = openProjects[0];
-      if (Projects.isGradleProject(project) && Projects.isExperimentalBuildEnabled(project)) {
+      if (Projects.isGradleProject(project) && Projects.isDirectGradleInvocationEnabled(project)) {
         GradleInvoker.getInstance(project).executeTasks(taskNames, null);
         return true;
       }
