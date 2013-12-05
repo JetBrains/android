@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
+import java.io.File;
 
 public class ChooseSdkPathDialog extends DialogWrapper {
   public static final int USE_IDE_SDK_PATH = 3;
@@ -30,7 +31,7 @@ public class ChooseSdkPathDialog extends DialogWrapper {
   private JPanel myPanel;
   private JXLabel myDescriptionLabel;
 
-  public ChooseSdkPathDialog(@NotNull String ideSdkPath, @NotNull String localPropertiesSdkPath) {
+  public ChooseSdkPathDialog(@NotNull File ideSdkPath, @NotNull File localPropertiesSdkPath) {
     super(null);
     setTitle("Android SDK Manager");
     setCrossClosesWindow(false);
@@ -46,7 +47,7 @@ public class ChooseSdkPathDialog extends DialogWrapper {
                                        "[2] Use the project's SDK (modifies Android Studio's default.)\n\n" +
                                        "Note that switching SDKs could cause compile errors if the selected SDK doesn't have the " +
                                        "necessary Android platforms or build tools.",
-                                       ideSdkPath, localPropertiesSdkPath);
+                                       ideSdkPath.getPath(), localPropertiesSdkPath.getPath());
     myDescriptionLabel.setText(description);
 
     init();
