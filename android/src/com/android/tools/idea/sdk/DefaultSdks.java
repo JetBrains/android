@@ -83,12 +83,13 @@ public final class DefaultSdks {
    * Sets the path of Android Studio's default Android SDK. This method should be called in a write action. It is assumed that the given
    * path has been validated by {@link #validateAndroidSdkPath(File)}. This method will fail silently if the given path is not valid.
    *
-   * @param path                      the path of the Android SDK.
-   * @param updateLocalPropertiesFile indicates whether local.properties file in all open projects should be updated with the given path.
+   * @param path the path of the Android SDK.
    * @see com.intellij.openapi.application.Application#runWriteAction(Runnable)
    */
-  public static List<Sdk> setDefaultAndroidHome(@NotNull File path, boolean updateLocalPropertiesFile) {
+  public static List<Sdk> setDefaultAndroidHome(@NotNull File path) {
     if (validateAndroidSdkPath(path)) {
+      assert ApplicationManager.getApplication().isWriteAccessAllowed();
+
       AndroidSdkUtils.clearSdkManager();
 
       // Set up a list of SDKs we don't need any more. At the end we'll delete them.
@@ -116,10 +117,8 @@ public final class DefaultSdks {
       // those in.
       List<Sdk> sdks = createAndroidSdksForAllTargets(resolved);
 
-      if (updateLocalPropertiesFile) {
-        // Update the local.properties files for any open projects.
-        updateLocalProperties(resolvedPath);
-      }
+      // Update the local.properties files for any open projects.
+      updateLocalProperties(resolved);
       deleteSdks(sdksToDelete);
       return sdks;
     }
@@ -180,9 +179,12 @@ public final class DefaultSdks {
     return androidPlatform.getTarget();
   }
 
-  private static void updateLocalProperties(final String path) {
+  private static void updateLocalProperties(final File path) {
     ProjectManager projectManager = ApplicationManager.getApplication().getComponent(ProjectManager.class);
     Project[] openProjects = projectManager.getOpenProjects();
+    if (openProjects.length == 0) {
+      return;
+    }
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       final List<String> projectNames = Lists.newArrayList();
       for (Project project : openProjects) {
@@ -200,8 +202,10 @@ public final class DefaultSdks {
     for (Project project : openProjects) {
       try {
         LocalProperties localProperties = new LocalProperties(project);
-        localProperties.setAndroidSdkPath(path);
-        localProperties.save();
+        if (!FileUtil.filesEqual(path, localProperties.getAndroidSdkPath())) {
+          localProperties.setAndroidSdkPath(path);
+          localProperties.save();
+        }
       }
       catch (IOException e) {
         LOG.info(e);
