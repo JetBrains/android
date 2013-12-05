@@ -129,7 +129,7 @@ public class AndroidHomeConfigurable implements Configurable {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        DefaultSdks.setDefaultAndroidHome(getAndroidHomeLocation(), true);
+        DefaultSdks.setDefaultAndroidHome(getAndroidHomeLocation());
 
         // Set up a list of SDKs we don't need any more. At the end we'll delete them.
         List<Sdk> sdksToDelete = Lists.newArrayList();
