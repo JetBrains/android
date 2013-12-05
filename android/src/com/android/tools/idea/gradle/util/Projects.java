@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.tools.idea.gradle.compiler.ExperimentalAndroidStudioConfiguration;
+import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.google.common.base.Objects;
@@ -96,7 +96,7 @@ public final class Projects {
     if (!isGradleProject(project)) {
       return;
     }
-    if (isExperimentalBuildEnabled(project)) {
+    if (isDirectGradleInvocationEnabled(project)) {
       GradleInvoker.getInstance(project).cleanProject(null);
       return;
     }
@@ -114,7 +114,7 @@ public final class Projects {
     if (!isGradleProject(project)) {
       return;
     }
-    if (isExperimentalBuildEnabled(project)) {
+    if (isDirectGradleInvocationEnabled(project)) {
       GradleInvoker.getInstance(project).generateSources(null);
       return;
     }
@@ -122,9 +122,14 @@ public final class Projects {
     CompilerManager.getInstance(project).make(null);
   }
 
-  public static boolean isExperimentalBuildEnabled(@NotNull Project project) {
-    ExperimentalAndroidStudioConfiguration workspaceConfiguration = ExperimentalAndroidStudioConfiguration.getInstance(project);
-    return workspaceConfiguration.USE_EXPERIMENTAL_FASTER_BUILD;
+  public static boolean isDirectGradleInvocationEnabled(@NotNull Project project) {
+    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
+    return buildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD;
+  }
+
+  public static boolean isOfflineBuildModeEnabled(@NotNull Project project) {
+    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
+    return buildConfiguration.OFFLINE_MODE;
   }
 
   public static boolean isGradleProject(@NotNull Project project) {

@@ -431,8 +431,8 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantView"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.invoker.GradleInvoker"/>
-    <projectService serviceInterface="com.android.tools.idea.gradle.compiler.ExperimentalAndroidStudioConfiguration"
-                    serviceImplementation="com.android.tools.idea.gradle.compiler.ExperimentalAndroidStudioConfiguration"/>
+    <projectService serviceInterface="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"
+                    serviceImplementation="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleNotification"/>
     <projectService serviceInterface="org.jetbrains.android.logcat.AndroidLogcatFiltersPreferences"
                     serviceImplementation="org.jetbrains.android.logcat.AndroidLogcatFiltersPreferences"/>
