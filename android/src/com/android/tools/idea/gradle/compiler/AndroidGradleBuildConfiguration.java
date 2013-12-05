@@ -21,27 +21,28 @@ import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.Nullable;
 
 @State(
-  name = "ExperimentalAndroidStudioConfiguration",
+  name = "AndroidGradleBuildConfiguration",
   storages = {
     @Storage(
       file = StoragePathMacros.WORKSPACE_FILE
     )}
 )
-public class ExperimentalAndroidStudioConfiguration implements PersistentStateComponent<ExperimentalAndroidStudioConfiguration> {
+public class AndroidGradleBuildConfiguration implements PersistentStateComponent<AndroidGradleBuildConfiguration> {
   public boolean USE_EXPERIMENTAL_FASTER_BUILD = true;
+  public boolean OFFLINE_MODE;
 
-  public static ExperimentalAndroidStudioConfiguration getInstance(Project project) {
-    return ServiceManager.getService(project, ExperimentalAndroidStudioConfiguration.class);
+  public static AndroidGradleBuildConfiguration getInstance(Project project) {
+    return ServiceManager.getService(project, AndroidGradleBuildConfiguration.class);
   }
 
   @Nullable
   @Override
-  public ExperimentalAndroidStudioConfiguration getState() {
+  public AndroidGradleBuildConfiguration getState() {
     return this;
   }
 
   @Override
-  public void loadState(ExperimentalAndroidStudioConfiguration state) {
+  public void loadState(AndroidGradleBuildConfiguration state) {
     XmlSerializerUtil.copyBean(state, this);
   }
 }

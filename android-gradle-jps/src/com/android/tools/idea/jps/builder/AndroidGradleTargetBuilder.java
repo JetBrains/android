@@ -275,12 +275,24 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
 
       if (!jvmArgs.isEmpty()) {
         LOG.info("Passing JVM args to Gradle Tooling API: " + jvmArgs);
-        launcher.setJvmArguments(jvmArgs.toArray(new String[jvmArgs.size()]));
+        launcher.setJvmArguments(ArrayUtil.toStringArray(jvmArgs));
       }
+
+      List<String> args = Lists.newArrayList();
 
       if (executionSettings.isParallelBuild()) {
         LOG.info("Using 'parallel' build option");
-        launcher.withArguments("--parallel");
+        args.add(GradleBuilds.PARALLEL_BUILD_OPTION);
+      }
+
+      if (executionSettings.isOfflineBuild()) {
+        LOG.info("Using 'offline' mode option");
+        args.add(GradleBuilds.OFFLINE_MODE_OPTION);
+      }
+
+      if (!args.isEmpty()) {
+        LOG.info("Passing command-line args to Gradle Tooling API: " + args);
+        launcher.withArguments(ArrayUtil.toStringArray(args));
       }
 
       File javaHomeDir = executionSettings.getJavaHomeDir();
