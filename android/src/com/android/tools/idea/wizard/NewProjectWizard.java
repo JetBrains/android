@@ -58,7 +58,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
   private static final String PROJECT_TEMPLATE = "Android Project";
 
   private NewProjectWizardState myWizardState;
-  private LauncherIconStep myLauncherIconStep;
+  private AssetSetStep myAssetSetStep;
   private ChooseTemplateStep myChooseActivityStep;
   private TemplateParameterStep myActivityParameterStep;
   private boolean myInitializationComplete = false;
@@ -88,13 +88,14 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
     ConfigureAndroidModuleStep configureAndroidModuleStep =
       new ConfigureAndroidModuleStep(myWizardState, myProject, NewProjectSidePanel, this);
     configureAndroidModuleStep.updateStep();
-    myLauncherIconStep = new LauncherIconStep(myWizardState.getLauncherIconState(), myProject, NewProjectSidePanel, this);
+    myAssetSetStep = new AssetSetStep(myWizardState.getLauncherIconState(), myProject, NewProjectSidePanel, this);
+    myAssetSetStep.finalizeAssetType(AssetStudioWizardState.AssetType.LAUNCHER);
     myChooseActivityStep = new ChooseTemplateStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, myProject,
                                                   NewProjectSidePanel, this, null);
     myActivityParameterStep = new TemplateParameterStep(myWizardState.getActivityTemplateState(), myProject, NewProjectSidePanel, this);
 
     mySteps.add(configureAndroidModuleStep);
-    mySteps.add(myLauncherIconStep);
+    mySteps.add(myAssetSetStep);
     mySteps.add(myChooseActivityStep);
     mySteps.add(myActivityParameterStep);
 
@@ -107,7 +108,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
     if (!myInitializationComplete) {
       return;
     }
-    myLauncherIconStep.setVisible(myWizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS));
+    myAssetSetStep.setVisible(myWizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS));
     myChooseActivityStep.setVisible(myWizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY));
     myActivityParameterStep.setVisible(myWizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY));
     super.update();
@@ -134,7 +135,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
         errors.add(String.format(UNABLE_TO_CREATE_DIR_FORMAT, projectRoot.getPath()));
       }
       if (wizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS)) {
-        wizardState.getLauncherIconState().outputImages(moduleRoot);
+        wizardState.getLauncherIconState().outputImagesIntoDefaultVariant(moduleRoot);
       }
       wizardState.updateParameters();
       wizardState.updateDependencies();
