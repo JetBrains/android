@@ -35,6 +35,11 @@ public interface Activity extends ApplicationComponent {
     @ExtendClass("android.app.Activity")
     AndroidAttributeValue<PsiClass> getActivityClass();
 
+    @Attribute("parentActivityName")
+    @Convert(value = PackageClassConverter.class)
+    @ExtendClass("android.app.Activity")
+    AndroidAttributeValue<PsiClass> getParentActivityName();
+
     List<IntentFilter> getIntentFilters();
 
     IntentFilter addIntentFilter();
