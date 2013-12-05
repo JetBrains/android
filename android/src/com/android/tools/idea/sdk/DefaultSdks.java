@@ -228,6 +228,10 @@ public final class DefaultSdks {
           // No point in syncing project if local.properties is pointing to the wrong SDK.
           continue;
         }
+        if (ApplicationManager.getApplication().isUnitTestMode()) {
+          // Don't sync in tests. For now.
+          continue;
+        }
         try {
           projectImporter.reImportProject(project, null);
         }
