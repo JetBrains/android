@@ -60,6 +60,8 @@ public class NewModuleWizardTest extends AndroidTestCase {
 
     wizard.templateChanged(NewModuleWizard.APP_NAME);
     assertFalse(wizard.myModuleBuilder.myWizardState.getBoolean(TemplateMetadata.ATTR_IS_LIBRARY_MODULE));
+
+    wizard.getDisposable().dispose();
   }
 
   public void testBuildChooseModuleStep() throws Exception {
