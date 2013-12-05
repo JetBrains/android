@@ -47,6 +47,7 @@ class BuilderExecutionSettings {
   @NotNull private final BuildMode myBuildMode;
   private final boolean myVerboseLoggingEnabled;
   private final boolean myParallelBuild;
+  private final boolean myOfflineBuildMode;
 
   BuilderExecutionSettings() {
     myEmbeddedGradleDaemonEnabled = SystemProperties.getBooleanProperty(BuildProcessJvmArgs.USE_EMBEDDED_GRADLE_DAEMON, false);
@@ -59,6 +60,7 @@ class BuilderExecutionSettings {
     myBuildMode = Strings.isNullOrEmpty(buildActionName) ? BuildMode.DEFAULT_BUILD_MODE : BuildMode.valueOf(buildActionName);
     myVerboseLoggingEnabled = SystemProperties.getBooleanProperty(BuildProcessJvmArgs.USE_GRADLE_VERBOSE_LOGGING, false);
     myParallelBuild = SystemProperties.getBooleanProperty(GlobalOptions.COMPILE_PARALLEL_OPTION, false);
+    myOfflineBuildMode = SystemProperties.getBooleanProperty(BuildProcessJvmArgs.GRADLE_OFFLINE_BUILD_MODE, false);
     populateModulesToBuild();
     populateGradleDaemonJvmOptions();
     populateHttpProxyJvmOptions();
@@ -180,6 +182,10 @@ class BuilderExecutionSettings {
     return myParallelBuild;
   }
 
+  boolean isOfflineBuild() {
+    return myOfflineBuildMode;
+  }
+
   @NotNull
   Set<String> getModulesToBuildNames() {
     return myModulesToBuildNames;
@@ -195,6 +201,7 @@ class BuilderExecutionSettings {
            ", gradleHomeDir=" + myGradleHomeDir +
            ", gradleServiceDir=" + myGradleServiceDir +
            ", javaHomeDir=" + myJavaHomeDir +
+           ", offlineBuild=" + myOfflineBuildMode +
            ", parallelBuild=" + myParallelBuild +
            ", projectDir=" + myProjectDir +
            ", verboseLoggingEnabled=" + myVerboseLoggingEnabled +

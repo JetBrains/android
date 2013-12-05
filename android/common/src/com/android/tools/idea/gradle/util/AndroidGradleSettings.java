@@ -92,6 +92,11 @@ public final class AndroidGradleSettings {
   }
 
   @NotNull
+  public static String createJvmArg(@NotNull String name, boolean value) {
+    return createJvmArg(name, String.valueOf(value));
+  }
+
+  @NotNull
   public static String createJvmArg(@NotNull String name, @NotNull String value) {
     return String.format(JVM_ARG_FORMAT, name, value);
   }
