@@ -345,8 +345,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   @Override
   protected void createDefaultActions() {
     super.createDefaultActions();
-    getOKAction().putValue(Action.NAME, AndroidBundle.message(
-      "android.ddms.screenshot.save.ok.button.text"));
+    getOKAction().putValue(Action.NAME, AndroidBundle.message("android.ddms.screenshot.save.ok.button.text"));
   }
 
   @Override
