@@ -100,6 +100,9 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     }
     List<String> jvmArgs = Lists.newArrayList();
 
+    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(myProject);
+    jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_OFFLINE_BUILD_MODE, buildConfiguration.OFFLINE_MODE));
+
     GradleExecutionSettings executionSettings = GradleUtil.getGradleExecutionSettings(myProject);
     assert executionSettings != null;
 
@@ -158,7 +161,7 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     jvmArgs.add(createJvmArg(BuildProcessJvmArgs.PROJECT_DIR_PATH, basePath));
 
     boolean verboseProcessing = executionSettings.isVerboseProcessing();
-    jvmArgs.add(createJvmArg(BuildProcessJvmArgs.USE_GRADLE_VERBOSE_LOGGING, String.valueOf(verboseProcessing)));
+    jvmArgs.add(createJvmArg(BuildProcessJvmArgs.USE_GRADLE_VERBOSE_LOGGING, verboseProcessing));
 
     String jvmOptions = executionSettings.getDaemonVmOptions();
     int jvmOptionCount = 0;
