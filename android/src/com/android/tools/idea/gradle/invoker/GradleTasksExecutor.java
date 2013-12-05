@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.gradle.invoker;
 
+import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleToolWindowFactory;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
 import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.gradle.output.parser.GradleErrorOutputParser;
+import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.base.Splitter;
@@ -264,10 +266,17 @@ class GradleTasksExecutor extends Task.Backgroundable {
           List<String> args = Lists.newArrayList();
           CompilerWorkspaceConfiguration compilerConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
           if (compilerConfiguration.PARALLEL_COMPILATION) {
-            args.add("--parallel");
+            LOG.info("Using 'parallel' build option");
+            args.add(GradleBuilds.PARALLEL_BUILD_OPTION);
+          }
+          AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
+          if (buildConfiguration.OFFLINE_MODE) {
+            LOG.info("Using 'offline' mode option");
+            args.add(GradleBuilds.OFFLINE_MODE_OPTION);
           }
 
           if (!args.isEmpty()) {
+            LOG.info("Passing command-line args to Gradle Tooling API: " + args);
             launcher.withArguments(ArrayUtil.toStringArray(args));
           }
 
