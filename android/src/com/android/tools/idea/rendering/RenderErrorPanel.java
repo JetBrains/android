@@ -52,6 +52,7 @@ import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.problems.WolfTheProblemSolver;
 import com.intellij.psi.JavaPsiFacade;
@@ -105,6 +106,7 @@ import static com.android.tools.idea.rendering.HtmlLinkManager.URL_ACTION_CLOSE;
 import static com.android.tools.idea.rendering.ResourceHelper.viewNeedsPackage;
 import static com.android.tools.lint.detector.api.LintUtils.editDistance;
 import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
+import static com.intellij.openapi.util.SystemInfo.JAVA_VERSION;
 
 /**
  * Panel which can show render errors, along with embedded hyperlinks to perform actions such as
@@ -569,12 +571,34 @@ public class RenderErrorPanel extends JPanel {
         builder.newline().newline();
         builder.addHeading("Exception Details", HtmlBuilderHelper.getHeaderFontColor()).newline();
         reportThrowable(builder, firstThrowable, false);
-        if (firstThrowable instanceof RenderSecurityException) {
-          builder.newline();
-          builder.addLink("Turn off custom view rendering sandbox", myLinkManager.createDisableSandboxUrl());
-        }
+        reportSandboxError(builder, firstThrowable, true, false);
       }
       builder.newline().newline();
+    }
+  }
+
+  private void reportSandboxError(@NotNull HtmlBuilder builder, Throwable throwable, boolean newlineBefore, boolean newlineAfter) {
+    if (throwable instanceof SecurityException) {
+      if (newlineBefore) {
+        builder.newline();
+      }
+      builder.addLink("Turn off custom view rendering sandbox", myLinkManager.createDisableSandboxUrl());
+
+      if (throwable.getMessage().equals("Unable to create temporary file")) {
+          if (JAVA_VERSION.startsWith("1.7.0_")) {
+            int version = Integer.parseInt(JAVA_VERSION.substring(JAVA_VERSION.indexOf('_') + 1));
+            if (version > 0 && version < 45) {
+              builder.newline();
+              builder.addIcon(HtmlBuilderHelper.getTipIconPath());
+              builder.add("Tip: This may be caused by using an older version of JDK 1.7.0; try using at least 1.7.0_45 " +
+                          "(you are using " + JAVA_VERSION + ")");
+            }
+          }
+      }
+
+      if (newlineAfter) {
+        builder.newline().newline();
+      }
     }
   }
 
@@ -758,10 +782,7 @@ public class RenderErrorPanel extends JPanel {
 
         Throwable throwable = message.getThrowable();
         if (throwable != null) {
-          if (throwable instanceof RenderSecurityException) {
-            builder.addLink("Turn off custom view rendering sandbox", myLinkManager.createDisableSandboxUrl());
-            builder.newline().newline();
-          }
+          reportSandboxError(builder, throwable, false, true);
           reportThrowable(builder, throwable, !html.isEmpty());
         }
 
