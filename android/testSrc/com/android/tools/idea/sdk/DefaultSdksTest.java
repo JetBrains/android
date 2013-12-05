@@ -17,12 +17,17 @@ package com.android.tools.idea.sdk;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidTestCaseHelper;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.utils.NullLogger;
 import com.google.common.collect.Lists;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -43,6 +48,22 @@ public class DefaultSdksTest extends IdeaTestCase {
     super.setUp();
     AndroidTestCaseHelper.removeExistingAndroidSdks();
     myAndroidSdkPath = new File(AndroidTestCaseHelper.getAndroidSdkPath());
+
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        FacetManager facetManager = FacetManager.getInstance(myModule);
+        ModifiableFacetModel model = facetManager.createModifiableModel();
+        try {
+          model.addFacet(facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null));
+        } finally {
+          model.commit();
+        }
+      }
+    });
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    assertNotNull(facet);
+    facet.getProperties().ALLOW_USER_CONFIGURATION = false;
   }
 
   public void testCreateAndroidSdksForAllTargets() {
