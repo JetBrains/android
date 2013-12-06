@@ -539,6 +539,10 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
   }
 
   private void doRender(@NotNull final AndroidFacet facet, @NotNull final PsiFile psiFile) {
+    if (myProject.isDisposed()) {
+      return;
+    }
+
     final AndroidLayoutPreviewToolWindowForm toolWindowForm = myToolWindowForm;
     if (toolWindowForm == null) {
       return;
