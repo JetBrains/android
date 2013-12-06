@@ -20,6 +20,7 @@ import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.util.containers.HashSet;
 import icons.AndroidIcons;
 import org.jetbrains.android.AndroidTestCase;
@@ -61,7 +62,7 @@ public class NewModuleWizardTest extends AndroidTestCase {
     wizard.templateChanged(NewModuleWizard.APP_NAME);
     assertFalse(wizard.myModuleBuilder.myWizardState.getBoolean(TemplateMetadata.ATTR_IS_LIBRARY_MODULE));
 
-    wizard.getDisposable().dispose();
+    Disposer.dispose(wizard.getDisposable());
   }
 
   public void testBuildChooseModuleStep() throws Exception {
