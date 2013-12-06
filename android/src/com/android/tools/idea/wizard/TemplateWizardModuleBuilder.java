@@ -51,6 +51,7 @@ import java.io.File;
 import java.util.List;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER;
 import static com.android.tools.idea.wizard.NewProjectWizardState.ATTR_MODULE_NAME;
 
 public class TemplateWizardModuleBuilder extends ModuleBuilder implements TemplateWizardStep.UpdateListener {
@@ -84,6 +85,7 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
         update();
       }
     };
+    myWizardState.put(ATTR_IS_LAUNCHER, project == null);
 
     if (templateFile != null) {
       myWizardState.setTemplateLocation(templateFile);
