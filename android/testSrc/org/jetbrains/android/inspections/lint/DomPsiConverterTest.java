@@ -17,6 +17,7 @@ package org.jetbrains.android.inspections.lint;
 
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.utils.XmlUtils;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -25,6 +26,8 @@ import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.AndroidTestCase;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.SdkConstants.ANDROID_URI;
 
@@ -48,6 +51,49 @@ public class DomPsiConverterTest extends AndroidTestCase {
     @SuppressWarnings("ConstantConditions")
     String expected = XmlPrettyPrinter.prettyPrint(XmlUtils.parseDocumentSilently(xmlFile.getText(), true), true);
 
+    assertEquals(expected, formatted);
+
+    // Check some additional operations
+    NodeList elementsByTagName = domDocument.getElementsByTagName("application");
+    assertEquals(1, elementsByTagName.getLength());
+    assertEquals("@drawable/icon", elementsByTagName.item(0).getAttributes().getNamedItemNS(ANDROID_URI, "icon").getNodeValue());
+  }
+
+  public void testAsyncAccess() throws InterruptedException {
+    VirtualFile file = myFixture.copyFileToProject("AndroidManifest.xml", "AndroidManifest.xml");
+    assertNotNull(file);
+    assertTrue(file.exists());
+    Project project = getProject();
+    assertNotNull(project);
+    PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+    assertTrue(psiFile instanceof XmlFile);
+    XmlFile xmlFile = (XmlFile)psiFile;
+    final Document domDocument = DomPsiConverter.convert(xmlFile);
+    assertNotNull(domDocument);
+
+    // Perform iteration on a different thread without read access
+    final AtomicReference<String> formattedHolder = new AtomicReference<String>();
+    Thread thread = new Thread() {
+      @Override
+      public void run() {
+        try {
+          assertFalse(ApplicationManager.getApplication().isReadAccessAllowed());
+          String formatted = XmlPrettyPrinter.prettyPrint(domDocument, true);
+          formattedHolder.set(formatted);
+        } catch (Exception e) {
+          e.printStackTrace();
+          fail(e.toString());
+        }
+      }
+    };
+    thread.start();
+    thread.join();
+
+    // Compare to plain DOM implementation pretty printed
+    @SuppressWarnings("ConstantConditions")
+    String expected = XmlPrettyPrinter.prettyPrint(XmlUtils.parseDocumentSilently(xmlFile.getText(), true), true);
+
+    String formatted = formattedHolder.get();
     assertEquals(expected, formatted);
 
     // Check some additional operations
