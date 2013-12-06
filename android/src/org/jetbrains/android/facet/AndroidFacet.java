@@ -295,49 +295,73 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   /**
-   * Like {@link #getFlavorSourceSets()}, but returns the name for each flavor's source provider as well
+   * Returns the source provider specific to the flavor combination, if any.
    *
-   * @return a list of source provider and name pairs or null in legacy projects
+   * @return the source provider or null
    */
   @Nullable
-  public List<Pair<String, SourceProvider>> getFlavorSourceSetsAndNames() {
+  public SourceProvider getMultiFlavorSourceProvider() {
     if (myIdeaAndroidProject != null) {
       Variant selectedVariant = myIdeaAndroidProject.getSelectedVariant();
-      List<String> productFlavors = selectedVariant.getProductFlavors();
-      List<Pair<String, SourceProvider>> providers = Lists.newArrayList();
-      for (String flavor : productFlavors) {
-        ProductFlavorContainer productFlavor = myIdeaAndroidProject.findProductFlavor(flavor);
-        assert productFlavor != null;
-        providers.add(Pair.create(flavor, productFlavor.getSourceProvider()));
+      AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
+      SourceProvider provider = mainArtifact.getMultiFlavorSourceProvider();
+      if (provider != null) {
+        return provider;
       }
-
-      return providers;
-    } else {
-      return null;
     }
+
+    return null;
   }
 
   /**
-   * Like {@link #getFlavorSourceSetsAndNames()} but typed for internal IntelliJ usage with
+   * Like {@link #getMultiFlavorSourceProvider()} but typed for internal IntelliJ usage with
    * {@link VirtualFile} instead of {@link File} references
    *
-   * @return a list of source provider and name pairs or null in legacy projects
+   * @return the flavor source providers or null in legacy projects
    */
   @Nullable
-  public List<Pair<String, IdeaSourceProvider>> getIdeaFlavorSourceSetsAndNames() {
-    List<Pair<String, SourceProvider>> pairs = getFlavorSourceSetsAndNames();
-    if (pairs != null) {
-      List<Pair<String, IdeaSourceProvider>> providers = Lists.newArrayListWithExpectedSize(pairs.size());
-      for (Pair<String, SourceProvider> pair : pairs) {
-        String flavor = pair.getFirst();
-        SourceProvider provider = pair.getSecond();
-        providers.add(Pair.create(flavor, IdeaSourceProvider.create(provider)));
-      }
-
-      return providers;
-    } else {
-      return null;
+  public IdeaSourceProvider getIdeaMultiFlavorSourceProvider() {
+    SourceProvider provider = getMultiFlavorSourceProvider();
+    if (provider != null) {
+      return IdeaSourceProvider.create(provider);
     }
+
+    return null;
+  }
+
+  /**
+   * Returns the source provider specific to the variant, if any.
+   *
+   * @return the source provider or null
+   */
+  @Nullable
+  public SourceProvider getVariantSourceProvider() {
+    if (myIdeaAndroidProject != null) {
+      Variant selectedVariant = myIdeaAndroidProject.getSelectedVariant();
+      AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
+      SourceProvider provider = mainArtifact.getVariantSourceProvider();
+      if (provider != null) {
+        return provider;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Like {@link #getVariantSourceProvider()} but typed for internal IntelliJ usage with
+   * {@link VirtualFile} instead of {@link File} references
+   *
+   * @return the flavor source providers or null in legacy projects
+   */
+  @Nullable
+  public IdeaSourceProvider getIdeaVariantSourceProvider() {
+    SourceProvider provider = getVariantSourceProvider();
+    if (provider != null) {
+      return IdeaSourceProvider.create(provider);
+    }
+
+    return null;
   }
 
   /**
