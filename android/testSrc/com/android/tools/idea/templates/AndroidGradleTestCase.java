@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
@@ -62,6 +63,7 @@ import org.jetbrains.android.inspections.lint.IntellijLintRequest;
 import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -202,7 +204,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     FileUtil.copyDir(root, projectRoot);
 
     // We need the wrapper for import to succeed
-    NewProjectWizard.createGradleWrapper(projectRoot);
+    createGradleWrapper(projectRoot);
 
     if (buildProject) {
       try {
@@ -234,6 +236,47 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     configureActivityState(activityWizardState, activityName);
 
     createProject(projectWizardState, syncModel);
+  }
+
+  public void testCreateGradleWrapper() throws Exception {
+    File baseDir = new File(getProject().getBasePath());
+    createGradleWrapper(baseDir);
+
+    assertFilesExist(baseDir,
+                     "gradlew",
+                     "gradlew.bat",
+                     "gradle",
+                     "gradle/wrapper",
+                     "gradle/wrapper/gradle-wrapper.jar",
+                     "gradle/wrapper/gradle-wrapper.properties");
+  }
+
+  public static void createGradleWrapper(File projectRoot) throws IOException {
+    File gradleWrapperSrc = new File(TemplateManager.getTemplateRootFolder(), NewProjectWizard.GRADLE_WRAPPER_PATH);
+    if (!gradleWrapperSrc.exists()) {
+      for (File root : TemplateManager.getExtraTemplateRootFolders()) {
+        gradleWrapperSrc = new File(root, NewProjectWizard.GRADLE_WRAPPER_PATH);
+        if (gradleWrapperSrc.exists()) {
+          break;
+        } else {
+          gradleWrapperSrc = null;
+        }
+      }
+    }
+    if (gradleWrapperSrc == null) {
+      return;
+    }
+    FileUtil.copyDirContent(gradleWrapperSrc, projectRoot);
+    File wrapperPropertiesFile = GradleUtil.getGradleWrapperPropertiesFilePath(projectRoot);
+    GradleUtil.updateGradleDistributionUrl(GradleUtil.GRADLE_LATEST_VERSION, wrapperPropertiesFile);
+  }
+
+  protected static void assertFilesExist(@Nullable File baseDir, @NotNull String... paths) {
+    for (String path : paths) {
+      path = FileUtil.toSystemDependentName(path);
+      File testFile = baseDir != null ? new File(baseDir, path) : new File(path);
+      assertTrue("File doesn't exist: " + testFile.getPath(), testFile.exists());
+    }
   }
 
   protected void configureActivityState(TemplateWizardState activityWizardState, String activityName) {
