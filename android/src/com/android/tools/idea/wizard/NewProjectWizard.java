@@ -16,6 +16,7 @@
 package com.android.tools.idea.wizard;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.sdklib.SdkManager;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.Template;
@@ -32,6 +33,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.pom.java.LanguageLevel;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,26 +56,40 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
   private static final Logger LOG = Logger.getInstance("#" + NewProjectWizard.class.getName());
   private static final String ERROR_MSG_TITLE = "New Project Wizard";
   private static final String UNABLE_TO_CREATE_DIR_FORMAT = "Unable to create directory '%s1$s'.";
-  private static final String PROJECT_CATEGORY = "Projects";
-  private static final String PROJECT_TEMPLATE = "Android Project";
 
-  private NewProjectWizardState myWizardState;
-  private AssetSetStep myAssetSetStep;
-  private ChooseTemplateStep myChooseActivityStep;
-  private TemplateParameterStep myActivityParameterStep;
-  private boolean myInitializationComplete = false;
+  @VisibleForTesting
+  NewProjectWizardState myWizardState;
+
+  @VisibleForTesting
+  AssetSetStep myAssetSetStep;
+
+  @VisibleForTesting
+  ChooseTemplateStep myChooseActivityStep;
+
+  @VisibleForTesting
+  TemplateParameterStep myActivityParameterStep;
+
+  @VisibleForTesting
+  boolean myInitializationComplete = false;
 
   public NewProjectWizard() {
     super("New Project", null);
-    getWindow().setMinimumSize(new Dimension(1000, 640));
+    Window window = getWindow();
+    // Allow creation in headless mode for tests
+    if (window != null) {
+      getWindow().setMinimumSize(new Dimension(1000, 640));
+    } else {
+      // We should always have a window unless we're in test mode
+      ApplicationManager.getApplication().isUnitTestMode();
+    }
     init();
   }
 
   @Override
   protected void init() {
-    if (!TemplateManager.templatesAreValid()) {
+    if (!AndroidSdkUtils.isAndroidSdkAvailable() || !TemplateManager.templatesAreValid()) {
       String title = "SDK problem";
-      String msg = "<html>Your Android SDK is out of date or is missing templates. Please ensure you are using SDK version 22 or later.<br>"
+      String msg = "<html>Your Android SDK is missing, out of date, or is missing templates. Please ensure you are using SDK version 22 or later.<br>"
         + "You can configure your SDK via <b>Configure | Project Defaults | Project Structure | SDKs</b></html>";
       super.init();
       Messages.showErrorDialog(msg, title);
@@ -208,26 +224,5 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
       Messages.showErrorDialog(msg, ERROR_MSG_TITLE);
       LOG.error(msg);
     }
-  }
-
-  @VisibleForTesting
-  public static void createGradleWrapper(File projectRoot) throws IOException {
-    File gradleWrapperSrc = new File(TemplateManager.getTemplateRootFolder(), GRADLE_WRAPPER_PATH);
-    if (!gradleWrapperSrc.exists()) {
-      for (File root : TemplateManager.getExtraTemplateRootFolders()) {
-        gradleWrapperSrc = new File(root, GRADLE_WRAPPER_PATH);
-        if (gradleWrapperSrc.exists()) {
-          break;
-        } else {
-          gradleWrapperSrc = null;
-        }
-      }
-    }
-    if (gradleWrapperSrc == null) {
-      return;
-    }
-    FileUtil.copyDirContent(gradleWrapperSrc, projectRoot);
-    File wrapperPropertiesFile = GradleUtil.getGradleWrapperPropertiesFilePath(projectRoot);
-    GradleUtil.updateGradleDistributionUrl(GradleUtil.GRADLE_LATEST_VERSION, wrapperPropertiesFile);
   }
 }
