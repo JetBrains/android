@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.SdkConstants;
+import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -187,6 +188,12 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   @NotNull
   public AaptOptions getAaptOptions() {
+    throw new UnsupportedOperationException();
+  }
+
+  @NonNull
+  @Override
+  public LintOptions getLintOptions() {
     throw new UnsupportedOperationException();
   }
 
