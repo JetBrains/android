@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.parser;
 
 import com.android.SdkConstants;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -30,6 +32,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 public class GradleBuildFileTest extends IdeaTestCase {
   private Document myDocument;
@@ -413,6 +416,38 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    mavenCentral()\n" +
       "    mavenLocal()\n" +
       "    maven { url 'www.foo.com' }\n" +
+      "}";
+    assertContents(file, expected);
+  }
+
+  public void testGetsFiletreeDependencies() throws Exception {
+    GradleBuildFile file = getTestFile(
+      "dependencies {\n" +
+      "    compile fileTree(dir: 'libs', includes: ['*.jar', '*.aar'])\n" +
+      "}"
+    );
+    ImmutableList<String> fileList = ImmutableList.of("*.jar", "*.aar");
+    Map<String, Object> nvMap = ImmutableMap.of(
+      "dir", "libs",
+      "includes", (Object)fileList
+    );
+    Dependency dep = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.FILETREE, nvMap);
+    List<Dependency> expected = ImmutableList.of(dep);
+    assertEquals(expected, file.getValue(BuildFileKey.DEPENDENCIES));
+  }
+
+  public void testSetsFiletreeDependencies() throws Exception {
+    GradleBuildFile file = getTestFile("");
+    ImmutableList<String> fileList = ImmutableList.of("*.jar", "*.aar");
+    Map<String, Object> nvMap = ImmutableMap.of(
+      "dir", "libs",
+      "includes", (Object)fileList
+    );
+    Dependency dep = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.FILETREE, nvMap);
+    file.setValue(BuildFileKey.DEPENDENCIES, ImmutableList.of(dep));
+    String expected =
+      "dependencies {\n" +
+      "    compile fileTree(dir: 'libs', includes: ['*.jar', '*.aar'])\n" +
       "}";
     assertContents(file, expected);
   }
