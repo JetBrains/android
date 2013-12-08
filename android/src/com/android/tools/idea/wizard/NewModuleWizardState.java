@@ -39,8 +39,8 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
 public class NewModuleWizardState extends TemplateWizardState {
   public static final String ATTR_CREATE_ACTIVITY = "createActivity";
   public static final String ATTR_PROJECT_LOCATION = "projectLocation";
-  public static final String APP_NAME = "App";
-  public static final String LIB_NAME = "Lib";
+  public static final String APP_NAME = "app";
+  public static final String LIB_NAME = "lib";
 
   /**
    * State for the template wizard, used to embed an activity template
