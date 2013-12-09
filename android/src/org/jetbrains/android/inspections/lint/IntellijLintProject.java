@@ -429,7 +429,7 @@ class IntellijLintProject extends Project {
 
         SourceProvider multiProvider = myFacet.getMultiFlavorSourceProvider();
         if (multiProvider != null) {
-          File manifestFile = myFacet.getMainSourceSet().getManifestFile();
+          File manifestFile = multiProvider.getManifestFile();
           if (manifestFile.exists()) {
             mManifestFiles.add(manifestFile);
           }
@@ -445,7 +445,7 @@ class IntellijLintProject extends Project {
 
         SourceProvider variantProvider = myFacet.getVariantSourceProvider();
         if (variantProvider != null) {
-          File manifestFile = myFacet.getMainSourceSet().getManifestFile();
+          File manifestFile = variantProvider.getManifestFile();
           if (manifestFile.exists()) {
             mManifestFiles.add(manifestFile);
           }
