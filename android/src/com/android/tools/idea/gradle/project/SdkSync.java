@@ -45,6 +45,11 @@ final class SdkSync {
 
   @VisibleForTesting
   static void syncIdeAndProjectAndroidHomes(@NotNull final LocalProperties localProperties, @NotNull FindValidSdkPathTask findSdkPathTask) {
+    if (localProperties.hasAndroidDirProperty()) {
+      // if android.dir is specified, we don't sync SDKs. User is working with SDK sources.
+      return;
+    }
+
     final File androidHomePath = DefaultSdks.getDefaultAndroidHome();
     boolean hasIdeSdk = androidHomePath != null;
 

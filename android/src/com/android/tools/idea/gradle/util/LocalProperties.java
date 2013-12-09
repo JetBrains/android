@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.util;
 
 import com.android.SdkConstants;
 import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 import com.google.common.io.Closeables;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -126,6 +127,11 @@ public final class LocalProperties {
 
   public void setAndroidSdkPath(@NotNull File androidSdkPath) {
     myProperties.setProperty(SdkConstants.SDK_DIR_PROPERTY, androidSdkPath.getPath());
+  }
+
+  public boolean hasAndroidDirProperty() {
+    String property = myProperties.getProperty("android.dir");
+    return !Strings.isNullOrEmpty(property);
   }
 
   public void save() throws IOException {
