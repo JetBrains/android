@@ -147,6 +147,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     // Set the default device art descriptor selection
     myDeviceArtCombo.setSelectedIndex(getDefaultDescriptor(myDeviceArtDescriptors, image, deviceModel));
 
+    setModal(false);
     init();
   }
 
