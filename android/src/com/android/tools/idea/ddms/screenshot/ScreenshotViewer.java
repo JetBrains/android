@@ -143,7 +143,6 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     }
     DefaultComboBoxModel model = new DefaultComboBoxModel(titles);
     myDeviceArtCombo.setModel(model);
-    myDeviceArtCombo.setSelectedIndex(0);
 
     // Set the default device art descriptor selection
     myDeviceArtCombo.setSelectedIndex(getDefaultDescriptor(myDeviceArtDescriptors, image, deviceModel));
@@ -246,7 +245,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   private static class ImageProcessorTask extends Task.Modal {
     private final BufferedImage mySrcImage;
     private final int myRotationAngle;
-    private final DeviceArtDescriptor mySpec;
+    private final DeviceArtDescriptor myDescriptor;
     private final boolean myAddShadow;
     private final boolean myAddReflection;
 
@@ -256,14 +255,14 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     public ImageProcessorTask(@Nullable Project project,
                               @NotNull BufferedImage srcImage,
                               int rotateByAngle,
-                              @Nullable DeviceArtDescriptor spec,
+                              @Nullable DeviceArtDescriptor descriptor,
                               boolean addShadow,
                               boolean addReflection) {
       super(project, AndroidBundle.message("android.ddms.screenshot.image.processor.task.title"), false);
 
       mySrcImage = srcImage;
       myRotationAngle = rotateByAngle;
-      mySpec = spec;
+      myDescriptor = descriptor;
       myAddShadow = addShadow;
       myAddReflection = addReflection;
     }
@@ -276,8 +275,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
         myRotatedImage = mySrcImage;
       }
 
-      if (mySpec != null) {
-        myProcessedImage = DeviceArtPainter.createFrame(myRotatedImage, mySpec, myAddShadow, myAddReflection);
+      if (myDescriptor != null) {
+        myProcessedImage = DeviceArtPainter.createFrame(myRotatedImage, myDescriptor, myAddShadow, myAddReflection);
       } else {
         myProcessedImage = myRotatedImage;
       }
