@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.gradle.GradleImportNotificationListener;
+import com.android.tools.idea.gradle.compiler.BuildFailures;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -28,9 +29,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.compiler.CompileContext;
-import com.intellij.openapi.compiler.CompileTask;
-import com.intellij.openapi.compiler.CompilerManager;
+import com.intellij.openapi.compiler.*;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -77,6 +76,18 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       public boolean execute(CompileContext context) {
         Project contextProject = context.getProject();
         if (Projects.isGradleProject(contextProject)) {
+
+          if (Projects.isOfflineBuildModeEnabled(contextProject)) {
+            CompilerMessage[] errors = context.getMessages(CompilerMessageCategory.ERROR);
+            for (CompilerMessage error : errors) {
+              String text = error.getMessage();
+              if (text != null && BuildFailures.unresolvedDependenciesFound(text)) {
+                BuildFailures.notifyUnresolvedDependenciesInOfflineMode(contextProject);
+                break;
+              }
+            }
+          }
+
           // Refresh Studio's view of the file system after a compile. This is necessary for Studio to see generated code.
           Projects.refresh(contextProject);
 
