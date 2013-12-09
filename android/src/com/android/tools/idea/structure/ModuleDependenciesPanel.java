@@ -385,7 +385,7 @@ public class ModuleDependenciesPanel extends EditorPanel {
     String data = "";
     Icon icon = null;
     if (entry != null) {
-      data = entry.data;
+      data = entry.getValueAsString();
       switch(item.getEntry().type) {
         case EXTERNAL:
           icon = MavenIcons.MavenLogo;
