@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import com.android.annotations.NonNull;
 import com.android.builder.model.ClassField;
 import com.android.builder.model.NdkConfig;
 import com.android.builder.model.ProductFlavor;
@@ -112,6 +113,12 @@ public class ProductFlavorStub implements ProductFlavor {
   @Override
   @Nullable
   public NdkConfig getNdkConfig() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
+  public Collection<String> getResourceConfigurations() {
     throw new UnsupportedOperationException();
   }
 
