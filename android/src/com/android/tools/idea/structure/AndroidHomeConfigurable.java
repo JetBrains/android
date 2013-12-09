@@ -18,8 +18,8 @@ package com.android.tools.idea.structure;
 
 import com.android.sdklib.SdkManager;
 import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.BrowseFilesListener;
 import com.intellij.openapi.application.ApplicationManager;
@@ -32,7 +32,6 @@ import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.openapi.projectRoots.impl.JavaSdkImpl;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.openapi.projectRoots.ui.PathEditor;
 import com.intellij.openapi.ui.DetailsComponent;
@@ -58,37 +57,37 @@ import java.util.List;
 
 import static com.intellij.openapi.util.io.FileUtil.resolveShortWindowsName;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
-import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
+import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
 
 /**
  * {@linkplain AndroidHomeConfigurable} is a Project Structure {@link Configurable} that lets the user set global Android SDK and JDK
  * locations that are used for new projects or Gradle projects lacking a local.properties file. It does this by managing a set of IntelliJ
  * SDK entities with the appropriate home directories set. It is intended that this SDK management be done behind the scenes and these SDKs
  * not revealed to the user.
- * <p>
+ * <p/>
  * Since IntelliJ expects different build targets from the same Android SDK to be treated as different SDKs, this class will explode a
  * single Android SDK home location into a set of IntelliJ SDKs depending on the build targets it has installed.
  */
 public class AndroidHomeConfigurable implements Configurable {
-  private String myOriginalJdkHome;
-  private String myOriginalSdkHome;
+  // These paths are system-dependent.
+  @NotNull private String myOriginalJdkHomePath;
+  @NotNull private String myOriginalSdkHomePath;
+
   private FieldPanel myAndroidHomeLocation;
   private FieldPanel myJavaHomeLocation;
   private JPanel myWholePanel;
   private JLabel myAndroidHomeError;
   private JLabel myJavaHomeError;
   private DetailsComponent myDetailsComponent;
-  private JavaSdkImpl myJavaSdk = new JavaSdkImpl();
 
   public AndroidHomeConfigurable() {
-    myWholePanel.setPreferredSize(new Dimension(700,500));
+    myWholePanel.setPreferredSize(new Dimension(700, 500));
 
     myAndroidHomeLocation.getTextField().getDocument().addDocumentListener(new DocumentAdapter() {
       @Override
       protected void textChanged(DocumentEvent e) {
         boolean androidHomeValid = DefaultSdks.validateAndroidSdkPath(getAndroidHomeLocation());
-        myAndroidHomeLocation.getTextField().setForeground(
-            androidHomeValid ? UIUtil.getFieldForegroundColor() : PathEditor.INVALID_COLOR);
+        setBackground(myAndroidHomeLocation, androidHomeValid);
         myAndroidHomeError.setText(androidHomeValid ? " " : "Please choose a valid Android SDK directory.");
       }
     });
@@ -96,9 +95,8 @@ public class AndroidHomeConfigurable implements Configurable {
     myJavaHomeLocation.getTextField().getDocument().addDocumentListener(new DocumentAdapter() {
       @Override
       protected void textChanged(DocumentEvent e) {
-        boolean javaHomeValid = validateJavaHome();
-        myJavaHomeLocation.getTextField().setForeground(
-            javaHomeValid ? UIUtil.getFieldForegroundColor() : PathEditor.INVALID_COLOR);
+        boolean javaHomeValid = JavaSdk.checkForJdk(getJavaHomeLocation());
+        setBackground(myJavaHomeLocation, javaHomeValid);
         myJavaHomeError.setText(javaHomeValid ? " " : "Please choose a valid JDK directory.");
       }
     });
@@ -110,8 +108,12 @@ public class AndroidHomeConfigurable implements Configurable {
     myDetailsComponent.setContent(myWholePanel);
     myDetailsComponent.setText("Android SDK location");
 
-    myOriginalSdkHome = getDefaultAndroidHome();
-    myOriginalJdkHome = getDefaultJavaHome();
+    myOriginalSdkHomePath = getDefaultAndroidHomePath();
+    myOriginalJdkHomePath = getDefaultJavaHomePath();
+  }
+
+  private static void setBackground(@NotNull FieldPanel fieldPanel, boolean validValue) {
+    fieldPanel.getTextField().setForeground(validValue ? UIUtil.getFieldForegroundColor() : PathEditor.INVALID_COLOR);
   }
 
   @Override
@@ -120,8 +122,8 @@ public class AndroidHomeConfigurable implements Configurable {
 
   @Override
   public void reset() {
-    myAndroidHomeLocation.setText(myOriginalSdkHome);
-    myJavaHomeLocation.setText(myOriginalJdkHome);
+    myAndroidHomeLocation.setText(myOriginalSdkHomePath);
+    myJavaHomeLocation.setText(myOriginalJdkHomePath);
   }
 
   @Override
@@ -134,8 +136,9 @@ public class AndroidHomeConfigurable implements Configurable {
         // Set up a list of SDKs we don't need any more. At the end we'll delete them.
         List<Sdk> sdksToDelete = Lists.newArrayList();
 
-        if (validateJavaHome()) {
-          String canonicalPath = resolvePath(myJavaHomeLocation.getText());
+        File javaHomeLocation = getJavaHomeLocation();
+        if (JavaSdk.checkForJdk(javaHomeLocation)) {
+          String canonicalPath = resolvePath(javaHomeLocation.getPath());
           // Try to set this path into the "default" JDK associated with the IntelliJ SDKs.
           Sdk defaultJdk = DefaultSdks.getDefaultJdk();
           if (defaultJdk != null) {
@@ -171,12 +174,6 @@ public class AndroidHomeConfigurable implements Configurable {
     });
   }
 
-  @NotNull
-  private File getAndroidHomeLocation() {
-    String androidHome = myAndroidHomeLocation.getText();
-    return new File(FileUtil.toSystemDependentName(androidHome));
-  }
-
   private static void deleteSdks(@NotNull List<Sdk> sdksToDelete) {
     for (Sdk sdk : sdksToDelete) {
       SdkConfigurationUtil.removeSdk(sdk);
@@ -199,8 +196,8 @@ public class AndroidHomeConfigurable implements Configurable {
     JTextField textField = new JTextField();
     FileChooserDescriptor outputPathsChooserDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
     InsertPathAction.addTo(textField, outputPathsChooserDescriptor);
-    BrowseFilesListener listener = new BrowseFilesListener(textField, "", "Please choose an Android SDK location",
-                                                           outputPathsChooserDescriptor);
+    BrowseFilesListener listener =
+      new BrowseFilesListener(textField, "", "Please choose an Android SDK location", outputPathsChooserDescriptor);
     //noinspection ConstantConditions
     myAndroidHomeLocation = new FieldPanel(textField, null, null, listener, EmptyRunnable.getInstance());
     FileChooserFactory fileChooserFactory = FileChooserFactory.getInstance();
@@ -209,8 +206,7 @@ public class AndroidHomeConfigurable implements Configurable {
     textField = new JTextField();
     outputPathsChooserDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
     InsertPathAction.addTo(textField, outputPathsChooserDescriptor);
-    listener = new BrowseFilesListener(textField, "", "Please choose a JDK location",
-                                       outputPathsChooserDescriptor);
+    listener = new BrowseFilesListener(textField, "", "Please choose a JDK location", outputPathsChooserDescriptor);
     //noinspection ConstantConditions
     myJavaHomeLocation = new FieldPanel(textField, null, null, listener, EmptyRunnable.getInstance());
     fileChooserFactory.installFileCompletion(myJavaHomeLocation.getTextField(), outputPathsChooserDescriptor, true, null);
@@ -226,7 +222,6 @@ public class AndroidHomeConfigurable implements Configurable {
     return null;
   }
 
-
   @Nullable
   @Override
   public JComponent createComponent() {
@@ -235,9 +230,8 @@ public class AndroidHomeConfigurable implements Configurable {
 
   @Override
   public boolean isModified() {
-    return
-        !toSystemIndependentName(urlToPath(myOriginalSdkHome)).equals(toSystemIndependentName(myAndroidHomeLocation.getText())) ||
-        !toSystemIndependentName(urlToPath(myOriginalJdkHome)).equals(toSystemIndependentName(myJavaHomeLocation.getText()));
+    return !myOriginalSdkHomePath.equals(getAndroidHomeLocation().getPath()) ||
+           !myOriginalJdkHomePath.equals(getJavaHomeLocation().getPath());
   }
 
   /**
@@ -296,41 +290,72 @@ public class AndroidHomeConfigurable implements Configurable {
    * @return what the IDE is using as the home path for the Android SDK for new projects.
    */
   @NotNull
-  private static String getDefaultAndroidHome() {
+  private static String getDefaultAndroidHomePath() {
     File ideAndroidSdkHomePath = DefaultSdks.getDefaultAndroidHome();
     if (ideAndroidSdkHomePath != null) {
       return ideAndroidSdkHomePath.getPath();
     }
-    String sdkHome = null;
     Sdk sdk = getFirstDefaultAndroidSdk(true);
     if (sdk != null) {
-      sdkHome = sdk.getHomePath();
+      File sdkHome = getHomePathOf(sdk);
+      if (sdkHome != null) {
+        return sdkHome.getPath();
+      }
     }
-    return Strings.nullToEmpty(sdkHome);
+    return "";
   }
 
   /**
    * @return what the IDE is using as the home path for the JDK.
    */
   @NotNull
-  private static String getDefaultJavaHome() {
-    String jdkHome = null;
-    for (Sdk sdk : DefaultSdks.getEligibleAndroidSdks()) {
-      AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-      assert data != null;
-      Sdk jdk = data.getJavaSdk();
+  private static String getDefaultJavaHomePath() {
+    List<Sdk> androidSdks = DefaultSdks.getEligibleAndroidSdks();
+    if (androidSdks.isEmpty()) {
+      // This happens when user has a fresh installation of Android Studio without an Android SDK, but with a JDK. Android Studio should
+      // populate the text field with the existing JDK.
+      Sdk jdk = Jdks.chooseOrCreateJavaSdk();
       if (jdk != null) {
-        jdkHome = jdk.getHomePath();
-        if (jdkHome != null) break;
+        File jdkHome = getHomePathOf(jdk);
+        if (jdkHome != null) {
+          return jdkHome.getPath();
+        }
       }
     }
-    return Strings.nullToEmpty(jdkHome);
+    else {
+      for (Sdk sdk : androidSdks) {
+        AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+        assert data != null;
+        Sdk jdk = data.getJavaSdk();
+        if (jdk != null) {
+          File jdkHome = getHomePathOf(jdk);
+          if (jdkHome != null) {
+            return jdkHome.getPath();
+          }
+        }
+      }
+    }
+    return "";
   }
 
-  /**
-   * @return {@code true} if {@link #myJavaHomeLocation} points to a valid JDK.
-   */
-  private boolean validateJavaHome() {
-    return myJavaSdk.isValidSdkHome(myJavaHomeLocation.getText());
+  @Nullable
+  private static File getHomePathOf(@NotNull Sdk sdk) {
+    String homePath = sdk.getHomePath();
+    if (homePath != null) {
+      return new File(FileUtil.toSystemDependentName(homePath));
+    }
+    return null;
+  }
+
+  @NotNull
+  private File getJavaHomeLocation() {
+    String javaHome = myJavaHomeLocation.getText();
+    return new File(toSystemDependentName(javaHome));
+  }
+
+  @NotNull
+  private File getAndroidHomeLocation() {
+    String androidHome = myAndroidHomeLocation.getText();
+    return new File(toSystemDependentName(androidHome));
   }
 }
