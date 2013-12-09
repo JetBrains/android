@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.invoker;
 
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
+import com.android.tools.idea.gradle.compiler.BuildFailures;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleToolWindowFactory;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
 import com.android.tools.idea.gradle.output.GradleMessage;
@@ -326,9 +327,22 @@ class GradleTasksExecutor extends Task.Backgroundable {
   private void handleBuildException(BuildException e, String stdErr) {
     Collection<GradleMessage> compilerMessages = new GradleErrorOutputParser().parseErrorOutput(stdErr, false);
     if (!compilerMessages.isEmpty()) {
+      Project project = getNotNullProject();
+
+      boolean offlineMode = Projects.isOfflineBuildModeEnabled(project);
+      boolean unresolvedDependenciesFoundInOfflineMode = false;
+
       for (GradleMessage msg : compilerMessages) {
+        if (offlineMode && !unresolvedDependenciesFoundInOfflineMode) {
+          unresolvedDependenciesFoundInOfflineMode = BuildFailures.unresolvedDependenciesFound(msg.getText());
+        }
         addMessage(msg, null);
       }
+
+      if (unresolvedDependenciesFoundInOfflineMode) {
+        BuildFailures.notifyUnresolvedDependenciesInOfflineMode(project);
+      }
+
       return;
     }
     // There are no error messages to present. Show some feedback indicating that something went wrong.
