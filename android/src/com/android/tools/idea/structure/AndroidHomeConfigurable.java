@@ -227,6 +227,11 @@ public class AndroidHomeConfigurable implements Configurable {
     return myDetailsComponent.getComponent();
   }
 
+  @NotNull
+  public JComponent getContentPanel() {
+    return myWholePanel;
+  }
+
   @Override
   public boolean isModified() {
     return !myOriginalSdkHomePath.equals(getAndroidHomeLocation().getPath()) ||
@@ -356,5 +361,35 @@ public class AndroidHomeConfigurable implements Configurable {
   private File getAndroidHomeLocation() {
     String androidHome = myAndroidHomeLocation.getText();
     return new File(toSystemDependentName(androidHome));
+  }
+
+  @NotNull
+  public JComponent getPreferredFocusedComponent() {
+    return myAndroidHomeLocation.getTextField();
+  }
+
+  public boolean validate() throws ConfigurationException {
+    File javaHomeLocation = getJavaHomeLocation();
+    if (!JavaSdk.checkForJdk(javaHomeLocation)) {
+      throw new ConfigurationException("Please choose a valid JDK directory.");
+    }
+
+    boolean androidHomeValid = DefaultSdks.validateAndroidSdkPath(getAndroidHomeLocation());
+    if (!androidHomeValid) {
+      throw new ConfigurationException("Please choose a valid Android SDK directory.");
+    }
+
+    return true;
+  }
+
+  /**
+   * Returns true if the configurable is needed: e.g. if we're missing a JDK or an Android SDK setting
+   */
+  public static boolean isNeeded() {
+    String jdkPath = getDefaultJavaHomePath();
+    String sdkPath = getDefaultAndroidHomePath();
+    boolean validJdk = !jdkPath.isEmpty() && JavaSdk.checkForJdk(new File(jdkPath));
+    boolean validSdk = !sdkPath.isEmpty() && DefaultSdks.validateAndroidSdkPath(new File(sdkPath));
+    return !validJdk || !validSdk;
   }
 }

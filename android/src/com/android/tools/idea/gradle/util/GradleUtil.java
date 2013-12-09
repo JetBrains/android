@@ -54,11 +54,11 @@ import java.util.Set;
  * Utilities related to Gradle.
  */
 public final class GradleUtil {
-  @NonNls public static final String GRADLE_MINIMUM_VERSION = "1.9";
-  @NonNls public static final String GRADLE_LATEST_VERSION = GRADLE_MINIMUM_VERSION;
+  @NonNls public static final String GRADLE_MINIMUM_VERSION = SdkConstants.GRADLE_MINIMUM_VERSION;
+  @NonNls public static final String GRADLE_LATEST_VERSION = SdkConstants.GRADLE_LATEST_VERSION;
 
-  @NonNls public static final String GRADLE_PLUGIN_MINIMUM_VERSION = "0.7.0";
-  @NonNls public static final String GRADLE_PLUGIN_LATEST_VERSION = "0.7.+";
+  @NonNls public static final String GRADLE_PLUGIN_MINIMUM_VERSION = SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION;
+  @NonNls public static final String GRADLE_PLUGIN_LATEST_VERSION = SdkConstants.GRADLE_PLUGIN_LATEST_VERSION;
 
   @NonNls private static final String GRADLEW_PROPERTIES_PATH =
     "gradle" + File.separator + "wrapper" + File.separator + "gradle-wrapper.properties";
