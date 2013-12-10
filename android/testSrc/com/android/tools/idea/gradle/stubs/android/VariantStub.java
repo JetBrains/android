@@ -103,12 +103,6 @@ public class VariantStub implements Variant {
     throw new UnsupportedOperationException();
   }
 
-  @Override
-  @NotNull
-  public List<String> getResourceConfigurations() {
-    throw new UnsupportedOperationException();
-  }
-
   public void addProductFlavors(@NotNull String... flavorNames) {
     myProductFlavors.addAll(Arrays.asList(flavorNames));
   }
