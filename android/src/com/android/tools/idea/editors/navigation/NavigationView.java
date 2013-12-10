@@ -50,7 +50,7 @@ import java.util.*;
 
 import static com.android.tools.idea.editors.navigation.Utilities.*;
 
-public class NavigationEditorPanel extends JComponent {
+public class NavigationView extends JComponent {
   //private static final Logger LOG = Logger.getInstance("#" + NavigationEditorPanel.class.getName());
   private static final Dimension GAP = new Dimension(150, 50);
   private static final Color BACKGROUND_COLOR = Gray.get(192);
@@ -112,7 +112,7 @@ public class NavigationEditorPanel extends JComponent {
     return null;
   }
 
-  public NavigationEditorPanel(Project project, VirtualFile file, NavigationModel model) {
+  public NavigationView(Project project, VirtualFile file, NavigationModel model) {
     myMyRenderingParams = getRenderingParams(project, file);
     myFile = file;
     myNavigationModel = model;
@@ -837,7 +837,7 @@ public class NavigationEditorPanel extends JComponent {
 
   private Selections.Selection createSelection(Point mouseDownLocation, boolean shiftDown) {
     Component component = getComponentAt(mouseDownLocation);
-    if (component instanceof NavigationEditorPanel) {
+    if (component instanceof NavigationView) {
       return Selections.NULL;
     }
     Transition transition = getTransitionEditorAssociation().valueToKey.get(component);
@@ -845,7 +845,7 @@ public class NavigationEditorPanel extends JComponent {
       AndroidRootComponent androidRootComponent = (AndroidRootComponent)component;
       if (!shiftDown) {
         return new Selections.AndroidRootComponentSelection(myNavigationModel, androidRootComponent, mouseDownLocation, transition,
-                                                            getStateComponentAssociation().valueToKey.get(androidRootComponent));
+                                                            getStateComponentAssociation().valueToKey.get(androidRootComponent), myTransform);
       }
       else {
         RenderedView leaf = getRenderedView(androidRootComponent, mouseDownLocation);
@@ -901,7 +901,7 @@ public class NavigationEditorPanel extends JComponent {
       if (attachedObject instanceof TransferableWrapper) {
         TransferableWrapper wrapper = (TransferableWrapper)attachedObject;
         PsiElement[] psiElements = wrapper.getPsiElements();
-        Point dropLoc = anEvent.getPointOn(NavigationEditorPanel.this);
+        Point dropLoc = anEvent.getPointOn(NavigationView.this);
 
         if (psiElements != null) {
           for (PsiElement element : psiElements) {
