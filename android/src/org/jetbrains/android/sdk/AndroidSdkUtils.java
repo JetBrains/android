@@ -845,12 +845,7 @@ public final class AndroidSdkUtils {
     return ourSdkManager;
   }
 
-  @VisibleForTesting
-  public static void setSdkManager(SdkManager manager) {
+  public static void setSdkManager(@Nullable SdkManager manager) {
     ourSdkManager = manager;
-  }
-
-  public static void clearSdkManager() {
-    ourSdkManager = null;
   }
 }
