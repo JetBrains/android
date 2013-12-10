@@ -86,6 +86,7 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
       }
     };
     myWizardState.put(ATTR_IS_LAUNCHER, project == null);
+    myWizardState.updateParameters();
 
     if (templateFile != null) {
       myWizardState.setTemplateLocation(templateFile);
