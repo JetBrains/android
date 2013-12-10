@@ -217,6 +217,12 @@ public class DeviceArtPainter {
         int newWidth = image.getWidth() + frameSize.width - screen.width;
         int newHeight = image.getHeight() + frameSize.height - screen.height;
         bg = stretchImage(bg, newWidth, newHeight);
+      } else if (screen.width < image.getWidth()) {
+        // if the frame isn't stretchable, but is smaller than the image, then scale down the image
+        double scale = (double) screen.width / image.getWidth();
+        if (Math.abs(scale - 1.0) > EPSILON) {
+          image = ImageUtils.scale(image, scale, scale);
+        }
       }
       g2d = bg.createGraphics();
 
