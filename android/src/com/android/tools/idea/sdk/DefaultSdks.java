@@ -17,11 +17,14 @@ package com.android.tools.idea.sdk;
 
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.SdkManager;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
+import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
+import com.android.utils.StdLogger;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -97,7 +100,11 @@ public final class DefaultSdks {
     if (validateAndroidSdkPath(path)) {
       assert ApplicationManager.getApplication().isWriteAccessAllowed();
 
-      AndroidSdkUtils.clearSdkManager();
+      // Since removing SDKs is *not* asynchronous, we force an update of the SDK Manager.
+      // If we don't force this update, AndroidSdkUtils will still use the old SDK until all SDKs are properly deleted.
+      ILogger logger = new StdLogger(StdLogger.Level.INFO);
+      SdkManager sdkManager = SdkManager.createManager(path.getPath(), logger);
+      AndroidSdkUtils.setSdkManager(sdkManager);
 
       // Set up a list of SDKs we don't need any more. At the end we'll delete them.
       List<Sdk> sdksToDelete = Lists.newArrayList();
@@ -120,13 +127,17 @@ public final class DefaultSdks {
           }
         }
       }
+      for (Sdk sdk : sdksToDelete) {
+        ProjectJdkTable.getInstance().removeJdk(sdk);
+      }
+
       // If there are any API targets that we haven't created IntelliJ SDKs for yet, fill
       // those in.
       List<Sdk> sdks = createAndroidSdksForAllTargets(resolved);
 
       // Update the local.properties files for any open projects.
       updateLocalPropertiesAndSync(resolved);
-      deleteSdks(sdksToDelete);
+
       return sdks;
     }
     return Collections.emptyList();
@@ -253,12 +264,6 @@ public final class DefaultSdks {
       cause = "[Unknown]";
     }
     return cause;
-  }
-
-  private static void deleteSdks(@NotNull List<Sdk> sdksToDelete) {
-    for (Sdk sdk : sdksToDelete) {
-      SdkConfigurationUtil.removeSdk(sdk);
-    }
   }
 
   @NotNull
