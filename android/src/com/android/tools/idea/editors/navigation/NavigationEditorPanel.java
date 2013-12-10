@@ -175,6 +175,7 @@ public class NavigationEditorPanel extends JComponent {
               myTransitionEditorCacheIsValid = false;
             }
           }
+          revalidate();
           repaint();
         }
       });
@@ -730,7 +731,7 @@ public class NavigationEditorPanel extends JComponent {
 
   private JComboBox createEditorFor(final Transition transition) {
     String gesture = transition.getType();
-    JComboBox c = new JComboBox(new Object[]{"", "click", "list", "menu", "contains", "update"});
+    JComboBox c = new JComboBox(new Object[]{"press", "swipe"});
     c.setSelectedItem(gesture);
     c.setForeground(getForeground());
     //c.setBorder(LABEL_BORDER);
