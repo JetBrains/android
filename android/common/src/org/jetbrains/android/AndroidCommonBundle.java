@@ -16,8 +16,7 @@ public class AndroidCommonBundle {
   private static Reference<ResourceBundle> ourBundle;
 
   private static ResourceBundle getBundle() {
-    ResourceBundle bundle = null;
-    if (ourBundle != null) bundle = ourBundle.get();
+    ResourceBundle bundle = com.intellij.reference.SoftReference.dereference(ourBundle);
     if (bundle == null) {
       bundle = ResourceBundle.getBundle(BUNDLE_NAME);
       ourBundle = new SoftReference<ResourceBundle>(bundle);
