@@ -96,8 +96,10 @@ public class GradleProjectImporter {
 
   private final ImporterDelegate myDelegate;
 
-  /** Flag used by unit tests to selectively disable code which requires an open project or UI updates; this is used
-   * by unit tests that do not run all of IntelliJ (e.g. do not extend the IdeaTestCase base) */
+  /**
+   * Flag used by unit tests to selectively disable code which requires an open project or UI updates; this is used
+   * by unit tests that do not run all of IntelliJ (e.g. do not extend the IdeaTestCase base)
+   */
   public static boolean ourSkipSetupFromTest;
 
   @NotNull
@@ -165,8 +167,7 @@ public class GradleProjectImporter {
   public void importProject(@NotNull String projectName,
                             @NotNull File projectRootDir,
                             @Nullable Callback callback,
-                            @Nullable Project project)
-    throws IOException, ConfigurationException {
+                            @Nullable Project project) throws IOException, ConfigurationException {
     importProject(projectName, projectRootDir, callback, project, null);
   }
 
@@ -187,8 +188,7 @@ public class GradleProjectImporter {
                             @NotNull File projectRootDir,
                             @Nullable Callback callback,
                             @Nullable Project project,
-                            @Nullable LanguageLevel initialLanguageLevel)
-    throws IOException, ConfigurationException {
+                            @Nullable LanguageLevel initialLanguageLevel) throws IOException, ConfigurationException {
     GradleImportNotificationListener.attachToManager();
 
     createTopLevelBuildFileIfNotExisting(projectRootDir);
@@ -274,8 +274,10 @@ public class GradleProjectImporter {
     gradleSettings.setLinkedProjectsSettings(ImmutableList.of(projectSettings));
   }
 
-  private void doImport(@NotNull final Project project, final boolean newProject, @NotNull final ProgressExecutionMode progressExecutionMode, @Nullable final Callback callback)
-    throws ConfigurationException {
+  private void doImport(@NotNull final Project project,
+                        final boolean newProject,
+                        @NotNull final ProgressExecutionMode progressExecutionMode,
+                        @Nullable final Callback callback) throws ConfigurationException {
     myDelegate.importProject(project, new ExternalProjectRefreshCallback() {
       @Override
       public void onSuccess(@Nullable final DataNode<ProjectData> projectInfo) {
@@ -398,10 +400,14 @@ public class GradleProjectImporter {
 
   // Makes it possible to mock invocations to the Gradle Tooling API.
   static class ImporterDelegate {
-    void importProject(@NotNull Project project, @NotNull ExternalProjectRefreshCallback callback, @NotNull final ProgressExecutionMode progressExecutionMode)
-      throws ConfigurationException {
+    void importProject(@NotNull Project project,
+                       @NotNull ExternalProjectRefreshCallback callback,
+                       @NotNull final ProgressExecutionMode progressExecutionMode) throws ConfigurationException {
       try {
-        ExternalSystemUtil.refreshProject(project, SYSTEM_ID, project.getBasePath(), callback, true, progressExecutionMode, true);
+        boolean previewMode = false; // false -> resolve dependencies for Java modules (Gradle model takes care of its own dependencies.)
+        boolean reportRefreshError = true; // always report errors when importing.
+        ExternalSystemUtil
+          .refreshProject(project, SYSTEM_ID, project.getBasePath(), callback, previewMode, progressExecutionMode, reportRefreshError);
       }
       catch (RuntimeException e) {
         String externalSystemName = SYSTEM_ID.getReadableName();
