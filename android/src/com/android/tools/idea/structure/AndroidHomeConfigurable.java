@@ -21,16 +21,13 @@ import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.google.common.collect.Lists;
-import com.intellij.ide.DataManager;
 import com.intellij.ide.util.BrowseFilesListener;
-import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -176,27 +173,10 @@ public class AndroidHomeConfigurable implements Configurable {
           ProjectJdkTable.getInstance().removeJdk(sdk);
         }
         if (!ApplicationManager.getApplication().isUnitTestMode()) {
-          updateSdkManagerActionInWelcomePage();
+          RunAndroidSdkManagerAction.updateInWelcomePage(myDetailsComponent.getComponent());
         }
       }
     });
-  }
-
-  private void updateSdkManagerActionInWelcomePage() {
-    if (!ApplicationManager.getApplication().isUnitTestMode() && ProjectManager.getInstance().getOpenProjects().length == 0) {
-      // If there are no open projects, the "SDK Manager" configurable was invoked from the "Welcome Page". We need to update the
-      // "SDK Manager" action to enable it.
-      ActionManager actionManager = ActionManager.getInstance();
-      AnAction sdkManagerAction = actionManager.getAction("WelcomeScreen.RunAndroidSdkManager");
-      if (sdkManagerAction instanceof RunAndroidSdkManagerAction) {
-        Presentation presentation = sdkManagerAction.getTemplatePresentation();
-        //noinspection ConstantConditions
-        AnActionEvent event =
-          new AnActionEvent(null, DataManager.getInstance().getDataContext(myDetailsComponent.getComponent()), ActionPlaces.WELCOME_SCREEN,
-                            presentation, actionManager, 0);
-        sdkManagerAction.update(event);
-      }
-    }
   }
 
   /**
