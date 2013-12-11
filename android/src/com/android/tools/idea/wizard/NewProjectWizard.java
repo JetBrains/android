@@ -19,6 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.SdkManager;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
@@ -202,11 +203,12 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
         }
 
         @Override
-        public void importFailed(@NotNull Project project, @NotNull final String errorMessage) {
+        public void importFailed(@NotNull final Project project, @NotNull final String errorMessage) {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {
-              Messages.showErrorDialog(errorMessage, ERROR_MSG_TITLE);
+              // Just by opening the project, Studio will show the error message in a balloon notification, automatically.
+              Projects.open(project);
             }
           });
         }
