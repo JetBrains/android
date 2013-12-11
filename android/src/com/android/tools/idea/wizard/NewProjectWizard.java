@@ -94,7 +94,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
     }
     else {
       // We should always have a window unless we're in test mode
-      assert (ApplicationManager.getApplication().isUnitTestMode());
+      assert ApplicationManager.getApplication().isUnitTestMode();
     }
     init();
   }
