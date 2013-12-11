@@ -219,6 +219,7 @@ public class NavigationEditor implements FileEditor {
     myNavigationModel.getTransitions().clear();
     Analysis.deriveAndAddTransitions(myNavigationModel, myProject, myFile);
     myNotificationsDisabled = false;
+    //myNavigationModel.getListeners().notify(NavigationModel.Event.update(Object.class));
   }
 
   @Override
