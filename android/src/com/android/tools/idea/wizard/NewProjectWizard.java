@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
-import com.android.sdklib.SdkManager;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
@@ -27,12 +27,20 @@ import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.intellij.ide.startup.StartupManagerEx;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +48,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
@@ -207,9 +214,35 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
 
         @Override
         public void importFailed(@NotNull final Project project, @NotNull final String errorMessage) {
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
+          final Application application = ApplicationManager.getApplication();
+          application.invokeLater(new Runnable() {
             @Override
             public void run() {
+              application.runWriteAction(new Runnable() {
+                @Override
+                public void run() {
+                  ModuleManager moduleManager = ModuleManager.getInstance(project);
+                  File projectRootDir = new File(project.getBasePath());
+                  for (File child : FileUtil.notNullize(projectRootDir.listFiles())) {
+                    if (child.isDirectory()) {
+                      File buildFile = new File(child, SdkConstants.FN_BUILD_GRADLE);
+                      if (buildFile.isFile()) {
+                        // Create a module per folder that has a build.gradle file. This way users may be able to see them and possibly fix
+                        // them.
+                        VirtualFile contentRoot = VfsUtil.findFileByIoFile(child, true);
+                        if (contentRoot != null) {
+                          String moduleFilePath = contentRoot.getPath() + '/' + contentRoot.getName() + ".iml";
+                          Module module = moduleManager.newModule(moduleFilePath, StdModuleTypes.JAVA.getId());
+                          ModifiableRootModel model = ModuleRootManager.getInstance(module).getModifiableModel();
+                          model.addContentEntry(contentRoot);
+                          model.commit();
+                        }
+                      }
+                    }
+                  }
+                }
+              });
+
               // Just by opening the project, Studio will show the error message in a balloon notification, automatically.
               Projects.open(project);
             }
