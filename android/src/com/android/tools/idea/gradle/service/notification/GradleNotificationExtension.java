@@ -60,6 +60,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
   private static final Pattern ERROR_LOCATION_IN_FILE_PATTERN = Pattern.compile("Build file '(.*)' line: ([\\d]+)");
   private static final Pattern ERROR_IN_FILE_PATTERN = Pattern.compile("Build file '(.*)'");
   private static final Pattern MISSING_DEPENDENCY_PATTERN = Pattern.compile("Could not find (.*)\\.");
+  private static final Pattern MISSING_MATCHING_DEPENDENCY_PATTERN = Pattern.compile("Could not find any version that matches (.*)\\.");
 
   private static final NotificationType DEFAULT_NOTIFICATION_TYPE = NotificationType.ERROR;
 
@@ -205,6 +206,19 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
         }
       }
 
+      for (String line : lines) {
+        // This happens when Gradle cannot find the Android Gradle plug-in in Maven Central.
+        if (line == null) {
+          continue;
+        }
+        matcher = MISSING_MATCHING_DEPENDENCY_PATTERN.matcher(line);
+        if (matcher.matches()) {
+          String dependency = matcher.group(1);
+          //noinspection TestOnlyProblems
+          return createNotification(project, line, new SearchInBuildFilesHyperlink(dependency));
+        }
+      }
+
       if (lastLine != null) {
         if (lastLine.contains(UNEXPECTED_ERROR_FILE_BUG)) {
           //noinspection TestOnlyProblems
@@ -286,7 +300,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
       text += ('\n' + b.toString());
       notificationListener = new CustomNotificationListener(project, hyperlinks);
     }
-    String title = String.format("Failed to refresh Gradle project '%1$s':", project.getName());
+    String title = String.format("Failed to refresh Gradle project '%1$s'", project.getName());
     return new CustomizationResult(title, text, DEFAULT_NOTIFICATION_TYPE, notificationListener);
   }
 }
