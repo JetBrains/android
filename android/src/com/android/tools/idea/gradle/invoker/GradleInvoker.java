@@ -211,10 +211,11 @@ public class GradleInvoker {
       }
       return;
     }
-    FileDocumentManager.getInstance().saveAllDocuments();
+
     UIUtil.invokeAndWaitIfNeeded(new Runnable() {
       @Override
       public void run() {
+        FileDocumentManager.getInstance().saveAllDocuments();
         if (listener != null) {
           listener.executionStarted(tasks);
         }
