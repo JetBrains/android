@@ -17,6 +17,7 @@ package com.android.tools.idea.wizard;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
@@ -26,10 +27,13 @@ import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.ide.startup.StartupManagerEx;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.StdModuleTypes;
@@ -37,14 +41,18 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowId;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.pom.java.LanguageLevel;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.awt.*;
 import java.io.File;
@@ -65,23 +73,17 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
   private static final String ERROR_MSG_TITLE = "New Project Wizard";
   private static final String UNABLE_TO_CREATE_DIR_FORMAT = "Unable to create directory '%s1$s'.";
 
-  @VisibleForTesting
-  NewProjectWizardState myWizardState;
+  @VisibleForTesting NewProjectWizardState myWizardState;
 
-  @VisibleForTesting
-  AssetSetStep myAssetSetStep;
+  @VisibleForTesting AssetSetStep myAssetSetStep;
 
-  @VisibleForTesting
-  ChooseTemplateStep myChooseActivityStep;
+  @VisibleForTesting ChooseTemplateStep myChooseActivityStep;
 
-  @VisibleForTesting
-  TemplateParameterStep myActivityParameterStep;
+  @VisibleForTesting TemplateParameterStep myActivityParameterStep;
 
-  @VisibleForTesting
-  ConfigureAndroidModuleStep myConfigureAndroidModuleStep;
+  @VisibleForTesting ConfigureAndroidModuleStep myConfigureAndroidModuleStep;
 
-  @VisibleForTesting
-  boolean myInitializationComplete = false;
+  @VisibleForTesting boolean myInitializationComplete = false;
 
   public NewProjectWizard() {
     super("New Project", null);
@@ -89,9 +91,10 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
     // Allow creation in headless mode for tests
     if (window != null) {
       getWindow().setMinimumSize(new Dimension(1000, 640));
-    } else {
+    }
+    else {
       // We should always have a window unless we're in test mode
-      assert(ApplicationManager.getApplication().isUnitTestMode());
+      assert (ApplicationManager.getApplication().isUnitTestMode());
     }
     init();
   }
@@ -100,8 +103,9 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
   protected void init() {
     if (!AndroidSdkUtils.isAndroidSdkAvailable() || !TemplateManager.templatesAreValid()) {
       String title = "SDK problem";
-      String msg = "<html>Your Android SDK is missing, out of date, or is missing templates. Please ensure you are using SDK version 22 or later.<br>"
-        + "You can configure your SDK via <b>Configure | Project Defaults | Project Structure | SDKs</b></html>";
+      String msg =
+        "<html>Your Android SDK is missing, out of date, or is missing templates. Please ensure you are using SDK version 22 or later.<br>" +
+        "You can configure your SDK via <b>Configure | Project Defaults | Project Structure | SDKs</b></html>";
       super.init();
       Messages.showErrorDialog(msg, title);
       throw new IllegalStateException(msg);
@@ -112,13 +116,12 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
     myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GradleUtil.GRADLE_PLUGIN_LATEST_VERSION);
     myWizardState.put(TemplateMetadata.ATTR_V4_SUPPORT_LIBRARY_VERSION, TemplateMetadata.V4_SUPPORT_LIBRARY_VERSION);
 
-    myConfigureAndroidModuleStep =
-      new ConfigureAndroidModuleStep(myWizardState, myProject, NewProjectSidePanel, this);
+    myConfigureAndroidModuleStep = new ConfigureAndroidModuleStep(myWizardState, myProject, NewProjectSidePanel, this);
     myConfigureAndroidModuleStep.updateStep();
     myAssetSetStep = new AssetSetStep(myWizardState.getLauncherIconState(), myProject, NewProjectSidePanel, this);
     myAssetSetStep.finalizeAssetType(AssetStudioWizardState.AssetType.LAUNCHER);
-    myChooseActivityStep = new ChooseTemplateStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, myProject,
-                                                  NewProjectSidePanel, this, null);
+    myChooseActivityStep =
+      new ChooseTemplateStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, myProject, NewProjectSidePanel, this, null);
     myActivityParameterStep = new TemplateParameterStep(myWizardState.getActivityTemplateState(), myProject, NewProjectSidePanel, this);
 
     mySteps.add(myConfigureAndroidModuleStep);
@@ -203,7 +206,8 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
                 openTemplateFiles(project);
               }
             });
-          } else {
+          }
+          else {
             openTemplateFiles(project);
           }
         }
@@ -222,22 +226,38 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
                 @Override
                 public void run() {
                   ModuleManager moduleManager = ModuleManager.getInstance(project);
+
                   File projectRootDir = new File(project.getBasePath());
-                  for (File child : FileUtil.notNullize(projectRootDir.listFiles())) {
-                    if (child.isDirectory()) {
-                      File buildFile = new File(child, SdkConstants.FN_BUILD_GRADLE);
-                      if (buildFile.isFile()) {
-                        // Create a module per folder that has a build.gradle file. This way users may be able to see them and possibly fix
-                        // them.
-                        VirtualFile contentRoot = VfsUtil.findFileByIoFile(child, true);
-                        if (contentRoot != null) {
-                          String moduleFilePath = contentRoot.getPath() + '/' + contentRoot.getName() + ".iml";
-                          Module module = moduleManager.newModule(moduleFilePath, StdModuleTypes.JAVA.getId());
-                          ModifiableRootModel model = ModuleRootManager.getInstance(module).getModifiableModel();
-                          model.addContentEntry(contentRoot);
-                          model.commit();
-                        }
-                      }
+                  File moduleFile = new File(projectRootDir, project.getName() + ".iml");
+
+                  VirtualFile contentRoot = VfsUtil.findFileByIoFile(projectRootDir, true);
+                  if (contentRoot != null) {
+                    Module module = moduleManager.newModule(moduleFile.getPath(), StdModuleTypes.JAVA.getId());
+
+                    // This prevents the balloon "Unsupported Modules detected".
+                    module.setOption(ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY, GradleConstants.SYSTEM_ID.getId());
+
+                    ModifiableRootModel model = ModuleRootManager.getInstance(module).getModifiableModel();
+                    model.addContentEntry(contentRoot);
+                    model.commit();
+
+                    FacetManager facetManager = FacetManager.getInstance(module);
+                    ModifiableFacetModel facetModel = facetManager.createModifiableModel();
+                    try {
+                      // Add "gradle" facet, to avoid balloons about unsupported compilation of modules.
+                      AndroidGradleFacet gradleFacet =
+                        facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
+                      facetModel.addFacet(gradleFacet);
+                      gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = SdkConstants.GRADLE_PATH_SEPARATOR;
+
+                      // Add "android" facet to avoid the balloon "Android Framework detected".
+                      AndroidFacet androidFacet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
+                      facetModel.addFacet(androidFacet);
+
+                      // This is what actually stops Studio from showing the balloon.
+                      androidFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
+                    } finally {
+                      facetModel.commit();
                     }
                   }
                 }
@@ -245,6 +265,12 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
 
               // Just by opening the project, Studio will show the error message in a balloon notification, automatically.
               Projects.open(project);
+
+              // Activate "Project View" so users don't get an empty window.
+              ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(ToolWindowId.PROJECT_VIEW);
+              if (window != null) {
+                window.activate(null, false);
+              }
             }
           });
         }
