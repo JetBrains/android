@@ -69,6 +69,7 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="android-builder" level="project" />
+    <orderEntry type="module" module-name="gradle-import" />
   </component>
 </module>
 
