@@ -186,7 +186,14 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
         return createNotification(project, msg, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
       }
 
-      Matcher matcher = MISSING_DEPENDENCY_PATTERN.matcher(firstLine);
+      Matcher matcher = MISSING_MATCHING_DEPENDENCY_PATTERN.matcher(firstLine);
+      if (matcher.matches()) {
+        String dependency = matcher.group(1);
+        //noinspection TestOnlyProblems
+        return createNotification(project, firstLine, new SearchInBuildFilesHyperlink(dependency));
+      }
+
+      matcher = MISSING_DEPENDENCY_PATTERN.matcher(firstLine);
       if (matcher.matches() && lines.size() > 1 && lines.get(1).startsWith("Required by:")) {
         String dependency = matcher.group(1);
         if (!Strings.isNullOrEmpty(dependency)) {
