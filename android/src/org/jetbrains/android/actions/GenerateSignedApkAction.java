@@ -72,11 +72,6 @@ public class GenerateSignedApkAction extends AnAction {
       if (!checkFacet(facets.get(0))) return;
     }
 
-    if (facets.get(0).getIdeaAndroidProject() != null) {
-      Messages.showInfoMessage(project, AndroidBundle.message("android.generate.signed.apk.use.gradle.message"),
-                               AndroidBundle.message("android.generate.signed.apk.action.text"));
-    }
-
     ExportSignedPackageWizard wizard = new ExportSignedPackageWizard(project, facets, true);
     wizard.show();
   }
