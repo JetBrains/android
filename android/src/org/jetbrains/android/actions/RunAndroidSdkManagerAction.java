@@ -90,6 +90,10 @@ public class RunAndroidSdkManagerAction extends AndroidRunSdkToolAction {
     }
   }
 
+  public static void runSpecificSdkManager(@Nullable Project project, @NotNull File sdkHome) {
+    new RunAndroidSdkManagerAction().doRunTool(project, sdkHome.getPath());
+  }
+
   @Override
   protected void doRunTool(@Nullable final Project project, @NotNull final String sdkPath) {
 
