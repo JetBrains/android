@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.compiler;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
@@ -109,7 +110,8 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     //noinspection TestOnlyProblems
     populateJvmArgs(executionSettings, jvmArgs);
 
-    BuildMode buildMode = Projects.getBuildModeFrom(myProject);
+    BuildSettings buildSettings = BuildSettings.getInstance(myProject);
+    BuildMode buildMode = buildSettings.getBuildMode();
     if (buildMode == null) {
       buildMode = BuildMode.DEFAULT_BUILD_MODE;
     }
@@ -197,7 +199,8 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
 
   @VisibleForTesting
   void populateModulesToBuild(@NotNull List<String> jvmArgs) {
-    String[] modulesToBuild = Projects.getModulesToBuildNames(myProject);
+    BuildSettings buildSettings = BuildSettings.getInstance(myProject);
+    String[] modulesToBuild = buildSettings.getModulesToBuildNames();
     int moduleCount = modulesToBuild == null ? 0 : modulesToBuild.length;
     jvmArgs.add(createJvmArg(BuildProcessJvmArgs.MODULES_TO_BUILD_PROPERTY_COUNT, moduleCount));
     for (int i = 0; i < moduleCount; i++) {
