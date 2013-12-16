@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.compiler;
 
+import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.compiler.impl.BuildTargetScopeProvider;
@@ -48,11 +49,12 @@ public class AndroidGradleBuildTargetScopeProvider extends BuildTargetScopeProvi
     if (!Projects.isGradleProject(project)) {
       return Collections.emptyList();
     }
+    BuildSettings buildSettings = BuildSettings.getInstance(project);
     if (baseScope instanceof ProjectCompileScope) {
       // Make or Rebuild project
       BuildMode buildMode = forceBuild ? BuildMode.REBUILD : BuildMode.MAKE;
-      if (Projects.getBuildModeFrom(project) == null) {
-        Projects.setProjectBuildMode(project, buildMode);
+      if (buildSettings.getBuildMode() == null) {
+        buildSettings.setBuildMode(buildMode);
       }
     }
     else if (baseScope instanceof ModuleCompileScope) {
@@ -67,13 +69,13 @@ public class AndroidGradleBuildTargetScopeProvider extends BuildTargetScopeProvi
         // Make selected modules
         modulesToBuild = Projects.getModulesToBuildFromSelection(project, null);
       }
-      Projects.setModulesToBuild(project, modulesToBuild);
-      Projects.setProjectBuildMode(project, BuildMode.MAKE);
+      buildSettings.setModulesToBuild(modulesToBuild);
+      buildSettings.setBuildMode(BuildMode.MAKE);
     }
     else if (baseScope instanceof CompositeScope) {
       // Compile selected modules
-      Projects.setModulesToBuild(project, Projects.getModulesToBuildFromSelection(project, null));
-      Projects.setProjectBuildMode(project, BuildMode.COMPILE_JAVA);
+      buildSettings.setModulesToBuild(Projects.getModulesToBuildFromSelection(project, null));
+      buildSettings.setBuildMode(BuildMode.COMPILE_JAVA);
     }
 
     TargetTypeBuildScope scope = CmdlineProtoUtil.createTargetsScope(TARGET_TYPE_ID, Collections.singletonList(TARGET_ID), forceBuild);
