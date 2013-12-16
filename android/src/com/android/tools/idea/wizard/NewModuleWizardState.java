@@ -71,17 +71,7 @@ public class NewModuleWizardState extends TemplateWizardState {
     put(ATTR_CREATE_ACTIVITY, true);
     put(ATTR_IS_LIBRARY_MODULE, false);
 
-    final SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
-    BuildToolInfo buildTool = sdkManager != null ? sdkManager.getLatestBuildTool() : null;
-    if (buildTool != null) {
-      // If buildTool is null, the template will use buildApi instead, which might be good enough.
-      put(ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
-    }
-
-    if (sdkManager != null) {
-      // Gradle expects a platform-neutral path
-      put(ATTR_SDK_DIR, FileUtil.toSystemIndependentName(sdkManager.getLocation()));
-    }
+    putSdkDependentParams();
 
     myActivityTemplateState.myHidden.add(ATTR_PACKAGE_NAME);
     myActivityTemplateState.myHidden.add(ATTR_APP_TITLE);
@@ -95,6 +85,20 @@ public class NewModuleWizardState extends TemplateWizardState {
     myActivityTemplateState.myHidden.add(ATTR_ACTIVITY_TITLE);
 
     updateParameters();
+  }
+
+  public void putSdkDependentParams() {
+    final SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
+    BuildToolInfo buildTool = sdkManager != null ? sdkManager.getLatestBuildTool() : null;
+    if (buildTool != null) {
+      // If buildTool is null, the template will use buildApi instead, which might be good enough.
+      put(ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
+    }
+
+    if (sdkManager != null) {
+      // Gradle expects a platform-neutral path
+      put(ATTR_SDK_DIR, FileUtil.toSystemIndependentName(sdkManager.getLocation()));
+    }
   }
 
   @NotNull
