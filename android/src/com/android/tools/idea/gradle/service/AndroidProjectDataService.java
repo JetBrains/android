@@ -35,6 +35,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -95,8 +96,11 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
             javaLangVersion = androidProject.getJavaLanguageLevel();
           }
         }
+        Sdk jdk = ProjectRootManager.getInstance(project).getProjectSdk();
 
-        Sdk jdk = Jdks.chooseOrCreateJavaSdk(javaLangVersion);
+        if (jdk == null || !Jdks.isApplicableJdk(jdk)) {
+          jdk = Jdks.chooseOrCreateJavaSdk(javaLangVersion);
+        }
         if (jdk == null) {
           ExternalSystemIdeNotificationManager notification = ServiceManager.getService(ExternalSystemIdeNotificationManager.class);
           if (notification != null) {

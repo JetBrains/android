@@ -79,6 +79,10 @@ public final class DefaultSdks {
     return null;
   }
 
+  public static List<Sdk> setDefaultAndroidHome(@NotNull File path, boolean updateLocalPropertiesFile) {
+    return setDefaultAndroidHome(path, updateLocalPropertiesFile, null);
+  }
+
   /**
    * Sets the path of Android Studio's default Android SDK. This method should be called in a write action. It is assumed that the given
    * path has been validated by {@link #validateAndroidSdkPath(File)}. This method will fail silently if the given path is not valid.
@@ -87,7 +91,7 @@ public final class DefaultSdks {
    * @param updateLocalPropertiesFile indicates whether local.properties file in all open projects should be updated with the given path.
    * @see com.intellij.openapi.application.Application#runWriteAction(Runnable)
    */
-  public static List<Sdk> setDefaultAndroidHome(@NotNull File path, boolean updateLocalPropertiesFile) {
+  public static List<Sdk> setDefaultAndroidHome(@NotNull File path, boolean updateLocalPropertiesFile, @Nullable Sdk javaSdk) {
     if (validateAndroidSdkPath(path)) {
       AndroidSdkUtils.clearSdkManager();
 
@@ -114,7 +118,7 @@ public final class DefaultSdks {
       }
       // If there are any API targets that we haven't created IntelliJ SDKs for yet, fill
       // those in.
-      List<Sdk> sdks = createAndroidSdksForAllTargets(resolved);
+      List<Sdk> sdks = createAndroidSdksForAllTargets(resolved, javaSdk);
 
       if (updateLocalPropertiesFile) {
         // Update the local.properties files for any open projects.
@@ -133,12 +137,17 @@ public final class DefaultSdks {
     return AndroidSdkType.validateAndroidSdk(path.getPath()).first;
   }
 
+  @NotNull
+  public static List<Sdk> createAndroidSdksForAllTargets(@NotNull File androidHome) {
+    return createAndroidSdksForAllTargets(androidHome, null);
+  }
+
   /**
    * Creates a set of IntelliJ SDKs (one for each build target) corresponding to the Android SDK in the given directory, if SDKs with the
    * default naming convention and each individual build target do not already exist. If IntelliJ SDKs do exist, they are not updated.
    */
   @NotNull
-  public static List<Sdk> createAndroidSdksForAllTargets(@NotNull File androidHome) {
+  public static List<Sdk> createAndroidSdksForAllTargets(@NotNull File androidHome, @Nullable Sdk javaSdk) {
     String path = androidHome.getPath();
     if (!path.endsWith(File.separator)) {
       path += File.separator;
@@ -147,7 +156,7 @@ public final class DefaultSdks {
     AndroidSdkData sdkData = AndroidSdkData.parse(path, NullLogger.getLogger());
     if (sdkData != null) {
       IAndroidTarget[] targets = sdkData.getTargets();
-      Sdk defaultJdk = getDefaultJdk();
+      Sdk defaultJdk = javaSdk != null ? javaSdk : getDefaultJdk();
       for (IAndroidTarget target : targets) {
         if (target.isPlatform() && !doesDefaultAndroidSdkExist(target)) {
           String sdkName = AndroidSdkUtils.chooseNameForNewLibrary(target);
