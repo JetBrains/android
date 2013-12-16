@@ -2,6 +2,7 @@ package org.jetbrains.android.database;
 
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.UndoConfirmationPolicy;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.command.undo.GlobalUndoableAction;
 import com.intellij.openapi.command.undo.UndoManager;
@@ -140,6 +141,11 @@ public class AndroidDbManager extends DbPsiManagerSpi {
       protected void run(final Result result) throws Throwable {
         action.redo();
         UndoManager.getInstance(project).undoableActionPerformed(action);
+      }
+
+      @Override
+      protected UndoConfirmationPolicy getUndoConfirmationPolicy() {
+        return UndoConfirmationPolicy.REQUEST_CONFIRMATION;
       }
     }.execute();
   }
