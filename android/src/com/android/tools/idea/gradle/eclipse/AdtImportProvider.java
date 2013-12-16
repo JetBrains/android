@@ -33,7 +33,11 @@ public class AdtImportProvider extends ProjectImportProvider {
     return new ModuleWizardStep[]{
       new AdtImportLocationStep(context),
       new AdtImportPrefsStep(context),
-      new AdtImportSdkStep(context)};
+      new AdtWorkspaceForm(context),
+      new AdtImportSdkStep(context),
+      new AdtRepositoriesStep(context),
+      new AdtImportWarningsStep(context),
+    };
   }
 
   @Override
