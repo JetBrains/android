@@ -540,6 +540,11 @@
     <projectService serviceImplementation="com.android.tools.idea.structure.AndroidModuleStructureConfigurable"/>
   </extensions>
 
+  <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
+    <resolve.contributor implementation="com.android.tools.idea.gradle.service.resolve.AndroidRootContributor"/>
+    <resolve.contributor implementation="com.android.tools.idea.gradle.service.resolve.AndroidProductFlavorContributor"/>
+  </extensions>
+
   <extensionPoints>
     <extensionPoint name="mavenProvider" interface="org.jetbrains.android.maven.AndroidMavenProvider"/>
     <extensionPoint name="lightBuildProvider" interface="org.jetbrains.android.compiler.AndroidLightBuildProvider"/>
