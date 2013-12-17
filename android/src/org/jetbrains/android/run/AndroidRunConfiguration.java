@@ -302,6 +302,10 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     final VirtualFile manifestVFile;
 
     try {
+      //if (facet.isGradleProject()) {
+      //  manifestVFile = AndroidRootUtil.getMergedManifestFile(facet);
+      //}
+      //else
       if (facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST) {
         final Pair<File,String> pair = getCopyOfCompilerManifestFile(facet, processHandler);
         manifestCopy = pair != null ? pair.getFirst() : null;
