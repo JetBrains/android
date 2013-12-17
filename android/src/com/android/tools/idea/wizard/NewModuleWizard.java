@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.google.common.base.Predicate;
+import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,10 +34,9 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CREATE_ICONS;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE;
+import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
  * {@linkplain NewModuleWizard} guides the user through adding a new module to an existing project. It has a template-based flow and as the
@@ -77,6 +76,16 @@ public class NewModuleWizard extends TemplateWizard implements ChooseTemplateSte
 
     // Hide the library checkbox
     myModuleBuilder.myWizardState.myHidden.add(ATTR_IS_LIBRARY_MODULE);
+
+    boolean haveGlobalRepository = false;
+    VirtualFile buildGradle = myProject.getBaseDir().findChild(FN_BUILD_GRADLE);
+    if (buildGradle != null) {
+      String contents = TemplateUtils.readTextFile(myProject, buildGradle);
+      if (contents != null) {
+        haveGlobalRepository = contents.contains("repositories") && contents.contains(SdkConstants.GRADLE_PLUGIN_NAME);
+      }
+    }
+    myModuleBuilder.myWizardState.put(ATTR_PER_MODULE_REPOS, !haveGlobalRepository);
 
     myModuleBuilder.mySteps.add(0, buildChooseModuleStep(myModuleBuilder, myProject, this));
     super.init();
