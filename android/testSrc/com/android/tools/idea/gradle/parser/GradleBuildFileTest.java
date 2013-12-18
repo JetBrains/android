@@ -446,14 +446,19 @@ public class GradleBuildFileTest extends IdeaTestCase {
   }
 
   public void testSetsFiletreeDependencies() throws Exception {
-    GradleBuildFile file = getTestFile("");
+    final GradleBuildFile file = getTestFile("");
     ImmutableList<String> fileList = ImmutableList.of("*.jar", "*.aar");
     Map<String, Object> nvMap = ImmutableMap.of(
       "dir", "libs",
       "includes", (Object)fileList
     );
-    Dependency dep = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.FILETREE, nvMap);
-    file.setValue(BuildFileKey.DEPENDENCIES, ImmutableList.of(dep));
+    final Dependency dep = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.FILETREE, nvMap);
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.DEPENDENCIES, ImmutableList.of(dep));
+      }
+    });
     String expected =
       "dependencies {\n" +
       "    compile fileTree(dir: 'libs', includes: ['*.jar', '*.aar'])\n" +
