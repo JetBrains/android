@@ -18,17 +18,20 @@ package com.android.tools.idea.wizard;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import icons.AndroidIcons;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE;
@@ -38,15 +41,24 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_
  * first step of the wizard allows the user to choose a template which will guide the rest of the wizard flow.
  */
 public class NewModuleWizard extends TemplateWizard implements ChooseTemplateStep.TemplateChangeListener {
-  private TemplateWizardModuleBuilder myModuleBuilder;
-  private static final String PROJECT_NAME = "Android Project";
-  private static final String MODULE_NAME = "Android Module";
-  private static final String APP_NAME = "Android Application";
-  private static final String LIB_NAME = "Android Library";
+  protected TemplateWizardModuleBuilder myModuleBuilder;
+  protected static final String PROJECT_NAME = "Android Project";
+  protected static final String MODULE_NAME = "Android Module";
+  protected static final String APP_NAME = "Android Application";
+  protected static final String LIB_NAME = "Android Library";
+
+  protected static final Set<String> EXCLUDED_TEMPLATES = ImmutableSet.of(MODULE_NAME, PROJECT_NAME);
 
   public NewModuleWizard(@Nullable Project project) {
     super("New Module", project);
-    getWindow().setMinimumSize(new Dimension(1000, 640));
+    Window window = getWindow();
+    // Allow creation in headless mode for tests
+    if (window != null) {
+      getWindow().setMinimumSize(new Dimension(1000, 640));
+    } else {
+      // We should always have a window unless we're in test mode
+      ApplicationManager.getApplication().isUnitTestMode();
+    }
     init();
   }
 
@@ -63,7 +75,7 @@ public class NewModuleWizard extends TemplateWizard implements ChooseTemplateSte
     // Hide the library checkbox
     myModuleBuilder.myWizardState.myHidden.add(ATTR_IS_LIBRARY_MODULE);
 
-    myModuleBuilder.mySteps.add(0, buildChooseModuleStep());
+    myModuleBuilder.mySteps.add(0, buildChooseModuleStep(myModuleBuilder, myProject, this));
     super.init();
   }
 
@@ -78,7 +90,7 @@ public class NewModuleWizard extends TemplateWizard implements ChooseTemplateSte
       myModuleBuilder.myConfigureAndroidModuleStep.updateStep();
     }
     myModuleBuilder.myTemplateParameterStep.setVisible(!wizardState.myIsAndroidModule);
-    myModuleBuilder.myLauncherIconStep.setVisible(wizardState.myIsAndroidModule &&
+    myModuleBuilder.myAssetSetStep.setVisible(wizardState.myIsAndroidModule &&
                                                   wizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS));
     myModuleBuilder.myChooseActivityStep.setVisible(wizardState.myIsAndroidModule &&
                                                     wizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY));
@@ -107,24 +119,21 @@ public class NewModuleWizard extends TemplateWizard implements ChooseTemplateSte
   }
 
   /**
-   * Create a template chooser step popuplated with the correct templates for the new modules.
+   * Create a template chooser step populated with the correct templates for the new modules.
    */
-  private ChooseTemplateStep buildChooseModuleStep() {
+  protected static ChooseTemplateStep buildChooseModuleStep(@NotNull TemplateWizardModuleBuilder builder,
+                                                     @NotNull Project project,
+                                                     @Nullable ChooseTemplateStep.TemplateChangeListener listener) {
     // We're going to build up our own list of templates here
     // This is a little hacky, we should clean this up later.
     ChooseTemplateStep chooseModuleStep =
-      new ChooseTemplateStep(myModuleBuilder.myWizardState, null, myProject, AndroidIcons.Wizards.NewModuleSidePanel,
-                             myModuleBuilder, this);
+      new ChooseTemplateStep(builder.myWizardState, null, project, AndroidIcons.Wizards.NewModuleSidePanel,
+                             builder, listener);
+
+    // Get the list of templates to offer, but exclude the NewModule and NewProject template
     List<ChooseTemplateStep.MetadataListItem> templateList =
-      chooseModuleStep.getTemplateList(myModuleBuilder.myWizardState, CATEGORY_PROJECTS, null);
-    // First, filter out the NewProject template and the NewModuleTemplate
-    templateList = Lists.newArrayList(Iterables.filter(templateList, new Predicate<ChooseTemplateStep.MetadataListItem>() {
-      @Override
-      public boolean apply(@Nullable ChooseTemplateStep.MetadataListItem input) {
-        String templateName = input.toString();
-        return !(templateName.equals(PROJECT_NAME) || templateName.equals(MODULE_NAME));
-      }
-    }));
+      chooseModuleStep.getTemplateList(builder.myWizardState, CATEGORY_PROJECTS, EXCLUDED_TEMPLATES);
+
     // Now, we're going to add in two pointers to the same template
     File moduleTemplate = new File(TemplateManager.getTemplateRootFolder(),
                                    FileUtil.join(CATEGORY_PROJECTS, NewProjectWizardState.MODULE_TEMPLATE_NAME));

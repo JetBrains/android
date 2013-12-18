@@ -97,6 +97,9 @@ public class AndroidModuleStructureConfigurable extends BaseStructureConfigurabl
     for (final String path : mySettingsFile.getModules()) {
       MyNode parentNode = myRoot;
       List<String> segments = GradleUtil.getPathSegments(path);
+      if (segments.isEmpty()) {
+        continue;
+      }
       String moduleName = segments.remove(segments.size() - 1);
       for (String segment : segments) {
         MyNode node = getNode(parentNode, segment);

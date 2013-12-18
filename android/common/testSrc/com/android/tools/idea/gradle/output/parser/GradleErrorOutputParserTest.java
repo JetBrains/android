@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Locale;
 
 import static com.android.SdkConstants.*;
-import static com.android.ide.common.res2.MergedResourceWriter.createPathComment;
+import static com.android.utils.SdkUtils.createPathComment;
 
 /**
  * Tests for {@link com.android.tools.idea.gradle.output.parser.GradleErrorOutputParser}.
@@ -970,7 +970,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "    <!-- From: file:/Users/unittest/AndroidStudioProjects/BlankProject1Project/BlankProject1/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values/values.xml -->\n" +
                 "    <dimen name=\"abc_action_bar_default_height\">48dip</dimen>\n" +
                 "    <dimen name=\"abc_action_bar_icon_vertical_padding\">8dip</dimen>\n" +
-                "    <!-- " + createPathComment(source) + " -->\n" +
+                "    <!-- " + createPathComment(source, false) + " -->\n" +
                 "    <dimen name=\"activity_horizontal_margin\">16dp</dimen>\n" +
                 "    <dimen name=\"activity_vertical_margin\">16dp</dimen>\n" +
                 "    <dimen name=\"ok\">50dp</dimen>\n" +
@@ -1044,7 +1044,7 @@ public class GradleErrorOutputParserTest extends TestCase {
     File tempDir = Files.createTempDir();
     sourceFile = new File(tempDir, "layout.xml");
     sourceFilePath = sourceFile.getAbsolutePath();
-    File source = new File(tempDir, "layout.xml");
+    File source = new File(tempDir, "real-layout.xml");
     Files.write("<RelativeLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                 "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
                 "    android:layout_width=\"match_parent\"\n" +
@@ -1086,7 +1086,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "        android:layout_alignParentLeft=\"true\" />\n" +
                 "\n" +
                 "</RelativeLayout>\n" +
-                "<!-- " + createPathComment(source) + " -->", sourceFile, Charsets.UTF_8);
+                "<!-- " + createPathComment(source, false) + " -->", sourceFile, Charsets.UTF_8);
 
     String output =
       "Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
@@ -1906,6 +1906,296 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "6: Info:Total time: 5.354 secs\n",
                  toString(parser.parseErrorOutput(output, true)).replaceAll("\r\n","\n"));
     sourceFile.delete();
+  }
+
+  public void testRewriteManifestPaths1() throws Exception {
+    File tempDir = Files.createTempDir();
+    sourceFile = new File(tempDir, ANDROID_MANIFEST_XML);
+    sourceFilePath = sourceFile.getAbsolutePath();
+    File source = new File(tempDir, "real-manifest.xml");
+    Files.write("<<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                "    package=\"com.example.app\"\n" +
+                "    android:versionCode=\"1\"\n" +
+                "    android:versionName=\"1.0\" >\n" +
+                "\n" +
+                "    <uses-sdk\n" +
+                "        android:minSdkVersion=\"7\"\n" +
+                "        android:targetSdkVersion=\"19\" />\n" +
+                "\n" +
+                "    <application\n" +
+                "        android:allowBackup=\"true\"\n" +
+                "        android:icon=\"@drawable/ic_xlauncher\"\n" +
+                "        android:label=\"@string/app_name\"\n" +
+                "        android:theme=\"@style/AppTheme\" >\n" +
+                "        <activity\n" +
+                "            android:name=\"com.example.app.MainActivity\"\n" +
+                "            android:label=\"@string/app_name\" >\n" +
+                "            <intent-filter>\n" +
+                "                <action android:name=\"android.intent.action.MAIN\" />\n" +
+                "\n" +
+                "                <category android:name=\"android.intent.category.LAUNCHER\" />\n" +
+                "            </intent-filter>\n" +
+                "        </activity>\n" +
+                "    </application>\n" +
+                "\n" +
+                "</manifest>\n", source, Charsets.UTF_8);
+    source.deleteOnExit();
+    Files.write("<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" android:versionCode=\"1\" android:versionName=\"1.0\" package=\"com.example.app\">\n" +
+                "\n" +
+                "    <!-- " + createPathComment(source, false) + " -->\n" +
+                "\n" +
+                "    <uses-sdk android:minSdkVersion=\"7\" android:targetSdkVersion=\"19\"/>\n" +
+                "\n" +
+                "    <application android:allowBackup=\"true\" android:icon=\"@drawable/ic_xlauncher\" android:label=\"@string/app_name\" android:theme=\"@style/AppTheme\">\n" +
+                "        <activity android:label=\"@string/app_name\" android:name=\"com.example.app.MainActivity\">\n" +
+                "            <intent-filter>\n" +
+                "                <action android:name=\"android.intent.action.MAIN\"/>\n" +
+                "\n" +
+                "                <category android:name=\"android.intent.category.LAUNCHER\"/>\n" +
+                "            </intent-filter>\n" +
+                "        </activity>\n" +
+                "    </application>\n" +
+                "    <!-- From: /path/to/App/src/debug/AndroidManifest.xml -->\n" +
+                "    <uses-permission android:name=\"android.permission.ACCESS_MOCK_LOCATION\"/>\n" +
+                "\n" +
+                "    <!-- " + createPathComment(source, false) + " -->\n" +
+                "    </manifest>", sourceFile, Charsets.UTF_8);
+
+    String output =
+      "Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+      ":App:compileDefaultFlavorDebugNdk UP-TO-DATE\n" +
+      ":App:preBuild UP-TO-DATE\n" +
+      ":App:preDefaultFlavorDebugBuild UP-TO-DATE\n" +
+      ":App:preDefaultFlavorReleaseBuild UP-TO-DATE\n" +
+      ":App:prepareComAndroidSupportAppcompatV71900Library UP-TO-DATE\n" +
+      ":App:prepareDefaultFlavorDebugDependencies\n" +
+      ":App:compileDefaultFlavorDebugAidl UP-TO-DATE\n" +
+      ":App:compileDefaultFlavorDebugRenderscript UP-TO-DATE\n" +
+      ":App:generateDefaultFlavorDebugBuildConfig UP-TO-DATE\n" +
+      ":App:mergeDefaultFlavorDebugAssets UP-TO-DATE\n" +
+      ":App:mergeDefaultFlavorDebugResources UP-TO-DATE\n" +
+      ":App:processDefaultFlavorDebugManifest UP-TO-DATE\n" +
+      ":App:processDefaultFlavorDebugResources\n" +
+      sourceFilePath + ":7: error: Error: No resource found that matches the given name (at 'icon' with value '@drawable/ic_xlauncher').\n" +
+      ":App:processDefaultFlavorDebugResources FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':App:processDefaultFlavorDebugResources'.\n" +
+      "> com.android.ide.common.internal.LoggedErrorException: Failed to run command:\n" +
+      "  \tSDK/build-tools/android-4.4/aapt package -f --no-crunch " +
+      "-I SDK/platforms/android-19/android.jar " +
+      "-M PROJECT/App/build/manifests/defaultFlavor/debug/AndroidManifest.xml " +
+      "-S PROJECT/App/build/res/all/defaultFlavor/debug " +
+      "-A PROJECT/App/build/assets/defaultFlavor/debug " +
+      "-m -J PROJECT/App/build/source/r/defaultFlavor/debug " +
+      "-F PROJECT/App/build/libs/App-defaultFlavor-debug.ap_ " +
+      "--debug-mode --custom-package com.example.app " +
+      "--output-text-symbols PROJECT/App/build/symbols/defaultFlavor/debug\n" +
+      "  Error Code:\n" +
+      "  \t1\n" +
+      "  Output:\n" +
+      "  \t" + sourceFilePath + ":7: error: Error: No resource found that matches the given name (at 'icon' with value '@drawable/ic_xlauncher').\n" +
+      "\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 7.024 secs";
+
+    assertEquals("0: Info:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+                 "1: Info::App:compileDefaultFlavorDebugNdk UP-TO-DATE\n" +
+                 "2: Info::App:preBuild UP-TO-DATE\n" +
+                 "3: Info::App:preDefaultFlavorDebugBuild UP-TO-DATE\n" +
+                 "4: Info::App:preDefaultFlavorReleaseBuild UP-TO-DATE\n" +
+                 "5: Info::App:prepareComAndroidSupportAppcompatV71900Library UP-TO-DATE\n" +
+                 "6: Info::App:prepareDefaultFlavorDebugDependencies\n" +
+                 "7: Info::App:compileDefaultFlavorDebugAidl UP-TO-DATE\n" +
+                 "8: Info::App:compileDefaultFlavorDebugRenderscript UP-TO-DATE\n" +
+                 "9: Info::App:generateDefaultFlavorDebugBuildConfig UP-TO-DATE\n" +
+                 "10: Info::App:mergeDefaultFlavorDebugAssets UP-TO-DATE\n" +
+                 "11: Info::App:mergeDefaultFlavorDebugResources UP-TO-DATE\n" +
+                 "12: Info::App:processDefaultFlavorDebugManifest UP-TO-DATE\n" +
+                 "13: Info::App:processDefaultFlavorDebugResources\n" +
+                 "14: Error:No resource found that matches the given name (at 'icon' with value '@drawable/ic_xlauncher').\n" +
+                 "\t" + source.getPath() + ":13:23\n" +
+                 "15: Info::App:processDefaultFlavorDebugResources FAILED\n" +
+                 "16: Error:Execution failed for task ':App:processDefaultFlavorDebugResources'.\n" +
+                 "> com.android.ide.common.internal.LoggedErrorException: Failed to run command:\n" +
+                 "  \tSDK/build-tools/android-4.4/aapt package -f --no-crunch -I SDK/platforms/android-19/android.jar" +
+                 " -M PROJECT/App/build/manifests/defaultFlavor/debug/AndroidManifest.xml" +
+                 " -S PROJECT/App/build/res/all/defaultFlavor/debug" +
+                 " -A PROJECT/App/build/assets/defaultFlavor/debug" +
+                 " -m -J PROJECT/App/build/source/r/defaultFlavor/debug" +
+                 " -F PROJECT/App/build/libs/App-defaultFlavor-debug.ap_" +
+                 " --debug-mode --custom-package com.example.app" +
+                 " --output-text-symbols PROJECT/App/build/symbols/defaultFlavor/debug\n" +
+                 "  Error Code:\n" +
+                 "  \t1\n" +
+                 "  Output:\n" +
+                 "  \t" + sourceFilePath + ":7: error: Error: No resource found that matches the given name (at 'icon' with value '@drawable/ic_xlauncher').\n" +
+                 "\t" + source.getPath() + ":13:23\n" +
+                 "17: Info:BUILD FAILED\n" +
+                 "18: Info:Total time: 7.024 secs\n",
+                 toString(parser.parseErrorOutput(output, true)));
+
+    sourceFile.delete();
+    source.delete();
+    tempDir.delete();
+  }
+
+  public void testRewriteManifestPaths2() throws Exception {
+    // Like testRewriteManifestPaths1, but with a source comment at the end of the file
+    // (which happens when there is only a single manifest, so no files are merged and it's a straight
+    // file copy in the gradle plugin)
+    File tempDir = Files.createTempDir();
+    sourceFile = new File(tempDir, ANDROID_MANIFEST_XML);
+    sourceFilePath = sourceFile.getAbsolutePath();
+    File source = new File(tempDir, "real-manifest.xml");
+    Files.write("<<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                "    package=\"com.example.app\"\n" +
+                "    android:versionCode=\"1\"\n" +
+                "    android:versionName=\"1.0\" >\n" +
+                "\n" +
+                "    <uses-sdk\n" +
+                "        android:minSdkVersion=\"7\"\n" +
+                "        android:targetSdkVersion=\"19\" />\n" +
+                "\n" +
+                "    <application\n" +
+                "        android:allowBackup=\"true\"\n" +
+                "        android:icon=\"@drawable/ic_xlauncher\"\n" +
+                "        android:label=\"@string/app_name\"\n" +
+                "        android:theme=\"@style/AppTheme\" >\n" +
+                "        <activity\n" +
+                "            android:name=\"com.example.app.MainActivity\"\n" +
+                "            android:label=\"@string/app_name\" >\n" +
+                "            <intent-filter>\n" +
+                "                <action android:name=\"android.intent.action.MAIN\" />\n" +
+                "\n" +
+                "                <category android:name=\"android.intent.category.LAUNCHER\" />\n" +
+                "            </intent-filter>\n" +
+                "        </activity>\n" +
+                "    </application>\n" +
+                "\n" +
+                "</manifest>\n", source, Charsets.UTF_8);
+    source.deleteOnExit();
+    Files.write("<<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                "    package=\"com.example.app\"\n" +
+                "    android:versionCode=\"1\"\n" +
+                "    android:versionName=\"1.0\" >\n" +
+                "\n" +
+                "    <uses-sdk\n" +
+                "        android:minSdkVersion=\"7\"\n" +
+                "        android:targetSdkVersion=\"19\" />\n" +
+                "\n" +
+                "    <application\n" +
+                "        android:allowBackup=\"true\"\n" +
+                "        android:icon=\"@drawable/ic_xlauncher\"\n" +
+                "        android:label=\"@string/app_name\"\n" +
+                "        android:theme=\"@style/AppTheme\" >\n" +
+                "        <activity\n" +
+                "            android:name=\"com.example.app.MainActivity\"\n" +
+                "            android:label=\"@string/app_name\" >\n" +
+                "            <intent-filter>\n" +
+                "                <action android:name=\"android.intent.action.MAIN\" />\n" +
+                "\n" +
+                "                <category android:name=\"android.intent.category.LAUNCHER\" />\n" +
+                "            </intent-filter>\n" +
+                "        </activity>\n" +
+                "    </application>\n" +
+                "\n" +
+                "</manifest><!-- " + createPathComment(source, false) + " -->", sourceFile, Charsets.UTF_8);
+
+    String output =
+      "Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+      ":App:compileDefaultFlavorDebugNdk UP-TO-DATE\n" +
+      ":App:preBuild UP-TO-DATE\n" +
+      ":App:preDefaultFlavorDebugBuild UP-TO-DATE\n" +
+      ":App:preDefaultFlavorReleaseBuild UP-TO-DATE\n" +
+      ":App:prepareComAndroidSupportAppcompatV71900Library UP-TO-DATE\n" +
+      ":App:prepareDefaultFlavorDebugDependencies\n" +
+      ":App:compileDefaultFlavorDebugAidl UP-TO-DATE\n" +
+      ":App:compileDefaultFlavorDebugRenderscript UP-TO-DATE\n" +
+      ":App:generateDefaultFlavorDebugBuildConfig UP-TO-DATE\n" +
+      ":App:mergeDefaultFlavorDebugAssets UP-TO-DATE\n" +
+      ":App:mergeDefaultFlavorDebugResources UP-TO-DATE\n" +
+      ":App:processDefaultFlavorDebugManifest UP-TO-DATE\n" +
+      ":App:processDefaultFlavorDebugResources\n" +
+      sourceFilePath + ":7: error: Error: No resource found that matches the given name (at 'icon' with value '@drawable/ic_xlauncher').\n" +
+      ":App:processDefaultFlavorDebugResources FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':App:processDefaultFlavorDebugResources'.\n" +
+      "> com.android.ide.common.internal.LoggedErrorException: Failed to run command:\n" +
+      "  \tSDK/build-tools/android-4.4/aapt package -f --no-crunch " +
+      "-I SDK/platforms/android-19/android.jar " +
+      "-M PROJECT/App/build/manifests/defaultFlavor/debug/AndroidManifest.xml " +
+      "-S PROJECT/App/build/res/all/defaultFlavor/debug " +
+      "-A PROJECT/App/build/assets/defaultFlavor/debug " +
+      "-m -J PROJECT/App/build/source/r/defaultFlavor/debug " +
+      "-F PROJECT/App/build/libs/App-defaultFlavor-debug.ap_ " +
+      "--debug-mode --custom-package com.example.app " +
+      "--output-text-symbols PROJECT/App/build/symbols/defaultFlavor/debug\n" +
+      "  Error Code:\n" +
+      "  \t1\n" +
+      "  Output:\n" +
+      "  \t" + sourceFilePath + ":7: error: Error: No resource found that matches the given name (at 'icon' with value '@drawable/ic_xlauncher').\n" +
+      "\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 7.024 secs";
+
+    assertEquals("0: Info:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+                 "1: Info::App:compileDefaultFlavorDebugNdk UP-TO-DATE\n" +
+                 "2: Info::App:preBuild UP-TO-DATE\n" +
+                 "3: Info::App:preDefaultFlavorDebugBuild UP-TO-DATE\n" +
+                 "4: Info::App:preDefaultFlavorReleaseBuild UP-TO-DATE\n" +
+                 "5: Info::App:prepareComAndroidSupportAppcompatV71900Library UP-TO-DATE\n" +
+                 "6: Info::App:prepareDefaultFlavorDebugDependencies\n" +
+                 "7: Info::App:compileDefaultFlavorDebugAidl UP-TO-DATE\n" +
+                 "8: Info::App:compileDefaultFlavorDebugRenderscript UP-TO-DATE\n" +
+                 "9: Info::App:generateDefaultFlavorDebugBuildConfig UP-TO-DATE\n" +
+                 "10: Info::App:mergeDefaultFlavorDebugAssets UP-TO-DATE\n" +
+                 "11: Info::App:mergeDefaultFlavorDebugResources UP-TO-DATE\n" +
+                 "12: Info::App:processDefaultFlavorDebugManifest UP-TO-DATE\n" +
+                 "13: Info::App:processDefaultFlavorDebugResources\n" +
+                 "14: Error:No resource found that matches the given name (at 'icon' with value '@drawable/ic_xlauncher').\n" +
+                 "\t" + source.getPath() + ":13:23\n" +
+                 "15: Info::App:processDefaultFlavorDebugResources FAILED\n" +
+                 "16: Error:Execution failed for task ':App:processDefaultFlavorDebugResources'.\n" +
+                 "> com.android.ide.common.internal.LoggedErrorException: Failed to run command:\n" +
+                 "  \tSDK/build-tools/android-4.4/aapt package -f --no-crunch -I SDK/platforms/android-19/android.jar" +
+                 " -M PROJECT/App/build/manifests/defaultFlavor/debug/AndroidManifest.xml" +
+                 " -S PROJECT/App/build/res/all/defaultFlavor/debug" +
+                 " -A PROJECT/App/build/assets/defaultFlavor/debug" +
+                 " -m -J PROJECT/App/build/source/r/defaultFlavor/debug" +
+                 " -F PROJECT/App/build/libs/App-defaultFlavor-debug.ap_" +
+                 " --debug-mode --custom-package com.example.app" +
+                 " --output-text-symbols PROJECT/App/build/symbols/defaultFlavor/debug\n" +
+                 "  Error Code:\n" +
+                 "  \t1\n" +
+                 "  Output:\n" +
+                 "  \t" + sourceFilePath + ":7: error: Error: No resource found that matches the given name (at 'icon' with value '@drawable/ic_xlauncher').\n" +
+                 "\t" + source.getPath() + ":13:23\n" +
+                 "17: Info:BUILD FAILED\n" +
+                 "18: Info:Total time: 7.024 secs\n",
+                 toString(parser.parseErrorOutput(output, true)));
+
+    sourceFile.delete();
+    source.delete();
+    tempDir.delete();
   }
 
   @NotNull

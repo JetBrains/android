@@ -312,9 +312,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                   for (XmlTag child : attrs) {
                     String attrName = child.getAttributeValue(ATTR_NAME);
                     if (attrName != null && !attrName.startsWith(ANDROID_NS_NAME_PREFIX)
-                        // Only add attr nodes for elements that specify a format; otherwise
+                        // Only add attr nodes for elements that specify a format or have flag/enum children; otherwise
                         // it's just a reference to an existing attr
-                        && child.getAttribute(ATTR_FORMAT) != null) {
+                        && (child.getAttribute(ATTR_FORMAT) != null || child.getSubTags().length > 0)) {
                       ResourceItem attrItem = new PsiResourceItem(attrName, ResourceType.ATTR, child, file);
                       items.add(attrItem);
                       map.put(attrName, attrItem);

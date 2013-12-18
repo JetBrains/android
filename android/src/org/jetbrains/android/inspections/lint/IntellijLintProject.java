@@ -16,10 +16,9 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.annotations.NonNull;
-import com.android.builder.model.AndroidLibrary;
-import com.android.builder.model.AndroidProject;
-import com.android.builder.model.ProductFlavor;
-import com.android.builder.model.Variant;
+import com.android.builder.model.*;
+import com.android.sdklib.AndroidTargetHash;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.Project;
@@ -36,7 +35,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.compiler.AndroidDexCompiler;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidUtils;
@@ -45,8 +43,6 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.io.File;
 import java.util.*;
-
-import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
 
 /**
  * An {@linkplain IntellijLintProject} represents a lint project, which typically corresponds to a {@link Module},
@@ -209,7 +205,7 @@ class IntellijLintProject extends Project {
                                                @NonNull List<Project> dependencies) {
     File dir;IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
     if (gradleProject != null) {
-      List<AndroidLibrary> libraries = gradleProject.getSelectedVariant().getMainArtifactInfo().getDependencies().getLibraries();
+      Collection<AndroidLibrary> libraries = gradleProject.getSelectedVariant().getMainArtifact().getDependencies().getLibraries();
       for (AndroidLibrary library : libraries) {
         Project p = libraryMap.get(library);
         if (p == null) {
@@ -416,25 +412,42 @@ class IntellijLintProject extends Project {
     public List<File> getManifestFiles() {
       if (mManifestFiles == null) {
         mManifestFiles = Lists.newArrayList();
-        VirtualFile mainManifest = myFacet.getMainIdeaSourceSet().getManifestFile();
-        if (mainManifest != null) {
-          mManifestFiles.add(VfsUtilCore.virtualToIoFile(mainManifest));
+        File mainManifest = myFacet.getMainSourceSet().getManifestFile();
+        if (mainManifest.exists()) {
+          mManifestFiles.add(mainManifest);
         }
-        List<IdeaSourceProvider> flavorSourceSets = myFacet.getIdeaFlavorSourceSets();
+
+        List<SourceProvider> flavorSourceSets = myFacet.getFlavorSourceSets();
         if (flavorSourceSets != null) {
-          for (IdeaSourceProvider provider : flavorSourceSets) {
-            VirtualFile manifestFile = provider.getManifestFile();
-            if (manifestFile != null) {
-              mManifestFiles.add(VfsUtilCore.virtualToIoFile(manifestFile));
+          for (SourceProvider provider : flavorSourceSets) {
+            File manifestFile = provider.getManifestFile();
+            if (manifestFile.exists()) {
+              mManifestFiles.add(manifestFile);
             }
           }
         }
 
-        IdeaSourceProvider buildTypeSourceSet = myFacet.getIdeaBuildTypeSourceSet();
+        SourceProvider multiProvider = myFacet.getMultiFlavorSourceProvider();
+        if (multiProvider != null) {
+          File manifestFile = multiProvider.getManifestFile();
+          if (manifestFile.exists()) {
+            mManifestFiles.add(manifestFile);
+          }
+        }
+
+        SourceProvider buildTypeSourceSet = myFacet.getBuildTypeSourceSet();
         if (buildTypeSourceSet != null) {
-          VirtualFile manifestFile = buildTypeSourceSet.getManifestFile();
-          if (manifestFile != null) {
-            mManifestFiles.add(VfsUtilCore.virtualToIoFile(manifestFile));
+          File manifestFile = buildTypeSourceSet.getManifestFile();
+          if (manifestFile.exists()) {
+            mManifestFiles.add(manifestFile);
+          }
+        }
+
+        SourceProvider variantProvider = myFacet.getVariantSourceProvider();
+        if (variantProvider != null) {
+          File manifestFile = variantProvider.getManifestFile();
+          if (manifestFile.exists()) {
+            mManifestFiles.add(manifestFile);
           }
         }
       }
@@ -451,17 +464,22 @@ class IntellijLintProject extends Project {
           if (gradleProject != null) {
             ProductFlavor flavor = gradleProject.getDelegate().getDefaultConfig().getProductFlavor();
             mProguardFiles = Lists.newArrayList();
-            mProguardFiles.addAll(flavor.getProguardFiles());
-            // TODO: This is currently broken:
-            //mProguardFiles.addAll(flavor.getConsumerProguardFiles());
-            // It will throw
-            //org.gradle.tooling.model.UnsupportedMethodException: Unsupported method: BaseConfig.getConsumerProguardFiles().
-            //  The version of Gradle you connect to does not support that method.
-            //  To resolve the problem you can change/upgrade the target version of Gradle you connect to.
-            //  Alternatively, you can ignore this exception and read other information from the model.
-            //at org.gradle.tooling.model.internal.Exceptions.unsupportedMethod(Exceptions.java:33)
-            //at org.gradle.tooling.internal.adapter.ProtocolToModelAdapter$InvocationHandlerImpl.invoke(ProtocolToModelAdapter.java:239)
-            //at com.sun.proxy.$Proxy129.getConsumerProguardFiles(Unknown Source)
+            for (File file : flavor.getProguardFiles()) {
+              if (file.exists()) {
+                mProguardFiles.add(file);
+              }
+            }
+            try {
+              for (File file : flavor.getConsumerProguardFiles()) {
+                if (file.exists()) {
+                  mProguardFiles.add(file);
+                }
+              }
+            } catch (Throwable t) {
+              // On some models, this threw
+              //   org.gradle.tooling.model.UnsupportedMethodException: Unsupported method: BaseConfig.getConsumerProguardFiles().
+              // Playing it safe for a while.
+            }
           }
         }
 
@@ -486,7 +504,7 @@ class IntellijLintProject extends Project {
             IdeaAndroidProject gradleProject = myFacet.getIdeaAndroidProject();
             if (gradleProject != null) {
               Variant variant = gradleProject.getSelectedVariant();
-              dir = variant.getMainArtifactInfo().getClassesFolder();
+              dir = variant.getMainArtifact().getClassesFolder();
             }
           }
           if (dir != null) {
@@ -502,18 +520,47 @@ class IntellijLintProject extends Project {
       return Collections.emptyList();
     }
 
+    @NonNull
+    @Override
+    public List<File> getJavaLibraries() {
+      if (SUPPORT_CLASS_FILES) {
+        if (mJavaLibraries == null) {
+          if (myFacet.isGradleProject() && myFacet.getIdeaAndroidProject() != null) {
+            IdeaAndroidProject gradleProject = myFacet.getIdeaAndroidProject();
+            Collection<File> jars = gradleProject.getSelectedVariant().getMainArtifact().getDependencies().getJars();
+            mJavaLibraries = Lists.newArrayListWithExpectedSize(jars.size());
+            for (File jar : jars) {
+              if (jar.exists()) {
+                mJavaLibraries.add(jar);
+              }
+            }
+          } else {
+            mJavaLibraries = super.getJavaLibraries();
+          }
+        }
+        return mJavaLibraries;
+      }
+
+      return Collections.emptyList();
+    }
+
     @Nullable
     @Override
     public String getPackage() {
       String manifestPackage = super.getPackage();
+      // For now, lint only needs the manifest package; not the potentially variant specific
+      // package. As part of the Gradle work on the Lint API we should make two separate
+      // package lookup methods -- one for the manifest package, one for the build package
+      if (manifestPackage != null) {
+        return manifestPackage;
+      }
 
       IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
       if (project != null) {
-        return IdeaAndroidProject.computePackageName(project, manifestPackage);
+        return project.computePackageName("");
       }
 
-      // Read from the manifest: Not overridden in the configuration
-      return manifestPackage;
+      return null;
     }
 
     @Override
@@ -546,8 +593,15 @@ class IntellijLintProject extends Project {
 
     @Override
     public int getBuildSdk() {
-      // TODO: Get this from the model! For now, we take advantage of the fact that
-      // the model should have synced the right type of Android SDK to the IntelliJ facet.
+      IdeaAndroidProject ideaAndroidProject = myFacet.getIdeaAndroidProject();
+      if (ideaAndroidProject != null) {
+        String compileTarget = ideaAndroidProject.getDelegate().getCompileTarget();
+        AndroidVersion version = AndroidTargetHash.getPlatformVersion(compileTarget);
+        if (version != null) {
+          return version.getApiLevel();
+        }
+      }
+
       AndroidPlatform platform = AndroidPlatform.getPlatform(myFacet.getModule());
       if (platform != null) {
         return platform.getApiLevel();
@@ -607,9 +661,7 @@ class IntellijLintProject extends Project {
     @Override
     public List<File> getManifestFiles() {
       if (mManifestFiles == null) {
-        // TODO: When https://android-review.googlesource.com/#/c/65015/ is available in the
-        // bundled model, call that method directly instead!
-        File manifest = new File(myLibrary.getResFolder().getParent(), ANDROID_MANIFEST_XML);
+        File manifest = myLibrary.getManifest();
         if (manifest.exists()) {
           mManifestFiles = Collections.singletonList(manifest);
         } else {
@@ -618,6 +670,21 @@ class IntellijLintProject extends Project {
       }
 
       return mManifestFiles;
+    }
+
+    @NonNull
+    @Override
+    public List<File> getProguardFiles() {
+      if (mProguardFiles == null) {
+        File proguardRules = myLibrary.getProguardRules();
+        if (proguardRules.exists()) {
+          mProguardFiles = Collections.singletonList(proguardRules);
+        } else {
+          mProguardFiles = Collections.emptyList();
+        }
+      }
+
+      return mProguardFiles;
     }
 
     @NonNull

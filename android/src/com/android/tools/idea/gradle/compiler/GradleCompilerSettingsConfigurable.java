@@ -36,7 +36,7 @@ import javax.swing.*;
  */
 public class GradleCompilerSettingsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
   private final CompilerWorkspaceConfiguration myCompilerConfiguration;
-  private final ExperimentalAndroidStudioConfiguration myExperimentalConfiguration;
+  private final AndroidGradleBuildConfiguration myBuildConfiguration;
   private final GradleSettings myGradleSettings;
 
   private JCheckBox myParallelBuildCheckBox;
@@ -45,10 +45,11 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   private JCheckBox myAutoMakeCheckBox;
   private JCheckBox myUseExperimentalBuildCheckBox;
   private JPanel myContentPanel;
+  private JCheckBox myOfflineModeCheckBox;
 
   public GradleCompilerSettingsConfigurable(@NotNull Project project) {
     myCompilerConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
-    myExperimentalConfiguration = ExperimentalAndroidStudioConfiguration.getInstance(project);
+    myBuildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
     myGradleSettings = GradleSettings.getInstance(project);
   }
 
@@ -87,7 +88,8 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     return myCompilerConfiguration.PARALLEL_COMPILATION != isParallelBuildsEnabled() ||
            !Objects.equal(getVmOptions(), myGradleSettings.getGradleVmOptions()) ||
            myCompilerConfiguration.MAKE_PROJECT_ON_SAVE != isAutoMakeEnabled() ||
-           myExperimentalConfiguration.USE_EXPERIMENTAL_FASTER_BUILD != isExperimentalBuildEnabled();
+           myBuildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD != isExperimentalBuildEnabled() ||
+           myBuildConfiguration.OFFLINE_MODE != isOfflineModeEnabled();
   }
 
   @Override
@@ -95,7 +97,8 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     myCompilerConfiguration.PARALLEL_COMPILATION = isParallelBuildsEnabled();
     myGradleSettings.setGradleVmOptions(getVmOptions());
     myCompilerConfiguration.MAKE_PROJECT_ON_SAVE = isAutoMakeEnabled();
-    myExperimentalConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = isExperimentalBuildEnabled();
+    myBuildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = isExperimentalBuildEnabled();
+    myBuildConfiguration.OFFLINE_MODE = isOfflineModeEnabled();
   }
 
   private boolean isParallelBuildsEnabled() {
@@ -110,6 +113,10 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     return myUseExperimentalBuildCheckBox.isSelected();
   }
 
+  private boolean isOfflineModeEnabled() {
+    return myOfflineModeCheckBox.isSelected();
+  }
+
   @Nullable
   private String getVmOptions() {
     return Strings.emptyToNull(myVmOptionsEditor.getText().trim());
@@ -121,10 +128,11 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     String vmOptions = Strings.nullToEmpty(myGradleSettings.getGradleVmOptions());
     myVmOptionsEditor.setText(vmOptions);
     myAutoMakeCheckBox.setSelected(myCompilerConfiguration.MAKE_PROJECT_ON_SAVE);
-    myUseExperimentalBuildCheckBox.setSelected(myExperimentalConfiguration.USE_EXPERIMENTAL_FASTER_BUILD);
+    myUseExperimentalBuildCheckBox.setSelected(myBuildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD);
     myAutoMakeCheckBox.setText("Make project automatically (only works while not running / debugging" +
                                (PowerSaveMode.isEnabled() ? ", disabled in Power Save mode" : "") +
                                ")");
+    myOfflineModeCheckBox.setSelected(myBuildConfiguration.OFFLINE_MODE);
   }
 
   @Override

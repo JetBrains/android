@@ -16,7 +16,7 @@
 package org.jetbrains.android.run;
 
 import com.android.SdkConstants;
-import com.android.builder.model.ArtifactInfo;
+import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.Variant;
 import com.android.ddmlib.*;
 import com.android.prefs.AndroidLocation;
@@ -880,7 +880,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
           // install apk (note that variant.getOutputFile() will point to a .aar in the case of a library)
           if (!ideaAndroidProject.getDelegate().isLibrary()) {
-            File apk = selectedVariant.getMainArtifactInfo().getOutputFile();
+            File apk = selectedVariant.getMainArtifact().getOutputFile();
             if (!uploadAndInstallApk(device, myPackageName, apk.getAbsolutePath())) {
               return false;
             }
@@ -888,7 +888,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
           // install test apk
           if (getConfiguration() instanceof AndroidTestRunConfiguration) {
-            ArtifactInfo testArtifactInfo = selectedVariant.getTestArtifactInfo();
+            AndroidArtifact testArtifactInfo = ideaAndroidProject.findInstrumentationTestArtifactInSelectedVariant();
             if (testArtifactInfo != null) {
               File testApk = testArtifactInfo.getOutputFile();
               if (!uploadAndInstallApk(device, myTestPackageName, testApk.getAbsolutePath())) {
@@ -1090,7 +1090,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       return packageNameInManifest;
     }
 
-    return IdeaAndroidProject.computePackageName(ideaAndroidProject, packageNameInManifest);
+    return ideaAndroidProject.computePackageName(packageNameInManifest);
   }
 
   private boolean uploadAndInstall(@NotNull IDevice device, @NotNull String packageName, AndroidFacet facet)

@@ -39,8 +39,8 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
 public class NewModuleWizardState extends TemplateWizardState {
   public static final String ATTR_CREATE_ACTIVITY = "createActivity";
   public static final String ATTR_PROJECT_LOCATION = "projectLocation";
-  public static final String APP_NAME = "App";
-  public static final String LIB_NAME = "Lib";
+  public static final String APP_NAME = "app";
+  public static final String LIB_NAME = "lib";
 
   /**
    * State for the template wizard, used to embed an activity template
@@ -50,7 +50,7 @@ public class NewModuleWizardState extends TemplateWizardState {
   /**
    * State for the page that lets users create custom launcher icons
    */
-  protected final LauncherIconWizardState myLauncherIconState;
+  protected final AssetStudioWizardState myLauncherIconState;
 
   /**
    * True if the module being created is an Android module (as opposed to a generic Java module with no Android support)
@@ -59,7 +59,7 @@ public class NewModuleWizardState extends TemplateWizardState {
 
   public NewModuleWizardState() {
     myActivityTemplateState = new TemplateWizardState();
-    myLauncherIconState = new LauncherIconWizardState();
+    myLauncherIconState = new AssetStudioWizardState();
 
     myHidden.add(ATTR_PROJECT_LOCATION);
     myHidden.remove(ATTR_IS_LIBRARY_MODULE);
@@ -107,7 +107,7 @@ public class NewModuleWizardState extends TemplateWizardState {
   }
 
   @NotNull
-  public LauncherIconWizardState getLauncherIconState() {
+  public AssetStudioWizardState getLauncherIconState() {
     return myLauncherIconState;
   }
 

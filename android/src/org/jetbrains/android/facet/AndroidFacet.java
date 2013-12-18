@@ -17,9 +17,7 @@ package org.jetbrains.android.facet;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
-import com.android.builder.model.ArtifactInfo;
-import com.android.builder.model.SourceProvider;
-import com.android.builder.model.Variant;
+import com.android.builder.model.*;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.prefs.AndroidLocation;
@@ -205,7 +203,9 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public SourceProvider getBuildTypeSourceSet() {
     if (myIdeaAndroidProject != null) {
       Variant selectedVariant = myIdeaAndroidProject.getSelectedVariant();
-      return myIdeaAndroidProject.getDelegate().getBuildTypes().get(selectedVariant.getBuildType()).getSourceProvider();
+      BuildTypeContainer buildType = myIdeaAndroidProject.findBuildType(selectedVariant.getBuildType());
+      assert buildType != null;
+      return buildType.getSourceProvider();
     } else {
       return null;
     }
@@ -262,7 +262,9 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       List<String> productFlavors = selectedVariant.getProductFlavors();
       List<SourceProvider> providers = Lists.newArrayList();
       for (String flavor : productFlavors) {
-        providers.add(myIdeaAndroidProject.getDelegate().getProductFlavors().get(flavor).getSourceProvider());
+        ProductFlavorContainer productFlavor = myIdeaAndroidProject.findProductFlavor(flavor);
+        assert productFlavor != null;
+        providers.add(productFlavor.getSourceProvider());
       }
 
       return providers;
@@ -293,47 +295,73 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   /**
-   * Like {@link #getFlavorSourceSets()}, but returns the name for each flavor's source provider as well
+   * Returns the source provider specific to the flavor combination, if any.
    *
-   * @return a list of source provider and name pairs or null in legacy projects
+   * @return the source provider or null
    */
   @Nullable
-  public List<Pair<String, SourceProvider>> getFlavorSourceSetsAndNames() {
+  public SourceProvider getMultiFlavorSourceProvider() {
     if (myIdeaAndroidProject != null) {
       Variant selectedVariant = myIdeaAndroidProject.getSelectedVariant();
-      List<String> productFlavors = selectedVariant.getProductFlavors();
-      List<Pair<String, SourceProvider>> providers = Lists.newArrayList();
-      for (String flavor : productFlavors) {
-        providers.add(Pair.create(flavor, myIdeaAndroidProject.getDelegate().getProductFlavors().get(flavor).getSourceProvider()));
+      AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
+      SourceProvider provider = mainArtifact.getMultiFlavorSourceProvider();
+      if (provider != null) {
+        return provider;
       }
-
-      return providers;
-    } else {
-      return null;
     }
+
+    return null;
   }
 
   /**
-   * Like {@link #getFlavorSourceSetsAndNames()} but typed for internal IntelliJ usage with
+   * Like {@link #getMultiFlavorSourceProvider()} but typed for internal IntelliJ usage with
    * {@link VirtualFile} instead of {@link File} references
    *
-   * @return a list of source provider and name pairs or null in legacy projects
+   * @return the flavor source providers or null in legacy projects
    */
   @Nullable
-  public List<Pair<String, IdeaSourceProvider>> getIdeaFlavorSourceSetsAndNames() {
-    List<Pair<String, SourceProvider>> pairs = getFlavorSourceSetsAndNames();
-    if (pairs != null) {
-      List<Pair<String, IdeaSourceProvider>> providers = Lists.newArrayListWithExpectedSize(pairs.size());
-      for (Pair<String, SourceProvider> pair : pairs) {
-        String flavor = pair.getFirst();
-        SourceProvider provider = pair.getSecond();
-        providers.add(Pair.create(flavor, IdeaSourceProvider.create(provider)));
-      }
-
-      return providers;
-    } else {
-      return null;
+  public IdeaSourceProvider getIdeaMultiFlavorSourceProvider() {
+    SourceProvider provider = getMultiFlavorSourceProvider();
+    if (provider != null) {
+      return IdeaSourceProvider.create(provider);
     }
+
+    return null;
+  }
+
+  /**
+   * Returns the source provider specific to the variant, if any.
+   *
+   * @return the source provider or null
+   */
+  @Nullable
+  public SourceProvider getVariantSourceProvider() {
+    if (myIdeaAndroidProject != null) {
+      Variant selectedVariant = myIdeaAndroidProject.getSelectedVariant();
+      AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
+      SourceProvider provider = mainArtifact.getVariantSourceProvider();
+      if (provider != null) {
+        return provider;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Like {@link #getVariantSourceProvider()} but typed for internal IntelliJ usage with
+   * {@link VirtualFile} instead of {@link File} references
+   *
+   * @return the flavor source providers or null in legacy projects
+   */
+  @Nullable
+  public IdeaSourceProvider getIdeaVariantSourceProvider() {
+    SourceProvider provider = getVariantSourceProvider();
+    if (provider != null) {
+      return IdeaSourceProvider.create(provider);
+    }
+
+    return null;
   }
 
   /**
@@ -1149,14 +1177,14 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       Variant variant = myIdeaAndroidProject.getSelectedVariant();
       JpsAndroidModuleProperties state = getProperties();
 
-      ArtifactInfo mainArtifactInfo = variant.getMainArtifactInfo();
-      state.ASSEMBLE_TASK_NAME = mainArtifactInfo.getAssembleTaskName();
-      state.COMPILE_JAVA_TASK_NAME = mainArtifactInfo.getJavaCompileTaskName();
+      AndroidArtifact mainArtifact = variant.getMainArtifact();
+      state.ASSEMBLE_TASK_NAME = mainArtifact.getAssembleTaskName();
+      state.COMPILE_JAVA_TASK_NAME = mainArtifact.getJavaCompileTaskName();
 
-      ArtifactInfo testArtifactInfo = variant.getTestArtifactInfo();
-      state.ASSEMBLE_TEST_TASK_NAME = testArtifactInfo != null ? testArtifactInfo.getAssembleTaskName() : "";
+      AndroidArtifact testArtifact = myIdeaAndroidProject.findInstrumentationTestArtifactInSelectedVariant();
+      state.ASSEMBLE_TEST_TASK_NAME = testArtifact != null ? testArtifact.getAssembleTaskName() : "";
 
-      state.SOURCE_GEN_TASK_NAME = mainArtifactInfo.getSourceGenTaskName();
+      state.SOURCE_GEN_TASK_NAME = mainArtifact.getSourceGenTaskName();
       state.SELECTED_BUILD_VARIANT = variant.getName();
     }
   }

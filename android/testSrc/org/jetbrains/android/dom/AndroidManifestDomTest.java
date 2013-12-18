@@ -150,6 +150,13 @@ public class AndroidManifestDomTest extends AndroidDomTest {
     doTestCompletion(false);
   }
 
+  public void testParentActivityCompletion1() throws Throwable {
+    copyFileToProject("MyActivity.java", "src/p1/p2/MyActivity.java");
+    copyFileToProject("MyActivity1.java", "src/p1/p2/p3/MyActivity1.java");
+    copyFileToProject("MyActivity2.java", "src/p1/MyActivity2.java");
+    doTestCompletionVariants(getTestName(false) + ".xml", ".MyActivity", ".p3.MyActivity1", "p1.MyActivity2");
+  }
+
   public void testBackupAgentCompletion() throws Throwable {
     copyFileToProject("MyBackupAgent.java", "src/p1/p2/MyBackupAgent.java");
     doTestCompletionVariants(getTestName(false) + ".xml", ".MyBackupAgent");

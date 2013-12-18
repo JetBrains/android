@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.gradle.invoker;
 
+import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
+import com.android.tools.idea.gradle.compiler.BuildFailures;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleToolWindowFactory;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
 import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.gradle.output.parser.GradleErrorOutputParser;
+import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.base.Splitter;
@@ -27,6 +30,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.intellij.compiler.CompilerManagerImpl;
+import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.compiler.impl.CompilerErrorTreeView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.ide.errorTreeView.NewErrorTreeViewPanel;
@@ -65,6 +69,7 @@ import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
 import com.intellij.pom.Navigatable;
 import com.intellij.ui.AppIcon;
 import com.intellij.ui.content.*;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.Function;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.ui.MessageCategory;
@@ -257,7 +262,24 @@ class GradleTasksExecutor extends Task.Backgroundable {
             launcher.setJavaHome(javaHome);
           }
 
-          launcher.forTasks(myTasks.toArray(new String[myTasks.size()]));
+          launcher.forTasks(ArrayUtil.toStringArray(myTasks));
+
+          List<String> args = Lists.newArrayList();
+          CompilerWorkspaceConfiguration compilerConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
+          if (compilerConfiguration.PARALLEL_COMPILATION) {
+            LOG.info("Using 'parallel' build option");
+            args.add(GradleBuilds.PARALLEL_BUILD_OPTION);
+          }
+          AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
+          if (buildConfiguration.OFFLINE_MODE) {
+            LOG.info("Using 'offline' mode option");
+            args.add(GradleBuilds.OFFLINE_MODE_OPTION);
+          }
+
+          if (!args.isEmpty()) {
+            LOG.info("Passing command-line args to Gradle Tooling API: " + args);
+            launcher.withArguments(ArrayUtil.toStringArray(args));
+          }
 
           launcher.setStandardOutput(stdout);
           launcher.setStandardError(stderr);
@@ -287,7 +309,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
           });
           Projects.refresh(project);
           if (myListener != null) {
-            myListener.executionFinished(myTasks, myErrorCount, myWarningCount);
+            myListener.executionEnded(myTasks, myErrorCount, myWarningCount);
           }
         }
         return null;
@@ -305,9 +327,22 @@ class GradleTasksExecutor extends Task.Backgroundable {
   private void handleBuildException(BuildException e, String stdErr) {
     Collection<GradleMessage> compilerMessages = new GradleErrorOutputParser().parseErrorOutput(stdErr, false);
     if (!compilerMessages.isEmpty()) {
+      Project project = getNotNullProject();
+
+      boolean offlineMode = Projects.isOfflineBuildModeEnabled(project);
+      boolean unresolvedDependenciesFoundInOfflineMode = false;
+
       for (GradleMessage msg : compilerMessages) {
+        if (offlineMode && !unresolvedDependenciesFoundInOfflineMode) {
+          unresolvedDependenciesFoundInOfflineMode = BuildFailures.unresolvedDependenciesFound(msg.getText());
+        }
         addMessage(msg, null);
       }
+
+      if (unresolvedDependenciesFoundInOfflineMode) {
+        BuildFailures.notifyUnresolvedDependenciesInOfflineMode(project);
+      }
+
       return;
     }
     // There are no error messages to present. Show some feedback indicating that something went wrong.

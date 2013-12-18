@@ -43,11 +43,17 @@
     <action id="NewAndroidComponent" class="com.android.tools.idea.actions.NewAndroidComponentAction">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewActivity"/>
     </action>
+    <action id="NewAndroidAssetImage" class="com.android.tools.idea.actions.AndroidAssetStudioAction">
+      <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewAndroidComponent"/>
+    </action>
     <action id="Android.CreateResourcesActionGroup" class="org.jetbrains.android.actions.CreateResourceFileActionGroup">
       <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFile"/>
     </action>
     <action id="Android.CreateResourceDirectory" class="org.jetbrains.android.actions.CreateResourceDirectoryAction">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="Android.CreateResourcesActionGroup"/>
+    </action>
+    <action id="Android.ConvertToNinePatch" class="com.android.tools.idea.actions.ConvertToNinePatchAction">
+      <add-to-group group-id="ProjectViewPopupMenu" anchor="last" />
     </action>
     <group id="AndroidToolsGroup" popup="true" text="Android" icon="AndroidIcons.Android"
            class="org.jetbrains.android.actions.AndroidToolsActionGroup">
@@ -425,8 +431,8 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantView"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.invoker.GradleInvoker"/>
-    <projectService serviceInterface="com.android.tools.idea.gradle.compiler.ExperimentalAndroidStudioConfiguration"
-                    serviceImplementation="com.android.tools.idea.gradle.compiler.ExperimentalAndroidStudioConfiguration"/>
+    <projectService serviceInterface="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"
+                    serviceImplementation="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleNotification"/>
     <projectService serviceInterface="org.jetbrains.android.logcat.AndroidLogcatFiltersPreferences"
                     serviceImplementation="org.jetbrains.android.logcat.AndroidLogcatFiltersPreferences"/>

@@ -275,6 +275,6 @@ public class Utilities {
   }
 
   public static Module getModule(Project project, VirtualFile file) {
-    return NavigationEditorPanel.getRenderingParams(project, file).myConfiguration.getModule();
+    return NavigationView.getRenderingParams(project, file).myConfiguration.getModule();
   }
 }

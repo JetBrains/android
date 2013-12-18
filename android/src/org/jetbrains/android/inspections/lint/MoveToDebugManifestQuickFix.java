@@ -69,7 +69,7 @@ class MoveToDebugManifestQuickFix implements AndroidLintQuickFix {
             if (project != null && mainManifest != null
                 && mainManifest.getParent() != null && mainManifest.getParent().getParent() != null) {
               final VirtualFile src = mainManifest.getParent().getParent();
-              for (BuildTypeContainer container : project.getDelegate().getBuildTypes().values()) {
+              for (BuildTypeContainer container : project.getDelegate().getBuildTypes()) {
                 BuildType buildType = container.getBuildType();
                 if (buildType.isDebuggable()) {
                   addManifest(module, src, buildType.getName());
@@ -93,10 +93,13 @@ class MoveToDebugManifestQuickFix implements AndroidLintQuickFix {
         public Pair<String, VirtualFile> compute() {
           if (manifest == null) {
             try {
-              VirtualFile newParentFolder = src.createChildDirectory(this, buildTypeName);
+              VirtualFile newParentFolder = src.findChild(buildTypeName);
               if (newParentFolder == null) {
-                String message = String.format("Could not create folder %1$s in %2$s", buildTypeName, src.getPath());
-                return Pair.of(message, null);
+                newParentFolder = src.createChildDirectory(this, buildTypeName);
+                if (newParentFolder == null) {
+                  String message = String.format("Could not create folder %1$s in %2$s", buildTypeName, src.getPath());
+                  return Pair.of(message, null);
+                }
               }
 
               VirtualFile newFile = newParentFolder.createChildData(this, ANDROID_MANIFEST_XML);

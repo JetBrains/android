@@ -29,6 +29,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
 import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a dependency statement in a Gradle build file. Dependencies have a scope (which defines what types of compiles the
@@ -79,15 +80,16 @@ public class Dependency {
 
   public enum Type {
     FILES,
+    FILETREE,
     EXTERNAL,
     MODULE
   }
 
   public Scope scope;
   public Type type;
-  public String data;
+  public Object data;
 
-  public Dependency(@NotNull Scope scope, @NotNull Type type, @NotNull String data) {
+  public Dependency(@NotNull Scope scope, @NotNull Type type, @NotNull Object data) {
     this.scope = scope;
     this.type = type;
     this.data = data;
@@ -121,6 +123,10 @@ public class Dependency {
            '}';
   }
 
+  public @NotNull String getValueAsString() {
+    return data.toString();
+  }
+
   public static BuildFileKey.ValueFactory<Dependency> getFactory() {
     return new DependencyFactory();
   }
@@ -152,6 +158,9 @@ public class Dependency {
               for (Object o : GradleGroovyFile.getLiteralArgumentValues(method)) {
                 dependencies.add(new Dependency(scope, Dependency.Type.FILES, o.toString()));
               }
+            } else if ("fileTree".equals(methodName)) {
+              Map<String, Object> values = GradleGroovyFile.getNamedArgumentValues(method);
+              dependencies.add(new Dependency(scope, Type.FILETREE, values));
             } else {
               // Oops, we didn't know how to parse this.
               LOG.warn("Didn't know how to parse dependency method call " + methodName);
@@ -186,6 +195,11 @@ public class Dependency {
           case FILES:
             closure.addStatementBefore(
               factory.createStatementFromText(dependency.scope.getGroovyMethodCall() + " files('" + dependency.data + "')"), null);
+            break;
+          case FILETREE:
+            closure.addStatementBefore(
+              factory.createStatementFromText(dependency.scope.getGroovyMethodCall() + " fileTree(" +
+                                              GradleGroovyFile.convertMapToGroovySource((Map<String, Object>)dependency.data) + ")"), null);
             break;
         }
       }

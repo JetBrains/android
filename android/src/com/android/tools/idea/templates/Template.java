@@ -113,7 +113,7 @@ public class Template {
   private static final String RESOURCE_ROOT = "resources";
 
   /** Reserved filename which describes each template */
-  static final String TEMPLATE_XML = "template.xml";
+  public static final String TEMPLATE_XML = "template.xml";
 
   /** The settings.gradle lives at project root and points gradle at the build files for individual modules in their subdirectories */
   public static final String GRADLE_PROJECT_SETTINGS_FILE = "settings.gradle";
