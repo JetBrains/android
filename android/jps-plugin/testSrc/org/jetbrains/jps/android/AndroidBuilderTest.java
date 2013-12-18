@@ -1007,6 +1007,51 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     checkBuildLog(executor, "expected_log_2");
   }
 
+  public void testMaven1() throws Exception {
+    final MyExecutor executor = new MyExecutor("com.example.simple");
+    final JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> androidSdk = addJdkAndAndroidSdk();
+    addPathPatterns(executor, androidSdk);
+
+    copyToProject(getDefaultTestDataDirForCurrentTest() + "/project/myaar", "root/myaar");
+    final JpsModule appModule = addAndroidModule("app", new String[]{"src"}, "app", "app", androidSdk).getFirst();
+    final JpsModule libModule = addAndroidModule("lib", new String[]{"src"}, "lib", "lib", androidSdk).getFirst();
+
+    JpsMavenExtensionService.getInstance().getOrCreateExtension(appModule);
+    final MavenProjectConfiguration mavenConf = ((JpsMavenExtensionServiceImpl)JpsMavenExtensionService.
+      getInstance()).getMavenProjectConfiguration(myDataStorageRoot);
+    addMavenResourcesConf(mavenConf, "app");
+    addMavenResourcesConf(mavenConf, "lib");
+
+    final JpsAndroidModuleExtension libExtension = AndroidJpsUtil.getExtension(libModule);
+    assert libExtension != null;
+    final JpsAndroidModuleProperties libProps = ((JpsAndroidModuleExtensionImpl)libExtension).getProperties();
+    libProps.LIBRARY_PROJECT = true;
+    appModule.getDependenciesList().addModuleDependency(libModule);
+
+    rebuildAll();
+    checkMakeUpToDate(executor);
+
+    final JpsLibrary appAarLib = appModule.addModuleLibrary("app_arr", JpsJavaLibraryType.INSTANCE);
+    appAarLib.addRoot(getProjectPath("myaar/classes.jar"), JpsOrderRootType.COMPILED);
+    appModule.getDependenciesList().addLibraryDependency(appAarLib);
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log");
+    checkMakeUpToDate(executor);
+
+    appAarLib.addRoot(getProjectPath("myaar/res"), JpsOrderRootType.COMPILED);
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_1");
+    checkMakeUpToDate(executor);
+
+    final JpsLibrary libAarLib = libModule.addModuleLibrary("lib_arr", JpsJavaLibraryType.INSTANCE);
+    libAarLib.addRoot(getProjectPath("myaar/classes.jar"), JpsOrderRootType.COMPILED);
+    libAarLib.addRoot(getProjectPath("myaar/res"), JpsOrderRootType.COMPILED);
+    libModule.getDependenciesList().addLibraryDependency(libAarLib);
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_2");
+    checkMakeUpToDate(executor);
+  }
+
   private void addMavenResourcesConf(MavenProjectConfiguration mavenConf, String appNames) {
     final MavenModuleResourceConfiguration appMavenConf = new MavenModuleResourceConfiguration();
     appMavenConf.id = new MavenIdBean("com.text", appNames, "1");

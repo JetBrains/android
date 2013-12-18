@@ -10,6 +10,7 @@ import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.HashSet;
+import com.intellij.util.containers.OrderedSet;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactSigningMode;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
@@ -468,7 +469,7 @@ public class AndroidJpsUtil {
                                                            boolean withCacheDirs,
                                                            @NotNull BuildDataPaths dataPaths,
                                                            boolean checkExistence) {
-    final List<String> result = new ArrayList<String>();
+    final Collection<String> result = new OrderedSet<String>();
     addCompilableResourceDirsForModule(extension, withCacheDirs, dataPaths, result, checkExistence);
 
     for (JpsAndroidModuleExtension depExtension : getAllAndroidDependencies(extension.getModule(), true)) {
@@ -480,7 +481,7 @@ public class AndroidJpsUtil {
   private static void addCompilableResourceDirsForModule(JpsAndroidModuleExtension extension,
                                                          boolean withCacheDirs,
                                                          BuildDataPaths dataPaths,
-                                                         List<String> result,
+                                                         final Collection<String> result,
                                                          boolean checkExistence) {
     if (withCacheDirs) {
       final File resourcesCacheDir = getResourcesCacheDir(extension.getModule(), dataPaths);
@@ -498,6 +499,7 @@ public class AndroidJpsUtil {
     if (!checkExistence || generatedResourcesStorage.exists()) {
       result.add(generatedResourcesStorage.getPath());
     }
+    collectResDirectoriesFromAarDeps(extension.getModule(), result);
   }
 
   @Nullable
@@ -884,6 +886,47 @@ public class AndroidJpsUtil {
     }
     return hasAndroidFacet;
   }
-  
-  
+
+  public static void collectResDirectoriesFromAarDeps(@NotNull JpsModule module, @NotNull Collection<String> result) {
+    final Set<JpsLibrary> libs =
+      JpsJavaExtensionService.getInstance().enumerateDependencies(Collections.singletonList(module)).getLibraries();
+
+    for (JpsLibrary lib : libs) {
+      final File resDir = getResDirIfAar(lib);
+
+      if (resDir != null) {
+        result.add(resDir.getPath());
+      }
+    }
+  }
+
+  @Nullable
+  private static File getResDirIfAar(@NotNull JpsLibrary lib) {
+    final List<File> files = lib.getFiles(JpsOrderRootType.COMPILED);
+
+    if (files.size() == 1) {
+      final File file = files.get(0);
+
+      if (file.isDirectory() && SdkConstants.FD_RES.equals(file.getName())) {
+        return file;
+      }
+    }
+    else if (files.size() == 2) {
+      File resDir = null;
+      File classesJar = null;
+
+      for (File file : files) {
+        if (file.isDirectory() && SdkConstants.FD_RES.equals(file.getName())) {
+          resDir = file;
+        }
+        else if (file.isFile() && SdkConstants.FN_CLASSES_JAR.equals(file.getName())) {
+          classesJar = file;
+        }
+      }
+      if (resDir != null && classesJar != null && FileUtil.pathsEqual(resDir.getParent(), classesJar.getParent())) {
+        return resDir;
+      }
+    }
+    return null;
+  }
 }
