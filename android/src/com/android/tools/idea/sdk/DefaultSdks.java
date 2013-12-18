@@ -89,18 +89,19 @@ public final class DefaultSdks {
     return null;
   }
 
-  public static List<Sdk> setDefaultAndroidHome(@NotNull File path, boolean updateLocalPropertiesFile) {
-    return setDefaultAndroidHome(path, updateLocalPropertiesFile, null);
+  public static List<Sdk> setDefaultAndroidHome(@NotNull File path) {
+    return setDefaultAndroidHome(path, null);
   }
 
   /**
    * Sets the path of Android Studio's default Android SDK. This method should be called in a write action. It is assumed that the given
    * path has been validated by {@link #validateAndroidSdkPath(File)}. This method will fail silently if the given path is not valid.
    *
+   *
    * @param path the path of the Android SDK.
    * @see com.intellij.openapi.application.Application#runWriteAction(Runnable)
    */
-  public static List<Sdk> setDefaultAndroidHome(@NotNull File path, boolean updateLocalPropertiesFile, @Nullable Sdk javaSdk) {
+  public static List<Sdk> setDefaultAndroidHome(@NotNull File path, @Nullable Sdk javaSdk) {
     if (validateAndroidSdkPath(path)) {
       assert ApplicationManager.getApplication().isWriteAccessAllowed();
 

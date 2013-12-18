@@ -24,8 +24,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -204,11 +202,14 @@ public class AssetStudioWizardState extends TemplateWizardState implements Graph
     put(ATTR_SHAPE, GraphicGenerator.Shape.NONE);
     put(ATTR_FONT_SIZE, 144);
     put(ATTR_SOURCE_TYPE, AssetStudioWizardState.SourceType.IMAGE);
-    put(ATTR_IMAGE_PATH,
-        new File(TemplateManager.getTemplateRootFolder(),
-                 FileUtil.join(Template.CATEGORY_PROJECTS, NewProjectWizardState.MODULE_TEMPLATE_NAME,
-                               "root", "res", "drawable-xhdpi", "ic_launcher.png"))
-          .getAbsolutePath());
+    final File templateRootFolder = TemplateManager.getTemplateRootFolder();
+
+    if (templateRootFolder != null) {
+      put(ATTR_IMAGE_PATH, new File(templateRootFolder,
+        FileUtil.join(Template.CATEGORY_PROJECTS, NewProjectWizardState.MODULE_TEMPLATE_NAME,
+                      "root", "res", "drawable-xhdpi", "ic_launcher.png"))
+        .getAbsolutePath());
+    }
     put(ATTR_CLIPART_NAME, "android.png");
     put(ATTR_FOREGROUND_COLOR, Color.BLUE);
     put(ATTR_BACKGROUND_COLOR, Color.WHITE);
