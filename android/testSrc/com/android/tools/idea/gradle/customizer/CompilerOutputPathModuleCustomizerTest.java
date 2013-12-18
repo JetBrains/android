@@ -61,7 +61,7 @@ public class CompilerOutputPathModuleCustomizerTest extends IdeaTestCase {
     String compilerOutputPath = compilerSettings.getCompilerOutputUrl();
     moduleSettings.commit();
 
-    File classesFolder = ideaAndroidProject.getSelectedVariant().getMainArtifactInfo().getClassesFolder();
+    File classesFolder = ideaAndroidProject.getSelectedVariant().getMainArtifact().getClassesFolder();
     String path = FileUtil.toSystemIndependentName(classesFolder.getPath());
     String expected = VfsUtilCore.pathToUrl(ExternalSystemApiUtil.toCanonicalPath(path));
     assertEquals(expected, compilerOutputPath);

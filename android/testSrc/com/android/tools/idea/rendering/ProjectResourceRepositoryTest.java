@@ -167,7 +167,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
 
     File libJar = new File(rootDir, "library.aar/library.jar");
     AndroidLibraryStub library = new AndroidLibraryStub(libJar);
-    variant.getMainArtifactInfo().getDependencies().addLibrary(library);
+    variant.getMainArtifact().getDependencies().addLibrary(library);
   }
 
   @Override

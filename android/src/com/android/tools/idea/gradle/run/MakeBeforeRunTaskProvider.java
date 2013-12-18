@@ -115,7 +115,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
                              final RunConfiguration configuration,
                              ExecutionEnvironment env,
                              MakeBeforeRunTask task) {
-    if (!Projects.isGradleProject(myProject) || !Projects.isExperimentalBuildEnabled(myProject)) {
+    if (!Projects.isGradleProject(myProject) || !Projects.isDirectGradleInvocationEnabled(myProject)) {
       CompileStepBeforeRun regularMake = new CompileStepBeforeRun(myProject);
       return regularMake.executeTask(context, configuration, env, new CompileStepBeforeRun.MakeBeforeRunTask());
     }
@@ -126,7 +126,11 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       done.down();
       final GradleTaskExecutionListener listener = new GradleTaskExecutionListener() {
         @Override
-        public void executionFinished(@NotNull List<String> tasks, int errorCount, int warningCount) {
+        public void executionStarted(@NotNull List<String> tasks) {
+        }
+
+        @Override
+        public void executionEnded(@NotNull List<String> tasks, int errorCount, int warningCount) {
           result.set(errorCount == 0);
           done.up();
         }

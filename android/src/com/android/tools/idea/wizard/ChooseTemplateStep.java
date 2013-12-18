@@ -17,6 +17,7 @@ package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -45,7 +46,7 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
   private final TemplateChangeListener myTemplateChangeListener;
 
   private JPanel myPanel;
-  private JBList myTemplateList;
+  protected JBList myTemplateList;
   private ImageComponent myTemplateImage;
   private JLabel myDescription;
   private JLabel myError;
@@ -77,7 +78,7 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
   /**
    * Search the given folder for a list of templates and populate the display list.
    */
-  protected List<MetadataListItem> getTemplateList(TemplateWizardState state, String templateFolder, @Nullable Set<String> excluded) {
+  protected static List<MetadataListItem> getTemplateList(TemplateWizardState state, String templateFolder, @Nullable Set<String> excluded) {
     TemplateManager manager = TemplateManager.getInstance();
     List<File> templates = manager.getTemplates(templateFolder);
     List<MetadataListItem> metadataList = new ArrayList<MetadataListItem>(templates.size());
@@ -140,12 +141,12 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
     myTemplateImage.setIcon(null);
     setDescriptionHtml("");
     if (index != -1) {
-      MetadataListItem template = (MetadataListItem)myTemplateList.getModel().getElementAt(index);
+      MetadataListItem templateListItem = (MetadataListItem)myTemplateList.getModel().getElementAt(index);
 
-      if (template != null) {
-        myTemplateState.setTemplateLocation(template.myTemplate);
+      if (templateListItem != null) {
+        myTemplateState.setTemplateLocation(templateListItem.getTemplateFile());
         myTemplateState.convertApisToInt();
-        String thumb = template.myMetadata.getThumbnailPath();
+        String thumb = templateListItem.myMetadata.getThumbnailPath();
         if (thumb != null && !thumb.isEmpty()) {
           File file = new File(myTemplateState.myTemplate.getRootPath(), thumb.replace('/', File.separatorChar));
           try {
@@ -159,22 +160,22 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
         } else {
           myTemplateImage.setIcon(AndroidIcons.Wizards.DefaultTemplate);
         }
-        setDescriptionHtml(template.myMetadata.getDescription());
-        int minSdk = template.myMetadata.getMinSdk();
+        setDescriptionHtml(templateListItem.myMetadata.getDescription());
+        int minSdk = templateListItem.myMetadata.getMinSdk();
         Integer minApi = (Integer)myTemplateState.get(ATTR_MIN_API);
         if (minApi != null && minSdk > minApi) {
-          setErrorHtml(String.format("The activity %s has a minimum SDK level of %d.", template.myMetadata.getTitle(), minSdk));
+          setErrorHtml(String.format("The activity %s has a minimum SDK level of %d.", templateListItem.myMetadata.getTitle(), minSdk));
           return false;
         }
-        int minBuildApi = template.myMetadata.getMinBuildApi();
+        int minBuildApi = templateListItem.myMetadata.getMinBuildApi();
         Integer buildApi = (Integer)myTemplateState.get(ATTR_BUILD_API);
         if (buildApi != null && minSdk > buildApi) {
-          setErrorHtml(String.format("The activity %s has a minimum build API level of %d.", template.myMetadata.getTitle(), minBuildApi));
+          setErrorHtml(String.format("The activity %s has a minimum build API level of %d.", templateListItem.myMetadata.getTitle(), minBuildApi));
           return false;
         }
         if (myTemplateChangeListener != null && myPreviousSelection != index) {
           myPreviousSelection = index;
-          myTemplateChangeListener.templateChanged(template.toString());
+          myTemplateChangeListener.templateChanged(templateListItem.toString());
         }
       }
     }
@@ -205,6 +206,13 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
     @Override
     public String toString() {
       return myMetadata.getTitle();
+    }
+
+    /**
+     * Get the folder containing this template
+     */
+    public File getTemplateFile() {
+      return myTemplate;
     }
   }
 }

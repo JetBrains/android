@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
-import com.android.builder.model.ProductFlavor;
-import com.android.builder.model.Variant;
+import com.android.builder.model.*;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 public class VariantStub implements Variant {
@@ -30,8 +29,10 @@ public class VariantStub implements Variant {
 
   @NotNull private final String myName;
   @NotNull private final String myBuildType;
-  @NotNull private final ArtifactInfoStub myMainArtifactInfo;
-  @NotNull private final ArtifactInfoStub myTestArtifactInfo;
+  @NotNull private final AndroidArtifactStub myMainArtifact;
+  @NotNull private final AndroidArtifactStub myInstrumentationTestArtifact;
+
+  @NotNull private final Collection<AndroidArtifact> myExtraAndroidArtifacts = Lists.newArrayList();
 
   /**
    * Creates a new {@link VariantStub}.
@@ -43,8 +44,10 @@ public class VariantStub implements Variant {
   VariantStub(@NotNull String name, @NotNull String buildType, @NotNull FileStructure fileStructure) {
     myName = name;
     myBuildType = buildType;
-    myMainArtifactInfo = new ArtifactInfoStub(buildType, fileStructure);
-    myTestArtifactInfo = new ArtifactInfoStub(buildType, fileStructure);
+    myMainArtifact = new AndroidArtifactStub(AndroidProject.ARTIFACT_MAIN, buildType, fileStructure);
+    myInstrumentationTestArtifact = new AndroidArtifactStub(AndroidProject.ARTIFACT_INSTRUMENT_TEST, buildType, fileStructure);
+
+    myExtraAndroidArtifacts.add(myInstrumentationTestArtifact);
   }
 
   @Override
@@ -61,14 +64,25 @@ public class VariantStub implements Variant {
 
   @Override
   @NotNull
-  public ArtifactInfoStub getMainArtifactInfo() {
-    return myMainArtifactInfo;
+  public AndroidArtifactStub getMainArtifact() {
+    return myMainArtifact;
+  }
+
+  @NotNull
+  public AndroidArtifactStub getInstrumentTestArtifact() {
+    return myInstrumentationTestArtifact;
   }
 
   @Override
-  @Nullable
-  public ArtifactInfoStub getTestArtifactInfo() {
-    return myTestArtifactInfo;
+  @NotNull
+  public Collection<AndroidArtifact> getExtraAndroidArtifacts() {
+    return myExtraAndroidArtifacts;
+  }
+
+  @Override
+  @NotNull
+  public Collection<JavaArtifact> getExtraJavaArtifacts() {
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -86,12 +100,6 @@ public class VariantStub implements Variant {
   @Override
   @NotNull
   public ProductFlavor getMergedFlavor() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  @NotNull
-  public List<String> getResourceConfigurations() {
     throw new UnsupportedOperationException();
   }
 

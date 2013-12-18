@@ -29,10 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.SdkConstants.DOT_AAR;
 import static org.jetbrains.android.facet.ResourceFolderManager.addAarsFromModuleLibraries;
@@ -219,7 +216,7 @@ public final class AppResourceRepository extends MultiResourceRepository {
   private static void addGradleLibraries(List<AndroidLibrary> list, AndroidFacet facet) {
     IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
     if (gradleProject != null) {
-      List<AndroidLibrary> libraries = gradleProject.getSelectedVariant().getMainArtifactInfo().getDependencies().getLibraries();
+      List<AndroidLibrary> libraries = gradleProject.getSelectedVariant().getMainArtifact().getDependencies().getLibraries();
       Set<File> unique = Sets.newHashSet();
       for (AndroidLibrary library : libraries) {
         addGradleLibrary(list, library, unique);
@@ -269,5 +266,22 @@ public final class AppResourceRepository extends MultiResourceRepository {
     assert modules.containsAll(libraries);
     assert modules.size() == libraries.size() + 1; // should only combine with the module set repository
     return new AppResourceRepository(facet, modules, libraries);
+  }
+
+  @Nullable
+  public FileResourceRepository findRepositoryFor(@NotNull File aarDirectory) {
+    String aarPath = aarDirectory.getPath();
+    assert aarPath.endsWith(DOT_AAR) : aarPath;
+    for (LocalResourceRepository r : myLibraries) {
+      if (r instanceof FileResourceRepository) {
+        FileResourceRepository repository = (FileResourceRepository)r;
+        if (repository.getResourceDirectory().getPath().startsWith(aarPath)) {
+          return repository;
+        }
+      } else {
+        assert false : r.getClass();
+      }
+    }
+    return null;
   }
 }

@@ -16,8 +16,10 @@
 package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.SdkConstants;
+import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.tools.idea.gradle.stubs.FileStructure;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
@@ -63,7 +65,7 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   @NotNull
   public String getModelVersion() {
-    return "0.6.3-SNAPSHOT";
+    return GradleUtil.GRADLE_PLUGIN_MINIMUM_VERSION + "-SNAPSHOT";
   }
 
   @Override
@@ -95,8 +97,13 @@ public class AndroidProjectStub implements AndroidProject {
 
   @Override
   @NotNull
-  public Map<String, BuildTypeContainer> getBuildTypes() {
-    return myBuildTypes;
+  public Collection<BuildTypeContainer> getBuildTypes() {
+    return myBuildTypes.values();
+  }
+
+  @Nullable
+  public BuildTypeContainer findBuildType(@NotNull String name) {
+    return myBuildTypes.get(name);
   }
 
   @NotNull
@@ -108,10 +115,15 @@ public class AndroidProjectStub implements AndroidProject {
 
   @Override
   @NotNull
-  public Map<String, ProductFlavorContainer> getProductFlavors() {
-    return myProductFlavors;
+  public Collection<ProductFlavorContainer> getProductFlavors() {
+    return myProductFlavors.values();
   }
 
+  @Nullable
+  public ProductFlavorContainerStub findProductFlavor(@NotNull String name) {
+    ProductFlavorContainer flavorContainer = myProductFlavors.get(name);
+    return (ProductFlavorContainerStub)flavorContainer;
+  }
 
   @NotNull
   public VariantStub addVariant(@NotNull String variantName) {
@@ -134,8 +146,14 @@ public class AndroidProjectStub implements AndroidProject {
 
   @Override
   @NotNull
-  public Map<String, Variant> getVariants() {
-    return myVariants;
+  public Collection<Variant> getVariants() {
+    return myVariants.values();
+  }
+
+  @Override
+  @NotNull
+  public Collection<ArtifactMetaData> getExtraArtifacts() {
+    throw new UnsupportedOperationException();
   }
 
   @Nullable
@@ -157,19 +175,25 @@ public class AndroidProjectStub implements AndroidProject {
 
   @Override
   @NotNull
-  public List<File> getFrameworkSource() {
+  public Collection<File> getFrameworkSources() {
     throw new UnsupportedOperationException();
   }
 
   @Override
   @NotNull
-  public Map<String, SigningConfig> getSigningConfigs() {
+  public Collection<SigningConfig> getSigningConfigs() {
     throw new UnsupportedOperationException();
   }
 
   @Override
   @NotNull
   public AaptOptions getAaptOptions() {
+    throw new UnsupportedOperationException();
+  }
+
+  @NonNull
+  @Override
+  public LintOptions getLintOptions() {
     throw new UnsupportedOperationException();
   }
 

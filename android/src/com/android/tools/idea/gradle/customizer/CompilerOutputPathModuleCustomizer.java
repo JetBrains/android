@@ -49,7 +49,7 @@ public class CompilerOutputPathModuleCustomizer implements ModuleCustomizer {
         return;
       }
       Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
-      File outputFile = selectedVariant.getMainArtifactInfo().getClassesFolder();
+      File outputFile = selectedVariant.getMainArtifact().getClassesFolder();
       setOutputPaths(module, outputFile, null);
     } else if (ModuleType.get(module) instanceof JavaModuleType) {
       // In order to run tests for a Java module, we need to set its classpath and test classpath.

@@ -518,7 +518,7 @@ public class AndroidRootUtil {
     if (ideaAndroidProject != null) {
       // For Android-Gradle projects, IdeaAndroidProject is not null.
       Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
-      File outputFile = selectedVariant.getMainArtifactInfo().getOutputFile();
+      File outputFile = selectedVariant.getMainArtifact().getOutputFile();
       return outputFile.getAbsolutePath();
     }
     String path = facet.getProperties().APK_PATH;

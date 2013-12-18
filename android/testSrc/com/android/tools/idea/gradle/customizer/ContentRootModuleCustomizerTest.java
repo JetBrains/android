@@ -53,7 +53,7 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
     File baseDir = new File(FileUtil.toSystemDependentName(myProject.getBasePath()));
     myAndroidProject = TestProjects.createBasicProject(baseDir, myProject.getName());
 
-    Collection<Variant> variants = myAndroidProject.getVariants().values();
+    Collection<Variant> variants = myAndroidProject.getVariants();
     Variant selectedVariant = ContainerUtil.getFirstItem(variants);
     assertNotNull(selectedVariant);
     myIdeaAndroidProject = new IdeaAndroidProject(myAndroidProject.getName(), baseDir, myAndroidProject, selectedVariant.getName());

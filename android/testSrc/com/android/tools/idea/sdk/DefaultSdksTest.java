@@ -17,18 +17,20 @@ package com.android.tools.idea.sdk;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidTestCaseHelper;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.utils.NullLogger;
 import com.google.common.collect.Lists;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -44,22 +46,24 @@ public class DefaultSdksTest extends IdeaTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    AndroidTestCaseHelper.removeExistingAndroidSdks();
+    myAndroidSdkPath = new File(AndroidTestCaseHelper.getAndroidSdkPath());
+
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        removeExistingAndroidSdks();
+        FacetManager facetManager = FacetManager.getInstance(myModule);
+        ModifiableFacetModel model = facetManager.createModifiableModel();
+        try {
+          model.addFacet(facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null));
+        } finally {
+          model.commit();
+        }
       }
     });
-    myAndroidSdkPath = new File(AndroidTestCaseHelper.getAndroidSdkPath());
-  }
-
-  private static void removeExistingAndroidSdks() {
-    ProjectJdkTable table = ProjectJdkTable.getInstance();
-
-    List<Sdk> androidSdks = table.getSdksOfType(AndroidSdkType.getInstance());
-    for (Sdk sdk : androidSdks) {
-      table.removeJdk(sdk);
-    }
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    assertNotNull(facet);
+    facet.getProperties().ALLOW_USER_CONFIGURATION = false;
   }
 
   public void testCreateAndroidSdksForAllTargets() {
@@ -69,7 +73,6 @@ public class DefaultSdksTest extends IdeaTestCase {
 
   public void testGetDefaultAndroidHome() {
     // Create default SDKs first.
-
     DefaultSdks.createAndroidSdksForAllTargets(myAndroidSdkPath);
 
     File androidHome = DefaultSdks.getDefaultAndroidHome();
@@ -90,23 +93,13 @@ public class DefaultSdksTest extends IdeaTestCase {
     localProperties.setAndroidSdkPath("");
     localProperties.save();
 
-    List<Sdk> sdks = DefaultSdks.setDefaultAndroidHome(myAndroidSdkPath, true);
+    List<Sdk> sdks = DefaultSdks.setDefaultAndroidHome(myAndroidSdkPath);
     assertOneSdkPerAvailableTarget(sdks);
 
     localProperties = new LocalProperties(myProject);
-    assertEquals(myAndroidSdkPath.getPath(), localProperties.getAndroidSdkPath());
-  }
-
-  public void testSetDefaultAndroidHomeNotUpdatingLocalPropertiesFile() throws IOException {
-    LocalProperties localProperties = new LocalProperties(myProject);
-    localProperties.setAndroidSdkPath("");
-    localProperties.save();
-
-    List<Sdk> sdks = DefaultSdks.setDefaultAndroidHome(myAndroidSdkPath, false);
-    assertOneSdkPerAvailableTarget(sdks);
-
-    localProperties = new LocalProperties(myProject);
-    assertEquals("", localProperties.getAndroidSdkPath());
+    File androidSdkPath = localProperties.getAndroidSdkPath();
+    assertNotNull(androidSdkPath);
+    assertEquals(myAndroidSdkPath.getPath(), androidSdkPath.getPath());
   }
 
   private void assertOneSdkPerAvailableTarget(@NotNull List<Sdk> sdks) {

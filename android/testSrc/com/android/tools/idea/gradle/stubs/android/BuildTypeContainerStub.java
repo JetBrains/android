@@ -15,17 +15,22 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
-import com.android.builder.model.BuildType;
+import com.android.annotations.NonNull;
 import com.android.builder.model.BuildTypeContainer;
+import com.android.builder.model.SourceProviderContainer;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
 
 public class BuildTypeContainerStub implements BuildTypeContainer {
   @NotNull private final String myName;
   @NotNull private final SourceProviderStub mySourceProvider;
+  private final BuildTypeStub myBuildType;
 
   BuildTypeContainerStub(@NotNull String name, @NotNull FileStructure fileStructure) {
     myName = name;
+    myBuildType = new BuildTypeStub(name);
     mySourceProvider = new SourceProviderStub(fileStructure);
     setUpPaths();
   }
@@ -48,13 +53,19 @@ public class BuildTypeContainerStub implements BuildTypeContainer {
 
   @Override
   @NotNull
-  public BuildType getBuildType() {
-    throw new UnsupportedOperationException();
+  public BuildTypeStub getBuildType() {
+    return myBuildType;
   }
 
   @Override
   @NotNull
   public SourceProviderStub getSourceProvider() {
     return mySourceProvider;
+  }
+
+  @NonNull
+  @Override
+  public Collection<SourceProviderContainer> getExtraSourceProviders() {
+    throw new UnsupportedOperationException();
   }
 }

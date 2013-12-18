@@ -34,6 +34,9 @@ public final class GradleBuilds {
   /** Task for compiling a Java module's test classes. */
   @NonNls private static final String TEST_CLASSES_TASK_NAME = "testClasses";
 
+  @NonNls public static final String PARALLEL_BUILD_OPTION = "--parallel";
+  @NonNls public static final String OFFLINE_MODE_OPTION = "--offline";
+
   public enum TestCompileContext {
     NONE,            // don't compile any tests
     ANDROID_TESTS,   // compile tests that are part of an Android Module

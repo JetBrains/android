@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.navigation.macros;
 
 import com.android.navigation.*;
 import com.android.tools.idea.editors.navigation.NavigationEditor;
-import com.android.tools.idea.editors.navigation.NavigationEditorPanel;
+import com.android.tools.idea.editors.navigation.NavigationView;
 import com.android.tools.idea.editors.navigation.Utilities;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -103,8 +103,8 @@ public class Analysis {
       }
 
       // Examine fragments associated with this activity
-      String xmlFileName = NavigationEditorPanel.getXMLFileName(module, state);
-      XmlFile psiFile = (XmlFile)NavigationEditorPanel.getPsiFile(false, xmlFileName, file, project);
+      String xmlFileName = NavigationView.getXMLFileName(module, state);
+      XmlFile psiFile = (XmlFile)NavigationView.getPsiFile(false, xmlFileName, file, project);
       final List<FragmentEntry> fragments = getFragmentEntries(psiFile);
 
       for (FragmentEntry fragment : fragments) {

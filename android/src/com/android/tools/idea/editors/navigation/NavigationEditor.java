@@ -81,7 +81,7 @@ public class NavigationEditor implements FileEditor {
     try {
       myNavigationModel = read(file);
       // component = new NavigationModelEditorPanel1(project, file, read(file));
-      NavigationEditorPanel editor = new NavigationEditorPanel(project, file, myNavigationModel);
+      NavigationView editor = new NavigationView(project, file, myNavigationModel);
       JBScrollPane scrollPane = new JBScrollPane(editor);
       scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT_INCREMENT);
       JPanel p = new JPanel(new BorderLayout());
@@ -120,7 +120,7 @@ public class NavigationEditor implements FileEditor {
 
 
   // See  AndroidDesignerActionPanel
-  protected JComponent createToolbar(NavigationEditorPanel myDesigner) {
+  protected JComponent createToolbar(NavigationView myDesigner) {
     JPanel panel = new JPanel(new BorderLayout());
     panel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
 
@@ -141,7 +141,7 @@ public class NavigationEditor implements FileEditor {
   }
 
   // See AndroidDesignerActionPanel
-  private static ActionGroup getActions(final NavigationEditorPanel myDesigner) {
+  private static ActionGroup getActions(final NavigationView myDesigner) {
     DefaultActionGroup group = new DefaultActionGroup();
 
     group.add(new AnAction(null, "Zoom Out (-)", AndroidIcons.ZoomOut) {
@@ -219,6 +219,7 @@ public class NavigationEditor implements FileEditor {
     myNavigationModel.getTransitions().clear();
     Analysis.deriveAndAddTransitions(myNavigationModel, myProject, myFile);
     myNotificationsDisabled = false;
+    //myNavigationModel.getListeners().notify(NavigationModel.Event.update(Object.class));
   }
 
   @Override
