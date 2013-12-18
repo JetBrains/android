@@ -497,10 +497,18 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
       assertNotNull(aarLib);
       final String[] dep2Urls = aarLib.getUrls(OrderRootType.CLASSES);
       assertEquals(2, dep2Urls.length);
+      String classesJarDep = dep2Urls[0];
+      String resDep = dep2Urls[1];
+
+      if (resDep.contains("classes.jar")) {
+        final String t = resDep;
+        resDep = classesJarDep;
+        classesJarDep = t;
+      }
       final String extractedAarDirPath = FileUtil.toCanonicalPath(myDir.getPath() + "/project/gen-external-apklibs/com_myaar_1.0");
       assertEquals(VirtualFileManager.constructUrl(JarFileSystem.PROTOCOL, extractedAarDirPath + "/classes.jar") +
-                   JarFileSystem.JAR_SEPARATOR, dep2Urls[0]);
-      assertEquals(VfsUtilCore.pathToUrl(extractedAarDirPath + "/res"), dep2Urls[1]);
+                   JarFileSystem.JAR_SEPARATOR, classesJarDep);
+      assertEquals(VfsUtilCore.pathToUrl(extractedAarDirPath + "/res"), resDep);
 
       assertInstanceOf(deps[3], LibraryOrderEntry.class);
       assertEquals(deps[3].getPresentableName(), "Maven: com:myjar:1.0");
