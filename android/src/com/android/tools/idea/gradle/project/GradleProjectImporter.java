@@ -170,10 +170,9 @@ public class GradleProjectImporter {
    * @param projectName          name of the project.
    * @param projectRootDir       root directory of the project.
    * @param callback             called after the project has been imported.
-   * @param initialLanguageLevel when creating a new project, sets the language level to the given version
-   *                             early on (this is because you cannot set a language level later on in the process
-   *                             without telling the user that the language level has changed and to re-open the
-   *                             project)
+   * @param initialLanguageLevel when creating a new project, sets the language level to the given version early on (this is because you
+   *                             cannot set a language level later on in the process without telling the user that the language level has
+   *                             changed and to re-open the project)
    * @throws IOException            if any file I/O operation fails (e.g. creating the '.idea' directory.)
    * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
    */
