@@ -17,6 +17,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.util.ThrowableRunnable;
 import com.intellij.util.containers.HashSet;
@@ -1063,6 +1064,11 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
   public void testSpellcheckerQuickfix() throws Throwable {
     myFixture.copyFileToProject(testFolder + "/spellchecker_resources.xml", "res/values/sr.xml");
     doTestSpellcheckerQuickFixes();
+  }
+
+  public void testAar() throws Throwable {
+    PsiTestUtil.addLibrary(myModule, "maven_aar_dependency", getTestDataPath() + "/" + testFolder + "/myaar", "classes.jar", "res");
+    doTestCompletion();
   }
 
   private void doTestAttrReferenceCompletion(String textToType) throws IOException {
