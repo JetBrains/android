@@ -26,6 +26,7 @@ import com.intellij.platform.ProjectTemplate;
 import com.intellij.platform.ProjectTemplatesFactory;
 import com.intellij.platform.templates.BuilderBasedTemplate;
 import icons.AndroidIcons;
+import org.jetbrains.android.newProject.AndroidProjectTemplatesFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,7 +43,7 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
   @NotNull
   @Override
   public String[] getGroups() {
-    return new String[] {ANDROID_GRADLE_GROUP};
+    return new String[] {AndroidProjectTemplatesFactory.ANDROID};
   }
 
   @Override
