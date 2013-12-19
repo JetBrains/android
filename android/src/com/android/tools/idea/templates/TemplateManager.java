@@ -36,7 +36,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.templates.Template.TEMPLATE_XML;
+import static com.android.tools.idea.templates.Template.TEMPLATE_XML_NAME;
 
 /**
  * Handles locating templates and providing template metadata
@@ -177,7 +177,7 @@ public class TemplateManager {
       File[] files = new File(root, folder).listFiles();
       if (files != null) {
         for (File file : files) {
-          if (file.isDirectory() && (new File(file, TEMPLATE_XML)).exists()) { // Avoid .DS_Store etc, & non Freemarker templates
+          if (file.isDirectory() && (new File(file, TEMPLATE_XML_NAME)).exists()) { // Avoid .DS_Store etc, & non Freemarker templates
             templates.add(file);
             templateNames.put(file.getName(), file);
           }
@@ -190,7 +190,7 @@ public class TemplateManager {
       File[] files = new File(extra, folder).listFiles();
       if (files != null) {
         for (File file : files) {
-          if (file.isDirectory() && (new File(file, TEMPLATE_XML)).exists()) {
+          if (file.isDirectory() && (new File(file, TEMPLATE_XML_NAME)).exists()) {
             File replaces = templateNames.get(file.getName());
             if (replaces != null) {
               int compare = compareTemplates(replaces, file);
@@ -261,7 +261,7 @@ public class TemplateManager {
     }
 
     try {
-      File templateFile = new File(templateDir, TEMPLATE_XML);
+      File templateFile = new File(templateDir, TEMPLATE_XML_NAME);
       if (templateFile.isFile()) {
         String xml = Files.toString(templateFile, Charsets.UTF_8);
         Document doc = XmlUtils.parseDocumentSilently(xml, true);
