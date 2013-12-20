@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.invoker;
 
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
-import com.android.tools.idea.gradle.compiler.BuildFailures;
+import com.android.tools.idea.gradle.invoker.GradleInvoker.TasksExecutionListener;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleToolWindowFactory;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
 import com.android.tools.idea.gradle.output.GradleMessage;
@@ -91,6 +91,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -102,6 +103,9 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleInvocationJ
  * Invokes Gradle tasks as a IDEA task in the background.
  */
 class GradleTasksExecutor extends Task.Backgroundable {
+  private static final ExternalSystemTaskNotificationListener GRADLE_LISTENER = new ExternalSystemTaskNotificationListenerAdapter() {
+  };
+
   private static final long ONE_MINUTE_MS = 60L /*sec*/ * 1000L /*millisec*/;
 
   private static final Logger LOG = Logger.getInstance(GradleInvoker.class);
@@ -118,8 +122,9 @@ class GradleTasksExecutor extends Task.Backgroundable {
   @Nullable private NewErrorTreeViewPanel myErrorTreeView;
 
   @NotNull private final GradleExecutionHelper myHelper = new GradleExecutionHelper();
-  @NotNull private final List<String> myTasks;
-  @Nullable private final GradleTaskExecutionListener myListener;
+  @NotNull private final List<String> myGradleTasks;
+  @NotNull private final Collection<TasksExecutionListener> myExecutionListeners;
+  @Nullable private final GradleInvoker.AfterExecutionTask myAfterTask;
 
   private volatile int myErrorCount;
   private volatile int myWarningCount;
@@ -130,10 +135,14 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
   private CloseListener myCloseListener;
 
-  GradleTasksExecutor(@NotNull Project project, @NotNull List<String> tasks, @Nullable GradleTaskExecutionListener listener) {
-    super(project, String.format("Gradle: Executing Tasks %1$s", tasks.toString()), false /* Gradle does not support cancellation of task execution */);
-    myTasks = tasks;
-    myListener = listener;
+  GradleTasksExecutor(@NotNull Project project,
+                      @NotNull List<String> gradleTasks,
+                      @NotNull Collection<TasksExecutionListener> executionListeners,
+                      @Nullable GradleInvoker.AfterExecutionTask afterTask) {
+    super(project, String.format("Gradle: Executing Tasks %1$s", gradleTasks.toString()), false /* Gradle does not support cancellation of task execution */);
+    myGradleTasks = gradleTasks;
+    myExecutionListeners = executionListeners;
+    myAfterTask = afterTask;
   }
 
   @Override
@@ -225,6 +234,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
   private void invokeGradleTasks() {
     final Project project = getNotNullProject();
+
     final GradleExecutionSettings executionSettings = GradleUtil.getGradleExecutionSettings(project);
     assert executionSettings != null;
 
@@ -233,36 +243,40 @@ class GradleTasksExecutor extends Task.Backgroundable {
     Function<ProjectConnection, Void> executeTasksFunction = new Function<ProjectConnection, Void>() {
       @Override
       public Void fun(ProjectConnection connection) {
+        for (TasksExecutionListener listener : myExecutionListeners) {
+          listener.executionStarted(myGradleTasks);
+        }
+
         final Stopwatch stopwatch = new Stopwatch();
         stopwatch.start();
 
         GradleConsoleView.getInstance(getNotNullProject()).clear();
-        addMessage(new GradleMessage(GradleMessage.Kind.INFO, "Gradle tasks " + myTasks), null);
+        addMessage(new GradleMessage(GradleMessage.Kind.INFO, "Gradle tasks " + myGradleTasks), null);
 
         ExternalSystemTaskId id = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project);
         List<String> extraJvmArgs = getGradleInvocationJvmArgs(new File(projectPath));
-        ExternalSystemTaskNotificationListener listener = new ExternalSystemTaskNotificationListenerAdapter() {
-        };
 
         GradleConsoleView consoleView = GradleConsoleView.getInstance(getNotNullProject());
 
         String executingTasksText =
-          "Executing tasks: " + myTasks + SystemProperties.getLineSeparator() + SystemProperties.getLineSeparator();
+          "Executing tasks: " + myGradleTasks + SystemProperties.getLineSeparator() + SystemProperties.getLineSeparator();
         consoleView.print(executingTasksText, ConsoleViewContentType.NORMAL_OUTPUT);
 
         ByteArrayOutputStream stdout = new ConsoleAwareOutputStream(consoleView, ConsoleViewContentType.NORMAL_OUTPUT);
         ByteArrayOutputStream stderr = new ConsoleAwareOutputStream(consoleView, ConsoleViewContentType.ERROR_OUTPUT);
 
+        List<GradleMessage> compilerMessages = Collections.emptyList();
+
         try {
           BuildLauncher launcher = connection.newBuild();
-          GradleExecutionHelper.prepare(launcher, id, executionSettings, listener, extraJvmArgs, connection);
+          GradleExecutionHelper.prepare(launcher, id, executionSettings, GRADLE_LISTENER, extraJvmArgs, connection);
 
           File javaHome = Projects.getJavaHome(getNotNullProject());
           if (javaHome != null) {
             launcher.setJavaHome(javaHome);
           }
 
-          launcher.forTasks(ArrayUtil.toStringArray(myTasks));
+          launcher.forTasks(ArrayUtil.toStringArray(myGradleTasks));
 
           List<String> args = Lists.newArrayList();
           CompilerWorkspaceConfiguration compilerConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
@@ -286,7 +300,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
           launcher.run();
         }
         catch (BuildException e) {
-          handleBuildException(e, stderr.toString());
+          compilerMessages = handleBuildException(e, stderr.toString());
         }
         finally {
           Closeables.closeQuietly(stdout);
@@ -307,9 +321,14 @@ class GradleTasksExecutor extends Task.Backgroundable {
               showMessages();
             }
           });
-          Projects.refresh(project);
-          if (myListener != null) {
-            myListener.executionEnded(myTasks, myErrorCount, myWarningCount);
+
+          GradleExecutionResult result = new GradleExecutionResult(myGradleTasks, compilerMessages);
+          for (TasksExecutionListener listener : myExecutionListeners) {
+            listener.executionEnded(result);
+          }
+
+          if (myAfterTask != null) {
+            myAfterTask.execute(result);
           }
         }
         return null;
@@ -324,31 +343,20 @@ class GradleTasksExecutor extends Task.Backgroundable {
    * to show, in the "Problems" view, compilation errors by parsing the error output. If no errors are found, we show the stack trace in the
    * "Problems" view. The idea is that we need to somehow inform the user that something went wrong.
    */
-  private void handleBuildException(BuildException e, String stdErr) {
-    Collection<GradleMessage> compilerMessages = new GradleErrorOutputParser().parseErrorOutput(stdErr, false);
+  private List<GradleMessage> handleBuildException(BuildException e, String stdErr) {
+    List<GradleMessage> compilerMessages = new GradleErrorOutputParser().parseErrorOutput(stdErr, false);
     if (!compilerMessages.isEmpty()) {
-      Project project = getNotNullProject();
-
-      boolean offlineMode = Projects.isOfflineBuildModeEnabled(project);
-      boolean unresolvedDependenciesFoundInOfflineMode = false;
-
       for (GradleMessage msg : compilerMessages) {
-        if (offlineMode && !unresolvedDependenciesFoundInOfflineMode) {
-          unresolvedDependenciesFoundInOfflineMode = BuildFailures.unresolvedDependenciesFound(msg.getText());
-        }
         addMessage(msg, null);
       }
-
-      if (unresolvedDependenciesFoundInOfflineMode) {
-        BuildFailures.notifyUnresolvedDependenciesInOfflineMode(project);
-      }
-
-      return;
+      return compilerMessages;
     }
     // There are no error messages to present. Show some feedback indicating that something went wrong.
     if (!stdErr.isEmpty()) {
       // Show the contents of stderr as a compiler error.
-      addMessage(new GradleMessage(GradleMessage.Kind.ERROR, stdErr), null);
+      GradleMessage msg = new GradleMessage(GradleMessage.Kind.ERROR, stdErr);
+      compilerMessages.add(msg);
+      addMessage(msg, null);
     }
     else {
       // Since we have nothing else to show, just print the stack trace of the caught exception.
@@ -357,12 +365,15 @@ class GradleTasksExecutor extends Task.Backgroundable {
         //noinspection IOResourceOpenedButNotSafelyClosed
         e.printStackTrace(new PrintStream(out));
         String message = "Internal error:" + SystemProperties.getLineSeparator() + out.toString();
-        addMessage(new GradleMessage(GradleMessage.Kind.ERROR, message), null);
+        GradleMessage msg = new GradleMessage(GradleMessage.Kind.ERROR, message);
+        compilerMessages.add(msg);
+        addMessage(msg, null);
       }
       finally {
         Closeables.closeQuietly(out);
       }
     }
+    return compilerMessages;
   }
 
   private void addMessage(@NotNull final GradleMessage message, @Nullable final Navigatable navigatable) {
