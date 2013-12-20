@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.gradle.parser;
 
-import com.android.SdkConstants;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
 
@@ -39,47 +37,25 @@ import java.util.List;
  * {@link com.intellij.util.ActionRunner#runInsideWriteAction}.
  */
 public class GradleBuildFile extends GradleGroovyFile {
-  public static final String GRADLE_PLUGIN_CLASSPATH = SdkConstants.GRADLE_PLUGIN_NAME;
+  /**
+   * Used as a placeholder for a value in a build file we couldn't understand. We avoid overwriting these unless the explicit intent
+   * is to replace an unparseable value with a new, parseable one.
+   */
+  public static final Object UNRECOGNIZED_VALUE = "Unrecognized value";
 
   public GradleBuildFile(@NotNull VirtualFile buildFile, @NotNull Project project) {
     super(buildFile, project);
   }
 
-  /**
-   * @return true if the build file has a value for this key that we know how to safely parse and modify; false if it has user modifications
-   * and should be left alone.
-   */
-  public boolean canParseValue(@NotNull BuildFileKey key) {
-    checkInitialized();
-    return canParseValue(myGroovyFile, key);
-  }
-
-  /**
-   * @return true if the build file has a value for this key that we know how to safely parse and modify; false if it has user modifications
-   * and should be left alone.
-   */
-  public boolean canParseValue(@NotNull GrStatementOwner root, @NotNull BuildFileKey key) {
-    checkInitialized();
-    GrMethodCall method = getMethodCallByPath(root, key.getPath());
-    if (method == null) {
-      return false;
-    }
-    GroovyPsiElement arg = key.getType() == BuildFileKeyType.CLOSURE ? getMethodClosureArgument(method) : getFirstArgument(method);
-    if (arg == null) {
-      return false;
-    }
-    return key.canParseValue(arg);
-  }
-
   @NotNull
-  public List<Dependency> getDependencies() {
+  public List<BuildFileStatement> getDependencies() {
     Object dependencies = getValue(BuildFileKey.DEPENDENCIES);
     if (dependencies == null) {
       return Collections.emptyList();
     }
     assert dependencies instanceof List;
     //noinspection unchecked
-    return (List<Dependency>)dependencies;
+    return (List<BuildFileStatement>)dependencies;
   }
 
   /**

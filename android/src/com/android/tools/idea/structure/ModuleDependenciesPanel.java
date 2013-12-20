@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.structure;
 
-import com.android.tools.idea.gradle.parser.BuildFileKey;
-import com.android.tools.idea.gradle.parser.Dependency;
-import com.android.tools.idea.gradle.parser.GradleBuildFile;
-import com.android.tools.idea.gradle.parser.GradleSettingsFile;
+import com.android.tools.idea.gradle.parser.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
@@ -54,6 +51,7 @@ import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.util.List;
 
@@ -82,9 +80,9 @@ public class ModuleDependenciesPanel extends EditorPanel {
     GradleBuildFile buildFile = null;
     if (myGradleSettingsFile != null) {
       buildFile = myGradleSettingsFile.getModuleBuildFile(myModulePath);
-      if (buildFile != null && buildFile.canParseValue(BuildFileKey.DEPENDENCIES)) {
-        List<Dependency> dependencies = buildFile.getDependencies();
-        for (Dependency dependency : dependencies) {
+      if (buildFile != null) {
+        List<BuildFileStatement> dependencies = buildFile.getDependencies();
+        for (BuildFileStatement dependency : dependencies) {
           myModel.addItem(new ModuleDependenciesTableItem(dependency));
         }
       } else {
@@ -95,6 +93,9 @@ public class ModuleDependenciesPanel extends EditorPanel {
     myModel.resetModified();
 
     myEntryTable = new JBTable(myModel);
+    TableRowSorter<ModuleDependenciesTableModel> sorter = new TableRowSorter<ModuleDependenciesTableModel>(myModel);
+    sorter.setRowFilter(myModel.getFilter());
+    myEntryTable.setRowSorter(sorter);
     myEntryTable.setShowGrid(false);
     myEntryTable.setDragEnabled(false);
     myEntryTable.setIntercellSpacing(new Dimension(0, 0));
@@ -237,7 +238,7 @@ public class ModuleDependenciesPanel extends EditorPanel {
     decorator.setRemoveAction(new AnActionButtonRunnable() {
         @Override
         public void run(AnActionButton button) {
-          removeSelectedItems(TableUtil.removeSelectedItems(myEntryTable));
+          removeSelectedItems();
         }
       });
     decorator.setMoveUpAction(new AnActionButtonRunnable() {
@@ -289,9 +290,11 @@ public class ModuleDependenciesPanel extends EditorPanel {
     for (String s : myGradleSettingsFile.getModules()) {
       modules.add(s);
     }
-    List<Dependency> dependencies = myGradleBuildFile.getDependencies();
-    for (Dependency dependency : dependencies) {
-      modules.remove(dependency.data);
+    List<BuildFileStatement> dependencies = myGradleBuildFile.getDependencies();
+    for (BuildFileStatement dependency : dependencies) {
+      if (dependency instanceof Dependency) {
+        modules.remove(((Dependency)dependency).data);
+      }
     }
     modules.remove(myModulePath);
     final Component parent = this;
@@ -314,6 +317,7 @@ public class ModuleDependenciesPanel extends EditorPanel {
       myModel.addItem(new ModuleDependenciesTableItem(
           new Dependency(Dependency.Scope.COMPILE, Dependency.Type.MODULE, module)));
     }
+    myModel.fireTableDataChanged();
   }
 
   @Override
@@ -340,14 +344,17 @@ public class ModuleDependenciesPanel extends EditorPanel {
     }
   }
 
-  private void removeSelectedItems(@NotNull final List removedRows) {
-    if (removedRows.isEmpty()) {
-      return;
+  private void removeSelectedItems() {
+    if (myEntryTable.isEditing()){
+      myEntryTable.getCellEditor().stopCellEditing();
     }
-    final int[] selectedRows = myEntryTable.getSelectedRows();
+    for (int modelRow = myModel.getRowCount() - 1; modelRow >= 0; modelRow--) {
+      if (myEntryTable.isCellSelected(myEntryTable.convertRowIndexToView(modelRow), 0)) {
+        myModel.removeDataRow(modelRow);
+      }
+    }
     myModel.fireTableDataChanged();
     myModel.setModified();
-    TableUtil.selectRows(myEntryTable, selectedRows);
   }
 
   private void moveSelectedRows(int increment) {
@@ -358,15 +365,17 @@ public class ModuleDependenciesPanel extends EditorPanel {
       myEntryTable.getCellEditor().stopCellEditing();
     }
     final ListSelectionModel selectionModel = myEntryTable.getSelectionModel();
-    for (int row = increment < 0 ? 0 : myModel.getRowCount() - 1; increment < 0? row < myModel.getRowCount() : row >= 0; row +=
-      increment < 0? +1 : -1) {
-      if (selectionModel.isSelectedIndex(row)) {
-        final int newRow = moveRow(row, increment);
-        selectionModel.removeSelectionInterval(row, row);
-        selectionModel.addSelectionInterval(newRow, newRow);
+    for (int modelRow = increment < 0 ? 0 : myModel.getRowCount() - 1;
+         increment < 0 ? modelRow < myModel.getRowCount() : modelRow >= 0;
+         modelRow += increment < 0 ? +1 : -1) {
+      int visibleRow = myEntryTable.convertRowIndexToView(modelRow);
+      if (selectionModel.isSelectedIndex(visibleRow)) {
+        int newVisibleRow = myEntryTable.convertRowIndexToView(moveRow(modelRow, increment));
+        selectionModel.removeSelectionInterval(visibleRow, visibleRow);
+        myModel.fireTableDataChanged();
+        selectionModel.addSelectionInterval(newVisibleRow, newVisibleRow);
       }
     }
-    myModel.fireTableRowsUpdated(0, myModel.getRowCount() - 1);
     Rectangle cellRect = myEntryTable.getCellRect(selectionModel.getMinSelectionIndex(), 0, true);
     myEntryTable.scrollRectToVisible(cellRect);
     myEntryTable.repaint();
@@ -381,21 +390,26 @@ public class ModuleDependenciesPanel extends EditorPanel {
 
   @NotNull
   private static CellAppearanceEx getCellAppearance(@NotNull final ModuleDependenciesTableItem item) {
-    Dependency entry = item.getEntry();
+    BuildFileStatement entry = item.getEntry();
     String data = "";
     Icon icon = null;
     if (entry != null) {
-      data = entry.getValueAsString();
-      switch(item.getEntry().type) {
-        case EXTERNAL:
-          icon = MavenIcons.MavenLogo;
-          break;
-        case FILES:
-          icon = PlatformIcons.LIBRARY_ICON;
-          break;
-        case MODULE:
-          icon = AllIcons.Nodes.Module;
-          break;
+      if (entry instanceof Dependency) {
+        Dependency dependency = (Dependency)entry;
+        data = dependency.getValueAsString();
+        switch(dependency.type) {
+          case EXTERNAL:
+            icon = MavenIcons.MavenLogo;
+            break;
+          case FILES:
+            icon = PlatformIcons.LIBRARY_ICON;
+            break;
+          case MODULE:
+            icon = AllIcons.Nodes.Module;
+            break;
+        }
+      } else {
+        data = entry.toString();
       }
     }
     return SimpleTextCellAppearance.regular(data, icon);
@@ -404,7 +418,7 @@ public class ModuleDependenciesPanel extends EditorPanel {
   @Override
   public void apply() {
     List<ModuleDependenciesTableItem> items = myModel.getItems();
-    final List<Dependency> dependencies = Lists.newArrayListWithExpectedSize(items.size());
+    final List<BuildFileStatement> dependencies = Lists.newArrayListWithExpectedSize(items.size());
     for (ModuleDependenciesTableItem item : items) {
       dependencies.add(item.getEntry());
     }
