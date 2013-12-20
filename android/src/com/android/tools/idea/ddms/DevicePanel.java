@@ -22,11 +22,12 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.actions.*;
+import com.android.tools.idea.ddms.hprof.DumpHprofAction;
+import com.android.tools.idea.ddms.hprof.SaveHprofHandler;
 import com.android.utils.Pair;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColoredListCellRenderer;
@@ -35,7 +36,6 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.SortedListModel;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.UIUtil;
-import icons.AndroidIcons;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +46,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -103,6 +102,7 @@ public class DevicePanel implements Disposable,
     myBridge.addClientChangeListener(this);
 
     ClientData.setMethodProfilingHandler(new OpenVmTraceHandler(project));
+    ClientData.setHprofDumpHandler(new SaveHprofHandler(project));
 
     initializeDeviceCombo();
     initializeClientsList();
@@ -318,7 +318,7 @@ public class DevicePanel implements Disposable,
 
     group.add(new TerminateVMAction(myDeviceContext));
     group.add(new GcAction(myDeviceContext));
-    //group.add(new MyDumpHprofAction());
+    group.add(new DumpHprofAction(myDeviceContext));
     //group.add(new MyAllocationTrackerAction());
     //group.add(new Separator());
 
