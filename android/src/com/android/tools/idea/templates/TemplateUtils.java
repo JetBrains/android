@@ -31,6 +31,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -378,5 +379,27 @@ public class TemplateUtils {
   @Nullable
   public static String readTextFile(@NotNull File file) {
     return readTextFile(file, true);
+  }
+
+  /**
+   * Reads the given file as text (or the current contents of the edited buffer of the file, if open and not saved.)
+   * @param file The file to read.
+   * @return the contents of the file as text, or null if for some reason it couldn't be read
+   */
+  @Nullable
+  public static String readTextFile(@NotNull final Project project, @NotNull final VirtualFile file) {
+    return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+      @Nullable
+      @Override
+      public String compute() {
+        final PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+        if (psiFile == null) {
+          return null;
+        }
+        else {
+          return psiFile.getText();
+        }
+      }
+    });
   }
 }
