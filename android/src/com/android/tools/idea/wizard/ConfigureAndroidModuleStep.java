@@ -523,10 +523,14 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   }
 
   @NotNull
-  private String computeModuleName() {
+  @VisibleForTesting
+  String computeModuleName() {
     String name = myTemplateState.getBoolean(ATTR_IS_LIBRARY_MODULE) ? LIB_NAME : APP_NAME;
-    int i = 2;
-    while (!isUniqueModuleName(name)) {
+    if (!isUniqueModuleName(name)) {
+      int i = 2;
+      while (!isUniqueModuleName(name + Integer.toString(i))) {
+        i++;
+      }
       name += Integer.toString(i);
     }
     return name;
@@ -552,7 +556,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     // Check our modules
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     for (Module m : moduleManager.getModules()) {
-      if (m.getName().equals(moduleName)) {
+      if (m.getName().equalsIgnoreCase(moduleName)) {
         return false;
       }
     }
