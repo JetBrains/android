@@ -462,6 +462,7 @@ public class RenderErrorPanel extends JPanel {
           // Find activity class
           // Look for R references in the layout
           Module module = logger.getModule();
+          assert module != null;
           Project project = module.getProject();
           GlobalSearchScope scope = GlobalSearchScope.allScope(project);
           PsiClass clz = JavaPsiFacade.getInstance(project).findClass(className, scope);
