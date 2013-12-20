@@ -103,6 +103,8 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
             // * Opening Studio with an already imported project
             Projects.notifyProjectSyncCompleted(contextProject, true);
           }
+
+          Projects.syncJavaLangLevel(contextProject);
         }
         return true;
       }
