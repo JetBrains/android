@@ -51,6 +51,12 @@ public class ConfigureAndroidModuleStepTest extends AndroidGradleTestCase {
         final ModuleManager manager = ModuleManager.getInstance(getProject());
         File moduleRoot = new File(getProject().getBasePath(), "app");
         manager.newModule(moduleRoot.getPath(), ModuleTypeId.JAVA_MODULE);
+
+        moduleRoot = new File(getProject().getBasePath(), "Lib");
+        manager.newModule(moduleRoot.getPath(), ModuleTypeId.JAVA_MODULE);
+
+        moduleRoot = new File(getProject().getBasePath(), "lib2");
+        manager.newModule(moduleRoot.getPath(), ModuleTypeId.JAVA_MODULE);
       }
     });
 
@@ -278,5 +284,21 @@ public class ConfigureAndroidModuleStepTest extends AndroidGradleTestCase {
     myState.myHidden.remove(ATTR_CREATE_ICONS);
     myStep.updateStep();
     assertTrue(myStep.myCreateCustomLauncherIconCheckBox.isVisible());
+  }
+
+  public void testComputeModuleName() throws Exception {
+    ModuleManager manager = ModuleManager.getInstance(getProject());
+    myStep = new ConfigureAndroidModuleStep(myState, getProject(), null, TemplateWizardStep.NONE);
+    Module module = manager.getModules()[0];
+    assertEquals("app", module.getName());
+
+    myState.myHidden.add(ATTR_PROJECT_LOCATION);
+    myState.put(ATTR_IS_LIBRARY_MODULE, true);
+    // "Lib" and "lib2" already exist
+    assertEquals("lib3", myStep.computeModuleName());
+
+    myState.put(ATTR_IS_LIBRARY_MODULE, false);
+    // "app" already exists
+    assertEquals("app2", myStep.computeModuleName());
   }
 }
