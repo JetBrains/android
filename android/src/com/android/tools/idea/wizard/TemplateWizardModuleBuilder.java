@@ -26,11 +26,13 @@ import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.DumbAwareRunnable;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.JavaSdkType;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkTypeId;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -49,6 +51,7 @@ import java.io.File;
 import java.util.List;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER;
 import static com.android.tools.idea.wizard.NewProjectWizardState.ATTR_MODULE_NAME;
 
 public class TemplateWizardModuleBuilder extends ModuleBuilder implements TemplateWizardStep.UpdateListener {
@@ -82,6 +85,8 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
         update();
       }
     };
+    myWizardState.put(ATTR_IS_LAUNCHER, project == null);
+    myWizardState.updateParameters();
 
     if (templateFile != null) {
       myWizardState.setTemplateLocation(templateFile);
@@ -128,6 +133,7 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
   @Override
   @NotNull
   public ModuleWizardStep[] createWizardSteps(@NotNull WizardContext wizardContext, @NotNull ModulesProvider modulesProvider) {
+    update();
     myConfigureAndroidModuleStep.setWizardContext(wizardContext);
     return mySteps.toArray(new ModuleWizardStep[mySteps.size()]);
   }
@@ -150,6 +156,15 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
   public void setupRootModel(final @NotNull ModifiableRootModel rootModel) throws ConfigurationException {
     final Project project = rootModel.getProject();
 
+    // in IntelliJ wizard user is able to choose SDK (i.e. for "java library" module), so set it
+    if (myJdk != null){
+      rootModel.setSdk(myJdk);
+    } else {
+      rootModel.inheritSdk();
+    }
+    if (myProject == null) {
+      project.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
+    }
     StartupManager.getInstance(project).runWhenProjectIsInitialized(new DumbAwareRunnable() {
         @Override
         public void run() {
@@ -238,6 +253,8 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
 
   @Override
   public boolean isSuitableSdkType(SdkTypeId sdkType) {
-    return AndroidSdkType.getInstance().equals(sdkType);
+    return myWizardState.myIsAndroidModule
+           ? AndroidSdkType.getInstance().equals(sdkType)
+           : sdkType instanceof JavaSdkType;
   }
 }

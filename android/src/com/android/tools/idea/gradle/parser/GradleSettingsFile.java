@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Function;
-import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;

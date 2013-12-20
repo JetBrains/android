@@ -62,8 +62,10 @@ public abstract class AndroidLogcatView implements Disposable {
   public static final String NO_FILTERS = AndroidBundle.message("android.logcat.filters.none");
   public static final String EDIT_FILTER_CONFIGURATION = AndroidBundle.message("android.logcat.filters.edit");
 
-  /** The {@link #FILTER_LOGCAT_WHEN_SELECTION_CHANGES} property controls whether selecting a VM in the device panel automatically
-   * filters logcat to only show messages from that client only. */
+  /**
+   * The {@link #FILTER_LOGCAT_WHEN_SELECTION_CHANGES} property controls whether selecting a VM in the device panel automatically
+   * filters logcat to only show messages from that client only.
+   */
   @NonNls
   private static final String FILTER_LOGCAT_WHEN_SELECTION_CHANGES = "android.logcat.filter.apply.if.client.selection.changes";
 
@@ -120,12 +122,16 @@ public abstract class AndroidLogcatView implements Disposable {
     }
   }
 
-  /** Logcat view for provided device */
+  /**
+   * Logcat view for provided device
+   */
   public AndroidLogcatView(@NotNull final Project project, @NotNull IDevice preselectedDevice) {
     this(project, preselectedDevice, null);
   }
 
-  /** Logcat view with device obtained from {@link DeviceContext} */
+  /**
+   * Logcat view with device obtained from {@link DeviceContext}
+   */
   public AndroidLogcatView(@NotNull final Project project, @NotNull DeviceContext deviceContext) {
     this(project, null, deviceContext);
   }
@@ -142,7 +148,7 @@ public abstract class AndroidLogcatView implements Disposable {
     myLogFilterModel =
       new AndroidLogFilterModel() {
         @Nullable private ConfiguredFilter myConfiguredFilter;
-        
+
         @Override
         protected void setCustomFilter(String filter) {
           AndroidLogcatFiltersPreferences.getInstance(project).TOOL_WINDOW_CUSTOM_FILTER = filter;
@@ -275,11 +281,13 @@ public abstract class AndroidLogcatView implements Disposable {
             final AndroidConfiguredLogFilters.MyFilterEntry newEntry =
               dialog.getCustomLogFiltersEntry();
             updateConfiguredFilters(newEntry != null ? newEntry.getName() : NO_FILTERS);
-          } else {
+          }
+          else {
             myCurrentFilterName = prev;
             editFiltersCombo.setSelectedItem(myCurrentFilterName);
           }
-        } else {
+        }
+        else {
           selectFilter(myCurrentFilterName);
         }
 
@@ -358,9 +366,11 @@ public abstract class AndroidLogcatView implements Disposable {
   public IDevice getSelectedDevice() {
     if (myPreselectedDevice != null) {
       return myPreselectedDevice;
-    } else if (myDeviceContext != null) {
+    }
+    else if (myDeviceContext != null) {
       return myDeviceContext.getSelectedDevice();
-    } else {
+    }
+    else {
       return null;
     }
   }
@@ -400,7 +410,8 @@ public abstract class AndroidLogcatView implements Disposable {
         AndroidConfiguredLogFilters.getInstance(myProject).createFilterForProcess(client.getClientData().getPid());
       name = f.getName();
       filter = ConfiguredFilter.compile(f, name);
-    } else {
+    }
+    else {
       filter = null;
       name = NO_FILTERS;
     }

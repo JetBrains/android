@@ -5,7 +5,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.psi.xml.XmlAttribute;
@@ -24,7 +23,6 @@ import com.intellij.util.xml.GenericAttributeValue;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,21 +38,6 @@ public class AndroidApplicationPackageRenameProcessor extends RenamePsiElementPr
     if (element instanceof PsiPackage) {
       // possibly renaming application package
       return ProjectFacetManager.getInstance(element.getProject()).hasFacets(AndroidFacet.ID);
-    }
-    final PsiFile psiFile = element.getContainingFile();
-
-    if (!(psiFile instanceof XmlFile)) {
-      return false;
-    }
-    final AndroidFacet facet = AndroidFacet.getInstance(psiFile);
-
-    if (facet == null) {
-      return false;
-    }
-    final VirtualFile vFile = psiFile.getVirtualFile();
-
-    if (vFile == null || !vFile.equals(AndroidRootUtil.getManifestFile(facet))) {
-      return false;
     }
     return AndroidRenameHandler.isPackageAttributeInManifest(element.getProject(), element);
   }

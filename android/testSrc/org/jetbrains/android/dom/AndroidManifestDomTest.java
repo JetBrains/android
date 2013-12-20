@@ -7,8 +7,13 @@ import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
+import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection;
 import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 /**
  * @author coyote
@@ -74,7 +79,7 @@ public class AndroidManifestDomTest extends AndroidDomTest {
 
   public void testResourceCompletion2() throws Throwable {
     doTestCompletionVariants("av3.xml", "@android:", "@string/hello", "@string/hello1", "@string/welcome", "@string/welcome1",
-                           "@string/itStr");
+                             "@string/itStr");
   }
 
   public void testResourceCompletion3() throws Throwable {
@@ -200,7 +205,7 @@ public class AndroidManifestDomTest extends AndroidDomTest {
   }
 
   public void testIntentActionCompletion2() throws Throwable {
-    doTestCompletionVariants(getTestName(false) + ".xml","android.intent.action.CAMERA_BUTTON",
+    doTestCompletionVariants(getTestName(false) + ".xml", "android.intent.action.CAMERA_BUTTON",
                              "android.intent.action.NEW_OUTGOING_CALL");
   }
 
@@ -248,6 +253,23 @@ public class AndroidManifestDomTest extends AndroidDomTest {
 
   public void testInstrumentationRunner() throws Throwable {
     doTestHighlighting(getTestName(false) + ".xml");
+  }
+
+  public void testInstrumentationRunner1() throws Throwable {
+    doTestHighlighting(getTestName(false) + ".xml");
+  }
+
+  public void testInstrumentationRunner2() throws Throwable {
+    doTestCompletion(false);
+  }
+
+  @Override
+  protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
+                                            @NotNull List<MyAdditionalModuleData> modules) {
+    if ("testInstrumentationRunner1".equals(getName()) ||
+        "testInstrumentationRunner2".equals(getName())) {
+      addModuleWithAndroidFacet(projectBuilder, modules, "module1", false);
+    }
   }
 
   public void testIntentsCompletion1() throws Throwable {
@@ -334,6 +356,7 @@ public class AndroidManifestDomTest extends AndroidDomTest {
     myFixture.enableInspections(SpellCheckingInspection.class);
     doTestHighlighting();
   }
+
   public void testSpellchecker2() throws Throwable {
     doTestSpellcheckerQuickFixes();
   }
@@ -362,6 +385,4 @@ public class AndroidManifestDomTest extends AndroidDomTest {
       });
     }
   }
-
-
 }
