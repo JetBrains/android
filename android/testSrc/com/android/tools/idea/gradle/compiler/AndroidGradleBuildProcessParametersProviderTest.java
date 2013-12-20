@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.compiler;
 
 import com.android.tools.idea.AndroidTestCaseHelper;
+import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
@@ -89,7 +90,7 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
   }
 
   public void testPopulateModulesToBuildWithModuleNames() {
-    Projects.setModulesToBuild(myProject, new Module[] {myModule});
+    BuildSettings.getInstance(myProject).setModulesToBuild(new Module[] {myModule});
     List<String> jvmArgs= Lists.newArrayList();
     myParametersProvider.populateModulesToBuild(jvmArgs);
     assertEquals(2, jvmArgs.size());

@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.output.parser.GradleErrorOutputParser;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleBuilds;
+import com.android.tools.idea.gradle.util.GradleBuilds.TestCompileType;
 import com.android.tools.idea.jps.AndroidGradleJps;
 import com.android.tools.idea.jps.model.JpsAndroidGradleModuleExtension;
 import com.google.common.base.Strings;
@@ -190,21 +191,18 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
     JpsAndroidModuleExtensionImpl androidFacet = (JpsAndroidModuleExtensionImpl)AndroidJpsUtil.getExtension(module);
     JpsAndroidModuleProperties properties = androidFacet != null ? androidFacet.getProperties() : null;
 
-    GradleBuilds.TestCompileContext testCompileContext;
-    if (AndroidJpsUtil.isInstrumentationTestContext(context)) {
-      testCompileContext = GradleBuilds.TestCompileContext.ANDROID_TESTS;
-    } else if (AndroidJpsUtil.isJunitTestContext(context)) {
-      testCompileContext = GradleBuilds.TestCompileContext.JAVA_TESTS;
-    } else {
-      testCompileContext = GradleBuilds.TestCompileContext.NONE;
-    }
+    GradleBuilds.findAndAddBuildTask(module.getName(), executionSettings.getBuildMode(), gradleProjectPath, properties, tasks,
+                                     getTestCompileType(context));
+  }
 
-    GradleBuilds.findAndAddBuildTask(module.getName(),
-                                     executionSettings.getBuildMode(),
-                                     gradleProjectPath,
-                                     properties,
-                                     tasks,
-                                     testCompileContext);
+  private static TestCompileType getTestCompileType(CompileContext context) {
+    if (AndroidJpsUtil.isJunitTestContext(context)) {
+      return TestCompileType.JAVA_TESTS;
+    }
+    if (AndroidJpsUtil.isInstrumentationTestContext(context)) {
+      return TestCompileType.ANDROID_TESTS;
+    }
+    return TestCompileType.NONE;
   }
 
   private static void ensureTempDirExists() {
