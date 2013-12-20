@@ -316,6 +316,11 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       final String manifestLocalPath;
 
       try {
+        //if (facet.isGradleProject()) {
+        //  manifestVFile = AndroidRootUtil.getMergedManifestFile(facet);
+        //  manifestLocalPath = manifestVFile != null ? PathUtil.getLocalPath(manifestVFile) : null;
+        //}
+        //else
         if (facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST) {
           final Pair<File,String> pair = AndroidRunConfigurationBase.getCopyOfCompilerManifestFile(facet, getProcessHandler());
           manifestCopy = pair != null ? pair.getFirst() : null;
