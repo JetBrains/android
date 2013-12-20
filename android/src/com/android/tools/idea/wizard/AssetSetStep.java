@@ -19,10 +19,13 @@ package com.android.tools.idea.wizard;
 import com.android.assetstudiolib.ActionBarIconGenerator;
 import com.android.assetstudiolib.GraphicGenerator;
 import com.android.resources.Density;
+import com.android.tools.idea.templates.Template;
+import com.android.tools.idea.templates.TemplateManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.ColorPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,6 +35,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
@@ -104,7 +108,9 @@ public class AssetSetStep extends TemplateWizardStep {
   private ImageComponent myV11XXHdpiPreview;
 
   protected AssetType mySelectedAssetType;
+  private boolean myInitialized;
 
+  @SuppressWarnings("UseJBColor") // Colors are used for the graphics generator, not the plugin UI
   public AssetSetStep(AssetStudioWizardState state, @Nullable Project project, @Nullable Icon sidePanelIcon, UpdateListener updateListener) {
     super(state, project, sidePanelIcon, updateListener);
     myWizardState = state;
@@ -121,7 +127,6 @@ public class AssetSetStep extends TemplateWizardStep {
     register(ATTR_SOURCE_TYPE, myImageRadioButton, AssetStudioWizardState.SourceType.IMAGE);
     register(ATTR_SOURCE_TYPE, myClipartRadioButton, AssetStudioWizardState.SourceType.CLIPART);
     register(ATTR_SOURCE_TYPE, myTextRadioButton, AssetStudioWizardState.SourceType.TEXT);
-    register(ATTR_IMAGE_PATH, myImageFile);
     register(ATTR_FOREGROUND_COLOR, myForegroundColor);
     register(ATTR_BACKGROUND_COLOR, myBackgroundColor);
     register(ATTR_ASSET_TYPE, myAssetTypeComboBox);
@@ -355,6 +360,25 @@ public class AssetSetStep extends TemplateWizardStep {
   @Override
   public JComponent getComponent() {
     return myPanel;
+  }
+
+  @Override
+  public void updateStep() {
+    super.updateStep();
+
+    if (!myInitialized) {
+      myInitialized = true;
+      initialize();
+    }
+  }
+
+  private void initialize() {
+    myWizardState.put(ATTR_IMAGE_PATH,
+        new File(TemplateManager.getTemplateRootFolder(),
+                 FileUtil.join(Template.CATEGORY_PROJECTS, NewProjectWizardState.MODULE_TEMPLATE_NAME, "root", "res", "drawable-xhdpi",
+                               "ic_launcher.png"))
+          .getAbsolutePath());
+    register(ATTR_IMAGE_PATH, myImageFile);
   }
 
   @Override

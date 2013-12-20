@@ -38,7 +38,8 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
                               @NotNull List<String> taskNames,
                               @NotNull String projectPath,
                               @Nullable GradleExecutionSettings settings,
-                              @Nullable String vmOptions,
+                              @NotNull final List<String> vmOptions,
+                              @NotNull final List<String> scriptParameters,
                               @Nullable String debuggerSetup,
                               @NotNull ExternalSystemTaskNotificationListener listener) throws ExternalSystemException {
     Project[] openProjects = ProjectManager.getInstance().getOpenProjects();

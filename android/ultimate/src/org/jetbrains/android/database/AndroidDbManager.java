@@ -2,6 +2,7 @@ package org.jetbrains.android.database;
 
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.UndoConfirmationPolicy;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.command.undo.GlobalUndoableAction;
 import com.intellij.openapi.command.undo.UndoManager;
@@ -11,6 +12,7 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.ModificationTracker;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.persistence.DatabaseMessages;
 import com.intellij.persistence.database.DataSourceInfo;
@@ -140,6 +142,11 @@ public class AndroidDbManager extends DbPsiManagerSpi {
         action.redo();
         UndoManager.getInstance(project).undoableActionPerformed(action);
       }
+
+      @Override
+      protected UndoConfirmationPolicy getUndoConfirmationPolicy() {
+        return UndoConfirmationPolicy.REQUEST_CONFIRMATION;
+      }
     }.execute();
   }
 
@@ -190,7 +197,7 @@ public class AndroidDbManager extends DbPsiManagerSpi {
     @NotNull
     @Override
     public String getName() {
-      return "Android SQLite Connection";
+      return "Android SQLite";
     }
 
     @NotNull
@@ -207,15 +214,15 @@ public class AndroidDbManager extends DbPsiManagerSpi {
 
     @NotNull
     @Override
-    public DataSourceInfo createDataSource(Project project, DataSourceInfo copyFrom) {
+    public DataSourceInfo createDataSource(@NotNull Project project, @Nullable DataSourceInfo copyFrom, @Nullable String newName) {
       AndroidDataSource result;
-      if (copyFrom instanceof AndroidDataSource ) {
-        result = ((AndroidDataSource )copyFrom).copy();
-        result.setName(copyFrom.getName() + " [copy]");
+      if (copyFrom instanceof AndroidDataSource) {
+        result = ((AndroidDataSource)copyFrom).copy();
       }
       else {
-        result = new AndroidDataSource ("Android connection");
+        result = new AndroidDataSource("");
       }
+      result.setName(StringUtil.notNullize(newName, getName()));
       result.init();
       return result;
     }
