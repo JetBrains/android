@@ -18,7 +18,6 @@ package com.android.tools.idea.structure;
 
 import com.android.sdklib.SdkManager;
 import com.android.tools.idea.sdk.DefaultSdks;
-import com.android.tools.idea.sdk.Jdks;
 import com.intellij.ide.util.BrowseFilesListener;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
@@ -37,7 +36,6 @@ import com.intellij.ui.FieldPanel;
 import com.intellij.ui.InsertPathAction;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -211,9 +209,9 @@ public class AndroidHomeConfigurable implements Configurable {
     }
     Sdk sdk = getFirstDefaultAndroidSdk(true);
     if (sdk != null) {
-      File sdkHome = getHomePathOf(sdk);
+      String sdkHome = sdk.getHomePath();
       if (sdkHome != null) {
-        return sdkHome.getPath();
+        return FileUtil.toSystemDependentName(sdkHome);
       }
     }
     return "";
@@ -224,41 +222,8 @@ public class AndroidHomeConfigurable implements Configurable {
    */
   @NotNull
   private static String getDefaultJavaHomePath() {
-    List<Sdk> androidSdks = DefaultSdks.getEligibleAndroidSdks();
-    if (androidSdks.isEmpty()) {
-      // This happens when user has a fresh installation of Android Studio without an Android SDK, but with a JDK. Android Studio should
-      // populate the text field with the existing JDK.
-      Sdk jdk = Jdks.chooseOrCreateJavaSdk();
-      if (jdk != null) {
-        File jdkHome = getHomePathOf(jdk);
-        if (jdkHome != null) {
-          return jdkHome.getPath();
-        }
-      }
-    }
-    else {
-      for (Sdk sdk : androidSdks) {
-        AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-        assert data != null;
-        Sdk jdk = data.getJavaSdk();
-        if (jdk != null) {
-          File jdkHome = getHomePathOf(jdk);
-          if (jdkHome != null) {
-            return jdkHome.getPath();
-          }
-        }
-      }
-    }
-    return "";
-  }
-
-  @Nullable
-  private static File getHomePathOf(@NotNull Sdk sdk) {
-    String homePath = sdk.getHomePath();
-    if (homePath != null) {
-      return new File(FileUtil.toSystemDependentName(homePath));
-    }
-    return null;
+    File javaHome = DefaultSdks.getDefaultJavaHome();
+    return javaHome != null ? javaHome.getPath() : "";
   }
 
   @NotNull
