@@ -77,6 +77,36 @@ public final class DefaultSdks {
     return null;
   }
 
+  @Nullable
+  public static File getDefaultJavaHome() {
+    List<Sdk> androidSdks = getEligibleAndroidSdks();
+    if (androidSdks.isEmpty()) {
+      // This happens when user has a fresh installation of Android Studio without an Android SDK, but with a JDK. Android Studio should
+      // populate the text field with the existing JDK.
+      Sdk jdk = Jdks.chooseOrCreateJavaSdk();
+      if (jdk != null) {
+        String jdkHomePath = jdk.getHomePath();
+        if (jdkHomePath != null) {
+          return new File(FileUtil.toSystemDependentName(jdkHomePath));
+        }
+      }
+    }
+    else {
+      for (Sdk sdk : androidSdks) {
+        AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+        assert data != null;
+        Sdk jdk = data.getJavaSdk();
+        if (jdk != null) {
+          String jdkHomePath = jdk.getHomePath();
+          if (jdkHomePath != null) {
+            return new File(FileUtil.toSystemDependentName(jdkHomePath));
+          }
+        }
+      }
+    }
+    return null;
+  }
+
   /**
    * @return the first SDK it finds that matches our default naming convention. There will be several SDKs so named, one for each build
    *         target installed in the SDK; which of those this method returns is not defined.
