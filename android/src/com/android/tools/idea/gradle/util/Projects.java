@@ -58,6 +58,23 @@ public final class Projects {
   }
 
   /**
+   * Indicates whether the last sync with Gradle files failed.
+   *
+   * @param project the project.
+   * @return {@code true} if the last sync with Gradle files failed; {@code false} if the last sync with Gradle was successful or if the
+   *         give project is not a Gradle-based Android project.
+   */
+  public static boolean syncWithGradleFailed(@NotNull Project project) {
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null && facet.isGradleProject() && facet.getIdeaAndroidProject() == null) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Opens the given project in the IDE.
    *
    * @param project the project to open.
@@ -212,7 +229,7 @@ public final class Projects {
 
     Module module = LangDataKeys.MODULE.getData(dataContext);
     if (module != null) {
-      return isProjectModule(project, module) ? ModuleManager.getInstance(project).getModules() : new Module[] { module };
+      return isProjectModule(project, module) ? ModuleManager.getInstance(project).getModules() : new Module[]{module};
     }
 
     return NO_MODULES;
