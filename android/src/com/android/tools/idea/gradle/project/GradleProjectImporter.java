@@ -59,6 +59,7 @@ import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -68,6 +69,7 @@ import com.intellij.util.SystemProperties;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.service.GradleInstallationManager;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -76,6 +78,8 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+
+import static org.jetbrains.plugins.gradle.util.GradleUtil.isGradleDefaultWrapperFilesExist;
 
 /**
  * Imports an Android-Gradle project without showing the "Import Project" Wizard UI.
@@ -107,6 +111,68 @@ public class GradleProjectImporter {
   @VisibleForTesting
   GradleProjectImporter(ImporterDelegate delegate) {
     myDelegate = delegate;
+  }
+
+  /**
+   * Imports the given Gradle project.
+   *
+   * @param selectedFile the selected build.gradle or the project's root directory.
+   */
+  public void importProject(@NotNull VirtualFile selectedFile) {
+    VirtualFile projectDir = selectedFile.isDirectory() ? selectedFile : selectedFile.getParent();
+    File projectDirPath = new File(FileUtil.toSystemDependentName(projectDir.getPath()));
+
+    GradleProjectSettings gradleProjectSettings = getInitialProjectSettings();
+
+    // Set up Gradle settings. Otherwise we get an "already disposed project" error.
+    new GradleSettings(ProjectManager.getInstance().getDefaultProject());
+
+    // If we have Gradle wrapper go ahead and import the project, without showing the "Project Import" wizard.
+    boolean hasGradleWrapper = isGradleDefaultWrapperFilesExist(projectDirPath.getPath());
+
+    if (!hasGradleWrapper) {
+      // If we don't have a Gradle wrapper, but we have the location of GRADLE_HOME, we import the project without showing the "Project
+      // Import" wizard.
+      boolean validGradleHome = false;
+      String gradleHome = gradleProjectSettings.getGradleHome();
+      if (gradleHome != null && !gradleHome.isEmpty()) {
+        GradleInstallationManager gradleInstallationManager = ServiceManager.getService(GradleInstallationManager.class);
+        File gradleHomePath = new File(FileUtil.toSystemDependentName(gradleHome));
+        validGradleHome = gradleInstallationManager.isGradleSdkHome(gradleHomePath);
+      }
+      if (!validGradleHome) {
+        ChooseGradleHomeDialog chooseGradleHomeDialog = new ChooseGradleHomeDialog();
+        if (!chooseGradleHomeDialog.showAndGet()) {
+          return;
+        }
+        chooseGradleHomeDialog.storeLastUsedGradleHome();
+      }
+    }
+
+    try {
+      importProject(projectDir.getName(), projectDirPath, new NewProjectImportCallback() {
+        @Override
+        public void projectImported(@NotNull Project project) {
+          activateProjectView(project);
+        }
+      });
+    }
+    catch (Exception e) {
+      if (ApplicationManager.getApplication().isUnitTestMode()) {
+        throw new RuntimeException(e);
+      }
+      Messages.showErrorDialog(e.getMessage(), "Project Import");
+      LOG.error(e);
+    }
+  }
+
+  private static GradleProjectSettings getInitialProjectSettings() {
+    GradleProjectSettings result = new GradleProjectSettings();
+    String gradleHome = org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome();
+    if (!gradleHome.isEmpty()) {
+      result.setGradleHome(gradleHome);
+    }
+    return result;
   }
 
   /**
