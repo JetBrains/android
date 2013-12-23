@@ -362,7 +362,9 @@ public class GradleProjectImporter {
     void importProject(@NotNull Project project, @NotNull ExternalProjectRefreshCallback callback, @NotNull final ProgressExecutionMode progressExecutionMode)
       throws ConfigurationException {
       try {
-        ExternalSystemUtil.refreshProject(project, SYSTEM_ID, project.getBasePath(), callback, true, progressExecutionMode, true);
+        String externalProjectPath = FileUtil.toCanonicalPath(project.getBasePath());
+        ExternalSystemUtil
+          .refreshProject(project, SYSTEM_ID, externalProjectPath, callback, true, progressExecutionMode, true);
       }
       catch (RuntimeException e) {
         String externalSystemName = SYSTEM_ID.getReadableName();
