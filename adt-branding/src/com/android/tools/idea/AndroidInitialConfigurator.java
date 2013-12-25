@@ -16,6 +16,7 @@
 
 package com.android.tools.idea;
 
+import com.intellij.application.options.editor.WebEditorOptions;
 import com.intellij.codeInsight.CodeInsightSettings;
 import com.intellij.ide.ui.UISettings;
 import com.intellij.ide.util.PropertiesComponent;
@@ -40,9 +41,14 @@ public class AndroidInitialConfigurator {
     ExtensionPointName.create("com.intellij.androidStudioInitializer");
 
   @NonNls private static final String CONFIG_V1 = "AndroidInitConfigurator.V1";
+  @NonNls private static final String CONFIG_V2 = "AndroidInitConfigurator.V2";
+  @NonNls private static final String CONFIG_V3 = "AndroidInitConfigurator.V3";
+  @SuppressWarnings("SpellCheckingInspection")
   @NonNls private static final String TODO_TOOLWINDOW_ACTION_ID = "ActivateTODOToolWindow";
+  @SuppressWarnings("SpellCheckingInspection")
   @NonNls private static final String ANDROID_TOOLWINDOW_ACTION_ID = "ActivateAndroidToolWindow";
 
+  @SuppressWarnings("UnusedParameters")
   public AndroidInitialConfigurator(MessageBus bus,
                                     final PropertiesComponent propertiesComponent,
                                     final FileTypeManager fileTypeManager) {
@@ -75,15 +81,27 @@ public class AndroidInitialConfigurator {
   }
 
   private static void customizeSettings(PropertiesComponent propertiesComponent) {
-    if (!propertiesComponent.getBoolean(CONFIG_V1, false)) {
-      propertiesComponent.setValue(CONFIG_V1, "true");
-      CodeInsightSettings.getInstance().AUTO_POPUP_JAVADOC_INFO = true;
-      UISettings.getInstance().SCROLL_TAB_LAYOUT_IN_EDITOR = true;
-      EditorSettingsExternalizable.getInstance().setVirtualSpace(false);
+    if (!propertiesComponent.getBoolean(CONFIG_V3, false)) {
+      propertiesComponent.setValue(CONFIG_V3, "true");
+      // See http://youtrack.jetbrains.com/issue/IDEA-113332
+      // It's not really fixed but worked around by turning off the =-quoting
+      WebEditorOptions.getInstance().setInsertQuotesForAttributeValue(false);
 
-      // For Macs, use 10.5+ keymap as the default
-      if (SystemInfo.isMac) {
-        setDefaultMacKeymap();
+      if (!propertiesComponent.getBoolean(CONFIG_V1, false)) {
+        propertiesComponent.setValue(CONFIG_V1, "true");
+        CodeInsightSettings.getInstance().AUTO_POPUP_JAVADOC_INFO = true;
+        UISettings.getInstance().SCROLL_TAB_LAYOUT_IN_EDITOR = true;
+        EditorSettingsExternalizable.getInstance().setVirtualSpace(false);
+
+        // For Macs, use 10.5+ keymap as the default
+        if (SystemInfo.isMac) {
+          setDefaultMacKeymap();
+        }
+      }
+
+      if (!propertiesComponent.getBoolean(CONFIG_V2, false)) {
+        propertiesComponent.setValue(CONFIG_V2, "true");
+        UISettings.getInstance().SHOW_MAIN_TOOLBAR = true;
       }
     }
   }

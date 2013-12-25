@@ -15,6 +15,8 @@
  */
 package com.intellij.android.designer.model.layout.relative;
 
+import com.android.tools.idea.designer.Segment;
+import com.android.tools.idea.designer.SegmentType;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.layout.relative.DependencyGraph.ViewData;
 import com.intellij.designer.designSurface.OperationContext;
@@ -27,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.intellij.android.designer.designSurface.graphics.DrawingStyle.MAX_MATCH_DISTANCE;
-import static com.intellij.android.designer.model.layout.relative.MarginType.NO_MARGIN;
+import static com.android.tools.idea.designer.MarginType.NO_MARGIN;
 import static java.lang.Math.abs;
 
 /**

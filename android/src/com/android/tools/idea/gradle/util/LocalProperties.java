@@ -17,9 +17,11 @@ package com.android.tools.idea.gradle.util;
 
 import com.android.SdkConstants;
 import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 import com.google.common.io.Closeables;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
@@ -104,8 +106,12 @@ public final class LocalProperties {
    * @return the path of the Android SDK specified in this local.properties file; or {@code null} if such property is not specified.
    */
   @Nullable
-  public String getAndroidSdkPath() {
-    return myProperties.getProperty(SdkConstants.SDK_DIR_PROPERTY);
+  public File getAndroidSdkPath() {
+    String path = myProperties.getProperty(SdkConstants.SDK_DIR_PROPERTY);
+    if (path != null && !path.isEmpty()) {
+     return new File(FileUtil.toSystemDependentName(path));
+    }
+    return null;
   }
 
   public void setAndroidSdkPath(@NotNull Sdk androidSdk) {
@@ -115,7 +121,17 @@ public final class LocalProperties {
   }
 
   public void setAndroidSdkPath(@NotNull String androidSdkPath) {
-    myProperties.setProperty(SdkConstants.SDK_DIR_PROPERTY, androidSdkPath);
+    String path = FileUtil.toSystemIndependentName(androidSdkPath);
+    myProperties.setProperty(SdkConstants.SDK_DIR_PROPERTY, path);
+  }
+
+  public void setAndroidSdkPath(@NotNull File androidSdkPath) {
+    myProperties.setProperty(SdkConstants.SDK_DIR_PROPERTY, androidSdkPath.getPath());
+  }
+
+  public boolean hasAndroidDirProperty() {
+    String property = myProperties.getProperty("android.dir");
+    return !Strings.isNullOrEmpty(property);
   }
 
   public void save() throws IOException {
@@ -128,5 +144,10 @@ public final class LocalProperties {
     } finally {
       Closeables.closeQuietly(out);
     }
+  }
+
+  @NotNull
+  public File getFilePath() {
+    return myFilePath;
   }
 }

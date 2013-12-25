@@ -25,11 +25,19 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.SourceFolder;
+import com.intellij.openapi.roots.impl.SourceFolderImpl;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jps.model.JpsElement;
+import org.jetbrains.jps.model.java.JavaResourceRootType;
+import org.jetbrains.jps.model.java.JavaSourceRootProperties;
+import org.jetbrains.jps.model.java.JavaSourceRootType;
+import org.jetbrains.jps.model.module.JpsModuleSourceRoot;
+import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 
 import java.io.File;
 
@@ -39,6 +47,7 @@ import java.io.File;
 public class ContentRootModuleCustomizer implements ModuleCustomizer {
   /**
    * Sets the content roots of the given IDEA module based on the settings of the given Android-Gradle project.
+   *
    * @param module             module to customize.
    * @param project            project that owns the module to customize.
    * @param ideaAndroidProject the imported Android-Gradle project.
@@ -59,7 +68,8 @@ public class ContentRootModuleCustomizer implements ModuleCustomizer {
     try {
       contentEntry.clearSourceFolders();
       storePaths(contentEntry, ideaAndroidProject);
-    } finally {
+    }
+    finally {
       model.commit();
     }
   }
@@ -67,17 +77,13 @@ public class ContentRootModuleCustomizer implements ModuleCustomizer {
   @Nullable
   private static ContentEntry findMatchingContentEntry(@NotNull ModifiableRootModel model, @NotNull IdeaAndroidProject ideaAndroidProject) {
     ContentEntry[] contentEntries = model.getContentEntries();
-    if (contentEntries == null || contentEntries.length == 0) {
+    if (contentEntries.length == 0) {
       return null;
     }
-    File rootDir = new File(ideaAndroidProject.getRootDirPath());
+    VirtualFile rootDir = ideaAndroidProject.getRootDir();
     for (ContentEntry contentEntry : contentEntries) {
       VirtualFile contentEntryFile = contentEntry.getFile();
-      if (contentEntryFile == null) {
-        continue;
-      }
-      File contentEntryRoot = new File(contentEntryFile.getPath());
-      if (FileUtil.filesEqual(rootDir, contentEntryRoot)) {
+      if (rootDir.equals(contentEntryFile)) {
         return contentEntry;
       }
     }
@@ -98,9 +104,39 @@ public class ContentRootModuleCustomizer implements ModuleCustomizer {
         if (sourceType.equals(ExternalSystemSourceType.EXCLUDED)) {
           return;
         }
-        boolean isTestSource = sourceType.equals(ExternalSystemSourceType.TEST);
-        String url = VfsUtilCore.pathToUrl(dir.getAbsolutePath());
-        contentEntry.addSourceFolder(url, isTestSource);
+
+        String dirPath = FileUtil.toSystemIndependentName(dir.getPath());
+        String url = VfsUtilCore.pathToUrl(dirPath);
+        if (sourceType.equals(ExternalSystemSourceType.SOURCE)) {
+          storePath(url, JavaSourceRootType.SOURCE, false);
+        }
+        else if (sourceType.equals(ExternalSystemSourceType.SOURCE_GENERATED)) {
+          storePath(url, JavaSourceRootType.SOURCE, true);
+        }
+        else if (sourceType.equals(ExternalSystemSourceType.RESOURCE)) {
+          storePath(url, JavaResourceRootType.RESOURCE, false);
+        }
+        else if (sourceType.equals(ExternalSystemSourceType.TEST)) {
+          storePath(url, JavaSourceRootType.TEST_SOURCE, false);
+        }
+        else if (sourceType.equals(ExternalSystemSourceType.TEST_GENERATED)) {
+          storePath(url, JavaSourceRootType.TEST_SOURCE, false);
+        }
+        else if (sourceType.equals(ExternalSystemSourceType.TEST_RESOURCE)) {
+          storePath(url, JavaResourceRootType.TEST_RESOURCE, false);
+        }
+      }
+
+      private void storePath(@NotNull String url, @NotNull JpsModuleSourceRootType sourceRootType, boolean isGenerated) {
+        SourceFolder sourceFolder = contentEntry.addSourceFolder(url, sourceRootType);
+
+        if (isGenerated && sourceFolder instanceof SourceFolderImpl) {
+          JpsModuleSourceRoot sourceRoot = ((SourceFolderImpl)sourceFolder).getJpsElement();
+          JpsElement properties = sourceRoot.getProperties();
+          if (properties instanceof JavaSourceRootProperties) {
+            ((JavaSourceRootProperties)properties).setForGeneratedSources(true);
+          }
+        }
       }
     };
     AndroidContentRoot.storePaths(ideaAndroidProject, storage);

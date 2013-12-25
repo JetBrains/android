@@ -49,21 +49,22 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     myProjectName = "test";
     myProjectRootDir = createTempDir(myProjectName);
 
-    String projectRootDirPath = myProjectRootDir.getAbsolutePath();
+    String projectRootDirPath = myProjectRootDir.getPath();
     final File projectFile = new File(myProjectRootDir, SdkConstants.FN_BUILD_GRADLE);
-    final String configPath = projectFile.getAbsolutePath();
+    final String configPath = projectFile.getPath();
     ProjectData projectData = new ProjectData(GradleConstants.SYSTEM_ID, projectRootDirPath, configPath);
     projectData.setName(myProjectName);
     myProjectInfo = new DataNode<ProjectData>(ProjectKeys.PROJECT, projectData, null);
 
-    ModuleData moduleData
-      = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), myProjectName, projectRootDirPath, configPath);
+    ModuleData moduleData =
+      new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), myProjectName, projectRootDirPath, configPath);
     myProjectInfo.createChild(ProjectKeys.MODULE, moduleData);
 
     GradleProjectImporter.ImporterDelegate delegate = new GradleProjectImporter.ImporterDelegate() {
       @Override
-      void importProject(@NotNull Project project, @NotNull ExternalProjectRefreshCallback callback, @NotNull final ProgressExecutionMode progressTaskMode)
-        throws ConfigurationException {
+      void importProject(@NotNull Project project,
+                         @NotNull ExternalProjectRefreshCallback callback,
+                         @NotNull final ProgressExecutionMode progressTaskMode) throws ConfigurationException {
         assertNotNull(project);
         assertEquals(myProjectName, project.getName());
 
@@ -96,7 +97,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
       disposeOnTearDown(project);
       // Verify that project was imported correctly.
       assertEquals(myProjectName, project.getName());
-      assertEquals(myProjectRootDir.getAbsolutePath(), project.getBasePath());
+      assertEquals(myProjectRootDir.getPath(), project.getBasePath());
 
       // Verify that '.idea' directory was created.
       File ideaProjectDir = new File(myProjectRootDir, Project.DIRECTORY_STORE_FOLDER);

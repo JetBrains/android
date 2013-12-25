@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.navigation;
 
+import com.android.navigation.Dimension;
 import com.android.navigation.NavigationModel;
 import com.android.navigation.State;
 import com.android.navigation.Transition;
@@ -24,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
-import static com.android.tools.idea.editors.navigation.NavigationEditorPanel.Line;
+import static com.android.tools.idea.editors.navigation.NavigationView.Line;
 import static com.android.tools.idea.editors.navigation.Utilities.diff;
 
 class Selections {
@@ -116,25 +117,28 @@ class Selections {
     protected final Point myMouseDownLocation;
     protected final Point myOrigComponentLocation;
     private final State myState;
+    private final Transform myTransform;
 
     AndroidRootComponentSelection(NavigationModel navigationModel,
                                   AndroidRootComponent component,
                                   Point mouseDownLocation,
                                   Transition transition,
-                                  State state) {
+                                  State state,
+                                  Transform transform) {
       super(navigationModel, component, transition);
       myMouseDownLocation = mouseDownLocation;
       myOrigComponentLocation = myComponent.getLocation();
       myState = state;
+      myTransform = transform;
     }
 
     private void moveTo(Point location, boolean snap) {
       Point newLocation = Utilities.add(diff(location, myMouseDownLocation), myOrigComponentLocation);
       if (snap) {
-        newLocation = Utilities.snap(newLocation, myComponent.transform.modelToView(NavigationEditorPanel.MIDDLE_SNAP_GRID));
+        newLocation = Utilities.snap(newLocation, myTransform.modelToView(Dimension.create(NavigationView.MIDDLE_SNAP_GRID)));
       }
       myComponent.setLocation(newLocation);
-      myState.setLocation(myComponent.transform.viewToModel(newLocation));
+      myState.setLocation(myTransform.viewToModel(newLocation));
       myNavigationModel.getListeners().notify(NavigationModel.Event.update(State.class));
     }
 
@@ -157,7 +161,7 @@ class Selections {
 
   static class RelationSelection extends Selection {
     private final AndroidRootComponent mySourceComponent;
-    private final NavigationEditorPanel myNavigationEditor;
+    private final NavigationView myNavigationEditor;
     private final NavigationModel myNavigationModel;
     private final RenderedView myNamedLeaf;
     @NotNull private Point myMouseLocation;
@@ -166,7 +170,7 @@ class Selections {
                       @NotNull AndroidRootComponent sourceComponent,
                       @NotNull Point mouseDownLocation,
                       @Nullable RenderedView namedLeaf,
-                      @NotNull NavigationEditorPanel navigationEditor) {
+                      @NotNull NavigationView navigationEditor) {
       myNavigationModel = navigationModel;
       mySourceComponent = sourceComponent;
       myMouseLocation = mouseDownLocation;
@@ -185,12 +189,15 @@ class Selections {
 
     @Override
     protected void paintOver(Graphics g) {
-      int lineWidth = mySourceComponent.transform.modelToView(NavigationEditorPanel.LINE_WIDTH);
-      Graphics2D lineGraphics = NavigationEditorPanel.createLineGraphics(g, lineWidth);
-      Rectangle sourceBounds = NavigationEditorPanel.getBounds(mySourceComponent, myNamedLeaf);
+      int lineWidth = mySourceComponent.transform.modelToViewW(NavigationView.LINE_WIDTH);
+      Graphics2D lineGraphics = NavigationView.createLineGraphics(g, lineWidth);
+      Rectangle sourceBounds = NavigationView.getBounds(mySourceComponent, myNamedLeaf);
       Rectangle destBounds = myNavigationEditor.getNamedLeafBoundsAt(mySourceComponent, myMouseLocation);
-      Line midLine = NavigationEditorPanel.getMidLine(mySourceComponent.getBounds(), new Rectangle(myMouseLocation));
-      Point[] controlPoints = NavigationEditorPanel.getControlPoints(sourceBounds, destBounds, midLine);
+      Rectangle sourceComponentBounds = mySourceComponent.getBounds();
+      // if the mouse hasn't left the bounds of the originating component yet, use leaf bounds instead for the midLine calculation
+      Rectangle startBounds = sourceComponentBounds.contains(myMouseLocation) ? sourceBounds : sourceComponentBounds;
+      Line midLine = NavigationView.getMidLine(startBounds, new Rectangle(myMouseLocation));
+      Point[] controlPoints = NavigationView.getControlPoints(sourceBounds, destBounds, midLine);
       myNavigationEditor.drawTransition(lineGraphics, sourceBounds, destBounds, controlPoints);
     }
 

@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
  * Wraps an action and makes it invisible when a Gradle-based Android project is open.
  */
 public class AndroidActionRemover extends AnAction {
-  @NotNull private final AnAction myDelegate;
+  @NotNull protected final AnAction myDelegate;
 
   /**
    * Creates a new {@link AndroidActionRemover}.

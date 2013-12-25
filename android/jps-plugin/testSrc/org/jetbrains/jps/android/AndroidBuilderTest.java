@@ -1294,6 +1294,12 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     if (androidHomePath != null) {
       return androidHomePath;
     }
+
+    String adtPath = PathManager.getHomePath() + "/../adt/idea/android";
+    if (new File(adtPath).exists()) {
+      return adtPath;
+    }
+
     return new File(PathManager.getHomePath(), "android/android").getPath();
   }
 

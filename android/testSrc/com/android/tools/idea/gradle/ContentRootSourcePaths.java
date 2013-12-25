@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle;
 
 import com.android.builder.model.BuildTypeContainer;
-import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProvider;
+import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
-import com.android.tools.idea.gradle.stubs.android.ArtifactInfoStub;
+import com.android.tools.idea.gradle.stubs.android.ProductFlavorContainerStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -37,14 +37,15 @@ import java.util.*;
  * Verifies that the source paths of a {@link ContentRootData} are correct.
  */
 public class ContentRootSourcePaths {
+  @NotNull public static final ExternalSystemSourceType[] ALL_SOURCE_TYPES =
+    {ExternalSystemSourceType.EXCLUDED, ExternalSystemSourceType.SOURCE_GENERATED, ExternalSystemSourceType.RESOURCE,
+      ExternalSystemSourceType.SOURCE, ExternalSystemSourceType.TEST, ExternalSystemSourceType.TEST_RESOURCE,
+      ExternalSystemSourceType.TEST_GENERATED};
+
   @NotNull private final Map<ExternalSystemSourceType, List<String>> myDirectoryPathsBySourceType = Maps.newHashMap();
 
   public ContentRootSourcePaths() {
-    add(ExternalSystemSourceType.SOURCE, ExternalSystemSourceType.TEST, ExternalSystemSourceType.EXCLUDED);
-  }
-
-  private void add(@NotNull ExternalSystemSourceType...sourceTypes) {
-    for (ExternalSystemSourceType sourceType : sourceTypes) {
+    for (ExternalSystemSourceType sourceType : ALL_SOURCE_TYPES) {
       myDirectoryPathsBySourceType.put(sourceType, new ArrayList<String>());
     }
   }
@@ -57,53 +58,66 @@ public class ContentRootSourcePaths {
   public void storeExpectedSourcePaths(@NotNull AndroidProjectStub androidProject) {
     VariantStub selectedVariant = androidProject.getFirstVariant();
     Assert.assertNotNull(selectedVariant);
-    addSourceDirectoryPaths(selectedVariant);
-    addSourceDirectoryPaths(androidProject.getDefaultConfig());
-    for (ProductFlavorContainer flavor : androidProject.getProductFlavors().values()) {
-      addSourceDirectoryPaths(flavor);
+    addGeneratedDirPaths(selectedVariant);
+
+    for (String flavorName : selectedVariant.getProductFlavors()) {
+      ProductFlavorContainerStub flavor = androidProject.findProductFlavor(flavorName);
+      if (flavor != null) {
+        addSourceDirPaths(flavor);
+      }
     }
+
     String buildTypeName = selectedVariant.getBuildType();
-    BuildTypeContainer buildType = androidProject.getBuildTypes().get(buildTypeName);
+    BuildTypeContainer buildType = androidProject.findBuildType(buildTypeName);
     if (buildType != null) {
-      addSourceDirectoryPaths(ExternalSystemSourceType.SOURCE, buildType.getSourceProvider());
+      addSourceDirPaths(buildType.getSourceProvider(), false);
     }
+
+    addSourceDirPaths(androidProject.getDefaultConfig());
   }
 
-  private void addSourceDirectoryPaths(@NotNull VariantStub variant) {
-    ArtifactInfoStub mainArtifactInfo = variant.getMainArtifactInfo();
-    addSourceDirectoryPaths(ExternalSystemSourceType.SOURCE, mainArtifactInfo);
+  private void addGeneratedDirPaths(@NotNull VariantStub variant) {
+    AndroidArtifactStub mainArtifact = variant.getMainArtifact();
+    addGeneratedDirPaths(mainArtifact, false);
 
-    ArtifactInfoStub testArtifactInfo = variant.getTestArtifactInfo();
-    addSourceDirectoryPaths(ExternalSystemSourceType.TEST, testArtifactInfo);
+    AndroidArtifactStub testArtifact = variant.getInstrumentTestArtifact();
+    addGeneratedDirPaths(testArtifact, true);
   }
 
-  private void addSourceDirectoryPaths(@NotNull ExternalSystemSourceType sourceType, @NotNull ArtifactInfoStub artifactInfo) {
-    addSourceDirectoryPaths(sourceType, artifactInfo.getGeneratedResourceFolders());
-    addSourceDirectoryPaths(sourceType, artifactInfo.getGeneratedSourceFolders());
+  private void addGeneratedDirPaths(@NotNull AndroidArtifactStub androidArtifact, boolean isTest) {
+    ExternalSystemSourceType sourceType = isTest ? ExternalSystemSourceType.TEST_GENERATED : ExternalSystemSourceType.SOURCE_GENERATED;
+    addSourceDirPaths(sourceType, androidArtifact.getGeneratedSourceFolders());
+
+    sourceType = isTest ? ExternalSystemSourceType.TEST_RESOURCE : ExternalSystemSourceType.RESOURCE;
+    addSourceDirPaths(sourceType, androidArtifact.getGeneratedResourceFolders());
   }
 
-  private void addSourceDirectoryPaths(@NotNull ProductFlavorContainer productFlavor) {
-    addSourceDirectoryPaths(ExternalSystemSourceType.SOURCE, productFlavor.getSourceProvider());
-    addSourceDirectoryPaths(ExternalSystemSourceType.TEST, productFlavor.getTestSourceProvider());
+  private void addSourceDirPaths(@NotNull ProductFlavorContainerStub productFlavor) {
+    addSourceDirPaths(productFlavor.getSourceProvider(), false);
+    addSourceDirPaths(productFlavor.getInstrumentationTestSourceProvider(), true);
   }
 
-  private void addSourceDirectoryPaths(@NotNull ExternalSystemSourceType sourceType, @NotNull SourceProvider sourceProvider) {
-    addSourceDirectoryPaths(sourceType, sourceProvider.getAidlDirectories());
-    addSourceDirectoryPaths(sourceType, sourceProvider.getAssetsDirectories());
-    addSourceDirectoryPaths(sourceType, sourceProvider.getJavaDirectories());
-    addSourceDirectoryPaths(sourceType, sourceProvider.getJniDirectories());
-    addSourceDirectoryPaths(sourceType, sourceProvider.getRenderscriptDirectories());
-    addSourceDirectoryPaths(sourceType, sourceProvider.getResDirectories());
-    addSourceDirectoryPaths(sourceType, sourceProvider.getResourcesDirectories());
+  private void addSourceDirPaths(@NotNull SourceProvider sourceProvider, boolean isTest) {
+    ExternalSystemSourceType sourceType = isTest ? ExternalSystemSourceType.TEST : ExternalSystemSourceType.SOURCE;
+
+    addSourceDirPaths(sourceType, sourceProvider.getAidlDirectories());
+    addSourceDirPaths(sourceType, sourceProvider.getAssetsDirectories());
+    addSourceDirPaths(sourceType, sourceProvider.getJavaDirectories());
+    addSourceDirPaths(sourceType, sourceProvider.getJniDirectories());
+    addSourceDirPaths(sourceType, sourceProvider.getRenderscriptDirectories());
+
+    sourceType = isTest ? ExternalSystemSourceType.TEST_RESOURCE : ExternalSystemSourceType.RESOURCE;
+    addSourceDirPaths(sourceType, sourceProvider.getResDirectories());
+    addSourceDirPaths(sourceType, sourceProvider.getResourcesDirectories());
   }
 
-  private void addSourceDirectoryPaths(@NotNull ExternalSystemSourceType sourceType, @Nullable Iterable<File> sourceDirectories) {
+  private void addSourceDirPaths(@NotNull ExternalSystemSourceType sourceType, @Nullable Iterable<File> sourceDirectories) {
     if (sourceDirectories == null) {
       return;
     }
-    List<String> paths = myDirectoryPathsBySourceType.get(sourceType);
+    List<String> paths = getPaths(sourceType);
     for (File directory : sourceDirectories) {
-      paths.add(FileUtil.toSystemIndependentName(directory.getAbsolutePath()));
+      paths.add(FileUtil.toSystemIndependentName(directory.getPath()));
     }
     Collections.sort(paths);
   }
@@ -111,8 +125,13 @@ public class ContentRootSourcePaths {
   public void assertCorrectStoredDirPaths(@NotNull Collection<String> paths, @NotNull ExternalSystemSourceType sourceType) {
     List<String> sortedPaths = Lists.newArrayList(paths);
     Collections.sort(sortedPaths);
-    List<String> expectedPaths = myDirectoryPathsBySourceType.get(sourceType);
+    List<String> expectedPaths = getPaths(sourceType);
     String msg = String.format("Source paths (%s)", sourceType.toString().toLowerCase());
     Assert.assertEquals(msg, expectedPaths, sortedPaths);
+  }
+
+  @NotNull
+  public List<String> getPaths(@NotNull ExternalSystemSourceType sourceType) {
+    return myDirectoryPathsBySourceType.get(sourceType);
   }
 }

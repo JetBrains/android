@@ -25,33 +25,32 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE;
+import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
  * Value object which holds the current state of the wizard pages for the
  * {@link NewProjectWizard}
  */
 public class NewProjectWizardState extends NewModuleWizardState {
-  public static final String ATTR_LIBRARY = "isLibrary";
   public static final String ATTR_MODULE_NAME = "projectName";
 
-  static final String LIBRARY_TEMPLATE = "NewAndroidLibrary";
-  static final String APPLICATION_TEMPLATE = "NewAndroidApplication";
+  static final String MODULE_TEMPLATE_NAME = "NewAndroidModule";
+  static final String PROJECT_TEMPLATE_NAME = "NewAndroidProject";
+  static final String APPLICATION_NAME = "My Application";
 
-  /**
-   * Tracks changes to the is-library flag so we can change our template
-   */
-  private boolean myPreviousLibraryState;
+  protected Template myProjectTemplate;
 
   public NewProjectWizardState() {
     myHidden.remove(ATTR_PROJECT_LOCATION);
     myHidden.remove(ATTR_IS_LIBRARY_MODULE);
+    myHidden.remove(ATTR_APP_TITLE);
 
-    put(ATTR_LIBRARY, false);
+    put(ATTR_IS_LIBRARY_MODULE, false);
     put(ATTR_IS_LAUNCHER, true);
     put(ATTR_PROJECT_LOCATION, getProjectFileDirectory());
-    updateTemplate();
+    put(ATTR_APP_TITLE, APPLICATION_NAME);
+    myProjectTemplate = Template.createFromName(CATEGORY_PROJECTS, PROJECT_TEMPLATE_NAME);
+    myTemplate = Template.createFromName(CATEGORY_PROJECTS, MODULE_TEMPLATE_NAME);
     setParameterDefaults();
 
     updateParameters();
@@ -69,16 +68,5 @@ public class NewProjectWizardState extends NewModuleWizardState {
     final String userHome = SystemProperties.getUserHome();
     String productName = ApplicationNamesInfo.getInstance().getFullProductName();
     return userHome.replace('/', File.separatorChar) + File.separator + productName.replace(" ", "") + "Projects";
-  }
-
-  /**
-   * Updates the template the wizard is using to reflect whether the project is an application or library.
-   */
-  private void updateTemplate() {
-    boolean isLibrary = (Boolean)get(ATTR_LIBRARY);
-    if (myTemplate == null || isLibrary != myPreviousLibraryState) {
-      myTemplate = Template.createFromName(CATEGORY_PROJECTS, isLibrary? LIBRARY_TEMPLATE : APPLICATION_TEMPLATE);
-      myPreviousLibraryState = isLibrary;
-    }
   }
 }

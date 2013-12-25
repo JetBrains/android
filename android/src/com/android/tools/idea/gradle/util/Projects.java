@@ -15,91 +15,79 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
+import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.project.BuildSettings;
+import com.google.common.base.Objects;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.compiler.options.ExternalBuildOptionListener;
-import com.intellij.facet.Facet;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.FacetTypeId;
 import com.intellij.ide.DataManager;
+import com.intellij.ide.impl.ProjectUtil;
+import com.intellij.ide.projectView.ProjectView;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
+import com.intellij.openapi.project.ex.ProjectManagerEx;
+import com.intellij.openapi.util.AsyncResult;
+import com.intellij.openapi.wm.IdeFocusManager;
+import com.intellij.openapi.wm.IdeFrame;
+import com.intellij.openapi.wm.WindowManager;
+import com.intellij.openapi.wm.ex.IdeFrameEx;
+import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.util.messages.MessageBus;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
+
 /**
  * Utility methods for {@link Project}s.
  */
 public final class Projects {
-  private static final Key<BuildMode> PROJECT_BUILD_MODE_KEY = Key.create("android.gradle.project.build.mode");
-
   private static final Logger LOG = Logger.getInstance(Projects.class);
+  private static final Module[] NO_MODULES = new Module[0];
 
   private Projects() {
   }
 
   /**
-   * Takes a project and compiles it, rebuilds it or simply generates source code based on the {@link BuildMode} set on the given project.
-   * This method does nothing if the project does not have a {@link BuildMode}.
+   * Opens the given project in the IDE.
    *
-   * @param project the given project.
+   * @param project the project to open.
    */
-  public static void build(@NotNull Project project) {
-    BuildMode buildMode = getBuildModeFrom(project);
-    if (buildMode != null) {
-      switch (buildMode) {
-        case MAKE:
-          make(project);
-          break;
-        case REBUILD:
-          rebuild(project);
-          break;
-        case SOURCE_GEN:
-          generateSourcesOnly(project);
-          break;
-        case COMPILE_JAVA:
-          compileJava(project);
-          break;
-        default:
-          assert false : buildMode;
+  public static void open(@NotNull Project project) {
+    ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
+    ProjectUtil.updateLastProjectLocation(project.getBasePath());
+    if (WindowManager.getInstance().isFullScreenSupportedInCurrentOS()) {
+      IdeFocusManager instance = IdeFocusManager.findInstance();
+      IdeFrame lastFocusedFrame = instance.getLastFocusedFrame();
+      if (lastFocusedFrame instanceof IdeFrameEx) {
+        boolean fullScreen = ((IdeFrameEx)lastFocusedFrame).isInFullScreen();
+        if (fullScreen) {
+          project.putUserData(IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN, Boolean.TRUE);
+        }
       }
     }
+    projectManager.openProject(project);
   }
 
-  @Nullable
-  public static BuildMode getBuildModeFrom(@NotNull Project project) {
-    return project.getUserData(PROJECT_BUILD_MODE_KEY);
-  }
-
-  /**
-   * Makes (compile and run Android build tools) the given project.
-   *
-   * @param project the given project.
-   */
-  public static void make(@NotNull Project project) {
-    setProjectBuildMode(project, BuildMode.MAKE);
-    doMake(project);
-  }
-
-  /**
-   * Rebuilds the given project. "Rebuilding" cleans the output directories and then "making" the project (compile and run Android build
-   * tools.)
-   *
-   * @param project the given project.
-   */
-  public static void rebuild(@NotNull Project project) {
-    setProjectBuildMode(project, BuildMode.REBUILD);
-    // By calling "rebuild" we force a clean before compile.
-    CompilerManager.getInstance(project).rebuild(null);
+  public static void clean(@NotNull Project project) {
+    if (!isGradleProject(project)) {
+      return;
+    }
+    if (isDirectGradleInvocationEnabled(project)) {
+      GradleInvoker.getInstance(project).cleanProject(null);
+      return;
+    }
+    BuildSettings.getInstance(project).setBuildMode(BuildMode.CLEAN);
+    CompilerManager.getInstance(project).make(null);
   }
 
   /**
@@ -109,46 +97,32 @@ public final class Projects {
    * @param project the given project.
    */
   public static void generateSourcesOnly(@NotNull Project project) {
-    setProjectBuildMode(project, BuildMode.SOURCE_GEN);
-    doMake(project);
-  }
-
-  public static void compileJava(@NotNull Project project) {
-    setProjectBuildMode(project, BuildMode.COMPILE_JAVA);
-    doMake(project);
-  }
-
-  private static void doMake(@NotNull Project project) {
+    if (!isGradleProject(project)) {
+      return;
+    }
+    if (isDirectGradleInvocationEnabled(project)) {
+      GradleInvoker.getInstance(project).generateSources(null);
+      return;
+    }
+    BuildSettings.getInstance(project).setBuildMode(BuildMode.SOURCE_GEN);
     CompilerManager.getInstance(project).make(null);
   }
 
-  /**
-   * Indicates whether the given project has at least one module that has the {@link AndroidGradleFacet}.
-   *
-   * @param project the given project.
-   * @return {@code true} if the given project has at least one module that has the Android-Gradle facet, {@code false} otherwise.
-   */
+  public static boolean isDirectGradleInvocationEnabled(@NotNull Project project) {
+    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
+    return buildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD;
+  }
+
+  public static boolean isOfflineBuildModeEnabled(@NotNull Project project) {
+    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
+    return buildConfiguration.OFFLINE_MODE;
+  }
+
   public static boolean isGradleProject(@NotNull Project project) {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
-      if (Facets.getFirstFacetOfType(module, AndroidGradleFacet.TYPE_ID) != null) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  public static boolean isIdeaAndroidProject(@NotNull Project project) {
-    ModuleManager moduleManager = ModuleManager.getInstance(project);
-    for (Module module : moduleManager.getModules()) {
-      FacetManager facetManager = FacetManager.getInstance(module);
-      Multimap<FacetTypeId, Facet> facetsByType = ArrayListMultimap.create();
-      for (Facet facet : facetManager.getAllFacets()) {
-        facetsByType.put(facet.getTypeId(), facet);
-      }
-      boolean hasAndroidFacet = !facetsByType.get(AndroidFacet.ID).isEmpty();
-      boolean hasAndroidGradleFacet = !facetsByType.get(AndroidGradleFacet.TYPE_ID).isEmpty();
-      if (hasAndroidFacet && !hasAndroidGradleFacet) {
+      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+      if (androidFacet != null && androidFacet.isGradleProject()) {
         return true;
       }
     }
@@ -156,15 +130,38 @@ public final class Projects {
   }
 
   /**
-   * Returns the current Gradle project. This method must be called in the event dispatch thread.
+   * Indicates whether the give project is a legacy IDEA Android project (which is deprecated in Android Studio.)
    *
-   * @return the current Gradle project, or {@code null} if the current project is not a Gradle one or if there are no projects open.
+   * @param project the given project.
+   * @return {@code true} if the given project is a legacy IDEA Android project; {@code false} otherwise.
    */
-  @Nullable
-  public static Project getCurrentGradleProject() {
-    Project project = CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext());
-    boolean isGradleProject = project != null && isGradleProject(project);
-    return isGradleProject ? project : null;
+  public static boolean isIdeaAndroidProject(@NotNull Project project) {
+    ModuleManager moduleManager = ModuleManager.getInstance(project);
+    for (Module module : moduleManager.getModules()) {
+      if (AndroidFacet.getInstance(module) != null && AndroidGradleFacet.getInstance(module) == null) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Runs the given handler on the current project, when it's available
+   *
+   * @param handler the handler to run when the context is available
+   */
+  public static void applyToCurrentGradleProject(@NotNull final AsyncResult.Handler<Project> handler) {
+    DataManager.getInstance().getDataContextFromFocus().doWhenDone(new AsyncResult.Handler<DataContext>() {
+      @Override
+      public void run(DataContext dataContext) {
+        if (dataContext != null) {
+          Project project = CommonDataKeys.PROJECT.getData(dataContext);
+          if (project != null && isGradleProject(project)) {
+            handler.run(project);
+          }
+        }
+      }
+    });
   }
 
   /**
@@ -175,6 +172,7 @@ public final class Projects {
    */
   public static void ensureExternalBuildIsEnabledForGradleProject(@NotNull Project project) {
     if (isGradleProject(project)) {
+      // We only enforce JPS usage when the 'android' plug-in is not being used in Android Studio.
       CompilerWorkspaceConfiguration workspaceConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
       boolean wasUsingExternalMake = workspaceConfiguration.useOutOfProcessBuild();
       if (!wasUsingExternalMake) {
@@ -188,11 +186,42 @@ public final class Projects {
     }
   }
 
-  public static void removeBuildActionFrom(@NotNull Project project) {
-    setProjectBuildMode(project, null);
+  /**
+   * Returns the modules to build based on the current selection in the 'Project' tool window. If the module that corresponds to the project
+   * is selected, all the modules in such projects are returned. If there is no selection, an empty array is returned.
+   *
+   * @param project     the given project.
+   * @param dataContext knows the modules that are selected. If {@code null}, this method gets the {@code DataContext} from the 'Project'
+   *                    tool window directly.
+   * @return the modules to build based on the current selection in the 'Project' tool window.
+   */
+  @NotNull
+  public static Module[] getModulesToBuildFromSelection(@NotNull Project project, @Nullable DataContext dataContext) {
+    if (dataContext == null) {
+      ProjectView projectView = ProjectView.getInstance(project);
+      JComponent treeComponent = projectView.getCurrentProjectViewPane().getComponentToFocus();
+      dataContext = DataManager.getInstance().getDataContext(treeComponent);
+    }
+    Module[] modules = LangDataKeys.MODULE_CONTEXT_ARRAY.getData(dataContext);
+    if (modules != null) {
+      if (modules.length == 1 && isProjectModule(project, modules[0])) {
+        return ModuleManager.getInstance(project).getModules();
+      }
+      return modules;
+    }
+
+    Module module = LangDataKeys.MODULE.getData(dataContext);
+    if (module != null) {
+      return isProjectModule(project, module) ? ModuleManager.getInstance(project).getModules() : new Module[] { module };
+    }
+
+    return NO_MODULES;
   }
 
-  public static void setProjectBuildMode(@NotNull Project project, @Nullable BuildMode action) {
-    project.putUserData(PROJECT_BUILD_MODE_KEY, action);
+  private static boolean isProjectModule(@NotNull Project project, @NotNull Module module) {
+    // if we got here is because we are dealing with a Gradle project, but if there is only one module selected and this module is the
+    // module that corresponds to the project itself, it won't have an android-gradle facet. In this case we treat it as if we were going
+    // to build the whole project.
+    return Objects.equal(module.getName(), project.getName()) && AndroidGradleFacet.getInstance(module) == null;
   }
 }

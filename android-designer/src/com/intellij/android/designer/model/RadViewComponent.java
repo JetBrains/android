@@ -17,7 +17,11 @@ package com.intellij.android.designer.model;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.idea.designer.AndroidMetaModel;
+import com.android.tools.idea.rendering.RenderService;
+import com.intellij.android.designer.AndroidDesignerUtils;
 import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
+import com.intellij.designer.designSurface.EditableArea;
 import com.intellij.designer.designSurface.ScalableComponent;
 import com.intellij.designer.model.*;
 import com.intellij.designer.palette.PaletteItem;
@@ -38,14 +42,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.SdkConstants.*;
+
 /**
  * @author Alexander Lobas
  */
 public class RadViewComponent extends RadVisualComponent {
   private final List<RadComponent> myChildren = new ArrayList<RadComponent>();
   protected ViewInfo myViewInfo;
-  private Insets myMargins;
-  private Insets myPadding;
+  private com.android.tools.idea.designer.Insets myMargins;
+  private com.android.tools.idea.designer.Insets myPadding;
   private XmlTag myTag;
   private List<Property> myProperties;
   private PaletteItem myPaletteItem;
@@ -59,6 +65,25 @@ public class RadViewComponent extends RadVisualComponent {
 
   public void setTag(XmlTag tag) {
     myTag = tag;
+  }
+
+  @Nullable
+  public String getAttribute(@NotNull String name, @Nullable String namespace) {
+    if (namespace != null) {
+      return myTag.getAttributeValue(name, namespace);
+    } else {
+      return myTag.getAttributeValue(name);
+    }
+  }
+
+  public void setAttribute(@NotNull String name, @Nullable String namespace, @Nullable String value) {
+    if (namespace != null) {
+      //noinspection ConstantConditions
+      myTag.setAttribute(name, namespace, value);
+    } else {
+      //noinspection ConstantConditions
+      myTag.setAttribute(name, value);
+    }
   }
 
   public void updateTag(XmlTag tag) {
@@ -88,6 +113,11 @@ public class RadViewComponent extends RadVisualComponent {
 
   public int getViewInfoCount() {
     return 1;
+  }
+
+  @Override
+  public AndroidMetaModel getMetaModel() {
+    return (AndroidMetaModel)super.getMetaModel();
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////
@@ -127,7 +157,7 @@ public class RadViewComponent extends RadVisualComponent {
   }
 
   @NotNull
-  public Insets getMargins() {
+  public com.android.tools.idea.designer.Insets getMargins() {
     if (myMargins == null) {
       try {
         Object layoutParams = myViewInfo.getLayoutParamsObject();
@@ -138,20 +168,20 @@ public class RadViewComponent extends RadVisualComponent {
         int right = fixDefault(layoutClass.getField("rightMargin").getInt(layoutParams));
         int bottom = fixDefault(layoutClass.getField("bottomMargin").getInt(layoutParams));
         if (left == 0 && top == 0 && right == 0 && bottom == 0) {
-          myMargins = Insets.NONE;
+          myMargins = com.android.tools.idea.designer.Insets.NONE;
         } else {
-          myMargins = new Insets(left, top, right, bottom);
+          myMargins = new com.android.tools.idea.designer.Insets(left, top, right, bottom);
         }
       }
       catch (Throwable e) {
-        myMargins = Insets.NONE;
+        myMargins = com.android.tools.idea.designer.Insets.NONE;
       }
     }
     return myMargins;
   }
 
   @NotNull
-  public Insets getPadding() {
+  public com.android.tools.idea.designer.Insets getPadding() {
     if (myPadding == null) {
       try {
         Object layoutParams = myViewInfo.getViewObject();
@@ -162,28 +192,28 @@ public class RadViewComponent extends RadVisualComponent {
         int right = fixDefault((Integer)layoutClass.getMethod("getPaddingRight").invoke(layoutParams));
         int bottom = fixDefault((Integer)layoutClass.getMethod("getPaddingBottom").invoke(layoutParams));
         if (left == 0 && top == 0 && right == 0 && bottom == 0) {
-          myPadding = Insets.NONE;
+          myPadding = com.android.tools.idea.designer.Insets.NONE;
         } else {
-          myPadding = new Insets(left, top, right, bottom);
+          myPadding = new com.android.tools.idea.designer.Insets(left, top, right, bottom);
         }
       }
       catch (Throwable e) {
-        myPadding = Insets.NONE;
+        myPadding = com.android.tools.idea.designer.Insets.NONE;
       }
     }
     return myPadding;
   }
 
-  public Insets getMargins(Component relativeTo) {
-    Insets margins = getMargins();
+  public com.android.tools.idea.designer.Insets getMargins(Component relativeTo) {
+    com.android.tools.idea.designer.Insets margins = getMargins();
     if (margins.isEmpty()) {
       return margins;
     }
     return fromModel(relativeTo, margins);
   }
 
-  public Insets getPadding(Component relativeTo) {
-    Insets padding = getPadding();
+  public com.android.tools.idea.designer.Insets getPadding(Component relativeTo) {
+    com.android.tools.idea.designer.Insets padding = getPadding();
     if (padding.isEmpty()) {
       return padding;
     }
@@ -196,7 +226,7 @@ public class RadViewComponent extends RadVisualComponent {
 
   private static final int WRAP_CONTENT = 0 << 30;
 
-  public void calculateWrapSize(Dimension wrapSize, Rectangle bounds) {
+  public boolean calculateWrapSize(@NotNull Dimension wrapSize, @Nullable Rectangle bounds) {
     if (wrapSize.width == -1 || wrapSize.height == -1) {
       try {
         Object viewObject = myViewInfo.getViewObject();
@@ -211,16 +241,62 @@ public class RadViewComponent extends RadVisualComponent {
         if (wrapSize.height == -1) {
           wrapSize.height = (Integer)viewClass.getMethod("getMeasuredHeight").invoke(viewObject);
         }
+
+        return true;
       }
       catch (Throwable e) {
-        if (wrapSize.width == -1) {
-          wrapSize.width = bounds.width;
-        }
-        if (wrapSize.height == -1) {
-          wrapSize.height = bounds.height;
+        if (bounds != null) {
+          if (wrapSize.width == -1) {
+            wrapSize.width = bounds.width;
+          }
+          if (wrapSize.height == -1) {
+            wrapSize.height = bounds.height;
+          }
         }
       }
     }
+
+    return false;
+  }
+
+  @Nullable
+  public Dimension calculateWrapSize(EditableArea area) {
+    if (myViewInfo != null) {
+      Dimension dimension = new Dimension(-1, -1);
+      boolean measured = calculateWrapSize(dimension, null);
+      if (measured) {
+        return dimension;
+      }
+    }
+    RadComponent parent = getParent();
+    if (!(parent instanceof RadViewComponent)) {
+      return null;
+    }
+    XmlTag parentTag = ((RadViewComponent)parent).getTag();
+    if (parentTag != null) {
+      RenderService service = AndroidDesignerUtils.getRenderService(area);
+      if (service == null) {
+        return null;
+      }
+
+      ViewInfo viewInfo = service.measureChild(getTag(), new RenderService.AttributeFilter() {
+        @Override
+        public String getAttribute(@NotNull XmlTag n, @Nullable String namespace, @NotNull String localName) {
+          if ((ATTR_LAYOUT_WIDTH.equals(localName) || ATTR_LAYOUT_HEIGHT.equals(localName)) && ANDROID_URI.equals(namespace)) {
+            return VALUE_WRAP_CONTENT;
+          } else if (ATTR_LAYOUT_WEIGHT.equals(localName) && ANDROID_URI.equals(namespace)) {
+            return ""; // unset
+          }
+
+          return null; // use default
+        }
+      });
+      if (viewInfo != null) {
+        return new Dimension(viewInfo.getRight() - viewInfo.getLeft(), viewInfo.getBottom() - viewInfo.getTop());
+      }
+    }
+
+    return null;
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////
@@ -485,7 +561,7 @@ public class RadViewComponent extends RadVisualComponent {
       (int)(h / dpiDouble));
   }
 
-  public Insets fromModel(@NotNull Component target, @NotNull Insets insets) {
+  public com.android.tools.idea.designer.Insets fromModel(@NotNull Component target, @NotNull com.android.tools.idea.designer.Insets insets) {
     if (insets.isEmpty()) {
       return insets;
     }
@@ -496,7 +572,7 @@ public class RadViewComponent extends RadVisualComponent {
       ScalableComponent scalableComponent = (ScalableComponent)myNativeComponent;
       double zoom = scalableComponent.getScale();
       if (zoom != 1) {
-        return new Insets((int)(insets.left * zoom), (int)(insets.top * zoom), (int)(insets.right * zoom),
+        return new com.android.tools.idea.designer.Insets((int)(insets.left * zoom), (int)(insets.top * zoom), (int)(insets.right * zoom),
                            (int)(insets.bottom * zoom));
       }
     }
@@ -504,7 +580,7 @@ public class RadViewComponent extends RadVisualComponent {
     return insets;
   }
 
-  public Insets toModel(@NotNull Component source, @NotNull Insets insets) {
+  public com.android.tools.idea.designer.Insets toModel(@NotNull Component source, @NotNull com.android.tools.idea.designer.Insets insets) {
     if (insets.isEmpty()) {
       return insets;
     }
@@ -515,7 +591,7 @@ public class RadViewComponent extends RadVisualComponent {
       ScalableComponent scalableComponent = (ScalableComponent)myNativeComponent;
       double zoom = scalableComponent.getScale();
       if (zoom != 1) {
-        return new Insets((int)(insets.left / zoom), (int)(insets.top / zoom), (int)(insets.right / zoom),
+        return new com.android.tools.idea.designer.Insets((int)(insets.left / zoom), (int)(insets.top / zoom), (int)(insets.right / zoom),
                            (int)(insets.bottom / zoom));
       }
     }
@@ -535,8 +611,8 @@ public class RadViewComponent extends RadVisualComponent {
   public Rectangle getPaddedBounds() {
     Rectangle bounds = getBounds();
 
-    Insets padding = getPadding();
-    if (padding == Insets.NONE) {
+    com.android.tools.idea.designer.Insets padding = getPadding();
+    if (padding == com.android.tools.idea.designer.Insets.NONE) {
       return bounds;
     }
 

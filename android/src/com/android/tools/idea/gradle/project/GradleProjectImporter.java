@@ -25,11 +25,10 @@ import com.android.tools.idea.gradle.customizer.ContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
-import com.android.tools.idea.gradle.util.Facets;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.Application;
@@ -56,19 +55,15 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.roots.CompilerProjectExtension;
+import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.IdeFocusManager;
-import com.intellij.openapi.wm.IdeFrame;
-import com.intellij.openapi.wm.WindowManager;
-import com.intellij.openapi.wm.ex.IdeFrameEx;
-import com.intellij.openapi.wm.impl.IdeFrameImpl;
+import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -93,6 +88,12 @@ public class GradleProjectImporter {
     {new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputPathModuleCustomizer()};
 
   private final ImporterDelegate myDelegate;
+
+  /**
+   * Flag used by unit tests to selectively disable code which requires an open project or UI updates; this is used
+   * by unit tests that do not run all of IntelliJ (e.g. do not extend the IdeaTestCase base)
+   */
+  public static boolean ourSkipSetupFromTest;
 
   @NotNull
   public static GradleProjectImporter getInstance() {
@@ -159,15 +160,34 @@ public class GradleProjectImporter {
   public void importProject(@NotNull String projectName,
                             @NotNull File projectRootDir,
                             @Nullable Callback callback,
-                            @Nullable Project project)
-    throws IOException, ConfigurationException {
+                            @Nullable Project project) throws IOException, ConfigurationException {
+    importProject(projectName, projectRootDir, callback, project, null);
+  }
+
+  /**
+   * Imports and opens the newly created Android project.
+   *
+   * @param projectName          name of the project.
+   * @param projectRootDir       root directory of the project.
+   * @param callback             called after the project has been imported.
+   * @param initialLanguageLevel when creating a new project, sets the language level to the given version early on (this is because you
+   *                             cannot set a language level later on in the process without telling the user that the language level has
+   *                             changed and to re-open the project)
+   * @throws IOException            if any file I/O operation fails (e.g. creating the '.idea' directory.)
+   * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
+   */
+  public void importProject(@NotNull String projectName,
+                            @NotNull File projectRootDir,
+                            @Nullable Callback callback,
+                            @Nullable Project project,
+                            @Nullable LanguageLevel initialLanguageLevel) throws IOException, ConfigurationException {
     GradleImportNotificationListener.attachToManager();
 
     createTopLevelBuildFileIfNotExisting(projectRootDir);
     createIdeaProjectDir(projectRootDir);
 
     final Project newProject = project == null ? createProject(projectName, projectRootDir.getPath()) : project;
-    setUpProject(newProject);
+    setUpProject(newProject, initialLanguageLevel);
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       newProject.save();
@@ -182,7 +202,7 @@ public class GradleProjectImporter {
   }
 
   private static void createTopLevelBuildFileIfNotExisting(@NotNull File projectRootDir) throws IOException {
-    File projectFile = new File(projectRootDir, SdkConstants.FN_BUILD_GRADLE);
+    File projectFile = GradleUtil.getGradleBuildFilePath(projectRootDir);
     if (projectFile.isFile()) {
       return;
     }
@@ -207,19 +227,28 @@ public class GradleProjectImporter {
     return newProject;
   }
 
-  private static void setUpProject(@NotNull final Project newProject) {
+  private static void setUpProject(@NotNull final Project newProject, @Nullable final LanguageLevel initialLanguageLevel) {
     CommandProcessor.getInstance().executeCommand(newProject, new Runnable() {
       @Override
       public void run() {
         ApplicationManager.getApplication().runWriteAction(new Runnable() {
           @Override
           public void run() {
+            if (initialLanguageLevel != null) {
+              final LanguageLevelProjectExtension extension = LanguageLevelProjectExtension.getInstance(newProject);
+              if (extension != null) {
+                extension.setLanguageLevel(initialLanguageLevel);
+              }
+            }
+
             // In practice, it really does not matter where the compiler output folder is. Gradle handles that. This is done just to please
             // IDEA.
-            String compileOutputUrl = VfsUtilCore.pathToUrl(newProject.getBasePath() + "/build/classes");
+            File compilerOutputDir = new File(newProject.getBasePath(), FileUtil.join("build", "classes"));
+            String compilerOutputDirPath = FileUtil.toSystemIndependentName(compilerOutputDir.getPath());
+            String compilerOutputDirUrl = VfsUtilCore.pathToUrl(compilerOutputDirPath);
             CompilerProjectExtension compilerProjectExt = CompilerProjectExtension.getInstance(newProject);
             assert compilerProjectExt != null;
-            compilerProjectExt.setCompilerOutputUrl(compileOutputUrl);
+            compilerProjectExt.setCompilerOutputUrl(compilerOutputDirUrl);
             setUpGradleSettings(newProject);
           }
         });
@@ -237,8 +266,10 @@ public class GradleProjectImporter {
     gradleSettings.setLinkedProjectsSettings(ImmutableList.of(projectSettings));
   }
 
-  private void doImport(@NotNull final Project project, final boolean newProject, @NotNull final ProgressExecutionMode progressExecutionMode, @Nullable final Callback callback)
-    throws ConfigurationException {
+  private void doImport(@NotNull final Project project,
+                        final boolean newProject,
+                        @NotNull final ProgressExecutionMode progressExecutionMode,
+                        @Nullable final Callback callback) throws ConfigurationException {
     myDelegate.importProject(project, new ExternalProjectRefreshCallback() {
       @Override
       public void onSuccess(@Nullable final DataNode<ProjectData> projectInfo) {
@@ -248,15 +279,17 @@ public class GradleProjectImporter {
           @Override
           public void run() {
             populateProject(project, projectInfo);
-            if (newProject) {
-              open(project);
-            }
-            else {
-              updateStructureAccordingToBuildVariants(project);
-            }
-
-            if (!application.isUnitTestMode()) {
-              project.save();
+            boolean isTest = application.isUnitTestMode();
+            if (!isTest || !ourSkipSetupFromTest) {
+              if (newProject) {
+                Projects.open(project);
+              }
+              else {
+                updateStructureAccordingToBuildVariants(project);
+              }
+              if (!isTest) {
+                project.save();
+              }
             }
             if (newProject) {
               // We need to do this because AndroidGradleProjectComponent#projectOpened is being called when the project is created, instead
@@ -321,22 +354,6 @@ public class GradleProjectImporter {
     });
   }
 
-  private static void open(@NotNull final Project newProject) {
-    ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
-    ProjectUtil.updateLastProjectLocation(newProject.getBasePath());
-    if (WindowManager.getInstance().isFullScreenSupportedInCurrentOS()) {
-      IdeFocusManager instance = IdeFocusManager.findInstance();
-      IdeFrame lastFocusedFrame = instance.getLastFocusedFrame();
-      if (lastFocusedFrame instanceof IdeFrameEx) {
-        boolean fullScreen = ((IdeFrameEx)lastFocusedFrame).isInFullScreen();
-        if (fullScreen) {
-          newProject.putUserData(IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN, Boolean.TRUE);
-        }
-      }
-    }
-    projectManager.openProject(newProject);
-  }
-
   private void updateStructureAccordingToBuildVariants(final Project project) {
     // Update module dependencies, content roots and output paths. This needs to be done in case the selected variant is not
     // the same one as the default (an by "default" we mean the first in the drop-down.)
@@ -345,7 +362,7 @@ public class GradleProjectImporter {
       public void execute() {
         ModuleManager moduleManager = ModuleManager.getInstance(project);
         for (Module module : moduleManager.getModules()) {
-          AndroidFacet facet = Facets.getFirstFacetOfType(module, AndroidFacet.ID);
+          AndroidFacet facet = AndroidFacet.getInstance(module);
           if (facet != null) {
             IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
             for (ModuleCustomizer customizer : myModuleCustomizers) {
@@ -359,12 +376,15 @@ public class GradleProjectImporter {
 
   // Makes it possible to mock invocations to the Gradle Tooling API.
   static class ImporterDelegate {
-    void importProject(@NotNull Project project, @NotNull ExternalProjectRefreshCallback callback, @NotNull final ProgressExecutionMode progressExecutionMode)
-      throws ConfigurationException {
+    void importProject(@NotNull Project project,
+                       @NotNull ExternalProjectRefreshCallback callback,
+                       @NotNull final ProgressExecutionMode progressExecutionMode) throws ConfigurationException {
       try {
+        boolean previewMode = false; // false -> resolve dependencies for Java modules (Gradle model takes care of its own dependencies.)
+        boolean reportRefreshError = true; // always report errors when importing.
         String externalProjectPath = FileUtil.toCanonicalPath(project.getBasePath());
         ExternalSystemUtil
-          .refreshProject(project, SYSTEM_ID, externalProjectPath, callback, true, progressExecutionMode, true);
+          .refreshProject(project, SYSTEM_ID, externalProjectPath, callback, previewMode, progressExecutionMode, reportRefreshError);
       }
       catch (RuntimeException e) {
         String externalSystemName = SYSTEM_ID.getReadableName();

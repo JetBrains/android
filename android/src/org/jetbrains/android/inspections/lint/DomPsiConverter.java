@@ -16,6 +16,9 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.google.common.base.Stopwatch;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -837,6 +840,16 @@ class DomPsiConverter {
     @NotNull
     @Override
     public NamedNodeMap getAttributes() {
+      Application application = ApplicationManager.getApplication();
+      if (!application.isReadAccessAllowed()) {
+        return application.runReadAction(new Computable<NamedNodeMap>() {
+          @Override
+          public NamedNodeMap compute() {
+            return getAttributes();
+          }
+        });
+      }
+
       if (myAttributes == null) {
         XmlAttribute[] attributes = myTag.getAttributes();
         if (attributes.length == 0) {
@@ -854,6 +867,16 @@ class DomPsiConverter {
     @NotNull
     @Override
     public String getTagName() {
+      Application application = ApplicationManager.getApplication();
+      if (!application.isReadAccessAllowed()) {
+        return application.runReadAction(new Computable<String>() {
+          @Override
+          public String compute() {
+            return getTagName();
+          }
+        });
+      }
+
       return myTag.getName();
     }
 
@@ -1010,6 +1033,16 @@ class DomPsiConverter {
     @NotNull
     @Override
     public String getNodeValue() throws DOMException {
+      Application application = ApplicationManager.getApplication();
+      if (!application.isReadAccessAllowed()) {
+        return application.runReadAction(new Computable<String>() {
+          @Override
+          public String compute() {
+            return getNodeValue();
+          }
+        });
+      }
+
       return myText.getText();
     }
 
@@ -1070,6 +1103,16 @@ class DomPsiConverter {
     @NotNull
     @Override
     public String getNodeValue() throws DOMException {
+      Application application = ApplicationManager.getApplication();
+      if (!application.isReadAccessAllowed()) {
+        return application.runReadAction(new Computable<String>() {
+          @Override
+          public String compute() {
+            return getNodeValue();
+          }
+        });
+      }
+
       return myComment.getText();
     }
 
@@ -1081,7 +1124,7 @@ class DomPsiConverter {
     @NotNull
     @Override
     public String getTextContent() throws DOMException {
-      return myComment.getText();
+      return getNodeValue();
     }
   }
 
@@ -1119,6 +1162,15 @@ class DomPsiConverter {
     @NotNull
     @Override
     public String getName() {
+      Application application = ApplicationManager.getApplication();
+      if (!application.isReadAccessAllowed()) {
+        return application.runReadAction(new Computable<String>() {
+          @Override
+          public String compute() {
+            return getName();
+          }
+        });
+      }
       return myAttribute.getName();
     }
 
@@ -1130,6 +1182,16 @@ class DomPsiConverter {
     @NotNull
     @Override
     public String getValue() {
+      Application application = ApplicationManager.getApplication();
+      if (!application.isReadAccessAllowed()) {
+        return application.runReadAction(new Computable<String>() {
+          @Override
+          public String compute() {
+            return getValue();
+          }
+        });
+      }
+
       String value = myAttribute.getValue();
       if (value == null) {
         value = "";
@@ -1140,18 +1202,48 @@ class DomPsiConverter {
     @NotNull
     @Override
     public String getLocalName() {
+      Application application = ApplicationManager.getApplication();
+      if (!application.isReadAccessAllowed()) {
+        return application.runReadAction(new Computable<String>() {
+          @Override
+          public String compute() {
+            return getLocalName();
+          }
+        });
+      }
+
       return myAttribute.getLocalName();
     }
 
     @NotNull
     @Override
     public String getPrefix() {
+      Application application = ApplicationManager.getApplication();
+      if (!application.isReadAccessAllowed()) {
+        return application.runReadAction(new Computable<String>() {
+          @Override
+          public String compute() {
+            return getPrefix();
+          }
+        });
+      }
+
       return myAttribute.getNamespacePrefix();
     }
 
     @NotNull
     @Override
     public String getNamespaceURI() {
+      Application application = ApplicationManager.getApplication();
+      if (!application.isReadAccessAllowed()) {
+        return application.runReadAction(new Computable<String>() {
+          @Override
+          public String compute() {
+            return getNamespaceURI();
+          }
+        });
+      }
+
       return myAttribute.getNamespace();
     }
 

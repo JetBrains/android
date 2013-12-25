@@ -52,24 +52,24 @@
     </orderEntry>
     <orderEntry type="module" module-name="external-system-api" />
     <orderEntry type="module" module-name="gradle" />
-    <orderEntry type="module-library">
-      <library name="android-gradle-model">
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/builder-model-0.6.1.jar!/" />
-          <root url="jar://$MODULE_DIR$/lib/builder-0.6.1.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/lib/src/builder-0.6.1-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/lib/src/builder-model-0.6.1-sources.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
     <orderEntry type="module" module-name="external-system-impl" />
     <orderEntry type="library" name="gson" level="project" />
     <orderEntry type="module" module-name="jetgroovy" />
     <orderEntry type="module" module-name="perflib" />
     <orderEntry type="library" name="swingx" level="project" />
+    <orderEntry type="module-library" scope="TEST">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib/mockito-all-1.9.5.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MODULE_DIR$/lib/mockito-all-1.9.5.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="library" name="android-builder" level="project" />
+    <orderEntry type="module" module-name="gradle-import" />
   </component>
 </module>
 

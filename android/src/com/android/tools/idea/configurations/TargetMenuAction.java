@@ -19,13 +19,14 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.List;
 
 public class TargetMenuAction extends FlatComboAction {
   private final RenderContext myRenderContext;
@@ -71,14 +72,29 @@ public class TargetMenuAction extends FlatComboAction {
     group.addSeparator();
 
     IAndroidTarget current = configuration.getTarget();
-    List<IAndroidTarget> targets = configuration.getConfigurationManager().getTargets();
+    IAndroidTarget[] targets = configuration.getConfigurationManager().getTargets();
 
     boolean haveRecent = false;
 
-    for (int i = targets.size() - 1; i >= 0; i--) {
-      IAndroidTarget target = targets.get(i);
+    Module module = myRenderContext.getModule();
+    int minSdk = -1;
+    if (module != null) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        minSdk = facet.getAndroidModuleInfo().getMinSdkVersion();
+      }
+    }
+
+    for (int i = targets.length - 1; i >= 0; i--) {
+      IAndroidTarget target = targets[i];
+      if (!ConfigurationManager.isLayoutLibTarget(target)) {
+        continue;
+      }
 
       AndroidVersion version = target.getVersion();
+      if (version.getApiLevel() < minSdk) {
+        break;
+      }
       if (version.getApiLevel() >= 7) {
         haveRecent = true;
       }

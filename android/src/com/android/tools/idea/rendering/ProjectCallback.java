@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.LayoutLibrary;
+import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.rendering.legacy.LegacyCallback;
 import com.android.ide.common.resources.ResourceResolver;
@@ -37,6 +38,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.dom.layout.AndroidLayoutUtil;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ViewLoader;
@@ -68,8 +70,9 @@ public final class ProjectCallback extends LegacyCallback {
   private static final int MAX_PARSER_INCLUDES = 50;
 
   @NotNull private final Module myModule;
-  @NotNull private final ProjectResources myProjectRes;
+  @NotNull private final LocalResourceRepository myProjectRes;
   @NotNull final private LayoutLibrary myLayoutLib;
+  @Nullable private final Object myCredential;
   @Nullable private String myNamespace;
   @Nullable private RenderLogger myLogger;
   @NotNull private ViewLoader myClassLoader;
@@ -84,18 +87,19 @@ public final class ProjectCallback extends LegacyCallback {
    * Creates a new {@link ProjectCallback} to be used with the layout lib.
    *
    * @param layoutLib  The layout library this callback is going to be invoked from
-   * @param projectRes the {@link ProjectResources} for the project.
-   * @param project    the project.
+   * @param projectRes the {@link LocalResourceRepository} for the project.
+   * @param module     the module
+   * @param facet      the facet
+   * @param logger     the render logger
+   * @param credential the sandbox credential
    */
-  public ProjectCallback(@NotNull LayoutLibrary layoutLib, @NotNull ProjectResources projectRes, @NotNull Module project,
-                         @NotNull RenderLogger logger) {
+  public ProjectCallback(@NotNull LayoutLibrary layoutLib, @NotNull LocalResourceRepository projectRes, @NotNull Module module,
+                         @NotNull AndroidFacet facet, @NotNull RenderLogger logger, @Nullable Object credential) {
     myLayoutLib = layoutLib;
     myProjectRes = projectRes;
-    myModule = project;
-
-    AndroidFacet facet = AndroidFacet.getInstance(myModule);
-    assert facet != null;
-    myClassLoader = new ViewLoader(myLayoutLib, facet, myProjectRes, logger);
+    myModule = module;
+    myCredential = credential;
+    myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential);
   }
 
   /** Resets the callback state for another render */
@@ -139,8 +143,21 @@ public final class ProjectCallback extends LegacyCallback {
       throws Exception {
     if (className.indexOf('.') == -1 && !VIEW_FRAGMENT.equals(className) && !VIEW_INCLUDE.equals(className)) {
       // When something is *really* wrong we get asked to load core Android classes.
-      // Ignore these; custom views should always have fully qualified names.
-      throw new ClassNotFoundException(className);
+      // Ignore these; custom views should always have fully qualified names. However,
+      // we *do* want to warn when you have a tag which looks like a core class (e.g.
+      // no package name) but isn't recognized.
+      boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
+      try {
+        AndroidFacet facet = AndroidFacet.getInstance(myModule);
+        if (facet != null) {
+          List<String> known = AndroidLayoutUtil.getPossibleRoots(facet);
+          if (known.contains(className)) {
+            throw new ClassNotFoundException(className);
+          }
+        }
+      } finally {
+        RenderSecurityManager.exitSafeRegion(token);
+      }
     }
 
     myUsed = true;
@@ -289,7 +306,10 @@ public final class ProjectCallback extends LegacyCallback {
           PsiFile psiFile = psiManager.findFile(file);
           if (psiFile instanceof XmlFile) {
             assert myLogger != null;
-            return LayoutPsiPullParser.create((XmlFile)psiFile, myLogger);
+            LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger);
+            // For included layouts, don't see view cookies; we want the leaf to point back to the include tag
+            parser.setProvideViewCookies(false);
+            return parser;
           }
         }
       }

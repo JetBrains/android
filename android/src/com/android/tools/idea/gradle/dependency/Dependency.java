@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.dependency;
 
+import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidLibrary;
-import com.android.builder.model.ArtifactInfo;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.google.common.collect.Lists;
@@ -98,21 +98,23 @@ public abstract class Dependency {
     DependencySet dependencies = new DependencySet();
     Variant selectedVariant = androidProject.getSelectedVariant();
 
-    ArtifactInfo testArtifactInfo = selectedVariant.getTestArtifactInfo();
-    if (testArtifactInfo != null) {
-      populate(dependencies, testArtifactInfo, DependencyScope.TEST);
+    AndroidArtifact testArtifact = androidProject.findInstrumentationTestArtifactInSelectedVariant();
+    if (testArtifact != null) {
+      populate(dependencies, testArtifact, DependencyScope.TEST);
     }
-    ArtifactInfo mainArtifactInfo = selectedVariant.getMainArtifactInfo();
-    populate(dependencies, mainArtifactInfo, DependencyScope.COMPILE);
+    AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
+    populate(dependencies, mainArtifact, DependencyScope.COMPILE);
 
     return dependencies.getValues();
   }
 
-  private static void populate(@NotNull DependencySet dependencies, @NotNull ArtifactInfo artifactInfo, @NotNull DependencyScope scope) {
-    populate(dependencies, artifactInfo.getDependencies().getJars(), scope);
+  private static void populate(@NotNull DependencySet dependencies,
+                               @NotNull AndroidArtifact androidArtifact,
+                               @NotNull DependencyScope scope) {
+    populate(dependencies, androidArtifact.getDependencies().getJars(), scope);
 
     Set<File> unique = Sets.newHashSet();
-    for (AndroidLibrary lib : artifactInfo.getDependencies().getLibraries()) {
+    for (AndroidLibrary lib : androidArtifact.getDependencies().getLibraries()) {
       ModuleDependency mainDependency = null;
       String gradleProjectPath = lib.getProject();
       if (gradleProjectPath != null && !gradleProjectPath.isEmpty()) {
@@ -135,7 +137,7 @@ public abstract class Dependency {
       populate(dependencies, lib.getLocalJars(), scope);
     }
 
-    for (String gradleProjectPath : artifactInfo.getDependencies().getProjects()) {
+    for (String gradleProjectPath : androidArtifact.getDependencies().getProjects()) {
       if (gradleProjectPath != null && !gradleProjectPath.isEmpty()) {
         //noinspection TestOnlyProblems
         ModuleDependency dependency = new ModuleDependency(gradleProjectPath, scope);
@@ -150,8 +152,12 @@ public abstract class Dependency {
     return aar != null ? aar.getName() : FileUtil.getNameWithoutExtension(jar);
   }
 
-  /** Add a library, along with any recursive library dependencies */
-  private static void addLibrary(@NotNull AndroidLibrary library, @NotNull DependencySet dependencies, @NotNull DependencyScope scope,
+  /**
+   * Add a library, along with any recursive library dependencies
+   */
+  private static void addLibrary(@NotNull AndroidLibrary library,
+                                 @NotNull DependencySet dependencies,
+                                 @NotNull DependencyScope scope,
                                  @NotNull Set<File> unique) {
     // We're using the library location as a unique handle rather than the AndroidLibrary instance itself, in case
     // the model just blindly manufactures library instances as it's following dependencies
@@ -181,7 +187,7 @@ public abstract class Dependency {
     }
   }
 
-  private static void populate(@NotNull DependencySet dependencies, @NotNull List<File> jars, @NotNull DependencyScope scope) {
+  private static void populate(@NotNull DependencySet dependencies, @NotNull Collection<File> jars, @NotNull DependencyScope scope) {
     for (File jar : jars) {
       //noinspection TestOnlyProblems
       dependencies.add(new LibraryDependency(jar, scope));

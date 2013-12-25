@@ -18,6 +18,7 @@ package com.android.tools.idea.wizard;
 
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.SdkManager;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -38,6 +39,8 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
 public class NewModuleWizardState extends TemplateWizardState {
   public static final String ATTR_CREATE_ACTIVITY = "createActivity";
   public static final String ATTR_PROJECT_LOCATION = "projectLocation";
+  public static final String APP_NAME = "app";
+  public static final String LIB_NAME = "lib";
 
   /**
    * State for the template wizard, used to embed an activity template
@@ -47,7 +50,7 @@ public class NewModuleWizardState extends TemplateWizardState {
   /**
    * State for the page that lets users create custom launcher icons
    */
-  protected final LauncherIconWizardState myLauncherIconState;
+  protected final AssetStudioWizardState myLauncherIconState;
 
   /**
    * True if the module being created is an Android module (as opposed to a generic Java module with no Android support)
@@ -56,21 +59,28 @@ public class NewModuleWizardState extends TemplateWizardState {
 
   public NewModuleWizardState() {
     myActivityTemplateState = new TemplateWizardState();
-    myLauncherIconState = new LauncherIconWizardState();
+    myLauncherIconState = new AssetStudioWizardState();
 
     myHidden.add(ATTR_PROJECT_LOCATION);
-    myHidden.add(ATTR_IS_LIBRARY_MODULE);
+    myHidden.remove(ATTR_IS_LIBRARY_MODULE);
+    myHidden.add(ATTR_APP_TITLE);
 
     put(ATTR_IS_LAUNCHER, false);
     put(ATTR_CREATE_ICONS, true);
     put(ATTR_IS_NEW_PROJECT, true);
     put(ATTR_CREATE_ACTIVITY, true);
+    put(ATTR_IS_LIBRARY_MODULE, false);
 
     final SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
     BuildToolInfo buildTool = sdkManager != null ? sdkManager.getLatestBuildTool() : null;
     if (buildTool != null) {
       // If buildTool is null, the template will use buildApi instead, which might be good enough.
       put(ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
+    }
+
+    if (sdkManager != null) {
+      // Gradle expects a platform-neutral path
+      put(ATTR_SDK_DIR, FileUtil.toSystemIndependentName(sdkManager.getLocation()));
     }
 
     myActivityTemplateState.myHidden.add(ATTR_PACKAGE_NAME);
@@ -93,7 +103,7 @@ public class NewModuleWizardState extends TemplateWizardState {
   }
 
   @NotNull
-  public LauncherIconWizardState getLauncherIconState() {
+  public AssetStudioWizardState getLauncherIconState() {
     return myLauncherIconState;
   }
 

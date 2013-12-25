@@ -31,6 +31,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -354,25 +355,51 @@ public class TemplateUtils {
   /**
    * Reads the given file as text.
    * @param file The file to read. Must be an absolute reference.
+   * @param warnIfNotExists if true, logs a warning if the file does not exist.
    * @return the contents of the file as text
    */
   @Nullable
-  public static String readTextFile(@NotNull File file) {
+  public static String readTextFile(@NotNull File file, boolean warnIfNotExists) {
     assert file.isAbsolute();
     try {
       return Files.toString(file, Charsets.UTF_8);
     } catch (IOException e) {
-      LOG.warn(e);
+      if (warnIfNotExists) {
+        LOG.warn(e);
+      }
       return null;
     }
   }
 
   /**
-   * Get the build.gradle file for the given module root.
-   * @param moduleRoot The root directory of the module to find the build.gradle file for
-   * @return a file containing the build.gradle file for the given module root
+   * Reads the given file as text.
+   * @param file The file to read. Must be an absolute reference.
+   * @return the contents of the file as text
    */
-  public static File getGradleBuildFile(File moduleRoot) {
-    return new File(moduleRoot, SdkConstants.FN_BUILD_GRADLE);
+  @Nullable
+  public static String readTextFile(@NotNull File file) {
+    return readTextFile(file, true);
+  }
+
+  /**
+   * Reads the given file as text (or the current contents of the edited buffer of the file, if open and not saved.)
+   * @param file The file to read.
+   * @return the contents of the file as text, or null if for some reason it couldn't be read
+   */
+  @Nullable
+  public static String readTextFile(@NotNull final Project project, @NotNull final VirtualFile file) {
+    return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+      @Nullable
+      @Override
+      public String compute() {
+        final PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+        if (psiFile == null) {
+          return null;
+        }
+        else {
+          return psiFile.getText();
+        }
+      }
+    });
   }
 }

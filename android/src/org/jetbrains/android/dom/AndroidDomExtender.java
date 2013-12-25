@@ -70,6 +70,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.*;
 
+import static com.android.SdkConstants.*;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
 /**
@@ -78,7 +79,6 @@ import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
   public static final String ANDROID_NS_PREFIX = "http://schemas.android.com/apk/res";
   private static final String[] LAYOUT_ATTRIBUTES_SUFS = new String[]{"_Layout", "_MarginLayout", "_Cell"};
-  private static final String MERGE_TAG_NAME = "merge";
   private static final MyAttributeProcessor ourLayoutAttrsProcessor = new MyAttributeProcessor() {
     @Override
     public void process(@NotNull XmlName attrName, @NotNull DomExtension extension, @NotNull DomElement element) {
@@ -87,11 +87,19 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
         XmlElement xmlElement = element.getXmlElement();
         XmlTag tag = xmlElement instanceof XmlTag ? (XmlTag)xmlElement : null;
         String tagName = tag != null ? tag.getName() : null;
-        if (!MERGE_TAG_NAME.equals(tagName) && !"TableRow".equals(tagName) && (tag == null || tag.getAttribute("style") == null)) {
+        if (!VIEW_MERGE.equals(tagName) &&
+            !TABLE_ROW.equals(tagName) &&
+            !VIEW_INCLUDE.equals(tagName) &&
+            !REQUEST_FOCUS.equals(tagName) &&
+            (tag == null || tag.getAttribute(ATTR_STYLE) == null)) {
           XmlTag parentTag = tag != null ? tag.getParentTag() : null;
           String parentTagName = parentTag != null ? parentTag.getName() : null;
-          if (!"TableRow".equals(parentTagName) && !"TableLayout".equals(parentTagName) && !MERGE_TAG_NAME.equals(parentTagName) &&
-              ("layout_width".equals(attrName.getLocalName()) || "layout_height".equals(attrName.getLocalName()))) {
+          if (!TABLE_ROW.equals(parentTagName) &&
+              !TABLE_LAYOUT.equals(parentTagName) &&
+              !VIEW_MERGE.equals(parentTagName) &&
+              !GRID_LAYOUT.equals(parentTagName) &&
+              !FQCN_GRID_LAYOUT_V7.equals(parentTagName) &&
+              (ATTR_LAYOUT_WIDTH.equals(attrName.getLocalName()) || ATTR_LAYOUT_HEIGHT.equals(attrName.getLocalName()))) {
             extension.addCustomAnnotation(new MyRequired());
           }
         }
@@ -425,7 +433,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     if (parentTag != null) {
       final String parentTagName = parentTag.getName();
 
-      if (!MERGE_TAG_NAME.equals(parentTagName)) {
+      if (!VIEW_MERGE.equals(parentTagName)) {
         PsiClass c = map.get(parentTagName);
         while (c != null) {
           registerLayoutAttributes(facet, element, c, callback, processor, skipAttrNames);

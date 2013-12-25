@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,6 +28,7 @@ import org.jetbrains.jps.api.GlobalOptions;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Settings used to build a Gradle project.
@@ -34,7 +36,10 @@ import java.util.List;
 class BuilderExecutionSettings {
   private final boolean myEmbeddedGradleDaemonEnabled;
   private final int myGradleDaemonMaxIdleTimeInMs;
+
   @NotNull private final List<String> myGradleDaemonJvmOptions = Lists.newArrayList();
+  @NotNull private final Set<String> myModulesToBuildNames = Sets.newHashSet();
+
   @Nullable private final File myGradleHomeDir;
   @Nullable private final File myGradleServiceDir;
   @Nullable private final File myJavaHomeDir;
@@ -42,6 +47,7 @@ class BuilderExecutionSettings {
   @NotNull private final BuildMode myBuildMode;
   private final boolean myVerboseLoggingEnabled;
   private final boolean myParallelBuild;
+  private final boolean myOfflineBuildMode;
 
   BuilderExecutionSettings() {
     myEmbeddedGradleDaemonEnabled = SystemProperties.getBooleanProperty(BuildProcessJvmArgs.USE_EMBEDDED_GRADLE_DAEMON, false);
@@ -54,34 +60,10 @@ class BuilderExecutionSettings {
     myBuildMode = Strings.isNullOrEmpty(buildActionName) ? BuildMode.DEFAULT_BUILD_MODE : BuildMode.valueOf(buildActionName);
     myVerboseLoggingEnabled = SystemProperties.getBooleanProperty(BuildProcessJvmArgs.USE_GRADLE_VERBOSE_LOGGING, false);
     myParallelBuild = SystemProperties.getBooleanProperty(GlobalOptions.COMPILE_PARALLEL_OPTION, false);
+    myOfflineBuildMode = SystemProperties.getBooleanProperty(BuildProcessJvmArgs.GRADLE_OFFLINE_BUILD_MODE, false);
+    populateModulesToBuild();
     populateGradleDaemonJvmOptions();
     populateHttpProxyJvmOptions();
-  }
-
-  private void populateGradleDaemonJvmOptions() {
-    int vmOptionCount = SystemProperties.getIntProperty(BuildProcessJvmArgs.GRADLE_DAEMON_JVM_OPTION_COUNT, 0);
-    for (int i = 0; i < vmOptionCount; i++) {
-      String jvmOption = System.getProperty(BuildProcessJvmArgs.GRADLE_DAEMON_JVM_OPTION_PREFIX + i);
-      if (!Strings.isNullOrEmpty(jvmOption)) {
-        myGradleDaemonJvmOptions.add(jvmOption);
-      }
-    }
-  }
-
-  private void populateHttpProxyJvmOptions() {
-    int vmOptionCount = SystemProperties.getIntProperty(BuildProcessJvmArgs.HTTP_PROXY_PROPERTY_COUNT, 0);
-    for (int i = 0; i < vmOptionCount; i++) {
-      String jvmOption = System.getProperty(BuildProcessJvmArgs.HTTP_PROXY_PROPERTY_PREFIX + i);
-      if (!Strings.isNullOrEmpty(jvmOption)) {
-        int indexOfSeparator = jvmOption.indexOf(BuildProcessJvmArgs.HTTP_PROXY_PROPERTY_SEPARATOR);
-        if (indexOfSeparator < 0 || indexOfSeparator >= jvmOption.length() -1) {
-          continue;
-        }
-        String name = jvmOption.substring(0, indexOfSeparator);
-        String value = jvmOption.substring(indexOfSeparator + 1);
-        myGradleDaemonJvmOptions.add(AndroidGradleSettings.createJvmArg(name, value));
-      }
-    }
   }
 
   @Nullable
@@ -116,6 +98,42 @@ class BuilderExecutionSettings {
   private static File createFile(@NotNull String jvmArgName) {
     String path = System.getProperty(jvmArgName);
     return path != null && !path.isEmpty() ? new File(path) : null;
+  }
+
+  private void populateModulesToBuild() {
+    int moduleCount = SystemProperties.getIntProperty(BuildProcessJvmArgs.MODULES_TO_BUILD_PROPERTY_COUNT, 0);
+    for (int i = 0; i < moduleCount; i++) {
+      String module = System.getProperty(BuildProcessJvmArgs.MODULES_TO_BUILD_PROPERTY_PREFIX + i);
+      if (!Strings.isNullOrEmpty(module)) {
+        myModulesToBuildNames.add(module);
+      }
+    }
+  }
+
+  private void populateGradleDaemonJvmOptions() {
+    int vmOptionCount = SystemProperties.getIntProperty(BuildProcessJvmArgs.GRADLE_DAEMON_JVM_OPTION_COUNT, 0);
+    for (int i = 0; i < vmOptionCount; i++) {
+      String jvmOption = System.getProperty(BuildProcessJvmArgs.GRADLE_DAEMON_JVM_OPTION_PREFIX + i);
+      if (!Strings.isNullOrEmpty(jvmOption)) {
+        myGradleDaemonJvmOptions.add(jvmOption);
+      }
+    }
+  }
+
+  private void populateHttpProxyJvmOptions() {
+    int vmOptionCount = SystemProperties.getIntProperty(BuildProcessJvmArgs.HTTP_PROXY_PROPERTY_COUNT, 0);
+    for (int i = 0; i < vmOptionCount; i++) {
+      String jvmOption = System.getProperty(BuildProcessJvmArgs.HTTP_PROXY_PROPERTY_PREFIX + i);
+      if (!Strings.isNullOrEmpty(jvmOption)) {
+        int indexOfSeparator = jvmOption.indexOf(BuildProcessJvmArgs.HTTP_PROXY_PROPERTY_SEPARATOR);
+        if (indexOfSeparator < 0 || indexOfSeparator >= jvmOption.length() -1) {
+          continue;
+        }
+        String name = jvmOption.substring(0, indexOfSeparator);
+        String value = jvmOption.substring(indexOfSeparator + 1);
+        myGradleDaemonJvmOptions.add(AndroidGradleSettings.createJvmArg(name, value));
+      }
+    }
   }
 
   boolean isEmbeddedGradleDaemonEnabled() {
@@ -164,6 +182,15 @@ class BuilderExecutionSettings {
     return myParallelBuild;
   }
 
+  boolean isOfflineBuild() {
+    return myOfflineBuildMode;
+  }
+
+  @NotNull
+  Set<String> getModulesToBuildNames() {
+    return myModulesToBuildNames;
+  }
+
   @Override
   public String toString() {
     return "BuilderExecutionSettings[" +
@@ -174,9 +201,11 @@ class BuilderExecutionSettings {
            ", gradleHomeDir=" + myGradleHomeDir +
            ", gradleServiceDir=" + myGradleServiceDir +
            ", javaHomeDir=" + myJavaHomeDir +
+           ", offlineBuild=" + myOfflineBuildMode +
            ", parallelBuild=" + myParallelBuild +
            ", projectDir=" + myProjectDir +
            ", verboseLoggingEnabled=" + myVerboseLoggingEnabled +
+           ", modulesToBuildNames=" + myModulesToBuildNames +
            ']';
   }
 }

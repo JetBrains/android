@@ -74,20 +74,18 @@ public class DeviceArtDescriptor {
 
     // In development environments, search a few other folders
     String basePath = PathManager.getHomePath();
-    if (basePath != null) {
-      String[] paths = new String[] {
-        "plugins" + File.separatorChar + "android" + File.separatorChar,
-        ".." + File.separator + "adt" + File.separator + "idea" + File.separator + "android" + File.separatorChar,
-        "android" + File.separatorChar + "android" + File.separatorChar,
-      };
+    String[] paths = new String[] {
+      "plugins" + File.separatorChar + "android" + File.separatorChar,
+      ".." + File.separator + "adt" + File.separator + "idea" + File.separator + "android" + File.separatorChar,
+      "android" + File.separatorChar + "android" + File.separatorChar,
+    };
 
-      for (String p : paths) {
-        File base = new File(basePath, p);
-        if (base.isDirectory()) {
-          File files = new File(base, FN_BASE);
-          if (files.isDirectory()) {
-            return files;
-          }
+    for (String p : paths) {
+      File base = new File(basePath, p);
+      if (base.isDirectory()) {
+        File files = new File(base, FN_BASE);
+        if (files.isDirectory()) {
+          return files;
         }
       }
     }
@@ -214,7 +212,7 @@ public class DeviceArtDescriptor {
 
   @Nullable
   public File getFrame(@NotNull ScreenOrientation orientation) {
-    return getArtDescriptor(orientation).getBackroundFile();
+    return getArtDescriptor(orientation).getBackgroundFile();
   }
 
   @Nullable
@@ -353,7 +351,7 @@ public class DeviceArtDescriptor {
     }
 
     @Nullable
-    public File getBackroundFile() {
+    public File getBackgroundFile() {
       return myBackgroundName != null ? new File(myDevice.getBaseFolder(), myBackgroundName) : null;
     }
 

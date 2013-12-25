@@ -30,6 +30,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.util.containers.hash.HashSet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.io.File;
@@ -51,6 +52,8 @@ import static com.android.tools.idea.gradle.variant.view.BuildVariantView.BuildV
  * the folder set as it was before the IDE exited.
  */
 public class ResourceFolderManager implements ModificationTracker {
+  public static final String EXPLODED_BUNDLES = "exploded-bundles";
+
   private final AndroidFacet myFacet;
   private List<VirtualFile> myResDirCache;
   private long myGeneration;
@@ -134,11 +137,13 @@ public class ResourceFolderManager implements ModificationTracker {
         // resource set, if necessary
         if (!myGradleInitListenerAdded) {
           myGradleInitListenerAdded = true; // Avoid adding multiple listeners if we invalidate and call this repeatedly around startup
-          myFacet.addListener(new AndroidFacet.GradleProjectAvailableListener() {
+          myFacet.addListener(new GradleSyncListener() {
             @Override
-            public void gradleProjectAvailable(@NotNull IdeaAndroidProject project) {
-              myFacet.removeListener(this);
-              invalidate();
+            public void performedGradleSync(@NotNull AndroidFacet facet, boolean success) {
+              // Resource folders can change on sync
+              if (success) {
+                invalidate();
+              }
             }
           });
         }
@@ -151,9 +156,19 @@ public class ResourceFolderManager implements ModificationTracker {
           }
         }
 
+        IdeaSourceProvider multiProvider = myFacet.getIdeaMultiFlavorSourceProvider();
+        if (multiProvider != null) {
+          resDirectories.addAll(multiProvider.getResDirectories());
+        }
+
         IdeaSourceProvider buildTypeSourceSet = myFacet.getIdeaBuildTypeSourceSet();
         if (buildTypeSourceSet != null) {
           resDirectories.addAll(buildTypeSourceSet.getResDirectories());
+        }
+
+        IdeaSourceProvider variantProvider = myFacet.getIdeaVariantSourceProvider();
+        if (variantProvider != null) {
+          resDirectories.addAll(variantProvider.getResDirectories());
         }
 
         // Write string property such that subsequent restarts can look up the most recent list
@@ -171,7 +186,7 @@ public class ResourceFolderManager implements ModificationTracker {
           state.RES_FOLDERS_RELATIVE_PATH = path.toString();
         }
 
-        // Also refresh the project resources whenever the variant changes
+        // Also refresh the app resources whenever the variant changes
         if (!myVariantListenerAdded) {
           myVariantListenerAdded = true;
           BuildVariantView.getInstance(myFacet.getModule().getProject()).addListener(new BuildVariantSelectionChangeListener() {
@@ -254,6 +269,55 @@ public class ResourceFolderManager implements ModificationTracker {
         }
       }
     }
+  }
+
+  /**
+   * Returns true if the given resource file (such as a given layout XML file) is an extracted library (AAR) resource file
+   *
+   * @param file the file to check
+   * @return true if the file is a library resource file
+   */
+  public static boolean isLibraryResourceFile(@Nullable VirtualFile file) {
+    if (file != null) {
+      return isLibraryResourceFolder(file.getParent());
+    }
+
+    return false;
+  }
+
+  /**
+   * Returns true if the given resource folder (such as a given "layout") is an extracted library (AAR) resource folder
+   *
+   * @param folder the folder to check
+   * @return true if the folder is a library resource folder
+   */
+  public static boolean isLibraryResourceFolder(@Nullable VirtualFile folder) {
+    if (folder != null) {
+      return isLibraryResourceRoot(folder.getParent());
+    }
+
+    return false;
+  }
+
+  /**
+   * Returns true if the given resource folder (such as a given "res" folder, a parent of say a layout folder) is an extracted
+   * library (AAR) resource folder
+   *
+   * @param res the folder to check
+   * @return true if the folder is a library resource folder
+   */
+  public static boolean isLibraryResourceRoot(@Nullable VirtualFile res) {
+    if (res != null) {
+      VirtualFile aar = res.getParent();
+      if (aar != null) {
+        VirtualFile exploded = aar.getParent();
+        if (exploded != null && exploded.getName().equals(EXPLODED_BUNDLES)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   /** Listeners for resource folder changes */

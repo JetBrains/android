@@ -19,13 +19,16 @@ package com.android.tools.idea.gradle.util;
  * Available project build modes used when building a project using the JPS framework.
  */
 public enum BuildMode {
+  /** Cleans the project.*/
+  CLEAN,
+
   /** Compiles Java code and invokes Android build tools. */
   MAKE,
 
   /** Clean project and then {@link #MAKE}. */
   REBUILD,
 
-  /** Compiles Java code without invoking Android build tools. */
+  /** Compiles Java code, in selected modules, without invoking Android build tools. */
   COMPILE_JAVA,
 
   /** Generate Java source only (e.g. R.java). */

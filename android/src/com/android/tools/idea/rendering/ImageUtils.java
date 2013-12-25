@@ -84,6 +84,21 @@ public class ImageUtils {
     return rotated;
   }
 
+  /** Returns a new image that is the source image surrounded by a transparent margin of given size. */
+  public static BufferedImage addMargin(BufferedImage source, int marginSize) {
+    int destWidth = source.getWidth() + 2 * marginSize;
+    int destHeight = source.getHeight() + 2 * marginSize;
+
+    BufferedImage expanded = new BufferedImage(destWidth, destHeight, source.getType());
+    Graphics2D g2 = expanded.createGraphics();
+    g2.setColor(new Color(0, true));
+    g2.fillRect(0, 0, destWidth, destHeight);
+    g2.drawImage(source, 1, 1, null);
+    g2.dispose();
+
+    return expanded;
+  }
+
   /**
    * Resize the given image
    *

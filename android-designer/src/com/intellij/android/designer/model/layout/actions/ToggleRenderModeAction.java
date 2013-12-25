@@ -16,7 +16,6 @@
 package com.intellij.android.designer.model.layout.actions;
 
 import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
-import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.designer.designSurface.DesignerEditorPanel;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;

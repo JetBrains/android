@@ -26,27 +26,67 @@ public class Transform {
     myScale = scale;
   }
 
-  public Dimension modelToView(Dimension size) {
-    return Utilities.scale(size, myScale);
-  }
+  // Model to View
 
-  public int modelToView(int d) {
+  private int scale(int d) {
     return ((int)(d * myScale));
   }
 
-  public int viewToModel(int d) {
-    return (int)(d / myScale);
+  public int modelToViewX(int x) {
+    return scale(x);
+  }
+
+  public int modelToViewY(int y) {
+    return scale(y);
+  }
+
+  public int modelToViewW(int d) {
+    return scale(d);
+  }
+
+  public int modelToViewH(int d) {
+    return scale(d);
   }
 
   public Point modelToView(com.android.navigation.Point loc) {
-    return new Point(modelToView(loc.x), modelToView(loc.y));
+    return new Point(modelToViewX(loc.x), modelToViewY(loc.y));
   }
 
-  public com.android.navigation.Point viewToModel(Point loc) {
-    return new com.android.navigation.Point(viewToModel(loc.x), viewToModel(loc.y));
+  public Dimension modelToView(com.android.navigation.Dimension size) {
+    return new Dimension(modelToViewW(size.width), modelToViewH(size.height));
   }
 
   public Rectangle getBounds(RenderedView v) {
-    return new Rectangle(modelToView(v.x), modelToView(v.y), modelToView(v.w), modelToView(v.h));
+    return new Rectangle(modelToViewX(v.x), modelToViewY(v.y), modelToViewW(v.w), modelToViewH(v.h));
+  }
+
+  // View to Model
+
+  private int unScale(int d) {
+    return (int)(d / myScale);
+  }
+
+  public int viewToModelX(int d) {
+    return unScale(d);
+  }
+
+  public int viewToModelY(int d) {
+    return unScale(d);
+  }
+
+  public int viewToModelW(int d) {
+    return unScale(d);
+  }
+
+  public int viewToModelH(int d) {
+    return unScale(d);
+  }
+
+  public com.android.navigation.Point viewToModel(Point loc) {
+    return new com.android.navigation.Point(viewToModelX(loc.x), viewToModelY(loc.y));
+  }
+
+  public com.android.navigation.Dimension viewToModel(Dimension dim) {
+    return new com.android.navigation.Dimension(viewToModelW(dim.width), viewToModelH(dim.height));
   }
 }

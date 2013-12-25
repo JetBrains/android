@@ -23,10 +23,8 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.ManifestInfo;
-import com.android.tools.idea.rendering.ProjectResources;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.gradle.AndroidModuleInfo;
+import com.android.tools.idea.rendering.*;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -64,7 +62,6 @@ import static com.android.tools.idea.configurations.ConfigurationListener.CFG_TA
 public class ConfigurationManager implements Disposable {
   @NotNull private final Module myModule;
   private List<Device> myDevices;
-  private List<IAndroidTarget> myTargets;
   private final UserDeviceManager myUserDeviceManager;
   private final SoftValueHashMap<VirtualFile, Configuration> myCache = new SoftValueHashMap<VirtualFile, Configuration>();
   private List<Locale> myLocales;
@@ -72,6 +69,8 @@ public class ConfigurationManager implements Disposable {
   private Locale myLocale;
   private IAndroidTarget myTarget;
   private int myStateVersion;
+  private ResourceResolverCache myResolverCache;
+  private long myLocaleCacheStamp;
 
   private ConfigurationManager(@NotNull Module module) {
     myModule = module;
@@ -120,8 +119,8 @@ public class ConfigurationManager implements Disposable {
       config = new FolderConfiguration();
     }
     Configuration configuration = Configuration.create(this, file, fileState, config);
-    ProjectResources projectResources = ProjectResources.get(myModule, true);
-    ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, projectResources, file);
+    LocalResourceRepository resources = AppResourceRepository.getAppResources(myModule, true);
+    ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, resources, file);
     if (fileState != null) {
       matcher.adaptConfigSelection(true);
     } else {
@@ -152,8 +151,8 @@ public class ConfigurationManager implements Disposable {
       config = new FolderConfiguration();
     }
     Configuration configuration = Configuration.create(this, file, fileState, config);
-    ProjectResources projectResources = ProjectResources.get(myModule, true);
-    ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, projectResources, file);
+    LocalResourceRepository resources = AppResourceRepository.getAppResources(myModule, true);
+    ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, resources, file);
     matcher.adaptConfigSelection(true /*needBestMatch*/);
     myCache.put(file, configuration);
 
@@ -187,7 +186,7 @@ public class ConfigurationManager implements Disposable {
         final AndroidSdkData sdkData = platform.getSdkData();
         devices = new ArrayList<Device>();
         DeviceManager deviceManager = sdkData.getDeviceManager();
-        devices.addAll(deviceManager.getDevices((DEFAULT_DEVICES | VENDOR_DEVICES)));
+        devices.addAll(deviceManager.getDevices(DEFAULT_DEVICES | VENDOR_DEVICES));
         devices.addAll(myUserDeviceManager.parseUserDevices(new MessageBuildingSdkLog()));
       }
 
@@ -219,26 +218,39 @@ public class ConfigurationManager implements Disposable {
     return null;
   }
 
+  /**
+   * Returns all the {@link IAndroidTarget} instances applicable for the current module.
+   * Note that this may include non-rendering targets, so for layout rendering contexts,
+   * check individual members by calling {@link #isLayoutLibTarget(IAndroidTarget)} first.
+   */
   @NotNull
-  public List<IAndroidTarget> getTargets() {
-    if (myTargets == null) {
-      List<IAndroidTarget> targets = new ArrayList<IAndroidTarget>();
+  public IAndroidTarget[] getTargets() {
+    AndroidPlatform platform = AndroidPlatform.getPlatform(myModule);
+    if (platform != null) {
+      final AndroidSdkData sdkData = platform.getSdkData();
 
-      AndroidPlatform platform = AndroidPlatform.getPlatform(myModule);
-      if (platform != null) {
-        final AndroidSdkData sdkData = platform.getSdkData();
-
-        for (IAndroidTarget target : sdkData.getTargets()) {
-          if (target.isPlatform() && target.hasRenderingLibrary()) {
-            targets.add(target);
-          }
-        }
-      }
-
-      myTargets = targets;
+      return sdkData.getTargets();
     }
 
-    return myTargets;
+    return new IAndroidTarget[0];
+  }
+
+  public static boolean isLayoutLibTarget(@NotNull IAndroidTarget target) {
+    return target.isPlatform() && target.hasRenderingLibrary();
+  }
+
+  @Nullable
+  public IAndroidTarget getHighestApiTarget() {
+    // Note: The target list is already sorted in ascending API order.
+    IAndroidTarget[] targetList = getTargets();
+    for (int i = targetList.length - 1; i >= 0; i--) {
+      IAndroidTarget target = targetList[i];
+      if (isLayoutLibTarget(target)) {
+        return target;
+      }
+    }
+
+    return null;
   }
 
   /**
@@ -257,6 +269,21 @@ public class ConfigurationManager implements Disposable {
       String theme = activityThemes.get(activity);
       if (theme != null) {
         return theme;
+      }
+
+      if (activity.startsWith(".")) {
+        AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(myModule);
+        if (moduleInfo != null) {
+          theme = activityThemes.get(moduleInfo.getPackage() + activity);
+          if (theme != null) {
+            return theme;
+          }
+        }
+
+        theme = activityThemes.get(manifest.getPackage() + activity);
+        if (theme != null) {
+          return theme;
+        }
       }
     }
 
@@ -312,22 +339,18 @@ public class ConfigurationManager implements Disposable {
   @Nullable
   public IAndroidTarget getDefaultTarget() {
     // Use the most recent target
-    List<IAndroidTarget> targetList = getTargets();
-    for (int i = targetList.size() - 1; i >= 0; i--) {
-      IAndroidTarget target = targetList.get(i);
-      if (target.hasRenderingLibrary()) {
-        return target;
-      }
-    }
-
-    return null;
+    return getHighestApiTarget();
   }
 
   @NotNull
   public List<Locale> getLocales() {
+    // Get locales from modules, but not libraries!
+    LocalResourceRepository projectResources = ProjectResourceRepository.getProjectResources(myModule, true);
+    if (projectResources.getModificationCount() > myLocaleCacheStamp) {
+      myLocales = null;
+    }
     if (myLocales == null) {
       List<Locale> locales = new ArrayList<Locale>();
-      ProjectResources projectResources = ProjectResources.get(myModule, true);
       for (String language : projectResources.getLanguages()) {
         LanguageQualifier languageQualifier = new LanguageQualifier(language);
         locales.add(Locale.create(languageQualifier));
@@ -336,6 +359,7 @@ public class ConfigurationManager implements Disposable {
         }
       }
       myLocales = locales;
+      myLocaleCacheStamp = projectResources.getModificationCount();
     }
 
     return myLocales;
@@ -399,10 +423,10 @@ public class ConfigurationManager implements Disposable {
       return target;
     }
 
-    List<IAndroidTarget> targetList = getTargets();
-    for (int i = targetList.size() - 1; i >= 0; i--) {
-      target = targetList.get(i);
-      if (target.hasRenderingLibrary() && target.getVersion().getApiLevel() >= min) {
+    IAndroidTarget[] targetList = getTargets();
+    for (int i = targetList.length - 1; i >= 0; i--) {
+      target = targetList[i];
+      if (isLayoutLibTarget(target) && target.getVersion().getApiLevel() >= min) {
         return target;
       }
     }
@@ -478,5 +502,13 @@ public class ConfigurationManager implements Disposable {
 
   public int getStateVersion() {
     return myStateVersion;
+  }
+
+  public ResourceResolverCache getResolverCache() {
+    if (myResolverCache == null) {
+      myResolverCache = ResourceResolverCache.create(this);
+    }
+
+    return myResolverCache;
   }
 }

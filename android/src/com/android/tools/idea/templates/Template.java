@@ -29,6 +29,7 @@ import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.utils.SdkUtils;
 import com.android.utils.StdLogger;
 import com.android.utils.XmlUtils;
@@ -41,6 +42,7 @@ import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -85,17 +87,11 @@ public class Template {
    *    proper Booleans. Templates which rely on this should specify format >= 2.
    * <li> 3: The wizard infrastructure passes the {@code isNewProject} boolean variable
    *    to indicate whether a wizard is created as part of a new blank project
-   * <li> 4: Constraint type app_package ({@link Constraint#APP_PACKAGE})
+   * <li> 4: Constraint type app_package ({@link Constraint#APP_PACKAGE}), provides
+   *    srcDir, resDir and manifestDir variables for locations of files
    * </ul>
    */
   static final int CURRENT_FORMAT = 4;
-
-  /**
-   * Special marker indicating that this path refers to the special shared
-   * resource directory rather than being somewhere inside the root/ directory
-   * where all template specific resources are found
-   */
-  private static final String VALUE_TEMPLATE_DIR = "$TEMPLATEDIR";
 
   /**
    * Directory within the template which contains the resources referenced
@@ -110,7 +106,7 @@ public class Template {
   private static final String RESOURCE_ROOT = "resources";
 
   /** Reserved filename which describes each template */
-  static final String TEMPLATE_XML = "template.xml";
+  public static final String TEMPLATE_XML = "template.xml";
 
   /** The settings.gradle lives at project root and points gradle at the build files for individual modules in their subdirectories */
   public static final String GRADLE_PROJECT_SETTINGS_FILE = "settings.gradle";
@@ -119,7 +115,9 @@ public class Template {
   private static final Pattern INCLUDE_PATTERN = Pattern.compile("include +(':[^']+', *)*':[^']+'");
 
   /** Finds compile '<maven coordinates' in build.gradle files */
-  private static final Pattern COMPILE_PATTERN = Pattern.compile("compile\\s*'([^']+)'");
+  private static final Pattern COMPILE_PATTERN = Pattern.compile("compile[ \\t]*'([^'\\n]+)'");
+
+  private static final String INDENT = "    ";
 
   /**
    * Most recent thrown exception during template instantiation. This should
@@ -164,6 +162,7 @@ public class Template {
 
   public static final String CATEGORY_ACTIVITIES = "activities";
   public static final String CATEGORY_PROJECTS = "gradle-projects";
+  public static final String CATEGORY_OTHER = "other";
 
   public static final String BLOCK_DEPENDENCIES = "dependencies";
 
@@ -242,7 +241,7 @@ public class Template {
     // Handle dependencies
     List<String> dependencyList = (List<String>)paramMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
     if (dependencyList != null && dependencyList.size() > 0) {
-      mergeDependenciesIntoFile(dependencyList, TemplateUtils.getGradleBuildFile(moduleRootPath));
+      mergeDependenciesIntoFile(dependencyList, GradleUtil.getGradleBuildFilePath(moduleRootPath));
     }
   }
 
@@ -266,7 +265,7 @@ public class Template {
   }
 
   @NotNull
-  private Map<String, Object> createParameterMap(@NotNull Map<String, Object> args) {
+  public static Map<String, Object> createParameterMap(@NotNull Map<String, Object> args) {
     // Create the data model.
     final Map<String, Object> paramMap = new HashMap<String, Object>();
 
@@ -280,17 +279,16 @@ public class Template {
     paramMap.put("escapeXmlAttribute", new FmEscapeXmlStringMethod());
     paramMap.put("escapeXmlText", new FmEscapeXmlStringMethod());
     paramMap.put("escapeXmlString", new FmEscapeXmlStringMethod());
+    paramMap.put("escapePropertyValue", new FmEscapePropertyValueMethod());
     paramMap.put("extractLetters", new FmExtractLettersMethod());
 
     // Dependency list
     paramMap.put(TemplateMetadata.ATTR_DEPENDENCIES_LIST, new LinkedList<String>());
 
-    // This should be handled better: perhaps declared "required packages" as part of the
-    // inputs? (It would be better if we could conditionally disable template based
-    // on availability)
-    Map<String, String> builtin = new HashMap<String, String>();
-    builtin.put("templatesRes", VALUE_TEMPLATE_DIR);
-    paramMap.put("android", builtin);
+    // Root folder of the templates
+    if (getTemplateRootFolder() != null) {
+      paramMap.put("templateRoot", getTemplateRootFolder().getAbsolutePath());
+    }
 
     // Wizard parameters supplied by user, specific to this template
     paramMap.putAll(args);
@@ -456,6 +454,8 @@ public class Template {
 
     if (to.exists()) {
       targetText = Files.toString(to, Charsets.UTF_8);
+    } else if (to.getParentFile() != null) {
+      to.getParentFile().mkdirs();
     }
 
     if (targetText == null) {
@@ -530,7 +530,7 @@ public class Template {
       // Just insert into file along with comment, using the "standard" conflict
       // syntax that many tools and editors recognize.
 
-      contents = wrapWithMergeConflict(sourceXml, targetXml);
+      contents = wrapWithMergeConflict(targetXml, sourceXml);
     }
     return contents;
   }
@@ -697,8 +697,10 @@ public class Template {
    * @param gradleBuildFile the build.gradle file which will be written with the merged dependencies
    */
   private void mergeDependenciesIntoFile(List<String> dependencyList, File gradleBuildFile) {
+    Multimap<String, GradleCoordinate> dependencies = LinkedListMultimap.create();
+
     // First, get the contents of the gradle file.
-    String contents = readTextFile(gradleBuildFile);
+    String contents = StringUtil.notNullize(readTextFile(gradleBuildFile, false /* Don't log if not exists */));
 
     // Now, look for a (top-level) dependency block
     int braceCount = 0;
@@ -725,17 +727,23 @@ public class Template {
 
     String dependencyBlock = contents.substring(dependencyBlockStart, dependencyBlockEnd);
 
-    Multimap<String, GradleCoordinate> dependencies = LinkedListMultimap.create();
-
     // If we have dependencies already in the file, load those up
     if (!dependencyBlock.isEmpty()) {
       // Load up dependency URLs which are already present.
       Matcher matcher = COMPILE_PATTERN.matcher(dependencyBlock);
+      StringBuffer blockSb = new StringBuffer();
       while (matcher.find()) {
         GradleCoordinate coord = GradleCoordinate.parseCoordinateString(matcher.group(1));
         if (coord != null) {
           dependencies.put(coord.getId(), coord);
+          matcher.appendReplacement(blockSb, "");
         }
+      }
+      matcher.appendTail(blockSb);
+      dependencyBlock = blockSb.toString().trim();
+      // If it's non-empty, we want to put the leading spaces back
+      if (!dependencyBlock.isEmpty()) {
+        dependencyBlock = INDENT + dependencyBlock;
       }
     }
 
@@ -759,7 +767,7 @@ public class Template {
       boolean isOurRepository = RepositoryUrls.supports(highest.getArtifactId());
 
       if (!isOurRepository) {
-        sb.append(String.format("\n\tcompile '%1$s'", highest));
+        sb.append(String.format("\n%1$scompile '%2$s'", INDENT, highest));
       } else {
         GradleCoordinate available = GradleCoordinate.parseCoordinateString(
           RepositoryUrls.getLibraryCoordinate(highest.getArtifactId()));
@@ -768,23 +776,29 @@ public class Template {
 
         if (archiveFile.exists() ||
             (available != null && highest.acceptsGreaterRevisions() && available.compareTo(highest) > 0)) {
-          sb.append(String.format("\n\tcompile '%1$s'", highest));
+          sb.append(String.format("\n%1$scompile '%2$s'", INDENT, highest));
         } else {
           // Get the name of the repository necessary for this package
           repositoryName = highest.getArtifactId().equals(RepositoryUrls.PLAY_SERVICES_ID) ? "Google" : "Support";
           // Add in a commented-out dependency with instructions.
           sb.append(String.format(
-            "\n\n\t// You must install or update the %1$s Repository through the SDK manager to use this dependency." +
-            "\n\t// The %1$s Repository (separate from the corresponding library) can be found in the Extras category.\n\t// compile '%2$s'",
-            repositoryName, highest));
+            "\n\n%3$s// You must install or update the %1$s Repository through the SDK manager to use this dependency." +
+            "\n%3$s// The %1$s Repository (separate from the corresponding library) can be found in the Extras category.\n%3$s// compile '%2$s'",
+            repositoryName, highest, INDENT));
           unresolvedDependencies.add(highest.toString());
         }
       }
     }
     sb.append('\n');
+    if (!dependencyBlock.isEmpty()) {
+      // Add back in any dependencies we didn't understand
+      sb.append(dependencyBlock);
+      sb.append('\n');
+    }
     sb.append(contents.substring(dependencyBlockEnd));
 
     try {
+      FileUtil.createParentDirs(gradleBuildFile);
       writeFile(sb.toString(), gradleBuildFile);
     }
     catch (IOException e) {
@@ -839,12 +853,13 @@ public class Template {
 
   @NotNull
   private File getFullPath(@NotNull String fromPath) {
-    if (fromPath.startsWith(VALUE_TEMPLATE_DIR)) {
-      return new File(getTemplateRootFolder(), RESOURCE_ROOT +
-                                               File.separator +
-                                               fromPath.substring(VALUE_TEMPLATE_DIR.length() + 1).replace('/', File.separatorChar));
+    File fromFile = new File(fromPath);
+    if (fromFile.isAbsolute()) {
+      return fromFile;
+    } else {
+      // If it's a relative file path, get the data from the template data directory
+      return new File(myTemplateRoot, DATA_ROOT + File.separator + fromPath);
     }
-    return new File(myTemplateRoot, DATA_ROOT + File.separator + fromPath);
   }
 
   @NotNull
@@ -967,6 +982,9 @@ public class Template {
     VirtualFile vf = LocalFileSystem.getInstance().findFileByIoFile(to);
     if (vf == null) {
       try {
+        if (to.getParentFile() != null && !to.getParentFile().exists()) {
+          to.getParentFile().mkdirs();
+        }
         vf = LocalFileSystem.getInstance().findFileByIoFile(to.getParentFile()).createChildData(this, to.getName());
       } catch (NullPointerException e) {
         throw new IOException("Unable to create file " + to.getAbsolutePath());

@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import com.android.annotations.NonNull;
+import com.android.builder.model.ClassField;
+import com.android.builder.model.NdkConfig;
 import com.android.builder.model.ProductFlavor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 
 public class ProductFlavorStub implements ProductFlavor {
@@ -34,14 +38,14 @@ public class ProductFlavorStub implements ProductFlavor {
     this.myName = name;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public String getName() {
     return myName;
   }
 
-  @Nullable
   @Override
+  @Nullable
   public String getPackageName() {
     throw new UnsupportedOperationException();
   }
@@ -51,8 +55,8 @@ public class ProductFlavorStub implements ProductFlavor {
     throw new UnsupportedOperationException();
   }
 
-  @Nullable
   @Override
+  @Nullable
   public String getVersionName() {
     throw new UnsupportedOperationException();
   }
@@ -72,32 +76,66 @@ public class ProductFlavorStub implements ProductFlavor {
     throw new UnsupportedOperationException();
   }
 
-  @Nullable
   @Override
+  public boolean getRenderscriptSupportMode() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean getRenderscriptNdkMode() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @Nullable
   public String getTestPackageName() {
     throw new UnsupportedOperationException();
   }
 
-  @Nullable
   @Override
+  @Nullable
   public String getTestInstrumentationRunner() {
     throw new UnsupportedOperationException();
   }
 
-  @NotNull
   @Override
-  public List<String> getBuildConfig() {
+  @Nullable
+  public Boolean getTestHandleProfiling() {
     throw new UnsupportedOperationException();
   }
 
-  @NotNull
   @Override
+  @Nullable
+  public Boolean getTestFunctionalTest() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @Nullable
+  public NdkConfig getNdkConfig() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
+  public Collection<String> getResourceConfigurations() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
+  public Collection<ClassField> getBuildConfigFields() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
   public List<File> getProguardFiles() {
     throw new UnsupportedOperationException();
   }
 
-  @NotNull
   @Override
+  @NotNull
   public List<File> getConsumerProguardFiles() {
     throw new UnsupportedOperationException();
   }

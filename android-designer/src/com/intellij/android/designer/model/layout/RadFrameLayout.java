@@ -16,12 +16,14 @@
 package com.intellij.android.designer.model.layout;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.designer.ResizeOperation;
+import com.android.tools.idea.designer.ResizePolicy;
 import com.intellij.android.designer.designSurface.TreeDropToOperation;
 import com.intellij.android.designer.designSurface.graphics.DirectionResizePoint;
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
+import com.intellij.android.designer.designSurface.graphics.ResizeSelectionDecorator;
 import com.intellij.android.designer.designSurface.layout.FrameLayoutOperation;
 import com.intellij.android.designer.designSurface.layout.actions.LayoutMarginOperation;
-import com.intellij.android.designer.designSurface.layout.actions.ResizeOperation;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.RadViewLayoutWithData;
 import com.intellij.android.designer.model.layout.actions.AbstractGravityAction;
@@ -31,7 +33,6 @@ import com.intellij.designer.designSurface.DesignerEditorPanel;
 import com.intellij.designer.designSurface.EditOperation;
 import com.intellij.designer.designSurface.OperationContext;
 import com.intellij.designer.designSurface.selection.ResizePoint;
-import com.intellij.android.designer.designSurface.graphics.ResizeSelectionDecorator;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.utils.Position;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -83,6 +84,10 @@ public class RadFrameLayout extends RadViewLayoutWithData {
       mySelectionDecorator = new ResizeSelectionDecorator(DrawingStyle.SELECTION) {
         @Override
         protected boolean visible(RadComponent component, ResizePoint point) {
+          if (point.getType() == ResizeOperation.TYPE && component instanceof RadViewComponent) {
+            ResizePolicy policy = ResizePolicy.getResizePolicy((RadViewComponent)component);
+            return policy.applies((DirectionResizePoint)point);
+          }
           if (point.getType() == LayoutMarginOperation.TYPE) {
             Pair<Gravity, Gravity> gravity = Gravity.getSides(component);
             int direction = ((DirectionResizePoint)point).getDirection();
@@ -107,9 +112,10 @@ public class RadFrameLayout extends RadViewLayoutWithData {
 
     mySelectionDecorator.clear();
     if (selection.size() == 1) {
-      LayoutMarginOperation.points(mySelectionDecorator);
+      ResizeOperation.addResizePoints(mySelectionDecorator, (RadViewComponent)selection.get(0));
+    } else {
+      ResizeOperation.addResizePoints(mySelectionDecorator);
     }
-    ResizeOperation.points(mySelectionDecorator);
 
     return mySelectionDecorator;
   }

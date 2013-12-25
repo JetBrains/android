@@ -63,7 +63,7 @@ public class ConfigurationProjectState {
   static IAndroidTarget fromTargetString(@NotNull ConfigurationManager manager, @Nullable String targetString) {
     if (targetString != null) {
       for (IAndroidTarget target : manager.getTargets()) {
-        if (targetString.equals(target.hashString())) {
+        if (targetString.equals(target.hashString()) && ConfigurationManager.isLayoutLibTarget(target)) {
           return target;
         }
       }

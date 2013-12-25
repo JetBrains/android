@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.structure;
 
+import com.android.SdkConstants;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
@@ -35,7 +36,7 @@ public class AndroidModuleConfigurable extends NamedConfigurable {
 
   public AndroidModuleConfigurable(Project project, String modulePath) {
     myModulePath = modulePath;
-    myDisplayName = modulePath.substring(modulePath.lastIndexOf(':') + 1);
+    myDisplayName = modulePath.substring(modulePath.lastIndexOf(SdkConstants.GRADLE_PATH_SEPARATOR) + 1);
     myModuleEditor = new AndroidModuleEditor(project, modulePath);
   }
 

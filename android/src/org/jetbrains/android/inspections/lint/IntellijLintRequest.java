@@ -29,7 +29,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
-class IntellijLintRequest extends LintRequest {
+public class IntellijLintRequest extends LintRequest {
   @NonNull private final Project myProject;
   @NonNull private final List<Module> myModules;
   @NonNull private final IntellijLintClient mLintClient;
@@ -42,10 +42,10 @@ class IntellijLintRequest extends LintRequest {
    * @param fileList an optional list of specific files to check, normally null
    * @param modules the set of modules to be checked (or containing the files)
    */
-  IntellijLintRequest(@NonNull IntellijLintClient client,
-                      @NonNull Project project,
-                      @Nullable List<VirtualFile> fileList,
-                      @NonNull List<Module> modules) {
+  public IntellijLintRequest(@NonNull IntellijLintClient client,
+                             @NonNull Project project,
+                             @Nullable List<VirtualFile> fileList,
+                             @NonNull List<Module> modules) {
     super(client, Collections.<File>emptyList());
     mLintClient = client;
     myProject = project;

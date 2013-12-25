@@ -58,7 +58,7 @@ public final class AndroidGradleSettings {
   }
 
   @Nullable
-  private static String getAndroidHomeFromLocalPropertiesFile(@NotNull File projectDir) {
+  public static String getAndroidHomeFromLocalPropertiesFile(@NotNull File projectDir) {
     File filePath = new File(projectDir, SdkConstants.FN_LOCAL_PROPERTIES);
     if (!filePath.isFile()) {
       return null;
@@ -88,6 +88,11 @@ public final class AndroidGradleSettings {
 
   @NotNull
   public static String createJvmArg(@NotNull String name, int value) {
+    return createJvmArg(name, String.valueOf(value));
+  }
+
+  @NotNull
+  public static String createJvmArg(@NotNull String name, boolean value) {
     return createJvmArg(name, String.valueOf(value));
   }
 

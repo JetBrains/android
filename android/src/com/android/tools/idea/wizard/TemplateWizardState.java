@@ -90,7 +90,11 @@ public class TemplateWizardState {
 
   public TemplateWizardState() {
     put(TemplateMetadata.ATTR_IS_NEW_PROJECT, false);
-    put(TemplateMetadata.ATTR_IS_GRADLE, "true");
+    put(TemplateMetadata.ATTR_IS_GRADLE, true);
+
+    put(ATTR_SRC_DIR, "src/main/java");
+    put(ATTR_RES_DIR, "src/main/res");
+    put(ATTR_MANIFEST_DIR, "src/main");
   }
 
   /**
@@ -99,19 +103,19 @@ public class TemplateWizardState {
    * structure and new-style Gradle builds with the new structure.
    */
   protected void populateDirectoryParameters() throws IOException {
-    File projectRoot = new File((String)get(NewModuleWizardState.ATTR_PROJECT_LOCATION));
-    File moduleRoot = new File(projectRoot, (String)get(NewProjectWizardState.ATTR_MODULE_NAME));
+    File projectRoot = new File(getString(NewModuleWizardState.ATTR_PROJECT_LOCATION));
+    File moduleRoot = new File(projectRoot, getString(NewProjectWizardState.ATTR_MODULE_NAME));
     File mainFlavorSourceRoot = new File(moduleRoot, TemplateWizard.MAIN_FLAVOR_SOURCE_PATH);
 
     File javaSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.JAVA_SOURCE_PATH);
     File javaSourcePackageRoot;
     if (myParameters.containsKey(TemplateMetadata.ATTR_PACKAGE_ROOT)) {
-      javaSourcePackageRoot = new File((String)get(TemplateMetadata.ATTR_PACKAGE_ROOT));
+      javaSourcePackageRoot = new File(getString(TemplateMetadata.ATTR_PACKAGE_ROOT));
       String relativePath = FileUtil.getRelativePath(javaSourceRoot, javaSourcePackageRoot);
       String javaPackage = relativePath != null ? FileUtil.toSystemIndependentName(relativePath).replace('/', '.') : null;
       put(TemplateMetadata.ATTR_PACKAGE_NAME, javaPackage);
     } else {
-      javaSourcePackageRoot = new File(javaSourceRoot, getString(TemplateMetadata.ATTR_PACKAGE_NAME).replace('.', '/'));
+      javaSourcePackageRoot = new File(javaSourceRoot, getString(TemplateMetadata.ATTR_PACKAGE_NAME).replace('.', File.separatorChar));
     }
     File resourceSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.RESOURCE_SOURCE_PATH);
     String mavenUrl = System.getProperty(TemplateWizard.MAVEN_URL_PROPERTY);
@@ -140,6 +144,10 @@ public class TemplateWizardState {
       return null;
     }
     return myTemplate.getMetadata();
+  }
+
+  public Map<String, Object> getParameters() {
+    return myParameters;
   }
 
   @Nullable

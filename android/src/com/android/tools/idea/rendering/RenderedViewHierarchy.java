@@ -83,9 +83,9 @@ public class RenderedViewHierarchy {
   //}
 
   @Nullable
-  public RenderedView findByOffset(int offset) {
+  public List<RenderedView> findByOffset(int offset) {
     XmlTag tag = PsiTreeUtil.findElementOfClassAtOffset(myFile, offset, XmlTag.class, false);
-    return (tag != null) ? findViewByTag(tag) : null;
+    return (tag != null) ? findViewsByTag(tag) : null;
   }
 
   @Nullable
@@ -115,5 +115,22 @@ public class RenderedViewHierarchy {
     }
 
     return null;
+  }
+
+  @Nullable
+  public List<RenderedView> findViewsByTag(@NotNull XmlTag tag) {
+    List<RenderedView> result = null;
+    for (RenderedView view : myRoots) {
+      List<RenderedView> matches = view.findViewsByTag(tag);
+      if (matches != null) {
+        if (result != null) {
+          result.addAll(matches);
+        } else {
+          result = matches;
+        }
+      }
+    }
+
+    return result;
   }
 }
