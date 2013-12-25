@@ -17,24 +17,30 @@ package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.LayoutLibrary;
+import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.rendering.api.SessionParams.RenderingMode;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
+import com.android.resources.LayoutDirection;
+import com.android.resources.ResourceFolderType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
+import com.android.tools.idea.gradle.AndroidModuleInfo;
+import com.android.tools.idea.rendering.multi.RenderPreviewMode;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.Pair;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -43,14 +49,16 @@ import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.uipreview.RenderingException;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
@@ -60,8 +68,8 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
  * The {@link RenderService} provides rendering and layout information for
  * Android layouts. This is a wrapper around the layout library.
  */
-public class RenderService {
-  //private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.RenderService");
+public class RenderService implements IImageFactory {
+  private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.RenderService");
 
   @NotNull
   private final Module myModule;
@@ -81,9 +89,6 @@ public class RenderService {
 
   @NotNull
   private final LayoutLibrary myLayoutLib;
-
-  @Nullable
-  private IImageFactory myImageFactory;
 
   @NotNull
   private final HardwareConfigHelper myHardwareConfigHelper;
@@ -112,6 +117,8 @@ public class RenderService {
 
   @NotNull
   private final Locale myLocale;
+
+  private final Object myCredential = new Object();
 
   /**
    * Creates a new {@link RenderService} associated with the given editor.
@@ -193,6 +200,7 @@ public class RenderService {
                         @NotNull LayoutLibrary layoutLib) {
     myModule = module;
     myLogger = logger;
+    myLogger.setCredential(myCredential);
     if (!(psiFile instanceof XmlFile)) {
       throw new IllegalArgumentException("Can only render XML files: " + psiFile.getClass().getName());
     }
@@ -205,12 +213,12 @@ public class RenderService {
 
     myHardwareConfigHelper.setOrientation(configuration.getFullConfig().getScreenOrientationQualifier().getValue());
     myLayoutLib = layoutLib;
-    ProjectResources projectResources = ProjectResources.get(myModule, true);
-    myProjectCallback = new ProjectCallback(myLayoutLib, projectResources, myModule, myLogger);
+    LocalResourceRepository appResources = AppResourceRepository.getAppResources(facet, true);
+    myProjectCallback = new ProjectCallback(myLayoutLib, appResources, myModule, facet, myLogger, myCredential);
     myProjectCallback.loadAndParseRClass();
-    Pair<Integer, Integer> sdkVersions = getSdkVersions(facet);
-    myMinSdkVersion = sdkVersions.getFirst();
-    myTargetSdkVersion = sdkVersions.getSecond();
+    AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
+    myMinSdkVersion = moduleInfo.getMinSdkVersion();
+    myTargetSdkVersion = moduleInfo.getTargetSdkVersion();
     myLocale = configuration.getLocale();
   }
 
@@ -248,43 +256,44 @@ public class RenderService {
     return myConfiguration;
   }
 
+  @Nullable
+  public ResourceFolderType getFolderType() {
+    return ResourceHelper.getFolderType(myPsiFile);
+  }
+
+  @NotNull
+  public Module getModule() {
+    return myModule;
+  }
+
+  @NotNull
+  public RenderLogger getLogger() {
+    return myLogger;
+  }
+
+  @Nullable
+  public Set<XmlTag> getExpandNodes() {
+    return myExpandNodes;
+  }
+
+  @NotNull
+  public HardwareConfigHelper getHardwareConfigHelper() {
+    return myHardwareConfigHelper;
+  }
+
+  public boolean getShowDecorations() {
+    return myShowDecorations;
+  }
 
   public void dispose() {
     myProjectCallback.setLogger(null);
     myProjectCallback.setResourceResolver(null);
   }
 
-  @NotNull
-  private static Pair<Integer, Integer> getSdkVersions(@NotNull final AndroidFacet facet) {
-    final XmlTag manifestTag = ApplicationManager.getApplication().runReadAction(new Computable<XmlTag>() {
-      @Nullable
-      @Override
-      public XmlTag compute() {
-        final Manifest manifest = facet.getManifest();
-        return manifest != null ? manifest.getXmlTag() : null;
-      }
-    });
-    int minSdkVersion = 1;
-    int targetSdkVersion = 1;
-    if (manifestTag != null) {
-      for (XmlTag usesSdkTag : manifestTag.findSubTags(TAG_USES_SDK)) {
-        int candidate = AndroidUtils.getIntAttrValue(usesSdkTag, ATTR_MIN_SDK_VERSION);
-        if (candidate >= 0) {
-          minSdkVersion = candidate;
-        }
-        candidate = AndroidUtils.getIntAttrValue(usesSdkTag, ATTR_TARGET_SDK_VERSION);
-        if (candidate >= 0) {
-          targetSdkVersion = candidate;
-        }
-      }
-    }
-    return Pair.create(minSdkVersion, targetSdkVersion);
-  }
-
-
   /**
    * Overrides the width and height to be used during rendering (which might be adjusted if
-   * the {@link #setRenderingMode(com.android.ide.common.rendering.api.SessionParams.RenderingMode)} is {@link com.android.ide.common.rendering.api.SessionParams.RenderingMode#FULL_EXPAND}.
+   * the {@link #setRenderingMode(com.android.ide.common.rendering.api.SessionParams.RenderingMode)} is
+   * {@link com.android.ide.common.rendering.api.SessionParams.RenderingMode#FULL_EXPAND}.
    * <p/>
    * A value of -1 will make the rendering use the normal width and height coming from the
    * {@link Configuration#getDevice()} object.
@@ -300,7 +309,8 @@ public class RenderService {
 
   /**
    * Sets the max width and height to be used during rendering (which might be adjusted if
-   * the {@link #setRenderingMode(com.android.ide.common.rendering.api.SessionParams.RenderingMode)} is {@link com.android.ide.common.rendering.api.SessionParams.RenderingMode#FULL_EXPAND}.
+   * the {@link #setRenderingMode(com.android.ide.common.rendering.api.SessionParams.RenderingMode)} is
+   * {@link com.android.ide.common.rendering.api.SessionParams.RenderingMode#FULL_EXPAND}.
    * <p/>
    * A value of -1 will make the rendering use the normal width and height coming from the
    * {@link Configuration#getDevice()} object.
@@ -418,18 +428,14 @@ public class RenderService {
    * @return the {@link com.android.ide.common.rendering.api.RenderSession} resulting from rendering the current model
    */
   @Nullable
-  public RenderSession createRenderSession() {
+  private RenderSession createRenderSession() {
     ResourceResolver resolver = getResourceResolver();
     if (resolver == null) {
       // Abort the rendering if the resources are not found.
       return null;
     }
 
-    HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
-
-    ApplicationManager.getApplication().assertReadAccessAllowed();
-    LayoutPsiPullParser modelParser;
-    modelParser = LayoutPsiPullParser.create(myPsiFile, myLogger, myExpandNodes, hardwareConfig.getDensity());
+    ILayoutPullParser modelParser = LayoutPullParserFactory.create(this);
     ILayoutPullParser topParser = modelParser;
 
     myProjectCallback.reset();
@@ -461,6 +467,7 @@ public class RenderService {
       }
     }
 
+    HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
     final SessionParams params =
       new SessionParams(topParser, myRenderingMode, myModule /* projectKey */, hardwareConfig, resolver, myProjectCallback,
                         myMinSdkVersion, myTargetSdkVersion, myLogger);
@@ -472,13 +479,21 @@ public class RenderService {
     // same session
     params.setExtendedViewInfoMode(true);
 
-    params.setLocale(myLocale.toLocaleId());
-
     ManifestInfo manifestInfo = ManifestInfo.get(myModule);
-    try {
-      params.setRtlSupport(manifestInfo.isRtlSupported());
-    } catch (Exception e) {
-      // ignore.
+
+    LayoutDirectionQualifier qualifier = myConfiguration.getFullConfig().getLayoutDirectionQualifier();
+    if (qualifier != null && qualifier.getValue() == LayoutDirection.RTL) {
+      params.setRtlSupport(true);
+      // We don't have a flag to force RTL regardless of locale, so just pick a RTL locale (note that
+      // this is decoupled from resource lookup)
+      params.setLocale("ur");
+    } else {
+      params.setLocale(myLocale.toLocaleId());
+      try {
+        params.setRtlSupport(manifestInfo.isRtlSupported());
+      } catch (Exception e) {
+        // ignore.
+      }
     }
     if (!myShowDecorations) {
       params.setForceNoDecor();
@@ -495,11 +510,11 @@ public class RenderService {
 
     if (myOverrideBgColor != null) {
       params.setOverrideBgColor(myOverrideBgColor.intValue());
+    } else if (requiresTransparency()) {
+      params.setOverrideBgColor(0);
     }
 
-    if (myImageFactory != null) {
-      params.setImageFactory(myImageFactory);
-    }
+    params.setImageFactory(this);
 
     if (myTimeout > 0) {
       params.setTimeout(myTimeout);
@@ -513,23 +528,31 @@ public class RenderService {
         @Nullable
         @Override
         public RenderSession compute() {
-          int retries = 0;
-          RenderSession session = null;
-          while (retries < 10) {
-            session = myLayoutLib.createSession(params);
-            Result result = session.getResult();
-            if (result.getStatus() != Result.Status.ERROR_TIMEOUT) {
-              // Sometimes happens at startup; treat it as a timeout; typically a retry fixes it
-              if (!result.isSuccess() && "The main Looper has already been prepared.".equals(result.getErrorMessage())) {
-                retries++;
-                continue;
-              }
-              break;
-            }
-            retries++;
-          }
+          RenderSecurityManager securityManager = createSecurityManager();
+          securityManager.setActive(true, myCredential);
 
-          return session;
+          try {
+            int retries = 0;
+            RenderSession session = null;
+            while (retries < 10) {
+              session = myLayoutLib.createSession(params);
+              Result result = session.getResult();
+              if (result.getStatus() != Result.Status.ERROR_TIMEOUT) {
+                // Sometimes happens at startup; treat it as a timeout; typically a retry fixes it
+                if (!result.isSuccess() && "The main Looper has already been prepared.".equals(result.getErrorMessage())) {
+                  retries++;
+                  continue;
+                }
+                break;
+              }
+              retries++;
+            }
+
+            return session;
+          }
+          finally {
+            securityManager.dispose(myCredential);
+          }
         }
       });
     }
@@ -540,27 +563,54 @@ public class RenderService {
     }
   }
 
+  private RenderSecurityManager createSecurityManager() {
+    String projectPath = null;
+    String sdkPath = null;
+    if (RenderSecurityManager.RESTRICT_READS) {
+      projectPath = myModule.getProject().getBasePath();
+      AndroidPlatform platform = getPlatform();
+      if (platform != null) {
+        sdkPath = platform.getSdkData().getSdkManager().getLocation();
+      }
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    RenderSecurityManager securityManager = new RenderSecurityManager(sdkPath, projectPath);
+    securityManager.setLogger(new LogWrapper(RenderLogger.LOG));
+
+    return securityManager;
+  }
+
+  /** Returns true if the given file can be rendered */
+  public static boolean canRender(@Nullable PsiFile file) {
+    return LayoutPullParserFactory.isSupported(file);
+  }
+
+  private static final Object RENDERING_LOCK = new Object();
+
   @Nullable
   public RenderResult render() {
     ApplicationManager.getApplication().assertReadAccessAllowed();
 
-    RenderResult renderResult;
-    try {
-      RenderSession session = createRenderSession();
-      renderResult = new RenderResult(this, session, myPsiFile, myLogger);
-      if (session != null) {
-        addDiagnostics(session);
+    synchronized (RENDERING_LOCK) {
+      RenderResult renderResult;
+      try {
+        RenderSession session = createRenderSession();
+        renderResult = new RenderResult(this, session, myPsiFile, myLogger);
+        if (session != null) {
+          addDiagnostics(session);
+        }
+      } catch (final Exception e) {
+        String message = e.getMessage();
+        if (message == null) {
+          message = e.toString();
+        }
+        myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myModule.getProject(), myLogger.getLinkManager(), e));
+        renderResult = new RenderResult(this, null, myPsiFile, myLogger);
       }
-    } catch (final Exception e) {
-      String message = e.getMessage();
-      if (message == null) {
-        message = e.toString();
-      }
-      myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myModule.getProject(), myLogger.getLinkManager(), e));
-      renderResult = new RenderResult(this, null, myPsiFile, myLogger);
-    }
 
-    return renderResult;
+      return renderResult;
+    }
   }
 
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
@@ -678,6 +728,29 @@ public class RenderService {
     return null;
   }
 
+  /** Returns true if this service can render a non-rectangular shape */
+  public boolean isNonRectangular() {
+    // Drawable images can have non-rectangular shapes; we need to ensure that we blank out the
+    // background with full alpha
+    return getFolderType() == ResourceFolderType.DRAWABLE;
+  }
+
+  /** Returns true if this service requires rendering into a transparent/alpha channel image */
+  public boolean requiresTransparency() {
+    // Drawable images can have non-rectangular shapes; we need to ensure that we blank out the
+    // background with full alpha
+    return isNonRectangular();
+  }
+
+  // ---- Implements IImageFactory ----
+
+  /** TODO: reuse image across subsequent render operations if the size is the same */
+  @SuppressWarnings("UndesirableClassUsage") // Don't need Retina for layoutlib rendering; will scale down anyway
+  @Override
+  public BufferedImage getImage(int width, int height) {
+    return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+  }
+
   /**
    * Notifies the render service that it is being used in design mode for this layout.
    * For example, that means that when rendering a ScrollView, it should measure the necessary
@@ -691,6 +764,11 @@ public class RenderService {
    */
   public void useDesignMode(@Nullable XmlTag rootTag) {
     if (rootTag != null) {
+      // In multi configuration rendering, clip to screen bounds
+      RenderPreviewMode currentMode = RenderPreviewMode.getCurrent();
+      if (currentMode != RenderPreviewMode.NONE) {
+        return;
+      }
       String tagName = rootTag.getName();
       if (SCROLL_VIEW.equals(tagName)) {
         setRenderingMode(RenderingMode.V_SCROLL);
@@ -700,5 +778,172 @@ public class RenderService {
         setDecorations(false);
       }
     }
+  }
+
+  /**
+   * Measure the children of the given parent element.
+   *
+   * @param parent the parent element whose children should be measured
+   * @return a list of root view infos
+   */
+  @Nullable
+  public List<ViewInfo> measure(Element parent) {
+    ILayoutPullParser modelParser = new DomPullParser(parent);
+    RenderSession session = measure(modelParser);
+    if (session != null) {
+      Result result = session.getResult();
+      if (result != null && result.isSuccess()) {
+        assert session.getRootViews().size() == 1;
+        return session.getRootViews();
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Measure the children of the given parent tag, applying the given filter to the
+   * pull parser's attribute values.
+   *
+   * @param parent the parent tag to measure children for
+   * @param filter the filter to apply to the attribute values
+   * @return a map from the children of the parent to new bounds of the children
+   */
+  @Nullable
+  public Map<XmlTag, ViewInfo> measureChildren(XmlTag parent, final AttributeFilter filter) {
+    ILayoutPullParser modelParser = LayoutPsiPullParser.create(filter, parent, myLogger);
+    Map<XmlTag, ViewInfo> map = Maps.newHashMap();
+    RenderSession session = measure(modelParser);
+    if (session != null) {
+      Result result = session.getResult();
+      if (result != null && result.isSuccess()) {
+        assert session.getRootViews().size() == 1;
+        ViewInfo root = session.getRootViews().get(0);
+        List<ViewInfo> children = root.getChildren();
+        for (ViewInfo info : children) {
+          Object cookie = info.getCookie();
+          if (cookie instanceof XmlTag) {
+            map.put((XmlTag)cookie, info);
+          }
+        }
+      }
+
+      return map;
+    }
+
+    return null;
+  }
+
+  /**
+   * Measure the given child in context, applying the given filter to the
+   * pull parser's attribute values.
+   *
+   * @param tag the child to measure
+   * @param filter the filter to apply to the attribute values
+   * @return a view info, if found
+   */
+  @Nullable
+  public ViewInfo measureChild(XmlTag tag, final AttributeFilter filter) {
+    XmlTag parent = tag.getParentTag();
+    if (parent != null) {
+      Map<XmlTag, ViewInfo> map = measureChildren(parent, filter);
+      if (map != null) {
+        for (Map.Entry<XmlTag, ViewInfo> entry : map.entrySet()) {
+          if (entry.getKey() == tag) {
+            return entry.getValue();
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  private RenderSession measure(ILayoutPullParser parser) {
+    ResourceResolver resolver = getResourceResolver();
+    if (resolver == null) {
+      // Abort the rendering if the resources are not found.
+      return null;
+    }
+
+    myProjectCallback.reset();
+
+    HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
+    final SessionParams params = new SessionParams(
+      parser,
+      RenderingMode.FULL_EXPAND,
+      myModule /* projectKey */,
+      hardwareConfig,
+      resolver,
+      myProjectCallback,
+      myMinSdkVersion,
+      myTargetSdkVersion,
+      myLogger);
+    params.setLayoutOnly();
+    params.setForceNoDecor();
+    params.setExtendedViewInfoMode(true);
+    params.setLocale(myLocale.toLocaleId());
+    ManifestInfo manifestInfo = ManifestInfo.get(myModule);
+    try {
+      params.setRtlSupport(manifestInfo.isRtlSupported());
+    } catch (Exception e) {
+      // ignore.
+    }
+
+    try {
+      myProjectCallback.setLogger(myLogger);
+      myProjectCallback.setResourceResolver(resolver);
+
+      return ApplicationManager.getApplication().runReadAction(new Computable<RenderSession>() {
+        @Nullable
+        @Override
+        public RenderSession compute() {
+          int retries = 0;
+          while (retries < 10) {
+            RenderSession session = myLayoutLib.createSession(params);
+            Result result = session.getResult();
+            if (result.getStatus() != Result.Status.ERROR_TIMEOUT) {
+              // Sometimes happens at startup; treat it as a timeout; typically a retry fixes it
+              if (!result.isSuccess() && "The main Looper has already been prepared.".equals(result.getErrorMessage())) {
+                retries++;
+                continue;
+              }
+              return session;
+            }
+            retries++;
+          }
+
+          return null;
+        }
+      });
+    }
+    catch (RuntimeException t) {
+      // Exceptions from the bridge
+      myLogger.error(null, t.getLocalizedMessage(), t, null);
+      throw t;
+    }
+  }
+
+  /**
+   * The {@link AttributeFilter} allows a client of {@link #measureChildren} to modify the actual
+   * XML values of the nodes being rendered, for example to force width and height values to
+   * wrap_content when measuring preferred size.
+   */
+  public interface AttributeFilter {
+    /**
+     * Returns the attribute value for the given node and attribute name. This filter
+     * allows a client to adjust the attribute values that a node presents to the
+     * layout library.
+     * <p/>
+     * Returns "" to unset an attribute. Returns null to return the unfiltered value.
+     *
+     * @param node      the node for which the attribute value should be returned
+     * @param namespace the attribute namespace
+     * @param localName the attribute local name
+     * @return an override value, or null to return the unfiltered value
+     */
+    @Nullable
+    String getAttribute(@NotNull XmlTag node, @Nullable String namespace, @NotNull String localName);
   }
 }

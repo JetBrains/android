@@ -18,14 +18,13 @@ package com.android.tools.idea.gradle.project;
 import com.android.tools.idea.gradle.ContentRootSourcePaths;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.TestProjects;
-import com.android.tools.idea.gradle.project.AndroidContentRoot;
 import com.android.tools.idea.gradle.project.AndroidContentRoot.ContentRootStorage;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.util.io.FileUtil;
-import junit.framework.TestCase;
+import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -36,7 +35,7 @@ import java.util.Map;
 /**
  * Tests for {@link com.android.tools.idea.gradle.project.AndroidContentRoot}.
  */
-public class AndroidContentRootTest extends TestCase {
+public class AndroidContentRootTest extends IdeaTestCase {
   private ContentRootSourcePaths myExpectedSourcePaths;
   private AndroidProjectStub myAndroidProject;
   private Map<ExternalSystemSourceType, List<String>> myStoredPaths;
@@ -48,21 +47,21 @@ public class AndroidContentRootTest extends TestCase {
     myExpectedSourcePaths = new ContentRootSourcePaths();
 
     myStoredPaths = Maps.newHashMap();
-    setUpStoredPaths(ExternalSystemSourceType.SOURCE);
-    setUpStoredPaths(ExternalSystemSourceType.TEST);
-    setUpStoredPaths(ExternalSystemSourceType.EXCLUDED);
+    for (ExternalSystemSourceType sourceType : ContentRootSourcePaths.ALL_SOURCE_TYPES) {
+      setUpStoredPaths(sourceType);
+    }
 
     myStorage = new ContentRootStorage() {
       @Override
       @NotNull
       public String getRootDirPath() {
-        return myAndroidProject.getRootDir().getAbsolutePath();
+        return myAndroidProject.getRootDir().getPath();
       }
 
       @Override
       public void storePath(@NotNull ExternalSystemSourceType sourceType, @NotNull File dir) {
         List<String> paths = myStoredPaths.get(sourceType);
-        paths.add(FileUtil.toSystemIndependentName(dir.getAbsolutePath()));
+        paths.add(FileUtil.toSystemIndependentName(dir.getPath()));
       }
     };
   }
@@ -93,17 +92,18 @@ public class AndroidContentRootTest extends TestCase {
     VariantStub selectedVariant = myAndroidProject.getFirstVariant();
     assertNotNull(selectedVariant);
 
-    String rootDirPath = myAndroidProject.getRootDir().getAbsolutePath();
+    File rootDir = myAndroidProject.getRootDir();
     IdeaAndroidProject project =
-      new IdeaAndroidProject(myAndroidProject.getName(), rootDirPath, myAndroidProject, selectedVariant.getName());
+      new IdeaAndroidProject(myAndroidProject.getName(), rootDir, myAndroidProject, selectedVariant.getName());
     AndroidContentRoot.storePaths(project, myStorage);
 
     myExpectedSourcePaths.storeExpectedSourcePaths(myAndroidProject);
-    assertCorrectStoredDirPaths(ExternalSystemSourceType.SOURCE);
-    assertCorrectStoredDirPaths(ExternalSystemSourceType.TEST);
-  }
 
-  private void assertCorrectStoredDirPaths(ExternalSystemSourceType sourceType) {
-    myExpectedSourcePaths.assertCorrectStoredDirPaths(myStoredPaths.get(sourceType), sourceType);
+    for (ExternalSystemSourceType sourceType : ContentRootSourcePaths.ALL_SOURCE_TYPES) {
+      if (sourceType.equals(ExternalSystemSourceType.EXCLUDED)) {
+        continue;
+      }
+      myExpectedSourcePaths.assertCorrectStoredDirPaths(myStoredPaths.get(sourceType), sourceType);
+    }
   }
 }

@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * ComboBoxItem is a container class for an item of a {@link JComboBox} that's backed by a
- * {@link Parameter} representing an enumerated type. It has a humnan-readable label, an
+ * {@link Parameter} representing an enumerated type. It has a human-readable label, an
  * ID in parameter space, and optional API restrictions.
 */
 public class ComboBoxItem {

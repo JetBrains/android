@@ -15,11 +15,22 @@
  */
 package com.intellij.android.designer.model;
 
+import com.android.tools.idea.designer.AndroidMetaModel;
+import com.android.tools.idea.designer.AndroidVariationPaletteItem;
 import com.intellij.designer.model.MetaManager;
+import com.intellij.designer.model.MetaModel;
+import com.intellij.designer.model.RadComponent;
+import com.intellij.designer.model.VariationPaletteItem;
+import com.intellij.designer.palette.PaletteItem;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Alarm;
 import com.intellij.util.ui.update.MergingUpdateQueue;
+import org.jdom.Element;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Alexander Lobas
@@ -38,5 +49,25 @@ public class ViewsMetaManager extends MetaManager {
 
   public static ViewsMetaManager getInstance(Project project) {
     return ServiceManager.getService(project, ViewsMetaManager.class);
+  }
+
+  @NotNull
+  @Override
+  protected AndroidMetaModel createModel(Class<RadComponent> model, String target, String tag) throws Exception {
+    return new AndroidMetaModel(model, target, tag);
+  }
+
+  @NotNull
+  @Override
+  protected MetaModel loadModel(ClassLoader classLoader, Element element, Map<MetaModel, List<String>> modelToMorphing) throws Exception {
+    AndroidMetaModel meta = (AndroidMetaModel)super.loadModel(classLoader, element, modelToMorphing);
+    meta.initializeFrom(element);
+    return meta;
+  }
+
+  @NotNull
+  @Override
+  protected VariationPaletteItem createVariationPaletteItem(PaletteItem paletteItem, MetaModel model, Element itemElement) {
+    return new AndroidVariationPaletteItem(paletteItem, model, itemElement);
   }
 }

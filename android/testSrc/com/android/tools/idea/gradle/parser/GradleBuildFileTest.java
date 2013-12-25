@@ -16,6 +16,9 @@
 package com.android.tools.idea.gradle.parser;
 
 import com.android.SdkConstants;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -26,7 +29,10 @@ import com.intellij.util.ActionRunner;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 public class GradleBuildFileTest extends IdeaTestCase {
   private Document myDocument;
@@ -82,6 +88,218 @@ public class GradleBuildFileTest extends IdeaTestCase {
     });
     String expected = getSimpleTestFile().replaceAll("targetSdkVersion 1", "targetSdkVersion 2");
     assertContents(file, expected);
+  }
+
+  public void testSetStringValue() throws Exception {
+    final GradleBuildFile file = getTestFile(getSimpleTestFile());
+    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+      @Override
+      public void run() throws Exception {
+        file.setValue(BuildFileKey.BUILD_TOOLS_VERSION, "99.0.0");
+      }
+    });
+    String expected = getSimpleTestFile().replaceAll("buildToolsVersion '17.0.0'", "buildToolsVersion '99.0.0'");
+    assertContents(file, expected);
+    assertEquals("99.0.0", file.getValue(BuildFileKey.BUILD_TOOLS_VERSION));
+  }
+
+  public void testSetIntegerValue() throws Exception {
+    final GradleBuildFile file = getTestFile(getSimpleTestFile());
+    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+      @Override
+      public void run() throws Exception {
+        file.setValue(BuildFileKey.COMPILE_SDK_VERSION, 99);
+      }
+    });
+    String expected = getSimpleTestFile().replaceAll("compileSdkVersion 17", "compileSdkVersion 99");
+    assertContents(file, expected);
+    assertEquals(99, file.getValue(BuildFileKey.COMPILE_SDK_VERSION));
+  }
+
+  public void testSetBooleanValue() throws Exception {
+    final GradleBuildFile file = getTestFile(getSimpleTestFile());
+    final GrStatementOwner closure = file.getClosure("android/buildTypes/debug");
+    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+      @Override
+      public void run() throws Exception {
+        file.setValue(closure, BuildFileKey.DEBUGGABLE, false);
+      }
+    });
+    String expected = getSimpleTestFile().replaceAll("debuggable true", "debuggable false");
+    assertContents(file, expected);
+    assertEquals(false, file.getValue(closure, BuildFileKey.DEBUGGABLE));
+  }
+
+  public void testSetFileValue() throws Exception {
+    final GradleBuildFile file = getTestFile(getSimpleTestFile());
+    final GrStatementOwner closure = file.getClosure("android/signingConfigs/debug");
+    final File replacementFile = new File("foo.keystore");
+    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+      @Override
+      public void run() throws Exception {
+        file.setValue(closure, BuildFileKey.STORE_FILE, replacementFile);
+      }
+    });
+    String expected = getSimpleTestFile().replaceAll("debug.keystore", "foo.keystore");
+    assertContents(file, expected);
+    assertEquals(replacementFile, file.getValue(closure, BuildFileKey.STORE_FILE));
+  }
+
+  public void testSetFileStringValue() throws Exception {
+    final GradleBuildFile file = getTestFile(getSimpleTestFile());
+    final GrStatementOwner closure = file.getClosure("android/productFlavors/flavor1");
+    final File replacementFile = new File("foo.txt");
+    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+      @Override
+      public void run() throws Exception {
+        file.setValue(closure, BuildFileKey.PROGUARD_FILE, replacementFile);
+      }
+    });
+    String expected = getSimpleTestFile().replaceAll("proguard-flavor1.txt", "foo.txt");
+    assertContents(file, expected);
+    assertEquals(replacementFile, file.getValue(closure, BuildFileKey.PROGUARD_FILE));
+  }
+
+  // TODO: Make this test work.
+  public void testSetNamedObjectValue() throws Exception {
+    if (true) {
+      System.err.println("GradleBuildFileTest#testSetNamedObjectValue currently disabled");
+      return;
+    }
+
+    final GradleBuildFile file = getTestFile(getSimpleTestFile());
+    Object value = file.getValue(BuildFileKey.FLAVORS);
+    assert value != null;
+    assert value instanceof List;
+    final List<NamedObject> flavors = (List<NamedObject>)value;
+    assertEquals(2, flavors.size());
+    NamedObject flavor3 = new NamedObject("flavor3");
+    flavor3.setValue(BuildFileKey.PACKAGE_NAME, "flavor3.packagename");
+    flavors.add(flavor3);
+    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+      @Override
+      public void run() throws Exception {
+        file.setValue(BuildFileKey.FLAVORS, flavors);
+      }
+    });
+    Object newValue = file.getValue(BuildFileKey.FLAVORS);
+    assert newValue != null;
+    assert newValue instanceof List;
+    final List<NamedObject> newFlavors = (List<NamedObject>)newValue;
+
+    StringBuilder expected = new StringBuilder(getSimpleTestFile());
+    int position = expected.indexOf("}\n", expected.indexOf("flavor2 {\n")) + 2;
+    expected.insert(position,
+        "        flavor3 {\n" +
+        "            packageName 'flavor3.packagename'\n" +
+        "        }\n"
+                               );
+    assertContents(file, expected.toString());
+    assertEquals(flavors, newFlavors);
+  }
+
+  public void testCreateStringValue() throws Exception {
+    final GradleBuildFile file = getTestFile(getSimpleTestFile());
+    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+      @Override
+      public void run() throws Exception {
+        file.setValue(BuildFileKey.IGNORE_ASSETS_PATTERN, "foo");
+      }
+    });
+    StringBuilder expected = new StringBuilder(getSimpleTestFile());
+    int position = expected.length() - 1;
+    expected.insert(position,
+                    "    aaptOptions {\n" +
+                    "        ignoreAssetsPattern 'foo'\n" +
+                    "    }\n");
+    assertContents(file, expected.toString());
+    assertEquals("foo", file.getValue(BuildFileKey.IGNORE_ASSETS_PATTERN));
+  }
+
+  public void testCreateIntegerValue() throws Exception {
+    final GradleBuildFile file = getTestFile(getSimpleTestFile());
+    final GrStatementOwner closure = file.getClosure("android/productFlavors/flavor1");
+    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+      @Override
+      public void run() throws Exception {
+        file.setValue(closure, BuildFileKey.VERSION_CODE, 199);
+      }
+    });
+    StringBuilder expected = new StringBuilder(getSimpleTestFile());
+    int position = expected.indexOf("\n", expected.indexOf("proguard-flavor1.txt")) + 1;
+    expected.insert(position, "            versionCode 199\n");
+    assertContents(file, expected.toString());
+    Object value = file.getValue(BuildFileKey.FLAVORS);
+    final List<NamedObject> flavors = (List<NamedObject>)value;
+    assertEquals(2, flavors.size());
+    assertEquals(199, flavors.get(0).getValue(BuildFileKey.VERSION_CODE));
+  }
+
+  public void testCreateBooleanValue() throws Exception {
+    final GradleBuildFile file = getTestFile(getSimpleTestFile());
+    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+      @Override
+      public void run() throws Exception {
+        file.setValue(BuildFileKey.INCREMENTAL, true);
+      }
+    });
+    StringBuilder expected = new StringBuilder(getSimpleTestFile());
+    int position = expected.length() - 1;
+    expected.insert(position,
+                    "    dexOptions {\n" +
+                    "        incremental true\n" +
+                    "    }\n");
+    assertContents(file, expected.toString());
+    assertEquals(true, file.getValue(BuildFileKey.INCREMENTAL));
+  }
+
+  public void testCreateFileValue() throws Exception {
+    final GradleBuildFile file = getTestFile(getSimpleTestFile());
+    final GrStatementOwner closure = file.getClosure("android/signingConfigs/config2");
+    final File newFile = new File("foo.keystore");
+    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+      @Override
+      public void run() throws Exception {
+        file.setValue(closure, BuildFileKey.STORE_FILE, newFile);
+      }
+    });
+    StringBuilder expected = new StringBuilder(getSimpleTestFile());
+    int position = expected.indexOf("\n", expected.indexOf("config2 {")) + 1;
+    expected.insert(position, "            storeFile file('foo.keystore')\n");
+    assertContents(file, expected.toString());
+    Object value = file.getValue(BuildFileKey.SIGNING_CONFIGS);
+    final List<NamedObject> configs = (List<NamedObject>)value;
+    assertEquals(2, configs.size());
+    assertEquals(newFile, configs.get(1).getValue(BuildFileKey.STORE_FILE));
+  }
+
+  public void testCreateFileStringValue() throws Exception {
+    final GradleBuildFile file = getTestFile(getSimpleTestFile());
+    final GrStatementOwner closure = file.getClosure("android/productFlavors/flavor2");
+    final File newFile = new File("foo.txt");
+    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+      @Override
+      public void run() throws Exception {
+        file.setValue(closure, BuildFileKey.PROGUARD_FILE, newFile);
+      }
+    });
+    StringBuilder expected = new StringBuilder(getSimpleTestFile());
+    int position = expected.indexOf("\n", expected.indexOf("flavor2 {")) + 1;
+    expected.insert(position, "            proguardFile 'foo.txt'\n");
+    assertContents(file, expected.toString());
+    Object value = file.getValue(BuildFileKey.FLAVORS);
+    final List<NamedObject> configs = (List<NamedObject>)value;
+    assertEquals(2, configs.size());
+    assertEquals(newFile, configs.get(1).getValue(BuildFileKey.PROGUARD_FILE));
+  }
+
+  public void testRemoveValue() throws Exception {
+    final GradleBuildFile file = getTestFile(getSimpleTestFile());
+    file.removeValue(null, BuildFileKey.COMPILE_SDK_VERSION);
+
+    String expected = getSimpleTestFile().replace("    compileSdkVersion 17\n", "");
+    assertContents(file, expected.toString());
+    assertNull(file.getValue(BuildFileKey.COMPILE_SDK_VERSION));
   }
 
   public void testCanParseValueChecksInitialization() {
@@ -174,6 +392,66 @@ public class GradleBuildFileTest extends IdeaTestCase {
     assertEquals("17.0.0", file.getValue(BuildFileKey.BUILD_TOOLS_VERSION));
   }
 
+  public void testGetsMavenRepositories() throws Exception {
+    final GradleBuildFile file = getTestFile(getSimpleTestFile());
+    List<Repository> expectedRepositories = Lists.newArrayList(
+        new Repository(Repository.Type.MAVEN_CENTRAL, null),
+        new Repository(Repository.Type.URL, "www.foo1.com"),
+        new Repository(Repository.Type.URL, "www.foo2.com"),
+        new Repository(Repository.Type.URL, "www.foo3.com"),
+        new Repository(Repository.Type.URL, "www.foo4.com"));
+    assertEquals(expectedRepositories, file.getValue(BuildFileKey.LIBRARY_REPOSITORY));
+  }
+
+  public void testSetsMavenRepositories() throws Exception {
+    GradleBuildFile file = getTestFile("");
+    List<Repository> newRepositories = Lists.newArrayList(
+      new Repository(Repository.Type.MAVEN_CENTRAL, null),
+      new Repository(Repository.Type.MAVEN_LOCAL, null),
+      new Repository(Repository.Type.URL, "www.foo.com"));
+    file.setValue(BuildFileKey.LIBRARY_REPOSITORY, newRepositories);
+
+    String expected =
+      "repositories {\n" +
+      "    mavenCentral()\n" +
+      "    mavenLocal()\n" +
+      "    maven { url 'www.foo.com' }\n" +
+      "}";
+    assertContents(file, expected);
+  }
+
+  public void testGetsFiletreeDependencies() throws Exception {
+    GradleBuildFile file = getTestFile(
+      "dependencies {\n" +
+      "    compile fileTree(dir: 'libs', includes: ['*.jar', '*.aar'])\n" +
+      "}"
+    );
+    ImmutableList<String> fileList = ImmutableList.of("*.jar", "*.aar");
+    Map<String, Object> nvMap = ImmutableMap.of(
+      "dir", "libs",
+      "includes", (Object)fileList
+    );
+    Dependency dep = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.FILETREE, nvMap);
+    List<Dependency> expected = ImmutableList.of(dep);
+    assertEquals(expected, file.getValue(BuildFileKey.DEPENDENCIES));
+  }
+
+  public void testSetsFiletreeDependencies() throws Exception {
+    GradleBuildFile file = getTestFile("");
+    ImmutableList<String> fileList = ImmutableList.of("*.jar", "*.aar");
+    Map<String, Object> nvMap = ImmutableMap.of(
+      "dir", "libs",
+      "includes", (Object)fileList
+    );
+    Dependency dep = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.FILETREE, nvMap);
+    file.setValue(BuildFileKey.DEPENDENCIES, ImmutableList.of(dep));
+    String expected =
+      "dependencies {\n" +
+      "    compile fileTree(dir: 'libs', includes: ['*.jar', '*.aar'])\n" +
+      "}";
+    assertContents(file, expected);
+  }
+
   private static String getSimpleTestFile() throws IOException {
     return
       "buildscript {\n" +
@@ -185,22 +463,45 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    }\n" +
       "}\n" +
       "apply plugin: 'android'\n" +
-      "\n" +
       "repositories {\n" +
       "    mavenCentral()\n" +
+      "    maven('www.foo1.com', 'www.foo2.com')\n" +
+      "    maven {\n" +
+      "        url 'www.foo3.com'\n" +
+      "        url 'www.foo4.com'\n" +
+      "    }\n" +
       "}\n" +
-      "\n" +
       "dependencies {\n" +
       "    compile 'com.android.support:support-v4:13.0.+'\n" +
       "}\n" +
-      "\n" +
       "android {\n" +
       "    compileSdkVersion 17\n" +
       "    buildToolsVersion '17.0.0'\n" +
-      "\n" +
       "    defaultConfig {\n" +
       "        minSdkVersion someCrazyMethodCall()\n" +
       "        targetSdkVersion 1\n" +
+      "    }\n" +
+      "    buildTypes {\n" +
+      "        debug {\n" +
+      "            debuggable true\n" +
+      "        }\n" +
+      "        release {\n" +
+      "            debuggable false\n" +
+      "        }\n" +
+      "    }\n" +
+      "    signingConfigs {\n" +
+      "        debug {\n" +
+      "            storeFile file('debug.keystore')\n" +
+      "        }\n" +
+      "        config2 {\n" +
+      "        }\n" +
+      "    }\n" +
+      "    productFlavors {\n" +
+      "        flavor1 {\n" +
+      "            proguardFile 'proguard-flavor1.txt'\n" +
+      "        }\n" +
+      "        flavor2 {\n" +
+      "        }\n" +
       "    }\n" +
       "}";
   }

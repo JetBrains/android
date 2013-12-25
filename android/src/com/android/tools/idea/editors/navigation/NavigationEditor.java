@@ -16,10 +16,9 @@
 
 package com.android.tools.idea.editors.navigation;
 
-import com.android.navigation.Listener;
-import com.android.navigation.NavigationModel;
-import com.android.navigation.XMLReader;
-import com.android.navigation.XMLWriter;
+import com.android.navigation.*;
+import com.android.tools.idea.editors.navigation.macros.Analysis;
+import com.android.tools.idea.editors.navigation.macros.CodeGenerator;
 import com.intellij.AppTopics;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
@@ -42,10 +41,13 @@ import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 
+@SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class NavigationEditor implements FileEditor {
   public static final String TOOLBAR = "NavigationEditorToolbar";
   private static final Logger LOG = Logger.getInstance("#" + NavigationEditor.class.getName());
+  public static final boolean DEBUG = false;
   private static final String NAME = "Navigation";
   private static final int INITIAL_FILE_BUFFER_SIZE = 1000;
   private static final int SCROLL_UNIT_INCREMENT = 20;
@@ -53,9 +55,12 @@ public class NavigationEditor implements FileEditor {
   private final UserDataHolderBase myUserDataHolder = new UserDataHolderBase();
   private NavigationModel myNavigationModel;
   private final Listener<NavigationModel.Event> myNavigationModelListener;
+  private Project myProject;
   private VirtualFile myFile;
   private JComponent myComponent;
   private boolean myDirty;
+  private boolean myNotificationsDisabled;
+  private final CodeGenerator myCodeGenerator;
 
   public NavigationEditor(Project project, VirtualFile file) {
     // Listen for 'Save All' events
@@ -71,12 +76,12 @@ public class NavigationEditor implements FileEditor {
       }
     };
     project.getMessageBus().connect(this).subscribe(AppTopics.FILE_DOCUMENT_SYNC, saveListener);
-
+    myProject = project;
     myFile = file;
     try {
       myNavigationModel = read(file);
       // component = new NavigationModelEditorPanel1(project, file, read(file));
-      NavigationEditorPanel editor = new NavigationEditorPanel(project, file, myNavigationModel);
+      NavigationView editor = new NavigationView(project, file, myNavigationModel);
       JBScrollPane scrollPane = new JBScrollPane(editor);
       scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT_INCREMENT);
       JPanel p = new JPanel(new BorderLayout());
@@ -98,17 +103,24 @@ public class NavigationEditor implements FileEditor {
         myComponent = new JBScrollPane(panel);
       }
     }
+    myCodeGenerator = new CodeGenerator(myNavigationModel, Utilities.getModule(project, file));
     myNavigationModelListener = new Listener<NavigationModel.Event>() {
       @Override
       public void notify(@NotNull NavigationModel.Event event) {
+        if (!myNotificationsDisabled && event.operation == NavigationModel.Event.Operation.INSERT && event.operandType == Transition.class) {
+          ArrayList<Transition> transitions = myNavigationModel.getTransitions();
+          Transition transition = transitions.get(transitions.size() - 1); // todo don't rely on this being the last
+          myCodeGenerator.implementTransition(transition);
+        }
         myDirty = true;
       }
     };
     myNavigationModel.getListeners().add(myNavigationModelListener);
   }
 
+
   // See  AndroidDesignerActionPanel
-  protected JComponent createToolbar(NavigationEditorPanel myDesigner) {
+  protected JComponent createToolbar(NavigationView myDesigner) {
     JPanel panel = new JPanel(new BorderLayout());
     panel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
 
@@ -129,7 +141,7 @@ public class NavigationEditor implements FileEditor {
   }
 
   // See AndroidDesignerActionPanel
-  private static ActionGroup getActions(final NavigationEditorPanel myDesigner) {
+  private static ActionGroup getActions(final NavigationView myDesigner) {
     DefaultActionGroup group = new DefaultActionGroup();
 
     group.add(new AnAction(null, "Zoom Out (-)", AndroidIcons.ZoomOut) {
@@ -203,6 +215,11 @@ public class NavigationEditor implements FileEditor {
 
   @Override
   public void selectNotify() {
+    myNotificationsDisabled = true;
+    myNavigationModel.getTransitions().clear();
+    Analysis.deriveAndAddTransitions(myNavigationModel, myProject, myFile);
+    myNotificationsDisabled = false;
+    //myNavigationModel.getListeners().notify(NavigationModel.Event.update(Object.class));
   }
 
   @Override

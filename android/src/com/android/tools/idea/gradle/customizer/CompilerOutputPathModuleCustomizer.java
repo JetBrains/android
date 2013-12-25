@@ -18,12 +18,17 @@ package com.android.tools.idea.gradle.customizer;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.google.common.base.Strings;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,6 +38,8 @@ import java.io.File;
  * Sets the compiler output folder to a module imported from an {@link com.android.builder.model.AndroidProject}.
  */
 public class CompilerOutputPathModuleCustomizer implements ModuleCustomizer {
+  private static final Logger LOG = Logger.getInstance(CompilerOutputPathModuleCustomizer.class);
+
   @Override
   public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
     if (ideaAndroidProject != null) {
@@ -42,19 +49,48 @@ public class CompilerOutputPathModuleCustomizer implements ModuleCustomizer {
         return;
       }
       Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
-      File outputFile = selectedVariant.getMainArtifactInfo().getClassesFolder();
-      String url = VfsUtil.pathToUrl(outputFile.getAbsolutePath());
-
-      ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
-      ModifiableRootModel moduleSettings = moduleRootManager.getModifiableModel();
-      CompilerModuleExtension compilerSettings = moduleSettings.getModuleExtension(CompilerModuleExtension.class);
-      try {
-        compilerSettings.inheritCompilerOutputPath(false);
-        compilerSettings.setCompilerOutputPath(url);
-      } finally {
-        compilerSettings.commit();
-        moduleSettings.commit();
+      File outputFile = selectedVariant.getMainArtifact().getClassesFolder();
+      setOutputPaths(module, outputFile, null);
+    } else if (ModuleType.get(module) instanceof JavaModuleType) {
+      // In order to run tests for a Java module, we need to set its classpath and test classpath.
+      // Currently, this is assumed to just be at "build/classes/main" and "build/classes/test" respectively.
+      // TODO: This really should come from Gradle. https://code.google.com/p/android/issues/detail?id=61946
+      VirtualFile moduleFile = module.getModuleFile();
+      if (moduleFile != null) {
+        VirtualFile moduleRootDir = moduleFile.getParent();
+        if (moduleRootDir != null) {
+          File moduleRootDirPath = VfsUtilCore.virtualToIoFile(moduleRootDir);
+          File mainDirPath = new File(moduleRootDirPath, FileUtil.join("build", "classes", "main"));
+          File testDirPath = new File(moduleRootDirPath, FileUtil.join("build", "classes", "test"));
+          setOutputPaths(module, mainDirPath, testDirPath);
+        }
       }
     }
+  }
+
+  private static void setOutputPaths(@NotNull Module module, @NotNull File mainDirPath, @Nullable File testDirPath) {
+    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
+    ModifiableRootModel moduleSettings = moduleRootManager.getModifiableModel();
+    CompilerModuleExtension compilerSettings = moduleSettings.getModuleExtension(CompilerModuleExtension.class);
+    if (compilerSettings == null) {
+      moduleSettings.dispose();
+      LOG.warn(String.format("No compiler extension is found for module '%1$s'", module.getName()));
+      return;
+    }
+    try {
+      compilerSettings.inheritCompilerOutputPath(false);
+      compilerSettings.setCompilerOutputPath(toUrl(mainDirPath));
+      if (testDirPath != null) {
+        compilerSettings.setCompilerOutputPathForTests(toUrl(testDirPath));
+      }
+    } finally {
+      moduleSettings.commit();
+    }
+  }
+
+  @NotNull
+  private static String toUrl(@NotNull File path) {
+    String s = FileUtil.toSystemIndependentName(path.getPath());
+    return VfsUtilCore.pathToUrl(s);
   }
 }

@@ -16,6 +16,12 @@
 package com.android.tools.idea.actions;
 
 import com.android.SdkConstants;
+import com.android.tools.gradle.eclipse.GradleImport;
+import com.android.tools.idea.gradle.eclipse.AdtImportBuilder;
+import com.android.tools.idea.gradle.eclipse.AdtImportProvider;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.NewProjectImportCallback;
+import com.android.tools.idea.gradle.project.wizard.AndroidGradleProjectImportProvider;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
@@ -25,24 +31,29 @@ import com.intellij.ide.util.newProjectWizard.AddModuleWizard;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDialog;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.JDOMUtil;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.newvfs.NewVirtualFile;
 import com.intellij.projectImport.ProjectImportProvider;
 import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
+import org.jetbrains.plugins.gradle.util.GradleUtil;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -61,10 +72,6 @@ public class AndroidImportProjectAction extends AnAction {
   @NonNls private static final String ANDROID_NATURE_NAME = "com.android.ide.eclipse.adt.AndroidNature";
 
   private static final Logger LOG = Logger.getInstance(AndroidImportProjectAction.class);
-  private static final String ADT_PROJECT_IMPORT_ERROR_MSG_FORMAT =
-    "The project at '%1$s' is an Android ADT project.\n\n" +
-    "To import this project into Android Studio you first need to *export* it as a Gradle project from ADT.";
-  private static final String ERROR_MSG_TITLE = "Import Project";
 
   @NonNls static final String ECLIPSE_CLASSPATH_FILE_NAME = ".classpath";
   @NonNls static final String ECLIPSE_PROJECT_FILE_NAME = ".project";
@@ -131,6 +138,20 @@ public class AndroidImportProjectAction extends AnAction {
       return null;
     }
     List<ProjectImportProvider> available = Lists.newArrayList();
+
+    // Prioritize ADT importer
+    if (GradleImport.isEclipseProjectDir(VfsUtilCore.virtualToIoFile(target.isDirectory() ? target : target.getParent()))) {
+      ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
+      return new AddModuleWizard(null, ProjectImportProvider.getDefaultPath(file),
+                                 new AdtImportProvider(new AdtImportBuilder(dataManager)));
+    }
+
+    if (GradleConstants.EXTENSION.equals(target.getExtension())) {
+      // Gradle file, we handle this ourselves.
+      importGradleProject(file);
+      return null;
+    }
+
     for (ProjectImportProvider provider : ProjectImportProvider.PROJECT_IMPORT_PROVIDER.getExtensions()) {
       if (provider.canImport(target, null)) {
         available.add(provider);
@@ -167,8 +188,7 @@ public class AndroidImportProjectAction extends AnAction {
       }
     } else {
       if (ECLIPSE_PROJECT_FILE_NAME.equals(file.getName()) && hasAndroidNature(file)) {
-        showImportAdtProjectError(file);
-        return null;
+        return file;
       }
       if (ECLIPSE_CLASSPATH_FILE_NAME.equals(file.getName())) {
         return findImportTarget(file.getParent());
@@ -180,7 +200,7 @@ public class AndroidImportProjectAction extends AnAction {
   @Nullable
   private static VirtualFile findMatchingChild(@NotNull VirtualFile parent, @NotNull String...validNames) {
     if (parent.isDirectory()) {
-      for (VirtualFile child : getChildrenOf(parent)) {
+      for (VirtualFile child : parent.getChildren()) {
         for (String name : validNames) {
           if (name.equals(child.getName())) {
             return child;
@@ -189,14 +209,6 @@ public class AndroidImportProjectAction extends AnAction {
       }
     }
     return null;
-  }
-
-  @NotNull
-  private static Collection<VirtualFile> getChildrenOf(@NotNull VirtualFile file) {
-    if (file instanceof NewVirtualFile) {
-      return ((NewVirtualFile)file).getCachedChildren();
-    }
-    return Lists.newArrayList(file.getChildren());
   }
 
   private static boolean hasAndroidNature(@NotNull VirtualFile projectFile) {
@@ -219,10 +231,40 @@ public class AndroidImportProjectAction extends AnAction {
     return false;
   }
 
-  private static void showImportAdtProjectError(@NotNull VirtualFile projectFile) {
-    if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      String msg = String.format(ADT_PROJECT_IMPORT_ERROR_MSG_FORMAT, projectFile.getParent().getPath());
-      Messages.showErrorDialog(msg, ERROR_MSG_TITLE);
+  private static void importGradleProject(@NotNull VirtualFile selectedFile) {
+    VirtualFile projectDir = selectedFile.isDirectory() ? selectedFile : selectedFile.getParent();
+    File projectDirPath = new File(FileUtil.toSystemDependentName(projectDir.getPath()));
+
+    // Creating the wizard sets up Gradle settings. Otherwise we get an "already disposed project" error.
+    AddModuleWizard wizard = new AddModuleWizard(null, selectedFile.getPath(), new AndroidGradleProjectImportProvider());
+
+    // If we have Gradle wrapper go ahead and import the project, without showing the "Project Import" wizard.
+    boolean hasGradleWrapper = GradleUtil.isGradleDefaultWrapperFilesExist(projectDirPath.getPath());
+
+    if (!hasGradleWrapper) {
+      // If we don't have a Gradle wrapper, but we have the location of GRADLE_HOME, we import the project without showing the "Project
+      // Import" wizard.
+      String lastUsedGradleHome = GradleUtil.getLastUsedGradleHome();
+
+      if (lastUsedGradleHome.isEmpty() && wizard.getStepCount() > 0 && !wizard.showAndGet()) {
+        return;
+      }
+    }
+
+    try {
+      GradleProjectImporter.getInstance().importProject(projectDir.getName(), projectDirPath, new NewProjectImportCallback() {
+        @Override
+        public void projectImported(@NotNull Project project) {
+          activateProjectView(project);
+        }
+      });
+    }
+    catch (Exception e) {
+      if (ApplicationManager.getApplication().isUnitTestMode()) {
+        throw new RuntimeException(e);
+      }
+      Messages.showErrorDialog(e.getMessage(), "Project Import");
+      LOG.error(e);
     }
   }
 }

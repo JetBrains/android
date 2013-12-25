@@ -20,9 +20,11 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.io.Closeables;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationExtension;
@@ -40,7 +42,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.List;
@@ -50,9 +55,12 @@ import java.util.regex.Pattern;
 import static com.android.tools.idea.gradle.project.ProjectImportErrorHandler.*;
 
 public class GradleNotificationExtension implements ExternalSystemNotificationExtension {
+  private static final Logger LOG = Logger.getInstance(GradleNotificationExtension.class);
+
   private static final Pattern ERROR_LOCATION_IN_FILE_PATTERN = Pattern.compile("Build file '(.*)' line: ([\\d]+)");
   private static final Pattern ERROR_IN_FILE_PATTERN = Pattern.compile("Build file '(.*)'");
   private static final Pattern MISSING_DEPENDENCY_PATTERN = Pattern.compile("Could not find (.*)\\.");
+  private static final Pattern MISSING_MATCHING_DEPENDENCY_PATTERN = Pattern.compile("Could not find any version that matches (.*)\\.");
 
   private static final NotificationType DEFAULT_NOTIFICATION_TYPE = NotificationType.ERROR;
 
@@ -95,7 +103,8 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
                                  pathOfBrokenSdk);
           File sdkHomeDir = new File(pathOfBrokenSdk);
           if (!sdkHomeDir.canWrite()) {
-            newMsg += String.format("\n\nCurrent user (%1$s) does not have write access to the SDK directory.", SystemProperties.getUserName());
+            String format = "\n\nCurrent user (%1$s) does not have write access to the SDK directory.";
+            newMsg += String.format(format, SystemProperties.getUserName());
           }
         }
         else {
@@ -114,7 +123,41 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
         return createNotification(project, msg, new OpenGradleSettingsHyperlink());
       }
 
-      if (lastLine != null && lastLine.contains(INSTALL_ANDROID_SUPPORT_REPO)) {
+      if (lastLine != null && lastLine.equals(FIX_SDK_DIR_PROPERTY)) {
+        File file = new File(project.getBasePath(), SdkConstants.FN_LOCAL_PROPERTIES);
+        if (file.isFile()) {
+          // If we got this far, local.properties exists.
+          BufferedReader reader = null;
+          try {
+            //noinspection IOResourceOpenedButNotSafelyClosed
+            reader = new BufferedReader(new FileReader(file));
+            int counter = 0;
+            String line;
+            while ((line = reader.readLine()) != null) {
+              if (line.startsWith(SdkConstants.SDK_DIR_PROPERTY)) {
+                //noinspection TestOnlyProblems
+                return createNotification(project, msg, new OpenFileHyperlink(file.getPath(), counter));
+              }
+              counter++;
+            }
+          }
+          catch (IOException e) {
+            LOG.info("Unable to read file: " + file.getPath(), e);
+          }
+          finally {
+            Closeables.closeQuietly(reader);
+          }
+          //noinspection TestOnlyProblems
+          return createNotification(project, msg, new OpenFileHyperlink(file.getPath(), 0));
+        }
+        // Unlikely that we get here.
+        return null;
+      }
+
+      if (lastLine != null &&
+          (lastLine.contains(INSTALL_ANDROID_SUPPORT_REPO) ||
+           lastLine.contains(INSTALL_MISSING_PLATFORM) ||
+           lastLine.contains(INSTALL_MISSING_BUILD_TOOLS))) {
         List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
         if (!facets.isEmpty()) {
           // We can only open SDK manager if the project has an Android facet. Android facet has a reference to the Android SDK manager.
@@ -143,7 +186,14 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
         return createNotification(project, msg, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
       }
 
-      Matcher matcher = MISSING_DEPENDENCY_PATTERN.matcher(firstLine);
+      Matcher matcher = MISSING_MATCHING_DEPENDENCY_PATTERN.matcher(firstLine);
+      if (matcher.matches()) {
+        String dependency = matcher.group(1);
+        //noinspection TestOnlyProblems
+        return createNotification(project, firstLine, new SearchInBuildFilesHyperlink(dependency));
+      }
+
+      matcher = MISSING_DEPENDENCY_PATTERN.matcher(firstLine);
       if (matcher.matches() && lines.size() > 1 && lines.get(1).startsWith("Required by:")) {
         String dependency = matcher.group(1);
         if (!Strings.isNullOrEmpty(dependency)) {
@@ -160,6 +210,19 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
           }
           //noinspection TestOnlyProblems
           return createNotification(project, msg, new SearchInBuildFilesHyperlink(dependency));
+        }
+      }
+
+      for (String line : lines) {
+        // This happens when Gradle cannot find the Android Gradle plug-in in Maven Central.
+        if (line == null) {
+          continue;
+        }
+        matcher = MISSING_MATCHING_DEPENDENCY_PATTERN.matcher(line);
+        if (matcher.matches()) {
+          String dependency = matcher.group(1);
+          //noinspection TestOnlyProblems
+          return createNotification(project, line, new SearchInBuildFilesHyperlink(dependency));
         }
       }
 
@@ -244,7 +307,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
       text += ('\n' + b.toString());
       notificationListener = new CustomNotificationListener(project, hyperlinks);
     }
-    String title = String.format("Failed to refresh Gradle project '%1$s':", project.getName());
+    String title = String.format("Failed to refresh Gradle project '%1$s'", project.getName());
     return new CustomizationResult(title, text, DEFAULT_NOTIFICATION_TYPE, notificationListener);
   }
 }

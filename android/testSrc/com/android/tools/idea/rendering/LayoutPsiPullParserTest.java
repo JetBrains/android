@@ -25,11 +25,14 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.Nullable;
 import org.kxml2.io.KXmlParser;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.StringReader;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import static com.android.SdkConstants.*;
 import static org.xmlpull.v1.XmlPullParser.END_TAG;
@@ -82,7 +85,7 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     checkFile("simple.xml",  ResourceFolderType.LAYOUT);
   }
 
-  enum NextEventType { NEXT, NEXT_TOKEN, NEXT_TAG };
+  enum NextEventType { NEXT, NEXT_TOKEN, NEXT_TAG }
 
   private void compareParsers(PsiFile file, NextEventType nextEventType) throws Exception {
     assertTrue(file instanceof XmlFile);
@@ -134,28 +137,26 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
 
       if (expected == XmlPullParser.START_TAG) {
         assertEquals(referenceParser.getName(), parser.getName());
-        if (false && element != xmlFile.getRootTag()) { // This doesn't work quite right; KXmlParser seems to not include xmlns: attributes on the root tag!
-          if (referenceParser.getAttributeCount() != parser.getAttributeCount()) {
-            StringBuilder difference = new StringBuilder();
-            difference.append("Expected Attributes:\n");
-            for (int i = 0; i < referenceParser.getAttributeCount(); i++) {
-              difference.append(referenceParser.getAttributeName(i)).append('\n');
-            }
-            difference.append("\nbut was:\n");
-            for (int i = 0; i < parser.getAttributeCount(); i++) {
-              difference.append(parser.getAttributeName(i)).append('\n');
-            }
-            assertEquals(difference.toString(), referenceParser.getAttributeCount(), parser.getAttributeCount());
-          }
+        if (element != xmlFile.getRootTag()) { // KXmlParser seems to not include xmlns: attributes on the root tag!{
+          SortedSet<String> referenceAttributes = new TreeSet<String>();
+          SortedSet<String> attributes = new TreeSet<String>();
           for (int i = 0; i < referenceParser.getAttributeCount(); i++) {
-            assertEquals(referenceParser.getAttributeName(i), parser.getAttributeName(i));
-            assertEquals(referenceParser.getAttributeNamespace(i), parser.getAttributeNamespace(i));
-            assertEquals(referenceParser.getAttributeValue(i), parser.getAttributeValue(i));
-            String value1 =
-              referenceParser.getAttributeValue(referenceParser.getAttributeNamespace(i), referenceParser.getAttributeName(i));
-            String value2 = parser.getAttributeValue(parser.getAttributeNamespace(i), parser.getAttributeName(i));
-            assertEquals(normalizeValue(value1), normalizeValue(value2));
+            String s = referenceParser.getAttributePrefix(i) + ':' + referenceParser.getAttributeName(i) + '='
+                       + referenceParser.getAttributeValue(i);
+            referenceAttributes.add(s);
           }
+          for (int i = 0; i < parser.getAttributeCount(); i++) {
+            String s = parser.getAttributePrefix(i) + ':' + parser.getAttributeName(i) + '=' + parser.getAttributeValue(i);
+            attributes.add(s);
+            if (parser.getAttributeNamespace(i) != null) {
+              //noinspection ConstantConditions
+              assertEquals(normalizeValue(parser.getAttributeValue(i)),
+                           normalizeValue(parser.getAttributeValue(parser.getAttributeNamespace(i), parser.getAttributeName(i))));
+            }
+          }
+
+          assertEquals(referenceAttributes, attributes);
+
         }
         assertEquals(referenceParser.isEmptyElementTag(), parser.isEmptyElementTag());
 
@@ -164,6 +165,7 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
           for (XmlAttribute attribute : tag.getAttributes()) {
             String namespace = attribute.getNamespace();
             String name = attribute.getLocalName();
+            //noinspection ConstantConditions
             assertEquals(namespace + ':' + name + " in element " + parser.getName(),
                          normalizeValue(referenceParser.getAttributeValue(namespace, name)),
                          normalizeValue(parser.getAttributeValue(namespace, name)));
@@ -178,13 +180,14 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
                      + "(At " + describePosition(referenceParser) + ")",
                      expected, next);
       }
-      if (expected == KXmlParser.END_DOCUMENT) {
+      if (expected == XmlPullParser.END_DOCUMENT) {
         break;
       }
     }
   }
 
-  private String normalizeValue(String value) {
+  @Nullable
+  private static String normalizeValue(String value) {
     // Some parser translate values; ensure that these are identical
     if (value != null && value.equals(VALUE_MATCH_PARENT)) {
       return VALUE_FILL_PARENT;
@@ -214,7 +217,7 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     return referenceParser;
   }
 
-  private String describePosition(KXmlParser referenceParser) {
+  private static String describePosition(KXmlParser referenceParser) {
     return referenceParser.getLineNumber() + ":" + referenceParser.getColumnNumber();
   }
 }

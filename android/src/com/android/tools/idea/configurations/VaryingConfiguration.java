@@ -24,8 +24,8 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
+import com.android.tools.idea.gradle.AndroidModuleInfo;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.ManifestInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -192,19 +192,22 @@ public class VaryingConfiguration extends NestedConfiguration {
     }
     IAndroidTarget target = myParent.getTarget();
     if (isAlternatingTarget() && target != null) {
-      List<IAndroidTarget> targets = getConfigurationManager().getTargets();
-      if (!targets.isEmpty()) {
+      ConfigurationManager manager = getConfigurationManager();
+      IAndroidTarget[] targets = manager.getTargets();
+      if (targets.length > 0) {
         // Pick a different target: if you're showing the most recent render target,
         // then pick the lowest supported target, and vice versa
-        IAndroidTarget mostRecent = targets.get(targets.size() - 1);
+        IAndroidTarget mostRecent = manager.getHighestApiTarget();
         if (target.equals(mostRecent)) {
           // Find oldest supported
-          ManifestInfo info = ManifestInfo.get(getConfigurationManager().getModule());
-          int minSdkVersion = info.getMinSdkVersion();
-          for (IAndroidTarget t : targets) {
-            if (t.getVersion().getApiLevel() >= minSdkVersion) {
-              target = t;
-              break;
+          AndroidModuleInfo info = AndroidModuleInfo.get(manager.getModule());
+          if (info != null) {
+            int minSdkVersion = info.getMinSdkVersion();
+            for (IAndroidTarget t : targets) {
+              if (t.getVersion().getApiLevel() >= minSdkVersion && ConfigurationManager.isLayoutLibTarget(t)) {
+                target = t;
+                break;
+              }
             }
           }
         }

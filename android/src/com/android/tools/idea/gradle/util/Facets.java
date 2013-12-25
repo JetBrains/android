@@ -33,21 +33,6 @@ public final class Facets {
   private Facets() {
   }
 
-  /**
-   * Retrieves the first found facet of the given type from the given module.
-   *
-   * @param module the given module.
-   * @param typeId the given facet ID.
-   * @param <T> the type of facet.
-   * @return the first found facet in the given module.
-   */
-  @Nullable
-  public static <T extends Facet> T getFirstFacetOfType(@NotNull Module module, @NotNull FacetTypeId<T> typeId) {
-    FacetManager facetManager = FacetManager.getInstance(module);
-    Collection<T> facets = facetManager.getFacetsByType(typeId);
-    return ContainerUtil.getFirstItem(facets);
-  }
-
   public static <T extends Facet> void removeAllFacetsOfType(@NotNull Module module, @NotNull FacetTypeId<T> typeId) {
     FacetManager facetManager = FacetManager.getInstance(module);
     Collection<T> facets = facetManager.getFacetsByType(typeId);

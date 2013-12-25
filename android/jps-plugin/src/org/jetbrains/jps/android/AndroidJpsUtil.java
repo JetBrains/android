@@ -517,6 +517,16 @@ public class AndroidJpsUtil {
     return typeId != null && AndroidCommonUtils.isTestConfiguration(typeId);
   }
 
+  /**
+   * Returns whether this compile is being performed in the context of JUnit run configuration.
+   * Note: This is the same as {@link #isLightBuild(CompileContext)} above, duplicated only because I'm not sure what that method name
+   * implies.
+   * */
+  public static boolean isJunitTestContext(@NotNull CompileContext context) {
+    final String typeId = getRunConfigurationTypeId(context);
+    return typeId != null && AndroidCommonUtils.isTestConfiguration(typeId);
+  }
+
   public static boolean isInstrumentationTestContext(@NotNull CompileContext context) {
     final String typeId = getRunConfigurationTypeId(context);
     return typeId != null && AndroidCommonUtils.isInstrumentationTestConfiguration(typeId);

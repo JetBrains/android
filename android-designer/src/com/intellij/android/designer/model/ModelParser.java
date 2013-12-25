@@ -371,7 +371,11 @@ public class ModelParser extends XmlRecursiveElementVisitor {
   }
 
   public static void deleteAttribute(XmlTag tag, String name) {
-    XmlAttribute attribute = tag.getAttribute(name, SdkConstants.NS_RESOURCES);
+    deleteAttribute(tag, name, SdkConstants.NS_RESOURCES);
+  }
+
+  public static void deleteAttribute(XmlTag tag, String name, String namespace) {
+    XmlAttribute attribute = tag.getAttribute(name, namespace);
     if (attribute != null) {
       attribute.delete();
     }

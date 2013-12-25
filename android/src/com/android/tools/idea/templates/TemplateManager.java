@@ -24,6 +24,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -69,6 +70,27 @@ public class TemplateManager {
    */
   @Nullable
   public static File getTemplateRootFolder() {
+    String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
+    // Release build?
+    VirtualFile root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(homePath + BUNDLED_TEMPLATE_PATH));
+    if (root == null) {
+      // Development build?
+      for (String path : DEVELOPMENT_TEMPLATE_PATHS) {
+        root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(homePath + path));
+
+        if (root != null) {
+          break;
+        }
+      }
+    }
+    if (root != null) {
+      File rootFile = VfsUtilCore.virtualToIoFile(root);
+      if (templateRootIsValid(rootFile)) {
+        return rootFile;
+      }
+    }
+
+    // Fall back to SDK template root
     SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
     if (sdkManager != null) {
       String location = sdkManager.getLocation();
@@ -155,7 +177,7 @@ public class TemplateManager {
       File[] files = new File(root, folder).listFiles();
       if (files != null) {
         for (File file : files) {
-          if (file.isDirectory()) { // Avoid .DS_Store etc
+          if (file.isDirectory() && (new File(file, TEMPLATE_XML)).exists()) { // Avoid .DS_Store etc, & non Freemarker templates
             templates.add(file);
             templateNames.put(file.getName(), file);
           }
@@ -168,7 +190,7 @@ public class TemplateManager {
       File[] files = new File(extra, folder).listFiles();
       if (files != null) {
         for (File file : files) {
-          if (file.isDirectory()) {
+          if (file.isDirectory() && (new File(file, TEMPLATE_XML)).exists()) {
             File replaces = templateNames.get(file.getName());
             if (replaces != null) {
               int compare = compareTemplates(replaces, file);
@@ -268,10 +290,19 @@ public class TemplateManager {
       if (templateRootFolder == null) {
         return false;
       }
-      return new File(templateRootFolder, FileUtil.join("gradle", "wrapper", "gradlew")).exists();
+      return templateRootIsValid(templateRootFolder);
     }
     catch (Exception e) {
       return false;
     }
+  }
+
+  public static File getWrapperLocation(@NotNull File templateRootFolder) {
+    return new File(templateRootFolder, FileUtil.join("gradle", "wrapper"));
+
+  }
+
+  public static boolean templateRootIsValid(@NotNull File templateRootFolder) {
+    return new File(getWrapperLocation(templateRootFolder), "gradlew").exists();
   }
 }

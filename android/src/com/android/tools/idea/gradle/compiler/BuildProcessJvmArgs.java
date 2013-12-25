@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NonNls;
  * JVM arguments passed to the build process, when building a Gradle project.
  */
 public final class BuildProcessJvmArgs {
+
   private BuildProcessJvmArgs() {
   }
 
@@ -29,8 +30,9 @@ public final class BuildProcessJvmArgs {
   @NonNls public static final String GRADLE_DAEMON_MAX_IDLE_TIME_IN_MS = JVM_ARG_PREFIX + "daemon.max.idle.time";
   @NonNls public static final String GRADLE_DAEMON_JVM_OPTION_PREFIX = JVM_ARG_PREFIX +  "daemon.jvm.option.";
   @NonNls public static final String GRADLE_DAEMON_JVM_OPTION_COUNT = GRADLE_DAEMON_JVM_OPTION_PREFIX + "count";
-  @NonNls public static final String GRADLE_JAVA_HOME_DIR_PATH = JVM_ARG_PREFIX + "java.home.path";
   @NonNls public static final String GRADLE_HOME_DIR_PATH = JVM_ARG_PREFIX + "home.path";
+  @NonNls public static final String GRADLE_JAVA_HOME_DIR_PATH = JVM_ARG_PREFIX + "java.home.path";
+  @NonNls public static final String GRADLE_OFFLINE_BUILD_MODE = JVM_ARG_PREFIX + "offline.mode";
   @NonNls public static final String GRADLE_SERVICE_DIR_PATH = JVM_ARG_PREFIX + "service.dir.path";
   @NonNls public static final String PROJECT_DIR_PATH = JVM_ARG_PREFIX + "project.path";
   @NonNls public static final String USE_EMBEDDED_GRADLE_DAEMON = JVM_ARG_PREFIX + "use.embedded.daemon";
@@ -39,4 +41,6 @@ public final class BuildProcessJvmArgs {
   @NonNls public static final String HTTP_PROXY_PROPERTY_PREFIX = JVM_ARG_PREFIX + "proxy.property.";
   @NonNls public static final String HTTP_PROXY_PROPERTY_COUNT = HTTP_PROXY_PROPERTY_PREFIX  + "count";
   @NonNls public static final String HTTP_PROXY_PROPERTY_SEPARATOR = ":";
+  @NonNls public static final String MODULES_TO_BUILD_PROPERTY_PREFIX = JVM_ARG_PREFIX + "modules.";
+  @NonNls public static final String MODULES_TO_BUILD_PROPERTY_COUNT = MODULES_TO_BUILD_PROPERTY_PREFIX + "count";
 }

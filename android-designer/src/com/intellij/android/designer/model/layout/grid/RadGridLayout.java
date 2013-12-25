@@ -15,12 +15,12 @@
  */
 package com.intellij.android.designer.model.layout.grid;
 
+import com.android.tools.idea.designer.ResizeOperation;
 import com.intellij.android.designer.designSurface.TreeDropToOperation;
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.designSurface.layout.GridLayoutOperation;
 import com.intellij.android.designer.designSurface.layout.actions.GridLayoutSpanOperation;
 import com.intellij.android.designer.designSurface.layout.actions.LayoutSpanOperation;
-import com.intellij.android.designer.designSurface.layout.actions.ResizeOperation;
 import com.intellij.android.designer.designSurface.layout.caption.GridHorizontalCaptionOperation;
 import com.intellij.android.designer.designSurface.layout.caption.GridVerticalCaptionOperation;
 import com.intellij.android.designer.designSurface.layout.grid.GridDecorator;
@@ -38,7 +38,6 @@ import com.intellij.designer.model.RadLayout;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -126,9 +125,10 @@ public class RadGridLayout extends RadViewLayoutWithData implements ILayoutDecor
     mySelectionDecorator.clear();
     if (selection.size() == 1) {
       GridLayoutSpanOperation.points(mySelectionDecorator);
+      ResizeOperation.addResizePoints(mySelectionDecorator, (RadViewComponent)selection.get(0));
+    } else {
+      ResizeOperation.addResizePoints(mySelectionDecorator);
     }
-    ResizeOperation.width(mySelectionDecorator);
-    ResizeOperation.height(mySelectionDecorator);
 
     return mySelectionDecorator;
   }
@@ -170,7 +170,6 @@ public class RadGridLayout extends RadViewLayoutWithData implements ILayoutDecor
   @Override
   public List<RadComponent> getCaptionChildren(EditableArea mainArea, boolean horizontal) {
     RadGridLayoutComponent container = getGridComponent();
-    JComponent target = mainArea.getNativeComponent();
     GridInfo gridInfo = container.getGridInfo();
     List<RadComponent> components = new ArrayList<RadComponent>();
 

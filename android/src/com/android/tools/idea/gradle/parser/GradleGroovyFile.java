@@ -18,10 +18,14 @@ package com.android.tools.idea.gradle.parser;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.intellij.codeInsight.actions.ReformatCodeProcessor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
@@ -29,13 +33,20 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
+import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Base class for classes that parse Gradle Groovy files (e.g. settings.gradle, build.gradle). It provides a number of convenience
@@ -57,6 +68,64 @@ class GradleGroovyFile {
     myProject = project;
     myFile = file;
     reload();
+  }
+
+  public Project getProject() {
+    return myProject;
+  }
+
+  /**
+   * Automatically reformats all the Groovy code inside the given closure.
+   */
+  static void reformatClosure(@NotNull GrStatementOwner closure) {
+    new ReformatCodeProcessor(closure.getProject(), closure.getContainingFile(), closure.getTextRange(), false).run();
+
+    // Now strip out any blank lines. They tend to accumulate otherwise. To do this, we iterate through our elements and find those that
+    // consist only of whitespace, and eliminate all double-newline occurrences.
+    for (PsiElement psiElement : closure.getChildren()) {
+      if (psiElement instanceof LeafPsiElement) {
+        String text = psiElement.getText();
+        if (StringUtil.isEmptyOrSpaces(text)) {
+          String newText = text;
+          while (newText.contains("\n\n")) {
+            newText = newText.replaceAll("\n\n", "\n");
+          }
+          if (!newText.equals(text)) {
+            ((LeafPsiElement)psiElement).replaceWithText(newText);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Creates a new, blank-valued property at the given path.
+   */
+  @Nullable
+  static GrMethodCall createNewValue(@NotNull GrStatementOwner root, @NotNull BuildFileKey key) {
+    // First iterate through the components of the path and make sure all of the nested closures are in place.
+    GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(root.getProject());
+    String path = key.getPath();
+    String[] parts = path.split("/");
+    GrStatementOwner parent = root;
+    for (int i = 0; i < parts.length - 1; i++) {
+      String part = parts[i];
+      GrStatementOwner closure = getMethodClosureArgument(parent, part);
+      if (closure == null) {
+        parent.addStatementBefore(factory.createStatementFromText(part + " {}"), null);
+        reformatClosure(parent);
+        closure = getMethodClosureArgument(parent, part);
+        if (closure == null) {
+          return null;
+        }
+      }
+      parent = closure;
+    }
+    String name = parts[parts.length - 1];
+    String text = name + " " + key.getType().getDefaultValue();
+    parent.addStatementBefore(factory.createStatementFromText(text), null);
+    reformatClosure(parent);
+    return getMethodCall(parent, name);
   }
 
   /**
@@ -187,6 +256,15 @@ class GradleGroovyFile {
   }
 
   /**
+   * Returns the first argument for the given method call (which can be a literal, expression, or closure), or null if the method has
+   * no arguments.
+   */
+  protected static @Nullable GroovyPsiElement getFirstArgument(@NotNull GrMethodCall gmc) {
+    GroovyPsiElement[] arguments = getArguments(gmc);
+    return arguments.length > 0 ? arguments[0] : null;
+  }
+
+  /**
    * Returns the first method call of the given method name in the given parent statement block, or null if one could not be found.
    */
   protected static @Nullable GrMethodCall getMethodCall(@NotNull GrStatementOwner parent, @NotNull String methodName) {
@@ -216,14 +294,15 @@ class GradleGroovyFile {
    * Returns the name of the given method call
    */
   protected static @NotNull String getMethodCallName(@NotNull GrMethodCall gmc) {
-    return (gmc.getInvokedExpression() != null && gmc.getInvokedExpression().getText() != null) ? gmc.getInvokedExpression().getText() : "";
+    GrExpression expression = gmc.getInvokedExpression();
+    return (expression != null && expression.getText() != null) ? expression.getText() : "";
   }
 
   /**
-   * Returns all arguments in the given argument list that are literals.
+   * Returns all arguments in the given argument list that are of the given type.
    */
-  protected static @NotNull Iterable<GrLiteral> getLiteralArguments(@NotNull GrArgumentList args) {
-    return Iterables.filter(Arrays.asList(args.getAllArguments()), GrLiteral.class);
+  protected static @NotNull <E> Iterable<E> getTypedArguments(@NotNull GrArgumentList args, @NotNull Class<E> clazz) {
+    return Iterables.filter(Arrays.asList(args.getAllArguments()), clazz);
   }
 
   /**
@@ -234,7 +313,7 @@ class GradleGroovyFile {
     if (argumentList == null) {
       return EMPTY_LITERAL_ITERABLE;
     }
-    return getLiteralArguments(argumentList);
+    return getTypedArguments(argumentList, GrLiteral.class);
   }
 
   /**
@@ -249,6 +328,85 @@ class GradleGroovyFile {
     });
   }
 
+  /**
+   * If the given method takes named arguments, returns those arguments as a name:value map. Returns an empty map otherwise.
+   */
+  protected static @NotNull Map<String, Object> getNamedArgumentValues(@NotNull GrMethodCall gmc) {
+    GrArgumentList argumentList = gmc.getArgumentList();
+    if (argumentList == null) {
+      return Collections.EMPTY_MAP;
+    }
+    Map<String, Object> values = Maps.newHashMap();
+    for (GrNamedArgument grNamedArgument : getTypedArguments(argumentList, GrNamedArgument.class)) {
+      values.put(grNamedArgument.getLabelName(), parseValueExpression(grNamedArgument.getExpression()));
+    }
+    return values;
+  }
+
+  /**
+   * Given a Groovy expression, parses it as if it's literal or list type, and returns the corresponding literal value or List
+   * type. Returns null if the expression cannot be evaluated as a literal or list type.
+   */
+  protected static @Nullable Object parseValueExpression(@NotNull GrExpression gre) {
+    if (gre instanceof GrLiteral) {
+      return ((GrLiteral)gre).getValue();
+    } else if (gre instanceof GrListOrMap) {
+      GrListOrMap grLom = (GrListOrMap)gre;
+      if (grLom.isMap()) {
+        return null;
+      }
+      List<Object> values = Lists.newArrayList();
+      for (GrExpression subexpression : grLom.getInitializers()) {
+        Object subValue = parseValueExpression(subexpression);
+        if (subValue != null) {
+          values.add(subValue);
+        }
+      }
+      return values;
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Returns a text string with the Groovy expression that will represent the given map as a named argument list suitable for use in
+   * a method call.
+   */
+  protected static @NotNull String convertMapToGroovySource(@NotNull Map<String, Object> map) {
+    StringBuilder sb = new StringBuilder();
+    for (Map.Entry<String, Object> entry : map.entrySet()) {
+      if (sb.length() > 0) {
+        sb.append(", ");
+      }
+      sb.append(entry.getKey());
+      sb.append(": ");
+      sb.append(convertValueToGroovySource(entry.getValue()));
+    }
+    return sb.toString();
+  }
+
+  /**
+   * Returns a text string with the Groovy expression that will represent the given object. It can be a literal type or a list of
+   * literals or sub-lists.
+   */
+  protected static @NotNull String convertValueToGroovySource(@NotNull Object value) {
+    if (value instanceof List) {
+      StringBuilder sb = new StringBuilder();
+      sb.append('[');
+      for (Object v : ((List)value)) {
+        if (sb.length() > 1) {
+          sb.append(", ");
+        }
+        sb.append(convertValueToGroovySource(v));
+      }
+      sb.append(']');
+      return sb.toString();
+    } else if (value instanceof Number || value instanceof Boolean) {
+      return value.toString();
+    } else {
+      return "'" + value.toString() + "'";
+    }
+  }
   /**
    * Returns the value of the first literal argument in the given method call's argument list.
    */
@@ -279,8 +437,40 @@ class GradleGroovyFile {
   /**
    * Returns the first argument of the given method call that is a closure, or null if the closure could not be found.
    */
-  protected static GrClosableBlock getMethodClosureArgument(@NotNull GrMethodCall methodCall) {
+  protected static @Nullable GrClosableBlock getMethodClosureArgument(@NotNull GrMethodCall methodCall) {
     return Iterables.getFirst(Arrays.asList(methodCall.getClosureArguments()), null);
+  }
+
+  /**
+   * Returns the value in the file for the given key, or null if not present.
+   */
+  static @Nullable Object getValueStatic(@NotNull GrStatementOwner root, @NotNull BuildFileKey key) {
+    GrMethodCall method = getMethodCallByPath(root, key.getPath());
+    if (method == null) {
+      return null;
+    }
+    GroovyPsiElement arg = key.getType() == BuildFileKeyType.CLOSURE ? getMethodClosureArgument(method) : getFirstArgument(method);
+    if (arg == null) {
+      return null;
+    }
+    return key.getValue(arg);
+  }
+
+  /**
+   * Sets the value for the given key
+   */
+  static void setValueStatic(@NotNull GrStatementOwner root, @NotNull BuildFileKey key, @NotNull Object value) {
+    GrMethodCall method = getMethodCallByPath(root, key.getPath());
+    if (method == null) {
+      method = createNewValue(root, key);
+    }
+    if (method != null) {
+      GroovyPsiElement arg = key.getType() == BuildFileKeyType.CLOSURE  ? getMethodClosureArgument(method) : getFirstArgument(method);
+      if (arg == null) {
+        return;
+      }
+      key.setValue(arg, value);
+    }
   }
 
   /**

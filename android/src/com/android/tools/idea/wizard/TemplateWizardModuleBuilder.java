@@ -63,7 +63,7 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
   NewModuleWizardState myWizardState;
   ConfigureAndroidModuleStep myConfigureAndroidModuleStep;
   TemplateParameterStep myTemplateParameterStep;
-  LauncherIconStep myLauncherIconStep;
+  AssetSetStep myAssetSetStep;
   ChooseTemplateStep myChooseActivityStep;
   TemplateParameterStep myActivityTemplateParameterStep;
   boolean myInitializationComplete = false;
@@ -99,14 +99,14 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
 
     myConfigureAndroidModuleStep = new ConfigureAndroidModuleStep(myWizardState, myProject, sidePanelIcon, this);
     myTemplateParameterStep = new TemplateParameterStep(myWizardState, myProject, sidePanelIcon, this);
-    myLauncherIconStep = new LauncherIconStep(myWizardState.getLauncherIconState(), myProject, sidePanelIcon, this);
+    myAssetSetStep = new AssetSetStep(myWizardState.getLauncherIconState(), myProject, sidePanelIcon, this);
     myChooseActivityStep = new ChooseTemplateStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, myProject, sidePanelIcon,
                                                   this, null);
     myActivityTemplateParameterStep = new TemplateParameterStep(myWizardState.getActivityTemplateState(), myProject, sidePanelIcon, this);
 
     mySteps.add(myConfigureAndroidModuleStep);
     mySteps.add(myTemplateParameterStep);
-    mySteps.add(myLauncherIconStep);
+    mySteps.add(myAssetSetStep);
     mySteps.add(myChooseActivityStep);
     mySteps.add(myActivityTemplateParameterStep);
 
@@ -117,6 +117,7 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
     myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GradleUtil.GRADLE_PLUGIN_LATEST_VERSION);
     myWizardState.put(TemplateMetadata.ATTR_V4_SUPPORT_LIBRARY_VERSION, TemplateMetadata.V4_SUPPORT_LIBRARY_VERSION);
 
+    myAssetSetStep.finalizeAssetType(AssetStudioWizardState.AssetType.LAUNCHER);
     update();
 
     myInitializationComplete = true;
@@ -144,7 +145,7 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
     }
     myConfigureAndroidModuleStep.setVisible(myWizardState.myIsAndroidModule);
     myTemplateParameterStep.setVisible(!myWizardState.myIsAndroidModule);
-    myLauncherIconStep.setVisible(myWizardState.myIsAndroidModule && myWizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS));
+    myAssetSetStep.setVisible(myWizardState.myIsAndroidModule && myWizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS));
     myChooseActivityStep.setVisible(
       myWizardState.myIsAndroidModule && myWizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY));
     myActivityTemplateParameterStep.setVisible(
@@ -232,8 +233,8 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
       File moduleRoot = new File(projectRoot, myWizardState.getString(NewProjectWizardState.ATTR_MODULE_NAME));
       // TODO: handle return type of "mkdirs".
       projectRoot.mkdirs();
-      if (myLauncherIconStep.isStepVisible() && myWizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS)) {
-        myWizardState.getLauncherIconState().outputImages(moduleRoot);
+      if (myAssetSetStep.isStepVisible() && myWizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS)) {
+        myWizardState.getLauncherIconState().outputImagesIntoDefaultVariant(moduleRoot);
       }
       myWizardState.updateParameters();
       myWizardState.myTemplate.render(projectRoot, moduleRoot, myWizardState.myParameters);

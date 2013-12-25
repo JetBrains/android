@@ -403,6 +403,18 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintMockLocationInspection extends AndroidLintInspectionBase {
+    public AndroidLintMockLocationInspection() {
+      super(AndroidBundle.message("android.lint.inspections.mock.location"), ManifestDetector.MOCK_LOCATION);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      return new AndroidLintQuickFix[]{new MoveToDebugManifestQuickFix()};
+    }
+  }
+
   public static class AndroidLintMultipleUsesSdkInspection extends AndroidLintInspectionBase {
     public AndroidLintMultipleUsesSdkInspection() {
       super(AndroidBundle.message("android.lint.inspections.multiple.uses.sdk"), ManifestDetector.MULTIPLE_USES_SDK);
@@ -568,6 +580,12 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintTypographyOtherInspection extends AndroidLintTypographyInspectionBase {
     public AndroidLintTypographyOtherInspection() {
       super(AndroidBundle.message("android.lint.inspections.typography.other"), TypographyDetector.OTHER);
+    }
+  }
+
+  public static class AndroidLintUseCheckPermissionInspection extends AndroidLintInspectionBase {
+    public AndroidLintUseCheckPermissionInspection() {
+      super(AndroidBundle.message("android.lint.inspections.use.check.permission"), CheckPermissionDetector.ISSUE);
     }
   }
 

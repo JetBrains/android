@@ -17,7 +17,6 @@ package com.intellij.android.designer.designSurface;
 
 import com.android.tools.idea.rendering.ImageUtils;
 import com.android.tools.idea.rendering.ShadowPainter;
-import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.designer.designSurface.ScalableComponent;

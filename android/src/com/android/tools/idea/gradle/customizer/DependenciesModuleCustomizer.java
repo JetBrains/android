@@ -16,9 +16,11 @@
 package com.android.tools.idea.gradle.customizer;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.dependency.*;
+import com.android.tools.idea.gradle.dependency.Dependency;
+import com.android.tools.idea.gradle.dependency.DependencyUpdater;
+import com.android.tools.idea.gradle.dependency.LibraryDependency;
+import com.android.tools.idea.gradle.dependency.ModuleDependency;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.util.Facets;
 import com.google.common.base.Objects;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -135,7 +137,7 @@ public class DependenciesModuleCustomizer extends DependencyUpdater<ModifiableRo
     ModuleManager moduleManager = ModuleManager.getInstance(moduleModel.getProject());
     Module moduleDependency = null;
     for (Module module : moduleManager.getModules()) {
-      AndroidGradleFacet androidGradleFacet = Facets.getFirstFacetOfType(module, AndroidGradleFacet.TYPE_ID);
+      AndroidGradleFacet androidGradleFacet = AndroidGradleFacet.getInstance(module);
       if (androidGradleFacet != null) {
         String gradlePath = androidGradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
         if (Objects.equal(gradlePath, dependency.getGradlePath())) {

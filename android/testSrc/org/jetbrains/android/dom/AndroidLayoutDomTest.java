@@ -128,6 +128,10 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     doTestHighlighting("hl1.xml");
   }
 
+  public void testMissingRequired() throws Throwable {
+    doTestHighlighting("missing_attrs.xml");
+  }
+
   public void testCustomTagCompletion() throws Throwable {
     copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
     toTestCompletion("ctn.xml", "ctn_after.xml");

@@ -46,7 +46,9 @@ public class LocalPropertiesTest extends IdeaTestCase {
     myLocalProperties.setAndroidSdkPath(androidSdkPath);
     myLocalProperties.save();
 
-    assertEquals(androidSdkPath, myLocalProperties.getAndroidSdkPath());
+    File actual = myLocalProperties.getAndroidSdkPath();
+    assertNotNull(actual);
+    assertEquals(androidSdkPath, actual.getPath());
   }
 
   public void testSetAndroidSdkPathWithSdk() throws Exception {
@@ -63,6 +65,8 @@ public class LocalPropertiesTest extends IdeaTestCase {
 
     myLocalProperties.save();
 
-    assertEquals(androidSdkPath, myLocalProperties.getAndroidSdkPath());
+    File actual = myLocalProperties.getAndroidSdkPath();
+    assertNotNull(actual);
+    assertEquals(androidSdkPath, actual.getPath());
   }
 }

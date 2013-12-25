@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -80,6 +81,33 @@ public class RenderedView implements Iterable<RenderedView> {
     }
 
     return null;
+  }
+
+  @Nullable
+  public List<RenderedView> findViewsByTag(XmlTag tag) {
+    if (this.tag == tag) {
+      //return Lists.newArrayList(this);
+      List<RenderedView> list = Lists.newArrayList();
+      list.add(this);
+      return list;
+    }
+
+    List<RenderedView> result = null;
+
+    if (myChildren != null) {
+      for (RenderedView child : myChildren) {
+        List<RenderedView> matches = child.findViewsByTag(tag);
+        if (matches != null) {
+          if (result != null) {
+            result.addAll(matches);
+          } else {
+            result = matches;
+          }
+        }
+      }
+    }
+
+    return result;
   }
 
   @Nullable

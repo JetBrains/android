@@ -121,7 +121,7 @@ public class AndroidJavaDocRenderer {
   private static abstract class ResourceValueRenderer implements ResourceItemResolver.ResourceProvider {
     protected final Module myModule;
     protected FrameworkResources myFrameworkResources;
-    protected ProjectResources myAppResources;
+    protected AppResourceRepository myAppResources;
     protected ResourceResolver myResourceResolver;
 
     protected ResourceValueRenderer(Module module) {
@@ -185,12 +185,12 @@ public class AndroidJavaDocRenderer {
     @Nullable
     private List<ItemInfo> gatherItems(@NotNull ResourceUrl url) {
       ResourceType type = url.type;
-      String name = url.name;
+      String resourceName = url.name;
       boolean framework = url.framework;
 
       if (framework) {
         List<ItemInfo> results = Lists.newArrayList();
-        addItemsFromFramework(null, MASK_NORMAL, 0, type, name, results);
+        addItemsFromFramework(null, MASK_NORMAL, 0, type, resourceName, results);
         return results;
       }
 
@@ -201,7 +201,7 @@ public class AndroidJavaDocRenderer {
 
       List<ItemInfo> results = Lists.newArrayList();
 
-      AbstractResourceRepository resources = getAppResources();
+      AppResourceRepository resources = getAppResources();
       IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
       if (ideaAndroidProject != null) {
         assert facet.isGradleProject();
@@ -209,58 +209,57 @@ public class AndroidJavaDocRenderer {
         Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
         Set<SourceProvider> selectedProviders = Sets.newHashSet();
 
-        SourceProvider buildType = delegate.getBuildTypes().get(selectedVariant.getBuildType()).getSourceProvider();
+        BuildTypeContainer buildType = ideaAndroidProject.findBuildType(selectedVariant.getBuildType());
+        assert buildType != null;
+        SourceProvider sourceProvider = buildType.getSourceProvider();
         String buildTypeName = selectedVariant.getName();
         int rank = 0;
-        addItemsFromSourceSet(buildTypeName, MASK_FLAVOR_SELECTED, rank++, buildType, type, name, results, facet);
-        selectedProviders.add(buildType);
+        addItemsFromSourceSet(buildTypeName, MASK_FLAVOR_SELECTED, rank++, sourceProvider, type, resourceName, results, facet);
+        selectedProviders.add(sourceProvider);
 
         List<String> productFlavors = selectedVariant.getProductFlavors();
         // Iterate in *reverse* order
         for (int i = productFlavors.size() - 1; i >= 0; i--) {
-          String flavor = productFlavors.get(i);
-          SourceProvider provider = delegate.getProductFlavors().get(flavor).getSourceProvider();
-          addItemsFromSourceSet(flavor, MASK_FLAVOR_SELECTED, rank++, provider, type, name, results, facet);
+          String flavorName = productFlavors.get(i);
+          ProductFlavorContainer productFlavor = ideaAndroidProject.findProductFlavor(flavorName);
+          assert productFlavor != null;
+          SourceProvider provider = productFlavor.getSourceProvider();
+          addItemsFromSourceSet(flavorName, MASK_FLAVOR_SELECTED, rank++, provider, type, resourceName, results, facet);
           selectedProviders.add(provider);
         }
 
         SourceProvider main = delegate.getDefaultConfig().getSourceProvider();
-        addItemsFromSourceSet("main", MASK_FLAVOR_SELECTED, rank++, main, type, name, results, facet);
+        addItemsFromSourceSet("main", MASK_FLAVOR_SELECTED, rank++, main, type, resourceName, results, facet);
         selectedProviders.add(main);
 
         // Next display any source sets that are *not* in the selected flavors or build types!
-        Collection<BuildTypeContainer> buildTypes = delegate.getBuildTypes().values();
+        Collection<BuildTypeContainer> buildTypes = delegate.getBuildTypes();
         for (BuildTypeContainer container : buildTypes) {
           SourceProvider provider = container.getSourceProvider();
           if (!selectedProviders.contains(provider)) {
-            addItemsFromSourceSet(container.getBuildType().getName(), MASK_NORMAL, rank++, provider, type, name, results, facet);
+            addItemsFromSourceSet(container.getBuildType().getName(), MASK_NORMAL, rank++, provider, type, resourceName, results, facet);
             selectedProviders.add(provider);
           }
         }
 
-        Map<String,ProductFlavorContainer> flavors = delegate.getProductFlavors();
-        for (Map.Entry<String,ProductFlavorContainer> entry : flavors.entrySet()) {
-          ProductFlavorContainer container = entry.getValue();
+        Collection<ProductFlavorContainer> flavors = delegate.getProductFlavors();
+        for (ProductFlavorContainer container : flavors) {
           SourceProvider provider = container.getSourceProvider();
           if (!selectedProviders.contains(provider)) {
-            addItemsFromSourceSet(entry.getKey(), MASK_NORMAL, rank++, provider, type, name, results, facet);
+            addItemsFromSourceSet(container.getProductFlavor().getName(), MASK_NORMAL, rank++, provider, type, resourceName, results, facet);
             selectedProviders.add(provider);
           }
         }
 
         // Also pull in items from libraries; this will include items from the current module as well,
         // so add them to a temporary list so we can only add the items that are missing
-        if (resources instanceof MultiResourceRepository) {
-          ProjectResources primary = ProjectResources.get(myModule, false);
-          MultiResourceRepository multi = (MultiResourceRepository)resources;
-          for (ProjectResources dependency : multi.getChildren()) {
-            if (dependency != primary) {
-              addItemsFromRepository(dependency.getDisplayName(), MASK_NORMAL, rank++, dependency, type, name, results);
-            }
+        if (resources != null) {
+          for (LocalResourceRepository dependency : resources.getLibraries()) {
+              addItemsFromRepository(dependency.getDisplayName(), MASK_NORMAL, rank++, dependency, type, resourceName, results);
           }
         }
       } else if (resources != null) {
-        addItemsFromRepository(null, MASK_NORMAL, 0, resources, type, name, results);
+        addItemsFromRepository(null, MASK_NORMAL, 0, resources, type, resourceName, results);
       }
 
       return results;
@@ -274,7 +273,7 @@ public class AndroidJavaDocRenderer {
                                               @NotNull String name,
                                               @NotNull List<ItemInfo> results,
                                               @NotNull AndroidFacet facet) {
-      Set<File> resDirectories = sourceProvider.getResDirectories();
+      Collection<File> resDirectories = sourceProvider.getResDirectories();
       LocalFileSystem fileSystem = LocalFileSystem.getInstance();
       for (File dir : resDirectories) {
         VirtualFile virtualFile = fileSystem.findFileByIoFile(dir);
@@ -483,9 +482,9 @@ public class AndroidJavaDocRenderer {
 
     @Override
     @Nullable
-    public ProjectResources getAppResources() {
+    public AppResourceRepository getAppResources() {
       if (myAppResources == null) {
-        myAppResources = ProjectResources.get(myModule, true, true);
+        myAppResources = AppResourceRepository.getAppResources(myModule, true);
       }
 
       return myAppResources;

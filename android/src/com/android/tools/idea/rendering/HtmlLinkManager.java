@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.RenderContext;
+import com.android.tools.idea.gradle.AndroidModuleInfo;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.SdkUtils;
 import com.android.utils.SparseArray;
@@ -38,9 +40,9 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -82,6 +84,7 @@ public class HtmlLinkManager {
   private static final String URL_ASSIGN_LAYOUT_URL = "assignLayoutUrl:";
   private static final String URL_EDIT_ATTRIBUTE = "editAttribute:";
   private static final String URL_REPLACE_ATTRIBUTE_VALUE = "replaceAttributeValue:";
+  private static final String URL_DISABLE_SANDBOX = "disableSandbox:";
   static final String URL_ACTION_CLOSE = "action:close";
 
   private SparseArray<Runnable> myLinkRunnables;
@@ -134,10 +137,17 @@ public class HtmlLinkManager {
       handleIgnoreFragments(url, result);
     } else if (url.startsWith(URL_EDIT_ATTRIBUTE)) {
       assert result != null;
-      handleEditAttribute(url, module, file);
+      if (module != null && file != null) {
+        handleEditAttribute(url, module, file);
+      }
     } else if (url.startsWith(URL_REPLACE_ATTRIBUTE_VALUE)) {
       assert result != null;
-      handleReplaceAttributeValue(url, module, file);
+      if (module != null && file != null) {
+        handleReplaceAttributeValue(url, module, file);
+      }
+    } else if (url.startsWith(URL_DISABLE_SANDBOX)) {
+      assert module != null;
+      handleDisableSandboxUrl(module, result);
     } else if (url.startsWith(URL_RUNNABLE)) {
       Runnable linkRunnable = getLinkRunnable(url);
       if (linkRunnable != null) {
@@ -366,7 +376,14 @@ public class HtmlLinkManager {
     int index = s.lastIndexOf('.');
     if (index == -1) {
       className = s;
-      packageName = ManifestInfo.get(module).getPackage();
+      AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(module);
+      if (moduleInfo == null) {
+        return;
+      }
+      packageName = moduleInfo.getPackage();
+      if (packageName == null) {
+        return;
+      }
     } else {
       packageName = s.substring(0, index);
       className = s.substring(index + 1);
@@ -570,7 +587,8 @@ public class HtmlLinkManager {
     WriteCommandAction<Void> action = new WriteCommandAction<Void>(module.getProject(), "Assign Fragment", file) {
       @Override
       protected void run(Result<Void> result) throws Throwable {
-        for (XmlTag tag : PsiTreeUtil.findChildrenOfType(file, XmlTag.class)) {
+        Collection<XmlTag> tags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
+        for (XmlTag tag : tags) {
           if (!tag.getName().equals(VIEW_FRAGMENT)) {
             continue;
           }
@@ -582,8 +600,21 @@ public class HtmlLinkManager {
             }
           }
 
-          tag.setAttribute(ATTR_NAME, ANDROID_URI, fragmentClass);
-          break;
+          if (tag.getAttribute(ATTR_NAME, ANDROID_URI) == null && tag.getAttribute(ATTR_CLASS) == null) {
+            tag.setAttribute(ATTR_NAME, ANDROID_URI, fragmentClass);
+            return;
+          }
+        }
+
+        if (id == null) {
+          for (XmlTag tag : tags) {
+            if (!tag.getName().equals(VIEW_FRAGMENT)) {
+              continue;
+            }
+
+            tag.setAttribute(ATTR_NAME, ANDROID_URI, fragmentClass);
+            break;
+          }
         }
       }
     };
@@ -670,7 +701,7 @@ public class HtmlLinkManager {
     return URL_ACTION_IGNORE_FRAGMENTS;
   }
 
-  private void handleIgnoreFragments(@NotNull String url, @NotNull RenderResult result) {
+  private static void handleIgnoreFragments(@NotNull String url, @NotNull RenderResult result) {
     assert url.equals(URL_ACTION_IGNORE_FRAGMENTS);
     RenderLogger.ignoreFragments();
     RenderService renderService = result.getRenderService();
@@ -757,5 +788,29 @@ public class HtmlLinkManager {
       }
     };
     action.execute();
+  }
+
+  public String createDisableSandboxUrl() {
+    return URL_DISABLE_SANDBOX;
+  }
+
+  private static void handleDisableSandboxUrl(@NotNull Module module, @Nullable RenderResult result) {
+    RenderSecurityManager.sEnabled = false;
+    if (result != null) {
+      RenderService renderService = result.getRenderService();
+      if (renderService != null) {
+        RenderContext renderContext = renderService.getRenderContext();
+        if (renderContext != null) {
+          renderContext.requestRender();
+        }
+      }
+    }
+
+    Messages.showInfoMessage(module.getProject(),
+         "The custom view rendering sandbox was disabled for this session.\n\n" +
+         "You can turn it off permanently by adding\n" +
+         RenderSecurityManager.ENABLED_PROPERTY + "=" + VALUE_FALSE + "\n" +
+         "to {install}/bin/idea.properties.",
+         "Disabled Rendering Sandbox");
   }
 }

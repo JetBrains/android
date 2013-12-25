@@ -22,8 +22,8 @@ import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.roots.DependencyScope;
+import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.containers.ContainerUtil;
-import junit.framework.TestCase;
 
 import java.io.File;
 import java.util.Collection;
@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * Tests for {@link Dependency#extractFrom(com.android.tools.idea.gradle.IdeaAndroidProject)}.
  */
-public class ExtractAndroidDependenciesTest extends TestCase {
+public class ExtractAndroidDependenciesTest extends IdeaTestCase {
   private IdeaAndroidProject myIdeaAndroidProject;
   private AndroidProjectStub myAndroidProject;
   private VariantStub myVariant;
@@ -44,8 +44,8 @@ public class ExtractAndroidDependenciesTest extends TestCase {
     myVariant = myAndroidProject.getFirstVariant();
     assertNotNull(myVariant);
 
-    String rootDirPath = myAndroidProject.getRootDir().getAbsolutePath();
-    myIdeaAndroidProject = new IdeaAndroidProject(myAndroidProject.getName(), rootDirPath, myAndroidProject, myVariant.getName());
+    File rootDir = myAndroidProject.getRootDir();
+    myIdeaAndroidProject = new IdeaAndroidProject(myAndroidProject.getName(), rootDir, myAndroidProject, myVariant.getName());
   }
 
   @Override
@@ -59,8 +59,8 @@ public class ExtractAndroidDependenciesTest extends TestCase {
   public void testExtractFromWithJar() {
     File jarFile = new File("~/repo/guava/guava-11.0.2.jar");
 
-    myVariant.getMainArtifactInfo().getDependencies().addJar(jarFile);
-    myVariant.getTestArtifactInfo().getDependencies().addJar(jarFile);
+    myVariant.getMainArtifact().getDependencies().addJar(jarFile);
+    myVariant.getInstrumentTestArtifact().getDependencies().addJar(jarFile);
 
     Collection<Dependency> dependencies = Dependency.extractFrom(myIdeaAndroidProject);
     assertEquals(1, dependencies.size());
@@ -77,13 +77,13 @@ public class ExtractAndroidDependenciesTest extends TestCase {
   }
 
   public void testExtractFromWithLibraryProject() {
-    String rootDirPath = myAndroidProject.getRootDir().getAbsolutePath();
+    String rootDirPath = myAndroidProject.getRootDir().getPath();
     File libJar = new File(rootDirPath, "library.aar/library.jar");
     String gradlePath = "abc:xyz:library";
     AndroidLibraryStub library = new AndroidLibraryStub(libJar, gradlePath);
 
-    myVariant.getMainArtifactInfo().getDependencies().addLibrary(library);
-    myVariant.getTestArtifactInfo().getDependencies().addLibrary(library);
+    myVariant.getMainArtifact().getDependencies().addLibrary(library);
+    myVariant.getInstrumentTestArtifact().getDependencies().addLibrary(library);
 
     Collection<Dependency> dependencies = Dependency.extractFrom(myIdeaAndroidProject);
     assertEquals(1, dependencies.size());
@@ -106,12 +106,12 @@ public class ExtractAndroidDependenciesTest extends TestCase {
   }
 
   public void testExtractFromWithLibraryAar() {
-    String rootDirPath = myAndroidProject.getRootDir().getAbsolutePath();
+    String rootDirPath = myAndroidProject.getRootDir().getPath();
     File libJar = new File(rootDirPath, "library.aar/library.jar");
     AndroidLibraryStub library = new AndroidLibraryStub(libJar);
 
-    myVariant.getMainArtifactInfo().getDependencies().addLibrary(library);
-    myVariant.getTestArtifactInfo().getDependencies().addLibrary(library);
+    myVariant.getMainArtifact().getDependencies().addLibrary(library);
+    myVariant.getInstrumentTestArtifact().getDependencies().addLibrary(library);
 
     Collection<Dependency> dependencies = Dependency.extractFrom(myIdeaAndroidProject);
     assertEquals(1, dependencies.size());
@@ -128,15 +128,15 @@ public class ExtractAndroidDependenciesTest extends TestCase {
   }
 
   public void testExtractFromWithLibraryLocalJar() {
-    String rootDirPath = myAndroidProject.getRootDir().getAbsolutePath();
+    String rootDirPath = myAndroidProject.getRootDir().getPath();
     File libJar = new File(rootDirPath, "library.aar/library.jar");
     AndroidLibraryStub library = new AndroidLibraryStub(libJar);
 
     File localJar = new File(rootDirPath, "local.jar");
     library.addLocalJar(localJar);
 
-    myVariant.getMainArtifactInfo().getDependencies().addLibrary(library);
-    myVariant.getTestArtifactInfo().getDependencies().addLibrary(library);
+    myVariant.getMainArtifact().getDependencies().addLibrary(library);
+    myVariant.getInstrumentTestArtifact().getDependencies().addLibrary(library);
 
     List<Dependency> dependencies = Lists.newArrayList(Dependency.extractFrom(myIdeaAndroidProject));
     assertEquals(2, dependencies.size());
@@ -154,8 +154,8 @@ public class ExtractAndroidDependenciesTest extends TestCase {
 
   public void testExtractFromWithProject() {
     String gradlePath = "abc:xyz:library";
-    myVariant.getMainArtifactInfo().getDependencies().addProject(gradlePath);
-    myVariant.getTestArtifactInfo().getDependencies().addProject(gradlePath);
+    myVariant.getMainArtifact().getDependencies().addProject(gradlePath);
+    myVariant.getInstrumentTestArtifact().getDependencies().addProject(gradlePath);
     Collection<Dependency> dependencies = Dependency.extractFrom(myIdeaAndroidProject);
     assertEquals(1, dependencies.size());
 
@@ -169,4 +169,5 @@ public class ExtractAndroidDependenciesTest extends TestCase {
     LibraryDependency backup = dependency.getBackupDependency();
     assertNull(backup);
   }
+
 }

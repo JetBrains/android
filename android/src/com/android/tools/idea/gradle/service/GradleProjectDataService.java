@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.service;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.util.Facets;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.collect.Maps;
@@ -75,6 +76,7 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
     }
 
     Projects.ensureExternalBuildIsEnabledForGradleProject(project);
+    AndroidGradleProjectComponent.getInstance(project).checkForSupportedModules();
 
     Application application = ApplicationManager.getApplication();
     if (!application.isUnitTestMode()) {
@@ -99,7 +101,7 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
 
   private static void customizeModule(@NotNull Module module, @NotNull IdeaGradleProject gradleProject) {
     AndroidGradleFacet androidGradleFacet = setAndGetAndroidGradleFacet(module);
-    androidGradleFacet.getConfiguration().GRADLE_PROJECT_PATH = gradleProject.getGradleProjectPath();
+    androidGradleFacet.setGradleProject(gradleProject);
   }
 
   /**
@@ -110,7 +112,7 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
    */
   @NotNull
   private static AndroidGradleFacet setAndGetAndroidGradleFacet(Module module) {
-    AndroidGradleFacet facet = Facets.getFirstFacetOfType(module, AndroidGradleFacet.TYPE_ID);
+    AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
     if (facet != null) {
       return facet;
     }
