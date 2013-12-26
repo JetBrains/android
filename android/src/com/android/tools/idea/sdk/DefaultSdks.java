@@ -48,6 +48,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -443,7 +444,19 @@ public final class DefaultSdks {
     if (!jdks.isEmpty()) {
       return jdks.get(0);
     }
-    VirtualFile javaHome = LocalFileSystem.getInstance().findFileByPath(SystemProperties.getJavaHome());
+    final Collection<String> jdkPaths = JavaSdk.getInstance().suggestHomePaths();
+    VirtualFile javaHome = null;
+
+    for (String jdkPath : jdkPaths) {
+      javaHome = LocalFileSystem.getInstance().findFileByPath(jdkPath);
+
+      if (javaHome != null) {
+        break;
+      }
+    }
+    if (javaHome == null) {
+      javaHome = LocalFileSystem.getInstance().findFileByPath(SystemProperties.getJavaHome());
+    }
     return javaHome != null ? createJdk(javaHome) : null;
   }
 
