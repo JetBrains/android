@@ -300,7 +300,12 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
 
       if (location != null) {
         final Sdk javaSdk = myJdk != null ? myJdk : myWizardContext.getProjectJdk();
-        DefaultSdks.setDefaultAndroidHome(new File(location), javaSdk);
+        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+          @Override
+          public void run() {
+            DefaultSdks.setDefaultAndroidHome(new File(location), javaSdk);
+          }
+        });
       }
     }
 
