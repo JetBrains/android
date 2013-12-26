@@ -25,8 +25,7 @@ import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.*;
 import com.intellij.testFramework.IdeaTestUtil;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.compiler.AndroidDexCompilerConfiguration;
@@ -458,6 +457,58 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
       assertEquals("/AndroidManifest.xml", properties.MANIFEST_FILE_RELATIVE_PATH);
       assertEquals(true, properties.USE_CUSTOM_COMPILER_MANIFEST);
       assertEquals("/target/filtered-manifest1/AndroidManifest.xml", properties.CUSTOM_COMPILER_MANIFEST);
+    }
+    finally {
+      AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = null;
+    }
+  }
+
+  public void testExternalAar() throws Exception {
+    setRepositoryPath(new File(myDir, "__repo").getPath());
+    FileUtil.copyDir(new File(AndroidTestCase.getTestDataPath() + "/maven/myaar"), new File(getRepositoryPath(), "com/myaar/1.0"));
+    FileUtil.copyDir(new File(AndroidTestCase.getTestDataPath() + "/maven/myjar"), new File(getRepositoryPath(), "com/myjar/1.0"));
+
+    AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = AndroidTestCase.getDefaultTestSdkPath();
+    try {
+      importProject(getPomContent("apk", "module", "") +
+                    "<dependencies>" +
+                    "  <dependency>" +
+                    "    <groupId>com</groupId>\n" +
+                    "    <artifactId>myaar</artifactId>\n" +
+                    "    <version>1.0</version>\n" +
+                    "    <type>aar</type>" +
+                    "  </dependency>" +
+                    "</dependencies>");
+
+      assertModules("module");
+      final Module module = getModule("module");
+      final AndroidFacet facet = AndroidFacet.getInstance(module);
+      assertNotNull(facet);
+      assertFalse(facet.isLibraryProject());
+
+      final OrderEntry[] deps = ModuleRootManager.getInstance(module).getOrderEntries();
+      assertEquals(4, deps.length);
+      assertInstanceOf(deps[0], ModuleJdkOrderEntry.class);
+      assertEquals("< Maven Android API 17 Platform >", deps[0].getPresentableName());
+      assertInstanceOf(deps[1], ModuleSourceOrderEntry.class);
+      assertInstanceOf(deps[2], LibraryOrderEntry.class);
+      assertEquals(deps[2].getPresentableName(), "Maven: com:myaar:aar:1.0");
+      final Library aarLib = ((LibraryOrderEntry)deps[2]).getLibrary();
+      assertNotNull(aarLib);
+      final String[] dep2Urls = aarLib.getUrls(OrderRootType.CLASSES);
+      assertEquals(2, dep2Urls.length);
+      final String extractedAarDirPath = FileUtil.toCanonicalPath(myDir.getPath() + "/project/gen-external-apklibs/com_myaar_1.0");
+      assertEquals(VirtualFileManager.constructUrl(JarFileSystem.PROTOCOL, extractedAarDirPath + "/classes.jar") +
+                   JarFileSystem.JAR_SEPARATOR, dep2Urls[0]);
+      assertEquals(VfsUtilCore.pathToUrl(extractedAarDirPath + "/res"), dep2Urls[1]);
+
+      assertInstanceOf(deps[3], LibraryOrderEntry.class);
+      assertEquals(deps[3].getPresentableName(), "Maven: com:myjar:1.0");
+      final Library jarLib = ((LibraryOrderEntry)deps[3]).getLibrary();
+      assertNotNull(jarLib);
+      final String[] dep3Urls = jarLib.getUrls(OrderRootType.CLASSES);
+      assertEquals(1, dep3Urls.length);
+      assertTrue(dep3Urls[0].endsWith("com/myjar/1.0/myjar-1.0.jar!/"));
     }
     finally {
       AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = null;
