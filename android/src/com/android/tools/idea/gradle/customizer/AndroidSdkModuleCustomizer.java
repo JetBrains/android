@@ -52,7 +52,10 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer {
       return;
     }
     File androidSdkHomePath = DefaultSdks.getDefaultAndroidHome();
-    assert androidSdkHomePath != null;
+    // Android SDK may be not configured in IntelliJ
+    if (androidSdkHomePath == null) {
+      return;
+    }
 
     String androidHome = androidSdkHomePath.getPath();
     String compileTarget = ideaAndroidProject.getDelegate().getCompileTarget();
