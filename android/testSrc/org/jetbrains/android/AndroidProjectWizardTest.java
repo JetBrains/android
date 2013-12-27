@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android;
 
-import com.intellij.ide.projectWizard.ProjectWizardTestCase;
+import com.intellij.ide.projectWizard.NewProjectWizardTestCase;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.ProjectBuilder;
 import com.intellij.openapi.application.ApplicationManager;
@@ -25,7 +25,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.impl.JavaSdkImpl;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.text.StringUtil;
@@ -42,7 +41,7 @@ import java.util.Arrays;
  * @author Dmitry Avdeev
  *         Date: 11/8/12
  */
-public class AndroidProjectWizardTest extends ProjectWizardTestCase {
+public class AndroidProjectWizardTest extends NewProjectWizardTestCase {
 
   private static final String ANDROID = "Android";
 
