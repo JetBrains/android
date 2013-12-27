@@ -62,7 +62,7 @@ public class SearchInBuildFilesHyperlink extends NotificationHyperlink {
     boolean showPanelIfOnlyOneUsage = !FindSettings.getInstance().isSkipResultsWithOneUsage();
     final FindUsagesProcessPresentation processPresentation =
       FindInProjectUtil.setupProcessPresentation(project, showPanelIfOnlyOneUsage, presentation);
-    UsageTarget usageTarget = new FindInProjectUtil.StringUsageTarget(findModel.getStringToFind());
+    UsageTarget usageTarget = new FindInProjectUtil.StringUsageTarget(project, findModel.getStringToFind());
     usageViewManager.searchAndShowUsages(new UsageTarget[]{usageTarget}, new Factory<UsageSearcher>() {
       @Override
       public UsageSearcher create() {
