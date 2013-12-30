@@ -16,12 +16,16 @@
 package com.android.tools.idea.wizard;
 
 import com.android.assetstudiolib.*;
+import com.android.tools.idea.templates.Template;
+import com.android.tools.idea.templates.TemplateManager;
+import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.ArgumentCaptor;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.Map;
 
 import static com.android.tools.idea.wizard.AssetStudioWizardState.*;
@@ -49,7 +53,16 @@ public class AssetStudioWizardStateTest extends AndroidTestCase {
     myActionBarIconGenerator = mock(ActionBarIconGenerator.class);
     myLauncherIconGenerator = mock(LauncherIconGenerator.class);
     myState = new AssetStudioWizardState(myActionBarIconGenerator, myNotificationIconGenerator, myLauncherIconGenerator);
+    pickImage(myState);
     myState.put(ATTR_ASSET_NAME, ASSET_NAME);
+  }
+
+  private static void pickImage(AssetStudioWizardState state) {
+    // This is no longer done by the asset state by default, but by the
+    // AssetSetStep#initialize method
+    state.put(ATTR_IMAGE_PATH, new File(TemplateManager.getTemplateRootFolder(), FileUtil
+      .join(Template.CATEGORY_PROJECTS, NewProjectWizardState.MODULE_TEMPLATE_NAME, "root", "res", "drawable-xhdpi", "ic_launcher.png"))
+      .getAbsolutePath());
   }
 
   public void testNoOp() throws Exception {
@@ -155,7 +168,7 @@ public class AssetStudioWizardStateTest extends AndroidTestCase {
     ActionBarIconGenerator generator = mock(ActionBarIconGenerator.class);
 
     AssetStudioWizardState state = new AssetStudioWizardState(generator, null, null);
-
+    pickImage(state);
     state.put(ATTR_ASSET_TYPE, AssetType.ACTIONBAR.name());
     state.put(ATTR_ASSET_THEME, theme.name());
     state.put(ATTR_FOREGROUND_COLOR, color);
