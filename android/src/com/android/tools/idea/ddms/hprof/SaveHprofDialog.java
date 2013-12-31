@@ -31,6 +31,7 @@ import java.io.File;
 public class SaveHprofDialog extends DialogWrapper {
   private static final String TITLE = AndroidBundle.message("android.ddms.actions.dump.hprof.savedialog.title");
   private static String ourLastUsedPath = null;
+  private static boolean ourLastRunHprofConvSetting = true; // default to true as this is required to open the hprof in MAT or Your kit
 
   private final Project myProject;
 
@@ -47,6 +48,8 @@ public class SaveHprofDialog extends DialogWrapper {
       myPathTextFieldWithButton.getTextField().setText(ourLastUsedPath);
     }
 
+    myHprofConvertCheckbox.setSelected(ourLastRunHprofConvSetting);
+
     myPathTextFieldWithButton.addActionListener(
       new SaveFileListener(myContentPane, myPathTextFieldWithButton, TITLE, SdkConstants.EXT_HPROF) {
         @Nullable
@@ -55,6 +58,7 @@ public class SaveHprofDialog extends DialogWrapper {
           return myProject.getBasePath();
         }
       });
+    myPathTextFieldWithButton.setTextFieldPreferredWidth(60);
 
     init();
   }
@@ -93,10 +97,11 @@ public class SaveHprofDialog extends DialogWrapper {
     return "AndroidSaveHprofDialogDimensions";
   }
 
+  @SuppressWarnings("AssignmentToStaticFieldFromInstanceMethod")
   @Override
   protected void doOKAction() {
-    //noinspection AssignmentToStaticFieldFromInstanceMethod
     ourLastUsedPath = myPathTextFieldWithButton.getText().trim();
+    ourLastRunHprofConvSetting = myHprofConvertCheckbox.isSelected();
     super.doOKAction();
   }
 
