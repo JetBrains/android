@@ -20,6 +20,7 @@ import com.google.common.collect.Iterables;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
@@ -214,7 +215,8 @@ public class GradleSettingsFileTest extends IdeaTestCase {
   private GradleSettingsFile getBadGradleSettingsFile() {
     // Use an intentionally invalid file path so that GradleSettingsFile will remain uninitialized. This simulates the condition of
     // the PSI file not being parsed yet. GradleSettingsFile will warn about the PSI file; this is expected.
-    VirtualFile vf = LocalFileSystem.getInstance().getRoot();
+    VirtualFile vf = LocalFileSystem.getInstance().findFileByPath(FileUtil.getTempDirectory());
+    assertNotNull(vf);
     return new GradleSettingsFile(vf, getProject());
   }
 

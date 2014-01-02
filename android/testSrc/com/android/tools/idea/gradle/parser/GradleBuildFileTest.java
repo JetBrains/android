@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
@@ -529,7 +530,8 @@ public class GradleBuildFileTest extends IdeaTestCase {
   private GradleBuildFile getBadGradleBuildFile() {
     // Use an intentionally invalid file path so that GradleBuildFile will remain uninitialized. This simulates the condition of
     // the PSI file not being parsed yet. GradleBuildFile will warn about the PSI file; this is expected.
-    VirtualFile vf = LocalFileSystem.getInstance().getRoot();
+    VirtualFile vf = LocalFileSystem.getInstance().findFileByPath(FileUtil.getTempDirectory());
+    assertNotNull(vf);
     return new GradleBuildFile(vf, getProject());
   }
 
