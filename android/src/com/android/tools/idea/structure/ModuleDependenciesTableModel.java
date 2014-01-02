@@ -16,11 +16,13 @@
 package com.android.tools.idea.structure;
 
 import com.android.tools.idea.gradle.parser.Dependency;
+import com.android.tools.idea.gradle.parser.UnparseableStatement;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.ProjectBundle;
 import com.intellij.util.ui.ItemRemovable;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import java.util.List;
 
@@ -134,5 +136,15 @@ public class ModuleDependenciesTableModel extends AbstractTableModel implements 
 
   public void setModified() {
     myModified = true;
+  }
+
+  public RowFilter<ModuleDependenciesTableModel, Integer> getFilter() {
+    return new RowFilter<ModuleDependenciesTableModel, Integer>() {
+      @Override
+      public boolean include(Entry<? extends ModuleDependenciesTableModel, ? extends Integer> entry) {
+        ModuleDependenciesTableItem item = myItems.get(entry.getIdentifier());
+        return item.getEntry() instanceof Dependency || !((UnparseableStatement)item.getEntry()).isComment();
+      }
+    };
   }
 }

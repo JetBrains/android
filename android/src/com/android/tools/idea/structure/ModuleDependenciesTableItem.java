@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.structure;
 
+import com.android.tools.idea.gradle.parser.BuildFileStatement;
 import com.android.tools.idea.gradle.parser.Dependency;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,23 +25,23 @@ import org.jetbrains.annotations.Nullable;
  * or the Maven coordinates for Maven dependencies.
  */
 public class ModuleDependenciesTableItem {
-  @Nullable protected final Dependency myEntry;
+  @Nullable protected final BuildFileStatement myEntry;
 
-  protected ModuleDependenciesTableItem(@Nullable Dependency entry) {
+  protected ModuleDependenciesTableItem(@Nullable BuildFileStatement entry) {
     myEntry = entry;
   }
 
   @Nullable
   public final Dependency.Scope getScope() {
-    return myEntry != null ? myEntry.scope : null;
+    return myEntry != null && myEntry instanceof Dependency ? ((Dependency)myEntry).scope : null;
   }
 
   public final void setScope(@NotNull Dependency.Scope scope) {
-    if (myEntry != null) myEntry.scope = scope;
+    if (myEntry != null && myEntry instanceof Dependency) ((Dependency)myEntry).scope = scope;
   }
 
   @Nullable
-  public final Dependency getEntry() {
+  public final BuildFileStatement getEntry() {
     return myEntry;
   }
 
