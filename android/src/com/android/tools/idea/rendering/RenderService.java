@@ -213,7 +213,7 @@ public class RenderService implements IImageFactory {
 
     myHardwareConfigHelper.setOrientation(configuration.getFullConfig().getScreenOrientationQualifier().getValue());
     myLayoutLib = layoutLib;
-    LocalResourceRepository appResources = AppResourceRepository.getAppResources(facet, true);
+    AppResourceRepository appResources = AppResourceRepository.getAppResources(facet, true);
     myProjectCallback = new ProjectCallback(myLayoutLib, appResources, myModule, facet, myLogger, myCredential);
     myProjectCallback.loadAndParseRClass();
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
