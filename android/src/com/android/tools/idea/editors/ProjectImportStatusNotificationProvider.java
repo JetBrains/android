@@ -16,11 +16,10 @@
 package com.android.tools.idea.editors;
 
 import com.android.tools.idea.gradle.GradleImportNotificationListener;
+import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -28,7 +27,6 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,22 +55,10 @@ public class ProjectImportStatusNotificationProvider extends EditorNotifications
     if (GradleImportNotificationListener.isProjectImportInProgress()) {
       return new ProjectImportInProgressNotificationPanel();
     }
-    if (importFailed()) {
+    if (Projects.syncWithGradleFailed(myProject)) {
       return new ProjectImportFailedNotificationPanel();
     }
     return null;
-  }
-
-  private boolean importFailed() {
-    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && facet.isGradleProject()) {
-        if (facet.getIdeaAndroidProject() == null) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 
   private static class ProjectImportInProgressNotificationPanel extends EditorNotificationPanel {
@@ -83,7 +69,7 @@ public class ProjectImportStatusNotificationProvider extends EditorNotifications
 
   private class ProjectImportFailedNotificationPanel extends EditorNotificationPanel {
     ProjectImportFailedNotificationPanel() {
-      setText("Gradle project import failed. Basic functionality (e.g. editing, debugging) will not work properly.");
+      setText("Gradle project sync failed. Basic functionality (e.g. editing, debugging) will not work properly.");
 
       createActionLabel("Open Event Log", new Runnable() {
         @Override
