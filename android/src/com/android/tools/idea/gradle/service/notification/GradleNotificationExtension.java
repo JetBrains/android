@@ -95,7 +95,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
         return createNotification(project, msg, new SearchInBuildFilesHyperlink("com.android.tools.build:gradle"));
       }
 
-      if (msg.contains(FAILED_TO_PARSE_SDK)) {
+      if (msg.contains(FAILED_TO_PARSE_SDK_ERROR)) {
         String pathOfBrokenSdk = findPathOfSdkMissingOrEmptyAddonsFolder(project);
         String newMsg;
         if (pathOfBrokenSdk != null) {
