@@ -168,7 +168,6 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
         return true;
       }
     }
-    String errorToString = error.toString();
-    return errorToString != null && errorToString.startsWith("org.gradle.api.internal.MissingMethodException");
+    return false;
   }
 }
