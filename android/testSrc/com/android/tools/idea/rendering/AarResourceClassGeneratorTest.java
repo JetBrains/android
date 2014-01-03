@@ -23,13 +23,14 @@ import com.android.ide.common.resources.TestResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.util.Pair;
 import com.google.common.collect.ListMultimap;
-import junit.framework.TestCase;
+import org.jetbrains.android.AndroidTestCase;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Collections;
 import java.util.Map;
 
-public class AarResourceClassGeneratorTest extends TestCase {
+public class AarResourceClassGeneratorTest extends AndroidTestCase {
   public void test() throws Exception {
     final ResourceRepository repository = TestResourceRepository.createRes2(false, new Object[]{
       "layout/layout1.xml", "<!--contents doesn't matter-->",
@@ -69,7 +70,7 @@ public class AarResourceClassGeneratorTest extends TestCase {
                                "<resources>\n" +
                                "    <string name=\"show_all_apps\">Todo</string>\n" +
                                "</resources>\n",});
-    LocalResourceRepository localRepository = new LocalResourceRepository("test") {
+    LocalResourceRepository resources = new LocalResourceRepository("test") {
       @NonNull
       @Override
       protected Map<ResourceType, ListMultimap<String, ResourceItem>> getMap() {
@@ -81,15 +82,11 @@ public class AarResourceClassGeneratorTest extends TestCase {
       protected ListMultimap<String, ResourceItem> getMap(ResourceType type, boolean create) {
         return repository.getItems().get(type);
       }
-
-      @Nullable
-      @Override
-      public Integer getResourceId(ResourceType type, String name) {
-        return super.getResourceId(type, name);
-      }
     };
+    AppResourceRepository appResources = new AppResourceRepository(myFacet, Collections.singletonList(resources),
+                                                                            Collections.singletonList(resources));
 
-    AarResourceClassGenerator generator = AarResourceClassGenerator.create(localRepository, localRepository);
+    AarResourceClassGenerator generator = AarResourceClassGenerator.create(appResources, appResources);
     assertNotNull(generator);
     String name = "my.test.pkg.R";
     Class<?> clz = generateClass(generator, name);
@@ -137,12 +134,12 @@ public class AarResourceClassGeneratorTest extends TestCase {
 
     // Make sure the id's match what we've dynamically allocated in the resource repository
     @SuppressWarnings("deprecation")
-    Pair<ResourceType,String> pair = localRepository.resolveResourceId((Integer)clz.getField("menu_wallpaper").get(null));
+    Pair<ResourceType,String> pair = appResources.resolveResourceId((Integer)clz.getField("menu_wallpaper").get(null));
     assertNotNull(pair);
     assertEquals(ResourceType.STRING, pair.getFirst());
     assertEquals("menu_wallpaper", pair.getSecond());
-    assertEquals(clz.getField("menu_wallpaper").get(null), localRepository.getResourceId(ResourceType.STRING, "menu_wallpaper"));
-    assertEquals(clz.getField("show_all_apps").get(null), localRepository.getResourceId(ResourceType.STRING, "show_all_apps"));
+    assertEquals(clz.getField("menu_wallpaper").get(null), appResources.getResourceId(ResourceType.STRING, "menu_wallpaper"));
+    assertEquals(clz.getField("show_all_apps").get(null), appResources.getResourceId(ResourceType.STRING, "show_all_apps"));
 
     // Test attr class!
     name = "my.test.pkg.R$attr";

@@ -17,10 +17,15 @@ package com.android.tools.idea.rendering;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidLibrary;
+import com.android.ide.common.resources.IntArrayWrapper;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.util.Pair;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
+import gnu.trove.TIntObjectHashMap;
+import gnu.trove.TObjectIntHashMap;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.GradleSyncListener;
 import org.jetbrains.android.util.AndroidUtils;
@@ -38,11 +43,11 @@ import static org.jetbrains.android.facet.ResourceFolderManager.addAarsFromModul
  * Resource repository which merges in resources from all the libraries and all the modules
  * in a project
  */
-public final class AppResourceRepository extends MultiResourceRepository {
+public class AppResourceRepository extends MultiResourceRepository {
   private final AndroidFacet myFacet;
   private List<LocalResourceRepository> myLibraries;
 
-  private AppResourceRepository(@NotNull AndroidFacet facet,
+  protected AppResourceRepository(@NotNull AndroidFacet facet,
                                 @NotNull List<? extends LocalResourceRepository> delegates,
                                 @NotNull List<LocalResourceRepository> libraries) {
     super(facet.getModule().getName() + " with modules and libraries", delegates);
@@ -288,5 +293,95 @@ public final class AppResourceRepository extends MultiResourceRepository {
       }
     }
     return null;
+  }
+
+  // For ProjectCallback
+
+  // Project resource ints are defined as 0x7FXX#### where XX is the resource type (layout, drawable,
+  // etc...). Using FF as the type allows for 255 resource types before we get a collision
+  // which should be fine.
+  private static final int DYNAMIC_ID_SEED_START = 0x7fff0000;
+
+  /** Map of (name, id) for resources of type {@link com.android.resources.ResourceType#ID} coming from R.java */
+  private Map<ResourceType, TObjectIntHashMap<String>> myResourceValueMap;
+  /** Map of (id, [name, resType]) for all resources coming from R.java */
+  private TIntObjectHashMap<Pair<ResourceType, String>> myResIdValueToNameMap;
+  /** Map of (int[], name) for styleable resources coming from R.java */
+  private Map<IntArrayWrapper, String> myStyleableValueToNameMap;
+
+  private final TObjectIntHashMap<String> myName2DynamicIdMap = new TObjectIntHashMap<String>();
+  private final TIntObjectHashMap<Pair<ResourceType, String>> myDynamicId2ResourceMap =
+    new TIntObjectHashMap<Pair<ResourceType, String>>();
+  private int myDynamicSeed = DYNAMIC_ID_SEED_START;
+  private final IntArrayWrapper myWrapper = new IntArrayWrapper(null);
+
+
+  @Nullable
+  public Pair<ResourceType, String> resolveResourceId(int id) {
+    Pair<ResourceType, String> result = null;
+    if (myResIdValueToNameMap != null) {
+      result = myResIdValueToNameMap.get(id);
+    }
+
+    if (result == null) {
+      final Pair<ResourceType, String> pair = myDynamicId2ResourceMap.get(id);
+      if (pair != null) {
+        result = pair;
+      }
+    }
+
+    return result;
+  }
+
+  @Nullable
+  public String resolveStyleable(int[] id) {
+    if (myStyleableValueToNameMap != null) {
+      myWrapper.set(id);
+      // A normal map lookup on int[] would only consider object identity, but the IntArrayWrapper
+      // will check all the individual elements for equality. We reuse an instance for all the lookups
+      // since we don't need a new one each time.
+      return myStyleableValueToNameMap.get(myWrapper);
+    }
+
+    return null;
+  }
+
+  @Nullable
+  public Integer getResourceId(ResourceType type, String name) {
+    final TObjectIntHashMap<String> map = myResourceValueMap != null ? myResourceValueMap.get(type) : null;
+
+    if (map == null || !map.containsKey(name)) {
+      return getDynamicId(type, name);
+    }
+    return map.get(name);
+  }
+
+  private int getDynamicId(ResourceType type, String name) {
+    synchronized (myName2DynamicIdMap) {
+      if (myName2DynamicIdMap.containsKey(name)) {
+        return myName2DynamicIdMap.get(name);
+      }
+      final int value = ++myDynamicSeed;
+      myName2DynamicIdMap.put(name, value);
+      myDynamicId2ResourceMap.put(value, Pair.of(type, name));
+      return value;
+    }
+  }
+
+  public void setCompiledResources(TIntObjectHashMap<Pair<ResourceType, String>> id2res,
+                                   Map<IntArrayWrapper, String> styleableId2name,
+                                   Map<ResourceType, TObjectIntHashMap<String>> res2id) {
+    // Regularly clear dynamic seed such that we don't run out of numbers (we only have 255)
+    synchronized (myName2DynamicIdMap) {
+      myDynamicSeed = DYNAMIC_ID_SEED_START;
+      myName2DynamicIdMap.clear();
+      myDynamicId2ResourceMap.clear();
+    }
+
+    myResourceValueMap = res2id;
+    myResIdValueToNameMap = id2res;
+    myStyleableValueToNameMap = styleableId2name;
+
+//    AarResourceClassRegistry.get().clear();
   }
 }
