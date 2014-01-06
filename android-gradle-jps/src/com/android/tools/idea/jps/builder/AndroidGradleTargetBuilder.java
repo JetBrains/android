@@ -67,6 +67,9 @@ import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static com.android.tools.idea.gradle.util.GradleBuilds.OFFLINE_MODE_OPTION;
+import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
+
 /**
  * Builds Gradle-based Android project using Gradle.
  */
@@ -166,7 +169,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
   @NotNull
   private static List<JpsModule> getModulesToBuild(@NotNull JpsProject project, @NotNull BuilderExecutionSettings executionSettings) {
     List<JpsModule> modules = project.getModules();
-    Set<String> moduleNames = executionSettings.getModulesToBuildNames();
+    List<String> moduleNames = executionSettings.getModulesToBuildNames();
     if (moduleNames.isEmpty()) {
       return modules;
     }
@@ -277,15 +280,16 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
       }
 
       List<String> args = Lists.newArrayList();
+      args.addAll(executionSettings.getGradleDaemonCommandLineOptions());
 
-      if (executionSettings.isParallelBuild()) {
+      if (executionSettings.isParallelBuild() && !args.contains(PARALLEL_BUILD_OPTION)) {
         LOG.info("Using 'parallel' build option");
-        args.add(GradleBuilds.PARALLEL_BUILD_OPTION);
+        args.add(PARALLEL_BUILD_OPTION);
       }
 
-      if (executionSettings.isOfflineBuild()) {
+      if (executionSettings.isOfflineBuild() && !args.contains(OFFLINE_MODE_OPTION)) {
         LOG.info("Using 'offline' mode option");
-        args.add(GradleBuilds.OFFLINE_MODE_OPTION);
+        args.add(OFFLINE_MODE_OPTION);
       }
 
       if (!args.isEmpty()) {

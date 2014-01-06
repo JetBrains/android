@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleToolWindo
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
 import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.gradle.output.parser.GradleErrorOutputParser;
-import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.google.common.base.Splitter;
@@ -95,6 +94,8 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.android.tools.idea.gradle.util.GradleBuilds.OFFLINE_MODE_OPTION;
+import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleInvocationJvmArgs;
 
 /**
@@ -269,21 +270,23 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
           launcher.forTasks(ArrayUtil.toStringArray(myGradleTasks));
 
-          List<String> args = Lists.newArrayList();
-          CompilerWorkspaceConfiguration compilerConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
-          if (compilerConfiguration.PARALLEL_COMPILATION) {
-            LOG.info("Using 'parallel' build option");
-            args.add(GradleBuilds.PARALLEL_BUILD_OPTION);
-          }
           AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
-          if (buildConfiguration.OFFLINE_MODE) {
-            LOG.info("Using 'offline' mode option");
-            args.add(GradleBuilds.OFFLINE_MODE_OPTION);
+          List<String> commandLineOptions = buildConfiguration.getCommandLineOptions();
+
+          CompilerWorkspaceConfiguration compilerConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
+          if (compilerConfiguration.PARALLEL_COMPILATION && !commandLineOptions.contains(PARALLEL_BUILD_OPTION)) {
+            LOG.info("Using 'parallel' build option");
+            commandLineOptions.add(PARALLEL_BUILD_OPTION);
           }
 
-          if (!args.isEmpty()) {
-            LOG.info("Passing command-line args to Gradle Tooling API: " + args);
-            launcher.withArguments(ArrayUtil.toStringArray(args));
+          if (buildConfiguration.OFFLINE_MODE && !commandLineOptions.contains(OFFLINE_MODE_OPTION)) {
+            LOG.info("Using 'offline' mode option");
+            commandLineOptions.add(OFFLINE_MODE_OPTION);
+          }
+
+          if (!commandLineOptions.isEmpty()) {
+            LOG.info("Passing command-line args to Gradle Tooling API: " + commandLineOptions);
+            launcher.withArguments(ArrayUtil.toStringArray(commandLineOptions));
           }
 
           launcher.setStandardOutput(stdout);
