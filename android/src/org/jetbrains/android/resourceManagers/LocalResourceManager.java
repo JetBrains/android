@@ -128,15 +128,13 @@ public class LocalResourceManager extends ResourceManager {
     }
 
     // Add in local AAR dependencies, if any
-    if (facet.isGradleProject()) {
-      Set<File> dirs = Sets.newHashSet();
-      ResourceFolderManager.addAarsFromModuleLibraries(facet, dirs);
-      if (!dirs.isEmpty()) {
-        for (File dir : dirs) {
-          VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(dir);
-          if (virtualFile != null) {
-            result.add(virtualFile);
-          }
+    Set<File> dirs = Sets.newHashSet();
+    ResourceFolderManager.addAarsFromModuleLibraries(facet, dirs);
+    if (!dirs.isEmpty()) {
+      for (File dir : dirs) {
+        VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(dir);
+        if (virtualFile != null) {
+          result.add(virtualFile);
         }
       }
     }
