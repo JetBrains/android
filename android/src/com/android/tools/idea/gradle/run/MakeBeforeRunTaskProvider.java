@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import com.android.tools.idea.gradle.invoker.GradleExecutionResult;
+import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.util.GradleBuilds.TestCompileType;
 import com.android.tools.idea.gradle.util.Projects;
@@ -127,10 +127,14 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     try {
       final Semaphore done = new Semaphore();
       done.down();
-      final GradleInvoker.AfterExecutionTask afterTask = new GradleInvoker.AfterExecutionTask() {
+
+      final GradleInvoker gradleInvoker = GradleInvoker.getInstance(myProject);
+
+      final GradleInvoker.AfterGradleInvocationTask afterTask = new GradleInvoker.AfterGradleInvocationTask() {
         @Override
-        public void execute(@NotNull GradleExecutionResult result) {
+        public void execute(@NotNull GradleInvocationResult result) {
           success.set(result.getErrorCount() == 0);
+          gradleInvoker.removeAfterGradleInvocationTask(this);
           done.up();
         }
       };
@@ -152,9 +156,9 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
             else {
               modules = Projects.getModulesToBuildFromSelection(myProject, context);
             }
-            GradleInvoker gradleInvoker = GradleInvoker.getInstance(myProject);
             TestCompileType testCompileType = getTestCompileType(configuration);
-            gradleInvoker.make(modules, testCompileType, afterTask);
+            gradleInvoker.addAfterGradleInvocationTask(afterTask);
+            gradleInvoker.make(modules, testCompileType);
           }
         });
         done.waitFor();
