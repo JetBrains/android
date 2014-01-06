@@ -17,8 +17,10 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.gradle.GradleImportNotificationListener;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
+import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
+import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
@@ -29,8 +31,6 @@ import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.compiler.CompileContext;
-import com.intellij.openapi.compiler.CompileTask;
-import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -72,7 +72,12 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
   public AndroidGradleProjectComponent(@NotNull final Project project) {
     super(project);
     // Register a task that will be executed after project build (e.g. make, rebuild, generate sources) with JPS.
-    CompilerManager.getInstance(project).addAfterTask(new CompileTask() {
+    ProjectBuilder.getInstance(project).addAfterProjectBuildTask(new ProjectBuilder.AfterProjectBuildTask() {
+      @Override
+      public void execute(@NotNull GradleInvocationResult result) {
+        PostProjectBuildTasksExecutor.getInstance(project).onBuildCompletion(result);
+      }
+
       @Override
       public boolean execute(CompileContext context) {
         PostProjectBuildTasksExecutor.getInstance(project).onBuildCompletion(context);
