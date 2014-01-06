@@ -131,22 +131,17 @@ public class AppResourceRepository extends MultiResourceRepository {
 
   @NotNull
   private static List<File> findAarLibraries(AndroidFacet facet, List<AndroidFacet> dependentFacets) {
-    if (facet.isGradleProject()) {
-      // Use the gradle model if available, but if not, fall back to using plain IntelliJ library dependencies
-      // which have been persisted since the most recent sync
-      if (facet.getIdeaAndroidProject() != null) {
-        List<AndroidLibrary> libraries = Lists.newArrayList();
-        addGradleLibraries(libraries, facet);
-        for (AndroidFacet f : dependentFacets) {
-          addGradleLibraries(libraries, f);
-        }
-        return findAarLibrariesFromGradle(dependentFacets, libraries);
-      } else {
-        return findAarLibrariesFromIntelliJ(facet, dependentFacets);
+    // Use the gradle model if available, but if not, fall back to using plain IntelliJ library dependencies
+    // which have been persisted since the most recent sync
+    if (facet.isGradleProject() && facet.getIdeaAndroidProject() != null) {
+      List<AndroidLibrary> libraries = Lists.newArrayList();
+      addGradleLibraries(libraries, facet);
+      for (AndroidFacet f : dependentFacets) {
+        addGradleLibraries(libraries, f);
       }
+      return findAarLibrariesFromGradle(dependentFacets, libraries);
     }
-
-    return Collections.emptyList();
+    return findAarLibrariesFromIntelliJ(facet, dependentFacets);
   }
 
   /**

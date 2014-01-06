@@ -1,5 +1,6 @@
 package org.jetbrains.jps.android.builder;
 
+import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.AndroidJpsUtil;
@@ -14,9 +15,7 @@ import org.jetbrains.jps.model.JpsModel;
 import org.jetbrains.jps.model.module.JpsModule;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -35,12 +34,25 @@ public class AndroidResourceCachingBuildTarget extends AndroidBuildTarget {
     final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(myModule);
 
     if (extension != null) {
+      final List<BuildRootDescriptor> result = new ArrayList<BuildRootDescriptor>();
       final File resourceDir = AndroidJpsUtil.getResourceDirForCompilationPath(extension);
 
       if (resourceDir != null) {
-        return Collections.<BuildRootDescriptor>singletonList(
-          new BuildRootDescriptorImpl(this, resourceDir));
+        result.add(new BuildRootDescriptorImpl(this, resourceDir));
       }
+
+      if (!extension.isLibrary()) {
+        final Set<String> aarResDirPaths = new HashSet<String>();
+        AndroidJpsUtil.collectResDirectoriesFromAarDeps(myModule, aarResDirPaths);
+
+        for (JpsAndroidModuleExtension depExtension : AndroidJpsUtil.getAllAndroidDependencies(myModule, true)) {
+          AndroidJpsUtil.collectResDirectoriesFromAarDeps(depExtension.getModule(), aarResDirPaths);
+        }
+        for (String path : aarResDirPaths) {
+          result.add(new BuildRootDescriptorImpl(this, new File(path)));
+        }
+      }
+      return result;
     }
     return Collections.emptyList();
   }

@@ -102,7 +102,8 @@ public class AndroidGradleProjectResolverTest extends IdeaTestCase {
     ModuleData module = myProjectResolver.createModule(myAndroidModule, project);
     assertEquals(myAndroidModule.getName(), module.getName());
     assertEquals(StdModuleTypes.JAVA.getId(), module.getModuleTypeId());
-    assertEquals(myAndroidModule.getRootDir().getCanonicalPath(), module.getLinkedExternalProjectPath());
+    assertEquals(FileUtil.toCanonicalPath(myAndroidModule.getRootDir().getAbsolutePath()),
+                 FileUtil.toCanonicalPath(module.getLinkedExternalProjectPath()));
   }
 
   public void testCreateModuleWithOldModelVersion() {
