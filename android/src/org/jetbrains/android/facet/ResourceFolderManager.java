@@ -29,6 +29,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.util.containers.hash.HashSet;
+import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
@@ -238,7 +239,7 @@ public class ResourceFolderManager implements ModificationTracker {
     OrderEntry[] orderEntries = ModuleRootManager.getInstance(module).getOrderEntries();
     for (OrderEntry orderEntry : orderEntries) {
       if (orderEntry instanceof LibraryOrSdkOrderEntry) {
-        if (orderEntry.isValid() && orderEntry.getPresentableName().endsWith(DOT_AAR)) {
+        if (orderEntry.isValid() && isAarDependency(facet, orderEntry)) {
           final LibraryOrSdkOrderEntry entry = (LibraryOrSdkOrderEntry)orderEntry;
           final VirtualFile[] libClasses = entry.getRootFiles(OrderRootType.CLASSES);
           File res = null;
@@ -269,6 +270,11 @@ public class ResourceFolderManager implements ModificationTracker {
         }
       }
     }
+  }
+
+  private static boolean isAarDependency(@NotNull AndroidFacet facet, @NotNull OrderEntry orderEntry) {
+    return facet.isGradleProject() && orderEntry.getPresentableName().endsWith(DOT_AAR) ||
+           AndroidMavenUtil.isMavenAarDependency(facet.getModule(), orderEntry);
   }
 
   /**
