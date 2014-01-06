@@ -40,12 +40,19 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   private final GradleSettings myGradleSettings;
 
   private JCheckBox myParallelBuildCheckBox;
+
+  @SuppressWarnings("UnusedDeclaration")
   private HyperlinkLabel myParallelBuildDocHyperlinkLabel;
+
   private RawCommandLineEditor myVmOptionsEditor;
   private JCheckBox myAutoMakeCheckBox;
   private JCheckBox myUseExperimentalBuildCheckBox;
   private JPanel myContentPanel;
   private JCheckBox myOfflineModeCheckBox;
+  private RawCommandLineEditor myCommandLineOptionsEditor;
+
+  @SuppressWarnings("UnusedDeclaration")
+  private HyperlinkLabel myCommandLineOptionsDocHyperlinkLabel;
 
   public GradleCompilerSettingsConfigurable(@NotNull Project project) {
     myCompilerConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
@@ -89,7 +96,8 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
            !Objects.equal(getVmOptions(), myGradleSettings.getGradleVmOptions()) ||
            myCompilerConfiguration.MAKE_PROJECT_ON_SAVE != isAutoMakeEnabled() ||
            myBuildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD != isExperimentalBuildEnabled() ||
-           myBuildConfiguration.OFFLINE_MODE != isOfflineModeEnabled();
+           myBuildConfiguration.OFFLINE_MODE != isOfflineModeEnabled() ||
+           !Objects.equal(getCommandLineOptions(), myBuildConfiguration.COMMAND_LINE_OPTIONS);
   }
 
   @Override
@@ -99,6 +107,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     myCompilerConfiguration.MAKE_PROJECT_ON_SAVE = isAutoMakeEnabled();
     myBuildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = isExperimentalBuildEnabled();
     myBuildConfiguration.OFFLINE_MODE = isOfflineModeEnabled();
+    myBuildConfiguration.COMMAND_LINE_OPTIONS = getCommandLineOptions();
   }
 
   private boolean isParallelBuildsEnabled() {
@@ -122,6 +131,11 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     return Strings.emptyToNull(myVmOptionsEditor.getText().trim());
   }
 
+  @NotNull
+  private String getCommandLineOptions() {
+    return myCommandLineOptionsEditor.getText().trim();
+  }
+
   @Override
   public void reset() {
     myParallelBuildCheckBox.setSelected(myCompilerConfiguration.PARALLEL_COMPILATION);
@@ -133,6 +147,8 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
                                (PowerSaveMode.isEnabled() ? ", disabled in Power Save mode" : "") +
                                ")");
     myOfflineModeCheckBox.setSelected(myBuildConfiguration.OFFLINE_MODE);
+    String commandLineOptions = Strings.nullToEmpty(myBuildConfiguration.COMMAND_LINE_OPTIONS);
+    myCommandLineOptionsEditor.setText(commandLineOptions);
   }
 
   @Override
@@ -140,13 +156,29 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   }
 
   private void createUIComponents() {
-    myParallelBuildDocHyperlinkLabel = new HyperlinkLabel();
-    myParallelBuildDocHyperlinkLabel
-      .setHyperlinkText("This option is in \"incubation\" and should only be used with ", "decoupled projects", ".");
-    myParallelBuildDocHyperlinkLabel
-      .setHyperlinkTarget("http://www.gradle.org/docs/current/userguide/multi_project_builds.html#sec:decoupled_projects");
+    myParallelBuildDocHyperlinkLabel =
+      createHyperlinkLabel("This option is in \"incubation\" and should only be used with ", "decoupled projects", ".",
+                           "http://www.gradle.org/docs/current/userguide/multi_project_builds.html#sec:decoupled_projects");
+
+    myCommandLineOptionsDocHyperlinkLabel =
+      createHyperlinkLabel("Example: --stacktrace --debug (for more information, please read Gradle's ", "documentation", ")",
+                           "http://www.gradle.org/docs/current/userguide/gradle_command_line.html");
 
     myVmOptionsEditor = new RawCommandLineEditor();
     myVmOptionsEditor.setDialogCaption("Gradle VM Options");
+
+    myCommandLineOptionsEditor = new RawCommandLineEditor();
+    myCommandLineOptionsEditor.setDialogCaption("Command-line Options");
+  }
+
+  @NotNull
+  private static HyperlinkLabel createHyperlinkLabel(@NotNull String beforeLinkText,
+                                                     @NotNull String linkText,
+                                                     @NotNull String afterLinkText,
+                                                     @NotNull String target) {
+    HyperlinkLabel label = new HyperlinkLabel();
+    label.setHyperlinkText(beforeLinkText, linkText, afterLinkText);
+    label.setHyperlinkTarget(target);
+    return label;
   }
 }

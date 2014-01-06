@@ -44,7 +44,10 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
   public void setUp() throws Exception {
     super.setUp();
     myJdk = AndroidTestCaseHelper.createAndSetJdk(myProject);
+    myParametersProvider = new AndroidGradleBuildProcessParametersProvider(myProject);
+  }
 
+  public void testPopulateJvmArgsWithGradleExecutionSettings() {
     ExternalSystemApiUtil.executeProjectChangeAction(true, new DisposeAwareProjectChange(myProject) {
       @Override
       public void execute() {
@@ -55,10 +58,6 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
       }
     });
 
-    myParametersProvider = new AndroidGradleBuildProcessParametersProvider(myProject);
-  }
-
-  public void testPopulateJvmArgsWithGradleExecutionSettings() {
     GradleExecutionSettings settings = createMock(GradleExecutionSettings.class);
 
     expect(settings.getRemoteProcessIdleTtlInMs()).andReturn(55L);
@@ -110,5 +109,18 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
     assertEquals(2, jvmArgs.size());
     assertEquals("-Dcom.android.studio.gradle.modules.count=1", jvmArgs.get(0));
     assertEquals("-Dcom.android.studio.gradle.modules.0=" + myModule.getName(), jvmArgs.get(1));
+  }
+
+  public void testPopulateJvmArgsWithBuildConfiguration() {
+    AndroidGradleBuildConfiguration configuration = new AndroidGradleBuildConfiguration();
+    configuration.COMMAND_LINE_OPTIONS = "--stacktrace --offline";
+    configuration.OFFLINE_MODE = true;
+    List<String> jvmArgs= Lists.newArrayList();
+    AndroidGradleBuildProcessParametersProvider.populateJvmArgs(configuration, jvmArgs);
+    assertEquals(4, jvmArgs.size());
+    assertEquals("-Dcom.android.studio.gradle.offline.mode=true", jvmArgs.get(0));
+    assertEquals("-Dcom.android.studio.gradle.daemon.command.line.option.count=2", jvmArgs.get(1));
+    assertEquals("-Dcom.android.studio.gradle.daemon.command.line.option.0=--stacktrace", jvmArgs.get(2));
+    assertEquals("-Dcom.android.studio.gradle.daemon.command.line.option.1=--offline", jvmArgs.get(3));
   }
 }
