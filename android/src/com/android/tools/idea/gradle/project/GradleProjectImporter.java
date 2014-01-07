@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
-import com.android.tools.idea.gradle.GradleImportNotificationListener;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.ProjectImportEventMessage;
 import com.android.tools.idea.gradle.customizer.CompilerOutputPathModuleCustomizer;
@@ -247,8 +246,6 @@ public class GradleProjectImporter {
                             @Nullable Callback callback,
                             @Nullable Project project,
                             @Nullable LanguageLevel initialLanguageLevel) throws IOException, ConfigurationException {
-    GradleImportNotificationListener.attachToManager();
-
     createTopLevelBuildFileIfNotExisting(projectRootDir);
     createIdeaProjectDir(projectRootDir);
 
