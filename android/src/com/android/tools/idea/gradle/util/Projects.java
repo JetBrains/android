@@ -59,7 +59,9 @@ public final class Projects {
    * Indicates whether the last sync with Gradle failed.
    */
   public static boolean lastGradleSyncFailed(@NotNull Project project) {
-    return GradleImportNotificationListener.isInitialized() && isGradleProjectWithoutModel(project);
+    return GradleImportNotificationListener.isInitialized() &&
+           !GradleImportNotificationListener.isProjectImportInProgress() &&
+           isGradleProjectWithoutModel(project);
   }
 
   /**
