@@ -43,8 +43,7 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
   private static final Pattern SDK_NOT_FOUND = Pattern.compile("The SDK directory '(.*?)' does not exist.");
 
   private static final String EMPTY_LINE = "\n\n";
-  private static final String UNSUPPORTED_GRADLE_VERSION_ERROR =
-    "Gradle version " + GradleUtil.GRADLE_MINIMUM_VERSION + " is required";
+  private static final String UNSUPPORTED_GRADLE_VERSION_ERROR = "Gradle version " + GradleUtil.GRADLE_MINIMUM_VERSION + " is required";
   private static final String SDK_DIR_PROPERTY_MISSING = "No sdk.dir property defined in local.properties file.";
 
   @Override
@@ -90,9 +89,7 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
       String msg = rootCause.getMessage();
 
       // With this condition we cover 2 similar messages about the same problem.
-      if (msg != null &&
-          msg.contains("Could not find") &&
-          (msg.contains("com.android.support:support") || msg.contains("com.android.support:appcompat"))) {
+      if (msg != null && msg.contains("Could not find") && msg.contains("com.android.support:")) {
         // We keep the original error message and we append a hint about how to fix the missing dependency.
         String newMsg = msg + EMPTY_LINE + INSTALL_ANDROID_SUPPORT_REPO;
         // Location of build.gradle is useless for this error. Omitting it.
