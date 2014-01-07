@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.compiler;
 
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
@@ -105,7 +106,7 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
   public void testPopulateModulesToBuildWithModuleNames() {
     BuildSettings.getInstance(myProject).setModulesToBuild(new Module[] {myModule});
     List<String> jvmArgs= Lists.newArrayList();
-    myParametersProvider.populateModulesToBuild(jvmArgs);
+    myParametersProvider.populateModulesToBuild(BuildMode.CLEAN, jvmArgs);
     assertEquals(2, jvmArgs.size());
     assertEquals("-Dcom.android.studio.gradle.modules.count=1", jvmArgs.get(0));
     assertEquals("-Dcom.android.studio.gradle.modules.0=" + myModule.getName(), jvmArgs.get(1));

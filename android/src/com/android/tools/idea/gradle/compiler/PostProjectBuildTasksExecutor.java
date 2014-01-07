@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -29,6 +30,7 @@ import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Iterators;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerMessage;
 import com.intellij.openapi.compiler.CompilerMessageCategory;
@@ -37,8 +39,10 @@ import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -81,7 +85,7 @@ public class PostProjectBuildTasksExecutor {
       errors = new CompilerMessageIterator(errorMessages);
     }
     //noinspection TestOnlyProblems
-    onBuildCompletion(errors);
+    onBuildCompletion(errors, errorMessages.length);
   }
 
   private static class CompilerMessageIterator extends AbstractIterator<String> {
@@ -127,11 +131,11 @@ public class PostProjectBuildTasksExecutor {
       errors = new GradleMessageIterator(errorMessages);
     }
     //noinspection TestOnlyProblems
-    onBuildCompletion(errors);
+    onBuildCompletion(errors, errorMessages.size());
   }
 
   @VisibleForTesting
-  void onBuildCompletion(Iterator<String> errorMessages) {
+  void onBuildCompletion(Iterator<String> errorMessages, int errorCount) {
     if (Projects.isGradleProject(myProject)) {
       if (Projects.isOfflineBuildModeEnabled(myProject)) {
         while (errorMessages.hasNext()) {
@@ -161,6 +165,21 @@ public class PostProjectBuildTasksExecutor {
       }
 
       syncJavaLangLevel();
+
+      if (BuildMode.MAKE.equals(buildMode) && errorCount == 0 && Projects.lastGradleSyncFailed(myProject)) {
+        // automatically sync project if build was successful but last sync failed.
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            try {
+              GradleProjectImporter.getInstance().reImportProject(myProject, null);
+            }
+            catch (ConfigurationException e) {
+              Messages.showErrorDialog(myProject, e.getMessage(), e.getTitle());
+            }
+          }
+        });
+      }
     }
   }
 
