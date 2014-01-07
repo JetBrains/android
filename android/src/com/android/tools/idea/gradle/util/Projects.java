@@ -55,13 +55,17 @@ public final class Projects {
   }
 
   /**
-   * Indicates whether the last sync with Gradle files failed.
+   * Indicates the given project is an Gradle-based Android project that does not contain any Gradle model. Possible causes for this
+   * scenario to happen are:
+   * <ul>
+   *   <li>the last sync with Gradle failed</li>
+   *   <li>Studio just started up and it has not synced the project yet</li>
+   * </ul>
    *
    * @param project the project.
-   * @return {@code true} if the last sync with Gradle files failed; {@code false} if the last sync with Gradle was successful or if the
-   *         give project is not a Gradle-based Android project.
+   * @return {@code true} if the project is a Gradle-based Android project that does not contain any Gradle model.
    */
-  public static boolean syncWithGradleFailed(@NotNull Project project) {
+  public static boolean isGradleProjectWithoutModel(@NotNull Project project) {
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null && facet.isGradleProject() && facet.getIdeaAndroidProject() == null) {
