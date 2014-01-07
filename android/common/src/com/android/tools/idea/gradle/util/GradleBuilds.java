@@ -29,7 +29,7 @@ public final class GradleBuilds {
   private static final Logger LOG = Logger.getInstance(GradleBuilds.class);
 
   @NonNls public static final String CLEAN_TASK_NAME = "clean";
-  @NonNls private static final String DEFAULT_ASSEMBLE_TASK_NAME = "assemble";
+  @NonNls public static final String DEFAULT_ASSEMBLE_TASK_NAME = "assemble";
 
   /** Task for compiling a Java module's test classes. */
   @NonNls private static final String TEST_CLASSES_TASK_NAME = "testClasses";

@@ -152,8 +152,14 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
 
     List<String> tasks = Lists.newArrayList();
 
-    for (JpsModule module : getModulesToBuild(project, executionSettings)) {
-      populateBuildTasks(module, executionSettings, tasks, context);
+    List<JpsModule> modulesToBuild = getModulesToBuild(project, executionSettings);
+    if (modulesToBuild.isEmpty()) {
+      tasks.add(GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME);
+    }
+    else {
+      for (JpsModule module : modulesToBuild) {
+        populateBuildTasks(module, executionSettings, tasks, context);
+      }
     }
 
     if (!tasks.isEmpty()) {
@@ -171,6 +177,9 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
     List<JpsModule> modules = project.getModules();
     List<String> moduleNames = executionSettings.getModulesToBuildNames();
     if (moduleNames.isEmpty()) {
+      if (isGradleProject(modules)) {
+        return Collections.emptyList();
+      }
       return modules;
     }
     List<JpsModule> modulesToBuild = Lists.newArrayList();
@@ -182,6 +191,22 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
     return modulesToBuild;
   }
 
+  private static boolean isGradleProject(@NotNull List<JpsModule> modules) {
+    for (JpsModule module : modules) {
+      JpsAndroidModuleProperties properties = getAndroidModuleProperties(module);
+      if (properties != null && !properties.ALLOW_USER_CONFIGURATION) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Nullable
+  private static JpsAndroidModuleProperties getAndroidModuleProperties(@NotNull JpsModule module) {
+    JpsAndroidModuleExtensionImpl androidFacet = (JpsAndroidModuleExtensionImpl)AndroidJpsUtil.getExtension(module);
+    return androidFacet != null ? androidFacet.getProperties() : null;
+  }
+
   private static void populateBuildTasks(@NotNull JpsModule module,
                                          @NotNull BuilderExecutionSettings executionSettings,
                                          @NotNull List<String> tasks,
@@ -191,8 +216,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
       return;
     }
     String gradleProjectPath = androidGradleFacet.getProperties().GRADLE_PROJECT_PATH;
-    JpsAndroidModuleExtensionImpl androidFacet = (JpsAndroidModuleExtensionImpl)AndroidJpsUtil.getExtension(module);
-    JpsAndroidModuleProperties properties = androidFacet != null ? androidFacet.getProperties() : null;
+    JpsAndroidModuleProperties properties = getAndroidModuleProperties(module);
 
     GradleBuilds.findAndAddBuildTask(module.getName(), executionSettings.getBuildMode(), gradleProjectPath, properties, tasks,
                                      getTestCompileType(context));
