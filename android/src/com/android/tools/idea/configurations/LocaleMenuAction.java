@@ -25,6 +25,7 @@ import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
@@ -32,6 +33,7 @@ import com.intellij.openapi.ui.popup.ListPopup;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.awt.RelativePoint;
 import icons.AndroidIcons;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,6 +79,9 @@ public class LocaleMenuAction extends FlatComboAction {
       group.addSeparator();
     }
 
+    if (locales.size() > 0) {
+      group.add(new EditTranslationAction());
+    }
     group.add(new AddTranslationAction());
 
     group.addSeparator();
@@ -333,6 +338,44 @@ public class LocaleMenuAction extends FlatComboAction {
     }
   }
 
+  private class EditTranslationAction extends ActionGroup {
+    public EditTranslationAction() {
+      super("Edit Translation", true);
+    }
+
+    @NotNull
+    @Override
+    public AnAction[] getChildren(@Nullable AnActionEvent e) {
+      List<AnAction> children = Lists.newArrayList();
+      List<Locale> locales = getRelevantLocales();
+      for (final Locale locale : locales) {
+        children.add(new AnAction(getLocaleLabel(locale, true), null, locale.getFlagImage()) {
+          @Override
+          public void actionPerformed(AnActionEvent e) {
+            Module module = myRenderContext.getModule();
+            if (module == null) {
+              return;
+            }
+            AndroidFacet facet = AndroidFacet.getInstance(module);
+            if (facet == null) {
+              return;
+            }
+
+            TranslationDialog dialog = new TranslationDialog(facet, locale, false);
+            dialog.show();
+            if (dialog.isOK()) {
+              if (dialog.createTranslation()) {
+                new SetLocaleAction(myRenderContext, "", locale).actionPerformed(e);
+              }
+              RenderPreviewManager.bumpRevision();
+            }
+          }
+        });
+      }
+      return children.toArray(new AnAction[children.size()]);
+    }
+  }
+
   private class CreateLocaleAction extends AnAction {
     private final Locale myLocale;
 
@@ -347,7 +390,11 @@ public class LocaleMenuAction extends FlatComboAction {
       if (module == null) {
         return;
       }
-      TranslationDialog dialog = new TranslationDialog(module, myLocale);
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet == null) {
+        return;
+      }
+      TranslationDialog dialog = new TranslationDialog(facet, myLocale, true);
       dialog.show();
       if (dialog.isOK()) {
         if (dialog.createTranslation()) {
