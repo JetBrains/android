@@ -19,7 +19,10 @@ import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
 import com.android.sdklib.repository.FullRevision;
-import com.android.tools.idea.gradle.*;
+import com.android.tools.idea.gradle.AndroidProjectKeys;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.IdeaGradleProject;
+import com.android.tools.idea.gradle.ProjectImportEventMessage;
 import com.android.tools.idea.gradle.dependency.Dependency;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.OpenAndroidSdkManagerHyperlink;
@@ -60,7 +63,6 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.service.ProjectImportEventMessageDataService.RECOMMENDED_ACTIONS_CATEGORY;
@@ -74,7 +76,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_PLUGIN_MINIMU
 public class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
 
   private static final String UNSUPPORTED_MODEL_VERSION_ERROR = String.format(
-    "Project is using an old version of the Android Gradle plug-in. The minimum supported version is %1$s.\n\n" +
+    "Project is using an old version of the Android Gradle plug-in. The minimum supported version is %1$s.\n" +
     "Please update the version of the dependency 'com.android.tools.build:gradle' in your build.gradle files.",
     GRADLE_PLUGIN_MINIMUM_VERSION);
 
@@ -97,7 +99,17 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   public ModuleData createModule(@NotNull IdeaModule gradleModule, @NotNull ProjectData projectData) {
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
     if (androidProject != null && !GradleModelVersionCheck.isSupportedVersion(androidProject)) {
-      throw new IllegalStateException(UNSUPPORTED_MODEL_VERSION_ERROR);
+      String msg = UNSUPPORTED_MODEL_VERSION_ERROR;
+
+      // Check that the Gradle version is correct, so we notify users about all wrong versions in one shot.
+      GradleVersion gradleVersion = getGradleVersion();
+      if (gradleVersion != null) {
+        GradleVersion minimumGradleVersion = getSupportedGradleVersion();
+        if (gradleVersion.compareTo(minimumGradleVersion) != 0) {
+          msg += "\n\n" + getUnsupportedGradleVersionErrorMsg(gradleVersion);
+        }
+      }
+      throw new IllegalStateException(msg);
     }
     return nextResolver.createModule(gradleModule, projectData);
   }
@@ -237,21 +249,28 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
                                                       @Nullable String buildFilePath) {
     // Check if the import error is due to an unsupported version of Gradle. If that is the case, the error received does not give users
     // any hint of the real issue. Here we check the version of Gradle and show an user-friendly error message.
-    BuildEnvironment buildEnvironment = getBuildEnvironment();
-    if (buildEnvironment != null) {
-      GradleVersion gradleVersion = GradleVersion.version(buildEnvironment.getGradle().getGradleVersion());
-      GradleVersion minimumGradleVersion = GradleVersion.version(GRADLE_MINIMUM_VERSION);
-      if (gradleVersion.compareTo(minimumGradleVersion) != 0) {
-        // For now we have to use an exact version of Gradle.
-        String msg = String
-          .format("You are using Gradle version %1$s, which is not supported. Please use version %2$s.", gradleVersion.getVersion(),
-                  GRADLE_MINIMUM_VERSION);
-        msg += ('\n' + AbstractProjectImportErrorHandler.FIX_GRADLE_VERSION);
-        return new ExternalSystemException(msg);
+    String msg = error.getMessage();
+    if (msg != null && !msg.contains(UNSUPPORTED_MODEL_VERSION_ERROR)) {
+      GradleVersion gradleVersion = getGradleVersion();
+      if (gradleVersion != null) {
+        GradleVersion minimumGradleVersion = getSupportedGradleVersion();
+        if (gradleVersion.compareTo(minimumGradleVersion) != 0) {
+          // For now we have to use an exact version of Gradle.
+          return new ExternalSystemException(getUnsupportedGradleVersionErrorMsg(gradleVersion));
+        }
       }
     }
     ExternalSystemException userFriendlyError = myErrorHandler.getUserFriendlyError(error, projectPath, buildFilePath);
     return userFriendlyError != null ? userFriendlyError : nextResolver.getUserFriendlyError(error, projectPath, buildFilePath);
+  }
+
+  @Nullable
+  private GradleVersion getGradleVersion() {
+    BuildEnvironment buildEnvironment = getBuildEnvironment();
+    if (buildEnvironment != null) {
+      return GradleVersion.version(buildEnvironment.getGradle().getGradleVersion());
+    }
+    return null;
   }
 
   @Nullable
@@ -262,6 +281,20 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     catch (Exception e) {
       return null;
     }
+  }
+
+  @NotNull
+  private static GradleVersion getSupportedGradleVersion() {
+    return GradleVersion.version(GRADLE_MINIMUM_VERSION);
+  }
+
+  @NotNull
+  private static String getUnsupportedGradleVersionErrorMsg(@NotNull GradleVersion gradleVersion) {
+    String version = gradleVersion.getVersion();
+    String msg =
+      String.format("You are using Gradle version %1$s, which is not supported. Please use version %2$s.", version, GRADLE_MINIMUM_VERSION);
+    msg += ('\n' + AbstractProjectImportErrorHandler.FIX_GRADLE_VERSION);
+    return msg;
   }
 
   @NotNull
