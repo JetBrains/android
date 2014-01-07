@@ -23,9 +23,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.settings.DistributionType;
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
-import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,37 +35,11 @@ class FixGradleVersionInWrapperHyperlink extends NotificationHyperlink {
 
   @Nullable
   static NotificationHyperlink createIfProjectUsesGradleWrapper(@NotNull Project project) {
-    if (!isUsingWrapper(project)) {
-      // No point in fixing wrapper if project does not use it. Project import will fail again.
-      return null;
-    }
-
-    File wrapperPropertiesFile = findWrapperPropertiesFile(project);
+    File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
     if (wrapperPropertiesFile != null) {
       return new FixGradleVersionInWrapperHyperlink(wrapperPropertiesFile);
     }
-
     return null;
-  }
-
-  private static boolean isUsingWrapper(@NotNull Project project) {
-    GradleSettings gradleSettings = GradleSettings.getInstance(project);
-    for (GradleProjectSettings projectSettings : gradleSettings.getLinkedProjectsSettings()) {
-      if (projectSettings != null) {
-        DistributionType distributionType = projectSettings.getDistributionType();
-        if (DistributionType.WRAPPED.equals(distributionType) || DistributionType.DEFAULT_WRAPPED.equals(distributionType)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  @Nullable
-  private static File findWrapperPropertiesFile(@NotNull Project project) {
-    File baseDir = new File(project.getBasePath());
-    File wrapperPropertiesFile = GradleUtil.getGradleWrapperPropertiesFilePath(baseDir);
-    return wrapperPropertiesFile.isFile() ? wrapperPropertiesFile : null;
   }
 
   private FixGradleVersionInWrapperHyperlink(@NotNull File wrapperPropertiesFile) {
