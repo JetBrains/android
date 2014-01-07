@@ -19,16 +19,13 @@ import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.gradle.AndroidModuleInfo;
+import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.SdkUtils;
 import com.android.utils.SparseArray;
 import com.intellij.codeInsight.daemon.impl.quickfix.CreateClassKind;
 import com.intellij.codeInsight.intention.impl.CreateClassDialog;
-import com.intellij.compiler.actions.CompileDirtyAction;
 import com.intellij.ide.browsers.UrlOpener;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionPlaces;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
@@ -107,7 +104,8 @@ public class HtmlLinkManager {
       handleReplaceTagsUrl(url, module, file);
     } else if (url.equals(URL_BUILD)) {
       assert dataContext != null;
-      handleCompileModuleUrl(url, dataContext);
+      assert module != null;
+      handleCompileModuleUrl(url, module);
     } else if (url.equals(URL_EDIT_CLASSPATH)) {
       assert module != null;
       handleEditClassPathUrl(url, module);
@@ -284,14 +282,9 @@ public class HtmlLinkManager {
     return URL_BUILD;
   }
 
-  private static void handleCompileModuleUrl(@NotNull String url, @NotNull DataContext dataContext) {
+  private static void handleCompileModuleUrl(@NotNull String url, @NotNull Module module) {
     assert url.equals(URL_BUILD) : url;
-    // For full compilation: CompilerManager.getInstance(myResult.getModule().getProject()).rebuild(null);
-    CompileDirtyAction action = new CompileDirtyAction();
-    @SuppressWarnings("ConstantConditions")
-    AnActionEvent actionEvent = new AnActionEvent(null, dataContext, ActionPlaces.UNKNOWN, action.getTemplatePresentation(),
-                                                  ActionManager.getInstance(), 0);
-    action.actionPerformed(actionEvent);
+    ProjectBuilder.getInstance(module.getProject()).make();
   }
 
   public String createEditClassPathUrl() {
