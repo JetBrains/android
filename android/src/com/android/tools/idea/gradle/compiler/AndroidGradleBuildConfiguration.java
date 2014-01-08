@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import com.intellij.execution.configurations.CommandLineTokenizer;
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,15 +58,12 @@ public class AndroidGradleBuildConfiguration implements PersistentStateComponent
   }
 
   @NotNull
-  public List<String> getCommandLineOptions() {
-    if (Strings.isNullOrEmpty(COMMAND_LINE_OPTIONS)) {
-      return Collections.emptyList();
-    }
+  public String[] getCommandLineOptions() {
     List<String> options = Lists.newArrayList();
     CommandLineTokenizer tokenizer = new CommandLineTokenizer(COMMAND_LINE_OPTIONS);
     while(tokenizer.hasMoreTokens()) {
       options.add(tokenizer.nextToken());
     }
-    return options;
+    return ArrayUtil.toStringArray(options);
   }
 }

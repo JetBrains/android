@@ -146,8 +146,8 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     jvmArgs.add(createJvmArg(GRADLE_OFFLINE_BUILD_MODE, buildConfiguration.OFFLINE_MODE));
 
     // Add command-line options.
-    Collection<String> commandLineOptions = buildConfiguration.getCommandLineOptions();
-    jvmArgs.add(createJvmArg(GRADLE_DAEMON_COMMAND_LINE_OPTION_COUNT, commandLineOptions.size()));
+    String[] commandLineOptions = buildConfiguration.getCommandLineOptions();
+    jvmArgs.add(createJvmArg(GRADLE_DAEMON_COMMAND_LINE_OPTION_COUNT, commandLineOptions.length));
     int optionCount = 0;
     for (String option : commandLineOptions) {
       String name = GRADLE_DAEMON_COMMAND_LINE_OPTION_PREFIX + optionCount;
