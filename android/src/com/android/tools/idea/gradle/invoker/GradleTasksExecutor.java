@@ -271,7 +271,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
           launcher.forTasks(ArrayUtil.toStringArray(myGradleTasks));
 
           AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
-          List<String> commandLineOptions = buildConfiguration.getCommandLineOptions();
+          List<String> commandLineOptions = Lists.newArrayList(buildConfiguration.getCommandLineOptions());
 
           CompilerWorkspaceConfiguration compilerConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
           if (compilerConfiguration.PARALLEL_COMPILATION && !commandLineOptions.contains(PARALLEL_BUILD_OPTION)) {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.compiler;
 
+import com.google.common.collect.Lists;
 import junit.framework.TestCase;
 
 import java.util.Collection;
@@ -33,7 +34,7 @@ public class AndroidGradleBuildConfigurationTest extends TestCase {
 
   public void testGetCommandLineOptions() {
     myConfiguration.COMMAND_LINE_OPTIONS = "--stacktrace   --offline  --debug --all";
-    Collection<String> options = myConfiguration.getCommandLineOptions();
+    Collection<String> options = Lists.newArrayList(myConfiguration.getCommandLineOptions());
     assertEquals(4, options.size());
     assertTrue(options.contains("--stacktrace"));
     assertTrue(options.contains("--offline"));
