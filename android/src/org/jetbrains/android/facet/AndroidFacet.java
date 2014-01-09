@@ -29,10 +29,7 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.AndroidModuleInfo;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.rendering.AppResourceRepository;
-import com.android.tools.idea.rendering.LocalResourceRepository;
-import com.android.tools.idea.rendering.ModuleResourceRepository;
-import com.android.tools.idea.rendering.ProjectResourceRepository;
+import com.android.tools.idea.rendering.*;
 import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
@@ -61,7 +58,6 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -1110,7 +1106,6 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     }
   }
 
-
   @Nullable
   public LocalResourceRepository getModuleResources(boolean createIfNecessary) {
     //noinspection SynchronizeOnThis
@@ -1120,6 +1115,14 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       }
       return myModuleResources;
     }
+  }
+
+  public void refreshResources() {
+    myModuleResources = null;
+    myProjectResources = null;
+    myAppResources = null;
+    ResourceFolderRegistry.reset();
+    FileResourceRepository.reset();
   }
 
   @NotNull
