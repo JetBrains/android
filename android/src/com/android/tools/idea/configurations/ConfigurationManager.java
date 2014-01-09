@@ -346,7 +346,8 @@ public class ConfigurationManager implements Disposable {
   public List<Locale> getLocales() {
     // Get locales from modules, but not libraries!
     LocalResourceRepository projectResources = ProjectResourceRepository.getProjectResources(myModule, true);
-    if (projectResources.getModificationCount() > myLocaleCacheStamp) {
+    assert projectResources != null;
+    if (projectResources.getModificationCount() != myLocaleCacheStamp) {
       myLocales = null;
     }
     if (myLocales == null) {
