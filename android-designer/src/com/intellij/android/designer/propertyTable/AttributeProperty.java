@@ -15,7 +15,6 @@
  */
 package com.intellij.android.designer.propertyTable;
 
-import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.propertyTable.editors.EventHandlerEditor;
@@ -42,7 +41,7 @@ import java.util.Set;
 /**
  * @author Alexander Lobas
  */
-public class AttributeProperty extends Property<RadViewComponent> implements IXmlAttributeLocator {
+public class AttributeProperty extends PropertyWithNamespace implements IXmlAttributeLocator {
   protected final AttributeDefinition myDefinition;
   private final PropertyRenderer myRenderer;
   private final PropertyEditor myEditor;
@@ -78,6 +77,11 @@ public class AttributeProperty extends Property<RadViewComponent> implements IXm
     }
     myRenderer = createResourceRenderer(definition, formats);
     myEditor = createResourceEditor(definition, formats);
+  }
+
+  @Override
+  protected String getAttributeName() {
+    return myDefinition.getName();
   }
 
   protected PropertyRenderer createResourceRenderer(AttributeDefinition definition, Set<AttributeFormat> formats) {
@@ -130,7 +134,8 @@ public class AttributeProperty extends Property<RadViewComponent> implements IXm
           }
         }
         else {
-          component.getTag().setAttribute(myDefinition.getName(), SdkConstants.NS_RESOURCES, (String)value);
+          String namespace = getNamespace(component, true);
+          component.getTag().setAttribute(myDefinition.getName(), namespace, (String)value);
         }
       }
     });
@@ -150,7 +155,7 @@ public class AttributeProperty extends Property<RadViewComponent> implements IXm
 
   @Nullable
   private XmlAttribute getAttribute(RadViewComponent component) {
-    return component.getTag().getAttribute(myDefinition.getName(), SdkConstants.NS_RESOURCES);
+    return component.getTag().getAttribute(myDefinition.getName(), getNamespace(component, false));
   }
 
   @Override
