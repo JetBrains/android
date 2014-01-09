@@ -15,7 +15,6 @@
  */
 package com.intellij.android.designer.propertyTable;
 
-import com.android.SdkConstants;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.designer.model.MetaModel;
 import com.intellij.designer.model.Property;
@@ -37,7 +36,7 @@ import java.util.*;
 /**
  * @author Alexander Lobas
  */
-public class FlagProperty extends Property<RadViewComponent> implements IPropertyDecorator, IXmlAttributeLocator {
+public class FlagProperty extends PropertyWithNamespace implements IPropertyDecorator, IXmlAttributeLocator {
   private final PropertyRenderer myRenderer = new LabelPropertyRenderer(null);
   protected final AttributeDefinition myDefinition;
   protected final List<Property<RadViewComponent>> myOptions = new ArrayList<Property<RadViewComponent>>();
@@ -50,6 +49,11 @@ public class FlagProperty extends Property<RadViewComponent> implements IPropert
     for (String option : definition.getValues()) {
       myOptions.add(new OptionProperty(this, option, option));
     }
+  }
+
+  @Override
+  protected String getAttributeName() {
+    return myDefinition.getName();
   }
 
   @Override
@@ -118,7 +122,7 @@ public class FlagProperty extends Property<RadViewComponent> implements IPropert
 
   @Nullable
   protected XmlAttribute getAttribute(RadViewComponent component) {
-    return component.getTag().getAttribute(myDefinition.getName(), SdkConstants.NS_RESOURCES);
+    return component.getTag().getAttribute(myDefinition.getName(), getNamespace(component, false));
   }
 
   @Override
@@ -127,7 +131,7 @@ public class FlagProperty extends Property<RadViewComponent> implements IPropert
   }
 
   protected Set<String> getOptions(RadViewComponent component) throws Exception {
-    String value = component.getTag().getAttributeValue(myDefinition.getName(), SdkConstants.NS_RESOURCES);
+    String value = component.getTag().getAttributeValue(myDefinition.getName(), getNamespace(component, false));
     if (value == null) {
       return Collections.emptySet();
     }
@@ -163,7 +167,7 @@ public class FlagProperty extends Property<RadViewComponent> implements IPropert
           }
         }
         else {
-          component.getTag().setAttribute(myDefinition.getName(), SdkConstants.NS_RESOURCES, StringUtil.join(options, "|"));
+          component.getTag().setAttribute(myDefinition.getName(), getNamespace(component, true), StringUtil.join(options, "|"));
         }
       }
     });
