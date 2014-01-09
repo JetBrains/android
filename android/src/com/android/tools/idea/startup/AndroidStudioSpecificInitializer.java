@@ -36,7 +36,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.codeStyle.CodeStyleScheme;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
-import com.intellij.util.PlatformUtilsCore;
+import com.intellij.util.PlatformUtils;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
@@ -66,7 +66,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     { ANDROID_SDK_FOLDER_NAME, File.separator + ".." + File.separator + ANDROID_SDK_FOLDER_NAME,};
 
   public static boolean isAndroidStudio() {
-    return "AndroidStudio".equals(PlatformUtilsCore.getPlatformPrefix());
+    return "AndroidStudio".equals(PlatformUtils.getPlatformPrefix());
   }
 
   @Override
