@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.android.AndroidTestCase;
 
 /**
@@ -34,7 +35,7 @@ public class NewProjectWizardErrorTest extends AndroidTestCase {
       }
     } finally {
       if (wizard != null) {
-        wizard.getDisposable().dispose();
+        Disposer.dispose(wizard.getDisposable());
       }
     }
     assertTrue("SDK Assertion was not thrown", sdkAssertionReached);
