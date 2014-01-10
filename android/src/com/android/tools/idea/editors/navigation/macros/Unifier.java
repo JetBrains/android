@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.navigation.macros;
 
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.java.PsiIdentifierImpl;
 import org.jetbrains.annotations.Nullable;
@@ -23,10 +22,13 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
+@SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class Unifier {
-  private static final Logger LOG = Logger.getInstance("#" + Unifier.class.getName());
   public static final PsiElement UNBOUND = new PsiIdentifierImpl("<Unbound>");
-  public static final String STATEMENT_SENTINEL = "$"; // A stand-in method name used to make statement wildcards: wild cards that match statements - e.g. $f.$()
+  public static final String STATEMENT_SENTINEL = "$";
+  // A stand-in method name used to make statement wildcards: wild cards that match statements - e.g. $f.$()
+  public static final String STATEMENTS_SENTINEL = "$$";
+  // A stand-in method name used to wildcards: wild cards that match a set of statements - e.g. $f.$$()
   private static final boolean DEBUG = false;
   private int indent = 0;
 
@@ -101,21 +103,21 @@ public class Unifier {
       }
     }
 
-/*
-    PSI trees seem to have some minor non-deterministic behaviors when applied to annotations.
-    Specifically, the AnnotationParamListElement and PsiAnnotationParamListImpl to be exchanged
-    in certain cases. So the output below for an example. For now, ignore annotations.
+    /*
+        PSI trees seem to have some minor non-deterministic behaviors when applied to annotations.
+        Specifically, the AnnotationParamListElement and PsiAnnotationParamListImpl to be exchanged
+        in certain cases. So the output below for an example. For now, ignore annotations.
 
-              PsiAnnotation : PsiAnnotation
-                PsiJavaToken:AT : PsiJavaToken:AT
-                PsiJavaCodeReferenceElement:Override : PsiJavaCodeReferenceElement:Override
-                  PsiReferenceParameterList : PsiReferenceParameterList
-              PsiAnnotationParameterList (class) != PsiAnnotationParameterList: (class)
-              class com.intellij.psi.impl.source.tree.java.AnnotationParamListElement != class com.intellij.psi.impl.source.tree.java.PsiAnnotationParamListImpl
-            *** annotation matching failed ***
-            @Override (class) != @Override (class)
-            class com.intellij.psi.impl.source.tree.java.PsiAnnotationImpl != class com.intellij.psi.impl.source.tree.java.PsiAnnotationImpl
-*/
+                  PsiAnnotation : PsiAnnotation
+                    PsiJavaToken:AT : PsiJavaToken:AT
+                    PsiJavaCodeReferenceElement:Override : PsiJavaCodeReferenceElement:Override
+                      PsiReferenceParameterList : PsiReferenceParameterList
+                  PsiAnnotationParameterList (class) != PsiAnnotationParameterList: (class)
+                  class com.intellij.psi.impl.source.tree.java.AnnotationParamListElement != class com.intellij.psi.impl.source.tree.java.PsiAnnotationParamListImpl
+                *** annotation matching failed ***
+                @Override (class) != @Override (class)
+                class com.intellij.psi.impl.source.tree.java.PsiAnnotationImpl != class com.intellij.psi.impl.source.tree.java.PsiAnnotationImpl
+    */
     @Override
     public void visitAnnotation(PsiAnnotation annotation) {
       /*
@@ -131,8 +133,10 @@ public class Unifier {
 
     @Override
     public void visitMethodCallExpression(PsiMethodCallExpression expression) {
-      if (expression.getFirstChild().getLastChild().getText().equals(STATEMENT_SENTINEL)) {
-        bindings.put(expression.getFirstChild().getFirstChild().getText(), candidate);
+      String targetName = expression.getFirstChild().getFirstChild().getText();
+      String methodName = expression.getFirstChild().getLastChild().getText();
+      if (methodName.equals(STATEMENT_SENTINEL)) {
+        bindings.put(targetName, candidate);
       }
       else {
         super.visitMethodCallExpression(expression);
@@ -151,6 +155,21 @@ public class Unifier {
       else {
         visitReferenceElement(expression);
       }
+    }
+
+    @Override
+    public void visitStatement(PsiStatement statement) {
+      PsiElement expression = statement.getFirstChild();
+      if (expression instanceof PsiMethodCallExpression) {
+        String targetName = expression.getFirstChild().getFirstChild().getText();
+        String methodName = expression.getFirstChild().getLastChild().getText();
+        if (methodName.equals(STATEMENTS_SENTINEL)) {
+          bindings.put(targetName, candidate.getParent());
+          candidate = candidate.getParent().getLastChild();
+          return;
+        }
+      }
+      visitElement(statement);
     }
 
     @Override
