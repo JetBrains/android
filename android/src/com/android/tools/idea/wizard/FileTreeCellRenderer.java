@@ -29,10 +29,18 @@ public class FileTreeCellRenderer extends ColoredTreeCellRenderer {
 
   @Override
   public void customizeCellRenderer(JTree tree, Object nodeValue, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
+    if (nodeValue == null) {
+      return;
+    }
+
     final FileTreeModel.Node node = (FileTreeModel.Node)nodeValue;
 
     if (node.existsOnDisk) {
-      append(node.name, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+      if (node.isConflicted) {
+        append(node.name, SimpleTextAttributes.ERROR_ATTRIBUTES);
+      } else {
+        append(node.name, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+      }
     } else {
       append(node.name, SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES);
     }
