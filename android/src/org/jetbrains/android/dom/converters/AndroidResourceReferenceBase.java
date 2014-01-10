@@ -1,6 +1,8 @@
 package org.jetbrains.android.dom.converters;
 
 import com.android.ide.common.res2.ResourceItem;
+import com.android.resources.FolderTypeRelationship;
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
@@ -102,8 +104,9 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
       LocalResourceRepository resources = AppResourceRepository.getAppResources(myFacet.getModule(), true);
       ResourceType resourceType = ResourceType.getEnum(myResourceValue.getResourceType());
       if (resourceType != null && (resourceType != ResourceType.ATTR || attrReference)) { // If not, it could be some broken source, such as @android/test
+        assert resources != null;
         List<ResourceItem> items = resources.getResourceItem(resourceType, myResourceValue.getResourceName());
-        if (items != null) {
+        if (items != null && FolderTypeRelationship.getRelatedFolders(resourceType).contains(ResourceFolderType.VALUES)) {
           for (ResourceItem item : items) {
             XmlTag tag = LocalResourceRepository.getItemTag(myFacet, item);
             if (tag != null) {
