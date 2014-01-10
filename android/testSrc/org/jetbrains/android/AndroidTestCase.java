@@ -18,17 +18,25 @@ package org.jetbrains.android;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.RenderSecurityManager;
+import com.intellij.analysis.AnalysisScope;
+import com.intellij.codeInspection.GlobalInspectionTool;
+import com.intellij.codeInspection.InspectionManager;
+import com.intellij.codeInspection.ex.GlobalInspectionContextImpl;
+import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper;
+import com.intellij.codeInspection.ex.InspectionManagerEx;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.InspectionTestUtil;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
@@ -215,6 +223,27 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       }
     });
     return facet;
+  }
+
+  protected void doGlobalInspectionTest(@NotNull GlobalInspectionTool inspection,
+                                        @NotNull String globalTestDir,
+                                        @NotNull AnalysisScope scope) {
+    doGlobalInspectionTest(new GlobalInspectionToolWrapper(inspection), globalTestDir, scope);
+  }
+
+  protected void doGlobalInspectionTest(@NotNull GlobalInspectionToolWrapper wrapper,
+                                        @NotNull String globalTestDir,
+                                        @NotNull AnalysisScope scope) {
+    myFixture.enableInspections(wrapper.getTool());
+
+    scope.invalidate();
+
+    final InspectionManagerEx inspectionManager = (InspectionManagerEx)InspectionManager.getInstance(getProject());
+    final GlobalInspectionContextImpl globalContext =
+      CodeInsightTestFixtureImpl.createGlobalContextForTool(scope, getProject(), inspectionManager, wrapper);
+
+    InspectionTestUtil.runTool(wrapper, scope, globalContext, inspectionManager);
+    InspectionTestUtil.compareToolResults(globalContext, wrapper, false, getTestDataPath() + globalTestDir);
   }
 
   protected static class MyAdditionalModuleData {

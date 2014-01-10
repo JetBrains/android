@@ -77,6 +77,7 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.*;
+import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.tree.java.IKeywordElementType;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -993,5 +994,22 @@ public class AndroidUtils {
   @NotNull
   public static String getAndroidSystemDirectoryOsPath() {
     return PathManager.getSystemPath() + File.separator + "android";
+  }
+
+  public static boolean isAndroidComponent(@NotNull PsiClass c) {
+    final String[] componentClasses =
+      {ACTIVITY_BASE_CLASS_NAME, SERVICE_CLASS_NAME, RECEIVER_CLASS_NAME,
+        PROVIDER_CLASS_NAME};
+
+    final Project project = c.getProject();
+    final JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
+
+    for (String componentClassName : componentClasses) {
+      final PsiClass componentClass = facade.findClass(componentClassName, ProjectScope.getAllScope(project));
+      if (componentClass != null && c.isInheritor(componentClass, true)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

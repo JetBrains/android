@@ -3,10 +3,8 @@ package org.jetbrains.android;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
@@ -19,7 +17,6 @@ import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -42,24 +39,7 @@ public class AndroidComponentSafeDeleteProcessor extends SafeDeleteProcessorDele
     return getBaseHandler().handlesElement(element) &&
            element instanceof PsiClass &&
            AndroidFacet.getInstance(element) != null &&
-           isAndroidComponent((PsiClass)element);
-  }
-
-  private static boolean isAndroidComponent(@NotNull PsiClass c) {
-    final String[] componentClasses =
-      {AndroidUtils.ACTIVITY_BASE_CLASS_NAME, AndroidUtils.SERVICE_CLASS_NAME, AndroidUtils.RECEIVER_CLASS_NAME,
-        AndroidUtils.PROVIDER_CLASS_NAME};
-
-    final Project project = c.getProject();
-    final JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
-
-    for (String componentClassName : componentClasses) {
-      final PsiClass componentClass = facade.findClass(componentClassName, ProjectScope.getAllScope(project));
-      if (componentClass != null && c.isInheritor(componentClass, true)) {
-        return true;
-      }
-    }
-    return false;
+           AndroidUtils.isAndroidComponent((PsiClass)element);
   }
 
   @Override
