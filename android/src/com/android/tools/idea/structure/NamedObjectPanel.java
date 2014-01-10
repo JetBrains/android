@@ -48,6 +48,7 @@ public class NamedObjectPanel extends BuildFilePanel {
   private final JBTable myTable;
   private final NamedObjectTableModel myModel;
   private AnActionButton myRemoveButton;
+  private final String myNewItemName;
 
   /**
    * A Boolean-like enum that also permits a "not present" state.
@@ -87,8 +88,9 @@ public class NamedObjectPanel extends BuildFilePanel {
     }
   }
 
-  public NamedObjectPanel(@NotNull Project project, @NotNull String moduleName, @NotNull BuildFileKey root) {
+  public NamedObjectPanel(@NotNull Project project, @NotNull String moduleName, @NotNull BuildFileKey root, String newItemName) {
     super(project, moduleName);
+    myNewItemName = newItemName;
     NamedObject.Factory objectFactory = (NamedObject.Factory)root.getValueFactory();
     if (objectFactory == null) {
       throw new IllegalArgumentException("Can't instantiate a NamedObjectPanel for BuildFileKey " + root.toString());
@@ -144,6 +146,8 @@ public class NamedObjectPanel extends BuildFilePanel {
         myTable.clearSelection();
         int row = myTable.getRowCount() - 1;
         myTable.setRowSelectionInterval(row, row);
+        myModel.setValueAt(getUniqueObjectName(), row, 0);
+        myTable.editCellAt(row, 0);
       }
     });
     decorator.setRemoveAction(new AnActionButtonRunnable() {
@@ -174,6 +178,16 @@ public class NamedObjectPanel extends BuildFilePanel {
   @Override
   public boolean isModified() {
     return myModel.isModified();
+  }
+
+  @NotNull
+  protected String getUniqueObjectName() {
+    int num = 1;
+    String name;
+    do {
+      name = myNewItemName + num++;
+    } while (myModel.hasObjectNamed(name));
+    return name;
   }
 
   private class FileCellEditor extends LocalPathCellEditor {
