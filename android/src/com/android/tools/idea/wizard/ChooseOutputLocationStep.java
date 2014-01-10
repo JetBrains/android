@@ -19,10 +19,12 @@ import com.android.builder.model.*;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.ide.structureView.impl.java.JavaFileTreeModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -39,10 +41,8 @@ import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 /**
  * This step allows the user to select a build variant and provides a preview
@@ -63,6 +63,11 @@ public class ChooseOutputLocationStep extends TemplateWizardStep {
 
   private Module myModule;
   private Module[] myModuleArray;
+  private boolean myComputeNewSourceSet;
+
+  private static final TreeModel EMPTY_MODEL = new DefaultTreeModel(null);
+  private final FileTreeCellRenderer myFileTreeRenderer = new FileTreeCellRenderer();
+  private FileTreeModel myTreeModel;
 
   public ChooseOutputLocationStep(@NotNull TemplateWizardState state,
                                   @NotNull Project project,
@@ -97,6 +102,13 @@ public class ChooseOutputLocationStep extends TemplateWizardStep {
     return myPanel;
   }
 
+  @Override
+  public void updateStep() {
+    super.updateStep();
+    myComputeNewSourceSet = true;
+    update();
+  }
+
   private void setUpUiComponents() {
     // Populate the Module chooser list
     myModuleArray = ModuleManager.getInstance(myProject).getModules();
@@ -104,7 +116,22 @@ public class ChooseOutputLocationStep extends TemplateWizardStep {
     register(ATTR_TARGET_MODULE, myModuleComboBox);
     register(ATTR_TARGET_VARIANT, myVariantComboBox);
 
+    if (myModule != null) {
+      int index = -1;
+      for (int i = 0; i < myModuleArray.length; ++i) {
+        if (myModuleArray[i].equals(myModule)) {
+          index = i;
+          break;
+        }
+      }
+      if (index != -1) {
+        myModuleComboBox.setSelectedIndex(index);
+      }
+    }
+
     myOutputPreviewTree.setBorder(BorderFactory.createLoweredBevelBorder());
+    // Tell the tree to ask the TreeCellRenderer for an individual height for each cell.
+    myOutputPreviewTree.setRowHeight(-1);
   }
 
   @Override
@@ -119,6 +146,10 @@ public class ChooseOutputLocationStep extends TemplateWizardStep {
       // Populate the Build Flavor and Build Type lists
       AndroidFacet facet = AndroidFacet.getInstance(myModule);
       if (facet == null) {
+        // Clear variant list
+        myVariantComboBox.setModel(new DefaultComboBoxModel());
+        // Remove entries from the file tree preview
+        myOutputPreviewTree.setModel(EMPTY_MODEL);
         return;
       }
 
@@ -130,6 +161,9 @@ public class ChooseOutputLocationStep extends TemplateWizardStep {
         DefaultComboBoxModel comboBoxModel = new DefaultComboBoxModel();
         String moduleRoot = FileUtil.toSystemIndependentName(AndroidRootUtil.getModuleDirPath(facet.getModule()));
 
+        Set<String> knownResPaths = Sets.newHashSet();
+
+        // Add all the project flavors as potential source sets
         Collection<ProductFlavorContainer> flavors = androidProject.getProductFlavors();
         for (ProductFlavorContainer pfc : flavors) {
           for (File f : pfc.getSourceProvider().getResDirectories()) {
@@ -137,9 +171,11 @@ public class ChooseOutputLocationStep extends TemplateWizardStep {
                                                       FileUtil.toSystemIndependentName(f.getPath()), '/');
             String name = String.format("Flavor-%s (%s)", pfc.getProductFlavor().getName(), resPath);
             comboBoxModel.addElement(new ComboBoxItem(f, name, 1, 1));
+            knownResPaths.add(resPath);
           }
         }
 
+        // Add all the build types as potential source sets
         Collection<BuildTypeContainer> buildTypes = androidProject.getBuildTypes();
         for (BuildTypeContainer btc : buildTypes) {
           for (File f : btc.getSourceProvider().getResDirectories()) {
@@ -147,9 +183,23 @@ public class ChooseOutputLocationStep extends TemplateWizardStep {
                                                       FileUtil.toSystemIndependentName(f.getPath()), '/');
             String name = String.format("BuildType-%s (%s)", btc.getBuildType().getName(), resPath);
             comboBoxModel.addElement(new ComboBoxItem(f, name, 1, 1));
+            knownResPaths.add(resPath);
           }
         }
+
+        // Add the main source set if it hasn't been taken care of yet
+        for (VirtualFile f : facet.getMainIdeaSourceSet().getResDirectories()) {
+          String resPath = FileUtil.getRelativePath(moduleRoot,
+                                                    FileUtil.toSystemIndependentName(f.getPath()), '/');
+          if (!knownResPaths.contains(resPath)) {
+            String name = String.format("Main Source Set (%s)", resPath);
+            comboBoxModel.insertElementAt(new ComboBoxItem(new File(f.getPath()), name, 1, 1), 0);
+            knownResPaths.add(resPath);
+          }
+        }
+
         myVariantComboBox.setModel(comboBoxModel);
+        myVariantComboBox.setSelectedIndex(0);
       } else {
         hide(myVariantComboBox, myResDirLabel);
         VirtualFile resourceDir = facet.getPrimaryResourceDir();
@@ -162,14 +212,17 @@ public class ChooseOutputLocationStep extends TemplateWizardStep {
       myIdsWithNewValues.add(ATTR_TARGET_VARIANT);
     }
 
-    if (myIdsWithNewValues.contains(ATTR_TARGET_VARIANT)) {
+    if (myIdsWithNewValues.contains(ATTR_TARGET_VARIANT) || myComputeNewSourceSet) {
       File resDir = (File)myTemplateState.get(ATTR_TARGET_VARIANT);
       if (resDir == null) {
-        resDir = (File)((ComboBoxItem)myVariantComboBox.getSelectedItem()).id;
+        Object selectedVariant = myVariantComboBox.getSelectedItem();
+        if (selectedVariant instanceof ComboBoxItem) {
+          resDir = (File)((ComboBoxItem)selectedVariant).id;
+        }
       }
       if (resDir != null) {
         // Populate the output file tree
-        FileTreeModel myTreeModel = new FileTreeModel(resDir);
+        myTreeModel = new FileTreeModel(resDir);
         myTemplateState.put(ATTR_OUTPUT_FOLDER, resDir);
 
         try {
@@ -185,15 +238,36 @@ public class ChooseOutputLocationStep extends TemplateWizardStep {
                 }
                 ic = new ImageIcon(image);
               }
-              myTreeModel.addFile(new File(resDir, filename), ic);
+              myTreeModel.forceAddFile(new File(resDir, filename), ic);
             }
           }
         } catch (Exception e) {
           // pass
         }
         myOutputPreviewTree.setModel(myTreeModel);
-        myOutputPreviewTree.setCellRenderer(new FileTreeCellRenderer());
+        myOutputPreviewTree.setCellRenderer(myFileTreeRenderer);
       }
     }
+    myComputeNewSourceSet = false;
+  }
+
+  @Override
+  public boolean validate() {
+    if (!super.validate()) {
+      return false;
+    }
+
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    if (facet == null) {
+      setErrorHtml("The selected module does not have an Android Facet. Please choose an Android module");
+      return false;
+    }
+
+    if (myTreeModel.hasConflicts()) {
+      setErrorHtml("Some existing files will be overwritten by this operation. Files which replace existing files are marked" +
+                   " red in the preview above.");
+    }
+
+    return true;
   }
 }
