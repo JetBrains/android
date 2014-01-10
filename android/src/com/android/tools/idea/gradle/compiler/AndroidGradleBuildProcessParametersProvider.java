@@ -110,9 +110,10 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     populateJvmArgs(buildConfiguration, jvmArgs);
 
     GradleExecutionSettings executionSettings = GradleUtil.getGradleExecutionSettings(myProject);
-    assert executionSettings != null;
-    //noinspection TestOnlyProblems
-    populateJvmArgs(executionSettings, jvmArgs);
+    if (executionSettings != null) {
+      //noinspection TestOnlyProblems
+      populateJvmArgs(executionSettings, jvmArgs);
+    }
 
     // Specify "build action" (generating sources, make, compile Java only, etc.)
     BuildSettings buildSettings = BuildSettings.getInstance(myProject);
