@@ -17,7 +17,6 @@ package com.android.tools.idea.actions;
 
 import com.android.SdkConstants;
 import com.android.tools.gradle.eclipse.GradleImport;
-import com.android.tools.idea.gradle.eclipse.AdtImportBuilder;
 import com.android.tools.idea.gradle.eclipse.AdtImportProvider;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.google.common.annotations.VisibleForTesting;
@@ -26,20 +25,26 @@ import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
 import com.intellij.ide.impl.NewProjectUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.util.newProjectWizard.AddModuleWizard;
+import com.intellij.ide.util.projectWizard.ProjectBuilder;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.StorageScheme;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDialog;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ex.ProjectManagerEx;
+import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.JDOMUtil;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.projectImport.ProjectImportProvider;
+import com.intellij.util.ui.UIUtil;
 import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -48,16 +53,17 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import javax.swing.*;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 /**
  * Imports a new project into Android Studio.
- * <p>
+ * <p/>
  * This action replaces the default "Import Project..." changing the behavior of project imports. If the user selects a project's root
  * directory of a Gradle project, this action will detect that the project is a Gradle project and it will direct the user to the Gradle
  * "Import Project" wizard, instead of the intermediate wizard where users can choose to import a project from existing sources. This has
  * been a source of confusion for our users.
- * <p>
+ * <p/>
  * The code in the original action cannot be extended or reused. It is implemented using static methods and the method where we change the
  * behavior is at the bottom of the call chain.
  */
@@ -95,6 +101,7 @@ public class AndroidImportProjectAction extends AnAction {
   private static AddModuleWizard selectFileAndCreateWizard() {
     FileChooserDescriptor descriptor = new FileChooserDescriptor(true, true, true, true, false, false) {
       FileChooserDescriptor myDelegate = new OpenProjectFileChooserDescriptor(true);
+
       @Override
       public Icon getIcon(VirtualFile file) {
         Icon icon = myDelegate.getIcon(file);
@@ -137,9 +144,8 @@ public class AndroidImportProjectAction extends AnAction {
     VirtualFile targetDir = target.isDirectory() ? target : target.getParent();
     if (GradleImport.isAdtProjectDir(VfsUtilCore.virtualToIoFile(targetDir))
         && targetDir.findChild(SdkConstants.FN_BUILD_GRADLE) == null) {
-      ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
-      return new AddModuleWizard(null, ProjectImportProvider.getDefaultPath(file),
-                                 new AdtImportProvider(new AdtImportBuilder(dataManager)));
+      importAdtProject(file);
+      return null;
     }
 
     if (GradleConstants.EXTENSION.equals(target.getExtension())) {
@@ -182,7 +188,8 @@ public class AndroidImportProjectAction extends AnAction {
       if (target != null) {
         return findImportTarget(target);
       }
-    } else {
+    }
+    else {
       if (ECLIPSE_PROJECT_FILE_NAME.equals(file.getName()) && hasAndroidNature(file)) {
         return file;
       }
@@ -194,7 +201,7 @@ public class AndroidImportProjectAction extends AnAction {
   }
 
   @Nullable
-  private static VirtualFile findMatchingChild(@NotNull VirtualFile parent, @NotNull String...validNames) {
+  private static VirtualFile findMatchingChild(@NotNull VirtualFile parent, @NotNull String... validNames) {
     if (parent.isDirectory()) {
       for (VirtualFile child : parent.getChildren()) {
         for (String name : validNames) {
@@ -226,4 +233,63 @@ public class AndroidImportProjectAction extends AnAction {
     }
     return false;
   }
+
+
+  private static void importAdtProject(VirtualFile file) {
+    AddModuleWizard wizard = new AddModuleWizard(null, ProjectImportProvider.getDefaultPath(file), new AdtImportProvider());
+    if (wizard.showAndGet()) {
+      try {
+        doCreate(wizard);
+      }
+      catch (final IOException e) {
+        UIUtil.invokeLaterIfNeeded(new Runnable() {
+          @Override
+          public void run() {
+            Messages.showErrorDialog(e.getMessage(), "Project Initialization Failed");
+          }
+        });
+      }
+    }
+  }
+
+  private static void doCreate(@NotNull AddModuleWizard wizard) throws IOException {
+    ProjectBuilder projectBuilder = wizard.getProjectBuilder();
+
+    try {
+      File projectFilePath = new File(wizard.getNewProjectFilePath());
+      File projectDirPath = projectFilePath.isDirectory() ? projectFilePath : projectFilePath.getParentFile();
+      LOG.assertTrue(projectDirPath != null, "Cannot create project in '" + projectFilePath + "': no parent file exists");
+      FileUtil.ensureExists(projectDirPath);
+
+      if (StorageScheme.DIRECTORY_BASED == wizard.getStorageScheme()) {
+        File ideaDirPath = new File(projectDirPath, Project.DIRECTORY_STORE_FOLDER);
+        FileUtil.ensureExists(ideaDirPath);
+      }
+
+      ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
+      Project newProject = projectManager.newProject(wizard.getProjectName(), projectDirPath.getPath(), true, false);
+      if (newProject == null) {
+        return;
+      }
+      boolean unitTestMode = ApplicationManager.getApplication().isUnitTestMode();
+      if (!unitTestMode) {
+        newProject.save();
+      }
+      if (projectBuilder != null) {
+        if (!projectBuilder.validate(null, newProject)) {
+          return;
+        }
+        projectBuilder.commit(newProject, null, ModulesProvider.EMPTY_MODULES_PROVIDER);
+      }
+      if (!unitTestMode) {
+        newProject.save();
+      }
+    }
+    finally {
+      if (projectBuilder != null) {
+        projectBuilder.cleanup();
+      }
+    }
+  }
+
 }
