@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkManager;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -61,6 +59,7 @@ import org.jetbrains.android.inspections.lint.IntellijLintClient;
 import org.jetbrains.android.inspections.lint.IntellijLintIssueRegistry;
 import org.jetbrains.android.inspections.lint.IntellijLintRequest;
 import org.jetbrains.android.inspections.lint.ProblemData;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -79,7 +78,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
    * creation leads to project leak for unknown reasons */
   protected static final boolean CAN_SYNC_PROJECTS = false;
 
-  private static SdkManager ourPreviousSdkManager;
+  private static AndroidSdkData ourPreviousSdkData;
 
   protected AndroidFacet myAndroidFacet;
 
@@ -163,24 +162,24 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     super.tearDown();
 
     // In case other test cases rely on the builtin (incomplete) SDK, restore
-    if (ourPreviousSdkManager != null) {
-      AndroidSdkUtils.setSdkManager(ourPreviousSdkManager);
-      ourPreviousSdkManager = null;
+    if (ourPreviousSdkData != null) {
+      AndroidSdkUtils.setSdkData(ourPreviousSdkData);
+      ourPreviousSdkData = null;
     }
   }
 
   @Override
   protected void ensureSdkManagerAvailable() {
-    if (requireRecentSdk() && ourPreviousSdkManager == null) {
-      ourPreviousSdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
-      if (ourPreviousSdkManager != null) {
-        VersionCheck.VersionCheckResult check = VersionCheck.checkVersion(ourPreviousSdkManager.getLocation());
+    if (requireRecentSdk() && ourPreviousSdkData == null) {
+      ourPreviousSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+      if (ourPreviousSdkData != null) {
+        VersionCheck.VersionCheckResult check = VersionCheck.checkVersion(ourPreviousSdkData.getPath());
         // "The sdk1.5" version of the SDK stored in the test directory isn't really a 22.0.5 version of the SDK even
         // though its sdk1.5/tools/source.properties says it is. We can't use this one for these tests.
-        if (!check.isCompatibleVersion() || ourPreviousSdkManager.getLocation().endsWith(File.separator + "sdk1.5")) {
-          SdkManager sdkManager = createTestSdkManager();
-          assertNotNull(sdkManager);
-          AndroidSdkUtils.setSdkManager(sdkManager);
+        if (!check.isCompatibleVersion() || ourPreviousSdkData.getPath().endsWith(File.separator + "sdk1.5")) {
+          AndroidSdkData sdkData = createTestSdkManager();
+          assertNotNull(sdkData);
+          AndroidSdkUtils.setSdkData(sdkData);
         }
       }
     }
@@ -297,8 +296,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   protected void configureProjectState(NewProjectWizardState projectWizardState) {
     final Project project = myFixture.getProject();
-    SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
-    assert sdkManager != null;
+    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    assert sdkData != null;
 
     projectWizardState.convertApisToInt();
     projectWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, GradleUtil.GRADLE_LATEST_VERSION);
@@ -308,11 +307,11 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     projectWizardState.put(NewProjectWizardState.ATTR_MODULE_NAME, "TestModule");
     projectWizardState.put(TemplateMetadata.ATTR_PACKAGE_NAME, "test.pkg");
     projectWizardState.put(TemplateMetadata.ATTR_CREATE_ICONS, false); // If not, you need to initialize additional state
-    final BuildToolInfo buildTool = sdkManager.getLatestBuildTool();
+    final BuildToolInfo buildTool = sdkData.getLatestBuildTool();
     if (buildTool != null) {
       projectWizardState.put(TemplateMetadata.ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
     }
-    IAndroidTarget[] targets = sdkManager.getTargets();
+    IAndroidTarget[] targets = sdkData.getTargets();
     projectWizardState.put(ATTR_BUILD_API, targets[targets.length - 1].getVersion().getApiLevel());
   }
 

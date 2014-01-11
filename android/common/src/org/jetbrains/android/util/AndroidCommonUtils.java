@@ -144,23 +144,6 @@ public class AndroidCommonUtils {
     return builder.toString();
   }
 
-  @Nullable
-  public static SdkManager createSdkManager(@NotNull String path, @NotNull ILogger log) {
-    path = FileUtil.toSystemDependentName(path);
-
-    final File f = new File(path);
-    if (!f.exists() || !f.isDirectory()) {
-      return null;
-    }
-
-    final File platformsDir = new File(f, SdkConstants.FD_PLATFORMS);
-    if (!platformsDir.exists() || !platformsDir.isDirectory()) {
-      return null;
-    }
-
-    return SdkManager.createManager(path + File.separatorChar, log);
-  }
-
   public static void moveAllFiles(@NotNull File from, @NotNull File to, @NotNull Collection<File> newFiles) throws IOException {
     if (from.isFile()) {
       FileUtil.rename(from, to);

@@ -18,7 +18,6 @@ package com.android.tools.idea.ddms.hprof;
 import com.android.SdkConstants;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
-import com.android.sdklib.SdkManager;
 import com.google.common.io.Files;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.process.BaseOSProcessHandler;
@@ -27,7 +26,6 @@ import com.intellij.execution.process.ProcessEvent;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
-import com.intellij.notification.NotificationsManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -37,6 +35,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidCommonUtils;
@@ -45,8 +44,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class SaveHprofHandler implements ClientData.IHprofDumpHandler {
   private final Project myProject;
@@ -121,12 +118,12 @@ public class SaveHprofHandler implements ClientData.IHprofDumpHandler {
       Files.write(myData, androidHprof);
       if (myRunHprofConv) {
         // run hprof-conv, transforming androidHprof -> destination
-        SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
-        if (sdkManager == null) {
+        AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+        if (sdkData == null) {
           throw new ExecutionException("Unable to find path to SDK.");
         }
 
-        String hprofConvPath = sdkManager.getLocation() + File.separator + AndroidCommonUtils.toolPath(SdkConstants.FN_HPROF_CONV);
+        String hprofConvPath = new File(sdkData.getLocation(), AndroidCommonUtils.toolPath(SdkConstants.FN_HPROF_CONV)).getPath();
         ProcessBuilder pb = new ProcessBuilder(hprofConvPath, androidHprof.getAbsolutePath(), myDestination.getAbsolutePath());
         BaseOSProcessHandler handler;
         handler = new BaseOSProcessHandler(pb.start(), "", null);

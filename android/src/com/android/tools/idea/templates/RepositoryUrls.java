@@ -18,10 +18,10 @@ package com.android.tools.idea.templates;
 import com.android.SdkConstants;
 import com.android.annotations.Nullable;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.FullRevision;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -97,13 +97,13 @@ public class RepositoryUrls {
       return null;
     }
 
-    SdkManager sdk = AndroidSdkUtils.tryToChooseAndroidSdk();
+    AndroidSdkData sdk = AndroidSdkUtils.tryToChooseAndroidSdk();
     if (sdk == null) {
       return null;
     }
 
     // Read the support repository and find the latest version available
-    String sdkLocation = sdk.getLocation();
+    String sdkLocation = sdk.getPath();
     RepositoryLibrary library = EXTRAS_REPOSITORY.get(libraryId);
 
     File supportMetadataFile = new File(String.format(library.basePath, sdkLocation, library.id), MAVEN_METADATA_FILE_NAME);
@@ -123,14 +123,14 @@ public class RepositoryUrls {
    */
   @Nullable
   public static File getArchiveForCoordinate(GradleCoordinate gradleCoordinate) {
-    SdkManager sdk = AndroidSdkUtils.tryToChooseAndroidSdk();
+    AndroidSdkData sdk = AndroidSdkUtils.tryToChooseAndroidSdk();
 
     if (sdk == null) {
       return null;
     }
 
     // Get the parameters to include in the path
-    String sdkLocation = sdk.getLocation();
+    String sdkLocation = sdk.getPath();
     String artifactId = gradleCoordinate.getArtifactId();
     String revision = gradleCoordinate.getFullRevision();
     RepositoryLibrary library = EXTRAS_REPOSITORY.get(artifactId);

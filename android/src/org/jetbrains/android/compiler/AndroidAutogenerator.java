@@ -585,7 +585,7 @@ public class AndroidAutogenerator {
             }
 
             final IAndroidTarget target = platform.getTarget();
-            final String sdkLocation = platform.getSdkData().getLocation();
+            final String sdkLocation = platform.getSdkData().getPath();
 
             final String packageName = AndroidUtils.computePackageName(module, file);
             if (packageName == null) {

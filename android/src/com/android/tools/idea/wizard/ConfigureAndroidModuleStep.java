@@ -18,7 +18,6 @@ package com.android.tools.idea.wizard;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
@@ -47,6 +46,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -145,7 +145,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     }
 
     // If using KitKat platform tools, we can support language level
-    if (isJdk7Supported(getSdkManager())) {
+    if (isJdk7Supported(getSdkData())) {
       // We only support a few levels at this point, not for example 1.3 or 1.8
       mySourceCombo.addItem(new SourceLevelComboBoxItem(LanguageLevel.JDK_1_5));
       mySourceCombo.addItem(new SourceLevelComboBoxItem(LanguageLevel.JDK_1_6));
@@ -303,11 +303,11 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   @NotNull
   @VisibleForTesting
   IAndroidTarget[] getCompilationTargets() {
-    SdkManager sdkManager = getSdkManager();
-    if (sdkManager == null) {
+    AndroidSdkData sdkData = getSdkData();
+    if (sdkData == null) {
       return new IAndroidTarget[0];
     }
-    IAndroidTarget[] targets = sdkManager.getTargets();
+    IAndroidTarget[] targets = sdkData.getTargets();
     List<IAndroidTarget> list = new ArrayList<IAndroidTarget>();
 
     for (IAndroidTarget target : targets) {
@@ -627,9 +627,9 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     myWizardContext = wizardContext;
   }
 
-  public static boolean isJdk7Supported(@Nullable SdkManager sdkManager) {
-    if (sdkManager != null) {
-      LocalPkgInfo info = sdkManager.getLocalSdk().getPkgInfo(PkgType.PKG_PLATFORM_TOOLS);
+  public static boolean isJdk7Supported(@Nullable AndroidSdkData sdkData) {
+    if (sdkData != null) {
+      LocalPkgInfo info = sdkData.getLocalSdk().getPkgInfo(PkgType.PKG_PLATFORM_TOOLS);
       IPkgDesc d = info == null ? null : info.getDesc();
       if (d != null && d.hasFullRevision()) {
         FullRevision fullRevision = d.getFullRevision();
@@ -650,14 +650,14 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   }
 
   @Nullable
-  private SdkManager getSdkManager() {
-    SdkManager sdkManager = myWizardContext != null
-                            ? TemplateWizardModuleBuilder.getSdkManager(myWizardContext.getProjectJdk())
+  private AndroidSdkData getSdkData() {
+    AndroidSdkData sdkData = myWizardContext != null
+                            ? AndroidSdkData.getSdkData(myWizardContext.getProjectJdk())
                             : null;
-    if (sdkManager == null) {
-      sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
+    if (sdkData == null) {
+      sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
     }
-    return sdkManager;
+    return sdkData;
   }
 
   public static String languageLevelToString(LanguageLevel level) { // Performs the reverse of LanguageLevel.parse()
