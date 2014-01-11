@@ -5,7 +5,6 @@ import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.util.ArrayUtil;
@@ -46,7 +45,7 @@ public abstract class AndroidRunSdkToolAction extends AnAction {
     for (AndroidFacet facet : facets) {
       AndroidSdkData sdkData = facet.getConfiguration().getAndroidSdk();
       if (sdkData != null) {
-        sdkSet.add(sdkData.getLocation());
+        sdkSet.add(sdkData.getPath());
       }
     }
     if (sdkSet.size() == 0) {

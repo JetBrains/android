@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.SdkConstants;
 import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.PkgProps;
 import com.android.utils.SparseArray;
 import com.google.common.base.Charsets;
@@ -36,6 +34,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -219,10 +218,10 @@ public class TemplateUtils {
   *         maximum known versions (with no gaps)
   */
   public static String[] getKnownVersions() {
-    final SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
-    assert sdkManager != null;
+    final AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    assert sdkData != null;
     int max = SdkVersionInfo.HIGHEST_KNOWN_API;
-    IAndroidTarget[] targets = sdkManager.getTargets();
+    IAndroidTarget[] targets = sdkData.getTargets();
     SparseArray<IAndroidTarget> apiTargets = null;
     for (IAndroidTarget target : targets) {
       if (target.isPlatform()) {

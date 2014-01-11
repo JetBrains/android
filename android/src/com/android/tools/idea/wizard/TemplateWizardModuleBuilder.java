@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.sdklib.SdkManager;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.DefaultSdks;
@@ -43,10 +42,8 @@ import com.intellij.openapi.ui.TextBrowseFolderListener;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Condition;
 import icons.AndroidIcons;
-import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
-import org.jetbrains.android.sdk.MessageBuildingSdkLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -179,38 +176,29 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
       project.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
     }
     StartupManager.getInstance(project).runWhenProjectIsInitialized(new DumbAwareRunnable() {
-      @Override
-      public void run() {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            ApplicationManager.getApplication().runWriteAction(new Runnable() {
-              @Override
-              public void run() {
-                if (myProject == null) {
-                  myWizardState.putSdkDependentParams();
-                  myWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
-                  NewProjectWizard.createProject(myWizardState, project);
+        @Override
+        public void run() {
+          ApplicationManager.getApplication().invokeLater(new Runnable() {
+            @Override
+            public void run() {
+              ApplicationManager.getApplication().runWriteAction(new Runnable() {
+                @Override
+                public void run() {
+                  if (myProject == null) {
+                    myWizardState.putSdkDependentParams();
+                    myWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
+                    NewProjectWizard.createProject(myWizardState, project);
+                  }
+                  else {
+                    createModule();
+                  }
                 }
-                else {
-                  createModule();
-                }
-              }
-            });
-          }
-        });
-      }
-    });
+              });
+            }
+          });
+        }
+      });
     }
-
-  @Nullable
-  static SdkManager getSdkManager(@Nullable Sdk sdk) {
-    if (sdk == null) {
-      return null;
-    }
-    final AndroidPlatform platform = AndroidPlatform.getInstance(sdk);
-    return platform != null ? platform.getSdkData().getSdkManager() : null;
-  }
 
   @Override
   @NotNull
@@ -310,6 +298,7 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
     }
 
     @NotNull
+    @Override
     protected String getSdkFieldLabel(@Nullable Project project) {
       return "Java \u001BSDK:";
     }
@@ -329,18 +318,10 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
         if (!new File(location).isDirectory()) {
           throw new ConfigurationException(location + " is not directory");
         }
-        final MessageBuildingSdkLog log = new MessageBuildingSdkLog();
-        final AndroidSdkData sdkData = AndroidSdkData.parse(location, log);
+        final AndroidSdkData sdkData = AndroidSdkData.getSdkData(location);
 
         if (sdkData == null) {
-          final String message = log.getErrorMessage();
-
-          if (message.length() > 0) {
-            throw new ConfigurationException("Android SDK is parsed incorrectly. Parsing log:\n" + message);
-          }
-          else {
-            throw new ConfigurationException("Invalid Android SDK");
-          }
+          throw new ConfigurationException("Invalid Android SDK");
         }
       }
       return true;

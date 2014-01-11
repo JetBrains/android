@@ -570,7 +570,7 @@ public class RenderService implements IImageFactory {
       projectPath = myModule.getProject().getBasePath();
       AndroidPlatform platform = getPlatform();
       if (platform != null) {
-        sdkPath = platform.getSdkData().getSdkManager().getLocation();
+        sdkPath = platform.getSdkData().getLocation().getPath();
       }
     }
 

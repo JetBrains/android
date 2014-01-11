@@ -8,7 +8,7 @@ import com.android.manifmerger.ManifestMerger;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkManager;
+import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.jps.AndroidTargetBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
@@ -109,7 +109,7 @@ public class AndroidManifestMergingBuilder
     if (platform == null) {
       return false;
     }
-    if (!doMergeManifests(context, platform.getSdkManager(), manifestFile, libManifests, outputFile)) {
+    if (!doMergeManifests(context, platform.getLocalSdk(), manifestFile, libManifests, outputFile)) {
       return false;
     }
     final List<String> srcPaths = new ArrayList<String>();
@@ -129,7 +129,7 @@ public class AndroidManifestMergingBuilder
   }
 
   private static boolean doMergeManifests(final CompileContext context,
-                                          final SdkManager sdkManager,
+                                          final LocalSdk localSdk,
                                           File manifestFile,
                                           List<File> libManifests,
                                           File outputFile)
@@ -202,7 +202,7 @@ public class AndroidManifestMergingBuilder
         try {
           AndroidVersion version = new AndroidVersion(codename);
           String hashString = AndroidTargetHash.getPlatformHashString(version);
-          IAndroidTarget t = sdkManager.getTargetFromHashString(hashString);
+          IAndroidTarget t = localSdk.getTargetFromHashString(hashString);
           if (t != null) {
             return t.getVersion().getApiLevel();
           }
