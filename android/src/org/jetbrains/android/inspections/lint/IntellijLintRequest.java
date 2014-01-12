@@ -34,6 +34,7 @@ public class IntellijLintRequest extends LintRequest {
   @NonNull private final List<Module> myModules;
   @NonNull private final IntellijLintClient mLintClient;
   @Nullable private final List<VirtualFile> myFileList;
+  private final boolean myIncremental;
 
   /**
    * Creates a new {@linkplain IntellijLintRequest}.
@@ -41,16 +42,19 @@ public class IntellijLintRequest extends LintRequest {
    * @param project the project where lint is run
    * @param fileList an optional list of specific files to check, normally null
    * @param modules the set of modules to be checked (or containing the files)
+   * @param incremental true if this is an incremental (current editor) analysis
    */
   public IntellijLintRequest(@NonNull IntellijLintClient client,
                              @NonNull Project project,
                              @Nullable List<VirtualFile> fileList,
-                             @NonNull List<Module> modules) {
+                             @NonNull List<Module> modules,
+                             boolean incremental) {
     super(client, Collections.<File>emptyList());
     mLintClient = client;
     myProject = project;
     myModules = modules;
     myFileList = fileList;
+    myIncremental = incremental;
   }
 
   @NonNull
@@ -85,7 +89,9 @@ public class IntellijLintRequest extends LintRequest {
   @Override
   public Collection<com.android.tools.lint.detector.api.Project> getProjects() {
     if (mProjects == null) {
-      if (!myModules.isEmpty()) {
+      if (myIncremental && myFileList != null && myFileList.size() == 1 && myModules.size() == 1) {
+        mProjects = Collections.singletonList(IntellijLintProject.createForSingleFile(mLintClient, myFileList.get(0), myModules.get(0)));
+      } else if (!myModules.isEmpty()) {
         // Make one project for each module, mark each one as a library,
         // and add projects for the gradle libraries and set error reporting to
         // false on those
