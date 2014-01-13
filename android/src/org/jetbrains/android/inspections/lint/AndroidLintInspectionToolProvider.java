@@ -504,9 +504,45 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintGradleCompatibleInspection extends AndroidLintInspectionBase {
+    public AndroidLintGradleCompatibleInspection() {
+      super(AndroidBundle.message("android.lint.inspections.gradle.compatible"), GradleDetector.COMPATIBILITY);
+    }
+  }
+
+  public static class AndroidLintGradleDependencyInspection extends AndroidLintInspectionBase {
+    public AndroidLintGradleDependencyInspection() {
+      super(AndroidBundle.message("android.lint.inspections.gradle.dependency"), GradleDetector.DEPENDENCY);
+    }
+  }
+
+  public static class AndroidLintGradleDynamicVersionInspection extends AndroidLintInspectionBase {
+    public AndroidLintGradleDynamicVersionInspection() {
+      super(AndroidBundle.message("android.lint.inspections.gradle.dynamic.version"), GradleDetector.PLUS);
+    }
+  }
+
+  public static class AndroidLintGradleGetterInspection extends AndroidLintInspectionBase {
+    public AndroidLintGradleGetterInspection() {
+      super(AndroidBundle.message("android.lint.inspections.gradle.getter"), GradleDetector.GRADLE_GETTER);
+    }
+  }
+
+  public static class AndroidLintGradleIdeErrorInspection extends AndroidLintInspectionBase {
+    public AndroidLintGradleIdeErrorInspection() {
+      super(AndroidBundle.message("android.lint.inspections.gradle.ide.error"), GradleDetector.IDE_SUPPORT);
+    }
+  }
+
   public static class AndroidLintGradleOverridesInspection extends AndroidLintInspectionBase {
     public AndroidLintGradleOverridesInspection() {
       super(AndroidBundle.message("android.lint.inspections.gradle.overrides"), ManifestDetector.GRADLE_OVERRIDES);
+    }
+  }
+
+  public static class AndroidLintGradlePathInspection extends AndroidLintInspectionBase {
+    public AndroidLintGradlePathInspection() {
+      super(AndroidBundle.message("android.lint.inspections.gradle.path"), GradleDetector.PATH);
     }
   }
 
