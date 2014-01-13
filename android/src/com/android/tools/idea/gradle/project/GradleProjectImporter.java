@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.service.notification.CustomNotificationList
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
@@ -81,6 +82,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
+import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome;
 import static org.jetbrains.plugins.gradle.util.GradleUtil.isGradleDefaultWrapperFilesExist;
 
 /**
@@ -124,8 +126,6 @@ public class GradleProjectImporter {
     VirtualFile projectDir = selectedFile.isDirectory() ? selectedFile : selectedFile.getParent();
     File projectDirPath = new File(FileUtil.toSystemDependentName(projectDir.getPath()));
 
-    GradleProjectSettings gradleProjectSettings = getInitialProjectSettings();
-
     // Set up Gradle settings. Otherwise we get an "already disposed project" error.
     new GradleSettings(ProjectManager.getInstance().getDefaultProject());
 
@@ -136,8 +136,8 @@ public class GradleProjectImporter {
       // If we don't have a Gradle wrapper, but we have the location of GRADLE_HOME, we import the project without showing the "Project
       // Import" wizard.
       boolean validGradleHome = false;
-      String gradleHome = gradleProjectSettings.getGradleHome();
-      if (gradleHome != null && !gradleHome.isEmpty()) {
+      String gradleHome = getLastUsedGradleHome();
+      if (!gradleHome.isEmpty()) {
         GradleInstallationManager gradleInstallationManager = ServiceManager.getService(GradleInstallationManager.class);
         File gradleHomePath = new File(FileUtil.toSystemDependentName(gradleHome));
         validGradleHome = gradleInstallationManager.isGradleSdkHome(gradleHomePath);
@@ -168,15 +168,6 @@ public class GradleProjectImporter {
     }
   }
 
-  private static GradleProjectSettings getInitialProjectSettings() {
-    GradleProjectSettings result = new GradleProjectSettings();
-    String gradleHome = org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome();
-    if (!gradleHome.isEmpty()) {
-      result.setGradleHome(gradleHome);
-    }
-    return result;
-  }
-
   /**
    * Re-imports an existing Android-Gradle project.
    *
@@ -187,7 +178,7 @@ public class GradleProjectImporter {
   public void reImportProject(@NotNull final Project project, @Nullable Callback callback) throws ConfigurationException {
     if (Projects.isGradleProject(project) || hasTopLevelGradleBuildFile(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
-      fixGradleProjectSettings(project);
+      setUpGradleSettings(project);
       removeAllLibraries(project);
       doImport(project, false /* existing project */, ProgressExecutionMode.IN_BACKGROUND_ASYNC /* asynchronous import */, callback);
     }
@@ -216,19 +207,6 @@ public class GradleProjectImporter {
     VirtualFile baseDir = project.getBaseDir();
     VirtualFile gradleBuildFile = baseDir.findChild(SdkConstants.FN_BUILD_GRADLE);
     return gradleBuildFile != null && gradleBuildFile.exists() && !gradleBuildFile.isDirectory();
-  }
-
-  private static void fixGradleProjectSettings(@NotNull Project project) {
-    File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
-    if (wrapperPropertiesFile != null) {
-      GradleProjectSettings settings = GradleUtil.getGradleProjectSettings(project);
-      if (settings != null) {
-        DistributionType distributionType = settings.getDistributionType();
-        if (distributionType == null || DistributionType.LOCAL.equals(distributionType)) {
-          settings.setDistributionType(DistributionType.WRAPPED);
-        }
-      }
-    }
   }
 
   // See issue: https://code.google.com/p/android/issues/detail?id=64508
@@ -356,14 +334,34 @@ public class GradleProjectImporter {
     }, null, null);
   }
 
-  private static void setUpGradleSettings(@NotNull Project newProject) {
-    GradleProjectSettings projectSettings = new GradleProjectSettings();
-    projectSettings.setDistributionType(DistributionType.DEFAULT_WRAPPED);
-    projectSettings.setExternalProjectPath(FileUtil.toCanonicalPath(newProject.getBasePath()));
+  private static void setUpGradleSettings(@NotNull Project project) {
+    GradleProjectSettings projectSettings = GradleUtil.getGradleProjectSettings(project);
+    if (projectSettings == null) {
+      projectSettings = new GradleProjectSettings();
+      GradleSettings gradleSettings = GradleSettings.getInstance(project);
+      gradleSettings.setLinkedProjectsSettings(ImmutableList.of(projectSettings));
+    }
     projectSettings.setUseAutoImport(false);
+    setUpGradleProjectSettings(project, projectSettings);
+  }
 
-    GradleSettings gradleSettings = GradleSettings.getInstance(newProject);
-    gradleSettings.setLinkedProjectsSettings(ImmutableList.of(projectSettings));
+  private static void setUpGradleProjectSettings(@NotNull Project project, @NotNull GradleProjectSettings settings) {
+    settings.setExternalProjectPath(FileUtil.toCanonicalPath(project.getBasePath()));
+    File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
+    DistributionType distributionType = settings.getDistributionType();
+    if (wrapperPropertiesFile == null) {
+      if (!DistributionType.LOCAL.equals(distributionType)) {
+        settings.setDistributionType(DistributionType.LOCAL);
+      }
+      if (Strings.isNullOrEmpty(settings.getGradleHome())) {
+        settings.setGradleHome(getLastUsedGradleHome());
+      }
+    }
+    else {
+      if (distributionType == null || DistributionType.LOCAL.equals(distributionType)) {
+        settings.setDistributionType(DistributionType.WRAPPED);
+      }
+    }
   }
 
   private void doImport(@NotNull final Project project,
