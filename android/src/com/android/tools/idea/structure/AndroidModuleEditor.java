@@ -73,7 +73,7 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
       myEditors.add(new GenericEditor<NamedObjectPanel>("Signing", new Callable<NamedObjectPanel>() {
         @Override
         public NamedObjectPanel call() {
-          NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.SIGNING_CONFIGS);
+          NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.SIGNING_CONFIGS, "config");
           panel.init();
           return panel;
         }
@@ -81,7 +81,7 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
       myEditors.add(new GenericEditor<NamedObjectPanel>("Flavors", new Callable<NamedObjectPanel>() {
         @Override
         public NamedObjectPanel call() {
-          NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.FLAVORS);
+          NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.FLAVORS, "flavor");
           panel.init();
           return panel;
         }
@@ -89,7 +89,7 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
       myEditors.add(new GenericEditor<NamedObjectPanel>("Build Types", new Callable<NamedObjectPanel>() {
         @Override
         public NamedObjectPanel call() {
-          NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.BUILD_TYPES);
+          NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.BUILD_TYPES, "buildType");
           panel.init();
           return panel;
         }
