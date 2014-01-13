@@ -21,19 +21,25 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Multimap;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
-class PsiResourceFile extends ResourceFile {
+class PsiResourceFile extends ResourceFile implements Iterable<ResourceItem> {
   private static final File DUMMY_FILE = new File("");
   private PsiFile myFile;
   private String myName;
   private ResourceFolderType myFolderType;
   private FolderConfiguration myFolderConfiguration;
+  private Multimap<String, ResourceItem> myDuplicates;
 
   public PsiResourceFile(@NonNull PsiFile file, @NonNull ResourceItem item, @NonNull String qualifiers,
                          @NonNull ResourceFolderType folderType, @NonNull FolderConfiguration folderConfiguration) {
@@ -91,5 +97,82 @@ class PsiResourceFile extends ResourceFile {
     setQualifiers(qualifiers);
     myFolderConfiguration = FolderConfiguration.getConfigFromQualifiers(Splitter.on('-').split(qualifiers));
     myFolderType = ResourceHelper.getFolderType(psiFile);
+  }
+
+  @Override
+  public void addItems(@NonNull Iterable<ResourceItem> items) {
+    for (ResourceItem item : items) {
+      addItem(item);
+    }
+  }
+
+  @Override
+  public void removeItems(@NonNull Iterable<ResourceItem> items) {
+    for (ResourceItem item : items) {
+      removeItem(item);
+    }
+  }
+
+  @Override
+  public void addItem(@NonNull ResourceItem item) {
+    item.setSource(this);
+    String key = item.getKey();
+    ResourceItem prev = mItems.get(key);
+    if (prev != null) {
+      // There are duplicates. We need to track these separately since the normal data file
+      // only contains a single key position.
+      if (myDuplicates == null) {
+        myDuplicates = ArrayListMultimap.create();
+      }
+      myDuplicates.put(key, prev);
+    }
+    mItems.put(key, item);
+  }
+
+  @Override
+  public void removeItem(ResourceItem item) {
+    String key = item.getKey();
+    if (myDuplicates != null) {
+      Collection<ResourceItem> prev = myDuplicates.get(key);
+      if (prev != null && prev.contains(item)) {
+        myDuplicates.remove(key, item);
+        if (myDuplicates.isEmpty()) {
+          myDuplicates = null;
+        }
+        item.setSource(null);
+        return;
+      }
+    }
+
+    mItems.remove(key);
+    item.setSource(null);
+
+    // If we removed an item and we have duplicates in the wings, shift one of those into the prime position
+    if (myDuplicates != null) {
+      Collection<ResourceItem> prev = myDuplicates.get(key);
+      if (prev != null && !prev.isEmpty()) {
+        ResourceItem first = prev.iterator().next();
+        myDuplicates.remove(key, first);
+        mItems.put(key, first);
+        if (myDuplicates.isEmpty()) {
+          myDuplicates = null;
+        }
+      }
+    }
+  }
+
+  @Override
+  public void replace(@NonNull ResourceItem oldItem, @NonNull ResourceItem newItem) {
+    removeItem(oldItem);
+    addItem(newItem);
+  }
+
+  @Override
+  public Iterator<ResourceItem> iterator() {
+    if (myDuplicates == null) {
+      return mItems.values().iterator();
+    }
+
+    return Iterators.concat(mItems.values().iterator(), myDuplicates.values().iterator());
   }
 }
