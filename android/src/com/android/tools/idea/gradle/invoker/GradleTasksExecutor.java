@@ -232,8 +232,6 @@ class GradleTasksExecutor extends Task.Backgroundable {
     final Project project = getNotNullProject();
 
     final GradleExecutionSettings executionSettings = GradleUtil.getGradleExecutionSettings(project);
-    assert executionSettings != null;
-
     final String projectPath = FileUtil.toSystemDependentName(project.getBasePath());
 
     Function<ProjectConnection, Void> executeTasksFunction = new Function<ProjectConnection, Void>() {
