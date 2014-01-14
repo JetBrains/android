@@ -73,7 +73,7 @@ public class PaddingLayoutPsiPullParser extends LayoutPsiPullParser {
   }
 
   @Override
-  protected void push(@NotNull XmlTag node) {
+  protected void push(@NotNull Element node) {
     super.push(node);
 
     myZeroAttributeIsPadding = false;
@@ -137,7 +137,7 @@ public class PaddingLayoutPsiPullParser extends LayoutPsiPullParser {
     if (myZeroAttributeIsPadding) {
       if (i == 0) {
         assert myRoot != null;
-        return myRoot.getPrefixByNamespace(ANDROID_URI);
+        return myAndroidPrefix;
       }
       else {
         i--;
@@ -163,11 +163,11 @@ public class PaddingLayoutPsiPullParser extends LayoutPsiPullParser {
       }
     }
 
-    XmlAttribute attribute = getAttribute(i);
+    Attribute attribute = getAttribute(i);
     if (attribute != null) {
-      String value = attribute.getValue();
-      if (value != null && myIncreaseExistingPadding && ATTR_PADDING.equals(attribute.getLocalName()) &&
-          ANDROID_URI.equals(attribute.getNamespace())) {
+      String value = attribute.value;
+      if (value != null && myIncreaseExistingPadding && ATTR_PADDING.equals(attribute.name) &&
+          ANDROID_URI.equals(attribute.namespace)) {
         // add the padding and return the value
         return addPaddingToValue(value);
       }
@@ -185,8 +185,8 @@ public class PaddingLayoutPsiPullParser extends LayoutPsiPullParser {
   public String getAttributeValue(String namespace, String localName) {
     boolean isPaddingAttribute = ATTR_PADDING.equals(localName);
     if (isPaddingAttribute && ANDROID_URI.equals(namespace)) {
-      XmlTag node = getCurrentNode();
-      if (node != null && myExplodeNodes.contains(node)) {
+      Element node = getCurrentNode();
+      if (node != null && myExplodeNodes.contains(node.cookie)) {
         return FIXED_PADDING_VALUE;
       }
     }

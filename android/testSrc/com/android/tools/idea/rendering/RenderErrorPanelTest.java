@@ -23,6 +23,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -93,7 +94,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     RenderLogger logger = new RenderLogger("myLogger", myModule);
     RenderService service = RenderService.create(facet, myModule, psiFile, configuration, logger, null);
     assertNotNull(service);
-    RenderResult render = service.render();
+    RenderResult render = RenderTestBase.renderOnSeparateThread(service);
     assertNotNull(render);
 
     if (logOperation != null) {
