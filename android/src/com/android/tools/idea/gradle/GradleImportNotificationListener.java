@@ -25,6 +25,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemProgressNotificationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.AsyncResult;
 import com.intellij.openapi.util.Key;
 import com.intellij.ui.EditorNotifications;
@@ -107,6 +108,9 @@ public class GradleImportNotificationListener extends ExternalSystemTaskNotifica
       ApplicationManager.getApplication().invokeLater(new Runnable() {
         @Override
         public void run() {
+          for (Project project : ProjectManager.getInstance().getOpenProjects()) {
+            EditorNotifications.getInstance(project).updateAllNotifications();
+          }
           Projects.applyToCurrentGradleProject(new AsyncResult.Handler<Project>() {
             @Override
             public void run(Project project) {
