@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.service.notification;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.gradle.project.AndroidGradleProjectResolver;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
@@ -93,17 +94,10 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
   private static CustomizationResult createNotification(@NotNull Project project, @NotNull ExternalSystemException error) {
     String msg = error.getMessage();
     if (msg != null && !msg.isEmpty()) {
-      if (msg.startsWith("Project is using an old version of the Android Gradle plug-in")) {
-        List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
-        hyperlinks.add(new SearchInBuildFilesHyperlink("com.android.tools.build:gradle"));
-        if (msg.contains(FIX_GRADLE_VERSION)) {
-          NotificationHyperlink fixGradleVersionHyperlink =
-            FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper(project, GRADLE_MINIMUM_VERSION);
-          if (fixGradleVersionHyperlink != null) {
-            hyperlinks.add(fixGradleVersionHyperlink);
-          }
-        }
-        return createNotification(project, msg, hyperlinks);
+      if (msg.startsWith(AndroidGradleProjectResolver.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) {
+        FixGradleModelVersionHyperlink hyperlink = new FixGradleModelVersionHyperlink();
+        //noinspection TestOnlyProblems
+        return createNotification(project, msg, hyperlink);
       }
 
       if (msg.contains(FAILED_TO_PARSE_SDK_ERROR)) {
