@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.compiler;
 
+import com.android.tools.idea.gradle.GradleImportNotificationListener;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.output.GradleMessage;
@@ -24,6 +25,7 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.AbstractIterator;
@@ -45,14 +47,19 @@ import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Iterator;
+
+import static com.android.tools.idea.gradle.util.BuildMode.DEFAULT_BUILD_MODE;
+import static com.android.tools.idea.gradle.util.Projects.lastGradleSyncFailed;
 
 /**
  * After a build is complete, this class will execute the following tasks:
@@ -166,21 +173,47 @@ public class PostProjectBuildTasksExecutor {
 
       syncJavaLangLevel();
 
-      if (BuildMode.MAKE.equals(buildMode) && errorCount == 0 && Projects.lastGradleSyncFailed(myProject)) {
-        // automatically sync project if build was successful but last sync failed.
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            try {
-              GradleProjectImporter.getInstance().reImportProject(myProject, null);
-            }
-            catch (ConfigurationException e) {
-              Messages.showErrorDialog(myProject, e.getMessage(), e.getTitle());
-            }
-          }
-        });
+      if (errorCount == 0 && buildMode != null &&
+          (DEFAULT_BUILD_MODE.equals(buildMode) && lastGradleSyncFailed(myProject) || isModelStale())) {
+        syncProjectWithGradle();
       }
     }
+  }
+
+  private boolean isModelStale() {
+    if (GradleImportNotificationListener.isProjectImportInProgress()) {
+      return false;
+    }
+    long lastGradleSyncTimestamp = GradleImportNotificationListener.getLastGradleSyncTimestamp(myProject);
+    if (lastGradleSyncTimestamp < 0) {
+      // Previous sync may have failed. If this happened an automatic sync should have been triggered already. No need to trigger a new one.
+      return false;
+    }
+    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+    for (Module module : moduleManager.getModules()) {
+      VirtualFile gradleBuildFile = GradleUtil.getGradleBuildFile(module);
+      if (gradleBuildFile != null) {
+        File gradleBuildFilePath = VfsUtilCore.virtualToIoFile(gradleBuildFile);
+        if (gradleBuildFilePath.lastModified() > lastGradleSyncTimestamp) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private void syncProjectWithGradle() {
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          GradleProjectImporter.getInstance().reImportProject(myProject, null);
+        }
+        catch (ConfigurationException e) {
+          Messages.showErrorDialog(myProject, e.getMessage(), e.getTitle());
+        }
+      }
+    });
   }
 
   private static boolean unresolvedDependenciesFound(@NotNull String errorMessage) {
@@ -274,4 +307,5 @@ public class PostProjectBuildTasksExecutor {
       }
     }
     return maxLangLevel;
-  }}
+  }
+}
