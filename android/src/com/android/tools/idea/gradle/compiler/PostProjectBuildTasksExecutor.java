@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.compiler;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.gradle.GradleImportNotificationListener;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
@@ -59,6 +60,7 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import static com.android.tools.idea.gradle.util.BuildMode.DEFAULT_BUILD_MODE;
+import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.gradle.util.Projects.lastGradleSyncFailed;
 
 /**
@@ -161,7 +163,7 @@ public class PostProjectBuildTasksExecutor {
       BuildMode buildMode = buildSettings.getBuildMode();
       buildSettings.removeAll();
 
-      if (BuildMode.SOURCE_GEN.equals(buildMode)) {
+      if (SOURCE_GEN.equals(buildMode)) {
         // Notify facets after project was synced. This only happens after importing a project.
         // Importing a project means:
         // * Creating a new project
@@ -173,8 +175,14 @@ public class PostProjectBuildTasksExecutor {
 
       syncJavaLangLevel();
 
+      // We automatically sync the model if:
+      // 1. The project build is doing a MAKE, has zero errors and the previous Gradle sync failed. It is likely that if the
+      //    project build is successful, Gradle sync will be successful too.
+      // 2. If any build.gradle files or setting.gradle file was modified *after* last Gradle sync (we check file timestamps vs the
+      //    timestamp of the last Gradle sync. We don't perform this check if project build is SOURCE_GEN because, in this case,
+      //    the project build was triggered by a Gradle sync (thus unlikely to have a stale model.)
       if (errorCount == 0 && buildMode != null &&
-          (DEFAULT_BUILD_MODE.equals(buildMode) && lastGradleSyncFailed(myProject) || isModelStale())) {
+          (DEFAULT_BUILD_MODE.equals(buildMode) && lastGradleSyncFailed(myProject) || !SOURCE_GEN.equals(buildMode) && isModelStale())) {
         syncProjectWithGradle();
       }
     }
@@ -189,6 +197,12 @@ public class PostProjectBuildTasksExecutor {
       // Previous sync may have failed. If this happened an automatic sync should have been triggered already. No need to trigger a new one.
       return false;
     }
+
+    File settingsFilePath = new File(myProject.getBasePath(), SdkConstants.FN_SETTINGS_GRADLE);
+    if (settingsFilePath.exists() && settingsFilePath.lastModified() > lastGradleSyncTimestamp) {
+      return true;
+    }
+
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     for (Module module : moduleManager.getModules()) {
       VirtualFile gradleBuildFile = GradleUtil.getGradleBuildFile(module);
