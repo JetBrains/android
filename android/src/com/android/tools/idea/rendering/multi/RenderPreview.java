@@ -564,18 +564,8 @@ public class RenderPreview implements Disposable {
       renderService.setIncludedWithin(myIncludedWithin);
     }
 
-    // Fetch outside of read lock
-    configuration.getResourceResolver();
-
-    RenderResult result = ApplicationManager.getApplication().runReadAction(new Computable<RenderResult>() {
-      @Nullable
-      @Override
-      public RenderResult compute() {
-        return renderService.render();
-      }
-    });
-
-    RenderSession session = result.getSession();
+    RenderResult result = renderService.render();
+    RenderSession session = result != null ? result.getSession() : null;
     if (session != null) {
       Result render = session.getResult();
 

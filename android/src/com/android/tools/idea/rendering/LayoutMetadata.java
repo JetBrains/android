@@ -146,22 +146,6 @@ public class LayoutMetadata {
   }
 
   /**
-   * Returns the layout to be shown for the given {@code <fragment>} node.
-   *
-   * @param node the node corresponding to the {@code <fragment>} element
-   * @return the resource path to a layout to render for this fragment, or null
-   */
-  @Nullable
-  public static String getFragmentLayout(@NotNull XmlTag node) {
-    String layout = getProperty(node, KEY_FRAGMENT_LAYOUT);
-    if (layout != null) {
-      return layout;
-    }
-
-    return null;
-  }
-
-  /**
    * Strips out @layout/ or @android:layout/ from the given layout reference
    */
   private static String stripLayoutPrefix(String layout) {
