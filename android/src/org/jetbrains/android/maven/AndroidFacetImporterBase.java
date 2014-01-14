@@ -795,7 +795,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
   }
 
   @Nullable
-  private static File buildFakeArtifactPomFile(@NotNull MavenArtifact artifact, @NotNull String moduleName, @NotNull Project project) {
+  private static File buildFakeArtifactPomFile(@NotNull MavenArtifact artifact, @Nullable String moduleName, @NotNull Project project) {
     File tmpFile = null;
     try {
       tmpFile = FileUtil.createTempFile("intellij_fake_artifat_pom", "tmp");
