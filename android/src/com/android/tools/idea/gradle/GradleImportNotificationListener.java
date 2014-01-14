@@ -26,6 +26,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemProgressNotificationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.AsyncResult;
+import com.intellij.openapi.util.Key;
 import com.intellij.ui.EditorNotifications;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -34,6 +35,8 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
  * Listens for Gradle project import start/end events and updates the "Build Variant" tool window when necessary.
  */
 public class GradleImportNotificationListener extends ExternalSystemTaskNotificationListenerAdapter {
+  private static final Key<Long> PROJECT_LAST_SYNC_TIMESTAMP_KEY = Key.create("android.gradle.project.last.sync.timestamp");
+
   private static GradleImportNotificationListener ourInstance;
 
   static {
@@ -101,13 +104,14 @@ public class GradleImportNotificationListener extends ExternalSystemTaskNotifica
       if (!myProjectImportInProgress) {
         return;
       }
-      myProjectImportInProgress = false;
       ApplicationManager.getApplication().invokeLater(new Runnable() {
         @Override
         public void run() {
           Projects.applyToCurrentGradleProject(new AsyncResult.Handler<Project>() {
             @Override
             public void run(Project project) {
+              myProjectImportInProgress = false;
+              project.putUserData(PROJECT_LAST_SYNC_TIMESTAMP_KEY, System.currentTimeMillis());
               EditorNotifications.getInstance(project).updateAllNotifications();
               BuildVariantView.getInstance(project).updateContents();
               ProjectResourceRepository.moduleRootsChanged(project);
@@ -121,5 +125,10 @@ public class GradleImportNotificationListener extends ExternalSystemTaskNotifica
   private static boolean resolvingProject(ExternalSystemTaskId id) {
     return GradleConstants.SYSTEM_ID.getId().equals(id.getProjectSystemId().getId()) &&
            id.getType() == ExternalSystemTaskType.RESOLVE_PROJECT;
+  }
+
+  public static long getLastGradleSyncTimestamp(@NotNull Project project) {
+    Long timestamp = project.getUserData(PROJECT_LAST_SYNC_TIMESTAMP_KEY);
+    return timestamp != null ? timestamp.longValue() : -1L;
   }
 }
