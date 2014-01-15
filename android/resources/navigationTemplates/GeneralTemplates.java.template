@@ -27,6 +27,10 @@ public class GeneralTemplates {
         $target.$method($argument);
     }
 
+    public static void setContentView(String id) {
+        setContentView(id);
+    }
+
     public static void defineAssignment(String $fragmentName, Void $messageController) {
         getFragment($fragmentName, $messageController);
     }

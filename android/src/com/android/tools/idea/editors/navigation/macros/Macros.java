@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.navigation.macros;
 
-import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElementFactory;
@@ -23,6 +23,8 @@ import com.intellij.psi.PsiMethod;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.IdentityHashMap;
+import java.util.Map;
 
 public class Macros {
   private static final String TEMPLATES_PACKAGE = /*"com.android.templates.".replace('.', '/')*/ "";
@@ -34,12 +36,15 @@ public class Macros {
   public final PsiMethod defineAssignment;
 
   public final MultiMatch createIntentMacro;
+  public final MultiMatch setContentViewMacro;
   public final MultiMatch installItemClickAndCallMacro;
   public final MultiMatch installMenuItemOnGetMenuItemAndLaunchActivityMacro;
   public final MultiMatch defineInnerClassToLaunchActivityMacro;
 
-  private static PsiMethod[] getMethodsByName(Module module, String templateName, String methodName) {
-    JavaPsiFacade facade = JavaPsiFacade.getInstance(module.getProject());
+  private static Map<Project, Macros> ourProjectToMacros = new IdentityHashMap<Project, Macros>();
+
+  private static PsiMethod[] getMethodsByName(String templateName, String methodName, Project project) {
+    JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
     final PsiElementFactory factory = facade.getElementFactory();
     ClassLoader classLoader = Macros.class.getClassLoader();
     try {
@@ -64,19 +69,29 @@ public class Macros {
     }
   }
 
-  public Macros(Module module) {
-    defineAssignment = getMethodsByName(module, GENERAL_TEMPLATES, "defineAssignment")[0];
-    PsiMethod defineInnerClassMacro = getMethodsByName(module, GENERAL_TEMPLATES, "defineInnerClass")[0];
+  public static Macros getInstance(Project project) {
+    Macros result = ourProjectToMacros.get(project);
+    if (result == null) {
+      ourProjectToMacros.put(project, result = new Macros(project));
+    }
+    return result;
+  }
 
-    PsiMethod installMenuItemClickMacro = getMethodsByName(module, LISTENER_TEMPLATES, "installMenuItemClick")[0];
-    PsiMethod installItemClickMacro = getMethodsByName(module, LISTENER_TEMPLATES, "installItemClickListener2")[0];
+  private Macros(Project project) {
+    defineAssignment = getMethodsByName(GENERAL_TEMPLATES, "defineAssignment", project)[0];
+    PsiMethod defineInnerClassMacro = getMethodsByName(GENERAL_TEMPLATES, "defineInnerClass", project)[0];
+    PsiMethod setContentViewMethod = getMethodsByName(GENERAL_TEMPLATES, "setContentView", project)[0];
 
-    PsiMethod getMenuItemMacro = getMethodsByName(module, MENU_ACCESS_TEMPLATES, "getMenuItem")[0];
-    PsiMethod createIntentMethod = getMethodsByName(module, LAUNCH_ACTIVITY_TEMPLATES, "createIntent")[0];
-    PsiMethod launchActivityMacro = getMethodsByName(module, LAUNCH_ACTIVITY_TEMPLATES, "launchActivity")[0];
-    PsiMethod launchActivityMacro2 = getMethodsByName(module, LAUNCH_ACTIVITY_TEMPLATES, "launchActivity")[1];
+    PsiMethod installMenuItemClickMacro = getMethodsByName(LISTENER_TEMPLATES, "installMenuItemClick", project)[0];
+    PsiMethod installItemClickMacro = getMethodsByName(LISTENER_TEMPLATES, "installItemClickListener2", project)[0];
 
-    createIntentMacro =  new MultiMatch(createIntentMethod);
+    PsiMethod getMenuItemMacro = getMethodsByName(MENU_ACCESS_TEMPLATES, "getMenuItem", project)[0];
+    PsiMethod createIntentMethod = getMethodsByName(LAUNCH_ACTIVITY_TEMPLATES, "createIntent", project)[0];
+    PsiMethod launchActivityMacro = getMethodsByName(LAUNCH_ACTIVITY_TEMPLATES, "launchActivity", project)[0];
+    PsiMethod launchActivityMacro2 = getMethodsByName(LAUNCH_ACTIVITY_TEMPLATES, "launchActivity", project)[1];
+
+    setContentViewMacro = new MultiMatch(setContentViewMethod);
+    createIntentMacro = new MultiMatch(createIntentMethod);
     installItemClickAndCallMacro = new MultiMatch(installItemClickMacro);
 
     installMenuItemOnGetMenuItemAndLaunchActivityMacro = new MultiMatch(installMenuItemClickMacro);
