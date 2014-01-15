@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.navigation;
 
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.editors.navigation.macros.MultiMatch;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
@@ -275,5 +276,22 @@ public class Utilities {
 
   public static Module getModule(Project project, VirtualFile file) {
     return NavigationView.getRenderingParams(project, file).myConfiguration.getModule();
+  }
+
+  public static List<MultiMatch.Bindings<PsiElement>> search(@Nullable PsiElement element, final MultiMatch matcher) {
+    final List<MultiMatch.Bindings<PsiElement>> results = new ArrayList<MultiMatch.Bindings<PsiElement>>();
+    if (element != null) {
+      element.accept(new JavaRecursiveElementVisitor() {
+        @Override
+        public void visitMethodCallExpression(PsiMethodCallExpression expression) {
+          super.visitMethodCallExpression(expression);
+          MultiMatch.Bindings<PsiElement> exp = matcher.match(expression);
+          if (exp != null) {
+            results.add(exp);
+          }
+        }
+      });
+    }
+    return results;
   }
 }
