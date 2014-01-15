@@ -105,6 +105,7 @@ public class GradleImportNotificationListener extends ExternalSystemTaskNotifica
       if (!myProjectImportInProgress) {
         return;
       }
+      myProjectImportInProgress = false;
       ApplicationManager.getApplication().invokeLater(new Runnable() {
         @Override
         public void run() {
@@ -114,7 +115,6 @@ public class GradleImportNotificationListener extends ExternalSystemTaskNotifica
           Projects.applyToCurrentGradleProject(new AsyncResult.Handler<Project>() {
             @Override
             public void run(Project project) {
-              myProjectImportInProgress = false;
               project.putUserData(PROJECT_LAST_SYNC_TIMESTAMP_KEY, System.currentTimeMillis());
               EditorNotifications.getInstance(project).updateAllNotifications();
               BuildVariantView.getInstance(project).updateContents();
