@@ -30,6 +30,7 @@ import com.intellij.ide.dnd.DnDTarget;
 import com.intellij.ide.dnd.TransferableWrapper;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;
@@ -734,7 +735,7 @@ public class NavigationView extends JComponent {
 
   private JComboBox createEditorFor(final Transition transition) {
     String gesture = transition.getType();
-    JComboBox c = new JComboBox(new Object[]{"press", "swipe"});
+    JComboBox c = new ComboBox(new DefaultComboBoxModel(new Object[]{"press", "swipe"}));
     c.setSelectedItem(gesture);
     c.setForeground(getForeground());
     //c.setBorder(LABEL_BORDER);
@@ -769,18 +770,18 @@ public class NavigationView extends JComponent {
     if (aClass == null) {
       return null;
     }
-    PsiMethod onCreateMethod = Utilities.getMethodBySignature(aClass, "public void onCreate(Bundle bundle)");
+    PsiMethod onCreateMethod = Utilities.findMethodBySignature(aClass, "public void onCreate(Bundle bundle)");
     if (onCreateMethod == null) {
       return null;
     }
 
-    final Macros macros = Macros.getInstance(module.getProject());
     final List<String> results = new ArrayList<String>();
+    final MultiMatch setContentViewMacro = new MultiMatch(Utilities.createMethod(aClass, "void macro(String id) { setContentView(id); }"));
 
     JavaRecursiveElementVisitor visitor = new JavaRecursiveElementVisitor() {
       @Override
       public void visitMethodCallExpression(PsiMethodCallExpression expression) {
-        MultiMatch.Bindings<PsiElement> exp = macros.setContentViewMacro.match(expression);
+        MultiMatch.Bindings<PsiElement> exp = setContentViewMacro.match(expression);
         if (exp == null) {
           super.visitMethodCallExpression(expression);
         }
