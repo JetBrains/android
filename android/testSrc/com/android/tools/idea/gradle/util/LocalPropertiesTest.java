@@ -16,11 +16,17 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.SdkConstants;
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.util.Properties;
 
 import static org.easymock.EasyMock.*;
 
@@ -69,5 +75,41 @@ public class LocalPropertiesTest extends IdeaTestCase {
     File actual = myLocalProperties.getAndroidSdkPath();
     assertNotNull(actual);
     assertEquals(FileUtil.toCanonicalPath(androidSdkPath), FileUtil.toCanonicalPath(actual.getPath()));
+  }
+
+  @SuppressWarnings("ResultOfMethodCallIgnored")
+  public void testUnicodeLoad() throws Exception {
+    File localPropertiesFile = new File(myProject.getBasePath(), SdkConstants.FN_LOCAL_PROPERTIES);
+    File tempDir = Files.createTempDir();
+    File sdk = new File(tempDir, "\u00C6\u0424");
+    sdk.mkdirs();
+
+    Properties outProperties = new Properties();
+    outProperties.setProperty(SdkConstants.SDK_DIR_PROPERTY, sdk.getPath());
+
+    // First write properties using the default encoding (which will \\u escape all non-iso-8859 chars)
+    outProperties.store(new FileOutputStream(localPropertiesFile), null);
+
+    // Read back platform default version of string; confirm that it gets converted properly
+    LocalProperties properties1 = new LocalProperties(myProject);
+    File sdkPath1 = properties1.getAndroidSdkPath();
+    assertNotNull(sdkPath1);
+    assertTrue(sdkPath1.exists());
+    assertTrue(FileUtil.filesEqual(sdk, sdkPath1));
+
+    // Next write properties using the UTF-8 encoding. Chars will no longer be escaped.
+    // Confirm that we read these in properly too.
+    Writer writer = new OutputStreamWriter(new FileOutputStream(localPropertiesFile), Charsets.UTF_8);
+    outProperties.store(writer, null);
+
+    // Read back platform default version of string; confirm that it gets converted properly
+    LocalProperties properties2 = new LocalProperties(myProject);
+    File sdkPath2 = properties2.getAndroidSdkPath();
+    assertNotNull(sdkPath2);
+    assertTrue(sdkPath2.exists());
+    assertTrue(FileUtil.filesEqual(sdk, sdkPath2));
+
+    sdk.delete();
+    tempDir.delete();
   }
 }
