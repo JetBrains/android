@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.SdkConstants;
+import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.io.Closeables;
@@ -27,10 +28,7 @@ import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.Properties;
 
 /**
@@ -91,13 +89,12 @@ public final class LocalProperties {
       return new Properties();
     }
     Properties properties = new Properties();
-    FileInputStream fileInputStream = null;
+    Reader reader = null;
     try {
-      //noinspection IOResourceOpenedButNotSafelyClosed
-      fileInputStream = new FileInputStream(filePath);
-      properties.load(fileInputStream);
+      reader = new InputStreamReader(new BufferedInputStream(new FileInputStream(filePath)), Charsets.UTF_8);
+      properties.load(reader);
     } finally {
-      Closeables.closeQuietly(fileInputStream);
+      Closeables.close(reader, true);
     }
     return properties;
   }
@@ -138,11 +135,15 @@ public final class LocalProperties {
     FileUtilRt.createParentDirs(myFilePath);
     FileOutputStream out = null;
     try {
-      //noinspection IOResourceOpenedButNotSafelyClosed
       out = new FileOutputStream(myFilePath);
+      // Note that we don't write the properties files in UTF-8; this will *not* write the
+      // files with the default platform encoding; instead, it will write it using ISO-8859-1 and
+      // \\u escaping syntax for other characters. This will work with older versions of the Gradle
+      // plugin which does not read the .properties file with UTF-8 encoding. In the future when
+      // nobody is using older (0.7.x) versions of the Gradle plugin anymore we can upgrade this
       myProperties.store(out, HEADER_COMMENT);
     } finally {
-      Closeables.closeQuietly(out);
+      Closeables.close(out, true);
     }
   }
 
