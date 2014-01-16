@@ -48,7 +48,7 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
 
   @Override
   public Icon getGroupIcon(String group) {
-    return AndroidIcons.Android;
+    return AndroidIcons.Android24;
   }
 
   @NotNull
