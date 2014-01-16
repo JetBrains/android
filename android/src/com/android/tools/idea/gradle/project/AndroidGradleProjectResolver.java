@@ -114,7 +114,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     File moduleRootDir = buildFile.getParentFile();
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
     if (androidProject != null) {
-      Variant selectedVariant = getFirstVariant(androidProject);
+      Variant selectedVariant = getVariantToSelect(androidProject);
       IdeaAndroidProject ideaAndroidProject =
         new IdeaAndroidProject(gradleModule.getName(), moduleRootDir, androidProject, selectedVariant.getName());
       addContentRoot(ideaAndroidProject, ideModule, moduleRootDir);
@@ -334,12 +334,19 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   }
 
   @NotNull
-  private static Variant getFirstVariant(@NotNull AndroidProject androidProject) {
+  private static Variant getVariantToSelect(@NotNull AndroidProject androidProject) {
     Collection<Variant> variants = androidProject.getVariants();
     if (variants.size() == 1) {
       Variant variant = ContainerUtil.getFirstItem(variants);
       assert variant != null;
       return variant;
+    }
+    // look for "debug" variant. This is just a little convenience for the user that has not created any additional flavors/build types.
+    // trying to match something else may add more complexity for little gain.
+    for (Variant variant : variants) {
+      if ("debug".equals(variant.getName())) {
+        return variant;
+      }
     }
     List<Variant> sortedVariants = Lists.newArrayList(variants);
     Collections.sort(sortedVariants, new Comparator<Variant>() {
