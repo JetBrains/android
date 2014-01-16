@@ -81,9 +81,7 @@ import static com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType;
  */
 public class AndroidColorAnnotator implements Annotator {
   private static final int ICON_SIZE = 8;
-  private static final String COLOR_PREFIX = "@color/";
-  private static final String ANDROID_COLOR_PREFIX = "@android:color/";
-  private static final String DRAWABLE_PREFIX = "@drawable/";
+  private static final String ANDROID_COLOR_RESOURCE_PREFIX = "@android:color/";
   private static final int MAX_ICON_SIZE = 5000;
 
   @Override
@@ -141,10 +139,10 @@ public class AndroidColorAnnotator implements Annotator {
           annotation.setGutterIconRenderer(new MyRenderer(element, null));
         }
       }
-    } else if (value.startsWith(COLOR_PREFIX)) {
-      annotateResourceReference(ResourceType.COLOR, holder, element, value.substring(COLOR_PREFIX.length()), false);
-    } else if (value.startsWith(ANDROID_COLOR_PREFIX)) {
-      annotateResourceReference(ResourceType.COLOR, holder, element, value.substring(ANDROID_COLOR_PREFIX.length()), true);
+    } else if (value.startsWith(COLOR_RESOURCE_PREFIX)) {
+      annotateResourceReference(ResourceType.COLOR, holder, element, value.substring(COLOR_RESOURCE_PREFIX.length()), false);
+    } else if (value.startsWith(ANDROID_COLOR_RESOURCE_PREFIX)) {
+      annotateResourceReference(ResourceType.COLOR, holder, element, value.substring(ANDROID_COLOR_RESOURCE_PREFIX.length()), true);
     } else if (value.startsWith(DRAWABLE_PREFIX)) {
       annotateResourceReference(ResourceType.DRAWABLE, holder, element, value.substring(DRAWABLE_PREFIX.length()), false);
     } else if (value.startsWith(ANDROID_DRAWABLE_PREFIX)) {
