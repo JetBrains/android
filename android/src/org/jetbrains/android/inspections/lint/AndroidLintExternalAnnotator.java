@@ -121,7 +121,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
 
       List<VirtualFile> files = Collections.singletonList(mainFile);
       LintRequest request = new IntellijLintRequest(client, state.getModule().getProject(), files,
-                                                    Collections.singletonList(state.getModule()));
+                                                    Collections.singletonList(state.getModule()), true /* incremental */);
       request.setScope(scope);
 
       lint.analyze(request);

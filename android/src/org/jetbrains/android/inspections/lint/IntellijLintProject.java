@@ -93,6 +93,25 @@ class IntellijLintProject extends Project {
     }
   }
 
+  @Nullable
+  public static Project createForSingleFile(@NonNull IntellijLintClient client, @Nullable VirtualFile file, @NonNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    // TODO: Can make this method even more lightweight: we don't need to initialize anything in the project (source paths etc)
+    // other than the metadata necessary for this file's type
+    LintModuleProject project = facet != null ? createModuleProject(client, facet) : null;
+    Map<Project,Module> projectMap = Maps.newHashMap();
+    if (project != null) {
+      project.setDirectLibraries(Collections.<Project>emptyList());
+      if (file != null) {
+        project.addFile(VfsUtilCore.virtualToIoFile(file));
+      }
+      projectMap.put(project, module);
+    }
+    client.setModuleMap(projectMap);
+
+    return project;
+  }
+
   /**
    * Recursively add lint projects for the given module, and any other module or library it depends on, and also
    * populate the reverse maps so we can quickly map from a lint project to a corresponding module/library (used
@@ -403,8 +422,6 @@ class IntellijLintProject extends Project {
       super(client, dir, referenceDir, facet);
       mGradleProject = true;
       mMergeManifests = true;
-
-      // TODO: Read mBuildSdk from compileSdkVersion in the build.gradle file!
     }
 
     @NonNull
