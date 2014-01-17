@@ -28,7 +28,7 @@ public class Unifier {
   public static final String STATEMENT_SENTINEL = "$";
   // A stand-in method name used to make statement wildcards: wild cards that match statements - e.g. $f.$()
   public static final String STATEMENTS_SENTINEL = "$$";
-  // A stand-in method name used to wildcards: wild cards that match a set of statements - e.g. $f.$$()
+  // A stand-in method name used to match blocks: wild cards that match a set of statements - e.g. $f.$$()
   private static final boolean DEBUG = false;
   private int indent = 0;
 
