@@ -489,18 +489,10 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
             try {
               final RenderService service = RenderService.create(myFacet, module, myXmlFile, myConfiguration, logger, renderContext);
               if (service != null) {
-                // Prefetch outside of read lock
-                service.getResourceResolver();
-                renderResult = ApplicationManager.getApplication().runReadAction(new Computable<RenderResult>() {
-                  @Nullable
-                  @Override
-                  public RenderResult compute() {
-                    if (!ToggleRenderModeAction.isRenderViewPort()) {
-                      service.useDesignMode(myXmlFile.getRootTag());
-                    }
-                    return service.render();
-                  }
-                });
+                if (!ToggleRenderModeAction.isRenderViewPort()) {
+                  service.useDesignMode(myXmlFile);
+                }
+                renderResult = service.render();
                 service.dispose();
               } else {
                 renderResult = RenderResult.createBlank(myXmlFile, logger);
