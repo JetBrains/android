@@ -200,56 +200,6 @@ public class Utilities {
     return d == null ? ZERO_SIZE : d;
   }
 
-  @NotNull
-  public static PsiJavaCodeReferenceElement[] getReferenceElementsBySignature(final @NotNull PsiClass clazz, String signature) {
-    final List<PsiJavaCodeReferenceElement> results = new ArrayList<PsiJavaCodeReferenceElement>();
-
-    // test
-    JavaRecursiveElementVisitor visitor = new JavaRecursiveElementVisitor() {
-      private boolean debug = false;
-      private int indent = 0;
-
-      @Override
-      public void visitReferenceElement(PsiJavaCodeReferenceElement reference) {
-        super.visitReferenceElement(reference);
-        if (AndroidPsiUtils.getResourceReferenceType(reference) == AndroidPsiUtils.ResourceReferenceType.APP) {
-          if (debug) System.out.println("reference = " + reference);
-          results.add(reference);
-        }
-      }
-
-      @Override
-      public void visitElement(PsiElement element) {
-        indent++;
-        for (int i = 0; i < indent; i++) {
-          if (debug) System.out.print("  ");
-        }
-        if (debug) System.out.println(element);
-
-        //ProgressIndicatorProvider.checkCanceled();
-        element.acceptChildren(this);
-        indent--;
-      }
-    };
-
-    /*
-    Module module = myMyRenderingParams.myFacet.getModule();
-    JavaPsiFacade facade = JavaPsiFacade.getInstance(module.getProject());
-    PsiElementFactory factory = facade.getElementFactory();
-    GlobalSearchScope scope = module.getModuleWithDependenciesAndLibrariesScope(false);
-    PsiClass aClass = facade.findClass("android.os.Bundle", scope);
-    PsiMethod protoType = factory.createMethod("onCreate", factory.createType(aClass));
-    PsiMethod onCreates = clazz.findMethodBySignature(protoType, false);
-    */
-
-    PsiMethod method = findMethodBySignature(clazz, signature);
-    if (method != null) {
-      method.accept(visitor);
-    }
-
-    return results.toArray(new PsiJavaCodeReferenceElement[results.size()]);
-  }
-
   @Nullable
   public static PsiClass getPsiClass(Module module, String className) {
     JavaPsiFacade facade = JavaPsiFacade.getInstance(module.getProject());
