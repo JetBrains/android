@@ -17,7 +17,6 @@ package org.jetbrains.android.sdk;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidTestCaseHelper;
-import com.android.utils.NullLogger;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -92,7 +91,7 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
   private static void createAndroidSdk(@NotNull String androidHomePath, @NotNull String targetHashString, @NotNull Sdk javaSdk) {
     Sdk sdk = SdkConfigurationUtil.createAndAddSDK(androidHomePath, AndroidSdkType.getInstance());
     assertNotNull(sdk);
-    AndroidSdkData sdkData = AndroidSdkData.parse(androidHomePath, NullLogger.getLogger());
+    AndroidSdkData sdkData = AndroidSdkData.getSdkData(androidHomePath);
     assertNotNull(sdkData);
     IAndroidTarget target = sdkData.findTargetByHashString(targetHashString);
     assertNotNull(target);

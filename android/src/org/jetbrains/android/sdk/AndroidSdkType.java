@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.sdk;
 
+import com.android.SdkConstants;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.sdk.Jdks;
@@ -23,15 +24,16 @@ import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.projectRoots.impl.JavaDependentSdkType;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.io.FileUtil;
 import icons.AndroidIcons;
 import org.jdom.Element;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -87,13 +89,18 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
       return Pair.create(Boolean.FALSE, "");
     }
 
-    MessageBuildingSdkLog logger = new MessageBuildingSdkLog();
-    if (AndroidCommonUtils.createSdkManager(path, logger) != null) {
-      //noinspection ConstantConditions
-      return Pair.create(Boolean.TRUE, null);
-    } else {
-      return Pair.create(Boolean.FALSE, logger.getErrorMessage());
+    path = FileUtil.toSystemDependentName(path);
+    final File f = new File(path);
+    if (!f.exists() || !f.isDirectory()) {
+      return Pair.create(Boolean.FALSE, "SDK does not exist");
     }
+
+    final File platformsDir = new File(f, SdkConstants.FD_PLATFORMS);
+    if (!platformsDir.exists() || !platformsDir.isDirectory()) {
+      return Pair.create(Boolean.FALSE, "SDK does not contain any platforms");
+    }
+
+    return Pair.create(Boolean.TRUE, null);
   }
 
   @Override
@@ -124,7 +131,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
     }
 
     MessageBuildingSdkLog log = new MessageBuildingSdkLog();
-    AndroidSdkData sdkData = AndroidSdkData.parse(sdk.getHomePath(), log);
+    AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
 
     if (sdkData == null) {
       String errorMessage = log.getErrorMessage().length() > 0 ? log.getErrorMessage() : AndroidBundle.message("cannot.parse.sdk.error");

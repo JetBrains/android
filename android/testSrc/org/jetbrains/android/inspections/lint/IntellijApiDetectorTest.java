@@ -15,13 +15,13 @@
  */
 package org.jetbrains.android.inspections.lint;
 
-import com.android.sdklib.SdkManager;
 import com.android.tools.idea.wizard.ConfigureAndroidModuleStep;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -73,8 +73,8 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
   public void testTryWithResources() throws Exception {
     // TODO: Allow setting a custom minSdkVersion in the manifest so I can test both with and without
 
-    SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
-    if (sdkManager == null || !ConfigureAndroidModuleStep.isJdk7Supported(sdkManager)) {
+    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    if (sdkData == null || !ConfigureAndroidModuleStep.isJdk7Supported(sdkData)) {
       System.out.println("Skipping IntellijApiDetectorTest#testTryWithResources: Test JDK must be JDK 7 or higher");
       return;
     }

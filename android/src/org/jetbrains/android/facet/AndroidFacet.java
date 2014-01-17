@@ -23,7 +23,6 @@ import com.android.ddmlib.IDevice;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -106,7 +105,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public static final String NAME = "Android";
 
   private AvdManager myAvdManager = null;
-  private SdkManager mySdkManager;
+  private AndroidSdkData mySdkData;
 
   private SystemResourceManager myPublicSystemResourceManager;
   private SystemResourceManager myFullSystemResourceManager;
@@ -584,9 +583,9 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @NotNull
   public AvdManager getAvdManager(ILogger log) throws AvdsNotSupportedException, AndroidLocation.AndroidLocationException {
     if (myAvdManager == null) {
-      SdkManager sdkManager = getSdkManager();
-      if (sdkManager != null) {
-        myAvdManager = AvdManager.getInstance(sdkManager, log);
+      AndroidSdkData sdkData = getSdkData();
+      if (sdkData != null) {
+        myAvdManager = AvdManager.getInstance(sdkData.getLocalSdk(), log);
       }
       else {
         throw new AvdsNotSupportedException();
@@ -596,17 +595,13 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   @Nullable
-  public SdkManager getSdkManager() {
-    if (mySdkManager == null) {
+  public AndroidSdkData getSdkData() {
+    if (mySdkData == null) {
       AndroidPlatform platform = getConfiguration().getAndroidPlatform();
-      AndroidSdkData sdkData = platform != null ? platform.getSdkData() : null;
-
-      if (sdkData != null) {
-        mySdkManager = sdkData.getSdkManager();
-      }
+      mySdkData = platform != null ? platform.getSdkData() : null;
     }
 
-    return mySdkManager;
+    return mySdkData;
   }
 
   /**
@@ -617,8 +612,8 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    */
   @Nullable
   public IAndroidTarget getTargetFromHashString(@NotNull String hash) {
-    SdkManager sdkManager = getSdkManager();
-    return sdkManager != null ? sdkManager.getTargetFromHashString(hash) : null;
+    AndroidSdkData sdkData = getSdkData();
+    return sdkData != null ? sdkData.getLocalSdk().getTargetFromHashString(hash) : null;
   }
 
   public void launchEmulator(@Nullable final String avdName, @NotNull final String commands, @NotNull final ProcessHandler handler) {
@@ -721,7 +716,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       }
     });
   }
-  
+
   private void addResourceFolderToSdkRootsIfNecessary() {
     final Sdk sdk = ModuleRootManager.getInstance(getModule()).getSdk();
     if (sdk == null || !(sdk.getSdkType() instanceof AndroidSdkType)) {
@@ -750,7 +745,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     }
 
     if (platform.needToAddAnnotationsJarToClasspath()) {
-      final String sdkHomePath = FileUtil.toSystemIndependentName(platform.getSdkData().getLocation());
+      final String sdkHomePath = FileUtil.toSystemIndependentName(platform.getSdkData().getLocation().getPath());
       final VirtualFile annotationsJar = JarFileSystem.getInstance().findFileByPath(
         sdkHomePath + AndroidCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH + JarFileSystem.JAR_SEPARATOR);
       if (annotationsJar != null) {

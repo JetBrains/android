@@ -92,11 +92,11 @@ class AndroidSdkConfigurableForm {
         for (OrderRootType type : OrderRootType.getAllTypes()) {
           final VirtualFile[] oldRoots = sdkModificator.getRoots(type);
           final String[] oldRootPaths = new String[oldRoots.length];
-          
+
           for (int i = 0; i < oldRootPaths.length; i++) {
             oldRootPaths[i] = oldRoots[i].getPath();
           }
-          
+
           configuredRoots.put(type, oldRootPaths);
         }
 
@@ -132,7 +132,7 @@ class AndroidSdkConfigurableForm {
 
   public void init(@Nullable Sdk jdk, Sdk androidSdk, IAndroidTarget buildTarget) {
     updateJdks();
-    
+
     final String jdkName = jdk != null ? jdk.getName() : null;
 
     if (androidSdk != null) {
@@ -145,7 +145,7 @@ class AndroidSdkConfigurableForm {
     }
 
     mySdkLocation = androidSdk != null ? androidSdk.getHomePath() : null;
-    AndroidSdkData androidSdkData = mySdkLocation != null ? AndroidSdkData.parse(mySdkLocation, NullLogger.getLogger()) : null;
+    AndroidSdkData androidSdkData = mySdkLocation != null ? AndroidSdkData.getSdkData(mySdkLocation) : null;
 
     myFreeze = true;
     updateBuildTargets(androidSdkData, buildTarget);
