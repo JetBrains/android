@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.sdklib.SdkManager;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
@@ -26,6 +25,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -91,9 +91,9 @@ public class TemplateManager {
     }
 
     // Fall back to SDK template root
-    SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
-    if (sdkManager != null) {
-      String location = sdkManager.getLocation();
+    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    if (sdkData != null) {
+      File location = sdkData.getLocation();
       File folder = new File(location, FD_TOOLS + File.separator + FD_TEMPLATES);
       if (folder.isDirectory()) {
         return folder;

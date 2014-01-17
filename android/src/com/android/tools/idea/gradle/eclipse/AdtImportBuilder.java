@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.eclipse;
 
-import com.android.sdklib.SdkManager;
 import com.android.tools.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.NewProjectImportCallback;
@@ -34,6 +33,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.packaging.artifacts.ModifiableArtifactModel;
 import com.intellij.projectImport.ProjectImportBuilder;
 import icons.EclipseIcons;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -74,9 +74,9 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
       File wrapper = TemplateManager.getWrapperLocation(templates);
       if (wrapper.exists()) {
         importer.setGradleWrapperLocation(wrapper);
-        SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
-        if (sdkManager != null) {
-          importer.setSdkManager(sdkManager);
+        AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+        if (sdkData != null) {
+          importer.setSdkLocation(sdkData.getLocation());
         }
       }
     }
