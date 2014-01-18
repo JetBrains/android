@@ -61,7 +61,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.regex.Pattern;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.NewModuleWizardState.APP_NAME;
@@ -518,15 +517,26 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
         return false;
       }
       // Check the individual components for not allowed characters.
-      for (String s : projectLocation.split(Pattern.quote(File.separator))) {
-        if (ILLEGAL_CHARACTER_MATCHER.matchesAnyOf(s)) {
-          char illegalChar = s.charAt(ILLEGAL_CHARACTER_MATCHER.indexIn(s));
-          setErrorHtml(String.format(Locale.getDefault(), "Illegal character in project location path: '%c' in filename: %s", illegalChar, s));
+      File testFile = new File(projectLocation);
+      if ((File.separatorChar == '/' && projectLocation.contains("\\")) ||
+          (File.separatorChar == '\\' && projectLocation.contains("/"))) {
+        setErrorHtml("Your project location contains incorrect slashes ('\\' vs '/')");
+        return false;
+      }
+      while (testFile != null) {
+        String filename = testFile.getName();
+        if (ILLEGAL_CHARACTER_MATCHER.matchesAnyOf(filename)) {
+          char illegalChar = filename.charAt(ILLEGAL_CHARACTER_MATCHER.indexIn(filename));
+          setErrorHtml(String.format("Illegal character in project location path: '%c' in filename: %s", illegalChar, filename));
           return false;
         }
-        if (CharMatcher.WHITESPACE.matchesAnyOf(s)) {
+        if (CharMatcher.WHITESPACE.matchesAnyOf(filename)) {
           setErrorHtml("Your project location contains whitespace. This can cause problems on some platforms and is not recommended.");
         }
+        if (!CharMatcher.ASCII.matchesAllOf(filename)) {
+          setErrorHtml("Your project location contains non-ASCII characters. This can cause problems on Windows. Proceed with caution.");
+        }
+        testFile = testFile.getParentFile();
       }
       File file = new File(projectLocation);
       if (file.exists()) {
