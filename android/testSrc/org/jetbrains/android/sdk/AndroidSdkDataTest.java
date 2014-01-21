@@ -86,12 +86,13 @@ public class AndroidSdkDataTest extends AndroidTestCase {
 
     String otherEnding;
     if (testSdkPath.endsWith(File.separator)) {
-      otherEnding = testSdkPath.substring(testSdkPath.length() - 2);
+      otherEnding = testSdkPath.substring(0, testSdkPath.length() - 2);
     } else {
       otherEnding = testSdkPath + File.separator;
     }
 
     assertFalse(otherEnding.equals(testSdkPath));
+    assertEquals(new File(testSdkPath), new File(otherEnding));
     assertSame(AndroidSdkData.getSdkData(testSdkPath), AndroidSdkData.getSdkData(otherEnding));
 
     assertFalse(AndroidSdkData.getSdkData(getTestSdkPath()).equals(AndroidSdkData.getSdkData(getDefaultTestSdkPath())));
