@@ -240,13 +240,13 @@ class GradleTasksExecutor extends Task.Backgroundable {
         final Stopwatch stopwatch = new Stopwatch();
         stopwatch.start();
 
-        GradleConsoleView.getInstance(getNotNullProject()).clear();
+        GradleConsoleView consoleView = GradleConsoleView.getInstance(project);
+        consoleView.clear();
+
         addMessage(new GradleMessage(GradleMessage.Kind.INFO, "Gradle tasks " + myGradleTasks), null);
 
         ExternalSystemTaskId id = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project);
         List<String> extraJvmArgs = getGradleInvocationJvmArgs(new File(projectPath));
-
-        GradleConsoleView consoleView = GradleConsoleView.getInstance(getNotNullProject());
 
         String executingTasksText =
           "Executing tasks: " + myGradleTasks + SystemProperties.getLineSeparator() + SystemProperties.getLineSeparator();
