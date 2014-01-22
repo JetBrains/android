@@ -104,12 +104,12 @@ public class AndroidDbManager extends DbPsiManagerSpi {
 
   @NotNull
   @Override
-  public DataSourceTemplate[] getDataSourceTemplates() {
+  public List<DataSourceTemplate> getDataSourceTemplates() {
     if (ProjectFacetManager.getInstance(myDbFacade.getProject()).hasFacets(AndroidFacet.ID)) {
-      return new DataSourceTemplate[] { DEFAULT_TEMPLATE };
+      return Collections.singletonList(DEFAULT_TEMPLATE);
     }
     else {
-      return new DataSourceTemplate[0];
+      return Collections.emptyList();
     }
   }
 
@@ -206,10 +206,10 @@ public class AndroidDbManager extends DbPsiManagerSpi {
       return getName();
     }
 
-    @Nullable
+    @NotNull
     @Override
-    public DataSourceTemplate[] getSubConfigurations() {
-      return null;
+    public List<DataSourceTemplate> getSubConfigurations() {
+      return Collections.emptyList();
     }
 
     @NotNull
