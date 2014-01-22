@@ -25,7 +25,9 @@ import com.android.tools.idea.gradle.customizer.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -125,6 +127,21 @@ public class GradleProjectImporter {
   public void importProject(@NotNull VirtualFile selectedFile) {
     VirtualFile projectDir = selectedFile.isDirectory() ? selectedFile : selectedFile.getParent();
     File projectDirPath = new File(FileUtil.toSystemDependentName(projectDir.getPath()));
+
+    // Sync Android SDKs paths *before* importing project. Studio will freeze if the project has a local.properties file pointing to a SDK
+    // path that does not exist. The cause is that having 2 dialogs: one modal (the "Project Import" one) and another from
+    // Messages.showErrorDialog (indicating the Android SDK path does not exist) produce a deadlock.
+    try {
+      LocalProperties localProperties = new LocalProperties(projectDirPath);
+      if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+        SdkSync.syncIdeAndProjectAndroidHomes(localProperties);
+      }
+    }
+    catch (IOException e) {
+      LOG.info("Failed to sync SDKs", e);
+      Messages.showErrorDialog(e.getMessage(), "Project Import");
+      return;
+    }
 
     // Set up Gradle settings. Otherwise we get an "already disposed project" error.
     new GradleSettings(ProjectManager.getInstance().getDefaultProject());
