@@ -51,6 +51,11 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
     return AndroidIcons.Android24;
   }
 
+  @Override
+  public String getParentGroup(String group) {
+    return "Java";
+  }
+
   @NotNull
   @Override
   public ProjectTemplate[] createTemplates(String group, WizardContext context) {
