@@ -136,8 +136,6 @@ public final class LocalProperties {
 
   /**
    * Saves any changes to the underlying local.properties file.
-   *
-   * @throws IOException
    */
   public void save() throws IOException {
     FileUtilRt.createParentDirs(myFilePath);
