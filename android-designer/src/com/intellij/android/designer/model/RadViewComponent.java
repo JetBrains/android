@@ -18,9 +18,11 @@ package com.intellij.android.designer.model;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.designer.AndroidMetaModel;
+import com.android.tools.idea.designer.Insets;
 import com.android.tools.idea.rendering.RenderService;
 import com.intellij.android.designer.AndroidDesignerUtils;
 import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
+import com.intellij.android.designer.designSurface.TransformedComponent;
 import com.intellij.designer.designSurface.EditableArea;
 import com.intellij.designer.designSurface.ScalableComponent;
 import com.intellij.designer.model.*;
@@ -50,8 +52,8 @@ import static com.android.SdkConstants.*;
 public class RadViewComponent extends RadVisualComponent {
   private final List<RadComponent> myChildren = new ArrayList<RadComponent>();
   protected ViewInfo myViewInfo;
-  private com.android.tools.idea.designer.Insets myMargins;
-  private com.android.tools.idea.designer.Insets myPadding;
+  private Insets myMargins;
+  private Insets myPadding;
   private XmlTag myTag;
   private List<Property> myProperties;
   private PaletteItem myPaletteItem;
@@ -134,6 +136,7 @@ public class RadViewComponent extends RadVisualComponent {
     return id;
   }
 
+  @Nullable
   public String getId() {
     String idValue = getTag().getAttributeValue("id", SdkConstants.NS_RESOURCES);
     return StringUtil.isEmpty(idValue) ? null : idValue;
@@ -157,7 +160,7 @@ public class RadViewComponent extends RadVisualComponent {
   }
 
   @NotNull
-  public com.android.tools.idea.designer.Insets getMargins() {
+  public Insets getMargins() {
     if (myMargins == null) {
       try {
         Object layoutParams = myViewInfo.getLayoutParamsObject();
@@ -168,20 +171,20 @@ public class RadViewComponent extends RadVisualComponent {
         int right = fixDefault(layoutClass.getField("rightMargin").getInt(layoutParams));
         int bottom = fixDefault(layoutClass.getField("bottomMargin").getInt(layoutParams));
         if (left == 0 && top == 0 && right == 0 && bottom == 0) {
-          myMargins = com.android.tools.idea.designer.Insets.NONE;
+          myMargins = Insets.NONE;
         } else {
-          myMargins = new com.android.tools.idea.designer.Insets(left, top, right, bottom);
+          myMargins = new Insets(left, top, right, bottom);
         }
       }
       catch (Throwable e) {
-        myMargins = com.android.tools.idea.designer.Insets.NONE;
+        myMargins = Insets.NONE;
       }
     }
     return myMargins;
   }
 
   @NotNull
-  public com.android.tools.idea.designer.Insets getPadding() {
+  public Insets getPadding() {
     if (myPadding == null) {
       try {
         Object layoutParams = myViewInfo.getViewObject();
@@ -192,28 +195,28 @@ public class RadViewComponent extends RadVisualComponent {
         int right = fixDefault((Integer)layoutClass.getMethod("getPaddingRight").invoke(layoutParams));
         int bottom = fixDefault((Integer)layoutClass.getMethod("getPaddingBottom").invoke(layoutParams));
         if (left == 0 && top == 0 && right == 0 && bottom == 0) {
-          myPadding = com.android.tools.idea.designer.Insets.NONE;
+          myPadding = Insets.NONE;
         } else {
-          myPadding = new com.android.tools.idea.designer.Insets(left, top, right, bottom);
+          myPadding = new Insets(left, top, right, bottom);
         }
       }
       catch (Throwable e) {
-        myPadding = com.android.tools.idea.designer.Insets.NONE;
+        myPadding = Insets.NONE;
       }
     }
     return myPadding;
   }
 
-  public com.android.tools.idea.designer.Insets getMargins(Component relativeTo) {
-    com.android.tools.idea.designer.Insets margins = getMargins();
+  public Insets getMargins(Component relativeTo) {
+    Insets margins = getMargins();
     if (margins.isEmpty()) {
       return margins;
     }
     return fromModel(relativeTo, margins);
   }
 
-  public com.android.tools.idea.designer.Insets getPadding(Component relativeTo) {
-    com.android.tools.idea.designer.Insets padding = getPadding();
+  public Insets getPadding(Component relativeTo) {
+    Insets padding = getPadding();
     if (padding.isEmpty()) {
       return padding;
     }
@@ -454,9 +457,9 @@ public class RadViewComponent extends RadVisualComponent {
    * the amount of rounding error.
    */
   public Rectangle toModelDp(int dpi, @NotNull Component source, @NotNull Rectangle rectangle) {
-    Component myNativeComponent = getNativeComponent();
-    Rectangle bounds = myNativeComponent == source
-                       ? rectangle : SwingUtilities.convertRectangle(source, rectangle, myNativeComponent);
+    Component nativeComponent = getNativeComponent();
+    Rectangle bounds = nativeComponent == source
+                       ? rectangle : SwingUtilities.convertRectangle(source, rectangle, nativeComponent);
 
     // To convert px to dpi, dp = px * 160 / dpi
     double x = 160 * bounds.x;
@@ -464,9 +467,11 @@ public class RadViewComponent extends RadVisualComponent {
     double w = 160 * bounds.width;
     double h = 160 * bounds.height;
 
-    if (myNativeComponent != source && myNativeComponent instanceof ScalableComponent) {
-      ScalableComponent scalableComponent = (ScalableComponent)myNativeComponent;
-      double zoom = scalableComponent.getScale();
+    if (nativeComponent != source && nativeComponent instanceof TransformedComponent) {
+      TransformedComponent transform = (TransformedComponent)nativeComponent;
+      x -= transform.getShiftX();
+      y -= transform.getShiftY();
+      double zoom = transform.getScale();
       if (zoom != 1) {
         x /= zoom;
         y /= zoom;
@@ -499,17 +504,19 @@ public class RadViewComponent extends RadVisualComponent {
    * the amount of rounding error.
    */
   public Point toModelDp(int dpi, @NotNull Component source, @NotNull Point point) {
-    Component myNativeComponent = getNativeComponent();
-    Point bounds = myNativeComponent == source
-                       ? point : SwingUtilities.convertPoint(source, point, myNativeComponent);
+    Component nativeComponent = getNativeComponent();
+    Point bounds = nativeComponent == source
+                       ? point : SwingUtilities.convertPoint(source, point, nativeComponent);
 
     // To convert px to dpi, dp = px * 160 / dpi
     double x = 160 * bounds.x;
     double y = 160 * bounds.y;
 
-    if (myNativeComponent != source && myNativeComponent instanceof ScalableComponent) {
-      ScalableComponent scalableComponent = (ScalableComponent)myNativeComponent;
-      double zoom = scalableComponent.getScale();
+    if (nativeComponent != source && nativeComponent instanceof TransformedComponent) {
+      TransformedComponent transform = (TransformedComponent)nativeComponent;
+      x -= transform.getShiftX();
+      y -= transform.getShiftY();
+      double zoom = transform.getScale();
       if (zoom != 1) {
         x /= zoom;
         y /= zoom;
@@ -538,15 +545,15 @@ public class RadViewComponent extends RadVisualComponent {
    * the amount of rounding error.
    */
   public Dimension toModelDp(int dpi, @NotNull Component source, @NotNull Dimension size) {
-    Component myNativeComponent = getNativeComponent();
+    Component nativeComponent = getNativeComponent();
     size = new Dimension(size);
 
     // To convert px to dpi, dp = px * 160 / dpi
     double w = 160 * size.width;
     double h = 160 * size.height;
 
-    if (myNativeComponent != source && myNativeComponent instanceof ScalableComponent) {
-      ScalableComponent scalableComponent = (ScalableComponent)myNativeComponent;
+    if (nativeComponent != source && nativeComponent instanceof ScalableComponent) {
+      ScalableComponent scalableComponent = (ScalableComponent)nativeComponent;
       double zoom = scalableComponent.getScale();
       if (zoom != 1) {
         w /= zoom;
@@ -561,18 +568,17 @@ public class RadViewComponent extends RadVisualComponent {
       (int)(h / dpiDouble));
   }
 
-  public com.android.tools.idea.designer.Insets fromModel(@NotNull Component target, @NotNull com.android.tools.idea.designer.Insets insets) {
+  public Insets fromModel(@NotNull Component target, @NotNull Insets insets) {
     if (insets.isEmpty()) {
       return insets;
     }
 
-    Component myNativeComponent = getNativeComponent();
-
-    if (target != myNativeComponent && myNativeComponent instanceof ScalableComponent) {
-      ScalableComponent scalableComponent = (ScalableComponent)myNativeComponent;
+    Component nativeComponent = getNativeComponent();
+    if (target != nativeComponent && nativeComponent instanceof ScalableComponent) {
+      ScalableComponent scalableComponent = (ScalableComponent)nativeComponent;
       double zoom = scalableComponent.getScale();
       if (zoom != 1) {
-        return new com.android.tools.idea.designer.Insets((int)(insets.left * zoom), (int)(insets.top * zoom), (int)(insets.right * zoom),
+        return new Insets((int)(insets.left * zoom), (int)(insets.top * zoom), (int)(insets.right * zoom),
                            (int)(insets.bottom * zoom));
       }
     }
@@ -580,18 +586,18 @@ public class RadViewComponent extends RadVisualComponent {
     return insets;
   }
 
-  public com.android.tools.idea.designer.Insets toModel(@NotNull Component source, @NotNull com.android.tools.idea.designer.Insets insets) {
+  public Insets toModel(@NotNull Component source, @NotNull Insets insets) {
     if (insets.isEmpty()) {
       return insets;
     }
 
-    Component myNativeComponent = getNativeComponent();
+    Component nativeComponent = getNativeComponent();
 
-    if (source != myNativeComponent && myNativeComponent instanceof ScalableComponent) {
-      ScalableComponent scalableComponent = (ScalableComponent)myNativeComponent;
+    if (source != nativeComponent && nativeComponent instanceof ScalableComponent) {
+      ScalableComponent scalableComponent = (ScalableComponent)nativeComponent;
       double zoom = scalableComponent.getScale();
       if (zoom != 1) {
-        return new com.android.tools.idea.designer.Insets((int)(insets.left / zoom), (int)(insets.top / zoom), (int)(insets.right / zoom),
+        return new Insets((int)(insets.left / zoom), (int)(insets.top / zoom), (int)(insets.right / zoom),
                            (int)(insets.bottom / zoom));
       }
     }
@@ -611,8 +617,8 @@ public class RadViewComponent extends RadVisualComponent {
   public Rectangle getPaddedBounds() {
     Rectangle bounds = getBounds();
 
-    com.android.tools.idea.designer.Insets padding = getPadding();
-    if (padding == com.android.tools.idea.designer.Insets.NONE) {
+    Insets padding = getPadding();
+    if (padding == Insets.NONE) {
       return bounds;
     }
 
@@ -662,5 +668,119 @@ public class RadViewComponent extends RadVisualComponent {
                                  @Nullable JComponent shortcuts,
                                  @NotNull List<RadComponent> selection) {
     return false;
+  }
+
+  // Coordinate transformations.
+  // These are like the implementations in RadVisualComponent (the parent class), except
+  // that instead of looking for a ScalableComponent it checks for its sub-interface,
+  // TransformedComponent, which adds in translation as well as part of the transform.
+
+  @Override
+  public Rectangle fromModel(@NotNull Component target, @NotNull Rectangle bounds) {
+    Component nativeComponent = getNativeComponent();
+    if (target != nativeComponent && nativeComponent instanceof TransformedComponent) {
+      TransformedComponent transform = (TransformedComponent)nativeComponent;
+      int shiftX = transform.getShiftX();
+      int shiftY = transform.getShiftY();
+      double zoom = transform.getScale();
+      if (zoom != 1 || shiftX != 0 || shiftY != 0) {
+        bounds = new Rectangle(bounds);
+        bounds.x *= zoom;
+        bounds.y *= zoom;
+        bounds.width *= zoom;
+        bounds.height *= zoom;
+        bounds.x += shiftX;
+        bounds.y += shiftY;
+      }
+    }
+
+    return nativeComponent == target
+           ? new Rectangle(bounds) :
+           SwingUtilities.convertRectangle(nativeComponent, bounds, target);
+  }
+
+  @Override
+  public Rectangle toModel(@NotNull Component source, @NotNull Rectangle rectangle) {
+    Component nativeComponent = getNativeComponent();
+    Rectangle bounds = nativeComponent == source
+                       ? new Rectangle(rectangle) : SwingUtilities.convertRectangle(source, rectangle, nativeComponent);
+
+    if (nativeComponent != source && nativeComponent instanceof TransformedComponent) {
+      TransformedComponent transform = (TransformedComponent)nativeComponent;
+      bounds.x -= transform.getShiftX();
+      bounds.y -= transform.getShiftY();
+      double zoom = transform.getScale();
+      if (zoom != 1) {
+        bounds = new Rectangle(bounds);
+        bounds.x /= zoom;
+        bounds.y /= zoom;
+        bounds.width /= zoom;
+        bounds.height /= zoom;
+      }
+    }
+
+    return bounds;
+  }
+
+  @Override
+  public Point fromModel(@NotNull Component target, @NotNull Point point) {
+    Component nativeComponent = getNativeComponent();
+    if (target != nativeComponent && nativeComponent instanceof TransformedComponent) {
+      TransformedComponent transform = (TransformedComponent)nativeComponent;
+      int shiftX = transform.getShiftX();
+      int shiftY = transform.getShiftY();
+      double zoom = transform.getScale();
+      if (zoom != 1 || shiftX != 0 || shiftY != 0) {
+        point = new Point(point);
+        point.x *= zoom;
+        point.y *= zoom;
+        point.x += shiftX;
+        point.y += shiftY;
+      }
+    }
+
+    return nativeComponent == target
+           ? new Point(point) :
+           SwingUtilities.convertPoint(nativeComponent, point, target);
+  }
+
+  @Override
+  public Point toModel(@NotNull Component source, @NotNull Point point) {
+    Component nativeComponent = getNativeComponent();
+    Point p = nativeComponent == source
+              ? new Point(point) : SwingUtilities.convertPoint(source, point, nativeComponent);
+
+    if (nativeComponent != source && nativeComponent instanceof TransformedComponent) {
+      TransformedComponent transform = (TransformedComponent)nativeComponent;
+      p.x -= transform.getShiftX();
+      p.y -= transform.getShiftY();
+      double zoom = transform.getScale();
+      if (zoom != 1) {
+        p = new Point(p);
+        p.x /= zoom;
+        p.y /= zoom;
+      }
+    }
+
+    return p;
+  }
+
+  @Override
+  public Point convertPoint(Component relativeFrom, int x, int y) {
+    Component nativeComponent = getNativeComponent();
+    Point p = nativeComponent == relativeFrom ? new Point(x, y) : SwingUtilities.convertPoint(relativeFrom, x, y, nativeComponent);
+
+    if (nativeComponent != relativeFrom && nativeComponent instanceof TransformedComponent) {
+      TransformedComponent transform = (TransformedComponent)nativeComponent;
+      p.x -= transform.getShiftX();
+      p.y -= transform.getShiftY();
+      double zoom = transform.getScale();
+      if (zoom != 1) {
+        p.x /= zoom;
+        p.y /= zoom;
+      }
+    }
+
+    return p;
   }
 }
