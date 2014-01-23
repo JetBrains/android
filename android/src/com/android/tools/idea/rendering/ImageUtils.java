@@ -16,18 +16,23 @@
 package com.android.tools.idea.rendering;
 
 
+import com.intellij.openapi.util.SystemInfo;
+import com.intellij.util.JBHiDPIScaledImage;
+import com.intellij.util.RetinaImage;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
 
 import static java.awt.RenderingHints.*;
 
 /**
  * Utilities related to image processing.
  */
-@SuppressWarnings("UndesirableClassUsage") // BufferedImage is ok, no need for UiUtil.createImage
+@SuppressWarnings("UndesirableClassUsage") // BufferedImage is ok, deliberately not creating Retina images in some cases
 public class ImageUtils {
   /**
    * Rotates given image by given degrees which should be a multiple of 90
@@ -84,6 +89,57 @@ public class ImageUtils {
     return rotated;
   }
 
+  public static boolean isRetinaImage(@Nullable BufferedImage image) {
+    if (image == null) {
+      return false;
+    }
+    return image instanceof JBHiDPIScaledImage ||
+           SystemInfo.isAppleJvm && UIUtil.isAppleRetina() && BufferedImage.class != image.getClass();
+  }
+
+  public static BufferedImage createDipImage(int width, int height, int type) {
+    return UIUtil.createImage(width, height, type);
+  }
+
+  public static boolean supportsRetina() {
+    return ourRetinaCapable;
+  }
+
+  private static boolean ourRetinaCapable = true;
+
+  @Nullable
+  public static BufferedImage convertToRetina(@NotNull BufferedImage image) {
+    @SuppressWarnings("ConstantConditions")
+    Image retina = RetinaImage.createFrom(image, 2, null);
+
+    if (!(retina instanceof BufferedImage)) {
+      // Don't try this again
+      ourRetinaCapable = false;
+      return null;
+    }
+
+    return (BufferedImage)retina;
+  }
+
+  public static void drawDipImage(Graphics g, Image image,
+                                  int dx1, int dy1, int dx2, int dy2,
+                                  int sx1, int sy1, int sx2, int sy2,
+                                  @Nullable ImageObserver observer) {
+    if (image instanceof JBHiDPIScaledImage) {
+      final Graphics2D newG = (Graphics2D)g.create(0, 0, image.getWidth(observer), image.getHeight(observer));
+      newG.scale(0.5, 0.5);
+      Image img = ((JBHiDPIScaledImage)image).getDelegate();
+      if (img == null) {
+        img = image;
+      }
+      newG.drawImage(img, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, observer);
+      newG.scale(1, 1);
+      newG.dispose();
+    } else {
+      g.drawImage(image, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, observer);
+    }
+  }
+
   /** Returns a new image that is the source image surrounded by a transparent margin of given size. */
   public static BufferedImage addMargin(BufferedImage source, int marginSize) {
     int destWidth = source.getWidth() + 2 * marginSize;
@@ -91,6 +147,7 @@ public class ImageUtils {
 
     BufferedImage expanded = new BufferedImage(destWidth, destHeight, source.getType());
     Graphics2D g2 = expanded.createGraphics();
+    //noinspection UseJBColor
     g2.setColor(new Color(0, true));
     g2.fillRect(0, 0, destWidth, destHeight);
     g2.drawImage(source, 1, 1, null);
@@ -136,6 +193,7 @@ public class ImageUtils {
         new BufferedImage(destWidth + rightMargin, destHeight + bottomMargin, imageType);
       Graphics2D g2 = scaled.createGraphics();
       g2.setComposite(AlphaComposite.Src);
+      //noinspection UseJBColor
       g2.setColor(new Color(0, true));
       g2.fillRect(0, 0, destWidth + rightMargin, destHeight + bottomMargin);
 
@@ -193,7 +251,9 @@ public class ImageUtils {
         nearestHeight += bottomMargin;
       }
 
+      @SuppressWarnings("UndesirableClassUsage")
       BufferedImage scaled = new BufferedImage(nearestWidth, nearestHeight, imageType);
+
       Graphics2D g2 = scaled.createGraphics();
       g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BILINEAR);
       g2.setRenderingHint(KEY_RENDERING, VALUE_RENDER_QUALITY);
