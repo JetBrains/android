@@ -15,7 +15,7 @@
  */
 package com.intellij.android.designer.model;
 
-import com.intellij.designer.designSurface.ScalableComponent;
+import com.intellij.android.designer.designSurface.TransformedComponent;
 import junit.framework.TestCase;
 
 import javax.swing.*;
@@ -103,7 +103,7 @@ public class RadViewComponentTest extends TestCase {
   private static class TestComponent extends RadViewComponent { // Because RadViewComponent is abstract
   }
 
-  private static class MyRoot extends JComponent implements ScalableComponent {
+  private static class MyRoot extends JComponent implements TransformedComponent {
     private double myScale;
 
     private MyRoot(double scale) {
@@ -113,6 +113,16 @@ public class RadViewComponentTest extends TestCase {
     @Override
     public double getScale() {
       return myScale;
+    }
+
+    @Override
+    public int getShiftX() {
+      return 0;
+    }
+
+    @Override
+    public int getShiftY() {
+      return 0;
     }
   }
 }
