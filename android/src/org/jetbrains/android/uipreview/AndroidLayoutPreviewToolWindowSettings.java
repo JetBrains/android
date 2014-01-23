@@ -69,6 +69,15 @@ public class AndroidLayoutPreviewToolWindowSettings implements PersistentStateCo
     private boolean myHideForNonLayoutFiles = true;
     private boolean myShowDeviceFrames = true;
     private boolean myShowEffects = true;
+    private boolean myRetina = true;
+
+    public boolean isRetina() {
+      return myRetina;
+    }
+
+    public void setRetina(boolean retina) {
+      myRetina = retina;
+    }
 
     public boolean isVisible() {
       return myVisible;

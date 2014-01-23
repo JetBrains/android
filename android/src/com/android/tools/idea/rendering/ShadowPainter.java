@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.intellij.util.ImageLoader;
+import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
@@ -63,12 +64,25 @@ public class ShadowPainter {
     // This code is based on
     //      http://www.jroller.com/gfx/entry/non_rectangular_shadow
 
-    BufferedImage image = new BufferedImage(source.getWidth() + shadowSize * 2,
-                                            source.getHeight() + shadowSize * 2,
-                                            BufferedImage.TYPE_INT_ARGB);
+    BufferedImage image;
+    int width = source.getWidth();
+    int height = source.getHeight();
+    boolean isRetina = ImageUtils.isRetinaImage(source);
+    if (isRetina && UIUtil.isAppleRetina()) {
+      // This shadow painting code doesn't work right with the Apple JDK 6 Retina support.
+      // Since this code isn't used very frequently, just skip the drop shadows for now
+      return source;
+    }
+    if (isRetina) {
+      image = ImageUtils.createDipImage(width + SHADOW_SIZE, height + SHADOW_SIZE, BufferedImage.TYPE_INT_ARGB);
+    } else {
+      //noinspection UndesirableClassUsage
+      image = new BufferedImage(width + SHADOW_SIZE, height + SHADOW_SIZE, BufferedImage.TYPE_INT_ARGB);
+    }
 
     Graphics2D g2 = image.createGraphics();
-    g2.drawImage(source, null, shadowSize, shadowSize);
+    //noinspection ConstantConditions
+    UIUtil.drawImage(g2, source, shadowSize, shadowSize, null);
 
     int dstWidth = image.getWidth();
     int dstHeight = image.getHeight();
@@ -150,7 +164,8 @@ public class ShadowPainter {
       }
     }
 
-    g2.drawImage(source, null, 0, 0);
+    //noinspection ConstantConditions
+    UIUtil.drawImage(g2, source, null, 0, 0);
     g2.dispose();
 
     return image;
@@ -172,9 +187,16 @@ public class ShadowPainter {
 
     int width = source.getWidth();
     int height = source.getHeight();
-    BufferedImage image = new BufferedImage(width + SHADOW_SIZE, height + SHADOW_SIZE, type);
+    BufferedImage image;
+    if (ImageUtils.isRetinaImage(source)) {
+      image = ImageUtils.createDipImage(width + SHADOW_SIZE, height + SHADOW_SIZE, type);
+    } else {
+      //noinspection UndesirableClassUsage
+      image = new BufferedImage(width + SHADOW_SIZE, height + SHADOW_SIZE, type);
+    }
     Graphics g = image.getGraphics();
-    g.drawImage(source, 0, 0, width, height, null);
+    //noinspection ConstantConditions
+    UIUtil.drawImage(g, source, 0, 0, null);
     drawRectangleShadow(image, 0, 0, width, height);
     g.dispose();
 
@@ -197,9 +219,18 @@ public class ShadowPainter {
 
     int width = source.getWidth();
     int height = source.getHeight();
-    BufferedImage image = new BufferedImage(width + SMALL_SHADOW_SIZE, height + SMALL_SHADOW_SIZE, type);
+
+    BufferedImage image;
+    if (ImageUtils.isRetinaImage(source)) {
+      image = ImageUtils.createDipImage(width + SMALL_SHADOW_SIZE, height + SMALL_SHADOW_SIZE, type);
+    } else {
+      //noinspection UndesirableClassUsage
+      image = new BufferedImage(width + SMALL_SHADOW_SIZE, height + SMALL_SHADOW_SIZE, type);
+    }
+
     Graphics g = image.getGraphics();
-    g.drawImage(source, 0, 0, width, height, null);
+    //noinspection ConstantConditions
+    UIUtil.drawImage(g, source, 0, 0, null);
     drawSmallRectangleShadow(image, 0, 0, width, height);
     g.dispose();
 
@@ -273,6 +304,7 @@ public class ShadowPainter {
    * @param width the width of the rectangle
    * @param height the height of the rectangle
    */
+  @SuppressWarnings("ConstantConditions")
   public static void drawRectangleShadow(Graphics gc, int x, int y, int width, int height) {
     assert ShadowBottomLeft != null;
     assert ShadowBottomRight.getWidth(null) == SHADOW_SIZE;
@@ -287,19 +319,14 @@ public class ShadowPainter {
       return;
     }
 
-    gc.drawImage(ShadowBottomLeft, x, y + height, null);
-    gc.drawImage(ShadowBottomRight, x + width, y + height, null);
-    gc.drawImage(ShadowTopRight, x + width, y, null);
-    gc.drawImage(ShadowBottom,
-                 x + ShadowBottomLeft.getWidth(null), y + height,
-                 x + width, y + height + ShadowBottom.getHeight(null),
-                 0, 0, ShadowBottom.getWidth(null), ShadowBottom.getHeight(null),
-                 null);
-    gc.drawImage(ShadowRight,
-                 x + width, y + ShadowTopRight.getHeight(null),
-                 x + width + ShadowRight.getWidth(null), y + height,
-                 0, 0, ShadowRight.getWidth(null), ShadowRight.getHeight(null),
-                 null);
+    UIUtil.drawImage(gc, ShadowBottomLeft, x, y + height, null);
+    UIUtil.drawImage(gc, ShadowBottomRight, x + width, y + height, null);
+    UIUtil.drawImage(gc, ShadowTopRight, x + width, y, null);
+    ImageUtils.drawDipImage(gc, ShadowBottom, x + ShadowBottomLeft.getWidth(null), y + height, x + width,
+                            y + height + ShadowBottom.getHeight(null), 0, 0, ShadowBottom.getWidth(null), ShadowBottom.getHeight(null),
+                            null);
+    ImageUtils.drawDipImage(gc, ShadowRight, x + width, y + ShadowTopRight.getHeight(null), x + width + ShadowRight.getWidth(null),
+                            y + height, 0, 0, ShadowRight.getWidth(null), ShadowRight.getHeight(null), null);
   }
 
   /**
@@ -314,6 +341,7 @@ public class ShadowPainter {
    * @param width the width of the rectangle
    * @param height the height of the rectangle
    */
+  @SuppressWarnings("ConstantConditions")
   public static void drawSmallRectangleShadow(Graphics gc, int x, int y, int width, int height) {
     assert Shadow2BottomLeft != null;
     assert Shadow2TopRight != null;
@@ -329,19 +357,14 @@ public class ShadowPainter {
       return;
     }
 
-    gc.drawImage(Shadow2BottomLeft, x, y + height, null);
-    gc.drawImage(Shadow2BottomRight, x + width, y + height, null);
-    gc.drawImage(Shadow2TopRight, x + width, y, null);
-    gc.drawImage(Shadow2Bottom,
-                 x + Shadow2BottomLeft.getWidth(null), y + height,
-                 x + width, y + height + Shadow2Bottom.getHeight(null),
-                 0, 0, Shadow2Bottom.getWidth(null), Shadow2Bottom.getHeight(null),
-                 null);
-    gc.drawImage(Shadow2Right,
-                 x + width, y + Shadow2TopRight.getHeight(null),
-                 x + width + Shadow2Right.getWidth(null), y + height,
-                 0, 0, Shadow2Right.getWidth(null), Shadow2Right.getHeight(null),
-                 null);
+    UIUtil.drawImage(gc, Shadow2BottomLeft, x, y + height, null);
+    UIUtil.drawImage(gc, Shadow2BottomRight, x + width, y + height, null);
+    UIUtil.drawImage(gc, Shadow2TopRight, x + width, y, null);
+    ImageUtils.drawDipImage(gc, Shadow2Bottom, x + Shadow2BottomLeft.getWidth(null), y + height, x + width,
+                            y + height + Shadow2Bottom.getHeight(null), 0, 0, Shadow2Bottom.getWidth(null), Shadow2Bottom.getHeight(null),
+                            null);
+    ImageUtils.drawDipImage(gc, Shadow2Right, x + width, y + Shadow2TopRight.getHeight(null), x + width + Shadow2Right.getWidth(null),
+                            y + height, 0, 0, Shadow2Right.getWidth(null), Shadow2Right.getHeight(null), null);
   }
 
   @NotNull

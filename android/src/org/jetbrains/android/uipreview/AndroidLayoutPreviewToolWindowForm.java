@@ -80,7 +80,8 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
     myActionToolBar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, actionGroup, true);
     myActionToolBar.setReservePlaceAutoPopupIcon(false);
 
-    final ActionToolbar optionsToolBar = RenderOptionsMenuBuilder.create(this, project).addHideOption().addDeviceFrameOption().build();
+    final ActionToolbar optionsToolBar = RenderOptionsMenuBuilder.create(this, project).addHideOption().addDeviceFrameOption()
+      .addRetinaOption().build();
     final JComponent toolbar = myActionToolBar.getComponent();
     final JPanel toolBarWrapper = new JPanel(new BorderLayout());
     toolBarWrapper.add(toolbar, BorderLayout.CENTER);
