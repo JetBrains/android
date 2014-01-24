@@ -1994,7 +1994,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final String string = "<string name=\"app_name\">New Value</string>";
 
     // First duplicate the line:
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
         document.insertString(offset, string);

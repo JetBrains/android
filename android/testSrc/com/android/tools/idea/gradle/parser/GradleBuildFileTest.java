@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -98,9 +99,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testExistingStringValueWithQuote() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(BuildFileKey.BUILD_TOOLS_VERSION, "17'0'0");
       }
     });
@@ -111,9 +112,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testNewStringValueWithQuote() throws Exception {
     final GradleBuildFile file = getTestFile("");
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(BuildFileKey.BUILD_TOOLS_VERSION, "17'0'0");
       }
     });
@@ -129,9 +130,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
     final GradleBuildFile file = getTestFile("");
     Dependency dep = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.FILES, "abc'def");
     final List<Dependency> dependencyList = ImmutableList.of(dep);
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(BuildFileKey.DEPENDENCIES, dependencyList);
       }
     });
@@ -147,9 +148,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
     final GradleBuildFile file = getTestFile("");
     Repository rep = new Repository(Repository.Type.URL, "http://www.foo.com?q=abc'def");
     final List<Repository> repositoryList = ImmutableList.of(rep);
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(BuildFileKey.LIBRARY_REPOSITORY, repositoryList);
       }
     });
@@ -516,14 +517,19 @@ public class GradleBuildFileTest extends IdeaTestCase {
   }
 
   public void testWritesUnparseableDependencies() throws Exception {
-    GradleBuildFile file = getTestFile("");
-    List<BuildFileStatement> deps = ImmutableList.of(
+    final GradleBuildFile file = getTestFile("");
+    final List<BuildFileStatement> deps = ImmutableList.of(
       new UnparseableStatement("// Comment 1", getProject()),
       new Dependency(Dependency.Scope.COMPILE, Dependency.Type.EXTERNAL, "foo.com:1.0.0"),
       new UnparseableStatement("compile random.expression", getProject()),
       new UnparseableStatement("functionCall()", getProject()), new UnparseableStatement("random.expression", getProject())
     );
-    file.setValue(BuildFileKey.DEPENDENCIES, deps);
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.DEPENDENCIES, deps);
+      }
+    });
     String expected =
       "dependencies {\n" +
       "    // Comment 1\n" +
@@ -557,15 +563,20 @@ public class GradleBuildFileTest extends IdeaTestCase {
   }
 
   public void testWritesUnparseableRepositories() throws Exception {
-    GradleBuildFile file = getTestFile("");
-    List<BuildFileStatement> deps = ImmutableList.of(
+    final GradleBuildFile file = getTestFile("");
+    final List<BuildFileStatement> deps = ImmutableList.of(
       new UnparseableStatement("// Comment 1", getProject()),
       new Repository(Repository.Type.MAVEN_CENTRAL, null),
       new UnparseableStatement("maven { url random.expression }", getProject()),
       new UnparseableStatement("functionCall()", getProject()),
       new UnparseableStatement("random.expression", getProject())
     );
-    file.setValue(BuildFileKey.DEPENDENCIES, deps);
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.DEPENDENCIES, deps);
+      }
+    });
     String expected =
       "dependencies {\n" +
       "    // Comment 1\n" +
@@ -602,7 +613,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
   }
 
   public void testWritesNamedObjectsWithUnparseableValues() throws Exception {
-    GradleBuildFile file = getTestFile(
+    final GradleBuildFile file = getTestFile(
       "android {\n" +
       "    buildTypes {\n" +
       "        type1 {\n" +
@@ -616,7 +627,12 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    }\n" +
       "}"
     );
-    List<NamedObject> objects = (List<NamedObject>)file.getValue(BuildFileKey.BUILD_TYPES);
+    List<NamedObject> objects = WriteCommandAction.runWriteCommandAction(myProject, new Computable<List<NamedObject>>() {
+      @Override
+      public List<NamedObject> compute() {
+        return (List<NamedObject>)file.getValue(BuildFileKey.BUILD_TYPES);
+      }
+    });
     assertEquals(1, objects.size());
     NamedObject no = objects.get(0);
     no.setValue(BuildFileKey.DEBUGGABLE, false);
@@ -641,7 +657,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
   }
 
   public void testRemoveNamedObjectValue() throws Exception {
-    GradleBuildFile file = getTestFile(
+    final GradleBuildFile file = getTestFile(
       "android {\n" +
       "    buildTypes {\n" +
       "        type1 {\n" +
@@ -655,11 +671,16 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    }\n" +
       "}"
     );
-    List<NamedObject> objects = (List<NamedObject>)file.getValue(BuildFileKey.BUILD_TYPES);
+    final List<NamedObject> objects = (List<NamedObject>)file.getValue(BuildFileKey.BUILD_TYPES);
     assertEquals(1, objects.size());
     NamedObject no = objects.get(0);
     no.getValues().remove(BuildFileKey.DEBUGGABLE);
-    file.setValue(BuildFileKey.BUILD_TYPES, objects);
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.BUILD_TYPES, objects);
+      }
+    });
 
     String expected =
       "android {\n" +
