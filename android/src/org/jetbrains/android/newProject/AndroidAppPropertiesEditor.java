@@ -48,6 +48,7 @@ public class AndroidAppPropertiesEditor {
 
   private final ModulesProvider myModulesProvider;
   private boolean myApp;
+  private boolean myPackageNameFieldChangedByUser;
 
   public AndroidAppPropertiesEditor(String moduleName, ModulesProvider modulesProvider) {
     myModulesProvider = modulesProvider;
@@ -65,6 +66,7 @@ public class AndroidAppPropertiesEditor {
     myPackageNameField.getDocument().addDocumentListener(new DocumentAdapter() {
       @Override
       protected void textChanged(DocumentEvent e) {
+        myPackageNameFieldChangedByUser = true;
         String message = validatePackageName(!myApp);
         myErrorLabel.setText(message);
       }
@@ -76,6 +78,23 @@ public class AndroidAppPropertiesEditor {
         myErrorLabel.setText(message);
       }
     });
+    myApplicationNameField.getDocument().addDocumentListener(new DocumentAdapter() {
+      @Override
+      protected void textChanged(DocumentEvent e) {
+        if (!myPackageNameFieldChangedByUser) {
+          updatePackageNameField();
+          myPackageNameFieldChangedByUser = false;
+        }
+      }
+    });
+  }
+
+  private void updatePackageNameField() {
+    final String appName = myApplicationNameField.getText().trim();
+
+    if (appName.length() > 0) {
+      myPackageNameField.setText(getDefaultPackageNameByModuleName(appName));
+    }
   }
 
   public void update(boolean app) {
