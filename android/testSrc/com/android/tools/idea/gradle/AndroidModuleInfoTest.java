@@ -68,7 +68,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     assertNotNull(myAndroidFacet);
     IdeaAndroidProject gradleProject = myAndroidFacet.getIdeaAndroidProject();
     assertNotNull(gradleProject);
-    assertEquals("FreeDebug", gradleProject.getSelectedVariant().getName());
+    assertEquals("freeDebug", gradleProject.getSelectedVariant().getName());
 
     assertEquals(14, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion());
     assertEquals(17, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion());
