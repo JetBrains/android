@@ -1091,11 +1091,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   @Nullable
   private static String getPackageNameFromGradle(@NotNull String packageNameInManifest, @NotNull AndroidFacet facet) {
     IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
-    if (ideaAndroidProject == null) {
-      return packageNameInManifest;
-    }
-
-    return ideaAndroidProject.computePackageName(packageNameInManifest);
+    return ideaAndroidProject == null ? packageNameInManifest : ideaAndroidProject.computePackageName();
   }
 
   private boolean uploadAndInstall(@NotNull IDevice device, @NotNull String packageName, AndroidFacet facet)
