@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.wizard.TemplateWizardState;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -77,7 +78,8 @@ public class TemplateMetadata {
   private final Document myDocument;
   private final Map<String, Parameter> myParameterMap;
 
-  TemplateMetadata(@NotNull Document document) {
+  @VisibleForTesting
+  public TemplateMetadata(@NotNull Document document) {
     myDocument = document;
 
     NodeList parameters = myDocument.getElementsByTagName(TAG_PARAMETER);
