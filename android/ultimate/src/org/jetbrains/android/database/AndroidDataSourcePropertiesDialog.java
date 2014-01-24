@@ -411,7 +411,6 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   }
 
   private void checkDriverPresence() {
-    assert myEditController != null;
     if (!DbImplUtil.canConnectTo(myDataSource) && myDataSource.getDatabaseDriver() != null) {
       myController.showErrorNotification(this,
         "SQLite driver missing",
