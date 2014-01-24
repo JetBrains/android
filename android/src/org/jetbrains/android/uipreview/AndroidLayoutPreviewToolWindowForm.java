@@ -16,6 +16,7 @@
 package org.jetbrains.android.uipreview;
 
 
+import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.SaveScreenshotAction;
@@ -37,6 +38,7 @@ import com.intellij.ui.components.JBScrollPane;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
+import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -465,6 +467,20 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
     @Override
     public void actionPerformed(AnActionEvent e) {
       Configuration configuration = getConfiguration();
+
+      if (configuration != null) {
+        // Clear layoutlib bitmap cache (in case files have been modified externally)
+        IAndroidTarget target = configuration.getTarget();
+        Module module = configuration.getModule();
+        if (target != null && module != null) {
+          AndroidTargetData targetData = AndroidTargetData.getTargetData(target, module);
+          if (targetData != null) {
+            targetData.clearLayoutBitmapCache(module);
+          }
+        }
+      }
+
+      myFacet.refreshResources();
       if (configuration != null) {
         configuration.updated(ConfigurationListener.MASK_RENDERING);
       }

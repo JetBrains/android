@@ -58,9 +58,13 @@ public class NewModuleWizardTest extends AndroidTestCase {
 
     wizard.templateChanged(NewModuleWizard.LIB_NAME);
     assertTrue(wizard.myModuleBuilder.myWizardState.getBoolean(TemplateMetadata.ATTR_IS_LIBRARY_MODULE));
+    assertFalse(wizard.myModuleBuilder.myWizardState.getBoolean(TemplateMetadata.ATTR_IS_LAUNCHER));
+    assertFalse(wizard.myModuleBuilder.myWizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS));
 
     wizard.templateChanged(NewModuleWizard.APP_NAME);
     assertFalse(wizard.myModuleBuilder.myWizardState.getBoolean(TemplateMetadata.ATTR_IS_LIBRARY_MODULE));
+    assertTrue(wizard.myModuleBuilder.myWizardState.getBoolean(TemplateMetadata.ATTR_IS_LAUNCHER));
+    assertTrue(wizard.myModuleBuilder.myWizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS));
 
     Disposer.dispose(wizard.getDisposable());
   }

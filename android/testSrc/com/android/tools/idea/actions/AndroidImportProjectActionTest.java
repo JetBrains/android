@@ -64,19 +64,6 @@ public class AndroidImportProjectActionTest extends IdeaTestCase {
     assertSame(file, AndroidImportProjectAction.findImportTarget(file));
   }
 
-  public void testFindImportTargetWithEclipseProjectFileAndAndroidNature() throws IOException {
-    String[] contents = {
-      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
-      "<projectDescription>",
-      "  <natures>",
-      "   <nature>com.android.ide.eclipse.adt.AndroidNature</nature>",
-      "  </natures>",
-      "</projectDescription>"
-    };
-    VirtualFile file = createChildFile(AndroidImportProjectAction.ECLIPSE_PROJECT_FILE_NAME, contents);
-    assertNull(AndroidImportProjectAction.findImportTarget(file));
-  }
-
   @NotNull
   private VirtualFile createChildFile(@NotNull String name, @NotNull String...contents) throws IOException {
     File file = new File(myProjectRootDir.getPath(), name);

@@ -24,12 +24,14 @@ import com.intellij.psi.PsiManager;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 import static java.io.File.separator;
@@ -92,6 +94,9 @@ public abstract class RenderTestBase extends AndroidTestCase {
   protected void checkRendering(RenderService service, String thumbnailPath) throws IOException {
     // Next try a render
     RenderResult result = service.render();
+    RenderResult render = renderOnSeparateThread(service);
+    assertNotNull(render);
+
     assertNotNull(result);
     ScalableImage image = result.getImage();
     assertNotNull(image);
@@ -103,6 +108,28 @@ public abstract class RenderTestBase extends AndroidTestCase {
     image.paint(graphics, 0, 0);
     graphics.dispose();
     checkRenderedImage(thumbnail, "render" + separator + "thumbnails" + separator + thumbnailPath.replace('/', separatorChar));
+  }
+
+  @Nullable
+  public static RenderResult renderOnSeparateThread(@NotNull final RenderService service) {
+    // Ensure that we don't render on the read lock (since we want to test that all parts of the
+    // rendering system which needs a read lock asks for one!)
+    final AtomicReference<RenderResult> holder = new AtomicReference<RenderResult>();
+    Thread thread = new Thread() {
+      @Override
+      public void run() {
+        holder.set(service.render());
+      }
+    };
+    thread.start();
+    try {
+      thread.join();
+    }
+    catch (InterruptedException e) {
+      fail("Interrupted");
+    }
+
+    return holder.get();
   }
 
   @NotNull

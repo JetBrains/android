@@ -81,8 +81,12 @@ public class AndroidModuleInfo {
   }
 
   public String getMinSdkName() {
-    // TODO: Do something other than falling through to the manifest
-    return ManifestInfo.get(myFacet.getModule()).getMinSdkName();
+    String codeName = ManifestInfo.get(myFacet.getModule()).getMinSdkCodeName();
+    if (codeName != null) {
+      return codeName;
+    }
+
+    return Integer.toString(getMinSdkVersion());
   }
 
   public int getTargetSdkVersion() {

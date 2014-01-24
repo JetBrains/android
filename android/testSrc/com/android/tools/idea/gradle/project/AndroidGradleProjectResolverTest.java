@@ -97,21 +97,13 @@ public class AndroidGradleProjectResolverTest extends IdeaTestCase {
     super.tearDown();
   }
 
-  public void testCreateModule() throws IOException {
-    ProjectData project = myProjectResolver.createProject();
-    ModuleData module = myProjectResolver.createModule(myAndroidModule, project);
-    assertEquals(myAndroidModule.getName(), module.getExternalName());
-    assertEquals(StdModuleTypes.JAVA.getId(), module.getModuleTypeId());
-    assertEquals(ExternalSystemApiUtil.toCanonicalPath(myAndroidModule.getRootDir().getCanonicalPath()), module.getLinkedExternalProjectPath());
-  }
-
   public void testCreateModuleWithOldModelVersion() {
     AndroidProject androidProject = createMock(AndroidProject.class);
     ProjectImportAction.AllModels allModels = new ProjectImportAction.AllModels(myIdeaProject);
     allModels.addExtraProject(androidProject, AndroidProject.class, myAndroidModule);
     myResolverCtx.setModels(allModels);
 
-    expect(androidProject.getModelVersion()).andReturn("0.0.1");
+    expect(androidProject.getModelVersion()).andStubReturn("0.0.1");
     replay(androidProject);
 
     try {

@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.compiler.actions.CompileAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,6 +49,7 @@ public class AndroidCompileModuleAction extends AndroidBuildModuleAction {
 
   @Override
   protected void buildGradleProject(@NotNull Project project, @NotNull DataContext dataContext) {
-    GradleInvoker.getInstance(project).compileJava(dataContext, null);
+    Module[] modules = Projects.getModulesToBuildFromSelection(project, dataContext);
+    GradleInvoker.getInstance(project).compileJava(modules);
   }
 }

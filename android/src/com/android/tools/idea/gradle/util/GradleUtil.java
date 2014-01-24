@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.SdkConstants;
-import com.android.sdklib.SdkManager;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -32,6 +31,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.net.HttpConfigurable;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -54,11 +54,11 @@ import java.util.Set;
  * Utilities related to Gradle.
  */
 public final class GradleUtil {
-  @NonNls public static final String GRADLE_MINIMUM_VERSION = "1.9";
-  @NonNls public static final String GRADLE_LATEST_VERSION = GRADLE_MINIMUM_VERSION;
+  @NonNls public static final String GRADLE_MINIMUM_VERSION = SdkConstants.GRADLE_MINIMUM_VERSION;
+  @NonNls public static final String GRADLE_LATEST_VERSION = SdkConstants.GRADLE_LATEST_VERSION;
 
-  @NonNls public static final String GRADLE_PLUGIN_MINIMUM_VERSION = "0.7.0";
-  @NonNls public static final String GRADLE_PLUGIN_LATEST_VERSION = "0.7.+";
+  @NonNls public static final String GRADLE_PLUGIN_MINIMUM_VERSION = SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION;
+  @NonNls public static final String GRADLE_PLUGIN_LATEST_VERSION = SdkConstants.GRADLE_PLUGIN_LATEST_VERSION;
 
   @NonNls private static final String GRADLEW_PROPERTIES_PATH =
     "gradle" + File.separator + "wrapper" + File.separator + "gradle-wrapper.properties";
@@ -121,11 +121,21 @@ public final class GradleUtil {
     return new File(projectRootDir, GRADLEW_PROPERTIES_PATH);
   }
 
-  public static void updateGradleDistributionUrl(@NotNull String gradleVersion, @NotNull File propertiesFile) throws IOException {
+  /**
+   * Updates the 'distributionUrl' in the given Gradle wrapper properties file.
+   *
+   * @param gradleVersion  the Gradle version to update the property to.
+   * @param propertiesFile the given Gradle wrapper properties file.
+   * @return {@code true} if the property was updated, or {@code false} if no update was necessary because the property already had the
+   *         correct value.
+   * @throws IOException if something goes wrong when saving the file.
+   */
+  public static boolean updateGradleDistributionUrl(@NotNull String gradleVersion, @NotNull File propertiesFile) throws IOException {
     Properties properties = loadGradleWrapperProperties(propertiesFile);
-    String gradleDistributionUrl = getGradleDistributionUrl(gradleVersion);
-    if (gradleDistributionUrl.equals(properties.getProperty(GRADLEW_DISTRIBUTION_URL_PROPERTY_NAME))) {
-      return;
+    String gradleDistributionUrl = getGradleDistributionUrl(gradleVersion, false);
+    String property = properties.getProperty(GRADLEW_DISTRIBUTION_URL_PROPERTY_NAME);
+    if (property != null && (property.equals(gradleDistributionUrl) || property.equals(getGradleDistributionUrl(gradleVersion, true)))) {
+      return false;
     }
     properties.setProperty(GRADLEW_DISTRIBUTION_URL_PROPERTY_NAME, gradleDistributionUrl);
     FileOutputStream out = null;
@@ -133,6 +143,7 @@ public final class GradleUtil {
       //noinspection IOResourceOpenedButNotSafelyClosed
       out = new FileOutputStream(propertiesFile);
       properties.store(out, null);
+      return true;
     }
     finally {
       Closeables.closeQuietly(out);
@@ -155,10 +166,10 @@ public final class GradleUtil {
   }
 
   @NotNull
-  private static String getGradleDistributionUrl(@NotNull String gradleVersion) {
-    return String.format("http://services.gradle.org/distributions/gradle-%1$s-bin.zip", gradleVersion);
+  private static String getGradleDistributionUrl(@NotNull String gradleVersion, boolean binOnly) {
+    String suffix = binOnly ? "bin" : "all";
+    return String.format("http://services.gradle.org/distributions/gradle-%1$s-" + suffix + ".zip", gradleVersion);
   }
-
 
   @Nullable
   public static GradleExecutionSettings getGradleExecutionSettings(@NotNull Project project) {
@@ -170,6 +181,13 @@ public final class GradleUtil {
       return null;
     }
     return ExternalSystemApiUtil.getExecutionSettings(project, projectSettings.getExternalProjectPath(), SYSTEM_ID);
+  }
+
+  @Nullable
+  public static File findWrapperPropertiesFile(@NotNull Project project) {
+    File baseDir = new File(project.getBasePath());
+    File wrapperPropertiesFile = getGradleWrapperPropertiesFilePath(baseDir);
+    return wrapperPropertiesFile.isFile() ? wrapperPropertiesFile : null;
   }
 
   @Nullable
@@ -200,10 +218,9 @@ public final class GradleUtil {
     if (ExternalSystemApiUtil.isInProcessMode(SYSTEM_ID)) {
       List<String> args = Lists.newArrayList();
       if (!AndroidGradleSettings.isAndroidSdkDirInLocalPropertiesFile(projectDir)) {
-        SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
-        if (sdkManager != null) {
-          String androidHome = FileUtil.toSystemDependentName(sdkManager.getLocation());
-          String arg = AndroidGradleSettings.createAndroidHomeJvmArg(androidHome);
+        AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+        if (sdkData != null) {
+          String arg = AndroidGradleSettings.createAndroidHomeJvmArg(sdkData.getPath());
           args.add(arg);
         }
       }

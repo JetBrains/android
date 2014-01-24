@@ -19,7 +19,10 @@ import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
 import com.android.sdklib.repository.FullRevision;
-import com.android.tools.idea.gradle.*;
+import com.android.tools.idea.gradle.AndroidProjectKeys;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.IdeaGradleProject;
+import com.android.tools.idea.gradle.ProjectImportEventMessage;
 import com.android.tools.idea.gradle.dependency.Dependency;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.OpenAndroidSdkManagerHyperlink;
@@ -45,34 +48,35 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
 import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.util.ExceptionUtil;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ContainerUtilRt;
+import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
+import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.service.ProjectImportEventMessageDataService.RECOMMENDED_ACTIONS_CATEGORY;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_PLUGIN_MINIMUM_VERSION;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_LATEST_VERSION;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_MINIMUM_VERSION;
 
 /**
  * Imports Android-Gradle projects into IDEA.
  */
 @Order(ExternalSystemConstants.UNORDERED)
 public class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
-
-  private static final String UNSUPPORTED_MODEL_VERSION_ERROR = String.format(
-    "Project is using an old version of the Android Gradle plug-in. The minimum supported version is %1$s.\n\n" +
-    "Please update the version of the dependency 'com.android.tools.build:gradle' in your build.gradle files.",
-    GRADLE_PLUGIN_MINIMUM_VERSION);
+  public static final String UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX =
+    "The project is using an unsupported version of the Android Gradle plug-in";
 
   @NotNull private final ProjectImportErrorHandler myErrorHandler;
 
@@ -93,7 +97,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   public ModuleData createModule(@NotNull IdeaModule gradleModule, @NotNull ProjectData projectData) {
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
     if (androidProject != null && !GradleModelVersionCheck.isSupportedVersion(androidProject)) {
-      throw new IllegalStateException(UNSUPPORTED_MODEL_VERSION_ERROR);
+      String msg = getUnsupportedModelVersionErrorMsg(GradleModelVersionCheck.getModelVersion(androidProject));
+      throw new IllegalStateException(msg);
     }
     return nextResolver.createModule(gradleModule, projectData);
   }
@@ -109,7 +114,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     File moduleRootDir = buildFile.getParentFile();
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
     if (androidProject != null) {
-      Variant selectedVariant = getFirstVariant(androidProject);
+      Variant selectedVariant = getVariantToSelect(androidProject);
       IdeaAndroidProject ideaAndroidProject =
         new IdeaAndroidProject(gradleModule.getName(), moduleRootDir, androidProject, selectedVariant.getName());
       addContentRoot(ideaAndroidProject, ideModule, moduleRootDir);
@@ -149,7 +154,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
                                          @NotNull DataNode<ProjectData> ideProject) {
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
     if (androidProject != null) {
-      // TODO check if this dependency import differs from base impl, see org.jetbrains.plugins.gradle.service.project.BaseGradleProjectResolverExtension#populateModuleDependencies
       IdeaAndroidProject ideAndroidProject = getIdeaAndroidProject(ideModule);
       Collection<Dependency> dependencies = Collections.emptyList();
       if (ideAndroidProject != null) {
@@ -203,8 +207,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       }
       else if (localProperties.getAndroidSdkPath() == null) {
         File androidHomePath = DefaultSdks.getDefaultAndroidHome();
-
-        // Android SDK may be not configured in IntelliJ
+        // In Android Studio, the Android SDK home path will never be null. It may be null when running in IDEA.
         if (androidHomePath != null) {
           args.add(KeyValue.create(AndroidGradleSettings.ANDROID_HOME_JVM_ARG, androidHomePath.getPath()));
         }
@@ -227,25 +230,123 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }
   }
 
-
-  // this exception will be thrown by org.jetbrains.plugins.gradle.service.project.GradleProjectResolver
-  @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+  @SuppressWarnings("ThrowableResultOfMethodCallIgnored") // Studio complains that the exceptions created by this method are never thrown.
   @NotNull
   @Override
   public ExternalSystemException getUserFriendlyError(@NotNull Throwable error,
                                                       @NotNull String projectPath,
                                                       @Nullable String buildFilePath) {
+    // Check if the import error is due to an unsupported version of Gradle. If that is the case, the error received does not give users
+    // any hint of the real issue. Here we check the version of Gradle and show an user-friendly error message.
+    String msg = error.getMessage();
+    if (msg != null && !msg.contains(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) {
+      Throwable rootCause = ExceptionUtil.getRootCause(error);
+      if (rootCause instanceof ClassNotFoundException) {
+        msg = rootCause.getMessage();
+        // We may get mismatched Gradle and plug-in versions. The problem is that we don't know the version of the plug-in we are using,
+        // so here is our best guess.
+        if ("org.gradle.api.artifacts.result.ResolvedComponentResult".equals(msg)) {
+          // We got plug-in 0.8.+ with Gradle 1.9 or older.
+          GradleVersion gradleVersion = getGradleVersion();
+          if (gradleVersion != null) {
+            GradleVersion supportedGradleVersion = getGradleMaximumSupportedVersion();
+            if (gradleVersion.compareTo(supportedGradleVersion) != 0) {
+              return new ExternalSystemException(getUnsupportedGradleVersionErrorMsg(gradleVersion, supportedGradleVersion));
+            }
+          }
+        }
+        else if ("org.gradle.api.artifacts.result.ResolvedModuleVersionResult".equals(msg)) {
+          // We got plug-in 0.7.+ with Gradle 1.10.
+          GradleVersion gradleVersion = getGradleVersion();
+          if (gradleVersion != null) {
+            GradleVersion supportedGradleVersion = getGradleMinimumSupportedVersion();
+            if (gradleVersion.compareTo(supportedGradleVersion) != 0) {
+              return new ExternalSystemException(getUnsupportedGradleVersionErrorMsg(gradleVersion, supportedGradleVersion));
+            }
+          }
+        }
+      }
+      // (rootCause instanceof BuildException) does not work, it may be because of the Groovy magic used to keep different versions of the
+      // Tooling API being compatible with each other.
+      if (rootCause.getClass().getName().equals("org.gradle.tooling.BuildException")) {
+        msg = rootCause.getMessage();
+        // This error happens when using an unsupported version of the plug-in with a recent version of Gradle. The error message comes
+        // from the plug-in itself.
+        // For example, using plug-in 0.6.+ with Gradle 1.9.
+        if (msg != null && msg.startsWith("Gradle version") && msg.contains("is required")) {
+          // We can assume we need to fix the plug-in version in build.gradle files.
+          return new ExternalSystemException(getUnsupportedModelVersionErrorMsg(null));
+        }
+      }
+    }
     ExternalSystemException userFriendlyError = myErrorHandler.getUserFriendlyError(error, projectPath, buildFilePath);
     return userFriendlyError != null ? userFriendlyError : nextResolver.getUserFriendlyError(error, projectPath, buildFilePath);
   }
 
+  @Nullable
+  private GradleVersion getGradleVersion() {
+    BuildEnvironment buildEnvironment = getBuildEnvironment();
+    if (buildEnvironment != null) {
+      return GradleVersion.version(buildEnvironment.getGradle().getGradleVersion());
+    }
+    return null;
+  }
+
+  @Nullable
+  private BuildEnvironment getBuildEnvironment() {
+    try {
+      return resolverCtx.getConnection().getModel(BuildEnvironment.class);
+    }
+    catch (Exception e) {
+      return null;
+    }
+  }
+
   @NotNull
-  private static Variant getFirstVariant(@NotNull AndroidProject androidProject) {
+  private static GradleVersion getGradleMinimumSupportedVersion() {
+    return GradleVersion.version(GRADLE_MINIMUM_VERSION);
+  }
+
+  @NotNull
+  private static GradleVersion getGradleMaximumSupportedVersion() {
+    return GradleVersion.version(GRADLE_LATEST_VERSION);
+  }
+
+  @NotNull
+  private static String getUnsupportedModelVersionErrorMsg(@Nullable FullRevision modelVersion) {
+    StringBuilder builder = new StringBuilder();
+    builder.append(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX);
+    if (modelVersion != null) {
+      builder.append(String.format(" (%1$s)", modelVersion.toString()));
+    }
+    builder.append(".");
+    return builder.toString();
+  }
+
+  @NotNull
+  private static String getUnsupportedGradleVersionErrorMsg(@NotNull GradleVersion currentVersion,
+                                                            @NotNull GradleVersion supportedVersion) {
+    String msg = String.format(
+      "You are using Gradle version %1$s, which is not supported by the version of the Android Gradle plug-in the project is using. " +
+      "Please use version %2$s.", currentVersion.getVersion(), supportedVersion.getVersion());
+    msg += ('\n' + AbstractProjectImportErrorHandler.FIX_GRADLE_VERSION);
+    return msg;
+  }
+
+  @NotNull
+  private static Variant getVariantToSelect(@NotNull AndroidProject androidProject) {
     Collection<Variant> variants = androidProject.getVariants();
     if (variants.size() == 1) {
       Variant variant = ContainerUtil.getFirstItem(variants);
       assert variant != null;
       return variant;
+    }
+    // look for "debug" variant. This is just a little convenience for the user that has not created any additional flavors/build types.
+    // trying to match something else may add more complexity for little gain.
+    for (Variant variant : variants) {
+      if ("debug".equals(variant.getName())) {
+        return variant;
+      }
     }
     List<Variant> sortedVariants = Lists.newArrayList(variants);
     Collections.sort(sortedVariants, new Comparator<Variant>() {
@@ -339,10 +440,5 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     // Android gradle model jar
     ContainerUtil.addIfNotNull(PathUtil.getJarPathForClass(AndroidProject.class), classPath);
     parameters.getClassPath().addAll(classPath);
-  }
-
-  @Override
-  public void enhanceLocalProcessing(@NotNull List<URL> urls) {
-    GradleImportNotificationListener.attachToManager();
   }
 }

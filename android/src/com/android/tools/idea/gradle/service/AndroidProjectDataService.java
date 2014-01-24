@@ -17,7 +17,9 @@ package com.android.tools.idea.gradle.service;
 
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.customizer.*;
+import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
@@ -34,13 +36,14 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 
@@ -107,21 +110,17 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
             String title = String.format("Problems importing/refreshing Gradle project '%1$s':\n", project.getName());
             LanguageLevel level = javaLangVersion != null ? javaLangVersion : LanguageLevel.JDK_1_6;
             String msg = String.format("Unable to find a JDK %1$s installed.\n", level.getPresentableText());
-            msg += "After configuring a suitable JDK in the Project Structure dialog, sync the Gradle project again.";
+            msg += "After configuring a suitable JDK in the Project Structure dia log, sync the Gradle project again.";
             notification.showNotification(title, msg, NotificationType.ERROR, project, GradleConstants.SYSTEM_ID, null);
           }
         }
         else {
-          // This takes care of setting the project language level, but only if the current project's language level is higher than the
-          // maximum supported by this JDK.
-          NewProjectUtil.applyJdkToProject(project, jdk);
-
-          // Set language level passed by Gradle.
-          if (javaLangVersion != null) {
-            LanguageLevelProjectExtension ext = LanguageLevelProjectExtension.getInstance(project);
-            if (javaLangVersion != ext.getLanguageLevel()) {
-              ext.setLanguageLevel(javaLangVersion);
-            }
+          String homePath = jdk.getHomePath();
+          if (homePath != null) {
+            NewProjectUtil.applyJdkToProject(project, jdk);
+            homePath = FileUtil.toSystemDependentName(homePath);
+            DefaultSdks.setDefaultJavaHome(new File(homePath));
+            PostProjectBuildTasksExecutor.getInstance(project).updateJavaLangLevelAfterBuild();
           }
         }
       }

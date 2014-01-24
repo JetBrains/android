@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.RenderSecurityException;
+import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.Density;
@@ -462,6 +463,7 @@ public class RenderErrorPanel extends JPanel {
           // Find activity class
           // Look for R references in the layout
           Module module = logger.getModule();
+          assert module != null;
           Project project = module.getProject();
           GlobalSearchScope scope = GlobalSearchScope.allScope(project);
           PsiClass clz = JavaPsiFacade.getInstance(project).findClass(className, scope);
@@ -583,6 +585,26 @@ public class RenderErrorPanel extends JPanel {
         builder.newline();
       }
       builder.addLink("Turn off custom view rendering sandbox", myLinkManager.createDisableSandboxUrl());
+
+      String lastFailedPath = RenderSecurityManager.getLastFailedPath();
+      if (lastFailedPath != null) {
+        builder.newline().newline();
+        builder.add("Diagnostic info for Studio bug report:").newline();
+        builder.add("Failed path: ").add(lastFailedPath).newline();
+        String tempDir = System.getProperty("java.io.tmpdir");
+        builder.add("Normal temp dir: ").add(tempDir).newline();
+        File normalized = new File(tempDir);
+        builder.add("Normalized temp dir: ").add(normalized.getPath()).newline();
+        try {
+          builder.add("Canonical temp dir: ").add(normalized.getCanonicalPath()).newline();
+        }
+        catch (IOException e) {
+          // ignore
+        }
+        builder.add("os.name: ").add(SystemInfo.OS_NAME).newline();
+        builder.add("os.version: ").add(SystemInfo.OS_VERSION).newline();
+        builder.add("java.runtime.version: ").add(SystemInfo.JAVA_RUNTIME_VERSION);
+      }
 
       if (throwable.getMessage().equals("Unable to create temporary file")) {
           if (JAVA_VERSION.startsWith("1.7.0_")) {

@@ -16,6 +16,7 @@
 package com.android.tools.idea.structure;
 
 import com.android.tools.idea.gradle.parser.BuildFileKey;
+import com.android.tools.idea.gradle.parser.BuildFileStatement;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.Repository;
 import com.google.common.base.Joiner;
@@ -71,9 +72,9 @@ public class SingleObjectTableModel extends AbstractTableModel {
     if (!Objects.equal(value, myCurrentValues.get(row))) {
       BuildFileKey key = myProperties.get(row);
       if (key == BuildFileKey.LIBRARY_REPOSITORY || key == BuildFileKey.PLUGIN_REPOSITORY) {
-        List<Repository> list = Lists.newArrayList();
+        List<BuildFileStatement> list = Lists.newArrayList();
         for (String s : Splitter.on(',').trimResults().split(value.toString())) {
-          list.add(new Repository(s));
+          list.add(Repository.parse(s, myBuildFile.getProject()));
         }
         value = list;
       }

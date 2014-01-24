@@ -15,17 +15,13 @@
  */
 package com.android.tools.idea.gradle.service.notification;
 
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.settings.DistributionType;
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
-import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,64 +31,44 @@ import java.io.IOException;
  */
 class FixGradleVersionInWrapperHyperlink extends NotificationHyperlink {
   @NotNull private final File myWrapperPropertiesFile;
+  @NotNull private final String myGradleVersion;
 
   @Nullable
-  static NotificationHyperlink createIfProjectUsesGradleWrapper(@NotNull Project project) {
-    if (!isUsingWrapper(project)) {
-      // No point in fixing wrapper if project does not use it. Project import will fail again.
-      return null;
-    }
-
-    File wrapperPropertiesFile = findWrapperPropertiesFile(project);
+  static NotificationHyperlink createIfProjectUsesGradleWrapper(@NotNull Project project, @NotNull String supportedGradleVersion) {
+    File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
     if (wrapperPropertiesFile != null) {
-      return new FixGradleVersionInWrapperHyperlink(wrapperPropertiesFile);
+      return new FixGradleVersionInWrapperHyperlink(wrapperPropertiesFile, supportedGradleVersion);
     }
-
     return null;
   }
 
-  private static boolean isUsingWrapper(@NotNull Project project) {
-    GradleSettings gradleSettings = GradleSettings.getInstance(project);
-    for (GradleProjectSettings projectSettings : gradleSettings.getLinkedProjectsSettings()) {
-      if (projectSettings != null) {
-        DistributionType distributionType = projectSettings.getDistributionType();
-        if (DistributionType.WRAPPED.equals(distributionType) || DistributionType.DEFAULT_WRAPPED.equals(distributionType)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  @Nullable
-  private static File findWrapperPropertiesFile(@NotNull Project project) {
-    File baseDir = new File(project.getBasePath());
-    File wrapperPropertiesFile = GradleUtil.getGradleWrapperPropertiesFilePath(baseDir);
-    return wrapperPropertiesFile.isFile() ? wrapperPropertiesFile : null;
-  }
-
-  private FixGradleVersionInWrapperHyperlink(@NotNull File wrapperPropertiesFile) {
+  private FixGradleVersionInWrapperHyperlink(@NotNull File wrapperPropertiesFile, @NotNull String gradleVersion) {
     super("fixGradleVersionInWrapper", "Fix Gradle wrapper and re-import project");
     myWrapperPropertiesFile = wrapperPropertiesFile;
+    myGradleVersion = gradleVersion;
   }
 
   @Override
   protected void execute(@NotNull Project project) {
-    String gradleVersion = GradleUtil.GRADLE_MINIMUM_VERSION;
+    updateGradleVersion(project, myWrapperPropertiesFile, myGradleVersion);
+  }
+
+  static boolean updateGradleVersion(@NotNull Project project, @NotNull File wrapperPropertiesFile, @NotNull String gradleVersion) {
     try {
-      GradleUtil.updateGradleDistributionUrl(gradleVersion, myWrapperPropertiesFile);
-      try {
-        GradleProjectImporter.getInstance().reImportProject(project, null);
-      }
-      catch (ConfigurationException e) {
-        Messages.showErrorDialog(e.getMessage(), e.getTitle());
-        Logger.getInstance(FixGradleVersionInWrapperHyperlink.class).info(e);
+      boolean updated = GradleUtil.updateGradleDistributionUrl(gradleVersion, wrapperPropertiesFile);
+      if (updated) {
+        VirtualFile virtualFile = VfsUtil.findFileByIoFile(wrapperPropertiesFile, true);
+        if (virtualFile != null) {
+          virtualFile.refresh(false, false);
+        }
+        return true;
       }
     }
     catch (IOException e) {
       String msg = String.format("Unable to update Gradle wrapper to use Gradle %1$s\n", gradleVersion);
       msg += e.getMessage();
-      Messages.showErrorDialog(project, msg, "Quick Fix Failed");
+      Messages.showErrorDialog(project, msg, ERROR_MSG_TITLE);
     }
+    return false;
   }
 }

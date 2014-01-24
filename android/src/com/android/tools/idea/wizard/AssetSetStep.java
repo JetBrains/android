@@ -110,6 +110,7 @@ public class AssetSetStep extends TemplateWizardStep {
   protected AssetType mySelectedAssetType;
   private boolean myInitialized;
 
+  @SuppressWarnings("UseJBColor") // Colors are used for the graphics generator, not the plugin UI
   public AssetSetStep(AssetStudioWizardState state, @Nullable Project project, @Nullable Icon sidePanelIcon, UpdateListener updateListener) {
     super(state, project, sidePanelIcon, updateListener);
     myWizardState = state;
@@ -266,6 +267,7 @@ public class AssetSetStep extends TemplateWizardStep {
         setIconOrClear(myXXHdpiPreview, xxhdpi);
       }
 
+      myUpdateListener.update();
       return true;
     }
     catch (ImageGeneratorException e) {
@@ -372,11 +374,11 @@ public class AssetSetStep extends TemplateWizardStep {
   }
 
   private void initialize() {
-    myWizardState.put(ATTR_IMAGE_PATH, new File(
-      TemplateManager.getTemplateRootFolder(),
-      FileUtil.join(Template.CATEGORY_PROJECTS, NewProjectWizardState.MODULE_TEMPLATE_NAME,
-                    "root", "res", "drawable-xhdpi", "ic_launcher.png"))
-      .getAbsolutePath());
+    myWizardState.put(ATTR_IMAGE_PATH,
+        new File(TemplateManager.getTemplateRootFolder(),
+                 FileUtil.join(Template.CATEGORY_PROJECTS, NewProjectWizardState.MODULE_TEMPLATE_NAME, "root", "res", "drawable-xhdpi",
+                               "ic_launcher.png"))
+          .getAbsolutePath());
     register(ATTR_IMAGE_PATH, myImageFile);
   }
 

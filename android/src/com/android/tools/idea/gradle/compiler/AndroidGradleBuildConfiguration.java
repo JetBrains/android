@@ -15,10 +15,20 @@
  */
 package com.android.tools.idea.gradle.compiler;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.intellij.execution.configurations.CommandLineTokenizer;
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 @State(
   name = "AndroidGradleBuildConfiguration",
@@ -30,6 +40,7 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidGradleBuildConfiguration implements PersistentStateComponent<AndroidGradleBuildConfiguration> {
   public boolean USE_EXPERIMENTAL_FASTER_BUILD = true;
   public boolean OFFLINE_MODE;
+  public String COMMAND_LINE_OPTIONS = "";
 
   public static AndroidGradleBuildConfiguration getInstance(Project project) {
     return ServiceManager.getService(project, AndroidGradleBuildConfiguration.class);
@@ -44,5 +55,15 @@ public class AndroidGradleBuildConfiguration implements PersistentStateComponent
   @Override
   public void loadState(AndroidGradleBuildConfiguration state) {
     XmlSerializerUtil.copyBean(state, this);
+  }
+
+  @NotNull
+  public String[] getCommandLineOptions() {
+    List<String> options = Lists.newArrayList();
+    CommandLineTokenizer tokenizer = new CommandLineTokenizer(COMMAND_LINE_OPTIONS);
+    while(tokenizer.hasMoreTokens()) {
+      options.add(tokenizer.nextToken());
+    }
+    return ArrayUtil.toStringArray(options);
   }
 }

@@ -285,9 +285,7 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
     assert ANDROID_RESOURCE_INT.equals(annotation.getQualifiedName());
     PsiAnnotationParameterList annotationParameters = annotation.getParameterList();
     for (PsiNameValuePair pair : annotationParameters.getAttributes()) {
-      String name = pair.getName();
       PsiAnnotationMemberValue value = pair.getValue();
-      assert name == null || name.equals("value") : name;
       if (value instanceof PsiReferenceExpression) {
         PsiReferenceExpression expression = (PsiReferenceExpression) value;
         return allowsResourceType(type, expression);

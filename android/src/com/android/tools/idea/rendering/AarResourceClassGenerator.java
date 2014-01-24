@@ -53,9 +53,9 @@ import static org.jetbrains.asm4.Opcodes.*;
  */
 public class AarResourceClassGenerator {
   @NotNull private final LocalResourceRepository myAarResources;
-  @NotNull private final LocalResourceRepository myAppResources;
+  @NotNull private final AppResourceRepository myAppResources;
 
-  private AarResourceClassGenerator(@NotNull LocalResourceRepository appResources, @NotNull LocalResourceRepository aarResources) {
+  private AarResourceClassGenerator(@NotNull AppResourceRepository appResources, @NotNull LocalResourceRepository aarResources) {
     myAppResources = appResources;
     myAarResources = aarResources;
   }
@@ -69,7 +69,7 @@ public class AarResourceClassGenerator {
    * @return
    */
   @Nullable
-  public static AarResourceClassGenerator create(@NotNull LocalResourceRepository appResources,
+  public static AarResourceClassGenerator create(@NotNull AppResourceRepository appResources,
                                                  @NotNull LocalResourceRepository aarResources) {
     return new AarResourceClassGenerator(appResources, aarResources);
   }

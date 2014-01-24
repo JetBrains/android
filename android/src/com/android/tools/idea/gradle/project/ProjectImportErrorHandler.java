@@ -33,7 +33,8 @@ import java.util.regex.Pattern;
  * Provides better error messages for android projects import failures.
  */
 public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler {
-  public static final String FAILED_TO_PARSE_SDK = "failed to parse SDK";
+  public static final String FAILED_TO_PARSE_SDK_ERROR = "failed to parse SDK";
+
   public static final String INSTALL_ANDROID_SUPPORT_REPO = "Please install the Android Support Repository from the Android SDK Manager.";
   public static final String INSTALL_MISSING_PLATFORM = "Please install the missing platform from the Android SDK Manager.";
   public static final String INSTALL_MISSING_BUILD_TOOLS = "Please install the missing Build Tools from the Android SDK Manager.";
@@ -42,8 +43,7 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
   private static final Pattern SDK_NOT_FOUND = Pattern.compile("The SDK directory '(.*?)' does not exist.");
 
   private static final String EMPTY_LINE = "\n\n";
-  private static final String UNSUPPORTED_GRADLE_VERSION_ERROR =
-    "Gradle version " + GradleUtil.GRADLE_MINIMUM_VERSION + " is required";
+  private static final String UNSUPPORTED_GRADLE_VERSION_ERROR = "Gradle version " + GradleUtil.GRADLE_MINIMUM_VERSION + " is required";
   private static final String SDK_DIR_PROPERTY_MISSING = "No sdk.dir property defined in local.properties file.";
 
   @Override
@@ -67,7 +67,9 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
       return createUserFriendlyError(msg, null);
     }
 
-    if (rootCause instanceof IllegalStateException) {
+    if (rootCause instanceof IllegalStateException || rootCause instanceof ExternalSystemException) {
+      // Missing platform in SDK now also comes as a ExternalSystemException. This may be caused by changes in IDEA's "External System
+      // Import" framework.
       String msg = rootCause.getMessage();
       if (msg != null) {
         if (msg.startsWith("failed to find target android-")) {
@@ -87,14 +89,14 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
       String msg = rootCause.getMessage();
 
       // With this condition we cover 2 similar messages about the same problem.
-      if (msg != null && msg.contains("Could not find") && msg.contains("com.android.support:support")) {
+      if (msg != null && msg.contains("Could not find") && msg.contains("com.android.support:")) {
         // We keep the original error message and we append a hint about how to fix the missing dependency.
         String newMsg = msg + EMPTY_LINE + INSTALL_ANDROID_SUPPORT_REPO;
         // Location of build.gradle is useless for this error. Omitting it.
         return createUserFriendlyError(newMsg, null);
       }
 
-      if (msg != null && msg.contains(FAILED_TO_PARSE_SDK)) {
+      if (msg != null && msg.contains(FAILED_TO_PARSE_SDK_ERROR)) {
         String newMsg = msg + EMPTY_LINE + "The Android SDK may be missing the directory 'add-ons'.";
         // Location of build.gradle is useless for this error. Omitting it.
         return createUserFriendlyError(newMsg, null);

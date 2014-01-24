@@ -28,7 +28,6 @@ import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkManager;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.utils.SdkUtils;
 import com.android.utils.StdLogger;
@@ -51,6 +50,7 @@ import freemarker.cache.TemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.TemplateException;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -94,26 +94,13 @@ public class Template {
   static final int CURRENT_FORMAT = 4;
 
   /**
-   * Special marker indicating that this path refers to the special shared
-   * resource directory rather than being somewhere inside the root/ directory
-   * where all template specific resources are found
-   */
-  private static final String VALUE_TEMPLATE_DIR = "$TEMPLATEDIR";
-
-  /**
    * Directory within the template which contains the resources referenced
    * from the template.xml file
    */
   private static final String DATA_ROOT = "root";
 
-  /**
-   * Shared resource directory containing common resources shared among
-   * multiple templates
-   */
-  private static final String RESOURCE_ROOT = "resources";
-
   /** Reserved filename which describes each template */
-  public static final String TEMPLATE_XML = "template.xml";
+  public static final String TEMPLATE_XML_NAME = "template.xml";
 
   /** The settings.gradle lives at project root and points gradle at the build files for individual modules in their subdirectories */
   public static final String GRADLE_PROJECT_SETTINGS_FILE = "settings.gradle";
@@ -178,7 +165,7 @@ public class Template {
    * List of files to open after the wizard has been created (these are
    * identified by {@link #TAG_OPEN} elements in the recipe file
    */
-  private final List<String> myFilesToOpen = Lists.newArrayList();
+  private final List<File> myFilesToOpen = Lists.newArrayList();
 
   /** Path to the directory containing the templates */
   private final File myTemplateRoot;
@@ -243,12 +230,14 @@ public class Template {
     freemarker.setObjectWrapper(new DefaultObjectWrapper());
     freemarker.setTemplateLoader(myLoader);
 
-    processFile(freemarker, TEMPLATE_XML, paramMap);
+    processFile(freemarker, new File(TEMPLATE_XML_NAME), paramMap);
 
     // Handle dependencies
-    List<String> dependencyList = (List<String>)paramMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
-    if (dependencyList != null && dependencyList.size() > 0) {
-      mergeDependenciesIntoFile(dependencyList, GradleUtil.getGradleBuildFilePath(moduleRootPath));
+    if (paramMap.containsKey(TemplateMetadata.ATTR_DEPENDENCIES_LIST)) {
+      List<String> dependencyList = (List<String>)paramMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
+      if (dependencyList.size() > 0) {
+        mergeDependenciesIntoFile(dependencyList, GradleUtil.getGradleBuildFilePath(moduleRootPath));
+      }
     }
   }
 
@@ -267,7 +256,7 @@ public class Template {
   }
 
   @NotNull
-  public List<String> getFilesToOpen() {
+  public List<File> getFilesToOpen() {
     return myFilesToOpen;
   }
 
@@ -283,7 +272,7 @@ public class Template {
     paramMap.put("activityToLayout", new FmActivityToLayoutMethod());
     paramMap.put("layoutToActivity", new FmLayoutToActivityMethod());
     paramMap.put("classToResource", new FmClassNameToResourceMethod());
-    paramMap.put("escapeXmlAttribute", new FmEscapeXmlStringMethod());
+    paramMap.put("escapeXmlAttribute", new FmEscapeXmlAttributeMethod());
     paramMap.put("escapeXmlText", new FmEscapeXmlStringMethod());
     paramMap.put("escapeXmlString", new FmEscapeXmlStringMethod());
     paramMap.put("escapePropertyValue", new FmEscapePropertyValueMethod());
@@ -292,12 +281,10 @@ public class Template {
     // Dependency list
     paramMap.put(TemplateMetadata.ATTR_DEPENDENCIES_LIST, new LinkedList<String>());
 
-    // This should be handled better: perhaps declared "required packages" as part of the
-    // inputs? (It would be better if we could conditionally disable template based
-    // on availability)
-    Map<String, String> builtin = new HashMap<String, String>();
-    builtin.put("templatesRes", VALUE_TEMPLATE_DIR);
-    paramMap.put("android", builtin);
+    // Root folder of the templates
+    if (getTemplateRootFolder() != null) {
+      paramMap.put("templateRoot", getTemplateRootFolder().getAbsolutePath());
+    }
 
     // Wizard parameters supplied by user, specific to this template
     paramMap.putAll(args);
@@ -306,18 +293,18 @@ public class Template {
   }
 
   /** Read the given FreeMarker file and process the variable definitions */
-  private void processFile(@NotNull final Configuration freemarker, @NotNull String path, @NotNull final Map<String, Object> paramMap) {
+  private void processFile(@NotNull final Configuration freemarker, @NotNull File file, @NotNull final Map<String, Object> paramMap) {
     try {
       String xml;
-      if (path.endsWith(DOT_XML)) {
+      if (hasExtension(file, DOT_XML)) {
         // Just read the file
-        xml = readTextFile(getTemplateFile(path));
+        xml = readTextFile(getTemplateFile(file));
         if (xml == null) {
           return;
         }
       } else {
-        myLoader.setTemplateFile(getTemplateFile(path));
-        xml = processFreemarkerTemplate(freemarker, paramMap, path);
+        myLoader.setTemplateFile(getTemplateFile(file));
+        xml = processFreemarkerTemplate(freemarker, paramMap, file.getName());
       }
 
       // Handle UTF-8 since processed file may contain file paths
@@ -349,14 +336,14 @@ public class Template {
             }
           } else if (TAG_GLOBALS.equals(name)) {
             // Handle evaluation of variables
-            String path = attributes.getValue(ATTR_FILE);
-            if (path != null) {
-              processFile(freemarker, path, paramMap);
+            File globalsFile = getPath(attributes, ATTR_FILE);
+            if (globalsFile != null) {
+              processFile(freemarker, globalsFile, paramMap);
             } // else: <globals> root element
           } else if (TAG_EXECUTE.equals(name)) {
-            String path = attributes.getValue(ATTR_FILE);
-            if (path != null) {
-              executeRecipeFile(freemarker, path, paramMap);
+            File recipeFile = getPath(attributes, ATTR_FILE);
+            if (recipeFile != null) {
+              executeRecipeFile(freemarker, recipeFile, paramMap);
             }
           } else if (!name.equals("template") && !name.equals("category") && !name.equals("option") && !name.equals(TAG_THUMBS) &&
                      !name.equals(TAG_THUMB) && !name.equals(TAG_ICONS) && !name.equals(TAG_DEPENDENCY)) {
@@ -365,17 +352,18 @@ public class Template {
         }
       });
     } catch (Exception e) {
+      //noinspection AssignmentToStaticFieldFromInstanceMethod
       ourMostRecentException = e;
       LOG.warn(e);
     }
   }
 
   /** Executes the given recipe file: copying, merging, instantiating, opening files etc */
-  private void executeRecipeFile(@NotNull final Configuration freemarker, @NotNull String file, @NotNull final Map<String,
+  private void executeRecipeFile(@NotNull final Configuration freemarker, @NotNull File file, @NotNull final Map<String,
     Object> paramMap) {
     try {
       myLoader.setTemplateFile(getTemplateFile(file));
-      String xml = processFreemarkerTemplate(freemarker, paramMap, file);
+      String xml = processFreemarkerTemplate(freemarker, paramMap, file.getName());
 
       // Parse and execute the resulting instruction list. We handle UTF-8 since the processed file contains paths which may
       // have UTF-8 characters.
@@ -389,40 +377,40 @@ public class Template {
           try {
             boolean instantiate = TAG_INSTANTIATE.equals(name);
             if (TAG_COPY.equals(name) || instantiate) {
-              String fromPath = attributes.getValue(ATTR_FROM);
-              String toPath = attributes.getValue(ATTR_TO);
-              if (toPath == null || toPath.isEmpty()) {
-                toPath = attributes.getValue(ATTR_FROM);
-                toPath = TemplateUtils.stripSuffix(toPath, DOT_FTL);
+              File fromFile = getPath(attributes, ATTR_FROM);
+              File toFile = getPath(attributes, ATTR_TO);
+              if (toFile == null || toFile.getPath().isEmpty()) {
+                toFile = getPath(attributes, ATTR_FROM);
+                toFile = TemplateUtils.stripSuffix(toFile, DOT_FTL);
               }
               if (instantiate) {
-                instantiate(freemarker, paramMap, fromPath, toPath);
+                instantiate(freemarker, paramMap, fromFile, toFile);
               }
               else {
-                copyTemplateResource(fromPath, toPath);
+                copyTemplateResource(fromFile, toFile);
               }
             }
             else if (TAG_MERGE.equals(name)) {
-              String fromPath = attributes.getValue(ATTR_FROM);
-              String toPath = attributes.getValue(ATTR_TO);
-              if (toPath == null || toPath.isEmpty()) {
-                toPath = attributes.getValue(ATTR_FROM);
-                toPath = TemplateUtils.stripSuffix(toPath, DOT_FTL);
+              File fromFile = getPath(attributes, ATTR_FROM);
+              File toFile = getPath(attributes, ATTR_TO);
+              if (toFile == null || toFile.getPath().isEmpty()) {
+                toFile = getPath(attributes, ATTR_FROM);
+                toFile = TemplateUtils.stripSuffix(toFile, DOT_FTL);
               }
               // Resources in template.xml are located within root/
-              merge(freemarker, paramMap, fromPath, toPath);
+              merge(freemarker, paramMap, fromFile, toFile);
             }
             else if (name.equals(TAG_OPEN)) {
               // The relative path here is within the output directory:
-              String relativePath = attributes.getValue(ATTR_FILE);
-              if (relativePath != null && !relativePath.isEmpty()) {
+              File relativePath = getPath(attributes, ATTR_FILE);
+              if (relativePath != null && !relativePath.getPath().isEmpty()) {
                 myFilesToOpen.add(relativePath);
               }
             }
             else if (name.equals(TAG_MKDIR)) {
               // The relative path here is within the output directory:
-              String relativePath = attributes.getValue(ATTR_AT);
-              if (relativePath != null && !relativePath.isEmpty()) {
+              File relativePath = getPath(attributes, ATTR_AT);
+              if (relativePath != null && !relativePath.getPath().isEmpty()) {
                 mkdir(freemarker, paramMap, relativePath);
               }
             } else if (name.equals(TAG_DEPENDENCY)) {
@@ -438,12 +426,14 @@ public class Template {
             }
           }
           catch (Exception e) {
+            //noinspection AssignmentToStaticFieldFromInstanceMethod
             ourMostRecentException = e;
             LOG.warn(e);
           }
         }
       });
     } catch (Exception e) {
+      //noinspection AssignmentToStaticFieldFromInstanceMethod
       ourMostRecentException = e;
       LOG.warn(e);
     }
@@ -451,36 +441,37 @@ public class Template {
 
   private void merge(@NotNull final Configuration freemarker,
                      @NotNull final Map<String, Object> paramMap,
-                     @NotNull String relativeFrom,
-                     @NotNull String toPath) throws IOException, TemplateException {
+                     @NotNull File relativeFrom,
+                     @NotNull File to) throws IOException, TemplateException {
 
     String targetText = null;
 
-    File to = getTargetFile(toPath);
-    if (!(toPath.endsWith(DOT_XML) || toPath.endsWith(DOT_GRADLE))) {
+    to = getTargetFile(to);
+    if (!(hasExtension(to, DOT_XML) || hasExtension(to, DOT_GRADLE))) {
       throw new RuntimeException("Only XML or Gradle files can be merged at this point: " + to);
     }
 
     if (to.exists()) {
       targetText = Files.toString(to, Charsets.UTF_8);
     } else if (to.getParentFile() != null) {
+      //noinspection ResultOfMethodCallIgnored
       to.getParentFile().mkdirs();
     }
 
     if (targetText == null) {
       // The target file doesn't exist: don't merge, just copy
-      boolean instantiate = relativeFrom.endsWith(DOT_FTL);
+      boolean instantiate = hasExtension(relativeFrom, DOT_FTL);
       if (instantiate) {
-        instantiate(freemarker, paramMap, relativeFrom, toPath);
+        instantiate(freemarker, paramMap, relativeFrom, to);
       } else {
-        copyTemplateResource(relativeFrom, toPath);
+        copyTemplateResource(relativeFrom, to);
       }
       return;
     }
 
-    String sourceText = null;
+    String sourceText;
     File from = getFullPath(relativeFrom);
-    if (relativeFrom.endsWith(DOT_FTL)) {
+    if (hasExtension(relativeFrom, DOT_FTL)) {
       // Perform template substitution of the template prior to merging
       myLoader.setTemplateFile(from);
       sourceText = processFreemarkerTemplate(freemarker, paramMap, from.getName());
@@ -494,7 +485,7 @@ public class Template {
     String contents;
     if (to.getName().equals(GRADLE_PROJECT_SETTINGS_FILE)) {
       contents = mergeGradleSettingsFile(sourceText, targetText, freemarker, paramMap);
-    } else if (toPath.endsWith(DOT_XML)) {
+    } else if (hasExtension(to, DOT_XML)) {
       contents = mergeXml(sourceText, targetText, to, paramMap);
     } else {
       throw new RuntimeException("Only XML or Gradle settings files can be merged at this point: " + to);
@@ -503,7 +494,7 @@ public class Template {
     writeFile(contents, to);
   }
 
-  private String mergeXml(String sourceXml, String targetXml, File targetFile, Map<String, Object> paramMap) {
+  private static String mergeXml(String sourceXml, String targetXml, File targetFile, Map<String, Object> paramMap) {
     Document currentDocument = XmlUtils.parseDocumentSilently(targetXml, true);
     assert currentDocument != null : targetXml;
     Document fragment = XmlUtils.parseDocumentSilently(sourceXml, true);
@@ -783,7 +774,7 @@ public class Template {
 
         File archiveFile = RepositoryUrls.getArchiveForCoordinate(highest);
 
-        if (archiveFile.exists() ||
+        if (archiveFile != null && archiveFile.exists() ||
             (available != null && highest.acceptsGreaterRevisions() && available.compareTo(highest) > 0)) {
           sb.append(String.format("\n%1$scompile '%2$s'", INDENT, highest));
         } else {
@@ -831,11 +822,11 @@ public class Template {
   private void instantiate(
     @NotNull final Configuration freemarker,
     @NotNull final Map<String, Object> paramMap,
-    @NotNull String relativeFrom,
-    @NotNull String to) throws IOException, TemplateException {
+    @NotNull File relativeFrom,
+    @NotNull File to) throws IOException, TemplateException {
     // For now, treat extension-less files as directories... this isn't quite right
     // so I should refine this! Maybe with a unique attribute in the template file?
-    boolean isDirectory = relativeFrom.indexOf('.') == -1;
+    boolean isDirectory = relativeFrom.getName().indexOf('.') == -1;
     if (isDirectory) {
       // It's a directory
       copyTemplateResource(relativeFrom, to);
@@ -855,38 +846,39 @@ public class Template {
   private void mkdir(
     @NotNull final Configuration freemarker,
     @NotNull final Map<String, Object> paramMap,
-    @NotNull String at) throws IOException, TemplateException {
+    @NotNull File at) throws IOException, TemplateException {
     File targetFile = getTargetFile(at);
     VfsUtil.createDirectories(targetFile.getAbsolutePath());
   }
 
   @NotNull
-  private File getFullPath(@NotNull String fromPath) {
-    if (fromPath.startsWith(VALUE_TEMPLATE_DIR)) {
-      return new File(getTemplateRootFolder(),
-                      fromPath.substring(VALUE_TEMPLATE_DIR.length() + 1).replace('/', File.separatorChar));
+  private File getFullPath(@NotNull File fromFile) {
+    if (fromFile.isAbsolute()) {
+      return fromFile;
+    } else {
+      // If it's a relative file path, get the data from the template data directory
+      return new File(myTemplateRoot, DATA_ROOT + File.separator + fromFile);
     }
-    return new File(myTemplateRoot, DATA_ROOT + File.separator + fromPath);
   }
 
   @NotNull
-  private File getTargetFile(@NotNull String path) throws IOException {
-    File p = new File(path);
-    if (p.isAbsolute()) {
-      return p;
+  private File getTargetFile(@NotNull File file) throws IOException {
+    if (file.isAbsolute()) {
+      return file;
     }
-    return new File(myOutputRoot, path.replace('/', File.separatorChar));
+    return new File(myOutputRoot, file.getPath());
   }
 
   @NotNull
-  private File getTemplateFile(@NotNull String path) throws IOException {
-    return new File(myTemplateRoot, path.replace('/', File.separatorChar));
+  private File getTemplateFile(@NotNull File relativeFile) throws IOException {
+    return new File(myTemplateRoot, relativeFile.getPath());
   }
 
   @NotNull
-  private String processFreemarkerTemplate(@NotNull Configuration freemarker, @NotNull Map<String, Object> paramMap, @NotNull String path)
+  private static String processFreemarkerTemplate(@NotNull Configuration freemarker,
+                                                  @NotNull Map<String, Object> paramMap, @NotNull String name)
     throws IOException, TemplateException {
-    freemarker.template.Template inputsTemplate = freemarker.getTemplate(path);
+    freemarker.template.Template inputsTemplate = freemarker.getTemplate(name);
     StringWriter out = new StringWriter();
     inputsTemplate.process(paramMap, out);
     out.flush();
@@ -952,15 +944,15 @@ public class Template {
 
     return name;
   }
-  private static String format(@NotNull String contents, String to) {
+  private static String format(@NotNull String contents, File to) {
     // TODO: Implement this
     return contents;
   }
 
   /** Copy a template resource */
-  private final void copyTemplateResource(
-    @NotNull String relativeFrom,
-    @NotNull String output) throws IOException {
+  private void copyTemplateResource(
+    @NotNull File relativeFrom,
+    @NotNull File output) throws IOException {
     copy(getFullPath(relativeFrom), getTargetFile(output));
   }
 
@@ -969,7 +961,7 @@ public class Template {
   * source is allowed to be a directory, in which case the whole directory is
   * copied recursively)
   */
-  private void copy(@NotNull File src, @NotNull File dest) throws IOException {
+  private static void copy(@NotNull File src, @NotNull File dest) throws IOException {
     if (src.isDirectory()) {
       FileUtil.copyDirContent(src, dest);
     } else {
@@ -998,6 +990,21 @@ public class Template {
       }
     }
     vf.setBinaryContent(contents.getBytes(Charsets.UTF_8));
+  }
+
+  /**
+   * Retrieve the named parameter from the attribute list and unescape it from XML as a path
+   * @param attributes the map of attributes
+   * @param name the name of the attribute to retrieve
+   */
+  @Nullable
+  private static File getPath(@NotNull Attributes attributes, @NotNull String name) {
+    String value = attributes.getValue(name);
+    if (value == null) {
+      return null;
+    }
+    String unescapedString = XmlUtils.fromXmlAttributeValue(value);
+    return new File(FileUtil.toSystemDependentName(unescapedString));
   }
 
   /**
@@ -1058,9 +1065,9 @@ public class Template {
       try {
         AndroidVersion version = new AndroidVersion(codename);
         String hashString = AndroidTargetHash.getPlatformHashString(version);
-        SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
-        if (sdkManager != null) {
-          IAndroidTarget t = sdkManager.getTargetFromHashString(hashString);
+        AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+        if (sdkData != null) {
+          IAndroidTarget t = sdkData.getLocalSdk().getTargetFromHashString(hashString);
           if (t != null) {
             return t.getVersion().getApiLevel();
           }
@@ -1070,5 +1077,13 @@ public class Template {
       }
       return ICallback.UNKNOWN_CODENAME;
     }
+  }
+
+  /**
+   * Returns true iff the given file has the given extension (with or without .)
+   */
+  private static boolean hasExtension(File file, String extension) {
+    String noDotExtension = extension.startsWith(".") ? extension.substring(1) : extension;
+    return Files.getFileExtension(file.getName()).equalsIgnoreCase(noDotExtension);
   }
 }

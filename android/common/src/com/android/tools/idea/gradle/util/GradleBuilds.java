@@ -29,19 +29,19 @@ public final class GradleBuilds {
   private static final Logger LOG = Logger.getInstance(GradleBuilds.class);
 
   @NonNls public static final String CLEAN_TASK_NAME = "clean";
-  @NonNls private static final String DEFAULT_ASSEMBLE_TASK_NAME = "assemble";
+  @NonNls public static final String DEFAULT_ASSEMBLE_TASK_NAME = "assemble";
 
   /** Task for compiling a Java module's test classes. */
   @NonNls private static final String TEST_CLASSES_TASK_NAME = "testClasses";
 
-  @NonNls public static final String PARALLEL_BUILD_OPTION = "--parallel";
   @NonNls public static final String OFFLINE_MODE_OPTION = "--offline";
+  @NonNls public static final String PARALLEL_BUILD_OPTION = "--parallel";
 
-  public enum TestCompileContext {
+  public enum TestCompileType {
     NONE,            // don't compile any tests
     ANDROID_TESTS,   // compile tests that are part of an Android Module
     JAVA_TESTS       // compile tests that are part of a Java module
-  };
+  }
 
   private GradleBuilds() {
   }
@@ -51,7 +51,7 @@ public final class GradleBuilds {
                                          @Nullable String gradleProjectPath,
                                          @Nullable JpsAndroidModuleProperties androidFacetProperties,
                                          @NotNull List<String> tasks,
-                                         TestCompileContext testCompileContext) {
+                                         TestCompileType testCompileType) {
     if (gradleProjectPath == null) {
       // Gradle project path is never, ever null. If the path is empty, it shows as ":". We had reports of this happening. It is likely that
       // users manually added the Android-Gradle facet to a project. After all it is likely not to be a Gradle module. Better quit and not
@@ -84,7 +84,7 @@ public final class GradleBuilds {
       tasks.add(createBuildTask(gradleProjectPath, assembleTaskName));
     }
 
-    switch (testCompileContext) {
+    switch (testCompileType) {
       case ANDROID_TESTS:
         if (androidFacetProperties != null && !Strings.isNullOrEmpty(androidFacetProperties.ASSEMBLE_TEST_TASK_NAME)) {
           tasks.add(createBuildTask(gradleProjectPath, androidFacetProperties.ASSEMBLE_TEST_TASK_NAME));
@@ -100,6 +100,10 @@ public final class GradleBuilds {
 
   @NotNull
   private static String createBuildTask(@NotNull String gradleProjectPath, @NotNull String taskName) {
+    if (gradleProjectPath.equals(SdkConstants.GRADLE_PATH_SEPARATOR)) {
+      // Prevent double colon when dealing with root module (e.g. "::assemble");
+      return gradleProjectPath + taskName;
+    }
     return gradleProjectPath + SdkConstants.GRADLE_PATH_SEPARATOR + taskName;
   }
 }

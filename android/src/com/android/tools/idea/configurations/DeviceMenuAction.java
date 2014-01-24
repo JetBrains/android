@@ -17,6 +17,8 @@ package com.android.tools.idea.configurations;
 
 import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.HardwareConfigHelper;
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.sdklib.internal.avd.AvdInfo;
@@ -180,9 +182,16 @@ public class DeviceMenuAction extends FlatComboAction {
         sortNexusList(nexus);
         for (final Device device : nexus) {
           if (device.getId().equals("Nexus 5")) {
-            // Some layoutlib rendering issues (action bar font is way too large), so
-            // hide for now.
-            continue;
+            // Hide Nexus 5 if using an older layoutlib than API 19 revision 2, due to rendering bugs
+            // fixed in that revision
+            IAndroidTarget target = myRenderContext.getConfiguration().getTarget();
+            if (target == null) {
+              continue;
+            }
+            AndroidVersion version = target.getVersion();
+            if (version.getApiLevel() < 19 || version.getApiLevel() == 19 && target.getRevision() < 2) {
+              continue;
+            }
           }
           group.add(new SetDeviceAction(myRenderContext, getNexusLabel(device), device, current == device));
         }

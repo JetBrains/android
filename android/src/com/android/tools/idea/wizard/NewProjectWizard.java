@@ -16,8 +16,8 @@
 package com.android.tools.idea.wizard;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.sdklib.SdkManager;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.NewProjectImportCallback;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
@@ -30,7 +30,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -39,7 +38,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
@@ -57,20 +55,17 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
   private static final String ERROR_MSG_TITLE = "New Project Wizard";
   private static final String UNABLE_TO_CREATE_DIR_FORMAT = "Unable to create directory '%s1$s'.";
 
-  @VisibleForTesting
-  NewProjectWizardState myWizardState;
+  @VisibleForTesting NewProjectWizardState myWizardState;
 
-  @VisibleForTesting
-  AssetSetStep myAssetSetStep;
+  @VisibleForTesting AssetSetStep myAssetSetStep;
 
-  @VisibleForTesting
-  ChooseTemplateStep myChooseActivityStep;
+  @VisibleForTesting ChooseTemplateStep myChooseActivityStep;
 
-  @VisibleForTesting
-  TemplateParameterStep myActivityParameterStep;
+  @VisibleForTesting TemplateParameterStep myActivityParameterStep;
 
-  @VisibleForTesting
-  boolean myInitializationComplete = false;
+  @VisibleForTesting ConfigureAndroidModuleStep myConfigureAndroidModuleStep;
+
+  @VisibleForTesting boolean myInitializationComplete = false;
 
   public NewProjectWizard() {
     super("New Project", null);
@@ -78,9 +73,10 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
     // Allow creation in headless mode for tests
     if (window != null) {
       getWindow().setMinimumSize(new Dimension(1000, 640));
-    } else {
+    }
+    else {
       // We should always have a window unless we're in test mode
-      ApplicationManager.getApplication().isUnitTestMode();
+      assert ApplicationManager.getApplication().isUnitTestMode();
     }
     init();
   }
@@ -89,8 +85,9 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
   protected void init() {
     if (!AndroidSdkUtils.isAndroidSdkAvailable() || !TemplateManager.templatesAreValid()) {
       String title = "SDK problem";
-      String msg = "<html>Your Android SDK is missing, out of date, or is missing templates. Please ensure you are using SDK version 22 or later.<br>"
-        + "You can configure your SDK via <b>Configure | Project Defaults | Project Structure | SDKs</b></html>";
+      String msg =
+        "<html>Your Android SDK is missing, out of date, or is missing templates. Please ensure you are using SDK version 22 or later.<br>" +
+        "You can configure your SDK via <b>Configure | Project Defaults | Project Structure | SDKs</b></html>";
       super.init();
       Messages.showErrorDialog(msg, title);
       throw new IllegalStateException(msg);
@@ -100,17 +97,17 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
     myWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, GradleUtil.GRADLE_LATEST_VERSION);
     myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GradleUtil.GRADLE_PLUGIN_LATEST_VERSION);
     myWizardState.put(TemplateMetadata.ATTR_V4_SUPPORT_LIBRARY_VERSION, TemplateMetadata.V4_SUPPORT_LIBRARY_VERSION);
+    myWizardState.put(TemplateMetadata.ATTR_PER_MODULE_REPOS, false);
 
-    ConfigureAndroidModuleStep configureAndroidModuleStep =
-      new ConfigureAndroidModuleStep(myWizardState, myProject, NewProjectSidePanel, this);
-    configureAndroidModuleStep.updateStep();
+    myConfigureAndroidModuleStep = new ConfigureAndroidModuleStep(myWizardState, myProject, NewProjectSidePanel, this);
+    myConfigureAndroidModuleStep.updateStep();
     myAssetSetStep = new AssetSetStep(myWizardState.getLauncherIconState(), myProject, NewProjectSidePanel, this);
     myAssetSetStep.finalizeAssetType(AssetStudioWizardState.AssetType.LAUNCHER);
-    myChooseActivityStep = new ChooseTemplateStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, myProject,
-                                                  NewProjectSidePanel, this, null);
+    myChooseActivityStep =
+      new ChooseTemplateStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, myProject, NewProjectSidePanel, this, null);
     myActivityParameterStep = new TemplateParameterStep(myWizardState.getActivityTemplateState(), myProject, NewProjectSidePanel, this);
 
-    mySteps.add(configureAndroidModuleStep);
+    mySteps.add(myConfigureAndroidModuleStep);
     mySteps.add(myAssetSetStep);
     mySteps.add(myChooseActivityStep);
     mySteps.add(myActivityParameterStep);
@@ -179,7 +176,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
       if (version != null) {
         initialLanguageLevel = LanguageLevel.parse(version.toString());
       }
-      projectImporter.importProject(projectName, projectRoot, new GradleProjectImporter.Callback() {
+      projectImporter.importProject(projectName, projectRoot, new NewProjectImportCallback() {
         @Override
         public void projectImported(@NotNull final Project project) {
           // Open files -- but wait until the Android facets are available, otherwise for example
@@ -192,23 +189,14 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
                 openTemplateFiles(project);
               }
             });
-          } else {
+          }
+          else {
             openTemplateFiles(project);
           }
         }
 
         private boolean openTemplateFiles(Project project) {
           return TemplateUtils.openEditors(project, wizardState.myTemplate.getFilesToOpen(), true);
-        }
-
-        @Override
-        public void importFailed(@NotNull Project project, @NotNull final String errorMessage) {
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              Messages.showErrorDialog(errorMessage, ERROR_MSG_TITLE);
-            }
-          });
         }
       }, project, initialLanguageLevel);
     }

@@ -222,7 +222,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   private void createAndAlignApk(final String apkPath) {
     AndroidPlatform platform = getFacet().getConfiguration().getAndroidPlatform();
     assert platform != null;
-    String sdkPath = platform.getSdkData().getLocation();
+    String sdkPath = platform.getSdkData().getPath();
     String zipAlignPath = sdkPath + File.separatorChar + AndroidCommonUtils.toolPath(SdkConstants.FN_ZIPALIGN);
     File zipalign = new File(zipAlignPath);
     final boolean runZipAlign = zipalign.isFile();

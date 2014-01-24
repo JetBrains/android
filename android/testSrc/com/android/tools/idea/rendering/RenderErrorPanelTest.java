@@ -23,12 +23,12 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import junit.framework.AssertionFailedError;
-import junit.framework.ComparisonFailure;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -94,7 +94,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     RenderLogger logger = new RenderLogger("myLogger", myModule);
     RenderService service = RenderService.create(facet, myModule, psiFile, configuration, logger, null);
     assertNotNull(service);
-    RenderResult render = service.render();
+    RenderResult render = RenderTestBase.renderOnSeparateThread(service);
     assertNotNull(render);
 
     if (logOperation != null) {
@@ -596,7 +596,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
   private String stripSdkHome(@NotNull String html) {
     AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
     assertNotNull(platform);
-    String location = platform.getSdkData().getLocation();
+    String location = platform.getSdkData().getPath();
     location = FileUtil.toSystemIndependentName(location);
     html = html.replace(location, "$SDK_HOME");
     return html;

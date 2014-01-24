@@ -396,4 +396,21 @@ class PsiResourceItem extends ResourceItem {
   XmlTag getTag() {
     return myTag;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    // Only reference equality; we need to be able to distinguish duplicate elements which can happen during editing
+    // for incremental updating to handle temporarily aliasing items.
+    return this == o;
+  }
+
+  @Override
+  public int hashCode() {
+    return getName().hashCode();
+  }
+
+  @Override
+  public String toString() {
+    return super.toString() + ": " + (myTag != null ? getTextContent(myTag) : "null");
+  }
 }
