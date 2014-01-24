@@ -86,7 +86,7 @@ public class AndroidSdkDataTest extends AndroidTestCase {
 
     String otherEnding;
     if (testSdkPath.endsWith(File.separator)) {
-      otherEnding = testSdkPath.substring(0, testSdkPath.length() - 2);
+      otherEnding = testSdkPath.substring(0, testSdkPath.length() - 1);
     } else {
       otherEnding = testSdkPath + File.separator;
     }
