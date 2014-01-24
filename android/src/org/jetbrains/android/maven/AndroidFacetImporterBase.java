@@ -598,14 +598,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
         ZipUtil.extract(artifactFile, targetDir, null);
       }
       catch (IOException e) {
-        final String message = e.getMessage();
-
-        if (message == null) {
-          LOG.error(e);
-        }
-        else {
-          AndroidUtils.reportImportErrorToEventLog("I/O error: " + message, moduleName, project);
-        }
+        reportIoErrorToEventLog(e, moduleName, project);
         return false;
       }
     }
@@ -613,6 +606,17 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       AndroidUtils.reportImportErrorToEventLog("Cannot find file " + artifactFile.getPath(), moduleName, project);
     }
     return true;
+  }
+
+  private static void reportIoErrorToEventLog(IOException e, String moduleName, Project project) {
+    final String message = e.getMessage();
+
+    if (message == null) {
+      LOG.error(e);
+    }
+    else {
+      AndroidUtils.reportImportErrorToEventLog("I/O error: " + message, moduleName, project);
+    }
   }
 
   private static void importSdkAndDependenciesForApklibArtifact(Project project,
@@ -752,9 +756,44 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
         }
         if (resolvedArtifacts.add(depArtifact.getMavenId())) {
           doResolveApklibArtifact(project, depArtifact, embedder, mavenProjectsManager, mavenProject.getName(), adm, context);
+        }
       }
     }
   }
+
+  @Nullable
+  private static File buildFakeArtifactPomFile(@NotNull MavenArtifact artifact, @NotNull String moduleName, @NotNull Project project) {
+    File tmpFile = null;
+    try {
+      tmpFile = FileUtil.createTempFile("intellij_fake_artifat_pom", "tmp");
+      FileUtil.writeToFile(
+        tmpFile,
+        "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
+        "         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd\">\n" +
+        "  <modelVersion>4.0.0</modelVersion>\n" +
+        "  <groupId>intellij-fake-artifact-group</groupId>\n" +
+        "  <artifactId>intellij-fake-artifact</artifactId>\n" +
+        "  <version>1.0-SNAPSHOT</version>\n" +
+        "  <packaging>jar</packaging>\n" +
+        "  <name>Fake</name>" +
+        "  <dependencies>" +
+        "    <dependency>" +
+        "      <groupId>" + artifact.getGroupId() + "</groupId>" +
+        "      <artifactId>" + artifact.getArtifactId() + "</artifactId>" +
+        "      <version>" + artifact.getVersion() + "</version>" +
+        "    </dependency>" +
+        "  </dependencies>" +
+        "</project>");
+      return tmpFile;
+    }
+    catch (IOException e) {
+      reportIoErrorToEventLog(e, moduleName, project);
+
+      if (tmpFile != null) {
+        FileUtil.delete(tmpFile);
+      }
+      return null;
+    }
   }
 
   private void doResolveApklibArtifact(Project project,
@@ -788,7 +827,8 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       }
     };
     final MavenArtifactResolvedInfo info = new MavenArtifactResolvedInfo();
-    adm.setResolvedInfoForArtifact(artifact.getMavenId(), info);
+    final MavenId mavenId = artifact.getMavenId();
+    adm.setResolvedInfoForArtifact(mavenId, info);
 
     projectForExternalApklib.read(generalSettings, mavenProjectsManager.getAvailableProfiles(), mavenProjectReader, locator);
     projectForExternalApklib.resolve(project, generalSettings, embedder, mavenProjectReader, locator, context);
@@ -798,7 +838,41 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     final List<AndroidExternalApklibDependenciesManager.MavenDependencyInfo> dependencies =
       new ArrayList<AndroidExternalApklibDependenciesManager.MavenDependencyInfo>();
 
-    for (MavenArtifact depArtifact : projectForExternalApklib.getDependencies()) {
+    List<MavenArtifact> deps = projectForExternalApklib.getDependencies();
+
+    if (deps.isEmpty()) {
+      // Hack for solving IDEA-119450. Maven reports "unknown packaging 'apklib'" when resolving if android plugin is not specified
+      // in the "build" section of the pom, so we create fake jar artifact dependent on the apklib artifact and resolve it
+      final File fakePomFile = buildFakeArtifactPomFile(artifact, moduleName, project);
+
+      if (fakePomFile != null) {
+        try {
+          final VirtualFile vFakePomFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(fakePomFile);
+
+          if (vFakePomFile != null) {
+            final MavenProject fakeProject = new MavenProject(vFakePomFile);
+            fakeProject.read(generalSettings, mavenProjectsManager.getAvailableProfiles(), mavenProjectReader, locator);
+            fakeProject.resolve(project, generalSettings, embedder, mavenProjectReader, locator, context);
+            deps = fakeProject.getDependencies();
+
+            for (Iterator<MavenArtifact> it = deps.iterator(); it.hasNext(); ) {
+              final MavenArtifact dep = it.next();
+
+              if (dep.getMavenId().equals(mavenId)) {
+                it.remove();
+              }
+             }
+          }
+          else {
+            LOG.error("Cannot find file " + fakePomFile.getPath() + " in the VFS");
+          }
+        }
+        finally {
+          FileUtil.delete(fakePomFile);
+        }
+      }
+    }
+    for (MavenArtifact depArtifact : deps) {
       dependencies.add(AndroidExternalApklibDependenciesManager.MavenDependencyInfo.create(depArtifact));
     }
     info.setApiLevel(apiLevel != null ? apiLevel : "");
